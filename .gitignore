@@ -1,0 +1,12 @@
+.env
+/deployments/
+/.vscode/
+/build/
+/node_modules/
+/typechain/
+/artifacts/
+/cache/
+.DS_Store
+*.swp
+.tmp
+/.openzeppelin/unknown-31337.json

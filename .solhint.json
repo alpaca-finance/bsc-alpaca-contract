@@ -1,0 +1,11 @@
+{
+  "extends": ["solhint:recommended"],
+  "rules": {
+    "prettier/prettier": "error",
+    "avoid-throw": false,
+    "avoid-suicide": "error",
+    "avoid-sha3": "warn",
+    "quotes": ["warn", "double"]
+  },
+  "plugins": ["prettier"]
+}

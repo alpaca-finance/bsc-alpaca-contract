@@ -1,0 +1,374 @@
+{
+  "ProxyAdmin": "0x2c6c09b46d00A88161B7e4AcFaFEc58990548aC2",
+  "Timelock": "0xb3c3aE82358DF7fC0bd98629D5ed91767e45c337",
+  "Shield": "0x938350DF8BF3bD81Baae368b72132f1Bd14E7C13",
+  "FairLaunch": {
+    "address": "0xac2fefDaF83285EA016BE3f5f1fb039eb800F43D",
+    "pools": [{
+      "id": 0,
+      "stakingToken": "debtibBNB",
+      "address": "0x897E178C31D86Dbf00982c4F6dB1F5fd9A476964",
+      "allocPoint": 0
+    }, {
+      "id": 1,
+      "stakingToken": "ibWBNB",
+      "address": "0xf9d32C5E10Dd51511894b360e6bD39D7573450F9",
+      "allocPoint": 200
+    }, {
+      "id": 2,
+      "stakingToken": "debtibBUSD",
+      "address": "0xe6A88866dfeaC58a7BD7fa721C2DfF49501fC791",
+      "allocPoint": 0
+    }, {
+      "id": 3,
+      "stakingToken": "ibBUSD",
+      "address": "0xe5ed8148fE4915cE857FC648b9BdEF8Bb9491Fa5",
+      "allocPoint": 200
+    }, {
+      "id": 4,
+      "stakingToken": "ALPACA-WBNB LP",
+      "address": "0x8aD889FE2eDA1B7CB3a8C09FFB7246571564b379",
+      "allocPoint": 100
+    }, {
+      "id": 5,
+      "stakingToken": "sALPACA",
+      "address": "0x588245DE5E45ecF463565ebD944BBD7975670fAC",
+      "allocPoint": 100
+    }, {
+      "id": 6,
+      "stakingToken": "debtIbBNB V2",
+      "address": "0x2E0384Bc38E250639291D6710EDC3d5034e95996",
+      "allocPoint": 0
+    }, {
+      "id": 7,
+      "stakingToken": "debtIbBUSD V2",
+      "address": "0x49974bc28f1920A603aa8dffB3C61b4CD5B26710",
+      "allocPoint": 0
+    }, {
+      "id": 9,
+      "stakingToken": "debtIbETH V2",
+      "address": "0x5E780a0F887EbeA8425BAa67A834D1168054F645",
+      "allocPoint": 0
+    }, {
+      "id": 10,
+      "stakingToken": "ibETH",
+      "address": "0x3F1D4A430C213bd9D4c9a12E4F382270505fCeA1",
+      "allocPoint": 0
+    }]
+  },
+  "Exchanges": {
+    "Pancakeswap": {
+      "UniswapV2Factory": "0x716e4852251f85BDFf23B2D5B53630b838A20FC8",
+      "UniswapV2Router02": "0xf46A02489B99C5A4a5cC31AA3F9eBD6A501D4B49",
+      "MasterChef": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
+      "LpTokens": [{
+        "pId": 1,
+        "name": "CAKE-WBNB LP",
+        "address": "0x0e0867202aBA2899e0E668455B745f6Bd037B029"
+      }, {
+        "pId": 2,
+        "name": "BTCB-WBNB LP",
+        "address": "0x8859ac598B0c0Cc1d9995aB74bbDF64c4c47F45d"
+      }, {
+        "pId": 3,
+        "name": "ETH-WBNB LP",
+        "address": "0xD66C91E730949eDE01885FEEd359E13a4A6142Ab"
+      }, {
+        "pId": 5,
+        "name": "USDT-BUSD LP",
+        "address": "0x28bE867621241533136003852Ae69f0844490104"
+      }, {
+        "pId": 4,
+        "name": "WBNB-BUSD LP",
+        "address": "0x5f87B8f3705069380010dEd9f8575f4147eF1dB1"
+      }, {
+        "pId": 7,
+        "name": "DOT-WBNB LP",
+        "address": "0xa10C1E6B15d0f15867C6Ab0Dd0ccF8883D6A359d"
+      }, {
+        "pId": 8,
+        "name": "UNI-WBNB LP",
+        "address": "0xaD12f7d74D15b7cAdeA01B04eBe1C505abfBe4fc"
+      }, {
+        "pId": 9,
+        "name": "LINK-WBNB LP",
+        "address": "0x47Ad481dE016436E22a426319A88d0097079F6eE"
+      }, {
+        "pId": 10,
+        "name": "XVS-WBNB LP",
+        "address": "0xd2Adf0F11967E7aDB183C329Ea2b2f45af8bC0d1"
+      }, {
+        "pId": 11,
+        "name": "YFI-WBNB LP",
+        "address": "0x9C5780AaFC56B0090EFB04663e86D9bEFfCF23cB"
+      }, {
+        "pId": 12,
+        "name": "VAI-BUSD LP",
+        "address": "0xA61bb010D76eeDae6Bff366cf0cDFD5261069ac1"
+      }, {
+        "pId": 13,
+        "name": "USDC-BUSD LP",
+        "address": "0x0F917dA4AbB16641B2c631913F0a4853D9f274F8"
+      }, {
+        "pId": 14,
+        "name": "DAI-BUSD LP",
+        "address": "0x144Cb4Aff90640B934301FD658cF0587De522eAC"
+      }, {
+        "pId": 15,
+        "name": "UST-BUSD LP",
+        "address": "0x3aa448865beDde0fEb63F2C30D3487A4EC293DA6"
+      }, {
+        "pId": 16,
+        "name": "BETH-ETH LP",
+        "address": "0x8F98153c0F907617d86FA3e93d9766826B126a5A"
+      }, {
+        "pId": 17,
+        "name": "COMP-ETH LP",
+        "address": "0xaD96bBF52EB8f522481F3f5BD2FC777cDD92bC40"
+      }, {
+        "pId": 18,
+        "name": "SUSHI-ETH LP",
+        "address": "0xa905bcf59fdc725DE9Dc1A5F89dE40d906cf7942"
+      }]
+    }
+  },
+  "Tokens": {
+    "WBNB": "0xDfb1211E2694193df5765d54350e1145FD2404A1",
+    "ALPACA": "0x354b3a11D5Ea2DA89405173977E271F58bE2897D",
+    "sALPACA": "0xd4B9F8001BC9E756350D53E8d786121dC0dB455b",
+    "BUSD": "0x0266693F9Df932aD7dA8a9b44C2129Ce8a87E81f",
+    "CAKE": "0x7aBcA3B5f0Ca1da0eC05631d5788907D030D0a22",
+    "SYRUP": "0x6F55c83f6FA7a23C1d342fE84fC49C05533AcFcE",
+    "USDT": "0xE60Fa777dEb72C364447BB18C823C4731FbeD671",
+    "BTCB": "0xCCaf3FC49B0D0F53fe2c08103F75A397052983FB",
+    "ETH": "0xd5c082df9eDE041548fa79e05A1CB077036ca86F",
+    "DOT": "0xD33AE1cab48Ec14EE081E8C1c2872586f7b35A52",
+    "UNI": "0x952337d30fE8648f096Bc755DB3e599409C62570",
+    "LINK": "0x3B7b786477089055b689C85fe8248851507F7Ff8",
+    "XVS": "0x74b446ab45a68eCF4C9723B45734b796f6dA7ae4",
+    "YFI": "0xFBFf897F471afdf22b5d8c32f88A529a87a7B81b",
+    "VAI": "0xD189Be96c38BeC6fa9FbCB0e148cA1564D51b959",
+    "USDC": "0x74E6d184A8cD7d43E9b2B46b66F6Eb92d36a768B",
+    "DAI": "0xa5dd524379382a6a756920509109E078c7ba026C",
+    "UST": "0xd413E8Cb2855533a5724745B7060c8b18e2bDcfD",
+    "BETH": "0x32Dde246479D538c0FC45a667e002cE33Fc57a15",
+    "COMP": "0xd02A71609f9eB0e3270A1417D79e2c12903D3aa1",
+    "SUSHI": "0x86c1f21D1622516576ba514b53d2fE5Dbe48Bab0"
+  },
+  "LpTokens": {
+    "ALPACA-WBNB": "0xb4065bAC627da8b187dC8F65C88Db21A402347e6",
+    "sALPACA-ALPACA": "0x0eb1bf1818456f68ecdb53d829a8a9a85f186421"
+  },
+  "SharedStrategies": {
+    "StrategyAddBaseTokenOnly": "0x5D0c3a0C79fCe9c177D7140e975681447C747D05",
+    "StrategyLiquidate": "0x3be48dD0b9AA62560AAF0bff2115cc8617A4BD70",
+    "StrategyWithdrawMinimizeTrading": "0x7Db9Be22E449153bb86ABeeF5D6e4C5b72E4F5B8"
+  },
+  "SharedConfig": {
+    "TripleSlopeModel": "0x2Fe7097cf766DfE06f9e2eD3021f8a4bbEf468Dd",
+    "TripleSlopeModelStable20Max150": "0x038cd7a6A397d7f5D07a0c76A4610a7Ca64eb7d3",
+    "WNativeRelayer": "0x7e2284c8CC74F13FA6c218c4231b0786E6204728",
+    "WorkerConfig": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7"
+  },
+  "Oracle": {
+    "SimpleOracle": "0xFb0645d38e35DA4C4Aa0079366B7d9905f162fCe"
+  },
+  "Vaults": [{
+    "name": "Interest Bearing WBNB",
+    "symbol": "ibWBNB",
+    "address": "0xf9d32C5E10Dd51511894b360e6bD39D7573450F9",
+    "debtToken": "0x2E0384Bc38E250639291D6710EDC3d5034e95996",
+    "config": "0x037F4b0d074B83d075EC3B955F69BaB9977bdb05",
+    "tripleSlopeModel": "0x038cd7a6A397d7f5D07a0c76A4610a7Ca64eb7d3",
+    "StrategyAddTwoSidesOptimal": "0x9c79F9eac99Af00A75599625895f5619Da9d19e0",
+    "workers": [{
+      "name": "CAKE-WBNB PancakeswapWorker",
+      "address": "0x2c12663339Fdce1A3088C0245FC2499255ccF7eC",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x5D0c3a0C79fCe9c177D7140e975681447C747D05",
+        "StrategyLiquidate": "0x3be48dD0b9AA62560AAF0bff2115cc8617A4BD70",
+        "StrategyAddTwoSidesOptimal": "0x9c79F9eac99Af00A75599625895f5619Da9d19e0",
+        "StrategyWithdrawMinimizeTrading": "0x7Db9Be22E449153bb86ABeeF5D6e4C5b72E4F5B8"
+      }
+    }, {
+      "name": "BTCB-WBNB PancakeswapWorker",
+      "address": "0xf20E73385397284f37c47963E2515156fCf33360",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x5D0c3a0C79fCe9c177D7140e975681447C747D05",
+        "StrategyLiquidate": "0x3be48dD0b9AA62560AAF0bff2115cc8617A4BD70",
+        "StrategyAddTwoSidesOptimal": "0x9c79F9eac99Af00A75599625895f5619Da9d19e0",
+        "StrategyWithdrawMinimizeTrading": "0x7Db9Be22E449153bb86ABeeF5D6e4C5b72E4F5B8"
+      }
+    }, {
+      "name": "ETH-WBNB PancakeswapWorker",
+      "address": "0xA950ee51Ac3b27a1a6C87D6448D6717ACBc7b0A8",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x5D0c3a0C79fCe9c177D7140e975681447C747D05",
+        "StrategyLiquidate": "0x3be48dD0b9AA62560AAF0bff2115cc8617A4BD70",
+        "StrategyAddTwoSidesOptimal": "0x9c79F9eac99Af00A75599625895f5619Da9d19e0",
+        "StrategyWithdrawMinimizeTrading": "0x7Db9Be22E449153bb86ABeeF5D6e4C5b72E4F5B8"
+      }
+    }, {
+      "name": "DOT-WBNB PancakeswapWorker",
+      "address": "0x8Da719444090875B476A7163F8A363fB30F2440c",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x5D0c3a0C79fCe9c177D7140e975681447C747D05",
+        "StrategyLiquidate": "0x3be48dD0b9AA62560AAF0bff2115cc8617A4BD70",
+        "StrategyAddTwoSidesOptimal": "0x9c79F9eac99Af00A75599625895f5619Da9d19e0",
+        "StrategyWithdrawMinimizeTrading": "0x7Db9Be22E449153bb86ABeeF5D6e4C5b72E4F5B8"
+      }
+    }, {
+      "name": "UNI-WBNB PancakeswapWorker",
+      "address": "0x09207DF4c9D3E62346997e39526fb0e46Ce45539",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x5D0c3a0C79fCe9c177D7140e975681447C747D05",
+        "StrategyLiquidate": "0x3be48dD0b9AA62560AAF0bff2115cc8617A4BD70",
+        "StrategyAddTwoSidesOptimal": "0x9c79F9eac99Af00A75599625895f5619Da9d19e0",
+        "StrategyWithdrawMinimizeTrading": "0x7Db9Be22E449153bb86ABeeF5D6e4C5b72E4F5B8"
+      }
+    }, {
+      "name": "LINK-WBNB PancakeswapWorker",
+      "address": "0x87501549129FB8A960F870CCcDc0153D8b926b4E",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x5D0c3a0C79fCe9c177D7140e975681447C747D05",
+        "StrategyLiquidate": "0x3be48dD0b9AA62560AAF0bff2115cc8617A4BD70",
+        "StrategyAddTwoSidesOptimal": "0x9c79F9eac99Af00A75599625895f5619Da9d19e0",
+        "StrategyWithdrawMinimizeTrading": "0x7Db9Be22E449153bb86ABeeF5D6e4C5b72E4F5B8"
+      }
+    }, {
+      "name": "XVS-WBNB PancakeswapWorker",
+      "address": "0x9d25cEec06a6A732c8647BA717f986Bf67794a80",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x5D0c3a0C79fCe9c177D7140e975681447C747D05",
+        "StrategyLiquidate": "0x3be48dD0b9AA62560AAF0bff2115cc8617A4BD70",
+        "StrategyAddTwoSidesOptimal": "0x9c79F9eac99Af00A75599625895f5619Da9d19e0",
+        "StrategyWithdrawMinimizeTrading": "0x7Db9Be22E449153bb86ABeeF5D6e4C5b72E4F5B8"
+      }
+    }, {
+      "name": "YFI-WBNB PancakeswapWorker",
+      "address": "0xF4964FDD35D9443b766adD8bdEb98C4E8592a7ea",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x5D0c3a0C79fCe9c177D7140e975681447C747D05",
+        "StrategyLiquidate": "0x3be48dD0b9AA62560AAF0bff2115cc8617A4BD70",
+        "StrategyAddTwoSidesOptimal": "0x9c79F9eac99Af00A75599625895f5619Da9d19e0",
+        "StrategyWithdrawMinimizeTrading": "0x7Db9Be22E449153bb86ABeeF5D6e4C5b72E4F5B8"
+      }
+    }]
+  }, {
+    "name": "Interest Bearing BUSD",
+    "symbol": "ibBUSD",
+    "address": "0xe5ed8148fE4915cE857FC648b9BdEF8Bb9491Fa5",
+    "debtToken": "0x49974bc28f1920A603aa8dffB3C61b4CD5B26710",
+    "config": "0xbC6d2dfe97A557Bd793d07ebB0df3ea80cc990Fc",
+    "tripleSlopeModel": "0x038cd7a6A397d7f5D07a0c76A4610a7Ca64eb7d3",
+    "StrategyAddTwoSidesOptimal": "0x6582A80b6c23BE7ecEC23Ef28E078C1edCf12e6E",
+    "workers": [{
+      "name": "USDT-BUSD PancakeswapWorker",
+      "address": "0xDf605784D78D42b5507Be14D6533a835E2692A16",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x5D0c3a0C79fCe9c177D7140e975681447C747D05",
+        "StrategyLiquidate": "0x3be48dD0b9AA62560AAF0bff2115cc8617A4BD70",
+        "StrategyAddTwoSidesOptimal": "0x6582A80b6c23BE7ecEC23Ef28E078C1edCf12e6E",
+        "StrategyWithdrawMinimizeTrading": "0x7Db9Be22E449153bb86ABeeF5D6e4C5b72E4F5B8"
+      }
+    }, {
+      "name": "WBNB-BUSD PancakeswapWorker",
+      "address": "0x00d078c7e058bA5106878b9e0CC09Ef1BF510925",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x5D0c3a0C79fCe9c177D7140e975681447C747D05",
+        "StrategyLiquidate": "0x3be48dD0b9AA62560AAF0bff2115cc8617A4BD70",
+        "StrategyAddTwoSidesOptimal": "0x6582A80b6c23BE7ecEC23Ef28E078C1edCf12e6E",
+        "StrategyWithdrawMinimizeTrading": "0x7Db9Be22E449153bb86ABeeF5D6e4C5b72E4F5B8"
+      }
+    }, {
+      "name": "VAI-BUSD PancakeswapWorker",
+      "address": "0xcF133249342444781ac4Fd5C101a0874ef88BA3A",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x5D0c3a0C79fCe9c177D7140e975681447C747D05",
+        "StrategyLiquidate": "0x3be48dD0b9AA62560AAF0bff2115cc8617A4BD70",
+        "StrategyAddTwoSidesOptimal": "0x6582A80b6c23BE7ecEC23Ef28E078C1edCf12e6E",
+        "StrategyWithdrawMinimizeTrading": "0x7Db9Be22E449153bb86ABeeF5D6e4C5b72E4F5B8"
+      }
+    }, {
+      "name": "USDC-BUSD PancakeswapWorker",
+      "address": "0x8B9e246D217e94ff67EA2d48fC6299366D3f984b",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x5D0c3a0C79fCe9c177D7140e975681447C747D05",
+        "StrategyLiquidate": "0x3be48dD0b9AA62560AAF0bff2115cc8617A4BD70",
+        "StrategyAddTwoSidesOptimal": "0x6582A80b6c23BE7ecEC23Ef28E078C1edCf12e6E",
+        "StrategyWithdrawMinimizeTrading": "0x7Db9Be22E449153bb86ABeeF5D6e4C5b72E4F5B8"
+      }
+    }, {
+      "name": "DAI-BUSD PancakeswapWorker",
+      "address": "0xA06635050bA513B872a24F3316b68fdD98C424D3",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x5D0c3a0C79fCe9c177D7140e975681447C747D05",
+        "StrategyLiquidate": "0x3be48dD0b9AA62560AAF0bff2115cc8617A4BD70",
+        "StrategyAddTwoSidesOptimal": "0x6582A80b6c23BE7ecEC23Ef28E078C1edCf12e6E",
+        "StrategyWithdrawMinimizeTrading": "0x7Db9Be22E449153bb86ABeeF5D6e4C5b72E4F5B8"
+      }
+    }, {
+      "name": "UST-BUSD PancakeswapWorker",
+      "address": "0xa7133b1e009e542ee5f6F6Dd786D9B35382600a2",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x5D0c3a0C79fCe9c177D7140e975681447C747D05",
+        "StrategyLiquidate": "0x3be48dD0b9AA62560AAF0bff2115cc8617A4BD70",
+        "StrategyAddTwoSidesOptimal": "0x6582A80b6c23BE7ecEC23Ef28E078C1edCf12e6E",
+        "StrategyWithdrawMinimizeTrading": "0x7Db9Be22E449153bb86ABeeF5D6e4C5b72E4F5B8"
+      }
+    }]
+  }, {
+    "name": "Interest Bearing ETH",
+    "symbol": "ibETH",
+    "address": "0x3F1D4A430C213bd9D4c9a12E4F382270505fCeA1",
+    "debtToken": "0x5E780a0F887EbeA8425BAa67A834D1168054F645",
+    "config": "0x6Eebe002C224490A800eFC6BC3f1B28816Bf6164",
+    "tripleSlopeModel": "0x038cd7a6A397d7f5D07a0c76A4610a7Ca64eb7d3",
+    "StrategyAddTwoSidesOptimal": "0xa7c282d7c6081C90693751a269C91e1f18C0c48A",
+    "workers": [{
+      "name": "BETH-ETH PancakeswapWorker",
+      "address": "0x656EC5c9Eea2c212A5945cd657B1e87c1e28eB95",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x5D0c3a0C79fCe9c177D7140e975681447C747D05",
+        "StrategyLiquidate": "0x3be48dD0b9AA62560AAF0bff2115cc8617A4BD70",
+        "StrategyAddTwoSidesOptimal": "0xa7c282d7c6081C90693751a269C91e1f18C0c48A",
+        "StrategyWithdrawMinimizeTrading": "0x7Db9Be22E449153bb86ABeeF5D6e4C5b72E4F5B8"
+      }
+    }, {
+      "name": "COMP-ETH PancakeswapWorker",
+      "address": "0xC8149CAc51AC1bb5009Dd71e50C54a7dec96aB30",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x5D0c3a0C79fCe9c177D7140e975681447C747D05",
+        "StrategyLiquidate": "0x3be48dD0b9AA62560AAF0bff2115cc8617A4BD70",
+        "StrategyAddTwoSidesOptimal": "0xa7c282d7c6081C90693751a269C91e1f18C0c48A",
+        "StrategyWithdrawMinimizeTrading": "0x7Db9Be22E449153bb86ABeeF5D6e4C5b72E4F5B8"
+      }
+    }, {
+      "name": "SUSHI-ETH PancakeswapWorker",
+      "address": "0xd9811CeD97545243a13608924d6648251B07ed1A",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x5D0c3a0C79fCe9c177D7140e975681447C747D05",
+        "StrategyLiquidate": "0x3be48dD0b9AA62560AAF0bff2115cc8617A4BD70",
+        "StrategyAddTwoSidesOptimal": "0xa7c282d7c6081C90693751a269C91e1f18C0c48A",
+        "StrategyWithdrawMinimizeTrading": "0x7Db9Be22E449153bb86ABeeF5D6e4C5b72E4F5B8"
+      }
+    }]
+  }]
+}
