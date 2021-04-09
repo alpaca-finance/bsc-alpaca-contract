@@ -51,15 +51,15 @@ contract StrategyWithdrawMinimizeTrading is ReentrancyGuardUpgradeSafe, IStrateg
     // 2. Approve router to do their stuffs
     lpToken.approve(address(router), uint256(-1));
     farmingToken.safeApprove(address(router), uint256(-1));
-    // 3. Remove all liquidity back to BaseToken and farming tokens.
+    // 3. Remove all liquidity back to BaseToken and FarmingToken.
     router.removeLiquidity(baseToken, farmingToken, lpToken.balanceOf(address(this)), 0, 0, address(this), now);
-    // 4. Convert farming tokens to BaseToken.
+    // 4. Convert FarmingToken to BaseToken.
     address[] memory path = new address[](2);
     path[0] = farmingToken;
     path[1] = baseToken;
     uint256 balance = baseToken.myBalance();
     if (debt > balance) {
-      // Convert some farming tokens to BaseToken.
+      // Convert some FarmingToken to BaseToken.
       uint256 remainingDebt = debt.sub(balance);
       router.swapTokensForExactTokens(remainingDebt, farmingToken.myBalance(), path, address(this), now);
     }

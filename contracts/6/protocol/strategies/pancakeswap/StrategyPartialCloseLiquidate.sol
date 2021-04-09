@@ -48,17 +48,18 @@ contract StrategyPartialCloseLiquidate is ReentrancyGuardUpgradeSafe, IStrategy 
     farmingToken.safeApprove(address(router), uint256(-1));
     // 3. Remove some LP back to BaseToken and farming tokens as we want to return some of the position.
     router.removeLiquidity(baseToken, farmingToken, returnLpToken, 0, 0, address(this), now);
-    // 4. Convert farming tokens to baseToken.
+    // 4. Convert all farming tokens to baseToken.
     address[] memory path = new address[](2);
     path[0] = farmingToken;
     path[1] = baseToken;
     router.swapExactTokensForTokens(farmingToken.myBalance(), 0, path, address(this), now);
-    // 5. Return all baseToken back to the original caller.
+    // 5. Return all baseToken to caller
     uint256 balance = baseToken.myBalance();
     require(balance >= minBaseToken, "StrategyPartialCloseLiquidate::execute:: insufficient baseToken received");
     SafeToken.safeTransfer(baseToken, msg.sender, balance);
+    // 6. Return leftover lpToken back to caller
     lpToken.transfer(msg.sender, lpToken.balanceOf(address(this)));
-    // 6. Reset approve for safety reason
+    // 7. Reset approve for safety reason
     lpToken.approve(address(router), 0);
     farmingToken.safeApprove(address(router), 0);
   }

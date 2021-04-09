@@ -64,10 +64,10 @@ contract StrategyPartialMinimizeTrading is ReentrancyGuardUpgradeSafe, IStrategy
     address[] memory path = new address[](2);
     path[0] = farmingToken;
     path[1] = baseToken;
-    // use scope to avoid stack too deep
-    uint256 remainingReturnAmount = Math.min(debt, maxReturn).sub(baseToken.myBalance());
-    if (remainingReturnAmount > baseToken.myBalance()) {
+    uint256 lessDebt = Math.min(debt, maxReturn);
+    if (lessDebt > baseToken.myBalance()) {
       // Convert farmingToken to baseToken that is enough for maxReturn
+      uint256 remainingReturnAmount = lessDebt.sub(baseToken.myBalance());
       console.log("debt: ", debt);
       console.log("remainingReturnAmount: ", remainingReturnAmount);
       console.log("farmingToken: ", farmingToken.myBalance());
@@ -88,7 +88,9 @@ contract StrategyPartialMinimizeTrading is ReentrancyGuardUpgradeSafe, IStrategy
         SafeToken.safeTransfer(farmingToken, user, remainingFarmingToken);
       }
     }
-    // 7. Reset approval for safety reason
+    // 7. Return leftover lp back to the caller
+    lpToken.transfer(msg.sender, lpToken.balanceOf(address(this)));
+    // 8. Reset approval for safety reason
     lpToken.approve(address(router), 0);
     farmingToken.safeApprove(address(router), 0);
   }

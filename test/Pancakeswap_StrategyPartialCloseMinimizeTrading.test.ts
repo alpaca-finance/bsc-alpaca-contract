@@ -1,5 +1,5 @@
 import { ethers, upgrades, waffle } from "hardhat";
-import { Signer, BigNumberish, utils, Wallet } from "ethers";
+import { Signer, BigNumberish, utils, Wallet, BigNumber } from "ethers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import "@openzeppelin/test-helpers";
@@ -15,7 +15,6 @@ import {
   PancakeRouter__factory,
   StrategyPartialMinimizeTrading,
   StrategyPartialMinimizeTrading__factory,
-  StrategyWithdrawMinimizeTrading,
   WETH,
   WETH__factory,
   WNativeRelayer__factory
@@ -26,6 +25,7 @@ const { expect } = chai;
 
 describe('Pancakeswap - StrategyWithdrawMinimizeTrading', () => {
   const FOREVER = '2000000000';
+  const BOB_LPs = '0.316227766016837933';
 
   /// Pancake-related instance(s)
   let factory: PancakeFactory;
@@ -171,9 +171,9 @@ describe('Pancakeswap - StrategyWithdrawMinimizeTrading', () => {
         ethers.utils.parseEther('1'), ethers.utils.parseEther('1'), '0', '0', await bob.getAddress(), FOREVER);
 
       expect(await farmingToken.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther('0.9'));
-      expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther('0.316227766016837933'));
+      expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther(BOB_LPs));
 
-      await lpAsBob.transfer(strat.address, ethers.utils.parseEther('0.316227766016837933'));
+      await lpAsBob.transfer(strat.address, ethers.utils.parseEther(BOB_LPs));
     });
 
     it('should revert when bad call data', async () => {
@@ -198,7 +198,7 @@ describe('Pancakeswap - StrategyWithdrawMinimizeTrading', () => {
           ], [
             baseToken.address,
             farmingToken.address,
-            ethers.utils.parseEther('0.316227766016837933'),
+            ethers.utils.parseEther(BOB_LPs),
             ethers.utils.parseEther('9999999999'),
             ethers.utils.parseEther('2')
           ]),
@@ -228,83 +228,145 @@ describe('Pancakeswap - StrategyWithdrawMinimizeTrading', () => {
       ).to.be.revertedWith('StrategyPartialCloseMinimizeTrading::execute:: insufficient LP amount recevied from worker')
     });
 
-    // it('should convert all LP tokens back to BaseToken and FTOKEN, while debt == received BaseToken', async () => {
-    //   const bobBaseTokenBefore = await baseToken.balanceOf(await bob.getAddress());
-    //   const bobFTOKENBefore = await farmingToken.balanceOf(await bob.getAddress());
+    it('should convert all LPs back to BTOKEN + FTOKEN as Bob, and use all of BTOKEN to pay debt, when maxReturn >= debt && debt == received BaseToken', async () => {
+      const bobBaseTokenBefore = await baseToken.balanceOf(await bob.getAddress());
+      const bobFTOKENBefore = await farmingToken.balanceOf(await bob.getAddress());
 
-    //   // Bob uses minimize trading strategy to turn LPs back to BaseToken and FTOKEN
-    //   await stratAsBob.execute(
-    //     await bob.getAddress(),
-    //     ethers.utils.parseEther('1'), // debt 1 BaseToken
-    //     ethers.utils.defaultAbiCoder.encode(
-    //       ['address','address', 'uint256'],
-    //       [baseToken.address, farmingToken.address, ethers.utils.parseEther('0.001')])
-    //   );
+      // Bob uses minimize trading strategy to turn LPs back to BaseToken and FTOKEN
+      await stratAsBob.execute(
+        await bob.getAddress(),
+        ethers.utils.parseEther('1'), // debt 1 BaseToken
+        ethers.utils.defaultAbiCoder.encode(
+          [
+            'address',
+            'address',
+            'uint256',
+            'uint256',
+            'uint256'
+          ], [
+            baseToken.address,
+            farmingToken.address,
+            ethers.utils.parseEther(BOB_LPs),
+            ethers.utils.parseEther('8888888'),
+            ethers.utils.parseEther('0.001')
+          ])
+      );
 
-    //   const bobBaseTokenAfter = await baseToken.balanceOf(await bob.getAddress());
-    //   const bobFTOKENAfter = await farmingToken.balanceOf(await bob.getAddress());
+      const bobBaseTokenAfter = await baseToken.balanceOf(await bob.getAddress());
+      const bobFTOKENAfter = await farmingToken.balanceOf(await bob.getAddress());
+      
+      // After the execution is done, there should no LPs left in strategy contract
+      expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'));
+      // Bob's LPs must be 0 due to returnLpToken == LPs he transfered to strategy contract
+      expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther('0'));
+      // Bob should get 1 BTOKEN back due to he is a caller and strategy returns debt to caller
+      // Please note that this 1 BTOKEN came from debt not the liquidation
+      expect(bobBaseTokenAfter.sub(bobBaseTokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther('1'));
+      // Bob should get 0.1 FTOKEN back due to he is a user in this execution
+      expect(bobFTOKENAfter.sub(bobFTOKENBefore)).to.be.bignumber.eq(ethers.utils.parseEther('0.1'));
+    });
 
-    //   expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'));
-    //   expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-    //   expect(bobBaseTokenAfter.sub(bobBaseTokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther('1'));
-    //   expect(bobFTOKENAfter.sub(bobFTOKENBefore)).to.be.bignumber.eq(ethers.utils.parseEther('0.1'));
-    // });
+    it('should convert all LP tokens back to BTOKEN + FTOKEN, and return leftover both BTOKEN + FTOKEN to Bob, when maxReturn >= debt && debt < received BaseToken', async () => {
+      const bobBtokenBefore = await baseToken.balanceOf(await bob.getAddress());
+      const bobFtokenBefore = await farmingToken.balanceOf(await bob.getAddress());
 
-    // it('should convert all LP tokens back to BaseToken and FTOKEN when debt < received BaseToken', async () => {
-    //   const bobBtokenBefore = await baseToken.balanceOf(await bob.getAddress());
-    //   const bobFtokenBefore = await farmingToken.balanceOf(await bob.getAddress());
+      // Bob uses liquidate strategy to turn LPs back to BTOKEN and FTOKEN
+      await stratAsBob.execute(
+        await bob.getAddress(), // User is Bob
+        ethers.utils.parseEther('0.5'), // Debt 0.5 BTOKEN
+        ethers.utils.defaultAbiCoder.encode(
+          [
+            'address',
+            'address',
+            'uint256',
+            'uint256',
+            'uint256'
+          ], [
+            baseToken.address, // BTOKEN address
+            farmingToken.address, // FTOKEN address
+            ethers.utils.parseEther(BOB_LPs), // returnLpAmount
+            ethers.utils.parseEther('8888888'), // maxReturn
+            ethers.utils.parseEther('0.001') // minFarmingToken
+          ]),
+      );
 
-    //   // Bob uses liquidate strategy to turn LPs back to ETH and farming token
-    //   await stratAsBob.execute(
-    //     await bob.getAddress(),
-    //     ethers.utils.parseEther('0.5'), // debt 0.5 ETH
-    //     ethers.utils.defaultAbiCoder.encode(
-    //       ['address', 'address', 'uint256'],
-    //       [baseToken.address, farmingToken.address, ethers.utils.parseEther('0.001')]),
-    //   );
+      const bobBtokenAfter = await baseToken.balanceOf(await bob.getAddress());
+      const bobFtokenAfter = await farmingToken.balanceOf(await bob.getAddress());
+      
+      // After the execution is done, there should no LPs left in strategy contract
+      expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'));
+      // Bob's LPs must be 0 due to returnLpToken == LPs he transfered to strategy contract
+      expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+      // Bob should get 1 BTOKEN back due strategy returns 0.5 BTOKEN to caller
+      // and another 0.5 BTOKEN to user. In this case, the caller and the user is Bob
+      // Hence, 0.5 BTOKN for paying debt, and 0.5 BTOKEN for leftover
+      expect(bobBtokenAfter.sub(bobBtokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther('1'));
+      // Bob should get 0.1 FTOKEN leftover back due to he is a user
+      expect(bobFtokenAfter.sub(bobFtokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther('0.1'));
+    });
 
-    //   const bobBtokenAfter = await baseToken.balanceOf(await bob.getAddress());
-    //   const bobFtokenAfter = await farmingToken.balanceOf(await bob.getAddress());
+    it('should convert all LP tokens back to BTOKEN + FTOKEN when maxReturn >= debt && debt > received BTOKEN, however FTOKEN is enough to cover debt', async () => {
+      const bobBtokenBefore = await baseToken.balanceOf(await bob.getAddress());
+      const bobFtokenBefore = await farmingToken.balanceOf(await bob.getAddress());
 
-    //   expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'));
-    //   expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-    //   expect(bobBtokenAfter.sub(bobBtokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther('1'));
-    //   expect(bobFtokenAfter.sub(bobFtokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther('0.1'));
-    // });
+      // Bob uses withdraw minimize trading strategy to turn LPs back to BTOKEN and FTOKEN
+      await stratAsBob.execute(
+        await bob.getAddress(), // User is Bob
+        ethers.utils.parseEther('1.2'), // Debt is 1.2 BTOKEN
+        ethers.utils.defaultAbiCoder.encode(
+          [
+            'address',
+            'address',
+            'uint256',
+            'uint256',
+            'uint256'
+          ], [
+            baseToken.address, // BTOKEN address
+            farmingToken.address, // FTOKEN address
+            ethers.utils.parseEther(BOB_LPs), // returnLpAmount
+            ethers.utils.parseEther('88888888'), // maxReturn
+            ethers.utils.parseEther('0.001') // minFarmingToken
+          ]
+        ),
+      );
 
-    // it('should convert all LP tokens back to BaseToken and farming token (debt > received BaseToken, farming token is enough to cover debt)', async () => {
-    //   const bobBtokenBefore = await baseToken.balanceOf(await bob.getAddress());
-    //   const bobFtokenBefore = await farmingToken.balanceOf(await bob.getAddress());
+      const bobBtokenAfter = await baseToken.balanceOf(await bob.getAddress());
+      const bobFtokenAfter = await farmingToken.balanceOf(await bob.getAddress());
+      
+      // After the execution is done, there should no LPs left in strategy contract
+      expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'));
+      // Bob's LPs must be 0 due to returnLpToken == LPs he transfered to strategy contract
+      expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther('0'));
+      // Bob should get 1.2 BTOKEN back strategy returns debt to caller
+      expect(bobBtokenAfter.sub(bobBtokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther('1.2'));
+      // Some portion of FTOKEN needs to be converted to BTOKEN to pay the debt
+      // Hence Bob get less FTOKEN than what he put in
+      expect(bobFtokenAfter.sub(bobFtokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther('0.074949899799599198')); // 0.1 - 0.025 = 0.075 farming token
+    });
 
-    //   // Bob uses withdraw minimize trading strategy to turn LPs back to BaseToken and farming token
-    //   await stratAsBob.execute(
-    //     await bob.getAddress(),
-    //     ethers.utils.parseEther('1.2'), // debt 1.2 BaseToken
-    //     ethers.utils.defaultAbiCoder.encode(
-    //       ['address', 'address', 'uint256'],
-    //       [baseToken.address, farmingToken.address, ethers.utils.parseEther('0.001')]),
-    //   );
-
-    //   const bobBtokenAfter = await baseToken.balanceOf(await bob.getAddress());
-    //   const bobFtokenAfter = await farmingToken.balanceOf(await bob.getAddress());
-
-    //   expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'));
-    //   expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-    //   expect(bobBtokenAfter.sub(bobBtokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther('1.2'));
-    //   expect(bobFtokenAfter.sub(bobFtokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther('0.074949899799599198')); // 0.1 - 0.025 = 0.075 farming token
-    // });
-
-    // it('should revert when debt > received BaseToken, farming token is not enough to cover the debt', async () => {
-    //   await expect(
-    //     stratAsBob.execute(
-    //       await bob.getAddress(),
-    //       ethers.utils.parseEther('3'), // debt 2 BaseToken
-    //       ethers.utils.defaultAbiCoder.encode(
-    //         ['address', 'address', 'uint256'],
-    //         [baseToken.address, farmingToken.address, ethers.utils.parseEther('0.001')]),
-    //     ),
-    //   ).to.be.revertedWith('subtraction overflow')
-    // });
+    it('should revert when maxReturn >= debt && debt > received BTOKEN, but FTOKEN is not enough to cover the debt', async () => {
+      await expect(
+        stratAsBob.execute(
+          await bob.getAddress(),
+          ethers.utils.parseEther('3'), // Debt 3 BOTOKEN
+          ethers.utils.defaultAbiCoder.encode(
+            [
+              'address',
+              'address',
+              'uint256',
+              'uint256',
+              'uint256'
+            ], [
+              baseToken.address,
+              farmingToken.address,
+              ethers.utils.parseEther(BOB_LPs),
+              ethers.utils.parseEther('8888888888'),
+              ethers.utils.parseEther('0.001')
+            ]
+          ),
+        ),
+      ).to.be.revertedWith('subtraction overflow')
+    });
 
   });
 
