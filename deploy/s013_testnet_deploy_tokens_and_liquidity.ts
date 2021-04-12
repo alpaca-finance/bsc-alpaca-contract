@@ -10,34 +10,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const PANCAKE_ROUTER = '0xf46A02489B99C5A4a5cC31AA3F9eBD6A501D4B49'
   const WBNB = '0xDfb1211E2694193df5765d54350e1145FD2404A1'
   const TOKENS = [{
-    symbol: 'BETH',
-    name: 'BETH',
+    symbol: 'ITAM',
+    name: 'ITAM',
     mintAmount: ethers.utils.parseEther('500000000'),
     pairs: [{
-      quoteToken: 'ETH',
-      quoteTokenAddr: '0xd5c082df9eDE041548fa79e05A1CB077036ca86F',
-      reserveQuoteToken: ethers.utils.parseEther('19671'),
-      reserveBaseToken: ethers.utils.parseEther('20845')
-    }]
-  }, {
-    symbol: 'COMP',
-    name: 'COMP',
-    mintAmount: ethers.utils.parseEther('500000000'),
-    pairs: [{
-      quoteToken: 'ETH',
-      quoteTokenAddr: '0xd5c082df9eDE041548fa79e05A1CB077036ca86F',
-      reserveQuoteToken: ethers.utils.parseEther('6741'),
-      reserveBaseToken: ethers.utils.parseEther('26627')
-    }]
-  }, {
-    symbol: 'SUSHI',
-    name: 'SUSHI',
-    mintAmount: ethers.utils.parseEther('500000000'),
-    pairs: [{
-      quoteToken: 'ETH',
-      quoteTokenAddr: '0xd5c082df9eDE041548fa79e05A1CB077036ca86F',
-      reserveQuoteToken: ethers.utils.parseEther('3616'),
-      reserveBaseToken: ethers.utils.parseEther('490522')
+      quoteToken: 'WBNB',
+      quoteTokenAddr: '0xDfb1211E2694193df5765d54350e1145FD2404A1',
+      reserveQuoteToken: ethers.utils.parseEther('1'),
+      reserveBaseToken: ethers.utils.parseEther('5464.4808743169')
     }]
   }]
 
