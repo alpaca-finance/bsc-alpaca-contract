@@ -266,6 +266,16 @@
         "StrategyLiquidate": "0xc7c025aA69F4b525E3F9f5186b524492ee1C86bB",
         "StrategyWithdrawMinimizeTrading": "0x5e2911d70d7a659Da0dA26989F445aeCAC58f2E6"
       }
+    }, {
+      "name": "ITAM-WBNB PancakeswapWorker",
+      "address": "0x4193D35D0cB598d92703ED69701f5d568aCa015c",
+      "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+      "strategies": {
+        "StrategyAddTwoSidesOptimal": "0xd408E19fD8474DEB0aa917DF123F6eafcFC590eD",
+        "StrategyAddAllBaseToken": "0x1DBa79e73a7Ea9749fc28B921bc9431D09BEf2B5",
+        "StrategyLiquidate": "0xc7c025aA69F4b525E3F9f5186b524492ee1C86bB",
+        "StrategyWithdrawMinimizeTrading": "0x5e2911d70d7a659Da0dA26989F445aeCAC58f2E6"
+      }
     }]
   }, {
     "name": "Interest Bearing BUSD",
