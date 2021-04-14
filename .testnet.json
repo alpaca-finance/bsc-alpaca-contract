@@ -129,6 +129,10 @@
         "pId": 18,
         "name": "SUSHI-ETH LP",
         "address": "0xa905bcf59fdc725DE9Dc1A5F89dE40d906cf7942"
+      }, {
+        "pId": 19,
+        "name": "ITAM-WBNB LP",
+        "address": "0xC3ff9A64867f71986642C8e12EE2925A726A2535"
       }]
     }
   },
@@ -153,7 +157,8 @@
     "UST": "0xd413E8Cb2855533a5724745B7060c8b18e2bDcfD",
     "BETH": "0x32Dde246479D538c0FC45a667e002cE33Fc57a15",
     "COMP": "0xd02A71609f9eB0e3270A1417D79e2c12903D3aa1",
-    "SUSHI": "0x86c1f21D1622516576ba514b53d2fE5Dbe48Bab0"
+    "SUSHI": "0x86c1f21D1622516576ba514b53d2fE5Dbe48Bab0",
+    "ITAM": "0xd817BfBE43229134e7127778a96C0180e47c10B4"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0xb4065bAC627da8b187dC8F65C88Db21A402347e6",
@@ -254,6 +259,16 @@
     }, {
       "name": "YFI-WBNB PancakeswapWorker",
       "address": "0xF4964FDD35D9443b766adD8bdEb98C4E8592a7ea",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x5D0c3a0C79fCe9c177D7140e975681447C747D05",
+        "StrategyLiquidate": "0x3be48dD0b9AA62560AAF0bff2115cc8617A4BD70",
+        "StrategyAddTwoSidesOptimal": "0x9c79F9eac99Af00A75599625895f5619Da9d19e0",
+        "StrategyWithdrawMinimizeTrading": "0x7Db9Be22E449153bb86ABeeF5D6e4C5b72E4F5B8"
+      }
+    }, {
+      "name": "ITAM-WBNB PancakeswapWorker",
+      "address": "0x933d7fABE41cBc5e9483bD8CD0407Cf375a8e0C3",
       "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
       "strategies": {
         "StrategyAddAllBaseToken": "0x5D0c3a0C79fCe9c177D7140e975681447C747D05",
