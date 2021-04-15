@@ -11,19 +11,11 @@ chai.use(solidity);
 const { expect } = chai;
 
 describe("MerkleDistributor", () => {
-    /// Constant
-    const ADDRESS0 = "0x0000000000000000000000000000000000000000";
-    
-
     /// instant
     let merkleDistributor: MerkleDistributor;
     
     // Accounts
     let deployer: Signer;
-    let admin: Signer;
-    let alice: Signer;
-    let bob: Signer;
-    let catherine: Signer;
     let nowBlock: number;
 
     //Token
@@ -61,7 +53,7 @@ describe("MerkleDistributor", () => {
     
     beforeEach(async () => {
       nowBlock = (await TimeHelpers.latestBlockNumber()).toNumber();
-      [deployer, admin, alice, bob, catherine] = await ethers.getSigners();
+      [deployer] = await ethers.getSigners();
 
       const MockToken = (await ethers.getContractFactory("MockERC20", deployer)) as MockERC20__factory
       mockERC20 = await upgrades.deployProxy(MockToken, [`STOKENA`, `STOKENB`]) as MockERC20;
