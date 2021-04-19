@@ -104,9 +104,9 @@ describe("MerkleDistributor", () => {
           const claim = claims[account]
           await merkleAsDeployer.claim(claim.index, account, claim.amount, claim.proof)
         }
-        expect(await mockTokenAsDeployer.balanceOf(await alice.getAddress())).to.eq('0xc8')
-        expect(await mockTokenAsDeployer.balanceOf(await bob.getAddress())).to.eq('0x012c')
-        expect(await mockTokenAsDeployer.balanceOf(await catherine.getAddress())).to.eq('0xfa')
+        expect(await mockTokenAsDeployer.balanceOf(await alice.getAddress())).to.eq(200)
+        expect(await mockTokenAsDeployer.balanceOf(await bob.getAddress())).to.eq(300)
+        expect(await mockTokenAsDeployer.balanceOf(await catherine.getAddress())).to.eq(250)
       })
     })
 })
