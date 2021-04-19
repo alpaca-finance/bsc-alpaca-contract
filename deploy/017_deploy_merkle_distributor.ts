@@ -16,6 +16,20 @@ const func: DeployFunction = async function(hre: HardhatRuntimeEnvironment) {
     const MERKLE_ROOT = '0x54be7bbc9d4950685ec4b2fd98d18e092bbd690fff6aa18c3e301ec8653d88f1'; //merkle root ITAM week 1 testnet.
     const FEATURE_TOKEN_ADDRESS = '0xd817BfBE43229134e7127778a96C0180e47c10B4'; // itam token address testnet
 
+
+
+
+
+
+
+
+
+
+
+    
+
+
+    
     console.log(">> Deploying a Merkle distributor contract");
     const MerkleDistributorContract = (await ethers.getContractFactory(
         "MerkleDistributor",

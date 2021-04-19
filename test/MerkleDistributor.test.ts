@@ -3,7 +3,7 @@ import * as TimeHelpers from "./helpers/time"
 import { solidity } from "ethereum-waffle";
 import chai from "chai";
 import { MerkleDistributor, MerkleDistributor__factory, MockERC20__factory, MockERC20 } from "../typechain"
-import { Signer } from "ethers";
+import { BigNumber, Signer } from "ethers";
 import { ethers, upgrades } from "hardhat";
 import { parseBalanceMap } from "../utils/parse-balance-map";
 
@@ -54,18 +54,20 @@ describe("MerkleDistributor", () => {
       const MerkleDistributorContract = (await ethers.getContractFactory(
         "MerkleDistributor",
         deployer
-        )) as MerkleDistributor__factory;
+      )) as MerkleDistributor__factory;
         merkleDistributor = await MerkleDistributorContract.deploy(mockERC20.address, merkleRoot)
         await merkleDistributor.deployed();
         
         merkleAsDeployer = MerkleDistributor__factory.connect(merkleDistributor.address, deployer)
 
-      expect(tokenTotal).to.eq('0x02ee') // 750
+      expect(tokenTotal).to.eq(BigNumber.from(750).toHexString()) // 750
       claims = innerClaims
-      await mockTokenAsDeployer.mint(merkleDistributor.address, tokenTotal)
+      await mockTokenAsDeployer.mint(await deployer.getAddress(), tokenTotal)
+      await mockTokenAsDeployer.approve(merkleDistributor.address, 750)
+      await merkleAsDeployer.deposit(750)
     })
-    context('parseBalanceMap', () => {
-      it('check the proofs is as expected', async () => {
+    context('validate parseBalanceMap function', () => {
+      it('should generate correct proof', async () => {
         // Alice
         expect(claims[await alice.getAddress()].amount).to.equal('0xc8')
         expect(claims[await alice.getAddress()].proof).to.deep.equal([
@@ -84,7 +86,7 @@ describe("MerkleDistributor", () => {
           '0xd1df20cc2fcab841bf3870b019038437dbd4c8db2bff627a8b385ebcc951f3a6',
         ])
       })
-      it('all claim work exactly once', async () => {
+      it('it should allow to claim only once', async () => {
         expect(await mockTokenAsDeployer.balanceOf(merkleAsDeployer.address)).to.not.eq(0)
         for (let account in claims) {
           const claim = claims[account]
@@ -92,7 +94,7 @@ describe("MerkleDistributor", () => {
             .to.emit(merkleAsDeployer, 'Claimed')
             .withArgs(claim.index, account, claim.amount)
           await expect(merkleAsDeployer.claim(claim.index, account, claim.amount, claim.proof)).to.be.revertedWith(
-            'MerkleDistributor: Drop already claimed.'
+            'MerkleDistributor::claim:: Drop already claimed.'
           )
         }
         expect(await mockTokenAsDeployer.balanceOf(merkleAsDeployer.address)).to.eq(0)
