@@ -20,7 +20,7 @@ contract IbTokenRouter is OwnableUpgradeSafe {
   address public alpaca;
   address public lpToken;
 
-  function initialize(address payable _router, address _token, address _ibToken, address _alpaca) public initializer {
+  function initialize(address payable _router, address _token, address _ibToken, address _alpaca) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
 
     router = _router;

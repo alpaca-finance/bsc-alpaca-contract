@@ -19,7 +19,7 @@ contract StrategyLiquidate is ReentrancyGuardUpgradeSafe, IStrategy {
 
   /// @dev Create a new liquidate strategy instance.
   /// @param _router The Uniswap router smart contract.
-  function initialize(IPancakeRouter02 _router) public initializer {
+  function initialize(IPancakeRouter02 _router) external initializer {
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
 
     factory = IPancakeFactory(_router.factory());
@@ -31,7 +31,6 @@ contract StrategyLiquidate is ReentrancyGuardUpgradeSafe, IStrategy {
   function execute(address /* user */, uint256 /* debt */, bytes calldata data)
     external
     override
-    payable
     nonReentrant
   {
     // 1. Find out what farming token we are dealing with.
@@ -42,7 +41,7 @@ contract StrategyLiquidate is ReentrancyGuardUpgradeSafe, IStrategy {
     ) = abi.decode(data, (address, address, uint256));
     IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
     // 2. Approve router to do their stuffs
-    lpToken.approve(address(router), uint256(-1));
+    require(lpToken.approve(address(router), uint256(-1)), "StrategyLiquidate::execute:: unable to approve LP token");
     farmingToken.safeApprove(address(router), uint256(-1));
     // 3. Remove all liquidity back to BaseToken and farming tokens.
     router.removeLiquidity(baseToken, farmingToken, lpToken.balanceOf(address(this)), 0, 0, address(this), now);
@@ -56,7 +55,7 @@ contract StrategyLiquidate is ReentrancyGuardUpgradeSafe, IStrategy {
     require(balance >= minBaseToken, "StrategyLiquidate::execute:: insufficient baseToken received");
     SafeToken.safeTransfer(baseToken, msg.sender, balance);
     // 6. Reset approve for safety reason
-    lpToken.approve(address(router), 0);
+    require(lpToken.approve(address(router), 0), "StrategyLiquidate::execute:: unable to reset LP token approval");
     farmingToken.safeApprove(address(router), 0);
   }
 }

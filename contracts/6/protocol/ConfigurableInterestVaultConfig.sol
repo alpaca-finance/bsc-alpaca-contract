@@ -19,13 +19,14 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   mapping(address => IWorkerConfig) public workers;
   /// Interest rate model
   InterestModel public interestModel;
-  // address for wrapped native eg WBNB, WETH
+  /// address for wrapped native eg WBNB, WETH
   address public wrappedNative;
-  // address for wNtive Relayer
+  /// address for wNtive Relayer
   address public wNativeRelayer;
-
-  // address of fairLaunch contract
+  /// address of fairLaunch contract
   address public fairLaunch;
+  /// maximum killBps
+  uint256 public maxKillBps;
 
   function initialize(
     uint256 _minDebtSize,
@@ -35,8 +36,10 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     address _wrappedNative,
     address _wNativeRelayer,
     address _fairLaunch
-  ) public initializer {
+  ) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
+
+    maxKillBps = 500;
     setParams(
       _minDebtSize, _reservePoolBps, _killBps, _interestModel, _wrappedNative, _wNativeRelayer, _fairLaunch);
   }
@@ -55,6 +58,8 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     address _wNativeRelayer,
     address _fairLaunch
   ) public onlyOwner {
+    require(_killBps <= maxKillBps, "ConfigurableInterestVaultConfig::setParams:: kill bps exceeded max kill bps");
+
     minDebtSize = _minDebtSize;
     getReservePoolBps = _reservePoolBps;
     getKillBps = _killBps;

@@ -102,7 +102,7 @@ contract StronkAlpaca is IStronkAlpaca, ERC20("Stronk Alpaca", "sALPACA"), Reent
     emit Unhodl(msg.sender, userStronkAlpacaBalance);
   }
 
-  function getRelayerAddress(address _account) public view returns (address) {
+  function getRelayerAddress(address _account) external view returns (address) {
     return _userRelayerMap[_account];
   }
 }

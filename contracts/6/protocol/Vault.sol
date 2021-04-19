@@ -107,11 +107,11 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
   function initialize(
     IVaultConfig _config,
     address _token,
-    string memory _name,
-    string memory _symbol,
+    string calldata _name,
+    string calldata _symbol,
     uint8 _decimals,
     address _debtToken
-  ) public initializer {
+  ) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
     ERC20UpgradeSafe.__ERC20_init(_name, _symbol);
@@ -163,7 +163,7 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
 
   /// @dev Return Token value and debt of the given position. Be careful of unaccrued interests.
   /// @param id The position ID to query.
-  function positionInfo(uint256 id) public view returns (uint256, uint256) {
+  function positionInfo(uint256 id) external view returns (uint256, uint256) {
     Position storage pos = positions[id];
     return (IWorker(pos.worker).health(id), debtShareToVal(pos.debtShare));
   }

@@ -16,14 +16,12 @@ contract StrategyAddBaseTokenOnly is ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeToken for address;
   using SafeMath for uint256;
 
-  address public wNative;
-
   IPancakeFactory public factory;
   IPancakeRouter02 public router;
 
   /// @dev Create a new add Token only strategy instance.
   /// @param _router The Uniswap router smart contract.
-  function initialize(IPancakeRouter02 _router) public initializer {
+  function initialize(IPancakeRouter02 _router) external initializer {
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
 
     factory = IPancakeFactory(_router.factory());
@@ -35,7 +33,6 @@ contract StrategyAddBaseTokenOnly is ReentrancyGuardUpgradeSafe, IStrategy {
   function execute(address /* user */, uint256 /* debt */, bytes calldata data)
     external
     override
-    payable
     nonReentrant
   {
     // 1. Find out what farming token we are dealing with and min additional LP tokens.
@@ -67,7 +64,7 @@ contract StrategyAddBaseTokenOnly is ReentrancyGuardUpgradeSafe, IStrategy {
       baseToken, farmingToken, baseToken.myBalance(), farmingToken.myBalance(), 0, 0, address(this), now
     );
     require(moreLPAmount >= minLPAmount, "StrategyAddBaseTokenOnly::execute:: insufficient LP tokens received");
-    lpToken.transfer(msg.sender, lpToken.balanceOf(address(this)));
+    require(lpToken.transfer(msg.sender, lpToken.balanceOf(address(this))), "StrategyAddBaseTokenOnly::execute:: failed to transfer LP token to msg.sender");
     // 6. Reset approval for safety reason
     baseToken.safeApprove(address(router), 0);
     farmingToken.safeApprove(address(router), 0);
