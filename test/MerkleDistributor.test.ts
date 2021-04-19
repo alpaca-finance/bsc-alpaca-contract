@@ -16,89 +16,78 @@ describe("MerkleDistributor", () => {
     
     // Accounts
     let deployer: Signer;
+    let alice: Signer;
+    let bob: Signer;
+    let catherine: Signer;
+    let drew: Signer;
     let nowBlock: number;
 
     //Token
     let mockERC20: MockERC20
+    let mockERC20AsAlice: MockERC20
+    let mockERC20AsBob: MockERC20
+    let mockERC20AsCatherine: MockERC20
 
     //Contract as Signer
     let mockTokenAsDeployer: MockERC20
     let merkleAsDeployer: MerkleDistributor
 
     let claims: {
-        [account: string]: {
-          index: number
-          amount: string
-          proof: string[]
-        }
+      [account: string]: {
+        index: number
+        amount: string
+        proof: string[]
       }
-
-    // Provider
-    const provider = new MockProvider({
-        ganacheOptions: {
-          hardfork: 'istanbul',
-          mnemonic: 'horn horn horn horn horn horn horn horn horn horn horn horn',
-          gasLimit: 9999999,
-        },
-    })
-    
-    // Wallets
-    const wallets = provider.getWallets()
-    const { claims: innerClaims, merkleRoot, tokenTotal } = parseBalanceMap({
-      [wallets[0].address]: 200,
-      [wallets[1].address]: 300,
-      [wallets[2].address]: 250,
-    })
-
+    }
     
     beforeEach(async () => {
+      // console.log(wallets[0])
       nowBlock = (await TimeHelpers.latestBlockNumber()).toNumber();
-      [deployer] = await ethers.getSigners();
+      [deployer, alice, bob, catherine, drew] = await ethers.getSigners();
 
       const MockToken = (await ethers.getContractFactory("MockERC20", deployer)) as MockERC20__factory
       mockERC20 = await upgrades.deployProxy(MockToken, [`STOKENA`, `STOKENB`]) as MockERC20;
       await mockERC20.deployed();
 
+      mockTokenAsDeployer = MockERC20__factory.connect(mockERC20.address, deployer)
+
+      const { claims: innerClaims, merkleRoot, tokenTotal } = parseBalanceMap({
+        [await catherine.getAddress()]: 250,
+        [await bob.getAddress()]: 300,
+        [await alice.getAddress()]: 200,
+      })
       const MerkleDistributorContract = (await ethers.getContractFactory(
         "MerkleDistributor",
         deployer
-      )) as MerkleDistributor__factory;
-      merkleDistributor = await MerkleDistributorContract.deploy(mockERC20.address, merkleRoot)
-      await merkleDistributor.deployed();
-
-      mockTokenAsDeployer = MockERC20__factory.connect(mockERC20.address, deployer)
-      merkleAsDeployer = MerkleDistributor__factory.connect(merkleDistributor.address, deployer)
-
-      await mockTokenAsDeployer.mint(merkleDistributor.address, tokenTotal)
+        )) as MerkleDistributor__factory;
+        merkleDistributor = await MerkleDistributorContract.deploy(mockERC20.address, merkleRoot)
+        await merkleDistributor.deployed();
+        
+        merkleAsDeployer = MerkleDistributor__factory.connect(merkleDistributor.address, deployer)
     
       expect(tokenTotal).to.eq('0x02ee') // 750
       claims = innerClaims
+      await mockTokenAsDeployer.mint(merkleDistributor.address, tokenTotal)
     })
     context('parseBalanceMap', () => {
       it('check the proofs is as expected', async () => {
-        expect(claims).to.deep.eq({
-            [wallets[0].address]: {
-              index: 0,
-              amount: '0xc8',
-              proof: ['0x2a411ed78501edb696adca9e41e78d8256b61cfac45612fa0434d7cf87d916c6'],
-            },
-            [wallets[1].address]: {
-              index: 1,
-              amount: '0x012c',
-              proof: [
-                '0xbfeb956a3b705056020a3b64c540bff700c0f6c96c55c0a5fcab57124cb36f7b',
-                '0xd31de46890d4a77baeebddbd77bf73b5c626397b73ee8c69b51efe4c9a5a72fa',
-              ],
-            },
-            [wallets[2].address]: {
-              index: 2,
-              amount: '0xfa',
-              proof: [
-                '0xceaacce7533111e902cc548e961d77b23a4d8cd073c6b68ccf55c62bd47fc36b',
-                '0xd31de46890d4a77baeebddbd77bf73b5c626397b73ee8c69b51efe4c9a5a72fa',
-              ],
-            },
-          })
+        // Alice
+        expect(claims[await alice.getAddress()].amount).to.equal('0xc8')
+        expect(claims[await alice.getAddress()].proof).to.deep.equal([
+          '0x1c7cd16d5e49ed5aec8653361fe3c0496e8b9cda29a74e2913c7bd2e830ffad1',
+          '0xa1281640dd3f2f3e400a42e90527e508f5a7ee4286dff710c570775145ee0165'
+        ])
+        // Bob
+        expect(claims[await bob.getAddress()].amount).to.equal('0x012c')
+        expect(claims[await bob.getAddress()].proof).to.deep.equal([
+          '0x947a7b7d06336aaaad02bfbe9ae36b7ad7b5d36a98931901e958544620016414',
+          '0xa1281640dd3f2f3e400a42e90527e508f5a7ee4286dff710c570775145ee0165'
+        ])
+        // Catherine
+        expect(claims[await catherine.getAddress()].amount).to.equal('0xfa')
+        expect(claims[await catherine.getAddress()].proof).to.deep.equal([
+          '0xd1df20cc2fcab841bf3870b019038437dbd4c8db2bff627a8b385ebcc951f3a6',
+        ])
       })
       it('all claim work exactly once', async () => {
         expect(await mockTokenAsDeployer.balanceOf(merkleAsDeployer.address)).to.not.eq(0)
@@ -112,6 +101,15 @@ describe("MerkleDistributor", () => {
           )
         }
         expect(await mockTokenAsDeployer.balanceOf(merkleAsDeployer.address)).to.eq(0)
+      })
+      it(`all reward's distributed to correct person`, async () => {
+        for (let account in claims) {
+          const claim = claims[account]
+          await merkleAsDeployer.claim(claim.index, account, claim.amount, claim.proof)
+        }
+        expect(await mockTokenAsDeployer.balanceOf(await alice.getAddress())).to.eq('0xc8')
+        expect(await mockTokenAsDeployer.balanceOf(await bob.getAddress())).to.eq('0x012c')
+        expect(await mockTokenAsDeployer.balanceOf(await catherine.getAddress())).to.eq('0xfa')
       })
     })
 })
