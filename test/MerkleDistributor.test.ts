@@ -24,9 +24,6 @@ describe("MerkleDistributor", () => {
 
     //Token
     let mockERC20: MockERC20
-    let mockERC20AsAlice: MockERC20
-    let mockERC20AsBob: MockERC20
-    let mockERC20AsCatherine: MockERC20
 
     //Contract as Signer
     let mockTokenAsDeployer: MockERC20
@@ -41,7 +38,6 @@ describe("MerkleDistributor", () => {
     }
     
     beforeEach(async () => {
-      // console.log(wallets[0])
       nowBlock = (await TimeHelpers.latestBlockNumber()).toNumber();
       [deployer, alice, bob, catherine, drew] = await ethers.getSigners();
 
@@ -52,9 +48,9 @@ describe("MerkleDistributor", () => {
       mockTokenAsDeployer = MockERC20__factory.connect(mockERC20.address, deployer)
 
       const { claims: innerClaims, merkleRoot, tokenTotal } = parseBalanceMap({
-        [await catherine.getAddress()]: 250,
-        [await bob.getAddress()]: 300,
         [await alice.getAddress()]: 200,
+        [await bob.getAddress()]: 300,
+        [await catherine.getAddress()]: 250,
       })
       const MerkleDistributorContract = (await ethers.getContractFactory(
         "MerkleDistributor",
