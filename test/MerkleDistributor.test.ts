@@ -1,9 +1,9 @@
 import "@openzeppelin/test-helpers";
 import * as TimeHelpers from "./helpers/time"
-import { solidity, deployContract, MockProvider } from "ethereum-waffle";
+import { solidity } from "ethereum-waffle";
 import chai from "chai";
-import { MerkleDistributor, AlpacaToken, MerkleDistributor__factory, AlpacaToken__factory, MockERC20__factory, MockERC20 } from "../typechain"
-import { Signer, BigNumberish, utils, BigNumber, Wallet } from "ethers";
+import { MerkleDistributor, MerkleDistributor__factory, MockERC20__factory, MockERC20 } from "../typechain"
+import { Signer } from "ethers";
 import { ethers, upgrades } from "hardhat";
 import { parseBalanceMap } from "../utils/parse-balance-map";
 
@@ -19,7 +19,6 @@ describe("MerkleDistributor", () => {
     let alice: Signer;
     let bob: Signer;
     let catherine: Signer;
-    let drew: Signer;
     let nowBlock: number;
 
     //Token
@@ -39,7 +38,7 @@ describe("MerkleDistributor", () => {
     
     beforeEach(async () => {
       nowBlock = (await TimeHelpers.latestBlockNumber()).toNumber();
-      [deployer, alice, bob, catherine, drew] = await ethers.getSigners();
+      [deployer, alice, bob, catherine] = await ethers.getSigners();
 
       const MockToken = (await ethers.getContractFactory("MockERC20", deployer)) as MockERC20__factory
       mockERC20 = await upgrades.deployProxy(MockToken, [`STOKENA`, `STOKENB`]) as MockERC20;
@@ -60,7 +59,7 @@ describe("MerkleDistributor", () => {
         await merkleDistributor.deployed();
         
         merkleAsDeployer = MerkleDistributor__factory.connect(merkleDistributor.address, deployer)
-    
+
       expect(tokenTotal).to.eq('0x02ee') // 750
       claims = innerClaims
       await mockTokenAsDeployer.mint(merkleDistributor.address, tokenTotal)
