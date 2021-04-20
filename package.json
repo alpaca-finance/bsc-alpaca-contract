@@ -78,6 +78,7 @@
     "test:tripleslope": "hardhat test --no-compile ./test/TripleSlopeModel.test.ts",
     "test:shield": "hardhat test --no-compile ./test/Shield.test.ts",
     "test:stronkalpaca": "hardhat test --no-compile ./test/StronkAlpaca.test.ts",
+    "test:grazingRange": "hardhat test --no-compile ./test/GrazingRange.test.ts",
     "test": "hardhat test --no-compile",
     "testnet": "hardhat console --no-compile --network testnet",
     "deploy:kovan": "truffle migrate --network kovan",
