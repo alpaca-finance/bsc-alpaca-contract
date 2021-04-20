@@ -45,15 +45,15 @@ contract MerkleDistributor is IMerkleDistributor, Ownable {
     uint amount,
     bytes32[] calldata merkleProof
   ) external override {
-    require(!isClaimed(index), 'MerkleDistributor::claim:: Drop already claimed.');
+    require(!isClaimed(index), 'MerkleDistributor::claim:: drop already claimed');
 
     // Verify the merkle proof.
     bytes32 node = keccak256(abi.encodePacked(index, account, amount));
-    require(MerkleProof.verify(merkleProof, merkleRoot, node), 'MerkleDistributor::claim:: Invalid proof.');
+    require(MerkleProof.verify(merkleProof, merkleRoot, node), 'MerkleDistributor::claim:: invalid proof');
 
     // Mark it claimed and send the token.
     _setClaimed(index);
-    require(IERC20(token).transfer(account, amount), 'MerkleDistributor::claim:: Transfer failed.');
+    require(IERC20(token).transfer(account, amount), 'MerkleDistributor::claim:: transfer failed');
 
     emit Claimed(index, account, amount);
   }

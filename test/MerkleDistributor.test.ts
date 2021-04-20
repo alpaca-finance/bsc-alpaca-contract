@@ -94,7 +94,7 @@ describe("MerkleDistributor", () => {
             .to.emit(merkleAsDeployer, 'Claimed')
             .withArgs(claim.index, account, claim.amount)
           await expect(merkleAsDeployer.claim(claim.index, account, claim.amount, claim.proof)).to.be.revertedWith(
-            'MerkleDistributor::claim:: Drop already claimed.'
+            'MerkleDistributor::claim:: drop already claimed'
           )
         }
         expect(await mockTokenAsDeployer.balanceOf(merkleAsDeployer.address)).to.eq(0)
