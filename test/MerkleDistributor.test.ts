@@ -55,10 +55,10 @@ describe("MerkleDistributor", () => {
         "MerkleDistributor",
         deployer
       )) as MerkleDistributor__factory;
-        merkleDistributor = await MerkleDistributorContract.deploy(mockERC20.address, merkleRoot)
-        await merkleDistributor.deployed();
+      merkleDistributor = await MerkleDistributorContract.deploy(mockERC20.address, merkleRoot)
+      await merkleDistributor.deployed();
         
-        merkleAsDeployer = MerkleDistributor__factory.connect(merkleDistributor.address, deployer)
+      merkleAsDeployer = MerkleDistributor__factory.connect(merkleDistributor.address, deployer)
 
       expect(tokenTotal).to.eq(BigNumber.from(750).toHexString()) // 750
       claims = innerClaims
@@ -69,19 +69,19 @@ describe("MerkleDistributor", () => {
     context('validate parseBalanceMap function', () => {
       it('should generate correct proof', async () => {
         // Alice
-        expect(claims[await alice.getAddress()].amount).to.equal('0xc8')
+        expect(claims[await alice.getAddress()].amount).to.equal(BigNumber.from(200).toHexString())
         expect(claims[await alice.getAddress()].proof).to.deep.equal([
           '0x1c7cd16d5e49ed5aec8653361fe3c0496e8b9cda29a74e2913c7bd2e830ffad1',
           '0xa1281640dd3f2f3e400a42e90527e508f5a7ee4286dff710c570775145ee0165'
         ])
         // Bob
-        expect(claims[await bob.getAddress()].amount).to.equal('0x012c')
+        expect(claims[await bob.getAddress()].amount).to.equal(BigNumber.from(300).toHexString())
         expect(claims[await bob.getAddress()].proof).to.deep.equal([
           '0x947a7b7d06336aaaad02bfbe9ae36b7ad7b5d36a98931901e958544620016414',
           '0xa1281640dd3f2f3e400a42e90527e508f5a7ee4286dff710c570775145ee0165'
         ])
         // Catherine
-        expect(claims[await catherine.getAddress()].amount).to.equal('0xfa')
+        expect(claims[await catherine.getAddress()].amount).to.equal(BigNumber.from(250).toHexString())
         expect(claims[await catherine.getAddress()].proof).to.deep.equal([
           '0xd1df20cc2fcab841bf3870b019038437dbd4c8db2bff627a8b385ebcc951f3a6',
         ])
