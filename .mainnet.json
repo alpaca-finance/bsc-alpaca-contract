@@ -54,6 +54,16 @@
       "stakingToken": "ibETH",
       "address": "0xbfF4a34A4644a113E8200D7F1D79b3555f723AfE",
       "allocPoint": 0
+    }, {
+      "id": 10,
+      "stakingToken": "debtIbALPACA V2",
+      "address": "",
+      "allocPoint": 0
+    }, {
+      "id": 11,
+      "stakingToken": "ibALPACA",
+      "address": "",
+      "allocPoint": 0
     }]
   },
   "Exchanges": {
@@ -133,6 +143,10 @@
         "pId": 122,
         "name": "ITAM-WBNB LP",
         "address": "0xCdC53345192D0e31eEAD03D7E9e008Ee659FAEbE"
+      }, {
+        "pId": 0,
+        "name": "ALPACA-BUSD LP",
+        "address": "0x43bAE891843dCbB0CE22ff037b322F6836261697"
       }]
     }
   },
@@ -383,6 +397,25 @@
         "StrategyLiquidate": "0xc7c025aA69F4b525E3F9f5186b524492ee1C86bB",
         "StrategyAddTwoSidesOptimal": "0xEb6e0B9839b297322a6FaEc0cEBC6d3e207b7480",
         "StrategyWithdrawMinimizeTrading": "0x5e2911d70d7a659Da0dA26989F445aeCAC58f2E6"
+      }
+    }]
+  }, {
+    "name": "Interest Bearing ALPACA",
+    "symbol": "ibALPACA",
+    "address": "",
+    "debtToken": "",
+    "config": "",
+    "tripleSlopeModel": "",
+    "StrategyAddTwoSidesOptimal": "",
+    "workers": [{
+      "name": "BUSD-ALPACA PancakeswapWorker",
+      "address": "",
+      "config": "",
+      "strategies": {
+        "StrategyAddAllBaseToken": "",
+        "StrategyLiquidate": "",
+        "StrategyAddTwoSidesOptimal": "",
+        "StrategyWithdrawMinimizeTrading": ""
       }
     }]
   }]

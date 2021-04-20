@@ -54,6 +54,16 @@
       "stakingToken": "ibETH",
       "address": "0x3F1D4A430C213bd9D4c9a12E4F382270505fCeA1",
       "allocPoint": 0
+    }, {
+      "id": 11,
+      "stakingToken": "debtIbALPACA V2",
+      "address": "0x75d1a708DbC46c4170bD1a176DDCE44D14135Ea8",
+      "allocPoint": 0
+    }, {
+      "id": 12,
+      "stakingToken": "ibALPACA",
+      "address": "0x6ad3A0d891C59677fbbB22E071613253467C382A",
+      "allocPoint": 0
     }]
   },
   "Exchanges": {
@@ -133,6 +143,10 @@
         "pId": 19,
         "name": "ITAM-WBNB LP",
         "address": "0xC3ff9A64867f71986642C8e12EE2925A726A2535"
+      }, {
+        "pId": 20,
+        "name": "ALPACA-BUSD LP",
+        "address": "0x3ce9d43050ebc68abe73769a603de0113371875b"
       }]
     }
   },
@@ -382,6 +396,25 @@
         "StrategyAddAllBaseToken": "0x5D0c3a0C79fCe9c177D7140e975681447C747D05",
         "StrategyLiquidate": "0x3be48dD0b9AA62560AAF0bff2115cc8617A4BD70",
         "StrategyAddTwoSidesOptimal": "0xa7c282d7c6081C90693751a269C91e1f18C0c48A",
+        "StrategyWithdrawMinimizeTrading": "0x7Db9Be22E449153bb86ABeeF5D6e4C5b72E4F5B8"
+      }
+    }]
+  }, {
+    "name": "Interest Bearing ALPACA",
+    "symbol": "ibALPACA",
+    "address": "0x6ad3A0d891C59677fbbB22E071613253467C382A",
+    "debtToken": "0x75d1a708DbC46c4170bD1a176DDCE44D14135Ea8",
+    "config": "0x06d0c5B027C8e1BFce561B8af34B87A2A3Ff005d",
+    "tripleSlopeModel": "0x038cd7a6A397d7f5D07a0c76A4610a7Ca64eb7d3",
+    "StrategyAddTwoSidesOptimal": "0x1F7a8F41EA3cEbBd02Ee757cf3d4c9137dfFF208",
+    "workers": [{
+      "name": "BUSD-ALPACA PancakeswapWorker",
+      "address": "0x3713EF00842713B1681d6532dbf72ce5B91B84cc",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x5D0c3a0C79fCe9c177D7140e975681447C747D05",
+        "StrategyLiquidate": "0x3be48dD0b9AA62560AAF0bff2115cc8617A4BD70",
+        "StrategyAddTwoSidesOptimal": "0x1F7a8F41EA3cEbBd02Ee757cf3d4c9137dfFF208",
         "StrategyWithdrawMinimizeTrading": "0x7Db9Be22E449153bb86ABeeF5D6e4C5b72E4F5B8"
       }
     }]
