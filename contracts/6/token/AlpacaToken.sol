@@ -6,12 +6,12 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 // AlpacaToken with Governance.
 contract AlpacaToken is ERC20("AlpacaToken", "ALPACA"), Ownable {
-  uint256 private _cap = 188000000e18;
+  uint256 private constant CAP = 188000000e18;
   uint256 private _totalLock;
 
   uint256 public startReleaseBlock;
   uint256 public endReleaseBlock;
-  uint256 public manualMintLimit = 8000000e18;
+  uint256 public constant MANUAL_MINT_LIMIT = 8000000e18;
   uint256 public manualMinted = 0;
 
   mapping(address => uint256) private _locks;
@@ -29,17 +29,17 @@ contract AlpacaToken is ERC20("AlpacaToken", "ALPACA"), Ownable {
     manualMint(msg.sender, 250000e18);
   }
 
-  function setReleaseBlock(uint256 _startReleaseBlock, uint256 _endReleaseBlock) public onlyOwner {
+  function setReleaseBlock(uint256 _startReleaseBlock, uint256 _endReleaseBlock) external onlyOwner {
     require(_endReleaseBlock > _startReleaseBlock, "endReleaseBlock < startReleaseBlock");
     startReleaseBlock = _startReleaseBlock;
     endReleaseBlock = _endReleaseBlock;
   }
 
-  function cap() public view returns (uint256) {
-    return _cap;
+  function cap() public pure returns (uint256) {
+    return CAP;
   }
 
-  function unlockedSupply() public view returns (uint256) {
+  function unlockedSupply() external view returns (uint256) {
     return totalSupply().sub(totalLock());
   }
 
@@ -48,7 +48,8 @@ contract AlpacaToken is ERC20("AlpacaToken", "ALPACA"), Ownable {
   }
 
   function manualMint(address _to, uint256 _amount) public onlyOwner {
-    require(manualMinted <= manualMintLimit, "mint limit exceeded");
+    require(manualMinted.add(_amount) <= MANUAL_MINT_LIMIT, "mint limit exceeded");
+    manualMinted = manualMinted.add(_amount);
     mint(_to, _amount);
   }
 
@@ -58,23 +59,23 @@ contract AlpacaToken is ERC20("AlpacaToken", "ALPACA"), Ownable {
     _moveDelegates(address(0), _delegates[_to], _amount);
   }
 
-  function burn(address _account, uint256 _amount) public onlyOwner {
+  function burn(address _account, uint256 _amount) external onlyOwner {
     _burn(_account, _amount);
   }
 
-  function totalBalanceOf(address _account) public view returns (uint256) {
+  function totalBalanceOf(address _account) external view returns (uint256) {
     return _locks[_account].add(balanceOf(_account));
   }
 
-  function lockOf(address _account) public view returns (uint256) {
+  function lockOf(address _account) external view returns (uint256) {
     return _locks[_account];
   }
 
-  function lastUnlockBlock(address _account) public view returns (uint256) {
+  function lastUnlockBlock(address _account) external view returns (uint256) {
     return _lastUnlockBlock[_account];
   }
 
-  function lock(address _account, uint256 _amount) public onlyOwner {
+  function lock(address _account, uint256 _amount) external onlyOwner {
     require(_account != address(0), "no lock to address(0)");
     require(_amount <= balanceOf(_account), "no lock over balance");
 
@@ -109,7 +110,7 @@ contract AlpacaToken is ERC20("AlpacaToken", "ALPACA"), Ownable {
     }
   }
 
-  function unlock() public {
+  function unlock() external {
     require(_locks[msg.sender] > 0, "no locked ALPACAs");
 
     uint256 amount = canUnlockAmount(msg.sender);
@@ -121,7 +122,7 @@ contract AlpacaToken is ERC20("AlpacaToken", "ALPACA"), Ownable {
   }
 
   // @dev move ALPACAs with its locked funds to another account
-  function transferAll(address _to) public {
+  function transferAll(address _to) external {
     _locks[_to] = _locks[_to].add(_locks[msg.sender]);
 
     if (_lastUnlockBlock[_to] < startReleaseBlock) {

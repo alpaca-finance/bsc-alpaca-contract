@@ -45,15 +45,15 @@ contract LinearRelease is Ownable, ReentrancyGuard {
     endReleaseBlock = _endReleaseBlock;
   }
 
-  function calLockAmount(uint256 _amount) public onlyFairLaunch view returns (uint256) {
+  function calLockAmount(uint256 _amount) external onlyFairLaunch view returns (uint256) {
     return _amount.mul(lockupBps).div(10000);
   }
 
-  function lockOf(address _user) public view returns (uint256) {
+  function lockOf(address _user) external view returns (uint256) {
     return _locks[_user];
   }
 
-  function lock(address _user, uint256 _amount) public nonReentrant onlyFairLaunch {
+  function lock(address _user, uint256 _amount) external nonReentrant onlyFairLaunch {
     require(_user != address(0), "lock: no address(0)");
     token.safeTransferFrom(msg.sender, address(this), _amount);
 
@@ -92,7 +92,7 @@ contract LinearRelease is Ownable, ReentrancyGuard {
     return (_rewardTokens, _rewardAmounts);
   }
 
-  function claim() public nonReentrant {
+  function claim() external nonReentrant {
     require(_locks[msg.sender] > 0, "lieanr release: no locked");
 
     (IERC20[] memory tokens, uint256[] memory amounts) = pendingTokens(msg.sender);

@@ -24,7 +24,7 @@ contract StrategyAddTwoSidesOptimal is ReentrancyGuardUpgradeSafe, IStrategy {
 
   /// @dev Create a new add two-side optimal strategy instance.
   /// @param _router The Uniswap router smart contract.
-  function initialize(IPancakeRouter02 _router, IVault _vault) public initializer {
+  function initialize(IPancakeRouter02 _router, IVault _vault) external initializer {
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
 
     factory = IPancakeFactory(_router.factory());
@@ -81,7 +81,7 @@ contract StrategyAddTwoSidesOptimal is ReentrancyGuardUpgradeSafe, IStrategy {
 
   /// @dev Execute worker strategy. Take BaseToken + FarmingToken. Return LP tokens.
   /// @param data Extra calldata information passed along to this strategy.
-  function execute(address /* user */, uint256, /* debt */ bytes calldata data) external override payable nonReentrant
+  function execute(address /* user */, uint256, /* debt */ bytes calldata data) external override nonReentrant
   {
     // 1. Find out what farming token we are dealing with.
     (
@@ -114,7 +114,7 @@ contract StrategyAddTwoSidesOptimal is ReentrancyGuardUpgradeSafe, IStrategy {
       baseToken, farmingToken, baseToken.myBalance(), farmingToken.myBalance(), 0, 0, address(this), now
     );
     require(moreLPAmount >= minLPAmount, "StrategyAddTwoSidesOptimal::execute:: insufficient LP tokens received");
-    lpToken.transfer(msg.sender, lpToken.balanceOf(address(this)));
+    require(lpToken.transfer(msg.sender, lpToken.balanceOf(address(this))), "StrategyAddTwoSidesOptimal::execute:: failed to transfer LP token to msg.sender");
     // 7. Reset approve to 0 for safety reason
     farmingToken.safeApprove(address(router), 0);
     baseToken.safeApprove(address(router), 0);

@@ -26,7 +26,7 @@ contract StrategyWithdrawMinimizeTrading is ReentrancyGuardUpgradeSafe, IStrateg
   /// @param _router The Uniswap router smart contract.
   /// @param _wbnb The wrapped BNB token.
   /// @param _wNativeRelayer The relayer to support native transfer
-  function initialize(IPancakeRouter02 _router, IWETH _wbnb, IWNativeRelayer _wNativeRelayer) public initializer {
+  function initialize(IPancakeRouter02 _router, IWETH _wbnb, IWNativeRelayer _wNativeRelayer) external initializer {
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
 
     factory = IPancakeFactory(_router.factory());
@@ -40,7 +40,7 @@ contract StrategyWithdrawMinimizeTrading is ReentrancyGuardUpgradeSafe, IStrateg
   /// @param user User address to withdraw liquidity.
   /// @param debt Debt amount in WAD of the user.
   /// @param data Extra calldata information passed along to this strategy.
-  function execute(address user, uint256 debt, bytes calldata data) external override payable nonReentrant {
+  function execute(address user, uint256 debt, bytes calldata data) external override nonReentrant {
     // 1. Find out what farming token we are dealing with.
     (
       address baseToken,
@@ -49,7 +49,7 @@ contract StrategyWithdrawMinimizeTrading is ReentrancyGuardUpgradeSafe, IStrateg
     ) = abi.decode(data, (address, address, uint256));
     IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
     // 2. Approve router to do their stuffs
-    lpToken.approve(address(router), uint256(-1));
+    require(lpToken.approve(address(router), uint256(-1)), "StrategyWithdrawMinimizeTrading::execute:: failed to approve LP token");
     farmingToken.safeApprove(address(router), uint256(-1));
     // 3. Remove all liquidity back to BaseToken and farming tokens.
     router.removeLiquidity(baseToken, farmingToken, lpToken.balanceOf(address(this)), 0, 0, address(this), now);
@@ -79,7 +79,7 @@ contract StrategyWithdrawMinimizeTrading is ReentrancyGuardUpgradeSafe, IStrateg
       }
     }
     // 7. Reset approval for safety reason
-    lpToken.approve(address(router), 0);
+    require(lpToken.approve(address(router), 0), "StrategyWithdrawMinimizeTrading::execute:: unable to reset lp token approval");
     farmingToken.safeApprove(address(router), 0);
   }
 
