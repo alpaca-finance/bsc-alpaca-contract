@@ -86,7 +86,7 @@ describe("MerkleDistributor", () => {
           '0xd1df20cc2fcab841bf3870b019038437dbd4c8db2bff627a8b385ebcc951f3a6',
         ])
       })
-      it('it should allow to claim only once', async () => {
+      it('should allow to claim only once', async () => {
         expect(await mockTokenAsDeployer.balanceOf(merkleAsDeployer.address)).to.not.eq(0)
         for (let account in claims) {
           const claim = claims[account]
@@ -99,7 +99,7 @@ describe("MerkleDistributor", () => {
         }
         expect(await mockTokenAsDeployer.balanceOf(merkleAsDeployer.address)).to.eq(0)
       })
-      it(`all reward's distributed to correct person`, async () => {
+      it(`should distribute reward to correct person`, async () => {
         for (let account in claims) {
           const claim = claims[account]
           await merkleAsDeployer.claim(claim.index, account, claim.amount, claim.proof)

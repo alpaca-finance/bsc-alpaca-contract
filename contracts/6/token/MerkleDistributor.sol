@@ -49,11 +49,11 @@ contract MerkleDistributor is IMerkleDistributor, Ownable {
 
     // Verify the merkle proof.
     bytes32 node = keccak256(abi.encodePacked(index, account, amount));
-    require(MerkleProof.verify(merkleProof, merkleRoot, node), 'MerkleDistributor: Invalid proof.');
+    require(MerkleProof.verify(merkleProof, merkleRoot, node), 'MerkleDistributor::claim:: Invalid proof.');
 
     // Mark it claimed and send the token.
     _setClaimed(index);
-    require(IERC20(token).transfer(account, amount), 'MerkleDistributor: Transfer failed.');
+    require(IERC20(token).transfer(account, amount), 'MerkleDistributor::claim:: Transfer failed.');
 
     emit Claimed(index, account, amount);
   }
