@@ -77,7 +77,7 @@ describe('GrazingRange', () => {
     stakingTokenAsCat = MockERC20__factory.connect(stakingToken.address, cat)
   })
 
-  describe('#addRewardInfo', async () => {
+  describe('#addRewardInfo()', async () => {
     context('When all parameters are valid', async () => {
       context('When the reward info is still within the limit', async () => {
         it('should still be able to push the new reward info with the latest as the newly pushed reward info', async () => {
@@ -133,7 +133,7 @@ describe('GrazingRange', () => {
   })
 
   describe('#deposit()', async () => {
-    context('When some parameters are invalid', async() => {
+    context('With invalid parameters', async() => {
       context('when there is NO predefined campaign', async () => {
         it('should revert the tx since an array of predefined campaigns is out of bound', async () => {
           // mint staking token to alice
@@ -170,8 +170,8 @@ describe('GrazingRange', () => {
         })
       })
     })
-    context('When parameters are all valid', async () => {
-      context ('When there is only single campaign', async () => {
+    context('With valid parameters', async () => {
+      context('When there is only single campaign', async () => {
         context('When there is only single reward info', async () => {
           context('When there is only one beneficial who get the reward (alice)', async () => {
             context("When alice's deposit block is is in the middle of start and end block", async () => {
@@ -210,10 +210,12 @@ describe('GrazingRange', () => {
                     // advance a block number to #(mockedBlock+20) 10 block diff from bob's deposit
                     await TimeHelpers.advanceBlockTo(mockedBlock.add(20).toNumber())
                     // alice should expect to see her pending reward according to calculated reward per share and her deposit
-                    const expectedAccRewardPerShare = BigNumber.from(1).mul('1000000000000') // reward per share 1e12 + 5e12
+                    const expectedAccRewardPerShare = BigNumber.from(1).mul('1000000000000') // reward per share 1e12 = 1 reward per share
                     expect((await grazingRangeAsAlice.campaignInfo(0)).lastRewardBlock).to.eq(currentBlockNum)
                     expect((await grazingRangeAsAlice.campaignInfo(0)).accRewardPerShare).to.eq(expectedAccRewardPerShare)
-                    expect((await grazingRangeAsAlice.pendingReward(BigNumber.from(0), await alice.getAddress()))).to.eq(ethers.utils.parseEther('600')) // alice should get 100 reward * 10 (10 blocks advanced)
+                    // alice should get a reward based on accRewardPerShare = 1 + (10(100)/200) =  1 + (1000/200) = 1 + 5 = 6 reward per share
+                    // thus, alice who deposit 100 will receive 6 * 100 = 600
+                    expect((await grazingRangeAsAlice.pendingReward(BigNumber.from(0), await alice.getAddress()))).to.eq(ethers.utils.parseEther('600'))
 
                     // bob shouldn't expect anything, he deposited out of the range 
                     expect((await grazingRangeAsAlice.pendingReward(BigNumber.from(0), await bob.getAddress()))).to.eq(ethers.utils.parseEther('500'))
@@ -404,6 +406,7 @@ describe('GrazingRange', () => {
             })
           })
         })
+        context('When there are multiple reward infos', async() => {})
       })
     })
   })
