@@ -16,6 +16,7 @@ import {
   MockERC20__factory,
   MockWBNB,
   MockWBNB__factory,
+  PancakeERC20,
   PancakeFactory,
   PancakeFactory__factory,
   PancakeMasterChef,
@@ -30,6 +31,8 @@ import {
   SimpleVaultConfig__factory,
   StrategyAddBaseTokenOnly,
   StrategyAddBaseTokenOnly__factory,
+  StrategyAddTwoSidesOptimalMigrate,
+  StrategyAddTwoSidesOptimalMigrate__factory,
   StrategyLiquidate,
   StrategyLiquidate__factory,
   StrategyPartialCloseLiquidate,
@@ -62,9 +65,14 @@ describe('Vault - Pancake', () => {
 
   /// Pancakeswap-related instance(s)
   let factory: PancakeFactory;
-  let wbnb: MockWBNB;
   let router: PancakeRouter;
+
+  let factoryV2: PancakeFactory;
+  let routerV2: PancakeRouter;
+
+  let wbnb: MockWBNB;
   let lp: PancakePair;
+  let lpV2: PancakePair;
 
   /// Token-related instance(s)
   let baseToken: MockERC20;
@@ -76,7 +84,10 @@ describe('Vault - Pancake', () => {
   /// Strategy-ralted instance(s)
   let addStrat: StrategyAddBaseTokenOnly;
   let liqStrat: StrategyLiquidate;
+  let addStratV2: StrategyAddBaseTokenOnly;
+  let liqStratV2: StrategyLiquidate;
   let partialCloseStrat: StrategyPartialCloseLiquidate;
+  let twoSidesOptimalMigrate: StrategyAddTwoSidesOptimalMigrate;
 
   /// Vault-related instance(s)
   let simpleVaultConfig: SimpleVaultConfig;
@@ -90,6 +101,7 @@ describe('Vault - Pancake', () => {
   /// PancakeswapMasterChef-related instance(s)
   let masterChef: PancakeMasterChef;
   let poolId: number;
+  let lpV2poolId: number;
   let pancakeswapWorker: PancakeswapWorker;
 
   // Accounts
@@ -142,6 +154,13 @@ describe('Vault - Pancake', () => {
     router = await PancakeRouter.deploy(factory.address, wbnb.address);
     await router.deployed();
 
+    /// Setup PancakeV2
+    factoryV2 = await PancakeFactory.deploy((await deployer.getAddress()));
+    await factoryV2.deployed();
+
+    routerV2 = await PancakeRouter.deploy(factoryV2.address, wbnb.address);
+    await routerV2.deployed(); 
+
     /// Setup token stuffs
     const MockERC20 = (await ethers.getContractFactory(
       "MockERC20",
@@ -149,14 +168,14 @@ describe('Vault - Pancake', () => {
     )) as MockERC20__factory
     baseToken = await upgrades.deployProxy(MockERC20, ['BTOKEN', 'BTOKEN']) as MockERC20;
     await baseToken.deployed();
-    await baseToken.mint(await deployer.getAddress(), ethers.utils.parseEther('100'));
-    await baseToken.mint(await alice.getAddress(), ethers.utils.parseEther('100'));
-    await baseToken.mint(await bob.getAddress(), ethers.utils.parseEther('100'));
+    await baseToken.mint(await deployer.getAddress(), ethers.utils.parseEther('1000'));
+    await baseToken.mint(await alice.getAddress(), ethers.utils.parseEther('1000'));
+    await baseToken.mint(await bob.getAddress(), ethers.utils.parseEther('1000'));
     quoteToken = await upgrades.deployProxy(MockERC20, ['FTOKEN', 'FTOKEN']) as MockERC20;
     await quoteToken.deployed();
-    await quoteToken.mint(await deployer.getAddress(), ethers.utils.parseEther('100'))
-    await quoteToken.mint(await alice.getAddress(), ethers.utils.parseEther('100'));
-    await quoteToken.mint(await bob.getAddress(), ethers.utils.parseEther('100'));
+    await quoteToken.mint(await deployer.getAddress(), ethers.utils.parseEther('1000'))
+    await quoteToken.mint(await alice.getAddress(), ethers.utils.parseEther('1000'));
+    await quoteToken.mint(await bob.getAddress(), ethers.utils.parseEther('1000'));
 
     const CakeToken = (await ethers.getContractFactory(
       "CakeToken",
@@ -178,6 +197,11 @@ describe('Vault - Pancake', () => {
     lp = PancakePair__factory.connect(await factory.getPair(quoteToken.address, baseToken.address), deployer);
     await lp.deployed();
 
+    /// Setup BTOKEN-FTOKEN pair on PancakeswapV2
+    await factoryV2.createPair(baseToken.address, quoteToken.address);
+    lpV2 = PancakePair__factory.connect(await factoryV2.getPair(quoteToken.address, baseToken.address), deployer);
+    await lpV2.deployed();
+
     /// Setup strategy
     const StrategyAddBaseTokenOnly = (await ethers.getContractFactory(
       "StrategyAddBaseTokenOnly",
@@ -193,6 +217,12 @@ describe('Vault - Pancake', () => {
     liqStrat = await upgrades.deployProxy(StrategyLiquidate, [router.address]) as StrategyLiquidate;
     await liqStrat.deployed();
 
+    addStratV2 = await upgrades.deployProxy(StrategyAddBaseTokenOnly, [routerV2.address]) as StrategyAddBaseTokenOnly
+    await addStratV2.deployed();
+
+    liqStratV2 = await upgrades.deployProxy(StrategyLiquidate, [routerV2.address]) as StrategyLiquidate;
+    await liqStratV2.deployed();
+
     const StrategyPartialCloseLiquidate = (await ethers.getContractFactory(
       "StrategyPartialCloseLiquidate",
       deployer
@@ -201,6 +231,13 @@ describe('Vault - Pancake', () => {
       StrategyPartialCloseLiquidate, [router.address]) as StrategyPartialCloseLiquidate
     await partialCloseStrat.deployed();
 
+    const StrategyTwoSidesOptimalMigrate = (await ethers.getContractFactory(
+      "StrategyAddTwoSidesOptimalMigrate",
+      deployer
+    )) as StrategyAddTwoSidesOptimalMigrate__factory
+    twoSidesOptimalMigrate = await upgrades.deployProxy(
+      StrategyTwoSidesOptimalMigrate, [routerV2.address]) as StrategyAddTwoSidesOptimalMigrate
+    await twoSidesOptimalMigrate.deployed();
 
     // Setup FairLaunch contract
     // Deploy ALPACAs
@@ -282,7 +319,7 @@ describe('Vault - Pancake', () => {
     await cake.transferOwnership(masterChef.address);
     await syrup.transferOwnership(masterChef.address);
     // Add lp to masterChef's pool
-    await masterChef.add(1, lp.address, false);
+    await masterChef.add(1, lp.address, true);
 
     /// Setup PancakeswapWorker
     poolId = 1;
@@ -2069,5 +2106,286 @@ describe('Vault - Pancake', () => {
       )).to.be.revertedWith('StrategyPartialCloseLiquidate::execute:: insufficient LP amount recevied from worker');
     }).timeout(50000);
 
+  });
+
+  context('when PCS migrate to V2', async() => {
+    beforeEach(async() => {
+
+    })
+
+    context('when V2 pool is empty', async() => {
+      it('should migrate and continue reinvest correctly', async () => {
+        // Set Bank's debt interests to 0% per year
+        await simpleVaultConfig.setParams(
+          ethers.utils.parseEther('1'), // 1 BTOKEN min debt size,
+          '0', // 0% per year
+          '1000', // 10% reserve pool
+          '1000', // 10% Kill prize
+          wbnb.address,
+          wNativeRelayer.address,
+          fairLaunch.address,
+        );
+    
+        // Set Reinvest bounty to 10% of the reward
+        await pancakeswapWorker.setReinvestBountyBps('100');
+    
+        // Bob deposits 10 BTOKEN
+        await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther('10'));
+        await vaultAsBob.deposit(ethers.utils.parseEther('10'));
+    
+        // Alice deposits 12 BTOKEN
+        await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther('12'));
+        await vaultAsAlice.deposit(ethers.utils.parseEther('12'));
+    
+        // Position#1: Bob borrows 10 BTOKEN loan
+        await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther('10'))
+        await vaultAsBob.work(
+          0,
+          pancakeswapWorker.address,
+          ethers.utils.parseEther('10'),
+          ethers.utils.parseEther('10'),
+          '0', // max return = 0, don't return NATIVE to the debt
+          ethers.utils.defaultAbiCoder.encode(
+            ['address', 'bytes'],
+            [addStrat.address, ethers.utils.defaultAbiCoder.encode(
+              ['address', 'address', 'uint256'],
+              [baseToken.address, quoteToken.address, '0'])
+            ]
+          ),
+        );
+    
+        // Position#2: Alice borrows 2 BTOKEN loan
+        await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther('1'))
+        await vaultAsAlice.work(
+          0,
+          pancakeswapWorker.address,
+          ethers.utils.parseEther('1'),
+          ethers.utils.parseEther('2'),
+          '0', // max return = 0, don't return BTOKEN to the debt
+          ethers.utils.defaultAbiCoder.encode(
+            ['address', 'bytes'],
+            [addStrat.address, ethers.utils.defaultAbiCoder.encode(
+              ['address','address', 'uint256'],
+              [baseToken.address, quoteToken.address, '0'])
+            ]
+          )
+        );
+    
+        // ---------------- Reinvest#1 -------------------
+        // Wait for 1 day and someone calls reinvest
+        await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from('1')));
+    
+        let [workerLPBefore, workerDebtBefore] = await masterChef.userInfo(poolId, pancakeswapWorker.address);
+        await pancakeswapWorkerAsEve.reinvest();
+        // PancakeWorker receives 303999999998816250 cake as a reward
+        // Eve got 10% of 303999999998816250 cake = 0.01 * 303999999998816250 = 3039999999988162 bounty
+        AssertHelpers.assertAlmostEqual(
+          ethers.utils.parseEther('0.003039999999988162').toString(),
+          (await cake.balanceOf(await eve.getAddress())).toString(),
+        );
+    
+        // Remaining PancakeWorker reward = 227999999998874730 - 22799999999887473 = 205199999998987257 (~90% reward)
+        // Convert 205199999998987257 cake to 671683776318381694 NATIVE
+        // Convert NATIVE to 1252466339860712438 LP token and stake
+        let [workerLPAfter, workerDebtAfter] = await masterChef.userInfo(poolId, pancakeswapWorker.address);
+    
+        // LP tokens of worker should be inceased from reinvestment
+        expect(workerLPAfter).to.be.bignumber.gt(workerLPBefore);
+    
+        // Check Bob position info
+        await pancakeswapWorker.health('1');
+        let [bobHealth, bobDebtToShare] = await vault.positionInfo('1');
+        expect(bobHealth).to.be.bignumber.gt(ethers.utils.parseEther('20')); // Get Reward and increase health
+        AssertHelpers.assertAlmostEqual(
+          ethers.utils.parseEther('10').toString(),
+          bobDebtToShare.toString(),
+        );
+    
+        // Check Alice position info
+        await pancakeswapWorker.health('2');
+        let [aliceHealth, aliceDebtToShare] = await vault.positionInfo('2');
+        expect(aliceHealth).to.be.bignumber.gt(ethers.utils.parseEther('3')); // Get Reward and increase health
+        AssertHelpers.assertAlmostEqual(
+          ethers.utils.parseEther('2').toString(),
+          aliceDebtToShare.toString(),
+        );
+    
+        // ---------------- Reinvest#2 -------------------
+        // Wait for 1 day and someone calls reinvest
+        await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from('1')));
+    
+        [workerLPBefore, workerDebtBefore] = await masterChef.userInfo(poolId, pancakeswapWorker.address);
+        await pancakeswapWorkerAsEve.reinvest();
+    
+        // eve should earn cake as a reward for reinvest
+        AssertHelpers.assertAlmostEqual(
+          ethers.utils.parseEther('0.004559999999987660').toString(),
+          (await cake.balanceOf(await eve.getAddress())).toString(),
+        );
+    
+        // Remaining Worker reward = 142858796296283038 - 14285879629628304 = 128572916666654734 (~90% reward)
+        // Convert 128572916666654734 uni to 157462478899282341 NATIVE
+        // Convert NATIVE to 5001669421841640 LP token
+        [workerLPAfter, workerDebtAfter] = await masterChef.userInfo(poolId, pancakeswapWorker.address);
+        // LP tokens of worker should be inceased from reinvestment
+        expect(workerLPAfter).to.be.bignumber.gt(workerLPBefore);
+    
+        // Check Bob position info
+        [bobHealth, bobDebtToShare] = await vault.positionInfo('1');
+        expect(bobHealth).to.be.bignumber.gt(ethers.utils.parseEther('20')); // Get Reward and increase health
+        AssertHelpers.assertAlmostEqual(
+          ethers.utils.parseEther('10').toString(),
+          bobDebtToShare.toString(),
+        );
+    
+        // Check Alice position info
+        [aliceHealth, aliceDebtToShare] = await vault.positionInfo('2');
+        expect(aliceHealth).to.be.bignumber.gt(ethers.utils.parseEther('3')); // Get Reward and increase health
+        AssertHelpers.assertAlmostEqual(
+          ethers.utils.parseEther('2').toString(),
+          aliceDebtToShare.toString(),
+        );
+  
+        // Pancakeswap annouce the upgrade to RouterV2 and FactoryV2
+        // turn off rewards for LPv1 immediately, move rewards to LPv2
+        // worker migrate should be executed here
+        // after migration is done everything should continue to work perfectly
+        await masterChef.add(1, lpV2.address, true);
+        await masterChef.set(1, 0, true);
+        lpV2poolId = 2
+
+        // Assuming CAKE on V2 is the same liquidity dept and price as V1
+        const cakeBnbLpV1 = PancakePair__factory.connect(await factory.getPair(cake.address, wbnb.address), deployer)
+        await cake.approve(routerV2.address, await cake.balanceOf(cakeBnbLpV1.address));
+        await routerV2.addLiquidityETH(
+          cake.address, await cake.balanceOf(cakeBnbLpV1.address),
+          '0', '0', await deployer.getAddress(), FOREVER, { value: await wbnb.balanceOf(cakeBnbLpV1.address) });
+
+        const btokenBnbLpV1 = PancakePair__factory.connect(await factory.getPair(baseToken.address, wbnb.address), deployer)
+        await baseToken.approve(routerV2.address, await baseToken.balanceOf(btokenBnbLpV1.address));
+        await routerV2.addLiquidityETH(
+          baseToken.address, await baseToken.balanceOf(btokenBnbLpV1.address),
+          '0', '0', await deployer.getAddress(), FOREVER, { value: await wbnb.balanceOf(btokenBnbLpV1.address) });
+  
+        await pancakeswapWorker.migrateLP(
+          routerV2.address,
+          lpV2poolId,
+          twoSidesOptimalMigrate.address,
+          addStratV2.address,
+          liqStratV2.address,
+          [], [addStrat.address, liqStrat.address, partialCloseStrat.address], 0);
+        
+        // expect that all old strats must be disabled
+        expect(await pancakeswapWorker.okStrats(addStrat.address)).to.be.eq(false)
+        expect(await pancakeswapWorker.okStrats(liqStrat.address)).to.be.eq(false)
+        expect(await pancakeswapWorker.okStrats(partialCloseStrat.address)).to.be.eq(false)
+
+        // expect that all new strats must be enabled
+        expect(await pancakeswapWorker.okStrats(addStratV2.address)).to.be.eq(true)
+        expect(await pancakeswapWorker.okStrats(liqStratV2.address)).to.be.eq(true)
+  
+        // ---------------- Reinvest#3 -------------------
+        // Wait for 1 day and someone calls reinvest
+        await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from('1')));
+    
+        [workerLPBefore, workerDebtBefore] = await masterChef.userInfo(lpV2poolId, pancakeswapWorker.address);
+        await pancakeswapWorkerAsEve.reinvest();
+    
+        // eve should earn cake as a reward for reinvest
+        AssertHelpers.assertAlmostEqual(
+          ethers.utils.parseEther('0.007219999999962344').toString(),
+          (await cake.balanceOf(await eve.getAddress())).toString(),
+        );
+    
+        // Remaining Worker reward = 72199999999623440 - 7219999999962344 = 128572916666654734 (~90% reward)
+        // Convert 128572916666654734 uni to 74159218067697746 NATIVE
+        // Convert NATIVE to 2350053120029788 LP token
+        [workerLPAfter, workerDebtAfter] = await masterChef.userInfo(lpV2poolId, pancakeswapWorker.address);
+        // LP tokens of worker should be inceased from reinvestment
+        expect(workerLPAfter).to.be.bignumber.gt(workerLPBefore);
+    
+        // Bob try to close position#1 with disabled strategy
+        await expect(vaultAsBob.work(
+          1,
+          pancakeswapWorker.address,
+          '0',
+          '0',
+          '1000000000000000000000',
+          ethers.utils.defaultAbiCoder.encode(
+            ['address', 'bytes'],
+            [liqStrat.address, ethers.utils.defaultAbiCoder.encode(
+              ['address', 'address', 'uint256'],
+              [baseToken.address, quoteToken.address, '0'])
+            ]
+          )
+        )).to.be.revertedWith('PancakeswapWorker::work:: unapproved work strategy');
+
+        const bobBefore = await baseToken.balanceOf(await bob.getAddress());
+        // Bob close position#1
+        vaultAsBob.work(
+          1,
+          pancakeswapWorker.address,
+          '0',
+          '0',
+          '1000000000000000000000',
+          ethers.utils.defaultAbiCoder.encode(
+            ['address', 'bytes'],
+            [liqStratV2.address, ethers.utils.defaultAbiCoder.encode(
+              ['address', 'address', 'uint256'],
+              [baseToken.address, quoteToken.address, '0'])
+            ]
+          )
+        );
+        const bobAfter = await baseToken.balanceOf(await bob.getAddress());
+    
+        // Check Bob account, Bob must be richer as he earn more from yield
+        expect(bobAfter).to.be.bignumber.gt(bobBefore);
+    
+        // Alice add another 10 BTOKEN
+        await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther('10'));
+        await vaultAsAlice.work(
+          2,
+          pancakeswapWorker.address,
+          ethers.utils.parseEther('10'),
+          0,
+          '0', // max return = 0, don't return NATIVE to the debt
+          ethers.utils.defaultAbiCoder.encode(
+            ['address', 'bytes'],
+            [addStratV2.address, ethers.utils.defaultAbiCoder.encode(
+              ['address','address', 'uint256'],
+              [baseToken.address, quoteToken.address, '0'])
+            ]
+          )
+        );
+    
+        const aliceBefore = await baseToken.balanceOf(await alice.getAddress());
+        // Alice close position#2
+        await vaultAsAlice.work(
+          2,
+          pancakeswapWorker.address,
+          '0',
+          '0',
+          '1000000000000000000000000000000',
+          ethers.utils.defaultAbiCoder.encode(
+            ['address', 'bytes'],
+            [liqStratV2.address, ethers.utils.defaultAbiCoder.encode(
+              ['address', 'address', 'uint256'],
+              [baseToken.address, quoteToken.address, '0'])
+            ]
+          ),
+        );
+        const aliceAfter = await baseToken.balanceOf(await alice.getAddress());
+    
+        // Check Alice account, Alice must be richer as she earned from leverage yield farm without getting liquidated
+        expect(aliceAfter).to.be.bignumber.gt(aliceBefore);
+
+        // there should be no LPv1 and LPv2 left in Worker, MasterChef as every exited the positions
+        const [stakedLPv2, ] = await masterChef.userInfo(lpV2poolId, pancakeswapWorker.address)
+        const [stakedLPv1, ] = await masterChef.userInfo(poolId, pancakeswapWorker.address)
+
+        expect(stakedLPv1).to.be.bignumber.eq(0)
+        expect(stakedLPv2).to.be.bignumber.eq(0)
+      }).timeout(50000);
+    })
   });
 });

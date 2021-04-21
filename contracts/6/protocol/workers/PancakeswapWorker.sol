@@ -16,6 +16,8 @@ import "../interfaces/IPancakeMasterChef.sol";
 import "../../utils/AlpacaMath.sol";
 import "../../utils/SafeToken.sol";
 
+import "hardhat/console.sol";
+
 contract PancakeswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker {
   /// @notice Libraries
   using SafeToken for address;
@@ -297,4 +299,72 @@ contract PancakeswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
     liqStrat = _liqStrat;
   }
 
+  /// @dev Migrate LP token from V1 to V2. FOR PCS MIGRATION ONLY.
+  /// @param _routerV2 The new router 
+  /// @param _newPId The new pool id
+  /// @param _twoSideOptimalMigrateStrat The migration strategy
+  function migrateLP(
+    IPancakeRouter02 _routerV2,
+    uint256 _newPId,
+    IStrategy _twoSideOptimalMigrateStrat,
+    IStrategy _newAddStrat,
+    IStrategy _newLiqStrat,
+    address[] calldata _newOkStrats,
+    address[] calldata _disableStrats,
+    uint256 _minLPv2
+  ) external onlyOwner {
+    /// 1. Approval contracts to deduct money from this worker
+    address(lpToken).safeApprove(address(router), uint256(-1));
+    address(lpToken).safeApprove(address(masterChef), uint256(-1));
+    farmingToken.safeApprove(address(_twoSideOptimalMigrateStrat), uint256(-1));
+
+    /// 2. Remove LPv1 from masterChef
+    masterChef.withdraw(pid, shareToBalance(totalShare));
+    console.log("lpToken:", lpToken.balanceOf(address(this)));
+    router.removeLiquidity(baseToken, farmingToken, lpToken.balanceOf(address(this)), 0, 0, address(this), block.timestamp);
+    console.log("baseToken:", baseToken.balanceOf(address(this)));
+    console.log("farmingToken:", farmingToken.balanceOf(address(this)));
+
+    /// 3. Use twoSideOptimal for adding LP to a new router
+    baseToken.safeTransfer(address(_twoSideOptimalMigrateStrat), baseToken.myBalance());
+    farmingToken.safeTransfer(address(_twoSideOptimalMigrateStrat), farmingToken.myBalance());
+    _twoSideOptimalMigrateStrat.execute(address(this), 0, abi.encode(baseToken, farmingToken, farmingToken.myBalance(), _minLPv2));
+
+    /// 4. Deposit LPv2 to the new pool
+    (IERC20 _lpV2, , , ) = masterChef.poolInfo(_newPId);
+    address(_lpV2).safeApprove(address(masterChef), uint256(-1));
+    console.log("lpV2:", address(_lpV2).myBalance());
+    masterChef.deposit(_newPId, address(_lpV2).myBalance());
+
+    /// 5. Re-assign all main variables
+    router = _routerV2;
+    factory = IPancakeFactory(_routerV2.factory());
+    pid = _newPId;
+    lpToken = IPancakePair(address(_lpV2));
+    uint256 len = _newOkStrats.length;
+    for (uint256 idx = 0; idx < len; idx++) {
+      okStrats[_newOkStrats[idx]] = true;
+    }
+    /// 5.1. Reset old router strat to false
+    okStrats[address(addStrat)] = false;
+    okStrats[address(liqStrat)] = false;
+    len = _disableStrats.length;
+    for (uint256 idx = 0; idx < len; idx++) {
+      okStrats[_disableStrats[idx]] = false;
+    }
+
+    /// 5.2. Re-assign critical strats
+    addStrat = _newAddStrat;
+    liqStrat = _newLiqStrat;
+    okStrats[address(_newAddStrat)] = true;
+    okStrats[address(_newLiqStrat)] = true;
+
+    require(
+      (farmingToken == lpToken.token0() || farmingToken == lpToken.token1()) && 
+      (baseToken == lpToken.token0() || baseToken == lpToken.token1()), "PancakeswapWorker::migrateLP:: lpV2 is mis-configed");
+
+    address(lpToken).safeApprove(address(router), uint256(-1));
+    address(lpToken).safeApprove(address(masterChef), uint256(-1));
+    farmingToken.safeApprove(address(_twoSideOptimalMigrateStrat), uint256(-1));
+  }
 }
