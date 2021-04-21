@@ -1,6 +1,6 @@
 {
   "name": "@alpaca-finance/alpaca-contract",
-  "version": "1.0.17",
+  "version": "1.1.18",
   "scripts": {
     "compile5": "hardhat typechain --config hardhat.config.5.ts",
     "compile6": "hardhat typechain --config hardhat.config.ts",
@@ -21,6 +21,7 @@
     "deploy:mainnet:014": "hardhat --network mainnet deploy --no-compile --reset --tags DebtTokenV2",
     "deploy:mainnet:015": "hardhat --network mainnet deploy --no-compile --reset --tags StrategyWithdrawMinimizeTrading",
     "deploy:mainnet:016": "hardhat --network mainnet deploy --no-compile --reset --tags PancakeswapWorkers",
+    "deploy:mainnet:017": "hardhat --network mainnet deploy --no-compile --reset --tags MerkleDistributor",
     "deploy:mainnet:s001": "hardhat --network mainnet deploy --no-compile --reset --tags AddWorkerStrategy",
     "deploy:mainnet:s002": "hardhat --network mainnet deploy --no-compile --reset --tags SeedWBNBVault",
     "deploy:mainnet:s003": "hardhat --network mainnet deploy --no-compile --reset --tags SetParamsVaultConfig",
@@ -51,6 +52,7 @@
     "deploy:testnet:014": "hardhat --network testnet deploy --no-compile --reset --tags DebtTokenV2",
     "deploy:testnet:015": "hardhat --network testnet deploy --no-compile --reset --tags StrategyWithdrawMinimizeTrading",
     "deploy:testnet:016": "hardhat --network testnet deploy --no-compile --reset --tags PancakeswapWorkers",
+    "deploy:testnet:017": "hardhat --network testnet deploy --no-compile --reset --tags MerkleDistributor",
     "deploy:testnet:s001": "hardhat --network testnet deploy --no-compile --reset --tags TimelockAddWorkerStrategy",
     "deploy:testnet:s002": "hardhat --network testnet deploy --no-compile --reset --tags SeedWBNBVault",
     "deploy:testnet:s003": "hardhat --network testnet deploy --no-compile --reset --tags SetParamsVaultConfig",
@@ -79,6 +81,7 @@
     "test:shield": "hardhat test --no-compile ./test/Shield.test.ts",
     "test:stronkalpaca": "hardhat test --no-compile ./test/StronkAlpaca.test.ts",
     "test:grazingRange": "hardhat test --no-compile ./test/GrazingRange.test.ts",
+    "test:merkle": "hardhat test --no-compile ./test/MerkleDistributor.test.ts",
     "test": "hardhat test --no-compile",
     "testnet": "hardhat console --no-compile --network testnet",
     "deploy:kovan": "truffle migrate --network kovan",
@@ -115,6 +118,7 @@
     "@openzeppelin/test-helpers": "^0.5.10",
     "@uniswap/v2-core": "^1.0.1",
     "chai-bn": "^0.2.1",
+    "ethereumjs-util": "^7.0.10",
     "hardhat-deploy": "^0.7.0-beta.45",
     "solidity-coverage": "^0.7.15",
     "synthetix": "^2.39.2"
@@ -129,6 +133,7 @@
     "typechain",
     "artifacts",
     "contracts",
+    "merkle-distribution-info",
     ".testnet.json",
     ".staging.json",
     ".mainnet.json"

@@ -2,6 +2,12 @@
   "ProxyAdmin": "0x2c6c09b46d00A88161B7e4AcFaFEc58990548aC2",
   "Timelock": "0xb3c3aE82358DF7fC0bd98629D5ed91767e45c337",
   "Shield": "0x938350DF8BF3bD81Baae368b72132f1Bd14E7C13",
+  "MerkleDistributor": {
+    "ITAM-week-1": "0x2909278D6e7B8fCaf91daFB26005B5A7D9045340",
+    "ITAM-week-2": "",
+    "ITAM-week-3": "",
+    "ITAM-week-4": ""
+  },
   "FairLaunch": {
     "address": "0xac2fefDaF83285EA016BE3f5f1fb039eb800F43D",
     "pools": [{
