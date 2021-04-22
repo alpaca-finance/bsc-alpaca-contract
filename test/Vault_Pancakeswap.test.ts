@@ -2313,7 +2313,7 @@ describe('Vault - Pancake', () => {
           twoSidesOptimalMigrate.address,
           addStratV2.address,
           liqStratV2.address,
-          [], [addStrat.address, liqStrat.address, partialCloseStrat.address], 0);
+          [], [addStrat.address, liqStrat.address, partialCloseStrat.address]);
         
         // expect that all old strats must be disabled
         expect(await pancakeswapWorker.okStrats(addStrat.address)).to.be.eq(false)
@@ -2602,8 +2602,6 @@ describe('Vault - Pancake', () => {
         
         // However FTOKENBTOKEN price on V2 is 5% > V1 (BTOKEN is 5% more expensive on V2)
         const btokenFtokenLpV1 = PancakePair__factory.connect(await factory.getPair(baseToken.address, farmToken.address), deployer)
-        console.log((await baseToken.balanceOf(btokenFtokenLpV1.address)).toString())
-        console.log((await farmToken.balanceOf(btokenFtokenLpV1.address)).toString())
         const desiredBtokenReserveV2 = (await baseToken.balanceOf(btokenFtokenLpV1.address)).mul(9500).div(10000)
         const desiredFtokenReserveV2 = (await farmToken.balanceOf(btokenFtokenLpV1.address))
         await baseToken.approve(routerV2.address, desiredBtokenReserveV2)
@@ -2613,8 +2611,6 @@ describe('Vault - Pancake', () => {
           '0', '0', await deployer.getAddress(), FOREVER)
         
         const [btokenReserveV1, ftokenReserveV1] = await btokenFtokenLpV1.getReserves()
-        console.log(">> V1 FTOKENBTOKEN price:", ftokenReserveV1.mul(ethers.utils.parseEther('1')).div(btokenReserveV1).toString())
-        console.log(">> V2 FTOKENBOKTEN price:", desiredFtokenReserveV2.mul(ethers.utils.parseEther('1')).div(desiredBtokenReserveV2).toString())
   
         await pancakeswapV2worker.migrateLP(
           routerV2.address,
@@ -2622,12 +2618,10 @@ describe('Vault - Pancake', () => {
           twoSidesOptimalMigrate.address,
           addStratV2.address,
           liqStratV2.address,
-          [], [addStrat.address, liqStrat.address, partialCloseStrat.address], 0);
+          [], [addStrat.address, liqStrat.address, partialCloseStrat.address]);
     
         const btokenFtokenLpV2 = PancakePair__factory.connect(await factoryV2.getPair(baseToken.address, farmToken.address), deployer)
         const [btokenReserveV2, ftokenReserveV2] = await btokenFtokenLpV2.getReserves()
-
-        console.log(">> reserveV2 after migrate: ", btokenReserveV2.toString(), ftokenReserveV2.toString())
         
         // expect that all old strats must be disabled
         expect(await pancakeswapWorker.okStrats(addStrat.address)).to.be.eq(false)
@@ -2936,8 +2930,6 @@ describe('Vault - Pancake', () => {
         
         // However FTOKENBTOKEN price on V2 is 5% > V1 (BTOKEN is 5% more expensive on V2)
         const btokenFtokenLpV1 = PancakePair__factory.connect(await factory.getPair(baseToken.address, farmToken.address), deployer)
-        console.log((await baseToken.balanceOf(btokenFtokenLpV1.address)).toString())
-        console.log((await farmToken.balanceOf(btokenFtokenLpV1.address)).toString())
         const desiredBtokenReserveV2 = (await baseToken.balanceOf(btokenFtokenLpV1.address))
         const desiredFtokenReserveV2 = (await farmToken.balanceOf(btokenFtokenLpV1.address)).mul(9500).div(10000)
         await baseToken.approve(routerV2.address, desiredBtokenReserveV2)
@@ -2947,8 +2939,6 @@ describe('Vault - Pancake', () => {
           '0', '0', await deployer.getAddress(), FOREVER)
         
         const [btokenReserveV1, ftokenReserveV1] = await btokenFtokenLpV1.getReserves()
-        console.log(">> V1 FTOKENBTOKEN price:", ftokenReserveV1.mul(ethers.utils.parseEther('1')).div(btokenReserveV1).toString())
-        console.log(">> V2 FTOKENBOKTEN price:", desiredFtokenReserveV2.mul(ethers.utils.parseEther('1')).div(desiredBtokenReserveV2).toString())
   
         await pancakeswapV2worker.migrateLP(
           routerV2.address,
@@ -2956,12 +2946,10 @@ describe('Vault - Pancake', () => {
           twoSidesOptimalMigrate.address,
           addStratV2.address,
           liqStratV2.address,
-          [], [addStrat.address, liqStrat.address, partialCloseStrat.address], 0);
+          [], [addStrat.address, liqStrat.address, partialCloseStrat.address]);
     
         const btokenFtokenLpV2 = PancakePair__factory.connect(await factoryV2.getPair(baseToken.address, farmToken.address), deployer)
         const [btokenReserveV2, ftokenReserveV2] = await btokenFtokenLpV2.getReserves()
-
-        console.log(">> reserveV2 after migrate: ", btokenReserveV2.toString(), ftokenReserveV2.toString())
         
         // expect that all old strats must be disabled
         expect(await pancakeswapWorker.okStrats(addStrat.address)).to.be.eq(false)
