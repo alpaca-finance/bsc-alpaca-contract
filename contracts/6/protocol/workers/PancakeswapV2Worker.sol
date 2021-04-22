@@ -323,7 +323,6 @@ contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, 
     /// 1. Approval contracts to deduct money from this worker
     address(lpToken).safeApprove(address(router), uint256(-1));
     address(lpToken).safeApprove(address(masterChef), uint256(-1));
-    farmingToken.safeApprove(address(_twoSideOptimalMigrateStrat), uint256(-1));
 
     /// 2. Remove LPv1 from masterChef
     if (shareToBalance(totalShare) == 0) return;
@@ -373,6 +372,5 @@ contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, 
     /// 6. reset approval
     address(lpToken).safeApprove(address(router), 0);
     address(lpToken).safeApprove(address(masterChef), 0);
-    farmingToken.safeApprove(address(_twoSideOptimalMigrateStrat), 0);
   }
 }
