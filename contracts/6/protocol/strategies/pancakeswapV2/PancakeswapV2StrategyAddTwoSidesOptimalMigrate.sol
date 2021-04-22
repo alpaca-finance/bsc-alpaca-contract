@@ -14,8 +14,6 @@ import "../../interfaces/IVault.sol";
 import "../../../utils/SafeToken.sol";
 import "../../../utils/AlpacaMath.sol";
 
-import "hardhat/console.sol";
-
 contract PancakeswapV2StrategyAddTwoSidesOptimalMigrate is ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeToken for address;
   using SafeMath for uint256;
@@ -86,9 +84,8 @@ contract PancakeswapV2StrategyAddTwoSidesOptimalMigrate is ReentrancyGuardUpgrad
     // 1. Find out what farming token we are dealing with.
     (
         address baseToken,
-        address farmingToken,
-        uint256 minLPAmount
-    ) = abi.decode(data, (address, address, uint256));
+        address farmingToken
+    ) = abi.decode(data, (address, address));
     IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
     // 2. Approve router to do their stuffs
     baseToken.safeApprove(address(router), uint256(-1));
@@ -101,27 +98,16 @@ contract PancakeswapV2StrategyAddTwoSidesOptimalMigrate is ReentrancyGuardUpgrad
       (uint256 r0, uint256 r1, ) = lpToken.getReserves();
       (uint256 baseTokenReserve, uint256 farmingTokenReserve) = lpToken.token0() == baseToken ? (r0, r1) : (r1, r0);
       (swapAmt, isReversed) = optimalDeposit(baseTokenBalance, farmingToken.myBalance(), baseTokenReserve, farmingTokenReserve);
-      console.log("baseTokenReserve:", baseTokenReserve);
-      console.log("farmingTokenReserve:", farmingTokenReserve);
     }
     // 4. Convert between BaseToken and farming tokens
     address[] memory path = new address[](2);
     (path[0], path[1]) = isReversed ? (farmingToken, baseToken) : (baseToken, farmingToken);
     // 5. Swap according to path
-    console.log("swaping:", swapAmt);
-    console.log("farmingToken:",farmingToken);
-    console.log("baseToken:", baseToken);
-    console.log("path[0]:", path[0]);
-    console.log("path[1]:", path[1]);
     if (swapAmt > 0) router.swapExactTokensForTokens(swapAmt, 0, path, address(this), now);
-    console.log("done swapped");
-    console.log("add liq");
     // 6. Mint more LP tokens and return all LP tokens to the sender.
-    (,, uint256 moreLPAmount) = router.addLiquidity(
+    router.addLiquidity(
       baseToken, farmingToken, baseToken.myBalance(), farmingToken.myBalance(), 0, 0, address(this), now
     );
-    console.log("done liq");
-    require(moreLPAmount >= minLPAmount, "StrategyAddTwoSidesOptimal::execute:: insufficient LP tokens received");
     require(lpToken.transfer(msg.sender, lpToken.balanceOf(address(this))), "StrategyAddTwoSidesOptimal::execute:: failed to transfer LP token to msg.sender");
     // 7. Reset approve to 0 for safety reason
     farmingToken.safeApprove(address(router), 0);

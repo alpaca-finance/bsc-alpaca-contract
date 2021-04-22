@@ -16,8 +16,6 @@ import "../interfaces/IPancakeMasterChef.sol";
 import "../../utils/AlpacaMath.sol";
 import "../../utils/SafeToken.sol";
 
-import "hardhat/console.sol";
-
 contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker {
   /// @notice Libraries
   using SafeToken for address;
@@ -320,8 +318,7 @@ contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, 
     IStrategy _newAddStrat,
     IStrategy _newLiqStrat,
     address[] calldata _newOkStrats,
-    address[] calldata _disableStrats,
-    uint256 _minLPv2
+    address[] calldata _disableStrats
   ) external onlyOwner {
     /// 1. Approval contracts to deduct money from this worker
     address(lpToken).safeApprove(address(router), uint256(-1));
@@ -330,20 +327,16 @@ contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, 
 
     /// 2. Remove LPv1 from masterChef
     masterChef.withdraw(pid, shareToBalance(totalShare));
-    console.log("lpToken:", lpToken.balanceOf(address(this)));
     router.removeLiquidity(baseToken, farmingToken, lpToken.balanceOf(address(this)), 0, 0, address(this), block.timestamp);
-    console.log("baseToken:", baseToken.balanceOf(address(this)));
-    console.log("farmingToken:", farmingToken.balanceOf(address(this)));
 
     /// 3. Use twoSideOptimal for adding LP to a new router
     baseToken.safeTransfer(address(_twoSideOptimalMigrateStrat), baseToken.myBalance());
     farmingToken.safeTransfer(address(_twoSideOptimalMigrateStrat), farmingToken.myBalance());
-    _twoSideOptimalMigrateStrat.execute(address(this), 0, abi.encode(baseToken, farmingToken, farmingToken.myBalance(), _minLPv2));
+    _twoSideOptimalMigrateStrat.execute(address(this), 0, abi.encode(baseToken, farmingToken));
 
     /// 4. Deposit LPv2 to the new pool
     (IERC20 _lpV2, , , ) = masterChef.poolInfo(_newPId);
     address(_lpV2).safeApprove(address(masterChef), uint256(-1));
-    console.log("lpV2:", address(_lpV2).myBalance());
     masterChef.deposit(_newPId, address(_lpV2).myBalance());
 
     /// 5. Re-assign all main variables
