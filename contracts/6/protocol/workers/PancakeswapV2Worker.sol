@@ -371,8 +371,8 @@ contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, 
       (baseToken == lpToken.token0() || baseToken == lpToken.token1()), "PancakeswapWorker::migrateLP:: lpV2 is mis-configed");
 
     /// 6. reset approval
-    address(lpToken).safeApprove(address(router), uint256(-1));
-    address(lpToken).safeApprove(address(masterChef), uint256(-1));
-    farmingToken.safeApprove(address(_twoSideOptimalMigrateStrat), uint256(-1));
+    address(lpToken).safeApprove(address(router), 0);
+    address(lpToken).safeApprove(address(masterChef), 0);
+    farmingToken.safeApprove(address(_twoSideOptimalMigrateStrat), 0);
   }
 }
