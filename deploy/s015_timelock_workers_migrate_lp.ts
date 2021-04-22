@@ -13,7 +13,6 @@ interface IMigrateLPParams {
     LIQ_STRAT: string
     OK_STRATS: Array<string> // some other strats except add and liq strat
     DISABLE_STRATS: Array<string>
-    MIN_LP_V2: string
 }
 
 type IMigrateLPParamsList = Array<IMigrateLPParams>
@@ -50,9 +49,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(`>> Timelock: Setting migrationLP of a worker: "${migration.WORKER_NAME}" via Timelock`);
     await timelock.queueTransaction(
         migration.WORKER_ADDR, '0',
-        'migrateLP(address,uint256,address,address,address,address[],address[],uint256)',
+        'migrateLP(address,uint256,address,address,address,address[],address[])',
         ethers.utils.defaultAbiCoder.encode(
-            ['address', 'uint256', 'address', 'address', 'address', 'address[]', 'address[]', 'uint256'],
+            ['address', 'uint256', 'address', 'address', 'address', 'address[]', 'address[]'],
             [
                 migration.ROUTER_V2,
                 migration.NEW_POOL_ID,
@@ -61,12 +60,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
                 migration.LIQ_STRAT,
                 migration.OK_STRATS,
                 migration.DISABLE_STRATS,
-                migration.MIN_LP_V2
             ]
         ), EXACT_ETA
     );
     console.log("generate timelock.executeTransaction:")
-    console.log(`await timelock.executeTransaction('${migration.WORKER_ADDR}', '0', 'migrateLP(address,uint256,address,address,address,address[],address[],uint256)', ethers.utils.defaultAbiCoder.encode(['address', 'uint256', 'address', 'address', 'address', 'address[]', 'address[]', 'uint256'],[${migration.ROUTER_V2},${migration.NEW_POOL_ID},${migration.TWOSIDE_OPTIMAL_MIGRATION_STRAT_ADDR},${migration.ADD_STRAT},${migration.LIQ_STRAT},${migration.OK_STRATS},${migration.DISABLE_STRATS},${migration.MIN_LP_V2}]), ${EXACT_ETA}`)
+    console.log(`await timelock.executeTransaction('${migration.WORKER_ADDR}', '0', 'migrateLP(address,uint256,address,address,address,address[],address[])', ethers.utils.defaultAbiCoder.encode(['address', 'uint256', 'address', 'address', 'address', 'address[]', 'address[]'],[${migration.ROUTER_V2},${migration.NEW_POOL_ID},${migration.TWOSIDE_OPTIMAL_MIGRATION_STRAT_ADDR},${migration.ADD_STRAT},${migration.LIQ_STRAT},${migration.OK_STRATS},${migration.DISABLE_STRATS}]), ${EXACT_ETA}`)
     console.log("✅ Done");
   }
 };
