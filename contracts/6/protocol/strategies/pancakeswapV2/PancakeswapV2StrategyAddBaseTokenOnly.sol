@@ -55,7 +55,7 @@ contract PancakeswapV2StrategyAddBaseTokenOnly is ReentrancyGuardUpgradeSafe, IS
     // 4(1-f) = 4*9975*10000 = 399000000, where f = 0.0025 and 10,000 is a way to avoid floating point
     // 19975^2 = 399000625
     // 9975*2 = 19950
-    uint256 aIn = AlpacaMath.sqrt(rIn.mul(balance.mul(399000625).add(rIn.mul(399000000)))).sub(rIn.mul(19975)) / 19950;
+    uint256 aIn = AlpacaMath.sqrt(rIn.mul(balance.mul(399000000).add(rIn.mul(399000625)))).sub(rIn.mul(19975)) / 19950;
     // 4. Convert that portion of baseToken to farmingToken.
     address[] memory path = new address[](2);
     path[0] = baseToken;

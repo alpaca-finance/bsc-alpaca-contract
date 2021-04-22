@@ -19,8 +19,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
 
   const ROUTER_V2 = '0x367633909278A3C91f4cB130D8e56382F00D1071';
-  const WBNB = '0xDfb1211E2694193df5765d54350e1145FD2404A1';
-  const WNATIVE_RELAYER = '0x7e2284c8CC74F13FA6c218c4231b0786E6204728';
+  const WBNB = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
+  const WNATIVE_RELAYER = '0xE1D2CA01bc88F325fF7266DD2165944f3CAf0D3D';
 
 
 
@@ -43,36 +43,36 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log(`>> Deployed at ${strategyAddBaseTokenOnlyV2.address}`);
   console.log("✅ Done")
   
-  /**
-   * StrategyLiquidate V2
-   */
-  console.log(">> Deploying an upgradable StrategyLiquidate V2 contract");
-  const PancakeswapV2StrategyLiquidate = (await ethers.getContractFactory(
-    "PancakeswapV2StrategyLiquidate",
-    (await ethers.getSigners())[0],
-  )) as PancakeswapV2StrategyLiquidate__factory;
-  const strategyLiquidateV2 = await upgrades.deployProxy(PancakeswapV2StrategyLiquidate, [ROUTER_V2]);
-  await strategyLiquidateV2.deployed();
-  console.log(`>> Deployed at ${strategyLiquidateV2.address}`);
-  console.log("✅ Done")
+  // /**
+  //  * StrategyLiquidate V2
+  //  */
+  // console.log(">> Deploying an upgradable StrategyLiquidate V2 contract");
+  // const PancakeswapV2StrategyLiquidate = (await ethers.getContractFactory(
+  //   "PancakeswapV2StrategyLiquidate",
+  //   (await ethers.getSigners())[0],
+  // )) as PancakeswapV2StrategyLiquidate__factory;
+  // const strategyLiquidateV2 = await upgrades.deployProxy(PancakeswapV2StrategyLiquidate, [ROUTER_V2]);
+  // await strategyLiquidateV2.deployed();
+  // console.log(`>> Deployed at ${strategyLiquidateV2.address}`);
+  // console.log("✅ Done")
 
-  /**
-   * StrategyWithdrawMinimizeTrading V2
-   */
-  console.log(">> Deploying an upgradable StrategyWithdrawMinimizeTrading V2 contract");
-  const PancakeswapV2StrategyWithdrawMinimizeTrading = (await ethers.getContractFactory(
-    "PancakeswapV2StrategyWithdrawMinimizeTrading",
-    (await ethers.getSigners())[0],
-  )) as PancakeswapV2StrategyWithdrawMinimizeTrading__factory;
-  const strategyWithdrawMinimizeTradingV2 = await upgrades.deployProxy(
-    PancakeswapV2StrategyWithdrawMinimizeTrading, [ROUTER_V2, WBNB, WNATIVE_RELAYER]);
-  await strategyWithdrawMinimizeTradingV2.deployed()
-  console.log(`>> Deployed at ${strategyWithdrawMinimizeTradingV2.address}`);
+  // /**
+  //  * StrategyWithdrawMinimizeTrading V2
+  //  */
+  // console.log(">> Deploying an upgradable StrategyWithdrawMinimizeTrading V2 contract");
+  // const PancakeswapV2StrategyWithdrawMinimizeTrading = (await ethers.getContractFactory(
+  //   "PancakeswapV2StrategyWithdrawMinimizeTrading",
+  //   (await ethers.getSigners())[0],
+  // )) as PancakeswapV2StrategyWithdrawMinimizeTrading__factory;
+  // const strategyWithdrawMinimizeTradingV2 = await upgrades.deployProxy(
+  //   PancakeswapV2StrategyWithdrawMinimizeTrading, [ROUTER_V2, WBNB, WNATIVE_RELAYER]);
+  // await strategyWithdrawMinimizeTradingV2.deployed()
+  // console.log(`>> Deployed at ${strategyWithdrawMinimizeTradingV2.address}`);
 
-  console.log(">> Whitelist StrategyWithdrawMinimizeTrading V2 on WNativeRelayer");
-  const wNativeRelayer = WNativeRelayer__factory.connect(WNATIVE_RELAYER, (await ethers.getSigners())[0]);
-  await wNativeRelayer.setCallerOk([strategyWithdrawMinimizeTradingV2.address], true);
-  console.log("✅ Done")
+  // console.log(">> Whitelist StrategyWithdrawMinimizeTrading V2 on WNativeRelayer");
+  // const wNativeRelayer = WNativeRelayer__factory.connect(WNATIVE_RELAYER, (await ethers.getSigners())[0]);
+  // await wNativeRelayer.setCallerOk([strategyWithdrawMinimizeTradingV2.address], true);
+  // console.log("✅ Done")
 };
 
 export default func;

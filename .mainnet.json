@@ -66,62 +66,64 @@
     "Pancakeswap": {
       "UniswapV2Factory": "0xBCfCcbde45cE874adCB698cC183deBcF17952812",
       "UniswapV2Router02": "0x05fF2B0DB69458A0750badebc4f9e13aDd608C7F",
+      "FactoryV2": "0x877Fe7F4e22e21bE397Cd9364fAFd4aF4E15Edb6",
+      "RouterV2": "0x2AD2C5314028897AEcfCF37FD923c079BeEb2C56",
       "MasterChef": "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
       "LpTokens": [{
         "pId": 1,
-        "name": "CAKE-WBNB LP",
+        "name": "CAKE-WBNB LP (Legacy)",
         "address": "0xa527a61703d82139f8a06bc30097cc9caa2df5a6"
       }, {
         "pId": 15,
-        "name": "BTCB-WBNB LP",
+        "name": "BTCB-WBNB LP (Legacy)",
         "address": "0x7561eee90e24f3b348e1087a005f78b4c8453524"
       }, {
         "pId": 14,
-        "name": "ETH-WBNB LP",
+        "name": "ETH-WBNB LP (Legacy)",
         "address": "0x70d8929d04b60af4fb9b58713ebcf18765ade422"
       }, {
         "pId": 11,
-        "name": "USDT-BUSD LP",
+        "name": "USDT-BUSD LP (Legacy)",
         "address": "0xc15fa3e22c912a276550f3e5fe3b0deb87b55acd"
       },{
         "pId": 2,
-        "name": "WBNB-BUSD LP",
+        "name": "WBNB-BUSD LP (Legacy)",
         "address": "0x1b96b92314c44b159149f7e0303511fb2fc4774f"
       }, {
         "pId": 5,
-        "name": "DOT-WBNB LP",
+        "name": "DOT-WBNB LP (Legacy)",
         "address": "0xbCD62661A6b1DEd703585d3aF7d7649Ef4dcDB5c"
       }, {
         "pId": 25,
-        "name": "UNI-WBNB LP",
+        "name": "UNI-WBNB LP (Legacy)",
         "address": "0x4269e7F43A63CEA1aD7707Be565a94a9189967E9"
       }, {
         "pId": 7,
-        "name": "LINK-WBNB LP",
+        "name": "LINK-WBNB LP (Legacy)",
         "address": "0xaeBE45E3a03B734c68e5557AE04BFC76917B4686"
       }, {
         "pId": 13,
-        "name": "XVS-WBNB LP",
+        "name": "XVS-WBNB LP (Legacy)",
         "address": "0x41182c32F854dd97bA0e0B1816022e0aCB2fc0bb"
       }, {
         "pId": 24,
-        "name": "YFI-WBNB LP",
+        "name": "YFI-WBNB LP (Legacy)",
         "address": "0x68Ff2ca47D27db5Ac0b5c46587645835dD51D3C1"
       }, {
         "pId": 41,
-        "name": "VAI-BUSD LP",
+        "name": "VAI-BUSD LP (Legacy)",
         "address": "0xfF17ff314925Dff772b71AbdFF2782bC913B3575"
       }, {
         "pId": 53,
-        "name": "USDC-BUSD LP",
+        "name": "USDC-BUSD LP (Legacy)",
         "address": "0x680Dd100E4b394Bda26A59dD5c119A391e747d18"
       }, {
         "pId": 52,
-        "name": "DAI-BUSD LP",
+        "name": "DAI-BUSD LP (Legacy)",
         "address": "0x3aB77e40340AB084c3e23Be8e5A6f7afed9D41DC"
       }, {
         "pId": 63,
-        "name": "UST-BUSD LP",
+        "name": "UST-BUSD LP (Legacy)",
         "address": "0xD1F12370b2ba1C79838337648F820a87eDF5e1e6"
       }, {
         "pId": 70,
@@ -129,16 +131,88 @@
         "address": "0x99d865Ed50D2C32c1493896810FA386c1Ce81D91"
       }, {
         "pId": 72,
-        "name": "COMP-ETH LP",
+        "name": "COMP-ETH LP (Legacy)",
         "address": "0x0392957571F28037607C14832D16f8B653eDd472"
       }, {
         "pId": 78,
-        "name": "SUSHI-ETH LP",
+        "name": "SUSHI-ETH LP (Legacy)",
         "address": "0x17580340F3dAEDAE871a8C21D15911742ec79e0F"
       }, {
         "pId": 122,
-        "name": "ITAM-WBNB LP",
+        "name": "ITAM-WBNB LP (Legacy)",
         "address": "0xCdC53345192D0e31eEAD03D7E9e008Ee659FAEbE"
+      }, {
+        "pId": 139,
+        "name": "CAKE-WBNB LP",
+        "address": ""
+      }, {
+        "pId": 150,
+        "name": "BTCB-WBNB LP",
+        "address": ""
+      }, {
+        "pId": 149,
+        "name": "ETH-WBNB LP",
+        "address": ""
+      }, {
+        "pId": 146,
+        "name": "USDT-BUSD LP",
+        "address": ""
+      },{
+        "pId": 140,
+        "name": "WBNB-BUSD LP",
+        "address": ""
+      }, {
+        "pId": 143,
+        "name": "DOT-WBNB LP",
+        "address": ""
+      }, {
+        "pId": 157,
+        "name": "UNI-WBNB LP",
+        "address": ""
+      }, {
+        "pId": 145,
+        "name": "LINK-WBNB LP",
+        "address": ""
+      }, {
+        "pId": 148,
+        "name": "XVS-WBNB LP",
+        "address": ""
+      }, {
+        "pId": 156,
+        "name": "YFI-WBNB LP",
+        "address": ""
+      }, {
+        "pId": 165,
+        "name": "VAI-BUSD LP",
+        "address": ""
+      }, {
+        "pId": 172,
+        "name": "USDC-BUSD LP",
+        "address": ""
+      }, {
+        "pId": 171,
+        "name": "DAI-BUSD LP",
+        "address": ""
+      }, {
+        "pId": 182,
+        "name": "UST-BUSD LP",
+        "address": ""
+      }, {
+        "pId": 189,
+        "name": "COMP-ETH LP",
+        "address": ""
+      }, {
+        "pId": 195,
+        "name": "SUSHI-ETH LP",
+        "address": ""
+      }, {
+        "pId": 237,
+        "name": "ITAM-WBNB LP",
+        "address": ""
+      }, {
+        "pId": 999,
+        "name": "ALPACA-BUSD LP",
+        "address": ""
       }]
     }
   },
@@ -171,9 +245,9 @@
     "sALPACA-ALPACA": "0x3Ee4de968E47877F432226d6a9A0DAD6EAc6001b"
   },
   "SharedStrategies": {
-    "StrategyAddBaseTokenOnly": "0x1DBa79e73a7Ea9749fc28B921bc9431D09BEf2B5",
-    "StrategyLiquidate": "0xc7c025aA69F4b525E3F9f5186b524492ee1C86bB",
-    "StrategyWithdrawMinimizeTrading": "0x5e2911d70d7a659Da0dA26989F445aeCAC58f2E6"
+    "StrategyAddBaseTokenOnly": "0xDdCF0F1f320A82a93eA6f8F8Ae3ED3f8Eaf5F95E",
+    "StrategyLiquidate": "0xD12B1581CBcA1B82A441f7D210112a800e83353A",
+    "StrategyWithdrawMinimizeTrading": "0x3be23527fF4d7881c6F5ed870Cbf89f5C24C56Eb"
   },
   "SharedConfig": {
     "TripleSlopeModel": "0xAE9ee567dcbbce85cceA1d1b0cdd595E3C73F1EE",
