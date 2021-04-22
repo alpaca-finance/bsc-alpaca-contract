@@ -127,11 +127,11 @@
         "address": "0x3aa448865beDde0fEb63F2C30D3487A4EC293DA6"
       }, {
         "pId": 16,
-        "name": "BETH-ETH LP (Legacy)",
+        "name": "BETH-ETH LP",
         "address": "0x8F98153c0F907617d86FA3e93d9766826B126a5A"
       }, {
         "pId": 17,
-        "name": "COMP-ETH LP",
+        "name": "COMP-ETH LP (Legacy)",
         "address": "0xaD96bBF52EB8f522481F3f5BD2FC777cDD92bC40"
       }, {
         "pId": 18,
@@ -197,6 +197,10 @@
         "pId": 33,
         "name": "UST-BUSD LP",
         "address": "0x55A1425980bf718380B902fE293705e82594E4EF"
+      }, {
+        "pId": 35,
+        "name": "COMP-ETH LP",
+        "address": "0x185F20C5AF3dA949e41D287984c1A4f5652A48b1"
       }, {
         "pId": 36,
         "name": "SUSHI-ETH LP",
