@@ -39,7 +39,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   for(let i = 0; i < NEW_PARAMS.length; i++ ) {
     console.log(">> Deploying an upgradable StrategyAddTwoSidesOptimalV2 contract");
     const StrategyAddTwoSidesOptimal = (await ethers.getContractFactory(
-      'StrategyAddTwoSidesOptimal',
+      'PancakeswapV2StrategyAddTwoSidesOptimal',
       (await ethers.getSigners())[0]
     )) as PancakeswapV2StrategyAddTwoSidesOptimal__factory;
     const strategyAddTwoSidesOptimal = await upgrades.deployProxy(
