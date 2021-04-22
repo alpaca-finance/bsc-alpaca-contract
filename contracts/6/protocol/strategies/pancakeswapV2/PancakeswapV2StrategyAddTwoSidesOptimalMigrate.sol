@@ -16,7 +16,7 @@ import "../../../utils/AlpacaMath.sol";
 
 import "hardhat/console.sol";
 
-contract StrategyAddTwoSidesOptimalMigrate is ReentrancyGuardUpgradeSafe, IStrategy {
+contract PancakeswapV2StrategyAddTwoSidesOptimalMigrate is ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeToken for address;
   using SafeMath for uint256;
 
@@ -65,10 +65,10 @@ contract StrategyAddTwoSidesOptimalMigrate is ReentrancyGuardUpgradeSafe, IStrat
   ) internal pure returns (uint256) {
     require(amtA.mul(resB) >= amtB.mul(resA), "Reversed");
 
-    uint256 a = 998;
-    uint256 b = uint256(1998).mul(resA);
+    uint256 a = 9975;
+    uint256 b = uint256(19975).mul(resA);
     uint256 _c = (amtA.mul(resB)).sub(amtB.mul(resA));
-    uint256 c = _c.mul(1000).div(amtB.add(resB)).mul(resA);
+    uint256 c = _c.mul(10000).div(amtB.add(resB)).mul(resA);
 
     uint256 d = a.mul(c).mul(4);
     uint256 e = AlpacaMath.sqrt(b.mul(b).add(d));
@@ -101,12 +101,18 @@ contract StrategyAddTwoSidesOptimalMigrate is ReentrancyGuardUpgradeSafe, IStrat
       (uint256 r0, uint256 r1, ) = lpToken.getReserves();
       (uint256 baseTokenReserve, uint256 farmingTokenReserve) = lpToken.token0() == baseToken ? (r0, r1) : (r1, r0);
       (swapAmt, isReversed) = optimalDeposit(baseTokenBalance, farmingToken.myBalance(), baseTokenReserve, farmingTokenReserve);
+      console.log("baseTokenReserve:", baseTokenReserve);
+      console.log("farmingTokenReserve:", farmingTokenReserve);
     }
     // 4. Convert between BaseToken and farming tokens
     address[] memory path = new address[](2);
     (path[0], path[1]) = isReversed ? (farmingToken, baseToken) : (baseToken, farmingToken);
     // 5. Swap according to path
-    console.log("swaping");
+    console.log("swaping:", swapAmt);
+    console.log("farmingToken:",farmingToken);
+    console.log("baseToken:", baseToken);
+    console.log("path[0]:", path[0]);
+    console.log("path[1]:", path[1]);
     if (swapAmt > 0) router.swapExactTokensForTokens(swapAmt, 0, path, address(this), now);
     console.log("done swapped");
     console.log("add liq");
