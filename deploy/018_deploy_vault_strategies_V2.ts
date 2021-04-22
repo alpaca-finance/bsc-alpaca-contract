@@ -14,20 +14,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const NEW_PARAMS = [
-      {
-        VAULT_ADDR: '0xd7D069493685A581d27824Fc46EdA46B7EfC0063',
-        ROUTER: '0x05fF2B0DB69458A0750badebc4f9e13aDd608C7F',
-      },
-      {
-        VAULT_ADDR: '0x7C9e73d4C71dae564d41F78d56439bB4ba87592f',
-        ROUTER: '0x05fF2B0DB69458A0750badebc4f9e13aDd608C7F',
-      },
-      {
-        VAULT_ADDR: '0xbfF4a34A4644a113E8200D7F1D79b3555f723AfE',
-        ROUTER: '0x05fF2B0DB69458A0750badebc4f9e13aDd608C7F',
-      }
-  ]
+  const NEW_PARAMS = [{
+    VAULT_ADDR: '0xf9d32C5E10Dd51511894b360e6bD39D7573450F9',
+    ROUTER: '0x367633909278A3C91f4cB130D8e56382F00D1071'
+  }, {
+    VAULT_ADDR: '0xe5ed8148fE4915cE857FC648b9BdEF8Bb9491Fa5',
+    ROUTER: '0x367633909278A3C91f4cB130D8e56382F00D1071'
+  }, {
+    VAULT_ADDR: '0x3F1D4A430C213bd9D4c9a12E4F382270505fCeA1',
+    ROUTER: '0x367633909278A3C91f4cB130D8e56382F00D1071'
+  }]
 
 
 

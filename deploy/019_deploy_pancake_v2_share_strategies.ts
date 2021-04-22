@@ -18,9 +18,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const ROUTER_V2 = '0xf46A02489B99C5A4a5cC31AA3F9eBD6A501D4B49';
-  
-  // For minimize trading
+  const ROUTER_V2 = '0x367633909278A3C91f4cB130D8e56382F00D1071';
   const WBNB = '0xDfb1211E2694193df5765d54350e1145FD2404A1';
   const WNATIVE_RELAYER = '0x7e2284c8CC74F13FA6c218c4231b0786E6204728';
 

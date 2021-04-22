@@ -326,6 +326,7 @@ contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, 
     farmingToken.safeApprove(address(_twoSideOptimalMigrateStrat), uint256(-1));
 
     /// 2. Remove LPv1 from masterChef
+    if (shareToBalance(totalShare) == 0) return;
     masterChef.withdraw(pid, shareToBalance(totalShare));
     router.removeLiquidity(baseToken, farmingToken, lpToken.balanceOf(address(this)), 0, 0, address(this), block.timestamp);
 

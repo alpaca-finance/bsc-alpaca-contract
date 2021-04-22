@@ -253,9 +253,9 @@
     "sALPACA-ALPACA": "0x0eb1bf1818456f68ecdb53d829a8a9a85f186421"
   },
   "SharedStrategies": {
-    "StrategyAddBaseTokenOnly": "0x5D0c3a0C79fCe9c177D7140e975681447C747D05",
-    "StrategyLiquidate": "0x3be48dD0b9AA62560AAF0bff2115cc8617A4BD70",
-    "StrategyWithdrawMinimizeTrading": "0x7Db9Be22E449153bb86ABeeF5D6e4C5b72E4F5B8"
+    "StrategyAddBaseTokenOnly": "0xCAF08e36F5DB6947eFB008AAF4519e66c4B3BAb4",
+    "StrategyLiquidate": "0x4f960E01a7c118BCeb699F81FD36732BaB6Df1Ef",
+    "StrategyWithdrawMinimizeTrading": "0x1757f0F5cBa364AF5556Fa147D413a2Cc8fa3511"
   },
   "SharedConfig": {
     "TripleSlopeModel": "0x2Fe7097cf766DfE06f9e2eD3021f8a4bbEf468Dd",
@@ -273,7 +273,7 @@
     "debtToken": "0x2E0384Bc38E250639291D6710EDC3d5034e95996",
     "config": "0x037F4b0d074B83d075EC3B955F69BaB9977bdb05",
     "tripleSlopeModel": "0x038cd7a6A397d7f5D07a0c76A4610a7Ca64eb7d3",
-    "StrategyAddTwoSidesOptimal": "0x9c79F9eac99Af00A75599625895f5619Da9d19e0",
+    "StrategyAddTwoSidesOptimal": "0x47f86747c9BeEfC52a47f9aFA114d568bE4E504E",
     "workers": [{
       "name": "CAKE-WBNB PancakeswapWorker",
       "address": "0x2c12663339Fdce1A3088C0245FC2499255ccF7eC",
@@ -372,7 +372,7 @@
     "debtToken": "0x49974bc28f1920A603aa8dffB3C61b4CD5B26710",
     "config": "0xbC6d2dfe97A557Bd793d07ebB0df3ea80cc990Fc",
     "tripleSlopeModel": "0x038cd7a6A397d7f5D07a0c76A4610a7Ca64eb7d3",
-    "StrategyAddTwoSidesOptimal": "0x6582A80b6c23BE7ecEC23Ef28E078C1edCf12e6E",
+    "StrategyAddTwoSidesOptimal": "0x25d0f0991bA1977B07b3dF8C5978a270788b2a1b",
     "workers": [{
       "name": "USDT-BUSD PancakeswapWorker",
       "address": "0xDf605784D78D42b5507Be14D6533a835E2692A16",
@@ -441,7 +441,7 @@
     "debtToken": "0x5E780a0F887EbeA8425BAa67A834D1168054F645",
     "config": "0x6Eebe002C224490A800eFC6BC3f1B28816Bf6164",
     "tripleSlopeModel": "0x038cd7a6A397d7f5D07a0c76A4610a7Ca64eb7d3",
-    "StrategyAddTwoSidesOptimal": "0xa7c282d7c6081C90693751a269C91e1f18C0c48A",
+    "StrategyAddTwoSidesOptimal": "0x472066dfb91B7Ce2a315372e2D20dCA33F7967BC",
     "workers": [{
       "name": "BETH-ETH PancakeswapWorker",
       "address": "0x656EC5c9Eea2c212A5945cd657B1e87c1e28eB95",

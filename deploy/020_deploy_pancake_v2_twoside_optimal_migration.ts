@@ -14,8 +14,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const ROUTER_V2 = '0xf46A02489B99C5A4a5cC31AA3F9eBD6A501D4B49';
-
+  const ROUTER_V2 = '0x367633909278A3C91f4cB130D8e56382F00D1071';
 
 
 
