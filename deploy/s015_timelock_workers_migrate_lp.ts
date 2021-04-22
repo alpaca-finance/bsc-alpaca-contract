@@ -2,7 +2,6 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
 import { ethers } from 'hardhat';
 import { Timelock__factory } from '../typechain'
-import { ok } from 'node:assert';
 
 interface IMigrateLPParams {
     WORKER_NAME: string
@@ -30,7 +29,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const MIGRATIONS: IMigrateLPParamsList = [{
     WORKER_NAME: "COMP-ETH Worker",
-    WORKER_ADDR: "0xd6260DB3A84C7BfdAFcD82325397B8E70B39627f",
+    WORKER_ADDR: "0xC8149CAc51AC1bb5009Dd71e50C54a7dec96aB30",
     ROUTER_V2: "0x367633909278A3C91f4cB130D8e56382F00D1071",
     NEW_POOL_ID: "35",
     TWOSIDE_OPTIMAL_MIGRATION_STRAT_ADDR: "0x2BC25FE3c167D025C57126Da1101EaE909624498",
@@ -48,7 +47,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     ],
   }, {
     WORKER_NAME: "SUSHI-ETH Worker",
-    WORKER_ADDR: "0xaA5c95181c02DfB8173813149e52c8C9E4E14124",
+    WORKER_ADDR: "0xd9811CeD97545243a13608924d6648251B07ed1A",
     ROUTER_V2: "0x367633909278A3C91f4cB130D8e56382F00D1071",
     NEW_POOL_ID: "36",
     TWOSIDE_OPTIMAL_MIGRATION_STRAT_ADDR: "0x2BC25FE3c167D025C57126Da1101EaE909624498",
@@ -67,7 +66,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   }];
   
   const TIMELOCK = '0xb3c3aE82358DF7fC0bd98629D5ed91767e45c337';
-  const EXACT_ETA = '1619085600';
+  const EXACT_ETA = '1619088000';
 
 
 
