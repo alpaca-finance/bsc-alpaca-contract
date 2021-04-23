@@ -311,6 +311,10 @@ contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, 
   /// @param _routerV2 The new router 
   /// @param _newPId The new pool id
   /// @param _twoSideOptimalMigrateStrat The migration strategy
+  /// @param _newAddStrat The new add strategy for PCSv2
+  /// @param _newLiqStrat The new liq strategy for PCSv2
+  /// @param _newOkStrats The new strategies for PCSv2
+  /// @param _disableStrats The strategies to be disabled
   function migrateLP(
     IPancakeRouter02 _routerV2,
     uint256 _newPId,
@@ -351,7 +355,7 @@ contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, 
     fee = 9975;
     feeDenom = 10000;
 
-    /// 6.1. Reset old strats with old route to false
+    /// 6.1. Disabled PCSv1 strats
     okStrats[address(addStrat)] = false;
     okStrats[address(liqStrat)] = false;
     uint256 len = _disableStrats.length;
