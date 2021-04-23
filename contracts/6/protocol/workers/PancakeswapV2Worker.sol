@@ -326,7 +326,6 @@ contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, 
   ) external onlyOwner {
     /// 1. Approval contracts to deduct money from this worker
     address(lpToken).safeApprove(address(router), uint256(-1));
-    address(lpToken).safeApprove(address(masterChef), uint256(-1));
 
     /// 2. Remove LPv1 from masterChef
     masterChef.withdraw(pid, shareToBalance(totalShare));
@@ -334,7 +333,6 @@ contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, 
 
     /// 3. Reset approval
     address(lpToken).safeApprove(address(router), 0);
-    address(lpToken).safeApprove(address(masterChef), 0);
 
     /// 4. Use twoSideOptimal for adding LP to a new router
     baseToken.safeTransfer(address(_twoSideOptimalMigrateStrat), baseToken.myBalance());
