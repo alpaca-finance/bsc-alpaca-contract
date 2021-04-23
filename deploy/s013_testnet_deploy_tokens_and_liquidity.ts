@@ -2,32 +2,43 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction, DeploymentSubmission } from 'hardhat-deploy/types';
 import { ethers, upgrades } from 'hardhat';
 import { MockERC20, MockERC20__factory, MockWBNB__factory, PancakeFactory__factory, PancakeMasterChef, PancakeMasterChef__factory, PancakeRouter__factory } from '../typechain';
+import { BigNumber } from 'ethers';
+
+interface IPair {
+  quoteToken: string
+  quoteTokenAddr: string
+  reserveQuoteToken: BigNumber
+  reserveBaseToken: BigNumber
+}
+
+interface IToken {
+  symbol: string
+  name: string
+  address?: string
+  mintAmount?: string
+  pairs: Array<IPair>
+}
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const FOREVER = 20000000000;
   const PANCAKE_MASTERCHEF = '0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B'
-  const PANCAKE_FACTORY = '0x716e4852251f85BDFf23B2D5B53630b838A20FC8'
-  const PANCAKE_ROUTER = '0xf46A02489B99C5A4a5cC31AA3F9eBD6A501D4B49'
+  const PANCAKE_FACTORY = '0xda8EE87e2172d997a7fe05a83FC5c472B40FacCE'
+  const PANCAKE_ROUTER = '0x367633909278A3C91f4cB130D8e56382F00D1071'
   const WBNB = '0xDfb1211E2694193df5765d54350e1145FD2404A1'
-  const TOKENS = [{
-    symbol: 'ITAM',
-    name: 'ITAM',
-    mintAmount: ethers.utils.parseEther('500000000'),
+  const TOKENS: Array<IToken> = [{
+    symbol: 'ALPACA',
+    name: 'ALPACA',
+    address: '0x354b3a11D5Ea2DA89405173977E271F58bE2897D',
     pairs: [{
-      quoteToken: 'WBNB',
-      quoteTokenAddr: '0xDfb1211E2694193df5765d54350e1145FD2404A1',
-      reserveQuoteToken: ethers.utils.parseEther('1'),
-      reserveBaseToken: ethers.utils.parseEther('5464.4808743169')
+      quoteToken: 'BUSD',
+      quoteTokenAddr: '0x0266693F9Df932aD7dA8a9b44C2129Ce8a87E81f',
+      reserveQuoteToken: ethers.utils.parseEther('1000000'),
+      reserveBaseToken: ethers.utils.parseEther('1484940')
     }]
   }]
 
-  const { deployments, getNamedAccounts, network } = hre;
+  const { deployments, getNamedAccounts } = hre;
   const { deploy } = deployments;
-
-  if (network.name !== 'testnet') {
-    console.log('This deployment script should be run against testnet only')
-    return
-  }
 
   const { deployer } = await getNamedAccounts();
 
@@ -47,16 +58,25 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   for(let i = 0; i < TOKENS.length; i++) {
     console.log("============================================")
-    // deploy token
-    console.log(`>> Deploying ${TOKENS[i].symbol}`);
-    const token = await upgrades.deployProxy(MockERC20, [TOKENS[i].name, TOKENS[i].symbol]) as MockERC20;
-    await token.deployed();
-    console.log(`>> ${TOKENS[i].symbol} deployed at: ${token.address}`);
+    let token: MockERC20
 
-    // mint token
-    console.log(`>> Minting ${TOKENS[i].mintAmount} ${TOKENS[i].symbol}`);
-    await token.mint(deployer, TOKENS[i].mintAmount);
-    console.log(`✅ Done`)
+    if (TOKENS[i].address === undefined) {
+      // deploy token
+      console.log(`>> Deploying ${TOKENS[i].symbol}`);
+      token = await upgrades.deployProxy(MockERC20, [TOKENS[i].name, TOKENS[i].symbol]) as MockERC20;
+      await token.deployed();
+      console.log(`>> ${TOKENS[i].symbol} deployed at: ${token.address}`);
+    } else {
+      console.log(`>> ${TOKENS[i].symbol} is deployed at ${TOKENS[i].address}`)
+      token = MockERC20__factory.connect(TOKENS[i].address!, (await ethers.getSigners())[0])
+    }
+    
+    if (TOKENS[i].mintAmount !== undefined) {
+      // mint token
+      console.log(`>> Minting ${TOKENS[i].mintAmount} ${TOKENS[i].symbol}`);
+      await token.mint(deployer, TOKENS[i].mintAmount!);
+      console.log(`✅ Done`)
+    }
 
     // mock liquidity
     for(let j = 0; j < TOKENS[i].pairs.length; j++) {
@@ -77,20 +97,20 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       console.log(`>> Adding liquidity for ${TOKENS[i].symbol}-${TOKENS[i].pairs[j].quoteToken}`)
       await token.approve(router.address, TOKENS[i].pairs[j].reserveBaseToken)
       await quoteToken.approve(router.address, TOKENS[i].pairs[j].reserveQuoteToken)
-      await router.addLiquidity(
+      const addLiqTx = await router.addLiquidity(
         token.address,
         quoteToken.address,
         TOKENS[i].pairs[j].reserveBaseToken,
         TOKENS[i].pairs[j].reserveQuoteToken,
         '0', '0', (await ethers.getSigners())[0].address, FOREVER, { gasLimit: 5000000 }
       )
-      console.log("✅ Done");
+      console.log(`✅ Done at ${addLiqTx.hash}`);
 
       console.log(`>> Adding the ${TOKENS[i].symbol}-${TOKENS[i].pairs[j].quoteToken} LP to MasterChef`)
       const lp = await factory.getPair(token.address, quoteToken.address)
       console.log(`>> ${TOKENS[i].symbol}-${TOKENS[i].pairs[j].quoteToken} LP address: ${lp}`)
-      await pancakeMasterchef.add(1000, lp, true)
-      console.log("✅ Done");
+      const addPoolTx = await pancakeMasterchef.add(1000, lp, true)
+      console.log(`✅ Done at ${addPoolTx.hash}`);
     }
   }
 };

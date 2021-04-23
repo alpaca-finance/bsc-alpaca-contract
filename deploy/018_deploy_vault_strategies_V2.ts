@@ -1,7 +1,7 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
-import {  Ownable, Ownable__factory } from '../typechain'
 import { ethers, upgrades } from 'hardhat';
+import { PancakeswapV2StrategyAddTwoSidesOptimal__factory } from '../typechain';
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     /*
@@ -14,12 +14,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const TIMELOCK_ADDRESS = '0x2D5408f2287BF9F9B05404794459a846651D0a59';
-  const TO_BE_LOCKED = [
-    '0x06d0c5B027C8e1BFce561B8af34B87A2A3Ff005d',
-    '0x6ad3A0d891C59677fbbB22E071613253467C382A',
-    '0x3713EF00842713B1681d6532dbf72ce5B91B84cc'
-  ];
+  const NEW_PARAMS = [{
+    VAULT_ADDR: '0x7C9e73d4C71dae564d41F78d56439bB4ba87592f',
+    ROUTER: '0x2AD2C5314028897AEcfCF37FD923c079BeEb2C56'
+  }, {
+    VAULT_ADDR: '0xbfF4a34A4644a113E8200D7F1D79b3555f723AfE',
+    ROUTER: '0x2AD2C5314028897AEcfCF37FD923c079BeEb2C56'
+  }]
 
 
 
@@ -28,16 +29,19 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 
 
-
-
-
-  for(let i = 0; i < TO_BE_LOCKED.length; i++ ) {
-    console.log(`>> Transferring ownership of ${TO_BE_LOCKED[i]} to TIMELOCK`);
-    const ownable = Ownable__factory.connect(TO_BE_LOCKED[i], (await ethers.getSigners())[0]);
-    await ownable.transferOwnership(TIMELOCK_ADDRESS);
-    console.log("✅ Done")
+  for(let i = 0; i < NEW_PARAMS.length; i++ ) {
+    console.log(">> Deploying an upgradable StrategyAddTwoSidesOptimalV2 contract");
+    const StrategyAddTwoSidesOptimal = (await ethers.getContractFactory(
+      'PancakeswapV2StrategyAddTwoSidesOptimal',
+      (await ethers.getSigners())[0]
+    )) as PancakeswapV2StrategyAddTwoSidesOptimal__factory;
+    const strategyAddTwoSidesOptimal = await upgrades.deployProxy(
+      StrategyAddTwoSidesOptimal,[NEW_PARAMS[i].ROUTER, NEW_PARAMS[i].VAULT_ADDR]
+    );
+    await strategyAddTwoSidesOptimal.deployed();
+    console.log(`>> Deployed at ${strategyAddTwoSidesOptimal.address}`);
   }
 };
 
 export default func;
-func.tags = ['TransferOwnershipToTimeLock'];
+func.tags = ['VaultStrategiesV2'];
