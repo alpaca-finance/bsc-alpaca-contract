@@ -329,17 +329,22 @@ contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, 
     masterChef.withdraw(pid, shareToBalance(totalShare));
     router.removeLiquidity(baseToken, farmingToken, lpToken.balanceOf(address(this)), 0, 0, address(this), block.timestamp);
 
-    /// 3. Use twoSideOptimal for adding LP to a new router
+    /// 3. reset approval
+    address(lpToken).safeApprove(address(router), 0);
+    address(lpToken).safeApprove(address(masterChef), 0);
+
+    /// 4. Use twoSideOptimal for adding LP to a new router
     baseToken.safeTransfer(address(_twoSideOptimalMigrateStrat), baseToken.myBalance());
     farmingToken.safeTransfer(address(_twoSideOptimalMigrateStrat), farmingToken.myBalance());
     _twoSideOptimalMigrateStrat.execute(address(this), 0, abi.encode(baseToken, farmingToken));
 
-    /// 4. Deposit LPv2 to the new pool
+    /// 5. Deposit LPv2 to the new pool
     (IERC20 _lpV2, , , ) = masterChef.poolInfo(_newPId);
     address(_lpV2).safeApprove(address(masterChef), uint256(-1));
     masterChef.deposit(_newPId, address(_lpV2).myBalance());
+    address(_lpV2).safeApprove(address(masterChef), uint256(0));
 
-    /// 5. Re-assign all main variables
+    /// 6. Re-assign all main variables
     router = _routerV2;
     factory = IPancakeFactory(_routerV2.factory());
     pid = _newPId;
@@ -347,7 +352,7 @@ contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, 
     fee = 9975;
     feeDenom = 10000;
 
-    /// 5.1. Reset old strats with old route to false
+    /// 6.1. Reset old strats with old route to false
     okStrats[address(addStrat)] = false;
     okStrats[address(liqStrat)] = false;
     uint256 len = _disableStrats.length;
@@ -355,7 +360,7 @@ contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, 
       okStrats[_disableStrats[idx]] = false;
     }
 
-    /// 5.2. Re-assign new strats
+    /// 6.2. Re-assign new strats
     addStrat = _newAddStrat;
     liqStrat = _newLiqStrat;
     okStrats[address(_newAddStrat)] = true;
@@ -368,9 +373,5 @@ contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, 
     require(
       (farmingToken == lpToken.token0() || farmingToken == lpToken.token1()) && 
       (baseToken == lpToken.token0() || baseToken == lpToken.token1()), "PancakeswapWorker::migrateLP:: lpV2 is mis-configed");
-
-    /// 6. reset approval
-    address(lpToken).safeApprove(address(router), 0);
-    address(lpToken).safeApprove(address(masterChef), 0);
   }
 }
