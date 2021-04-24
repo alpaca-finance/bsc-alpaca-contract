@@ -195,8 +195,8 @@ contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, 
     /// revert to V1 fee first as this can implied that migrationLp hasn't bee executed
     uint256 _fee = fee;
     uint256 _feeDenom = feeDenom;
-    if (_fee == 0) _fee = 998;
-    if (_feeDenom == 0) _feeDenom = 1000;
+    if (_fee == 0) _fee = 9975;
+    if (_feeDenom == 0) _feeDenom = 10000;
     uint256 aInWithFee = aIn.mul(_fee);
     uint256 numerator = aInWithFee.mul(rOut);
     uint256 denominator = rIn.mul(_feeDenom).add(aInWithFee);
