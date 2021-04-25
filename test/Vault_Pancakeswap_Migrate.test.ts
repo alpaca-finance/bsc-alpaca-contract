@@ -59,7 +59,7 @@ import * as TimeHelpers from "./helpers/time"
 chai.use(solidity);
 const { expect } = chai;
 
-describe('Vault - Pancake', () => {
+describe('Vault - Pancakeswap Migrate', () => {
   const FOREVER = '2000000000';
   const ALPACA_BONUS_LOCK_UP_BPS = 7000;
   const ALPACA_REWARD_PER_BLOCK = ethers.utils.parseEther('5000');
