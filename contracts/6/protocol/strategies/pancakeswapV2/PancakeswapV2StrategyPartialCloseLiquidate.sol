@@ -11,6 +11,8 @@ import "../../apis/pancake/IPancakeRouter02.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../../utils/SafeToken.sol";
 
+import "hardhat/console.sol";
+
 contract PancakeswapV2StrategyPartialCloseLiquidate is ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeToken for address;
 

@@ -554,7 +554,7 @@ describe('Vault - PancakeswapV2', () => {
       );
   
       // Her position should have ~2 NATIVE health (minus some small trading fee)
-      expect(await pancakeswapV2Worker.health(1)).to.be.bignumber.eq(ethers.utils.parseEther('1.998307255271658491'));
+      expect(await pancakeswapV2Worker.health(1)).to.be.bignumber.eq(ethers.utils.parseEther('1.997883397660681282'));
   
       // Eve comes and trigger reinvest
       await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from('1')));
@@ -567,7 +567,7 @@ describe('Vault - PancakeswapV2', () => {
       await vault.deposit(0); // Random action to trigger interest computation
       const healthDebt = await vault.positionInfo('1');
       expect(healthDebt[0]).to.be.bignumber.above(ethers.utils.parseEther('2'));
-      const interest = ethers.utils.parseEther('0.3'); //30% interest rate
+      const interest = ethers.utils.parseEther('0.3'); // 30% interest rate
       AssertHelpers.assertAlmostEqual(
         healthDebt[1].toString(),
         interest.add(loan).toString(),
@@ -918,9 +918,9 @@ describe('Vault - PancakeswapV2', () => {
         (await baseToken.balanceOf(vault.address)).toString(),
       );
       // Alice is liquidator, Alice should receive 10% Kill prize
-      // BTOKEN back from liquidation 0.00300099799424023, 10% of 0.00300099799424023 is 0.000300099799424023
+      // BTOKEN back from liquidation 0.00300199830261993, 10% of it is 0.000300199830261993
       AssertHelpers.assertAlmostEqual(
-        ethers.utils.parseEther('0.000300099799424023').toString(),
+        ethers.utils.parseEther('0.000300199830261993').toString(),
         aliceAfter.sub(aliceBefore).toString(),
       );
   
@@ -1923,6 +1923,7 @@ describe('Vault - PancakeswapV2', () => {
       const [bobHealthBefore, ] = await vault.positionInfo('1');
       const lpUnderBobPosition = await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(1));
       const [workerLPBefore,] = await masterChef.userInfo(poolId, pancakeswapV2Worker.address);
+
       // Bob closes position with maxReturn 5,000,000,000 and liquidate half of his position
       // Expect that Bob will close position successfully and his debt must be reduce as liquidated amount pay debt
       await vaultAsBob.work(
@@ -1942,14 +1943,14 @@ describe('Vault - PancakeswapV2', () => {
       const bobAfter = await baseToken.balanceOf(await bob.getAddress());
 
       // After Bob liquidate half of his position which worth
-      // 13.200430549066301204 BTOKEN (price impact+trading fee included)
+      // 13.198357540187508606 BTOKEN (price impact+trading fee included)
       // Bob wish to return 5,000,000,000 BTOKEN (when maxReturn > debt, return all debt) 
       // The following criteria must be stratified:
-      // - Bob should get 13.200430549066301204 - 10 = 3.200430549066301204 BTOKEN back.
+      // - Bob should get 13.198357540187508606 - 10 = 3.198357540187508606 BTOKEN back.
       // - Bob's position debt must be 0
       expect(
-        bobBefore.add(ethers.utils.parseEther('3.200430549066301204')),
-        "Expect BTOKEN in Bob's account after close position to increase by ~3.2 BTOKEN").to.be.bignumber.eq(bobAfter)
+        bobBefore.add(ethers.utils.parseEther('3.198357540187508606')),
+        "Expect BTOKEN in Bob's account after close position to increase by ~3.19 BTOKEN").to.be.bignumber.eq(bobAfter)
       // Check Bob position info
       const [bobHealth, bobDebtVal] = await vault.positionInfo('1');
       // Bob's health after partial close position must be 50% less than before
