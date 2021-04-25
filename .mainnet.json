@@ -63,12 +63,12 @@
     }, {
       "id": 10,
       "stakingToken": "debtIbALPACA V2",
-      "address": "",
+      "address": "0x11362eA137A799298306123EEa014b7809A9DB40",
       "allocPoint": 0
     }, {
       "id": 11,
       "stakingToken": "ibALPACA",
-      "address": "",
+      "address": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
       "allocPoint": 0
     }]
   },
@@ -478,10 +478,10 @@
   }, {
     "name": "Interest Bearing ALPACA",
     "symbol": "ibALPACA",
-    "address": "",
-    "debtToken": "",
-    "config": "",
-    "tripleSlopeModel": "",
+    "address": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
+    "debtToken": "0x11362eA137A799298306123EEa014b7809A9DB40",
+    "config": "0x8F8Ed54901b90c89C5817B7F67a425c0e6091284",
+    "tripleSlopeModel": "0x375D32FadA30d7e6Fea242FCa221a22CC6d52B30",
     "StrategyAddTwoSidesOptimal": "",
     "workers": [{
       "name": "BUSD-ALPACA PancakeswapWorker",
