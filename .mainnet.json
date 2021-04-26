@@ -60,6 +60,16 @@
       "stakingToken": "ibETH",
       "address": "0xbfF4a34A4644a113E8200D7F1D79b3555f723AfE",
       "allocPoint": 0
+    }, {
+      "id": 10,
+      "stakingToken": "debtIbALPACA V2",
+      "address": "0x11362eA137A799298306123EEa014b7809A9DB40",
+      "allocPoint": 0
+    }, {
+      "id": 11,
+      "stakingToken": "ibALPACA",
+      "address": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
+      "allocPoint": 0
     }]
   },
   "Exchanges": {
@@ -141,6 +151,10 @@
         "pId": 122,
         "name": "ITAM-WBNB LP (Legacy)",
         "address": "0xCdC53345192D0e31eEAD03D7E9e008Ee659FAEbE"
+      }, {
+        "pId": 88888888,
+        "name": "ALPACA-BUSD LP (Legacy)",
+        "address": ""
       }, {
         "pId": 251,
         "name": "CAKE-WBNB LP",
@@ -356,6 +370,16 @@
         "StrategyLiquidate": "0xE574dc08aa579720Dfacd70D3DAE883d29874599",
         "StrategyWithdrawMinimizeTrading": "0x95Ff1336985723aa46078995454d7A7Fd9F5401e"
       }
+    }, {
+      "name": "BUSD-WBNB PancakeswapWorker",
+      "address": "",
+      "config": "",
+      "strategies": {
+        "StrategyAddAllBaseToken": "",
+        "StrategyLiquidate": "",
+        "StrategyAddTwoSidesOptimal": "",
+        "StrategyWithdrawMinimizeTrading": ""
+      }
     }]
   }, {
     "name": "Interest Bearing BUSD",
@@ -463,6 +487,25 @@
         "StrategyAddAllBaseToken": "0xE38EBFE8F314dcaD61d5aDCB29c1A26F41BEd0Be",
         "StrategyLiquidate": "0xE574dc08aa579720Dfacd70D3DAE883d29874599",
         "StrategyWithdrawMinimizeTrading": "0x95Ff1336985723aa46078995454d7A7Fd9F5401e"
+      }
+    }]
+  }, {
+    "name": "Interest Bearing ALPACA",
+    "symbol": "ibALPACA",
+    "address": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
+    "debtToken": "0x11362eA137A799298306123EEa014b7809A9DB40",
+    "config": "0x8F8Ed54901b90c89C5817B7F67a425c0e6091284",
+    "tripleSlopeModel": "0x375D32FadA30d7e6Fea242FCa221a22CC6d52B30",
+    "StrategyAddTwoSidesOptimal": "",
+    "workers": [{
+      "name": "BUSD-ALPACA PancakeswapWorker",
+      "address": "",
+      "config": "",
+      "strategies": {
+        "StrategyAddAllBaseToken": "",
+        "StrategyLiquidate": "",
+        "StrategyAddTwoSidesOptimal": "",
+        "StrategyWithdrawMinimizeTrading": ""
       }
     }]
   }]

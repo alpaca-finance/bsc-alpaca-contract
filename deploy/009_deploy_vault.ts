@@ -15,18 +15,18 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
 
   const SHIELD_ADDR = '0x1963f84395C8cf464E5483dE7f2f434c3F1b4656';
-  const FAIR_LAUNCH_ADDR = '';
+  const FAIR_LAUNCH_ADDR = '0xA625AB01B08ce023B2a342Dbb12a16f2C8489A8F';
   const ALLOC_POINT_FOR_DEPOSIT = 0;
   const ALLOC_POINT_FOR_OPEN_POSITION = 0;
-  const CONFIG_ADDR = '0x724E6748Cb1d52Ec45b77Fb82a0750A2B759c038';
-  const BASE_TOKEN_ADDR = '0x2170ed0880ac9a755fd29b2688956bd959f933f8'
-  const VAULT_NAME = 'ETH VAULT'
-  const NAME = 'Interest Bearing ETH'
-  const SYMBOL = 'ibETH';
+  const CONFIG_ADDR = '0x8F8Ed54901b90c89C5817B7F67a425c0e6091284';
+  const BASE_TOKEN_ADDR = '0x8F0528cE5eF7B51152A59745bEfDD91D97091d2F'
+  const VAULT_NAME = 'ALPACA VAULT'
+  const NAME = 'Interest Bearing ALPACA'
+  const SYMBOL = 'ibALPACA';
   const WNATIVE_RELAYER_ADDR = '0xE1D2CA01bc88F325fF7266DD2165944f3CAf0D3D';
   const TIMELOCK = '0x2D5408f2287BF9F9B05404794459a846651D0a59';
-  const EXACT_ETA = '1617775200';
-  const DEBT_FAIR_LAUNCH_PID = '8';
+  const EXACT_ETA = '1619420400';
+  const DEBT_FAIR_LAUNCH_PID = '10';
 
 
 
@@ -81,7 +81,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   await vault.setFairLaunchPoolId(DEBT_FAIR_LAUNCH_PID, { gasLimit: '2000000' });
   console.log("✅ Done");
 
-  console.log(">> Queue Transaction to add a debtToken pool through Timelock");
+  console.log(`>> Queue Transaction to add a ${SYMBOL} pool through Timelock`);
   await timelock.queueTransaction(SHIELD_ADDR, '0', 'addPool(uint256,address,bool)', ethers.utils.defaultAbiCoder.encode(['uint256','address','bool'], [ALLOC_POINT_FOR_DEPOSIT, vault.address, true]), EXACT_ETA);
   console.log("✅ Done");
 
