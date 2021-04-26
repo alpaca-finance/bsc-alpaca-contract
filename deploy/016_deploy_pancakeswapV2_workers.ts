@@ -2,8 +2,8 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
 import { ethers, upgrades } from 'hardhat';
 import {
-  PancakeswapWorker,
-  PancakeswapWorker__factory,
+  PancakeswapV2Worker,
+  PancakeswapV2Worker__factory,
   Timelock__factory,
 } from '../typechain';
 
@@ -51,27 +51,27 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   for(let i = 0; i < WORKERS.length; i++) {
     console.log("===================================================================================")
-    console.log(`>> Deploying an upgradable PancakeswapWorker contract for ${WORKERS[i].WORKER_NAME}`);
-    const PancakeswapWorker = (await ethers.getContractFactory(
-      'PancakeswapWorker',
+    console.log(`>> Deploying an upgradable PancakeswapV2Worker contract for ${WORKERS[i].WORKER_NAME}`);
+    const PancakeswapV2Worker = (await ethers.getContractFactory(
+      'PancakeswapV2Worker',
       (await ethers.getSigners())[0]
-    )) as PancakeswapWorker__factory;
-    const pancakeswapWorker = await upgrades.deployProxy(
-      PancakeswapWorker,[
+    )) as PancakeswapV2Worker__factory;
+    const pancakeswapV2Worker = await upgrades.deployProxy(
+      PancakeswapV2Worker,[
         WORKERS[i].VAULT_ADDR, WORKERS[i].BASE_TOKEN_ADDR, WORKERS[i].MASTER_CHEF_ADDR,
         WORKERS[i].PANCAKESWAP_ROUTER_ADDR, WORKERS[i].POOL_ID, WORKERS[i].ADD_STRAT_ADDR,
         WORKERS[i].LIQ_STRAT_ADDR, WORKERS[i].REINVEST_BOUNTY_BPS
       ]
-    ) as PancakeswapWorker;
-    await pancakeswapWorker.deployed();
-    console.log(`>> Deployed at ${pancakeswapWorker.address}`);
+    ) as PancakeswapV2Worker;
+    await pancakeswapV2Worker.deployed();
+    console.log(`>> Deployed at ${pancakeswapV2Worker.address}`);
 
     console.log(`>> Adding REINVEST_BOT`);
-    await pancakeswapWorker.setReinvestorOk([WORKERS[i].REINVEST_BOT], true);
+    await pancakeswapV2Worker.setReinvestorOk([WORKERS[i].REINVEST_BOT], true);
     console.log("✅ Done");
 
     console.log(`>> Adding Strategies`);
-    await pancakeswapWorker.setStrategyOk(WORKERS[i].STRATS, true);
+    await pancakeswapV2Worker.setStrategyOk(WORKERS[i].STRATS, true);
     console.log("✅ Done");
 
     const timelock = Timelock__factory.connect(WORKERS[i].TIMELOCK, (await ethers.getSigners())[0]);
@@ -83,12 +83,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       ethers.utils.defaultAbiCoder.encode(
         ['address[]','(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]'],
         [
-          [pancakeswapWorker.address], [{acceptDebt: true, workFactor: WORKERS[i].WORK_FACTOR, killFactor: WORKERS[i].KILL_FACTOR, maxPriceDiff: WORKERS[i].MAX_PRICE_DIFF}]
+          [pancakeswapV2Worker.address], [{acceptDebt: true, workFactor: WORKERS[i].WORK_FACTOR, killFactor: WORKERS[i].KILL_FACTOR, maxPriceDiff: WORKERS[i].MAX_PRICE_DIFF}]
         ]
       ), WORKERS[i].EXACT_ETA
     );
     console.log("generate timelock.executeTransaction:")
-    console.log(`await timelock.executeTransaction('${WORKERS[i].WORKER_CONFIG_ADDR}', '0', 'setConfigs(address[],(bool,uint64,uint64,uint64)[])', ethers.utils.defaultAbiCoder.encode(['address[]','(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]'],[['${pancakeswapWorker.address}'], [{acceptDebt: true, workFactor: ${WORKERS[i].WORK_FACTOR}, killFactor: ${WORKERS[i].KILL_FACTOR}, maxPriceDiff: ${WORKERS[i].MAX_PRICE_DIFF}}]]), ${WORKERS[i].EXACT_ETA})`)
+    console.log(`await timelock.executeTransaction('${WORKERS[i].WORKER_CONFIG_ADDR}', '0', 'setConfigs(address[],(bool,uint64,uint64,uint64)[])', ethers.utils.defaultAbiCoder.encode(['address[]','(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]'],[['${pancakeswapV2Worker.address}'], [{acceptDebt: true, workFactor: ${WORKERS[i].WORK_FACTOR}, killFactor: ${WORKERS[i].KILL_FACTOR}, maxPriceDiff: ${WORKERS[i].MAX_PRICE_DIFF}}]]), ${WORKERS[i].EXACT_ETA})`)
     console.log("✅ Done");
 
     console.log(">> Timelock: Linking VaultConfig with WorkerConfig via Timelock");
@@ -98,12 +98,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       ethers.utils.defaultAbiCoder.encode(
         ['address[]','address[]'],
         [
-          [pancakeswapWorker.address], [WORKERS[i].WORKER_CONFIG_ADDR]
+          [pancakeswapV2Worker.address], [WORKERS[i].WORKER_CONFIG_ADDR]
         ]
       ), WORKERS[i].EXACT_ETA
     );
     console.log("generate timelock.executeTransaction:")
-    console.log(`await timelock.executeTransaction('${WORKERS[i].VAULT_CONFIG_ADDR}', '0','setWorkers(address[],address[])', ethers.utils.defaultAbiCoder.encode(['address[]','address[]'],[['${pancakeswapWorker.address}'], ['${WORKERS[i].WORKER_CONFIG_ADDR}']]), ${WORKERS[i].EXACT_ETA})`)
+    console.log(`await timelock.executeTransaction('${WORKERS[i].VAULT_CONFIG_ADDR}', '0','setWorkers(address[],address[])', ethers.utils.defaultAbiCoder.encode(['address[]','address[]'],[['${pancakeswapV2Worker.address}'], ['${WORKERS[i].WORKER_CONFIG_ADDR}']]), ${WORKERS[i].EXACT_ETA})`)
     console.log("✅ Done");
   }
 };
