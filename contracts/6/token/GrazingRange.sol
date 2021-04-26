@@ -229,6 +229,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     // @notice Stake Staking tokens to GrazingRange
     function deposit(uint256 _campaignID, uint256 _amount) external nonReentrant {
         console.log("Deposit: start deposit==================");
+        console.log("Deposit: campaign", _campaignID);
         CampaignInfo storage campaign = campaignInfo[_campaignID];
         console.log("Deposit: after campaign info", campaign.accRewardPerShare);
         UserInfo storage user = userInfo[_campaignID][msg.sender];
