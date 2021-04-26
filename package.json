@@ -83,6 +83,8 @@
     "test:fairlaunch": "hardhat test --no-compile ./test/FairLaunch.test.ts",
     "test:fairlaunchv2": "hardhat test --no-compile ./test/FairLaunchV2.test.ts",
     "test:pancake": "hardhat test --no-compile ./test/Vault_Pancakeswap.test.ts",
+    "test:pancakev2": "hardhat test --no-compile ./test/Vault_PancakeswapV2.test.ts",
+    "test:pancakemigrate": "hardhat test --no-compile ./test/Vault_Pancakeswap_Migrate.test.ts",
     "test:panadd": "hardhat test --no-compile ./test/Pancakeswap_StrategyAddBaseTokenOnly.test.ts",
     "test:panliquidate": "hardhat test --no-compile ./test/Pancakeswap_StrategyLiquidate.test.ts",
     "test:panminimize": "hardhat test --no-compile ./test/Pancakeswap_StrategyWithdrawMinimizeTrading.test.ts",
