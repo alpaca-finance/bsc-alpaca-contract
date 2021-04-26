@@ -41,7 +41,7 @@ module.exports = {
       accounts: [process.env.BSC_TESTNET_PRIVATE_KEY],
     },
     mainnet: {
-      url: 'https://bsc-dataseed2.defibit.io',
+      url: 'https://bsc-dataseed3.ninicoin.io',
       accounts: [process.env.BSC_MAINNET_PRIVATE_KEY],
     },
   },

@@ -3,7 +3,7 @@
   "Timelock": "0x2D5408f2287BF9F9B05404794459a846651D0a59",
   "Shield": "0x1963f84395C8cf464E5483dE7f2f434c3F1b4656",
   "MerkleDistributor": {
-    "ITAM-week-1": "",
+    "ITAM-week-1": "0xD193b38C87C8FAF7cB2F6C592d3ae885AE21c4bf",
     "ITAM-week-2": "",
     "ITAM-week-3": "",
     "ITAM-week-4": ""
@@ -380,10 +380,10 @@
       "address": "0xC5954CA8988988362f60498d5aDEc67BA466492B",
       "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
       "strategies": {
-        "StrategyAddTwoSidesOptimal": "0xB2dE0A949E5d5db5172d654BF532f473F79a8498",
-        "StrategyAddAllBaseToken": "0x1DBa79e73a7Ea9749fc28B921bc9431D09BEf2B5",
-        "StrategyLiquidate": "0xc7c025aA69F4b525E3F9f5186b524492ee1C86bB",
-        "StrategyWithdrawMinimizeTrading": "0x5e2911d70d7a659Da0dA26989F445aeCAC58f2E6"
+        "StrategyAddTwoSidesOptimal": "0xF25034Ca7F3CFc48970272B7d709803C1E121C45",
+        "StrategyAddAllBaseToken": "0xE38EBFE8F314dcaD61d5aDCB29c1A26F41BEd0Be",
+        "StrategyLiquidate": "0xE574dc08aa579720Dfacd70D3DAE883d29874599",
+        "StrategyWithdrawMinimizeTrading": "0x95Ff1336985723aa46078995454d7A7Fd9F5401e"
       }
     }, {
       "name": "WBNB-BUSD PancakeswapWorker",
