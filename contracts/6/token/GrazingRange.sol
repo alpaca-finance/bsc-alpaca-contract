@@ -178,7 +178,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     function updateCampaign(uint256 _campaignID) public {
         CampaignInfo storage campaign = campaignInfo[_campaignID];
         RewardInfo[] storage rewardInfo = campaignRewardInfo[_campaignID];
-        console.log("updateCampaign: block validation", block.number, campaign.lastRewardBlock);
+        console.log("updateCampaign: block validation", block.number, campaign.lastRewardBlock, rewardInfo[0].endBlock);
         if (block.number <= campaign.lastRewardBlock) {
             return;
         }
@@ -262,11 +262,17 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
         UserInfo storage user = userInfo[_campaignID][msg.sender];
         require(user.amount >= _amount, "withdraw: withdraw amount exceed available amount");
         updateCampaign(_campaignID);
+        console.log("PerShare: ", campaign.accRewardPerShare);
+        console.log("rewardDebt: ", user.rewardDebt);
+        console.log("User amount: ", user.amount);
         uint256 pending = user.amount.mul(campaign.accRewardPerShare).div(1e12).sub(user.rewardDebt);
         if (pending > 0) {
+            console.log("pending: ", pending);
+
             campaign.rewardToken.safeTransfer(address(msg.sender), pending);
         }
         if (_amount > 0) {
+            console.log("_amount: ", _amount);
             user.amount = user.amount.sub(_amount);
             campaign.stakingToken.safeTransfer(address(msg.sender), _amount);
             campaign.totalStaked = campaign.totalStaked.sub(_amount);
