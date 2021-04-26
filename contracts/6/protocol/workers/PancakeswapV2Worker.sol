@@ -16,7 +16,7 @@ import "../interfaces/IPancakeMasterChef.sol";
 import "../../utils/AlpacaMath.sol";
 import "../../utils/SafeToken.sol";
 
-contract PancakeswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker {
+contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker {
   /// @notice Libraries
   using SafeToken for address;
   using SafeMath for uint256;
@@ -27,7 +27,7 @@ contract PancakeswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
   event RemoveShare(uint256 indexed id, uint256 share);
   event Liquidate(uint256 indexed id, uint256 wad);
 
-  /// @notice Immutable variables
+  /// @notice Configuration variables
   IPancakeMasterChef public masterChef;
   IPancakeFactory public factory;
   IPancakeRouter02 public router;
@@ -48,6 +48,10 @@ contract PancakeswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
   uint256 public reinvestBountyBps;
   uint256 public maxReinvestBountyBps;
   mapping(address => bool) public okReinvestors;
+
+  /// @notice Configuration varaibles for V2
+  uint256 public fee;
+  uint256 public feeDenom;
 
   function initialize(
     address _operator,
@@ -184,12 +188,18 @@ contract PancakeswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
   /// @param aIn The amount of asset to market sell.
   /// @param rIn the amount of asset in reserve for input.
   /// @param rOut The amount of asset in reserve for output.
-  function getMktSellAmount(uint256 aIn, uint256 rIn, uint256 rOut) public pure returns (uint256) {
+  function getMktSellAmount(uint256 aIn, uint256 rIn, uint256 rOut) public view returns (uint256) {
     if (aIn == 0) return 0;
     require(rIn > 0 && rOut > 0, "PancakeswapWorker::getMktSellAmount:: bad reserve values");
-    uint256 aInWithFee = aIn.mul(998);
+    /// if fee is not set, 
+    /// revert to V1 fee first as this can implied that migrationLp hasn't bee executed
+    uint256 _fee = fee;
+    uint256 _feeDenom = feeDenom;
+    if (_fee == 0) _fee = 998;
+    if (_feeDenom == 0) _feeDenom = 1000;
+    uint256 aInWithFee = aIn.mul(_fee);
     uint256 numerator = aInWithFee.mul(rOut);
-    uint256 denominator = rIn.mul(1000).add(aInWithFee);
+    uint256 denominator = rIn.mul(_feeDenom).add(aInWithFee);
     return numerator / denominator;
   }
 
@@ -297,4 +307,72 @@ contract PancakeswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
     liqStrat = _liqStrat;
   }
 
+  /// @dev Migrate LP token from V1 to V2. FOR PCS MIGRATION ONLY.
+  /// @param _routerV2 The new router 
+  /// @param _newPId The new pool id
+  /// @param _twoSideOptimalMigrateStrat The migration strategy
+  /// @param _newAddStrat The new add strategy for PCSv2
+  /// @param _newLiqStrat The new liq strategy for PCSv2
+  /// @param _newOkStrats The new strategies for PCSv2
+  /// @param _disableStrats The strategies to be disabled
+  function migrateLP(
+    IPancakeRouter02 _routerV2,
+    uint256 _newPId,
+    IStrategy _twoSideOptimalMigrateStrat,
+    IStrategy _newAddStrat,
+    IStrategy _newLiqStrat,
+    address[] calldata _newOkStrats,
+    address[] calldata _disableStrats
+  ) external onlyOwner {
+    /// 1. Approval contracts to deduct money from this worker
+    address(lpToken).safeApprove(address(router), uint256(-1));
+
+    /// 2. Remove LPv1 from masterChef
+    masterChef.withdraw(pid, shareToBalance(totalShare));
+    router.removeLiquidity(baseToken, farmingToken, lpToken.balanceOf(address(this)), 0, 0, address(this), block.timestamp);
+
+    /// 3. Reset approval
+    address(lpToken).safeApprove(address(router), 0);
+
+    /// 4. Use twoSideOptimal for adding LP to a new router
+    baseToken.safeTransfer(address(_twoSideOptimalMigrateStrat), baseToken.myBalance());
+    farmingToken.safeTransfer(address(_twoSideOptimalMigrateStrat), farmingToken.myBalance());
+    _twoSideOptimalMigrateStrat.execute(address(this), 0, abi.encode(baseToken, farmingToken));
+
+    /// 5. Deposit LPv2 to the new pool
+    (IERC20 _lpV2, , , ) = masterChef.poolInfo(_newPId);
+    address(_lpV2).safeApprove(address(masterChef), uint256(-1));
+    masterChef.deposit(_newPId, address(_lpV2).myBalance());
+    address(_lpV2).safeApprove(address(masterChef), uint256(0));
+
+    /// 6. Re-assign all main variables
+    router = _routerV2;
+    factory = IPancakeFactory(_routerV2.factory());
+    pid = _newPId;
+    lpToken = IPancakePair(address(_lpV2));
+    fee = 9975;
+    feeDenom = 10000;
+
+    /// 6.1. Disabled PCSv1 strats
+    okStrats[address(addStrat)] = false;
+    okStrats[address(liqStrat)] = false;
+    uint256 len = _disableStrats.length;
+    for (uint256 idx = 0; idx < len; idx++) {
+      okStrats[_disableStrats[idx]] = false;
+    }
+
+    /// 6.2. Re-assign new strats
+    addStrat = _newAddStrat;
+    liqStrat = _newLiqStrat;
+    okStrats[address(_newAddStrat)] = true;
+    okStrats[address(_newLiqStrat)] = true;
+    len = _newOkStrats.length;
+    for (uint256 idx = 0; idx < len; idx++) {
+      okStrats[_newOkStrats[idx]] = true;
+    }
+
+    require(
+      (farmingToken == lpToken.token0() || farmingToken == lpToken.token1()) && 
+      (baseToken == lpToken.token0() || baseToken == lpToken.token1()), "PancakeswapWorker::migrateLP:: lpV2 is mis-configed");
+  }
 }
