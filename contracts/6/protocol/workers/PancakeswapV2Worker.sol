@@ -90,6 +90,9 @@ contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, 
     feeDenom = 10000;
 
     require(reinvestBountyBps <= maxReinvestBountyBps, "PancakeswapWorker::initialize:: reinvestBountyBps exceeded maxReinvestBountyBps");
+    require(
+      (farmingToken == lpToken.token0() || farmingToken == lpToken.token1()) && 
+      (baseToken == lpToken.token0() || baseToken == lpToken.token1()), "PancakeswapWorker::initialize:: LP underlying not match with farm & base token");
   }
 
   /// @dev Require that the caller must be an EOA account to avoid flash loans.

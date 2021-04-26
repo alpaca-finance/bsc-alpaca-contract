@@ -41,7 +41,7 @@ contract PancakeswapV2StrategyPartialCloseLiquidate is ReentrancyGuardUpgradeSaf
       uint256 minBaseToken
     ) = abi.decode(data, (address, address, uint256, uint256));
     IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
-    require(lpToken.balanceOf(address(this)) >= returnLpToken, "StrategyPartialCloseLiquidate::execute:: insufficient LP amount recevied from worker");
+    require(lpToken.balanceOf(address(this)) >= returnLpToken, "PancakeswapV2StrategyPartialCloseLiquidate::execute:: insufficient LP amount recevied from worker");
     // 2. Approve router to do their stuffs
     lpToken.approve(address(router), uint256(-1));
     farmingToken.safeApprove(address(router), uint256(-1));
@@ -54,7 +54,7 @@ contract PancakeswapV2StrategyPartialCloseLiquidate is ReentrancyGuardUpgradeSaf
     router.swapExactTokensForTokens(farmingToken.myBalance(), 0, path, address(this), now);
     // 5. Return all baseToken back to the original caller.
     uint256 balance = baseToken.myBalance();
-    require(balance >= minBaseToken, "StrategyPartialCloseLiquidate::execute:: insufficient baseToken received");
+    require(balance >= minBaseToken, "PancakeswapV2StrategyPartialCloseLiquidate::execute:: insufficient baseToken received");
     SafeToken.safeTransfer(baseToken, msg.sender, balance);
     lpToken.transfer(msg.sender, lpToken.balanceOf(address(this)));
     // 6. Reset approve for safety reason

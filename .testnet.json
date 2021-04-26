@@ -401,7 +401,7 @@
       }
     }, {
       "name": "WBNB-BUSD PancakeswapWorker",
-      "address": "0x00d078c7e058bA5106878b9e0CC09Ef1BF510925",
+      "address": "0x29000295C94a9739cB6F6A7Bf407684f6c372286",
       "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
       "strategies": {
         "StrategyAddAllBaseToken": "0x11aFF2AC27CBb158015fb3F8FD7661F7f8573BD7",
