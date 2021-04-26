@@ -152,6 +152,10 @@
         "name": "ITAM-WBNB LP (Legacy)",
         "address": "0xCdC53345192D0e31eEAD03D7E9e008Ee659FAEbE"
       }, {
+        "pId": 88888888,
+        "name": "ALPACA-BUSD LP (Legacy)",
+        "address": ""
+      }, {
         "pId": 251,
         "name": "CAKE-WBNB LP",
         "address": "0x0eD7e52944161450477ee417DE9Cd3a859b14fD0"
