@@ -366,6 +366,16 @@
         "StrategyLiquidate": "0xE574dc08aa579720Dfacd70D3DAE883d29874599",
         "StrategyWithdrawMinimizeTrading": "0x95Ff1336985723aa46078995454d7A7Fd9F5401e"
       }
+    }, {
+      "name": "BUSD-WBNB PancakeswapWorker",
+      "address": "",
+      "config": "",
+      "strategies": {
+        "StrategyAddAllBaseToken": "",
+        "StrategyLiquidate": "",
+        "StrategyAddTwoSidesOptimal": "",
+        "StrategyWithdrawMinimizeTrading": ""
+      }
     }]
   }, {
     "name": "Interest Bearing BUSD",
