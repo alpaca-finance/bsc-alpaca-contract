@@ -225,6 +225,7 @@ describe('GrazingRange', () => {
                     
                     // totalReward = (100 * 10) = 1000
                     // reward per share = 1000/200 = 5 reward per share
+                    // alice and bob both deposit 100 each, thus will get overall of 500 rewards individually
                     expect((await grazingRangeAsAlice.pendingReward(BigNumber.from(0), await alice.getAddress()))).to.eq(ethers.utils.parseEther('500'))
                     expect((await grazingRangeAsAlice.pendingReward(BigNumber.from(0), await bob.getAddress()))).to.eq(ethers.utils.parseEther('500'))
                   })
@@ -308,6 +309,8 @@ describe('GrazingRange', () => {
                   const expectedAccRewardPerShare = BigNumber.from(1).mul('1000000000000') // reward per share 1
                   expect((await grazingRangeAsAlice.campaignInfo(0)).lastRewardBlock).to.eq(currentBlockNum)
                   expect((await grazingRangeAsAlice.campaignInfo(0)).accRewardPerShare).to.eq(expectedAccRewardPerShare)
+                  // 1 reward per share
+                  // thus, alice who deposit 100, shall get a total of 100 rewards
                   expect((await grazingRangeAsAlice.pendingReward(BigNumber.from(0), await alice.getAddress()))).to.eq(ethers.utils.parseEther('100'))
 
                   // bob shouldn't expect anything, he deposited out of the range 
@@ -502,8 +505,10 @@ describe('GrazingRange', () => {
               expect((await grazingRangeAsAlice.campaignInfo(0)).accRewardPerShare).to.eq(expectedAccRewardPerShare)
               await TimeHelpers.advanceBlockTo(mockedBlock.add(21).toNumber())
               // 1 (from last acc reward) + ((10*200)/200 = 2000/200 = 10)
+              // thus, alice will get 1100 total rewards
               expect((await grazingRangeAsAlice.pendingReward(BigNumber.from(0), await alice.getAddress()))).to.eq(ethers.utils.parseEther('1100'))
-              // (10*200)/200 = 2000/200 = 10
+              // (10*200)/200 = 2000/200 = 10 reward per share
+              // thus, bob will get 1000 total rewards
               expect((await grazingRangeAsAlice.pendingReward(BigNumber.from(0), await bob.getAddress()))).to.eq(ethers.utils.parseEther('1000'))
            })
           })
@@ -550,9 +555,9 @@ describe('GrazingRange', () => {
               expect((await grazingRangeAsAlice.campaignInfo(0)).lastRewardBlock).to.eq(currentBlockNum)
               expect((await grazingRangeAsAlice.campaignInfo(0)).accRewardPerShare).to.eq(expectedAccRewardPerShare)
               await TimeHelpers.advanceBlockTo(mockedBlock.add(21).toNumber())
-              // 5 (from last acc reward) + ((8*200)/200 = 1600/200 = 8)
+              // 5 (from last acc reward) + ((8*200)/200 = 1600/200 = 8) = 13 rewards per share
               expect((await grazingRangeAsAlice.pendingReward(BigNumber.from(0), await alice.getAddress()))).to.eq(ethers.utils.parseEther('1300'))
-              // (8*200)/200 = 1600/200 = 8
+              // (8*200)/200 = 1600/200 = 8 rewards per share
               expect((await grazingRangeAsAlice.pendingReward(BigNumber.from(0), await bob.getAddress()))).to.eq(ethers.utils.parseEther('800'))
            })
           })
