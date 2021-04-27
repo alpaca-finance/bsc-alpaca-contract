@@ -47,9 +47,9 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
         uint256 rewardPerBlock;
     }
 
-    // @dev this is mostly use for extending reward period
+    // @dev this is mostly used for extending reward period
     // @notice Reward info is a set of {bonusEndBlock, rewardPerBlock}
-    // mapped from campaigh ID
+    // indexed by campaigh ID
     mapping(uint256 => RewardInfo[]) public campaignRewardInfo;
 
     // @notice Info of each campaign. mapped from campaigh ID
@@ -61,11 +61,12 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     mapping(uint256 => uint256) public startBlock;
 
     // @notice limit length of reward info
+    // how many phases are allowed
     uint256 public rewardInfoLimit;
 
-    event Deposit(address indexed user, uint256 amount);
-    event Withdraw(address indexed user, uint256 amount);
-    event EmergencyWithdraw(address indexed user, uint256 amount);
+    event Deposit(address indexed user, uint256 amount, uint256 campaign);
+    event Withdraw(address indexed user, uint256 amount, uint256 campaign);
+    event EmergencyWithdraw(address indexed user, uint256 amount, uint256 campaign);
 
     function initialize() public initializer {
         OwnableUpgradeSafe.__Ownable_init();
@@ -239,7 +240,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
         if (user.amount > 0) {
             uint256 pending = user.amount.mul(campaign.accRewardPerShare).div(1e12).sub(user.rewardDebt);
             console.log("Deposit: pending reward!", pending);
-            if(pending > 0) {
+            if (pending > 0) {
                 campaign.rewardToken.safeTransfer(address(msg.sender), pending);
             }
         }
@@ -251,13 +252,12 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
         user.rewardDebt = user.amount.mul(campaign.accRewardPerShare).div(1e12);
         console.log("Deposit: reward debt", user.amount.mul(campaign.accRewardPerShare).div(1e12));
         console.log("Deposit: end deposit======================");
-        emit Deposit(msg.sender, _amount);
+        emit Deposit(msg.sender, _amount, _campaignID);
     }
 
     // @notice Withdraw Staking tokens from STAKING.
     function withdraw(uint256 _campaignID, uint256 _amount) external nonReentrant {
         _withdraw(_campaignID, _amount);
-        emit Withdraw(msg.sender, _amount);
     }
 
     // @notice internal method for withdraw (withdraw and harvest method depend on this method)
@@ -285,7 +285,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
         }
         user.rewardDebt = user.amount.mul(campaign.accRewardPerShare).div(1e12);
 
-        emit Withdraw(msg.sender, _amount);
+        emit Withdraw(msg.sender, _amount, _campaignID);
     }
 
     // @notice method for harvest campaigns (used when the user want to claim their reward token based on specified campaigns)
@@ -302,13 +302,13 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
         campaign.stakingToken.safeTransfer(address(msg.sender), user.amount);
         user.amount = 0;
         user.rewardDebt = 0;
-        emit EmergencyWithdraw(msg.sender, user.amount);
+        emit EmergencyWithdraw(msg.sender, user.amount, _campaignID);
     }
 
     // @notice Withdraw reward. EMERGENCY ONLY.
-    function emergencyRewardWithdraw(uint256 _campaignID, uint256 _amount) external onlyOwner {
+    function emergencyRewardWithdraw(uint256 _campaignID, uint256 _amount, address _beneficiary) external onlyOwner {
         CampaignInfo storage campaign = campaignInfo[_campaignID];
         require(_amount < campaign.rewardToken.balanceOf(address(this)), "emergencyRewardWithdraw: not enough token");
-        campaign.rewardToken.safeTransfer(address(msg.sender), _amount);
+        campaign.rewardToken.safeTransfer(_beneficiary, _amount);
     }
 }
