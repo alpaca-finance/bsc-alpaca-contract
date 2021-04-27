@@ -56,9 +56,6 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     // Info of each user that stakes Staking tokens.
     mapping(uint256 => mapping(address => UserInfo)) public userInfo;
 
-    // @notice The block number when Reward Token mining starts. mapped from campaigh ID
-    mapping(uint256 => uint256) public startBlock;
-
     // @notice limit length of reward info
     // how many phases are allowed
     uint256 public rewardInfoLimit;
@@ -163,14 +160,11 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
         uint256 totalSupply = campaign.totalStaked;
         if (block.number > campaign.lastRewardBlock && totalSupply != 0) {
             uint256 rewardInfoLen = rewardInfo.length;
-            uint256 multiplier;
-            uint256 rewardPerBlock;
             for (uint256 i = 0; i < rewardInfoLen; ++i) {
                 RewardInfo memory info = rewardInfo[i];
-                rewardPerBlock = info.rewardPerBlock;
-                multiplier = getMultiplier(campaign.lastRewardBlock, block.number, info.endBlock);
+                uint256 multiplier = getMultiplier(campaign.lastRewardBlock, block.number, info.endBlock);
                 if (multiplier == 0) continue;
-                uint256 reward = multiplier.mul(rewardPerBlock);
+                uint256 reward = multiplier.mul(info.rewardPerBlock);
                 accRewardPerShare = accRewardPerShare.add(reward.mul(1e12).div(totalSupply));
             }
         }
