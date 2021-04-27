@@ -1,7 +1,16 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
 import { ethers } from 'hardhat';
-import { IWorker__factory, IStrategy__factory, Timelock__factory } from '../typechain'
+import { Timelock__factory } from '../typechain'
+
+interface IAddGrazingRangeRewardInfoParam {
+    PHASE_NAME: string
+    CAMPAIGN_ID: string
+    ENDBLOCK: string
+    REWARD_PER_BLOCK: string
+}
+
+type IAddGrazingRangeRewardInfoParamList = Array<IAddGrazingRangeRewardInfoParam>
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -14,18 +23,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const WORKER_CONFIG_ADDR = '0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7';
-
-  const UPDATES = [{
-    WORKER_ADDRESS: '0x29000295C94a9739cB6F6A7Bf407684f6c372286',
-    ACCEPT_DEBT: true,
-    WORK_FACTOR: '7000',
-    KILL_FACTOR: '8333',
-    MAX_PRICE_DIFF: '50000',
-  }]
-
-  const TIMELOCK = '0xb3c3aE82358DF7fC0bd98629D5ed91767e45c337';
-  const EXACT_ETA = '1619430420';
+  
+  
+  const TIMELOCK = '0x2D5408f2287BF9F9B05404794459a846651D0a59';
+  const GRAZING_RANGE = ''
+  const EXACT_ETA = '1619265600';
+  const REWARDINFO: IAddGrazingRangeRewardInfoParamList = []
+  
 
 
 
@@ -39,23 +43,26 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const timelock = Timelock__factory.connect(TIMELOCK, (await ethers.getSigners())[0]);
 
-  for(let i = 0; i < UPDATES.length; i++) {
-    console.log(">> Timelock: Setting WorkerConfig via Timelock");
+  for(let i = 0; i < REWARDINFO.length; i++) {
+    const rewardInfo = REWARDINFO[i]
+    console.log(`>> Timelock: Adding a grazing range's reward info: "${rewardInfo.PHASE_NAME}" via Timelock`);
     await timelock.queueTransaction(
-      WORKER_CONFIG_ADDR, '0',
-      'setConfigs(address[],(bool,uint64,uint64,uint64)[])',
-      ethers.utils.defaultAbiCoder.encode(
-        ['address[]','(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]'],
-        [
-          [UPDATES[i].WORKER_ADDRESS], [{acceptDebt: UPDATES[i].ACCEPT_DEBT, workFactor: UPDATES[i].WORK_FACTOR, killFactor: UPDATES[i].KILL_FACTOR, maxPriceDiff: UPDATES[i].MAX_PRICE_DIFF}]
-        ]
-      ), EXACT_ETA
+        GRAZING_RANGE, '0',
+        'addRewardInfo(uint256,uint256,uint256)',
+        ethers.utils.defaultAbiCoder.encode(
+            ['uint256', 'uint256', 'uint256'],
+            [
+                rewardInfo.CAMPAIGN_ID,
+                rewardInfo.ENDBLOCK,
+                rewardInfo.REWARD_PER_BLOCK,
+            ]
+        ), EXACT_ETA
     );
     console.log("generate timelock.executeTransaction:")
-    console.log(`await timelock.executeTransaction('${WORKER_CONFIG_ADDR}', '0', 'setConfigs(address[],(bool,uint64,uint64,uint64)[])', ethers.utils.defaultAbiCoder.encode(['address[]','(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]'],[['${UPDATES[i].WORKER_ADDRESS}'], [{acceptDebt: true, workFactor: ${UPDATES[i].WORK_FACTOR}, killFactor: ${UPDATES[i].KILL_FACTOR}, maxPriceDiff: ${UPDATES[i].MAX_PRICE_DIFF}}]]), ${EXACT_ETA})`)
+    console.log(`await timelock.executeTransaction('${GRAZING_RANGE}', '0', 'addRewardInfo(uint256,uint256,uint256)', ethers.utils.defaultAbiCoder.encode(['uint256', 'uint256', 'uint256'],['${rewardInfo.CAMPAIGN_ID}','${rewardInfo.ENDBLOCK}','${rewardInfo.REWARD_PER_BLOCK}']), ${EXACT_ETA})`)
     console.log("✅ Done");
   }
 };
 
 export default func;
-func.tags = ['TimelockUpdateWorkerWorkerConfigParams'];
+func.tags = ['TimelockAddGrazingRangeRewardInfos'];

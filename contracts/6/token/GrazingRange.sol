@@ -70,7 +70,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     function initialize() public initializer {
         OwnableUpgradeSafe.__Ownable_init();
         ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
-        rewardInfoLimit = 10;
+        rewardInfoLimit = 8;
     }
 
     // @notice set new reward info limit
@@ -80,7 +80,6 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
 
     // @notice reward campaign, one campaign represents a pair of staking and reward token, last reward Block and acc reward Per Share
     function addCampaignInfo(IERC20 _stakingToken, IERC20 _rewardToken, uint256 _startBlock) external onlyOwner {
-        console.log('addCampaignInfo: init');
         campaignInfo.push(CampaignInfo({
             stakingToken: _stakingToken, 
             rewardToken: _rewardToken,
@@ -89,20 +88,16 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
             accRewardPerShare: 0,
             totalStaked: 0
         }));
-        console.log('addCampaignInfo: end');
     }
 
     // @notice if the new reward info is added, the reward & its end block will be extended by the newly pushed reward info.
-    function addRewardInfo(uint256 _campaignID, uint256 _extendedEndBlock, uint256 _newRewardPerBlock) external onlyOwner {
-        console.log('addRewardInfo: init');
+    function addRewardInfo(uint256 _campaignID, uint256 _endBlock, uint256 _rewardPerBlock) external onlyOwner {
         RewardInfo[] storage rewardInfo = campaignRewardInfo[_campaignID];
         require(rewardInfo.length < rewardInfoLimit, "addRewardInfo: reward info length exceeds the limit");
         rewardInfo.push(RewardInfo({
-            endBlock: _extendedEndBlock,
-            rewardPerBlock: _newRewardPerBlock
+            endBlock: _endBlock,
+            rewardPerBlock: _rewardPerBlock
         }));
-        console.log('addRewardInfo: campaign', rewardInfo[0].endBlock, rewardInfo[0].rewardPerBlock);
-        console.log('addRewardInfo: end');
     }
 
     // @notice this will return  end block based on the current block number.
@@ -165,12 +160,16 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
             for (uint256 i = 0; i < rewardInfoLen; ++i) {
                 RewardInfo memory info = rewardInfo[i];
                 rewardPerBlock = info.rewardPerBlock;
+                console.log("pendingReward: getting multiplier", campaign.lastRewardBlock, block.number, info.endBlock);
                 multiplier = getMultiplier(campaign.lastRewardBlock, block.number, info.endBlock);
+                console.log("pendingReward: multiplier", multiplier);
                 if (multiplier == 0) continue;
                 uint256 reward = multiplier.mul(rewardPerBlock);
                 accRewardPerShare = accRewardPerShare.add(reward.mul(1e12).div(totalSupply));
+                console.log("pendingReward: accRewardPerShare", accRewardPerShare);
             }
         }
+        console.log("pendingReward: pending reward!", user.amount.mul(accRewardPerShare).div(1e12).sub(user.rewardDebt));
         return user.amount.mul(accRewardPerShare).div(1e12).sub(user.rewardDebt);
     }
 
@@ -200,6 +199,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
             // @dev get multiplier based on current Block and rewardInfo's end block
             // multiplier will be a range of either (current block - campaign.lastRewardBlock)
             // or (reward info's endblock - campaign.lastRewardBlock) or 0
+            console.log("updateCampaign: getting multiplier", campaign.lastRewardBlock, block.number, info.endBlock);
             multiplier = getMultiplier(campaign.lastRewardBlock, block.number, info.endBlock);
             console.log("updateCampaign: multiplier", multiplier);
             if (multiplier == 0) continue;
@@ -214,6 +214,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
             console.log("updateCampaign: reward finalized", reward);
             campaign.accRewardPerShare = campaign.accRewardPerShare.add(reward.mul(1e12).div(totalSupply));
             console.log("updateCampaign: reward.mul(1e12), total supply", reward.mul(1e12), totalSupply);
+            console.log("updateCampaign: accRewardPerShare", campaign.accRewardPerShare);
         }
     }
 
@@ -227,7 +228,8 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
 
     // @notice Stake Staking tokens to GrazingRange
     function deposit(uint256 _campaignID, uint256 _amount) external nonReentrant {
-        console.log("Deposit: start deposit");
+        console.log("Deposit: start deposit==================");
+        console.log("Deposit: campaign", _campaignID);
         CampaignInfo storage campaign = campaignInfo[_campaignID];
         console.log("Deposit: after campaign info", campaign.accRewardPerShare);
         UserInfo storage user = userInfo[_campaignID][msg.sender];
@@ -236,6 +238,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
         console.log("Deposit: after update campaign", campaign.accRewardPerShare);
         if (user.amount > 0) {
             uint256 pending = user.amount.mul(campaign.accRewardPerShare).div(1e12).sub(user.rewardDebt);
+            console.log("Deposit: pending reward!", pending);
             if(pending > 0) {
                 campaign.rewardToken.safeTransfer(address(msg.sender), pending);
             }
@@ -246,7 +249,8 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
             campaign.totalStaked = campaign.totalStaked.add(_amount);
         }
         user.rewardDebt = user.amount.mul(campaign.accRewardPerShare).div(1e12);
-        console.log("Deposit: end deposit");
+        console.log("Deposit: reward debt", user.amount.mul(campaign.accRewardPerShare).div(1e12));
+        console.log("Deposit: end deposit======================");
         emit Deposit(msg.sender, _amount);
     }
 

@@ -16,7 +16,7 @@ import "../interfaces/IPancakeMasterChef.sol";
 import "../../utils/AlpacaMath.sol";
 import "../../utils/SafeToken.sol";
 
-contract PancakeswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker {
+contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker {
   /// @notice Libraries
   using SafeToken for address;
   using SafeMath for uint256;
@@ -27,7 +27,7 @@ contract PancakeswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
   event RemoveShare(uint256 indexed id, uint256 share);
   event Liquidate(uint256 indexed id, uint256 wad);
 
-  /// @notice Immutable variables
+  /// @notice Configuration variables
   IPancakeMasterChef public masterChef;
   IPancakeFactory public factory;
   IPancakeRouter02 public router;
@@ -48,6 +48,10 @@ contract PancakeswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
   uint256 public reinvestBountyBps;
   uint256 public maxReinvestBountyBps;
   mapping(address => bool) public okReinvestors;
+
+  /// @notice Configuration varaibles for V2
+  uint256 public fee;
+  uint256 public feeDenom;
 
   function initialize(
     address _operator,
@@ -82,8 +86,13 @@ contract PancakeswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
     okStrats[address(liqStrat)] = true;
     reinvestBountyBps = _reinvestBountyBps;
     maxReinvestBountyBps = 500;
+    fee = 9975;
+    feeDenom = 10000;
 
     require(reinvestBountyBps <= maxReinvestBountyBps, "PancakeswapWorker::initialize:: reinvestBountyBps exceeded maxReinvestBountyBps");
+    require(
+      (farmingToken == lpToken.token0() || farmingToken == lpToken.token1()) && 
+      (baseToken == lpToken.token0() || baseToken == lpToken.token1()), "PancakeswapWorker::initialize:: LP underlying not match with farm & base token");
   }
 
   /// @dev Require that the caller must be an EOA account to avoid flash loans.
@@ -184,12 +193,12 @@ contract PancakeswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
   /// @param aIn The amount of asset to market sell.
   /// @param rIn the amount of asset in reserve for input.
   /// @param rOut The amount of asset in reserve for output.
-  function getMktSellAmount(uint256 aIn, uint256 rIn, uint256 rOut) public pure returns (uint256) {
+  function getMktSellAmount(uint256 aIn, uint256 rIn, uint256 rOut) public view returns (uint256) {
     if (aIn == 0) return 0;
     require(rIn > 0 && rOut > 0, "PancakeswapWorker::getMktSellAmount:: bad reserve values");
-    uint256 aInWithFee = aIn.mul(998);
+    uint256 aInWithFee = aIn.mul(fee);
     uint256 numerator = aInWithFee.mul(rOut);
-    uint256 denominator = rIn.mul(1000).add(aInWithFee);
+    uint256 denominator = rIn.mul(feeDenom).add(aInWithFee);
     return numerator / denominator;
   }
 
