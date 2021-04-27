@@ -105,14 +105,13 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     }
 
     function _endBlockOf(uint256 _campaignID, uint256 _blockNumber) internal view returns (uint256) {
-        RewardInfo[] storage rewardInfo = campaignRewardInfo[_campaignID];
+        RewardInfo[] memory rewardInfo = campaignRewardInfo[_campaignID];
         uint256 len = rewardInfo.length;
         if (len == 0) {
             return 0;
         }
         for (uint256 i = 0; i < len; ++i) {
-            RewardInfo memory info = rewardInfo[i];
-            if (_blockNumber <= info.endBlock) return info.endBlock;
+            if (_blockNumber <= rewardInfo[i].endBlock) return rewardInfo[i].endBlock;
         }
         // @dev when couldn't find any reward info, it means that timestamp exceed endblock
         // so return the latest reward info.
@@ -125,14 +124,13 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     }
 
     function _rewardPerBlockOf(uint256 _campaignID, uint256 _blockNumber) internal view returns (uint256) {
-        RewardInfo[] storage rewardInfo = campaignRewardInfo[_campaignID];
+        RewardInfo[] memory rewardInfo = campaignRewardInfo[_campaignID];
         uint256 len = rewardInfo.length;
         if (len == 0) {
             return 0;
         }
         for (uint256 i = 0; i < len; ++i) {
-            RewardInfo memory info = rewardInfo[i];
-            if (_blockNumber <= info.endBlock) return info.rewardPerBlock;
+            if (_blockNumber <= rewardInfo[i].endBlock) return rewardInfo[i].rewardPerBlock;
         }
         // @dev when couldn't find any reward info, it means that timestamp exceed endblock
         // so return the latest reward info
@@ -153,19 +151,16 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
 
     // @notice View function to see pending Reward on frontend.
     function pendingReward(uint256 _campaignID, address _user) external view returns (uint256) {
-        CampaignInfo storage campaign = campaignInfo[_campaignID];
-        UserInfo storage user = userInfo[_campaignID][_user];
-        RewardInfo[] storage rewardInfo = campaignRewardInfo[_campaignID];
+        CampaignInfo memory campaign = campaignInfo[_campaignID];
+        UserInfo memory user = userInfo[_campaignID][_user];
+        RewardInfo[] memory rewardInfo = campaignRewardInfo[_campaignID];
         uint256 accRewardPerShare = campaign.accRewardPerShare;
-        uint256 totalSupply = campaign.totalStaked;
-        if (block.number > campaign.lastRewardBlock && totalSupply != 0) {
-            uint256 rewardInfoLen = rewardInfo.length;
-            for (uint256 i = 0; i < rewardInfoLen; ++i) {
-                RewardInfo memory info = rewardInfo[i];
-                uint256 multiplier = getMultiplier(campaign.lastRewardBlock, block.number, info.endBlock);
+        if (block.number > campaign.lastRewardBlock && campaign.totalStaked != 0) {
+            for (uint256 i = 0; i < rewardInfo.length; ++i) {
+                uint256 multiplier = getMultiplier(campaign.lastRewardBlock, block.number, rewardInfo[i].endBlock);
                 if (multiplier == 0) continue;
-                uint256 reward = multiplier.mul(info.rewardPerBlock);
-                accRewardPerShare = accRewardPerShare.add(reward.mul(1e12).div(totalSupply));
+                uint256 reward = multiplier.mul(rewardInfo[i].rewardPerBlock);
+                accRewardPerShare = accRewardPerShare.add(reward.mul(1e12).div(campaign.totalStaked));
             }
         }
         return user.amount.mul(accRewardPerShare).div(1e12).sub(user.rewardDebt);
@@ -174,7 +169,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     // @notice Update reward variables of the given campaign to be up-to-date.
     function updateCampaign(uint256 _campaignID) public {
         CampaignInfo storage campaign = campaignInfo[_campaignID];
-        RewardInfo[] storage rewardInfo = campaignRewardInfo[_campaignID];
+        RewardInfo[] memory rewardInfo = campaignRewardInfo[_campaignID];
         if (block.number <= campaign.lastRewardBlock) {
             return;
         }
@@ -183,26 +178,21 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
             campaign.lastRewardBlock = block.number;
             return;
         }
-        uint256 rewardInfoLen = rewardInfo.length;
-        uint256 multiplier;
-        uint256 rewardPerBlock;
         // @dev for each reward info
-        for (uint256 i = 0; i < rewardInfoLen; ++i) {
-            RewardInfo memory info = rewardInfo[i];
-            rewardPerBlock = info.rewardPerBlock;
+        for (uint256 i = 0; i < rewardInfo.length; ++i) {
             // @dev get multiplier based on current Block and rewardInfo's end block
             // multiplier will be a range of either (current block - campaign.lastRewardBlock)
             // or (reward info's endblock - campaign.lastRewardBlock) or 0
-            multiplier = getMultiplier(campaign.lastRewardBlock, block.number, info.endBlock);
+            uint256 multiplier = getMultiplier(campaign.lastRewardBlock, block.number, rewardInfo[i].endBlock);
             if (multiplier == 0) continue;
             // @dev if currentBlock exceed end block, use end block as the last reward block
             // so that for the next iteration, previous endBlock will be used as the last reward block
-            if (block.number > info.endBlock) {
-                campaign.lastRewardBlock = info.endBlock;
+            if (block.number > rewardInfo[i].endBlock) {
+                campaign.lastRewardBlock = rewardInfo[i].endBlock;
             } else {
                 campaign.lastRewardBlock = block.number;
             }
-            uint256 reward = multiplier.mul(rewardPerBlock);
+            uint256 reward = multiplier.mul(rewardInfo[i].rewardPerBlock);
             campaign.accRewardPerShare = campaign.accRewardPerShare.add(reward.mul(1e12).div(totalSupply));
         }
     }
