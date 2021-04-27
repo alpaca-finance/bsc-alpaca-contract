@@ -709,11 +709,22 @@ describe('GrazingRange', () => {
           mockedBlock.add(5).toString(),
         )
 
-        await expect(grazingRangeAsAlice.emergencyRewardWithdraw(BigNumber.from(0), ethers.utils.parseEther('500'))).to.be.reverted
+        await expect(grazingRangeAsAlice.emergencyRewardWithdraw(BigNumber.from(0), ethers.utils.parseEther('500'), await deployer.getAddress())).to.be.reverted
       })
     })
     context('When the caller is the owner', async () => {
-      it('should return all reward token to the owner', async () => {
+      context('When amount to be withdrawn is invalid', async () => {
+        it('should reverted as emergencyRewardWithdraw: not enough token', async () => {
+          await rewardTokenAsDeployer.mint(grazingRange.address, ethers.utils.parseEther('1000'))
+          await grazingRangeAsDeployer.addCampaignInfo(
+            stakingToken.address, 
+            rewardToken.address, 
+            mockedBlock.add(5).toString(),
+          )
+          await expect(grazingRangeAsDeployer.emergencyRewardWithdraw(BigNumber.from(0), ethers.utils.parseEther('1500'), await deployer.getAddress())).to.be.revertedWith('emergencyRewardWithdraw: not enough token')
+        })
+      })
+      it('should return all reward token to the beneficiary', async () => {
         await rewardTokenAsDeployer.mint(grazingRange.address, ethers.utils.parseEther('1000'))
         await rewardToken2AsDeployer.mint(grazingRange.address, ethers.utils.parseEther('2000'))
         await grazingRangeAsDeployer.addCampaignInfo(
@@ -726,15 +737,16 @@ describe('GrazingRange', () => {
           rewardToken2.address, 
           mockedBlock.add(5).toString(),
         )
+        const aliceAsBeneficiary = await alice.getAddress()
         // emergency withdraw campaign 0
-        await grazingRangeAsDeployer.emergencyRewardWithdraw(BigNumber.from(0), ethers.utils.parseEther('650'))
+        await grazingRangeAsDeployer.emergencyRewardWithdraw(BigNumber.from(0), ethers.utils.parseEther('650'), await deployer.getAddress())
         expect(await rewardToken.balanceOf(grazingRange.address)).to.eq(ethers.utils.parseEther('350'))
         expect(await rewardToken.balanceOf(await deployer.getAddress())).to.eq(ethers.utils.parseEther('650'))
 
         // emergency withdraw campaign 1
-        await grazingRangeAsDeployer.emergencyRewardWithdraw(BigNumber.from(1), ethers.utils.parseEther('1500'))
+        await grazingRangeAsDeployer.emergencyRewardWithdraw(BigNumber.from(1), ethers.utils.parseEther('1500'), aliceAsBeneficiary)
         expect(await rewardToken2.balanceOf(grazingRange.address)).to.eq(ethers.utils.parseEther('500'))
-        expect(await rewardToken2.balanceOf(await deployer.getAddress())).to.eq(ethers.utils.parseEther('1500'))
+        expect(await rewardToken2.balanceOf(aliceAsBeneficiary)).to.eq(ethers.utils.parseEther('1500'))
       })
     })
   })
