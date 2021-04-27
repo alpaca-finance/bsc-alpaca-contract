@@ -786,7 +786,7 @@ describe('GrazingRange', () => {
                   it('should receive a reward correctly', async() => { 
                   // scenario: alice deposit #n amount staking token to the pool
                   // when the time past, block number increase, alice expects to have her reward amount by calling `rewardToken()`
-                  // this scenario occurred between block #(mockedBlock+5)-..#(mockedBlock+9)
+                  // this scenario occurred between block #(mockedBlock+5)-..#(mockedBlock+8)
                   // and alice withdraw amount staking token out of pool
                   await grazingRangeAsDeployer.addCampaignInfo(
                     stakingToken.address, 
@@ -801,7 +801,6 @@ describe('GrazingRange', () => {
                   )
                   // mint staking token to alice
                   await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
-                 
                   // mint reward token to GrazingRange
                   await rewardTokenAsDeployer.mint(grazingRange.address, ethers.utils.parseEther('100'))
                   // alice approve grazing range
@@ -820,7 +819,7 @@ describe('GrazingRange', () => {
                   it('should receive a reward correctly', async() => {
                   // scenario: alice deposit  #n amount staking token to the pool
                   // when the time past, block number increase, alice expects to have her reward amount by calling 'rewardToken'
-                  // this scenario occurred between block #(mockedBlock+6)-..#(mockedBlock+9)
+                  // this scenario occurred between block #(mockedBlock+5)-..#(mockedBlock+8)
                   // and alice withdraw amount staking token out of pool after end time
                   await grazingRangeAsDeployer.addCampaignInfo(
                     stakingToken.address, 
@@ -835,7 +834,6 @@ describe('GrazingRange', () => {
                   )
                   // mint staking token to alice
                   await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
-                 
                   // mint reward token to GrazingRange
                   await rewardTokenAsDeployer.mint(grazingRange.address, ethers.utils.parseEther('100'))
                   // alice approve grazing range
@@ -892,7 +890,7 @@ describe('GrazingRange', () => {
                 it('should receive a reward correctly', async() => { 
                   // scenario: alice deposit #n amount staking token to the pool
                   // when the time past, block number increase, alice expects to have her reward amount by calling `rewardToken()`
-                  // this scenario occurred between block #(mockedBlock+5)-..#(mockedBlock+9)
+                  // this scenario occurred between block #(mockedBlock+9)-..#(mockedBlock+11)
                   // and alice withdraw amount staking token out of pool
                   await grazingRangeAsDeployer.addCampaignInfo(
                     stakingToken.address, 
@@ -907,7 +905,6 @@ describe('GrazingRange', () => {
                   )
                   // mint staking token to alice
                   await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
-                 
                   // mint reward token to GrazingRange
                   await rewardTokenAsDeployer.mint(grazingRange.address, ethers.utils.parseEther('200'))
                   // alice approve grazing range
@@ -954,7 +951,7 @@ describe('GrazingRange', () => {
                   await TimeHelpers.advanceBlockTo(toBeAdvancedBlockNum.add(100).toNumber())
                   // alice deposit @block number #(mockedBlock+9+100)
                   await grazingRangeAsAlice.deposit(BigNumber.from(0), ethers.utils.parseEther('100'))
-                  // alice withdraw @block number #(mockedBlock+7)
+                  // alice withdraw @block number #(mockedBlock+10+100)
                   await grazingRangeAsAlice.withdraw(BigNumber.from(0), ethers.utils.parseEther('100'))
 
                   expect(await (await stakingToken.balanceOf(await alice.getAddress())).toString()).to.eq(ethers.utils.parseEther('100'))
@@ -963,6 +960,214 @@ describe('GrazingRange', () => {
               })
             })
           })
+        })
+        context('When there are multiple reward info (multiple phases)', async() => {
+          context('When alice finish deposit within the first phase', async () => {
+            it('should accrue the correct reward corresponding to different phases', async () => {
+             // scenario: alice deposit #n amount staking token to the pool
+              // when the time past, block number increase, alice expects to have her reward amount by calling `pendingReward()`
+              // this scenario occurred between block #(mockedBlock+9)-..#(mockedBlock+11)
+              await grazingRangeAsDeployer.addCampaignInfo(
+                stakingToken.address, 
+                rewardToken.address, 
+                mockedBlock.add(9).toString(),
+              )
+    
+              await grazingRangeAsDeployer.addRewardInfo(
+                0, 
+                mockedBlock.add(11).toString(),
+                INITIAL_BONUS_REWARD_PER_BLOCK,
+              )
+
+              await grazingRangeAsDeployer.addRewardInfo(
+                0, 
+                mockedBlock.add(21).toString(),
+                INITIAL_BONUS_REWARD_PER_BLOCK.add(ethers.utils.parseEther('100')), // 200 reward per block
+              )
+              // mint staking token to alice
+              await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
+              // mint staking token to bob
+              await stakingTokenAsDeployer.mint(await bob.getAddress(), ethers.utils.parseEther('100'))
+              // mint reward token to GrazingRange
+              await rewardTokenAsDeployer.mint(grazingRange.address, ethers.utils.parseEther('2100'))
+              // alice & bob approve grazing range
+              await stakingTokenAsAlice.approve(grazingRange.address, ethers.utils.parseEther('100'))
+              await stakingTokenAsBob.approve(grazingRange.address, ethers.utils.parseEther('100'))
+
+              // alice deposit @block number #(mockedBlock+10)
+              await grazingRangeAsAlice.deposit(BigNumber.from(0), ethers.utils.parseEther('100'))
+              // bob deposit @block number #(mockedBlock+11)
+              await grazingRangeAsBob.deposit(BigNumber.from(0), ethers.utils.parseEther('100'))
+
+              const currentBlockNum = await TimeHelpers.latestBlockNumber()
+              // alice should expect to see her pending reward according to calculated reward per share and her deposit
+              const expectedAccRewardPerShare = BigNumber.from(1).mul('1000000000000') // reward per share 1 (phase1)
+              expect((await grazingRangeAsAlice.campaignInfo(0)).lastRewardBlock).to.eq(currentBlockNum)
+              expect((await grazingRangeAsAlice.campaignInfo(0)).accRewardPerShare).to.eq(expectedAccRewardPerShare)
+              await TimeHelpers.advanceBlockTo(mockedBlock.add(21).toNumber())
+              // 1 (from last acc reward) + ((10*200)/200 = 2000/200 = 10)
+           
+              await grazingRangeAsAlice.withdraw(BigNumber.from(0), ethers.utils.parseEther('100'))
+              await grazingRangeAsBob.withdraw(BigNumber.from(0), ethers.utils.parseEther('100'))
+
+              // // (10*200)/200 = 2000/200 = 10
+              expect(await (await stakingToken.balanceOf(await alice.getAddress())).toString()).to.eq(ethers.utils.parseEther('100'))
+              expect(await (await stakingToken.balanceOf(await bob.getAddress())).toString()).to.eq(ethers.utils.parseEther('100'))
+    
+              expect(await( await grazingRangeAsAlice.campaignInfo(BigNumber.from(0))).totalStaked.toString()).to.eq(ethers.utils.parseEther('0'))
+              expect((await rewardToken.balanceOf(await alice.getAddress()))).to.eq(ethers.utils.parseEther('1100'))
+              expect((await rewardToken.balanceOf(await bob.getAddress()))).to.eq(ethers.utils.parseEther('1000'))
+           })
+          })
+          context('When alice finish deposit within the second phase', async () => {
+            it('should accrue the correct reward corresponding to different phases', async () => {
+              // scenario: alice deposit #n amount staking token to the pool
+              // when the time past, block number increase, alice expects to have her reward amount by calling `pendingReward()`
+              // this scenario occurred between block #(mockedBlock+9)-..#(mockedBlock+11)
+              await grazingRangeAsDeployer.addCampaignInfo(
+                stakingToken.address, 
+                rewardToken.address, 
+                mockedBlock.add(9).toString(),
+              )
+    
+              await grazingRangeAsDeployer.addRewardInfo(
+                0, 
+                mockedBlock.add(11).toString(),
+                INITIAL_BONUS_REWARD_PER_BLOCK,
+              )
+
+              await grazingRangeAsDeployer.addRewardInfo(
+                0, 
+                mockedBlock.add(21).toString(),
+                INITIAL_BONUS_REWARD_PER_BLOCK.add(ethers.utils.parseEther('100')), // 200 reward per block
+              )
+              // mint staking token to alice
+              await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
+              // mint staking token to bob
+              await stakingTokenAsDeployer.mint(await bob.getAddress(), ethers.utils.parseEther('100'))
+              // mint reward token to GrazingRange
+              await rewardTokenAsDeployer.mint(grazingRange.address, ethers.utils.parseEther('2100'))
+              // alice & bob approve grazing range
+              await stakingTokenAsAlice.approve(grazingRange.address, ethers.utils.parseEther('100'))
+              await stakingTokenAsBob.approve(grazingRange.address, ethers.utils.parseEther('100'))
+
+              // alice deposit @block number #(mockedBlock+10)
+              await grazingRangeAsAlice.deposit(BigNumber.from(0), ethers.utils.parseEther('100'))
+              // skip to phase 2
+              await TimeHelpers.advanceBlockTo(mockedBlock.add(12).toNumber())
+              // bob deposit @block number #(mockedBlock+13)
+              await grazingRangeAsBob.deposit(BigNumber.from(0), ethers.utils.parseEther('100'))
+              const currentBlockNum = await TimeHelpers.latestBlockNumber()
+
+              // alice should expect to see her pending reward according to calculated reward per share and her deposit
+              const expectedAccRewardPerShare = BigNumber.from(5).mul('1000000000000') // reward per share 1 (phase1) and ((200(reward per block) * 2(multiplier))/(200(totalsupply)) =  4/1 = 4 (phase2))
+              expect((await grazingRangeAsAlice.campaignInfo(0)).lastRewardBlock).to.eq(currentBlockNum)
+              expect((await grazingRangeAsAlice.campaignInfo(0)).accRewardPerShare).to.eq(expectedAccRewardPerShare)
+              await TimeHelpers.advanceBlockTo(mockedBlock.add(21).toNumber())
+            
+              await grazingRangeAsAlice.withdraw(BigNumber.from(0), ethers.utils.parseEther('100'))
+              await grazingRangeAsBob.withdraw(BigNumber.from(0), ethers.utils.parseEther('100'))
+             
+              expect(await (await stakingToken.balanceOf(await alice.getAddress())).toString()).to.eq(ethers.utils.parseEther('100'))
+              expect(await (await stakingToken.balanceOf(await bob.getAddress())).toString()).to.eq(ethers.utils.parseEther('100'))
+    
+              expect(await( await grazingRangeAsAlice.campaignInfo(BigNumber.from(0))).totalStaked.toString()).to.eq(ethers.utils.parseEther('0'))
+              expect((await rewardToken.balanceOf(await alice.getAddress()))).to.eq(ethers.utils.parseEther('1300'))
+              expect((await rewardToken.balanceOf(await bob.getAddress()))).to.eq(ethers.utils.parseEther('800'))
+           
+            })
+          })
+        })
+      })
+      context('When there are multiple campaigns', async() => {
+        it('should correctly separate rewards and total staked', async() => {
+          // scenario: alice deposit #n amount staking token to the pool
+          // when the time past, block number increase, alice expects to have her reward amount by calling `rewardToekn()`
+          // this scenario occurred between block #(mockedBlock+10)-..#(mockedBlock+17) for campaign 0 and 1
+          await grazingRangeAsDeployer.addCampaignInfo(
+            stakingToken.address, 
+            rewardToken.address, 
+            mockedBlock.add(10).toString(),
+          )
+
+          await grazingRangeAsDeployer.addCampaignInfo(
+            stakingToken.address, 
+            rewardToken.address, 
+            mockedBlock.add(14).toString(),
+          )
+
+          // set reward for campaign 0
+          await grazingRangeAsDeployer.addRewardInfo(
+            0, 
+            mockedBlock.add(13).toString(),
+            INITIAL_BONUS_REWARD_PER_BLOCK,
+          )
+
+          // set reward for campaign 1
+          await grazingRangeAsDeployer.addRewardInfo(
+            1, 
+            mockedBlock.add(21).toString(),
+            INITIAL_BONUS_REWARD_PER_BLOCK.add(ethers.utils.parseEther('100')),
+          )
+          // mint staking token to alice
+          await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('1000'))
+          // mint staking token to bob
+          await stakingTokenAsDeployer.mint(await bob.getAddress(), ethers.utils.parseEther('1000'))
+          // mint reward token to GrazingRange
+          await rewardTokenAsDeployer.mint(grazingRange.address, ethers.utils.parseEther('600'))
+          // alice & bob approve grazing range
+          await stakingTokenAsAlice.approve(grazingRange.address, ethers.utils.parseEther('1000'))
+          await stakingTokenAsBob.approve(grazingRange.address, ethers.utils.parseEther('1000'))
+
+          // ### campaign 0 ###
+          // alice deposit @block number #(mockedBlock+9)
+          await grazingRangeAsAlice.deposit(BigNumber.from(0), ethers.utils.parseEther('100'))
+          // bob deposit @block number #(mockedBlock+10)
+          await grazingRangeAsBob.deposit(BigNumber.from(0), ethers.utils.parseEther('200'))
+
+          let currentBlockNum = await TimeHelpers.latestBlockNumber()
+          await TimeHelpers.advanceBlockTo(mockedBlock.add(13).toNumber())
+
+          // alice withdraw @block number #(mockedBlock)
+
+          // alice should expect to see her pending reward according to calculated reward per share and her deposit
+          let expectedAccRewardPerShare = BigNumber.from(1).mul('1000000000000') // reward per share 1
+          expect((await grazingRangeAsAlice.campaignInfo(0)).lastRewardBlock).to.eq(currentBlockNum)
+          expect((await grazingRangeAsAlice.campaignInfo(0)).accRewardPerShare).to.eq(expectedAccRewardPerShare)
+          expect((await grazingRangeAsAlice.campaignInfo(0)).totalStaked).to.eq(ethers.utils.parseEther('300'))
+          
+          await grazingRangeAsAlice.withdraw(BigNumber.from(0), ethers.utils.parseEther('100'))
+          await grazingRangeAsBob.withdraw(BigNumber.from(0), ethers.utils.parseEther('200'))
+
+          expect(await (await stakingToken.balanceOf(await alice.getAddress())).toString()).to.eq(ethers.utils.parseEther('1000'))
+          expect(await (await stakingToken.balanceOf(await bob.getAddress())).toString()).to.eq(ethers.utils.parseEther('1000'))
+
+          expect(await( await grazingRangeAsAlice.campaignInfo(BigNumber.from(0))).totalStaked.toString()).to.eq(ethers.utils.parseEther('0'))
+          expect((await rewardToken.balanceOf(await alice.getAddress()))).to.eq(ethers.utils.parseEther('133.3333333333'))
+          expect((await rewardToken.balanceOf(await bob.getAddress()))).to.eq(ethers.utils.parseEther('66.6666666666'))
+
+          // ### campaign 1 ##
+          await TimeHelpers.advanceBlockTo(mockedBlock.add(18).toNumber())
+           // alice deposit @block number #(mockedBlock+19)
+          await grazingRangeAsAlice.deposit(BigNumber.from(1), ethers.utils.parseEther('400'))
+          // bob deposit @block number #(mockedBlock+20)
+          await grazingRangeAsBob.deposit(BigNumber.from(1), ethers.utils.parseEther('600'))
+
+          currentBlockNum = await TimeHelpers.latestBlockNumber()
+          await TimeHelpers.advanceBlockTo(mockedBlock.add(22).toNumber())
+          expectedAccRewardPerShare = BigNumber.from(5).mul('100000000000') // reward per share 0.5
+          expect((await grazingRangeAsAlice.campaignInfo(1)).lastRewardBlock).to.eq(currentBlockNum)
+          expect((await grazingRangeAsAlice.campaignInfo(1)).accRewardPerShare).to.eq(expectedAccRewardPerShare)
+          expect((await grazingRangeAsAlice.campaignInfo(1)).totalStaked).to.eq(ethers.utils.parseEther('1000'))
+
+          await grazingRangeAsAlice.withdraw(BigNumber.from(1), ethers.utils.parseEther('400'))
+          await grazingRangeAsBob.withdraw(BigNumber.from(1), ethers.utils.parseEther('600'))
+          // alice should expect to see her  reward according to calculated reward per share and her deposit
+
+          expect(await( await grazingRangeAsAlice.campaignInfo(BigNumber.from(1))).totalStaked.toString()).to.eq(ethers.utils.parseEther('0'))
+          expect(await( await grazingRangeAsBob.campaignInfo(BigNumber.from(1))).totalStaked.toString()).to.eq(ethers.utils.parseEther('0'))
+          expect((await rewardToken.balanceOf(await alice.getAddress()))).to.eq(ethers.utils.parseEther('413.3333333333'))
+          expect((await rewardToken.balanceOf(await bob.getAddress()))).to.eq(ethers.utils.parseEther('186.6666666666'))
         })
       })
     })
@@ -1190,6 +1395,217 @@ describe('GrazingRange', () => {
               })
             })
           })
+        })
+        context('When there are multiple reward info (multiple phases)', async() => {
+          context('When alice finish deposit within the first phase', async () => {
+            it('should accrue the correct reward corresponding to different phases', async () => {
+             // scenario: alice deposit #n amount staking token to the pool
+              // when the time past, block number increase, alice expects to have her reward amount by calling `pendingReward()`
+              // this scenario occurred between block #(mockedBlock+9)-..#(mockedBlock+11)
+              await grazingRangeAsDeployer.addCampaignInfo(
+                stakingToken.address, 
+                rewardToken.address, 
+                mockedBlock.add(9).toString(),
+              )
+    
+              await grazingRangeAsDeployer.addRewardInfo(
+                0, 
+                mockedBlock.add(11).toString(),
+                INITIAL_BONUS_REWARD_PER_BLOCK,
+              )
+
+              await grazingRangeAsDeployer.addRewardInfo(
+                0, 
+                mockedBlock.add(21).toString(),
+                INITIAL_BONUS_REWARD_PER_BLOCK.add(ethers.utils.parseEther('100')), // 200 reward per block
+              )
+              // mint staking token to alice
+              await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
+              // mint staking token to bob
+              await stakingTokenAsDeployer.mint(await bob.getAddress(), ethers.utils.parseEther('100'))
+              // mint reward token to GrazingRange
+              await rewardTokenAsDeployer.mint(grazingRange.address, ethers.utils.parseEther('2100'))
+              // alice & bob approve grazing range
+              await stakingTokenAsAlice.approve(grazingRange.address, ethers.utils.parseEther('100'))
+              await stakingTokenAsBob.approve(grazingRange.address, ethers.utils.parseEther('100'))
+
+              // alice deposit @block number #(mockedBlock+10)
+              await grazingRangeAsAlice.deposit(BigNumber.from(0), ethers.utils.parseEther('100'))
+              // bob deposit @block number #(mockedBlock+11)
+              await grazingRangeAsBob.deposit(BigNumber.from(0), ethers.utils.parseEther('100'))
+
+              const currentBlockNum = await TimeHelpers.latestBlockNumber()
+              // alice should expect to see her pending reward according to calculated reward per share and her deposit
+              const expectedAccRewardPerShare = BigNumber.from(1).mul('1000000000000') // reward per share 1 (phase1)
+              expect((await grazingRangeAsAlice.campaignInfo(0)).lastRewardBlock).to.eq(currentBlockNum)
+              expect((await grazingRangeAsAlice.campaignInfo(0)).accRewardPerShare).to.eq(expectedAccRewardPerShare)
+              await TimeHelpers.advanceBlockTo(mockedBlock.add(21).toNumber())
+              // 1 (from last acc reward) + ((10*200)/200 = 2000/200 = 10)
+
+              await grazingRangeAsAlice.harvest([BigNumber.from(0)])
+              await grazingRangeAsBob.harvest([BigNumber.from(0)])
+    
+              // // (10*200)/200 = 2000/200 = 10
+              expect(await (await stakingToken.balanceOf(await alice.getAddress())).toString()).to.eq(ethers.utils.parseEther('0'))
+              expect(await (await stakingToken.balanceOf(await bob.getAddress())).toString()).to.eq(ethers.utils.parseEther('0'))
+              expect(await( await grazingRangeAsAlice.campaignInfo(BigNumber.from(0))).totalStaked.toString()).to.eq(ethers.utils.parseEther('200'))
+              expect((await rewardToken.balanceOf(await alice.getAddress()))).to.eq(ethers.utils.parseEther('1100'))
+              expect((await rewardToken.balanceOf(await bob.getAddress()))).to.eq(ethers.utils.parseEther('1000'))
+    
+           })
+          })
+          context('When alice finish deposit within the second phase', async () => {
+            it('should accrue the correct reward corresponding to different phases', async () => {
+              // scenario: alice deposit #n amount staking token to the pool
+              // when the time past, block number increase, alice expects to have her reward amount by calling `pendingReward()`
+              // this scenario occurred between block #(mockedBlock+9)-..#(mockedBlock+11)
+              await grazingRangeAsDeployer.addCampaignInfo(
+                stakingToken.address, 
+                rewardToken.address, 
+                mockedBlock.add(9).toString(),
+              )
+    
+              await grazingRangeAsDeployer.addRewardInfo(
+                0, 
+                mockedBlock.add(11).toString(),
+                INITIAL_BONUS_REWARD_PER_BLOCK,
+              )
+
+              await grazingRangeAsDeployer.addRewardInfo(
+                0, 
+                mockedBlock.add(21).toString(),
+                INITIAL_BONUS_REWARD_PER_BLOCK.add(ethers.utils.parseEther('100')), // 200 reward per block
+              )
+              // mint staking token to alice
+              await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
+              // mint staking token to bob
+              await stakingTokenAsDeployer.mint(await bob.getAddress(), ethers.utils.parseEther('100'))
+              // mint reward token to GrazingRange
+              await rewardTokenAsDeployer.mint(grazingRange.address, ethers.utils.parseEther('2100'))
+              // alice & bob approve grazing range
+              await stakingTokenAsAlice.approve(grazingRange.address, ethers.utils.parseEther('100'))
+              await stakingTokenAsBob.approve(grazingRange.address, ethers.utils.parseEther('100'))
+
+              // alice deposit @block number #(mockedBlock+10)
+              await grazingRangeAsAlice.deposit(BigNumber.from(0), ethers.utils.parseEther('100'))
+              // skip to phase 2
+              await TimeHelpers.advanceBlockTo(mockedBlock.add(12).toNumber())
+              // bob deposit @block number #(mockedBlock+13)
+
+              await grazingRangeAsBob.deposit(BigNumber.from(0), ethers.utils.parseEther('100'))
+              const currentBlockNum = await TimeHelpers.latestBlockNumber()
+
+              // alice should expect to see her pending reward according to calculated reward per share and her deposit
+              const expectedAccRewardPerShare = BigNumber.from(5).mul('1000000000000') // reward per share 1 (phase1) and ((200(reward per block) * 2(multiplier))/(200(totalsupply)) =  4/1 = 4 (phase2))
+              expect((await grazingRangeAsAlice.campaignInfo(0)).lastRewardBlock).to.eq(currentBlockNum)
+              expect((await grazingRangeAsAlice.campaignInfo(0)).accRewardPerShare).to.eq(expectedAccRewardPerShare)
+              await TimeHelpers.advanceBlockTo(mockedBlock.add(21).toNumber())
+              
+              await grazingRangeAsAlice.harvest([BigNumber.from(0)])
+              await grazingRangeAsBob.harvest([BigNumber.from(0)])
+             
+              expect(await (await stakingToken.balanceOf(await alice.getAddress())).toString()).to.eq(ethers.utils.parseEther('0'))
+              expect(await (await stakingToken.balanceOf(await bob.getAddress())).toString()).to.eq(ethers.utils.parseEther('0'))
+    
+              expect(await( await grazingRangeAsAlice.campaignInfo(BigNumber.from(0))).totalStaked.toString()).to.eq(ethers.utils.parseEther('200'))
+              expect((await rewardToken.balanceOf(await alice.getAddress()))).to.eq(ethers.utils.parseEther('1300'))
+              expect((await rewardToken.balanceOf(await bob.getAddress()))).to.eq(ethers.utils.parseEther('800'))
+
+            })
+          })
+        })
+      })
+      context('When there are multiple campaigns', async() => {
+        it('should correctly separate rewards and total staked', async() => {
+          // scenario: alice deposit #n amount staking token to the pool
+          // when the time past, block number increase, alice expects to have her reward amount by calling `rewardToekn()`
+          // this scenario occurred between block #(mockedBlock+10)-..#(mockedBlock+17) for campaign 0 and 1
+          await grazingRangeAsDeployer.addCampaignInfo(
+            stakingToken.address, 
+            rewardToken.address, 
+            mockedBlock.add(10).toString(),
+          )
+
+          await grazingRangeAsDeployer.addCampaignInfo(
+            stakingToken.address, 
+            rewardToken.address, 
+            mockedBlock.add(14).toString(),
+          )
+
+          // set reward for campaign 0
+          await grazingRangeAsDeployer.addRewardInfo(
+            0, 
+            mockedBlock.add(13).toString(),
+            INITIAL_BONUS_REWARD_PER_BLOCK,
+          )
+
+          // set reward for campaign 1
+          await grazingRangeAsDeployer.addRewardInfo(
+            1, 
+            mockedBlock.add(21).toString(),
+            INITIAL_BONUS_REWARD_PER_BLOCK.add(ethers.utils.parseEther('100')),
+          )
+          // mint staking token to alice
+          await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('1000'))
+          // mint staking token to bob
+          await stakingTokenAsDeployer.mint(await bob.getAddress(), ethers.utils.parseEther('1000'))
+          // mint reward token to GrazingRange
+          await rewardTokenAsDeployer.mint(grazingRange.address, ethers.utils.parseEther('600'))
+          // alice & bob approve grazing range
+          await stakingTokenAsAlice.approve(grazingRange.address, ethers.utils.parseEther('1000'))
+          await stakingTokenAsBob.approve(grazingRange.address, ethers.utils.parseEther('1000'))
+
+          // ### campaign 0 ###
+          // alice deposit @block number #(mockedBlock+9)
+          await grazingRangeAsAlice.deposit(BigNumber.from(0), ethers.utils.parseEther('100'))
+          // bob deposit @block number #(mockedBlock+10)
+          await grazingRangeAsBob.deposit(BigNumber.from(0), ethers.utils.parseEther('200'))
+
+          let currentBlockNum = await TimeHelpers.latestBlockNumber()
+          await TimeHelpers.advanceBlockTo(mockedBlock.add(13).toNumber())
+
+          // alice withdraw @block number #(mockedBlock)
+          // alice should expect to see her pending reward according to calculated reward per share and her deposit
+          let expectedAccRewardPerShare = BigNumber.from(1).mul('1000000000000') // reward per share 1
+          expect((await grazingRangeAsAlice.campaignInfo(0)).lastRewardBlock).to.eq(currentBlockNum)
+          expect((await grazingRangeAsAlice.campaignInfo(0)).accRewardPerShare).to.eq(expectedAccRewardPerShare)
+          expect((await grazingRangeAsAlice.campaignInfo(0)).totalStaked).to.eq(ethers.utils.parseEther('300'))
+          
+
+          await grazingRangeAsAlice.harvest([BigNumber.from(0)])
+          await grazingRangeAsBob.harvest([BigNumber.from(0)])
+
+          expect(await (await stakingToken.balanceOf(await alice.getAddress())).toString()).to.eq(ethers.utils.parseEther('900'))
+          expect(await (await stakingToken.balanceOf(await bob.getAddress())).toString()).to.eq(ethers.utils.parseEther('800'))
+
+          expect(await( await grazingRangeAsAlice.campaignInfo(BigNumber.from(0))).totalStaked.toString()).to.eq(ethers.utils.parseEther('300'))
+          expect((await rewardToken.balanceOf(await alice.getAddress()))).to.eq(ethers.utils.parseEther('133.3333333333'))
+          expect((await rewardToken.balanceOf(await bob.getAddress()))).to.eq(ethers.utils.parseEther('66.6666666666'))
+
+          // ### campaign 1 ##
+          await TimeHelpers.advanceBlockTo(mockedBlock.add(18).toNumber())
+
+           // alice deposit @block number #(mockedBlock+19)
+          await grazingRangeAsAlice.deposit(BigNumber.from(1), ethers.utils.parseEther('400'))
+          // bob deposit @block number #(mockedBlock+20)
+          await grazingRangeAsBob.deposit(BigNumber.from(1), ethers.utils.parseEther('600'))
+
+          currentBlockNum = await TimeHelpers.latestBlockNumber()
+          await TimeHelpers.advanceBlockTo(mockedBlock.add(22).toNumber())
+          expectedAccRewardPerShare = BigNumber.from(5).mul('100000000000') // reward per share 0.5
+          expect((await grazingRangeAsAlice.campaignInfo(1)).lastRewardBlock).to.eq(currentBlockNum)
+          expect((await grazingRangeAsAlice.campaignInfo(1)).accRewardPerShare).to.eq(expectedAccRewardPerShare)
+          expect((await grazingRangeAsAlice.campaignInfo(1)).totalStaked).to.eq(ethers.utils.parseEther('1000'))
+          // harvest
+          await grazingRangeAsAlice.harvest([BigNumber.from(1)])
+          await grazingRangeAsBob.harvest([BigNumber.from(1)])
+          // alice should expect to see her pending reward according to calculated reward per share and her deposit
+       
+          expect(await (await stakingToken.balanceOf(await alice.getAddress())).toString()).to.eq(ethers.utils.parseEther('500'))
+          expect(await (await stakingToken.balanceOf(await bob.getAddress())).toString()).to.eq(ethers.utils.parseEther('200'))
+          expect(await( await grazingRangeAsAlice.campaignInfo(BigNumber.from(1))).totalStaked.toString()).to.eq(ethers.utils.parseEther('1000'))
+          expect((await rewardToken.balanceOf(await alice.getAddress()))).to.eq(ethers.utils.parseEther('413.3333333333'))
+          expect((await rewardToken.balanceOf(await bob.getAddress()))).to.eq(ethers.utils.parseEther('186.6666666666'))
         })
       })
     })

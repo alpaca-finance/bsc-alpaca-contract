@@ -270,6 +270,8 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
         console.log("rewardDebt: ", user.rewardDebt);
         console.log("User amount: ", user.amount);
         uint256 pending = user.amount.mul(campaign.accRewardPerShare).div(1e12).sub(user.rewardDebt);
+        console.log("PENDING", pending);
+
         if (pending > 0) {
             console.log("pending: ", pending);
 
