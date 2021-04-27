@@ -210,11 +210,11 @@ describe('GrazingRange', () => {
             0, 
             mockedBlock.add(11).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK,
-          )).to.be.revertedWith('addRewardInfo: reward info length exceeds the limit')
+          )).to.be.revertedWith('GrazingRange::addRewardInfo::reward info length exceeds the limit')
         })
       })
       context('When newly added reward info endblock is less than current end block', async() => {
-        it('should reverted with the message addRewardInfo: bad new endblock', async() => {
+        it('should reverted with the message GrazingRange::addRewardInfo::bad new endblock', async() => {
           // add the first reward info
           await grazingRangeAsDeployer.addRewardInfo(
             0, 
@@ -225,7 +225,7 @@ describe('GrazingRange', () => {
             0, 
             mockedBlock.add(1).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK,
-          )).to.be.revertedWith('addRewardInfo: bad new endblock')
+          )).to.be.revertedWith('GrazingRange::addRewardInfo::bad new endblock')
         })
       })
     })
@@ -856,14 +856,14 @@ describe('GrazingRange', () => {
     })
     context('When the caller is the owner', async () => {
       context('When amount to be withdrawn is invalid', async () => {
-        it('should reverted as emergencyRewardWithdraw: not enough token', async () => {
+        it('should reverted as GrazingRange::emergencyRewardWithdraw::not enough token', async () => {
           await rewardTokenAsDeployer.mint(grazingRange.address, ethers.utils.parseEther('1000'))
           await grazingRangeAsDeployer.addCampaignInfo(
             stakingToken.address, 
             rewardToken.address, 
             mockedBlock.add(5).toString(),
           )
-          await expect(grazingRangeAsDeployer.emergencyRewardWithdraw(BigNumber.from(0), ethers.utils.parseEther('1500'), await deployer.getAddress())).to.be.revertedWith('emergencyRewardWithdraw: not enough token')
+          await expect(grazingRangeAsDeployer.emergencyRewardWithdraw(BigNumber.from(0), ethers.utils.parseEther('1500'), await deployer.getAddress())).to.be.revertedWith('GrazingRange::emergencyRewardWithdraw::not enough token')
         })
       })
       it('should return all reward token to the beneficiary', async () => {

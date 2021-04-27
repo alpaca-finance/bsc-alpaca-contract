@@ -90,9 +90,9 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     // @notice if the new reward info is added, the reward & its end block will be extended by the newly pushed reward info.
     function addRewardInfo(uint256 _campaignID, uint256 _endBlock, uint256 _rewardPerBlock) external onlyOwner {
         RewardInfo[] storage rewardInfo = campaignRewardInfo[_campaignID];
-        require(rewardInfo.length < rewardInfoLimit, "addRewardInfo: reward info length exceeds the limit");
+        require(rewardInfo.length < rewardInfoLimit, "GrazingRange::addRewardInfo::reward info length exceeds the limit");
         uint256 currentEndBlock = _endBlockOf(_campaignID, block.number);
-        require(currentEndBlock < _endBlock, "addRewardInfo: bad new endblock");
+        require(currentEndBlock < _endBlock, "GrazingRange::addRewardInfo::bad new endblock");
         rewardInfo.push(RewardInfo({
             endBlock: _endBlock,
             rewardPerBlock: _rewardPerBlock
@@ -234,7 +234,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     function _withdraw(uint256 _campaignID, uint256 _amount) internal {
         CampaignInfo storage campaign = campaignInfo[_campaignID];
         UserInfo storage user = userInfo[_campaignID][msg.sender];
-        require(user.amount >= _amount, "withdraw: withdraw amount exceed available amount");
+        require(user.amount >= _amount, "GrazingRange::withdraw::bad withdraw amount");
         updateCampaign(_campaignID);
         uint256 pending = user.amount.mul(campaign.accRewardPerShare).div(1e12).sub(user.rewardDebt);
 
@@ -271,7 +271,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     // @notice Withdraw reward. EMERGENCY ONLY.
     function emergencyRewardWithdraw(uint256 _campaignID, uint256 _amount, address _beneficiary) external onlyOwner {
         CampaignInfo storage campaign = campaignInfo[_campaignID];
-        require(_amount < campaign.rewardToken.balanceOf(address(this)), "emergencyRewardWithdraw: not enough token");
+        require(_amount < campaign.rewardToken.balanceOf(address(this)), "GrazingRange::emergencyRewardWithdraw::not enough token");
         campaign.rewardToken.safeTransfer(_beneficiary, _amount);
     }
 }
