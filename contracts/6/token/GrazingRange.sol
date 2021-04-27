@@ -47,9 +47,9 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
         uint256 rewardPerBlock;
     }
 
-    // @dev this is mostly use for extending reward period
+    // @dev this is mostly used for extending reward period
     // @notice Reward info is a set of {bonusEndBlock, rewardPerBlock}
-    // mapped from campaigh ID
+    // indexed by campaigh ID
     mapping(uint256 => RewardInfo[]) public campaignRewardInfo;
 
     // @notice Info of each campaign. mapped from campaigh ID
@@ -61,6 +61,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     mapping(uint256 => uint256) public startBlock;
 
     // @notice limit length of reward info
+    // how many phases are allowed
     uint256 public rewardInfoLimit;
 
     event Deposit(address indexed user, uint256 amount, uint256 campaign);
