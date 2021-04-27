@@ -94,6 +94,8 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     function addRewardInfo(uint256 _campaignID, uint256 _endBlock, uint256 _rewardPerBlock) external onlyOwner {
         RewardInfo[] storage rewardInfo = campaignRewardInfo[_campaignID];
         require(rewardInfo.length < rewardInfoLimit, "addRewardInfo: reward info length exceeds the limit");
+        uint256 currentEndBlock = _endBlockOf(_campaignID, block.number);
+        require(currentEndBlock < _endBlock, "addRewardInfo: bad new endblock");
         rewardInfo.push(RewardInfo({
             endBlock: _endBlock,
             rewardPerBlock: _rewardPerBlock
@@ -108,6 +110,9 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     function _endBlockOf(uint256 _campaignID, uint256 _blockNumber) internal view returns (uint256) {
         RewardInfo[] storage rewardInfo = campaignRewardInfo[_campaignID];
         uint256 len = rewardInfo.length;
+        if (len == 0) {
+            return 0;
+        }
         for (uint256 i = 0; i < len; ++i) {
             RewardInfo memory info = rewardInfo[i];
             if (_blockNumber <= info.endBlock) return info.endBlock;
@@ -125,9 +130,12 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     function _rewardPerBlockOf(uint256 _campaignID, uint256 _blockNumber) internal view returns (uint256) {
         RewardInfo[] storage rewardInfo = campaignRewardInfo[_campaignID];
         uint256 len = rewardInfo.length;
+        if (len == 0) {
+            return 0;
+        }
         for (uint256 i = 0; i < len; ++i) {
             RewardInfo memory info = rewardInfo[i];
-            if (_blockNumber <= info.rewardPerBlock) return info.rewardPerBlock;
+            if (_blockNumber <= info.endBlock) return info.rewardPerBlock;
         }
         // @dev when couldn't find any reward info, it means that timestamp exceed endblock
         // so return the latest reward info
@@ -137,13 +145,13 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
 
     // @notice Return reward multiplier over the given _from to _to block.
     function getMultiplier(uint256 _from, uint256 _to, uint256 _endBlock) public pure returns (uint256) {
+        if ((_from >= _endBlock) || (_from > _to)) {
+            return 0;
+        }
         if (_to <= _endBlock) {
             return _to.sub(_from);
-        } else if (_from >= _endBlock) {
-            return 0;
-        } else {
-            return _endBlock.sub(_from);
-        }
+        }    
+        return _endBlock.sub(_from);
     }
 
     // @notice View function to see pending Reward on frontend.

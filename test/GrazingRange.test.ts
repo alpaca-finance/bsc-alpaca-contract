@@ -88,6 +88,79 @@ describe('GrazingRange', () => {
     stakingTokenAsCat = MockERC20__factory.connect(stakingToken.address, cat)
   })
 
+  describe('#currentEndBlock()', async() => {
+    context('reward info is not existed yet', async () => {
+      it('should return 0 as a current end block', async() => {
+        // add the first reward info
+        const currentEndBlock = await grazingRangeAsDeployer.currentEndBlock(
+          0
+        )
+        expect(currentEndBlock).to.eq(BigNumber.from(0))
+      })
+    })
+    context('reward info is existed', async () => {
+      it('should return a current reward info endblock as a current end block', async() => {
+        await grazingRangeAsDeployer.addRewardInfo(
+          0, 
+          mockedBlock.add(1).toString(),
+          INITIAL_BONUS_REWARD_PER_BLOCK,
+        )
+        let currentEndBlock = await grazingRangeAsDeployer.currentEndBlock(
+          0
+        )
+        expect(currentEndBlock).to.eq(mockedBlock.add(1))
+        TimeHelpers.advanceBlockTo(mockedBlock.add(9).toNumber())
+
+        await grazingRangeAsDeployer.addRewardInfo(
+          0, 
+          mockedBlock.add(10).toString(),
+          INITIAL_BONUS_REWARD_PER_BLOCK,
+        )
+        currentEndBlock = await grazingRangeAsDeployer.currentEndBlock(
+          0
+        )
+        expect(currentEndBlock).to.eq(mockedBlock.add(10))
+      })
+    })
+  })
+
+  describe('#currentEndBlock()', async() => {
+    context('reward info is not existed yet', async () => {
+      it('should return 0 as a current reward per block', async() => {
+         const currentEndBlock = await grazingRangeAsDeployer.currentRewardPerBlock(
+          0
+        )
+        expect(currentEndBlock).to.eq(BigNumber.from(0))
+      })
+    })
+    context('reward info is existed', async () => {
+      it('should return a current reward info endblock as a current reward per block', async() => {
+        let lbm = await TimeHelpers.latestBlockNumber()
+        await grazingRangeAsDeployer.addRewardInfo(
+          0, 
+          mockedBlock.add(1).toString(),
+          INITIAL_BONUS_REWARD_PER_BLOCK,
+        )
+        let currentRewardPerBlock = await grazingRangeAsDeployer.currentRewardPerBlock(
+          0
+        )
+        expect(currentRewardPerBlock).to.eq(INITIAL_BONUS_REWARD_PER_BLOCK)
+
+        TimeHelpers.advanceBlockTo(mockedBlock.add(9).toNumber())
+        lbm = await TimeHelpers.latestBlockNumber()
+        await grazingRangeAsDeployer.addRewardInfo(
+          0, 
+          mockedBlock.add(10).toString(),
+          INITIAL_BONUS_REWARD_PER_BLOCK.add(ethers.utils.parseEther('500')),
+        )
+        currentRewardPerBlock = await grazingRangeAsDeployer.currentRewardPerBlock(
+          0
+        )
+        expect(currentRewardPerBlock).to.eq(INITIAL_BONUS_REWARD_PER_BLOCK.add(ethers.utils.parseEther('500')))
+      })
+    })
+  })
+
   describe('#addRewardInfo()', async () => {
     context('When all parameters are valid', async () => {
       context('When the reward info is still within the limit', async () => {
@@ -138,6 +211,21 @@ describe('GrazingRange', () => {
             mockedBlock.add(11).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK,
           )).to.be.revertedWith('addRewardInfo: reward info length exceeds the limit')
+        })
+      })
+      context('When newly added reward info endblock is less than current end block', async() => {
+        it('should reverted with the message addRewardInfo: bad new endblock', async() => {
+          // add the first reward info
+          await grazingRangeAsDeployer.addRewardInfo(
+            0, 
+            mockedBlock.add(11).toString(),
+            INITIAL_BONUS_REWARD_PER_BLOCK,
+          )
+          await expect(grazingRangeAsDeployer.addRewardInfo(
+            0, 
+            mockedBlock.add(1).toString(),
+            INITIAL_BONUS_REWARD_PER_BLOCK,
+          )).to.be.revertedWith('addRewardInfo: bad new endblock')
         })
       })
     })
