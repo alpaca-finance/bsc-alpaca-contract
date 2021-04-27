@@ -47,7 +47,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     }
 
     // @dev this is mostly used for extending reward period
-    // @notice Reward info is a set of {bonusEndBlock, rewardPerBlock}
+    // @notice Reward info is a set of {endBlock, rewardPerBlock}
     // indexed by campaigh ID
     mapping(uint256 => RewardInfo[]) public campaignRewardInfo;
 
