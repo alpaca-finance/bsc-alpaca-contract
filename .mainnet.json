@@ -224,9 +224,9 @@
         "name": "ITAM-WBNB LP",
         "address": "0xd02DA76c813b9cd4516eD50442923E625f90228f"
       }, {
-        "pId": 999,
+        "pId": 362,
         "name": "ALPACA-BUSD LP",
-        "address": ""
+        "address": "0x7752e1FA9F3a2e860856458517008558DEb989e3"
       }]
     }
   },
@@ -496,16 +496,16 @@
     "debtToken": "0x11362eA137A799298306123EEa014b7809A9DB40",
     "config": "0x8F8Ed54901b90c89C5817B7F67a425c0e6091284",
     "tripleSlopeModel": "0x375D32FadA30d7e6Fea242FCa221a22CC6d52B30",
-    "StrategyAddTwoSidesOptimal": "",
+    "StrategyAddTwoSidesOptimal": "0xCec2506E2420f2616221EcA10eE5663cFbE6780E",
     "workers": [{
       "name": "BUSD-ALPACA PancakeswapWorker",
-      "address": "",
-      "config": "",
+      "address": "0x7D0ea848563F5FA0Ae5C2aF2d8207C01Ea45B0D2",
+      "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
       "strategies": {
-        "StrategyAddAllBaseToken": "",
-        "StrategyLiquidate": "",
-        "StrategyAddTwoSidesOptimal": "",
-        "StrategyWithdrawMinimizeTrading": ""
+        "StrategyAddAllBaseToken": "0x1DBa79e73a7Ea9749fc28B921bc9431D09BEf2B5",
+        "StrategyLiquidate": "0xc7c025aA69F4b525E3F9f5186b524492ee1C86bB",
+        "StrategyAddTwoSidesOptimal": "0xCec2506E2420f2616221EcA10eE5663cFbE6780E",
+        "StrategyWithdrawMinimizeTrading": "0x95Ff1336985723aa46078995454d7A7Fd9F5401e"
       }
     }]
   }]
