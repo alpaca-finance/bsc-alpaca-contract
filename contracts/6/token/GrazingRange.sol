@@ -63,6 +63,8 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     event Deposit(address indexed user, uint256 amount, uint256 campaign);
     event Withdraw(address indexed user, uint256 amount, uint256 campaign);
     event EmergencyWithdraw(address indexed user, uint256 amount, uint256 campaign);
+    event AddCampaignInfo(uint256 indexed campaignID, IERC20 stakingToken, IERC20 rewardToken, uint256 startBlock);
+    event AddRewardInfo(uint256 indexed campaignID, uint256 indexed phase, uint256 endBlock, uint256 rewardPerBlock);
 
     function initialize() public initializer {
         OwnableUpgradeSafe.__Ownable_init();
@@ -85,6 +87,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
             accRewardPerShare: 0,
             totalStaked: 0
         }));
+        emit AddCampaignInfo(campaignInfo.length-1, _stakingToken, _rewardToken, _startBlock);
     }
 
     // @notice if the new reward info is added, the reward & its end block will be extended by the newly pushed reward info.
@@ -97,6 +100,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
             endBlock: _endBlock,
             rewardPerBlock: _rewardPerBlock
         }));
+        emit AddRewardInfo(_campaignID, rewardInfo.length-1, _endBlock, _rewardPerBlock);
     }
 
     // @notice this will return  end block based on the current block number.
