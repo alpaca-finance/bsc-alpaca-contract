@@ -14,62 +14,54 @@
       "id": 0,
       "stakingToken": "debtibBNB",
       "address": "0x5138133f0671071D8b8F1C4c180881bfCfe22CeC",
-      "allocPoint": 0
     }, {
       "id": 1,
       "stakingToken": "ibWBNB",
       "address": "0xd7D069493685A581d27824Fc46EdA46B7EfC0063",
-      "allocPoint": 200
     }, {
       "id": 2,
       "stakingToken": "debtibBUSD",
       "address": "0xD19D6253D979cCF663869fee30b8e0Ac86029ebd",
-      "allocPoint": 0
     }, {
       "id": 3,
       "stakingToken": "ibBUSD",
       "address": "0x7C9e73d4C71dae564d41F78d56439bB4ba87592f",
-      "allocPoint": 200
     }, {
       "id": 4,
-      "stakingToken": "ALPACA-WBNB LP",
+      "stakingToken": "ALPACA-WBNB LP (Legacy)",
       "address": "0xf3ce6aac24980e6b657926dfc79502ae414d3083",
-      "allocPoint": 100
     }, {
       "id": 5,
       "stakingToken": "sALPACA",
       "address": "0x6F695Bd5FFD25149176629f8491A5099426Ce7a7",
-      "allocPoint": 84
     }, {
       "id": 6,
       "stakingToken": "debtIbBNB V2",
       "address": "0x6A3487CE84FD83c66B83e598b18412bD1D2A55F9",
-      "allocPoint": 0
     }, {
       "id": 7,
       "stakingToken": "debtIbBUSD V2",
       "address": "0x02dA7035beD00ae645516bDb0c282A7fD4AA7442",
-      "allocPoint": 0
     }, {
       "id": 8,
       "stakingToken": "debtIbETH V2",
       "address": "0x92110af24d280E412b3a89691f6B0B9E09258fe6",
-      "allocPoint": 0
     }, {
       "id": 9,
       "stakingToken": "ibETH",
       "address": "0xbfF4a34A4644a113E8200D7F1D79b3555f723AfE",
-      "allocPoint": 0
     }, {
       "id": 10,
       "stakingToken": "debtIbALPACA V2",
       "address": "0x11362eA137A799298306123EEa014b7809A9DB40",
-      "allocPoint": 0
     }, {
       "id": 11,
       "stakingToken": "ibALPACA",
       "address": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
-      "allocPoint": 0
+    }, {
+      "id": 12,
+      "stakingToken": "ALPACA-WBNB LP",
+      "address": "0x1099C2E6Ed6ebA95099c205b599B409305783E43",
     }]
   },
   "Exchanges": {
