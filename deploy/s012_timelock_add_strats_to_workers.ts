@@ -19,12 +19,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     '0xc7c025aA69F4b525E3F9f5186b524492ee1C86bB',
     '0x5e2911d70d7a659Da0dA26989F445aeCAC58f2E6'
   ]
-  // const STRATEGY = [
-  //   '0xd80783De91fbEd9F7995A97D4C02917295F86F68',
-  //   '0xE38EBFE8F314dcaD61d5aDCB29c1A26F41BEd0Be',
-  //   '0xE574dc08aa579720Dfacd70D3DAE883d29874599',
-  //   '0x95Ff1336985723aa46078995454d7A7Fd9F5401e'
-  // ]
 
   const WORKERS = [
     '0x7D0ea848563F5FA0Ae5C2aF2d8207C01Ea45B0D2',
@@ -53,13 +47,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       ethers.utils.defaultAbiCoder.encode(
         ['address[]','bool'],
         [
-          STRATEGY, false
+          STRATEGY, true
         ]
       ), EXACT_ETA
     );
     const strats = STRATEGY.map((strat) => `'${strat}'`)
     console.log("generate timelock.executeTransaction:")
-    console.log(`await timelock.executeTransaction('${WORKERS[i]}', '0', 'setStrategyOk(address[],bool)', ethers.utils.defaultAbiCoder.encode(['address[]','bool'],[[${strats}], false]), ${EXACT_ETA})`)
+    console.log(`await timelock.executeTransaction('${WORKERS[i]}', '0', 'setStrategyOk(address[],bool)', ethers.utils.defaultAbiCoder.encode(['address[]','bool'],[[${strats}], true]), ${EXACT_ETA})`)
     console.log("✅ Done");
   }
 };
