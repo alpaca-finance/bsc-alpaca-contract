@@ -102,6 +102,14 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
         emit AddRewardInfo(_campaignID, rewardInfo.length-1, _endBlock, _rewardPerBlock);
     }
 
+    function rewardInfoLen(uint256 _campaignID) external view returns (uint256) {
+        return campaignRewardInfo[_campaignID].length;
+    }
+
+    function campaignInfoLen() external view returns (uint256) {
+        return campaignInfo.length;
+    }
+    
     // @notice this will return  end block based on the current block number.
     function currentEndBlock(uint256 _campaignID) external view returns (uint256) {
         return _endBlockOf(_campaignID, block.number);

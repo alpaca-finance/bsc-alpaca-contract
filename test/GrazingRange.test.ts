@@ -124,7 +124,7 @@ describe('GrazingRange', () => {
     })
   })
 
-  describe('#currentEndBlock()', async() => {
+  describe('#currentRewardPerBlock()', async() => {
     context('reward info is not existed yet', async () => {
       it('should return 0 as a current reward per block', async() => {
          const currentEndBlock = await grazingRangeAsDeployer.currentRewardPerBlock(
@@ -146,7 +146,7 @@ describe('GrazingRange', () => {
         )
         expect(currentRewardPerBlock).to.eq(INITIAL_BONUS_REWARD_PER_BLOCK)
 
-        TimeHelpers.advanceBlockTo(mockedBlock.add(9).toNumber())
+        TimeHelpers.advanceBlockTo(mockedBlock.add(1000).toNumber())
         lbm = await TimeHelpers.latestBlockNumber()
         await grazingRangeAsDeployer.addRewardInfo(
           0, 
@@ -161,24 +161,45 @@ describe('GrazingRange', () => {
     })
   })
 
+  describe('#addCampaignInfo', async() => {
+    it('should return a correct campaign info length', async () => {
+      let length = await grazingRangeAsDeployer.campaignInfoLen()
+      expect(length).to.eq(0)
+      await grazingRangeAsDeployer.addCampaignInfo(
+        stakingToken.address, 
+        rewardToken.address, 
+        mockedBlock.add(9).toString(),
+      )
+      length = await grazingRangeAsDeployer.campaignInfoLen()
+      expect(length).to.eq(1)
+    })
+  })
+
   describe('#addRewardInfo()', async () => {
     context('When all parameters are valid', async () => {
       context('When the reward info is still within the limit', async () => {
         it('should still be able to push the new reward info with the latest as the newly pushed reward info', async () => {
           // set reward info limit to 1
           await grazingRangeAsDeployer.setRewardInfoLimit(2)
+          let length = await grazingRangeAsDeployer.rewardInfoLen(0)
+          expect(length).to.eq(0)
           // add the first reward info
           await grazingRangeAsDeployer.addRewardInfo(
             0, 
             mockedBlock.add(11).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK,
           )
+          length = await grazingRangeAsDeployer.rewardInfoLen(0)
+          expect(length).to.eq(1)
+
           await grazingRangeAsDeployer.addRewardInfo(
             0, 
             mockedBlock.add(20).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK.add(1),
           )
           const rewardInfo = (await grazingRangeAsDeployer.campaignRewardInfo(0, 1))
+          length = await grazingRangeAsDeployer.rewardInfoLen(0)
+          expect(length).to.eq(2)
           expect(rewardInfo.rewardPerBlock).to.eq(INITIAL_BONUS_REWARD_PER_BLOCK.add(1))
           expect(rewardInfo.endBlock).to.eq(mockedBlock.add(20).toString())
         })
