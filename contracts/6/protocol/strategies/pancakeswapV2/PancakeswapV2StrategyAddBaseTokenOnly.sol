@@ -11,6 +11,7 @@ import "../../apis/pancake/IPancakeRouter02.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../../utils/SafeToken.sol";
 import "../../../utils/AlpacaMath.sol";
+import "../../interfaces/IWorker.sol";
 
 contract PancakeswapV2StrategyAddBaseTokenOnly is ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeToken for address;
@@ -42,6 +43,7 @@ contract PancakeswapV2StrategyAddBaseTokenOnly is ReentrancyGuardUpgradeSafe, IS
       uint256 minLPAmount
     ) = abi.decode(data, (address, address, uint256));
     IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
+    require(IWorker(msg.sender).lpToken() == lpToken, "PancakeswapV2StrategyAddBaseTokenOnly::execute:: worker.lpToken != factory.getPair");
     // 2. Approve router to do their stuffs
     farmingToken.safeApprove(address(router), uint256(-1));
     baseToken.safeApprove(address(router), uint256(-1));
