@@ -12,6 +12,7 @@
     "address": "",
     "pools": [{
       "id": 0,
+      "name": "ibALPACA-BUSD",
       "stakingToken": "",
       "rewardToken": ""
     }]
