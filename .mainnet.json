@@ -32,7 +32,7 @@
       "allocPoint": 200
     }, {
       "id": 4,
-      "stakingToken": "ALPACA-WBNB LP",
+      "stakingToken": "ALPACA-WBNB LP (Legacy)",
       "address": "0xf3ce6aac24980e6b657926dfc79502ae414d3083",
       "allocPoint": 100
     }, {
@@ -70,6 +70,11 @@
       "stakingToken": "ibALPACA",
       "address": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
       "allocPoint": 0
+    }, {
+      "id": 12,
+      "stakingToken": "ALPACA-WBNB LP",
+      "address": "0x1099C2E6Ed6ebA95099c205b599B409305783E43",
+      "allocPoint": 100
     }]
   },
   "Exchanges": {
