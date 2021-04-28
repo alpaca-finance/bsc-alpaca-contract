@@ -113,8 +113,8 @@ contract PancakeswapV2StrategyAddTwoSidesOptimal is ReentrancyGuardUpgradeSafe, 
     (,, uint256 moreLPAmount) = router.addLiquidity(
       baseToken, farmingToken, baseToken.myBalance(), farmingToken.myBalance(), 0, 0, address(this), now
     );
-    require(moreLPAmount >= minLPAmount, "StrategyAddTwoSidesOptimal::execute:: insufficient LP tokens received");
-    require(lpToken.transfer(msg.sender, lpToken.balanceOf(address(this))), "StrategyAddTwoSidesOptimal::execute:: failed to transfer LP token to msg.sender");
+    require(moreLPAmount >= minLPAmount, "PancakeswapV2StrategyAddTwoSidesOptimal::execute:: insufficient LP tokens received");
+    require(lpToken.transfer(msg.sender, lpToken.balanceOf(address(this))), "PancakeswapV2StrategyAddTwoSidesOptimal::execute:: failed to transfer LP token to msg.sender");
     // 7. Reset approve to 0 for safety reason
     farmingToken.safeApprove(address(router), 0);
     baseToken.safeApprove(address(router), 0);

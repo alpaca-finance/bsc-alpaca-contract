@@ -65,8 +65,8 @@ contract PancakeswapV2StrategyAddBaseTokenOnly is ReentrancyGuardUpgradeSafe, IS
     (,, uint256 moreLPAmount) = router.addLiquidity(
       baseToken, farmingToken, baseToken.myBalance(), farmingToken.myBalance(), 0, 0, address(this), now
     );
-    require(moreLPAmount >= minLPAmount, "StrategyAddBaseTokenOnly::execute:: insufficient LP tokens received");
-    require(lpToken.transfer(msg.sender, lpToken.balanceOf(address(this))), "StrategyAddBaseTokenOnly::execute:: failed to transfer LP token to msg.sender");
+    require(moreLPAmount >= minLPAmount, "PancakeswapV2StrategyAddBaseTokenOnly::execute:: insufficient LP tokens received");
+    require(lpToken.transfer(msg.sender, lpToken.balanceOf(address(this))), "PancakeswapV2StrategyAddBaseTokenOnly::execute:: failed to transfer LP token to msg.sender");
     // 6. Reset approval for safety reason
     baseToken.safeApprove(address(router), 0);
     farmingToken.safeApprove(address(router), 0);
