@@ -8,7 +8,14 @@
     "ITAM-week-3": "",
     "ITAM-week-4": ""
   },
-  "GrazingRange": "0x9Ff38741EB7594aCE7DD8bb8107Da38aEE7005D6",
+  "GrazingRange": {
+    "address": "0x9Ff38741EB7594aCE7DD8bb8107Da38aEE7005D6",
+    "pools": [{
+      "id": 0,
+      "stakingToken": "0x6ad3A0d891C59677fbbB22E071613253467C382A",
+      "rewardToken": "0x0266693F9Df932aD7dA8a9b44C2129Ce8a87E81f"
+    }]
+  },
   "FairLaunch": {
     "address": "0xac2fefDaF83285EA016BE3f5f1fb039eb800F43D",
     "pools": [{
