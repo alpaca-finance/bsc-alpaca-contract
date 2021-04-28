@@ -21,7 +21,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const GRAZING_RANGE = '0x9Ff38741EB7594aCE7DD8bb8107Da38aEE7005D6';
 
   const TIMELOCK = '0xb3c3aE82358DF7fC0bd98629D5ed91767e45c337';
-  const EXACT_ETA = '1619429280';
+  const EXACT_ETA = '1619613540';
 
 
 
@@ -44,13 +44,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log("✅ Done");
   }
 
-    console.log(`>> Queue tx on Timelock to upgrade the implementation`);
-    await timelock.queueTransaction(PROXY_ADMIN, '0', 'upgrade(address,address)', ethers.utils.defaultAbiCoder.encode(['address','address'], [GRAZING_RANGE, newImpl]), EXACT_ETA);
-    console.log("✅ Done");
+  console.log(`>> Queue tx on Timelock to upgrade the implementation`);
+  await timelock.queueTransaction(PROXY_ADMIN, '0', 'upgrade(address,address)', ethers.utils.defaultAbiCoder.encode(['address','address'], [GRAZING_RANGE, newImpl]), EXACT_ETA);
+  console.log("✅ Done");
 
-    console.log(`>> Generate executeTransaction:`);
-    console.log(`await timelock.executeTransaction('${PROXY_ADMIN}', '0', 'upgrade(address,address)', ethers.utils.defaultAbiCoder.encode(['address','address'], ['${GRAZING_RANGE}','${newImpl}']), ${EXACT_ETA})`);
-    console.log("✅ Done");
+  console.log(`>> Generate executeTransaction:`);
+  console.log(`await timelock.executeTransaction('${PROXY_ADMIN}', '0', 'upgrade(address,address)', ethers.utils.defaultAbiCoder.encode(['address','address'], ['${GRAZING_RANGE}','${newImpl}']), ${EXACT_ETA})`);
+  console.log("✅ Done");
 };
 
 export default func;
