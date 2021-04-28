@@ -170,8 +170,12 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
         return user.amount.mul(accRewardPerShare).div(1e12).sub(user.rewardDebt);
     }
 
+    function updateCampaign(uint256 _campaignID) external nonReentrant {
+        _updateCampaign(_campaignID);
+    }
+
     // @notice Update reward variables of the given campaign to be up-to-date.
-    function updateCampaign(uint256 _campaignID) public {
+    function _updateCampaign(uint256 _campaignID) internal {
         CampaignInfo storage campaign = campaignInfo[_campaignID];
         RewardInfo[] memory rewardInfo = campaignRewardInfo[_campaignID];
         if (block.number <= campaign.lastRewardBlock) {
@@ -202,10 +206,10 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     }
 
     // @notice Update reward variables for all campaigns. gas spending is HIGH in this method call, BE CAREFUL
-    function massUpdateCampaigns() external {
+    function massUpdateCampaigns() external nonReentrant {
         uint256 length = campaignInfo.length;
         for (uint256 pid = 0; pid < length; ++pid) {
-            updateCampaign(pid);
+            _updateCampaign(pid);
         }
     }
 
@@ -213,7 +217,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     function deposit(uint256 _campaignID, uint256 _amount) external nonReentrant {
         CampaignInfo storage campaign = campaignInfo[_campaignID];
         UserInfo storage user = userInfo[_campaignID][msg.sender];
-        updateCampaign(_campaignID);
+        _updateCampaign(_campaignID);
         if (user.amount > 0) {
             uint256 pending = user.amount.mul(campaign.accRewardPerShare).div(1e12).sub(user.rewardDebt);
             if (pending > 0) {
@@ -239,7 +243,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
         CampaignInfo storage campaign = campaignInfo[_campaignID];
         UserInfo storage user = userInfo[_campaignID][msg.sender];
         require(user.amount >= _amount, "GrazingRange::withdraw::bad withdraw amount");
-        updateCampaign(_campaignID);
+        _updateCampaign(_campaignID);
         uint256 pending = user.amount.mul(campaign.accRewardPerShare).div(1e12).sub(user.rewardDebt);
 
         if (pending > 0) {
