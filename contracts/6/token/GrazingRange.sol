@@ -181,8 +181,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
         if (block.number <= campaign.lastRewardBlock) {
             return;
         }
-        uint256 totalSupply = campaign.totalStaked;
-        if (totalSupply == 0) {
+        if (campaign.totalStaked == 0) {
             campaign.lastRewardBlock = block.number;
             return;
         }
@@ -201,7 +200,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
                 campaign.lastRewardBlock = block.number;
             }
             uint256 reward = multiplier.mul(rewardInfo[i].rewardPerBlock);
-            campaign.accRewardPerShare = campaign.accRewardPerShare.add(reward.mul(1e12).div(totalSupply));
+            campaign.accRewardPerShare = campaign.accRewardPerShare.add(reward.mul(1e12).div(campaign.totalStaked));
         }
     }
 
