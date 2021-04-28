@@ -501,7 +501,7 @@
     "StrategyAddTwoSidesOptimal": "0xd80783De91fbEd9F7995A97D4C02917295F86F68",
     "workers": [{
       "name": "BUSD-ALPACA PancakeswapWorker",
-      "address": "0x7D0ea848563F5FA0Ae5C2aF2d8207C01Ea45B0D2",
+      "address": "0xeF1C5D2c20b22Ae50437a2F3bd258Ab1117D1BaD",
       "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
       "strategies": {
         "StrategyAddTwoSidesOptimal": "0xd80783De91fbEd9F7995A97D4C02917295F86F68",
