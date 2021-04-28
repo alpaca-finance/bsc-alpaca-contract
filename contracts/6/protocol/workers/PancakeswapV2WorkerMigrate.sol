@@ -33,8 +33,8 @@ contract PancakeswapV2WorkerMigrate is OwnableUpgradeSafe, ReentrancyGuardUpgrad
   IPancakeRouter02 public router;
   IPancakePair public override lpToken;
   address public wNative;
-  address public baseToken;
-  address public farmingToken;
+  address public override baseToken;
+  address public override farmingToken;
   address public cake;
   address public operator;
   uint256 public pid;

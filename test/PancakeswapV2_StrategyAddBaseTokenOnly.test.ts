@@ -150,6 +150,16 @@ describe('PancakeswapV2 - StrategyAddBaseTokenOnly', () => {
     stratAsBob = StrategyAddBaseTokenOnly__factory.connect(strat.address, bob);
 
     mockPancakeswapV2WorkerAsBob = MockPancakeswapV2Worker__factory.connect(mockPancakeswapV2Worker.address, bob);
+
+    // Adding liquidity to the pool
+    // Alice adds 0.1 FTOKEN + 1 WBTC
+    await farmingTokenAsAlice.approve(routerV2.address, ethers.utils.parseEther('0.1'));
+    await baseTokenAsAlice.approve(routerV2.address, ethers.utils.parseEther('1'));
+
+    // Add liquidity to the WBTC-FTOKEN pool on Pancakeswap
+    await routerV2AsAlice.addLiquidity(
+      baseToken.address, farmingToken.address,
+      ethers.utils.parseEther('1'), ethers.utils.parseEther('0.1'), '0', '0', await alice.getAddress(), FOREVER);
   });
 
   it('should revert on bad calldata', async () => {
@@ -166,18 +176,37 @@ describe('PancakeswapV2 - StrategyAddBaseTokenOnly', () => {
         ['address','address', 'uint256'], [baseToken.address, farmingToken.address, '0']
       )
     )).to.be.reverted;
-  })
+  });
+
+  it('should revert when contract get LP < minLP', async () => {
+    // Bob uses AddBaseTokenOnly strategy yet again, but now with an unreasonable min LP request
+    await baseTokenAsBob.transfer(mockPancakeswapV2Worker.address, ethers.utils.parseEther('0.1'));
+    await expect(mockPancakeswapV2WorkerAsBob.work(
+      0, await bob.getAddress(), '0',
+      ethers.utils.defaultAbiCoder.encode(
+        ['address', 'bytes'],
+        [strat.address, ethers.utils.defaultAbiCoder.encode(
+          ['address', 'address', 'uint256'],
+          [baseToken.address, farmingToken.address, ethers.utils.parseEther('0.05')]
+        )],
+      )
+    )).to.be.revertedWith('PancakeswapV2StrategyAddBaseTokenOnly::execute:: insufficient LP tokens received');
+  });
+
+  it('should revert when inject wrong pair', async () => {
+    await expect(mockPancakeswapV2WorkerAsBob.work(
+      0, await bob.getAddress(), '0',
+      ethers.utils.defaultAbiCoder.encode(
+        ['address', 'bytes'],
+        [strat.address, ethers.utils.defaultAbiCoder.encode(
+          ['address', 'address', 'uint256'],
+          [farmingToken.address, farmingToken.address, ethers.utils.parseEther('0.05')]
+        )],
+      )
+    )).to.be.revertedWith('PancakeswapV2StrategyAddBaseTokenOnly::execute:: worker.lpToken != factory.getPair');
+  });
 
   it('should convert all BTOKEN to LP tokens at best rate', async () => {
-    // Alice adds 0.1 FTOKEN + 1 WBTC
-    await farmingTokenAsAlice.approve(routerV2.address, ethers.utils.parseEther('0.1'));
-    await baseTokenAsAlice.approve(routerV2.address, ethers.utils.parseEther('1'));
-
-    // Add liquidity to the WBTC-FTOKEN pool on Pancakeswap
-    await routerV2AsAlice.addLiquidity(
-      baseToken.address, farmingToken.address,
-      ethers.utils.parseEther('1'), ethers.utils.parseEther('0.1'), '0', '0', await alice.getAddress(), FOREVER);
-
     // Bob transfer 0.1 WBTC to StrategyAddBaseTokenOnly first
     await baseTokenAsBob.transfer(mockPancakeswapV2Worker.address, ethers.utils.parseEther('0.1'));
     // Bob uses AddBaseTokenOnly strategy to add 0.1 WBTC
@@ -213,17 +242,5 @@ describe('PancakeswapV2 - StrategyAddBaseTokenOnly', () => {
     expect(await lpV2.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
     expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
     expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-
-    // Bob uses AddBaseTokenOnly strategy yet again, but now with an unreasonable min LP request
-    await expect(await mockPancakeswapV2WorkerAsBob.work(
-      0, await bob.getAddress(), '0',
-      ethers.utils.defaultAbiCoder.encode(
-        ['address', 'bytes'],
-        [strat.address, ethers.utils.defaultAbiCoder.encode(
-          ['address', 'address', 'uint256'],
-          [baseToken.address, farmingToken.address, '0']
-        )],
-      )
-    )).to.be.revertedWith('insufficient LP tokens received');
   });
 });
