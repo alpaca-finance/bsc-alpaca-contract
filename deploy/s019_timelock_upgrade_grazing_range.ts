@@ -13,7 +13,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  
+  // PROXY_ADMIN
+  // Testnet: 0x2c6c09b46d00A88161B7e4AcFaFEc58990548aC2
+  // Mainnet: 0x5379F32C8D5F663EACb61eeF63F722950294f452
   const PROXY_ADMIN = '0x2c6c09b46d00A88161B7e4AcFaFEc58990548aC2';
   const NEW_IMPL = '';
   const GRAZING_RANGE = '0x00d078c7e058bA5106878b9e0CC09Ef1BF510925';
