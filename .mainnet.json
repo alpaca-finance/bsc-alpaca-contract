@@ -496,15 +496,15 @@
     "debtToken": "0x11362eA137A799298306123EEa014b7809A9DB40",
     "config": "0x8F8Ed54901b90c89C5817B7F67a425c0e6091284",
     "tripleSlopeModel": "0x375D32FadA30d7e6Fea242FCa221a22CC6d52B30",
-    "StrategyAddTwoSidesOptimal": "0xCec2506E2420f2616221EcA10eE5663cFbE6780E",
+    "StrategyAddTwoSidesOptimal": "0xd80783De91fbEd9F7995A97D4C02917295F86F68",
     "workers": [{
       "name": "BUSD-ALPACA PancakeswapWorker",
       "address": "0x7D0ea848563F5FA0Ae5C2aF2d8207C01Ea45B0D2",
       "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
       "strategies": {
-        "StrategyAddAllBaseToken": "0x1DBa79e73a7Ea9749fc28B921bc9431D09BEf2B5",
-        "StrategyLiquidate": "0xc7c025aA69F4b525E3F9f5186b524492ee1C86bB",
-        "StrategyAddTwoSidesOptimal": "0xCec2506E2420f2616221EcA10eE5663cFbE6780E",
+        "StrategyAddTwoSidesOptimal": "0xd80783De91fbEd9F7995A97D4C02917295F86F68",
+        "StrategyAddAllBaseToken": "0xE38EBFE8F314dcaD61d5aDCB29c1A26F41BEd0Be",
+        "StrategyLiquidate": "0xE574dc08aa579720Dfacd70D3DAE883d29874599",
         "StrategyWithdrawMinimizeTrading": "0x95Ff1336985723aa46078995454d7A7Fd9F5401e"
       }
     }]
