@@ -68,7 +68,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     function initialize() public initializer {
         OwnableUpgradeSafe.__Ownable_init();
         ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
-        rewardInfoLimit = 8;
+        rewardInfoLimit = 52; // 52 weeks, 1 year
     }
 
     // @notice set new reward info limit
