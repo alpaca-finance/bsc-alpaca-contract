@@ -109,7 +109,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     function campaignInfoLen() external view returns (uint256) {
         return campaignInfo.length;
     }
-    
+
     // @notice this will return  end block based on the current block number.
     function currentEndBlock(uint256 _campaignID) external view returns (uint256) {
         return _endBlockOf(_campaignID, block.number);
@@ -185,11 +185,20 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     function _updateCampaign(uint256 _campaignID) internal {
         CampaignInfo storage campaign = campaignInfo[_campaignID];
         RewardInfo[] memory rewardInfo = campaignRewardInfo[_campaignID];
+        // if deposit before the start block
+        // or when total staked is 0, it should last reward block as a start block
+        // so that ALL rewards will be distributed
         if (block.number <= campaign.lastRewardBlock) {
             return;
         }
         if (campaign.totalStaked == 0) {
-            campaign.lastRewardBlock = block.number;
+            // if there is no total supply, return, and use start block as a last reward block
+            // so that ALL reward will be distributed.
+            // but, if the first deposit is out of reward period, last reward block will be its block number
+            // in order to have multiplier = 0
+            if (block.number > _endBlockOf(_campaignID, block.number)) {
+                campaign.lastRewardBlock = block.number;
+            }
             return;
         }
         // @dev for each reward info
@@ -251,7 +260,6 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
         require(user.amount >= _amount, "GrazingRange::withdraw::bad withdraw amount");
         _updateCampaign(_campaignID);
         uint256 pending = user.amount.mul(campaign.accRewardPerShare).div(1e12).sub(user.rewardDebt);
-
         if (pending > 0) {
             campaign.rewardToken.safeTransfer(address(msg.sender), pending);
         }
