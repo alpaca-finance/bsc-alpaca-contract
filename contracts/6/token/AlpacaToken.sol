@@ -29,12 +29,6 @@ contract AlpacaToken is ERC20("AlpacaToken", "ALPACA"), Ownable {
     manualMint(msg.sender, 250000e18);
   }
 
-  function setReleaseBlock(uint256 _startReleaseBlock, uint256 _endReleaseBlock) external onlyOwner {
-    require(_endReleaseBlock > _startReleaseBlock, "endReleaseBlock < startReleaseBlock");
-    startReleaseBlock = _startReleaseBlock;
-    endReleaseBlock = _endReleaseBlock;
-  }
-
   function cap() public pure returns (uint256) {
     return CAP;
   }
