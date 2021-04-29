@@ -185,17 +185,14 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     function _updateCampaign(uint256 _campaignID) internal {
         CampaignInfo storage campaign = campaignInfo[_campaignID];
         RewardInfo[] memory rewardInfo = campaignRewardInfo[_campaignID];
-        // if deposit before the start block
-        // or when total staked is 0, it should last reward block as a start block
-        // so that ALL rewards will be distributed
         if (block.number <= campaign.lastRewardBlock) {
             return;
         }
         if (campaign.totalStaked == 0) {
-            // if there is no total supply, return, and use start block as a last reward block
+            // if there is no total supply, return and use the campaign's start block as the last reward block
             // so that ALL reward will be distributed.
-            // but, if the first deposit is out of reward period, last reward block will be its block number
-            // in order to have multiplier = 0
+            // however, if the first deposit is out of reward period, last reward block will be its block number
+            // in order to keep the multiplier = 0
             if (block.number > _endBlockOf(_campaignID, block.number)) {
                 campaign.lastRewardBlock = block.number;
             }
