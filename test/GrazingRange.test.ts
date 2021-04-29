@@ -760,7 +760,7 @@ describe('GrazingRange', () => {
           currentBlockNum = await TimeHelpers.latestBlockNumber()
           await TimeHelpers.advanceBlockTo(mockedBlock.add(17).toNumber())
           // alice should expect to see her pending reward according to calculated reward per share and her deposit
-          expectedAccRewardPerShare = BigNumber.from(1).mul('1000000000000') // reward per share 10, from 2(200)/400 = 1, 1(200)/1000 = 0.2
+          expectedAccRewardPerShare = BigNumber.from(1).mul('1000000000000') // reward per share 1, from 2(200)/400 = 1
           expect((await grazingRangeAsAlice.campaignInfo(1)).lastRewardBlock).to.eq(currentBlockNum)
           expect((await grazingRangeAsAlice.campaignInfo(1)).accRewardPerShare).to.eq(expectedAccRewardPerShare)
           expect((await grazingRangeAsAlice.campaignInfo(1)).totalStaked).to.eq(ethers.utils.parseEther('1000'))
