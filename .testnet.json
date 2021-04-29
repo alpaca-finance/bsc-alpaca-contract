@@ -228,6 +228,10 @@
         "pId": 39,
         "name": "ALPACA-BUSD LP",
         "address": "0xF76cD665848A21C4C634B6956719813c617646C9"
+      }, {
+        "pId": 40,
+        "name": "BTCB-BUSD LP",
+        "address": "0x958BD4cF570D4de0E59db9926Ce138f6FE96464D"
       }]
     }
   },
@@ -444,6 +448,16 @@
     }, {
       "name": "UST-BUSD PancakeswapWorker",
       "address": "0xa7133b1e009e542ee5f6F6Dd786D9B35382600a2",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x11aFF2AC27CBb158015fb3F8FD7661F7f8573BD7",
+        "StrategyLiquidate": "0x4f960E01a7c118BCeb699F81FD36732BaB6Df1Ef",
+        "StrategyAddTwoSidesOptimal": "0x25d0f0991bA1977B07b3dF8C5978a270788b2a1b",
+        "StrategyWithdrawMinimizeTrading": "0x1757f0F5cBa364AF5556Fa147D413a2Cc8fa3511"
+      }
+    }, {
+      "name": "BTCB-BUSD PancakeswapWorker",
+      "address": "0xeC1928f6dC3aa5069A6837f390f803f996A65285",
       "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
       "strategies": {
         "StrategyAddAllBaseToken": "0x11aFF2AC27CBb158015fb3F8FD7661F7f8573BD7",

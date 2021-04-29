@@ -228,6 +228,10 @@
         "pId": 362,
         "name": "ALPACA-BUSD LP",
         "address": "0x7752e1FA9F3a2e860856458517008558DEb989e3"
+      }, {
+        "pId": 365,
+        "name": "BTCB-BUSD LP",
+        "address": "0xF45cd219aEF8618A92BAa7aD848364a158a24F33"
       }]
     }
   },
@@ -450,6 +454,16 @@
         "StrategyAddAllBaseToken": "0xE38EBFE8F314dcaD61d5aDCB29c1A26F41BEd0Be",
         "StrategyLiquidate": "0xE574dc08aa579720Dfacd70D3DAE883d29874599",
         "StrategyWithdrawMinimizeTrading": "0x95Ff1336985723aa46078995454d7A7Fd9F5401e"
+      }
+    }, {
+      "name": "BTCB-BUSD PancakeswapWorker",
+      "address": "",
+      "config": "",
+      "strategies": {
+        "StrategyAddTwoSidesOptimal": "",
+        "StrategyAddAllBaseToken": "",
+        "StrategyLiquidate": "",
+        "StrategyWithdrawMinimizeTrading": ""
       }
     }]
   }, {
