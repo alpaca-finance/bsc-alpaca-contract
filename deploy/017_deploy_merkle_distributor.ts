@@ -13,7 +13,7 @@ const func: DeployFunction = async function(hre: HardhatRuntimeEnvironment) {
     ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
     Check all variables below before execute the deployment script
     */
-    const MERKLE_ROOT = '0xb662e1a23839de3a272894c3d9d45a6e3ec8d6b898c8e23fc92466d22150d3a5'; //merkle root ITAM week 1 testnet.
+    const MERKLE_ROOT = '0xea502307fed1ea2c0333b4b36f950f68df037e1eb425d14a1032e6ba4793f675'; //merkle root ITAM week 1 testnet.
     const FEATURE_TOKEN_ADDRESS = '0x04C747b40Be4D535fC83D09939fb0f626F32800B'; // itam token address testnet
 
 

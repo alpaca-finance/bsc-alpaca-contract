@@ -8,60 +8,79 @@
     "ITAM-week-3": "",
     "ITAM-week-4": ""
   },
+  "GrazingRange": {
+    "address": "0x9Ff38741EB7594aCE7DD8bb8107Da38aEE7005D6",
+    "pools": [{
+      "id": 0,
+      "name": "ibALPACA-BUSD",
+      "stakingToken": "0x6ad3A0d891C59677fbbB22E071613253467C382A",
+      "rewardToken": "0x0266693F9Df932aD7dA8a9b44C2129Ce8a87E81f"
+    }, {
+      "id": 1,
+      "name": "ibALPACA-BUSD-2",
+      "stakingToken": "0x6ad3A0d891C59677fbbB22E071613253467C382A",
+      "rewardToken": "0x0266693F9Df932aD7dA8a9b44C2129Ce8a87E81f"
+    }, {
+      "id": 2,
+      "name": "ibALPACA-BUSD-3",
+      "stakingToken": "0x6ad3A0d891C59677fbbB22E071613253467C382A",
+      "rewardToken": "0x0266693F9Df932aD7dA8a9b44C2129Ce8a87E81f"
+    }]
+  },
   "FairLaunch": {
     "address": "0xac2fefDaF83285EA016BE3f5f1fb039eb800F43D",
     "pools": [{
       "id": 0,
       "stakingToken": "debtibBNB",
-      "address": "0x897E178C31D86Dbf00982c4F6dB1F5fd9A476964",
+      "address": "0x897E178C31D86Dbf00982c4F6dB1F5fd9A476964"
     }, {
       "id": 1,
       "stakingToken": "ibWBNB",
-      "address": "0xf9d32C5E10Dd51511894b360e6bD39D7573450F9",
+      "address": "0xf9d32C5E10Dd51511894b360e6bD39D7573450F9"
     }, {
       "id": 2,
       "stakingToken": "debtibBUSD",
-      "address": "0xe6A88866dfeaC58a7BD7fa721C2DfF49501fC791",
+      "address": "0xe6A88866dfeaC58a7BD7fa721C2DfF49501fC791"
     }, {
       "id": 3,
       "stakingToken": "ibBUSD",
-      "address": "0xe5ed8148fE4915cE857FC648b9BdEF8Bb9491Fa5",
+      "address": "0xe5ed8148fE4915cE857FC648b9BdEF8Bb9491Fa5"
     }, {
       "id": 4,
       "stakingToken": "ALPACA-WBNB LP (Legacy)",
-      "address": "0x8aD889FE2eDA1B7CB3a8C09FFB7246571564b379",
+      "address": "0xb4065bAC627da8b187dC8F65C88Db21A402347e6"
     }, {
       "id": 5,
       "stakingToken": "sALPACA",
-      "address": "0x588245DE5E45ecF463565ebD944BBD7975670fAC",
+      "address": "0x588245DE5E45ecF463565ebD944BBD7975670fAC"
     }, {
       "id": 6,
       "stakingToken": "debtIbBNB V2",
-      "address": "0x2E0384Bc38E250639291D6710EDC3d5034e95996",
+      "address": "0x2E0384Bc38E250639291D6710EDC3d5034e95996"
     }, {
       "id": 7,
       "stakingToken": "debtIbBUSD V2",
-      "address": "0x49974bc28f1920A603aa8dffB3C61b4CD5B26710",
+      "address": "0x49974bc28f1920A603aa8dffB3C61b4CD5B26710"
     }, {
       "id": 9,
       "stakingToken": "debtIbETH V2",
-      "address": "0x5E780a0F887EbeA8425BAa67A834D1168054F645",
+      "address": "0x5E780a0F887EbeA8425BAa67A834D1168054F645"
     }, {
       "id": 10,
       "stakingToken": "ibETH",
-      "address": "0x3F1D4A430C213bd9D4c9a12E4F382270505fCeA1",
+      "address": "0x3F1D4A430C213bd9D4c9a12E4F382270505fCeA1"
     }, {
       "id": 11,
       "stakingToken": "debtIbALPACA V2",
-      "address": "0x75d1a708DbC46c4170bD1a176DDCE44D14135Ea8",
+      "address": "0x75d1a708DbC46c4170bD1a176DDCE44D14135Ea8"
     }, {
       "id": 12,
       "stakingToken": "ibALPACA",
-      "address": "0x6ad3A0d891C59677fbbB22E071613253467C382A",
+      "address": "0x6ad3A0d891C59677fbbB22E071613253467C382A"
     }, {
       "id": 13,
       "stakingToken": "ALPACA-WBNB LP",
-      "address": "0x7549b7d0edcd411e7e5013dc74727f8dab13ab0f",
+      "address": "0x7549b7d0edcd411e7e5013dc74727f8dab13ab0f"
     }]
   },
   "Exchanges": {
@@ -219,6 +238,10 @@
         "pId": 39,
         "name": "ALPACA-BUSD LP",
         "address": "0xF76cD665848A21C4C634B6956719813c617646C9"
+      }, {
+        "pId": 40,
+        "name": "BTCB-BUSD LP",
+        "address": "0x958BD4cF570D4de0E59db9926Ce138f6FE96464D"
       }]
     }
   },
@@ -247,7 +270,8 @@
     "ITAM": "0xd817BfBE43229134e7127778a96C0180e47c10B4"
   },
   "LpTokens": {
-    "ALPACA-WBNB": "0xb4065bAC627da8b187dC8F65C88Db21A402347e6",
+    "ALPACA-WBNB": "0x7549b7d0edcd411e7e5013dc74727f8dab13ab0f",
+    "ALPACA-WBNB (Legacy)": "0xb4065bAC627da8b187dC8F65C88Db21A402347e6",
     "sALPACA-ALPACA": "0x0eb1bf1818456f68ecdb53d829a8a9a85f186421"
   },
   "SharedStrategies": {
@@ -434,6 +458,16 @@
     }, {
       "name": "UST-BUSD PancakeswapWorker",
       "address": "0xa7133b1e009e542ee5f6F6Dd786D9B35382600a2",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x11aFF2AC27CBb158015fb3F8FD7661F7f8573BD7",
+        "StrategyLiquidate": "0x4f960E01a7c118BCeb699F81FD36732BaB6Df1Ef",
+        "StrategyAddTwoSidesOptimal": "0x25d0f0991bA1977B07b3dF8C5978a270788b2a1b",
+        "StrategyWithdrawMinimizeTrading": "0x1757f0F5cBa364AF5556Fa147D413a2Cc8fa3511"
+      }
+    }, {
+      "name": "BTCB-BUSD PancakeswapWorker",
+      "address": "0xeC1928f6dC3aa5069A6837f390f803f996A65285",
       "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
       "strategies": {
         "StrategyAddAllBaseToken": "0x11aFF2AC27CBb158015fb3F8FD7661F7f8573BD7",

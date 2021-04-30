@@ -1,6 +1,6 @@
 {
   "name": "@alpaca-finance/alpaca-contract",
-  "version": "1.1.22",
+  "version": "1.1.40",
   "scripts": {
     "compile5": "hardhat typechain --config hardhat.config.5.ts",
     "compile6": "hardhat typechain --config hardhat.config.ts",
@@ -44,6 +44,7 @@
     "deploy:mainnet:s016": "hardhat --network mainnet deploy --no-compile --reset --tags TimelockWorkersResetApproval",
     "deploy:mainnet:s017": "hardhat --network mainnet deploy --no-compile --reset --tags TimelockAddGrazingRangeCampaigns",
     "deploy:mainnet:s018": "hardhat --network mainnet deploy --no-compile --reset --tags TimelockAddGrazingRangeRewardInfos",
+    "deploy:mainnet:s019": "hardhat --network mainnet deploy --no-compile --reset --tags TimelockUpgradeGrazingRange",
     "deploy:testnet:000": "hardhat --network testnet deploy --no-compile --reset --tags Testnet",
     "deploy:testnet:000:panV2": "hardhat --network testnet deploy --no-compile --reset --tags PancakeswapV2",
     "deploy:testnet:001": "hardhat --network testnet deploy --no-compile --reset --tags TimeLock",
@@ -85,6 +86,7 @@
     "deploy:testnet:s016": "hardhat --network testnet deploy --no-compile --reset --tags TimelockWorkersResetApproval",
     "deploy:testnet:s017": "hardhat --network testnet deploy --no-compile --reset --tags TimelockAddGrazingRangeCampaigns",
     "deploy:testnet:s018": "hardhat --network testnet deploy --no-compile --reset --tags TimelockAddGrazingRangeRewardInfos",
+    "deploy:testnet:s019": "hardhat --network testnet deploy --no-compile --reset --tags TimelockUpgradeGrazingRange",
     "mainnet": "hardhat console --no-compile --network mainnet",
     "test:fairlaunch": "hardhat test --no-compile ./test/FairLaunch.test.ts",
     "test:fairlaunchv2": "hardhat test --no-compile ./test/FairLaunchV2.test.ts",
