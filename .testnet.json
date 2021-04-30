@@ -25,6 +25,21 @@
       "name": "ibALPACA-BUSD-3",
       "stakingToken": "0x6ad3A0d891C59677fbbB22E071613253467C382A",
       "rewardToken": "0x0266693F9Df932aD7dA8a9b44C2129Ce8a87E81f"
+    }, {
+      "id": 3,
+      "name": "ibALPACA-BUSD-4",
+      "stakingToken": "0x6ad3A0d891C59677fbbB22E071613253467C382A",
+      "rewardToken": "0x0266693F9Df932aD7dA8a9b44C2129Ce8a87E81f"
+    }, {
+      "id": 4,
+      "name": "ibALPACA-USDC-1",
+      "stakingToken": "0x6ad3A0d891C59677fbbB22E071613253467C382A",
+      "rewardToken": "0x74E6d184A8cD7d43E9b2B46b66F6Eb92d36a768B"
+    }, {
+      "id": 5,
+      "name": "ibALPACA-ITAM-1",
+      "stakingToken": "0x6ad3A0d891C59677fbbB22E071613253467C382A",
+      "rewardToken": "0xd817BfBE43229134e7127778a96C0180e47c10B4"
     }]
   },
   "FairLaunch": {
