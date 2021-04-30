@@ -103,6 +103,7 @@
     "test:pan2minimize": "hardhat test --no-compile ./test/PancakeswapV2_StrategyWithdrawMinimizeTrading.test.ts",
     "test:pan2twoside": "hardhat test --no-compile ./test/PancakeswapV2_StrategyAddTwoSidesOptimal.test.ts",
     "test:pan2partialliquidate": "hardhat test --no-compile ./test/PancakeswapV2_StrategyPartialCloseLiquidate.test.ts",
+    "test:pan2restrictedadd": "hardhat test --no-compile ./test/PancakeswapV2_Restricted_StrategyAddBaseTokenOnly.test.ts",
     "test:router": "hardhat test --no-compile ./test/IbTokenRouter.test.ts",
     "test:timelock": "hardhat test --no-compile ./test/Timelock.test.ts",
     "test:tripleslope": "hardhat test --no-compile ./test/TripleSlopeModel.test.ts",
