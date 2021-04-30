@@ -457,13 +457,13 @@
       }
     }, {
       "name": "BTCB-BUSD PancakeswapWorker",
-      "address": "",
-      "config": "",
+      "address": "0x2C4a246e532542DFaE3d575003C7f5c6583BFD8c",
+      "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
       "strategies": {
-        "StrategyAddTwoSidesOptimal": "",
-        "StrategyAddAllBaseToken": "",
-        "StrategyLiquidate": "",
-        "StrategyWithdrawMinimizeTrading": ""
+        "StrategyAddTwoSidesOptimal": "0xF25034Ca7F3CFc48970272B7d709803C1E121C45",
+        "StrategyAddAllBaseToken": "0xE38EBFE8F314dcaD61d5aDCB29c1A26F41BEd0Be",
+        "StrategyLiquidate": "0xE574dc08aa579720Dfacd70D3DAE883d29874599",
+        "StrategyWithdrawMinimizeTrading": "0x95Ff1336985723aa46078995454d7A7Fd9F5401e"
       }
     }]
   }, {

@@ -19,25 +19,25 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const WORKERS = [{
     WORKER_NAME: "BTCB-BUSD Worker",
-    VAULT_CONFIG_ADDR: '0xbC6d2dfe97A557Bd793d07ebB0df3ea80cc990Fc',
-    WORKER_CONFIG_ADDR: '0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7',
-    REINVEST_BOT: '0xcf28b4da7d3ed29986831876b74af6e95211d3f9',
-    POOL_ID: 40,
-    VAULT_ADDR: '0xe5ed8148fE4915cE857FC648b9BdEF8Bb9491Fa5',
-    BASE_TOKEN_ADDR: '0x0266693F9Df932aD7dA8a9b44C2129Ce8a87E81f',
-    MASTER_CHEF_ADDR: '0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B',
-    PANCAKESWAP_ROUTER_ADDR: '0x367633909278A3C91f4cB130D8e56382F00D1071',
-    ADD_STRAT_ADDR: '0x11aFF2AC27CBb158015fb3F8FD7661F7f8573BD7',
-    LIQ_STRAT_ADDR: '0x4f960E01a7c118BCeb699F81FD36732BaB6Df1Ef',
+    VAULT_CONFIG_ADDR: '0xd7b805E88c5F52EDE71a9b93F7048c8d632DBEd4',
+    WORKER_CONFIG_ADDR: '0xADaBC5FC5da42c85A84e66096460C769a151A8F8',
+    REINVEST_BOT: '0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De',
+    POOL_ID: 365,
+    VAULT_ADDR: '0x7C9e73d4C71dae564d41F78d56439bB4ba87592f',
+    BASE_TOKEN_ADDR: '0xe9e7cea3dedca5984780bafc599bd69add087d56',
+    MASTER_CHEF_ADDR: '0x73feaa1eE314F8c655E354234017bE2193C9E24E',
+    PANCAKESWAP_ROUTER_ADDR: '0x10ED43C718714eb63d5aA57B78B54704E256024E',
+    ADD_STRAT_ADDR: '0xE38EBFE8F314dcaD61d5aDCB29c1A26F41BEd0Be',
+    LIQ_STRAT_ADDR: '0xE574dc08aa579720Dfacd70D3DAE883d29874599',
     REINVEST_BOUNTY_BPS: '300',
     WORK_FACTOR: '7000',
     KILL_FACTOR: '8333',
-    MAX_PRICE_DIFF: '50000',
-    TIMELOCK: '0xb3c3aE82358DF7fC0bd98629D5ed91767e45c337',
-    EXACT_ETA: '1619691000',
+    MAX_PRICE_DIFF: '11000',
+    TIMELOCK: '0x2D5408f2287BF9F9B05404794459a846651D0a59',
+    EXACT_ETA: '1619832600',
     STRATS: [
-      '0x25d0f0991bA1977B07b3dF8C5978a270788b2a1b',
-      '0x1757f0F5cBa364AF5556Fa147D413a2Cc8fa3511'
+      '0xF25034Ca7F3CFc48970272B7d709803C1E121C45',
+      '0x95Ff1336985723aa46078995454d7A7Fd9F5401e'
     ]
   }]
 
@@ -77,7 +77,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const timelock = Timelock__factory.connect(WORKERS[i].TIMELOCK, (await ethers.getSigners())[0]);
 
     console.log(">> Timelock: Setting WorkerConfig via Timelock");
-    await timelock.queueTransaction(
+    const setConfigsTx = await timelock.queueTransaction(
       WORKERS[i].WORKER_CONFIG_ADDR, '0',
       'setConfigs(address[],(bool,uint64,uint64,uint64)[])',
       ethers.utils.defaultAbiCoder.encode(
@@ -87,12 +87,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         ]
       ), WORKERS[i].EXACT_ETA
     );
+    console.log(`queue setConfigs at: ${setConfigsTx.hash}`)
     console.log("generate timelock.executeTransaction:")
     console.log(`await timelock.executeTransaction('${WORKERS[i].WORKER_CONFIG_ADDR}', '0', 'setConfigs(address[],(bool,uint64,uint64,uint64)[])', ethers.utils.defaultAbiCoder.encode(['address[]','(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]'],[['${pancakeswapV2Worker.address}'], [{acceptDebt: true, workFactor: ${WORKERS[i].WORK_FACTOR}, killFactor: ${WORKERS[i].KILL_FACTOR}, maxPriceDiff: ${WORKERS[i].MAX_PRICE_DIFF}}]]), ${WORKERS[i].EXACT_ETA})`)
     console.log("✅ Done");
 
     console.log(">> Timelock: Linking VaultConfig with WorkerConfig via Timelock");
-    await timelock.queueTransaction(
+    const setWorkersTx = await timelock.queueTransaction(
       WORKERS[i].VAULT_CONFIG_ADDR, '0',
       'setWorkers(address[],address[])',
       ethers.utils.defaultAbiCoder.encode(
@@ -102,6 +103,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         ]
       ), WORKERS[i].EXACT_ETA
     );
+    console.log(`queue setWorkers at: ${setWorkersTx.hash}`)
     console.log("generate timelock.executeTransaction:")
     console.log(`await timelock.executeTransaction('${WORKERS[i].VAULT_CONFIG_ADDR}', '0','setWorkers(address[],address[])', ethers.utils.defaultAbiCoder.encode(['address[]','address[]'],[['${pancakeswapV2Worker.address}'], ['${WORKERS[i].WORKER_CONFIG_ADDR}']]), ${WORKERS[i].EXACT_ETA})`)
     console.log("✅ Done");
