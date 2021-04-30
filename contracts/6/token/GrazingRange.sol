@@ -5,7 +5,6 @@ import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.so
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 
 /**
@@ -69,7 +68,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     function initialize() public initializer {
         OwnableUpgradeSafe.__Ownable_init();
         ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
-        rewardInfoLimit = 8;
+        rewardInfoLimit = 52; // 52 weeks, 1 year
     }
 
     // @notice set new reward info limit
@@ -101,6 +100,14 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
             rewardPerBlock: _rewardPerBlock
         }));
         emit AddRewardInfo(_campaignID, rewardInfo.length-1, _endBlock, _rewardPerBlock);
+    }
+
+    function rewardInfoLen(uint256 _campaignID) external view returns (uint256) {
+        return campaignRewardInfo[_campaignID].length;
+    }
+
+    function campaignInfoLen() external view returns (uint256) {
+        return campaignInfo.length;
     }
 
     // @notice this will return  end block based on the current block number.
@@ -163,8 +170,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
             for (uint256 i = 0; i < rewardInfo.length; ++i) {
                 uint256 multiplier = getMultiplier(campaign.lastRewardBlock, block.number, rewardInfo[i].endBlock);
                 if (multiplier == 0) continue;
-                uint256 reward = multiplier.mul(rewardInfo[i].rewardPerBlock);
-                accRewardPerShare = accRewardPerShare.add(reward.mul(1e12).div(campaign.totalStaked));
+                accRewardPerShare = accRewardPerShare.add(multiplier.mul(rewardInfo[i].rewardPerBlock).mul(1e12).div(campaign.totalStaked));
             }
         }
         return user.amount.mul(accRewardPerShare).div(1e12).sub(user.rewardDebt);
@@ -182,7 +188,13 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
             return;
         }
         if (campaign.totalStaked == 0) {
-            campaign.lastRewardBlock = block.number;
+            // if there is no total supply, return and use the campaign's start block as the last reward block
+            // so that ALL reward will be distributed.
+            // however, if the first deposit is out of reward period, last reward block will be its block number
+            // in order to keep the multiplier = 0
+            if (block.number > _endBlockOf(_campaignID, block.number)) {
+                campaign.lastRewardBlock = block.number;
+            }
             return;
         }
         // @dev for each reward info
@@ -199,8 +211,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
             } else {
                 campaign.lastRewardBlock = block.number;
             }
-            uint256 reward = multiplier.mul(rewardInfo[i].rewardPerBlock);
-            campaign.accRewardPerShare = campaign.accRewardPerShare.add(reward.mul(1e12).div(campaign.totalStaked));
+            campaign.accRewardPerShare = campaign.accRewardPerShare.add(multiplier.mul(rewardInfo[i].rewardPerBlock).mul(1e12).div(campaign.totalStaked));
         }
     }
 
@@ -244,7 +255,6 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
         require(user.amount >= _amount, "GrazingRange::withdraw::bad withdraw amount");
         _updateCampaign(_campaignID);
         uint256 pending = user.amount.mul(campaign.accRewardPerShare).div(1e12).sub(user.rewardDebt);
-
         if (pending > 0) {
             campaign.rewardToken.safeTransfer(address(msg.sender), pending);
         }
