@@ -65,7 +65,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     event AddCampaignInfo(uint256 indexed campaignID, IERC20 stakingToken, IERC20 rewardToken, uint256 startBlock);
     event AddRewardInfo(uint256 indexed campaignID, uint256 indexed phase, uint256 endBlock, uint256 rewardPerBlock);
 
-    function initialize() public initializer {
+    function initialize() external initializer {
         OwnableUpgradeSafe.__Ownable_init();
         ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
         rewardInfoLimit = 52; // 52 weeks, 1 year
@@ -124,7 +124,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
         for (uint256 i = 0; i < len; ++i) {
             if (_blockNumber <= rewardInfo[i].endBlock) return rewardInfo[i].endBlock;
         }
-        // @dev when couldn't find any reward info, it means that timestamp exceed endblock
+        // @dev when couldn't find any reward info, it means that _blockNumber exceed endblock
         // so return the latest reward info.
         return rewardInfo[len-1].endBlock;
     }
@@ -162,18 +162,23 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
 
     // @notice View function to see pending Reward on frontend.
     function pendingReward(uint256 _campaignID, address _user) external view returns (uint256) {
+        return _pendingReward(_campaignID, userInfo[_campaignID][_user].amount, userInfo[_campaignID][_user].rewardDebt);
+    }
+
+    function _pendingReward(uint256 _campaignID, uint256 _amount, uint256 _rewardDebt) internal view returns (uint256) {
         CampaignInfo memory campaign = campaignInfo[_campaignID];
-        UserInfo memory user = userInfo[_campaignID][_user];
         RewardInfo[] memory rewardInfo = campaignRewardInfo[_campaignID];
         uint256 accRewardPerShare = campaign.accRewardPerShare;
         if (block.number > campaign.lastRewardBlock && campaign.totalStaked != 0) {
+            uint256 cursor = campaign.lastRewardBlock;
             for (uint256 i = 0; i < rewardInfo.length; ++i) {
-                uint256 multiplier = getMultiplier(campaign.lastRewardBlock, block.number, rewardInfo[i].endBlock);
+                uint256 multiplier = getMultiplier(cursor, block.number, rewardInfo[i].endBlock);
                 if (multiplier == 0) continue;
+                cursor = rewardInfo[i].endBlock;
                 accRewardPerShare = accRewardPerShare.add(multiplier.mul(rewardInfo[i].rewardPerBlock).mul(1e12).div(campaign.totalStaked));
             }
         }
-        return user.amount.mul(accRewardPerShare).div(1e12).sub(user.rewardDebt);
+        return _amount.mul(accRewardPerShare).div(1e12).sub(_rewardDebt);
     }
 
     function updateCampaign(uint256 _campaignID) external nonReentrant {
@@ -276,19 +281,21 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     }
 
     // @notice Withdraw without caring about rewards. EMERGENCY ONLY.
-    function emergencyWithdraw(uint256 _campaignID) external {
+    function emergencyWithdraw(uint256 _campaignID) external nonReentrant {
         CampaignInfo storage campaign = campaignInfo[_campaignID];
         UserInfo storage user = userInfo[_campaignID][msg.sender];
         campaign.stakingToken.safeTransfer(address(msg.sender), user.amount);
+        campaign.totalStaked = campaign.totalStaked.sub(user.amount);
         user.amount = 0;
         user.rewardDebt = 0;
         emit EmergencyWithdraw(msg.sender, user.amount, _campaignID);
     }
 
     // @notice Withdraw reward. EMERGENCY ONLY.
-    function emergencyRewardWithdraw(uint256 _campaignID, uint256 _amount, address _beneficiary) external onlyOwner {
+    function emergencyRewardWithdraw(uint256 _campaignID, uint256 _amount, address _beneficiary) external onlyOwner nonReentrant {
         CampaignInfo storage campaign = campaignInfo[_campaignID];
-        require(_amount < campaign.rewardToken.balanceOf(address(this)), "GrazingRange::emergencyRewardWithdraw::not enough token");
+        uint256 currentStakingPendingReward = _pendingReward(_campaignID, campaign.totalStaked, 0);
+        require(currentStakingPendingReward.add(_amount) <= campaign.rewardToken.balanceOf(address(this)), "GrazingRange::emergencyRewardWithdraw::not enough reward token");
         campaign.rewardToken.safeTransfer(_beneficiary, _amount);
     }
 }

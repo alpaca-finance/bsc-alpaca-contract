@@ -607,7 +607,7 @@ describe('GrazingRange', () => {
     
               await grazingRangeAsDeployer.addRewardInfo(
                 0, 
-                mockedBlock.add(11).toString(),
+                mockedBlock.add(12).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
               )
 
@@ -635,12 +635,12 @@ describe('GrazingRange', () => {
               expect((await grazingRangeAsAlice.campaignInfo(0)).lastRewardBlock).to.eq(currentBlockNum)
               expect((await grazingRangeAsAlice.campaignInfo(0)).accRewardPerShare).to.eq(expectedAccRewardPerShare)
               await TimeHelpers.advanceBlockTo(mockedBlock.add(21).toNumber())
-              // 1 (from last acc reward) + ((10*200)/200 = 2000/200 = 10)
-              // thus, alice will get 1100 total rewards
-              expect((await grazingRangeAsAlice.pendingReward(BigNumber.from(0), await alice.getAddress()))).to.eq(ethers.utils.parseEther('1200'))
-              // (10*200)/200 = 2000/200 = 10 reward per share
-              // thus, bob will get 1000 total rewards
-              expect((await grazingRangeAsAlice.pendingReward(BigNumber.from(0), await bob.getAddress()))).to.eq(ethers.utils.parseEther('1000'))
+              // 2 (from last acc reward) +((1*100)/200 = 0.5) ((9*200)/200 = 1800/200 = 9)
+              // thus, alice will get 1150 total rewards
+              expect((await grazingRangeAsAlice.pendingReward(BigNumber.from(0), await alice.getAddress()))).to.eq(ethers.utils.parseEther('1150'))
+              // ((1*100)/200 = 0.5) ((9*200)/200 = 1800/200 = 9) = 9.5 reward per share
+              // thus, bob will get 950 total rewards
+              expect((await grazingRangeAsAlice.pendingReward(BigNumber.from(0), await bob.getAddress()))).to.eq(ethers.utils.parseEther('950'))
            })
           })
           context('When bob finish deposit within the second phase', async () => {
@@ -799,6 +799,7 @@ describe('GrazingRange', () => {
         expect(await stakingToken.balanceOf(await alice.getAddress())).to.eq(BigNumber.from(0))
         // alice withdraw from the campaign
         await grazingRangeAsAlice.emergencyWithdraw(BigNumber.from(0))
+        expect(await (await grazingRangeAsAlice.campaignInfo(0)).totalStaked).to.eq(0)
         expect(await stakingToken.balanceOf(await alice.getAddress())).to.eq(ethers.utils.parseEther('100'))
     })
     it("should reset all user's info", async () => {
@@ -855,39 +856,98 @@ describe('GrazingRange', () => {
     })
     context('When the caller is the owner', async () => {
       context('When amount to be withdrawn is invalid', async () => {
-        it('should reverted as GrazingRange::emergencyRewardWithdraw::not enough token', async () => {
-          await rewardTokenAsDeployer.mint(grazingRange.address, ethers.utils.parseEther('1000'))
-          await grazingRangeAsDeployer.addCampaignInfo(
-            stakingToken.address, 
-            rewardToken.address, 
-            mockedBlock.add(5).toString(),
-          )
-          await expect(grazingRangeAsDeployer.emergencyRewardWithdraw(BigNumber.from(0), ethers.utils.parseEther('1500'), await deployer.getAddress())).to.be.revertedWith('GrazingRange::emergencyRewardWithdraw::not enough token')
+        context('When totalstaked is 0', async() => {
+          it('should be reverted as GrazingRange::emergencyRewardWithdraw::GrazingRange::emergencyRewardWithdraw::not enough reward token', async () => {
+            await rewardTokenAsDeployer.mint(grazingRange.address, ethers.utils.parseEther('1000'))
+            await grazingRangeAsDeployer.addCampaignInfo(
+              stakingToken.address, 
+              rewardToken.address, 
+              mockedBlock.add(5).toString(),
+            )
+            await expect(grazingRangeAsDeployer.emergencyRewardWithdraw(BigNumber.from(0), ethers.utils.parseEther('1500'), await deployer.getAddress())).to.be.revertedWith('GrazingRange::emergencyRewardWithdraw::not enough reward token')
+          })
+        })
+        context('when currentStakingPendingReward + withdraw amount > minted reward)', async () => {
+          it('should be reverted', async () => {
+            await grazingRangeAsDeployer.addCampaignInfo(
+              stakingToken.address, 
+              rewardToken.address, 
+              mockedBlock.add(8).toString(),
+            )
+  
+            await grazingRangeAsDeployer.addRewardInfo(
+              0, 
+              mockedBlock.add(18).toString(),
+              INITIAL_BONUS_REWARD_PER_BLOCK,
+            )
+            await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
+            // mint 100 reward to grazing range
+            await rewardTokenAsDeployer.mint(grazingRange.address, ethers.utils.parseEther('100'))
+            await stakingTokenAsAlice.approve(grazingRange.address, ethers.utils.parseEther('100'))
+
+            // alice deposit 100
+            await grazingRangeAsAlice.deposit(BigNumber.from(0), ethers.utils.parseEther('100'))
+            // skip to end peroid, alice should get all 100
+            await TimeHelpers.advanceBlockTo(mockedBlock.add(18).toNumber())
+            // should be reverted since 100 (current reward) + 100 (withdraw amount ) > 100
+            await expect(grazingRangeAsDeployer.emergencyRewardWithdraw(BigNumber.from(0), ethers.utils.parseEther('100'), await deployer.getAddress())).to.be.revertedWith('GrazingRange::emergencyRewardWithdraw::not enough reward token')
+          })
         })
       })
-      it('should return all reward token to the beneficiary', async () => {
-        await rewardTokenAsDeployer.mint(grazingRange.address, ethers.utils.parseEther('1000'))
-        await rewardToken2AsDeployer.mint(grazingRange.address, ethers.utils.parseEther('2000'))
-        await grazingRangeAsDeployer.addCampaignInfo(
-          stakingToken.address, 
-          rewardToken.address, 
-          mockedBlock.add(5).toString(),
-        )
-        await grazingRangeAsDeployer.addCampaignInfo(
-          stakingToken.address,
-          rewardToken2.address, 
-          mockedBlock.add(5).toString(),
-        )
-        const aliceAsBeneficiary = await alice.getAddress()
-        // emergency withdraw campaign 0
-        await grazingRangeAsDeployer.emergencyRewardWithdraw(BigNumber.from(0), ethers.utils.parseEther('650'), await deployer.getAddress())
-        expect(await rewardToken.balanceOf(grazingRange.address)).to.eq(ethers.utils.parseEther('350'))
-        expect(await rewardToken.balanceOf(await deployer.getAddress())).to.eq(ethers.utils.parseEther('650'))
+      context('When amount to be withdrawn is valid', async () => {
+        context('When totalStaked = 0', () => {
+          it('should return desired reward token to the beneficiary', async () => {
+            await rewardTokenAsDeployer.mint(grazingRange.address, ethers.utils.parseEther('1000'))
+            await rewardToken2AsDeployer.mint(grazingRange.address, ethers.utils.parseEther('2000'))
+            await grazingRangeAsDeployer.addCampaignInfo(
+              stakingToken.address, 
+              rewardToken.address, 
+              mockedBlock.add(5).toString(),
+            )
+            await grazingRangeAsDeployer.addCampaignInfo(
+              stakingToken.address,
+              rewardToken2.address, 
+              mockedBlock.add(5).toString(),
+            )
+            const aliceAsBeneficiary = await alice.getAddress()
+            // emergency withdraw campaign 0
+            await grazingRangeAsDeployer.emergencyRewardWithdraw(BigNumber.from(0), ethers.utils.parseEther('650'), await deployer.getAddress())
+            expect(await rewardToken.balanceOf(grazingRange.address)).to.eq(ethers.utils.parseEther('350'))
+            expect(await rewardToken.balanceOf(await deployer.getAddress())).to.eq(ethers.utils.parseEther('650'))
+    
+            // emergency withdraw campaign 1
+            await grazingRangeAsDeployer.emergencyRewardWithdraw(BigNumber.from(1), ethers.utils.parseEther('1500'), aliceAsBeneficiary)
+            expect(await rewardToken2.balanceOf(grazingRange.address)).to.eq(ethers.utils.parseEther('500'))
+            expect(await rewardToken2.balanceOf(aliceAsBeneficiary)).to.eq(ethers.utils.parseEther('1500'))
+          })
+        })
 
-        // emergency withdraw campaign 1
-        await grazingRangeAsDeployer.emergencyRewardWithdraw(BigNumber.from(1), ethers.utils.parseEther('1500'), aliceAsBeneficiary)
-        expect(await rewardToken2.balanceOf(grazingRange.address)).to.eq(ethers.utils.parseEther('500'))
-        expect(await rewardToken2.balanceOf(aliceAsBeneficiary)).to.eq(ethers.utils.parseEther('1500'))
+        context('when currentStakingPendingReward + withdraw amount <= minted reward)', async () => {
+          it('should be reverted', async () => {
+            await grazingRangeAsDeployer.addCampaignInfo(
+              stakingToken.address, 
+              rewardToken.address, 
+              mockedBlock.add(8).toString(),
+            )
+  
+            await grazingRangeAsDeployer.addRewardInfo(
+              0, 
+              mockedBlock.add(18).toString(),
+              INITIAL_BONUS_REWARD_PER_BLOCK,
+            )
+            await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
+            // mint 100 reward to grazing range
+            await rewardTokenAsDeployer.mint(grazingRange.address, ethers.utils.parseEther('200'))
+            await stakingTokenAsAlice.approve(grazingRange.address, ethers.utils.parseEther('100'))
+
+            // alice deposit 100
+            await grazingRangeAsAlice.deposit(BigNumber.from(0), ethers.utils.parseEther('100'))
+            // skip to end peroid, alice should get all 100
+            await TimeHelpers.advanceBlockTo(mockedBlock.add(18).toNumber())
+            // should be reverted since 100 (current reward) + 100 (withdraw amount ) <= 200
+            await expect(grazingRangeAsDeployer.emergencyRewardWithdraw(BigNumber.from(0), ethers.utils.parseEther('100'), await deployer.getAddress())).to.be.revertedWith('GrazingRange::emergencyRewardWithdraw::not enough reward token')
+          })
+        })
       })
     })
   })
