@@ -124,7 +124,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
         for (uint256 i = 0; i < len; ++i) {
             if (_blockNumber <= rewardInfo[i].endBlock) return rewardInfo[i].endBlock;
         }
-        // @dev when couldn't find any reward info, it means that timestamp exceed endblock
+        // @dev when couldn't find any reward info, it means that _blockNumber exceed endblock
         // so return the latest reward info.
         return rewardInfo[len-1].endBlock;
     }
@@ -285,6 +285,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
         CampaignInfo storage campaign = campaignInfo[_campaignID];
         UserInfo storage user = userInfo[_campaignID][msg.sender];
         campaign.stakingToken.safeTransfer(address(msg.sender), user.amount);
+        campaign.totalStaked -= user.amount;
         user.amount = 0;
         user.rewardDebt = 0;
         emit EmergencyWithdraw(msg.sender, user.amount, _campaignID);

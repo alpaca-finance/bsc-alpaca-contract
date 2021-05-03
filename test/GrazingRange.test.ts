@@ -799,6 +799,7 @@ describe('GrazingRange', () => {
         expect(await stakingToken.balanceOf(await alice.getAddress())).to.eq(BigNumber.from(0))
         // alice withdraw from the campaign
         await grazingRangeAsAlice.emergencyWithdraw(BigNumber.from(0))
+        expect(await (await grazingRangeAsAlice.campaignInfo(0)).totalStaked).to.eq(0)
         expect(await stakingToken.balanceOf(await alice.getAddress())).to.eq(ethers.utils.parseEther('100'))
     })
     it("should reset all user's info", async () => {
