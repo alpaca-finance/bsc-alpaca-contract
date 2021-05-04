@@ -102,13 +102,13 @@ describe('GrazingRange', () => {
       it('should return a current reward info endblock as a current end block', async() => {
         await grazingRangeAsDeployer.addRewardInfo(
           0, 
-          mockedBlock.add(1).toString(),
+          mockedBlock.add(9).toString(),
           INITIAL_BONUS_REWARD_PER_BLOCK,
         )
         let currentEndBlock = await grazingRangeAsDeployer.currentEndBlock(
           0
         )
-        expect(currentEndBlock).to.eq(mockedBlock.add(1))
+        expect(currentEndBlock).to.eq(mockedBlock.add(9))
         TimeHelpers.advanceBlockTo(mockedBlock.add(9).toNumber())
 
         await grazingRangeAsDeployer.addRewardInfo(
@@ -138,7 +138,7 @@ describe('GrazingRange', () => {
         let lbm = await TimeHelpers.latestBlockNumber()
         await grazingRangeAsDeployer.addRewardInfo(
           0, 
-          mockedBlock.add(1).toString(),
+          mockedBlock.add(9).toString(),
           INITIAL_BONUS_REWARD_PER_BLOCK,
         )
         let currentRewardPerBlock = await grazingRangeAsDeployer.currentRewardPerBlock(
@@ -247,6 +247,24 @@ describe('GrazingRange', () => {
             mockedBlock.add(1).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK,
           )).to.be.revertedWith('GrazingRange::addRewardInfo::bad new endblock')
+        })
+      })
+      context('Whenthe current reward period has ended', async () => {
+        it('should reverted with the message GrazingRange::addRewardInfo::reward period ended', async() => {
+          // add the first reward info
+          // with block number + 1
+          await grazingRangeAsDeployer.addRewardInfo(
+            0, 
+            mockedBlock.toString(),
+            INITIAL_BONUS_REWARD_PER_BLOCK,
+          )
+          console.log(await (await TimeHelpers.latestBlockNumber()).toString(), mockedBlock.toString())
+          //this called method is invoked on blockNumber + 3
+          await expect(grazingRangeAsDeployer.addRewardInfo(
+            0, 
+            mockedBlock.add(1).toString(),
+            INITIAL_BONUS_REWARD_PER_BLOCK,
+          )).to.be.revertedWith('GrazingRange::addRewardInfo::reward period ended')
         })
       })
     })
