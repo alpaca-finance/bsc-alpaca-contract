@@ -114,10 +114,10 @@ describe('GrazingRange', () => {
           mockedBlock.add(8).toString(),
         )
         await grazingRangeAsDeployer.addRewardInfo(
+          await deployer.getAddress(),
           0, 
           mockedBlock.add(9).toString(),
           INITIAL_BONUS_REWARD_PER_BLOCK,
-          await deployer.getAddress()
         )
         let currentEndBlock = await grazingRangeAsDeployer.currentEndBlock(
           0
@@ -126,10 +126,10 @@ describe('GrazingRange', () => {
         TimeHelpers.advanceBlockTo(mockedBlock.add(9).toNumber())
 
         await grazingRangeAsDeployer.addRewardInfo(
+          await deployer.getAddress(),
           0, 
           mockedBlock.add(10).toString(),
           INITIAL_BONUS_REWARD_PER_BLOCK,
-          await deployer.getAddress()
         )
         currentEndBlock = await grazingRangeAsDeployer.currentEndBlock(
           0
@@ -160,10 +160,10 @@ describe('GrazingRange', () => {
           mockedBlock.add(8).toString(),
         )
         await grazingRangeAsDeployer.addRewardInfo(
+          await deployer.getAddress(),
           0,
           mockedBlock.add(9).toString(),
           INITIAL_BONUS_REWARD_PER_BLOCK,
-          await deployer.getAddress()
         )
         let currentRewardPerBlock = await grazingRangeAsDeployer.currentRewardPerBlock(
           0
@@ -172,10 +172,10 @@ describe('GrazingRange', () => {
 
         await TimeHelpers.advanceBlockTo(mockedBlock.add(8).toNumber())
         await grazingRangeAsDeployer.addRewardInfo(
+          await deployer.getAddress(),
           0, 
           mockedBlock.add(10).toString(),
           INITIAL_BONUS_REWARD_PER_BLOCK.add(ethers.utils.parseEther('500')),
-          await deployer.getAddress()
         )
         await TimeHelpers.advanceBlockTo(mockedBlock.add(10).toNumber())
         currentRewardPerBlock = await grazingRangeAsDeployer.currentRewardPerBlock(
@@ -196,10 +196,10 @@ describe('GrazingRange', () => {
           mockedBlock.add(8).toString(),
         )
         await grazingRangeAsDeployer.addRewardInfo(
+          await deployer.getAddress(),
           0,
           mockedBlock.add(9).toString(),
           INITIAL_BONUS_REWARD_PER_BLOCK,
-          await deployer.getAddress()
         )
         let currentRewardPerBlock = await grazingRangeAsDeployer.currentRewardPerBlock(
           0
@@ -208,10 +208,10 @@ describe('GrazingRange', () => {
 
         await TimeHelpers.advanceBlockTo(mockedBlock.add(8).toNumber())
         await grazingRangeAsDeployer.addRewardInfo(
+          await deployer.getAddress(),
           0, 
           mockedBlock.add(10).toString(),
           INITIAL_BONUS_REWARD_PER_BLOCK.add(ethers.utils.parseEther('500')),
-          await deployer.getAddress()
         )
         await TimeHelpers.advanceBlockTo(mockedBlock.add(100).toNumber())
         currentRewardPerBlock = await grazingRangeAsDeployer.currentRewardPerBlock(
@@ -255,19 +255,19 @@ describe('GrazingRange', () => {
           expect(length).to.eq(0)
           // add the first reward info
           await grazingRangeAsDeployer.addRewardInfo(
+            await deployer.getAddress(),
             0, 
             mockedBlock.add(11).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK,
-            await deployer.getAddress()
           )
           length = await grazingRangeAsDeployer.rewardInfoLen(0)
           expect(length).to.eq(1)
 
           await grazingRangeAsDeployer.addRewardInfo(
+            await deployer.getAddress(),
             0, 
             mockedBlock.add(20).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK.add(1),
-            await deployer.getAddress()
           )
           const rewardInfo = (await grazingRangeAsDeployer.campaignRewardInfo(0, 1))
           length = await grazingRangeAsDeployer.rewardInfoLen(0)
@@ -290,10 +290,10 @@ describe('GrazingRange', () => {
           // set reward info limit to 1
           await expect(grazingRangeAsAlice.setRewardInfoLimit(1)).to.be.reverted
           await expect(grazingRangeAsAlice.addRewardInfo(
+            await deployer.getAddress(),
             0, 
             mockedBlock.add(11).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK,
-            await deployer.getAddress()
           )).to.be.reverted
         })
       })
@@ -310,16 +310,16 @@ describe('GrazingRange', () => {
           await grazingRangeAsDeployer.setRewardInfoLimit(1)
           // add the first reward info
           await grazingRangeAsDeployer.addRewardInfo(
+            await deployer.getAddress(),
             0, 
             mockedBlock.add(11).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK,
-            await deployer.getAddress()
           )
           await expect(grazingRangeAsDeployer.addRewardInfo(
+            await deployer.getAddress(),
             0, 
             mockedBlock.add(11).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK,
-            await deployer.getAddress()
           )).to.be.revertedWith('GrazingRange::addRewardInfo::reward info length exceeds the limit')
         })
       })
@@ -334,10 +334,10 @@ describe('GrazingRange', () => {
           )
           // add the first reward info
           await expect(grazingRangeAsDeployer.addRewardInfo(
+            await deployer.getAddress(),
             0, 
             mockedBlock.sub(1).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK,
-            await deployer.getAddress()
           )).to.reverted
         })
       })
@@ -352,16 +352,16 @@ describe('GrazingRange', () => {
           )
           // add the first reward info
           await grazingRangeAsDeployer.addRewardInfo(
+            await deployer.getAddress(),
             0, 
             mockedBlock.add(11).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK,
-            await deployer.getAddress()
           )
           await expect(grazingRangeAsDeployer.addRewardInfo(
+            await deployer.getAddress(),
             0, 
             mockedBlock.add(1).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK,
-            await deployer.getAddress()
           )).to.be.revertedWith('GrazingRange::addRewardInfo::bad new endblock')
         })
       })
@@ -379,18 +379,18 @@ describe('GrazingRange', () => {
           // add the first reward info
           // with block number + 10
           await grazingRangeAsDeployer.addRewardInfo(
+            await deployer.getAddress(),
             0, 
             mockedBlock.add(10).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK,
-            await deployer.getAddress()
           )
           await TimeHelpers.advanceBlockTo(mockedBlock.add(11).toNumber())
           //this called method is invoked on blockNumber + 12
           await expect(grazingRangeAsDeployer.addRewardInfo(
+            await deployer.getAddress(),
             0, 
             mockedBlock.add(12).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK,
-            await deployer.getAddress()
           )).to.be.revertedWith('GrazingRange::addRewardInfo::reward period ended')
         })
       })
@@ -424,10 +424,10 @@ describe('GrazingRange', () => {
           )
 
           await grazingRangeAsDeployer.addRewardInfo(
+            await deployer.getAddress(),
             0, 
             mockedBlock.add(11).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK,
-            await deployer.getAddress()
           )
           // mint staking token to alice
           await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
@@ -457,10 +457,10 @@ describe('GrazingRange', () => {
                   )
         
                   await grazingRangeAsDeployer.addRewardInfo(
+                    await deployer.getAddress(),
                     0, 
                     mockedBlock.add(16).toString(),
                     INITIAL_BONUS_REWARD_PER_BLOCK,
-                    await deployer.getAddress()
                   )
                   // mint staking token to alice
                   await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('300'))
@@ -508,10 +508,10 @@ describe('GrazingRange', () => {
                     )
           
                     await grazingRangeAsDeployer.addRewardInfo(
+                      await deployer.getAddress(),
                       0, 
                       mockedBlock.add(18).toString(),
                       INITIAL_BONUS_REWARD_PER_BLOCK,
-                      await deployer.getAddress()
                     )
                     // mint staking token to alice
                     await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
@@ -551,10 +551,10 @@ describe('GrazingRange', () => {
                     )
           
                     await grazingRangeAsDeployer.addRewardInfo(
+                      await deployer.getAddress(),
                       0, 
                       mockedBlock.add(18).toString(),
                       INITIAL_BONUS_REWARD_PER_BLOCK,
-                      await deployer.getAddress()
                     )
                     // mint staking token to alice
                     await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
@@ -591,10 +591,10 @@ describe('GrazingRange', () => {
                   )
         
                   await grazingRangeAsDeployer.addRewardInfo(
+                    await deployer.getAddress(),
                     0, 
                     mockedBlock.add(8).toString(),
                     INITIAL_BONUS_REWARD_PER_BLOCK,
-                    await deployer.getAddress()
                   )
                   // mint staking token to alice
                   await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
@@ -631,10 +631,10 @@ describe('GrazingRange', () => {
                   )
         
                   await grazingRangeAsDeployer.addRewardInfo(
+                    await deployer.getAddress(),
                     0, 
                     mockedBlock.add(8).toString(),
                     INITIAL_BONUS_REWARD_PER_BLOCK,
-                    await deployer.getAddress()
                   )
                   // mint staking token to alice
                   await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
@@ -672,10 +672,10 @@ describe('GrazingRange', () => {
                   )
         
                   await grazingRangeAsDeployer.addRewardInfo(
+                    await deployer.getAddress(),
                     0, 
                     mockedBlock.add(8).toString(),
                     INITIAL_BONUS_REWARD_PER_BLOCK,
-                    await deployer.getAddress()
                   )
                   // mint staking token to alice
                   await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
@@ -714,10 +714,10 @@ describe('GrazingRange', () => {
                   )
         
                   await grazingRangeAsDeployer.addRewardInfo(
+                    await deployer.getAddress(),
                     0, 
                     mockedBlock.add(11).toString(),
                     INITIAL_BONUS_REWARD_PER_BLOCK,
-                    await deployer.getAddress()
                   )
                   // mint staking token to alice
                   await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
@@ -772,17 +772,17 @@ describe('GrazingRange', () => {
               )
     
               await grazingRangeAsDeployer.addRewardInfo(
+                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(12).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
-                await deployer.getAddress()
               )
 
               await grazingRangeAsDeployer.addRewardInfo(
+                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(21).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK.add(ethers.utils.parseEther('100')), // 200 reward per block
-                await deployer.getAddress()
               )
               // mint staking token to alice
               await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
@@ -825,17 +825,17 @@ describe('GrazingRange', () => {
               )
     
               await grazingRangeAsDeployer.addRewardInfo(
+                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(11).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
-                await deployer.getAddress()
               )
 
               await grazingRangeAsDeployer.addRewardInfo(
+                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(21).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK.add(ethers.utils.parseEther('100')), // 200 reward per block
-                await deployer.getAddress()
               )
               // mint staking token to alice
               await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
@@ -889,18 +889,18 @@ describe('GrazingRange', () => {
 
           // set reward for campaign 0
           await grazingRangeAsDeployer.addRewardInfo(
+            await deployer.getAddress(),
             0, 
             mockedBlock.add(13).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK,
-            await deployer.getAddress()
           )
 
           // set reward for campaign 1
           await grazingRangeAsDeployer.addRewardInfo(
+            await deployer.getAddress(),
             1, 
             mockedBlock.add(17).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK.add(ethers.utils.parseEther('100')),
-            await deployer.getAddress()
           )
           // mint staking token to alice
           await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('1000'))
@@ -960,10 +960,10 @@ describe('GrazingRange', () => {
         )
 
         await grazingRangeAsDeployer.addRewardInfo(
+          await deployer.getAddress(),
           0, 
           mockedBlock.add(10).toString(),
           INITIAL_BONUS_REWARD_PER_BLOCK,
-          await deployer.getAddress()
         )
         // mint staking token to alice
         await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
@@ -988,10 +988,10 @@ describe('GrazingRange', () => {
       )
 
       await grazingRangeAsDeployer.addRewardInfo(
+        await deployer.getAddress(),
         0, 
         mockedBlock.add(10).toString(),
         INITIAL_BONUS_REWARD_PER_BLOCK,
-        await deployer.getAddress()
       )
       // mint staking token to alice
       await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
@@ -1050,16 +1050,16 @@ describe('GrazingRange', () => {
                 mockedBlock.add(5).toString(),
               )
               await grazingRangeAsDeployer.addRewardInfo(
+                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(10).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
-                await deployer.getAddress()
               )
               await grazingRangeAsDeployer.addRewardInfo(
+                await deployer.getAddress(),
                 1, 
                 mockedBlock.add(20).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
-                await deployer.getAddress()
               )
               // emergency withdraw campaign 0 with all minted reward
               // should revert, since, even though it shares the same reward token, still different in terms of campaign's all reward token
@@ -1084,16 +1084,16 @@ describe('GrazingRange', () => {
                 mockedBlock.add(5).toString(),
               )
               await grazingRangeAsDeployer.addRewardInfo(
+                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(10).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
-                await deployer.getAddress()
               )
               await grazingRangeAsDeployer.addRewardInfo(
+                await deployer.getAddress(),
                 1, 
                 mockedBlock.add(20).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
-                await deployer.getAddress()
               )
               await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('400'))
               await stakingTokenAsAlice.approve(grazingRange.address, ethers.utils.parseEther('400'))
@@ -1123,16 +1123,16 @@ describe('GrazingRange', () => {
                 mockedBlock.add(5).toString(),
               )
               await grazingRangeAsDeployer.addRewardInfo(
+                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(10).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
-                await deployer.getAddress()
               )
               await grazingRangeAsDeployer.addRewardInfo(
+                await deployer.getAddress(),
                 1, 
                 mockedBlock.add(20).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
-                await deployer.getAddress()
               )
               await expect(grazingRangeAsDeployer.emergencyRewardWithdraw(BigNumber.from(0), ethers.utils.parseEther('600'), await deployer.getAddress())).to.revertedWith("GrazingRange::emergencyRewardWithdraw::not enough reward token")
               
@@ -1156,16 +1156,16 @@ describe('GrazingRange', () => {
                 mockedBlock.add(5).toString(),
               )
               await grazingRangeAsDeployer.addRewardInfo(
+                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(10).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
-                await deployer.getAddress()
               )
               await grazingRangeAsDeployer.addRewardInfo(
+                await deployer.getAddress(),
                 1, 
                 mockedBlock.add(20).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
-                await deployer.getAddress()
               )
               await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('400'))
               await stakingTokenAsAlice.approve(grazingRange.address, ethers.utils.parseEther('400'))
@@ -1197,16 +1197,16 @@ describe('GrazingRange', () => {
                 mockedBlock.add(5).toString(),
               )
               await grazingRangeAsDeployer.addRewardInfo(
+                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(11).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
-                await deployer.getAddress()
               )
               await grazingRangeAsDeployer.addRewardInfo(
+                await deployer.getAddress(),
                 1, 
                 mockedBlock.add(20).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
-                await deployer.getAddress()
               )
               const aliceAsBeneficiary = await alice.getAddress()
               // emergency withdraw campaign 0
@@ -1242,16 +1242,16 @@ describe('GrazingRange', () => {
                 mockedBlock.add(5).toString(),
               )
               await grazingRangeAsDeployer.addRewardInfo(
+                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(11).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
-                await deployer.getAddress()
               )
               await grazingRangeAsDeployer.addRewardInfo(
+                await deployer.getAddress(),
                 1, 
                 mockedBlock.add(20).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
-                await deployer.getAddress()
               )
               await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('400'))
               await stakingTokenAsAlice.approve(grazingRange.address, ethers.utils.parseEther('400'))
@@ -1296,16 +1296,16 @@ describe('GrazingRange', () => {
                 mockedBlock.add(5).toString(),
               )
               await grazingRangeAsDeployer.addRewardInfo(
+                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(11).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
-                await deployer.getAddress()
               )
               await grazingRangeAsDeployer.addRewardInfo(
+                await deployer.getAddress(),
                 1, 
                 mockedBlock.add(20).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
-                await deployer.getAddress()
               )
               const aliceAsBeneficiary = await alice.getAddress()
               // emergency withdraw campaign 0
@@ -1341,16 +1341,16 @@ describe('GrazingRange', () => {
                 mockedBlock.add(5).toString(),
               )
               await grazingRangeAsDeployer.addRewardInfo(
+                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(12).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
-                await deployer.getAddress()
               )
               await grazingRangeAsDeployer.addRewardInfo(
+                await deployer.getAddress(),
                 1, 
                 mockedBlock.add(20).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
-                await deployer.getAddress()
               )
               await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('400'))
               await stakingTokenAsAlice.approve(grazingRange.address, ethers.utils.parseEther('400'))
@@ -1404,10 +1404,10 @@ describe('GrazingRange', () => {
           )
 
           await grazingRangeAsDeployer.addRewardInfo(
+            await deployer.getAddress(),
             0, 
             mockedBlock.add(11).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK,
-            await deployer.getAddress()
           )
           // mint staking token to alice
           await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
@@ -1437,10 +1437,10 @@ describe('GrazingRange', () => {
                   )
         
                   await grazingRangeAsDeployer.addRewardInfo(
+                    await deployer.getAddress(),
                     0, 
                     mockedBlock.add(8).toString(),
                     INITIAL_BONUS_REWARD_PER_BLOCK,
-                    await deployer.getAddress()
                   )
                   // mint staking token to alice
                   await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
@@ -1472,10 +1472,10 @@ describe('GrazingRange', () => {
                   )
         
                   await grazingRangeAsDeployer.addRewardInfo(
+                    await deployer.getAddress(),
                     0, 
                     mockedBlock.add(8).toString(),
                     INITIAL_BONUS_REWARD_PER_BLOCK,
-                    await deployer.getAddress()
                   )
                   // mint staking token to alice
                   await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
@@ -1510,10 +1510,10 @@ describe('GrazingRange', () => {
                 )
       
                 await grazingRangeAsDeployer.addRewardInfo(
+                  await deployer.getAddress(),
                   0, 
                   mockedBlock.add(10).toString(),
                   INITIAL_BONUS_REWARD_PER_BLOCK,
-                  await deployer.getAddress()
                 )
                 // mint staking token to alice
                 await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
@@ -1546,10 +1546,10 @@ describe('GrazingRange', () => {
                   )
         
                   await grazingRangeAsDeployer.addRewardInfo(
+                    await deployer.getAddress(),
                     0, 
                     mockedBlock.add(11).toString(),
                     INITIAL_BONUS_REWARD_PER_BLOCK,
-                    await deployer.getAddress()
                   )
                   // mint staking token to alice
                   await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
@@ -1582,10 +1582,10 @@ describe('GrazingRange', () => {
                   )
         
                   await grazingRangeAsDeployer.addRewardInfo(
+                    await deployer.getAddress(),
                     0, 
                     mockedBlock.add(10).toString(),
                     INITIAL_BONUS_REWARD_PER_BLOCK,
-                    await deployer.getAddress()
                   )
                   // mint staking token to alice
                   await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
@@ -1628,17 +1628,17 @@ describe('GrazingRange', () => {
               )
     
               await grazingRangeAsDeployer.addRewardInfo(
+                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(11).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
-                await deployer.getAddress()
               )
 
               await grazingRangeAsDeployer.addRewardInfo(
+                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(21).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK.add(ethers.utils.parseEther('100')), // 200 reward per block
-                await deployer.getAddress()
               )
               // mint staking token to alice
               await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
@@ -1690,17 +1690,17 @@ describe('GrazingRange', () => {
               )
     
               await grazingRangeAsDeployer.addRewardInfo(
+                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(11).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
-                await deployer.getAddress()
               )
 
               await grazingRangeAsDeployer.addRewardInfo(
+                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(21).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK.add(ethers.utils.parseEther('100')), // 200 reward per block
-                await deployer.getAddress()
               )
               // mint staking token to alice
               await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
@@ -1766,18 +1766,18 @@ describe('GrazingRange', () => {
 
           // set reward for campaign 0
           await grazingRangeAsDeployer.addRewardInfo(
+            await deployer.getAddress(),
             0, 
             mockedBlock.add(13).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK,
-            await deployer.getAddress()
           )
 
           // set reward for campaign 1
           await grazingRangeAsDeployer.addRewardInfo(
+            await deployer.getAddress(),
             1, 
             mockedBlock.add(21).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK.add(ethers.utils.parseEther('100')),
-            await deployer.getAddress()
           )
           // mint staking token to alice
           await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('1000'))
@@ -1871,10 +1871,10 @@ describe('GrazingRange', () => {
           )
 
           await grazingRangeAsDeployer.addRewardInfo(
+            await deployer.getAddress(),
             0, 
             mockedBlock.add(11).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK,
-            await deployer.getAddress()
           )
           // mint staking token to alice
           await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
@@ -1905,10 +1905,10 @@ describe('GrazingRange', () => {
                   )
         
                   await grazingRangeAsDeployer.addRewardInfo(
+                    await deployer.getAddress(),
                     0, 
                     mockedBlock.add(8).toString(),
                     INITIAL_BONUS_REWARD_PER_BLOCK,
-                    await deployer.getAddress()
                   )
                   // mint staking token to alice
                   await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
@@ -1941,10 +1941,10 @@ describe('GrazingRange', () => {
                   )
         
                   await grazingRangeAsDeployer.addRewardInfo(
+                    await deployer.getAddress(),
                     0, 
                     mockedBlock.add(8).toString(),
                     INITIAL_BONUS_REWARD_PER_BLOCK,
-                    await deployer.getAddress()
                   )
                   // mint staking token to alice
                   await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
@@ -1978,10 +1978,10 @@ describe('GrazingRange', () => {
                 )
       
                 await grazingRangeAsDeployer.addRewardInfo(
+                  await deployer.getAddress(),
                   0, 
                   mockedBlock.add(10).toString(),
                   INITIAL_BONUS_REWARD_PER_BLOCK,
-                  await deployer.getAddress()
                 )
                 // mint staking token to alice
                 await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
@@ -2014,10 +2014,10 @@ describe('GrazingRange', () => {
                   )
         
                   await grazingRangeAsDeployer.addRewardInfo(
+                    await deployer.getAddress(),
                     0, 
                     mockedBlock.add(11).toString(),
                     INITIAL_BONUS_REWARD_PER_BLOCK,
-                    await deployer.getAddress()
                   )
                   // mint staking token to alice
                   await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
@@ -2050,10 +2050,10 @@ describe('GrazingRange', () => {
                   )
         
                   await grazingRangeAsDeployer.addRewardInfo(
+                    await deployer.getAddress(),
                     0, 
                     mockedBlock.add(10).toString(),
                     INITIAL_BONUS_REWARD_PER_BLOCK,
-                    await deployer.getAddress()
                   )
                   // mint staking token to alice
                   await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
@@ -2095,17 +2095,17 @@ describe('GrazingRange', () => {
               )
     
               await grazingRangeAsDeployer.addRewardInfo(
+                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(11).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
-                await deployer.getAddress()
               )
 
               await grazingRangeAsDeployer.addRewardInfo(
+                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(21).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK.add(ethers.utils.parseEther('100')), // 200 reward per block
-                await deployer.getAddress()
               )
               // mint staking token to alice
               await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
@@ -2154,17 +2154,17 @@ describe('GrazingRange', () => {
               )
     
               await grazingRangeAsDeployer.addRewardInfo(
+                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(11).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
-                await deployer.getAddress()
               )
 
               await grazingRangeAsDeployer.addRewardInfo(
+                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(21).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK.add(ethers.utils.parseEther('100')), // 200 reward per block
-                await deployer.getAddress()
               )
               // mint staking token to alice
               await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('100'))
@@ -2228,18 +2228,18 @@ describe('GrazingRange', () => {
 
           // set reward for campaign 0
           await grazingRangeAsDeployer.addRewardInfo(
+            await deployer.getAddress(),
             0, 
             mockedBlock.add(13).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK,
-            await deployer.getAddress()
           )
 
           // set reward for campaign 1
           await grazingRangeAsDeployer.addRewardInfo(
+            await deployer.getAddress(),
             1, 
             mockedBlock.add(21).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK.add(ethers.utils.parseEther('100')),
-            await deployer.getAddress()
           )
           // mint staking token to alice
           await stakingTokenAsDeployer.mint(await alice.getAddress(), ethers.utils.parseEther('1000'))
