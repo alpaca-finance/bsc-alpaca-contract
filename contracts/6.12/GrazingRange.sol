@@ -1,4 +1,4 @@
-pragma solidity 0.6.6;
+pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol";
@@ -37,6 +37,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
         uint256 lastRewardBlock;  // Last block number that Reward Token distribution occurs.
         uint256 accRewardPerShare; // Accumulated Reward Token per share, times 1e12. See below.
         uint256 totalStaked; // total staked amount each campaign's stake token, typically, each campaign has the same stake token, so need to track it separatedly
+        uint256 totalRewards;
     }
 
     // Reward info
@@ -84,17 +85,24 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
             startBlock: _startBlock,
             lastRewardBlock: _startBlock,
             accRewardPerShare: 0,
-            totalStaked: 0
+            totalStaked: 0,
+            totalRewards: 0
         }));
         emit AddCampaignInfo(campaignInfo.length-1, _stakingToken, _rewardToken, _startBlock);
     }
 
     // @notice if the new reward info is added, the reward & its end block will be extended by the newly pushed reward info.
-    function addRewardInfo(uint256 _campaignID, uint256 _endBlock, uint256 _rewardPerBlock) external onlyOwner {
+    function addRewardInfo(uint256 _campaignID, uint256 _endBlock, uint256 _rewardPerBlock, address _sourceOfFund) external onlyOwner {
         RewardInfo[] storage rewardInfo = campaignRewardInfo[_campaignID];
+        CampaignInfo storage campaign = campaignInfo[_campaignID];
         require(rewardInfo.length < rewardInfoLimit, "GrazingRange::addRewardInfo::reward info length exceeds the limit");
         require(rewardInfo.length == 0 || rewardInfo[rewardInfo.length - 1].endBlock >= block.number, "GrazingRange::addRewardInfo::reward period ended");
-        require(rewardInfo.length == 0 || rewardInfo[rewardInfo.length - 1].endBlock < _endBlock, "GrazingRange::addRewardInfo::bad new endblock"); 
+        require(rewardInfo.length == 0 || rewardInfo[rewardInfo.length - 1].endBlock < _endBlock, "GrazingRange::addRewardInfo::bad new endblock");
+        uint256 startBlock = rewardInfo.length == 0 ?  campaign.startBlock : rewardInfo[rewardInfo.length - 1].endBlock;
+        uint256 blockRange = _endBlock.sub(startBlock);
+        uint256 totalRewards = _rewardPerBlock.mul(blockRange);
+        campaign.rewardToken.safeTransferFrom(address(_sourceOfFund), address(this), totalRewards);
+        campaign.totalRewards = campaign.totalRewards.add(totalRewards);
         rewardInfo.push(RewardInfo({
             endBlock: _endBlock,
             rewardPerBlock: _rewardPerBlock
@@ -144,8 +152,8 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
             if (_blockNumber <= rewardInfo[i].endBlock) return rewardInfo[i].rewardPerBlock;
         }
         // @dev when couldn't find any reward info, it means that timestamp exceed endblock
-        // so return the latest reward info
-        return rewardInfo[len-1].rewardPerBlock;
+        // so return 0
+        return 0;
     }
 
 
@@ -295,7 +303,8 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     function emergencyRewardWithdraw(uint256 _campaignID, uint256 _amount, address _beneficiary) external onlyOwner nonReentrant {
         CampaignInfo storage campaign = campaignInfo[_campaignID];
         uint256 currentStakingPendingReward = _pendingReward(_campaignID, campaign.totalStaked, 0);
-        require(currentStakingPendingReward.add(_amount) <= campaign.rewardToken.balanceOf(address(this)), "GrazingRange::emergencyRewardWithdraw::not enough reward token");
+        require(currentStakingPendingReward.add(_amount) <= campaign.totalRewards, "GrazingRange::emergencyRewardWithdraw::not enough reward token");
+        campaign.totalRewards = campaign.totalRewards.sub(_amount);
         campaign.rewardToken.safeTransfer(_beneficiary, _amount);
     }
 }
