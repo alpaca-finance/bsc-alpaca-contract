@@ -71,7 +71,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     event SetRewardHolder(address rewardHolder);
 
     /**
-     * @dev Throws if called by any account other than the owner.
+     * @dev Throws if called by any account other than the reward holder.
      */
     modifier onlyRewardHolder() {
         require(rewardHolder == msg.sender, "GrazingRange::onlyRewardHolder::caller is not a reward holder");
@@ -85,7 +85,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
         rewardHolder = _rewardHolder;
     }
 
-    // @notice function for setting a reward holder who is responsible for adding reward info
+    // @notice function for setting a reward holder who is responsible for adding a reward info
     function setRewardHolder(address _rewardHolder) external onlyOwner {
         rewardHolder = _rewardHolder;
         emit SetRewardHolder(_rewardHolder);
