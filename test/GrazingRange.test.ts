@@ -70,7 +70,7 @@ describe('GrazingRange', () => {
       "GrazingRange",
       deployer
     )) as GrazingRange__factory;
-    grazingRange = await upgrades.deployProxy(GrazingRange, []) as GrazingRange;
+    grazingRange = await upgrades.deployProxy(GrazingRange, [await deployer.getAddress()]) as GrazingRange;
     await grazingRange.deployed();
     rewardTokenAsDeployer = MockERC20__factory.connect(rewardToken.address, deployer)
     rewardToken2AsDeployer = MockERC20__factory.connect(rewardToken2.address, deployer)
@@ -90,6 +90,24 @@ describe('GrazingRange', () => {
     stakingTokenAsBob = MockERC20__factory.connect(stakingToken.address, bob)
     stakingTokenAsCat = MockERC20__factory.connect(stakingToken.address, cat)
   })
+
+  describe('#setRewardHolder', async() => {
+    context('When the caller is not the owner', async() => {
+      it('should be reverted', async () => {
+        const aliceAddr = await alice.getAddress()
+        await expect(grazingRangeAsAlice.setRewardHolder(aliceAddr)).to.reverted;
+      })
+    })
+    context('When the caller is the owner', async() => {
+      it('should successfully change a reward holder', async () => {
+        const aliceAddr = await alice.getAddress()
+        await grazingRangeAsDeployer.setRewardHolder(aliceAddr)
+        const holder = await grazingRangeAsDeployer.rewardHolder()
+        expect(holder).to.eq(aliceAddr)
+      })
+    })
+  })
+
 
   describe('#currentEndBlock()', async() => {
     context('reward info is not existed yet', async () => {
@@ -114,7 +132,6 @@ describe('GrazingRange', () => {
           mockedBlock.add(8).toString(),
         )
         await grazingRangeAsDeployer.addRewardInfo(
-          await deployer.getAddress(),
           0, 
           mockedBlock.add(9).toString(),
           INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -126,7 +143,6 @@ describe('GrazingRange', () => {
         TimeHelpers.advanceBlockTo(mockedBlock.add(9).toNumber())
 
         await grazingRangeAsDeployer.addRewardInfo(
-          await deployer.getAddress(),
           0, 
           mockedBlock.add(10).toString(),
           INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -160,7 +176,6 @@ describe('GrazingRange', () => {
           mockedBlock.add(8).toString(),
         )
         await grazingRangeAsDeployer.addRewardInfo(
-          await deployer.getAddress(),
           0,
           mockedBlock.add(9).toString(),
           INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -172,7 +187,6 @@ describe('GrazingRange', () => {
 
         await TimeHelpers.advanceBlockTo(mockedBlock.add(8).toNumber())
         await grazingRangeAsDeployer.addRewardInfo(
-          await deployer.getAddress(),
           0, 
           mockedBlock.add(10).toString(),
           INITIAL_BONUS_REWARD_PER_BLOCK.add(ethers.utils.parseEther('500')),
@@ -196,7 +210,6 @@ describe('GrazingRange', () => {
           mockedBlock.add(8).toString(),
         )
         await grazingRangeAsDeployer.addRewardInfo(
-          await deployer.getAddress(),
           0,
           mockedBlock.add(9).toString(),
           INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -208,7 +221,6 @@ describe('GrazingRange', () => {
 
         await TimeHelpers.advanceBlockTo(mockedBlock.add(8).toNumber())
         await grazingRangeAsDeployer.addRewardInfo(
-          await deployer.getAddress(),
           0, 
           mockedBlock.add(10).toString(),
           INITIAL_BONUS_REWARD_PER_BLOCK.add(ethers.utils.parseEther('500')),
@@ -255,7 +267,6 @@ describe('GrazingRange', () => {
           expect(length).to.eq(0)
           // add the first reward info
           await grazingRangeAsDeployer.addRewardInfo(
-            await deployer.getAddress(),
             0, 
             mockedBlock.add(11).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -264,7 +275,6 @@ describe('GrazingRange', () => {
           expect(length).to.eq(1)
 
           await grazingRangeAsDeployer.addRewardInfo(
-            await deployer.getAddress(),
             0, 
             mockedBlock.add(20).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK.add(1),
@@ -290,7 +300,6 @@ describe('GrazingRange', () => {
           // set reward info limit to 1
           await expect(grazingRangeAsAlice.setRewardInfoLimit(1)).to.be.reverted
           await expect(grazingRangeAsAlice.addRewardInfo(
-            await deployer.getAddress(),
             0, 
             mockedBlock.add(11).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -310,13 +319,11 @@ describe('GrazingRange', () => {
           await grazingRangeAsDeployer.setRewardInfoLimit(1)
           // add the first reward info
           await grazingRangeAsDeployer.addRewardInfo(
-            await deployer.getAddress(),
             0, 
             mockedBlock.add(11).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK,
           )
           await expect(grazingRangeAsDeployer.addRewardInfo(
-            await deployer.getAddress(),
             0, 
             mockedBlock.add(11).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -334,7 +341,6 @@ describe('GrazingRange', () => {
           )
           // add the first reward info
           await expect(grazingRangeAsDeployer.addRewardInfo(
-            await deployer.getAddress(),
             0, 
             mockedBlock.sub(1).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -352,13 +358,11 @@ describe('GrazingRange', () => {
           )
           // add the first reward info
           await grazingRangeAsDeployer.addRewardInfo(
-            await deployer.getAddress(),
             0, 
             mockedBlock.add(11).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK,
           )
           await expect(grazingRangeAsDeployer.addRewardInfo(
-            await deployer.getAddress(),
             0, 
             mockedBlock.add(1).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -379,7 +383,6 @@ describe('GrazingRange', () => {
           // add the first reward info
           // with block number + 10
           await grazingRangeAsDeployer.addRewardInfo(
-            await deployer.getAddress(),
             0, 
             mockedBlock.add(10).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -387,7 +390,6 @@ describe('GrazingRange', () => {
           await TimeHelpers.advanceBlockTo(mockedBlock.add(11).toNumber())
           //this called method is invoked on blockNumber + 12
           await expect(grazingRangeAsDeployer.addRewardInfo(
-            await deployer.getAddress(),
             0, 
             mockedBlock.add(12).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -424,7 +426,6 @@ describe('GrazingRange', () => {
           )
 
           await grazingRangeAsDeployer.addRewardInfo(
-            await deployer.getAddress(),
             0, 
             mockedBlock.add(11).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -457,7 +458,6 @@ describe('GrazingRange', () => {
                   )
         
                   await grazingRangeAsDeployer.addRewardInfo(
-                    await deployer.getAddress(),
                     0, 
                     mockedBlock.add(16).toString(),
                     INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -508,7 +508,6 @@ describe('GrazingRange', () => {
                     )
           
                     await grazingRangeAsDeployer.addRewardInfo(
-                      await deployer.getAddress(),
                       0, 
                       mockedBlock.add(18).toString(),
                       INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -551,7 +550,6 @@ describe('GrazingRange', () => {
                     )
           
                     await grazingRangeAsDeployer.addRewardInfo(
-                      await deployer.getAddress(),
                       0, 
                       mockedBlock.add(18).toString(),
                       INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -591,7 +589,6 @@ describe('GrazingRange', () => {
                   )
         
                   await grazingRangeAsDeployer.addRewardInfo(
-                    await deployer.getAddress(),
                     0, 
                     mockedBlock.add(8).toString(),
                     INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -631,7 +628,6 @@ describe('GrazingRange', () => {
                   )
         
                   await grazingRangeAsDeployer.addRewardInfo(
-                    await deployer.getAddress(),
                     0, 
                     mockedBlock.add(8).toString(),
                     INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -672,7 +668,6 @@ describe('GrazingRange', () => {
                   )
         
                   await grazingRangeAsDeployer.addRewardInfo(
-                    await deployer.getAddress(),
                     0, 
                     mockedBlock.add(8).toString(),
                     INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -714,7 +709,6 @@ describe('GrazingRange', () => {
                   )
         
                   await grazingRangeAsDeployer.addRewardInfo(
-                    await deployer.getAddress(),
                     0, 
                     mockedBlock.add(11).toString(),
                     INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -772,14 +766,12 @@ describe('GrazingRange', () => {
               )
     
               await grazingRangeAsDeployer.addRewardInfo(
-                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(12).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
               )
 
               await grazingRangeAsDeployer.addRewardInfo(
-                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(21).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK.add(ethers.utils.parseEther('100')), // 200 reward per block
@@ -825,14 +817,12 @@ describe('GrazingRange', () => {
               )
     
               await grazingRangeAsDeployer.addRewardInfo(
-                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(11).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
               )
 
               await grazingRangeAsDeployer.addRewardInfo(
-                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(21).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK.add(ethers.utils.parseEther('100')), // 200 reward per block
@@ -889,7 +879,6 @@ describe('GrazingRange', () => {
 
           // set reward for campaign 0
           await grazingRangeAsDeployer.addRewardInfo(
-            await deployer.getAddress(),
             0, 
             mockedBlock.add(13).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -897,7 +886,6 @@ describe('GrazingRange', () => {
 
           // set reward for campaign 1
           await grazingRangeAsDeployer.addRewardInfo(
-            await deployer.getAddress(),
             1, 
             mockedBlock.add(17).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK.add(ethers.utils.parseEther('100')),
@@ -960,7 +948,6 @@ describe('GrazingRange', () => {
         )
 
         await grazingRangeAsDeployer.addRewardInfo(
-          await deployer.getAddress(),
           0, 
           mockedBlock.add(10).toString(),
           INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -988,7 +975,6 @@ describe('GrazingRange', () => {
       )
 
       await grazingRangeAsDeployer.addRewardInfo(
-        await deployer.getAddress(),
         0, 
         mockedBlock.add(10).toString(),
         INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -1050,13 +1036,11 @@ describe('GrazingRange', () => {
                 mockedBlock.add(5).toString(),
               )
               await grazingRangeAsDeployer.addRewardInfo(
-                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(10).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
               )
               await grazingRangeAsDeployer.addRewardInfo(
-                await deployer.getAddress(),
                 1, 
                 mockedBlock.add(20).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -1084,13 +1068,11 @@ describe('GrazingRange', () => {
                 mockedBlock.add(5).toString(),
               )
               await grazingRangeAsDeployer.addRewardInfo(
-                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(10).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
               )
               await grazingRangeAsDeployer.addRewardInfo(
-                await deployer.getAddress(),
                 1, 
                 mockedBlock.add(20).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -1123,13 +1105,11 @@ describe('GrazingRange', () => {
                 mockedBlock.add(5).toString(),
               )
               await grazingRangeAsDeployer.addRewardInfo(
-                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(10).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
               )
               await grazingRangeAsDeployer.addRewardInfo(
-                await deployer.getAddress(),
                 1, 
                 mockedBlock.add(20).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -1156,13 +1136,11 @@ describe('GrazingRange', () => {
                 mockedBlock.add(5).toString(),
               )
               await grazingRangeAsDeployer.addRewardInfo(
-                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(10).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
               )
               await grazingRangeAsDeployer.addRewardInfo(
-                await deployer.getAddress(),
                 1, 
                 mockedBlock.add(20).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -1197,13 +1175,11 @@ describe('GrazingRange', () => {
                 mockedBlock.add(5).toString(),
               )
               await grazingRangeAsDeployer.addRewardInfo(
-                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(11).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
               )
               await grazingRangeAsDeployer.addRewardInfo(
-                await deployer.getAddress(),
                 1, 
                 mockedBlock.add(20).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -1242,13 +1218,11 @@ describe('GrazingRange', () => {
                 mockedBlock.add(5).toString(),
               )
               await grazingRangeAsDeployer.addRewardInfo(
-                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(11).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
               )
               await grazingRangeAsDeployer.addRewardInfo(
-                await deployer.getAddress(),
                 1, 
                 mockedBlock.add(20).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -1296,13 +1270,11 @@ describe('GrazingRange', () => {
                 mockedBlock.add(5).toString(),
               )
               await grazingRangeAsDeployer.addRewardInfo(
-                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(11).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
               )
               await grazingRangeAsDeployer.addRewardInfo(
-                await deployer.getAddress(),
                 1, 
                 mockedBlock.add(20).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -1341,13 +1313,11 @@ describe('GrazingRange', () => {
                 mockedBlock.add(5).toString(),
               )
               await grazingRangeAsDeployer.addRewardInfo(
-                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(12).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
               )
               await grazingRangeAsDeployer.addRewardInfo(
-                await deployer.getAddress(),
                 1, 
                 mockedBlock.add(20).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -1404,7 +1374,6 @@ describe('GrazingRange', () => {
           )
 
           await grazingRangeAsDeployer.addRewardInfo(
-            await deployer.getAddress(),
             0, 
             mockedBlock.add(11).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -1437,7 +1406,6 @@ describe('GrazingRange', () => {
                   )
         
                   await grazingRangeAsDeployer.addRewardInfo(
-                    await deployer.getAddress(),
                     0, 
                     mockedBlock.add(8).toString(),
                     INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -1472,7 +1440,6 @@ describe('GrazingRange', () => {
                   )
         
                   await grazingRangeAsDeployer.addRewardInfo(
-                    await deployer.getAddress(),
                     0, 
                     mockedBlock.add(8).toString(),
                     INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -1510,7 +1477,6 @@ describe('GrazingRange', () => {
                 )
       
                 await grazingRangeAsDeployer.addRewardInfo(
-                  await deployer.getAddress(),
                   0, 
                   mockedBlock.add(10).toString(),
                   INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -1546,7 +1512,6 @@ describe('GrazingRange', () => {
                   )
         
                   await grazingRangeAsDeployer.addRewardInfo(
-                    await deployer.getAddress(),
                     0, 
                     mockedBlock.add(11).toString(),
                     INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -1582,7 +1547,6 @@ describe('GrazingRange', () => {
                   )
         
                   await grazingRangeAsDeployer.addRewardInfo(
-                    await deployer.getAddress(),
                     0, 
                     mockedBlock.add(10).toString(),
                     INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -1628,14 +1592,12 @@ describe('GrazingRange', () => {
               )
     
               await grazingRangeAsDeployer.addRewardInfo(
-                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(11).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
               )
 
               await grazingRangeAsDeployer.addRewardInfo(
-                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(21).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK.add(ethers.utils.parseEther('100')), // 200 reward per block
@@ -1690,14 +1652,12 @@ describe('GrazingRange', () => {
               )
     
               await grazingRangeAsDeployer.addRewardInfo(
-                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(11).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
               )
 
               await grazingRangeAsDeployer.addRewardInfo(
-                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(21).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK.add(ethers.utils.parseEther('100')), // 200 reward per block
@@ -1766,7 +1726,6 @@ describe('GrazingRange', () => {
 
           // set reward for campaign 0
           await grazingRangeAsDeployer.addRewardInfo(
-            await deployer.getAddress(),
             0, 
             mockedBlock.add(13).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -1774,7 +1733,6 @@ describe('GrazingRange', () => {
 
           // set reward for campaign 1
           await grazingRangeAsDeployer.addRewardInfo(
-            await deployer.getAddress(),
             1, 
             mockedBlock.add(21).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK.add(ethers.utils.parseEther('100')),
@@ -1871,7 +1829,6 @@ describe('GrazingRange', () => {
           )
 
           await grazingRangeAsDeployer.addRewardInfo(
-            await deployer.getAddress(),
             0, 
             mockedBlock.add(11).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -1905,7 +1862,6 @@ describe('GrazingRange', () => {
                   )
         
                   await grazingRangeAsDeployer.addRewardInfo(
-                    await deployer.getAddress(),
                     0, 
                     mockedBlock.add(8).toString(),
                     INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -1941,7 +1897,6 @@ describe('GrazingRange', () => {
                   )
         
                   await grazingRangeAsDeployer.addRewardInfo(
-                    await deployer.getAddress(),
                     0, 
                     mockedBlock.add(8).toString(),
                     INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -1978,7 +1933,6 @@ describe('GrazingRange', () => {
                 )
       
                 await grazingRangeAsDeployer.addRewardInfo(
-                  await deployer.getAddress(),
                   0, 
                   mockedBlock.add(10).toString(),
                   INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -2014,7 +1968,6 @@ describe('GrazingRange', () => {
                   )
         
                   await grazingRangeAsDeployer.addRewardInfo(
-                    await deployer.getAddress(),
                     0, 
                     mockedBlock.add(11).toString(),
                     INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -2050,7 +2003,6 @@ describe('GrazingRange', () => {
                   )
         
                   await grazingRangeAsDeployer.addRewardInfo(
-                    await deployer.getAddress(),
                     0, 
                     mockedBlock.add(10).toString(),
                     INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -2095,14 +2047,12 @@ describe('GrazingRange', () => {
               )
     
               await grazingRangeAsDeployer.addRewardInfo(
-                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(11).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
               )
 
               await grazingRangeAsDeployer.addRewardInfo(
-                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(21).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK.add(ethers.utils.parseEther('100')), // 200 reward per block
@@ -2154,14 +2104,12 @@ describe('GrazingRange', () => {
               )
     
               await grazingRangeAsDeployer.addRewardInfo(
-                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(11).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK,
               )
 
               await grazingRangeAsDeployer.addRewardInfo(
-                await deployer.getAddress(),
                 0, 
                 mockedBlock.add(21).toString(),
                 INITIAL_BONUS_REWARD_PER_BLOCK.add(ethers.utils.parseEther('100')), // 200 reward per block
@@ -2228,7 +2176,6 @@ describe('GrazingRange', () => {
 
           // set reward for campaign 0
           await grazingRangeAsDeployer.addRewardInfo(
-            await deployer.getAddress(),
             0, 
             mockedBlock.add(13).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK,
@@ -2236,7 +2183,6 @@ describe('GrazingRange', () => {
 
           // set reward for campaign 1
           await grazingRangeAsDeployer.addRewardInfo(
-            await deployer.getAddress(),
             1, 
             mockedBlock.add(21).toString(),
             INITIAL_BONUS_REWARD_PER_BLOCK.add(ethers.utils.parseEther('100')),

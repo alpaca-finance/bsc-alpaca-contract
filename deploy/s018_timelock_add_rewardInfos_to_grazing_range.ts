@@ -5,7 +5,6 @@ import { Timelock__factory } from '../typechain'
 
 interface IAddGrazingRangeRewardInfoParam {
     PHASE_NAME: string
-    SOURCE_OF_FUND: string
     CAMPAIGN_ID: string
     ENDBLOCK: string
     REWARD_PER_BLOCK: string
@@ -28,7 +27,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const EXACT_ETA = '1619703660';
   const REWARDINFO: IAddGrazingRangeRewardInfoParamList = [{
     PHASE_NAME: 'PHASE_1',
-    SOURCE_OF_FUND: '',
     CAMPAIGN_ID: '2',
     ENDBLOCK: '8405700',
     REWARD_PER_BLOCK: ethers.utils.parseEther('1000').toString()
@@ -52,11 +50,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(`>> Timelock: Adding a grazing range's reward info: "${rewardInfo.PHASE_NAME}" via Timelock`);
     await timelock.queueTransaction(
         GRAZING_RANGE, '0',
-        'addRewardInfo(uint256,uint256,uint256,uint256)',
+        'addRewardInfo(uint256,uint256,uint256)',
         ethers.utils.defaultAbiCoder.encode(
-            ['uint256','uint256', 'uint256', 'uint256'],
+            ['uint256', 'uint256', 'uint256'],
             [
-                rewardInfo.SOURCE_OF_FUND,
                 rewardInfo.CAMPAIGN_ID,
                 rewardInfo.ENDBLOCK,
                 rewardInfo.REWARD_PER_BLOCK,
@@ -64,7 +61,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         ), EXACT_ETA
     );
     console.log("generate timelock.executeTransaction:")
-    console.log(`await timelock.executeTransaction('${GRAZING_RANGE}', '0', 'addRewardInfo(uint256,uint256,uint256,uint256)', ethers.utils.defaultAbiCoder.encode(['uint256', 'uint256', 'uint256', 'uint256'],['${rewardInfo.SOURCE_OF_FUND}','${rewardInfo.CAMPAIGN_ID}','${rewardInfo.ENDBLOCK}','${rewardInfo.REWARD_PER_BLOCK}']), ${EXACT_ETA})`)
+    console.log(`await timelock.executeTransaction('${GRAZING_RANGE}', '0', 'addRewardInfo(uint256,uint256,uint256)', ethers.utils.defaultAbiCoder.encode(['uint256', 'uint256', 'uint256'],['${rewardInfo.CAMPAIGN_ID}','${rewardInfo.ENDBLOCK}','${rewardInfo.REWARD_PER_BLOCK}']), ${EXACT_ETA})`)
     console.log("✅ Done");
   }
 };

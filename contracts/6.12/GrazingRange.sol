@@ -59,6 +59,8 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     // @notice limit length of reward info
     // how many phases are allowed
     uint256 public rewardInfoLimit;
+    // @dev reward holder account
+    address public rewardHolder;
 
     event Deposit(address indexed user, uint256 amount, uint256 campaign);
     event Withdraw(address indexed user, uint256 amount, uint256 campaign);
@@ -66,11 +68,19 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     event AddCampaignInfo(uint256 indexed campaignID, IERC20 stakingToken, IERC20 rewardToken, uint256 startBlock);
     event AddRewardInfo(uint256 indexed campaignID, uint256 indexed phase, uint256 endBlock, uint256 rewardPerBlock);
     event SetRewardInfoLimit(uint256 rewardInfoLimit);
+    event SetRewardHolder(address rewardHolder);
 
-    function initialize() external initializer {
+    function initialize(address _rewardHolder) external initializer {
         OwnableUpgradeSafe.__Ownable_init();
         ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
         rewardInfoLimit = 52; // 52 weeks, 1 year
+        rewardHolder = _rewardHolder;
+    }
+
+    // @notice function for setting a reward holder who is responsible for adding a reward info
+    function setRewardHolder(address _rewardHolder) external onlyOwner {
+        rewardHolder = _rewardHolder;
+        emit SetRewardHolder(_rewardHolder);
     }
 
     // @notice set new reward info limit
@@ -94,7 +104,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     }
 
     // @notice if the new reward info is added, the reward & its end block will be extended by the newly pushed reward info.
-    function addRewardInfo(address _sourceOfFund, uint256 _campaignID, uint256 _endBlock, uint256 _rewardPerBlock) external onlyOwner {
+    function addRewardInfo(uint256 _campaignID, uint256 _endBlock, uint256 _rewardPerBlock) external onlyOwner {
         RewardInfo[] storage rewardInfo = campaignRewardInfo[_campaignID];
         CampaignInfo storage campaign = campaignInfo[_campaignID];
         require(rewardInfo.length < rewardInfoLimit, "GrazingRange::addRewardInfo::reward info length exceeds the limit");
@@ -103,7 +113,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
         uint256 startBlock = rewardInfo.length == 0 ?  campaign.startBlock : rewardInfo[rewardInfo.length - 1].endBlock;
         uint256 blockRange = _endBlock.sub(startBlock);
         uint256 totalRewards = _rewardPerBlock.mul(blockRange);
-        campaign.rewardToken.safeTransferFrom(address(_sourceOfFund), address(this), totalRewards);
+        campaign.rewardToken.safeTransferFrom(rewardHolder, address(this), totalRewards);
         campaign.totalRewards = campaign.totalRewards.add(totalRewards);
         rewardInfo.push(RewardInfo({
             endBlock: _endBlock,
