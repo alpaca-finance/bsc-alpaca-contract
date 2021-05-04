@@ -323,6 +323,24 @@ describe('GrazingRange', () => {
           )).to.be.revertedWith('GrazingRange::addRewardInfo::reward info length exceeds the limit')
         })
       })
+      context('When the newly added reward info endblock is less that the start block', async () => {
+        it('should be reverted', async() => {
+          const mintedReward = INITIAL_BONUS_REWARD_PER_BLOCK.mul(mockedBlock.add(11).sub(mockedBlock.add(8)))
+          await rewardTokenAsDeployer.mint(await deployer.getAddress(), mintedReward)
+          await grazingRangeAsDeployer.addCampaignInfo(
+            stakingToken.address, 
+            rewardToken.address, 
+            mockedBlock.add(8).toString(),
+          )
+          // add the first reward info
+          await expect(grazingRangeAsDeployer.addRewardInfo(
+            0, 
+            mockedBlock.sub(1).toString(),
+            INITIAL_BONUS_REWARD_PER_BLOCK,
+            await deployer.getAddress()
+          )).to.reverted
+        })
+      })
       context('When newly added reward info endblock is less than current end block', async() => {
         it('should reverted with the message GrazingRange::addRewardInfo::bad new endblock', async() => {
           const mintedReward = INITIAL_BONUS_REWARD_PER_BLOCK.mul(mockedBlock.add(11).sub(mockedBlock.add(8)))
