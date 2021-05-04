@@ -65,6 +65,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     event EmergencyWithdraw(address indexed user, uint256 amount, uint256 campaign);
     event AddCampaignInfo(uint256 indexed campaignID, IERC20 stakingToken, IERC20 rewardToken, uint256 startBlock);
     event AddRewardInfo(uint256 indexed campaignID, uint256 indexed phase, uint256 endBlock, uint256 rewardPerBlock);
+    event SetRewardInfoLimit(uint256 rewardInfoLimit);
 
     function initialize() external initializer {
         OwnableUpgradeSafe.__Ownable_init();
@@ -75,6 +76,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     // @notice set new reward info limit
     function setRewardInfoLimit(uint256 _updatedRewardInfoLimit) external onlyOwner {
         rewardInfoLimit = _updatedRewardInfoLimit;
+        emit SetRewardInfoLimit(rewardInfoLimit);
     }
 
     // @notice reward campaign, one campaign represents a pair of staking and reward token, last reward Block and acc reward Per Share
