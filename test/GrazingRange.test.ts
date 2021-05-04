@@ -288,28 +288,7 @@ describe('GrazingRange', () => {
       })
     })
     context('When some parameters are invalid', async () => {
-      context("When the caller isn't the reward holder", async () => {
-        context('When rewardHolder has been set to the new account', async() => {
-          it('previous holder should not be able to add reward info', async() => {
-            await rewardTokenAsDeployer.mint(await deployer.getAddress(), constants.MaxUint256)
-            await grazingRangeAsDeployer.addCampaignInfo(
-              stakingToken.address, 
-              rewardToken.address, 
-              mockedBlock.add(8).toString(),
-            )
-            grazingRangeAsDeployer.addRewardInfo(
-              0, 
-              mockedBlock.add(11).toString(),
-              INITIAL_BONUS_REWARD_PER_BLOCK,
-            )
-            await grazingRangeAsDeployer.setRewardHolder(await alice.getAddress())
-            await expect(grazingRangeAsDeployer.addRewardInfo(
-              0, 
-              mockedBlock.add(13).toString(),
-              INITIAL_BONUS_REWARD_PER_BLOCK,
-            )).to.revertedWith("GrazingRange::onlyRewardHolder::caller is not a reward holder")
-          })
-        })
+      context("When the caller isn't the owner", async () => {
         it('should reverted since there is a modifier only owner validating the ownership', async () => {
           const mintedReward = INITIAL_BONUS_REWARD_PER_BLOCK.mul(mockedBlock.add(11).sub(mockedBlock.add(8)))
           await rewardTokenAsDeployer.mint(await deployer.getAddress(), mintedReward)

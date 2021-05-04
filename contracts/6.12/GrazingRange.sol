@@ -70,14 +70,6 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     event SetRewardInfoLimit(uint256 rewardInfoLimit);
     event SetRewardHolder(address rewardHolder);
 
-    /**
-     * @dev Throws if called by any account other than the reward holder.
-     */
-    modifier onlyRewardHolder() {
-        require(rewardHolder == msg.sender, "GrazingRange::onlyRewardHolder::caller is not a reward holder");
-        _;
-    }
-
     function initialize(address _rewardHolder) external initializer {
         OwnableUpgradeSafe.__Ownable_init();
         ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
@@ -112,7 +104,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     }
 
     // @notice if the new reward info is added, the reward & its end block will be extended by the newly pushed reward info.
-    function addRewardInfo(uint256 _campaignID, uint256 _endBlock, uint256 _rewardPerBlock) external onlyRewardHolder {
+    function addRewardInfo(uint256 _campaignID, uint256 _endBlock, uint256 _rewardPerBlock) external onlyOwner {
         RewardInfo[] storage rewardInfo = campaignRewardInfo[_campaignID];
         CampaignInfo storage campaign = campaignInfo[_campaignID];
         require(rewardInfo.length < rewardInfoLimit, "GrazingRange::addRewardInfo::reward info length exceeds the limit");
