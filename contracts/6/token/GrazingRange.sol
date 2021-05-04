@@ -93,8 +93,8 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     function addRewardInfo(uint256 _campaignID, uint256 _endBlock, uint256 _rewardPerBlock) external onlyOwner {
         RewardInfo[] storage rewardInfo = campaignRewardInfo[_campaignID];
         require(rewardInfo.length < rewardInfoLimit, "GrazingRange::addRewardInfo::reward info length exceeds the limit");
-        uint256 currentEndBlock = _endBlockOf(_campaignID, block.number);
-        require(currentEndBlock < _endBlock, "GrazingRange::addRewardInfo::bad new endblock");
+        require(rewardInfo.length == 0 || rewardInfo[rewardInfo.length - 1].endBlock >= block.number, "GrazingRange::addRewardInfo::reward period ended");
+        require(rewardInfo.length == 0 || rewardInfo[rewardInfo.length - 1].endBlock < _endBlock, "GrazingRange::addRewardInfo::bad new endblock"); 
         rewardInfo.push(RewardInfo({
             endBlock: _endBlock,
             rewardPerBlock: _rewardPerBlock
