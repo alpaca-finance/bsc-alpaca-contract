@@ -4,7 +4,7 @@
   "scripts": {
     "compile5": "hardhat typechain --config hardhat.config.5.ts",
     "compile6": "hardhat typechain --config hardhat.config.ts",
-    "compile6:12": "hardhat typechain --config hardhat.config.6.12.ts",
+    "compile6.12": "hardhat typechain --config hardhat.config.6.12.ts",
     "compile": "hardhat typechain --config hardhat.config.ts && hardhat typechain --config hardhat.config.5.ts && hardhat typechain --config hardhat.config.6.12.ts",
     "deploy:mainnet:001": "hardhat --network mainnet deploy --no-compile --reset --tags TimeLock",
     "deploy:mainnet:002": "hardhat --network mainnet deploy --no-compile --reset --tags FairLaunch",
