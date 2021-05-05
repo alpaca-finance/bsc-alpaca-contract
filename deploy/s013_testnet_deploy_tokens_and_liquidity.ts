@@ -26,14 +26,34 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const PANCAKE_ROUTER = '0x367633909278A3C91f4cB130D8e56382F00D1071'
   const WBNB = '0xDfb1211E2694193df5765d54350e1145FD2404A1'
   const TOKENS: Array<IToken> = [{
-    symbol: 'BTCB',
-    name: 'BTCB',
-    address: '0xCCaf3FC49B0D0F53fe2c08103F75A397052983FB',
+    symbol: 'bMXX',
+    name: 'bMXX',
+    mintAmount: ethers.utils.parseEther('8000000000').toString(),
     pairs: [{
-      quoteToken: 'BUSD',
-      quoteTokenAddr: '0x0266693F9Df932aD7dA8a9b44C2129Ce8a87E81f',
-      reserveQuoteToken: ethers.utils.parseEther('5436550'),
-      reserveBaseToken: ethers.utils.parseEther('100')
+      quoteToken: 'BNB',
+      quoteTokenAddr: '0xDfb1211E2694193df5765d54350e1145FD2404A1',
+      reserveQuoteToken: ethers.utils.parseEther('100'),
+      reserveBaseToken: ethers.utils.parseEther('3450.87')
+    }]
+  }, {
+    symbol: 'BELT',
+    name: 'BELT',
+    mintAmount: ethers.utils.parseEther('8000000000').toString(),
+    pairs: [{
+      quoteToken: 'BNB',
+      quoteTokenAddr: '0xDfb1211E2694193df5765d54350e1145FD2404A1',
+      reserveQuoteToken: ethers.utils.parseEther('100'),
+      reserveBaseToken: ethers.utils.parseEther('872.327')
+    }]
+  }, {
+    symbol: 'BOR',
+    name: 'BOR',
+    mintAmount: ethers.utils.parseEther('8000000000').toString(),
+    pairs: [{
+      quoteToken: 'BNB',
+      quoteTokenAddr: '0xDfb1211E2694193df5765d54350e1145FD2404A1',
+      reserveQuoteToken: ethers.utils.parseEther('100'),
+      reserveBaseToken: ethers.utils.parseEther('107.703')
     }]
   }]
 
