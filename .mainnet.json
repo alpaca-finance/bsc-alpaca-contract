@@ -12,9 +12,9 @@
     "address": "",
     "pools": [{
       "id": 0,
-      "name": "ibALPACA-BUSD",
-      "stakingToken": "",
-      "rewardToken": ""
+      "name": "ibALPACA-bMXX",
+      "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
+      "rewardToken": "0x4131b87F74415190425ccD873048C708F8005823"
     }]
   },
   "FairLaunch": {
@@ -234,7 +234,7 @@
         "address": "0xF45cd219aEF8618A92BAa7aD848364a158a24F33"
       }, {
         "pId": 310,
-        "name": "mBXX-WBNB LP",
+        "name": "bMXX-WBNB LP",
         "address": "0xc20A92a1424b29b78DFaF92FD35D4cf8A06419B4"
       }, {
         "pId": 318,
