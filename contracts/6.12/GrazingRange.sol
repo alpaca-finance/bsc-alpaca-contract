@@ -305,7 +305,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
         CampaignInfo storage campaign = campaignInfo[_campaignID];
         UserInfo storage user = userInfo[_campaignID][msg.sender];
         uint256 _amount = user.amount;
-        campaign.totalStaked = campaign.totalStaked.sub(user.amount);
+        campaign.totalStaked = campaign.totalStaked.sub(_amount);
         user.amount = 0;
         user.rewardDebt = 0;
         campaign.stakingToken.safeTransfer(address(msg.sender), _amount);
