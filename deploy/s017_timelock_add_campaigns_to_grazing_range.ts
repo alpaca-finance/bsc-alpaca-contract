@@ -22,14 +22,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TIMELOCK = '0xb3c3aE82358DF7fC0bd98629D5ed91767e45c337';
-  const GRAZING_RANGE = '0x0f124b314FF168578Cb79103a3fF37fbfdB71d65'
-  const EXACT_ETA = '1620208020';
+  const TIMELOCK = '0x2D5408f2287BF9F9B05404794459a846651D0a59';
+  const GRAZING_RANGE = '0x6bf5b334409cC3FD336Da9A2D3e3F9c870fEb343'
+  const EXACT_ETA = '1620302400';
   const CAMPAIGNS: IAddGrazingRangeCampaignParamList = [{
-    NAME: 'BUSD',
-    STAKING_TOKEN: '0x6ad3A0d891C59677fbbB22E071613253467C382A',
-    REWARD_TOKEN: '0x0266693F9Df932aD7dA8a9b44C2129Ce8a87E81f',
-    START_BLOCK: '8576000'
+    NAME: 'ibALPACA-bMXX',
+    STAKING_TOKEN: '0xf1bE8ecC990cBcb90e166b71E368299f0116d421',
+    REWARD_TOKEN: '0x4131b87F74415190425ccD873048C708F8005823',
+    START_BLOCK: '7215000'
   }]
   
 
