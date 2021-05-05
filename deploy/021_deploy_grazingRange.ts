@@ -17,7 +17,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const REWARD_HOLDER = ''
+  const REWARD_HOLDER = '0xF62Bf3b5608FC5ED119735aDfc3DC3A4814AC884'
 
 
 
