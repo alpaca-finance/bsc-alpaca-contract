@@ -304,10 +304,10 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
     function emergencyWithdraw(uint256 _campaignID) external nonReentrant {
         CampaignInfo storage campaign = campaignInfo[_campaignID];
         UserInfo storage user = userInfo[_campaignID][msg.sender];
-        campaign.stakingToken.safeTransfer(address(msg.sender), user.amount);
         campaign.totalStaked = campaign.totalStaked.sub(user.amount);
         user.amount = 0;
         user.rewardDebt = 0;
+        campaign.stakingToken.safeTransfer(address(msg.sender), user.amount);
         emit EmergencyWithdraw(msg.sender, user.amount, _campaignID);
     }
 
