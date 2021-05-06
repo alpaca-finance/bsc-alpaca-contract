@@ -318,7 +318,6 @@ describe('Pancakeswap - StrategyAddTwoSidesOptimal', () => {
         ethers.utils.defaultAbiCoder.encode([
           'address','address', 'uint256', 'uint256'],
           [baseToken.address, farmingToken.address, '0', '0']),
-        { value: ethers.utils.parseEther('0.1') }
       )
     ).to.be.revertedWith('not within execution scope');
   });

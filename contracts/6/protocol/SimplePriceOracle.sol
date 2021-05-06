@@ -23,7 +23,7 @@ contract SimplePriceOracle is OwnableUpgradeSafe, PriceOracle {
     _;
   }
 
-  function initialize(address _feeder) public initializer {
+  function initialize(address _feeder) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
 
     feeder = _feeder;
@@ -33,7 +33,7 @@ contract SimplePriceOracle is OwnableUpgradeSafe, PriceOracle {
     feeder = _feeder;
   }
 
-  /// @dev Set the prices of the token token pairs. Must be called by the owner.
+  /// @dev Set the prices of the token token pairs. Must be called by the feeder.
   function setPrices(
     address[] calldata token0s,
     address[] calldata token1s,

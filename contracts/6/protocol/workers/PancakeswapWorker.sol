@@ -58,7 +58,7 @@ contract PancakeswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
     IStrategy _addStrat,
     IStrategy _liqStrat,
     uint256 _reinvestBountyBps
-  ) public initializer {
+  ) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
 
@@ -121,7 +121,7 @@ contract PancakeswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
   }
 
   /// @dev Re-invest whatever this worker has earned back to staked LP tokens.
-  function reinvest() public override onlyEOA onlyReinvestor nonReentrant {
+  function reinvest() external override onlyEOA onlyReinvestor nonReentrant {
     // 1. Approve tokens
     cake.safeApprove(address(router), uint256(-1));
     address(lpToken).safeApprove(address(masterChef), uint256(-1));
@@ -171,7 +171,7 @@ contract PancakeswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
     // 2. Perform the worker strategy; sending LP tokens + BaseToken; expecting LP tokens + BaseToken.
     (address strat, bytes memory ext) = abi.decode(data, (address, bytes));
     require(okStrats[strat], "PancakeswapWorker::work:: unapproved work strategy");
-    lpToken.transfer(strat, lpToken.balanceOf(address(this)));
+    require(lpToken.transfer(strat, lpToken.balanceOf(address(this))), "PancakeswapWorker::work:: unable to transfer lp to strat");
     baseToken.safeTransfer(strat, baseToken.myBalance());
     IStrategy(strat).execute(user, debt, ext);
     // 3. Add LP tokens back to the farming pool.

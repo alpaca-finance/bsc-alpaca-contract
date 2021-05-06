@@ -10,3 +10,4 @@
 *.swp
 .tmp
 /.openzeppelin/unknown-31337.json
+/yarn-error.log

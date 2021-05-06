@@ -12,7 +12,9 @@
     "types": ["@types/node", "@types/chai", "@types/mocha", "truffle-typings"],
     "typeRoots": ["./node_modules/@types", "./types"],
   },
-  "include": ["**/*.ts"],
+  "include": [
+    "**/*.ts"
+  ],
   "exclude": ["node_modules", "build", "cache", "artifacts"],
   "files": [
     // "types/chai-bignumber.d.ts", "typechain/index.d.ts"

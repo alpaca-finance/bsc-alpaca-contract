@@ -31,7 +31,6 @@ contract StrategyPartialCloseLiquidate is ReentrancyGuardUpgradeSafe, IStrategy 
   function execute(address /* user */, uint256 /* debt */, bytes calldata data)
     external
     override
-    payable
     nonReentrant
   {
     // 1. Find out what farming token we are dealing with.

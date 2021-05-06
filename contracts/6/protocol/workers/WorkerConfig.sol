@@ -24,7 +24,7 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
   PriceOracle public oracle;
   mapping (address => Config) public workers;
 
-  function initialize(PriceOracle _oracle) public initializer {
+  function initialize(PriceOracle _oracle) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
     oracle = _oracle;
   }
@@ -57,15 +57,15 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
     (uint256 r0, uint256 r1,) = lp.getReserves();
     uint256 t0bal = token0.balanceOf(address(lp));
     uint256 t1bal = token1.balanceOf(address(lp));
-    require(t0bal.mul(100) <= r0.mul(101), "WorkerConfig::setConfigs:: bad t0 balance");
-    require(t1bal.mul(100) <= r1.mul(101), "WorkerConfig::setConfigs:: bad t1 balance");
+    require(t0bal.mul(100) <= r0.mul(101), "WorkerConfig::isStable:: bad t0 balance");
+    require(t1bal.mul(100) <= r1.mul(101), "WorkerConfig::isStable:: bad t1 balance");
     // 2. Check that price is in the acceptable range
     (uint256 price, uint256 lastUpdate) = oracle.getPrice(token0, token1);
-    require(lastUpdate >= now - 7 days, "WorkerConfig::setConfigs:: price too stale");
+    require(lastUpdate >= now - 7 days, "WorkerConfig::isStable:: price too stale");
     uint256 lpPrice = r1.mul(1e18).div(r0);
     uint256 maxPriceDiff = workers[worker].maxPriceDiff;
-    require(lpPrice <= price.mul(maxPriceDiff).div(10000), "WorkerConfig::setConfigs:: price too high");
-    require(lpPrice >= price.mul(10000).div(maxPriceDiff), "WorkerConfig::setConfigs:: price too low");
+    require(lpPrice <= price.mul(maxPriceDiff).div(10000), "WorkerConfig::isStable:: price too high");
+    require(lpPrice >= price.mul(10000).div(maxPriceDiff), "WorkerConfig::isStable:: price too low");
     // 3. Done
     return true;
   }

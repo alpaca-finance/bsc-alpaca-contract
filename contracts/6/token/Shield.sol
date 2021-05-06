@@ -26,7 +26,7 @@ contract Shield is Ownable {
 
   /// @dev Set ALPACA per Block on FLV1. Effect immediately on the next block.
   /// @param _alpacaPerBlock The new alpacaPerBlock
-  function setAlpacaPerBlock(uint256 _alpacaPerBlock) public onlyOwner {
+  function setAlpacaPerBlock(uint256 _alpacaPerBlock) external onlyOwner {
     fairLaunchV1.setAlpacaPerBlock(_alpacaPerBlock);
     emit SetAlpacaPerBlock(_alpacaPerBlock);
   }
@@ -35,7 +35,7 @@ contract Shield is Ownable {
   /// @param _bonusMultiplier New bonusMultiplier
   /// @param _bonusEndBlock The block that this bonus will be ended
   /// @param _bonusLockUpBps The % that will rewards on bonus period will be locked
-  function setBonus(uint256 _bonusMultiplier, uint256 _bonusEndBlock, uint256 _bonusLockUpBps) public onlyOwner {
+  function setBonus(uint256 _bonusMultiplier, uint256 _bonusEndBlock, uint256 _bonusLockUpBps) external onlyOwner {
     fairLaunchV1.setBonus(_bonusMultiplier, _bonusEndBlock, _bonusLockUpBps);
     emit SetBonus(_bonusMultiplier, _bonusEndBlock, _bonusLockUpBps);
   }
@@ -43,7 +43,7 @@ contract Shield is Ownable {
   /// @dev Maunally mint ALPACA warchest portion.
   /// @param _to Mint to which address
   /// @param _amount Amount to be minted
-  function mintWarchest(address _to, uint256 _amount) public onlyOwner {
+  function mintWarchest(address _to, uint256 _amount) external onlyOwner {
     require(mintCount.add(_amount) <= mintLimit, "Shield::mintWarchest:: mint exceeded mintLimit");
     fairLaunchV1.manualMint(_to, _amount);
     mintCount = mintCount.add(_amount);
@@ -54,7 +54,7 @@ contract Shield is Ownable {
   /// @param _allocPoint Allocation point of a new pool
   /// @param _stakeToken Token to be staked
   /// @param _withUpdate Mass update pool?
-  function addPool(uint256 _allocPoint, address _stakeToken, bool _withUpdate) public onlyOwner {
+  function addPool(uint256 _allocPoint, address _stakeToken, bool _withUpdate) external onlyOwner {
     fairLaunchV1.addPool(_allocPoint, _stakeToken, _withUpdate);
     emit AddPool(fairLaunchV1.poolLength().sub(1), _allocPoint, _stakeToken);
   }
@@ -63,7 +63,7 @@ contract Shield is Ownable {
   /// @param _pid PoolId to be updated
   /// @param _allocPoint New allocPoint
   /// @param _withUpdate Mass update pool?
-  function setPool(uint256 _pid, uint256 _allocPoint, bool _withUpdate) public onlyOwner {
+  function setPool(uint256 _pid, uint256 _allocPoint, bool _withUpdate) external onlyOwner {
     fairLaunchV1.setPool(_pid, _allocPoint, _withUpdate);
     emit SetPool(_pid, _allocPoint);
   }

@@ -1,12 +1,13 @@
 pragma solidity 0.6.6;
 
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 import "./AlpacaToken.sol";
 import "./interfaces/IFairLaunch.sol";
 
 // FairLaunch is a smart contract for distributing ALPACA by asking user to stake the ERC20-based token.
-contract FairLaunch is IFairLaunch, Ownable {
+contract FairLaunch is IFairLaunch, Ownable, ReentrancyGuard {
   using SafeMath for uint256;
   using SafeERC20 for IERC20;
 
@@ -97,7 +98,7 @@ contract FairLaunch is IFairLaunch, Ownable {
     devaddr = _devaddr;
   }
 
-  function setAlpacaPerBlock(uint256 _alpacaPerBlock) public onlyOwner {
+  function setAlpacaPerBlock(uint256 _alpacaPerBlock) external onlyOwner {
     alpacaPerBlock = _alpacaPerBlock;
   }
 
@@ -107,7 +108,7 @@ contract FairLaunch is IFairLaunch, Ownable {
     uint256 _bonusMultiplier,
     uint256 _bonusEndBlock,
     uint256 _bonusLockUpBps
-  ) public onlyOwner {
+  ) external onlyOwner {
     require(_bonusEndBlock > block.number, "setBonus: bad bonusEndBlock");
     require(_bonusMultiplier > 1, "setBonus: bad bonusMultiplier");
     bonusMultiplier = _bonusMultiplier;
@@ -120,7 +121,7 @@ contract FairLaunch is IFairLaunch, Ownable {
     uint256 _allocPoint,
     address _stakeToken,
     bool _withUpdate
-  ) public override onlyOwner {
+  ) external override onlyOwner {
     if (_withUpdate) {
       massUpdatePools();
     }
@@ -144,7 +145,7 @@ contract FairLaunch is IFairLaunch, Ownable {
     uint256 _pid,
     uint256 _allocPoint,
     bool /* _withUpdate */
-  ) public override onlyOwner {
+  ) external override onlyOwner {
     massUpdatePools();
     totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint).add(_allocPoint);
     poolInfo[_pid].allocPoint = _allocPoint;
@@ -171,7 +172,7 @@ contract FairLaunch is IFairLaunch, Ownable {
     return poolInfo.length;
   }
 
-  function manualMint(address _to, uint256 _amount) public onlyOwner {
+  function manualMint(address _to, uint256 _amount) external onlyOwner {
     alpaca.manualMint(_to, _amount);
   }
 
@@ -227,19 +228,19 @@ contract FairLaunch is IFairLaunch, Ownable {
     pool.accAlpacaPerShare = pool.accAlpacaPerShare.add(alpacaReward.mul(1e12).div(lpSupply));
     // update accAlpacaPerShareTilBonusEnd
     if (block.number <= bonusEndBlock) {
-      alpaca.lock(devaddr, alpacaReward.div(10).mul(bonusLockUpBps).div(10000));
+      alpaca.lock(devaddr, alpacaReward.mul(bonusLockUpBps).div(100000));
       pool.accAlpacaPerShareTilBonusEnd = pool.accAlpacaPerShare;
     }
     if(block.number > bonusEndBlock && pool.lastRewardBlock < bonusEndBlock) {
       uint256 alpacaBonusPortion = bonusEndBlock.sub(pool.lastRewardBlock).mul(bonusMultiplier).mul(alpacaPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
-      alpaca.lock(devaddr, alpacaBonusPortion.div(10).mul(bonusLockUpBps).div(10000));
+      alpaca.lock(devaddr, alpacaBonusPortion.mul(bonusLockUpBps).div(100000));
       pool.accAlpacaPerShareTilBonusEnd = pool.accAlpacaPerShareTilBonusEnd.add(alpacaBonusPortion.mul(1e12).div(lpSupply));
     }
     pool.lastRewardBlock = block.number;
   }
 
   // Deposit Staking tokens to FairLaunchToken for ALPACA allocation.
-  function deposit(address _for, uint256 _pid, uint256 _amount) public override {
+  function deposit(address _for, uint256 _pid, uint256 _amount) external override nonReentrant {
     PoolInfo storage pool = poolInfo[_pid];
     UserInfo storage user = userInfo[_pid][_for];
     if (user.fundedBy != address(0)) require(user.fundedBy == msg.sender, "bad sof");
@@ -255,11 +256,11 @@ contract FairLaunch is IFairLaunch, Ownable {
   }
 
   // Withdraw Staking tokens from FairLaunchToken.
-  function withdraw(address _for, uint256 _pid, uint256 _amount) public override {
+  function withdraw(address _for, uint256 _pid, uint256 _amount) external override nonReentrant {
     _withdraw(_for, _pid, _amount);
   }
 
-  function withdrawAll(address _for, uint256 _pid) public override {
+  function withdrawAll(address _for, uint256 _pid) external override nonReentrant {
     _withdraw(_for, _pid, userInfo[_pid][_for].amount);
   }
 
@@ -281,7 +282,7 @@ contract FairLaunch is IFairLaunch, Ownable {
   }
 
   // Harvest ALPACAs earn from the pool.
-  function harvest(uint256 _pid) public override {
+  function harvest(uint256 _pid) external override nonReentrant {
     PoolInfo storage pool = poolInfo[_pid];
     UserInfo storage user = userInfo[_pid][msg.sender];
     updatePool(_pid);
@@ -302,7 +303,7 @@ contract FairLaunch is IFairLaunch, Ownable {
   }
 
   // Withdraw without caring about rewards. EMERGENCY ONLY.
-  function emergencyWithdraw(uint256 _pid) public {
+  function emergencyWithdraw(uint256 _pid) external nonReentrant {
     PoolInfo storage pool = poolInfo[_pid];
     UserInfo storage user = userInfo[_pid][msg.sender];
     require(user.fundedBy == msg.sender, "only funder");
@@ -317,9 +318,9 @@ contract FairLaunch is IFairLaunch, Ownable {
   function safeAlpacaTransfer(address _to, uint256 _amount) internal {
     uint256 alpacaBal = alpaca.balanceOf(address(this));
     if (_amount > alpacaBal) {
-      alpaca.transfer(_to, alpacaBal);
+      require(alpaca.transfer(_to, alpacaBal), "failed to transfer ALPACA");
     } else {
-      alpaca.transfer(_to, _amount);
+      require(alpaca.transfer(_to, _amount), "failed to transfer ALPACA");
     }
   }
 

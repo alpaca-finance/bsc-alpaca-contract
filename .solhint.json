@@ -5,7 +5,8 @@
     "avoid-throw": false,
     "avoid-suicide": "error",
     "avoid-sha3": "warn",
-    "quotes": ["warn", "double"]
+    "quotes": ["warn", "double"],
+    "compiler-version": ["warn", "0.6.6"]
   },
   "plugins": ["prettier"]
 }

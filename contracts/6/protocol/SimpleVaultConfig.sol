@@ -40,7 +40,7 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     address _wrappedNative,
     address _wNativeRelayer,
     address _fairLaunch
-  ) public initializer {
+  ) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
 
     setParams(
