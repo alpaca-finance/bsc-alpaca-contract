@@ -15,8 +15,6 @@ import "../../interfaces/IWETH.sol";
 import "../../interfaces/IWNativeRelayer.sol";
 import "../../../utils/SafeToken.sol";
 
-import "hardhat/console.sol";
-
 contract StrategyPartialMinimizeTrading is ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeMath for uint256;
   using SafeToken for address;
@@ -53,8 +51,6 @@ contract StrategyPartialMinimizeTrading is ReentrancyGuardUpgradeSafe, IStrategy
       uint256 maxReturn,
       uint256 minFarmingToken
     ) = abi.decode(data, (address, address, uint256, uint256, uint256));
-    console.log("wbnb: ", address(wbnb));
-    console.log("wnative: ", address(wNativeRelayer));
     IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
     require(lpToken.balanceOf(address(this)) >= returnLpToken, "StrategyPartialCloseMinimizeTrading::execute:: insufficient LP amount recevied from worker");
     // 2. Approve router to do their stuffs
@@ -70,9 +66,6 @@ contract StrategyPartialMinimizeTrading is ReentrancyGuardUpgradeSafe, IStrategy
     if (lessDebt > baseToken.myBalance()) {
       // Convert farmingToken to baseToken that is enough for maxReturn
       uint256 remainingReturnAmount = lessDebt.sub(baseToken.myBalance());
-      console.log("debt: ", debt);
-      console.log("remainingReturnAmount: ", remainingReturnAmount);
-      console.log("farmingToken: ", farmingToken.myBalance());
       router.swapTokensForExactTokens(remainingReturnAmount, farmingToken.myBalance(), path, address(this), now);
     }
     // 5. Return BaseToken back to the original caller.
@@ -83,7 +76,6 @@ contract StrategyPartialMinimizeTrading is ReentrancyGuardUpgradeSafe, IStrategy
     require(remainingFarmingToken >= minFarmingToken, "StrategyPartialCloseMinimizeTrading::execute:: insufficient farming tokens received");
     if (remainingFarmingToken > 0) {
       if (farmingToken == address(wbnb)) {
-        console.log("remainingFarmingToken: ", remainingFarmingToken);
         SafeToken.safeTransfer(farmingToken, address(wNativeRelayer), remainingFarmingToken);
         wNativeRelayer.withdraw(remainingFarmingToken);
         SafeToken.safeTransferETH(user, remainingFarmingToken);
