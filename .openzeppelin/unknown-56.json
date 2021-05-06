@@ -3765,6 +3765,186 @@
           }
         }
       }
+    },
+    "2698fd32ca8d71c3df4a538ab0f790788326cdb50a5c6924cd6c51ea879d05e1": {
+      "address": "0xD50A06E444d2A85098B3dbc66a5D1946789Bb869",
+      "txHash": "0x122370ea38d5e80b294f999c88e5f108ee2cc063e67ff4382f75be979d4abb73",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:26"
+          },
+          {
+            "contract": "Initializable",
+            "label": "______gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:61"
+          },
+          {
+            "contract": "ContextUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol:37"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:18"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:78"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "_notEntered",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:21"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:63"
+          },
+          {
+            "contract": "GrazingRange",
+            "label": "campaignRewardInfo",
+            "type": "t_mapping(t_uint256,t_array(t_struct(RewardInfo)909_storage)dyn_storage)",
+            "src": "contracts/6.12/GrazingRange.sol:54"
+          },
+          {
+            "contract": "GrazingRange",
+            "label": "campaignInfo",
+            "type": "t_array(t_struct(CampaignInfo)904_storage)dyn_storage",
+            "src": "contracts/6.12/GrazingRange.sol:56"
+          },
+          {
+            "contract": "GrazingRange",
+            "label": "userInfo",
+            "type": "t_mapping(t_uint256,t_mapping(t_address,t_struct(UserInfo)889_storage))",
+            "src": "contracts/6.12/GrazingRange.sol:59"
+          },
+          {
+            "contract": "GrazingRange",
+            "label": "rewardInfoLimit",
+            "type": "t_uint256",
+            "src": "contracts/6.12/GrazingRange.sol:63"
+          },
+          {
+            "contract": "GrazingRange",
+            "label": "rewardHolder",
+            "type": "t_address",
+            "src": "contracts/6.12/GrazingRange.sol:65"
+          }
+        ],
+        "types": {
+          "t_mapping(t_uint256,t_array(t_struct(RewardInfo)909_storage)dyn_storage)": {
+            "label": "mapping(uint256 => struct GrazingRange.RewardInfo[])"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_array(t_struct(RewardInfo)909_storage)dyn_storage": {
+            "label": "struct GrazingRange.RewardInfo[]"
+          },
+          "t_struct(RewardInfo)909_storage": {
+            "label": "struct GrazingRange.RewardInfo",
+            "members": [
+              {
+                "label": "endBlock",
+                "type": "t_uint256"
+              },
+              {
+                "label": "rewardPerBlock",
+                "type": "t_uint256"
+              }
+            ]
+          },
+          "t_array(t_struct(CampaignInfo)904_storage)dyn_storage": {
+            "label": "struct GrazingRange.CampaignInfo[]"
+          },
+          "t_struct(CampaignInfo)904_storage": {
+            "label": "struct GrazingRange.CampaignInfo",
+            "members": [
+              {
+                "label": "stakingToken",
+                "type": "t_contract(IERC20)523"
+              },
+              {
+                "label": "rewardToken",
+                "type": "t_contract(IERC20)523"
+              },
+              {
+                "label": "startBlock",
+                "type": "t_uint256"
+              },
+              {
+                "label": "lastRewardBlock",
+                "type": "t_uint256"
+              },
+              {
+                "label": "accRewardPerShare",
+                "type": "t_uint256"
+              },
+              {
+                "label": "totalStaked",
+                "type": "t_uint256"
+              },
+              {
+                "label": "totalRewards",
+                "type": "t_uint256"
+              }
+            ]
+          },
+          "t_contract(IERC20)523": {
+            "label": "contract IERC20"
+          },
+          "t_mapping(t_uint256,t_mapping(t_address,t_struct(UserInfo)889_storage))": {
+            "label": "mapping(uint256 => mapping(address => struct GrazingRange.UserInfo))"
+          },
+          "t_mapping(t_address,t_struct(UserInfo)889_storage)": {
+            "label": "mapping(address => struct GrazingRange.UserInfo)"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_struct(UserInfo)889_storage": {
+            "label": "struct GrazingRange.UserInfo",
+            "members": [
+              {
+                "label": "amount",
+                "type": "t_uint256"
+              },
+              {
+                "label": "rewardDebt",
+                "type": "t_uint256"
+              }
+            ]
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
     }
   },
   "admin": {

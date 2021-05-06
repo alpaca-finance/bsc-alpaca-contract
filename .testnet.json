@@ -9,20 +9,10 @@
     "ITAM-week-4": ""
   },
   "GrazingRange": {
-    "address": "0x9Ff38741EB7594aCE7DD8bb8107Da38aEE7005D6",
+    "address": "0x0f124b314FF168578Cb79103a3fF37fbfdB71d65",
     "pools": [{
       "id": 0,
       "name": "ibALPACA-BUSD",
-      "stakingToken": "0x6ad3A0d891C59677fbbB22E071613253467C382A",
-      "rewardToken": "0x0266693F9Df932aD7dA8a9b44C2129Ce8a87E81f"
-    }, {
-      "id": 1,
-      "name": "ibALPACA-BUSD-2",
-      "stakingToken": "0x6ad3A0d891C59677fbbB22E071613253467C382A",
-      "rewardToken": "0x0266693F9Df932aD7dA8a9b44C2129Ce8a87E81f"
-    }, {
-      "id": 2,
-      "name": "ibALPACA-BUSD-3",
       "stakingToken": "0x6ad3A0d891C59677fbbB22E071613253467C382A",
       "rewardToken": "0x0266693F9Df932aD7dA8a9b44C2129Ce8a87E81f"
     }]
@@ -242,6 +232,18 @@
         "pId": 40,
         "name": "BTCB-BUSD LP",
         "address": "0x958BD4cF570D4de0E59db9926Ce138f6FE96464D"
+      }, {
+        "pId": 41,
+        "name": "bMXX-WBNB LP",
+        "address": "0xc4A3DE5e10AE6E7312C9A4646F23B4B07E1c09b8"
+      }, {
+        "pId": 42,
+        "name": "BELT-WBNB LP",
+        "address": "0xA22A71d3993D3DC1Be74554046610bb3EA4B9E87"
+      }, {
+        "pId": 43,
+        "name": "BOR-WBNB LP",
+        "address": "0x376B2a364298d116384903B544C2515729661011"
       }]
     }
   },
@@ -267,7 +269,10 @@
     "BETH": "0x32Dde246479D538c0FC45a667e002cE33Fc57a15",
     "COMP": "0xd02A71609f9eB0e3270A1417D79e2c12903D3aa1",
     "SUSHI": "0x86c1f21D1622516576ba514b53d2fE5Dbe48Bab0",
-    "ITAM": "0xd817BfBE43229134e7127778a96C0180e47c10B4"
+    "ITAM": "0xd817BfBE43229134e7127778a96C0180e47c10B4",
+    "bMXX": "0xeA84558A0638e6D84B7D2c3d5953827501DF97f8",
+    "BELT": "0xc1721223cBFc97F90Af0c6122f7c25919c0f6803",
+    "BOR": "0x88cF83734637a8c38296429b21E70C7C4785F7EC"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x7549b7d0edcd411e7e5013dc74727f8dab13ab0f",
@@ -389,6 +394,36 @@
     }, {
       "name": "BUSD-WBNB PancakeswapWorker",
       "address": "0x3C437EBe897fd8A624F762A1c9e79A3759b57615",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x11aFF2AC27CBb158015fb3F8FD7661F7f8573BD7",
+        "StrategyLiquidate": "0x4f960E01a7c118BCeb699F81FD36732BaB6Df1Ef",
+        "StrategyAddTwoSidesOptimal": "0x47f86747c9BeEfC52a47f9aFA114d568bE4E504E",
+        "StrategyWithdrawMinimizeTrading": "0x1757f0F5cBa364AF5556Fa147D413a2Cc8fa3511"
+      }
+    }, {
+      "name": "bMXX-WBNB PancakeswapWorker",
+      "address": "0x7b3cD9e6C631Fbeac75A4f017DDa06009C32Ab63",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x11aFF2AC27CBb158015fb3F8FD7661F7f8573BD7",
+        "StrategyLiquidate": "0x4f960E01a7c118BCeb699F81FD36732BaB6Df1Ef",
+        "StrategyAddTwoSidesOptimal": "0x47f86747c9BeEfC52a47f9aFA114d568bE4E504E",
+        "StrategyWithdrawMinimizeTrading": "0x1757f0F5cBa364AF5556Fa147D413a2Cc8fa3511"
+      }
+    }, {
+      "name": "BELT-WBNB PancakeswapWorker",
+      "address": "0x4cE3C78b1706FbC6070451A184D2d4E52145A51b",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x11aFF2AC27CBb158015fb3F8FD7661F7f8573BD7",
+        "StrategyLiquidate": "0x4f960E01a7c118BCeb699F81FD36732BaB6Df1Ef",
+        "StrategyAddTwoSidesOptimal": "0x47f86747c9BeEfC52a47f9aFA114d568bE4E504E",
+        "StrategyWithdrawMinimizeTrading": "0x1757f0F5cBa364AF5556Fa147D413a2Cc8fa3511"
+      }
+    }, {
+      "name": "BOR-WBNB PancakeswapWorker",
+      "address": "0xA498326A4A481832bb6Ca97cC98dA47dc0452618",
       "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
       "strategies": {
         "StrategyAddAllBaseToken": "0x11aFF2AC27CBb158015fb3F8FD7661F7f8573BD7",
