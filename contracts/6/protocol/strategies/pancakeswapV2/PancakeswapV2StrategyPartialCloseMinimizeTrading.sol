@@ -15,7 +15,7 @@ import "../../interfaces/IWETH.sol";
 import "../../interfaces/IWNativeRelayer.sol";
 import "../../../utils/SafeToken.sol";
 
-contract StrategyPartialCloseMinimizeTrading is ReentrancyGuardUpgradeSafe, IStrategy {
+contract PancakeswapV2StrategyPartialCloseMinimizeTrading is ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeMath for uint256;
   using SafeToken for address;
 
@@ -51,7 +51,7 @@ contract StrategyPartialCloseMinimizeTrading is ReentrancyGuardUpgradeSafe, IStr
       uint256 minFarmingToken
     ) = abi.decode(data, (address, address, uint256, uint256, uint256));
     IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
-    require(lpToken.balanceOf(address(this)) >= returnLpToken, "StrategyPartialCloseMinimizeTrading::execute:: insufficient LP amount recevied from worker");
+    require(lpToken.balanceOf(address(this)) >= returnLpToken, "PancakeswapV2StrategyPartialCloseMinimizeTrading::execute::insufficient LP amount recevied from worker");
     // 2. Approve router to do their stuffs
     lpToken.approve(address(router), uint256(-1));
     farmingToken.safeApprove(address(router), uint256(-1));
@@ -72,7 +72,7 @@ contract StrategyPartialCloseMinimizeTrading is ReentrancyGuardUpgradeSafe, IStr
     baseToken.safeTransfer(msg.sender, remainingBalance);
     // 6. Return remaining farming tokens to user.
     uint256 remainingFarmingToken = farmingToken.myBalance();
-    require(remainingFarmingToken >= minFarmingToken, "StrategyPartialCloseMinimizeTrading::execute:: insufficient farming tokens received");
+    require(remainingFarmingToken >= minFarmingToken, "PancakeswapV2StrategyPartialCloseMinimizeTrading::execute::insufficient farming tokens received");
     if (remainingFarmingToken > 0) {
       if (farmingToken == address(wbnb)) {
         SafeToken.safeTransfer(farmingToken, address(wNativeRelayer), remainingFarmingToken);

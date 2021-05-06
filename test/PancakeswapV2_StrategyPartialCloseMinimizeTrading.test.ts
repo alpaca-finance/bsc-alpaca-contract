@@ -11,10 +11,10 @@ import {
   PancakeFactory__factory,
   PancakePair,
   PancakePair__factory,
-  PancakeRouter,
-  PancakeRouter__factory,
-  StrategyPartialCloseMinimizeTrading,
-  StrategyPartialCloseMinimizeTrading__factory,
+  PancakeRouterV2,
+  PancakeRouterV2__factory,
+  PancakeswapV2StrategyPartialCloseMinimizeTrading,
+  PancakeswapV2StrategyPartialCloseMinimizeTrading__factory,
   WETH,
   WETH__factory,
   WNativeRelayer__factory
@@ -28,8 +28,8 @@ describe('Pancakeswap - StrategyPartialCloseWithdrawMinimizeTrading', () => {
   const BOB_LPs = '0.316227766016837933';
 
   /// Pancake-related instance(s)
-  let factory: PancakeFactory;
-  let router: PancakeRouter;
+  let factoryV2: PancakeFactory;
+  let routerV2: PancakeRouterV2;
   let lp: PancakePair;
   let baseTokenWbnbLp: PancakePair;
 
@@ -39,7 +39,7 @@ describe('Pancakeswap - StrategyPartialCloseWithdrawMinimizeTrading', () => {
   let farmingToken: MockERC20;
 
   /// Strategy-ralted instance(s)
-  let strat: StrategyPartialCloseMinimizeTrading;
+  let strat: PancakeswapV2StrategyPartialCloseMinimizeTrading;
 
   // Accounts
   let deployer: Signer;
@@ -52,17 +52,15 @@ describe('Pancakeswap - StrategyPartialCloseWithdrawMinimizeTrading', () => {
 
   let baseTokenWbnbLpAsBob: PancakePair;
 
-  let lpAsAlice: PancakePair;
   let lpAsBob: PancakePair;
 
   let farmingTokenAsAlice: MockERC20;
   let farmingTokenAsBob: MockERC20;
 
-  let routerAsAlice: PancakeRouter;
-  let routerAsBob: PancakeRouter;
+  let routerAsAlice: PancakeRouterV2;
+  let routerAsBob: PancakeRouterV2;
 
-  let stratAsAlice: StrategyPartialCloseMinimizeTrading;
-  let stratAsBob: StrategyPartialCloseMinimizeTrading;
+  let stratAsBob: PancakeswapV2StrategyPartialCloseMinimizeTrading;
 
   let wbnbAsAlice: WETH;
   let wbnbAsBob: WETH;
@@ -71,12 +69,12 @@ describe('Pancakeswap - StrategyPartialCloseWithdrawMinimizeTrading', () => {
     [deployer, alice, bob] = await ethers.getSigners();
 
     // Setup Pancake
-    const PancakeFactory = (await ethers.getContractFactory(
+    const PancakeFactoryV2 = (await ethers.getContractFactory(
       "PancakeFactory",
       deployer
     )) as PancakeFactory__factory;
-    factory = await PancakeFactory.deploy((await deployer.getAddress()));
-    await factory.deployed();
+    factoryV2 = await PancakeFactoryV2.deploy((await deployer.getAddress()));
+    await factoryV2.deployed();
 
     const WETH = (await ethers.getContractFactory(
       "WETH",
@@ -85,12 +83,12 @@ describe('Pancakeswap - StrategyPartialCloseWithdrawMinimizeTrading', () => {
     wbnb = await WETH.deploy();
     await wbnb.deployed();
 
-    const PancakeRouter = (await ethers.getContractFactory(
-      "PancakeRouter",
+    const PancakeRouterV2 = (await ethers.getContractFactory(
+      "PancakeRouterV2",
       deployer
-    )) as PancakeRouter__factory;
-    router = await PancakeRouter.deploy(factory.address, wbnb.address);
-    await router.deployed();
+    )) as PancakeRouterV2__factory;
+    routerV2 = await PancakeRouterV2.deploy(factoryV2.address, wbnb.address);
+    await routerV2.deployed();
 
     /// Setup token stuffs
     const MockERC20 = (await ethers.getContractFactory(
@@ -106,11 +104,11 @@ describe('Pancakeswap - StrategyPartialCloseWithdrawMinimizeTrading', () => {
     await farmingToken.mint(await alice.getAddress(), ethers.utils.parseEther('1'));
     await farmingToken.mint(await bob.getAddress(), ethers.utils.parseEther('1'));
 
-    await factory.createPair(baseToken.address, farmingToken.address);
-    await factory.createPair(baseToken.address, wbnb.address);
+    await factoryV2.createPair(baseToken.address, farmingToken.address);
+    await factoryV2.createPair(baseToken.address, wbnb.address);
 
-    lp = PancakePair__factory.connect(await factory.getPair(farmingToken.address, baseToken.address), deployer);
-    baseTokenWbnbLp = PancakePair__factory.connect(await factory.getPair(wbnb.address, baseToken.address), deployer);
+    lp = PancakePair__factory.connect(await factoryV2.getPair(farmingToken.address, baseToken.address), deployer);
+    baseTokenWbnbLp = PancakePair__factory.connect(await factoryV2.getPair(wbnb.address, baseToken.address), deployer);
 
     /// Setup WNativeRelayer
     const WNativeRelayer = (await ethers.getContractFactory(
@@ -120,14 +118,14 @@ describe('Pancakeswap - StrategyPartialCloseWithdrawMinimizeTrading', () => {
     const wNativeRelayer = await WNativeRelayer.deploy(wbnb.address);
     await wNativeRelayer.deployed();
 
-    /// Setup StrategyPartialCloseMinimizeTrading
-    const StrategyPartialCloseMinimizeTrading = (await ethers.getContractFactory(
-      "StrategyPartialCloseMinimizeTrading",
+    /// Setup PancakeswapV2StrategyPartialCloseMinimizeTrading
+    const PancakeswapV2StrategyPartialCloseMinimizeTrading = (await ethers.getContractFactory(
+      "PancakeswapV2StrategyPartialCloseMinimizeTrading",
       deployer
-    )) as StrategyPartialCloseMinimizeTrading__factory;
+    )) as PancakeswapV2StrategyPartialCloseMinimizeTrading__factory;
     strat = await upgrades.deployProxy(
-      StrategyPartialCloseMinimizeTrading,
-        [router.address, wbnb.address, wNativeRelayer.address]) as StrategyPartialCloseMinimizeTrading;
+        PancakeswapV2StrategyPartialCloseMinimizeTrading,
+        [routerV2.address, wbnb.address, wNativeRelayer.address]) as PancakeswapV2StrategyPartialCloseMinimizeTrading;
     await strat.deployed();
 
     await wNativeRelayer.setCallerOk([strat.address], true);
@@ -141,14 +139,12 @@ describe('Pancakeswap - StrategyPartialCloseWithdrawMinimizeTrading', () => {
     farmingTokenAsAlice = MockERC20__factory.connect(farmingToken.address, alice);
     farmingTokenAsBob = MockERC20__factory.connect(farmingToken.address, bob);
 
-    routerAsAlice = PancakeRouter__factory.connect(router.address, alice);
-    routerAsBob = PancakeRouter__factory.connect(router.address, bob);
+    routerAsAlice = PancakeRouterV2__factory.connect(routerV2.address, alice);
+    routerAsBob = PancakeRouterV2__factory.connect(routerV2.address, bob);
 
-    lpAsAlice = PancakePair__factory.connect(lp.address, alice);
     lpAsBob = PancakePair__factory.connect(lp.address, bob);
 
-    stratAsAlice = StrategyPartialCloseMinimizeTrading__factory.connect(strat.address, alice);
-    stratAsBob = StrategyPartialCloseMinimizeTrading__factory.connect(strat.address, bob);
+    stratAsBob = PancakeswapV2StrategyPartialCloseMinimizeTrading__factory.connect(strat.address, bob);
 
     wbnbAsAlice = WETH__factory.connect(wbnb.address, alice);
     wbnbAsBob = WETH__factory.connect(wbnb.address, bob);
@@ -157,15 +153,15 @@ describe('Pancakeswap - StrategyPartialCloseWithdrawMinimizeTrading', () => {
   context('It should convert LP tokens and farming token', () => {
     beforeEach(async () => {
       // Alice adds 0.1 FTOKEN + 1 BaseToken
-      await baseTokenAsAlice.approve(router.address, ethers.utils.parseEther('1'));
-      await farmingTokenAsAlice.approve(router.address, ethers.utils.parseEther('0.1'));
+      await baseTokenAsAlice.approve(routerV2.address, ethers.utils.parseEther('1'));
+      await farmingTokenAsAlice.approve(routerV2.address, ethers.utils.parseEther('0.1'));
       await routerAsAlice.addLiquidity(
         baseToken.address, farmingToken.address,
         ethers.utils.parseEther('1'), ethers.utils.parseEther('0.1'), '0', '0', await alice.getAddress(), FOREVER);
 
       // Bob tries to add 1 FTOKEN + 1 BaseToken (but obviously can only add 0.1 FTOKEN)
-      await baseTokenAsBob.approve(router.address, ethers.utils.parseEther('1'));
-      await farmingTokenAsBob.approve(router.address, ethers.utils.parseEther('1'));
+      await baseTokenAsBob.approve(routerV2.address, ethers.utils.parseEther('1'));
+      await farmingTokenAsBob.approve(routerV2.address, ethers.utils.parseEther('1'));
       await routerAsBob.addLiquidity(
         baseToken.address, farmingToken.address,
         ethers.utils.parseEther('1'), ethers.utils.parseEther('1'), '0', '0', await bob.getAddress(), FOREVER);
@@ -497,8 +493,8 @@ describe('Pancakeswap - StrategyPartialCloseWithdrawMinimizeTrading', () => {
       // Alice wrap BNB
       await wbnbAsAlice.deposit({ value: ethers.utils.parseEther('0.1') });
       // Alice adds 0.1 WBNB + 1 BaseToken
-      await baseTokenAsAlice.approve(router.address, ethers.utils.parseEther('1'));
-      await wbnbAsAlice.approve(router.address, ethers.utils.parseEther('0.1'));
+      await baseTokenAsAlice.approve(routerV2.address, ethers.utils.parseEther('1'));
+      await wbnbAsAlice.approve(routerV2.address, ethers.utils.parseEther('0.1'));
       await routerAsAlice.addLiquidity(
         baseToken.address, wbnb.address,
         ethers.utils.parseEther('1'), ethers.utils.parseEther('0.1'), '0', '0', await alice.getAddress(), FOREVER);
@@ -506,8 +502,8 @@ describe('Pancakeswap - StrategyPartialCloseWithdrawMinimizeTrading', () => {
       // Bob wrap BNB
       await wbnbAsBob.deposit({ value: ethers.utils.parseEther('1') });
       // Bob tries to add 1 WBNB + 1 BaseToken (but obviously can only add 0.1 WBNB)
-      await baseTokenAsBob.approve(router.address, ethers.utils.parseEther('1'));
-      await wbnbAsBob.approve(router.address, ethers.utils.parseEther('1'));
+      await baseTokenAsBob.approve(routerV2.address, ethers.utils.parseEther('1'));
+      await wbnbAsBob.approve(routerV2.address, ethers.utils.parseEther('1'));
       await routerAsBob.addLiquidity(
         baseToken.address, wbnb.address,
         ethers.utils.parseEther('1'), ethers.utils.parseEther('1'), '0', '0', await bob.getAddress(), FOREVER);
