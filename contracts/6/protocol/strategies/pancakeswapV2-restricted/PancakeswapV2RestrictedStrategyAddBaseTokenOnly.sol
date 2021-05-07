@@ -3,9 +3,10 @@ pragma solidity 0.6.6;
 import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
-
+import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakeFactory.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
+
 
 import "../../apis/pancake/IPancakeRouter02.sol";
 import "../../interfaces/IStrategy.sol";
@@ -14,7 +15,7 @@ import "../../../utils/AlpacaMath.sol";
 import "../../interfaces/IWorker.sol";
 
 
-contract PancakeswapV2RestrictedStrategyAddBaseTokenOnly is ReentrancyGuardUpgradeSafe, IStrategy {
+contract PancakeswapV2RestrictedStrategyAddBaseTokenOnly is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeToken for address;
   using SafeMath for uint256;
 
@@ -31,8 +32,8 @@ contract PancakeswapV2RestrictedStrategyAddBaseTokenOnly is ReentrancyGuardUpgra
   /// @dev Create a new add Token only strategy instance.
   /// @param _router The Uniswap router smart contract.
   function initialize(IPancakeRouter02 _router) external initializer {
+    OwnableUpgradeSafe.__Ownable_init();
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
-
     factory = IPancakeFactory(_router.factory());
     router = _router;
   }
@@ -83,7 +84,7 @@ contract PancakeswapV2RestrictedStrategyAddBaseTokenOnly is ReentrancyGuardUpgra
     farmingToken.safeApprove(address(router), 0);
   }
 
-  function setWorkersOk(address[] calldata workers, bool isOk) external {
+  function setWorkersOk(address[] calldata workers, bool isOk) external onlyOwner {
     for (uint256 idx = 0; idx < workers.length; idx++) {
       okWorkers[workers[idx]] = isOk;
     }
