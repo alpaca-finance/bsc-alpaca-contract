@@ -10,11 +10,10 @@ import {
   PancakeFactory__factory,
   PancakePair,
   PancakePair__factory,
-  PancakeRouter,
   PancakeRouterV2__factory,
-  PancakeRouter__factory,
-  PancakeswapV2RestrictedStrategyAddBaseTokenOnly,
-  PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory,
+  PancakeRouterV2,
+  PancakeswapV2RestrictedStrategyLiquidate,
+  PancakeswapV2RestrictedStrategyLiquidate__factory,
   WETH,
   WETH__factory
 } from "../typechain";
@@ -24,13 +23,13 @@ import { MockPancakeswapV2Worker } from "../typechain/MockPancakeswapV2Worker";
 chai.use(solidity);
 const { expect } = chai;
 
-describe('Pancakeswapv2RestrictedStrategyAddBaseTokenOnly', () => {
+describe('PancakeswapV2RestrictedStrategyLiquidate', () => {
   const FOREVER = '2000000000';
   const CAKE_REWARD_PER_BLOCK = ethers.utils.parseEther('0.076');
 
   /// Pancakeswap-related instance(s)
   let factoryV2: PancakeFactory;
-  let routerV2: PancakeRouter;
+  let routerV2: PancakeRouterV2;
   let lpV2: PancakePair;
 
   /// MockPancakeswapV2Worker-related instance(s)
@@ -43,7 +42,7 @@ describe('Pancakeswapv2RestrictedStrategyAddBaseTokenOnly', () => {
   let farmingToken: MockERC20;
 
   /// Strategy instance(s)
-  let strat: PancakeswapV2RestrictedStrategyAddBaseTokenOnly;
+  let strat: PancakeswapV2RestrictedStrategyLiquidate;
 
   // Accounts
   let deployer: Signer;
@@ -60,11 +59,11 @@ describe('Pancakeswapv2RestrictedStrategyAddBaseTokenOnly', () => {
   let farmingTokenAsAlice: MockERC20;
   let farmingTokenAsBob: MockERC20;
 
-  let routerV2AsAlice: PancakeRouter;
-  let routerV2AsBob: PancakeRouter;
+  let routerV2AsAlice: PancakeRouterV2;
+  let routerV2AsBob: PancakeRouterV2;
 
-  let stratAsAlice: PancakeswapV2RestrictedStrategyAddBaseTokenOnly;
-  let stratAsBob: PancakeswapV2RestrictedStrategyAddBaseTokenOnly;
+  let stratAsAlice: PancakeswapV2RestrictedStrategyLiquidate;
+  let stratAsBob: PancakeswapV2RestrictedStrategyLiquidate;
 
   let mockPancakeswapV2WorkerAsBob: MockPancakeswapV2Worker;
   let mockPancakeswapV2EvilWorkerAsBob: MockPancakeswapV2Worker
@@ -122,13 +121,14 @@ describe('Pancakeswapv2RestrictedStrategyAddBaseTokenOnly', () => {
     mockPancakeswapV2EvilWorker = await MockPancakeswapV2Worker.deploy(lpV2.address, baseToken.address, farmingToken.address) as MockPancakeswapV2Worker
     await mockPancakeswapV2EvilWorker.deployed();
 
-    const PancakeswapV2RestrictedStrategyAddBaseTokenOnly = (await ethers.getContractFactory(
-      "PancakeswapV2RestrictedStrategyAddBaseTokenOnly",
+    const PancakeswapV2RestrictedStrategyLiquidate = (await ethers.getContractFactory(
+      "PancakeswapV2RestrictedStrategyLiquidate",
       deployer
-    )) as PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory;
-    strat = await upgrades.deployProxy(PancakeswapV2RestrictedStrategyAddBaseTokenOnly, [routerV2.address]) as PancakeswapV2RestrictedStrategyAddBaseTokenOnly;
+    )) as PancakeswapV2RestrictedStrategyLiquidate__factory;
+    strat = await upgrades.deployProxy(PancakeswapV2RestrictedStrategyLiquidate, [routerV2.address]) as PancakeswapV2RestrictedStrategyLiquidate;
     await strat.deployed();
     await strat.setWorkersOk([mockPancakeswapV2Worker.address], true)
+    
 
     // Assign contract signer
     baseTokenAsAlice = MockERC20__factory.connect(baseToken.address, alice);
@@ -137,27 +137,17 @@ describe('Pancakeswapv2RestrictedStrategyAddBaseTokenOnly', () => {
     farmingTokenAsAlice = MockERC20__factory.connect(farmingToken.address, alice);
     farmingTokenAsBob = MockERC20__factory.connect(farmingToken.address, bob);
 
-    routerV2AsAlice = PancakeRouter__factory.connect(routerV2.address, alice);
-    routerV2AsBob = PancakeRouter__factory.connect(routerV2.address, bob);
+    routerV2AsAlice = PancakeRouterV2__factory.connect(routerV2.address, alice);
+    routerV2AsBob = PancakeRouterV2__factory.connect(routerV2.address, bob);
 
     lpAsAlice = PancakePair__factory.connect(lpV2.address, alice);
     lpAsBob = PancakePair__factory.connect(lpV2.address, bob);
 
-    stratAsAlice = PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory.connect(strat.address, alice);
-    stratAsBob = PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory.connect(strat.address, bob);
+    stratAsAlice = PancakeswapV2RestrictedStrategyLiquidate__factory.connect(strat.address, alice);
+    stratAsBob = PancakeswapV2RestrictedStrategyLiquidate__factory.connect(strat.address, bob);
 
     mockPancakeswapV2WorkerAsBob = MockPancakeswapV2Worker__factory.connect(mockPancakeswapV2Worker.address, bob);
     mockPancakeswapV2EvilWorkerAsBob = MockPancakeswapV2Worker__factory.connect(mockPancakeswapV2EvilWorker.address, bob);
-
-    // Adding liquidity to the pool
-    // Alice adds 0.1 FTOKEN + 1 WBTC
-    await farmingTokenAsAlice.approve(routerV2.address, ethers.utils.parseEther('0.1'));
-    await baseTokenAsAlice.approve(routerV2.address, ethers.utils.parseEther('1'));
-
-    // Add liquidity to the WBTC-FTOKEN pool on Pancakeswap
-    await routerV2AsAlice.addLiquidity(
-      baseToken.address, farmingToken.address,
-      ethers.utils.parseEther('1'), ethers.utils.parseEther('0.1'), '0', '0', await alice.getAddress(), FOREVER);
   });
 
   context('When bad calldata', async() => {
@@ -186,23 +176,6 @@ describe('Pancakeswapv2RestrictedStrategyAddBaseTokenOnly', () => {
     })
   })
 
-  context('When contract get LP < minLP', async () => {
-    it('should revert', async () => {
-      // Bob uses AddBaseTokenOnly strategy yet again, but now with an unreasonable min LP request
-      await baseTokenAsBob.transfer(mockPancakeswapV2Worker.address, ethers.utils.parseEther('0.1'));
-      await expect(mockPancakeswapV2WorkerAsBob.work(
-        0, await bob.getAddress(), '0',
-        ethers.utils.defaultAbiCoder.encode(
-          ['address', 'bytes'],
-          [strat.address, ethers.utils.defaultAbiCoder.encode(
-            ['uint256'],
-            [ ethers.utils.parseEther('0.05')]
-          )],
-        )
-      )).to.be.revertedWith('PancakeswapV2RestrictedStrategyAddBaseTokenOnly::execute:: insufficient LP tokens received');
-    });
-  })
-
   context("When caller worker hasn't been whitelisted", async () => {
     it('should revert as bad worker', async () => {
       await baseTokenAsBob.transfer(mockPancakeswapV2EvilWorkerAsBob.address, ethers.utils.parseEther('0.05'));
@@ -215,7 +188,7 @@ describe('Pancakeswapv2RestrictedStrategyAddBaseTokenOnly', () => {
             [ethers.utils.parseEther('0.05')]
           )],
         )
-      )).to.be.revertedWith('PancakeswapV2RestrictedStrategyAddBaseTokenOnly::onlyWhitelistedWorkers:: bad worker');
+      )).to.be.revertedWith('PancakeswapV2RestrictedStrategyLiquidate::onlyWhitelistedWorkers:: bad worker');
     });
   })
 
@@ -231,46 +204,61 @@ describe('Pancakeswapv2RestrictedStrategyAddBaseTokenOnly', () => {
             [ethers.utils.parseEther('0.05')]
           )],
         )
-      )).to.be.revertedWith('PancakeswapV2RestrictedStrategyAddBaseTokenOnly::onlyWhitelistedWorkers:: bad worker');
+      )).to.be.revertedWith('PancakeswapV2RestrictedStrategyLiquidate::onlyWhitelistedWorkers:: bad worker');
     });
   })
 
+  it('should convert all LP tokens back to baseToken', async () => {
+    // Alice adds 0.1 FTOKEN + 1 BTOKEN
+    await baseTokenAsAlice.approve(routerV2.address, ethers.utils.parseEther('1'));
+    await farmingTokenAsAlice.approve(routerV2.address, ethers.utils.parseEther('0.1'));
+    await routerV2AsAlice.addLiquidity(
+      baseToken.address, farmingToken.address,
+      ethers.utils.parseEther('1'), ethers.utils.parseEther('0.1'), '0', '0',
+      await alice.getAddress(), FOREVER);
 
-  it('should convert all BTOKEN to LP tokens at best rate', async () => {
-    // Bob transfer 0.1 WBTC to StrategyAddBaseTokenOnly first
-    await baseTokenAsBob.transfer(mockPancakeswapV2Worker.address, ethers.utils.parseEther('0.1'));
-    // Bob uses AddBaseTokenOnly strategy to add 0.1 WBTC
+    // Bob tries to add 1 FTOKEN + 1 BTOKEN (but obviously can only add 0.1 FTOKEN)
+    await baseTokenAsBob.approve(routerV2.address, ethers.utils.parseEther('1'));
+    await farmingTokenAsBob.approve(routerV2.address, ethers.utils.parseEther('1'));
+    await routerV2AsBob.addLiquidity(
+      baseToken.address, farmingToken.address,
+      ethers.utils.parseEther('1'), ethers.utils.parseEther('1'), '0', '0',
+      await bob.getAddress(), FOREVER);
+
+    expect(await baseToken.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther('99'));
+    expect(await farmingToken.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther('9.9'));
+    expect(await lpV2.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther('0.316227766016837933'));
+
+    // Bob uses liquidate strategy to turn all LPs back to BTOKEN but with an unreasonable expectation
+    await lpAsBob.transfer(strat.address, ethers.utils.parseEther('0.316227766016837933'));
+    await expect(
+        mockPancakeswapV2WorkerAsBob.work(
+            0, await bob.getAddress(), '0',
+            ethers.utils.defaultAbiCoder.encode(
+                ['address', 'bytes'],
+                [strat.address, ethers.utils.defaultAbiCoder.encode(
+                ['uint256'],
+                [ethers.utils.parseEther('2')]
+                )],
+            )
+        )
+    ).to.be.revertedWith('insufficient baseToken received');
+
+    // Bob uses liquidate strategy to turn all LPs back to BTOKEN with a same minimum value
     await mockPancakeswapV2WorkerAsBob.work(
-      0, await bob.getAddress(), '0',
-      ethers.utils.defaultAbiCoder.encode(
-        ['address', 'bytes'],
-        [strat.address, ethers.utils.defaultAbiCoder.encode(
-          ['uint256'],
-          ['0']
-        )],
-      )
-    );
+        0, await bob.getAddress(), '0',
+        ethers.utils.defaultAbiCoder.encode(
+            ['address', 'bytes'],
+            [strat.address, ethers.utils.defaultAbiCoder.encode(
+            ['uint256'],
+            [ethers.utils.parseEther('1')]
+            )],
+        )
+    )
 
-    expect(await lpV2.balanceOf(mockPancakeswapV2Worker.address)).to.be.bignumber.eq(ethers.utils.parseEther('0.015415396042372718'))
-    expect(await lpV2.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-    expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-
-    // Bob uses AddBaseTokenOnly strategy to add another 0.1 WBTC
-    await baseTokenAsBob.transfer(mockPancakeswapV2Worker.address, ethers.utils.parseEther('0.1'));
-    await mockPancakeswapV2WorkerAsBob.work(
-      0, await bob.getAddress(), '0',
-      ethers.utils.defaultAbiCoder.encode(
-        ['address', 'bytes'],
-        [strat.address, ethers.utils.defaultAbiCoder.encode(
-          ['uint256'],
-          ['0']
-        )],
-      )
-    );
-
-    expect(await lpV2.balanceOf(mockPancakeswapV2Worker.address)).to.be.bignumber.eq(ethers.utils.parseEther('0.030143763464109982'))
-    expect(await lpV2.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-    expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-    expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+    expect(await lpV2.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'));
+    expect(await lpV2.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther('0'));
+    expect(await baseToken.balanceOf(lpV2.address)).to.be.bignumber.eq(ethers.utils.parseEther('0.500625782227784731'))
+    expect(await farmingToken.balanceOf(lpV2.address)).to.be.bignumber.eq(ethers.utils.parseEther('0.2'))
   });
 });
