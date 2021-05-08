@@ -24,12 +24,12 @@ import {
   PancakePair__factory,
   PancakeRouterV2,
   PancakeRouterV2__factory,
-  PancakeswapV2StrategyAddBaseTokenOnly,
-  PancakeswapV2StrategyAddBaseTokenOnly__factory,
-  PancakeswapV2StrategyLiquidate,
-  PancakeswapV2StrategyLiquidate__factory,
-  PancakeswapV2StrategyPartialCloseLiquidate,
-  PancakeswapV2StrategyPartialCloseLiquidate__factory,
+  PancakeswapV2RestrictedStrategyAddBaseTokenOnly,
+  PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory,
+  PancakeswapV2RestrictedStrategyLiquidate,
+  PancakeswapV2RestrictedStrategyLiquidate__factory,
+  PancakeswapV2RestrictedStrategyPartialCloseLiquidate,
+  PancakeswapV2RestrictedStrategyPartialCloseLiquidate__factory,
   PancakeswapV2Worker,
   PancakeswapV2Worker__factory,
   SimpleVaultConfig,
@@ -75,9 +75,9 @@ describe('Vault - PancakeswapV2', () => {
   let debtToken: DebtToken;
 
   /// Strategy-ralted instance(s)
-  let addStrat: PancakeswapV2StrategyAddBaseTokenOnly;
-  let liqStrat: PancakeswapV2StrategyLiquidate;
-  let partialCloseStrat: PancakeswapV2StrategyPartialCloseLiquidate;
+  let addStrat: PancakeswapV2RestrictedStrategyAddBaseTokenOnly;
+  let liqStrat: PancakeswapV2RestrictedStrategyLiquidate;
+  let partialCloseStrat: PancakeswapV2RestrictedStrategyPartialCloseLiquidate;
 
   /// Vault-related instance(s)
   let simpleVaultConfig: SimpleVaultConfig;
@@ -179,26 +179,26 @@ describe('Vault - PancakeswapV2', () => {
     await lp.deployed();
 
     /// Setup strategy
-    const PancakeswapV2StrategyAddBaseTokenOnly = (await ethers.getContractFactory(
-      "PancakeswapV2StrategyAddBaseTokenOnly",
+    const PancakeswapV2RestrictedStrategyAddBaseTokenOnly = (await ethers.getContractFactory(
+      "PancakeswapV2RestrictedStrategyAddBaseTokenOnly",
       deployer
-    )) as PancakeswapV2StrategyAddBaseTokenOnly__factory;
-    addStrat = await upgrades.deployProxy(PancakeswapV2StrategyAddBaseTokenOnly, [routerV2.address]) as PancakeswapV2StrategyAddBaseTokenOnly
+    )) as PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory;
+    addStrat = await upgrades.deployProxy(PancakeswapV2RestrictedStrategyAddBaseTokenOnly, [routerV2.address]) as PancakeswapV2RestrictedStrategyAddBaseTokenOnly
     await addStrat.deployed();
 
-    const PancakeswapV2StrategyLiquidate = (await ethers.getContractFactory(
-      "PancakeswapV2StrategyLiquidate",
+    const PancakeswapV2RestrictedStrategyLiquidate = (await ethers.getContractFactory(
+      "PancakeswapV2RestrictedStrategyLiquidate",
       deployer
-    )) as PancakeswapV2StrategyLiquidate__factory;
-    liqStrat = await upgrades.deployProxy(PancakeswapV2StrategyLiquidate, [routerV2.address]) as PancakeswapV2StrategyLiquidate;
+    )) as PancakeswapV2RestrictedStrategyLiquidate__factory;
+    liqStrat = await upgrades.deployProxy(PancakeswapV2RestrictedStrategyLiquidate, [routerV2.address]) as PancakeswapV2RestrictedStrategyLiquidate;
     await liqStrat.deployed();
 
-    const PancakeswapV2StrategyPartialCloseLiquidate = (await ethers.getContractFactory(
-      "PancakeswapV2StrategyPartialCloseLiquidate",
+    const PancakeswapV2RestrictedStrategyPartialCloseLiquidate = (await ethers.getContractFactory(
+      "PancakeswapV2RestrictedStrategyPartialCloseLiquidate",
       deployer
-    )) as PancakeswapV2StrategyPartialCloseLiquidate__factory;
+    )) as PancakeswapV2RestrictedStrategyPartialCloseLiquidate__factory;
     partialCloseStrat = await upgrades.deployProxy(
-        PancakeswapV2StrategyPartialCloseLiquidate, [routerV2.address]) as PancakeswapV2StrategyPartialCloseLiquidate
+        PancakeswapV2RestrictedStrategyPartialCloseLiquidate, [routerV2.address]) as PancakeswapV2RestrictedStrategyPartialCloseLiquidate
     await partialCloseStrat.deployed();
 
     // Setup FairLaunch contract
@@ -296,6 +296,9 @@ describe('Vault - PancakeswapV2', () => {
     await simpleVaultConfig.setWorker(pancakeswapV2Worker.address, true, true, WORK_FACTOR, KILL_FACTOR);
     await pancakeswapV2Worker.setStrategyOk([partialCloseStrat.address], true);
     await pancakeswapV2Worker.setReinvestorOk([await eve.getAddress()], true);
+    await addStrat.setWorkersOk([pancakeswapV2Worker.address], true)
+    await liqStrat.setWorkersOk([pancakeswapV2Worker.address], true)
+    await partialCloseStrat.setWorkersOk([pancakeswapV2Worker.address], true)
 
     // Deployer adds 0.1 FTOKEN + 1 BTOKEN
     await baseToken.approve(routerV2.address, ethers.utils.parseEther('1'));
@@ -415,9 +418,9 @@ describe('Vault - PancakeswapV2', () => {
         '0',
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
-          [addStrat.address, ethers.utils.defaultAbiCoder.encode([
-            'address', 'address', 'uint256'],
-            [baseToken.address, farmToken.address, '0'])
+          [addStrat.address, ethers.utils.defaultAbiCoder.encode(
+            ['uint256'],
+            ['0'])
           ]
         ),
       );
@@ -440,8 +443,8 @@ describe('Vault - PancakeswapV2', () => {
           ethers.utils.defaultAbiCoder.encode(
             ['address', 'bytes'],
             [addStrat.address, ethers.utils.defaultAbiCoder.encode(
-              ['address', 'address', 'uint256'],
-              [baseToken.address, farmToken.address, '0'])
+              ['uint256'],
+              ['0'])
             ]
           )
         )
@@ -465,8 +468,8 @@ describe('Vault - PancakeswapV2', () => {
           ethers.utils.defaultAbiCoder.encode(
             ['address', 'bytes'],
             [addStrat.address, ethers.utils.defaultAbiCoder.encode(
-              ['address', 'address', 'uint256'],
-              [baseToken.address, farmToken.address, '0'])
+              ['uint256'],
+              ['0'])
             ]
           )
         )
@@ -486,8 +489,8 @@ describe('Vault - PancakeswapV2', () => {
           ethers.utils.defaultAbiCoder.encode(
             ['address', 'bytes'],
             [addStrat.address, ethers.utils.defaultAbiCoder.encode(
-              ['address', 'address', 'uint256'],
-              [baseToken.address, farmToken.address, '0'])
+              ['uint256'],
+              ['0'])
             ]
           )
         )
@@ -512,8 +515,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [addStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address', 'address', 'uint256'],
-            [baseToken.address, farmToken.address, '0'])
+            ['uint256'],
+            ['0'])
           ]
         ),
       );
@@ -547,8 +550,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [addStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address', 'address', 'uint256'],
-            [baseToken.address, farmToken.address, '0'])
+            ['uint256'],
+            ['0'])
           ]
         )
       );
@@ -610,8 +613,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [addStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address', 'address', 'uint256'],
-            [baseToken.address, farmToken.address, '0'])
+            ['uint256'],
+            ['0'])
           ]
         )
       );
@@ -653,8 +656,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [addStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address', 'address', 'uint256'],
-            [baseToken.address, farmToken.address, '0'])
+            ['uint256'],
+            ['0'])
           ]
         ),
       );
@@ -718,8 +721,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [addStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address', 'address', 'uint256'],
-            [baseToken.address, farmToken.address, '0'])
+            ['uint256'],
+            ['0'])
           ]
         )
       )
@@ -734,8 +737,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [liqStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address','address', 'uint256'],
-            [baseToken.address, farmToken.address, '0'])
+            ['uint256'],
+            ['0'])
           ]
         )
       );
@@ -759,8 +762,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [addStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address', 'address', 'uint256'],
-            [baseToken.address, farmToken.address, '0'])
+            ['uint256'],
+            ['0'])
           ]
         ),
       );
@@ -824,8 +827,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [addStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address', 'address', 'uint256'],
-            [baseToken.address, farmToken.address, '0'])
+            ['uint256'],
+            ['0'])
           ]
         )
       )
@@ -840,8 +843,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [liqStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address','address', 'uint256'],
-            [baseToken.address, farmToken.address, '0'])
+            ['uint256'],
+            ['0'])
           ]
         )
       );
@@ -867,8 +870,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [addStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address', 'address', 'uint256'],
-            [baseToken.address, farmToken.address, '0'])
+            ['uint256'],
+            ['0'])
           ]
         )
       );
@@ -952,8 +955,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [addStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address','address', 'uint256'],
-            [baseToken.address, farmToken.address, '0'])
+            ['uint256'],
+            ['0'])
           ]
         )
       );
@@ -1052,8 +1055,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [addStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address', 'address', 'uint256'],
-            [baseToken.address, farmToken.address, '0'])
+            ['uint256'],
+            ['0'])
           ]
         ),
       );
@@ -1069,8 +1072,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [addStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address','address', 'uint256'],
-            [baseToken.address, farmToken.address, '0'])
+            ['uint256'],
+            ['0'])
           ]
         )
       );
@@ -1181,8 +1184,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [liqStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address', 'address', 'uint256'],
-            [baseToken.address, farmToken.address, '0'])
+            ['uint256'],
+            ['0'])
           ]
         )
       );
@@ -1202,8 +1205,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [addStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address','address', 'uint256'],
-            [baseToken.address, farmToken.address, '0'])
+            ['uint256'],
+            ['0'])
           ]
         )
       );
@@ -1219,8 +1222,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [liqStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address', 'address', 'uint256'],
-            [baseToken.address, farmToken.address, '0'])
+            ['uint256'],
+            ['0'])
           ]
         ),
       );
@@ -1246,8 +1249,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [addStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address','address', 'uint256'],
-            [baseToken.address, farmToken.address, '0'])
+            ['uint256'],
+            ['0'])
           ]
         )
       );
@@ -1345,8 +1348,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [addStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address', 'address', 'uint256'],
-            [baseToken.address, farmToken.address, '0'])
+            ['uint256'],
+            ['0'])
           ]
         ),
       );
@@ -1362,8 +1365,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [addStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address','address', 'uint256'],
-            [baseToken.address, farmToken.address, '0'])
+            ['uint256'],
+            ['0'])
           ]
         )
       );
@@ -1455,8 +1458,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [liqStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address', 'address', 'uint256'],
-            [baseToken.address, farmToken.address, '0'])
+            ['uint256'],
+            ['0'])
           ]
         )
       );
@@ -1478,8 +1481,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [addStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address','address', 'uint256'],
-            [baseToken.address, farmToken.address, '0'])
+            ['uint256'],
+            ['0'])
           ]
         )
       );
@@ -1496,8 +1499,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [liqStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address', 'address', 'uint256'],
-            [baseToken.address, farmToken.address, '0'])
+            ['uint256'],
+            ['0'])
           ]
         ),
       );
@@ -1543,8 +1546,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [addStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address', 'address', 'uint256'],
-            [baseToken.address, farmToken.address, '0'])
+            ['uint256'],
+            ['0'])
           ]
         ),
       );
@@ -1560,8 +1563,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [addStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address','address', 'uint256'],
-            [baseToken.address, farmToken.address, '0'])
+            ['uint256'],
+            ['0'])
           ]
         )
       );
@@ -1653,8 +1656,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [liqStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address', 'address', 'uint256'],
-            [baseToken.address, farmToken.address, '0'])
+            ['uint256'],
+            ['0'])
           ]
         )
       );
@@ -1676,8 +1679,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [addStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address','address', 'uint256'],
-            [baseToken.address, farmToken.address, '0'])
+            ['uint256'],
+            ['0'])
           ]
         )
       );
@@ -1694,8 +1697,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [liqStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address', 'address', 'uint256'],
-            [baseToken.address, farmToken.address, '0'])
+            ['uint256'],
+            ['0'])
           ]
         ),
       );
@@ -1742,8 +1745,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [addStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address', 'address', 'uint256'],
-            [baseToken.address, farmToken.address, '0'])
+            ['uint256'],
+            ['0'])
           ]
         ),
       );
@@ -1759,8 +1762,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [addStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address','address', 'uint256'],
-            [baseToken.address, farmToken.address, '0'])
+            ['uint256'],
+            ['0'])
           ]
         )
       );
@@ -1855,8 +1858,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [partialCloseStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address', 'address', 'uint256', 'uint256'],
-            [baseToken.address, farmToken.address, lpUnderBobPosition.div(2), '0'])
+            ['uint256', 'uint256'],
+            [lpUnderBobPosition.div(2), '0'])
           ]
         )
       );
@@ -1911,8 +1914,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [addStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address', 'address', 'uint256'],
-            [baseToken.address, farmToken.address, '0'])
+            ['uint256'],
+            ['0'])
           ]
         ),
       );
@@ -1935,8 +1938,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [partialCloseStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address', 'address', 'uint256', 'uint256'],
-            [baseToken.address, farmToken.address, lpUnderBobPosition.div(2), '0'])
+            ['uint256', 'uint256'],
+            [lpUnderBobPosition.div(2), '0'])
           ]
         )
       );
@@ -1992,8 +1995,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [addStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address', 'address', 'uint256'],
-            [baseToken.address, farmToken.address, '0'])
+            ['uint256'],
+            ['0'])
           ]
         ),
       );
@@ -2013,8 +2016,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [partialCloseStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address', 'address', 'uint256', 'uint256'],
-            [baseToken.address, farmToken.address, lpUnderBobPosition, '0'])
+            ['uint256', 'uint256'],
+            [lpUnderBobPosition, '0'])
           ]
         )
       )).revertedWith("Vault::work:: bad work factor");
@@ -2047,8 +2050,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [addStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address', 'address', 'uint256'],
-            [baseToken.address, farmToken.address, '0'])
+            ['uint256'],
+            ['0'])
           ]
         ),
       );
@@ -2066,8 +2069,8 @@ describe('Vault - PancakeswapV2', () => {
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [partialCloseStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['address', 'address', 'uint256', 'uint256'],
-            [baseToken.address, farmToken.address, lpUnderBobPosition.mul(2), '0'])
+            ['uint256', 'uint256'],
+            [lpUnderBobPosition.mul(2), '0'])
           ]
         )
       )).to.be.revertedWith('StrategyPartialCloseLiquidate::execute:: insufficient LP amount recevied from worker');

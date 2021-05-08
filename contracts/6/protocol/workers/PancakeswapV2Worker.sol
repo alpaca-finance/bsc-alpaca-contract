@@ -156,7 +156,7 @@ contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, 
     router.swapExactTokensForTokens(reward.sub(bounty), 0, path, address(this), now);
     // 5. Use add Token strategy to convert all BaseToken to LP tokens.
     baseToken.safeTransfer(address(addStrat), baseToken.myBalance());
-    addStrat.execute(address(0), 0, abi.encode(baseToken, farmingToken, 0));
+    addStrat.execute(address(0), 0, abi.encode(0));
     // 6. Mint more LP tokens and stake them for more rewards.
     masterChef.deposit(pid, lpToken.balanceOf(address(this)));
     // 7. Reset approve
@@ -226,7 +226,7 @@ contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, 
     // 1. Convert the position back to LP tokens and use liquidate strategy.
     _removeShare(id);
     lpToken.transfer(address(liqStrat), lpToken.balanceOf(address(this)));
-    liqStrat.execute(address(0), 0, abi.encode(baseToken, farmingToken, 0));
+    liqStrat.execute(address(0), 0, abi.encode(0));
     // 2. Return all available BaseToken back to the operator.
     uint256 wad = baseToken.myBalance();
     baseToken.safeTransfer(msg.sender, wad);
