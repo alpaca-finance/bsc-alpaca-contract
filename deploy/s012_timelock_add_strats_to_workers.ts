@@ -14,23 +14,24 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const OK_FLAG = true
+  const OK_FLAG = false
   const STRATEGY = [
-    '0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C',
-    '0x58Bbb507248635413172Ed7A2eeC048402C6b39b',
-    '0xD8196dc675E92021aC40d42a8cF437789CD1aC32',
-    '0xdA6031c074d41A28dF8827B3cF6B66352eA3Ba7A'
+    '0xd80783De91fbEd9F7995A97D4C02917295F86F68',
+    '0xE38EBFE8F314dcaD61d5aDCB29c1A26F41BEd0Be',
+    '0xE574dc08aa579720Dfacd70D3DAE883d29874599',
+    '0x95Ff1336985723aa46078995454d7A7Fd9F5401e'
   ]
 
-  const ADD_STRAT = '0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C'
-  const LIQ_STRAT = '0x58Bbb507248635413172Ed7A2eeC048402C6b39b'
+  const ADD_STRAT = ''
+  const LIQ_STRAT = ''
 
   const WORKERS = [
-    '0x4Ce9EBac0b85c406af33d2Ba92502F4317511e18',
+    // Alpaca Vault
+    '0xeF1C5D2c20b22Ae50437a2F3bd258Ab1117D1BaD', // BUSD-ALPACA PancakeswapWorker
   ];
 
-  const TIMELOCK = '0xb3c3aE82358DF7fC0bd98629D5ed91767e45c337';
-  const EXACT_ETA = '1620467700';
+  const TIMELOCK = '0x2D5408f2287BF9F9B05404794459a846651D0a59';
+  const EXACT_ETA = '1620561000';
 
 
 
@@ -67,12 +68,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       ethers.utils.defaultAbiCoder.encode(
         ['address[]','bool'],
         [
-          STRATEGY, true
+          STRATEGY, false
         ]
       ), EXACT_ETA
     );
     const strats = STRATEGY.map((strat) => `'${strat}'`)
-    const ok = OK_FLAG == true ? 'true' : 'false'
+    const ok = 'false'
     console.log("generate timelock.executeTransaction:")
     console.log(`await timelock.executeTransaction('${WORKERS[i]}', '0', 'setStrategyOk(address[],bool)', ethers.utils.defaultAbiCoder.encode(['address[]','bool'],[[${strats}], ${ok}]), ${EXACT_ETA})`)
     console.log("✅ Done");
