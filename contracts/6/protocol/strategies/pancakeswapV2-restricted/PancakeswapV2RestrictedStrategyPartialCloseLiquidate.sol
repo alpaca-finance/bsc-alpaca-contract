@@ -20,7 +20,7 @@ contract PancakeswapV2RestrictedStrategyPartialCloseLiquidate is OwnableUpgradeS
 
   mapping(address => bool) public okWorkers;
 
-  /// @dev Require that the caller must be an EOA account to avoid flash loans.
+  // @notice require that only allowed workers are able to do the rest of the method call
   modifier onlyWhitelistedWorkers() {
     require(okWorkers[msg.sender], "PancakeswapV2RestrictedStrategyPartialCloseLiquidate::onlyWhitelistedWorkers:: bad worker");
     _;

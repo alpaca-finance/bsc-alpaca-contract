@@ -25,7 +25,7 @@ contract PancakeswapV2RestrictedStrategyAddTwoSidesOptimal is OwnableUpgradeSafe
 
   mapping(address => bool) public okWorkers;
 
-  /// @dev Require that the caller must be an EOA account to avoid flash loans.
+  // @notice require that only allowed workers are able to do the rest of the method call
   modifier onlyWhitelistedWorkers() {
     require(okWorkers[msg.sender], "PancakeswapV2RestrictedStrategyAddTwoSidesOptimal::onlyWhitelistedWorkers:: bad worker");
     _;
@@ -135,6 +135,5 @@ contract PancakeswapV2RestrictedStrategyAddTwoSidesOptimal is OwnableUpgradeSafe
       okWorkers[workers[idx]] = isOk;
     }
   }
-
-  receive() external payable {}
+  
 }
