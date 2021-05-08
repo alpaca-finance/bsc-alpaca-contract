@@ -99,4 +99,5 @@ contract PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading is OwnableUpgrad
     }
   }
 
+  receive() external payable {}
 }
