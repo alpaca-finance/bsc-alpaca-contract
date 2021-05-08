@@ -276,9 +276,11 @@ describe('Pancakeswapv2RestrictedStrategyAddTwoSideOptimal', () => {
       ))
       // the calculation is ratio between balance and reserve * total supply
       // let total supply = 0.556470668763341270 coming from 0.31622776601683794 + 0.23120513736969137
-      // current reserve after swap is 1732967258967755614 
+      // current reserve after swap is 3049652202279806938 
       // ths lp will be (50347797720193062 (optimal swap amount) / 3049652202279806938 (reserve)) *  0.556470668763341270
-      // lp will be 0.09037765376812014
+      // lp will be 0.009037765376812014
+      // thus the accum lp will  be 0.009037765376812014 + 0.23120513736969137 = 0.240242902746503337
+      Assert.assertAlmostEqual((await lpV2.balanceOf(mockPancakeswapV2Worker.address)).toString(), ethers.utils.parseEther('0.240242902746503337').toString())
       expect(await lpV2.balanceOf(mockPancakeswapV2Worker.address)).to.above(stratLPBalance);
       expect(await farmingToken.balanceOf(addRestrictedStrat.address)).to.be.bignumber.below(MAX_ROUNDING_ERROR);
     })
@@ -307,7 +309,7 @@ describe('Pancakeswapv2RestrictedStrategyAddTwoSideOptimal', () => {
       Assert.assertAlmostEqual(stratLPBalance.toString(), ethers.utils.parseEther('0.354346766435591663').toString())
       expect(stratLPBalance).to.above(ethers.utils.parseEther('0'));
       expect(await farmingToken.balanceOf(addRestrictedStrat.address)).to.be.bignumber.below(MAX_ROUNDING_ERROR);
-  
+    
       // Now Alice leverage 2x on her 0.1 BTOKEN.
       // So totally Alice will take 0.1 BTOKEN from the pool and 0.1 BTOKEN from her pocket to
       // Provide liquidity in the BTOKEN-FTOKEN pool on Pancakeswap
@@ -321,6 +323,13 @@ describe('Pancakeswapv2RestrictedStrategyAddTwoSideOptimal', () => {
         )],
       ))
   
+      // the calculation is ratio between balance and reserve * total supply
+      // let total supply = 0.31622776601683794 + 0.354346766435591663 = 0.6705745324524296
+      // current reserve after swap is 1251999642993914466
+      // ths lp will be (2748000357006085534 (optimal swap amount) / 1251999642993914466 (reserve)) *  0.6705745324524296
+      // lp will be 0.1471836725266080870
+      // thus, the accum lp will be 1.471836725266080870 + 0.354346766435591663 = 1.8261834917016726
+      Assert.assertAlmostEqual((await lpV2.balanceOf(mockPancakeswapV2Worker.address)).toString(), ethers.utils.parseEther('1.8261834917016726').toString())
       expect(await lpV2.balanceOf(mockPancakeswapV2Worker.address)).to.above(stratLPBalance);
       expect(await farmingToken.balanceOf(addRestrictedStrat.address)).to.be.bignumber.below(MAX_ROUNDING_ERROR);
     })
