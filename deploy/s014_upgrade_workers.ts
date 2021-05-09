@@ -17,7 +17,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   // Testnet: 0x2c6c09b46d00A88161B7e4AcFaFEc58990548aC2
   // Mainnet: 0x5379F32C8D5F663EACb61eeF63F722950294f452
   const PROXY_ADMIN = '0x5379F32C8D5F663EACb61eeF63F722950294f452';
-  const NEW_IMPL = '';
+  const NEW_IMPL = '0xcac73A0f24968e201c2cc326edbC92A87666b430';
   const TO_BE_UPGRADE_WORKERS = [
     // BNB (12)
     "0x7Af938f0EFDD98Dc513109F6A7E85106D26E16c4",
@@ -48,7 +48,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ];
 
   const TIMELOCK = '0x2D5408f2287BF9F9B05404794459a846651D0a59';
-  const EXACT_ETA = '1620478800';
+  const EXACT_ETA = '1620575100';
 
 
 
@@ -64,7 +64,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log(`>> Upgrading Worker at ${TO_BE_UPGRADE_WORKERS} through Timelock + ProxyAdmin`);
   if (newImpl === '') {
     console.log('>> NEW_IMPL is not set. Prepare upgrade a new IMPL automatically.');
-    const NewPancakeswapWorker = (await ethers.getContractFactory('PancakeswapV2WorkerMigrate')) as PancakeswapV2WorkerMigrate__factory;
+    const NewPancakeswapWorker = (await ethers.getContractFactory('PancakeswapV2Worker')) as PancakeswapV2Worker__factory;
     const preparedNewWorker = await upgrades.prepareUpgrade(TO_BE_UPGRADE_WORKERS[0], NewPancakeswapWorker)
     newImpl = preparedNewWorker;
     console.log(`>> New implementation deployed at: ${preparedNewWorker}`);
@@ -73,7 +73,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   for(let i = 0; i < TO_BE_UPGRADE_WORKERS.length; i++) {
     console.log(`>> Queue tx on Timelock to upgrade the implementation`);
-    await timelock.queueTransaction(PROXY_ADMIN, '0', 'upgrade(address,address)', ethers.utils.defaultAbiCoder.encode(['address','address'], [TO_BE_UPGRADE_WORKERS[i], newImpl]), EXACT_ETA);
+    await timelock.queueTransaction(PROXY_ADMIN, '0', 'upgrade(address,address)', ethers.utils.defaultAbiCoder.encode(['address','address'], [TO_BE_UPGRADE_WORKERS[i], newImpl]), EXACT_ETA, { gasPrice: 100000000000 });
     console.log("✅ Done");
 
     console.log(`>> Generate executeTransaction:`);

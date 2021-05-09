@@ -15,6 +15,11 @@
       "name": "ibALPACA-bMXX",
       "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
       "rewardToken": "0x4131b87F74415190425ccD873048C708F8005823"
+    }, {
+      "id": 1,
+      "name": "ibALPACA-BELT",
+      "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
+      "rewardToken": "0xe0e514c71282b6f4e823703a39374cf58dc3ea4f"
     }]
   },
   "FairLaunch": {
