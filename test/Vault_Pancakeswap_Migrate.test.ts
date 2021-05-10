@@ -26,6 +26,9 @@ import {
   PancakeRouter,
   PancakeRouterV2__factory,
   PancakeRouter__factory,
+  PancakeswapV2RestrictedStrategyAddBaseTokenOnly,
+  PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory,
+  PancakeswapV2RestrictedStrategyLiquidate__factory,
   PancakeswapV2StrategyAddBaseTokenOnly,
   PancakeswapV2StrategyAddBaseTokenOnly__factory,
   PancakeswapV2StrategyAddTwoSidesOptimalMigrate,
@@ -1649,6 +1652,26 @@ describe('Vault - Pancakeswap Migrate', () => {
         const pancakeswapV2worker = await upgrades.upgradeProxy(pancakeswapWorker.address, PancakeswapV2Worker) as PancakeswapV2Worker
         await pancakeswapV2worker.deployed()
 
+        // Change the the critical strats to restricted strats
+        /// Setup strategy
+        const PancakeswapV2RestrictedStrategyAddBaseTokenOnly = (await ethers.getContractFactory(
+          "PancakeswapV2RestrictedStrategyAddBaseTokenOnly",
+          deployer
+        )) as PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory;
+        const restrictedAddStrat = await upgrades.deployProxy(PancakeswapV2RestrictedStrategyAddBaseTokenOnly, [routerV2.address]) as PancakeswapV2RestrictedStrategyAddBaseTokenOnly
+        await restrictedAddStrat.deployed();
+        await restrictedAddStrat.setWorkersOk([pancakeswapV2worker.address], true)
+
+        const PancakeswapV2RestrictedStrategyLiquidate = (await ethers.getContractFactory(
+          "PancakeswapV2RestrictedStrategyLiquidate",
+          deployer
+        )) as PancakeswapV2RestrictedStrategyLiquidate__factory;
+        const restrictedLiqStrat = await upgrades.deployProxy(PancakeswapV2RestrictedStrategyLiquidate, [routerV2.address]) as PancakeswapV2StrategyLiquidate;
+        await restrictedLiqStrat.deployed();
+        await restrictedLiqStrat.setWorkersOk([pancakeswapV2worker.address], true)
+
+        await pancakeswapV2worker.setCriticalStrategies(restrictedAddStrat.address, restrictedLiqStrat.address)
+
         // expect to be reverted with try to use migrateLP
         await expect(pancakeswapV2workerMigrate.migrateLP(
           routerV2.address,
@@ -1681,7 +1704,7 @@ describe('Vault - Pancakeswap Migrate', () => {
     
         // eve should earn cake as a reward for reinvest
         AssertHelpers.assertAlmostEqual(
-          ethers.utils.parseEther('0.009499999999962622').toString(),
+          ethers.utils.parseEther('0.014819999999969527').toString(),
           (await cake.balanceOf(await eve.getAddress())).toString(),
         );
     

@@ -22,14 +22,33 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TIMELOCK = '0xb3c3aE82358DF7fC0bd98629D5ed91767e45c337';
-  const GRAZING_RANGE = '0x0f124b314FF168578Cb79103a3fF37fbfdB71d65'
-  const EXACT_ETA = '1620287100';
+  const TIMELOCK = '0x2D5408f2287BF9F9B05404794459a846651D0a59';
+  const GRAZING_RANGE = '0x6bf5b334409cC3FD336Da9A2D3e3F9c870fEb343'
+  const EXACT_ETA = '1620624600';
   const REWARDINFO: IAddGrazingRangeRewardInfoParamList = [{
-    PHASE_NAME: 'PHASE_1',
+    // 1,273.999104 BELT
+    PHASE_NAME: 'WEEK_1',
     CAMPAIGN_ID: '1',
-    ENDBLOCK: '8600500',
-    REWARD_PER_BLOCK: ethers.utils.parseEther('1').toString()
+    ENDBLOCK: '7501600',
+    REWARD_PER_BLOCK: ethers.utils.parseEther('0.00631944').toString()
+  }, {
+    // 707.99997736 BELT
+    PHASE_NAME: 'WEEK_2',
+    CAMPAIGN_ID: '1',
+    ENDBLOCK: '7703200',
+    REWARD_PER_BLOCK: ethers.utils.parseEther('0.00351190476').toString()
+  }, {
+    // 537.99984 BELT
+    PHASE_NAME: 'WEEK_3',
+    CAMPAIGN_ID: '1',
+    ENDBLOCK: '7904800',
+    REWARD_PER_BLOCK: ethers.utils.parseEther('0.00266865').toString()
+  }, {
+    // 310.999828 BELT
+    PHASE_NAME: 'WEEK_4',
+    CAMPAIGN_ID: '1',
+    ENDBLOCK: '8106400',
+    REWARD_PER_BLOCK: ethers.utils.parseEther('0.001542658').toString()
   }]
   
 
