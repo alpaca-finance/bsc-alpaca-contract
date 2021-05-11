@@ -41,7 +41,7 @@ module.exports = {
       accounts: [process.env.BSC_TESTNET_PRIVATE_KEY],
     },
     mainnet: {
-      url: 'https://bsc-dataseed3.ninicoin.io',
+      url: process.env.BSC_MAINNET_RPC,
       accounts: [process.env.BSC_MAINNET_PRIVATE_KEY],
     },
   },
