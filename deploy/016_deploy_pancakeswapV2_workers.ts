@@ -2,6 +2,9 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
 import { ethers, upgrades } from 'hardhat';
 import {
+  PancakeswapV2RestrictedStrategyAddBaseTokenOnly,
+  PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory,
+  PancakeswapV2RestrictedStrategyLiquidate__factory,
   PancakeswapV2Worker,
   PancakeswapV2Worker__factory,
   Timelock__factory,
@@ -18,70 +21,48 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
   const WORKERS = [{
-    WORKER_NAME: "bMXX-WBNB Worker",
+    WORKER_NAME: "BRY-WBNB Worker",
     VAULT_CONFIG_ADDR: '0x53dbb71303ad0F9AFa184B8f7147F9f12Bb5Dc01',
     WORKER_CONFIG_ADDR: '0xADaBC5FC5da42c85A84e66096460C769a151A8F8',
     REINVEST_BOT: '0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De',
-    POOL_ID: 310,
+    POOL_ID: 303,
     VAULT_ADDR: '0xd7D069493685A581d27824Fc46EdA46B7EfC0063',
     BASE_TOKEN_ADDR: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c',
     MASTER_CHEF_ADDR: '0x73feaa1eE314F8c655E354234017bE2193C9E24E',
     PANCAKESWAP_ROUTER_ADDR: '0x10ED43C718714eb63d5aA57B78B54704E256024E',
-    ADD_STRAT_ADDR: '0xE38EBFE8F314dcaD61d5aDCB29c1A26F41BEd0Be',
-    LIQ_STRAT_ADDR: '0xE574dc08aa579720Dfacd70D3DAE883d29874599',
+    ADD_STRAT_ADDR: '0x4c7a420142ec69c7Df5c6C673D862b9E030743bf',
+    LIQ_STRAT_ADDR: '0x9Da5D593d08B062063F81913a08e04594F84d438',
     REINVEST_BOUNTY_BPS: '300',
-    WORK_FACTOR: '5200',
+    WORK_FACTOR: '4500',
     KILL_FACTOR: '7000',
     MAX_PRICE_DIFF: '11000',
     TIMELOCK: '0x2D5408f2287BF9F9B05404794459a846651D0a59',
-    EXACT_ETA: '1620295200',
+    EXACT_ETA: '1620797400',
     STRATS: [
-      '0xA48feA4153c3Bd79CE12220580F4a1e0974C0F21',
-      '0x95Ff1336985723aa46078995454d7A7Fd9F5401e'
+      '0xB9B8766B65636779C3B169B9a18e0A708F91c610',
+      '0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419'
     ]
   }, {
-    WORKER_NAME: "BELT-WBNB Worker",
+    WORKER_NAME: "pCWS-WBNB Worker",
     VAULT_CONFIG_ADDR: '0x53dbb71303ad0F9AFa184B8f7147F9f12Bb5Dc01',
     WORKER_CONFIG_ADDR: '0xADaBC5FC5da42c85A84e66096460C769a151A8F8',
     REINVEST_BOT: '0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De',
-    POOL_ID: 318,
+    POOL_ID: 333,
     VAULT_ADDR: '0xd7D069493685A581d27824Fc46EdA46B7EfC0063',
     BASE_TOKEN_ADDR: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c',
     MASTER_CHEF_ADDR: '0x73feaa1eE314F8c655E354234017bE2193C9E24E',
     PANCAKESWAP_ROUTER_ADDR: '0x10ED43C718714eb63d5aA57B78B54704E256024E',
-    ADD_STRAT_ADDR: '0xE38EBFE8F314dcaD61d5aDCB29c1A26F41BEd0Be',
-    LIQ_STRAT_ADDR: '0xE574dc08aa579720Dfacd70D3DAE883d29874599',
+    ADD_STRAT_ADDR: '0x4c7a420142ec69c7Df5c6C673D862b9E030743bf',
+    LIQ_STRAT_ADDR: '0x9Da5D593d08B062063F81913a08e04594F84d438',
     REINVEST_BOUNTY_BPS: '300',
     WORK_FACTOR: '5200',
     KILL_FACTOR: '7000',
     MAX_PRICE_DIFF: '11000',
     TIMELOCK: '0x2D5408f2287BF9F9B05404794459a846651D0a59',
-    EXACT_ETA: '1620295200',
+    EXACT_ETA: '1620797400',
     STRATS: [
-      '0xA48feA4153c3Bd79CE12220580F4a1e0974C0F21',
-      '0x95Ff1336985723aa46078995454d7A7Fd9F5401e'
-    ]
-  }, {
-    WORKER_NAME: "BOR-WBNB Worker",
-    VAULT_CONFIG_ADDR: '0x53dbb71303ad0F9AFa184B8f7147F9f12Bb5Dc01',
-    WORKER_CONFIG_ADDR: '0xADaBC5FC5da42c85A84e66096460C769a151A8F8',
-    REINVEST_BOT: '0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De',
-    POOL_ID: 308,
-    VAULT_ADDR: '0xd7D069493685A581d27824Fc46EdA46B7EfC0063',
-    BASE_TOKEN_ADDR: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c',
-    MASTER_CHEF_ADDR: '0x73feaa1eE314F8c655E354234017bE2193C9E24E',
-    PANCAKESWAP_ROUTER_ADDR: '0x10ED43C718714eb63d5aA57B78B54704E256024E',
-    ADD_STRAT_ADDR: '0xE38EBFE8F314dcaD61d5aDCB29c1A26F41BEd0Be',
-    LIQ_STRAT_ADDR: '0xE574dc08aa579720Dfacd70D3DAE883d29874599',
-    REINVEST_BOUNTY_BPS: '300',
-    WORK_FACTOR: '5200',
-    KILL_FACTOR: '7000',
-    MAX_PRICE_DIFF: '11000',
-    TIMELOCK: '0x2D5408f2287BF9F9B05404794459a846651D0a59',
-    EXACT_ETA: '1620295200',
-    STRATS: [
-      '0xA48feA4153c3Bd79CE12220580F4a1e0974C0F21',
-      '0x95Ff1336985723aa46078995454d7A7Fd9F5401e'
+      '0xB9B8766B65636779C3B169B9a18e0A708F91c610',
+      '0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419'
     ]
   }]
 
@@ -116,6 +97,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     console.log(`>> Adding Strategies`);
     await pancakeswapV2Worker.setStrategyOk(WORKERS[i].STRATS, true);
+    console.log("✅ Done");
+
+    console.log(`>> Whitelisting a worker on strats`);
+    const addStrat = PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory.connect(WORKERS[i].ADD_STRAT_ADDR, (await ethers.getSigners())[0])
+    await addStrat.setWorkersOk([pancakeswapV2Worker.address], true)
+    const liqStrat = PancakeswapV2RestrictedStrategyLiquidate__factory.connect(WORKERS[i].LIQ_STRAT_ADDR, (await ethers.getSigners())[0])
+    await liqStrat.setWorkersOk([pancakeswapV2Worker.address], true)
+    for(let j = 0; j < WORKERS[i].STRATS.length; j++) {
+      const strat = PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory.connect(WORKERS[i].STRATS[j], (await ethers.getSigners())[0])
+      await strat.setWorkersOk([pancakeswapV2Worker.address], true)
+    }
     console.log("✅ Done");
 
     const timelock = Timelock__factory.connect(WORKERS[i].TIMELOCK, (await ethers.getSigners())[0]);
