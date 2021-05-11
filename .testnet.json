@@ -545,6 +545,16 @@
         "StrategyAddTwoSidesOptimal": "0x22fC6110d5d9b122f3C2d4715C24566342161a12",
         "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32"
       }
+    }, {
+      "name": "ALPACA-BUSD PancakeswapWorker",
+      "address": "0x8164104FeaA27Ac52d7CD22D63a5Ef50971cB7ff",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
+        "StrategyLiquidate": "0x58Bbb507248635413172Ed7A2eeC048402C6b39b",
+        "StrategyAddTwoSidesOptimal": "0x22fC6110d5d9b122f3C2d4715C24566342161a12",
+        "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32"
+      }
     }]
   }, {
     "name": "Interest Bearing ETH",
@@ -577,6 +587,16 @@
     }, {
       "name": "SUSHI-ETH PancakeswapWorker",
       "address": "0xd9811CeD97545243a13608924d6648251B07ed1A",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
+        "StrategyLiquidate": "0x58Bbb507248635413172Ed7A2eeC048402C6b39b",
+        "StrategyAddTwoSidesOptimal": "0xD8916928Cd542016E319Ad0c816EF01310462BEa",
+        "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32"
+      }
+    }, {
+      "name": "WBNB-ETH PancakeswapWorker",
+      "address": "0x00d100A9c7F1b264E876D9570A65E9aAEe705493",
       "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
       "strategies": {
         "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",

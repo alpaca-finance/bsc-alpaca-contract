@@ -1415,6 +1415,9 @@ describe('Vault - Pancakeswap Migrate', () => {
 
     context('when migrate completed, remove migrateLP function', async() => {
       it('should continue to work as expect', async() => {
+        // startBlock
+        const startBlock = await TimeHelpers.latestBlockNumber()
+
         // Set Bank's debt interests to 0% per year
         await simpleVaultConfig.setParams(
           ethers.utils.parseEther('1'), // 1 BTOKEN min debt size,
@@ -1432,6 +1435,8 @@ describe('Vault - Pancakeswap Migrate', () => {
         // Bob deposits 10 BTOKEN
         await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther('10'));
         await vaultAsBob.deposit(ethers.utils.parseEther('10'));
+
+        console.log("Block diff before #1: ", (await TimeHelpers.latestBlockNumber()).sub(startBlock).toString())
     
         // Alice deposits 12 BTOKEN
         await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther('12'));
@@ -1644,6 +1649,8 @@ describe('Vault - Pancakeswap Migrate', () => {
         expect(aliceHealthAfterMigrate).to.be.bignumber.gt(aliceHealth);
         expect(aliceDebtToShareMigrate).to.be.bignumber.eq(aliceDebt);
 
+        console.log("Block diff before #1.1: ", (await TimeHelpers.latestBlockNumber()).sub(startBlock).toString())
+
         // Migratation is done; Now we want to remove migrateLP function from the worker
         const PancakeswapV2Worker = (await ethers.getContractFactory(
           'PancakeswapV2Worker',
@@ -1652,6 +1659,8 @@ describe('Vault - Pancakeswap Migrate', () => {
         const pancakeswapV2worker = await upgrades.upgradeProxy(pancakeswapWorker.address, PancakeswapV2Worker) as PancakeswapV2Worker
         await pancakeswapV2worker.deployed()
 
+        console.log("Block diff before #1.2: ", (await TimeHelpers.latestBlockNumber()).sub(startBlock).toString())
+
         // Change the the critical strats to restricted strats
         /// Setup strategy
         const PancakeswapV2RestrictedStrategyAddBaseTokenOnly = (await ethers.getContractFactory(
@@ -1659,8 +1668,9 @@ describe('Vault - Pancakeswap Migrate', () => {
           deployer
         )) as PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory;
         const restrictedAddStrat = await upgrades.deployProxy(PancakeswapV2RestrictedStrategyAddBaseTokenOnly, [routerV2.address]) as PancakeswapV2RestrictedStrategyAddBaseTokenOnly
-        await restrictedAddStrat.deployed();
         await restrictedAddStrat.setWorkersOk([pancakeswapV2worker.address], true)
+
+        console.log("Block diff before #1.3: ", (await TimeHelpers.latestBlockNumber()).sub(startBlock).toString())
 
         const PancakeswapV2RestrictedStrategyLiquidate = (await ethers.getContractFactory(
           "PancakeswapV2RestrictedStrategyLiquidate",
@@ -1670,7 +1680,13 @@ describe('Vault - Pancakeswap Migrate', () => {
         await restrictedLiqStrat.deployed();
         await restrictedLiqStrat.setWorkersOk([pancakeswapV2worker.address], true)
 
+        console.log("Block diff before #1.4: ", (await TimeHelpers.latestBlockNumber()).sub(startBlock).toString())
+
         await pancakeswapV2worker.setCriticalStrategies(restrictedAddStrat.address, restrictedLiqStrat.address)
+
+        console.log("Block diff before #1.5: ", (await TimeHelpers.latestBlockNumber()).sub(startBlock).toString())
+
+        console.log("Block diff before #2: ", (await TimeHelpers.latestBlockNumber()).sub(startBlock).toString())
 
         // expect to be reverted with try to use migrateLP
         await expect(pancakeswapV2workerMigrate.migrateLP(
@@ -1695,11 +1711,14 @@ describe('Vault - Pancakeswap Migrate', () => {
         expect(aliceHealthClean).to.be.bignumber.eq(aliceHealthAfterMigrate);
         expect(aliceDebtClean).to.be.bignumber.eq(aliceDebt);
 
+        console.log("Block diff before #3: ", (await TimeHelpers.latestBlockNumber()).sub(startBlock).toString())
+
         // ---------------- Reinvest#3 -------------------
         // Wait for 1 day and someone calls reinvest
         await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from('1')));
     
         [workerLPBefore, workerDebtBefore] = await masterChef.userInfo(lpV2poolId, pancakeswapWorker.address);
+        console.log("Block diff before reinvest: ", (await TimeHelpers.latestBlockNumber()).sub(startBlock).toString())
         await pancakeswapWorkerAsEve.reinvest();
     
         // eve should earn cake as a reward for reinvest
