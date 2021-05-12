@@ -43,7 +43,7 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinize is OwnableUpgrade
     wNativeRelayer = _wNativeRelayer;
   }
 
-  /// @dev Execute worker strategy. Take BaseToken. Return LP tokens.
+  /// @dev Execute worker strategy. take farmingToken, return farmingToken + basetoken that is enough to repay the debt
   /// @param data Extra calldata information passed along to this strategy.
   function execute(address user, uint256 debt, bytes calldata data)
     external
@@ -53,7 +53,7 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinize is OwnableUpgrade
   {
     // 1. Find out what farming token we are dealing with and min additional LP tokens.
     (
-      uint256 minFarmingToken
+      uint256 minFarmingTokenAmount
     ) = abi.decode(data, (uint256));
     IWorker worker = IWorker(msg.sender);
     address baseToken = worker.baseToken();
@@ -77,7 +77,7 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinize is OwnableUpgrade
     baseToken.safeTransfer(msg.sender, baseToken.myBalance());
     // 6. Return remaining farmingToken back to the user.
     uint256 remainingFarmingToken = farmingToken.myBalance();
-    require(remainingFarmingToken >= minFarmingToken, "PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading::execute:: insufficient farming tokens received");
+    require(remainingFarmingToken >= minFarmingTokenAmount, "PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading::execute:: insufficient farming tokens received");
     if (remainingFarmingToken > 0) {
       if (farmingToken == address(wNative)) {
         SafeToken.safeTransfer(farmingToken, address(wNativeRelayer), remainingFarmingToken);

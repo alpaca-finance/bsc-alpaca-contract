@@ -40,7 +40,7 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyLiquidate is OwnableUpgradeSafe,
     wNative = _router.WETH();
   }
 
-  /// @dev Execute worker strategy. Take BaseToken. Return LP tokens.
+  /// @dev Execute worker strategy. take farmingToken return Basetoken
   /// @param data Extra calldata information passed along to this strategy.
   function execute(address /* user */, uint256 /* debt */, bytes calldata data)
     external
