@@ -115,6 +115,7 @@
     "test:pan2restrictedliquidate": "hardhat test --no-compile ./test/PancakeswapV2_Restricted_StrategyLiquidate.test.ts",
     "test:pan2restrictedpartialclose": "hardhat test --no-compile ./test/PancakeswapV2_Restricted_StrategyPartialCloseLiquidate.test.ts",
     "test:pan2restrictedminimize": "hardhat test --no-compile ./test/PancakeswapV2_Restricted_StrategyWithdrawMinimizeTrading.test.ts",
+    "test:pan2cakemaxiadd": "hardhat test --no-compile ./test/PancakeswapV2_Restricted_CakeMaxi_StrategyAddBaseTokenOnly.test.ts",
     "test:router": "hardhat test --no-compile ./test/IbTokenRouter.test.ts",
     "test:timelock": "hardhat test --no-compile ./test/Timelock.test.ts",
     "test:tripleslope": "hardhat test --no-compile ./test/TripleSlopeModel.test.ts",
