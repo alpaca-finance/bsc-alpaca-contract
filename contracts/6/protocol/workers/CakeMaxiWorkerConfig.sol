@@ -75,6 +75,7 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
     }
     // @notice loop over the path for validating the price of each pair
     IPancakePair currentLP;
+    uint256 maxPriceDiff = workers[_worker].maxPriceDiff;
     for(uint256 i = 1; i < path.length; i++) {
         // 1. Get the position's LP balance and LP total supply.
         currentLP = IPancakePair(factory.getPair(path[i-1], path[i]));
@@ -90,7 +91,6 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
         (uint256 price, uint256 lastUpdate) = oracle.getPrice(token0, token1);
         require(lastUpdate >= now - 7 days, "CakeMaxiWorkerConfig::isStable:: price too stale");
         uint256 lpPrice = r1.mul(1e18).div(r0);
-        uint256 maxPriceDiff = workers[_worker].maxPriceDiff;
         require(lpPrice <= price.mul(maxPriceDiff).div(10000), "CakeMaxiWorkerConfig::isStable:: price too high");
         require(lpPrice >= price.mul(10000).div(maxPriceDiff), "CakeMaxiWorkerConfig::isStable:: price too low");
     }
