@@ -13,5 +13,4 @@ interface IVault {
 
   /// @dev Request funds from user through Vault
   function requestFunds(address targetedToken, uint amount) external;
-
 }
