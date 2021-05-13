@@ -29,6 +29,7 @@ contract MockPancakeswapV2CakeMaxiWorker {
   {
     (address strat, bytes memory ext) = abi.decode(data, (address, bytes));
     baseToken.safeTransfer(strat, baseToken.myBalance());
+    farmingToken.safeTransfer(strat, farmingToken.myBalance());
     IStrategy(strat).execute(user, debt, ext);
     baseToken.safeTransfer(msg.sender, baseToken.myBalance());
   }

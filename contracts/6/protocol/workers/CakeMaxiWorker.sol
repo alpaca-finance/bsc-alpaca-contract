@@ -162,6 +162,7 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     (address strat, bytes memory ext) = abi.decode(data, (address, bytes));
     require(okStrats[strat], "CakeMaxiWorker::work:: unapproved work strategy");
     baseToken.safeTransfer(strat, baseToken.myBalance());
+    farmingToken.safeTransfer(strat, farmingToken.myBalance());
     IStrategy(strat).execute(user, debt, ext);
     // 4. Add farming token back to the farming pool.
     // 5. Thus, Increasing a size of the current position's shares
