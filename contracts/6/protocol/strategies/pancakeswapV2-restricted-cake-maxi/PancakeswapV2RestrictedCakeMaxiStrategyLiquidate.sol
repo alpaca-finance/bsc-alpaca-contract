@@ -55,20 +55,10 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyLiquidate is OwnableUpgradeSafe,
     IWorker worker = IWorker(msg.sender);
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
-    IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
     // 2. Approve router to do their stuffs
     farmingToken.safeApprove(address(router), uint256(-1));
     // 3. Compute the optimal amount of baseToken to be converted to farmingToken.
-    uint256 balance = baseToken.myBalance();
-    (uint256 r0, uint256 r1, ) = lpToken.getReserves();
-    uint256 rIn = lpToken.token0() == baseToken ? r0 : r1;
-    // find how many baseToken need to be converted to farmingToken
-    // Constants come from
-    // 2-f = 2-0.0025 = 19975
-    // 4(1-f) = 4*9975*10000 = 399000000, where f = 0.0025 and 10,000 is a way to avoid floating point
-    // 19975^2 = 399000625
-    // 9975*2 = 19950
-    uint256 aIn = AlpacaMath.sqrt(rIn.mul(balance.mul(399000000).add(rIn.mul(399000625)))).sub(rIn.mul(19975)) / 19950;
+    uint256 balance = farmingToken.myBalance();
     // 4. Convert that portion of a farmingToken to a baseToken.
     address[] memory path;
     if (baseToken == wNative) {
@@ -81,7 +71,7 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyLiquidate is OwnableUpgradeSafe,
       path[1] = address(wNative);
       path[2] = address(baseToken);
     }
-    router.swapExactTokensForTokens(aIn, 0, path, address(this), now);
+    router.swapExactTokensForTokens(balance, 0, path, address(this), now);
     // 5. Transfer all base token (as a result of conversion) back to the calling worker
     require(baseToken.myBalance() >= minBaseTokenAmount, "PancakeswapV2RestrictedCakeMaxiStrategyLiquidate::execute:: insufficient baseToken amount received");
     baseToken.safeTransfer(msg.sender, baseToken.myBalance());
