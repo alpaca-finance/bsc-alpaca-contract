@@ -236,7 +236,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyLiquidate', () => {
       });
     })
   
-    it('should convert ALL baseToken (BNB) to farmingToken at optimal rate', async () => {
+    it('should convert ALL farmingToken to baseToken (WBNB) at optimal rate', async () => {
       await farmingTokenAsAlice.transfer(mockPancakeswapV2WorkerBNBFtokenPair.address, ethers.utils.parseEther('0.1'));
       // amountOut of 0.1 will be
       // if 0.1 FToken = 1 WBNB
@@ -316,7 +316,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyLiquidate', () => {
       });
     })
   
-    it('should convert ALL baseToken (BNB) to farmingToken at optimal rate', async () => {
+    it('should convert ALL farmingToken to baseToken (WBTC) at optimal rate', async () => {
       await farmingTokenAsAlice.transfer(mockPancakeswapV2WorkerBaseFTokenPair.address, ethers.utils.parseEther('0.1'));
       // amountOut of 0.1 will be
       // if 0.1 FToken = 1 WBNB
