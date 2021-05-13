@@ -66,13 +66,17 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading is Ownab
       path = new address[](2);
       path[0] = address(farmingToken);
       path[1] = address(wNative);
+    } else if (farmingToken == wNative) {
+      path = new address[](2);
+      path[0] = address(wNative);
+      path[1] = address(baseToken);
     } else {
-      path = new address[](3);
+       path = new address[](3);
       path[0] = address(farmingToken);
       path[1] = address(wNative);
       path[2] = address(baseToken);
     }
-    router.swapExactTokensForTokens(debt, 0, path, address(this), now);
+    router.swapTokensForExactTokens(debt, farmingToken.myBalance(), path, address(this), now);
     // 5. Return baseToken back to the original caller to repay the debt.
     baseToken.safeTransfer(msg.sender, baseToken.myBalance());
     // 6. Return remaining farmingToken back to the user.
