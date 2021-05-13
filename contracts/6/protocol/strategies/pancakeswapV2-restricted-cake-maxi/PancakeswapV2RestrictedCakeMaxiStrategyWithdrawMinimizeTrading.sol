@@ -16,7 +16,7 @@ import "../../interfaces/IWorker.sol";
 import "../../interfaces/IWNativeRelayer.sol";
 
 
-contract PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinize is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
+contract PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeToken for address;
   using SafeMath for uint256;
 
@@ -28,7 +28,7 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinize is OwnableUpgrade
 
   // @notice require that only allowed workers are able to do the rest of the method call
   modifier onlyWhitelistedWorkers() {
-    require(okWorkers[msg.sender], "PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinize::onlyWhitelistedWorkers:: bad worker");
+    require(okWorkers[msg.sender], "PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading::onlyWhitelistedWorkers:: bad worker");
     _;
   } 
 
@@ -77,7 +77,7 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinize is OwnableUpgrade
     baseToken.safeTransfer(msg.sender, baseToken.myBalance());
     // 6. Return remaining farmingToken back to the user.
     uint256 remainingFarmingToken = farmingToken.myBalance();
-    require(remainingFarmingToken >= minFarmingTokenAmount, "PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading::execute:: insufficient farming tokens received");
+    require(remainingFarmingToken >= minFarmingTokenAmount, "PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading::execute:: insufficient farmingToken amount received");
     if (remainingFarmingToken > 0) {
       if (farmingToken == address(wNative)) {
         SafeToken.safeTransfer(farmingToken, address(wNativeRelayer), remainingFarmingToken);
