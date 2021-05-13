@@ -184,7 +184,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyLiquidate', () => {
   })
 
   context('When the base token is a wrap native', async () => {
-    context('When contract get baseToken amount < mingBaseTokenAmount', async () => {
+    context('When contract get baseToken amount < minBaseTokenAmount', async () => {
         it('should revert', async () => {
           // Alice uses Liquidate strategy yet again, but now with an unreasonable minFarmingTokenAmount request
           // amountOut of 0.1 will be
@@ -263,7 +263,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyLiquidate', () => {
   })
 
   context('When the base token is not a wrap native', async () => {
-    context('When contract get baseToken amount < mingBaseTokenAmount', async () => {
+    context('When contract get baseToken amount < minBaseTokenAmount', async () => {
         it('should revert', async () => {
           // amountOut of 0.1 will be
           // if 0.1 FToken = 1 WBNB
