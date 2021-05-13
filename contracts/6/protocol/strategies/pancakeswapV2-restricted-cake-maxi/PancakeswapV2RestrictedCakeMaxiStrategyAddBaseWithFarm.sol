@@ -28,7 +28,7 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm is OwnableUpgrad
 
   // @notice require that only allowed workers are able to do the rest of the method call
   modifier onlyWhitelistedWorkers() {
-    require(okWorkers[msg.sender], "PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly::onlyWhitelistedWorkers:: bad worker");
+    require(okWorkers[msg.sender], "PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm::onlyWhitelistedWorkers:: bad worker");
     _;
   } 
 
@@ -79,7 +79,7 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm is OwnableUpgrad
     }
     router.swapExactTokensForTokens(balance, 0, path, address(this), now);
     // 5. Transfer all farming token (as a result of conversion) back to the calling worker
-    require(farmingToken.myBalance() >= minFarmingTokenAmount, "PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly::execute:: insufficient farming token amount received");
+    require(farmingToken.myBalance() >= minFarmingTokenAmount, "PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm::execute:: insufficient farmingToken amount received");
     farmingToken.safeTransfer(msg.sender, farmingToken.myBalance());
     // 6. Reset approval for safety reason
     baseToken.safeApprove(address(router), 0);

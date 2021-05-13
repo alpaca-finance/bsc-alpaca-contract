@@ -83,7 +83,7 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyLiquidate is OwnableUpgradeSafe,
     }
     router.swapExactTokensForTokens(aIn, 0, path, address(this), now);
     // 5. Transfer all base token (as a result of conversion) back to the calling worker
-    require(baseToken.myBalance() >= minBaseTokenAmount, "PancakeswapV2RestrictedCakeMaxiStrategyLiquidate::execute:: insufficient base token amount received");
+    require(baseToken.myBalance() >= minBaseTokenAmount, "PancakeswapV2RestrictedCakeMaxiStrategyLiquidate::execute:: insufficient baseToken amount received");
     baseToken.safeTransfer(msg.sender, baseToken.myBalance());
     // 6. Reset approval for safety reason
     farmingToken.safeApprove(address(router), 0);
