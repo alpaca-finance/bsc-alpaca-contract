@@ -234,9 +234,9 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly', () => {
     })
   
     it('should convert ALL baseToken (BNB) to farmingToken at optimal rate', async () => {
-      // Bob transfer 0.1 WBNB to StrategyAddBaseTokenOnly first
+      // Alice transfer 0.1 WBNB to StrategyAddBaseTokenOnly first
       await wbnbTokenAsAlice.transfer(mockPancakeswapV2WorkerBNBFtokenPair.address, ethers.utils.parseEther('0.1'));
-      // Bob uses AddBaseTokenOnly strategy to add 0.1 WBNB
+      // Alice uses AddBaseTokenOnly strategy to add 0.1 WBNB
       // amountOut of 0.1 will be
       // if 1WBNB = 0.1 FToken
       // 0.1WBNB will be (0.1*0.9975) * (0.1/(1+0.1*0.9975)) = 0.00907024323709934
@@ -256,7 +256,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly', () => {
       expect(await wbnb.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
       expect(await wbnb.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
   
-      // Bob uses AddBaseTokenOnly strategy to add another 0.1 WBNB
+      // Alice uses AddBaseTokenOnly strategy to add another 0.1 WBNB
       // amountOut of 0.1 will be
       // if 1.1 WBNB = (0.1 - 0.00907024323709934) FToken
       // if 1.1 WBNB = 0.09092975676290066 FToken
@@ -331,9 +331,9 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly', () => {
     })
 
     it('should convert ALL baseToken (BNB) to farmingToken at optimal rate', async () => {
-      // Bob transfer 0.1 BASE to StrategyAddBaseTokenOnly first
+      // Alice transfer 0.1 BASE to StrategyAddBaseTokenOnly first
       await baseTokenAsAlice.transfer(mockPancakeswapV2WorkerBaseFTokenPair.address, ethers.utils.parseEther('0.1'));
-      // Bob uses AddBaseTokenOnly strategy to add 0.1 BASE
+      // Alice uses AddBaseTokenOnly strategy to add 0.1 BASE
       // amountOut of 0.1 will be
       // if 1 BASE = 1 BNB
       // 0.1 BASE will be (0.1 * 0.9975) * (1 / (1 + 0.1 * 0.9975)) = 0.09070243237099342 BNB
@@ -355,7 +355,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly', () => {
       expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
       expect(await baseToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
 
-      // Bob uses AddBaseTokenOnly strategy to add another 0.1 BASE
+      // Alice uses AddBaseTokenOnly strategy to add another 0.1 BASE
       // amountOut of 0.1 will be
       // if 1.1 BASE = (1 - 0.09070243237099342) = 0.9092975676290066 BNB
       // 0.1 BASE = (0.1 * 0.9975) * (0.9092975676290066 / (1.1 + 0.1 * 0.9975)) = 0.07560111054052378 BNB
