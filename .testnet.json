@@ -311,7 +311,7 @@
   "Vaults": [{
     "name": "Interest Bearing WBNB",
     "symbol": "ibWBNB",
-    "address": "0xf9d32C5E10Dd51511894b360e6bD39D7573450F9",
+    "address": "0xA9C64DcB6F174F4109Bc897615569B460f039539",
     "debtToken": "0x2E0384Bc38E250639291D6710EDC3d5034e95996",
     "config": "0x037F4b0d074B83d075EC3B955F69BaB9977bdb05",
     "tripleSlopeModel": "0x038cd7a6A397d7f5D07a0c76A4610a7Ca64eb7d3",
@@ -328,7 +328,7 @@
       }
     }, {
       "name": "BTCB-WBNB PancakeswapWorker",
-      "address": "0xe25eDD86EA0C7463D0dd25cF443feDcAAe0a7a64",
+      "address": "0xE901f33dE3a92cea4E7402285fF28Fa8ca1Fd528",
       "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
       "strategies": {
         "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
@@ -338,7 +338,7 @@
       }
     }, {
       "name": "ETH-WBNB PancakeswapWorker",
-      "address": "0xC60B29DF780a8A4148FF2d8a2a55d60e156043e3",
+      "address": "0xbBd660843205340AF9375214b38f65CD44FCaC86",
       "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
       "strategies": {
         "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
