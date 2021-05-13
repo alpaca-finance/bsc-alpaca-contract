@@ -23,7 +23,7 @@ contract MockVaultForStrategy is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgrad
   function initialize() external initializer {}
 
 
-  function  setMockOwner(address owner) external {
+  function setMockOwner(address owner) external {
       mockOwner = owner;
   }
 
