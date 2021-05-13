@@ -311,7 +311,7 @@
   "Vaults": [{
     "name": "Interest Bearing WBNB",
     "symbol": "ibWBNB",
-    "address": "0xA9C64DcB6F174F4109Bc897615569B460f039539",
+    "address": "0xf9d32C5E10Dd51511894b360e6bD39D7573450F9",
     "debtToken": "0x2E0384Bc38E250639291D6710EDC3d5034e95996",
     "config": "0x037F4b0d074B83d075EC3B955F69BaB9977bdb05",
     "tripleSlopeModel": "0x038cd7a6A397d7f5D07a0c76A4610a7Ca64eb7d3",
