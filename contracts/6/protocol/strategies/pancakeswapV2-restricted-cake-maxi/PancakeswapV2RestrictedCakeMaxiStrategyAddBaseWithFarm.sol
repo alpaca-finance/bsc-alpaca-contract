@@ -71,6 +71,10 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm is OwnableUpgrad
       path = new address[](2);
       path[0] = address(wNative);
       path[1] = address(farmingToken);
+    } else if (farmingToken == wNative) {
+      path = new address[](2);
+      path[0] = address(baseToken);
+      path[1] = address(wNative);
     } else {
       path = new address[](3);
       path[0] = address(baseToken);
