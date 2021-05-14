@@ -34,6 +34,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading', () =>
   /// MockPancakeswapV2CakeMaxiWorker-related instance(s)
   let mockPancakeswapV2WorkerBaseFTokenPair: MockPancakeswapV2CakeMaxiWorker;
   let mockPancakeswapV2WorkerBNBFtokenPair: MockPancakeswapV2CakeMaxiWorker
+  let mockPancakeswapV2WorkerBaseBNBTokenPair: MockPancakeswapV2CakeMaxiWorker
   let mockPancakeswapV2EvilWorker: MockPancakeswapV2CakeMaxiWorker
 
   /// Token-related instance(s)
@@ -66,6 +67,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading', () =>
 
   let mockPancakeswapV2WorkerBaseFTokenPairAsAlice: MockPancakeswapV2CakeMaxiWorker;
   let mockPancakeswapV2WorkerBNBFtokenPairAsAlice: MockPancakeswapV2CakeMaxiWorker;
+  let mockPancakeswapV2WorkerBaseBNBTokenPairAsAlice: MockPancakeswapV2CakeMaxiWorker
   let mockPancakeswapV2EvilWorkerAsAlice: MockPancakeswapV2CakeMaxiWorker
 
   let wNativeRelayer: WNativeRelayer;
@@ -125,6 +127,9 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading', () =>
     
     mockPancakeswapV2WorkerBNBFtokenPair = await MockPancakeswapV2CakeMaxiWorker.deploy(wbnb.address, farmingToken.address) as MockPancakeswapV2CakeMaxiWorker
     await mockPancakeswapV2WorkerBNBFtokenPair.deployed();
+
+    mockPancakeswapV2WorkerBaseBNBTokenPair = await MockPancakeswapV2CakeMaxiWorker.deploy(baseToken.address, wbnb.address) as MockPancakeswapV2CakeMaxiWorker
+    await mockPancakeswapV2WorkerBaseBNBTokenPair.deployed();
     
     mockPancakeswapV2EvilWorker = await MockPancakeswapV2CakeMaxiWorker.deploy(baseToken.address, farmingToken.address) as MockPancakeswapV2CakeMaxiWorker
     await mockPancakeswapV2EvilWorker.deployed();
@@ -135,7 +140,8 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading', () =>
     )) as PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading__factory;
     strat = await upgrades.deployProxy(PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading, [routerV2.address, wNativeRelayer.address]) as PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading;
     await strat.deployed();
-    await strat.setWorkersOk([mockPancakeswapV2WorkerBaseFTokenPair.address, mockPancakeswapV2WorkerBNBFtokenPair.address], true)
+    await strat.setWorkersOk([mockPancakeswapV2WorkerBaseFTokenPair.address, mockPancakeswapV2WorkerBNBFtokenPair.address, mockPancakeswapV2WorkerBaseBNBTokenPair.address], true)
+    await wNativeRelayer.setCallerOk([strat.address], true)
     // Assign contract signer
     baseTokenAsAlice = MockERC20__factory.connect(baseToken.address, alice);
     baseTokenAsBob = MockERC20__factory.connect(baseToken.address, bob);
@@ -153,6 +159,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading', () =>
 
     mockPancakeswapV2WorkerBaseFTokenPairAsAlice = MockPancakeswapV2CakeMaxiWorker__factory.connect(mockPancakeswapV2WorkerBaseFTokenPair.address, alice);
     mockPancakeswapV2WorkerBNBFtokenPairAsAlice = MockPancakeswapV2CakeMaxiWorker__factory.connect(mockPancakeswapV2WorkerBNBFtokenPair.address, alice);
+    mockPancakeswapV2WorkerBaseBNBTokenPairAsAlice = MockPancakeswapV2CakeMaxiWorker__factory.connect(mockPancakeswapV2WorkerBaseBNBTokenPair.address, alice);
     mockPancakeswapV2EvilWorkerAsAlice = MockPancakeswapV2CakeMaxiWorker__factory.connect(mockPancakeswapV2EvilWorker.address, alice);
     // Adding liquidity to the pool
     // Alice adds 0.1 FTOKEN + 1 WBTC + 1 WBNB
@@ -362,5 +369,87 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading', () =>
       expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
       expect(await farmingToken.balanceOf(await alice.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther('9.887433327913955996'))
     })
+  })
+
+  context('When the farming token is a wrap native', async () => {
+    context('When contract get farmingAmount amount < minFarmingAmount', async () => {
+      it('should revert', async () => {
+        // if 1 BNB = 1 BaseToken
+        // x BNB = (x * 0.9975) * (1 / (1 + x * 0.9975)) = 0.1
+        // x = ~ 0.11138958507379568
+        // thus, the return farming token will be 0.888610414926204399
+        await wbnbTokenAsAlice.transfer(mockPancakeswapV2WorkerBaseBNBTokenPair.address, ethers.utils.parseEther('1'));
+        await expect(mockPancakeswapV2WorkerBaseBNBTokenPairAsAlice.work(
+          0, await alice.getAddress(), ethers.utils.parseEther('0.1'),
+          ethers.utils.defaultAbiCoder.encode(
+            ['address', 'bytes'],
+            [strat.address, ethers.utils.defaultAbiCoder.encode(
+              ['uint256'],
+              [ethers.utils.parseEther('0.888610414926204399').add(1)]
+            )],
+          )
+        )).to.be.revertedWith('PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading::execute:: insufficient farmingToken amount received');
+      });
+    })
+  
+  context("When caller worker hasn't been whitelisted", async () => {
+    it('should revert as bad worker', async () => {
+      await wbnbTokenAsAlice.transfer(mockPancakeswapV2EvilWorkerAsAlice.address, ethers.utils.parseEther('0.05'));
+      await expect(mockPancakeswapV2EvilWorkerAsAlice.work(
+        0, await alice.getAddress(), '0',
+        ethers.utils.defaultAbiCoder.encode(
+          ['address', 'bytes'],
+          [strat.address, ethers.utils.defaultAbiCoder.encode(
+            ['uint256'],
+            [ethers.utils.parseEther('0.05')]
+          )],
+        )
+      )).to.be.revertedWith('PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading::onlyWhitelistedWorkers:: bad worker');
+    });
+  })
+
+  context("when revoking whitelist workers", async () => {
+    it('should revert as bad worker', async () => {
+      await strat.setWorkersOk([mockPancakeswapV2WorkerBaseBNBTokenPair.address], false)
+      await expect(mockPancakeswapV2WorkerBaseBNBTokenPairAsAlice.work(
+        0, await alice.getAddress(), '0',
+        ethers.utils.defaultAbiCoder.encode(
+          ['address', 'bytes'],
+          [strat.address, ethers.utils.defaultAbiCoder.encode(
+            ['uint256'],
+            [ethers.utils.parseEther('0.05')]
+          )],
+        )
+      )).to.be.revertedWith('PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading::onlyWhitelistedWorkers:: bad worker');
+    });
+  })
+
+  it('should convert to WBNB to be enough for repaying the debt, and return farmingToken to the user', async () => {
+    // if 1 BNB = 1 BaseToken
+    // x BNB = (x * 0.9975) * (1 / (1 + x * 0.9975)) = 0.1
+    // x = ~ 0.11138958507379568
+    // thus, the return farming token will be 0.888610414926204399
+    await wbnbTokenAsAlice.transfer(mockPancakeswapV2WorkerBaseBNBTokenPair.address, ethers.utils.parseEther('1'));
+    const beforeNativeBalance = await ethers.provider.getBalance(await bob.getAddress())
+    await mockPancakeswapV2WorkerBaseBNBTokenPairAsAlice.work(
+      0, await bob.getAddress(), ethers.utils.parseEther('0.1'),
+      ethers.utils.defaultAbiCoder.encode(
+        ['address', 'bytes'],
+        [strat.address, ethers.utils.defaultAbiCoder.encode(
+          ['uint256'],
+          ['0']
+        )],
+      )
+    );
+    const afterNativeBalance = await ethers.provider.getBalance(await bob.getAddress())
+    // so the worker will return 0.1 WBNB for repaying the debt, the rest will be returned as a farmingToken
+    // alice wbnb will be 52 (from initial) - 2 (liquidity provision) - 1 (mock wbnb in worker) + 0.88861041492620439
+    expect(await baseToken.balanceOf(await alice.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther('99').add(ethers.utils.parseEther('0.1')))
+    expect(await wbnb.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+    expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+    expect(await wbnb.balanceOf(mockPancakeswapV2WorkerBaseBNBTokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+    expect(await wbnb.balanceOf(await alice.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther('49'))
+    expect(afterNativeBalance.sub(beforeNativeBalance)).to.be.bignumber.eq(ethers.utils.parseEther('0.888610414926204399'))
+  });
   })
 })
