@@ -30,6 +30,11 @@
       "name": "ibALPACA-BRY",
       "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
       "rewardToken": "0xf859Bf77cBe8699013d6Dbc7C2b926Aaf307F830"
+    }, {
+      "id": 4,
+      "name": "ibALPACA-pCWS",
+      "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
+      "rewardToken": "0xbcf39f0edda668c58371e519af37ca705f2bfcbd"
     }]
   },
   "FairLaunch": {

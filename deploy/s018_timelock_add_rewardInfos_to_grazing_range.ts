@@ -24,31 +24,31 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const TIMELOCK = '0x2D5408f2287BF9F9B05404794459a846651D0a59';
   const GRAZING_RANGE = '0x6bf5b334409cC3FD336Da9A2D3e3F9c870fEb343'
-  const EXACT_ETA = '1620882900';
+  const EXACT_ETA = '1621220700';
   const REWARDINFO: IAddGrazingRangeRewardInfoParamList = [{
-    // ✅ 14,398.272 BRY
+    // ✅ 4,273.92 pCWS
     PHASE_NAME: 'WEEK_1',
-    CAMPAIGN_ID: '3',
-    ENDBLOCK: '7596600',
-    REWARD_PER_BLOCK: ethers.utils.parseEther('0.071420').toString()
+    CAMPAIGN_ID: '4',
+    ENDBLOCK: '7686600',
+    REWARD_PER_BLOCK: ethers.utils.parseEther('0.021200').toString()
   }, {
-    // ✅ 7,999.488 BRY
+    // ✅ 2,374.848 pCWS
     PHASE_NAME: 'WEEK_2',
-    CAMPAIGN_ID: '3',
-    ENDBLOCK: '7798200',
-    REWARD_PER_BLOCK: ethers.utils.parseEther('0.039680').toString()
+    CAMPAIGN_ID: '4',
+    ENDBLOCK: '7888200',
+    REWARD_PER_BLOCK: ethers.utils.parseEther('0.011780').toString()
   }, {
-    // ✅ 6,078.24 BRY
+    // ✅ 1,804.32 pCWS
     PHASE_NAME: 'WEEK_3',
-    CAMPAIGN_ID: '3',
-    ENDBLOCK: '7999800',
-    REWARD_PER_BLOCK: ethers.utils.parseEther('0.030150').toString()
+    CAMPAIGN_ID: '4',
+    ENDBLOCK: '8089800',
+    REWARD_PER_BLOCK: ethers.utils.parseEther('0.008950').toString()
   }, {
-    // ✅ 3,519.936 BRY
+    // ✅ 1,044.288 pCWS
     PHASE_NAME: 'WEEK_4',
-    CAMPAIGN_ID: '3',
-    ENDBLOCK: '8201400',
-    REWARD_PER_BLOCK: ethers.utils.parseEther('0.017460').toString()
+    CAMPAIGN_ID: '4',
+    ENDBLOCK: '8291400',
+    REWARD_PER_BLOCK: ethers.utils.parseEther('0.005180').toString()
   }]
   
 
