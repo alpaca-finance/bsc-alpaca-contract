@@ -35,6 +35,11 @@
       "name": "ibALPACA-pCWS",
       "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
       "rewardToken": "0xbcf39f0edda668c58371e519af37ca705f2bfcbd"
+    }, {
+      "id": 5,
+      "name": "ibALPACA-SWINGBY",
+      "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
+      "rewardToken": "0x71DE20e0C4616E7fcBfDD3f875d568492cBE4739"
     }]
   },
   "FairLaunch": {
@@ -428,13 +433,13 @@
       }
     }, {
       "name": "BUSD-WBNB PancakeswapWorker",
-      "address": "",
-      "config": "",
+      "address": "0x9B07DEaEc22328EbaE132875245492D56a57F7bf",
+      "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
       "strategies": {
-        "StrategyLiquidate": "",
-        "StrategyAddTwoSidesOptimal": "",
-        "StrategyAddAllBaseToken": "",
-        "StrategyWithdrawMinimizeTrading": ""
+        "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+        "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+        "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
+        "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419"
       }
     }, {
       "name": "bMXX-WBNB PancakeswapWorker",
@@ -575,6 +580,16 @@
         "StrategyAddTwoSidesOptimal": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
         "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419"
       }
+    }, {
+      "name": "ALPACA-BUSD PancakeswapWorker",
+      "address": "0x4BfE9489937d6C0d7cD6911F1102c25c7CBc1B5A",
+      "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+        "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+        "StrategyAddTwoSidesOptimal": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
+        "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419"
+      }
     }]
   }, {
     "name": "Interest Bearing ETH",
@@ -607,6 +622,16 @@
     }, {
       "name": "SUSHI-ETH PancakeswapWorker",
       "address": "0xaA5c95181c02DfB8173813149e52c8C9E4E14124",
+      "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+        "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+        "StrategyAddTwoSidesOptimal": "0xCB459b4504d10445760095C59c394EA45715d7a5",
+        "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419"
+      }
+    }, {
+      "name": "WBNB-ETH PancakeswapWorker",
+      "address": "0x98b7e1E50f0fb7787475acBBb86Cc2C367bb13A0",
       "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
       "strategies": {
         "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
