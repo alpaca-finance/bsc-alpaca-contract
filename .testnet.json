@@ -257,6 +257,10 @@
         "pId": 45,
         "name": "pCWS-WBNB LP",
         "address": "0x4EBF2181d75c7246712274eF674fA219D458a42C"
+      }, {
+        "pId": 46,
+        "name": "SWINGBY-WBNB LP",
+        "address": "0x8760aFEeF41C544324261bd974b113512f5E5243"
       }]
     }
   },
@@ -287,7 +291,8 @@
     "BELT": "0xc1721223cBFc97F90Af0c6122f7c25919c0f6803",
     "BOR": "0x88cF83734637a8c38296429b21E70C7C4785F7EC",
     "BRY": "0x90Cd1D56754E8Ca0e103bCeB6DA1e4F4E5D92186",
-    "pCWS": "0x70203967b050cFa986C6A1de42C3AF08e00De026"
+    "pCWS": "0x70203967b050cFa986C6A1de42C3AF08e00De026",
+    "SWINGBY": "0x588C1F4B4C772dD019691456f143D4e34771F3cE"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x7549b7d0edcd411e7e5013dc74727f8dab13ab0f",
@@ -459,6 +464,16 @@
     }, {
       "name": "pCWS-WBNB PancakeswapWorker",
       "address": "0x7A42aB4B5995319aF04439dfCf48c3531AaC7885",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
+        "StrategyLiquidate": "0x58Bbb507248635413172Ed7A2eeC048402C6b39b",
+        "StrategyAddTwoSidesOptimal": "0x0A5515aEdc275b9fF19d11Cd74465e83067f6D40",
+        "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32"
+      }
+    }, {
+      "name": "SWINGBY-WBNB PancakeswapWorker",
+      "address": "0x5344f6E26D450bB923dB1e1Cb3869dA663AE0788",
       "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
       "strategies": {
         "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
