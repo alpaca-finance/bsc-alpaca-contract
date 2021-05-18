@@ -2,7 +2,8 @@
   "typescript.tsdk": "node_modules/typescript/lib",
   "solidity.compileUsingRemoteVersion": "",
   "[solidity]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
   },
-  "editor.formatOnSave": true
+  "editor.formatOnSave": false
 }

@@ -167,12 +167,6 @@
     "solidity-coverage": "^0.7.15",
     "synthetix": "^2.39.2"
   },
-  "prettier": {
-    "printWidth": 120,
-    "singleQuote": true,
-    "tabWidth": 2,
-    "bracketSpacing": true
-  },
   "files": [
     "typechain",
     "artifacts",
