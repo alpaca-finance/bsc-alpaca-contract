@@ -13,7 +13,7 @@ import "../interfaces/IWorkerConfig.sol";
 import "../PriceOracle.sol";
 import "../../utils/SafeToken.sol";
 
-contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
+contract CakeMaxiWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
   using SafeToken for address;
   using SafeMath for uint256;
 
