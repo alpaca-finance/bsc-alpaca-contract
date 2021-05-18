@@ -760,4 +760,43 @@ describe('CakeMaxiWorker', () => {
         })
     })
   })
+
+  describe("#liquidate()", async () => {
+    it('should liquidate a position based on the share of a user', async () => {
+        // sending 0.1 wbnb to the worker (let's pretend to be the value from the vault)
+        // Alice uses AddBaseTokenOnly strategy to add 0.1 WBNB
+        // amountOut of 0.1 will be
+        // if 1WBNB = 0.1 FToken
+        // 0.1WBNB will be (0.1*0.9975) * (0.1/(1+0.1*0.9975)) = 0.009070243237099340
+        await wbnbTokenAsAlice.transfer(cakeMaxiWorkerNative.address, ethers.utils.parseEther('0.1'));
+        const aliceBaseTokenBefore = await wbnb.balanceOf(await alice.getAddress())
+        const aliceFarmingTokenBefore = await cake.balanceOf(await alice.getAddress())
+        await cakeMaxiWorkerNativeAsAlice.work(
+            0, await alice.getAddress(), 0,
+            ethers.utils.defaultAbiCoder.encode(
+                ['address', 'bytes'],
+                [stratAdd.address, 
+                    ethers.utils.defaultAbiCoder.encode(
+                        ['uint256'],
+                        [ethers.utils.parseEther('0')]
+                    )
+                ],
+            )
+        )
+        let userInfo = await masterChef.userInfo(0, cakeMaxiWorkerNative.address)
+        expect(userInfo[0]).to.eq(ethers.utils.parseEther('0.00907024323709934'))
+        expect(await cakeMaxiWorkerNative.shares(0)).to.eq(ethers.utils.parseEther('0.00907024323709934'))
+        // Alice call liquidate strategy to close her position
+        await cakeMaxiWorkerNativeAsAlice.liquidate(0)
+        // alice will get a base token based on 0.00907024323709934 farming token (staked balance)
+        userInfo = await masterChef.userInfo(0, cakeMaxiWorkerNative.address)
+        const aliceBaseTokenAfter = await wbnb.balanceOf(await alice.getAddress())
+        const aliceFarmingTokenAfter = await cake.balanceOf(await alice.getAddress())
+        expect(userInfo[0]).to.eq(ethers.utils.parseEther('0'))
+        expect(await cakeMaxiWorkerNative.shares(0)).to.eq(ethers.utils.parseEther('0'))
+        Assert.assertAlmostEqual(await (await cakeMaxiWorkerNative.rewardBalance()).toString(), ethers.utils.parseEther('0.1').toString())
+        expect(aliceBaseTokenAfter.sub(aliceBaseTokenBefore)).to.eq(ethers.utils.parseEther('0.099545816538303460'))
+        expect(aliceFarmingTokenAfter.sub(aliceFarmingTokenBefore)).to.eq(ethers.utils.parseEther('0'))
+    })
+  })
 })
