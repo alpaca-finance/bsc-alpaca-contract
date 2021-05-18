@@ -330,7 +330,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly', () => {
       });
     })
 
-    it('should convert ALL baseToken (BNB) to farmingToken at optimal rate', async () => {
+    it('should convert ALL baseToken (WBTC) to farmingToken at optimal rate', async () => {
       // Alice transfer 0.1 BASE to StrategyAddBaseTokenOnly first
       await baseTokenAsAlice.transfer(mockPancakeswapV2WorkerBaseFTokenPair.address, ethers.utils.parseEther('0.1'));
       // Alice uses AddBaseTokenOnly strategy to add 0.1 BASE
