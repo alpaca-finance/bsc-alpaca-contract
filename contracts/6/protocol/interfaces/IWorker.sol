@@ -1,11 +1,15 @@
-
 pragma solidity 0.6.6;
 
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
 
 interface IWorker {
   /// @dev Work on a (potentially new) position. Optionally send token back to Vault.
-  function work(uint256 id, address user, uint256 debt, bytes calldata data) external;
+  function work(
+    uint256 id,
+    address user,
+    uint256 debt,
+    bytes calldata data
+  ) external;
 
   /// @dev Re-invest whatever the worker is working on.
   function reinvest() external;
@@ -30,5 +34,4 @@ interface IWorker {
 
   /// @dev Farming Token that worker is working on
   function farmingToken() external view returns (address);
-
 }
