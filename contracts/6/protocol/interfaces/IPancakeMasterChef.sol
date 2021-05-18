@@ -31,6 +31,8 @@ contract IPancakeMasterChef {
   // Withdraw LP tokens from MasterChef.
   function withdraw(uint256 _pid, uint256 _amount) external {}
 
+  function pendingCake(uint256 _pid, address _user) external view returns (uint256) {}
+
   // Deposit cake to the pool (0)
   function enterStaking(uint256 _amount) public {}
 
