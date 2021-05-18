@@ -17,6 +17,7 @@ import "../../utils/AlpacaMath.sol";
 import "../../utils/SafeToken.sol";
 import "../interfaces/IVault.sol";
 
+
 contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker {
   /// @notice Libraries
   using SafeToken for address;
@@ -48,6 +49,7 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   IStrategy public liqStrat;
   uint256 public reinvestBountyBps;
   uint256 public maxReinvestBountyBps;
+  uint256 public rewardBalance;
   mapping(address => bool) public okReinvestors;
 
   /// @notice Configuration varaibles for V2
@@ -75,7 +77,6 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     pid = _pid;
     (IERC20 _farmingToken, , , ) = masterChef.poolInfo(_pid);
     farmingToken = address(_farmingToken);
-    lpToken = IPancakePair(factory.getPair(baseToken, farmingToken));
     addStrat = _addStrat;
     liqStrat = _liqStrat;
     okStrats[address(addStrat)] = true;
@@ -86,9 +87,6 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     feeDenom = 10000;
 
     require(reinvestBountyBps <= maxReinvestBountyBps, "CakeMaxiWorker::initialize:: reinvestBountyBps exceeded maxReinvestBountyBps");
-     require(
-      (farmingToken == lpToken.token0() || farmingToken == lpToken.token1()) && 
-      (baseToken == lpToken.token0() || baseToken == lpToken.token1()), "PancakeswapWorker::initialize:: LP underlying not match with farm & base token");
   }
 
   /// @dev Require that the caller must be an EOA account to avoid flash loans.
@@ -128,19 +126,19 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   /// @dev Re-invest whatever this worker has earned to the staking pool.
   function reinvest() external override onlyEOA onlyReinvestor nonReentrant {
     // 1. Approve tokens
-    farmingToken.safeApprove(address(router), uint256(-1));
     farmingToken.safeApprove(address(masterChef), uint256(-1));
-    // 2. Withdraw all the rewards.
+    // 2. reset all reward balance since all rewards will be reinvested
+    rewardBalance = 0;
+    // 3. Withdraw all the rewards.
     masterChef.leaveStaking(0);
     uint256 reward = farmingToken.myBalance();
     if (reward == 0) return;
-    // 3. Send the reward bounty to the caller.
+    // 4. Send the reward bounty to the caller.
     uint256 bounty = reward.mul(reinvestBountyBps) / 10000;
     if (bounty > 0) farmingToken.safeTransfer(msg.sender, bounty);
-    // 4. re stake the farming token to get more rewards
+    // 5. re stake the farming token to get more rewards
     masterChef.enterStaking(reward.sub(bounty));
-    // 5. Reset approval
-    farmingToken.safeApprove(address(router), 0);
+    // 6. Reset approval
     farmingToken.safeApprove(address(masterChef), 0);
     emit Reinvest(msg.sender, reward, bounty);
   }
@@ -162,7 +160,7 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     (address strat, bytes memory ext) = abi.decode(data, (address, bytes));
     require(okStrats[strat], "CakeMaxiWorker::work:: unapproved work strategy");
     baseToken.safeTransfer(strat, baseToken.myBalance());
-    farmingToken.safeTransfer(strat, farmingToken.myBalance());
+    farmingToken.safeTransfer(strat, farmingToken.myBalance().sub(rewardBalance));
     IStrategy(strat).execute(user, debt, ext);
     // 4. Add farming token back to the farming pool.
     // 5. Thus, Increasing a size of the current position's shares
@@ -210,15 +208,12 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     for(uint256 i = 1; i < path.length; i++) {
         // 1. Get the position's LP balance and LP total supply.
         currentLP = IPancakePair(factory.getPair(path[i-1], path[i]));
-        uint256 lpSupply = currentLP.totalSupply(); // Ignore pending mintFee as it is insignificant
         // 2. Get the pool's total supply of BaseToken and FarmingToken.
         (uint256 r0, uint256 r1,) = currentLP.getReserves();
-        (uint256 totalBaseToken, uint256 totalFarmingToken) = lpToken.token0() == baseToken ? (r0, r1) : (r1, r0);
-        // 3. Convert the position's LP tokens to the underlying assets.
-        uint256 userFarmingToken = amount[i-1].mul(totalFarmingToken).div(lpSupply);
-        // 4. Convert all FarmingToken to BaseToken and return total BaseToken.
+        (uint256 totalBaseToken, uint256 totalFarmingToken) = currentLP.token0() == path[i] ? (r0, r1) : (r1, r0);
+        // 3. Convert all FarmingToken to BaseToken and return total BaseToken.
         amount[i] = getMktSellAmount(
-            userFarmingToken, totalFarmingToken.sub(userFarmingToken), totalBaseToken
+            amount[i-1], totalFarmingToken, totalBaseToken
         );
     }
     // @notice return the last amount, since the latest amount is calculated by previous amount, based on the path
@@ -231,7 +226,7 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     // 1. Convert the position back to a farming token.
     // 2. Remove shares on this position
     _removeShare(id);
-    farmingToken.safeTransfer(address(liqStrat), farmingToken.myBalance());
+    farmingToken.safeTransfer(address(liqStrat), farmingToken.myBalance().sub(rewardBalance));
     liqStrat.execute(address(0), 0, abi.encode(0));
     // 2. Return all available base token back to the operator.
     uint256 wad = baseToken.myBalance();
@@ -240,32 +235,39 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   }
 
   /// @dev Internal function to stake all outstanding LP tokens to the given position ID.
-  function _addShare(uint256 id) internal {
+  function _addShare(uint256 id) internal  {
     uint256 balance = farmingToken.myBalance();
-    if (balance > 0) {
+    if (balance > 0 && balance > rewardBalance) {
+      uint256 shareBalance = farmingToken.myBalance().sub(rewardBalance);
       // 1. Approve token to be spend by masterChef
       address(farmingToken).safeApprove(address(masterChef), uint256(-1));
       // 2. Convert balance to share
-      uint256 share = balanceToShare(balance);
+      uint256 share = balanceToShare(shareBalance);
       // 3. Update shares
       shares[id] = shares[id].add(share);
       totalShare = totalShare.add(share);
+      rewardBalance = rewardBalance.add(masterChef.pendingCake(pid, address(this)));
       // 4. Deposit balance to PancakeMasterChef
-      masterChef.enterStaking(balance);
+      masterChef.enterStaking(shareBalance);
       // 5. Reset approve token
       address(farmingToken).safeApprove(address(masterChef), 0);
       emit AddShare(id, share);
+      
     }
   }
 
   /// @dev Internal function to remove shares of the ID and convert to outstanding LP tokens.
+  // @notice since when removing shares, rewards token can be the same as farming token,
+  // so it needs to return the current reward balance to be excluded fro the farming token balance
   function _removeShare(uint256 id) internal {
     uint256 share = shares[id];
     if (share > 0) {
       uint256 balance = shareToBalance(share);
       totalShare = totalShare.sub(share);
       shares[id] = 0;
+      rewardBalance = rewardBalance.add(masterChef.pendingCake(pid, address(this)));
       masterChef.leaveStaking(balance);
+
       emit RemoveShare(id, share);
     }
   }
