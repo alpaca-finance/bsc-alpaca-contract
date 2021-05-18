@@ -34,18 +34,14 @@ contract WexMaster is Ownable {
   event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
   event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
   event Claim(address indexed user, uint256 indexed pid, uint256 amount);
-  event EmergencyWithdraw(
-    address indexed user,
-    uint256 indexed pid,
-    uint256 amount
-  );
+  event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount);
 
   constructor(
     WaultSwapToken _wex,
     uint256 _wexPerBlock,
     uint256 _startBlock
   ) public {
-    wex = _wex;  
+    wex = _wex;
     wexPerBlock = _wexPerBlock;
     startBlock = _startBlock;
   }
@@ -54,11 +50,7 @@ contract WexMaster is Ownable {
     return poolInfo.length;
   }
 
-  function getMultiplier(uint256 _from, uint256 _to)
-    public
-    pure
-    returns (uint256)
-  {
+  function getMultiplier(uint256 _from, uint256 _to) public pure returns (uint256) {
     return _to.sub(_from);
   }
 
@@ -70,17 +62,10 @@ contract WexMaster is Ownable {
     if (_withUpdate) {
       massUpdatePools();
     }
-    uint256 lastRewardBlock = block.number > startBlock
-      ? block.number
-      : startBlock;
+    uint256 lastRewardBlock = block.number > startBlock ? block.number : startBlock;
     totalAllocPoint = totalAllocPoint.add(_allocPoint);
     poolInfo.push(
-      PoolInfo({
-        lpToken: _lpToken,
-        allocPoint: _allocPoint,
-        lastRewardBlock: lastRewardBlock,
-        accWexPerShare: 0
-      })
+      PoolInfo({ lpToken: _lpToken, allocPoint: _allocPoint, lastRewardBlock: lastRewardBlock, accWexPerShare: 0 })
     );
   }
 
@@ -92,36 +77,21 @@ contract WexMaster is Ownable {
     if (_withUpdate) {
       massUpdatePools();
     }
-    totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint).add(
-      _allocPoint
-    );
+    totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint).add(_allocPoint);
     poolInfo[_pid].allocPoint = _allocPoint;
   }
 
-  function pendingWex(uint256 _pid, address _user)
-    external
-    view
-    returns (uint256)
-  {
+  function pendingWex(uint256 _pid, address _user) external view returns (uint256) {
     PoolInfo storage pool = poolInfo[_pid];
     UserInfo storage user = userInfo[_pid][_user];
     uint256 accWexPerShare = pool.accWexPerShare;
     uint256 lpSupply = pool.lpToken.balanceOf(address(this));
     if (block.number > pool.lastRewardBlock && lpSupply != 0) {
-      uint256 multiplier = getMultiplier(
-        pool.lastRewardBlock,
-        block.number
-      );
-      uint256 wexReward = multiplier
-        .mul(wexPerBlock)
-        .mul(pool.allocPoint)
-        .div(totalAllocPoint);
-      accWexPerShare = accWexPerShare.add(
-        wexReward.mul(1e12).div(lpSupply)
-      );
+      uint256 multiplier = getMultiplier(pool.lastRewardBlock, block.number);
+      uint256 wexReward = multiplier.mul(wexPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
+      accWexPerShare = accWexPerShare.add(wexReward.mul(1e12).div(lpSupply));
     }
-    return
-      user.amount.mul(accWexPerShare).div(1e12).sub(user.rewardDebt).add(user.pendingRewards);
+    return user.amount.mul(accWexPerShare).div(1e12).sub(user.rewardDebt).add(user.pendingRewards);
   }
 
   function massUpdatePools() public {
@@ -142,27 +112,22 @@ contract WexMaster is Ownable {
       return;
     }
     uint256 multiplier = getMultiplier(pool.lastRewardBlock, block.number);
-    uint256 wexReward = multiplier
-      .mul(wexPerBlock)
-      .mul(pool.allocPoint)
-      .div(totalAllocPoint);
+    uint256 wexReward = multiplier.mul(wexPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
     wex.mint(address(this), wexReward);
-    pool.accWexPerShare = pool.accWexPerShare.add(
-      wexReward.mul(1e12).div(lpSupply)
-    );
+    pool.accWexPerShare = pool.accWexPerShare.add(wexReward.mul(1e12).div(lpSupply));
     pool.lastRewardBlock = block.number;
   }
 
-  function deposit(uint256 _pid, uint256 _amount, bool _withdrawRewards) public {
+  function deposit(
+    uint256 _pid,
+    uint256 _amount,
+    bool _withdrawRewards
+  ) public {
     PoolInfo storage pool = poolInfo[_pid];
     UserInfo storage user = userInfo[_pid][msg.sender];
     updatePool(_pid);
     if (user.amount > 0) {
-      uint256 pending = user
-        .amount
-        .mul(pool.accWexPerShare)
-        .div(1e12)
-        .sub(user.rewardDebt);
+      uint256 pending = user.amount.mul(pool.accWexPerShare).div(1e12).sub(user.rewardDebt);
 
       if (pending > 0) {
         user.pendingRewards = user.pendingRewards.add(pending);
@@ -182,7 +147,11 @@ contract WexMaster is Ownable {
     emit Deposit(msg.sender, _pid, _amount);
   }
 
-  function withdraw(uint256 _pid, uint256 _amount, bool _withdrawRewards) public {
+  function withdraw(
+    uint256 _pid,
+    uint256 _amount,
+    bool _withdrawRewards
+  ) public {
     PoolInfo storage pool = poolInfo[_pid];
     UserInfo storage user = userInfo[_pid][msg.sender];
     require(user.amount >= _amount, "withdraw: not good");
@@ -242,5 +211,4 @@ contract WexMaster is Ownable {
     require(_wexPerBlock > 0, "!wexPerBlock-0");
     wexPerBlock = _wexPerBlock;
   }
-
 }

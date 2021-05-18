@@ -3,11 +3,10 @@ pragma solidity 0.6.12;
 import "@openzeppelin/contracts/GSN/Context.sol";
 
 contract Mintable is Context {
-
   /**
-   * @dev So here we seperate the rights of the classic ownership into 'owner' and 'minter'
-   * this way the developer/owner stays the 'owner' and can make changes like adding a pool
-   * at any time but cannot mint anymore as soon as the 'minter' gets changes (to the chef contract)
+   * @dev So here we seperate the rights of the classic ownership into "owner" and "minter"
+   * this way the developer/owner stays the "owner" and can make changes like adding a pool
+   * at any time but cannot mint anymore as soon as the "minter" gets changes (to the chef contract)
    */
   address private _minter;
 
@@ -16,7 +15,7 @@ contract Mintable is Context {
   /**
    * @dev Initializes the contract setting the deployer as the initial minter.
    */
-  constructor () internal {
+  constructor() internal {
     address msgSender = _msgSender();
     _minter = msgSender;
     emit MintershipTransferred(address(0), msgSender);
