@@ -120,6 +120,7 @@
     "test:pan2cakemaxiliquidate": "hardhat test --no-compile ./test/PancakeswapV2_Restricted_CakeMaxi_StrategyLiquidate.test.ts",
     "test:pan2cakemaximinimize": "hardhat test --no-compile ./test/PancakeswapV2_Restricted_CakeMaxi_StrategyWithdrawMinimizeTrading.test.ts",
     "test:cakemaxiworker": "hardhat test --no-compile ./test/CakeMaxiWorker.test.ts",
+    "test:cakemaxiworkerconf": "hardhat test --no-compile ./test/CakeMaxiWorkerConfig.test.ts",
     "test:router": "hardhat test --no-compile ./test/IbTokenRouter.test.ts",
     "test:timelock": "hardhat test --no-compile ./test/Timelock.test.ts",
     "test:tripleslope": "hardhat test --no-compile ./test/TripleSlopeModel.test.ts",
