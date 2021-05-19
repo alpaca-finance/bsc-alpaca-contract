@@ -82,7 +82,7 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     okStrats[address(addStrat)] = true;
     okStrats[address(liqStrat)] = true;
     reinvestBountyBps = _reinvestBountyBps;
-    maxReinvestBountyBps = 1000;
+    maxReinvestBountyBps = 2000;
     fee = 9975;
     feeDenom = 10000;
 
@@ -153,19 +153,18 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     external
     onlyOperator nonReentrant
   {
-    // 1. Convert this position shares back to a farming token.
-    // 2. Remove shares on this position
+    // 1. Remove shares on this position back to farming tokens
     _removeShare(id);
-    // 3. Perform the worker strategy; sending a basetoken amount to the strategy.
+    // 2. Perform the worker strategy; sending a basetoken amount to the strategy.
     (address strat, bytes memory ext) = abi.decode(data, (address, bytes));
     require(okStrats[strat], "CakeMaxiWorker::work:: unapproved work strategy");
     baseToken.safeTransfer(strat, baseToken.myBalance());
     farmingToken.safeTransfer(strat, farmingToken.myBalance().sub(rewardBalance));
     IStrategy(strat).execute(user, debt, ext);
-    // 4. Add farming token back to the farming pool.
-    // 5. Thus, Increasing a size of the current position's shares
+    // 3. Add farming token back to the farming pool.
+    // 4. Thus, Increasing a size of the current position's shares
     _addShare(id);
-    // 6. Return any remaining BaseToken back to the operator.
+    // 5. Return any remaining BaseToken back to the operator.
     if (baseToken.myBalance() == 0) return;
     baseToken.safeTransfer(msg.sender, baseToken.myBalance());
   }
@@ -206,25 +205,24 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     amount = new uint256[](path.length);
     amount[0] = shareToBalance(shares[id]);
     for(uint256 i = 1; i < path.length; i++) {
-        // 1. Get the position's LP balance and LP total supply.
+        // 1. Get the current LP based on the specified paths.
         currentLP = IPancakePair(factory.getPair(path[i-1], path[i]));
-        // 2. Get the pool's total supply of BaseToken and FarmingToken.
+        // 2. Get the pool's total supply of the token of path i-1 and the token of path i.
         (uint256 r0, uint256 r1,) = currentLP.getReserves();
-        (uint256 totalBaseToken, uint256 totalFarmingToken) = currentLP.token0() == path[i] ? (r0, r1) : (r1, r0);
-        // 3. Convert all FarmingToken to BaseToken and return total BaseToken.
+        (uint256 rOut, uint256 rIn) = currentLP.token0() == path[i] ? (r0, r1) : (r1, r0);
+        // 3. Convert all amount on the token of path i-1 to the token of path i.
         amount[i] = getMktSellAmount(
-            amount[i-1], totalFarmingToken, totalBaseToken
+            amount[i-1], rIn, rOut
         );
     }
-    // @notice return the last amount, since the latest amount is calculated by previous amount, based on the path
+    // @notice return the last amount, since the last amount is the amount that we shall get in baseToken if we sell the farmingToken at the market price
     return amount[amount.length - 1];
   }
 
   /// @dev Liquidate the given position by converting it to BaseToken and return back to caller.
   /// @param id The position ID to perform liquidation
   function liquidate(uint256 id) external override onlyOperator nonReentrant {
-    // 1. Convert the position back to a farming token.
-    // 2. Remove shares on this position
+    // 1. Remove shares on this position back to farming tokens
     _removeShare(id);
     farmingToken.safeTransfer(address(liqStrat), farmingToken.myBalance().sub(rewardBalance));
     liqStrat.execute(address(0), 0, abi.encode(0));
