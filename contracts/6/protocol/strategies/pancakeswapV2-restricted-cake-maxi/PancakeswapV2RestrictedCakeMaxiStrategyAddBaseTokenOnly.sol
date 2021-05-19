@@ -7,13 +7,11 @@ import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakeFactory.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
 
-
 import "../../apis/pancake/IPancakeRouter02.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../../utils/SafeToken.sol";
 import "../../../utils/AlpacaMath.sol";
 import "../../interfaces/IWorker.sol";
-
 
 contract PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeToken for address;
@@ -31,7 +29,7 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly is OwnableUpgra
   } 
 
   /// @dev Create a new add Token only strategy instance.
-  /// @param _router The Uniswap router smart contract.
+  /// @param _router The Pancakeswap router smart contract.
   function initialize(IPancakeRouter02 _router) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
@@ -57,9 +55,8 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly is OwnableUpgra
     address farmingToken = worker.farmingToken();
     // 2. Approve router to do their stuffs
     baseToken.safeApprove(address(router), uint256(-1));
-    // 3. Compute the optimal amount of baseToken to be converted to farmingToken.
     uint256 balance = baseToken.myBalance();
-    // 4. Convert that portion of a baseToken to a farmingToken.
+    // 3. Convert that all baseTokens into farmingTokens.
     address[] memory path;
     if (baseToken == wNative) {
       path = new address[](2);
@@ -76,10 +73,10 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly is OwnableUpgra
       path[2] = address(farmingToken);
     }
     router.swapExactTokensForTokens(balance, 0, path, address(this), now);
-    // 5. Transfer all farming token (as a result of conversion) back to the calling worker
+    // 4. Transfer all farmingTokens (as a result of a conversion) back to the calling worker
     require(farmingToken.myBalance() >= minFarmingTokenAmount, "PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly::execute:: insufficient farmingToken amount received");
     farmingToken.safeTransfer(msg.sender, farmingToken.myBalance());
-    // 6. Reset approval for safety reason
+    // 5. Reset approval for safety reason
     baseToken.safeApprove(address(router), 0);
   }
 

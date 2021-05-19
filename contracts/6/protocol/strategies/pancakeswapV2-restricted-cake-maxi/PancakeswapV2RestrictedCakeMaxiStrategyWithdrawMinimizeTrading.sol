@@ -33,7 +33,7 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading is Ownab
   } 
 
   /// @dev Create a new add Token only strategy instance.
-  /// @param _router The Uniswap router smart contract.
+  /// @param _router The Pancakeswap router smart contract.
   function initialize(IPancakeRouter02 _router, IWNativeRelayer _wNativeRelayer) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
@@ -60,7 +60,7 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading is Ownab
     address farmingToken = worker.farmingToken();
     // 2. Approve router to do their stuffs
     farmingToken.safeApprove(address(router), uint256(-1));
-    // 4. Convert that portion of farming to baseToken (for repaying the debt).
+    // 3. Finding the correct path for baseToken and farmingToken (in case some of them are wNative)
     address[] memory path;
     if (baseToken == wNative) {
       path = new address[](2);
@@ -77,9 +77,9 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading is Ownab
       path[2] = address(baseToken);
     }
     router.swapTokensForExactTokens(debt, farmingToken.myBalance(), path, address(this), now);
-    // 5. Return baseToken back to the original caller to repay the debt.
+    // 4. Return baseToken back to the original caller in order to repay the debt.
     baseToken.safeTransfer(msg.sender, baseToken.myBalance());
-    // 6. Return remaining farmingToken back to the user.
+    // 5. Return the remaining farmingTokens back to the user.
     uint256 remainingFarmingToken = farmingToken.myBalance();
     require(remainingFarmingToken >= minFarmingTokenAmount, "PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading::execute:: insufficient farmingToken amount received");
     if (remainingFarmingToken > 0) {
@@ -91,7 +91,7 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading is Ownab
         SafeToken.safeTransfer(farmingToken, user, remainingFarmingToken);
       }
     }
-    // 7. Reset approval for safety reason
+    // 6. Reset approval for safety reason
     farmingToken.safeApprove(address(router), 0);
   }
 

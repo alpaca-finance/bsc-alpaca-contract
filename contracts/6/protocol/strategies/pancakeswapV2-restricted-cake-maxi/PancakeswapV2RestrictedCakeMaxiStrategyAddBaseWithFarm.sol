@@ -7,14 +7,12 @@ import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakeFactory.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
 
-
 import "../../apis/pancake/IPancakeRouter02.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IVault.sol";
 import "../../../utils/SafeToken.sol";
 import "../../../utils/AlpacaMath.sol";
 import "../../interfaces/IWorker.sol";
-
 
 contract PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeToken for address;
@@ -33,7 +31,7 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm is OwnableUpgrad
   } 
 
   /// @dev Create a new add Token only strategy instance.
-  /// @param _router The Uniswap router smart contract.
+  /// @param _router The PancakeSwap router smart contract.
   function initialize(IPancakeRouter02 _router, IVault _vault) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
@@ -63,9 +61,8 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm is OwnableUpgrad
     baseToken.safeApprove(address(router), uint256(-1));
     // 3. request additional fund in form of a farmingToken from the vault using inputFarmingTokenAmount
     vault.requestFunds(farmingToken, inputFarmingTokenAmount);
-    // 4. Compute the optimal amount of baseToken to be converted to farmingToken.
     uint256 balance = baseToken.myBalance();
-    // 5. Convert that portion of a baseToken to a farmingToken.
+    // 4. Convert that all baseTokens to a farmingTokens.
     address[] memory path;
     if (baseToken == wNative) {
       path = new address[](2);
