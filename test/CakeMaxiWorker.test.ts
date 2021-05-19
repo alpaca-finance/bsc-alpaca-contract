@@ -663,13 +663,15 @@ describe('CakeMaxiWorker', () => {
             expect(await cakeMaxiWorkerNative.shareToBalance(await cakeMaxiWorkerNative.shares(0))).to.eq(ethers.utils.parseEther('0.016630354291151718'))
              // reinvest.. the size of the reward should be 2 (blocks) * 0.1 farming token (CAKE)
             await cakeMaxiWorkerNativeAsEve.reinvest()
+            // eve, who is a reinvestor will get her bounty for 0.3 * 1% = 0.003
+            Assert.assertAlmostEqual(await (await cake.balanceOf(await eve.getAddress())).toString(), ethers.utils.parseEther('0.003').toString())
             userInfo = await masterChef.userInfo(0, cakeMaxiWorkerNative.address)
             // bob start opening his position using 0.1 wbnb
             // amountOut of 0.1 will be
             // if 1.2 WBNB = (0.1 - (0.00907024323709934 + 0.0075601110540523785)) FToken
             // if 1.2 WBNB = 0.08336964570884828 FToken
             // 0.1 WBNB will be (0.1*0.9975) * (0.08336964570884828/(1.2+0.1*0.9975)) = 0.006398247477943924
-            // total farming token amount will be 0.016630354291151717 + 0.006398247477943924 + 0.1*3 from block number = 0.320028601769079632
+            // total farming token amount will be 0.016630354291151717 + 0.006398247477943924 + 0.1*3 from block reward - 0.1*3*0.01 deducted from bounty  = 0.320028601769079632
             const bobShare = ethers.utils.parseEther('0.006398247477943924').mul(await cakeMaxiWorkerNative.totalShare()).div(userInfo[0])
             const aliceShare = ethers.utils.parseEther('0.016630354291151718') // no need to readjust the share since this happened before the reinvest
             await wbnbTokenAsBob.transfer(cakeMaxiWorkerNative.address, ethers.utils.parseEther('0.1'));
