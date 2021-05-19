@@ -212,7 +212,7 @@ describe('CakeMaxiWorker', () => {
       context("When the oracle hasn't updated any prices", async () => {
         it('should be reverted', async () => {
           await simplePriceOracleAsAlice.setPrices([wbnb.address, cake.address, baseToken.address, wbnb.address],[baseToken.address, wbnb.address, wbnb.address, cake.address],[1, 1, 1, 1])
-          await TimeHelpers.increase(BigNumber.from('604801')) // 7 days have passed
+          await TimeHelpers.increase(BigNumber.from('86401')) // 1 day and 1 second have passed
           await expect(cakeMaxiWorkerConfigAsAlice.isStable(cakeMaxiWorkerNonNative.address)).to.revertedWith('CakeMaxiWorkerConfig::isStable:: price too stale')
         })
       })
@@ -252,7 +252,7 @@ describe('CakeMaxiWorker', () => {
       context("When the oracle hasn't updated any prices", async () => {
         it('should be reverted', async () => {
           await simplePriceOracleAsAlice.setPrices([wbnb.address, cake.address],[cake.address, wbnb.address],[1, 1])
-          await TimeHelpers.increase(BigNumber.from('604801')) // 7 days have passed
+          await TimeHelpers.increase(BigNumber.from('86401')) // 1 day and 1 second have passed
           await expect(cakeMaxiWorkerConfigAsAlice.isStable(cakeMaxiWorkerNative.address)).to.revertedWith('CakeMaxiWorkerConfig::isStable:: price too stale')
         })
       })
