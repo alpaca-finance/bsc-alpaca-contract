@@ -255,6 +255,12 @@
         "name": "BOR-WBNB LP",
         "address": "0xe094c686aD6cDda57b9564457F541FBF099B948A"
       }]
+    },
+    "WaultSwap": {
+      "WexMaster": "0x22fB2663C7ca71Adc2cc99481C77Aaf21E152e2D",
+      "WaultSwapRouter": "0xD48745E39BbED146eEC15b79cBF964884F9877c2",
+      "WaultSwapFactory": "0xB42E3FE71b7E0673335b3331B3e1053BD9822570",
+      "LpTokens": []
     }
   },
   "Tokens": {
