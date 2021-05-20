@@ -49,7 +49,7 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm is OwnableUpgrad
     onlyWhitelistedWorkers
     nonReentrant
   {
-    // 1. Find out what farming token we are dealing with and min additional LP tokens.
+    // 1. Find out how many farmingToken amount the strategy should deal with and min additional farmingTokens.
     (
       uint256 inputFarmingTokenAmount,
       uint256 minFarmingTokenAmount

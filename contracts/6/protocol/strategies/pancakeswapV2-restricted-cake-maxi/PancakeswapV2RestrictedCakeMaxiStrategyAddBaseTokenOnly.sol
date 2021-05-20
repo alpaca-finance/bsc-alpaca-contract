@@ -46,7 +46,7 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly is OwnableUpgra
     onlyWhitelistedWorkers
     nonReentrant
   {
-    // 1. Find out what farming token we are dealing with and min farmingToken amount.
+    // 1. minFarmingTokenAmount for validating a farmingToken amount from a conversion of a baseToken.
     (
       uint256 minFarmingTokenAmount
     ) = abi.decode(data, (uint256));

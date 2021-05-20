@@ -46,7 +46,7 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyLiquidate is OwnableUpgradeSafe,
     onlyWhitelistedWorkers
     nonReentrant
   {
-    // 1. Find out what farming token we are dealing with and min additional LP tokens.
+    // 1. minBaseTokenAmount for validating a baseToken amount from a conversion of a farmingToken.
     (
       uint256 minBaseTokenAmount
     ) = abi.decode(data, (uint256));

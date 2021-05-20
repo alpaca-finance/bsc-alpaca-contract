@@ -51,7 +51,7 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading is Ownab
     onlyWhitelistedWorkers
     nonReentrant
   {
-    // 1. Find out what farming token we are dealing with and min additional LP tokens.
+    // 1. minFarmingTokenAmount for validating a farmingToken amount after leaving the stake.
     (
       uint256 minFarmingTokenAmount
     ) = abi.decode(data, (uint256));
