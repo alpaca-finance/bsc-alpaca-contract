@@ -40,6 +40,11 @@
       "name": "ibALPACA-SWINGBY",
       "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
       "rewardToken": "0x71DE20e0C4616E7fcBfDD3f875d568492cBE4739"
+    }, {
+      "id": 6,
+      "name": "ibALPACA-DODO",
+      "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
+      "rewardToken": "0x67ee3cb086f8a16f34bee3ca72fad36f7db929e2"
     }]
   },
   "FairLaunch": {
@@ -281,6 +286,10 @@
         "pId": 304,
         "name": "SWINGBY-WBNB LP",
         "address": "0x4Fd6D315bEf387fAD2322fbc64368fC443F0886D"
+      }, {
+        "pId": 305,
+        "name": "DODO-WBNB LP",
+        "address": "0xA9986Fcbdb23c2E8B11AB40102990a08f8E58f06"
       }]
     }
   },
@@ -312,7 +321,8 @@
     "BOR": "0x92D7756c60dcfD4c689290E8A9F4d263b3b32241",
     "BRY": "0xf859Bf77cBe8699013d6Dbc7C2b926Aaf307F830",
     "pCWS": "0xbcf39F0EDDa668C58371E519AF37CA705f2bFcbd",
-    "SWINGBY": "0x71de20e0c4616e7fcbfdd3f875d568492cbe4739"
+    "SWINGBY": "0x71de20e0c4616e7fcbfdd3f875d568492cbe4739",
+    "DODO": "0x67ee3cb086f8a16f34bee3ca72fad36f7db929e2"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x1099C2E6Ed6ebA95099c205b599B409305783E43",
@@ -494,6 +504,16 @@
     }, {
       "name": "SWINGBY-WBNB PancakeswapWorker",
       "address": "0x72BbCFce18Ec02734E87Ed68b124BC422C84B2a2",
+      "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+        "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+        "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
+        "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419"
+      }
+    }, {
+      "name": "DODO-WBNB PancakeswapWorker",
+      "address": "0xa573FFd839aa1dC94ca6AE7eD75253C2AC7c2eC8",
       "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
       "strategies": {
         "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
