@@ -1716,12 +1716,10 @@ describe('Vault - Pancakeswap Migrate', () => {
         
         eveCakeBefore = await cake.balanceOf(await eve.getAddress());
         [workerLPBefore, workerDebtBefore] = await masterChef.userInfo(lpV2poolId, pancakeswapWorker.address);
-        
+
         await pancakeswapWorkerAsEve.reinvest();
     
         // eve should earn cake as a reward for reinvest
-        console.log("cursor: ", cursor.toString())
-        console.log("curretBlock: ", (await TimeHelpers.latestBlockNumber()).toString())
         AssertHelpers.assertAlmostEqual(
           eveCakeBefore.add(CAKE_REWARD_PER_BLOCK.mul((await TimeHelpers.latestBlockNumber()).sub(cursor).mul(10).add(5)).div(1000)).toString(),
           (await cake.balanceOf(await eve.getAddress())).toString(),
