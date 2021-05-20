@@ -159,7 +159,7 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     (address strat, bytes memory ext) = abi.decode(data, (address, bytes));
     require(okStrats[strat], "CakeMaxiWorker::work:: unapproved work strategy");
     baseToken.safeTransfer(strat, baseToken.myBalance());
-    farmingToken.safeTransfer(strat, farmingToken.myBalance().sub(rewardBalance));
+    farmingToken.safeTransfer(strat, actualFarmingTokenBalance());
     IStrategy(strat).execute(user, debt, ext);
     // 3. Add farming token back to the farming pool.
     // 4. Thus, Increasing a size of the current position's shares
@@ -224,7 +224,7 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   function liquidate(uint256 id) external override onlyOperator nonReentrant {
     // 1. Remove shares on this position back to farming tokens
     _removeShare(id);
-    farmingToken.safeTransfer(address(liqStrat), farmingToken.myBalance().sub(rewardBalance));
+    farmingToken.safeTransfer(address(liqStrat), actualFarmingTokenBalance());
     liqStrat.execute(address(0), 0, abi.encode(0));
     // 2. Return all available base token back to the operator.
     uint256 wad = baseToken.myBalance();
@@ -232,11 +232,16 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     emit Liquidate(id, wad);
   }
 
+  // @notice since reward gaining from the masterchef is the same token with farmingToken,
+  // thus the rewardBalance exists to differentiate an actual farming token balance without taking reward balance into account
+  function actualFarmingTokenBalance() internal view returns (uint256) {
+    return farmingToken.myBalance().sub(rewardBalance);
+  }
+
   /// @dev Internal function to stake all outstanding LP tokens to the given position ID.
   function _addShare(uint256 id) internal  {
-    uint256 balance = farmingToken.myBalance();
-    if (balance > 0 && balance > rewardBalance) {
-      uint256 shareBalance = farmingToken.myBalance().sub(rewardBalance);
+    uint256 shareBalance = actualFarmingTokenBalance();
+    if (shareBalance > 0) {
       // 1. Approve token to be spend by masterChef
       address(farmingToken).safeApprove(address(masterChef), uint256(-1));
       // 2. Convert balance to share
