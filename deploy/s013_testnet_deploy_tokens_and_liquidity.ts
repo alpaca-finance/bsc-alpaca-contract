@@ -26,24 +26,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const PANCAKE_ROUTER = '0x367633909278A3C91f4cB130D8e56382F00D1071'
   const WBNB = '0xDfb1211E2694193df5765d54350e1145FD2404A1'
   const TOKENS: Array<IToken> = [{
-    symbol: 'BRY',
-    name: 'BRY',
+    symbol: 'SWINGBY',
+    name: 'SWINGBY',
     mintAmount: ethers.utils.parseEther('8000000000').toString(),
     pairs: [{
       quoteToken: 'BNB',
       quoteTokenAddr: '0xDfb1211E2694193df5765d54350e1145FD2404A1',
       reserveQuoteToken: ethers.utils.parseEther('100'),
-      reserveBaseToken: ethers.utils.parseEther('10780.9')
-    }]
-  }, {
-    symbol: 'pCWS',
-    name: 'pCWS',
-    mintAmount: ethers.utils.parseEther('8000000000').toString(),
-    pairs: [{
-      quoteToken: 'BNB',
-      quoteTokenAddr: '0xDfb1211E2694193df5765d54350e1145FD2404A1',
-      reserveQuoteToken: ethers.utils.parseEther('100'),
-      reserveBaseToken: ethers.utils.parseEther('2780.73')
+      reserveBaseToken: ethers.utils.parseEther('205482')
     }]
   }]
 

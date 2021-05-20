@@ -1436,6 +1436,7 @@ describe('Vault - Pancakeswap Migrate', () => {
         // Alice deposits 12 BTOKEN
         await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther('12'));
         await vaultAsAlice.deposit(ethers.utils.parseEther('12'));
+
     
         // Position#1: Bob borrows 10 BTOKEN loan
         await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther('10'))
@@ -1453,6 +1454,9 @@ describe('Vault - Pancakeswap Migrate', () => {
             ]
           ),
         );
+
+        // startBlock here due to the 1st position just deposit to MasterChef
+        let cursor = await TimeHelpers.latestBlockNumber()
     
         // Position#2: Alice borrows 2 BTOKEN loan
         await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther('1'))
@@ -1476,11 +1480,15 @@ describe('Vault - Pancakeswap Migrate', () => {
         await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from('1')));
     
         let [workerLPBefore, workerDebtBefore] = await masterChef.userInfo(poolId, pancakeswapWorker.address);
+        let eveCakeBefore = await cake.balanceOf(await eve.getAddress());
+        
+        // Reinvest
         await pancakeswapWorkerAsEve.reinvest();
+        
         // PancakeWorker receives 303999999998816250 cake as a reward
         // Eve got 10% of 303999999998816250 cake = 0.01 * 303999999998816250 = 3039999999988162 bounty
         AssertHelpers.assertAlmostEqual(
-          ethers.utils.parseEther('0.003039999999988162').toString(),
+          eveCakeBefore.add(CAKE_REWARD_PER_BLOCK.mul((await TimeHelpers.latestBlockNumber()).sub(cursor)).div(100)).toString(),
           (await cake.balanceOf(await eve.getAddress())).toString(),
         );
     
@@ -1512,14 +1520,18 @@ describe('Vault - Pancakeswap Migrate', () => {
     
         // ---------------- Reinvest#2 -------------------
         // Wait for 1 day and someone calls reinvest
+        cursor = await TimeHelpers.latestBlockNumber();
         await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from('1')));
     
         [workerLPBefore, workerDebtBefore] = await masterChef.userInfo(poolId, pancakeswapWorker.address);
+        eveCakeBefore = await cake.balanceOf(await eve.getAddress());
+        
+        // Reinvest
         await pancakeswapWorkerAsEve.reinvest();
     
         // eve should earn cake as a reward for reinvest
         AssertHelpers.assertAlmostEqual(
-          ethers.utils.parseEther('0.004559999999987660').toString(),
+          eveCakeBefore.add(CAKE_REWARD_PER_BLOCK.mul((await TimeHelpers.latestBlockNumber()).sub(cursor)).div(100)).toString(),
           (await cake.balanceOf(await eve.getAddress())).toString(),
         );
     
@@ -1596,6 +1608,9 @@ describe('Vault - Pancakeswap Migrate', () => {
           '0', '0', await deployer.getAddress(), FOREVER)
         
         const [btokenReserveV1, ftokenReserveV1] = await btokenFtokenLpV1.getReserves()
+
+        // Update cursor here due to reward will start to accum on the next block
+        cursor = await TimeHelpers.latestBlockNumber();
   
         await pancakeswapV2workerMigrate.migrateLP(
           routerV2.address,
@@ -1698,13 +1713,15 @@ describe('Vault - Pancakeswap Migrate', () => {
         // ---------------- Reinvest#3 -------------------
         // Wait for 1 day and someone calls reinvest
         await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from('1')));
-    
+        
+        eveCakeBefore = await cake.balanceOf(await eve.getAddress());
         [workerLPBefore, workerDebtBefore] = await masterChef.userInfo(lpV2poolId, pancakeswapWorker.address);
+
         await pancakeswapWorkerAsEve.reinvest();
     
         // eve should earn cake as a reward for reinvest
         AssertHelpers.assertAlmostEqual(
-          ethers.utils.parseEther('0.014819999999969527').toString(),
+          eveCakeBefore.add(CAKE_REWARD_PER_BLOCK.mul((await TimeHelpers.latestBlockNumber()).sub(cursor).mul(10).add(5)).div(1000)).toString(),
           (await cake.balanceOf(await eve.getAddress())).toString(),
         );
     
