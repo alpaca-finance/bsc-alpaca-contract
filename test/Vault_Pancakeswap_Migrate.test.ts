@@ -1557,9 +1557,6 @@ describe('Vault - Pancakeswap Migrate', () => {
           ethers.utils.parseEther('2').toString(),
           aliceDebt.toString(),
         );
-
-        // Update cursor here due to block will be increased
-        cursor = await TimeHelpers.latestBlockNumber();
   
         // Pancakeswap annouce the upgrade to RouterV2 and FactoryV2
         // turn off rewards for LPv1 immediately, move rewards to LPv2
@@ -1611,6 +1608,9 @@ describe('Vault - Pancakeswap Migrate', () => {
           '0', '0', await deployer.getAddress(), FOREVER)
         
         const [btokenReserveV1, ftokenReserveV1] = await btokenFtokenLpV1.getReserves()
+
+        // Update cursor here due to reward will start to accum on the next block
+        cursor = await TimeHelpers.latestBlockNumber();
   
         await pancakeswapV2workerMigrate.migrateLP(
           routerV2.address,
@@ -1713,15 +1713,17 @@ describe('Vault - Pancakeswap Migrate', () => {
         // ---------------- Reinvest#3 -------------------
         // Wait for 1 day and someone calls reinvest
         await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from('1')));
-    
+        
+        eveCakeBefore = await cake.balanceOf(await eve.getAddress());
         [workerLPBefore, workerDebtBefore] = await masterChef.userInfo(lpV2poolId, pancakeswapWorker.address);
+        
         await pancakeswapWorkerAsEve.reinvest();
     
         // eve should earn cake as a reward for reinvest
         console.log("cursor: ", cursor.toString())
         console.log("curretBlock: ", (await TimeHelpers.latestBlockNumber()).toString())
         AssertHelpers.assertAlmostEqual(
-          ethers.utils.parseEther('200').toString(),
+          eveCakeBefore.add(CAKE_REWARD_PER_BLOCK.mul((await TimeHelpers.latestBlockNumber()).sub(cursor).mul(10).add(5)).div(1000)).toString(),
           (await cake.balanceOf(await eve.getAddress())).toString(),
         );
     
