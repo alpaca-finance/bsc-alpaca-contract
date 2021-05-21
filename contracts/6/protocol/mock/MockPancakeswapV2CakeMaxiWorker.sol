@@ -38,17 +38,17 @@ contract MockPancakeswapV2CakeMaxiWorker is IWorker {
   function reinvest() external override {}
 
   /// @dev Return the amount of wei to get back if we are to liquidate the position.
-  function health(uint256 id) external override view returns (uint256) { return 0; }
+  function health(uint256 /*id*/) external override view returns (uint256) { return 0; }
 
   /// @dev Liquidate the given position to token. Send all token back to its Vault.
-  function liquidate(uint256 id) external override {}
+  function liquidate(uint256 /*id*/) external override {}
 
   /// @dev SetStretegy that be able to executed by the worker.
-  function setStrategyOk(address[] calldata strats, bool isOk) external override {}
+  function setStrategyOk(address[] calldata /*strats*/, bool /*isOk*/) external override {}
 
   /// @dev Set address that can be reinvest
-  function setReinvestorOk(address[] calldata reinvestor, bool isOk) external override {}
+  function setReinvestorOk(address[] calldata /*reinvestor*/, bool /*isOk*/) external override {}
 
   /// @dev LP token holds by worker
-  function lpToken() external override view returns (IPancakePair) { address(0); }
+  function lpToken() external override view returns (IPancakePair) { return IPancakePair(address(0)); }
 }
