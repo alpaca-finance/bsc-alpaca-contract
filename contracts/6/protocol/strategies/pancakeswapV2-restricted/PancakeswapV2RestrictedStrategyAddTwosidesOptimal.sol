@@ -14,8 +14,13 @@ import "../../interfaces/IVault.sol";
 import "../../../utils/SafeToken.sol";
 import "../../../utils/AlpacaMath.sol";
 import "../../interfaces/IWorker.sol";
+import "hardhat/console.sol";
 
-contract PancakeswapV2RestrictedStrategyAddTwoSidesOptimal is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
+contract PancakeswapV2RestrictedStrategyAddTwoSidesOptimal is
+  OwnableUpgradeSafe,
+  ReentrancyGuardUpgradeSafe,
+  IStrategy
+{
   using SafeToken for address;
   using SafeMath for uint256;
 
@@ -27,9 +32,12 @@ contract PancakeswapV2RestrictedStrategyAddTwoSidesOptimal is OwnableUpgradeSafe
 
   // @notice require that only allowed workers are able to do the rest of the method call
   modifier onlyWhitelistedWorkers() {
-    require(okWorkers[msg.sender], "PancakeswapV2RestrictedStrategyAddTwoSidesOptimal::onlyWhitelistedWorkers:: bad worker");
+    require(
+      okWorkers[msg.sender],
+      "PancakeswapV2RestrictedStrategyAddTwoSidesOptimal::onlyWhitelistedWorkers:: bad worker"
+    );
     _;
-  } 
+  }
 
   /// @dev Create a new add two-side optimal strategy instance.
   /// @param _router The Uniswap router smart contract.
@@ -90,13 +98,14 @@ contract PancakeswapV2RestrictedStrategyAddTwoSidesOptimal is OwnableUpgradeSafe
 
   /// @dev Execute worker strategy. Take BaseToken + FarmingToken. Return LP tokens.
   /// @param data Extra calldata information passed along to this strategy.
-  function execute(address /* user */, uint256, /* debt */ bytes calldata data) external override onlyWhitelistedWorkers nonReentrant
-  {
+  function execute(
+    address, /* user */
+    uint256,
+    /* debt */
+    bytes calldata data
+  ) external override onlyWhitelistedWorkers nonReentrant {
     // 1. Find out what farming token we are dealing with.
-    (
-        uint256 farmingTokenAmount,
-        uint256 minLPAmount
-    ) = abi.decode(data, (uint256, uint256));
+    (uint256 farmingTokenAmount, uint256 minLPAmount) = abi.decode(data, (uint256, uint256));
     IWorker worker = IWorker(msg.sender);
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
@@ -112,19 +121,44 @@ contract PancakeswapV2RestrictedStrategyAddTwoSidesOptimal is OwnableUpgradeSafe
     {
       (uint256 r0, uint256 r1, ) = lpToken.getReserves();
       (uint256 baseTokenReserve, uint256 farmingTokenReserve) = lpToken.token0() == baseToken ? (r0, r1) : (r1, r0);
-      (swapAmt, isReversed) = optimalDeposit(baseTokenBalance, farmingToken.myBalance(), baseTokenReserve, farmingTokenReserve);
+      (swapAmt, isReversed) = optimalDeposit(
+        baseTokenBalance,
+        farmingToken.myBalance(),
+        baseTokenReserve,
+        farmingTokenReserve
+      );
     }
     // 4. Convert between BaseToken and farming tokens
     address[] memory path = new address[](2);
     (path[0], path[1]) = isReversed ? (farmingToken, baseToken) : (baseToken, farmingToken);
     // 5. Swap according to path
     if (swapAmt > 0) router.swapExactTokensForTokens(swapAmt, 0, path, address(this), now);
+    {
+      (uint256 r0, uint256 r1, ) = lpToken.getReserves();
+      (uint256 baseTokenReserve, uint256 farmingTokenReserve) = lpToken.token0() == baseToken ? (r0, r1) : (r1, r0);
+      console.log("after: baseTokenReserve %s farmingTokenReserve %s", baseTokenReserve, farmingTokenReserve);
+      console.log("swapamnt %s isReversed %s", swapAmt, isReversed);
+    }
     // 6. Mint more LP tokens and return all LP tokens to the sender.
-    (,, uint256 moreLPAmount) = router.addLiquidity(
-      baseToken, farmingToken, baseToken.myBalance(), farmingToken.myBalance(), 0, 0, address(this), now
+    (, , uint256 moreLPAmount) =
+      router.addLiquidity(
+        baseToken,
+        farmingToken,
+        baseToken.myBalance(),
+        farmingToken.myBalance(),
+        0,
+        0,
+        address(this),
+        now
+      );
+    require(
+      moreLPAmount >= minLPAmount,
+      "PancakeswapV2RestrictedStrategyAddTwoSidesOptimal::execute:: insufficient LP tokens received"
     );
-    require(moreLPAmount >= minLPAmount, "PancakeswapV2RestrictedStrategyAddTwoSidesOptimal::execute:: insufficient LP tokens received");
-    require(lpToken.transfer(msg.sender, lpToken.balanceOf(address(this))), "PancakeswapV2RestrictedStrategyAddTwoSidesOptimal::execute:: failed to transfer LP token to msg.sender");
+    require(
+      lpToken.transfer(msg.sender, lpToken.balanceOf(address(this))),
+      "PancakeswapV2RestrictedStrategyAddTwoSidesOptimal::execute:: failed to transfer LP token to msg.sender"
+    );
     // 7. Reset approve to 0 for safety reason
     farmingToken.safeApprove(address(router), 0);
     baseToken.safeApprove(address(router), 0);
@@ -135,5 +169,4 @@ contract PancakeswapV2RestrictedStrategyAddTwoSidesOptimal is OwnableUpgradeSafe
       okWorkers[workers[idx]] = isOk;
     }
   }
-  
 }

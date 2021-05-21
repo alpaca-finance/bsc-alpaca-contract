@@ -13,7 +13,7 @@ import "../../interfaces/IStrategy.sol";
 import "../../../utils/SafeToken.sol";
 import "../../interfaces/IWorker.sol";
 
-contract WaulSwapRestrictedStrategyPartialCloseLiquidate is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
+contract WaultSwapRestrictedStrategyPartialCloseLiquidate is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeToken for address;
 
   IWaultSwapFactory public factory;
@@ -25,7 +25,7 @@ contract WaulSwapRestrictedStrategyPartialCloseLiquidate is OwnableUpgradeSafe, 
   modifier onlyWhitelistedWorkers() {
     require(
       okWorkers[msg.sender],
-      "WaulSwapRestrictedStrategyPartialCloseLiquidate::onlyWhitelistedWorkers:: bad worker"
+      "WaultSwapRestrictedStrategyPartialCloseLiquidate::onlyWhitelistedWorkers:: bad worker"
     );
     _;
   }
@@ -54,7 +54,7 @@ contract WaulSwapRestrictedStrategyPartialCloseLiquidate is OwnableUpgradeSafe, 
     IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
     require(
       lpToken.balanceOf(address(this)) >= returnLpToken,
-      "WaulSwapRestrictedStrategyPartialCloseLiquidate::execute:: insufficient LP amount recevied from worker"
+      "WaultSwapRestrictedStrategyPartialCloseLiquidate::execute:: insufficient LP amount recevied from worker"
     );
     // 2. Approve router to do their stuffs
     lpToken.approve(address(router), uint256(-1));
@@ -70,7 +70,7 @@ contract WaulSwapRestrictedStrategyPartialCloseLiquidate is OwnableUpgradeSafe, 
     uint256 balance = baseToken.myBalance();
     require(
       balance >= minBaseToken,
-      "WaulSwapRestrictedStrategyPartialCloseLiquidate::execute:: insufficient baseToken received"
+      "WaultSwapRestrictedStrategyPartialCloseLiquidate::execute:: insufficient baseToken received"
     );
     SafeToken.safeTransfer(baseToken, msg.sender, balance);
     lpToken.transfer(msg.sender, lpToken.balanceOf(address(this)));

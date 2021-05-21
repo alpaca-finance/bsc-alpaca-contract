@@ -2,6 +2,7 @@ pragma solidity 0.6.6;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./IWaultSwapPair.sol";
+import "./IWaultSwapFactory.sol";
 
 library WaultSwapLibrary {
   using SafeMath for uint256;
@@ -18,20 +19,8 @@ library WaultSwapLibrary {
     address factory,
     address tokenA,
     address tokenB
-  ) internal pure returns (address pair) {
-    (address token0, address token1) = sortTokens(tokenA, tokenB);
-    pair = address(
-      uint256(
-        keccak256(
-          abi.encodePacked(
-            hex"ff",
-            factory,
-            keccak256(abi.encodePacked(token0, token1)),
-            hex"9599db1eaa37ab366bf260f51beefce9296eb6197de387c533d905e9b82debe9" // init code hash
-          )
-        )
-      )
-    );
+  ) internal view returns (address pair) {
+    return IWaultSwapFactory(factory).getPair(tokenA, tokenB); // For easy testing
   }
 
   // fetches and sorts the reserves for a pair
