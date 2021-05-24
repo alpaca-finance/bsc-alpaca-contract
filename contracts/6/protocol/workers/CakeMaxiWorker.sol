@@ -39,7 +39,7 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   address public override farmingToken;
   address public operator;
   uint256 public pid;
-  IVault public vault;
+  IVault public beneficialVault;
 
   /// @notice Mutable state variables
   mapping(uint256 => uint256) public shares;
@@ -47,6 +47,7 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   uint256 public totalShare;
   IStrategy public addStrat;
   IStrategy public liqStrat;
+  uint256 public beneficialVaultBountyBps;
   uint256 public reinvestBountyBps;
   uint256 public maxReinvestBountyBps;
   uint256 public rewardBalance;
@@ -61,10 +62,12 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     address _baseToken,
     IPancakeMasterChef _masterChef,
     IPancakeRouter02 _router,
+    IVault _beneficialVault,
     uint256 _pid,
     IStrategy _addStrat,
     IStrategy _liqStrat,
-    uint256 _reinvestBountyBps
+    uint256 _reinvestBountyBps,
+    uint256 _beneficialVaultBountyBps
   ) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
@@ -72,6 +75,7 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     baseToken = _baseToken;
     wNative = _router.WETH();
     masterChef = _masterChef;
+    beneficialVault = _beneficialVault;
     router = _router;
     factory = IPancakeFactory(_router.factory());
     pid = _pid;
@@ -82,6 +86,7 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     okStrats[address(addStrat)] = true;
     okStrats[address(liqStrat)] = true;
     reinvestBountyBps = _reinvestBountyBps;
+    beneficialVaultBountyBps = _beneficialVaultBountyBps;
     maxReinvestBountyBps = 2000;
     fee = 9975;
     feeDenom = 10000;
@@ -135,12 +140,26 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     if (reward == 0) return;
     // 4. Send the reward bounty to the caller.
     uint256 bounty = reward.mul(reinvestBountyBps) / 10000;
-    if (bounty > 0) farmingToken.safeTransfer(msg.sender, bounty);
+    if (bounty > 0) {
+      uint256 beneficialVaultBounty = bounty.mul(beneficialVaultBountyBps) / 10000;
+      if (beneficialVaultBounty > 0) _rewardBenficialVault(beneficialVaultBounty, farmingToken);
+      farmingToken.safeTransfer(msg.sender, bounty.sub(beneficialVaultBounty));
+    }
     // 5. re stake the farming token to get more rewards
     masterChef.enterStaking(reward.sub(bounty));
     // 6. Reset approval
     farmingToken.safeApprove(address(masterChef), 0);
     emit Reinvest(msg.sender, reward, bounty);
+  }
+
+  // @notice some portion of a bounty from reinvest will be sent to beneficialVault to increase the size of totalToken
+  function _rewardBenficialVault(uint256 _beneficialVaultBounty, address _rewardToken) internal {
+    _rewardToken.safeApprove(address(router), uint256(-1));
+    address beneficialVaultToken = beneficialVault.token();
+    address[] memory path = getPath(_rewardToken, beneficialVaultToken);
+    router.swapExactTokensForTokens(_beneficialVaultBounty, 0, path, address(this), now);
+    beneficialVaultToken.safeTransfer(address(beneficialVault), beneficialVaultToken.myBalance());
+    _rewardToken.safeApprove(address(router), 0);
   }
 
   /// @dev Work on the given position. Must be called by the operator.
@@ -183,21 +202,7 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   /// @dev Return the amount of BaseToken to receive if we are to liquidate the given position.
   /// @param id The position ID to perform health check.
   function health(uint256 id) external override view returns (uint256) {
-    address[] memory path;
-    if (baseToken == wNative) {
-      path = new address[](2);
-      path[0] = address(farmingToken);
-      path[1] = address(wNative);
-    } else if (farmingToken == wNative) {
-      path = new address[](2);
-      path[0] = address(wNative);
-      path[1] = address(baseToken);
-    } else {
-       path = new address[](3);
-      path[0] = address(farmingToken);
-      path[1] = address(wNative);
-      path[2] = address(baseToken);
-    }
+    address[] memory path = getPath(farmingToken, baseToken);
     IPancakePair currentLP;
     uint256[] memory amount;
     amount = new uint256[](path.length);
@@ -272,11 +277,37 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     }
   }
 
+  // @notice get path from tokenIn to tokenOut
+  function getPath(address tokenIn, address tokenOut) internal view returns (address[] memory path) {
+    if (tokenOut == wNative) {
+      path = new address[](2);
+      path[0] = tokenIn;
+      path[1] = wNative;
+    } else if (tokenIn == wNative) {
+      path = new address[](2);
+      path[0] = wNative;
+      path[1] = tokenOut;
+    } else {
+       path = new address[](3);
+      path[0] = tokenIn;
+      path[1] = wNative;
+      path[2] = tokenOut;
+    }
+  }
+
   /// @dev Set the reward bounty for calling reinvest operations.
   /// @param _reinvestBountyBps The bounty value to update.
   function setReinvestBountyBps(uint256 _reinvestBountyBps) external onlyOwner {
     require(_reinvestBountyBps <= maxReinvestBountyBps, "CakeMaxiWorker::setReinvestBountyBps:: _reinvestBountyBps exceeded maxReinvestBountyBps");
     reinvestBountyBps = _reinvestBountyBps;
+  }
+
+  // @notice Set the reward bounty from reinvest operations sending to a beneficial vault.
+  // this bps will be deducted from reinvest bounty bps
+  /// @param _beneficialVaultBountyBps The bounty value to update.
+  function setBeneficialVaultBountyBps(uint256 _beneficialVaultBountyBps) external onlyOwner {
+    require(_beneficialVaultBountyBps <= 10000,  "CakeMaxiWorker::setBeneficialVaultBountyBps:: _beneficialVaultBountyBps exceeds 100%");
+    beneficialVaultBountyBps = _beneficialVaultBountyBps;
   }
 
   /// @dev Set Max reinvest reward for set upper limit reinvest bounty.
