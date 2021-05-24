@@ -288,7 +288,7 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
       path[0] = wNative;
       path[1] = tokenOut;
     } else {
-       path = new address[](3);
+      path = new address[](3);
       path[0] = tokenIn;
       path[1] = wNative;
       path[2] = tokenOut;
