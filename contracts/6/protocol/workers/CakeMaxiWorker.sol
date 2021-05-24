@@ -161,15 +161,13 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     baseToken.safeTransfer(strat, baseToken.myBalance());
     farmingToken.safeTransfer(strat, actualFarmingTokenBalance());
     IStrategy(strat).execute(user, debt, ext);
-    // 3. Add farming token back to the farming pool.
-    // 4. Thus, Increasing a size of the current position's shares
+    // 3. Add farming token back to the farming pool. Thus, increasing an LP size of the current position's shares
     _addShare(id);
     // 5. Return any remaining BaseToken back to the operator.
-    if (baseToken.myBalance() == 0) return;
     baseToken.safeTransfer(msg.sender, baseToken.myBalance());
   }
 
-  /// @dev Return maximum output given the input amount and the status of Uniswap reserves.
+  /// @dev Return maximum output given the input amount and the status of Pancakeswap reserves.
   /// @param aIn The amount of asset to market sell.
   /// @param rIn the amount of asset in reserve for input.
   /// @param rOut The amount of asset in reserve for output.
@@ -255,7 +253,6 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
       // 5. Reset approve token
       address(farmingToken).safeApprove(address(masterChef), 0);
       emit AddShare(id, share);
-      
     }
   }
 
