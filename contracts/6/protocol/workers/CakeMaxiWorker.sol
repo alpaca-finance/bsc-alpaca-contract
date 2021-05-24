@@ -142,7 +142,7 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     uint256 bounty = reward.mul(reinvestBountyBps) / 10000;
     if (bounty > 0) {
       uint256 beneficialVaultBounty = bounty.mul(beneficialVaultBountyBps) / 10000;
-      if (beneficialVaultBounty > 0) _rewardBenficialVault(beneficialVaultBounty, farmingToken);
+      if (beneficialVaultBounty > 0) _rewardToBeneficialVault(beneficialVaultBounty, farmingToken);
       farmingToken.safeTransfer(msg.sender, bounty.sub(beneficialVaultBounty));
     }
     // 5. re stake the farming token to get more rewards
@@ -153,7 +153,7 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   }
 
   // @notice some portion of a bounty from reinvest will be sent to beneficialVault to increase the size of totalToken
-  function _rewardBenficialVault(uint256 _beneficialVaultBounty, address _rewardToken) internal {
+  function _rewardToBeneficialVault(uint256 _beneficialVaultBounty, address _rewardToken) internal {
     _rewardToken.safeApprove(address(router), uint256(-1));
     address beneficialVaultToken = beneficialVault.token();
     address[] memory path = getPath(_rewardToken, beneficialVaultToken);
