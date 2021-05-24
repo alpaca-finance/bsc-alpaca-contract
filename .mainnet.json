@@ -302,6 +302,10 @@
         "pId": 264,
         "name": "USDT-WBNB LP",
         "address": "0x16b9a82891338f9bA80E2D6970FddA79D1eb0daE"
+      }, {
+        "pId": 389,
+        "name": "CAKE-BUSD LP",
+        "address": "0x804678fa97d91B974ec2af3c843270886528a9E6"
       }]
     }
   },
@@ -625,6 +629,16 @@
     }, {
       "name": "ALPACA-BUSD PancakeswapWorker",
       "address": "0x4BfE9489937d6C0d7cD6911F1102c25c7CBc1B5A",
+      "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+        "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+        "StrategyAddTwoSidesOptimal": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
+        "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419"
+      }
+    }, {
+      "name": "CAKE-BUSD PancakeswapWorker",
+      "address": "0x844766F737bC9442b9491da1eB7a5cd02b203F06",
       "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
       "strategies": {
         "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
