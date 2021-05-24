@@ -16,12 +16,14 @@ import "../../token/interfaces/IFairLaunch.sol";
 import "../../utils/SafeToken.sol";
 import "../WNativeRelayer.sol";
 
-contract MockVaultForStrategy is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableUpgradeSafe {
+contract MockBeneficialVault  is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableUpgradeSafe {
 
-  address public mockOwner;
+    address public mockOwner;
   address public override token;
   
-  function initialize() external initializer {}
+  function initialize(address _token) external initializer {
+    token = _token;
+  }
 
 
   function setMockOwner(address owner) external {
@@ -47,5 +49,4 @@ contract MockVaultForStrategy is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgrad
   function requestFunds(address targetedToken, uint amount) external override {
     SafeToken.safeTransferFrom(targetedToken, mockOwner, msg.sender, amount);
   }
-
 }
