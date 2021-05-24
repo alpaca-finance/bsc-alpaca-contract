@@ -294,7 +294,7 @@ describe('WaultSwapRestrictedStrategyAddTwoSideOptimal', () => {
       Assert.assertAlmostEqual(stratLPBalance.toString(), ethers.utils.parseEther('0.354395980615881993').toString())
       expect(stratLPBalance).to.above(ethers.utils.parseEther('0'));
       expect(await farmingToken.balanceOf(addRestrictedStrat.address)).to.be.bignumber.below(MAX_ROUNDING_ERROR);
-      2999999999999999955 150000000000000000
+
       // Now Alice leverage 2x on her 0.1 BTOKEN.
       // So totally Alice will take 0.1 BTOKEN from the pool and 0.1 BTOKEN from her pocket to
       // Provide liquidity in the BTOKEN-FTOKEN pool on Pancakeswap
@@ -311,10 +311,10 @@ describe('WaultSwapRestrictedStrategyAddTwoSideOptimal', () => {
       // the calculation is ratio between balance and reserve * total supply
       // let total supply = 0.31622776601683794 + 0.354346766435591663 = 0.6705745324524296
       // current reserve after swap is 1251999642993914466
-      // ths lp will be (2748000357006085534 (optimal swap amount) / 1251999642993914466 (reserve)) *  0.6705745324524296
-      // lp will be 0.1471836725266080870
-      // thus, the accum lp will be 1.471836725266080870 + 0.354346766435591663 = 1.8261834917016726
-      Assert.assertAlmostEqual((await lpV2.balanceOf(mockWaultSwapWorker.address)).toString(), ethers.utils.parseEther('1.8261834917016726').toString())
+      // ths lp will be (2748183224992804794 (optimal swap amount) / 1251816775007195206 (reserve)) *  0.6705745324524296
+      // lp will be 1.472149693139052074
+      // thus, the accum lp will be 1.472149693139052074 + 0.354346766435591663 = 1.8264964595746437379
+      Assert.assertAlmostEqual((await lpV2.balanceOf(mockWaultSwapWorker.address)).toString(), ethers.utils.parseEther('1.826496459574643737').toString())
       expect(await lpV2.balanceOf(mockWaultSwapWorker.address)).to.above(stratLPBalance);
       expect(await farmingToken.balanceOf(addRestrictedStrat.address)).to.be.bignumber.below(MAX_ROUNDING_ERROR);
     })
