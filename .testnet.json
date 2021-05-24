@@ -76,6 +76,14 @@
       "id": 13,
       "stakingToken": "ALPACA-WBNB LP",
       "address": "0x7549b7d0edcd411e7e5013dc74727f8dab13ab0f"
+    }, {
+      "id": 14,
+      "stakingToken": "debtIbUSDT V2",
+      "address": "0x6f86C6190d5738965405eBeCCAE7A99f005F8843"
+    }, {
+      "id": 15,
+      "stakingToken": "ibUSDT",
+      "address": "0xb5913CD4C508f07025678CeF939BcC54D3024C39"
     }]
   },
   "Exchanges": {
@@ -265,6 +273,10 @@
         "pId": 47,
         "name": "DODO-WBNB LP",
         "address": "0x92D7AB192c9EddD6aeD9B95F39F4f1b7D1cfb044"
+      }, {
+        "pId": 48,
+        "name": "USDT-WBNB LP",
+        "address": "0xe220CD41e219e0e350C40cCb231af8F5C3E109fd"
       }]
     }
   },
@@ -496,6 +508,16 @@
         "StrategyAddTwoSidesOptimal": "0x0A5515aEdc275b9fF19d11Cd74465e83067f6D40",
         "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32"
       }
+    }, {
+      "name": "USDT-WBNB PancakeswapWorker",
+      "address": "0x937ADf954C878155B51aAd9d7b95D5C1C13fD315",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
+        "StrategyLiquidate": "0x58Bbb507248635413172Ed7A2eeC048402C6b39b",
+        "StrategyAddTwoSidesOptimal": "0x0A5515aEdc275b9fF19d11Cd74465e83067f6D40",
+        "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32"
+      }
     }]
   }, {
     "name": "Interest Bearing BUSD",
@@ -651,6 +673,35 @@
         "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
         "StrategyLiquidate": "0x58Bbb507248635413172Ed7A2eeC048402C6b39b",
         "StrategyAddTwoSidesOptimal": "0xdA6031c074d41A28dF8827B3cF6B66352eA3Ba7A",
+        "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32"
+      }
+    }]
+  }, {
+    "name": "Interest Bearing USDT",
+    "symbol": "ibUSDT",
+    "address": "0xb5913CD4C508f07025678CeF939BcC54D3024C39",
+    "debtToken": "0x6f86C6190d5738965405eBeCCAE7A99f005F8843",
+    "config": "0x4155538832c1937832b9db279CEEA61Bbae5eF96",
+    "tripleSlopeModel": "0x038cd7a6A397d7f5D07a0c76A4610a7Ca64eb7d3",
+    "StrategyAddTwoSidesOptimal": "0x4D71d66e598e6dCaAb9a3a96890f60169d968212",
+    "workers": [{
+      "name": "BUSD-USDT PancakeswapWorker",
+      "address": "0xD363A8e3998D24618B172c91B4f46e749505bB23",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
+        "StrategyLiquidate": "0x58Bbb507248635413172Ed7A2eeC048402C6b39b",
+        "StrategyAddTwoSidesOptimal": "0x4D71d66e598e6dCaAb9a3a96890f60169d968212",
+        "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32"
+      }
+    }, {
+      "name": "WBNB-USDT PancakeswapWorker",
+      "address": "0xe17dE073567eE3681C07543f23f5ee05646C6262",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
+        "StrategyLiquidate": "0x58Bbb507248635413172Ed7A2eeC048402C6b39b",
+        "StrategyAddTwoSidesOptimal": "0x4D71d66e598e6dCaAb9a3a96890f60169d968212",
         "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32"
       }
     }]
