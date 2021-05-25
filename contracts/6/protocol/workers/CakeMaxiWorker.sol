@@ -156,7 +156,7 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   function _rewardToBeneficialVault(uint256 _beneficialVaultBounty, address _rewardToken) internal {
     _rewardToken.safeApprove(address(router), uint256(-1));
     address beneficialVaultToken = beneficialVault.token();
-    address[] memory path = getPath(_rewardToken, beneficialVaultToken);
+    address[] memory path = _getPath(_rewardToken, beneficialVaultToken);
     router.swapExactTokensForTokens(_beneficialVaultBounty, 0, path, address(this), now);
     beneficialVaultToken.safeTransfer(address(beneficialVault), beneficialVaultToken.myBalance());
     _rewardToken.safeApprove(address(router), 0);
@@ -202,7 +202,7 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   /// @dev Return the amount of BaseToken to receive if we are to liquidate the given position.
   /// @param id The position ID to perform health check.
   function health(uint256 id) external override view returns (uint256) {
-    address[] memory path = getPath(farmingToken, baseToken);
+    address[] memory path = _getPath(farmingToken, baseToken);
     IPancakePair currentLP;
     uint256[] memory amount;
     amount = new uint256[](path.length);
@@ -278,7 +278,7 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   }
 
   // @notice get path from tokenIn to tokenOut
-  function getPath(address tokenIn, address tokenOut) internal view returns (address[] memory path) {
+  function _getPath(address tokenIn, address tokenOut) internal view returns (address[] memory path) {
     if (tokenOut == wNative) {
       path = new address[](2);
       path[0] = tokenIn;
