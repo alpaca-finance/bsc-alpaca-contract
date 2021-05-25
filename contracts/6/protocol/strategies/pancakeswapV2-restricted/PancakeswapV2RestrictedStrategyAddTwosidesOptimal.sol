@@ -14,7 +14,6 @@ import "../../interfaces/IVault.sol";
 import "../../../utils/SafeToken.sol";
 import "../../../utils/AlpacaMath.sol";
 import "../../interfaces/IWorker.sol";
-import "hardhat/console.sol";
 
 contract PancakeswapV2RestrictedStrategyAddTwoSidesOptimal is
   OwnableUpgradeSafe,
@@ -136,8 +135,6 @@ contract PancakeswapV2RestrictedStrategyAddTwoSidesOptimal is
     {
       (uint256 r0, uint256 r1, ) = lpToken.getReserves();
       (uint256 baseTokenReserve, uint256 farmingTokenReserve) = lpToken.token0() == baseToken ? (r0, r1) : (r1, r0);
-      console.log("after: baseTokenReserve %s farmingTokenReserve %s", baseTokenReserve, farmingTokenReserve);
-      console.log("swapamnt %s isReversed %s", swapAmt, isReversed);
     }
     // 6. Mint more LP tokens and return all LP tokens to the sender.
     (, , uint256 moreLPAmount) =

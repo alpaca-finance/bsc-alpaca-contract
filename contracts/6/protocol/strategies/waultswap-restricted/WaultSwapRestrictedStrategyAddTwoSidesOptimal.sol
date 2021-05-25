@@ -16,8 +16,6 @@ import "../../../utils/SafeToken.sol";
 import "../../../utils/AlpacaMath.sol";
 import "../../interfaces/IWorker.sol";
 
-import "hardhat/console.sol";
-
 contract WaultSwapRestrictedStrategyAddTwoSidesOptimal is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeToken for address;
   using SafeMath for uint256;
@@ -126,11 +124,6 @@ contract WaultSwapRestrictedStrategyAddTwoSidesOptimal is OwnableUpgradeSafe, Re
         baseTokenReserve,
         farmingTokenReserve
       );
-      console.log("before: baseTokenReserve %s farmingTokenReserve %s", baseTokenReserve, farmingTokenReserve);
-      console.log("swapamnt %s isReversed %s", swapAmt, isReversed);
-      console.log("baseTokenBalance", baseTokenBalance);
-      console.log("farmingTokenAmount", farmingTokenAmount);
-      console.log("farmingToken.myBalance()", farmingToken.myBalance());
     }
     // 4. Convert between BaseToken and farming tokens
     address[] memory path = new address[](2);
@@ -141,10 +134,6 @@ contract WaultSwapRestrictedStrategyAddTwoSidesOptimal is OwnableUpgradeSafe, Re
     {
       (uint256 r0, uint256 r1, ) = lpToken.getReserves();
       (uint256 baseTokenReserve, uint256 farmingTokenReserve) = lpToken.token0() == baseToken ? (r0, r1) : (r1, r0);
-      console.log("after: baseTokenReserve %s farmingTokenReserve %s", baseTokenReserve, farmingTokenReserve);
-      console.log("swapamnt %s isReversed %s", swapAmt, isReversed);
-      console.log("farmingToken.myBalance()", farmingToken.myBalance());
-      console.log("baseToken.myBalance()", baseToken.myBalance());
     }
     // 6. Mint more LP tokens and return all LP tokens to the sender.
     (, , uint256 moreLPAmount) =
