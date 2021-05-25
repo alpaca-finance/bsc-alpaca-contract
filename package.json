@@ -120,6 +120,7 @@
     "test:waultrestrictedliquidate": "hardhat test --no-compile ./test/WaultSwap_Restricted_StrategyLiquidate.test.ts",
     "test:waultrestrictedminimize": "hardhat test --no-compile ./test/WaultSwap_Restricted_StrategyWithdrawMinimizeTrading.test.ts",
     "test:waultrestrictedpartialclose": "hardhat test --no-compile ./test/WaultSwap_Restricted_StrategyPartialCloseLiquidate.test.ts",
+    "test:vaultwaultswap": "hardhat test --no-compile ./test/Vault_WaultSwap.test.ts",
     "test:router": "hardhat test --no-compile ./test/IbTokenRouter.test.ts",
     "test:timelock": "hardhat test --no-compile ./test/Timelock.test.ts",
     "test:tripleslope": "hardhat test --no-compile ./test/TripleSlopeModel.test.ts",
