@@ -79,6 +79,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyLiquidate', () => {
       "WETH",
       deployer
     )) as WETH__factory;
+
     wbnb = await WBNB.deploy();
     const PancakeRouterV2 = (await ethers.getContractFactory(
       "PancakeRouterV2",
@@ -86,6 +87,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyLiquidate', () => {
     )) as PancakeRouterV2__factory;
     routerV2 = await PancakeRouterV2.deploy(factoryV2.address, wbnb.address);
     await routerV2.deployed();
+
     /// Setup token stuffs
     const MockERC20 = (await ethers.getContractFactory(
       "MockERC20",
@@ -101,6 +103,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyLiquidate', () => {
     await farmingToken.mint(await bob.getAddress(), ethers.utils.parseEther('10'));
     await factoryV2.createPair(baseToken.address, wbnb.address);
     await factoryV2.createPair(farmingToken.address, wbnb.address);
+
     /// Setup MockPancakeswapV2CakeMaxiWorker
     const MockPancakeswapV2CakeMaxiWorker = (await ethers.getContractFactory(
       "MockPancakeswapV2CakeMaxiWorker",
@@ -121,6 +124,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyLiquidate', () => {
     strat = await upgrades.deployProxy(PancakeswapV2RestrictedCakeMaxiStrategyLiquidate, [routerV2.address]) as PancakeswapV2RestrictedCakeMaxiStrategyLiquidate;
     await strat.deployed();
     await strat.setWorkersOk([mockPancakeswapV2WorkerBaseFTokenPair.address, mockPancakeswapV2WorkerBNBFtokenPair.address], true)
+    
     // Assign contract signer
     baseTokenAsAlice = MockERC20__factory.connect(baseToken.address, alice);
     baseTokenAsBob = MockERC20__factory.connect(baseToken.address, bob);
@@ -139,6 +143,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyLiquidate', () => {
     mockPancakeswapV2WorkerBaseFTokenPairAsAlice = MockPancakeswapV2CakeMaxiWorker__factory.connect(mockPancakeswapV2WorkerBaseFTokenPair.address, alice);
     mockPancakeswapV2WorkerBNBFtokenPairAsAlice = MockPancakeswapV2CakeMaxiWorker__factory.connect(mockPancakeswapV2WorkerBNBFtokenPair.address, alice);
     mockPancakeswapV2EvilWorkerAsAlice = MockPancakeswapV2CakeMaxiWorker__factory.connect(mockPancakeswapV2EvilWorker.address, alice);
+    
     // Adding liquidity to the pool
     // Alice adds 0.1 FTOKEN + 1 WBTC + 1 WBNB
     await wbnbTokenAsAlice.deposit({
@@ -236,11 +241,12 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyLiquidate', () => {
       });
     })
   
-    it('should convert ALL farmingToken to baseToken (WBNB) at optimal rate', async () => {
+    it('should convert ALL farmingToken to baseToken (WBNB)', async () => {
       await farmingTokenAsAlice.transfer(mockPancakeswapV2WorkerBNBFtokenPair.address, ethers.utils.parseEther('0.1'));
       // amountOut of 0.1 will be
       // if 0.1 FToken = 1 WBNB
       // 0.1 FToken will be (0.1 * 0.9975) * (1 / (0.1 + 0.1 * 0.9975)) = 0.499374217772215269 WBNB
+      const aliceBalanceBefore = await wbnb.balanceOf(await alice.getAddress())
       await mockPancakeswapV2WorkerBNBFtokenPairAsAlice.work(
         0, await alice.getAddress(), '0',
         ethers.utils.defaultAbiCoder.encode(
@@ -254,7 +260,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyLiquidate', () => {
             
       // the worker will send 0.499374217772215269 wbnb back to alice
       // so alice will get 50 + 0.499374217772215269 = 50.499374217772215269
-      expect(await wbnb.balanceOf(await alice.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther('50.499374217772215269'))
+      expect(aliceBalanceBefore.add(ethers.utils.parseEther('0.499374217772215269'))).to.be.bignumber.eq(ethers.utils.parseEther('50.499374217772215269'))
       expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
       expect(await wbnb.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
       expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
@@ -316,13 +322,14 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyLiquidate', () => {
       });
     })
   
-    it('should convert ALL farmingToken to baseToken (WBTC) at optimal rate', async () => {
+    it('should convert ALL farmingToken to baseToken (WBTC)', async () => {
       await farmingTokenAsAlice.transfer(mockPancakeswapV2WorkerBaseFTokenPair.address, ethers.utils.parseEther('0.1'));
       // amountOut of 0.1 will be
       // if 0.1 FToken = 1 WBNB
       // 0.1 FToken will be (0.1 * 0.9975) * (1 / (0.1 + 0.1 * 0.9975)) = 0.499374217772215269 WBNB
       // if 1 WBNB = 1 BaseToken
       // 0.499374217772215269 WBNB = (0.499374217772215269* 0.9975) * (1 / (1 + 0.499374217772215269 * 0.9975)) = 0.332499305557005937 BaseToken
+      const aliceBalanceBefore = await baseToken.balanceOf(await alice.getAddress())
       await mockPancakeswapV2WorkerBaseFTokenPairAsAlice.work(
         0, await alice.getAddress(), '0',
         ethers.utils.defaultAbiCoder.encode(
@@ -334,9 +341,9 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyLiquidate', () => {
         )
       );
             
-      // the worker will send 0.332499305557005937 wbnb back to alice
+      // the worker will send 0.332499305557005937 baseToken back to alice
       // thus, alice will get 100 - 1(from providing a liquidity) + 0.332499305557005937 = 50.332499305557005937
-      expect(await baseToken.balanceOf(await alice.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther('99.332499305557005937'))
+      expect(aliceBalanceBefore.add(ethers.utils.parseEther('0.332499305557005937'))).to.be.bignumber.eq(ethers.utils.parseEther('99.332499305557005937'))
       expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
       expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
       expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))

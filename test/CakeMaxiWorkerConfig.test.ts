@@ -48,7 +48,6 @@ describe('CakeMaxiWorker', () => {
   let eve: Signer;
 
   // Workers
-
   let cakeMaxiWorkerNative: MockPancakeswapV2CakeMaxiWorker
   let cakeMaxiWorkerNonNative: MockPancakeswapV2CakeMaxiWorker
 
@@ -216,23 +215,23 @@ describe('CakeMaxiWorker', () => {
           await expect(cakeMaxiWorkerConfigAsAlice.isStable(cakeMaxiWorkerNonNative.address)).to.revertedWith('CakeMaxiWorkerConfig::isStable:: price too stale')
         })
       })
-      context("When price is too high", async() => {
+      context("When the price on PCS is higher than oracle price with 10% threshold", async() => {
         it('should be reverted', async() => {
           // feed the price with price too low on the first hop
           await simplePriceOracleAsAlice.setPrices([cake.address, wbnb.address],[wbnb.address, cake.address], [lpPriceFarmBNB.mul(10000).div(11001), lpPriceBNBFarm.mul(10000).div(11001)])
           await expect(cakeMaxiWorkerConfigAsAlice.isStable(cakeMaxiWorkerNonNative.address)).to.revertedWith('CakeMaxiWorkerConfig::isStable:: price too high')
-          // feed the correct price on the first hop, but too high on the last hop
+          // when price from oracle and PCS is within the range, but price from oracle is lower than the price on PCS on the second hop
           await simplePriceOracleAsAlice.setPrices([cake.address, wbnb.address, baseToken.address, wbnb.address], [wbnb.address, cake.address, wbnb.address, baseToken.address], [lpPriceFarmBNB, lpPriceBNBFarm, lpPriceBaseBnb.mul(10000).div(11001), lpPriceBNBBase.mul(10000).div(11001)])
           await expect(cakeMaxiWorkerConfigAsAlice.isStable(cakeMaxiWorkerNonNative.address)).to.revertedWith('CakeMaxiWorkerConfig::isStable:: price too high')
         })
       })
 
-      context("When price is too low", async() => {
+      context("When the price on PCS is lower than oracle price with 10% threshold", async() => {
         it('should be reverted', async() => {
           // feed the price with price too low on the first hop
           await simplePriceOracleAsAlice.setPrices([cake.address, wbnb.address],[wbnb.address, cake.address],[lpPriceFarmBNB.mul(11001).div(10000), lpPriceBNBFarm.mul(11001).div(10000)])
           await expect(cakeMaxiWorkerConfigAsAlice.isStable(cakeMaxiWorkerNonNative.address)).to.revertedWith('CakeMaxiWorkerConfig::isStable:: price too low')
-          // feed the correct price on the first hop, but too high on the last hop
+          // when price from oracle and PCS is within the range, but price from oracle is higher than the price on PCS on the second hop
           await simplePriceOracleAsAlice.setPrices([cake.address, wbnb.address, baseToken.address, wbnb.address], [wbnb.address, cake.address, wbnb.address, baseToken.address], [lpPriceFarmBNB, lpPriceBNBFarm, lpPriceBaseBnb.mul(11001).div(10000), lpPriceBNBBase.mul(11001).div(10000)])
           await expect(cakeMaxiWorkerConfigAsAlice.isStable(cakeMaxiWorkerNonNative.address)).to.revertedWith('CakeMaxiWorkerConfig::isStable:: price too low')
         })
@@ -240,7 +239,7 @@ describe('CakeMaxiWorker', () => {
 
       context("when price is stable", async () => {
         it('should return true', async () => {
-           // feed the correct price on the first hop, but too high on the last hop
+           // feed the correct price on both hops
            await simplePriceOracleAsAlice.setPrices([cake.address, wbnb.address, baseToken.address, wbnb.address], [wbnb.address, cake.address, wbnb.address, baseToken.address], [lpPriceFarmBNB, lpPriceBNBFarm, lpPriceBaseBnb, lpPriceBNBBase])
            const isStable = await cakeMaxiWorkerConfigAsAlice.isStable(cakeMaxiWorkerNonNative.address)
            expect(isStable).to.true

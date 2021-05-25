@@ -75,17 +75,20 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly', () => {
     )) as PancakeFactory__factory;
     factoryV2 = await PancakeFactory.deploy((await deployer.getAddress()));
     await factoryV2.deployed();
+
     const WBNB = (await ethers.getContractFactory(
       "WETH",
       deployer
     )) as WETH__factory;
     wbnb = await WBNB.deploy();
+
     const PancakeRouterV2 = (await ethers.getContractFactory(
       "PancakeRouterV2",
       deployer
     )) as PancakeRouterV2__factory;
     routerV2 = await PancakeRouterV2.deploy(factoryV2.address, wbnb.address);
     await routerV2.deployed();
+
     /// Setup token stuffs
     const MockERC20 = (await ethers.getContractFactory(
       "MockERC20",
@@ -101,6 +104,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly', () => {
     await farmingToken.mint(await bob.getAddress(), ethers.utils.parseEther('10'));
     await factoryV2.createPair(baseToken.address, wbnb.address);
     await factoryV2.createPair(farmingToken.address, wbnb.address);
+
     /// Setup MockPancakeswapV2CakeMaxiWorker
     const MockPancakeswapV2CakeMaxiWorker = (await ethers.getContractFactory(
       "MockPancakeswapV2CakeMaxiWorker",
@@ -121,6 +125,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly', () => {
     strat = await upgrades.deployProxy(PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly, [routerV2.address]) as PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly;
     await strat.deployed();
     await strat.setWorkersOk([mockPancakeswapV2WorkerBaseFTokenPair.address, mockPancakeswapV2WorkerBNBFtokenPair.address], true)
+    
     // Assign contract signer
     baseTokenAsAlice = MockERC20__factory.connect(baseToken.address, alice);
     baseTokenAsBob = MockERC20__factory.connect(baseToken.address, bob);
@@ -139,6 +144,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly', () => {
     mockPancakeswapV2WorkerBaseFTokenPairAsAlice = MockPancakeswapV2CakeMaxiWorker__factory.connect(mockPancakeswapV2WorkerBaseFTokenPair.address, alice);
     mockPancakeswapV2WorkerBNBFtokenPairAsAlice = MockPancakeswapV2CakeMaxiWorker__factory.connect(mockPancakeswapV2WorkerBNBFtokenPair.address, alice);
     mockPancakeswapV2EvilWorkerAsAlice = MockPancakeswapV2CakeMaxiWorker__factory.connect(mockPancakeswapV2EvilWorker.address, alice);
+    
     // Adding liquidity to the pool
     // Alice adds 0.1 FTOKEN + 1 WBTC + 1 WBNB
     await wbnbTokenAsAlice.deposit({
@@ -186,7 +192,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly', () => {
   context('when the base token is a wrap native', async () => {
     context('When contract get farmingToken amount < minFarmingTokenAmount', async () => {
         it('should revert', async () => {
-          // Alice uses AddBaseTokenOnly strategy yet again, but now with an unreasonable minFarmingTokenAmount request
+          // Alice uses AddBaseTokenOnly with an unreasonable minFarmingTokenamount
           await wbnbTokenAsAlice.transfer(mockPancakeswapV2WorkerBNBFtokenPair.address, ethers.utils.parseEther('0.1'));
           await expect(mockPancakeswapV2WorkerBNBFtokenPairAsAlice.work(
             0, await alice.getAddress(), '0',
@@ -233,7 +239,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly', () => {
       });
     })
   
-    it('should convert ALL baseToken (BNB) to farmingToken at optimal rate', async () => {
+    it('should convert ALL baseToken (BNB) to farmingToken', async () => {
       // Alice transfer 0.1 WBNB to StrategyAddBaseTokenOnly first
       await wbnbTokenAsAlice.transfer(mockPancakeswapV2WorkerBNBFtokenPair.address, ethers.utils.parseEther('0.1'));
       // Alice uses AddBaseTokenOnly strategy to add 0.1 WBNB
@@ -261,7 +267,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly', () => {
       // if 1.1 WBNB = (0.1 - 0.00907024323709934) FToken
       // if 1.1 WBNB = 0.09092975676290066 FToken
       // 0.1 WBNB will be (0.1*0.9975) * (0.09092975676290066/(1.1+0.1*0.9975)) = 0.0075601110540523785
-      // thus, the current amount accumulated with the previous one will be 0.0075601110540523785 + 0.00907024323709934
+      // thus, the current amount accumulated with the previous one will be 0.0075601110540523785 + 0.00907024323709934 = 0.01663035429115172
       await wbnbTokenAsAlice.transfer(mockPancakeswapV2WorkerBNBFtokenPair.address, ethers.utils.parseEther('0.1'));
       await mockPancakeswapV2WorkerBNBFtokenPairAsAlice.work(
         0, await alice.getAddress(), '0',
@@ -277,13 +283,14 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly', () => {
       expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0.016630354291151718'))
       expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
       expect(await wbnb.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+      expect(await wbnb.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
     });
   })
 
   context('when the base token is not a wrap native', async () => {
     context('When contract get farmingToken amount < minFarmingTokenAmount', async () => {
       it('should revert', async () => {
-        // Alice uses AddBaseTokenOnly strategy yet again, but now with an unreasonable minFarmingTokenAmount request
+        // Alice uses AddBaseTokenOnly with an unreasonable minFarmingTokenamount
         await baseTokenAsAlice.transfer(mockPancakeswapV2WorkerBaseFTokenPair.address, ethers.utils.parseEther('0.1'));
         await expect(mockPancakeswapV2WorkerBaseFTokenPairAsAlice.work(
           0, await alice.getAddress(), '0',
@@ -330,7 +337,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly', () => {
       });
     })
 
-    it('should convert ALL baseToken (WBTC) to farmingToken at optimal rate', async () => {
+    it('should convert ALL baseToken (WBTC) to farmingToken', async () => {
       // Alice transfer 0.1 BASE to StrategyAddBaseTokenOnly first
       await baseTokenAsAlice.transfer(mockPancakeswapV2WorkerBaseFTokenPair.address, ethers.utils.parseEther('0.1'));
       // Alice uses AddBaseTokenOnly strategy to add 0.1 BASE
@@ -361,7 +368,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly', () => {
       // 0.1 BASE = (0.1 * 0.9975) * (0.9092975676290066 / (1.1 + 0.1 * 0.9975)) = 0.07560111054052378 BNB
       // if (1 + 0.09070243237099342) = (0.1 - 0.008296899991192416) FTOKEN
       // 0.07560111054052378 BNB = (0.07560111054052378 * 0.9975) * ((0.1 - 0.008296899991192416) /((1 + 0.09070243237099342) + 0.07560111054052378 * 0.9975)) = 0.005930398620508835
-      // total of farmingToken will be 0.005930398620508835 + 0.008296899991192416 = 0.013185990126808302
+      // total of farmingToken will be 0.005930398620508835 + 0.008296899991192416 = 0.014227298611701251
       await baseTokenAsAlice.transfer(mockPancakeswapV2WorkerBaseFTokenPair.address, ethers.utils.parseEther('0.1'));
       await mockPancakeswapV2WorkerBaseFTokenPairAsAlice.work(
         0, await alice.getAddress(), '0',
