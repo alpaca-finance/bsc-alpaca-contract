@@ -278,7 +278,8 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   }
 
   // @notice get path from tokenIn to tokenOut
-  function _getPath(address tokenIn, address tokenOut) internal view returns (address[] memory path) {
+  function _getPath(address tokenIn, address tokenOut) internal view returns (address[] memory) {
+    address[] memory path;
     if (tokenOut == wNative) {
       path = new address[](2);
       path[0] = tokenIn;
@@ -293,6 +294,7 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
       path[1] = wNative;
       path[2] = tokenOut;
     }
+    return path;
   }
 
   /// @dev Set the reward bounty for calling reinvest operations.
