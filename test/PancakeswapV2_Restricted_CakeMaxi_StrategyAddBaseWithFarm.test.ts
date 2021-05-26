@@ -223,42 +223,42 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm', () => {
         });
     })
 
-    context('When contract get farmingToken amount (from input base token + input farming token) < minFarmingTokenAmount', async () => {
+    context('When contract get farmingToken amount (from input base token) < minFarmingTokenAmount', async () => {
         it('should revert', async () => {
             // Alice uses AddBaseWithFarm with an unreasonable minFarmingTokenAmount
             // amountOut of 0.1 will be
             // if 1WBNB = 0.1 FToken
             // 0.1WBNB will be (0.1*0.9975) * (0.1/(1+0.1*0.9975)) = 0.00907024323709934
             await wbnbTokenAsAlice.transfer(mockPancakeswapV2WorkerBNBFtokenPair.address, ethers.utils.parseEther('0.1'));
-            await farmingTokenAsAlice.approve(mockedVault.address, ethers.utils.parseEther('0.05').sub(ethers.utils.parseEther('0.0091')));
+            await farmingTokenAsAlice.approve(mockedVault.address, ethers.utils.parseEther('0.05'));
             await expect(mockPancakeswapV2WorkerBNBFtokenPairAsAlice.work(
               0, await alice.getAddress(), '0',
               ethers.utils.defaultAbiCoder.encode(
                 ['address', 'bytes'],
                 [strat.address, ethers.utils.defaultAbiCoder.encode(
                   ['uint256', 'uint256'],
-                  [ ethers.utils.parseEther('0.05').sub(ethers.utils.parseEther('0.0091')), ethers.utils.parseEther('0.05')]
+                  [ ethers.utils.parseEther('0.05'), ethers.utils.parseEther('0.0091')]
                 )],
               )
             )).to.be.revertedWith('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm::execute:: insufficient farmingToken amount received');
         });
     })
 
-    context('When contract get farmingToken amount (from input base token + input farming token) >= minFarmingTokenAmount', async () => {
-        it('should revert', async () => {
+    context('When contract get farmingToken amount (from input base token) >= minFarmingTokenAmount', async () => {
+        it('should not revert', async () => {
             // Alice uses AddBaseWithFarm with an unreasonable minFarmingTokenAmount
             // amountOut of 0.1 will be
             // if 1WBNB = 0.1 FToken
             // 0.1WBNB will be (0.1*0.9975) * (0.1/(1+0.1*0.9975)) = 0.00907024323709934
             await wbnbTokenAsAlice.transfer(mockPancakeswapV2WorkerBNBFtokenPair.address, ethers.utils.parseEther('0.1'));
-            await farmingTokenAsAlice.approve(mockedVault.address, ethers.utils.parseEther('0.05').sub(ethers.utils.parseEther('0.00907024323709934')));
+            await farmingTokenAsAlice.approve(mockedVault.address, ethers.utils.parseEther('0.05'));
             await expect(mockPancakeswapV2WorkerBNBFtokenPairAsAlice.work(
               0, await alice.getAddress(), '0',
               ethers.utils.defaultAbiCoder.encode(
                 ['address', 'bytes'],
                 [strat.address, ethers.utils.defaultAbiCoder.encode(
                   ['uint256', 'uint256'],
-                  [ethers.utils.parseEther('0.05').sub(ethers.utils.parseEther('0.00907024323709934')), ethers.utils.parseEther('0.05')]
+                  [ethers.utils.parseEther('0.05'), ethers.utils.parseEther('0.00907024323709934')]
                 )],
               )
             )).not.to.be.revertedWith('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm::execute:: insufficient farmingToken amount received');
@@ -369,7 +369,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm', () => {
       });
     })
 
-    context('When contract get farmingToken amount (from input base token + input farming token) < minFarmingTokenAmount', async () => {
+    context('When contract get farmingToken amount (from input base token) < minFarmingTokenAmount', async () => {
         it('should revert', async () => {
           // Bob uses AddBaseWithFarm strategy to add 0.1 BASE
           // amountOut of 0.1 will be
@@ -378,22 +378,22 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm', () => {
           // if 1 BNB = 0.1 FTOKEN
           // 0.09070243237099342 BNB = (0.09070243237099342 * 0.9975) * (0.1 / (1 + 0.09070243237099342 * 0.9975)) = 0.008296899991192416 FTOKEN
           await baseTokenAsAlice.transfer(mockPancakeswapV2WorkerBaseFTokenPair.address, ethers.utils.parseEther('0.1'));
-          await farmingTokenAsAlice.approve(mockedVault.address, ethers.utils.parseEther('0.05').sub(ethers.utils.parseEther('0.00830')));
+          await farmingTokenAsAlice.approve(mockedVault.address, ethers.utils.parseEther('0.05'));
           await expect(mockPancakeswapV2WorkerBaseFTokenPairAsAlice.work(
             0, await alice.getAddress(), '0',
             ethers.utils.defaultAbiCoder.encode(
               ['address', 'bytes'],
               [strat.address, ethers.utils.defaultAbiCoder.encode(
                 ['uint256', 'uint256'],
-                [ ethers.utils.parseEther('0.05').sub(ethers.utils.parseEther('0.00830')), ethers.utils.parseEther('0.05')]
+                [ ethers.utils.parseEther('0.05'), ethers.utils.parseEther('0.00830')]
               )],
             )
           )).to.be.revertedWith('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm::execute:: insufficient farmingToken amount received');
         });
     })
 
-    context('When contract get farmingToken amount (from input base token + input farming token) >= minFarmingTokenAmount', async () => {
-        it('should revert', async () => {
+    context('When contract get farmingToken amount (from input base token) >= minFarmingTokenAmount', async () => {
+        it('should not revert', async () => {
             // Bob uses AddBaseWithFarm strategy to add 0.1 BASE
             // amountOut of 0.1 will be
             // if 1 BASE = 1 BNB
@@ -401,14 +401,14 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm', () => {
             // if 1 BNB = 0.1 FTOKEN
             // 0.09070243237099342 BNB = (0.09070243237099342 * 0.9975) * (0.1 / (1 + 0.09070243237099342 * 0.9975)) = 0.008296899991192416 FTOKEN
             await baseTokenAsAlice.transfer(mockPancakeswapV2WorkerBNBFtokenPair.address, ethers.utils.parseEther('0.1'));
-            await farmingTokenAsAlice.approve(mockedVault.address, ethers.utils.parseEther('0.05').sub(ethers.utils.parseEther('0.008296899991192416')));
+            await farmingTokenAsAlice.approve(mockedVault.address, ethers.utils.parseEther('0.05'));
             await expect(mockPancakeswapV2WorkerBNBFtokenPairAsAlice.work(
               0, await alice.getAddress(), '0',
               ethers.utils.defaultAbiCoder.encode(
                 ['address', 'bytes'],
                 [strat.address, ethers.utils.defaultAbiCoder.encode(
                   ['uint256', 'uint256'],
-                  [ethers.utils.parseEther('0.05').sub(ethers.utils.parseEther('0.008296899991192416')), ethers.utils.parseEther('0.05')]
+                  [ethers.utils.parseEther('0.05'), ethers.utils.parseEther('0.008296899991192416')]
                 )],
               )
             )).not.to.be.revertedWith('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm::execute:: insufficient farmingToken amount received');
