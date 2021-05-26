@@ -80,7 +80,7 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm is OwnableUpgrad
     }
     router.swapExactTokensForTokens(balance, 0, path, address(this), now);
     // 5. Transfer all farming token (as a result of conversion) back to the calling worker
-    require(farmingToken.myBalance() >= minFarmingTokenAmount, "PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm::execute:: insufficient farmingToken amount received");
+    require(farmingToken.myBalance().sub(inputFarmingTokenAmount) >= minFarmingTokenAmount, "PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm::execute:: insufficient farmingToken amount received");
     farmingToken.safeTransfer(msg.sender, farmingToken.myBalance());
     // 6. Reset approval for safety reason
     baseToken.safeApprove(address(router), 0);
