@@ -102,13 +102,13 @@
       "stakingToken": "ALPACA-WBNB LP",
       "address": "0x1099C2E6Ed6ebA95099c205b599B409305783E43"
     }, {
-      "id": 13,
+      "id": 15,
       "stakingToken": "debtIbUSDT V2",
-      "address": "0xBde156e6a814F7a56D3E389e681088649D24A07c"
+      "address": "0x3B4fBB2b8536AB144048aBaFdd27eaF52f0fa4DC"
     }, {
-      "id": 14,
+      "id": 16,
       "stakingToken": "ibUSDT",
-      "address": "0x5353C5C15e7BDAb42d3F03e3332ea84ca5835F06"
+      "address": "0x158Da805682BdC8ee32d52833aD41E74bb951E59"
     }]
   },
   "Exchanges": {
@@ -718,29 +718,29 @@
   }, {
     "name": "Interest Bearing USDT",
     "symbol": "ibUSDT",
-    "address": "0x5353C5C15e7BDAb42d3F03e3332ea84ca5835F06",
-    "debtToken": "0xBde156e6a814F7a56D3E389e681088649D24A07c",
-    "config": "0x1A174d28B54F688cb4b1B30f9DaA64b0fc5F4DB8",
+    "address": "0x158Da805682BdC8ee32d52833aD41E74bb951E59",
+    "debtToken": "0x3B4fBB2b8536AB144048aBaFdd27eaF52f0fa4DC",
+    "config": "0x709b102EF4b605197C75CfEA45F455A4e7ce065B",
     "tripleSlopeModel": "0x375D32FadA30d7e6Fea242FCa221a22CC6d52B30",
-    "StrategyAddTwoSidesOptimal": "0xD4bc4c252c8ef9Ab29D48E040B2f8c99F5702285",
+    "StrategyAddTwoSidesOptimal": "0x5f94f61095731b669b30ed1f3f4586BBb51f4001",
     "workers": [{
       "name": "BUSD-USDT PancakeswapWorker",
-      "address": "0x9328dF75a6e48f4eB1976819A8Af35a9DE64B5F4",
+      "address": "0xE90C44C16705859931099E7565DA5d3c21F67273",
       "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
       "strategies": {
         "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
         "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
-        "StrategyAddTwoSidesOptimal": "0xD4bc4c252c8ef9Ab29D48E040B2f8c99F5702285",
+        "StrategyAddTwoSidesOptimal": "0x5f94f61095731b669b30ed1f3f4586BBb51f4001",
         "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419"
       }
     }, {
       "name": "WBNB-USDT PancakeswapWorker",
-      "address": "0xB63A710383FBf9Dc37f4B81c377cC4E02f887Db2",
+      "address": "0x81b6534f4F7ba45Ecf98295Cef1450B4a4FC81Cd",
       "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
       "strategies": {
         "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
         "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
-        "StrategyAddTwoSidesOptimal": "0xD4bc4c252c8ef9Ab29D48E040B2f8c99F5702285",
+        "StrategyAddTwoSidesOptimal": "0x5f94f61095731b669b30ed1f3f4586BBb51f4001",
         "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419"
       }
     }]

@@ -14,10 +14,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const TIMELOCK_ADDRESS = '0xb3c3aE82358DF7fC0bd98629D5ed91767e45c337';
+  const TIMELOCK_ADDRESS = '0x2D5408f2287BF9F9B05404794459a846651D0a59';
   const TO_BE_LOCKED = [
-    '0x5353C5C15e7BDAb42d3F03e3332ea84ca5835F06',
-    '0x1A174d28B54F688cb4b1B30f9DaA64b0fc5F4DB8'
+    '0x709b102EF4b605197C75CfEA45F455A4e7ce065B',
+    '0x158Da805682BdC8ee32d52833aD41E74bb951E59'
   ];
 
 
