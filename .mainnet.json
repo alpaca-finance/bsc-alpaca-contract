@@ -112,11 +112,11 @@
     }, {
       "id": 17,
       "stakingToken": "debtIbBTCB V2",
-      "address": ""
+      "address": "0x262de19B5fde97eD5bdBa10d630E34Fb9a1b59B2"
     }, {
       "id": 18,
       "stakingToken": "ibBTCB",
-      "address": ""
+      "address": "0x08FC9Ba2cAc74742177e0afC3dC8Aed6961c24e7"
     }]
   },
   "Exchanges": {
@@ -755,29 +755,29 @@
   }, {
     "name": "Interest Bearing BTCB",
     "symbol": "ibBTCB",
-    "address": "",
-    "debtToken": "",
-    "config": "",
+    "address": "0x08FC9Ba2cAc74742177e0afC3dC8Aed6961c24e7",
+    "debtToken": "0x262de19B5fde97eD5bdBa10d630E34Fb9a1b59B2",
+    "config": "0x6cc80Df354415fA0FfeF78555a06C1DdE7549FB8",
     "tripleSlopeModel": "0x375D32FadA30d7e6Fea242FCa221a22CC6d52B30",
-    "StrategyAddTwoSidesOptimal": "",
+    "StrategyAddTwoSidesOptimal": "0xe862D45abdF7ea38F75dd0c7164B19FaEd057130",
     "workers": [{
       "name": "WBNB-BTCB PancakeswapWorker",
-      "address": "",
+      "address": "0x20E5d465dF8520abfEF79b04C4A2c8952b365e82",
       "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
       "strategies": {
         "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
         "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
-        "StrategyAddTwoSidesOptimal": "",
+        "StrategyAddTwoSidesOptimal": "0xe862D45abdF7ea38F75dd0c7164B19FaEd057130",
         "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419"
       }
     }, {
       "name": "BUSD-BTCB PancakeswapWorker",
-      "address": "",
+      "address": "0x93cf6e8d7e0d03B8d773c893506FC808cD6a4FdF",
       "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
       "strategies": {
         "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
         "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
-        "StrategyAddTwoSidesOptimal": "",
+        "StrategyAddTwoSidesOptimal": "0xe862D45abdF7ea38F75dd0c7164B19FaEd057130",
         "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419"
       }
     }]
