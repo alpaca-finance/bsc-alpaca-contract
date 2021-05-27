@@ -109,6 +109,14 @@
       "id": 16,
       "stakingToken": "ibUSDT",
       "address": "0x158Da805682BdC8ee32d52833aD41E74bb951E59"
+    }, {
+      "id": 17,
+      "stakingToken": "debtIbBTCB V2",
+      "address": ""
+    }, {
+      "id": 18,
+      "stakingToken": "ibBTCB",
+      "address": ""
     }]
   },
   "Exchanges": {
@@ -741,6 +749,35 @@
         "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
         "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
         "StrategyAddTwoSidesOptimal": "0x5f94f61095731b669b30ed1f3f4586BBb51f4001",
+        "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419"
+      }
+    }]
+  }, {
+    "name": "Interest Bearing BTCB",
+    "symbol": "ibBTCB",
+    "address": "",
+    "debtToken": "",
+    "config": "",
+    "tripleSlopeModel": "0x375D32FadA30d7e6Fea242FCa221a22CC6d52B30",
+    "StrategyAddTwoSidesOptimal": "",
+    "workers": [{
+      "name": "WBNB-BTCB PancakeswapWorker",
+      "address": "",
+      "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+        "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+        "StrategyAddTwoSidesOptimal": "",
+        "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419"
+      }
+    }, {
+      "name": "BUSD-BTCB PancakeswapWorker",
+      "address": "",
+      "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+        "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+        "StrategyAddTwoSidesOptimal": "",
         "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419"
       }
     }]
