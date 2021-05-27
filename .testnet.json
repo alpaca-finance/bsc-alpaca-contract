@@ -736,7 +736,7 @@
     "tripleSlopeModel": "0x038cd7a6A397d7f5D07a0c76A4610a7Ca64eb7d3",
     "StrategyAddTwoSidesOptimal": "0x453a9A2500947d2F730068E77C5294D3feb5DA67",
     "workers": [{
-      "name": "BNB-BTCB PancakeswapWorker",
+      "name": "WBNB-BTCB PancakeswapWorker",
       "address": "0x9D0D8db54EE1d37d08C79612920addB9fFF16d5b",
       "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
       "strategies": {
