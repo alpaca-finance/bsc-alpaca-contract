@@ -246,6 +246,8 @@ describe('WaultSwapRestrictedStrategyLiquidate', () => {
       )
     ).to.be.revertedWith('insufficient baseToken received');
 
+    console.log('-----------------------')
+
     // Bob uses liquidate strategy to turn all LPs back to BTOKEN with a same minimum value
     await mockWaultSwapWorkerAsBob.work(
         0, await bob.getAddress(), '0',
@@ -257,6 +259,22 @@ describe('WaultSwapRestrictedStrategyLiquidate', () => {
             )],
         )
     )
+
+    // lp removed -> got BTOKEN + FTOKEN -> convert FTOKEN to BTOKEN
+    // After lp removed:
+    // baseToken 1
+    // baseTokenReserve 1
+    // farmingToken 0.1
+    // farmingTokenReserve 0.1
+    //
+    // receivingBToken
+    // = [(farmingToken * 9980) * (baseTokenReserve)] / [((farmingTokenReserve) * 10000) + (farmingToken * 9980)]
+    // = [(0.1 * 9980) * (1)] / [((0.1) * 10000) + (0.1 * 9980)]
+    // = 0.499499499499499499
+    //
+    // Hence, after swap, lp should be as following
+    // baseTokenReserve = 1 - 0.499499499499499499 = 0.500500500500500501
+    // farmingTokenReserve = 0.1 + 0.1 = 2
 
     expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'));
     expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther('0'));
