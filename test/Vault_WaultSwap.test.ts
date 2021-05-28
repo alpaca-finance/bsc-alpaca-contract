@@ -347,7 +347,8 @@ describe('Vault - WaultSwap', () => {
     });
 
     it('should set max reinvest bounty', async() => {
-        waultSwapWorker.setMaxReinvestBountyBps(200);
+      await waultSwapWorker.setMaxReinvestBountyBps(200);
+      expect(await waultSwapWorker.maxReinvestBountyBps()).to.be.bignumber.eq(200);
     });
 
     it('should revert when owner set reinvestBountyBps > max', async() => {
@@ -383,6 +384,43 @@ describe('Vault - WaultSwap', () => {
           ]
         ),
       );
+
+      // To find health of the position, derive following variables:
+      // totalBaseToken = 1.3
+      // totalFarmingToken = 0.1
+      // userBaseToken = 0.159684250517396851
+      // userFarmingToken = 0.012283403885953603
+
+      // health = amount of underlying of lp after converted to BTOKEN
+      // = userBaseToken + userFarmingTokenAfterSellToBaseToken
+
+      // Find userFarmingTokenAfterSellToBaseToken from
+      // mktSellAMount
+      // = [(userFarmingToken * 9980) * (totalBaseToken - userBaseToken)] / [((totalFarmingToken - userFarmingToken) * 10000) + (userFarmingToken * 9980)]
+      // = [(0.012283403885953603 * 9980) * (1.3 - 0.159684250517396851)] / [((0.1 - 0.012283403885953603) * 10000) + (0.012283403885953603 * 9980)]
+      // = 0.139823800150121109
+
+      // health = userBaseToken + userFarmingTokenAfterSellToBaseToken
+      // = 0.159684250517396851 + 0.139823800150121109
+      // = 0.29950805066751796
+      expect(await waultSwapWorker.health(1)).to.be.equal(ethers.utils.parseEther('0.29950805066751796'));
+
+      // must be able to close position
+      await vaultAsAlice.work(
+        1,
+        waultSwapWorker.address,
+        '0',
+        '0',
+        ethers.constants.MaxUint256.toString(),
+        ethers.utils.defaultAbiCoder.encode(
+          ['address', 'bytes'],
+          [liqStrat.address, ethers.utils.defaultAbiCoder.encode(
+            ['uint256'],
+            ['0'])
+          ]
+        )
+      );
+      expect(await waultSwapWorker.health(1)).to.be.equal(ethers.constants.Zero);
     });
 
     it('should not allow to open a position with debt less than MIN_DEBT_SIZE', async () => {
@@ -516,6 +554,25 @@ describe('Vault - WaultSwap', () => {
       );
 
       // Her position should have ~2 NATIVE health (minus some small trading fee)
+      // To find health of the position, derive following variables:
+      // totalBaseToken = 2.999999999999999958
+      // totalFarmingToken = 0.1
+      // userBaseToken = 1.267216253674334111
+      // userFarmingToken = 0.042240541789144470
+
+      // health = amount of underlying of lp after converted to BTOKEN
+      // = userBaseToken + userFarmingTokenAfterSellToBaseToken
+
+      // Find userFarmingTokenAfterSellToBaseToken from
+      // mktSellAMount
+      // = [(userFarmingToken * 9980) * (totalBaseToken - userBaseToken)] / [((totalFarmingToken - userFarmingToken) * 10000) + (userFarmingToken * 9980)]
+      // = [(0.042240541789144470 * 9980) * (2.999999999999999958 - 1.267216253674334111)] / [((0.1 - 0.042240541789144470) * 10000) + (0.042240541789144470 * 9980)]
+      // = 0.731091001597324380
+
+      // health = userBaseToken + userFarmingTokenAfterSellToBaseToken
+      // = 1.267216253674334111 + 0.731091001597324380
+      // = 1.998307255271658491
+
       expect(await waultSwapWorker.health(1)).to.be.bignumber.eq(ethers.utils.parseEther('1.998307255271658491'));
 
       // Eve comes and trigger reinvest
@@ -867,6 +924,7 @@ describe('Vault - WaultSwap', () => {
         [farmToken.address, baseToken.address], await deployer.getAddress(), FOREVER);
 
       // Alice liquidates Bob position#1
+      const vaultBaseBefore = await baseToken.balanceOf(vault.address)
       let aliceBefore = await baseToken.balanceOf(await alice.getAddress());
       await expect(vaultAsAlice.kill('1')) // at health = 0.003000997994240237
         .to.emit(vaultAsAlice, 'Kill')
@@ -875,7 +933,9 @@ describe('Vault - WaultSwap', () => {
 
       // Bank balance is increase by liquidation (0.002700898194816214 = 0.9 * 0.003000997994240237)
       AssertHelpers.assertAlmostEqual(
-        ethers.utils.parseEther('10.002700898194816214').toString(),
+        vaultBaseBefore.add(
+          ethers.utils.parseEther('0.002700898194816214')
+        ).toString(),
         (await baseToken.balanceOf(vault.address)).toString(),
       );
 
@@ -1041,28 +1101,41 @@ describe('Vault - WaultSwap', () => {
       // Wait for 1 day and someone calls reinvest
       await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from('1')));
 
+      let [bobHealthBefore] = await vault.positionInfo('1');
+      let [aliceHealthBefore] = await vault.positionInfo('2');
+
       let [workerLPBefore, workerDebtBefore] = await wexMaster.userInfo(poolId, waultSwapWorker.address);
       await waultSwapWorkerAsEve.reinvest();
 
-      // PancakeWorker receives 303999999998816250 cake as a reward
-      // Eve got 10% of 303999999998816250 cake = 0.01 * 303999999998816250 = 3039999999988162 bounty
+      // WaultSwapWorker receives 303999999998816250 WEX as a reward
+      // Eve got 10% of 303999999998816250 WEX = 0.01 * 303999999998816250 = 3039999999988162 bounty
       AssertHelpers.assertAlmostEqual(
         ethers.utils.parseEther('0.003039999999988162').toString(),
         (await wex.balanceOf(await eve.getAddress())).toString(),
       );
 
-      // Remaining PancakeWorker reward = 227999999998874730 - 22799999999887473 = 205199999998987257 (~90% reward)
-      // Convert 205199999998987257 cake to 671683776318381694 NATIVE
-      // Convert NATIVE to 1252466339860712438 LP token and stake
+      // Remaining WaultSwapWorker reward = 227999999998874730 - 22799999999887473 = 205199999998987257 (~90% reward)
+      // Convert 205199999998987257 WEX -> NATIVE -> 428154194393642655 BTOKEN
+      //
+      // To find the increasing LP amount, derive following variables before adding liquidity:
+      // amountBaseToken = 214810100415974530
+      // totalBaseToken = 24213344093977668125
+      // totalSupply = 1547881394156502594
+      // lpAmount = totalSupply * (amountB / reserveB)
+      // = 1547881394156502594 * (214810100415974530 / 24213344093977668125)
+      // = 13732120454748601
       let [workerLPAfter, workerDebtAfter] = await wexMaster.userInfo(poolId, waultSwapWorker.address);
 
       // LP tokens of worker should be inceased from reinvestment
       expect(workerLPAfter).to.be.bignumber.gt(workerLPBefore);
-
+      AssertHelpers.assertAlmostEqual(
+        workerLPAfter.sub(workerLPBefore).toString(),
+        '13732120454748601'
+      )
       // Check Bob position info
       await waultSwapWorker.health('1');
       let [bobHealth, bobDebtToShare] = await vault.positionInfo('1');
-      expect(bobHealth).to.be.bignumber.gt(ethers.utils.parseEther('20')); // Get Reward and increase health
+      expect(bobHealth).to.be.bignumber.gt(bobHealthBefore); // Get Reward and increase health
       AssertHelpers.assertAlmostEqual(
         ethers.utils.parseEther('10').toString(),
         bobDebtToShare.toString(),
@@ -1071,7 +1144,7 @@ describe('Vault - WaultSwap', () => {
       // Check Alice position info
       await waultSwapWorker.health('2');
       let [aliceHealth, aliceDebtToShare] = await vault.positionInfo('2');
-      expect(aliceHealth).to.be.bignumber.gt(ethers.utils.parseEther('3')); // Get Reward and increase health
+      expect(aliceHealth).to.be.bignumber.gt(aliceHealthBefore); // Get Reward and increase health
       AssertHelpers.assertAlmostEqual(
         ethers.utils.parseEther('2').toString(),
         aliceDebtToShare.toString(),
@@ -1080,6 +1153,9 @@ describe('Vault - WaultSwap', () => {
       // ---------------- Reinvest#2 -------------------
       // Wait for 1 day and someone calls reinvest
       await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from('1')));
+
+      [bobHealthBefore] = await vault.positionInfo('1');
+      [aliceHealthBefore] = await vault.positionInfo('2');
 
       [workerLPBefore, workerDebtBefore] = await wexMaster.userInfo(poolId, waultSwapWorker.address);
       await waultSwapWorkerAsEve.reinvest();
@@ -1091,7 +1167,7 @@ describe('Vault - WaultSwap', () => {
       );
 
       // Remaining Worker reward = 142858796296283038 - 14285879629628304 = 128572916666654734 (~90% reward)
-      // Convert 128572916666654734 uni to 157462478899282341 NATIVE
+      // Convert 128572916666654734 WEX to 157462478899282341 NATIVE
       // Convert NATIVE to 5001669421841640 LP token
       [workerLPAfter, workerDebtAfter] = await wexMaster.userInfo(poolId, waultSwapWorker.address);
       // LP tokens of worker should be inceased from reinvestment
@@ -1099,7 +1175,7 @@ describe('Vault - WaultSwap', () => {
 
       // Check Bob position info
       [bobHealth, bobDebtToShare] = await vault.positionInfo('1');
-      expect(bobHealth).to.be.bignumber.gt(ethers.utils.parseEther('20')); // Get Reward and increase health
+      expect(bobHealth).to.be.bignumber.gt(bobHealthBefore); // Get Reward and increase health
       AssertHelpers.assertAlmostEqual(
         ethers.utils.parseEther('10').toString(),
         bobDebtToShare.toString(),
@@ -1107,7 +1183,7 @@ describe('Vault - WaultSwap', () => {
 
       // Check Alice position info
       [aliceHealth, aliceDebtToShare] = await vault.positionInfo('2');
-      expect(aliceHealth).to.be.bignumber.gt(ethers.utils.parseEther('3')); // Get Reward and increase health
+      expect(aliceHealth).to.be.bignumber.gt(aliceHealthBefore); // Get Reward and increase health
       AssertHelpers.assertAlmostEqual(
         ethers.utils.parseEther('2').toString(),
         aliceDebtToShare.toString(),
@@ -1120,14 +1196,14 @@ describe('Vault - WaultSwap', () => {
       [workerLPBefore, workerDebtBefore] = await wexMaster.userInfo(poolId, waultSwapWorker.address);
       await waultSwapWorkerAsEve.reinvest();
 
-      // eve should earn wex as a reward for reinvest
+      // eve should earn WEX as a reward for reinvest
       AssertHelpers.assertAlmostEqual(
         ethers.utils.parseEther('0.006079999999979926').toString(),
         (await wex.balanceOf(await eve.getAddress())).toString(),
       );
 
       // Remaining Worker reward = 142858796296283038 - 14285879629628304 = 128572916666654734 (~90% reward)
-      // Convert 128572916666654734 uni to 74159218067697746 NATIVE
+      // Convert 128572916666654734 WEX to 74159218067697746 NATIVE
       // Convert NATIVE to 2350053120029788 LP token
       [workerLPAfter, workerDebtAfter] = await wexMaster.userInfo(poolId, waultSwapWorker.address);
       // LP tokens of worker should be inceased from reinvestment
@@ -1192,87 +1268,6 @@ describe('Vault - WaultSwap', () => {
       // Check Alice account, Alice must be richer as she earned from leverage yield farm without getting liquidated
       expect(aliceAfter).to.be.bignumber.gt(aliceBefore);
     }).timeout(50000);
-
-    it('should liquidate user position correctly', async () => {
-      // Bob deposits 20 BTOKEN
-      await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther('20'));
-      await vaultAsBob.deposit(ethers.utils.parseEther('20'));
-
-      // Position#1: Alice borrows 10 BTOKEN loan
-      await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther('10'));
-      await vaultAsAlice.work(
-        0,
-        waultSwapWorker.address,
-        ethers.utils.parseEther('10'),
-        ethers.utils.parseEther('10'),
-        '0', // max return = 0, don't return BTOKEN to the debt
-        ethers.utils.defaultAbiCoder.encode(
-          ['address', 'bytes'],
-          [addStrat.address, ethers.utils.defaultAbiCoder.encode(
-            ['uint256'],
-            ['0'])
-          ]
-        )
-      );
-
-      await farmToken.mint(await deployer.getAddress(), ethers.utils.parseEther('100'));
-      await farmToken.approve(router.address, ethers.utils.parseEther('100'));
-
-      // Price swing 10%
-      // Add more token to the pool equals to sqrt(10*((0.1)**2) / 9) - 0.1 = 0.005409255338945984, (0.1 is the balance of token in the pool)
-      await router.swapExactTokensForTokens(
-        ethers.utils.parseEther('0.005409255338945984'),
-        '0',
-        [farmToken.address, baseToken.address],
-        await deployer.getAddress(),
-        FOREVER
-      );
-      await expect(vaultAsEve.kill('1')).to.be.revertedWith("can't liquidate");
-
-      // Price swing 20%
-      // Add more token to the pool equals to
-      // sqrt(10*((0.10540925533894599)**2) / 8) - 0.10540925533894599 = 0.012441874858811944
-      // (0.10540925533894599 is the balance of token in the pool)
-      await router.swapExactTokensForTokens(
-        ethers.utils.parseEther('0.012441874858811944'),
-        '0',
-        [farmToken.address, baseToken.address],
-        await deployer.getAddress(),
-        FOREVER
-      );
-      await expect(vaultAsEve.kill('1')).to.be.revertedWith("can't liquidate");
-
-      // Price swing 23.43%
-      // Existing token on the pool = 0.10540925533894599 + 0.012441874858811944 = 0.11785113019775793
-      // Add more token to the pool equals to
-      // sqrt(10*((0.11785113019775793)**2) / 7.656999999999999) - 0.11785113019775793 = 0.016829279312591913
-      await router.swapExactTokensForTokens(
-        ethers.utils.parseEther('0.016829279312591913'),
-        '0',
-        [farmToken.address, baseToken.address],
-        await deployer.getAddress(),
-        FOREVER
-      );
-      await expect(vaultAsEve.kill('1')).to.be.revertedWith("can't liquidate");
-
-      // Price swing 30%
-      // Existing token on the pool = 0.11785113019775793 + 0.016829279312591913 = 0.13468040951034985
-      // Add more token to the pool equals to
-      // sqrt(10*((0.13468040951034985)**2) / 7) - 0.13468040951034985 = 0.026293469053292218
-      await router.swapExactTokensForTokens(
-        ethers.utils.parseEther('0.026293469053292218'),
-        '0',
-        [farmToken.address, baseToken.address],
-        await deployer.getAddress(),
-        FOREVER
-      );
-
-      // Now you can liquidate because of the price fluctuation
-      const eveBefore = await baseToken.balanceOf(await eve.getAddress());
-      await expect(vaultAsEve.kill('1'))
-        .to.emit(vaultAsEve, 'Kill')
-      expect(await baseToken.balanceOf(await eve.getAddress())).to.be.bignumber.gt(eveBefore);
-    });
 
     it('should close position correctly when user holds multiple positions', async () => {
       // Set Bank's debt interests to 0% per year
@@ -1384,7 +1379,7 @@ describe('Vault - WaultSwap', () => {
       );
 
       // Remaining Worker reward = 142858796296283038 - 14285879629628304 = 128572916666654734 (~90% reward)
-      // Convert 128572916666654734 uni to 157462478899282341 NATIVE
+      // Convert 128572916666654734 WEX to 157462478899282341 NATIVE
       // Convert NATIVE to 5001669421841640 LP token
       [workerLPAfter, workerDebtAfter] = await wexMaster.userInfo(poolId, waultSwapWorker.address);
       // LP tokens of worker should be inceased from reinvestment
@@ -1582,7 +1577,7 @@ describe('Vault - WaultSwap', () => {
       );
 
       // Remaining Worker reward = 142858796296283038 - 14285879629628304 = 128572916666654734 (~90% reward)
-      // Convert 128572916666654734 uni to 157462478899282341 NATIVE
+      // Convert 128572916666654734 WEX to 157462478899282341 NATIVE
       // Convert NATIVE to 5001669421841640 LP token
       [workerLPAfter, workerDebtAfter] = await wexMaster.userInfo(poolId, waultSwapWorker.address);
       // LP tokens of worker should be inceased from reinvestment
@@ -1781,7 +1776,7 @@ describe('Vault - WaultSwap', () => {
       );
 
       // Remaining Worker reward = 142858796296283038 - 14285879629628304 = 128572916666654734 (~90% reward)
-      // Convert 128572916666654734 wex to 157462478899282341 BTOKEN
+      // Convert 128572916666654734 WEX to 157462478899282341 BTOKEN
       // Convert BTOKEN to 5001669421841640 LP token
       [workerLPAfter, workerDebtAfter] = await wexMaster.userInfo(poolId, waultSwapWorker.address);
       // LP tokens of worker should be inceased from reinvestment
