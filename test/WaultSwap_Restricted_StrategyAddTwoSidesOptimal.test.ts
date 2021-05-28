@@ -228,9 +228,6 @@ describe('WaultSwapRestrictedStrategyAddTwoSideOptimal', () => {
         )],
       ))
 
-      console.log((await baseToken.balanceOf(lpV2.address)).toString())
-      console.log((await farmingToken.balanceOf(lpV2.address)).toString())
-
       // the calculation is ratio between balance and reserve * total supply
       // let total supply = sqrt(1 * 0.1) = 0.31622776601683793
       // current reserve after swap is 1732967258967755614
@@ -240,12 +237,6 @@ describe('WaultSwapRestrictedStrategyAddTwoSideOptimal', () => {
       Assert.assertAlmostEqual(stratLPBalance.toString(), ethers.utils.parseEther('0.231263113939866551').toString())
       expect(stratLPBalance).to.above(ethers.utils.parseEther('0'));
       expect(await farmingToken.balanceOf(addRestrictedStrat.address)).to.be.bignumber.below(MAX_ROUNDING_ERROR);
-
-
-      console.log((await baseToken.balanceOf(lpV2.address)).toString())
-      console.log((await farmingToken.balanceOf(lpV2.address)).toString())
-      console.log(0, (await lpV2.getReserves())[0].toString())
-      console.log(1, (await lpV2.getReserves())[1].toString())
 
       // Now Alice leverage 2x on her 0.1 BTOKEN.
       // So totally Alice will take 0.1 BTOKEN from the pool and 0.1 BTOKEN from her pocket to

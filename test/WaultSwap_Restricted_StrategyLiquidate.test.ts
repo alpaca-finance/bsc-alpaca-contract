@@ -246,8 +246,6 @@ describe('WaultSwapRestrictedStrategyLiquidate', () => {
       )
     ).to.be.revertedWith('insufficient baseToken received');
 
-    console.log('-----------------------')
-
     // Bob uses liquidate strategy to turn all LPs back to BTOKEN with a same minimum value
     await mockWaultSwapWorkerAsBob.work(
         0, await bob.getAddress(), '0',
