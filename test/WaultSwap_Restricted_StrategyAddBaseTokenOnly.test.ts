@@ -19,6 +19,7 @@ import {
   MockWaultSwapWorker,
   MockWaultSwapWorker__factory
 } from "../typechain";
+import { assertAlmostEqual } from "./helpers/assert";
 
 chai.use(solidity);
 const { expect } = chai;
@@ -265,6 +266,8 @@ describe('WaultSwapRestrictedStrategyAddBaseTokenOnly', () => {
     expect(await lp.balanceOf(mockWaultSwapWorker.address)).to.be.bignumber.eq(ethers.utils.parseEther('0.015419263215025115'))
     expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
     expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+    // there is a very small remaining amount of base token left
+    expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.lte(ethers.BigNumber.from('13'))
 
     // Bob uses AddBaseTokenOnly strategy to add another 0.1 BTOKEN
     await baseTokenAsBob.transfer(mockWaultSwapWorker.address, ethers.utils.parseEther('0.1'));
