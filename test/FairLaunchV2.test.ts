@@ -459,12 +459,12 @@ describe("FairLaunchV2", () => {
       expect(await fairLaunchV2.pendingAlpaca(1, (await alice.getAddress()))).to.be.bignumber.eq(ethers.utils.parseEther('2500'));
 
       // 6. Harvest all yield of pId 0
-      // should get 7,500 ALPACAs from pId 0
+      // should get 7,500 + 2,500 = 10,000 ALPACAs from pId 0
       await fairLaunchV2AsAlice.harvest(0);
       expect(await alpacaToken.balanceOf((await alice.getAddress()))).to.be.bignumber.eq(ethers.utils.parseEther('10000'));
 
       // 7. Harvest all yield of pId 1
-      // should get 5,000 ALPACAs from pId 1
+      // should get 2,500 + 2,500 + 2,500 = 7,500 ALPACAs from pId 1
       await fairLaunchV2AsAlice.harvest(1);
       expect(await alpacaToken.balanceOf((await alice.getAddress()))).to.be.bignumber.eq(ethers.utils.parseEther('17500'));
     })
@@ -555,14 +555,11 @@ describe("FairLaunchV2", () => {
       expect(await alpacaToken.balanceOf((await bob.getAddress()))).to.be.bignumber.eq(ethers.utils.parseEther('7500'));
       expect(await alpacaToken.balanceOf((await dev.getAddress()))).to.be.bignumber.eq(ethers.utils.parseEther('6500'));
 
-      // 15. Alice wants more ALPACAs so she deposit 140 STOKEN0 more
+      // 15. Alice wants more ALPACAs so she deposit 300 STOKEN0 more
       await stoken0AsAlice.approve(fairLaunchV2.address, ethers.utils.parseEther('300'));
       await fairLaunchV2AsAlice.deposit((await alice.getAddress()), 0, ethers.utils.parseEther('300'));
 
-      // Alice deposit to the same pool as she already has some STOKEN0 in it
-      // Hence, Alice will get auto-harvest
       // Alice should get 22,500 ALPACAs (17,500 + 2,500 [B1] + 2,500 [B2]) in pending Alpaca
-      // Hence, Alice should has 15,000 + 20,000 = 35,000 ALPACAs in her account and 0 pending as she harvested
       // Bob should has (2,500 [B1] + 2,500 [B2]) = 5,000 ALPACAs in pending
       expect(await fairLaunchV2.pendingAlpaca(0, (await alice.getAddress()))).to.be.bignumber.eq(ethers.utils.parseEther('22500'));
       expect(await fairLaunchV2.pendingAlpaca(0, (await bob.getAddress()))).to.be.bignumber.eq(ethers.utils.parseEther('5000'));
@@ -575,7 +572,7 @@ describe("FairLaunchV2", () => {
 
       // 1 more block is mined, now Alice shold get 80% and Bob should get 20% of rewards
       // How many STOKEN0 needed to make Alice get 80%: find n from 100n/(100n+100) = 0.8
-      // Hence, Alice should get 0 + 4,000 = 4,000 ALPACAs in pending
+      // Hence, Alice should get 22,500 + 4,000 = 26,5000 ALPACAs in pending
       // Bob should get 5,000 + 1,000 = 6,000 ALPACAs in pending
       expect(await fairLaunchV2.pendingAlpaca(0, (await alice.getAddress()))).to.be.bignumber.eq(ethers.utils.parseEther('26500'));
       expect(await fairLaunchV2.pendingAlpaca(0, (await bob.getAddress()))).to.be.bignumber.eq(ethers.utils.parseEther('6000'));
