@@ -841,6 +841,9 @@
       "name": "WBNB-BTCB PancakeswapWorker",
       "address": "0x9D0D8db54EE1d37d08C79612920addB9fFF16d5b",
       "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "pId": 22,
+      "lp": "0xdF85a773771875F96493FDdB341A197d860Bc90d",
+      "stakingLpAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
       "strategies": {
         "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
         "StrategyLiquidate": "0x58Bbb507248635413172Ed7A2eeC048402C6b39b",
@@ -851,6 +854,9 @@
       "name": "BUSD-BTCB PancakeswapWorker",
       "address": "0x3659538Bd4c93E5f0b15C240838148dCdACa6424",
       "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "pId": 40,
+      "lp": "0x958BD4cF570D4de0E59db9926Ce138f6FE96464D",
+      "stakingLpAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
       "strategies": {
         "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
         "StrategyLiquidate": "0x58Bbb507248635413172Ed7A2eeC048402C6b39b",
