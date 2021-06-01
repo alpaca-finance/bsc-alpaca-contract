@@ -28,6 +28,12 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   event AddShare(uint256 indexed id, uint256 share);
   event RemoveShare(uint256 indexed id, uint256 share);
   event Liquidate(uint256 indexed id, uint256 wad);
+  event SetReinvestBountyBps(address indexed caller, uint256 indexed reinvestBountyBps);
+  event SetBeneficialVaultBountyBps(address indexed caller, uint256 indexed beneficialVaultBountyBps);
+  event SetMaxReinvestBountyBps(address indexed caller, uint256 indexed maxReinvestBountyBps);
+  event SetStrategyOK(address indexed caller, address indexed strategy, bool indexed isOk);
+  event SetReinvestorOK(address indexed caller, address indexed reinvestor, bool indexed isOk);
+  event SetCriticalStrategy(address indexed caller, IStrategy indexed addStrat, IStrategy indexed liqStrat);
 
   /// @notice Configuration variables
   IPancakeMasterChef public masterChef;
@@ -302,6 +308,7 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   function setReinvestBountyBps(uint256 _reinvestBountyBps) external onlyOwner {
     require(_reinvestBountyBps <= maxReinvestBountyBps, "CakeMaxiWorker::setReinvestBountyBps:: _reinvestBountyBps exceeded maxReinvestBountyBps");
     reinvestBountyBps = _reinvestBountyBps;
+    emit SetReinvestBountyBps(msg.sender, _reinvestBountyBps);
   }
 
   // @notice Set the reward bounty from reinvest operations sending to a beneficial vault.
@@ -310,6 +317,7 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   function setBeneficialVaultBountyBps(uint256 _beneficialVaultBountyBps) external onlyOwner {
     require(_beneficialVaultBountyBps <= 10000,  "CakeMaxiWorker::setBeneficialVaultBountyBps:: _beneficialVaultBountyBps exceeds 100%");
     beneficialVaultBountyBps = _beneficialVaultBountyBps;
+    emit SetBeneficialVaultBountyBps(msg.sender, _beneficialVaultBountyBps);
   }
 
   /// @dev Set Max reinvest reward for set upper limit reinvest bounty.
@@ -317,6 +325,7 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   function setMaxReinvestBountyBps(uint256 _maxReinvestBountyBps) external onlyOwner {
     require(_maxReinvestBountyBps >= reinvestBountyBps, "CakeMaxiWorker::setMaxReinvestBountyBps:: _maxReinvestBountyBps lower than reinvestBountyBps");
     maxReinvestBountyBps = _maxReinvestBountyBps;
+    emit SetMaxReinvestBountyBps(msg.sender, _maxReinvestBountyBps);
   }
 
   /// @dev Set the given strategies' approval status.
@@ -326,6 +335,7 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     uint256 len = strats.length;
     for (uint256 idx = 0; idx < len; idx++) {
       okStrats[strats[idx]] = isOk;
+      emit SetStrategyOK(msg.sender, strats[idx], isOk);
     }
   }
 
@@ -336,6 +346,7 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     uint256 len = reinvestors.length;
     for (uint256 idx = 0; idx < len; idx++) {
       okReinvestors[reinvestors[idx]] = isOk;
+      emit SetReinvestorOK(msg.sender, reinvestors[idx], isOk);
     }
   }
 
@@ -345,6 +356,7 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   function setCriticalStrategies(IStrategy _addStrat, IStrategy _liqStrat) external onlyOwner {
     addStrat = _addStrat;
     liqStrat = _liqStrat;
+    emit SetCriticalStrategy(msg.sender, _addStrat, _liqStrat);
   }
 
 }
