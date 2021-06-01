@@ -6,6 +6,7 @@
     "noUnusedLocals": false,
     "strictNullChecks": true,
     "esModuleInterop": true,
+    "resolveJsonModule": true,
     "module": "commonjs",
     "lib": ["es6", "es2017", "dom"],
     "target": "es5",

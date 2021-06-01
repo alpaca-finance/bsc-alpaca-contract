@@ -14,7 +14,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
   const FAIR_LAUNCH_ADDR = '0xA625AB01B08ce023B2a342Dbb12a16f2C8489A8F';
-  const MIN_DEBT_SIZE = ethers.utils.parseEther('200');
+  const MIN_DEBT_SIZE = ethers.utils.parseEther('100');
   const RESERVE_POOL_BPS = '1000';
   const KILL_PRIZE_BPS = '500';
   const INTEREST_MODEL = '0x375D32FadA30d7e6Fea242FCa221a22CC6d52B30';

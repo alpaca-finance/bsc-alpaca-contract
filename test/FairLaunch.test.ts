@@ -296,14 +296,14 @@ describe("FairLaunch", () => {
       expect(await alpacaToken.balanceOf((await bob.getAddress()))).to.be.bignumber.eq(ethers.utils.parseEther('7500'));
       expect(await alpacaToken.balanceOf((await dev.getAddress()))).to.be.bignumber.eq(ethers.utils.parseEther('4000'));
 
-      // 15. Alice wants more ALPACAs so she deposit 140 STOKEN0 more
+      // 15. Alice wants more ALPACAs so she deposit 300 STOKEN0 more
       await stoken0AsAlice.approve(fairLaunch.address, ethers.utils.parseEther('300'));
       await fairLaunchAsAlice.deposit((await alice.getAddress()), 0, ethers.utils.parseEther('300'));
 
       // Alice deposit to the same pool as she already has some STOKEN0 in it
       // Hence, Alice will get auto-harvest
       // Alice should get 22,500 ALPACAs (17,500 + 2,500 [B1] + 2,500 [B2]) back to her account
-      // Hence, Alice should has 15,000 + 20,000 = 35,000 ALPACAs in her account and 0 pending as she harvested
+      // Hence, Alice should has 15,000 + 22,500 = 37,500 ALPACAs in her account and 0 pending as she harvested
       // Bob should has (2,500 [B1] + 2,500 [B2]) = 5,000 ALPACAs in pending
       expect(await fairLaunch.pendingAlpaca(0, (await alice.getAddress()))).to.be.bignumber.eq(ethers.utils.parseEther('0'));
       expect(await fairLaunch.pendingAlpaca(0, (await bob.getAddress()))).to.be.bignumber.eq(ethers.utils.parseEther('5000'));
@@ -375,7 +375,7 @@ describe("FairLaunch", () => {
       // 10,000 * 5 = 50,000 ALPACAs are from bonus period
       // Hence subject to lock 50,000 * 0.7 = 35,000 will be locked
       // 50,000 - 35,000 = 15,000 ALPACAs from bonus period should be free float
-      // Alice should get 7,500 + (61,000-35,000) + 1,000 = 34,500 ALPACAs
+      // Bob should get 7,500 + (61,000-35,000) + 1,000 = 34,500 ALPACAs
       // 1 Block is mined, hence Bob pending must be increased
       // Alice should get 0 + 4,000 = 4,000 ALPACAs in pending
       // Dev should get 500 ALPACAs in the account

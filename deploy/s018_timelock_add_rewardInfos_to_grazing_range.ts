@@ -24,31 +24,31 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const TIMELOCK = '0x2D5408f2287BF9F9B05404794459a846651D0a59';
   const GRAZING_RANGE = '0x6bf5b334409cC3FD336Da9A2D3e3F9c870fEb343'
-  const EXACT_ETA = '1621344600';
+  const EXACT_ETA = '1621844100';
   const REWARDINFO: IAddGrazingRangeRewardInfoParamList = [{
-    // ✅ 365,522.976 SWINGBY
+    // ✅ 42,231.168 DODO
     PHASE_NAME: 'WEEK_1',
-    CAMPAIGN_ID: '5',
-    ENDBLOCK: '7743600',
-    REWARD_PER_BLOCK: ethers.utils.parseEther('1.813110').toString()
+    CAMPAIGN_ID: '6',
+    ENDBLOCK: '7916600',
+    REWARD_PER_BLOCK: ethers.utils.parseEther('0.209480').toString()
   }, {
-    // ✅ 203,067.648 SWINGBY
+    // ✅ 23,462.208 DODO
     PHASE_NAME: 'WEEK_2',
-    CAMPAIGN_ID: '5',
-    ENDBLOCK: '7945200',
-    REWARD_PER_BLOCK: ethers.utils.parseEther('1.007280').toString()
+    CAMPAIGN_ID: '6',
+    ENDBLOCK: '8118200',
+    REWARD_PER_BLOCK: ethers.utils.parseEther('0.116380').toString()
   }, {
-    // ✅ 154,330.848 SWINGBY
+    // ✅ 17,829.504 DODO
     PHASE_NAME: 'WEEK_3',
-    CAMPAIGN_ID: '5',
-    ENDBLOCK: '8146800',
-    REWARD_PER_BLOCK: ethers.utils.parseEther('0.765530').toString()
+    CAMPAIGN_ID: '6',
+    ENDBLOCK: '8319800',
+    REWARD_PER_BLOCK: ethers.utils.parseEther('0.088440').toString()
   }, {
-    // ✅ 89,349.12 SWINGBY
+    // ✅ 10,321.92 DODO
     PHASE_NAME: 'WEEK_4',
-    CAMPAIGN_ID: '5',
-    ENDBLOCK: '8348400',
-    REWARD_PER_BLOCK: ethers.utils.parseEther('0.443200').toString()
+    CAMPAIGN_ID: '6',
+    ENDBLOCK: '8521400',
+    REWARD_PER_BLOCK: ethers.utils.parseEther('0.051200').toString()
   }]
   
 
