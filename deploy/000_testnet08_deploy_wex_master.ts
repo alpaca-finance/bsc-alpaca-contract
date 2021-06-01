@@ -37,23 +37,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   await wex.transferOwnership(wexMaster.address, { gasLimit: '210000' });
   console.log("✅ Done")
 
-  // >>> Example for adding LP <<<
-  // const factory = WaultSwapFactory__factory.connect(
-  //   (await deployments.get('WaultSwapFactory')).address, (await ethers.getSigners())[0]);
-
-  // const wbnb = MockERC20__factory.connect(
-  //   ('0x...', (await ethers.getSigners())[0]);
-  // const btcb = MockERC20__factory.connect(
-  //   ('0x...', (await ethers.getSigners())[0]);
-
-  // const wexwbnbLp = await factory.getPair(wex.address, wbnb.address)
-  // console.log(">> WEX-WBNB LP: ", wexwbnbLp)
-  // await wexMaster.add(1000, wexwbnbLp, true)
-
-  // const btcbwbnbLp = await factory.getPair(btcb.address, wbnb.address)
-  // console.log(">> BTCB-WBNB LP: ", btcbwbnbLp)
-  // await wexMaster.add(1000, btcbwbnbLp, true)
-
 };
 
 export default func;

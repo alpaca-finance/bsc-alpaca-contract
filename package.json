@@ -55,6 +55,8 @@
     "deploy:testnet:000": "hardhat --network testnet deploy --no-compile --reset --tags Testnet",
     "deploy:testnet:000:panV2": "hardhat --network testnet deploy --no-compile --reset --tags PancakeswapV2",
     "deploy:testnet:000:waultswap": "hardhat --network testnet deploy --no-compile --reset --tags WaultSwap",
+    "deploy:testnet:000:waultswapaddpool": "hardhat --network testnet deploy --no-compile --reset --tags WaultSwapAddPool",
+    "deploy:testnet:000:waultswapaddliquidity": "hardhat --network testnet deploy --no-compile --reset --tags WaultSwapAddLiquidity",
     "deploy:testnet:001": "hardhat --network testnet deploy --no-compile --reset --tags TimeLock",
     "deploy:testnet:002": "hardhat --network testnet deploy --no-compile --reset --tags FairLaunch",
     "deploy:testnet:003": "hardhat --network testnet deploy --no-compile --reset --tags ShareStrategies",

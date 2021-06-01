@@ -260,10 +260,16 @@
       }]
     },
     "WaultSwap": {
-      "WexMaster": "0x22fB2663C7ca71Adc2cc99481C77Aaf21E152e2D",
-      "WaultSwapRouter": "0xD48745E39BbED146eEC15b79cBF964884F9877c2",
-      "WaultSwapFactory": "0xB42E3FE71b7E0673335b3331B3e1053BD9822570",
-      "LpTokens": []
+      "WexMaster": "0x9038546960B387DD7aD9216Dcc9720061871FfE4",
+      "WaultSwapRouter": "0x8dFd9289dd0104CB581299e474D2a0E2168BF391",
+      "WaultSwapFactory": "0x894B83d7060634920a63863b3174F68450DA41ee",
+      "LpTokens": [
+        {
+          "pId": 0,
+          "name": "WEX-WBNB LP",
+          "address": "0x96c6E0D9b17DcA1328973f861d00AAf76962d82B"
+        }
+      ]
     }
   },
   "Tokens": {
