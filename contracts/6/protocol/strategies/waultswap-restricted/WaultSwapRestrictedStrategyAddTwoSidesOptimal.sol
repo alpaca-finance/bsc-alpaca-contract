@@ -130,11 +130,6 @@ contract WaultSwapRestrictedStrategyAddTwoSidesOptimal is OwnableUpgradeSafe, Re
     (path[0], path[1]) = isReversed ? (farmingToken, baseToken) : (baseToken, farmingToken);
     // 5. Swap according to path
     if (swapAmt > 0) router.swapExactTokensForTokens(swapAmt, 0, path, address(this), now);
-
-    {
-      (uint256 r0, uint256 r1, ) = lpToken.getReserves();
-      (uint256 baseTokenReserve, uint256 farmingTokenReserve) = lpToken.token0() == baseToken ? (r0, r1) : (r1, r0);
-    }
     // 6. Mint more LP tokens and return all LP tokens to the sender.
     (, , uint256 moreLPAmount) =
       router.addLiquidity(
