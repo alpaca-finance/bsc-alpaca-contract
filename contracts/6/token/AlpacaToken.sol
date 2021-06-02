@@ -57,6 +57,19 @@ contract AlpacaToken is ERC20("AlpacaToken", "ALPACA"), Ownable {
     _burn(_account, _amount);
   }
 
+  function transfer(address recipient, uint256 amount) public virtual override returns (bool) {
+    _transfer(_msgSender(), recipient, amount);
+    _moveDelegates(_delegates[_msgSender()], _delegates[recipient], amount);
+    return true;
+  }
+
+  function transferFrom(address sender, address recipient, uint256 amount) public virtual override returns (bool) {
+    _transfer(sender, recipient, amount);
+    _approve(sender, _msgSender(), allowance(sender, _msgSender()).sub(amount, "ERC20: transfer amount exceeds allowance"));
+    _moveDelegates(_delegates[sender], _delegates[recipient], amount);
+    return true;
+  }
+
   function totalBalanceOf(address _account) external view returns (uint256) {
     return _locks[_account].add(balanceOf(_account));
   }
@@ -117,6 +130,8 @@ contract AlpacaToken is ERC20("AlpacaToken", "ALPACA"), Ownable {
 
   // @dev move ALPACAs with its locked funds to another account
   function transferAll(address _to) external {
+    require(msg.sender != _to, "no self-transferAll");
+
     _locks[_to] = _locks[_to].add(_locks[msg.sender]);
 
     if (_lastUnlockBlock[_to] < startReleaseBlock) {

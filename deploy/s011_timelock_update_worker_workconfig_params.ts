@@ -17,15 +17,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const WORKER_CONFIG_ADDR = '0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7';
 
   const UPDATES = [{
-    WORKER_ADDRESS: '0x29000295C94a9739cB6F6A7Bf407684f6c372286',
+    WORKER_ADDRESS: '0xA950ee51Ac3b27a1a6C87D6448D6717ACBc7b0A8',
     ACCEPT_DEBT: true,
     WORK_FACTOR: '7000',
     KILL_FACTOR: '8333',
-    MAX_PRICE_DIFF: '50000',
+    MAX_PRICE_DIFF: '11000000',
   }]
 
   const TIMELOCK = '0xb3c3aE82358DF7fC0bd98629D5ed91767e45c337';
-  const EXACT_ETA = '1619430420';
+  const EXACT_ETA = '1620900720';
 
 
 
@@ -49,10 +49,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         [
           [UPDATES[i].WORKER_ADDRESS], [{acceptDebt: UPDATES[i].ACCEPT_DEBT, workFactor: UPDATES[i].WORK_FACTOR, killFactor: UPDATES[i].KILL_FACTOR, maxPriceDiff: UPDATES[i].MAX_PRICE_DIFF}]
         ]
-      ), EXACT_ETA
+      ), EXACT_ETA, { gasPrice: 300000000000 }
     );
     console.log("generate timelock.executeTransaction:")
-    console.log(`await timelock.executeTransaction('${WORKER_CONFIG_ADDR}', '0', 'setConfigs(address[],(bool,uint64,uint64,uint64)[])', ethers.utils.defaultAbiCoder.encode(['address[]','(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]'],[['${UPDATES[i].WORKER_ADDRESS}'], [{acceptDebt: true, workFactor: ${UPDATES[i].WORK_FACTOR}, killFactor: ${UPDATES[i].KILL_FACTOR}, maxPriceDiff: ${UPDATES[i].MAX_PRICE_DIFF}}]]), ${EXACT_ETA})`)
+    console.log(`await timelock.executeTransaction('${WORKER_CONFIG_ADDR}', '0', 'setConfigs(address[],(bool,uint64,uint64,uint64)[])', ethers.utils.defaultAbiCoder.encode(['address[]','(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]'],[['${UPDATES[i].WORKER_ADDRESS}'], [{acceptDebt: ${UPDATES[i].ACCEPT_DEBT}, workFactor: ${UPDATES[i].WORK_FACTOR}, killFactor: ${UPDATES[i].KILL_FACTOR}, maxPriceDiff: ${UPDATES[i].MAX_PRICE_DIFF}}]]), ${EXACT_ETA})`)
     console.log("✅ Done");
   }
 };
