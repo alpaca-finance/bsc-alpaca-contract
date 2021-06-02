@@ -44,7 +44,7 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
   /// symbol - symbol of ibERC20
   /// decimals - decimals of ibERC20, this depends on the decimal of the token
   /// debtToken - just a simple ERC20 token for staking with FairLaunch
-  address public token;
+  address public override token;
   address public debtToken;
 
   struct Position {
