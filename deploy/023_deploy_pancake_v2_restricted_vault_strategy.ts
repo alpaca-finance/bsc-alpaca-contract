@@ -17,7 +17,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
 
   const NEW_PARAMS = [{
-    VAULT_ADDR: '0x158Da805682BdC8ee32d52833aD41E74bb951E59',
+    VAULT_ADDR: '0x08FC9Ba2cAc74742177e0afC3dC8Aed6961c24e7',
     ROUTER: '0x10ED43C718714eb63d5aA57B78B54704E256024E',
     WHITELIST_WORKER: []
   }]

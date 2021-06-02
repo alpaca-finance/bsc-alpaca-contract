@@ -84,6 +84,14 @@
       "id": 15,
       "stakingToken": "ibUSDT",
       "address": "0xb5913CD4C508f07025678CeF939BcC54D3024C39"
+    }, {
+      "id": 16,
+      "stakingToken": "debtIbBTCB V2",
+      "address": "0x407d3A347C4AB45DD847282D340E00759BBbDB4b"
+    }, {
+      "id": 17,
+      "stakingToken": "ibBTCB",
+      "address": "0xB8Eca31D1862B6330E376fA795609056c7421EB0"
     }]
   },
   "Exchanges": {
@@ -831,6 +839,41 @@
         "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
         "StrategyLiquidate": "0x58Bbb507248635413172Ed7A2eeC048402C6b39b",
         "StrategyAddTwoSidesOptimal": "0x4D71d66e598e6dCaAb9a3a96890f60169d968212",
+        "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32"
+      }
+    }]
+  }, {
+    "name": "Interest Bearing BTCB",
+    "symbol": "ibBTCB",
+    "address": "0xB8Eca31D1862B6330E376fA795609056c7421EB0",
+    "debtToken": "0x407d3A347C4AB45DD847282D340E00759BBbDB4b",
+    "config": "0x442545909DB59E658ADC9a79430Ea3aEDBDfee5B",
+    "tripleSlopeModel": "0x038cd7a6A397d7f5D07a0c76A4610a7Ca64eb7d3",
+    "StrategyAddTwoSidesOptimal": "0x453a9A2500947d2F730068E77C5294D3feb5DA67",
+    "workers": [{
+      "name": "WBNB-BTCB PancakeswapWorker",
+      "address": "0x9D0D8db54EE1d37d08C79612920addB9fFF16d5b",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "pId": 22,
+      "lp": "0xdF85a773771875F96493FDdB341A197d860Bc90d",
+      "stakingLpAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
+        "StrategyLiquidate": "0x58Bbb507248635413172Ed7A2eeC048402C6b39b",
+        "StrategyAddTwoSidesOptimal": "0x453a9A2500947d2F730068E77C5294D3feb5DA67",
+        "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32"
+      }
+    }, {
+      "name": "BUSD-BTCB PancakeswapWorker",
+      "address": "0x3659538Bd4c93E5f0b15C240838148dCdACa6424",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "pId": 40,
+      "lp": "0x958BD4cF570D4de0E59db9926Ce138f6FE96464D",
+      "stakingLpAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
+        "StrategyLiquidate": "0x58Bbb507248635413172Ed7A2eeC048402C6b39b",
+        "StrategyAddTwoSidesOptimal": "0x453a9A2500947d2F730068E77C5294D3feb5DA67",
         "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32"
       }
     }]
