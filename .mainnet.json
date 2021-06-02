@@ -307,6 +307,18 @@
         "name": "CAKE-BUSD LP",
         "address": "0x804678fa97d91B974ec2af3c843270886528a9E6"
       }]
+    },
+    "WaultSwap": {
+      "WexMaster": "0x22fB2663C7ca71Adc2cc99481C77Aaf21E152e2D",
+      "WaultSwapRouter": "0xD48745E39BbED146eEC15b79cBF964884F9877c2",
+      "WaultSwapFactory": "0xB42E3FE71b7E0673335b3331B3e1053BD9822570",
+      "LpTokens": [
+        {
+          "pId": 99999,
+          "name": "WEX-WBNB LP",
+          "address": "0x"
+        }
+      ]
     }
   },
   "Tokens": {
@@ -338,7 +350,8 @@
     "BRY": "0xf859Bf77cBe8699013d6Dbc7C2b926Aaf307F830",
     "pCWS": "0xbcf39F0EDDa668C58371E519AF37CA705f2bFcbd",
     "SWINGBY": "0x71de20e0c4616e7fcbfdd3f875d568492cbe4739",
-    "DODO": "0x67ee3cb086f8a16f34bee3ca72fad36f7db929e2"
+    "DODO": "0x67ee3cb086f8a16f34bee3ca72fad36f7db929e2",
+    "WEX": "0xa9c41A46a6B3531d28d5c32F6633dd2fF05dFB90"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x1099C2E6Ed6ebA95099c205b599B409305783E43",

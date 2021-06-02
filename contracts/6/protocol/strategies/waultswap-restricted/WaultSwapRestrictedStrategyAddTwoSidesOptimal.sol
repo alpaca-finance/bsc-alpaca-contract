@@ -5,26 +5,23 @@ import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
-import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakeFactory.sol";
+
+import "../../apis/wault/IWaultSwapFactory.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
 
-import "../../apis/pancake/IPancakeRouter02.sol";
+import "../../apis/wault/IWaultSwapRouter02.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IVault.sol";
 import "../../../utils/SafeToken.sol";
 import "../../../utils/AlpacaMath.sol";
 import "../../interfaces/IWorker.sol";
 
-contract PancakeswapV2RestrictedStrategyAddTwoSidesOptimal is
-  OwnableUpgradeSafe,
-  ReentrancyGuardUpgradeSafe,
-  IStrategy
-{
+contract WaultSwapRestrictedStrategyAddTwoSidesOptimal is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeToken for address;
   using SafeMath for uint256;
 
-  IPancakeFactory public factory;
-  IPancakeRouter02 public router;
+  IWaultSwapFactory public factory;
+  IWaultSwapRouter02 public router;
   IVault public vault;
 
   mapping(address => bool) public okWorkers;
@@ -33,17 +30,17 @@ contract PancakeswapV2RestrictedStrategyAddTwoSidesOptimal is
   modifier onlyWhitelistedWorkers() {
     require(
       okWorkers[msg.sender],
-      "PancakeswapV2RestrictedStrategyAddTwoSidesOptimal::onlyWhitelistedWorkers:: bad worker"
+      "WaultSwapRestrictedStrategyAddTwoSidesOptimal::onlyWhitelistedWorkers:: bad worker"
     );
     _;
   }
 
   /// @dev Create a new add two-side optimal strategy instance.
   /// @param _router The Uniswap router smart contract.
-  function initialize(IPancakeRouter02 _router, IVault _vault) external initializer {
+  function initialize(IWaultSwapRouter02 _router, IVault _vault) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
-    factory = IPancakeFactory(_router.factory());
+    factory = IWaultSwapFactory(_router.factory());
     router = _router;
     vault = _vault;
   }
@@ -68,6 +65,7 @@ contract PancakeswapV2RestrictedStrategyAddTwoSidesOptimal is
     }
   }
 
+  /// @notice This function is written base on fee=988, feeDenom=1000
   /// @dev Compute optimal deposit amount helper
   /// @param amtA amount of token A desired to deposit
   /// @param amtB amonut of token B desired to deposit
@@ -81,10 +79,10 @@ contract PancakeswapV2RestrictedStrategyAddTwoSidesOptimal is
   ) internal pure returns (uint256) {
     require(amtA.mul(resB) >= amtB.mul(resA), "Reversed");
 
-    uint256 a = 9975;
-    uint256 b = uint256(19975).mul(resA);
+    uint256 a = 998;
+    uint256 b = uint256(1998).mul(resA);
     uint256 _c = (amtA.mul(resB)).sub(amtB.mul(resA));
-    uint256 c = _c.mul(10000).div(amtB.add(resB)).mul(resA);
+    uint256 c = _c.mul(1000).div(amtB.add(resB)).mul(resA);
 
     uint256 d = a.mul(c).mul(4);
     uint256 e = AlpacaMath.sqrt(b.mul(b).add(d));
@@ -132,6 +130,7 @@ contract PancakeswapV2RestrictedStrategyAddTwoSidesOptimal is
     (path[0], path[1]) = isReversed ? (farmingToken, baseToken) : (baseToken, farmingToken);
     // 5. Swap according to path
     if (swapAmt > 0) router.swapExactTokensForTokens(swapAmt, 0, path, address(this), now);
+
     {
       (uint256 r0, uint256 r1, ) = lpToken.getReserves();
       (uint256 baseTokenReserve, uint256 farmingTokenReserve) = lpToken.token0() == baseToken ? (r0, r1) : (r1, r0);
@@ -150,11 +149,11 @@ contract PancakeswapV2RestrictedStrategyAddTwoSidesOptimal is
       );
     require(
       moreLPAmount >= minLPAmount,
-      "PancakeswapV2RestrictedStrategyAddTwoSidesOptimal::execute:: insufficient LP tokens received"
+      "WaultSwapRestrictedStrategyAddTwoSidesOptimal::execute:: insufficient LP tokens received"
     );
     require(
       lpToken.transfer(msg.sender, lpToken.balanceOf(address(this))),
-      "PancakeswapV2RestrictedStrategyAddTwoSidesOptimal::execute:: failed to transfer LP token to msg.sender"
+      "WaultSwapRestrictedStrategyAddTwoSidesOptimal::execute:: failed to transfer LP token to msg.sender"
     );
     // 7. Reset approve to 0 for safety reason
     farmingToken.safeApprove(address(router), 0);
