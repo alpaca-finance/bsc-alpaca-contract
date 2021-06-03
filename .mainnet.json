@@ -316,17 +316,23 @@
         "address": "0x804678fa97d91B974ec2af3c843270886528a9E6"
       }]
     },
-    "WaultSwap": {
+    "Waultswap": {
       "WexMaster": "0x22fB2663C7ca71Adc2cc99481C77Aaf21E152e2D",
-      "WaultSwapRouter": "0xD48745E39BbED146eEC15b79cBF964884F9877c2",
-      "WaultSwapFactory": "0xB42E3FE71b7E0673335b3331B3e1053BD9822570",
-      "LpTokens": [
-        {
-          "pId": 99999,
-          "name": "WEX-WBNB LP",
-          "address": "0x"
-        }
-      ]
+      "WaultswapRouter": "0xD48745E39BbED146eEC15b79cBF964884F9877c2",
+      "WaultswapFactory": "0xB42E3FE71b7E0673335b3331B3e1053BD9822570",
+      "LpTokens": [{
+        "pId": 35,
+        "name": "ALPACA-USDT LP",
+        "address": "0xCb1b3C77606c61C9C2eCA86f554f5806343757AD"
+      }, {
+        "pId": 2,
+        "name": "WEX-WBNB LP",
+        "address": "0xb4814f1ca673dBE9a2637C5dd4e94A4a0ED834C6"
+      }, {
+        "pId": 11,
+        "name": "ETH-BUSD LP",
+        "address": "0x40a2739d8B2CDDd5EDB8B563BA8e4c3326e23716"
+      }]
     }
   },
   "Tokens": {
@@ -367,9 +373,16 @@
     "sALPACA-ALPACA": "0x3Ee4de968E47877F432226d6a9A0DAD6EAc6001b"
   },
   "SharedStrategies": {
-    "StrategyAddBaseTokenOnly": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
-    "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
-    "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419"
+    "Pancakeswap": {
+      "StrategyAddBaseTokenOnly": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+      "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+      "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419"
+    },
+    "Waultswap": {
+      "StrategyAddBaseTokenOnly": "0xeBb8BA21A3703ab30187D3EEC02A3Bc62894970D",
+      "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
+      "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3"
+    }
   },
   "SharedConfig": {
     "TripleSlopeModel": "0xAE9ee567dcbbce85cceA1d1b0cdd595E3C73F1EE",
@@ -387,7 +400,10 @@
     "debtToken": "0x6A3487CE84FD83c66B83e598b18412bD1D2A55F9",
     "config": "0x53dbb71303ad0F9AFa184B8f7147F9f12Bb5Dc01",
     "tripleSlopeModel": "0x375D32FadA30d7e6Fea242FCa221a22CC6d52B30",
-    "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
+    "StrategyAddTwoSidesOptimal": {
+      "Pancakeswap": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
+      "Waultswap": "0xA7559bB0235a1c6003D0E48d2cFa89a6C8748439"
+    },
     "workers": [{
       "name": "CAKE-WBNB PancakeswapWorker",
       "address": "0x7Af938f0EFDD98Dc513109F6A7E85106D26E16c4",
@@ -622,6 +638,19 @@
         "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
         "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419"
       }
+    }, {
+      "name": "WEX-WBNB WaultswapWorker",
+      "address": "0x184962B6C9A55C8c2Ee757ca86b73A6edF87E3ca",
+      "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+      "pId": 2,
+      "lp": "0xb4814f1ca673dBE9a2637C5dd4e94A4a0ED834C6",
+      "stakingLpAt": "0x22fB2663C7ca71Adc2cc99481C77Aaf21E152e2D",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0xeBb8BA21A3703ab30187D3EEC02A3Bc62894970D",
+        "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
+        "StrategyAddTwoSidesOptimal": "0xA7559bB0235a1c6003D0E48d2cFa89a6C8748439",
+        "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3"
+      }
     }]
   }, {
     "name": "Interest Bearing BUSD",
@@ -630,7 +659,10 @@
     "debtToken": "0x02dA7035beD00ae645516bDb0c282A7fD4AA7442",
     "config": "0xd7b805E88c5F52EDE71a9b93F7048c8d632DBEd4",
     "tripleSlopeModel": "0x375D32FadA30d7e6Fea242FCa221a22CC6d52B30",
-    "StrategyAddTwoSidesOptimal": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
+    "StrategyAddTwoSidesOptimal": {
+      "Pancakeswap": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
+      "Waultswap": "0x61e58dE669d842C2d77288Df629af031b3283c81"
+    },
     "workers": [{
       "name": "USDT-BUSD PancakeswapWorker",
       "address": "0xC5954CA8988988362f60498d5aDEc67BA466492B",
@@ -748,6 +780,19 @@
         "StrategyAddTwoSidesOptimal": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
         "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419"
       }
+    }, {
+      "name": "ETH-BUSD WaultswapWorker",
+      "address": "0x63dD2d0F6ADe00c5d70Eb670b7a7074Fd878C435",
+      "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+      "pId": 11,
+      "lp": "0x40a2739d8B2CDDd5EDB8B563BA8e4c3326e23716",
+      "stakingLpAt": "0x22fB2663C7ca71Adc2cc99481C77Aaf21E152e2D",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0xeBb8BA21A3703ab30187D3EEC02A3Bc62894970D",
+        "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
+        "StrategyAddTwoSidesOptimal": "0x61e58dE669d842C2d77288Df629af031b3283c81",
+        "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3"
+      }
     }]
   }, {
     "name": "Interest Bearing ETH",
@@ -756,7 +801,10 @@
     "debtToken": "0x92110af24d280E412b3a89691f6B0B9E09258fe6",
     "config": "0x724E6748Cb1d52Ec45b77Fb82a0750A2B759c038",
     "tripleSlopeModel": "0x375D32FadA30d7e6Fea242FCa221a22CC6d52B30",
-    "StrategyAddTwoSidesOptimal": "0xCB459b4504d10445760095C59c394EA45715d7a5",
+    "StrategyAddTwoSidesOptimal": {
+      "Pancakeswap": "0xCB459b4504d10445760095C59c394EA45715d7a5",
+      "Waultswap": "0xD58b9626d941cA2d31b55a43045d34A87B32cEd3"
+    },
     "workers": [{
       "name": "BETH-ETH PancakeswapWorker",
       "address": "0xd06d9B0bA226DE48399Ed3b06ceB39eE8F62C0A0",
@@ -809,6 +857,19 @@
         "StrategyAddTwoSidesOptimal": "0xCB459b4504d10445760095C59c394EA45715d7a5",
         "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419"
       }
+    }, {
+      "name": "BUSD-ETH WaultswapWorker",
+      "address": "0xE29fd3521Bf9784b3b57523cBBE468DA28D36655",
+      "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+      "pId": 11,
+      "lp": "0x40a2739d8B2CDDd5EDB8B563BA8e4c3326e23716",
+      "stakingLpAt": "0x22fB2663C7ca71Adc2cc99481C77Aaf21E152e2D",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0xeBb8BA21A3703ab30187D3EEC02A3Bc62894970D",
+        "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
+        "StrategyAddTwoSidesOptimal": "0xD58b9626d941cA2d31b55a43045d34A87B32cEd3",
+        "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3"
+      }
     }]
   }, {
     "name": "Interest Bearing ALPACA",
@@ -817,7 +878,10 @@
     "debtToken": "0x11362eA137A799298306123EEa014b7809A9DB40",
     "config": "0x8F8Ed54901b90c89C5817B7F67a425c0e6091284",
     "tripleSlopeModel": "0x375D32FadA30d7e6Fea242FCa221a22CC6d52B30",
-    "StrategyAddTwoSidesOptimal": "0xa964FCd9a434CB4C68bFE25E77D1F2Cd5D9679a8",
+    "StrategyAddTwoSidesOptimal": {
+      "Pancakeswap": "0xa964FCd9a434CB4C68bFE25E77D1F2Cd5D9679a8",
+      "Waultswap": "0x462BC565b5486E76503DaB62D96937842F207AAa"
+    },
     "workers": [{
       "name": "BUSD-ALPACA PancakeswapWorker",
       "address": "0xeF1C5D2c20b22Ae50437a2F3bd258Ab1117D1BaD",
@@ -831,6 +895,19 @@
         "StrategyAddTwoSidesOptimal": "0xa964FCd9a434CB4C68bFE25E77D1F2Cd5D9679a8",
         "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419"
       }
+    }, {
+      "name": "USDT-ALPACA WaultswapWorker",
+      "address": "0x0e0806A43188f383AADAeC3440d6e8E4d71b281c",
+      "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+      "pId": 35,
+      "lp": "0xCb1b3C77606c61C9C2eCA86f554f5806343757AD",
+      "stakingLpAt": "0x22fB2663C7ca71Adc2cc99481C77Aaf21E152e2D",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0xeBb8BA21A3703ab30187D3EEC02A3Bc62894970D",
+        "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
+        "StrategyAddTwoSidesOptimal": "0x462BC565b5486E76503DaB62D96937842F207AAa",
+        "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3"
+      }
     }]
   }, {
     "name": "Interest Bearing USDT",
@@ -839,7 +916,10 @@
     "debtToken": "0x3B4fBB2b8536AB144048aBaFdd27eaF52f0fa4DC",
     "config": "0x709b102EF4b605197C75CfEA45F455A4e7ce065B",
     "tripleSlopeModel": "0x375D32FadA30d7e6Fea242FCa221a22CC6d52B30",
-    "StrategyAddTwoSidesOptimal": "0x5f94f61095731b669b30ed1f3f4586BBb51f4001",
+    "StrategyAddTwoSidesOptimal": {
+      "Pancakeswap": "0x5f94f61095731b669b30ed1f3f4586BBb51f4001",
+      "Waultswap": "0xcE37fD1Ff0A6cb4A6A59cd46CCf55D5Dc70ec585"
+    },
     "workers": [{
       "name": "BUSD-USDT PancakeswapWorker",
       "address": "0xE90C44C16705859931099E7565DA5d3c21F67273",
@@ -866,6 +946,19 @@
         "StrategyAddTwoSidesOptimal": "0x5f94f61095731b669b30ed1f3f4586BBb51f4001",
         "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419"
       }
+    }, {
+      "name": "ALPACA-USDT WaultswapWorker",
+      "address": "0xCd4B6354B992426283972eb2aC68178e2629e88D",
+      "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+      "pId": 35,
+      "lp": "0xCb1b3C77606c61C9C2eCA86f554f5806343757AD",
+      "stakingLpAt": "0x22fB2663C7ca71Adc2cc99481C77Aaf21E152e2D",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0xeBb8BA21A3703ab30187D3EEC02A3Bc62894970D",
+        "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
+        "StrategyAddTwoSidesOptimal": "0xcE37fD1Ff0A6cb4A6A59cd46CCf55D5Dc70ec585",
+        "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3"
+      }
     }]
   }, {
     "name": "Interest Bearing BTCB",
@@ -874,7 +967,10 @@
     "debtToken": "0x262de19B5fde97eD5bdBa10d630E34Fb9a1b59B2",
     "config": "0x6cc80Df354415fA0FfeF78555a06C1DdE7549FB8",
     "tripleSlopeModel": "0x375D32FadA30d7e6Fea242FCa221a22CC6d52B30",
-    "StrategyAddTwoSidesOptimal": "0xe862D45abdF7ea38F75dd0c7164B19FaEd057130",
+    "StrategyAddTwoSidesOptimal": {
+      "Pancakeswap": "0xe862D45abdF7ea38F75dd0c7164B19FaEd057130",
+      "Waultswap": "0xaC712F4Fc61ab96Aa9A1AdF3977b808789aA6682"
+    },
     "workers": [{
       "name": "WBNB-BTCB PancakeswapWorker",
       "address": "0x20E5d465dF8520abfEF79b04C4A2c8952b365e82",

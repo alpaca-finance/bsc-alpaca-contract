@@ -154,6 +154,7 @@
     "test": "hardhat test --no-compile",
     "testnet": "hardhat console --no-compile --network testnet",
     "script:mainnet:validate-config": "hardhat --network mainnet run --no-compile ./scripts/validate-config.ts",
+    "script:testnet:validate-config": "hardhat --network testnet run --no-compile ./scripts/validate-config.ts",
     "deploy:kovan": "truffle migrate --network kovan",
     "coverage": "hardhat coverage",
     "ganache": "ganache-cli",
