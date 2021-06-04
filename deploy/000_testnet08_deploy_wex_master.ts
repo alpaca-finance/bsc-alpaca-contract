@@ -33,8 +33,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const wex = WaultSwapToken__factory.connect(
     (await deployments.get('WEX')).address, (await ethers.getSigners())[0]);
 
+  console.log(">> Transferring WEX token mintership to WexMaster");
+  await wex.transferMintership(wexMaster.address, { gasLimit: '210000' });
+
   console.log(">> Transferring WEX token ownership to WexMaster");
   await wex.transferOwnership(wexMaster.address, { gasLimit: '210000' });
+
   console.log("✅ Done")
 
 };
