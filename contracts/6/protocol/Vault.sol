@@ -281,7 +281,10 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
       _addDebt(id, debt);
       _fairLaunchDeposit(id, pos.debtShare);
     }
-    // 5. Return excess token back.
+    // 5. Release execution scope
+    POSITION_ID = _NO_ID;
+    STRATEGY = _NO_ADDRESS;
+    // 6. Return excess token back.
     if (back > lessDebt) {
       if(token == config.getWrappedNativeAddr()) {
         SafeToken.safeTransfer(token, config.getWNativeRelayer(), back.sub(lessDebt));
@@ -291,9 +294,6 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
         SafeToken.safeTransfer(token, msg.sender, back.sub(lessDebt));
       }
     }
-    // 6. Release execution scope
-    POSITION_ID = _NO_ID;
-    STRATEGY = _NO_ADDRESS;
   }
 
   /// @dev Kill the given to the position. Liquidate it immediately if killFactor condition is met.
