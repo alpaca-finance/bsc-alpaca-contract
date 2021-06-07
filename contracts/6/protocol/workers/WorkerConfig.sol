@@ -11,9 +11,16 @@ import "../PriceOracle.sol";
 import "../../utils/SafeToken.sol";
 
 contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
+  /// @notice Using libraries
   using SafeToken for address;
   using SafeMath for uint256;
 
+  /// @notice Events
+  event SetOracle(address indexed caller, address oracle);
+  event SetConfig(address indexed caller, address indexed worker, bool acceptDebt, uint64 workFactor, uint64 killFactor, uint64 maxPriceDiff);
+  event SetGovernor(address indexed caller, address indexed governor);
+
+  /// @notice state variables
   struct Config {
     bool acceptDebt;
     uint64 workFactor;
@@ -23,15 +30,23 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
 
   PriceOracle public oracle;
   mapping (address => Config) public workers;
+  address public governor;
 
   function initialize(PriceOracle _oracle) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
     oracle = _oracle;
   }
 
+  /// @dev Check if the msg.sender is the governor.
+  modifier onlyGovernor() {
+    require(_msgSender() == governor, "WorkerConfig::onlyGovernor:: msg.sender not governor");
+    _;
+  }
+
   /// @dev Set oracle address. Must be called by owner.
   function setOracle(PriceOracle _oracle) external onlyOwner {
     oracle = _oracle;
+    emit SetOracle(_msgSender(), address(oracle));
   }
 
   /// @dev Set worker configurations. Must be called by owner.
@@ -45,6 +60,7 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
         killFactor: configs[idx].killFactor,
         maxPriceDiff: configs[idx].maxPriceDiff
       });
+      emit SetConfig(_msgSender(), addrs[idx], workers[addrs[idx]].acceptDebt, workers[addrs[idx]].workFactor, workers[addrs[idx]].killFactor, workers[addrs[idx]].maxPriceDiff);
     }
   }
 
@@ -61,7 +77,7 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
     require(t1bal.mul(100) <= r1.mul(101), "WorkerConfig::isStable:: bad t1 balance");
     // 2. Check that price is in the acceptable range
     (uint256 price, uint256 lastUpdate) = oracle.getPrice(token0, token1);
-    require(lastUpdate >= now - 7 days, "WorkerConfig::isStable:: price too stale");
+    require(lastUpdate >= now - 1 days, "WorkerConfig::isStable:: price too stale");
     uint256 lpPrice = r1.mul(1e18).div(r0);
     uint256 maxPriceDiff = workers[worker].maxPriceDiff;
     require(lpPrice <= price.mul(maxPriceDiff).div(10000), "WorkerConfig::isStable:: price too high");
@@ -86,5 +102,20 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
   function killFactor(address worker, uint256 /* debt */) external override view returns (uint256) {
     require(isStable(worker), "WorkerConfig::killFactor:: !stable");
     return uint256(workers[worker].killFactor);
+  }
+
+  /// @dev Set governor address. OnlyOwner can set governor.
+  function setGovernor(address newGovernor) external onlyOwner {
+    governor = newGovernor;
+    emit SetGovernor(_msgSender(), governor);
+  }
+
+  /// @dev EMERGENCY ONLY. Disable accept new position without going through Timelock in case of emergency.
+  function emergencySetAcceptDebt(address[] calldata addrs, bool isAcceptDebt) external onlyGovernor {
+    uint256 len = addrs.length;
+    for(uint idx = 0; idx < len; idx++) {
+      workers[addrs[idx]].acceptDebt = isAcceptDebt;
+      emit SetConfig(_msgSender(), addrs[idx], workers[addrs[idx]].acceptDebt, workers[addrs[idx]].workFactor, workers[addrs[idx]].killFactor, workers[addrs[idx]].maxPriceDiff);
+    }
   }
 }

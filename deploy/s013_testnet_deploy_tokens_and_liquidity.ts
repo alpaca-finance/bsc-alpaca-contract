@@ -21,19 +21,29 @@ interface IToken {
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const FOREVER = 20000000000;
-  const PANCAKE_MASTERCHEF = '0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B'
-  const PANCAKE_FACTORY = '0xda8EE87e2172d997a7fe05a83FC5c472B40FacCE'
-  const PANCAKE_ROUTER = '0x367633909278A3C91f4cB130D8e56382F00D1071'
+  const PANCAKE_MASTERCHEF = '0x85F6A87A056313Fd1717937Cf3cC7BCe3e3445D1'
+  const PANCAKE_FACTORY = '0xC907F67B0fBAEbe7B557B15a5Ef77345578C4202'
+  const PANCAKE_ROUTER = '0xA0bC344E20d89ccA131f869E059499F41d7a13D3'
   const WBNB = '0xDfb1211E2694193df5765d54350e1145FD2404A1'
   const TOKENS: Array<IToken> = [{
-    symbol: 'CAKE',
-    name: 'CAKE',
-    address: '0x7aBcA3B5f0Ca1da0eC05631d5788907D030D0a22',
+    symbol: 'ALPACA',
+    name: 'ALPACA',
+    address: '0x354b3a11D5Ea2DA89405173977E271F58bE2897D',
+    pairs: [{
+      quoteToken: 'USDT',
+      quoteTokenAddr: '0xE60Fa777dEb72C364447BB18C823C4731FbeD671',
+      reserveQuoteToken: ethers.utils.parseEther('1000000'),
+      reserveBaseToken: ethers.utils.parseEther('970466')
+    }]
+  }, {
+    symbol: 'ETH',
+    name: 'ETH',
+    address: '0xd5c082df9eDE041548fa79e05A1CB077036ca86F',
     pairs: [{
       quoteToken: 'BUSD',
       quoteTokenAddr: '0x0266693F9Df932aD7dA8a9b44C2129Ce8a87E81f',
-      reserveQuoteToken: ethers.utils.parseEther('10000000'),
-      reserveBaseToken: ethers.utils.parseEther('148900000')
+      reserveQuoteToken: ethers.utils.parseEther('1000000'),
+      reserveBaseToken: ethers.utils.parseEther('371.801')
     }]
   }]
 

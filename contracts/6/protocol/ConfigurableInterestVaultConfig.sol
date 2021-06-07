@@ -115,5 +115,4 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   function killFactor(address worker, uint256 debt) external view override returns (uint256) {
     return workers[worker].killFactor(worker, debt);
   }
-
 }
