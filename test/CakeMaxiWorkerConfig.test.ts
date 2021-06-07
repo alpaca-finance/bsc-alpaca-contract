@@ -1,5 +1,5 @@
-import { ethers, upgrades, waffle } from "hardhat";
-import { Signer, BigNumberish, utils, Wallet, BigNumber } from "ethers";
+import { ethers, upgrades } from "hardhat";
+import { Signer, BigNumber } from "ethers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import "@openzeppelin/test-helpers";
@@ -24,12 +24,11 @@ import {
   MockPancakeswapV2CakeMaxiWorker__factory,
 } from "../typechain";
 import * as TimeHelpers from "./helpers/time"
-import * as Assert from "./helpers/assert"
 
 chai.use(solidity);
 const { expect } = chai;
 
-describe('CakeMaxiWorker', () => {
+describe('CakeMaxiWorkerConfig', () => {
   const FOREVER = '2000000000';
 
   /// PancakeswapV2-related instance(s)
@@ -205,6 +204,43 @@ describe('CakeMaxiWorker', () => {
       ]
     )
   });
+
+  describe("#emergencySetAcceptDebt", async () => {
+    context("when non owner try to set governor", async() => {
+      it('should be reverted', async() => {
+        await expect(cakeMaxiWorkerConfigAsAlice.setGovernor(await deployer.getAddress())).to.be.revertedWith('Ownable: caller is not the owner');
+      })
+    })
+
+    context("when an owner set governor", async() => {
+      it('should work', async() => {
+        await cakeMaxiWorkerConfig.setGovernor(await deployer.getAddress());
+        expect(await cakeMaxiWorkerConfig.governor()).to.be.eq(await deployer.getAddress());
+      })
+    })
+
+    context("when non governor try to use emergencySetAcceptDebt", async() => {
+      it('should revert', async() => {
+        await expect(cakeMaxiWorkerConfigAsAlice.emergencySetAcceptDebt([cakeMaxiWorkerNative.address], false)).to.be.revertedWith('CakeMaxiWorkerConfig::onlyGovernor:: msg.sender not governor');
+      })
+    })
+
+    context("when governor uses emergencySetAcceptDebt", async() => {
+      it('should work', async() => {
+        await cakeMaxiWorkerConfig.setGovernor(await deployer.getAddress());
+        await cakeMaxiWorkerConfig.emergencySetAcceptDebt([cakeMaxiWorkerNative.address, cakeMaxiWorkerNonNative.address], false);
+        expect((await cakeMaxiWorkerConfig.workers(cakeMaxiWorkerNative.address)).acceptDebt).to.be.eq(false)
+        expect((await cakeMaxiWorkerConfig.workers(cakeMaxiWorkerNative.address)).workFactor).to.be.eq(1)
+        expect((await cakeMaxiWorkerConfig.workers(cakeMaxiWorkerNative.address)).killFactor).to.be.eq(1)
+        expect((await cakeMaxiWorkerConfig.workers(cakeMaxiWorkerNative.address)).maxPriceDiff).to.be.eq(11000)
+
+        expect((await cakeMaxiWorkerConfig.workers(cakeMaxiWorkerNonNative.address)).acceptDebt).to.be.eq(false)
+        expect((await cakeMaxiWorkerConfig.workers(cakeMaxiWorkerNonNative.address)).workFactor).to.be.eq(1)
+        expect((await cakeMaxiWorkerConfig.workers(cakeMaxiWorkerNonNative.address)).killFactor).to.be.eq(1)
+        expect((await cakeMaxiWorkerConfig.workers(cakeMaxiWorkerNonNative.address)).maxPriceDiff).to.be.eq(11000)
+      })
+    })
+  })
 
   describe("#isStable()", async () => {
     context("When the baseToken is not a wrap native", async () => {

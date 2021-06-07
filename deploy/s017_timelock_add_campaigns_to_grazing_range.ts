@@ -24,12 +24,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const TIMELOCK = '0xb3c3aE82358DF7fC0bd98629D5ed91767e45c337';
   const GRAZING_RANGE = '0x0f124b314FF168578Cb79103a3fF37fbfdB71d65'
-  const EXACT_ETA = '1621844100';
+  const EXACT_ETA = '1622802300';
   const CAMPAIGNS: IAddGrazingRangeCampaignParamList = [{
-    NAME: 'ibALPACA-BUSD',
+    NAME: 'ibALPACA-BUSD-4',
     STAKING_TOKEN: '0x6ad3A0d891C59677fbbB22E071613253467C382A',
-    REWARD_TOKEN: '0x67ee3cb086f8a16f34bee3ca72fad36f7db929e2',
-    START_BLOCK: '7715000'
+    REWARD_TOKEN: '0x0266693F9Df932aD7dA8a9b44C2129Ce8a87E81f',
+    START_BLOCK: '9436300'
   }]
     
 

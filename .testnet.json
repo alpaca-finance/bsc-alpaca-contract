@@ -30,11 +30,6 @@
       "name": "ibALPACA-BUSD-4",
       "stakingToken": "0x6ad3A0d891C59677fbbB22E071613253467C382A",
       "rewardToken": "0x0266693F9Df932aD7dA8a9b44C2129Ce8a87E81f"
-    }, {
-      "id": 4,
-      "name": "ibALPACA-BUSD-5",
-      "stakingToken": "0x6ad3A0d891C59677fbbB22E071613253467C382A",
-      "rewardToken": "0x0266693F9Df932aD7dA8a9b44C2129Ce8a87E81f"
     }]
   },
   "FairLaunch": {

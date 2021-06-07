@@ -69,7 +69,7 @@ async function validateWorker(vault: Vault, workerInfo: IWorkerInfo, routers: ID
       expect(await worker.okStrats(workerInfo.strategies.StrategyAddTwoSidesOptimal)).to.be.eq(true, "mis-config on add two sides strat")
       expect(await worker.okStrats(workerInfo.strategies.StrategyWithdrawMinimizeTrading)).to.be.eq(true, "mis-config on minimize trading strat")
 
-      console.log(`> ✅ done validated ${workerInfo.name}, not problem found`)
+      console.log(`> ✅ done validated ${workerInfo.name}, no problem found`)
     } catch(e) {
       console.log(`> ❌ some problem found in ${workerInfo.name}, please double check`)
       console.log(e)
@@ -96,6 +96,10 @@ async function validateWorker(vault: Vault, workerInfo: IWorkerInfo, routers: ID
       console.log(e)
     }
   }
+}
+
+function delay(ms: number) {
+  return new Promise( resolve => setTimeout(resolve, ms) );
 }
 
 async function main() {
@@ -160,6 +164,7 @@ async function main() {
       )
     }
     await Promise.all(validateWorkers)
+    await delay(3000)
   }
 }
 

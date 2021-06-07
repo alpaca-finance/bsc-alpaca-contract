@@ -14,9 +14,16 @@ import "../PriceOracle.sol";
 import "../../utils/SafeToken.sol";
 
 contract CakeMaxiWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
+  /// @notice Using libraries
   using SafeToken for address;
   using SafeMath for uint256;
 
+  /// @notice Events
+  event SetOracle(address indexed caller, address oracle);
+  event SetConfig(address indexed caller, address indexed worker, bool acceptDebt, uint64 workFactor, uint64 killFactor, uint64 maxPriceDiff);
+  event SetGovernor(address indexed caller, address indexed governor);
+
+  /// @notice state variables
   struct Config {
     bool acceptDebt;
     uint64 workFactor;
@@ -26,21 +33,27 @@ contract CakeMaxiWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
 
   PriceOracle public oracle;
   IPancakeFactory public factory;
-  IPancakeRouter02 public router;
   address public wNative;
   mapping (address => Config) public workers;
+  address public governor;
 
   function initialize(PriceOracle _oracle, IPancakeRouter02 _router) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
     oracle = _oracle;
-    router = _router;
     factory = IPancakeFactory(_router.factory());
     wNative = _router.WETH();
+  }
+
+  /// @dev Check if the msg.sender is the governor.
+  modifier onlyGovernor() {
+    require(_msgSender() == governor, "CakeMaxiWorkerConfig::onlyGovernor:: msg.sender not governor");
+    _;
   }
 
   /// @dev Set oracle address. Must be called by owner.
   function setOracle(PriceOracle _oracle) external onlyOwner {
     oracle = _oracle;
+    emit SetOracle(_msgSender(), address(oracle));
   }
 
   /// @dev Set worker configurations. Must be called by owner.
@@ -54,6 +67,7 @@ contract CakeMaxiWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
         killFactor: configs[idx].killFactor,
         maxPriceDiff: configs[idx].maxPriceDiff
       });
+      emit SetConfig(_msgSender(), addrs[idx], workers[addrs[idx]].acceptDebt, workers[addrs[idx]].workFactor, workers[addrs[idx]].killFactor, workers[addrs[idx]].maxPriceDiff);
     }
   }
 
@@ -117,5 +131,20 @@ contract CakeMaxiWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
   function killFactor(address worker, uint256 /* debt */) external override view returns (uint256) {
     require(isStable(worker), "CakeMaxiWorkerConfig::killFactor:: !stable");
     return uint256(workers[worker].killFactor);
+  }
+
+  /// @dev Set governor address. OnlyOwner can set governor.
+  function setGovernor(address newGovernor) external onlyOwner {
+    governor = newGovernor;
+    emit SetGovernor(_msgSender(), governor);
+  }
+
+  /// @dev EMERGENCY ONLY. Disable accept new position without going through Timelock in case of emergency.
+  function emergencySetAcceptDebt(address[] calldata addrs, bool isAcceptDebt) external onlyGovernor {
+    uint256 len = addrs.length;
+    for(uint idx = 0; idx < len; idx++) {
+      workers[addrs[idx]].acceptDebt = isAcceptDebt;
+      emit SetConfig(_msgSender(), addrs[idx], workers[addrs[idx]].acceptDebt, workers[addrs[idx]].workFactor, workers[addrs[idx]].killFactor, workers[addrs[idx]].maxPriceDiff);
+    }
   }
 }
