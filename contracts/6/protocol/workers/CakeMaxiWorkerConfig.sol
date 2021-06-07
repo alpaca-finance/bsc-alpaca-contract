@@ -95,8 +95,8 @@ contract CakeMaxiWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
         (uint256 price, uint256 lastUpdate) = oracle.getPrice(token0, token1);
         require(lastUpdate >= now - 1 days, "CakeMaxiWorkerConfig::isStable:: price too stale");
         uint256 spotPrice = r1.mul(1e18).div(r0);
-        require(spotPrice <= price.mul(maxPriceDiff).div(10000), "CakeMaxiWorkerConfig::isStable:: price too high");
-        require(spotPrice >= price.mul(10000).div(maxPriceDiff), "CakeMaxiWorkerConfig::isStable:: price too low");
+        require(spotPrice.mul(10000) <= price.mul(maxPriceDiff), "CakeMaxiWorkerConfig::isStable:: price too high");
+        require(spotPrice.mul(maxPriceDiff) >= price.mul(10000), "CakeMaxiWorkerConfig::isStable:: price too low");
     }
     return true;
   }
