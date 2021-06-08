@@ -317,6 +317,18 @@
         "pId": 2,
         "name": "ETH-BUSD LP",
         "address": "0x946056B3c09dA16628762E587752b6A9B50a7898"
+      }, {
+        "pId": 3,
+        "name": "WEX-USDT LP",
+        "address": "0x8BB082a8C43a3c2b7B88e7D9828c79ec0BD803E3"
+      }, {
+        "pId": 4,
+        "name": "ETH-BTCB LP",
+        "address": "0x0d4F5eEA92DF10018644F4e69B0E8Dbcf1E9344D"
+      }, {
+        "pId": 5,
+        "name": "WBNB-BUSD LP",
+        "address": "0x7d7d2DC1AF1d613f41FF790FA3ECAe10193EC762"
       }]
     }
   },
@@ -636,6 +648,19 @@
         "StrategyAddTwoSidesOptimal": "0xC01390eea9A7e27199e03dA5053C2dd63A5169ff",
         "StrategyWithdrawMinimizeTrading": "0xE5909854177a493BFeF616e2E142211413aC295d"
       }
+    }, {
+      "name": "BUSD-WBNB WaultswapWorker",
+      "address": "0x635494D61618CC30aA0D8ea0A662cd9391ae0c74",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "pId": 5,
+      "lp": "0x7d7d2DC1AF1d613f41FF790FA3ECAe10193EC762",
+      "stakingLpAt": "0x85F6A87A056313Fd1717937Cf3cC7BCe3e3445D1",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0xD15DBC544ad55d4877cAd426a6e6e16446a012b5",
+        "StrategyLiquidate": "0xdbcDcd7bE24d0dbf2b167F14435945EC7e0F454A",
+        "StrategyAddTwoSidesOptimal": "0xC01390eea9A7e27199e03dA5053C2dd63A5169ff",
+        "StrategyWithdrawMinimizeTrading": "0xE5909854177a493BFeF616e2E142211413aC295d"
+      }
     }]
   }, {
     "name": "Interest Bearing BUSD",
@@ -778,6 +803,19 @@
         "StrategyAddTwoSidesOptimal": "0xFfA12222e3ccEF58684Af20aaa4D5bf13c8faC10",
         "StrategyWithdrawMinimizeTrading": "0xE5909854177a493BFeF616e2E142211413aC295d"
       }
+    }, {
+      "name": "WBNB-BUSD WaultswapWorker",
+      "address": "0xab862f352d7F79A89ECfF1c5979A29c28107ed88",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "pId": 5,
+      "lp": "0x7d7d2DC1AF1d613f41FF790FA3ECAe10193EC762",
+      "stakingLpAt": "0x85F6A87A056313Fd1717937Cf3cC7BCe3e3445D1",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0xD15DBC544ad55d4877cAd426a6e6e16446a012b5",
+        "StrategyLiquidate": "0xdbcDcd7bE24d0dbf2b167F14435945EC7e0F454A",
+        "StrategyAddTwoSidesOptimal": "0xFfA12222e3ccEF58684Af20aaa4D5bf13c8faC10",
+        "StrategyWithdrawMinimizeTrading": "0xE5909854177a493BFeF616e2E142211413aC295d"
+      }
     }]
   }, {
     "name": "Interest Bearing ETH",
@@ -848,6 +886,19 @@
       "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
       "pId": 2,
       "lp": "0x946056B3c09dA16628762E587752b6A9B50a7898",
+      "stakingLpAt": "0x85F6A87A056313Fd1717937Cf3cC7BCe3e3445D1",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0xD15DBC544ad55d4877cAd426a6e6e16446a012b5",
+        "StrategyLiquidate": "0xdbcDcd7bE24d0dbf2b167F14435945EC7e0F454A",
+        "StrategyAddTwoSidesOptimal": "0xeBfda6D0232335a067aE6a3e5E470D8cDcb22f53",
+        "StrategyWithdrawMinimizeTrading": "0xE5909854177a493BFeF616e2E142211413aC295d"
+      }
+    }, {
+      "name": "BTCB-ETH WaultswapWorker",
+      "address": "0x1aEC4033707d3514D3F0b1eF2eBE7fA35aF0381F",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "pId": 4,
+      "lp": "0x0d4F5eEA92DF10018644F4e69B0E8Dbcf1E9344D",
       "stakingLpAt": "0x85F6A87A056313Fd1717937Cf3cC7BCe3e3445D1",
       "strategies": {
         "StrategyAddAllBaseToken": "0xD15DBC544ad55d4877cAd426a6e6e16446a012b5",
@@ -944,6 +995,19 @@
         "StrategyAddTwoSidesOptimal": "0x48393b82Abac4Fbb807A927E60008eFaf5f79Cf7",
         "StrategyWithdrawMinimizeTrading": "0xE5909854177a493BFeF616e2E142211413aC295d"
       }
+    }, {
+      "name": "WEX-USDT WaultswapWorker",
+      "address": "0x5fE86b16DaD3bA266E6019FeB5030d70F462e1BD",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "pId": 3,
+      "lp": "0x8BB082a8C43a3c2b7B88e7D9828c79ec0BD803E3",
+      "stakingLpAt": "0x85F6A87A056313Fd1717937Cf3cC7BCe3e3445D1",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0xD15DBC544ad55d4877cAd426a6e6e16446a012b5",
+        "StrategyLiquidate": "0xdbcDcd7bE24d0dbf2b167F14435945EC7e0F454A",
+        "StrategyAddTwoSidesOptimal": "0x48393b82Abac4Fbb807A927E60008eFaf5f79Cf7",
+        "StrategyWithdrawMinimizeTrading": "0xE5909854177a493BFeF616e2E142211413aC295d"
+      }
     }]
   }, {
     "name": "Interest Bearing BTCB",
@@ -981,6 +1045,19 @@
         "StrategyLiquidate": "0x58Bbb507248635413172Ed7A2eeC048402C6b39b",
         "StrategyAddTwoSidesOptimal": "0x453a9A2500947d2F730068E77C5294D3feb5DA67",
         "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32"
+      }
+    }, {
+      "name": "ETH-BTCB WaultswapWorker",
+      "address": "0x04a60075c19631575e80B3144de91dBE98af483B",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "pId": 4,
+      "lp": "0x0d4F5eEA92DF10018644F4e69B0E8Dbcf1E9344D",
+      "stakingLpAt": "0x85F6A87A056313Fd1717937Cf3cC7BCe3e3445D1",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0xD15DBC544ad55d4877cAd426a6e6e16446a012b5",
+        "StrategyLiquidate": "0xdbcDcd7bE24d0dbf2b167F14435945EC7e0F454A",
+        "StrategyAddTwoSidesOptimal": "0x29a8B6f3c9F79314a82f3092EA065F9f15371dB8",
+        "StrategyWithdrawMinimizeTrading": "0xE5909854177a493BFeF616e2E142211413aC295d"
       }
     }]
   }]

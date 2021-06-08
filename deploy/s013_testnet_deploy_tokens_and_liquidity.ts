@@ -26,24 +26,34 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const PANCAKE_ROUTER = '0xA0bC344E20d89ccA131f869E059499F41d7a13D3'
   const WBNB = '0xDfb1211E2694193df5765d54350e1145FD2404A1'
   const TOKENS: Array<IToken> = [{
-    symbol: 'ALPACA',
-    name: 'ALPACA',
-    address: '0x354b3a11D5Ea2DA89405173977E271F58bE2897D',
+    symbol: 'WEX',
+    name: 'WEX',
+    address: '0x1da1dFaAEF18F4587e505C5dE0f9ED1a219e4146',
     pairs: [{
       quoteToken: 'USDT',
       quoteTokenAddr: '0xE60Fa777dEb72C364447BB18C823C4731FbeD671',
       reserveQuoteToken: ethers.utils.parseEther('1000000'),
-      reserveBaseToken: ethers.utils.parseEther('970466')
+      reserveBaseToken: ethers.utils.parseEther('19952600')
     }]
   }, {
     symbol: 'ETH',
     name: 'ETH',
     address: '0xd5c082df9eDE041548fa79e05A1CB077036ca86F',
     pairs: [{
+      quoteToken: 'BTCB',
+      quoteTokenAddr: '0xCCaf3FC49B0D0F53fe2c08103F75A397052983FB',
+      reserveQuoteToken: ethers.utils.parseEther('1000'),
+      reserveBaseToken: ethers.utils.parseEther('12860.9')
+    }]
+  }, {
+    symbol: 'BNB',
+    name: 'BNB',
+    address: '0xDfb1211E2694193df5765d54350e1145FD2404A1',
+    pairs: [{
       quoteToken: 'BUSD',
       quoteTokenAddr: '0x0266693F9Df932aD7dA8a9b44C2129Ce8a87E81f',
       reserveQuoteToken: ethers.utils.parseEther('1000000'),
-      reserveBaseToken: ethers.utils.parseEther('371.801')
+      reserveBaseToken: ethers.utils.parseEther('2482.6')
     }]
   }]
 
