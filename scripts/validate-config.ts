@@ -4,6 +4,7 @@ import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
 import "@openzeppelin/test-helpers";
 import {
+  CakeMaxiWorker__factory,
   PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory,
   PancakeswapV2RestrictedStrategyAddTwoSidesOptimal__factory,
   PancakeswapV2RestrictedStrategyLiquidate__factory,
@@ -32,8 +33,8 @@ interface IWorkerInfo {
   address: string;
   config: string;
   pId: number;
-  lp: string;
-  stakingLpAt: string;
+  stakingToken: string;
+  stakingTokenAt: string;
   strategies: {
     StrategyAddAllBaseToken: string;
     StrategyLiquidate: string;
@@ -54,9 +55,9 @@ async function validateWorker(vault: Vault, workerInfo: IWorkerInfo, routers: ID
 
     try {
       expect(await worker.operator()).to.be.eq(vault.address, "operator mis-config")
-      expect(workerInfo.lp).to.be.eq(await worker.lpToken(), "lpToken mis-config")
+      expect(workerInfo.stakingToken).to.be.eq(await worker.lpToken(), "stakingToken mis-config")
       expect(workerInfo.pId).to.be.eq(await worker.pid(), "pool id mis-config")
-      expect(workerInfo.stakingLpAt).to.be.eq(await worker.masterChef(), "masterChef mis-config")
+      expect(workerInfo.stakingTokenAt).to.be.eq(await worker.masterChef(), "masterChef mis-config")
       // @notice handle BETH-ETH as it is the old version of PancakeswapWorker
       if (workerInfo.name !== "BETH-ETH PancakeswapWorker") {
         expect(await worker.router()).to.be.eq(routers.pancakeswap, "router mis-config")
@@ -78,13 +79,34 @@ async function validateWorker(vault: Vault, workerInfo: IWorkerInfo, routers: ID
     const worker = WaultSwapWorker__factory.connect(workerInfo.address, ethers.provider)
     try {
       expect(await worker.operator()).to.be.eq(vault.address, "operator mis-config")
-      expect(workerInfo.lp).to.be.eq(await worker.lpToken(), "lpToken mis-config")
+      expect(workerInfo.stakingToken).to.be.eq(await worker.lpToken(), "lpToken mis-config")
       expect(workerInfo.pId).to.be.eq(await worker.pid(), "pool id mis-config")
-      expect(workerInfo.stakingLpAt).to.be.eq(await worker.wexMaster(), "wexMaster mis-config")
+      expect(workerInfo.stakingTokenAt).to.be.eq(await worker.wexMaster(), "wexMaster mis-config")
       expect(await worker.router()).to.be.eq(routers.waultswap, "router mis-config")
       expect(await worker.baseToken()).to.be.eq(await vault.token(), "baseToken mis-config")
       expect(await worker.fee()).to.be.eq('998')
       expect(await worker.feeDenom()).to.be.eq('1000')
+      expect(await worker.okStrats(workerInfo.strategies.StrategyAddAllBaseToken)).to.be.eq(true, "mis-config on add base token only strat")
+      expect(await worker.okStrats(workerInfo.strategies.StrategyLiquidate)).to.be.eq(true, "mis-config on liquidate strat")
+      expect(await worker.okStrats(workerInfo.strategies.StrategyAddTwoSidesOptimal)).to.be.eq(true, "mis-config on add two sides strat")
+      expect(await worker.okStrats(workerInfo.strategies.StrategyWithdrawMinimizeTrading)).to.be.eq(true, "mis-config on minimize trading strat")
+
+      console.log(`> ✅ done validated ${workerInfo.name}, no problem found`)
+    } catch(e) {
+      console.log(`> ❌ some problem found in ${workerInfo.name}, please double check`)
+      console.log(e)
+    }
+  } else if (workerInfo.name.includes("CakeMaxiWorker")) {
+    const worker = CakeMaxiWorker__factory.connect(workerInfo.address, ethers.provider)
+    try {
+      expect(await worker.operator()).to.be.eq(vault.address, "operator mis-config")
+      expect(workerInfo.stakingToken).to.be.eq(await worker.farmingToken(), "farmingToken mis-config")
+      expect(workerInfo.pId).to.be.eq(await worker.pid(), "pool id mis-config")
+      expect(workerInfo.stakingTokenAt).to.be.eq(await worker.masterChef(), "masterChef mis-config")
+      expect(await worker.router()).to.be.eq(routers.pancakeswap, "router mis-config")
+      expect(await worker.baseToken()).to.be.eq(await vault.token(), "baseToken mis-config")
+      expect(await worker.fee()).to.be.eq('9975')
+      expect(await worker.feeDenom()).to.be.eq('10000')
       expect(await worker.okStrats(workerInfo.strategies.StrategyAddAllBaseToken)).to.be.eq(true, "mis-config on add base token only strat")
       expect(await worker.okStrats(workerInfo.strategies.StrategyLiquidate)).to.be.eq(true, "mis-config on liquidate strat")
       expect(await worker.okStrats(workerInfo.strategies.StrategyAddTwoSidesOptimal)).to.be.eq(true, "mis-config on add two sides strat")

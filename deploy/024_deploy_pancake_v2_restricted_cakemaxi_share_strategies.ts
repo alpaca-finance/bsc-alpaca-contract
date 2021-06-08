@@ -22,10 +22,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const ROUTER_V2 = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
-  const WNATIVE_RELAYER = '0xE1D2CA01bc88F325fF7266DD2165944f3CAf0D3D';
-  const WHITELIST_WOKERS: Array<string> = [
-  ]
+  const ROUTER_V2 = '0x367633909278A3C91f4cB130D8e56382F00D1071';
+  const WNATIVE_RELAYER = '0x7e2284c8CC74F13FA6c218c4231b0786E6204728';
+  const WHITELIST_WOKERS: Array<string> = []
 
 
 
@@ -50,9 +49,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log(`>> Deployed at ${cakeMaxiStrategyRestrictedAddBaseTokenOnlyV2.address}`);
   console.log("✅ Done")
 
-  console.log(">> Whitelisting workers for PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly")
-  await cakeMaxiStrategyRestrictedAddBaseTokenOnlyV2.setWorkersOk(WHITELIST_WOKERS, true)
-  console.log("✅ Done")
+  if(WHITELIST_WOKERS.length > 0) {
+    console.log(">> Whitelisting workers for PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly")
+    await cakeMaxiStrategyRestrictedAddBaseTokenOnlyV2.setWorkersOk(WHITELIST_WOKERS, true)
+    console.log("✅ Done")
+  }
   
   /**
    * Restricted CakeMaxi StrategyLiquidate V2
@@ -68,10 +69,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   await cakeMaxiStrategyRestrictedLiquidateV2.deployed();
   console.log(`>> Deployed at ${cakeMaxiStrategyRestrictedLiquidateV2.address}`);
   console.log("✅ Done")
-
-  console.log(">> Whitelisting workers for PancakeswapV2RestrictedCakeMaxiStrategyLiquidate")
-  await cakeMaxiStrategyRestrictedLiquidateV2.setWorkersOk(WHITELIST_WOKERS, true)
-  console.log("✅ Done")
+  
+  if(WHITELIST_WOKERS.length > 0) {
+    console.log(">> Whitelisting workers for PancakeswapV2RestrictedCakeMaxiStrategyLiquidate")
+    await cakeMaxiStrategyRestrictedLiquidateV2.setWorkersOk(WHITELIST_WOKERS, true)
+    console.log("✅ Done")
+  }
 
   /**
    * Restricted CakeMaxi StrategyWithdrawMinimizeTrading V2
@@ -87,10 +90,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   await cakeMaxiStrategyRestrictedWithdrawMinimizeTradingV2.deployed()
 
   console.log(`>> Deployed at ${cakeMaxiStrategyRestrictedWithdrawMinimizeTradingV2.address}`);
-
-  console.log(">> Whitelisting workers for PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading")
-  await cakeMaxiStrategyRestrictedWithdrawMinimizeTradingV2.setWorkersOk(WHITELIST_WOKERS, true)
-  console.log("✅ Done")
+  
+  if(WHITELIST_WOKERS.length > 0) {
+    console.log(">> Whitelisting workers for PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading")
+    await cakeMaxiStrategyRestrictedWithdrawMinimizeTradingV2.setWorkersOk(WHITELIST_WOKERS, true)
+    console.log("✅ Done")
+  }
 
   console.log(">> Whitelist RestrictedCakeMaxiStrategyWithdrawMinimizeTrading V2 on WNativeRelayer");
   const wNativeRelayer = WNativeRelayer__factory.connect(WNATIVE_RELAYER, (await ethers.getSigners())[0]);
