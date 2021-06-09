@@ -341,6 +341,14 @@
         "pId": 6,
         "name": "BORING-WBNB LP",
         "address": "0x277699041A8ef5b39586299101e1180a0c6a446f"
+      }, {
+        "pId": 8,
+        "name": "ALPACA-WBNB LP",
+        "address": "0xe50d57ab98E4399Cee764bb3ECB010BFb41aBea1"
+      }, {
+        "pId": 9,
+        "name": "USDT-BUSD LP",
+        "address": "0x867EEC2839f129072d1CE382C0c3Ec338510dA6f"
       }]
     }
   },
@@ -413,6 +421,7 @@
     "name": "Interest Bearing WBNB",
     "symbol": "ibWBNB",
     "address": "0xf9d32C5E10Dd51511894b360e6bD39D7573450F9",
+    "baseToken": "0xDfb1211E2694193df5765d54350e1145FD2404A1",
     "debtToken": "0x2E0384Bc38E250639291D6710EDC3d5034e95996",
     "config": "0x037F4b0d074B83d075EC3B955F69BaB9977bdb05",
     "tripleSlopeModel": "0x038cd7a6A397d7f5D07a0c76A4610a7Ca64eb7d3",
@@ -694,11 +703,25 @@
         "StrategyAddTwoSidesOptimal": "0x0A5515aEdc275b9fF19d11Cd74465e83067f6D40",
         "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32"
       }
+    }, {
+      "name": "ALPACA-WBNB WaultswapWorker",
+      "address": "0x8C3A7921cb4e4e6f3ff8EF4565Ae6C6CbA15b141",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "pId": 8,
+      "stakingToken": "0xe50d57ab98E4399Cee764bb3ECB010BFb41aBea1",
+      "stakingTokenAt": "0x85F6A87A056313Fd1717937Cf3cC7BCe3e3445D1",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0xD15DBC544ad55d4877cAd426a6e6e16446a012b5",
+        "StrategyLiquidate": "0xdbcDcd7bE24d0dbf2b167F14435945EC7e0F454A",
+        "StrategyAddTwoSidesOptimal": "0xC01390eea9A7e27199e03dA5053C2dd63A5169ff",
+        "StrategyWithdrawMinimizeTrading": "0xE5909854177a493BFeF616e2E142211413aC295d"
+      }
     }]
   }, {
     "name": "Interest Bearing BUSD",
     "symbol": "ibBUSD",
     "address": "0xe5ed8148fE4915cE857FC648b9BdEF8Bb9491Fa5",
+    "baseToken": "0x0266693F9Df932aD7dA8a9b44C2129Ce8a87E81f",
     "debtToken": "0x49974bc28f1920A603aa8dffB3C61b4CD5B26710",
     "config": "0xbC6d2dfe97A557Bd793d07ebB0df3ea80cc990Fc",
     "tripleSlopeModel": "0x038cd7a6A397d7f5D07a0c76A4610a7Ca64eb7d3",
@@ -850,11 +873,25 @@
         "StrategyAddTwoSidesOptimal": "0xFfA12222e3ccEF58684Af20aaa4D5bf13c8faC10",
         "StrategyWithdrawMinimizeTrading": "0xE5909854177a493BFeF616e2E142211413aC295d"
       }
+    }, {
+      "name": "USDT-BUSD WaultswapWorker",
+      "address": "0xd1591b1a2d608E2ee5492C9bdCEB71c995186DfF",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "pId": 9,
+      "stakingToken": "0x867EEC2839f129072d1CE382C0c3Ec338510dA6f",
+      "stakingTokenAt": "0x85F6A87A056313Fd1717937Cf3cC7BCe3e3445D1",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0xD15DBC544ad55d4877cAd426a6e6e16446a012b5",
+        "StrategyLiquidate": "0xdbcDcd7bE24d0dbf2b167F14435945EC7e0F454A",
+        "StrategyAddTwoSidesOptimal": "0xFfA12222e3ccEF58684Af20aaa4D5bf13c8faC10",
+        "StrategyWithdrawMinimizeTrading": "0xE5909854177a493BFeF616e2E142211413aC295d"
+      }
     }]
   }, {
     "name": "Interest Bearing ETH",
     "symbol": "ibETH",
     "address": "0x3F1D4A430C213bd9D4c9a12E4F382270505fCeA1",
+    "baseToken": "0xd5c082df9eDE041548fa79e05A1CB077036ca86F",
     "debtToken": "0x5E780a0F887EbeA8425BAa67A834D1168054F645",
     "config": "0x6Eebe002C224490A800eFC6BC3f1B28816Bf6164",
     "tripleSlopeModel": "0x038cd7a6A397d7f5D07a0c76A4610a7Ca64eb7d3",
@@ -959,6 +996,7 @@
     "name": "Interest Bearing ALPACA",
     "symbol": "ibALPACA",
     "address": "0x6ad3A0d891C59677fbbB22E071613253467C382A",
+    "baseToken": "0x354b3a11D5Ea2DA89405173977E271F58bE2897D",
     "debtToken": "0x75d1a708DbC46c4170bD1a176DDCE44D14135Ea8",
     "config": "0x06d0c5B027C8e1BFce561B8af34B87A2A3Ff005d",
     "tripleSlopeModel": "0x038cd7a6A397d7f5D07a0c76A4610a7Ca64eb7d3",
@@ -993,11 +1031,25 @@
         "StrategyAddTwoSidesOptimal": "0xbc61195af997e06EfbF4a0991b58c890E33e0642",
         "StrategyWithdrawMinimizeTrading": "0xE5909854177a493BFeF616e2E142211413aC295d"
       }
+    }, {
+      "name": "WBNB-ALPACA WaultswapWorker",
+      "address": "0x1e16a2c609c8F527B1827aF63474C21435654Ce4",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "pId": 8,
+      "stakingToken": "0xe50d57ab98E4399Cee764bb3ECB010BFb41aBea1",
+      "stakingTokenAt": "0x85F6A87A056313Fd1717937Cf3cC7BCe3e3445D1",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0xD15DBC544ad55d4877cAd426a6e6e16446a012b5",
+        "StrategyLiquidate": "0xdbcDcd7bE24d0dbf2b167F14435945EC7e0F454A",
+        "StrategyAddTwoSidesOptimal": "0xbc61195af997e06EfbF4a0991b58c890E33e0642",
+        "StrategyWithdrawMinimizeTrading": "0xE5909854177a493BFeF616e2E142211413aC295d"
+      }
     }]
   }, {
     "name": "Interest Bearing USDT",
     "symbol": "ibUSDT",
     "address": "0xb5913CD4C508f07025678CeF939BcC54D3024C39",
+    "baseToken": "0xE60Fa777dEb72C364447BB18C823C4731FbeD671",
     "debtToken": "0x6f86C6190d5738965405eBeCCAE7A99f005F8843",
     "config": "0x4155538832c1937832b9db279CEEA61Bbae5eF96",
     "tripleSlopeModel": "0x038cd7a6A397d7f5D07a0c76A4610a7Ca64eb7d3",
@@ -1071,11 +1123,25 @@
         "StrategyAddTwoSidesOptimal": "0x7A7553B7e46680eae3B97f396150b616401B9d6D",
         "StrategyWithdrawMinimizeTrading": "0x6C12b05F9235cf0D92B152F47bcB6947B927591e"
       }
+    }, {
+      "name": "BUSD-USDT WaultswapWorker",
+      "address": "0x7cb17012b50b465136304098C382BD9a72E967a2",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "pId": 9,
+      "stakingToken": "0x867EEC2839f129072d1CE382C0c3Ec338510dA6f",
+      "stakingTokenAt": "0x85F6A87A056313Fd1717937Cf3cC7BCe3e3445D1",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0xD15DBC544ad55d4877cAd426a6e6e16446a012b5",
+        "StrategyLiquidate": "0xdbcDcd7bE24d0dbf2b167F14435945EC7e0F454A",
+        "StrategyAddTwoSidesOptimal": "0x48393b82Abac4Fbb807A927E60008eFaf5f79Cf7",
+        "StrategyWithdrawMinimizeTrading": "0xE5909854177a493BFeF616e2E142211413aC295d"
+      }
     }]
   }, {
     "name": "Interest Bearing BTCB",
     "symbol": "ibBTCB",
     "address": "0xB8Eca31D1862B6330E376fA795609056c7421EB0",
+    "baseToken": "0xCCaf3FC49B0D0F53fe2c08103F75A397052983FB",
     "debtToken": "0x407d3A347C4AB45DD847282D340E00759BBbDB4b",
     "config": "0x442545909DB59E658ADC9a79430Ea3aEDBDfee5B",
     "tripleSlopeModel": "0x038cd7a6A397d7f5D07a0c76A4610a7Ca64eb7d3",

@@ -1,16 +1,54 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
-import { ethers, upgrades } from 'hardhat';
+import { ethers, upgrades, network } from 'hardhat';
 import {
   WaultSwapRestrictedStrategyAddBaseTokenOnly__factory,
   WaultSwapRestrictedStrategyLiquidate__factory,
   WaultSwapWorker,
   WaultSwapWorker__factory,
   Timelock__factory,
+  WaultSwapRestrictedStrategyAddTwoSidesOptimal__factory,
+  WaultSwapRestrictedStrategyWithdrawMinimizeTrading__factory,
 } from '../typechain';
+import MainnetConfig from '../.mainnet.json'
+import TestnetConfig from '../.testnet.json'
+
+interface IWorkerInput {
+  VAULT_SYMBOL: string
+  WORKER_NAME: string
+  REINVEST_BOT: string
+  POOL_ID: number
+  REINVEST_BOUNTY_BPS: string
+  WORK_FACTOR: string
+  KILL_FACTOR: string
+  MAX_PRICE_DIFF: string
+  EXACT_ETA: string
+}
+
+interface IWaultWorkerInfo {
+  WORKER_NAME: string
+  VAULT_CONFIG_ADDR: string
+  WORKER_CONFIG_ADDR: string
+  REINVEST_BOT: string
+  POOL_ID: number
+  VAULT_ADDR: string
+  BASE_TOKEN_ADDR: string
+  WEX_MASTER_ADDR: string
+  WAULTSWAP_ROUTER_ADDR: string
+  ADD_STRAT_ADDR: string
+  LIQ_STRAT_ADDR: string
+  TWO_SIDES_STRAT_ADDR: string
+  MINIMIZE_TRADE_STRAT_ADDR: string
+  REINVEST_BOUNTY_BPS: string
+  WORK_FACTOR: string
+  KILL_FACTOR: string
+  MAX_PRICE_DIFF: string
+  TIMELOCK: string
+  EXACT_ETA: string
+}
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-    /*
+  /*
   ░██╗░░░░░░░██╗░█████╗░██████╗░███╗░░██╗██╗███╗░░██╗░██████╗░
   ░██║░░██╗░░██║██╔══██╗██╔══██╗████╗░██║██║████╗░██║██╔════╝░
   ░╚██╗████╗██╔╝███████║██████╔╝██╔██╗██║██║██╔██╗██║██║░░██╗░
@@ -19,116 +57,46 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const WORKERS = [{
-    WORKER_NAME: "WEX-USDT Worker",
-    VAULT_CONFIG_ADDR: '0x709b102EF4b605197C75CfEA45F455A4e7ce065B',
-    WORKER_CONFIG_ADDR: '0xADaBC5FC5da42c85A84e66096460C769a151A8F8',
-    REINVEST_BOT: '0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De',
-    POOL_ID: 29,
-    VAULT_ADDR: '0x158Da805682BdC8ee32d52833aD41E74bb951E59',
-    BASE_TOKEN_ADDR: '0x55d398326f99059ff775485246999027b3197955',
-    WEX_MASTER_ADDR: '0x22fB2663C7ca71Adc2cc99481C77Aaf21E152e2D',
-    WAULTSWAP_ROUTER_ADDR: '0xD48745E39BbED146eEC15b79cBF964884F9877c2',
-    ADD_STRAT_ADDR: '0xeBb8BA21A3703ab30187D3EEC02A3Bc62894970D',
-    LIQ_STRAT_ADDR: '0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28',
+  const shortWorkerInfos: IWorkerInput[] = [{
+    VAULT_SYMBOL: "ibWBNB",
+    WORKER_NAME: "ALPACA-WBNB WaultswapWorker",
+    REINVEST_BOT: "0xcf28b4da7d3ed29986831876b74af6e95211d3f9",
+    POOL_ID: 8,
     REINVEST_BOUNTY_BPS: '300',
     WORK_FACTOR: '6240',
     KILL_FACTOR: '8000',
     MAX_PRICE_DIFF: '11000',
-    TIMELOCK: '0x2D5408f2287BF9F9B05404794459a846651D0a59',
-    EXACT_ETA: '1623213000',
-    STRATS: [
-      '0xcE37fD1Ff0A6cb4A6A59cd46CCf55D5Dc70ec585',
-      '0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3'
-    ]
+    EXACT_ETA: '1623229200'
   }, {
-    WORKER_NAME: "BTCB-ETH Worker",
-    VAULT_CONFIG_ADDR: '0x724E6748Cb1d52Ec45b77Fb82a0750A2B759c038',
-    WORKER_CONFIG_ADDR: '0xADaBC5FC5da42c85A84e66096460C769a151A8F8',
-    REINVEST_BOT: '0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De',
-    POOL_ID: 33,
-    VAULT_ADDR: '0xbfF4a34A4644a113E8200D7F1D79b3555f723AfE',
-    BASE_TOKEN_ADDR: '0x2170ed0880ac9a755fd29b2688956bd959f933f8',
-    WEX_MASTER_ADDR: '0x22fB2663C7ca71Adc2cc99481C77Aaf21E152e2D',
-    WAULTSWAP_ROUTER_ADDR: '0xD48745E39BbED146eEC15b79cBF964884F9877c2',
-    ADD_STRAT_ADDR: '0xeBb8BA21A3703ab30187D3EEC02A3Bc62894970D',
-    LIQ_STRAT_ADDR: '0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28',
+    VAULT_SYMBOL: "ibALPACA",
+    WORKER_NAME: "WBNB-ALPACA WaultswapWorker",
+    REINVEST_BOT: "0xcf28b4da7d3ed29986831876b74af6e95211d3f9",
+    POOL_ID: 8,
     REINVEST_BOUNTY_BPS: '300',
-    WORK_FACTOR: '7000',
-    KILL_FACTOR: '8333',
+    WORK_FACTOR: '5200',
+    KILL_FACTOR: '7000',
     MAX_PRICE_DIFF: '11000',
-    TIMELOCK: '0x2D5408f2287BF9F9B05404794459a846651D0a59',
-    EXACT_ETA: '1623213000',
-    STRATS: [
-      '0xD58b9626d941cA2d31b55a43045d34A87B32cEd3',
-      '0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3'
-    ]
+    EXACT_ETA: '1623229200'
   }, {
-    WORKER_NAME: "ETH-BTCB Worker",
-    VAULT_CONFIG_ADDR: '0x6cc80Df354415fA0FfeF78555a06C1DdE7549FB8',
-    WORKER_CONFIG_ADDR: '0xADaBC5FC5da42c85A84e66096460C769a151A8F8',
-    REINVEST_BOT: '0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De',
-    POOL_ID: 33,
-    VAULT_ADDR: '0x08FC9Ba2cAc74742177e0afC3dC8Aed6961c24e7',
-    BASE_TOKEN_ADDR: '0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c',
-    WEX_MASTER_ADDR: '0x22fB2663C7ca71Adc2cc99481C77Aaf21E152e2D',
-    WAULTSWAP_ROUTER_ADDR: '0xD48745E39BbED146eEC15b79cBF964884F9877c2',
-    ADD_STRAT_ADDR: '0xeBb8BA21A3703ab30187D3EEC02A3Bc62894970D',
-    LIQ_STRAT_ADDR: '0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28',
+    VAULT_SYMBOL: "ibBUSD",
+    WORKER_NAME: "USDT-BUSD WaultswapWorker",
+    REINVEST_BOT: "0xcf28b4da7d3ed29986831876b74af6e95211d3f9",
+    POOL_ID: 9,
     REINVEST_BOUNTY_BPS: '300',
-    WORK_FACTOR: '7000',
-    KILL_FACTOR: '8333',
+    WORK_FACTOR: '7800',
+    KILL_FACTOR: '9000',
     MAX_PRICE_DIFF: '11000',
-    TIMELOCK: '0x2D5408f2287BF9F9B05404794459a846651D0a59',
-    EXACT_ETA: '1623213000',
-    STRATS: [
-      '0xaC712F4Fc61ab96Aa9A1AdF3977b808789aA6682',
-      '0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3'
-    ]
+    EXACT_ETA: '1623229200'
   }, {
-    WORKER_NAME: "WBNB-BUSD Worker",
-    VAULT_CONFIG_ADDR: '0xd7b805E88c5F52EDE71a9b93F7048c8d632DBEd4',
-    WORKER_CONFIG_ADDR: '0xADaBC5FC5da42c85A84e66096460C769a151A8F8',
-    REINVEST_BOT: '0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De',
-    POOL_ID: 6,
-    VAULT_ADDR: '0x7C9e73d4C71dae564d41F78d56439bB4ba87592f',
-    BASE_TOKEN_ADDR: '0xe9e7cea3dedca5984780bafc599bd69add087d56',
-    WEX_MASTER_ADDR: '0x22fB2663C7ca71Adc2cc99481C77Aaf21E152e2D',
-    WAULTSWAP_ROUTER_ADDR: '0xD48745E39BbED146eEC15b79cBF964884F9877c2',
-    ADD_STRAT_ADDR: '0xeBb8BA21A3703ab30187D3EEC02A3Bc62894970D',
-    LIQ_STRAT_ADDR: '0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28',
+    VAULT_SYMBOL: "ibUSDT",
+    WORKER_NAME: "BUSD-USDT WaultswapWorker",
+    REINVEST_BOT: "0xcf28b4da7d3ed29986831876b74af6e95211d3f9",
+    POOL_ID: 9,
     REINVEST_BOUNTY_BPS: '300',
-    WORK_FACTOR: '7000',
-    KILL_FACTOR: '8333',
+    WORK_FACTOR: '7800',
+    KILL_FACTOR: '9000',
     MAX_PRICE_DIFF: '11000',
-    TIMELOCK: '0x2D5408f2287BF9F9B05404794459a846651D0a59',
-    EXACT_ETA: '1623213000',
-    STRATS: [
-      '0x61e58dE669d842C2d77288Df629af031b3283c81',
-      '0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3'
-    ]
-  }, {
-    WORKER_NAME: "BUSD-WBNB Worker",
-    VAULT_CONFIG_ADDR: '0x53dbb71303ad0F9AFa184B8f7147F9f12Bb5Dc01',
-    WORKER_CONFIG_ADDR: '0xADaBC5FC5da42c85A84e66096460C769a151A8F8',
-    REINVEST_BOT: '0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De',
-    POOL_ID: 6,
-    VAULT_ADDR: '0xd7D069493685A581d27824Fc46EdA46B7EfC0063',
-    BASE_TOKEN_ADDR: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c',
-    WEX_MASTER_ADDR: '0x22fB2663C7ca71Adc2cc99481C77Aaf21E152e2D',
-    WAULTSWAP_ROUTER_ADDR: '0xD48745E39BbED146eEC15b79cBF964884F9877c2',
-    ADD_STRAT_ADDR: '0xeBb8BA21A3703ab30187D3EEC02A3Bc62894970D',
-    LIQ_STRAT_ADDR: '0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28',
-    REINVEST_BOUNTY_BPS: '300',
-    WORK_FACTOR: '7000',
-    KILL_FACTOR: '8333',
-    MAX_PRICE_DIFF: '11000',
-    TIMELOCK: '0x2D5408f2287BF9F9B05404794459a846651D0a59',
-    EXACT_ETA: '1623213000',
-    STRATS: [
-      '0xA7559bB0235a1c6003D0E48d2cFa89a6C8748439',
-      '0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3'
-    ]
+    EXACT_ETA: '1623229200'
   }]
 
 
@@ -141,79 +109,120 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 
 
-  for(let i = 0; i < WORKERS.length; i++) {
+
+  
+  const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig
+  const workerInfos: IWaultWorkerInfo[] = shortWorkerInfos.map((n) => {
+    const vault = config.Vaults.find((v) => v.symbol === n.VAULT_SYMBOL)
+    if (vault === undefined) {
+      throw('error: unable to find the given VAULT_SYMBOL')
+    }
+
+    return {
+      WORKER_NAME: n.WORKER_NAME,
+      VAULT_CONFIG_ADDR: vault.config,
+      WORKER_CONFIG_ADDR: config.SharedConfig.WorkerConfig,
+      REINVEST_BOT: n.REINVEST_BOT,
+      POOL_ID: n.POOL_ID,
+      VAULT_ADDR: vault.address,
+      BASE_TOKEN_ADDR: vault.baseToken,
+      WEX_MASTER_ADDR: config.Exchanges.Waultswap.WexMaster,
+      WAULTSWAP_ROUTER_ADDR: config.Exchanges.Waultswap.WaultswapRouter,
+      ADD_STRAT_ADDR: config.SharedStrategies.Waultswap.StrategyAddBaseTokenOnly,
+      LIQ_STRAT_ADDR: config.SharedStrategies.Waultswap.StrategyLiquidate,
+      TWO_SIDES_STRAT_ADDR: vault.StrategyAddTwoSidesOptimal.Waultswap,
+      MINIMIZE_TRADE_STRAT_ADDR: config.SharedStrategies.Waultswap.StrategyWithdrawMinimizeTrading,
+      REINVEST_BOUNTY_BPS: n.REINVEST_BOUNTY_BPS,
+      WORK_FACTOR: n.WORK_FACTOR,
+      KILL_FACTOR: n.KILL_FACTOR,
+      MAX_PRICE_DIFF: n.MAX_PRICE_DIFF,
+      TIMELOCK: config.Timelock,
+      EXACT_ETA: n.EXACT_ETA,
+    }
+  })
+
+
+
+
+
+
+
+
+
+
+  for(let i = 0; i < workerInfos.length; i++) {
     console.log("===================================================================================")
-    console.log(`>> Deploying an upgradable WaultSwapWorker contract for ${WORKERS[i].WORKER_NAME}`);
+    console.log(`>> Deploying an upgradable WaultSwapWorker contract for ${workerInfos[i].WORKER_NAME}`);
     const WaultSwapWorker = (await ethers.getContractFactory(
       'WaultSwapWorker',
       (await ethers.getSigners())[0]
     )) as WaultSwapWorker__factory;
     const waultSwapWorker = await upgrades.deployProxy(
       WaultSwapWorker,[
-        WORKERS[i].VAULT_ADDR,
-        WORKERS[i].BASE_TOKEN_ADDR,
-        WORKERS[i].WEX_MASTER_ADDR,
-        WORKERS[i].WAULTSWAP_ROUTER_ADDR,
-        WORKERS[i].POOL_ID,
-        WORKERS[i].ADD_STRAT_ADDR,
-        WORKERS[i].LIQ_STRAT_ADDR,
-        WORKERS[i].REINVEST_BOUNTY_BPS
+        workerInfos[i].VAULT_ADDR,
+        workerInfos[i].BASE_TOKEN_ADDR,
+        workerInfos[i].WEX_MASTER_ADDR,
+        workerInfos[i].WAULTSWAP_ROUTER_ADDR,
+        workerInfos[i].POOL_ID,
+        workerInfos[i].ADD_STRAT_ADDR,
+        workerInfos[i].LIQ_STRAT_ADDR,
+        workerInfos[i].REINVEST_BOUNTY_BPS
       ]
     ) as WaultSwapWorker;
     await waultSwapWorker.deployed();
     console.log(`>> Deployed at ${waultSwapWorker.address}`);
 
     console.log(`>> Adding REINVEST_BOT`);
-    await waultSwapWorker.setReinvestorOk([WORKERS[i].REINVEST_BOT], true);
+    await waultSwapWorker.setReinvestorOk([workerInfos[i].REINVEST_BOT], true);
     console.log("✅ Done");
 
     console.log(`>> Adding Strategies`);
-    await waultSwapWorker.setStrategyOk(WORKERS[i].STRATS, true);
+    await waultSwapWorker.setStrategyOk([workerInfos[i].TWO_SIDES_STRAT_ADDR, workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR], true);
     console.log("✅ Done");
 
     console.log(`>> Whitelisting a worker on strats`);
-    const addStrat = WaultSwapRestrictedStrategyAddBaseTokenOnly__factory.connect(WORKERS[i].ADD_STRAT_ADDR, (await ethers.getSigners())[0])
+    const addStrat = WaultSwapRestrictedStrategyAddBaseTokenOnly__factory.connect(workerInfos[i].ADD_STRAT_ADDR, (await ethers.getSigners())[0])
     await addStrat.setWorkersOk([waultSwapWorker.address], true)
-    const liqStrat = WaultSwapRestrictedStrategyLiquidate__factory.connect(WORKERS[i].LIQ_STRAT_ADDR, (await ethers.getSigners())[0])
+    const liqStrat = WaultSwapRestrictedStrategyLiquidate__factory.connect(workerInfos[i].LIQ_STRAT_ADDR, (await ethers.getSigners())[0])
     await liqStrat.setWorkersOk([waultSwapWorker.address], true)
-    for(let j = 0; j < WORKERS[i].STRATS.length; j++) {
-      const strat = WaultSwapRestrictedStrategyAddBaseTokenOnly__factory.connect(WORKERS[i].STRATS[j], (await ethers.getSigners())[0])
-      await strat.setWorkersOk([waultSwapWorker.address], true)
-    }
+    const twoSidesStrat = WaultSwapRestrictedStrategyAddTwoSidesOptimal__factory.connect(workerInfos[i].TWO_SIDES_STRAT_ADDR, (await ethers.getSigners())[0])
+    await twoSidesStrat.setWorkersOk([waultSwapWorker.address], true)
+    const minimizeTradeStrat = WaultSwapRestrictedStrategyWithdrawMinimizeTrading__factory.connect(workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR, (await ethers.getSigners())[0])
+    await minimizeTradeStrat.setWorkersOk([waultSwapWorker.address], true)
     console.log("✅ Done");
 
-    const timelock = Timelock__factory.connect(WORKERS[i].TIMELOCK, (await ethers.getSigners())[0]);
+    const timelock = Timelock__factory.connect(workerInfos[i].TIMELOCK, (await ethers.getSigners())[0]);
 
     console.log(">> Timelock: Setting WorkerConfig via Timelock");
     const setConfigsTx = await timelock.queueTransaction(
-      WORKERS[i].WORKER_CONFIG_ADDR, '0',
+      workerInfos[i].WORKER_CONFIG_ADDR, '0',
       'setConfigs(address[],(bool,uint64,uint64,uint64)[])',
       ethers.utils.defaultAbiCoder.encode(
         ['address[]','(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]'],
         [
-          [waultSwapWorker.address], [{acceptDebt: true, workFactor: WORKERS[i].WORK_FACTOR, killFactor: WORKERS[i].KILL_FACTOR, maxPriceDiff: WORKERS[i].MAX_PRICE_DIFF}]
+          [waultSwapWorker.address], [{acceptDebt: true, workFactor: workerInfos[i].WORK_FACTOR, killFactor: workerInfos[i].KILL_FACTOR, maxPriceDiff: workerInfos[i].MAX_PRICE_DIFF}]
         ]
-      ), WORKERS[i].EXACT_ETA
+      ), workerInfos[i].EXACT_ETA
     );
     console.log(`queue setConfigs at: ${setConfigsTx.hash}`)
     console.log("generate timelock.executeTransaction:")
-    console.log(`await timelock.executeTransaction('${WORKERS[i].WORKER_CONFIG_ADDR}', '0', 'setConfigs(address[],(bool,uint64,uint64,uint64)[])', ethers.utils.defaultAbiCoder.encode(['address[]','(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]'],[['${waultSwapWorker.address}'], [{acceptDebt: true, workFactor: ${WORKERS[i].WORK_FACTOR}, killFactor: ${WORKERS[i].KILL_FACTOR}, maxPriceDiff: ${WORKERS[i].MAX_PRICE_DIFF}}]]), ${WORKERS[i].EXACT_ETA})`)
+    console.log(`await timelock.executeTransaction('${workerInfos[i].WORKER_CONFIG_ADDR}', '0', 'setConfigs(address[],(bool,uint64,uint64,uint64)[])', ethers.utils.defaultAbiCoder.encode(['address[]','(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]'],[['${waultSwapWorker.address}'], [{acceptDebt: true, workFactor: ${workerInfos[i].WORK_FACTOR}, killFactor: ${workerInfos[i].KILL_FACTOR}, maxPriceDiff: ${workerInfos[i].MAX_PRICE_DIFF}}]]), ${workerInfos[i].EXACT_ETA})`)
     console.log("✅ Done");
 
     console.log(">> Timelock: Linking VaultConfig with WorkerConfig via Timelock");
     const setWorkersTx = await timelock.queueTransaction(
-      WORKERS[i].VAULT_CONFIG_ADDR, '0',
+      workerInfos[i].VAULT_CONFIG_ADDR, '0',
       'setWorkers(address[],address[])',
       ethers.utils.defaultAbiCoder.encode(
         ['address[]','address[]'],
         [
-          [waultSwapWorker.address], [WORKERS[i].WORKER_CONFIG_ADDR]
+          [waultSwapWorker.address], [workerInfos[i].WORKER_CONFIG_ADDR]
         ]
-      ), WORKERS[i].EXACT_ETA
+      ), workerInfos[i].EXACT_ETA
     );
     console.log(`queue setWorkers at: ${setWorkersTx.hash}`)
     console.log("generate timelock.executeTransaction:")
-    console.log(`await timelock.executeTransaction('${WORKERS[i].VAULT_CONFIG_ADDR}', '0','setWorkers(address[],address[])', ethers.utils.defaultAbiCoder.encode(['address[]','address[]'],[['${waultSwapWorker.address}'], ['${WORKERS[i].WORKER_CONFIG_ADDR}']]), ${WORKERS[i].EXACT_ETA})`)
+    console.log(`await timelock.executeTransaction('${workerInfos[i].VAULT_CONFIG_ADDR}', '0','setWorkers(address[],address[])', ethers.utils.defaultAbiCoder.encode(['address[]','address[]'],[['${waultSwapWorker.address}'], ['${workerInfos[i].WORKER_CONFIG_ADDR}']]), ${workerInfos[i].EXACT_ETA})`)
     console.log("✅ Done");
   }
 };
