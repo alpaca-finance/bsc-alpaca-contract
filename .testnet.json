@@ -303,6 +303,10 @@
         "pId": 0,
         "name": "CAKE",
         "address": "0x7aBcA3B5f0Ca1da0eC05631d5788907D030D0a22"
+      }, {
+        "pId": 50,
+        "name": "BORING-WBNB LP",
+        "address": "0x98135F51bd36Db97222024F26B588728Ad96BEa3"
       }]
     },
     "Waultswap": {
@@ -333,6 +337,10 @@
         "pId": 5,
         "name": "WBNB-BUSD LP",
         "address": "0x7d7d2DC1AF1d613f41FF790FA3ECAe10193EC762"
+      }, {
+        "pId": 6,
+        "name": "BORING-WBNB LP",
+        "address": "0x277699041A8ef5b39586299101e1180a0c6a446f"
       }]
     }
   },
@@ -366,7 +374,8 @@
     "pCWS": "0x70203967b050cFa986C6A1de42C3AF08e00De026",
     "SWINGBY": "0x588C1F4B4C772dD019691456f143D4e34771F3cE",
     "DODO": "0x80e7Ec7bDFD410AFd073109FC28fB7451e83931B",
-    "WEX": "0x1da1dFaAEF18F4587e505C5dE0f9ED1a219e4146"
+    "WEX": "0x1da1dFaAEF18F4587e505C5dE0f9ED1a219e4146",
+    "BORING": "0x9576BE6fD507e730fbE6b4A9e1352626efDFcA0d"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x7549b7d0edcd411e7e5013dc74727f8dab13ab0f",
@@ -671,6 +680,19 @@
         "StrategyLiquidate": "0xdbcDcd7bE24d0dbf2b167F14435945EC7e0F454A",
         "StrategyAddTwoSidesOptimal": "0xC01390eea9A7e27199e03dA5053C2dd63A5169ff",
         "StrategyWithdrawMinimizeTrading": "0xE5909854177a493BFeF616e2E142211413aC295d"
+      }
+    }, {
+      "name": "BORING-WBNB PancakeswapWorker",
+      "address": "0xdf9f064e9c972f15F1805456437F062D86A7A1E1",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "pId": 50,
+      "stakingToken": "0x98135F51bd36Db97222024F26B588728Ad96BEa3",
+      "stakingTokenAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
+        "StrategyLiquidate": "0x58Bbb507248635413172Ed7A2eeC048402C6b39b",
+        "StrategyAddTwoSidesOptimal": "0x0A5515aEdc275b9fF19d11Cd74465e83067f6D40",
+        "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32"
       }
     }]
   }, {

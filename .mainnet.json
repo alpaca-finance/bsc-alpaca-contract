@@ -314,6 +314,10 @@
         "pId": 389,
         "name": "CAKE-BUSD LP",
         "address": "0x804678fa97d91B974ec2af3c843270886528a9E6"
+      }, {
+        "pId": 406,
+        "name": "BORING-WBNB LP",
+        "address": "0xDfA808Da5CFB9ABA5Fb3748FF85888F79174F378"
       }]
     },
     "Waultswap": {
@@ -377,7 +381,8 @@
     "pCWS": "0xbcf39F0EDDa668C58371E519AF37CA705f2bFcbd",
     "SWINGBY": "0x71de20e0c4616e7fcbfdd3f875d568492cbe4739",
     "DODO": "0x67ee3cb086f8a16f34bee3ca72fad36f7db929e2",
-    "WEX": "0xa9c41A46a6B3531d28d5c32F6633dd2fF05dFB90"
+    "WEX": "0xa9c41A46a6B3531d28d5c32F6633dd2fF05dFB90",
+    "BORING": "0xffEecbf8D7267757c2dc3d13D730E97E15BfdF7F"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x1099C2E6Ed6ebA95099c205b599B409305783E43",
@@ -681,6 +686,19 @@
         "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
         "StrategyAddTwoSidesOptimal": "0xA7559bB0235a1c6003D0E48d2cFa89a6C8748439",
         "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3"
+      }
+    }, {
+      "name": "BORING-WBNB PancakeswapWorker",
+      "address": "0xd8BfE852bba29ea5968A3e5AAF21480f36EE89cd",
+      "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+      "pId": 406,
+      "stakingToken": "0xDfA808Da5CFB9ABA5Fb3748FF85888F79174F378",
+      "stakingTokenAt": "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+        "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+        "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
+        "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419"
       }
     }]
   }, {

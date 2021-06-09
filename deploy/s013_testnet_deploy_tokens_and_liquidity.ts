@@ -21,19 +21,19 @@ interface IToken {
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const FOREVER = 20000000000;
-  const PANCAKE_MASTERCHEF = '0x85F6A87A056313Fd1717937Cf3cC7BCe3e3445D1'
-  const PANCAKE_FACTORY = '0xC907F67B0fBAEbe7B557B15a5Ef77345578C4202'
-  const PANCAKE_ROUTER = '0xA0bC344E20d89ccA131f869E059499F41d7a13D3'
+  const PANCAKE_MASTERCHEF = '0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B'
+  const PANCAKE_FACTORY = '0xda8EE87e2172d997a7fe05a83FC5c472B40FacCE'
+  const PANCAKE_ROUTER = '0x367633909278A3C91f4cB130D8e56382F00D1071'
   const WBNB = '0xDfb1211E2694193df5765d54350e1145FD2404A1'
   const TOKENS: Array<IToken> = [{
-    symbol: 'BUSD',
-    name: 'BUSD',
-    address: '0x0266693F9Df932aD7dA8a9b44C2129Ce8a87E81f',
+    symbol: 'BORING',
+    name: 'BORING',
+    address: '0x9576BE6fD507e730fbE6b4A9e1352626efDFcA0d',
     pairs: [{
       quoteToken: 'BNB',
       quoteTokenAddr: '0xDfb1211E2694193df5765d54350e1145FD2404A1',
-      reserveQuoteToken: ethers.utils.parseEther('500'),
-      reserveBaseToken: ethers.utils.parseEther('172017')
+      reserveQuoteToken: ethers.utils.parseEther('100'),
+      reserveBaseToken: ethers.utils.parseEther('846438')
     }]
   }]
 
