@@ -34,6 +34,7 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   event SetStrategyOK(address indexed caller, address indexed strategy, bool indexed isOk);
   event SetReinvestorOK(address indexed caller, address indexed reinvestor, bool indexed isOk);
   event SetCriticalStrategy(address indexed caller, IStrategy indexed addStrat, IStrategy indexed liqStrat);
+  event BeneficialVaultTokenBuyback(address indexed caller, IVault indexed beneficialVault, uint256 indexed buyback);
 
   /// @notice Configuration variables
   IPancakeMasterChef public masterChef;
@@ -163,9 +164,11 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     _rewardToken.safeApprove(address(router), uint256(-1));
     address beneficialVaultToken = beneficialVault.token();
     address[] memory path = _getPath(_rewardToken, beneficialVaultToken);
-    router.swapExactTokensForTokens(_beneficialVaultBounty, 0, path, address(this), now);
+    uint256[] memory amounts = router.swapExactTokensForTokens(_beneficialVaultBounty, 0, path, address(this), now);
     beneficialVaultToken.safeTransfer(address(beneficialVault), beneficialVaultToken.myBalance());
     _rewardToken.safeApprove(address(router), 0);
+
+    emit BeneficialVaultTokenBuyback(msg.sender, beneficialVault, amounts[amounts.length - 1]);
   }
 
   /// @dev Work on the given position. Must be called by the operator.
