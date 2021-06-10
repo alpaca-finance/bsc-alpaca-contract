@@ -437,6 +437,23 @@ describe('CakeMaxiWorker', () => {
     );
   });
 
+  describe("iworker2", async () => {
+    it('should return the correct path', async() => {
+      expect(await cakeMaxiWorkerNative.getPath()).to.be.deep.eq([wbnb.address, cake.address])
+      expect(await cakeMaxiWorkerNonNative.getPath()).to.be.deep.eq([baseToken.address, wbnb.address, cake.address])
+    })
+
+    it('should reverse path', async() => {
+      expect(await cakeMaxiWorkerNative.getReversedPath()).to.be.deep.eq([cake.address, wbnb.address])
+      expect(await cakeMaxiWorkerNonNative.getReversedPath()).to.be.deep.eq([cake.address, wbnb.address, baseToken.address])
+    })
+
+    it('should return reward path', async() => {
+      expect(await cakeMaxiWorkerNative.getRewardPath()).to.be.deep.eq([cake.address, wbnb.address, alpaca.address])
+      expect(await cakeMaxiWorkerNonNative.getRewardPath()).to.be.deep.eq([cake.address, wbnb.address, alpaca.address])
+    })
+  })
+
   describe("#work()", async () => {
     context("When the caller is not an operator", async() => {
       it('should be reverted', async () => {
