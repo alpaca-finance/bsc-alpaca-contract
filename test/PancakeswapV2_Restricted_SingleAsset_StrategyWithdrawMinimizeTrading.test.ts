@@ -11,8 +11,8 @@ import {
   PancakeRouter,
   PancakeRouterV2__factory,
   PancakeRouter__factory,
-  PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading,
-  PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading__factory,
+  PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading,
+  PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading__factory,
   WETH,
   WETH__factory,
   WNativeRelayer__factory,
@@ -24,7 +24,7 @@ import { MockPancakeswapV2CakeMaxiWorker } from "../typechain/MockPancakeswapV2C
 chai.use(solidity);
 const { expect } = chai;
 
-describe('PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading', () => {
+describe('PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading', () => {
   const FOREVER = '2000000000';
 
   /// Pancakeswap-related instance(s)
@@ -43,7 +43,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading', () =>
   let farmingToken: MockERC20;
 
   /// Strategy instance(s)
-  let strat: PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading;
+  let strat: PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading;
 
   // Accounts
   let deployer: Signer;
@@ -62,8 +62,8 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading', () =>
   let routerV2AsAlice: PancakeRouter;
   let routerV2AsBob: PancakeRouter;
 
-  let stratAsAlice: PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading;
-  let stratAsBob: PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading;
+  let stratAsAlice: PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading;
+  let stratAsBob: PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading;
 
   let mockPancakeswapV2WorkerBaseFTokenPairAsAlice: MockPancakeswapV2CakeMaxiWorker;
   let mockPancakeswapV2WorkerBNBFtokenPairAsAlice: MockPancakeswapV2CakeMaxiWorker;
@@ -124,23 +124,43 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading', () =>
       "MockPancakeswapV2CakeMaxiWorker",
       deployer,
     )) as MockPancakeswapV2CakeMaxiWorker__factory;
-    mockPancakeswapV2WorkerBaseFTokenPair = await MockPancakeswapV2CakeMaxiWorker.deploy(baseToken.address, farmingToken.address) as MockPancakeswapV2CakeMaxiWorker
+    mockPancakeswapV2WorkerBaseFTokenPair = await MockPancakeswapV2CakeMaxiWorker.deploy(
+      baseToken.address,
+      farmingToken.address,
+      [baseToken.address, wbnb.address, farmingToken.address],
+      [farmingToken.address, wbnb.address]
+    ) as MockPancakeswapV2CakeMaxiWorker
     await mockPancakeswapV2WorkerBaseFTokenPair.deployed();
     
-    mockPancakeswapV2WorkerBNBFtokenPair = await MockPancakeswapV2CakeMaxiWorker.deploy(wbnb.address, farmingToken.address) as MockPancakeswapV2CakeMaxiWorker
+    mockPancakeswapV2WorkerBNBFtokenPair = await MockPancakeswapV2CakeMaxiWorker.deploy(
+      wbnb.address,
+      farmingToken.address,
+      [wbnb.address, farmingToken.address],
+      [farmingToken.address, wbnb.address]
+    ) as MockPancakeswapV2CakeMaxiWorker
     await mockPancakeswapV2WorkerBNBFtokenPair.deployed();
 
-    mockPancakeswapV2WorkerBaseBNBTokenPair = await MockPancakeswapV2CakeMaxiWorker.deploy(baseToken.address, wbnb.address) as MockPancakeswapV2CakeMaxiWorker
+    mockPancakeswapV2WorkerBaseBNBTokenPair = await MockPancakeswapV2CakeMaxiWorker.deploy(
+      baseToken.address,
+      wbnb.address,
+      [baseToken.address, wbnb.address],
+      [farmingToken.address, wbnb.address]
+    ) as MockPancakeswapV2CakeMaxiWorker
     await mockPancakeswapV2WorkerBaseBNBTokenPair.deployed();
     
-    mockPancakeswapV2EvilWorker = await MockPancakeswapV2CakeMaxiWorker.deploy(baseToken.address, farmingToken.address) as MockPancakeswapV2CakeMaxiWorker
+    mockPancakeswapV2EvilWorker = await MockPancakeswapV2CakeMaxiWorker.deploy(
+      baseToken.address,
+      farmingToken.address,
+      [baseToken.address, wbnb.address, farmingToken.address],
+      [farmingToken.address, wbnb.address]
+    ) as MockPancakeswapV2CakeMaxiWorker
     await mockPancakeswapV2EvilWorker.deployed();
 
-    const PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading = (await ethers.getContractFactory(
-      "PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading",
+    const PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading = (await ethers.getContractFactory(
+      "PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading",
       deployer
-    )) as PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading__factory;
-    strat = await upgrades.deployProxy(PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading, [routerV2.address, wNativeRelayer.address]) as PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading;
+    )) as PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading__factory;
+    strat = await upgrades.deployProxy(PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading, [routerV2.address, wNativeRelayer.address]) as PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading;
     await strat.deployed();
     await strat.setWorkersOk([mockPancakeswapV2WorkerBaseFTokenPair.address, mockPancakeswapV2WorkerBNBFtokenPair.address, mockPancakeswapV2WorkerBaseBNBTokenPair.address], true)
     await wNativeRelayer.setCallerOk([strat.address], true)
@@ -157,8 +177,8 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading', () =>
     routerV2AsAlice = PancakeRouter__factory.connect(routerV2.address, alice);
     routerV2AsBob = PancakeRouter__factory.connect(routerV2.address, bob);
 
-    stratAsAlice = PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading__factory.connect(strat.address, alice);
-    stratAsBob = PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading__factory.connect(strat.address, bob);
+    stratAsAlice = PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading__factory.connect(strat.address, alice);
+    stratAsBob = PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading__factory.connect(strat.address, bob);
 
     mockPancakeswapV2WorkerBaseFTokenPairAsAlice = MockPancakeswapV2CakeMaxiWorker__factory.connect(mockPancakeswapV2WorkerBaseFTokenPair.address, alice);
     mockPancakeswapV2WorkerBNBFtokenPairAsAlice = MockPancakeswapV2CakeMaxiWorker__factory.connect(mockPancakeswapV2WorkerBNBFtokenPair.address, alice);
@@ -226,7 +246,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading', () =>
                 [ethers.utils.parseEther('0.088861041492620439').add(1)]
               )],
             )
-          )).to.be.revertedWith('PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading::execute:: insufficient farmingToken amount received');
+          )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading::execute:: insufficient farmingToken amount received');
         });
       })
     
@@ -242,7 +262,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading', () =>
               [ethers.utils.parseEther('0.05')]
             )],
           )
-        )).to.be.revertedWith('PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading::onlyWhitelistedWorkers:: bad worker');
+        )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading::onlyWhitelistedWorkers:: bad worker');
       });
     })
   
@@ -258,7 +278,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading', () =>
               [ethers.utils.parseEther('0.05')]
             )],
           )
-        )).to.be.revertedWith('PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading::onlyWhitelistedWorkers:: bad worker');
+        )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading::onlyWhitelistedWorkers:: bad worker');
       });
     })
   
@@ -310,7 +330,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading', () =>
               [ethers.utils.parseEther('0.087433327913955996').add(1)]
             )],
           )
-        )).to.be.revertedWith('PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading::execute:: insufficient farmingToken amount received');
+        )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading::execute:: insufficient farmingToken amount received');
       });
     })
     
@@ -326,7 +346,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading', () =>
               [ethers.utils.parseEther('0.05')]
             )],
           )
-        )).to.be.revertedWith('PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading::onlyWhitelistedWorkers:: bad worker');
+        )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading::onlyWhitelistedWorkers:: bad worker');
       });
     })
   
@@ -342,7 +362,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading', () =>
               [ethers.utils.parseEther('0.05')]
             )],
           )
-        )).to.be.revertedWith('PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading::onlyWhitelistedWorkers:: bad worker');
+        )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading::onlyWhitelistedWorkers:: bad worker');
       });
     })
   
@@ -396,7 +416,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading', () =>
               [ethers.utils.parseEther('0.888610414926204399').add(1)]
             )],
           )
-        )).to.be.revertedWith('PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading::execute:: insufficient farmingToken amount received');
+        )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading::execute:: insufficient farmingToken amount received');
       });
     })
   
@@ -412,7 +432,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading', () =>
               [ethers.utils.parseEther('0.05')]
             )],
           )
-        )).to.be.revertedWith('PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading::onlyWhitelistedWorkers:: bad worker');
+        )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading::onlyWhitelistedWorkers:: bad worker');
       });
     })
 
@@ -428,7 +448,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading', () =>
               [ethers.utils.parseEther('0.05')]
             )],
           )
-        )).to.be.revertedWith('PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading::onlyWhitelistedWorkers:: bad worker');
+        )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading::onlyWhitelistedWorkers:: bad worker');
       });
     })
 

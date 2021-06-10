@@ -11,8 +11,8 @@ import {
   PancakeRouter,
   PancakeRouterV2__factory,
   PancakeRouter__factory,
-  PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm,
-  PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm__factory,
+  PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm,
+  PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm__factory,
   MockVaultForRestrictedCakeMaxiAddBaseWithFarm,
   MockVaultForRestrictedCakeMaxiAddBaseWithFarm__factory,
   WETH,
@@ -24,7 +24,7 @@ import { MockPancakeswapV2CakeMaxiWorker } from "../typechain/MockPancakeswapV2C
 chai.use(solidity);
 const { expect } = chai;
 
-describe('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm', () => {
+describe('PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm', () => {
   const FOREVER = '2000000000';
 
   /// Pancakeswap-related instance(s)
@@ -42,7 +42,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm', () => {
   let farmingToken: MockERC20;
 
   /// Strategy instance(s)
-  let strat: PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm;
+  let strat: PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm;
 
   // Accounts
   let deployer: Signer;
@@ -64,8 +64,8 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm', () => {
   let routerV2AsAlice: PancakeRouter;
   let routerV2AsBob: PancakeRouter;
 
-  let stratAsAlice: PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm;
-  let stratAsBob: PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm;
+  let stratAsAlice: PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm;
+  let stratAsBob: PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm;
 
   let mockPancakeswapV2WorkerBaseFTokenPairAsAlice: MockPancakeswapV2CakeMaxiWorker;
   let mockPancakeswapV2WorkerBNBFtokenPairAsAlice: MockPancakeswapV2CakeMaxiWorker;
@@ -123,19 +123,34 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm', () => {
       "MockPancakeswapV2CakeMaxiWorker",
       deployer,
     )) as MockPancakeswapV2CakeMaxiWorker__factory;
-    mockPancakeswapV2WorkerBaseFTokenPair = await MockPancakeswapV2CakeMaxiWorker.deploy(baseToken.address, farmingToken.address) as MockPancakeswapV2CakeMaxiWorker
+    mockPancakeswapV2WorkerBaseFTokenPair = await MockPancakeswapV2CakeMaxiWorker.deploy(
+      baseToken.address,
+      farmingToken.address,
+      [baseToken.address, wbnb.address, farmingToken.address],
+      [farmingToken.address, wbnb.address]
+    ) as MockPancakeswapV2CakeMaxiWorker
     await mockPancakeswapV2WorkerBaseFTokenPair.deployed();
     
-    mockPancakeswapV2WorkerBNBFtokenPair = await MockPancakeswapV2CakeMaxiWorker.deploy(wbnb.address, farmingToken.address) as MockPancakeswapV2CakeMaxiWorker
+    mockPancakeswapV2WorkerBNBFtokenPair = await MockPancakeswapV2CakeMaxiWorker.deploy(
+      wbnb.address,
+      farmingToken.address,
+      [wbnb.address, farmingToken.address],
+      [farmingToken.address, wbnb.address]
+    ) as MockPancakeswapV2CakeMaxiWorker
     await mockPancakeswapV2WorkerBNBFtokenPair.deployed();
     
-    mockPancakeswapV2EvilWorker = await MockPancakeswapV2CakeMaxiWorker.deploy(baseToken.address, farmingToken.address) as MockPancakeswapV2CakeMaxiWorker
+    mockPancakeswapV2EvilWorker = await MockPancakeswapV2CakeMaxiWorker.deploy(
+      baseToken.address,
+      farmingToken.address,
+      [baseToken.address, wbnb.address, farmingToken.address],
+      [farmingToken.address, wbnb.address]
+    ) as MockPancakeswapV2CakeMaxiWorker
     await mockPancakeswapV2EvilWorker.deployed();
-    const PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm = (await ethers.getContractFactory(
-      "PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm",
+    const PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm = (await ethers.getContractFactory(
+      "PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm",
       deployer
-    )) as PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm__factory;
-    strat = await upgrades.deployProxy(PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm, [routerV2.address, mockedVault.address]) as PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm;
+    )) as PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm__factory;
+    strat = await upgrades.deployProxy(PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm, [routerV2.address, mockedVault.address]) as PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm;
     await strat.deployed();
     await strat.setWorkersOk([mockPancakeswapV2WorkerBaseFTokenPair.address, mockPancakeswapV2WorkerBNBFtokenPair.address], true)
     
@@ -151,8 +166,8 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm', () => {
     routerV2AsAlice = PancakeRouter__factory.connect(routerV2.address, alice);
     routerV2AsBob = PancakeRouter__factory.connect(routerV2.address, bob);
 
-    stratAsAlice = PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm__factory.connect(strat.address, alice);
-    stratAsBob = PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm__factory.connect(strat.address, bob);
+    stratAsAlice = PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm__factory.connect(strat.address, alice);
+    stratAsBob = PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm__factory.connect(strat.address, bob);
 
     mockPancakeswapV2WorkerBaseFTokenPairAsAlice = MockPancakeswapV2CakeMaxiWorker__factory.connect(mockPancakeswapV2WorkerBaseFTokenPair.address, alice);
     mockPancakeswapV2WorkerBNBFtokenPairAsAlice = MockPancakeswapV2CakeMaxiWorker__factory.connect(mockPancakeswapV2WorkerBNBFtokenPair.address, alice);
@@ -219,7 +234,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm', () => {
                 [ ethers.utils.parseEther('0'), ethers.utils.parseEther('0.05')]
               )],
             )
-          )).to.be.revertedWith('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm::execute:: insufficient farmingToken amount received');
+          )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm::execute:: insufficient farmingToken amount received');
         });
     })
 
@@ -240,7 +255,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm', () => {
                   [ ethers.utils.parseEther('0.05'), ethers.utils.parseEther('0.0091')]
                 )],
               )
-            )).to.be.revertedWith('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm::execute:: insufficient farmingToken amount received');
+            )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm::execute:: insufficient farmingToken amount received');
         });
     })
 
@@ -261,7 +276,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm', () => {
                   [ethers.utils.parseEther('0.05'), ethers.utils.parseEther('0.00907024323709934')]
                 )],
               )
-            )).not.to.be.revertedWith('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm::execute:: insufficient farmingToken amount received');
+            )).not.to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm::execute:: insufficient farmingToken amount received');
         });
     })
     
@@ -277,7 +292,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm', () => {
               [ethers.utils.parseEther('0'), ethers.utils.parseEther('0.05')]
             )],
           )
-        )).to.be.revertedWith('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm::onlyWhitelistedWorkers:: bad worker');
+        )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm::onlyWhitelistedWorkers:: bad worker');
       });
     })
   
@@ -293,7 +308,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm', () => {
               [ethers.utils.parseEther('0'), ethers.utils.parseEther('0.05')]
             )],
           )
-        )).to.be.revertedWith('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm::onlyWhitelistedWorkers:: bad worker');
+        )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm::onlyWhitelistedWorkers:: bad worker');
       });
     })
   
@@ -365,7 +380,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm', () => {
               [ '0', ethers.utils.parseEther('0.05')]
             )],
           )
-        )).to.be.revertedWith('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm::execute:: insufficient farmingToken amount received');
+        )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm::execute:: insufficient farmingToken amount received');
       });
     })
 
@@ -388,7 +403,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm', () => {
                 [ ethers.utils.parseEther('0.05'), ethers.utils.parseEther('0.00830')]
               )],
             )
-          )).to.be.revertedWith('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm::execute:: insufficient farmingToken amount received');
+          )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm::execute:: insufficient farmingToken amount received');
         });
     })
 
@@ -411,7 +426,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm', () => {
                   [ethers.utils.parseEther('0.05'), ethers.utils.parseEther('0.008296899991192416')]
                 )],
               )
-            )).not.to.be.revertedWith('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm::execute:: insufficient farmingToken amount received');
+            )).not.to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm::execute:: insufficient farmingToken amount received');
         });
     })
   
@@ -428,7 +443,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm', () => {
               ['0', ethers.utils.parseEther('0.05')]
             )],
           )
-        )).to.be.revertedWith('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm::onlyWhitelistedWorkers:: bad worker');
+        )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm::onlyWhitelistedWorkers:: bad worker');
       });
     })
 
@@ -444,7 +459,7 @@ describe('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm', () => {
               [ethers.utils.parseEther('0.04'), ethers.utils.parseEther('0.05')]
             )],
           )
-        )).to.be.revertedWith('PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm::onlyWhitelistedWorkers:: bad worker');
+        )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm::onlyWhitelistedWorkers:: bad worker');
       });
     })
 

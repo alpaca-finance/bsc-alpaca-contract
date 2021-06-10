@@ -11,9 +11,9 @@ import "../../apis/pancake/IPancakeRouter02.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../../utils/SafeToken.sol";
 import "../../../utils/AlpacaMath.sol";
-import "../../interfaces/IWorker.sol";
+import "../../interfaces/IWorker02.sol";
 
-contract PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
+contract PancakeswapV2RestrictedSingleAssetStrategyLiquidate is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeToken for address;
   using SafeMath for uint256;
 
@@ -24,7 +24,7 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly is OwnableUpgra
 
   // @notice require that only allowed workers are able to do the rest of the method call
   modifier onlyWhitelistedWorkers() {
-    require(okWorkers[msg.sender], "PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly::onlyWhitelistedWorkers:: bad worker");
+    require(okWorkers[msg.sender], "PancakeswapV2RestrictedSingleAssetStrategyLiquidate::onlyWhitelistedWorkers:: bad worker");
     _;
   } 
 
@@ -38,7 +38,7 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly is OwnableUpgra
     wNative = _router.WETH();
   }
 
-  /// @dev Execute worker strategy. Take BaseToken. Return Farming tokens.
+  /// @dev Execute worker strategy. take farmingToken return Basetoken
   /// @param data Extra calldata information passed along to this strategy.
   function execute(address /* user */, uint256 /* debt */, bytes calldata data)
     external
@@ -46,38 +46,23 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly is OwnableUpgra
     onlyWhitelistedWorkers
     nonReentrant
   {
-    // 1. minFarmingTokenAmount for validating a farmingToken amount from a conversion of a baseToken.
+    // 1. minBaseTokenAmount for validating a baseToken amount from a conversion of a farmingToken.
     (
-      uint256 minFarmingTokenAmount
+      uint256 minBaseTokenAmount
     ) = abi.decode(data, (uint256));
-    IWorker worker = IWorker(msg.sender);
+    IWorker02 worker = IWorker02(msg.sender);
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
     // 2. Approve router to do their stuffs
-    baseToken.safeApprove(address(router), uint256(-1));
-    uint256 balance = baseToken.myBalance();
-    // 3. Convert that all baseTokens into farmingTokens.
-    address[] memory path;
-    if (baseToken == wNative) {
-      path = new address[](2);
-      path[0] = address(wNative);
-      path[1] = address(farmingToken);
-    } else if (farmingToken == wNative) {
-      path = new address[](2);
-      path[0] = address(baseToken);
-      path[1] = address(wNative);
-    } else {
-      path = new address[](3);
-      path[0] = address(baseToken);
-      path[1] = address(wNative);
-      path[2] = address(farmingToken);
-    }
-    router.swapExactTokensForTokens(balance, 0, path, address(this), now);
-    // 4. Transfer all farmingTokens (as a result of a conversion) back to the calling worker
-    require(farmingToken.myBalance() >= minFarmingTokenAmount, "PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly::execute:: insufficient farmingToken amount received");
-    farmingToken.safeTransfer(msg.sender, farmingToken.myBalance());
+    farmingToken.safeApprove(address(router), uint256(-1));
+    uint256 balance = farmingToken.myBalance();
+    // 3. Convert that all farmingTokens back to a baseTokens.
+    router.swapExactTokensForTokens(balance, 0, worker.getReversedPath(), address(this), now);
+    // 4. Transfer all baseTokens (as a result of a conversion) back to the calling worker
+    require(baseToken.myBalance() >= minBaseTokenAmount, "PancakeswapV2RestrictedSingleAssetStrategyLiquidate::execute:: insufficient baseToken amount received");
+    baseToken.safeTransfer(msg.sender, baseToken.myBalance());
     // 5. Reset approval for safety reason
-    baseToken.safeApprove(address(router), 0);
+    farmingToken.safeApprove(address(router), 0);
   }
 
   function setWorkersOk(address[] calldata workers, bool isOk) external onlyOwner {
