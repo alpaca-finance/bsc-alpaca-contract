@@ -2,8 +2,8 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
 import { ethers, upgrades } from 'hardhat';
 import {
-  PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm,
-  PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm__factory } from '../typechain';
+  PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm,
+  PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm__factory } from '../typechain';
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     /*
@@ -56,26 +56,26 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 
   for(let i = 0; i < NEW_PARAMS.length; i++ ) {
-    console.log(">> Deploying an upgradable RestrictedCakeMaxiStrategyAddTwoSidesOptimalV2 contract");
-    const PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm = (await ethers.getContractFactory(
-      'PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm',
+    console.log(">> Deploying an upgradable RestrictedSingleAssetStrategyAddTwoSidesOptimalV2 contract");
+    const PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm = (await ethers.getContractFactory(
+      'PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm',
       (await ethers.getSigners())[0]
-    )) as PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm__factory;
+    )) as PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm__factory;
 
-    const cakeMaxiStrategyRestrictedAddBaseWithFarm = await upgrades.deployProxy(
-      PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm,[NEW_PARAMS[i].ROUTER, NEW_PARAMS[i].VAULT_ADDR]
-    ) as PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm;
+    const singleAssetStrategyRestrictedAddBaseWithFarm = await upgrades.deployProxy(
+      PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm,[NEW_PARAMS[i].ROUTER, NEW_PARAMS[i].VAULT_ADDR]
+    ) as PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm;
     
-    await cakeMaxiStrategyRestrictedAddBaseWithFarm.deployed();
-    console.log(`>> Deployed at ${cakeMaxiStrategyRestrictedAddBaseWithFarm.address}`);
+    await singleAssetStrategyRestrictedAddBaseWithFarm.deployed();
+    console.log(`>> Deployed at ${singleAssetStrategyRestrictedAddBaseWithFarm.address}`);
     
     if(NEW_PARAMS[i].WHITELIST_WORKERS.length > 0) {
       console.log(">> Whitelisting Workers")
-      const tx = await cakeMaxiStrategyRestrictedAddBaseWithFarm.setWorkersOk(NEW_PARAMS[i].WHITELIST_WORKERS, true)
+      const tx = await singleAssetStrategyRestrictedAddBaseWithFarm.setWorkersOk(NEW_PARAMS[i].WHITELIST_WORKERS, true)
       console.log(">> Done at: ", tx.hash)
     }
   }
 };
 
 export default func;
-func.tags = ['RestrictedCakeMaxiVaultStrategiesV2'];
+func.tags = ['RestrictedSingleAssetVaultStrategiesV2'];

@@ -14,14 +14,14 @@ import {
   PancakePair,
   PancakePair__factory,
   PancakeRouterV2,
-  PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading,
-  PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading__factory,
-  PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly,
-  PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly__factory,
-  PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm,
-  PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm__factory,
-  PancakeswapV2RestrictedCakeMaxiStrategyLiquidate,
-  PancakeswapV2RestrictedCakeMaxiStrategyLiquidate__factory,
+  PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading,
+  PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading__factory,
+  PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly,
+  PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly__factory,
+  PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm,
+  PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm__factory,
+  PancakeswapV2RestrictedSingleAssetStrategyLiquidate,
+  PancakeswapV2RestrictedSingleAssetStrategyLiquidate__factory,
   MockVaultForRestrictedCakeMaxiAddBaseWithFarm,
   MockVaultForRestrictedCakeMaxiAddBaseWithFarm__factory,
   WETH,
@@ -88,11 +88,11 @@ describe('CakeMaxiWorker', () => {
   let syrup: SyrupBar;
 
   /// Strategy instance(s)
-  let stratAdd: PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly
-  let stratLiq: PancakeswapV2RestrictedCakeMaxiStrategyLiquidate
-  let stratAddWithFarm: PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm
-  let stratMinimize: PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading;
-  let stratEvil: PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading
+  let stratAdd: PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly
+  let stratLiq: PancakeswapV2RestrictedSingleAssetStrategyLiquidate
+  let stratAddWithFarm: PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm
+  let stratMinimize: PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading;
+  let stratEvil: PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading
 
   // Accounts
   let deployer: Signer;
@@ -132,6 +132,7 @@ describe('CakeMaxiWorker', () => {
 
   beforeEach(async () => {
     [deployer, alice, bob, eve] = await ethers.getSigners();
+
     // Setup Mocked Vault (for unit testing purposed)
     const MockVault =  (await ethers.getContractFactory(
       "MockVaultForRestrictedCakeMaxiAddBaseWithFarm",
@@ -140,6 +141,7 @@ describe('CakeMaxiWorker', () => {
     mockedVault = await upgrades.deployProxy(MockVault) as MockVaultForRestrictedCakeMaxiAddBaseWithFarm;
     await mockedVault.deployed();
     await mockedVault.setMockOwner(await alice.getAddress())
+
     // Setup Pancakeswap
     const PancakeFactory = (await ethers.getContractFactory(
       "PancakeFactory",
@@ -147,12 +149,14 @@ describe('CakeMaxiWorker', () => {
     )) as PancakeFactory__factory;
     factoryV2 = await PancakeFactory.deploy((await deployer.getAddress()));
     await factoryV2.deployed();
+
     const WBNB = (await ethers.getContractFactory(
       "WETH",
       deployer
     )) as WETH__factory;
     wbnb = await WBNB.deploy();
     await wbnb.deployed()
+
     // Setup WNativeRelayer
     const WNativeRelayer = (await ethers.getContractFactory(
       'WNativeRelayer',
@@ -160,12 +164,14 @@ describe('CakeMaxiWorker', () => {
     )) as WNativeRelayer__factory;
     wNativeRelayer = await WNativeRelayer.deploy(wbnb.address);
     await wNativeRelayer.deployed();
+
     const PancakeRouterV2 = (await ethers.getContractFactory(
       "PancakeRouterV2",
       deployer
     )) as PancakeRouterV2__factory;
     routerV2 = await PancakeRouterV2.deploy(factoryV2.address, wbnb.address);
     await routerV2.deployed();
+
     // Setup token stuffs
     const MockERC20 = (await ethers.getContractFactory(
       "MockERC20",
@@ -175,7 +181,6 @@ describe('CakeMaxiWorker', () => {
     await baseToken.deployed();
     await baseToken.mint(await alice.getAddress(), ethers.utils.parseEther('100'));
     await baseToken.mint(await bob.getAddress(), ethers.utils.parseEther('100'));
-
     const AlpacaToken = (await ethers.getContractFactory(
       "AlpacaToken",
       deployer
@@ -201,6 +206,7 @@ describe('CakeMaxiWorker', () => {
     )) as SyrupBar__factory;
     syrup = await SyrupBar.deploy(cake.address);
     await syrup.deployed();
+
     // add beneficial vault with alpaca as an underlying token, thus beneficialVault reward is ALPACA
     const MockBeneficialVault =  (await ethers.getContractFactory(
       "MockBeneficialVault",
@@ -209,60 +215,92 @@ describe('CakeMaxiWorker', () => {
     mockedBeneficialVault = await upgrades.deployProxy(MockBeneficialVault, [alpaca.address]) as MockBeneficialVault;
     await mockedBeneficialVault.deployed();
     await mockedBeneficialVault.setMockOwner(await alice.getAddress())
+
     // Setup Strategies
-    const PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly = (await ethers.getContractFactory(
-      "PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly",
+    const PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly = (await ethers.getContractFactory(
+      "PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly",
       deployer
-    )) as PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly__factory;
-    stratAdd = await upgrades.deployProxy(PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly, [routerV2.address]) as PancakeswapV2RestrictedCakeMaxiStrategyAddBaseTokenOnly;
+    )) as PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly__factory;
+    stratAdd = await upgrades.deployProxy(PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly, [routerV2.address]) as PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly;
     await stratAdd.deployed();
-    const PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm = (await ethers.getContractFactory(
-      "PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm",
+    const PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm = (await ethers.getContractFactory(
+      "PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm",
       deployer
-    )) as PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm__factory;
-    stratAddWithFarm = await upgrades.deployProxy(PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm, [routerV2.address, mockedVault.address]) as PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm;
+    )) as PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm__factory;
+    stratAddWithFarm = await upgrades.deployProxy(PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm, [routerV2.address, mockedVault.address]) as PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm;
     await stratAddWithFarm.deployed();
-    const PancakeswapV2RestrictedCakeMaxiStrategyLiquidate = (await ethers.getContractFactory(
-      "PancakeswapV2RestrictedCakeMaxiStrategyLiquidate",
+    const PancakeswapV2RestrictedSingleAssetStrategyLiquidate = (await ethers.getContractFactory(
+      "PancakeswapV2RestrictedSingleAssetStrategyLiquidate",
       deployer
-    )) as PancakeswapV2RestrictedCakeMaxiStrategyLiquidate__factory;
-    stratLiq = await upgrades.deployProxy(PancakeswapV2RestrictedCakeMaxiStrategyLiquidate, [routerV2.address]) as PancakeswapV2RestrictedCakeMaxiStrategyLiquidate;
+    )) as PancakeswapV2RestrictedSingleAssetStrategyLiquidate__factory;
+    stratLiq = await upgrades.deployProxy(PancakeswapV2RestrictedSingleAssetStrategyLiquidate, [routerV2.address]) as PancakeswapV2RestrictedSingleAssetStrategyLiquidate;
     await stratLiq.deployed();
-    const PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading = (await ethers.getContractFactory(
-      "PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading",
+    const PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading = (await ethers.getContractFactory(
+      "PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading",
       deployer
-    )) as PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading__factory;
-    stratMinimize = await upgrades.deployProxy(PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading, [routerV2.address, wNativeRelayer.address]) as PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading;
+    )) as PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading__factory;
+    stratMinimize = await upgrades.deployProxy(PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading, [routerV2.address, wNativeRelayer.address]) as PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading;
     await stratMinimize.deployed();
     const EvilStrat = (await ethers.getContractFactory(
-      "PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading",
+      "PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading",
       deployer
-    )) as PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading__factory;
-    stratEvil = await upgrades.deployProxy(EvilStrat, [routerV2.address, wNativeRelayer.address]) as PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading;
+    )) as PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading__factory;
+    stratEvil = await upgrades.deployProxy(EvilStrat, [routerV2.address, wNativeRelayer.address]) as PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading;
     await stratEvil.deployed()
+
     /// Setup MasterChef
     const PancakeMasterChef = (await ethers.getContractFactory(
     "PancakeMasterChef",
     deployer
     )) as PancakeMasterChef__factory;
-
     masterChef = await PancakeMasterChef.deploy(
       cake.address, syrup.address, await deployer.getAddress(), CAKE_REWARD_PER_BLOCK, 0);
     await masterChef.deployed();
     // Transfer ownership so masterChef can mint CAKE
     await cake.transferOwnership(masterChef.address);
     await syrup.transferOwnership(masterChef.address);
-    // Add lp to masterChef's pool
-    await masterChef.add(0, cake.address, true);
+
     // Setup Cake Maxi Worker
     const CakeMaxiWorker = (await ethers.getContractFactory(
       "CakeMaxiWorker",
       deployer,
     )) as CakeMaxiWorker__factory;
-    cakeMaxiWorkerNative = await upgrades.deployProxy(CakeMaxiWorker, [await alice.getAddress(), wbnb.address, masterChef.address, routerV2.address, mockedBeneficialVault.address, poolId, stratAdd.address, stratLiq.address, REINVEST_BOUNTY_BPS, ZERO_BENEFICIALVAULT_BOUNTY_BPS]) as CakeMaxiWorker
+    cakeMaxiWorkerNative = await upgrades.deployProxy(CakeMaxiWorker,
+      [
+        await alice.getAddress(),
+        wbnb.address,
+        masterChef.address,
+        routerV2.address,
+        mockedBeneficialVault.address,
+        poolId,
+        stratAdd.address,
+        stratLiq.address,
+        REINVEST_BOUNTY_BPS,
+        ZERO_BENEFICIALVAULT_BOUNTY_BPS,
+        [wbnb.address, cake.address],
+        [cake.address, wbnb.address, alpaca.address]
+      ]
+    ) as CakeMaxiWorker
     await cakeMaxiWorkerNative.deployed();
-    cakeMaxiWorkerNonNative = await upgrades.deployProxy(CakeMaxiWorker, [await alice.getAddress(), baseToken.address, masterChef.address, routerV2.address,  mockedBeneficialVault.address, poolId, stratAdd.address, stratLiq.address, REINVEST_BOUNTY_BPS, ZERO_BENEFICIALVAULT_BOUNTY_BPS]) as CakeMaxiWorker
+
+    cakeMaxiWorkerNonNative = await upgrades.deployProxy(CakeMaxiWorker,
+      [
+        await alice.getAddress(),
+        baseToken.address,
+        masterChef.address,
+        routerV2.address, 
+        mockedBeneficialVault.address,
+        poolId,
+        stratAdd.address,
+        stratLiq.address,
+        REINVEST_BOUNTY_BPS,
+        ZERO_BENEFICIALVAULT_BOUNTY_BPS,
+        [baseToken.address, wbnb.address, cake.address],
+        [cake.address, wbnb.address, alpaca.address]
+      ]
+    ) as CakeMaxiWorker
     await cakeMaxiWorkerNonNative.deployed();
+
     // Set Up integrated Vault (for integration test purposed)
     const FairLaunch = (await ethers.getContractFactory(
       "FairLaunch",
@@ -298,18 +336,34 @@ describe('CakeMaxiWorker', () => {
       deployer
     )) as Vault__factory;
     integratedVault = await upgrades.deployProxy(Vault, [
-      simpleVaultConfig.address, wbnb.address, 'Interest Bearing BTOKEN', 'ibBTOKEN', 18, debtToken.address
+      simpleVaultConfig.address, wbnb.address, 'Interest Bearing BNB', 'ibBNB', 18, debtToken.address
     ]) as Vault;
     await integratedVault.deployed();
     await debtToken.transferOwnership(integratedVault.address);
     // Update DebtToken
     await integratedVault.updateDebtToken(debtToken.address, 0);
 
-    // Set add FairLaunch pool and set fairLaunchPoolId for Vault
+    // Add FairLaunch pool and set fairLaunchPoolId for Vault
     await fairLaunch.addPool(1, (await integratedVault.debtToken()), false);
     await integratedVault.setFairLaunchPoolId(0);
-    integratedCakeMaxiWorker = await upgrades.deployProxy(CakeMaxiWorker, [integratedVault.address, wbnb.address, masterChef.address, routerV2.address,  integratedVault.address, poolId, stratAdd.address, stratLiq.address, REINVEST_BOUNTY_BPS, ZERO_BENEFICIALVAULT_BOUNTY_BPS]) as CakeMaxiWorker
+
+    // Setup integrated CakeMaxiWorker for integration test
+    integratedCakeMaxiWorker = await upgrades.deployProxy(CakeMaxiWorker, [
+      integratedVault.address,
+      wbnb.address,
+      masterChef.address,
+      routerV2.address,
+      integratedVault.address,
+      poolId,
+      stratAdd.address,
+      stratLiq.address,
+      REINVEST_BOUNTY_BPS,
+      ZERO_BENEFICIALVAULT_BOUNTY_BPS,
+      [wbnb.address, cake.address],
+      [cake.address, wbnb.address]
+    ]) as CakeMaxiWorker
     await cakeMaxiWorkerNonNative.deployed();
+
     // Setting up dependencies for workers & strategies
     await simpleVaultConfig.setWorker(integratedCakeMaxiWorker.address, true, true, WORK_FACTOR, KILL_FACTOR);
     await wNativeRelayer.setCallerOk([stratMinimize.address, stratLiq.address, stratAddWithFarm.address, stratAdd.address, integratedVault.address], true)
@@ -324,6 +378,7 @@ describe('CakeMaxiWorker', () => {
     await stratLiq.setWorkersOk([cakeMaxiWorkerNative.address, cakeMaxiWorkerNonNative.address, integratedCakeMaxiWorker.address], true)
     await stratMinimize.setWorkersOk([cakeMaxiWorkerNative.address, cakeMaxiWorkerNonNative.address, integratedCakeMaxiWorker.address], true)
     await stratEvil.setWorkersOk([cakeMaxiWorkerNative.address, cakeMaxiWorkerNonNative.address, integratedCakeMaxiWorker.address], true)
+    
     // Assign contract signer
     baseTokenAsAlice = MockERC20__factory.connect(baseToken.address, alice);
     baseTokenAsBob = MockERC20__factory.connect(baseToken.address, bob);
@@ -339,8 +394,8 @@ describe('CakeMaxiWorker', () => {
     integratedVaultAsAlice = Vault__factory.connect(integratedVault.address, alice)
     integratedVaultAsBob = Vault__factory.connect(integratedVault.address, bob)
     integratedCakeMaxiWorkerAsEve =  CakeMaxiWorker__factory.connect(integratedCakeMaxiWorker.address, eve);
+    
     // Adding liquidity to the pool
-    // Alice adds 0.1 FTOKEN + 1 WBTC + 1 WBNB
     await wbnbTokenAsAlice.deposit({
       value: ethers.utils.parseEther('52')
     })
@@ -356,11 +411,11 @@ describe('CakeMaxiWorker', () => {
     await alpaca.approve(routerV2.address, ethers.utils.parseEther('10'));
     await wbnb.approve(routerV2.address, ethers.utils.parseEther('10'));
     
-    // Add liquidity to the WBTC-WBNB pool on Pancakeswap
+    // Add liquidity to the BTOKEN-WBNB pool on Pancakeswap
     await routerV2AsAlice.addLiquidity(
       baseToken.address, wbnb.address,
       ethers.utils.parseEther('1'), ethers.utils.parseEther('1'), '0', '0', await alice.getAddress(), FOREVER);
-    // Add liquidity to the WBNB-FTOKEN pool on Pancakeswap
+    // Add liquidity to the CAKE-FTOKEN pool on Pancakeswap
     await routerV2AsAlice.addLiquidity(
       cake.address, wbnb.address,
       ethers.utils.parseEther('0.1'), 
@@ -370,7 +425,7 @@ describe('CakeMaxiWorker', () => {
       await alice.getAddress(), 
       FOREVER
     );
-    // Add liquidity to the FTOKEN-ALPACA pool on Pancakeswap
+    // Add liquidity to the ALPACA-WBNB pool on Pancakeswap
     await routerV2.addLiquidity(
       wbnb.address, alpaca.address,
       ethers.utils.parseEther('10'), 

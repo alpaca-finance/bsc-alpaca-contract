@@ -401,7 +401,7 @@
       "StrategyLiquidate": "0xdbcDcd7bE24d0dbf2b167F14435945EC7e0F454A",
       "StrategyWithdrawMinimizeTrading": "0xE5909854177a493BFeF616e2E142211413aC295d"
     },
-    "CakeMaxi": {
+    "PancakeswapSingleAsset": {
       "StrategyAddBaseTokenOnly": "0xE331932D8599c256328B3C649135AC8bfB0Fa5B5",
       "StrategyLiquidate": "0xfA36a6135433e971AD66BA0032f76c8E43Ac1005",
       "StrategyWithdrawMinimizeTrading": "0x6C12b05F9235cf0D92B152F47bcB6947B927591e"
@@ -412,7 +412,7 @@
     "TripleSlopeModelStable20Max150": "0x038cd7a6A397d7f5D07a0c76A4610a7Ca64eb7d3",
     "WNativeRelayer": "0x7e2284c8CC74F13FA6c218c4231b0786E6204728",
     "WorkerConfig": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
-    "CakeMaxiWorkerConfig": "0xB3A73ceA38Bf48d7579F25d7fb7F79d33f81650e"
+    "SingleAssetWorkerConfig": "0xB3A73ceA38Bf48d7579F25d7fb7F79d33f81650e"
   },
   "Oracle": {
     "SimpleOracle": "0xFb0645d38e35DA4C4Aa0079366B7d9905f162fCe"
@@ -428,7 +428,7 @@
     "StrategyAddTwoSidesOptimal": {
       "Pancakeswap": "0x0A5515aEdc275b9fF19d11Cd74465e83067f6D40",
       "Waultswap": "0xC01390eea9A7e27199e03dA5053C2dd63A5169ff",
-      "CakeMaxi": "0x3Fa2C873b63baB8e8fD9dB35cFBbc6593034510c"
+      "PancakeswapSingleAsset": "0x3Fa2C873b63baB8e8fD9dB35cFBbc6593034510c"
     },
     "workers": [{
       "name": "CAKE-WBNB PancakeswapWorker",
@@ -728,7 +728,7 @@
     "StrategyAddTwoSidesOptimal": {
       "Pancakeswap": "0x22fC6110d5d9b122f3C2d4715C24566342161a12",
       "Waultswap": "0xFfA12222e3ccEF58684Af20aaa4D5bf13c8faC10",
-      "CakeMaxi": "0x146EEb132f5926Fce3582BDEfea81e94c54e2A5F"
+      "PancakeswapSingleAsset": "0x146EEb132f5926Fce3582BDEfea81e94c54e2A5F"
     },
     "workers": [{
       "name": "USDT-BUSD PancakeswapWorker",
@@ -898,7 +898,7 @@
     "StrategyAddTwoSidesOptimal": {
       "Pancakeswap": "0xD8916928Cd542016E319Ad0c816EF01310462BEa",
       "Waultswap": "0xeBfda6D0232335a067aE6a3e5E470D8cDcb22f53",
-      "CakeMaxi": "0x4f16fBeA98a33E333AB8Cecf5bD05cD7E58AbA4D"
+      "PancakeswapSingleAsset": "0x4f16fBeA98a33E333AB8Cecf5bD05cD7E58AbA4D"
     },
     "workers": [{
       "name": "BETH-ETH PancakeswapWorker",
@@ -1003,7 +1003,7 @@
     "StrategyAddTwoSidesOptimal": {
       "Pancakeswap": "0xdA6031c074d41A28dF8827B3cF6B66352eA3Ba7A",
       "Waultswap": "0xbc61195af997e06EfbF4a0991b58c890E33e0642",
-      "CakeMaxi": "0x50D683C2b33a03124867215e3A38f1bA43a12E8f"
+      "PancakeswapSingleAsset": "0x50D683C2b33a03124867215e3A38f1bA43a12E8f"
     },
     "workers": [{
       "name": "BUSD-ALPACA PancakeswapWorker",
@@ -1056,7 +1056,7 @@
     "StrategyAddTwoSidesOptimal": {
       "Pancakeswap": "0x4D71d66e598e6dCaAb9a3a96890f60169d968212",
       "Waultswap": "0x48393b82Abac4Fbb807A927E60008eFaf5f79Cf7",
-      "CakeMaxi": "0x7A7553B7e46680eae3B97f396150b616401B9d6D"
+      "PancakeswapSingleAsset": "0x7A7553B7e46680eae3B97f396150b616401B9d6D"
     },
     "workers": [{
       "name": "BUSD-USDT PancakeswapWorker",
@@ -1148,7 +1148,7 @@
     "StrategyAddTwoSidesOptimal": {
       "Pancakeswap": "0x453a9A2500947d2F730068E77C5294D3feb5DA67",
       "Waultswap": "0x29a8B6f3c9F79314a82f3092EA065F9f15371dB8",
-      "CakeMaxi": "0x0Bfa5c4Fda1Bd75E3115C9FE9718919DaB524f55"
+      "PancakeswapSingleAsset": "0x0Bfa5c4Fda1Bd75E3115C9FE9718919DaB524f55"
     },
     "workers": [{
       "name": "WBNB-BTCB PancakeswapWorker",

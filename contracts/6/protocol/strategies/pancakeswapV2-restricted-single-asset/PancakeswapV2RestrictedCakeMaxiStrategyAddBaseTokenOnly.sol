@@ -9,12 +9,11 @@ import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.so
 
 import "../../apis/pancake/IPancakeRouter02.sol";
 import "../../interfaces/IStrategy.sol";
-import "../../interfaces/IVault.sol";
 import "../../../utils/SafeToken.sol";
 import "../../../utils/AlpacaMath.sol";
-import "../../interfaces/IWorker.sol";
+import "../../interfaces/IWorker02.sol";
 
-contract PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
+contract PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeToken for address;
   using SafeMath for uint256;
 
@@ -22,26 +21,24 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm is OwnableUpgrad
   IPancakeRouter02 public router;
   address public wNative;
   mapping(address => bool) public okWorkers;
-  IVault public vault;
 
   // @notice require that only allowed workers are able to do the rest of the method call
   modifier onlyWhitelistedWorkers() {
-    require(okWorkers[msg.sender], "PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm::onlyWhitelistedWorkers:: bad worker");
+    require(okWorkers[msg.sender], "PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly::onlyWhitelistedWorkers:: bad worker");
     _;
   } 
 
   /// @dev Create a new add Token only strategy instance.
-  /// @param _router The PancakeSwap router smart contract.
-  function initialize(IPancakeRouter02 _router, IVault _vault) external initializer {
+  /// @param _router The Pancakeswap router smart contract.
+  function initialize(IPancakeRouter02 _router) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
     factory = IPancakeFactory(_router.factory());
     router = _router;
     wNative = _router.WETH();
-    vault = _vault;
   }
 
-  /// @dev Execute worker strategy. Take BaseToken along with input farmingTokenAmount. Return Farming token.
+  /// @dev Execute worker strategy. Take BaseToken. Return Farming tokens.
   /// @param data Extra calldata information passed along to this strategy.
   function execute(address /* user */, uint256 /* debt */, bytes calldata data)
     external
@@ -49,40 +46,22 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm is OwnableUpgrad
     onlyWhitelistedWorkers
     nonReentrant
   {
-    // 1. Find out how many farmingToken amount the strategy should deal with and min additional farmingTokens.
+    // 1. minFarmingTokenAmount for validating a farmingToken amount from a conversion of a baseToken.
     (
-      uint256 inputFarmingTokenAmount,
       uint256 minFarmingTokenAmount
-    ) = abi.decode(data, (uint256, uint256));
-    IWorker worker = IWorker(msg.sender);
+    ) = abi.decode(data, (uint256));
+    IWorker02 worker = IWorker02(msg.sender);
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
     // 2. Approve router to do their stuffs
     baseToken.safeApprove(address(router), uint256(-1));
-    // 3. request additional fund in form of a farmingToken from the vault using inputFarmingTokenAmount
-    vault.requestFunds(farmingToken, inputFarmingTokenAmount);
     uint256 balance = baseToken.myBalance();
-    // 4. Convert that all baseTokens to a farmingTokens.
-    address[] memory path;
-    if (baseToken == wNative) {
-      path = new address[](2);
-      path[0] = address(wNative);
-      path[1] = address(farmingToken);
-    } else if (farmingToken == wNative) {
-      path = new address[](2);
-      path[0] = address(baseToken);
-      path[1] = address(wNative);
-    } else {
-      path = new address[](3);
-      path[0] = address(baseToken);
-      path[1] = address(wNative);
-      path[2] = address(farmingToken);
-    }
-    router.swapExactTokensForTokens(balance, 0, path, address(this), now);
-    // 5. Transfer all farming token (as a result of conversion) back to the calling worker
-    require(farmingToken.myBalance().sub(inputFarmingTokenAmount) >= minFarmingTokenAmount, "PancakeswapV2RestrictedCakeMaxiStrategyAddBaseWithFarm::execute:: insufficient farmingToken amount received");
+    // 3. Convert that all baseTokens into farmingTokens.
+    router.swapExactTokensForTokens(balance, 0, worker.getPath(), address(this), now);
+    // 4. Transfer all farmingTokens (as a result of a conversion) back to the calling worker
+    require(farmingToken.myBalance() >= minFarmingTokenAmount, "PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly::execute:: insufficient farmingToken amount received");
     farmingToken.safeTransfer(msg.sender, farmingToken.myBalance());
-    // 6. Reset approval for safety reason
+    // 5. Reset approval for safety reason
     baseToken.safeApprove(address(router), 0);
   }
 

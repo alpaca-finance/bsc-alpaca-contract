@@ -16,19 +16,19 @@ import {
   WETH__factory,
   CakeToken,
   CakeToken__factory,
-  CakeMaxiWorkerConfig,
-  CakeMaxiWorkerConfig__factory,
   SimplePriceOracle,
   SimplePriceOracle__factory,
   MockPancakeswapV2CakeMaxiWorker,
   MockPancakeswapV2CakeMaxiWorker__factory,
 } from "../typechain";
 import * as TimeHelpers from "./helpers/time"
+import { SingleAssetWorkerConfig__factory } from "../typechain/factories/SingleAssetWorkerConfig__factory";
+import { SingleAssetWorkerConfig } from "../typechain/SingleAssetWorkerConfig";
 
 chai.use(solidity);
 const { expect } = chai;
 
-describe('CakeMaxiWorkerConfig', () => {
+describe('SingleAssetWorkerConfig', () => {
   const FOREVER = '2000000000';
 
   /// PancakeswapV2-related instance(s)
@@ -40,20 +40,23 @@ describe('CakeMaxiWorkerConfig', () => {
   let baseToken: MockERC20;
   let cake: CakeToken;
 
-  // Accounts
+  /// Accounts
   let deployer: Signer;
   let alice: Signer;
   let bob: Signer;
   let eve: Signer;
 
-  // Workers
+  /// SingleAssetWorkerConfig
+  let singleAssetWorkerConfig: SingleAssetWorkerConfig
+
+  /// Workers
   let cakeMaxiWorkerNative: MockPancakeswapV2CakeMaxiWorker
   let cakeMaxiWorkerNonNative: MockPancakeswapV2CakeMaxiWorker
 
-  // Vault
+  /// Vault
   let mockedVault: MockVaultForRestrictedCakeMaxiAddBaseWithFarm
 
-  // Contract Signer
+  /// Contract Signer
   let baseTokenAsAlice: MockERC20;
 
   let cakeAsAlice: MockERC20;
@@ -61,13 +64,14 @@ describe('CakeMaxiWorkerConfig', () => {
   let wbnbTokenAsAlice: WETH;
   let wbnbTokenAsBob: WETH;
 
-  let routerV2AsAlice: PancakeRouterV2;
-  let simplePriceOracleAsAlice: SimplePriceOracle;
-  let cakeMaxiWorkerConfigAsAlice: CakeMaxiWorkerConfig;
-  let cakeMaxiWorkerConfig: CakeMaxiWorkerConfig
+  let routerV2AsAlice: PancakeRouterV2
+  let simplePriceOracleAsAlice: SimplePriceOracle
+  let singleAssetWorkerConfigAsAlice: SingleAssetWorkerConfig
 
   /// SimpleOracle-related instance(s)
-  let simplePriceOracle: SimplePriceOracle;
+  let simplePriceOracle: SimplePriceOracle
+
+  /// LP Prices
   let lpPriceBaseBnb: BigNumber
   let lpPriceFarmBNB: BigNumber
   let lpPriceBNBFarm: BigNumber
@@ -114,13 +118,13 @@ describe('CakeMaxiWorkerConfig', () => {
     routerV2 = await PancakeRouterV2.deploy(factoryV2.address, wbnb.address);
     await routerV2.deployed();
 
-    /// Deploy WorkerConfig
-    const WorkerConfig = (await ethers.getContractFactory(
-      'CakeMaxiWorkerConfig',
+    /// Deploy SingleAssetWorkerConfig
+    const SingleAssetWorkerConfig = (await ethers.getContractFactory(
+      'SingleAssetWorkerConfig',
       deployer
-    )) as CakeMaxiWorkerConfig__factory;
-    cakeMaxiWorkerConfig = await upgrades.deployProxy(WorkerConfig, [simplePriceOracle.address, routerV2.address]) as CakeMaxiWorkerConfig;
-    await cakeMaxiWorkerConfig.deployed();
+    )) as SingleAssetWorkerConfig__factory;
+    singleAssetWorkerConfig = await upgrades.deployProxy(SingleAssetWorkerConfig, [simplePriceOracle.address, routerV2.address]) as SingleAssetWorkerConfig;
+    await singleAssetWorkerConfig.deployed();
 
     /// Setup token stuffs
     const MockERC20 = (await ethers.getContractFactory(
@@ -148,9 +152,9 @@ describe('CakeMaxiWorkerConfig', () => {
       "MockPancakeswapV2CakeMaxiWorker",
       deployer,
     )) as MockPancakeswapV2CakeMaxiWorker__factory;
-    cakeMaxiWorkerNative = await CakeMaxiWorker.deploy(wbnb.address, cake.address) as MockPancakeswapV2CakeMaxiWorker
+    cakeMaxiWorkerNative = await CakeMaxiWorker.deploy(wbnb.address, cake.address, [wbnb.address, cake.address], [cake.address, wbnb.address]) as MockPancakeswapV2CakeMaxiWorker
     await cakeMaxiWorkerNative.deployed();
-    cakeMaxiWorkerNonNative = await CakeMaxiWorker.deploy(baseToken.address, cake.address) as MockPancakeswapV2CakeMaxiWorker
+    cakeMaxiWorkerNonNative = await CakeMaxiWorker.deploy(baseToken.address, cake.address, [baseToken.address, wbnb.address, cake.address], [cake.address, baseToken.address]) as MockPancakeswapV2CakeMaxiWorker
     await cakeMaxiWorkerNonNative.deployed();
     
 
@@ -160,12 +164,11 @@ describe('CakeMaxiWorkerConfig', () => {
     wbnbTokenAsAlice = WETH__factory.connect(wbnb.address, alice)
     wbnbTokenAsBob = WETH__factory.connect(wbnb.address, bob)
     routerV2AsAlice = PancakeRouterV2__factory.connect(routerV2.address, alice);
-    cakeMaxiWorkerConfigAsAlice = CakeMaxiWorkerConfig__factory.connect(cakeMaxiWorkerConfig.address, alice);
+    singleAssetWorkerConfigAsAlice = SingleAssetWorkerConfig__factory.connect(singleAssetWorkerConfig.address, alice);
     simplePriceOracleAsAlice = SimplePriceOracle__factory.connect(simplePriceOracle.address, alice);
     await simplePriceOracle.setFeeder(await alice.getAddress())
     
     // Adding liquidity to the pool
-    // Alice adds 0.1 FTOKEN + 1 WBTC + 1 WBNB
     await wbnbTokenAsAlice.deposit({
         value: ethers.utils.parseEther('52')
     })
@@ -175,11 +178,11 @@ describe('CakeMaxiWorkerConfig', () => {
     await cakeAsAlice.approve(routerV2.address, ethers.utils.parseEther('0.1'));
     await baseTokenAsAlice.approve(routerV2.address, ethers.utils.parseEther('1'));
     await wbnbTokenAsAlice.approve(routerV2.address, ethers.utils.parseEther('11'))
-    // Add liquidity to the WBTC-WBNB pool on Pancakeswap
+    // Add liquidity to the BTOKEN-WBNB pool on Pancakeswap
     await routerV2AsAlice.addLiquidity(
       baseToken.address, wbnb.address,
       ethers.utils.parseEther('1'), ethers.utils.parseEther('10'), '0', '0', await alice.getAddress(), FOREVER);
-      // Add liquidity to the WBNB-FTOKEN pool on Pancakeswap
+    // Add liquidity to the CAKE-WBNB pool on Pancakeswap
     await routerV2AsAlice.addLiquidity(
         cake.address, wbnb.address,
         ethers.utils.parseEther('0.1'), 
@@ -193,7 +196,7 @@ describe('CakeMaxiWorkerConfig', () => {
     lpPriceBNBBase = ethers.utils.parseEther('1').mul(ethers.utils.parseEther('1')).div(ethers.utils.parseEther('10'))
     lpPriceFarmBNB = ethers.utils.parseEther('1').mul(ethers.utils.parseEther('1')).div(ethers.utils.parseEther('0.1'))
     lpPriceBNBFarm = ethers.utils.parseEther('0.1').mul(ethers.utils.parseEther('1')).div(ethers.utils.parseEther('1'))
-    await cakeMaxiWorkerConfig.setConfigs(
+    await singleAssetWorkerConfig.setConfigs(
       [
         cakeMaxiWorkerNative.address, 
         cakeMaxiWorkerNonNative.address
@@ -208,36 +211,36 @@ describe('CakeMaxiWorkerConfig', () => {
   describe("#emergencySetAcceptDebt", async () => {
     context("when non owner try to set governor", async() => {
       it('should be reverted', async() => {
-        await expect(cakeMaxiWorkerConfigAsAlice.setGovernor(await deployer.getAddress())).to.be.revertedWith('Ownable: caller is not the owner');
+        await expect(singleAssetWorkerConfigAsAlice.setGovernor(await deployer.getAddress())).to.be.revertedWith('Ownable: caller is not the owner');
       })
     })
 
     context("when an owner set governor", async() => {
       it('should work', async() => {
-        await cakeMaxiWorkerConfig.setGovernor(await deployer.getAddress());
-        expect(await cakeMaxiWorkerConfig.governor()).to.be.eq(await deployer.getAddress());
+        await singleAssetWorkerConfig.setGovernor(await deployer.getAddress());
+        expect(await singleAssetWorkerConfig.governor()).to.be.eq(await deployer.getAddress());
       })
     })
 
     context("when non governor try to use emergencySetAcceptDebt", async() => {
       it('should revert', async() => {
-        await expect(cakeMaxiWorkerConfigAsAlice.emergencySetAcceptDebt([cakeMaxiWorkerNative.address], false)).to.be.revertedWith('CakeMaxiWorkerConfig::onlyGovernor:: msg.sender not governor');
+        await expect(singleAssetWorkerConfigAsAlice.emergencySetAcceptDebt([cakeMaxiWorkerNative.address], false)).to.be.revertedWith('SingleAssetWorkerConfig::onlyGovernor:: msg.sender not governor');
       })
     })
 
     context("when governor uses emergencySetAcceptDebt", async() => {
       it('should work', async() => {
-        await cakeMaxiWorkerConfig.setGovernor(await deployer.getAddress());
-        await cakeMaxiWorkerConfig.emergencySetAcceptDebt([cakeMaxiWorkerNative.address, cakeMaxiWorkerNonNative.address], false);
-        expect((await cakeMaxiWorkerConfig.workers(cakeMaxiWorkerNative.address)).acceptDebt).to.be.eq(false)
-        expect((await cakeMaxiWorkerConfig.workers(cakeMaxiWorkerNative.address)).workFactor).to.be.eq(1)
-        expect((await cakeMaxiWorkerConfig.workers(cakeMaxiWorkerNative.address)).killFactor).to.be.eq(1)
-        expect((await cakeMaxiWorkerConfig.workers(cakeMaxiWorkerNative.address)).maxPriceDiff).to.be.eq(11000)
+        await singleAssetWorkerConfig.setGovernor(await deployer.getAddress());
+        await singleAssetWorkerConfig.emergencySetAcceptDebt([cakeMaxiWorkerNative.address, cakeMaxiWorkerNonNative.address], false);
+        expect((await singleAssetWorkerConfig.workers(cakeMaxiWorkerNative.address)).acceptDebt).to.be.eq(false)
+        expect((await singleAssetWorkerConfig.workers(cakeMaxiWorkerNative.address)).workFactor).to.be.eq(1)
+        expect((await singleAssetWorkerConfig.workers(cakeMaxiWorkerNative.address)).killFactor).to.be.eq(1)
+        expect((await singleAssetWorkerConfig.workers(cakeMaxiWorkerNative.address)).maxPriceDiff).to.be.eq(11000)
 
-        expect((await cakeMaxiWorkerConfig.workers(cakeMaxiWorkerNonNative.address)).acceptDebt).to.be.eq(false)
-        expect((await cakeMaxiWorkerConfig.workers(cakeMaxiWorkerNonNative.address)).workFactor).to.be.eq(1)
-        expect((await cakeMaxiWorkerConfig.workers(cakeMaxiWorkerNonNative.address)).killFactor).to.be.eq(1)
-        expect((await cakeMaxiWorkerConfig.workers(cakeMaxiWorkerNonNative.address)).maxPriceDiff).to.be.eq(11000)
+        expect((await singleAssetWorkerConfig.workers(cakeMaxiWorkerNonNative.address)).acceptDebt).to.be.eq(false)
+        expect((await singleAssetWorkerConfig.workers(cakeMaxiWorkerNonNative.address)).workFactor).to.be.eq(1)
+        expect((await singleAssetWorkerConfig.workers(cakeMaxiWorkerNonNative.address)).killFactor).to.be.eq(1)
+        expect((await singleAssetWorkerConfig.workers(cakeMaxiWorkerNonNative.address)).maxPriceDiff).to.be.eq(11000)
       })
     })
   })
@@ -248,28 +251,28 @@ describe('CakeMaxiWorkerConfig', () => {
         it('should be reverted', async () => {
           await simplePriceOracleAsAlice.setPrices([wbnb.address, cake.address, baseToken.address, wbnb.address],[baseToken.address, wbnb.address, wbnb.address, cake.address],[1, 1, 1, 1])
           await TimeHelpers.increase(BigNumber.from('86401')) // 1 day and 1 second have passed
-          await expect(cakeMaxiWorkerConfigAsAlice.isStable(cakeMaxiWorkerNonNative.address)).to.revertedWith('CakeMaxiWorkerConfig::isStable:: price too stale')
+          await expect(singleAssetWorkerConfigAsAlice.isStable(cakeMaxiWorkerNonNative.address)).to.revertedWith('SingleAssetWorkerConfig::isStable:: price too stale')
         })
       })
       context("When the price on PCS is higher than oracle price with 10% threshold", async() => {
         it('should be reverted', async() => {
           // feed the price with price too low on the first hop
-          await simplePriceOracleAsAlice.setPrices([cake.address, wbnb.address],[wbnb.address, cake.address], [lpPriceFarmBNB.mul(10000).div(11001), lpPriceBNBFarm.mul(10000).div(11001)])
-          await expect(cakeMaxiWorkerConfigAsAlice.isStable(cakeMaxiWorkerNonNative.address)).to.revertedWith('CakeMaxiWorkerConfig::isStable:: price too high')
+          await simplePriceOracleAsAlice.setPrices([baseToken.address, wbnb.address],[wbnb.address, baseToken.address], [lpPriceFarmBNB.mul(10000).div(11001), lpPriceBNBFarm.mul(10000).div(11001)])
+          await expect(singleAssetWorkerConfigAsAlice.isStable(cakeMaxiWorkerNonNative.address)).to.revertedWith('SingleAssetWorkerConfig::isStable:: price too high')
           // when price from oracle and PCS is within the range, but price from oracle is lower than the price on PCS on the second hop
-          await simplePriceOracleAsAlice.setPrices([cake.address, wbnb.address, baseToken.address, wbnb.address], [wbnb.address, cake.address, wbnb.address, baseToken.address], [lpPriceFarmBNB, lpPriceBNBFarm, lpPriceBaseBnb.mul(10000).div(11001), lpPriceBNBBase.mul(10000).div(11001)])
-          await expect(cakeMaxiWorkerConfigAsAlice.isStable(cakeMaxiWorkerNonNative.address)).to.revertedWith('CakeMaxiWorkerConfig::isStable:: price too high')
+          await simplePriceOracleAsAlice.setPrices([baseToken.address, wbnb.address, cake.address, wbnb.address], [wbnb.address, baseToken.address, wbnb.address, baseToken.address], [lpPriceFarmBNB, lpPriceBNBFarm, lpPriceBaseBnb.mul(10000).div(11001), lpPriceBNBBase.mul(10000).div(11001)])
+          await expect(singleAssetWorkerConfigAsAlice.isStable(cakeMaxiWorkerNonNative.address)).to.revertedWith('SingleAssetWorkerConfig::isStable:: price too high')
         })
       })
 
       context("When the price on PCS is lower than oracle price with 10% threshold", async() => {
         it('should be reverted', async() => {
           // feed the price with price too low on the first hop
-          await simplePriceOracleAsAlice.setPrices([cake.address, wbnb.address],[wbnb.address, cake.address],[lpPriceFarmBNB.mul(11001).div(10000), lpPriceBNBFarm.mul(11001).div(10000)])
-          await expect(cakeMaxiWorkerConfigAsAlice.isStable(cakeMaxiWorkerNonNative.address)).to.revertedWith('CakeMaxiWorkerConfig::isStable:: price too low')
+          await simplePriceOracleAsAlice.setPrices([baseToken.address, wbnb.address],[wbnb.address, baseToken.address],[lpPriceFarmBNB.mul(11001).div(10000), lpPriceBNBFarm.mul(11001).div(10000)])
+          await expect(singleAssetWorkerConfigAsAlice.isStable(cakeMaxiWorkerNonNative.address)).to.revertedWith('SingleAssetWorkerConfig::isStable:: price too low')
           // when price from oracle and PCS is within the range, but price from oracle is higher than the price on PCS on the second hop
-          await simplePriceOracleAsAlice.setPrices([cake.address, wbnb.address, baseToken.address, wbnb.address], [wbnb.address, cake.address, wbnb.address, baseToken.address], [lpPriceFarmBNB, lpPriceBNBFarm, lpPriceBaseBnb.mul(11001).div(10000), lpPriceBNBBase.mul(11001).div(10000)])
-          await expect(cakeMaxiWorkerConfigAsAlice.isStable(cakeMaxiWorkerNonNative.address)).to.revertedWith('CakeMaxiWorkerConfig::isStable:: price too low')
+          await simplePriceOracleAsAlice.setPrices([baseToken.address, wbnb.address, cake.address, wbnb.address], [wbnb.address, baseToken.address, wbnb.address, baseToken.address], [lpPriceFarmBNB, lpPriceBNBFarm, lpPriceBaseBnb.mul(11001).div(10000), lpPriceBNBBase.mul(11001).div(10000)])
+          await expect(singleAssetWorkerConfigAsAlice.isStable(cakeMaxiWorkerNonNative.address)).to.revertedWith('SingleAssetWorkerConfig::isStable:: price too low')
         })
       })
 
@@ -277,7 +280,7 @@ describe('CakeMaxiWorkerConfig', () => {
         it('should return true', async () => {
            // feed the correct price on both hops
            await simplePriceOracleAsAlice.setPrices([cake.address, wbnb.address, baseToken.address, wbnb.address], [wbnb.address, cake.address, wbnb.address, baseToken.address], [lpPriceFarmBNB, lpPriceBNBFarm, lpPriceBaseBnb, lpPriceBNBBase])
-           const isStable = await cakeMaxiWorkerConfigAsAlice.isStable(cakeMaxiWorkerNonNative.address)
+           const isStable = await singleAssetWorkerConfigAsAlice.isStable(cakeMaxiWorkerNonNative.address)
            expect(isStable).to.true
         })
       })
@@ -288,14 +291,14 @@ describe('CakeMaxiWorkerConfig', () => {
         it('should be reverted', async () => {
           await simplePriceOracleAsAlice.setPrices([wbnb.address, cake.address],[cake.address, wbnb.address],[1, 1])
           await TimeHelpers.increase(BigNumber.from('86401')) // 1 day and 1 second have passed
-          await expect(cakeMaxiWorkerConfigAsAlice.isStable(cakeMaxiWorkerNative.address)).to.revertedWith('CakeMaxiWorkerConfig::isStable:: price too stale')
+          await expect(singleAssetWorkerConfigAsAlice.isStable(cakeMaxiWorkerNative.address)).to.revertedWith('SingleAssetWorkerConfig::isStable:: price too stale')
         })
       })
       context("When price is too high", async() => {
         it('should be reverted', async() => {
           // feed the price with price too low on the first hop
           await simplePriceOracleAsAlice.setPrices([wbnb.address, cake.address],[cake.address, wbnb.address], [lpPriceBNBFarm.mul(10000).div(11001), lpPriceFarmBNB.mul(10000).div(11001)])
-          await expect(cakeMaxiWorkerConfigAsAlice.isStable(cakeMaxiWorkerNative.address)).to.revertedWith('CakeMaxiWorkerConfig::isStable:: price too high')
+          await expect(singleAssetWorkerConfigAsAlice.isStable(cakeMaxiWorkerNative.address)).to.revertedWith('SingleAssetWorkerConfig::isStable:: price too high')
         })
       })
 
@@ -303,7 +306,7 @@ describe('CakeMaxiWorkerConfig', () => {
         it('should be reverted', async() => {
           // feed the price with price too low on the first hop
           await simplePriceOracleAsAlice.setPrices([wbnb.address, cake.address],[cake.address, wbnb.address],[lpPriceBNBFarm.mul(11001).div(10000), lpPriceFarmBNB.mul(11001).div(10000)])
-          await expect(cakeMaxiWorkerConfigAsAlice.isStable(cakeMaxiWorkerNative.address)).to.revertedWith('CakeMaxiWorkerConfig::isStable:: price too low')
+          await expect(singleAssetWorkerConfigAsAlice.isStable(cakeMaxiWorkerNative.address)).to.revertedWith('SingleAssetWorkerConfig::isStable:: price too low')
         })
       })
 
@@ -311,7 +314,7 @@ describe('CakeMaxiWorkerConfig', () => {
         it('should return true', async () => {
           // feed the price with price too low on the first hop
           await simplePriceOracleAsAlice.setPrices([wbnb.address, cake.address],[cake.address, wbnb.address],[lpPriceBNBFarm, lpPriceFarmBNB])
-          const isStable = await cakeMaxiWorkerConfigAsAlice.isStable(cakeMaxiWorkerNative.address)
+          const isStable = await singleAssetWorkerConfigAsAlice.isStable(cakeMaxiWorkerNative.address)
           expect(isStable).to.true
         })
       })
