@@ -141,15 +141,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     }
   })
 
-
-
-
-
-
-
-
-
-
   for(let i = 0; i < workerInfos.length; i++) {
     console.log("===================================================================================")
     console.log(`>> Deploying an upgradable WaultSwapWorker contract for ${workerInfos[i].WORKER_NAME}`);
