@@ -26,14 +26,34 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const PANCAKE_ROUTER = '0xA0bC344E20d89ccA131f869E059499F41d7a13D3'
   const WBNB = '0xDfb1211E2694193df5765d54350e1145FD2404A1'
   const TOKENS: Array<IToken> = [{
-    symbol: 'USDT',
-    name: 'USDT',
-    address: '0xE60Fa777dEb72C364447BB18C823C4731FbeD671',
+    symbol: 'BETH',
+    name: 'BETH',
+    address: '0x32Dde246479D538c0FC45a667e002cE33Fc57a15',
     pairs: [{
-      quoteToken: 'BUSD',
-      quoteTokenAddr: '0x0266693F9Df932aD7dA8a9b44C2129Ce8a87E81f',
-      reserveQuoteToken: ethers.utils.parseEther('50000000'),
-      reserveBaseToken: ethers.utils.parseEther('502630000')
+      quoteToken: 'ETH',
+      quoteTokenAddr: '0xd5c082df9eDE041548fa79e05A1CB077036ca86F',
+      reserveQuoteToken: ethers.utils.parseEther('6033'),
+      reserveBaseToken: ethers.utils.parseEther('6383')
+    }]
+  }, {
+    symbol: 'WAULTx',
+    name: 'WAULTx',
+    mintAmount: ethers.utils.parseEther('88888888888888').toString(),
+    pairs: [{
+      quoteToken: 'WBNB',
+      quoteTokenAddr: '0xDfb1211E2694193df5765d54350e1145FD2404A1',
+      reserveQuoteToken: ethers.utils.parseEther('100'),
+      reserveBaseToken: ethers.utils.parseEther('477854.879')
+    }]
+  }, {
+    symbol: 'BTCB',
+    name: 'BTCB',
+    address: '0xCCaf3FC49B0D0F53fe2c08103F75A397052983FB',
+    pairs: [{
+      quoteToken: 'USDT',
+      quoteTokenAddr: '0xE60Fa777dEb72C364447BB18C823C4731FbeD671',
+      reserveQuoteToken: ethers.utils.parseEther('8388936'),
+      reserveBaseToken: ethers.utils.parseEther('213')
     }]
   }]
 
