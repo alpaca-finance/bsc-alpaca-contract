@@ -72,7 +72,7 @@ contract PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm is OwnableUpg
     address farmingToken = worker.farmingToken();
     // 2. Approve router to do their stuffs
     baseToken.safeApprove(address(router), uint256(-1));
-    // 3. request additional fund in form of a farmingToken from the vault using inputFarmingTokenAmount
+    // 3. Request additional fund in form of a farmingToken from the vault using inputFarmingTokenAmount
     vault.requestFunds(farmingToken, inputFarmingTokenAmount);
     uint256 balance = baseToken.myBalance();
     // 4. Convert that all baseTokens to a farmingTokens if and only if baseToken balance > 0.
