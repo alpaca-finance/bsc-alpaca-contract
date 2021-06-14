@@ -186,14 +186,14 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading', ()
     mockPancakeswapV2EvilWorkerAsAlice = MockPancakeswapV2CakeMaxiWorker__factory.connect(mockPancakeswapV2EvilWorker.address, alice);
     
     // Adding liquidity to the pool
-    // Alice adds 0.1 FTOKEN + 1 WBTC + 1 WBNB
+    // Alice adds 0.1 FTOKEN + 1 BTOKEN + 1 WBNB
     await wbnbTokenAsAlice.deposit({
         value: ethers.utils.parseEther('52')
     })
     await farmingTokenAsAlice.approve(routerV2.address, ethers.utils.parseEther('0.1'));
     await baseTokenAsAlice.approve(routerV2.address, ethers.utils.parseEther('1'));
     await wbnbTokenAsAlice.approve(routerV2.address, ethers.utils.parseEther('2'))
-    // Add liquidity to the WBTC-WBNB pool on Pancakeswap
+    // Add liquidity to the BTOKEN-WBNB pool on Pancakeswap
     await routerV2AsAlice.addLiquidity(
       baseToken.address, wbnb.address,
       ethers.utils.parseEther('1'), ethers.utils.parseEther('1'), '0', '0', await alice.getAddress(), FOREVER);
@@ -281,32 +281,61 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading', ()
         )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading::onlyWhitelistedWorkers:: bad worker');
       });
     })
-  
-    it('should convert to WBNB to be enough for repaying the debt, and return farmingToken to the user', async () => {
-      // if 0.1 Ftoken = 1 WBNB
-      // x FToken = (x * 0.9975) * (1 / (0.1 + x*0.9975)) = 0.1
-      // x = ~ 0.011138958507379568
-      // thus, the return farming token will be 0.088861041492620439
-      await farmingTokenAsAlice.transfer(mockPancakeswapV2WorkerBNBFtokenPair.address, ethers.utils.parseEther('0.1'));
-      const aliceWbnbBefore = await wbnb.balanceOf(await alice.getAddress())
-      const aliceFarmingTokenBefore = await farmingToken.balanceOf(await alice.getAddress())
-      await mockPancakeswapV2WorkerBNBFtokenPairAsAlice.work(
-        0, await alice.getAddress(), ethers.utils.parseEther('0.1'),
-        ethers.utils.defaultAbiCoder.encode(
-          ['address', 'bytes'],
-          [strat.address, ethers.utils.defaultAbiCoder.encode(
-            ['uint256'],
-            ['0']
-          )],
-        )
-      );
-      // so the worker will return 0.1 WBNB for repaying the debt, the rest will be returned as a farmingToken
-      expect(aliceWbnbBefore.add(ethers.utils.parseEther('0.1'))).to.be.bignumber.eq(ethers.utils.parseEther('50.1'))
-      expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-      expect(await wbnb.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-      expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-      expect(aliceFarmingTokenBefore.add(ethers.utils.parseEther('0.088861041492620439'))).to.be.bignumber.eq(ethers.utils.parseEther('9.888861041492620439'))
-    });
+    context("when debt > 0", async() => {
+      it('should convert to WBNB to be enough for repaying the debt, and return farmingToken to the user', async () => {
+        await farmingTokenAsAlice.transfer(mockPancakeswapV2WorkerBNBFtokenPair.address, ethers.utils.parseEther('0.1'));
+        const aliceWbnbBefore = await wbnb.balanceOf(await alice.getAddress())
+        const aliceFarmingTokenBefore = await farmingToken.balanceOf(await alice.getAddress())
+        await mockPancakeswapV2WorkerBNBFtokenPairAsAlice.work(
+          0, await alice.getAddress(), ethers.utils.parseEther('0.1'),
+          ethers.utils.defaultAbiCoder.encode(
+            ['address', 'bytes'],
+            [strat.address, ethers.utils.defaultAbiCoder.encode(
+              ['uint256'],
+              ['0']
+            )],
+          )
+        );
+        const aliceWbnbAfter = await wbnb.balanceOf(await alice.getAddress())
+        const aliceFarmingTokenAfter = await farmingToken.balanceOf(await alice.getAddress())
+        // if 0.1 Ftoken = 1 WBNB
+        // x FToken = (x * 0.9975 * 1) / (0.1 + x*0.9975) = 0.1
+        // x = ~ 0.011138958507379568
+        // thus, 0.1 - 0.011138958507379568 = 0.088861041492620439 FToken will be returned to ALICE
+        // and the worker will return 0.1 WBNB to ALICE as a repaying debt
+        expect(aliceWbnbAfter.sub(aliceWbnbBefore)).to.be.bignumber.eq(ethers.utils.parseEther('0.1'))
+        expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        expect(await wbnb.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        expect(aliceFarmingTokenAfter.sub(aliceFarmingTokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther('0.088861041492620439'))
+      });
+    })
+    context("when debt = 0", async() => {
+      it('should return all farmingToken to the user', async () => {
+        await farmingTokenAsAlice.transfer(mockPancakeswapV2WorkerBNBFtokenPair.address, ethers.utils.parseEther('0.1'));
+        const aliceWbnbBefore = await wbnb.balanceOf(await alice.getAddress())
+        const aliceFarmingTokenBefore = await farmingToken.balanceOf(await alice.getAddress())
+        await mockPancakeswapV2WorkerBNBFtokenPairAsAlice.work(
+          0, await alice.getAddress(), ethers.utils.parseEther('0'),
+          ethers.utils.defaultAbiCoder.encode(
+            ['address', 'bytes'],
+            [strat.address, ethers.utils.defaultAbiCoder.encode(
+              ['uint256'],
+              ['0']
+            )],
+          )
+        );
+        const aliceWbnbAfter = await wbnb.balanceOf(await alice.getAddress())
+        const aliceFarmingTokenAfter = await farmingToken.balanceOf(await alice.getAddress())
+        // FToken, wbnb in a strategy contract MUST be 0
+        expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        expect(await wbnb.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        // Alice will have all farming token of 0.1 FToken back since she got no debt
+        expect(aliceFarmingTokenAfter.sub(aliceFarmingTokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther('0.1'))
+        expect(aliceWbnbAfter.sub(aliceWbnbBefore)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+      });
+    })
   })
 
   context('When the base token is not a wrap native', async () => {
@@ -366,36 +395,65 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading', ()
       });
     })
   
-    it('should convert to WBTC to be enough for repaying the debt, and return farmingToken to the user', async () => {
-      // if 1 WBNB = 1 BaseToken
-      // x WBNB = (x * 0.9975) * (1 / (1 + x * 0.9975)) = 0.1
-      // x WBNB =~ ~ 0.11138958507379568
+    context("when debt > 0", async() => {
+      it('should convert to BTOKEN to be enough for repaying the debt, and return farmingToken to the user', async () => {
+        await farmingTokenAsAlice.transfer(mockPancakeswapV2WorkerBaseFTokenPair.address, ethers.utils.parseEther('0.1'));
+        const aliceBaseTokenBefore = await baseToken.balanceOf(await alice.getAddress())
+        const aliceFarmingTokenBefore = await farmingToken.balanceOf(await alice.getAddress())
+        await mockPancakeswapV2WorkerBaseFTokenPairAsAlice.work(
+          0, await alice.getAddress(), ethers.utils.parseEther('0.1'),
+          ethers.utils.defaultAbiCoder.encode(
+            ['address', 'bytes'],
+            [strat.address, ethers.utils.defaultAbiCoder.encode(
+              ['uint256'],
+              ['0']
+            )],
+          )
+        );
+        const aliceBaseTokenAfter = await baseToken.balanceOf(await alice.getAddress())
+        const aliceFarmingTokenAfter = await farmingToken.balanceOf(await alice.getAddress())
+        // if 1 WBNB = 1 BTOKEN
+        // x WBNB = (x * 0.9975 * 1) / (1 + x * 0.9975) = 0.1
+        // x WBNB =~ ~ 0.11138958507379568
+  
+        // if 0.1 FToken = 1 WBNB
+        // x FToken =  (x * 0.9975 * 1) / (0.1 + x * 0.9975) = 0.11138958507379568
+        // x = 0.012566672086044004
+        // thus 0.1 - 0.012566672086044 = 0.087433327913955996
+        // Alice will have 0.087433327913955996 FTOKEN back and 0.1 BTOKEN as a repaying debt
+        expect(aliceBaseTokenAfter.sub(aliceBaseTokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther('0.1'))
+        expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        expect(aliceFarmingTokenAfter.sub(aliceFarmingTokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther('0.087433327913955996'))
+      })
+    })
 
-      // if 0.1 FToken = 1 WBNB
-      // x FToken =  (x * 0.9975) * (1 / (0.1 + x * 0.9975)) = 0.11138958507379568
-      // x = 0.012566672086044004
-      // thus 0.1 - 0.012566672086044 = 0.087433327913955996
-
-      // alice will have 9.8 from sending some money to the worker and a liquidity pair
-      await farmingTokenAsAlice.transfer(mockPancakeswapV2WorkerBaseFTokenPair.address, ethers.utils.parseEther('0.1'));
-      const aliceBaseTokenBefore = await baseToken.balanceOf(await alice.getAddress())
-      const aliceFarmingTokenBefore = await farmingToken.balanceOf(await alice.getAddress())
-      await mockPancakeswapV2WorkerBaseFTokenPairAsAlice.work(
-        0, await alice.getAddress(), ethers.utils.parseEther('0.1'),
-        ethers.utils.defaultAbiCoder.encode(
-          ['address', 'bytes'],
-          [strat.address, ethers.utils.defaultAbiCoder.encode(
-            ['uint256'],
-            ['0']
-          )],
-        )
-      );
-      // so the worker will return 0.1 WBNB for repaying the debt, the rest will be returned as a farmingToken
-      expect(aliceBaseTokenBefore.add(ethers.utils.parseEther('0.1'))).to.be.bignumber.eq(ethers.utils.parseEther('99.1'))
-      expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-      expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-      expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-      expect(aliceFarmingTokenBefore.add(ethers.utils.parseEther('0.087433327913955996'))).to.be.bignumber.eq(ethers.utils.parseEther('9.887433327913955996'))
+    context("when debt = 0", async () => {
+      it('should return all farmingToken to the user', async () => {
+        await farmingTokenAsAlice.transfer(mockPancakeswapV2WorkerBaseFTokenPair.address, ethers.utils.parseEther('0.1'));
+        const aliceBaseTokenBefore = await baseToken.balanceOf(await alice.getAddress())
+        const aliceFarmingTokenBefore = await farmingToken.balanceOf(await alice.getAddress())
+        await mockPancakeswapV2WorkerBaseFTokenPairAsAlice.work(
+          0, await alice.getAddress(), ethers.utils.parseEther('0'),
+          ethers.utils.defaultAbiCoder.encode(
+            ['address', 'bytes'],
+            [strat.address, ethers.utils.defaultAbiCoder.encode(
+              ['uint256'],
+              ['0']
+            )],
+          )
+        );
+        const aliceBaseTokenAfter = await baseToken.balanceOf(await alice.getAddress())
+        const aliceFarmingTokenAfter = await farmingToken.balanceOf(await alice.getAddress())
+        // FToken, BToken in a strategy contract MUST be 0
+        expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        // Alice will have all farming token of 0.1 FToken back since she got no debt
+        expect(aliceBaseTokenAfter.sub(aliceBaseTokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        expect(aliceFarmingTokenAfter.sub(aliceFarmingTokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther('0.1'))
+      })
     })
   })
 
@@ -452,35 +510,69 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading', ()
       });
     })
 
-    it('should convert to WBNB to be enough for repaying the debt, and return farmingToken to the user', async () => {
-      // mock farming token (WBNB)
-      await wbnbTokenAsAlice.transfer(mockPancakeswapV2WorkerBaseBNBTokenPair.address, ethers.utils.parseEther('1'));
-      // if 1 BNB = 1 BaseToken
-      // x BNB = (x * 0.9975) * (1 / (1 + x * 0.9975)) = 0.1 baseToken
-      // x = ~ 0.11138958507379568 BNB
-      // thus, the return farming token will be 0.888610414926204399 BNB
-      const aliceBaseTokenBefore = await baseToken.balanceOf(await alice.getAddress())
-      const aliceNativeFarmingTokenBefore = await ethers.provider.getBalance(await alice.getAddress())
-      await mockPancakeswapV2WorkerBaseBNBTokenPairAsAlice.work(
-        0, await alice.getAddress(), ethers.utils.parseEther('0.1'),
-        ethers.utils.defaultAbiCoder.encode(
-          ['address', 'bytes'],
-          [strat.address, ethers.utils.defaultAbiCoder.encode(
-            ['uint256'],
-            ['0']
-          )],
-        ),
-        {
-          gasPrice: 0
-        }
-      );
-      const aliceBaseTokenAfter = await baseToken.balanceOf(await alice.getAddress())
-      const aliceNativeFarmingTokenAfter = await ethers.provider.getBalance(await alice.getAddress())
-      expect(aliceBaseTokenAfter.sub(aliceBaseTokenBefore)).to.eq(ethers.utils.parseEther('0.1'))
-      expect(aliceNativeFarmingTokenAfter.sub(aliceNativeFarmingTokenBefore)).to.eq(ethers.utils.parseEther('0.888610414926204399'))
-      expect(await wbnb.balanceOf(mockPancakeswapV2WorkerBaseBNBTokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-      expect(await wbnb.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-      expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-    });
+    context("when debt > 0", async() => {
+      it('should convert to WBNB to be enough for repaying the debt, and return farmingToken to the user', async () => {
+        // mock farming token (WBNB)
+        await wbnbTokenAsAlice.transfer(mockPancakeswapV2WorkerBaseBNBTokenPair.address, ethers.utils.parseEther('1'));
+        const aliceBaseTokenBefore = await baseToken.balanceOf(await alice.getAddress())
+        const aliceNativeFarmingTokenBefore = await ethers.provider.getBalance(await alice.getAddress())
+        await mockPancakeswapV2WorkerBaseBNBTokenPairAsAlice.work(
+          0, await alice.getAddress(), ethers.utils.parseEther('0.1'),
+          ethers.utils.defaultAbiCoder.encode(
+            ['address', 'bytes'],
+            [strat.address, ethers.utils.defaultAbiCoder.encode(
+              ['uint256'],
+              ['0']
+            )],
+          ),
+          {
+            gasPrice: 0
+          }
+        );
+        // if 1 BNB = 1 BaseToken
+        // x BNB = (x * 0.9975 * 1) / (1 + x * 0.9975) = 0.1 baseToken
+        // x = ~ 0.11138958507379568 BNB
+        // thus, alice will receive 1 - 0.11138958507379568 =  0.888610414926204399 BNB as a return farming token and 0.1 BaseToken for repaying the debt
+        const aliceBaseTokenAfter = await baseToken.balanceOf(await alice.getAddress())
+        const aliceNativeFarmingTokenAfter = await ethers.provider.getBalance(await alice.getAddress())
+        expect(aliceBaseTokenAfter.sub(aliceBaseTokenBefore)).to.eq(ethers.utils.parseEther('0.1'))
+        expect(aliceNativeFarmingTokenAfter.sub(aliceNativeFarmingTokenBefore)).to.eq(ethers.utils.parseEther('0.888610414926204399'))
+        expect(await wbnb.balanceOf(mockPancakeswapV2WorkerBaseBNBTokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        expect(await wbnb.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+      });
+    })
+
+    context("when debt = 0", async() => {
+      it('should return all farmingToken to the user', async () => {
+        // mock farming token (WBNB)
+        await wbnbTokenAsAlice.transfer(mockPancakeswapV2WorkerBaseBNBTokenPair.address, ethers.utils.parseEther('1'));
+        const aliceBaseTokenBefore = await baseToken.balanceOf(await alice.getAddress())
+        const aliceNativeFarmingTokenBefore = await ethers.provider.getBalance(await alice.getAddress())
+        await mockPancakeswapV2WorkerBaseBNBTokenPairAsAlice.work(
+          0, await alice.getAddress(), ethers.utils.parseEther('0'),
+          ethers.utils.defaultAbiCoder.encode(
+            ['address', 'bytes'],
+            [strat.address, ethers.utils.defaultAbiCoder.encode(
+              ['uint256'],
+              ['0']
+            )],
+          ),
+          {
+            gasPrice: 0
+          }
+        );
+        const aliceBaseTokenAfter = await baseToken.balanceOf(await alice.getAddress())
+        const aliceNativeFarmingTokenAfter = await ethers.provider.getBalance(await alice.getAddress())
+        // Alice will have all farming token of 1 BNB (as a native farming token) back since she got no debt
+        expect(aliceBaseTokenAfter.sub(aliceBaseTokenBefore)).to.eq(ethers.utils.parseEther('0'))
+        expect(aliceNativeFarmingTokenAfter.sub(aliceNativeFarmingTokenBefore)).to.eq(ethers.utils.parseEther('1'))
+        // wbnb, BToken in a strategy contract MUST be 0
+        expect(await wbnb.balanceOf(mockPancakeswapV2WorkerBaseBNBTokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        expect(await wbnb.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+      });
+    })
+
   })
 })
