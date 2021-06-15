@@ -127,9 +127,8 @@ contract OracleMedianizer is OwnableUpgradeSafe, PriceOracle {
     // - 3 valid sources --> check deviation threshold of each pair
     //     --> if all within threshold, return median
     //     --> if one pair within threshold, return average of the pair
-    if (validSourceCount == 1) {
-      return prices[0]; // if 1 valid source, return
-    } else if (validSourceCount == 2) {
+    if (validSourceCount == 1) return prices[0]; // if 1 valid source, return
+    if (validSourceCount == 2) {
       require(
         prices[1].mul(1e18) / prices[0] <= maxPriceDeviation,
         "OracleMedianizer::getPrice:: too much deviation 2 valid sources"
@@ -138,15 +137,10 @@ contract OracleMedianizer is OwnableUpgradeSafe, PriceOracle {
     }
     bool midP0P1Ok = prices[1].mul(1e18) / prices[0] <= maxPriceDeviation;
     bool midP1P2Ok = prices[2].mul(1e18) / prices[1] <= maxPriceDeviation;
-    if (midP0P1Ok && midP1P2Ok) {
-      return prices[1]; // if 3 valid sources, and each pair is within thresh, return median
-    } else if (midP0P1Ok) {
-      return prices[0].add(prices[1]) / 2; // return average of pair within thresh
-    } else if (midP1P2Ok) {
-      return prices[1].add(prices[2]) / 2; // return average of pair within thresh
-    } else {
-      revert("OracleMedianizer::getPrice:: too much deviation 3 valid sources");
-    }
+    if (midP0P1Ok && midP1P2Ok) return prices[1]; // if 3 valid sources, and each pair is within thresh, return median
+    if (midP0P1Ok) return prices[0].add(prices[1]) / 2; // return average of pair within thresh
+    if (midP1P2Ok) return prices[1].add(prices[2]) / 2; // return average of pair within thresh
+    revert("OracleMedianizer::getPrice:: too much deviation 3 valid sources");
   }
 
   /// @dev Return the price of token0/token1, multiplied by 1e18
