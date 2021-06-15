@@ -78,7 +78,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     MAX_PRICE_DIFF: "110000000000000000",
     PATH: ["ETH", "WBNB", "CAKE"],
     REWARD_PATH: ["CAKE", "BUSD", "ALPACA"],
-    EXACT_ETA: ""
+    EXACT_ETA: "1623726900"
   }, {
     VAULT_SYMBOL: "ibUSDT",
     WORKER_NAME: "USDT CakeMaxiWorker",
@@ -92,7 +92,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     MAX_PRICE_DIFF: "110000000000000000",
     PATH: ["USDT", "WBNB", "CAKE"],
     REWARD_PATH: ["CAKE", "BUSD", "ALPACA"],
-    EXACT_ETA: ""
+    EXACT_ETA: "1623726900"
   }]
 
 
