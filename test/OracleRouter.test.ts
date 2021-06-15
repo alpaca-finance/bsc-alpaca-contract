@@ -102,7 +102,7 @@ describe('OracleRouter', () => {
             oracleRouterAsDeployer.setPrimarySources(token0.address, token1.address, BigNumber.from('0'), [
               simplePriceOracle.address,
             ]),
-          ).to.revertedWith('bad max deviation value')
+          ).to.revertedWith('OracleRouter::setPrimarySources:: bad max deviation value')
         })
         it('should be reverted', async () => {
           await expect(
@@ -112,7 +112,7 @@ describe('OracleRouter', () => {
               BigNumber.from('2000000000000000000'),
               [simplePriceOracle.address],
             ),
-          ).to.revertedWith('bad max deviation value')
+          ).to.revertedWith('OracleRouter::setPrimarySources:: bad max deviation value')
         })
       })
       context('when sources length exceed 3', async () => {
@@ -129,7 +129,7 @@ describe('OracleRouter', () => {
                 simplePriceOracle.address,
               ],
             ),
-          ).to.revertedWith('sources length exceed 3')
+          ).to.revertedWith('OracleRouter::setPrimarySources:: sources length exceed 3')
         })
       })
       context('when successfully', async () => {
@@ -161,7 +161,7 @@ describe('OracleRouter', () => {
             [BigNumber.from('1000000000000000000')],
             [[simplePriceOracle.address]],
           ),
-        ).to.revertedWith('inconsistent length')
+        ).to.revertedWith('OracleRouter::setMultiPrimarySources:: inconsistent length')
       })
       it('should be reverted', async () => {
         await expect(
@@ -171,7 +171,7 @@ describe('OracleRouter', () => {
             [BigNumber.from('1000000000000000000')],
             [[simplePriceOracle.address]],
           ),
-        ).to.revertedWith('inconsistent length')
+        ).to.revertedWith('OracleRouter::setMultiPrimarySources:: inconsistent length')
       })
       it('should be reverted', async () => {
         await expect(
@@ -181,7 +181,7 @@ describe('OracleRouter', () => {
             [BigNumber.from('1000000000000000000'), BigNumber.from('900000000000000000')],
             [[simplePriceOracle.address]],
           ),
-        ).to.revertedWith('inconsistent length')
+        ).to.revertedWith('OracleRouter::setMultiPrimarySources:: inconsistent length')
       })
     })
     context('when successfully', async () => {
@@ -213,7 +213,7 @@ describe('OracleRouter', () => {
   describe('#getPrice', async () => {
     context('when no primary source', async () => {
       it('should be reverted', async () => {
-        await expect(oracleRouterAsAlice.getPrice(token0.address, token1.address)).to.revertedWith('no primary source')
+        await expect(oracleRouterAsAlice.getPrice(token0.address, token1.address)).to.revertedWith('OracleRouter::getPrice:: no primary source')
       })
     })
     context('when no valid source', async () => {
@@ -225,7 +225,7 @@ describe('OracleRouter', () => {
           [simplePriceOracle.address],
         )
 
-        await expect(oracleRouterAsAlice.getPrice(token0.address, token1.address)).to.revertedWith('no valid source')
+        await expect(oracleRouterAsAlice.getPrice(token0.address, token1.address)).to.revertedWith('OracleRouter::getPrice:: no valid source')
       })
     })
     context('when has 1 valid sources', async () => {
@@ -243,6 +243,7 @@ describe('OracleRouter', () => {
         )
 
         const [price, lastTime] = await oracleRouterAsAlice.getPrice(token0.address, token1.address)
+        // result should be Med(price0) => price0 = 1000000000000000000
         expect(price).to.eq(BigNumber.from('1000000000000000000'))
       })
     })
@@ -266,7 +267,8 @@ describe('OracleRouter', () => {
             BigNumber.from('1100000000000000000'),
             [simplePriceOracle.address, bobPriceOracle.address],
           )
-          await expect(oracleRouterAsAlice.getPrice(token0.address, token1.address)).to.reverted
+
+          await expect(oracleRouterAsAlice.getPrice(token0.address, token1.address)).to.revertedWith("OracleRouter::getPrice:: too much deviation 2 valid sources")
         })
       })
       context('when successfully', async () => {
@@ -289,6 +291,7 @@ describe('OracleRouter', () => {
             [simplePriceOracle.address, bobPriceOracle.address],
           )
           const [price, lastTime] = await oracleRouterAsAlice.getPrice(token0.address, token1.address)
+          // result should be Med(price0, price1) => (price0 + price1) / 2 = (1000000000000000000 + 900000000000000000) / 2 = 950000000000000000
           expect(price).to.eq(BigNumber.from('950000000000000000'))
         })
       })
@@ -318,10 +321,10 @@ describe('OracleRouter', () => {
             BigNumber.from('1100000000000000000'),
             [simplePriceOracle.address, bobPriceOracle.address, evePriceOracleAsFeeder.address],
           )
-          await expect(oracleRouterAsAlice.getPrice(token0.address, token1.address)).to.reverted
+          await expect(oracleRouterAsAlice.getPrice(token0.address, token1.address)).to.revertedWith("OracleRouter::getPrice:: too much deviation 3 valid sources")
         })
       })
-      context('when source1 and source2 has too much deviation', async () => {
+      context(`when price0 and price1 are within max deviation, but price2 doesn't`, async () => {
         it('should be successfully', async () => {
           await simplePriceOracleAsFeeder.setPrices(
             [token0.address, token1.address],
@@ -346,10 +349,11 @@ describe('OracleRouter', () => {
             [simplePriceOracle.address, bobPriceOracle.address, evePriceOracleAsFeeder.address],
           )
           const [price, lastTime] = await oracleRouterAsAlice.getPrice(token0.address, token1.address)
+          // result should be Med(price1, price2) => (price1 + price2) / 2 = (900000000000000000 + 800000000000000000) / 2 = 850000000000000000
           expect(price).to.eq(BigNumber.from('850000000000000000'))
         })
       })
-      context('when source2 and source3 has too much deviation', async () => {
+      context(`when price1 and price2 are within max deviation, but price0 doesn't`, async () => {
         it('should be successfully', async () => {
           await simplePriceOracleAsFeeder.setPrices(
             [token0.address, token1.address],
@@ -374,10 +378,11 @@ describe('OracleRouter', () => {
             [simplePriceOracle.address, bobPriceOracle.address, evePriceOracleAsFeeder.address],
           )
           const [price, lastTime] = await oracleRouterAsAlice.getPrice(token0.address, token1.address)
+          // result should be Med(price0, price1) => (price0 + price1) / 2 = (1000000000000000000 + 900000000000000000) / 2 = 950000000000000000
           expect(price).to.eq(BigNumber.from('950000000000000000'))
         })
       })
-      context('when source1, source2 and source3 is ok', async () => {
+      context('when price0, price1 and price2 are ok', async () => {
         it('should be successfully', async () => {
           await simplePriceOracleAsFeeder.setPrices(
             [token0.address, token1.address],
@@ -402,6 +407,7 @@ describe('OracleRouter', () => {
             [simplePriceOracle.address, bobPriceOracle.address, evePriceOracleAsFeeder.address],
           )
           const [price, lastTime] = await oracleRouterAsAlice.getPrice(token0.address, token1.address)
+          // result should be Med(price0, price1, price2) => price1 = 900000000000000000
           expect(price).to.eq(BigNumber.from('900000000000000000'))
         })
       })
