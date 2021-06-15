@@ -3,18 +3,8 @@ pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
-import "./PriceOracle.sol";
 
-/**
-    ∩~~~~∩ 
-    ξ ･×･ ξ 
-    ξ　~　ξ 
-    ξ　　 ξ 
-    ξ　　 “~～~～〇 
-    ξ　　　　　　 ξ 
-    ξ ξ ξ~～~ξ ξ ξ 
-　  ξ_ξξ_ξ　ξ_ξξ_ξ
- */
+import "./PriceOracle.sol";
 
 contract OracleRouter is OwnableUpgradeSafe, PriceOracle {
   using SafeMath for uint256;
@@ -120,6 +110,7 @@ contract OracleRouter is OwnableUpgradeSafe, PriceOracle {
       } catch {}
     }
     require(validSourceCount > 0, "no valid source");
+    // Sort prices (asc)
     for (uint256 i = 0; i < validSourceCount - 1; i++) {
       for (uint256 j = 0; j < validSourceCount - i - 1; j++) {
         if (prices[j] > prices[j + 1]) {
