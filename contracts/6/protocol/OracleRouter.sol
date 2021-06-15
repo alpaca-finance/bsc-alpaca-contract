@@ -46,7 +46,7 @@ contract OracleRouter is OwnableUpgradeSafe, PriceOracle {
         address token1,
         uint maxPriceDeviation,
         PriceOracle[] calldata sources
-    ) external {
+    ) external onlyOwner {
         _setPrimarySources(token0, token1, maxPriceDeviation, sources);
     }
 
@@ -61,9 +61,7 @@ contract OracleRouter is OwnableUpgradeSafe, PriceOracle {
         uint[] calldata maxPriceDeviationList,
         PriceOracle[][] calldata allSources
     ) external onlyOwner {
-        require(token0s.length == token1s.length, "inconsistent length");
-        require(token0s.length == allSources.length, "inconsistent length");
-        require(token0s.length == maxPriceDeviationList.length, "inconsistent length");
+        require(token0s.length == token1s.length && token0s.length == allSources.length && token0s.length == maxPriceDeviationList.length, "inconsistent length");
         for (uint idx = 0; idx < token0s.length; idx++) {
             _setPrimarySources(token0s[idx], token1s[idx], maxPriceDeviationList[idx], allSources[idx]);
         }
