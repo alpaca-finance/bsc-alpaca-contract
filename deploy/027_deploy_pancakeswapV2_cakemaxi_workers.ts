@@ -140,7 +140,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     return {
       WORKER_NAME: n.WORKER_NAME,
       VAULT_CONFIG_ADDR: vault.config,
-      WORKER_CONFIG_ADDR: config.SharedConfig.PancakeSwapSingleAssetWorkerConfig,
+      WORKER_CONFIG_ADDR: config.SharedConfig.PancakeswapSingleAssetWorkerConfig,
       REINVEST_BOT: n.REINVEST_BOT,
       POOL_ID: n.POOL_ID,
       VAULT_ADDR: vault.address,

@@ -307,6 +307,10 @@
         "pId": 50,
         "name": "BORING-WBNB LP",
         "address": "0x98135F51bd36Db97222024F26B588728Ad96BEa3"
+      }, {
+        "pId": 51,
+        "name": "ODDZ-WBNB LP",
+        "address": "0x4B2EB15AE0d772C1846249db78c3Cbe9FbB1F4fB"
       }]
     },
     "Waultswap": {
@@ -396,7 +400,8 @@
     "DODO": "0x80e7Ec7bDFD410AFd073109FC28fB7451e83931B",
     "WEX": "0x1da1dFaAEF18F4587e505C5dE0f9ED1a219e4146",
     "BORING": "0x9576BE6fD507e730fbE6b4A9e1352626efDFcA0d",
-    "WAULTx": "0xA70EbF609d5f834cE9798Af6D72A63Dcd6D71075"
+    "WAULTx": "0xA70EbF609d5f834cE9798Af6D72A63Dcd6D71075",
+    "ODDZ": "0x4d51E18ACbb2C95eb52a85a3683112345dA01656"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x7549b7d0edcd411e7e5013dc74727f8dab13ab0f",
@@ -425,7 +430,7 @@
     "TripleSlopeModelStable20Max150": "0x038cd7a6A397d7f5D07a0c76A4610a7Ca64eb7d3",
     "WNativeRelayer": "0x7e2284c8CC74F13FA6c218c4231b0786E6204728",
     "WorkerConfig": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
-    "PancakeSwapSingleAssetWorkerConfig": "0x84c8c614826f312BE90f0161498e3d57646Ef34f"
+    "PancakeswapSingleAssetWorkerConfig": "0x84c8c614826f312BE90f0161498e3d57646Ef34f"
   },
   "Oracle": {
     "SimpleOracle": "0xFb0645d38e35DA4C4Aa0079366B7d9905f162fCe"
@@ -741,6 +746,19 @@
         "StrategyLiquidate": "0xdbcDcd7bE24d0dbf2b167F14435945EC7e0F454A",
         "StrategyAddTwoSidesOptimal": "0xC01390eea9A7e27199e03dA5053C2dd63A5169ff",
         "StrategyWithdrawMinimizeTrading": "0xE5909854177a493BFeF616e2E142211413aC295d"
+      }
+    }, {
+      "name": "ODDZ-WBNB PancakeswapWorker",
+      "address": "0xeBdDbfa495f9Bb35Ed1B3d5Cb9Fd0a555648f82b",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "pId": 51,
+      "stakingToken": "0x4B2EB15AE0d772C1846249db78c3Cbe9FbB1F4fB",
+      "stakingTokenAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
+        "StrategyLiquidate": "0x58Bbb507248635413172Ed7A2eeC048402C6b39b",
+        "StrategyAddTwoSidesOptimal": "0x0A5515aEdc275b9fF19d11Cd74465e83067f6D40",
+        "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32"
       }
     }]
   }, {
