@@ -134,7 +134,7 @@ contract OracleRouter is OwnableUpgradeSafe, PriceOracle {
     } else if (validSourceCount == 2) {
       require(
         prices[1].mul(1e18) / prices[0] <= maxPriceDeviation,
-        "OracleRouter::getPrice:: too much deviation (2 valid sources)"
+        "OracleRouter::getPrice:: too much deviation 2 valid sources"
       );
       return prices[0].add(prices[1]) / 2; // if 2 valid sources, return average
     } else if (validSourceCount == 3) {
@@ -147,10 +147,8 @@ contract OracleRouter is OwnableUpgradeSafe, PriceOracle {
       } else if (maxMidOk) {
         return prices[1].add(prices[2]) / 2; // return average of pair within thresh
       } else {
-        revert("OracleRouter::getPrice:: too much deviation (3 valid sources)");
+        revert("OracleRouter::getPrice:: too much deviation 3 valid sources");
       }
-    } else {
-      revert("OracleRouter::getPrice:: more than 3 valid sources not supported");
     }
   }
 
