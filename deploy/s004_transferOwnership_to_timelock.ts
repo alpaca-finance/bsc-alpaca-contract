@@ -16,7 +16,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const TIMELOCK_ADDRESS = '0x2D5408f2287BF9F9B05404794459a846651D0a59';
   const TO_BE_LOCKED = [
-    '0x813a9AE1C7b9f89d0B14d796D484478934C3A7F4',
+    '0x6d203f081367Cfa2968bD62dC3122274f735378C',
   ];
 
 

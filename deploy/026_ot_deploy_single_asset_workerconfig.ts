@@ -13,8 +13,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const SIMPLE_ORACLE_ADDR = '0xFb0645d38e35DA4C4Aa0079366B7d9905f162fCe';
-  const PANCAKE_ROUTER_V2 = '0x367633909278A3C91f4cB130D8e56382F00D1071'
+  const SIMPLE_ORACLE_ADDR = '0x166f56F2EDa9817cAB77118AE4FCAA0002A17eC7';
+  const PANCAKE_ROUTER_V2 = '0x10ED43C718714eb63d5aA57B78B54704E256024E'
 
 
 
