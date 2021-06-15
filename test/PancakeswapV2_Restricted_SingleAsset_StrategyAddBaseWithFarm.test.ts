@@ -174,14 +174,14 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm', () => {
     mockPancakeswapV2EvilWorkerAsAlice = MockPancakeswapV2CakeMaxiWorker__factory.connect(mockPancakeswapV2EvilWorker.address, alice);
     
     // Adding liquidity to the pool
-    // Alice adds 0.1 FTOKEN + 1 WBTC + 1 WBNB
+    // Alice adds 0.1 FTOKEN + 1 BTOKEN + 1 WBNB
     await wbnbTokenAsAlice.deposit({
         value: ethers.utils.parseEther('50')
     })
     await farmingTokenAsAlice.approve(routerV2.address, ethers.utils.parseEther('0.1'));
     await baseTokenAsAlice.approve(routerV2.address, ethers.utils.parseEther('1'));
     await wbnbTokenAsAlice.approve(routerV2.address, ethers.utils.parseEther('2'))
-    // Add liquidity to the WBTC-WBNB pool on Pancakeswap
+    // Add liquidity to the BTOKEN-WBNB pool on Pancakeswap
     await routerV2AsAlice.addLiquidity(
       baseToken.address, wbnb.address,
       ethers.utils.parseEther('1'), ethers.utils.parseEther('1'), '0', '0', await alice.getAddress(), FOREVER);
@@ -311,54 +311,97 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm', () => {
         )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm::onlyWhitelistedWorkers:: bad worker');
       });
     })
-  
-    it('should convert ALL baseToken (BNB) to farmingToken', async () => {
-      // Alice transfer 0.1 WBNB to StrategyAddBaseWithFarm first
-      await wbnbTokenAsAlice.transfer(mockPancakeswapV2WorkerBNBFtokenPair.address, ethers.utils.parseEther('0.1'));
-      // Alice uses AddBaseWithFarm strategy to add 0.1 WBNB
-      // amountOut of 0.1 will be
-      // if 1WBNB = 0.1 FToken
-      // 0.1WBNB will be (0.1*0.9975) * (0.1/(1+0.1*0.9975)) = 0.00907024323709934
-      await mockPancakeswapV2WorkerBNBFtokenPairAsAlice.work(
-        0, await alice.getAddress(), '0',
-        ethers.utils.defaultAbiCoder.encode(
-          ['address', 'bytes'],
-          [strat.address, ethers.utils.defaultAbiCoder.encode(
-            ['uint256', 'uint256'],
-            ['0', '0']
-          )],
-        )
-      );
-  
-      expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0.00907024323709934'))
-      expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-      expect(await wbnb.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-      expect(await wbnb.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-  
-      // Bob uses AddBaseWithFarm strategy to add another 0.1 WBNB
-      // amountOut of 0.1 will be
-      // if 1.1 WBNB = (0.1 - 0.00907024323709934) FToken
-      // if 1.1 WBNB = 0.09092975676290066 FToken
-      // 0.1 WBNB will be (0.1*0.9975) * (0.09092975676290066/(1.1+0.1*0.9975)) = 0.0075601110540523785
-      // thus, the current amount accumulated with the previous one will be 0.0075601110540523785 + 0.00907024323709934 + 0.04 = 0.05663035429115172
-      await wbnbTokenAsAlice.transfer(mockPancakeswapV2WorkerBNBFtokenPair.address, ethers.utils.parseEther('0.1'));
-      await farmingTokenAsAlice.approve(mockedVault.address, ethers.utils.parseEther('0.04'));
-      await mockPancakeswapV2WorkerBNBFtokenPairAsAlice.work(
-        0, await alice.getAddress(), '0',
-        ethers.utils.defaultAbiCoder.encode(
-          ['address', 'bytes'],
-          [strat.address, ethers.utils.defaultAbiCoder.encode(
-            ['uint256', 'uint256'],
-            [ethers.utils.parseEther('0.04'), '0']
-          )],
-        )
-      );
-  
-      expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0.056630354291151718'))
-      expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-      expect(await wbnb.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-      expect(await wbnb.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-    });
+
+    context("when baseToken balance > 0", async() => {
+      it('should convert ALL baseToken (BNB) to farmingToken', async () => {
+        // Alice transfer 0.1 WBNB to StrategyAddBaseWithFarm first
+        await wbnbTokenAsAlice.transfer(mockPancakeswapV2WorkerBNBFtokenPair.address, ethers.utils.parseEther('0.1'));
+        await mockPancakeswapV2WorkerBNBFtokenPairAsAlice.work(
+          0, await alice.getAddress(), '0',
+          ethers.utils.defaultAbiCoder.encode(
+            ['address', 'bytes'],
+            [strat.address, ethers.utils.defaultAbiCoder.encode(
+              ['uint256', 'uint256'],
+              ['0', '0']
+            )],
+          )
+        );
+    
+        // Alice uses AddBaseWithFarm strategy to add 0.1 WBNB
+        // amountOut of 0.1 will be
+        // if 1WBNB = 0.1 FToken
+        // 0.1 WBNB will be (0.1 * 0.9975 * 0.1) / ( 1 + 0.1 * 0.9975) = 0.00907024323709934 FTOKEN
+        // thus, the strategy will receive 0.00907024323709934 FTOKEN
+        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0.00907024323709934'))
+        expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        expect(await wbnb.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        expect(await wbnb.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+    
+        await wbnbTokenAsAlice.transfer(mockPancakeswapV2WorkerBNBFtokenPair.address, ethers.utils.parseEther('0.1'));
+        await farmingTokenAsAlice.approve(mockedVault.address, ethers.utils.parseEther('0.04'));
+        await mockPancakeswapV2WorkerBNBFtokenPairAsAlice.work(
+          0, await alice.getAddress(), '0',
+          ethers.utils.defaultAbiCoder.encode(
+            ['address', 'bytes'],
+            [strat.address, ethers.utils.defaultAbiCoder.encode(
+              ['uint256', 'uint256'],
+              [ethers.utils.parseEther('0.04'), '0']
+            )],
+          )
+        );
+        
+        // Alice uses AddBaseWithFarm strategy to add another 0.1 WBNB and 0.4 FToken
+        // amountOut of 0.1 will be
+        // if 1.1 WBNB = (0.1 - 0.00907024323709934) FToken
+        // if 1.1 WBNB = 0.09092975676290066 FToken
+        // 0.1 WBNB will be (0.1 * 0.9975 * 0.09092975676290066) / (1.1 + 0.1 * 0.9975) = 0.0075601110540523785 FTOKEN
+        // thus, the current amount of the strategy accumulated with the previous one will be 0.0075601110540523785 + 0.00907024323709934 + 0.04 = 0.05663035429115172 FTOKEN
+        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0.056630354291151718'))
+        expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        expect(await wbnb.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        expect(await wbnb.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+      });
+    })
+
+    context("when baseToken balance = 0", async () => {
+      it('should convert ALL baseToken (BNB) to farmingToken', async () => {
+        await mockPancakeswapV2WorkerBNBFtokenPairAsAlice.work(
+          0, await alice.getAddress(), '0',
+          ethers.utils.defaultAbiCoder.encode(
+            ['address', 'bytes'],
+            [strat.address, ethers.utils.defaultAbiCoder.encode(
+              ['uint256', 'uint256'],
+              ['0', '0']
+            )],
+          )
+        );
+        // Alice uses AddBaseWithFarm strategy to add 0 WBNB
+        // Thus no token from farming token and WBNB will be took into account. 
+        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        expect(await wbnb.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        expect(await wbnb.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+
+        await farmingTokenAsAlice.approve(mockedVault.address, ethers.utils.parseEther('0.04'));
+        await mockPancakeswapV2WorkerBNBFtokenPairAsAlice.work(
+          0, await alice.getAddress(), '0',
+          ethers.utils.defaultAbiCoder.encode(
+            ['address', 'bytes'],
+            [strat.address, ethers.utils.defaultAbiCoder.encode(
+              ['uint256', 'uint256'],
+              [ethers.utils.parseEther('0.04'), '0']
+            )],
+          )
+        );
+
+        // Alice uses AddBaseWithFarm strategy to add another 0 WBNB and 0.04 FToken
+        // thus, the strategy will receive 0.04 FToken
+        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0.04'))
+        expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        expect(await wbnb.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        expect(await wbnb.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+      });
+    })
   })
 
   context('when the base token is not a wrap native', async () => {
@@ -412,12 +455,12 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm', () => {
             // Bob uses AddBaseWithFarm strategy to add 0.1 BASE
             // amountOut of 0.1 will be
             // if 1 BASE = 1 BNB
-            // 0.1 BASE will be (0.1 * 0.9975) * (1 / (1 + 0.1 * 0.9975)) = 0.09070243237099342 BNB
+            // 0.1 BASE will be (0.1 * 0.9975 * 1) / (1 + 0.1 * 0.9975) = 0.09070243237099342 BNB
             // if 1 BNB = 0.1 FTOKEN
-            // 0.09070243237099342 BNB = (0.09070243237099342 * 0.9975) * (0.1 / (1 + 0.09070243237099342 * 0.9975)) = 0.008296899991192416 FTOKEN
-            await baseTokenAsAlice.transfer(mockPancakeswapV2WorkerBNBFtokenPair.address, ethers.utils.parseEther('0.1'));
+            // 0.09070243237099342 BNB = (0.09070243237099342 * 0.9975 * 0.1) / (1 + 0.09070243237099342 * 0.9975) = 0.008296899991192416 FTOKEN
+            await baseTokenAsAlice.transfer(mockPancakeswapV2WorkerBaseFTokenPairAsAlice.address, ethers.utils.parseEther('0.1'));
             await farmingTokenAsAlice.approve(mockedVault.address, ethers.utils.parseEther('0.05'));
-            await expect(mockPancakeswapV2WorkerBNBFtokenPairAsAlice.work(
+            await expect(mockPancakeswapV2WorkerBaseFTokenPairAsAlice.work(
               0, await alice.getAddress(), '0',
               ethers.utils.defaultAbiCoder.encode(
                 ['address', 'bytes'],
@@ -463,54 +506,97 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm', () => {
       });
     })
 
-    it('should convert ALL baseToken (BASE Token (WBTC)) to farmingToken', async () => {
-      // Bob transfer 0.1 BASE to StrategyAddBaseWithFarm first
-      await baseTokenAsAlice.transfer(mockPancakeswapV2WorkerBaseFTokenPair.address, ethers.utils.parseEther('0.1'));
-      // Bob uses AddBaseWithFarm strategy to add 0.1 BASE
-      // amountOut of 0.1 will be
-      // if 1 BASE = 1 BNB
-      // 0.1 BASE will be (0.1 * 0.9975) * (1 / (1 + 0.1 * 0.9975)) = 0.09070243237099342 BNB
-      // if 1 BNB = 0.1 FTOKEN
-      // 0.09070243237099342 BNB = (0.09070243237099342 * 0.9975) * (0.1 / (1 + 0.09070243237099342 * 0.9975)) = 0.008296899991192416 FTOKEN
-      await mockPancakeswapV2WorkerBaseFTokenPairAsAlice.work(
-        0, await alice.getAddress(), '0',
-        ethers.utils.defaultAbiCoder.encode(
-          ['address', 'bytes'],
-          [strat.address, ethers.utils.defaultAbiCoder.encode(
-            ['uint256', 'uint256'],
-            ['0', '0']
-          )],
-        )
-      );
+    context("when baseToken balance > 0", async() => {
+      it('should convert ALL baseToken (BASE Token (BTOKEN)) to farmingToken', async () => {
+        // Alice transfer 0.1 BASE to StrategyAddBaseWithFarm first
+        await baseTokenAsAlice.transfer(mockPancakeswapV2WorkerBaseFTokenPair.address, ethers.utils.parseEther('0.1'));
+        await mockPancakeswapV2WorkerBaseFTokenPairAsAlice.work(
+          0, await alice.getAddress(), '0',
+          ethers.utils.defaultAbiCoder.encode(
+            ['address', 'bytes'],
+            [strat.address, ethers.utils.defaultAbiCoder.encode(
+              ['uint256', 'uint256'],
+              ['0', '0']
+            )],
+          )
+        );
+  
+        // Alice uses AddBaseWithFarm strategy to add 0.1 BASE
+        // amountOut of 0.1 will be
+        // if 1 BASE = 1 BNB
+        // 0.1 BASE will be (0.1 * 0.9975 * 1) / (1 + 0.1 * 0.9975) = 0.09070243237099342 BNB
+        // if 1 BNB = 0.1 FTOKEN
+        // 0.09070243237099342 BNB = (0.09070243237099342 * 0.9975 * 0.1) / (1 + 0.09070243237099342 * 0.9975) = 0.008296899991192416 FTOKEN
+        // Thus, the strategy will receive 0.008296899991192416 FTOKEN
+        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0.008296899991192416'))
+        expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        expect(await baseToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+  
+        await baseTokenAsAlice.transfer(mockPancakeswapV2WorkerBaseFTokenPair.address, ethers.utils.parseEther('0.1'));
+        await farmingTokenAsAlice.approve(mockedVault.address, ethers.utils.parseEther('0.04'));
+        await mockPancakeswapV2WorkerBaseFTokenPairAsAlice.work(
+          0, await alice.getAddress(), '0',
+          ethers.utils.defaultAbiCoder.encode(
+            ['address', 'bytes'],
+            [strat.address, ethers.utils.defaultAbiCoder.encode(
+              ['uint256', 'uint256'],
+              [ethers.utils.parseEther('0.04'), '0']
+            )],
+          )
+        );
+        
+        // Alice uses AddBaseWithFarm strategy to add another 0.1 BASE
+        // amountOut of 0.1 will be
+        // if 1.1 BASE = (1 - 0.09070243237099342) = 0.9092975676290066 BNB
+        // 0.1 BASE = (0.1 * 0.9975 * 0.9092975676290066) / (1.1 + 0.1 * 0.9975) = 0.07560111054052378 BNB
+        // if (1 + 0.09070243237099342) = (0.1 - 0.008296899991192416) FTOKEN
+        // 0.07560111054052378 BNB = (0.07560111054052378 * 0.9975  * (0.1 - 0.008296899991192416)) / (1 + 0.09070243237099342) + 0.07560111054052378 * 0.9975)) = 0.005930398620508835 FTOKEN
+        // total of farmingToken of strategy will be 0.005930398620508835 + 0.008296899991192416 + 0.04 = 0.05422729861170125 FToken
+        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0.054227298611701251'))
+        expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        expect(await baseToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+      });
+    })
 
-      expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0.008296899991192416'))
-      expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-      expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-      expect(await baseToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+    context("when baseToken balance = 0", async() => {
+      it('should convert ALL baseToken (BASE Token (BTOKEN)) to farmingToken', async () => {
+        await mockPancakeswapV2WorkerBaseFTokenPairAsAlice.work(
+          0, await alice.getAddress(), '0',
+          ethers.utils.defaultAbiCoder.encode(
+            ['address', 'bytes'],
+            [strat.address, ethers.utils.defaultAbiCoder.encode(
+              ['uint256', 'uint256'],
+              ['0', '0']
+            )],
+          )
+        );
+        
+        // Alice uses AddBaseWithFarm strategy to add 0 BToken
+        // Thus no token from farming token and BToken will be took into account. 
+        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        expect(await baseToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+  
+        await farmingTokenAsAlice.approve(mockedVault.address, ethers.utils.parseEther('0.04'));
+        await mockPancakeswapV2WorkerBaseFTokenPairAsAlice.work(
+          0, await alice.getAddress(), '0',
+          ethers.utils.defaultAbiCoder.encode(
+            ['address', 'bytes'],
+            [strat.address, ethers.utils.defaultAbiCoder.encode(
+              ['uint256', 'uint256'],
+              [ethers.utils.parseEther('0.04'), '0']
+            )],
+          )
+        );
 
-      // Bob uses AddBaseWithFarm strategy to add another 0.1 BASE
-      // amountOut of 0.1 will be
-      // if 1.1 BASE = (1 - 0.09070243237099342) = 0.9092975676290066 BNB
-      // 0.1 BASE = (0.1 * 0.9975) * (0.9092975676290066 / (1.1 + 0.1 * 0.9975)) = 0.07560111054052378 BNB
-      // if (1 + 0.09070243237099342) = (0.1 - 0.008296899991192416) FTOKEN
-      // 0.07560111054052378 BNB = (0.07560111054052378 * 0.9975) * ((0.1 - 0.008296899991192416) /((1 + 0.09070243237099342) + 0.07560111054052378 * 0.9975)) = 0.005930398620508835
-      // total of farmingToken will be 0.005930398620508835 + 0.008296899991192416 + 0.04 = 0.05422729861170125
-      await baseTokenAsAlice.transfer(mockPancakeswapV2WorkerBaseFTokenPair.address, ethers.utils.parseEther('0.1'));
-      await farmingTokenAsAlice.approve(mockedVault.address, ethers.utils.parseEther('0.04'));
-      await mockPancakeswapV2WorkerBaseFTokenPairAsAlice.work(
-        0, await alice.getAddress(), '0',
-        ethers.utils.defaultAbiCoder.encode(
-          ['address', 'bytes'],
-          [strat.address, ethers.utils.defaultAbiCoder.encode(
-            ['uint256', 'uint256'],
-            [ethers.utils.parseEther('0.04'), '0']
-          )],
-        )
-      );
-
-      expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0.054227298611701251'))
-      expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-      expect(await baseToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-    });
+        // Alice uses AddBaseWithFarm strategy to add another 0 BToken and 0.04 FTOKEN
+        // thus, the current amount accumulated with the previous one will be 0.04 FTOKEN
+        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0.04'))
+        expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        expect(await baseToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+      });
+    })
   })
 });
