@@ -6,7 +6,7 @@ import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 
 import "./PriceOracle.sol";
 
-contract OracleRouter is OwnableUpgradeSafe, PriceOracle {
+contract OracleMedianizer is OwnableUpgradeSafe, PriceOracle {
   using SafeMath for uint256;
 
   // Mapping from token0, token1 to number of sources
@@ -60,7 +60,7 @@ contract OracleRouter is OwnableUpgradeSafe, PriceOracle {
       token0s.length == token1s.length &&
         token0s.length == allSources.length &&
         token0s.length == maxPriceDeviationList.length,
-      "OracleRouter::setMultiPrimarySources:: inconsistent length"
+      "OracleMedianizer::setMultiPrimarySources:: inconsistent length"
     );
     for (uint256 idx = 0; idx < token0s.length; idx++) {
       _setPrimarySources(token0s[idx], token1s[idx], maxPriceDeviationList[idx], allSources[idx]);
@@ -80,9 +80,9 @@ contract OracleRouter is OwnableUpgradeSafe, PriceOracle {
   ) internal {
     require(
       maxPriceDeviation >= MIN_PRICE_DEVIATION && maxPriceDeviation <= MAX_PRICE_DEVIATION,
-      "OracleRouter::setPrimarySources:: bad max deviation value"
+      "OracleMedianizer::setPrimarySources:: bad max deviation value"
     );
-    require(sources.length <= 3, "OracleRouter::setPrimarySources:: sources length exceed 3");
+    require(sources.length <= 3, "OracleMedianizer::setPrimarySources:: sources length exceed 3");
     primarySourceCount[token0][token1] = sources.length;
     primarySourceCount[token1][token0] = sources.length;
     maxPriceDeviations[token0][token1] = maxPriceDeviation;
@@ -100,7 +100,7 @@ contract OracleRouter is OwnableUpgradeSafe, PriceOracle {
   /// NOTE: Support at most 3 oracle sources per token
   function _getPrice(address token0, address token1) public view returns (uint256) {
     uint256 candidateSourceCount = primarySourceCount[token0][token1];
-    require(candidateSourceCount > 0, "OracleRouter::getPrice:: no primary source");
+    require(candidateSourceCount > 0, "OracleMedianizer::getPrice:: no primary source");
     uint256[] memory prices = new uint256[](candidateSourceCount);
     // Get valid oracle sources
     uint256 validSourceCount = 0;
@@ -109,7 +109,7 @@ contract OracleRouter is OwnableUpgradeSafe, PriceOracle {
         prices[validSourceCount++] = price;
       } catch {}
     }
-    require(validSourceCount > 0, "OracleRouter::getPrice:: no valid source");
+    require(validSourceCount > 0, "OracleMedianizer::getPrice:: no valid source");
     // Sort prices (asc)
     for (uint256 i = 0; i < validSourceCount - 1; i++) {
       for (uint256 j = 0; j < validSourceCount - i - 1; j++) {
@@ -127,28 +127,25 @@ contract OracleRouter is OwnableUpgradeSafe, PriceOracle {
     // - 3 valid sources --> check deviation threshold of each pair
     //     --> if all within threshold, return median
     //     --> if one pair within threshold, return average of the pair
-    //     --> if none, revert
-    // - revert otherwise
     if (validSourceCount == 1) {
       return prices[0]; // if 1 valid source, return
     } else if (validSourceCount == 2) {
       require(
         prices[1].mul(1e18) / prices[0] <= maxPriceDeviation,
-        "OracleRouter::getPrice:: too much deviation 2 valid sources"
+        "OracleMedianizer::getPrice:: too much deviation 2 valid sources"
       );
       return prices[0].add(prices[1]) / 2; // if 2 valid sources, return average
-    } else if (validSourceCount == 3) {
-      bool midMinOk = prices[1].mul(1e18) / prices[0] <= maxPriceDeviation;
-      bool maxMidOk = prices[2].mul(1e18) / prices[1] <= maxPriceDeviation;
-      if (midMinOk && maxMidOk) {
-        return prices[1]; // if 3 valid sources, and each pair is within thresh, return median
-      } else if (midMinOk) {
-        return prices[0].add(prices[1]) / 2; // return average of pair within thresh
-      } else if (maxMidOk) {
-        return prices[1].add(prices[2]) / 2; // return average of pair within thresh
-      } else {
-        revert("OracleRouter::getPrice:: too much deviation 3 valid sources");
-      }
+    }
+    bool midP0P1Ok = prices[1].mul(1e18) / prices[0] <= maxPriceDeviation;
+    bool midP1P2Ok = prices[2].mul(1e18) / prices[1] <= maxPriceDeviation;
+    if (midP0P1Ok && midP1P2Ok) {
+      return prices[1]; // if 3 valid sources, and each pair is within thresh, return median
+    } else if (midP0P1Ok) {
+      return prices[0].add(prices[1]) / 2; // return average of pair within thresh
+    } else if (midP1P2Ok) {
+      return prices[1].add(prices[2]) / 2; // return average of pair within thresh
+    } else {
+      revert("OracleMedianizer::getPrice:: too much deviation 3 valid sources");
     }
   }
 

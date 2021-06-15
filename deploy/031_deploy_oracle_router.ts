@@ -1,7 +1,7 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
 import { ethers, upgrades } from 'hardhat';
-import { OracleRouter__factory } from '../typechain';
+import { OracleMedianizer__factory } from '../typechain';
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -28,17 +28,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 
 
-  console.log(">> Deploying an upgradable OracleRouter contract");
-  const OracleRouter = (await ethers.getContractFactory(
-    'OracleRouter',
+  console.log(">> Deploying an upgradable OracleMedianizer contract");
+  const OracleMedianizer = (await ethers.getContractFactory(
+    'OracleMedianizer',
     (await ethers.getSigners())[0]
-  )) as OracleRouter__factory;
-  const oracleRouter = await upgrades.deployProxy(
-    OracleRouter
+  )) as OracleMedianizer__factory;
+  const oracleMedianizer = await upgrades.deployProxy(
+    OracleMedianizer
   );
-  await oracleRouter._deployed();
-  console.log(`>> Deployed at ${oracleRouter.address}`);
+  await oracleMedianizer._deployed();
+  console.log(`>> Deployed at ${oracleMedianizer.address}`);
 };
 
 export default func;
-func.tags = ['OracleRouter'];
+func.tags = ['OracleMedianizer'];
