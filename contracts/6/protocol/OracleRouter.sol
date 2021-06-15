@@ -60,7 +60,7 @@ contract OracleRouter is OwnableUpgradeSafe, PriceOracle {
       token0s.length == token1s.length &&
         token0s.length == allSources.length &&
         token0s.length == maxPriceDeviationList.length,
-      "inconsistent length"
+      "OracleRouter::setMultiPrimarySources:: inconsistent length"
     );
     for (uint256 idx = 0; idx < token0s.length; idx++) {
       _setPrimarySources(token0s[idx], token1s[idx], maxPriceDeviationList[idx], allSources[idx]);
@@ -80,9 +80,9 @@ contract OracleRouter is OwnableUpgradeSafe, PriceOracle {
   ) internal {
     require(
       maxPriceDeviation >= MIN_PRICE_DEVIATION && maxPriceDeviation <= MAX_PRICE_DEVIATION,
-      "bad max deviation value"
+      "OracleRouter::setPrimarySources:: bad max deviation value"
     );
-    require(sources.length <= 3, "sources length exceed 3");
+    require(sources.length <= 3, "OracleRouter::setPrimarySources:: sources length exceed 3");
     primarySourceCount[token0][token1] = sources.length;
     primarySourceCount[token1][token0] = sources.length;
     maxPriceDeviations[token0][token1] = maxPriceDeviation;
@@ -100,7 +100,7 @@ contract OracleRouter is OwnableUpgradeSafe, PriceOracle {
   /// NOTE: Support at most 3 oracle sources per token
   function _getPrice(address token0, address token1) public view returns (uint256) {
     uint256 candidateSourceCount = primarySourceCount[token0][token1];
-    require(candidateSourceCount > 0, "no primary source");
+    require(candidateSourceCount > 0, "OracleRouter::getPrice:: no primary source");
     uint256[] memory prices = new uint256[](candidateSourceCount);
     // Get valid oracle sources
     uint256 validSourceCount = 0;
@@ -109,7 +109,7 @@ contract OracleRouter is OwnableUpgradeSafe, PriceOracle {
         prices[validSourceCount++] = price;
       } catch {}
     }
-    require(validSourceCount > 0, "no valid source");
+    require(validSourceCount > 0, "OracleRouter::getPrice:: no valid source");
     // Sort prices (asc)
     for (uint256 i = 0; i < validSourceCount - 1; i++) {
       for (uint256 j = 0; j < validSourceCount - i - 1; j++) {
@@ -132,7 +132,10 @@ contract OracleRouter is OwnableUpgradeSafe, PriceOracle {
     if (validSourceCount == 1) {
       return prices[0]; // if 1 valid source, return
     } else if (validSourceCount == 2) {
-      require(prices[1].mul(1e18) / prices[0] <= maxPriceDeviation, "too much deviation (2 valid sources)");
+      require(
+        prices[1].mul(1e18) / prices[0] <= maxPriceDeviation,
+        "OracleRouter::getPrice:: too much deviation (2 valid sources)"
+      );
       return prices[0].add(prices[1]) / 2; // if 2 valid sources, return average
     } else if (validSourceCount == 3) {
       bool midMinOk = prices[1].mul(1e18) / prices[0] <= maxPriceDeviation;
@@ -144,10 +147,10 @@ contract OracleRouter is OwnableUpgradeSafe, PriceOracle {
       } else if (maxMidOk) {
         return prices[1].add(prices[2]) / 2; // return average of pair within thresh
       } else {
-        revert("too much deviation (3 valid sources)");
+        revert("OracleRouter::getPrice:: too much deviation (3 valid sources)");
       }
     } else {
-      revert("more than 3 valid sources not supported");
+      revert("OracleRouter::getPrice:: more than 3 valid sources not supported");
     }
   }
 
