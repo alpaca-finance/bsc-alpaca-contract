@@ -134,18 +134,30 @@ describe('OracleRouter', () => {
       })
       context('when successfully', async () => {
         it('should successfully', async () => {
-          await oracleRouterAsDeployer.setPrimarySources(
+          await expect(oracleRouterAsDeployer.setPrimarySources(
             token0.address,
             token1.address,
             BigNumber.from('1000000000000000000'),
             [simplePriceOracle.address],
-          )
-          const source = await oracleRouterAsDeployer.primarySources(token0.address, token1.address, 0)
-          const sourceCount = await oracleRouterAsDeployer.primarySourceCount(token0.address, token1.address)
-          const maxPriceDeviation = await oracleRouterAsDeployer.maxPriceDeviations(token0.address, token1.address)
-          expect(source).to.eq(simplePriceOracle.address)
-          expect(sourceCount).to.eq(BigNumber.from(1))
-          expect(maxPriceDeviation).to.eq(BigNumber.from('1000000000000000000'))
+          )).to.emit(oracleRouterAsDeployer, 'SetPrimarySources')
+          
+          // T0T1 pair
+          const sourceT0T1 = await oracleRouterAsDeployer.primarySources(token0.address, token1.address, 0)
+          const sourceCountT0T1 = await oracleRouterAsDeployer.primarySourceCount(token0.address, token1.address)
+          const maxPriceDeviationT0T1 = await oracleRouterAsDeployer.maxPriceDeviations(token0.address, token1.address)
+
+          expect(sourceT0T1).to.eq(simplePriceOracle.address)
+          expect(sourceCountT0T1).to.eq(BigNumber.from(1))
+          expect(maxPriceDeviationT0T1).to.eq(BigNumber.from('1000000000000000000'))
+
+          // T1T0 pair
+          const sourceT1T0 = await oracleRouterAsDeployer.primarySources(token1.address, token0.address, 0)
+          const sourceCountT1T0 = await oracleRouterAsDeployer.primarySourceCount(token1.address, token0.address)
+          const maxPriceDeviationT1T0 = await oracleRouterAsDeployer.maxPriceDeviations(token1.address, token0.address)
+          
+          expect(sourceT1T0).to.eq(simplePriceOracle.address)
+          expect(sourceCountT1T0).to.eq(BigNumber.from(1))
+          expect(maxPriceDeviationT1T0).to.eq(BigNumber.from('1000000000000000000'))
         })
       })
     })
@@ -186,26 +198,57 @@ describe('OracleRouter', () => {
     })
     context('when successfully', async () => {
       it('should successfully', async () => {
-        await oracleRouterAsDeployer.setMultiPrimarySources(
+        await expect(oracleRouterAsDeployer.setMultiPrimarySources(
           [token0.address, token2.address],
           [token1.address, token3.address],
           [BigNumber.from('1000000000000000000'), BigNumber.from('1100000000000000000')],
           [[simplePriceOracle.address], [simplePriceOracle.address, bobPriceOracle.address]],
-        )
+        )).to.emit(oracleRouterAsDeployer, 'SetPrimarySources')
+        // T0T1 pair
         const sourceT0T1 = await oracleRouterAsDeployer.primarySources(token0.address, token1.address, 0)
         const sourceCountT0T1 = await oracleRouterAsDeployer.primarySourceCount(token0.address, token1.address)
         const maxPriceDeviationT0T1 = await oracleRouterAsDeployer.maxPriceDeviations(token0.address, token1.address)
-        const source0T2T3 = await oracleRouterAsDeployer.primarySources(token2.address, token3.address, 0)
-        const source1T2T3 = await oracleRouterAsDeployer.primarySources(token2.address, token3.address, 1)
-        const sourceCountT2T3 = await oracleRouterAsDeployer.primarySourceCount(token2.address, token3.address)
-        const maxPriceDeviationT2T3 = await oracleRouterAsDeployer.maxPriceDeviations(token2.address, token3.address)
+
         expect(sourceT0T1).to.eq(simplePriceOracle.address)
         expect(sourceCountT0T1).to.eq(BigNumber.from(1))
         expect(maxPriceDeviationT0T1).to.eq(BigNumber.from('1000000000000000000'))
-        expect(source0T2T3).to.eq(simplePriceOracle.address)
+
+        // T1T0 pair
+        const sourceT1T0 = await oracleRouterAsDeployer.primarySources(token1.address, token0.address, 0)
+        const sourceCountT1T0 = await oracleRouterAsDeployer.primarySourceCount(token1.address, token0.address)
+        const maxPriceDeviationT1T0 = await oracleRouterAsDeployer.maxPriceDeviations(token1.address, token0.address)
+
+        expect(sourceT1T0).to.eq(simplePriceOracle.address)
+        expect(sourceCountT1T0).to.eq(BigNumber.from(1))
+        expect(maxPriceDeviationT1T0).to.eq(BigNumber.from('1000000000000000000'))
+
+        // T2T3 pair
+        // source 0
+        const sourceT2T3 = await oracleRouterAsDeployer.primarySources(token2.address, token3.address, 0)
+        // source 1
+        const source1T2T3 = await oracleRouterAsDeployer.primarySources(token2.address, token3.address, 1)
+
+        const sourceCountT2T3 = await oracleRouterAsDeployer.primarySourceCount(token2.address, token3.address)
+        const maxPriceDeviationT2T3 = await oracleRouterAsDeployer.maxPriceDeviations(token2.address, token3.address)
+        
+        expect(sourceT2T3).to.eq(simplePriceOracle.address)
         expect(source1T2T3).to.eq(bobPriceOracle.address)
         expect(sourceCountT2T3).to.eq(BigNumber.from(2))
         expect(maxPriceDeviationT2T3).to.eq(BigNumber.from('1100000000000000000'))
+
+        // T3T2 pair
+        // source 0
+        const sourceT3T2 = await oracleRouterAsDeployer.primarySources(token3.address, token2.address, 0)
+        // source 1
+        const source1T3T2 = await oracleRouterAsDeployer.primarySources(token3.address, token2.address, 1)
+        
+        const sourceCountT3T2 = await oracleRouterAsDeployer.primarySourceCount(token3.address, token2.address)
+        const maxPriceDeviationT3T2 = await oracleRouterAsDeployer.maxPriceDeviations(token3.address, token2.address)
+        
+        expect(sourceT3T2).to.eq(simplePriceOracle.address)
+        expect(source1T3T2).to.eq(bobPriceOracle.address)
+        expect(sourceCountT3T2).to.eq(BigNumber.from(2))
+        expect(maxPriceDeviationT3T2).to.eq(BigNumber.from('1100000000000000000'))
       })
     })
   })
