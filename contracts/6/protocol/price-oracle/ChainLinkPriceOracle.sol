@@ -28,6 +28,10 @@ contract ChainLinkPriceOracle is OwnableUpgradeSafe, PriceOracle {
     address token1,
     AggregatorV3Interface source
   ) external onlyOwner {
+    require(
+      address(priceFeeds[token1][token0]) == address(0),
+      "ChainLinkPriceOracle::setPriceFeed:: source on existed pair"
+    );
     priceFeeds[token0][token1] = source;
 
     emit SetPriceFeed(token0, token1, source);
@@ -42,13 +46,11 @@ contract ChainLinkPriceOracle is OwnableUpgradeSafe, PriceOracle {
       "ChainLinkPriceOracle::getPrice:: no source"
     );
     if (address(priceFeeds[token0][token1]) != address(0)) {
-      (uint80 roundID, int256 price, uint256 startedAt, uint256 lastUpdate, uint80 answeredInRound) =
-        priceFeeds[token0][token1].latestRoundData();
+      (, int256 price, , uint256 lastUpdate, ) = priceFeeds[token0][token1].latestRoundData();
       uint256 decimals = uint256(priceFeeds[token0][token1].decimals());
       return (uint256(price).mul(1e18) / (10**decimals), lastUpdate);
     }
-    (uint80 roundID, int256 price, uint256 startedAt, uint256 lastUpdate, uint80 answeredInRound) =
-      priceFeeds[token1][token0].latestRoundData();
+    (, int256 price, , uint256 lastUpdate, ) = priceFeeds[token1][token0].latestRoundData();
     uint256 decimals = uint256(priceFeeds[token1][token0].decimals());
     return ((10**decimals).mul(1e18) / uint256(price), lastUpdate);
   }
