@@ -45,11 +45,11 @@ contract ChainLinkPriceOracle is OwnableUpgradeSafe, PriceOracle {
       (uint80 roundID, int256 price, uint256 startedAt, uint256 lastUpdate, uint80 answeredInRound) =
         priceFeeds[token0][token1].latestRoundData();
       uint256 decimals = uint256(priceFeeds[token0][token1].decimals());
-      return ((uint256(price) * 1e18) / (10**decimals), lastUpdate);
+      return (uint256(price).mul(1e18) / (10**decimals), lastUpdate);
     }
     (uint80 roundID, int256 price, uint256 startedAt, uint256 lastUpdate, uint80 answeredInRound) =
       priceFeeds[token1][token0].latestRoundData();
     uint256 decimals = uint256(priceFeeds[token1][token0].decimals());
-    return ((1e18 * (10**decimals)) / uint256(price), lastUpdate);
+    return (1e18.mul(10**decimals) / uint256(price), lastUpdate);
   }
 }
