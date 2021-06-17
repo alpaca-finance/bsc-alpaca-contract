@@ -1,3 +1,16 @@
+// SPDX-License-Identifier: BUSL-1.1
+/**
+  ∩~~~~∩ 
+  ξ ･×･ ξ 
+  ξ　~　ξ 
+  ξ　　 ξ 
+  ξ　　 “~～~～〇 
+  ξ　　　　　　 ξ 
+  ξ ξ ξ~～~ξ ξ ξ 
+　 ξ_ξξ_ξ　ξ_ξξ_ξ
+Alpaca Fin Corporation
+*/
+
 pragma solidity 0.6.6;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
@@ -11,9 +24,9 @@ import "../../apis/pancake/IPancakeRouter02.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../../utils/SafeToken.sol";
 import "../../../utils/AlpacaMath.sol";
-import "../../interfaces/IWorker.sol";
+import "../../interfaces/IWorker02.sol";
 
-contract PancakeswapV2RestrictedCakeMaxiStrategyLiquidate is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
+contract PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeToken for address;
   using SafeMath for uint256;
 
@@ -24,7 +37,7 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyLiquidate is OwnableUpgradeSafe,
 
   // @notice require that only allowed workers are able to do the rest of the method call
   modifier onlyWhitelistedWorkers() {
-    require(okWorkers[msg.sender], "PancakeswapV2RestrictedCakeMaxiStrategyLiquidate::onlyWhitelistedWorkers:: bad worker");
+    require(okWorkers[msg.sender], "PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly::onlyWhitelistedWorkers:: bad worker");
     _;
   } 
 
@@ -38,7 +51,7 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyLiquidate is OwnableUpgradeSafe,
     wNative = _router.WETH();
   }
 
-  /// @dev Execute worker strategy. take farmingToken return Basetoken
+  /// @dev Execute worker strategy. Take BaseToken. Return Farming tokens.
   /// @param data Extra calldata information passed along to this strategy.
   function execute(address /* user */, uint256 /* debt */, bytes calldata data)
     external
@@ -46,38 +59,23 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyLiquidate is OwnableUpgradeSafe,
     onlyWhitelistedWorkers
     nonReentrant
   {
-    // 1. minBaseTokenAmount for validating a baseToken amount from a conversion of a farmingToken.
+    // 1. minFarmingTokenAmount for validating a farmingToken amount from a conversion of a baseToken.
     (
-      uint256 minBaseTokenAmount
+      uint256 minFarmingTokenAmount
     ) = abi.decode(data, (uint256));
-    IWorker worker = IWorker(msg.sender);
+    IWorker02 worker = IWorker02(msg.sender);
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
     // 2. Approve router to do their stuffs
-    farmingToken.safeApprove(address(router), uint256(-1));
-    uint256 balance = farmingToken.myBalance();
-    // 3. Convert that all farmingTokens back to a baseTokens.
-    address[] memory path;
-    if (baseToken == wNative) {
-      path = new address[](2);
-      path[0] = address(farmingToken);
-      path[1] = address(wNative);
-    } else if (farmingToken == wNative) {
-      path = new address[](2);
-      path[0] = address(wNative);
-      path[1] = address(baseToken);
-    } else {
-      path = new address[](3);
-      path[0] = address(farmingToken);
-      path[1] = address(wNative);
-      path[2] = address(baseToken);
-    }
-    router.swapExactTokensForTokens(balance, 0, path, address(this), now);
-    // 4. Transfer all baseTokens (as a result of a conversion) back to the calling worker
-    require(baseToken.myBalance() >= minBaseTokenAmount, "PancakeswapV2RestrictedCakeMaxiStrategyLiquidate::execute:: insufficient baseToken amount received");
-    baseToken.safeTransfer(msg.sender, baseToken.myBalance());
+    baseToken.safeApprove(address(router), uint256(-1));
+    uint256 balance = baseToken.myBalance();
+    // 3. Convert that all baseTokens into farmingTokens.
+    router.swapExactTokensForTokens(balance, 0, worker.getPath(), address(this), now);
+    // 4. Transfer all farmingTokens (as a result of a conversion) back to the calling worker
+    require(farmingToken.myBalance() >= minFarmingTokenAmount, "PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly::execute:: insufficient farmingToken amount received");
+    farmingToken.safeTransfer(msg.sender, farmingToken.myBalance());
     // 5. Reset approval for safety reason
-    farmingToken.safeApprove(address(router), 0);
+    baseToken.safeApprove(address(router), 0);
   }
 
   function setWorkersOk(address[] calldata workers, bool isOk) external onlyOwner {

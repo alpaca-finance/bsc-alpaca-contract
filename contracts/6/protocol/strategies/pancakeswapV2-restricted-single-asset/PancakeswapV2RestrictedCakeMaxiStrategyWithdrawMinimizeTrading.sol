@@ -1,3 +1,16 @@
+// SPDX-License-Identifier: BUSL-1.1
+/**
+  ∩~~~~∩ 
+  ξ ･×･ ξ 
+  ξ　~　ξ 
+  ξ　　 ξ 
+  ξ　　 “~～~～〇 
+  ξ　　　　　　 ξ 
+  ξ ξ ξ~～~ξ ξ ξ 
+　 ξ_ξξ_ξ　ξ_ξξ_ξ
+Alpaca Fin Corporation
+*/
+
 pragma solidity 0.6.6;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
@@ -12,11 +25,11 @@ import "../../apis/pancake/IPancakeRouter02.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../../utils/SafeToken.sol";
 import "../../../utils/AlpacaMath.sol";
-import "../../interfaces/IWorker.sol";
+import "../../interfaces/IWorker02.sol";
 import "../../interfaces/IWNativeRelayer.sol";
 
 
-contract PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
+contract PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeToken for address;
   using SafeMath for uint256;
 
@@ -28,7 +41,7 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading is Ownab
 
   // @notice require that only allowed workers are able to do the rest of the method call
   modifier onlyWhitelistedWorkers() {
-    require(okWorkers[msg.sender], "PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading::onlyWhitelistedWorkers:: bad worker");
+    require(okWorkers[msg.sender], "PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading::onlyWhitelistedWorkers:: bad worker");
     _;
   } 
 
@@ -55,33 +68,20 @@ contract PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading is Ownab
     (
       uint256 minFarmingTokenAmount
     ) = abi.decode(data, (uint256));
-    IWorker worker = IWorker(msg.sender);
+    IWorker02 worker = IWorker02(msg.sender);
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
     // 2. Approve router to do their stuffs
     farmingToken.safeApprove(address(router), uint256(-1));
-    // 3. Finding the correct path for baseToken and farmingToken (in case some of them are wNative)
-    address[] memory path;
-    if (baseToken == wNative) {
-      path = new address[](2);
-      path[0] = address(farmingToken);
-      path[1] = address(wNative);
-    } else if (farmingToken == wNative) {
-      path = new address[](2);
-      path[0] = address(wNative);
-      path[1] = address(baseToken);
-    } else {
-       path = new address[](3);
-      path[0] = address(farmingToken);
-      path[1] = address(wNative);
-      path[2] = address(baseToken);
+    // 3. Swap from farming token -> base token according to worker's path
+    if (debt > 0) {
+      router.swapTokensForExactTokens(debt, farmingToken.myBalance(), worker.getReversedPath(), address(this), now);
     }
-    router.swapTokensForExactTokens(debt, farmingToken.myBalance(), path, address(this), now);
     // 4. Return baseToken back to the original caller in order to repay the debt.
     baseToken.safeTransfer(msg.sender, baseToken.myBalance());
     // 5. Return the remaining farmingTokens back to the user.
     uint256 remainingFarmingToken = farmingToken.myBalance();
-    require(remainingFarmingToken >= minFarmingTokenAmount, "PancakeswapV2RestrictedCakeMaxiStrategyWithdrawMinimizeTrading::execute:: insufficient farmingToken amount received");
+    require(remainingFarmingToken >= minFarmingTokenAmount, "PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading::execute:: insufficient farmingToken amount received");
     if (remainingFarmingToken > 0) {
       if (farmingToken == address(wNative)) {
         SafeToken.safeTransfer(farmingToken, address(wNativeRelayer), remainingFarmingToken);

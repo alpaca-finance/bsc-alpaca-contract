@@ -1,3 +1,16 @@
+// SPDX-License-Identifier: MIT
+/**
+  ∩~~~~∩ 
+  ξ ･×･ ξ 
+  ξ　~　ξ 
+  ξ　　 ξ 
+  ξ　　 “~～~～〇 
+  ξ　　　　　　 ξ 
+  ξ ξ ξ~～~ξ ξ ξ 
+　 ξ_ξξ_ξ　ξ_ξξ_ξ
+Alpaca Fin Corporation
+*/
+
 pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
@@ -6,17 +19,6 @@ import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/SafeERC20
 import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
-
-/**
-    ∩~~~~∩ 
-    ξ ･×･ ξ 
-    ξ　~　ξ 
-    ξ　　 ξ 
-    ξ　　 “~～~～〇 
-    ξ　　　　　　 ξ 
-    ξ ξ ξ~～~ξ ξ ξ 
-　  ξ_ξξ_ξ　ξ_ξξ_ξ
- */
 
 // Grazing Range allows users to stake ibALPACA to receive various rewards
 contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe  {
