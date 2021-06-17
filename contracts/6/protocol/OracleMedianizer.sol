@@ -4,7 +4,7 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 
-import "./PriceOracle.sol";
+import "./interfaces/IPriceOracle.sol";
 
 contract OracleMedianizer is OwnableUpgradeSafe, PriceOracle {
   using SafeMath for uint256;

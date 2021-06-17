@@ -5,7 +5,7 @@ import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 import "@chainlink/contracts/src/v0.6/interfaces/AggregatorV3Interface.sol";
 
-import "./PriceOracle.sol";
+import "../interfaces/IPriceOracle.sol";
 
 contract ChainLinkPriceOracle is OwnableUpgradeSafe, PriceOracle {
   using SafeMath for uint256;
@@ -50,6 +50,6 @@ contract ChainLinkPriceOracle is OwnableUpgradeSafe, PriceOracle {
     (uint80 roundID, int256 price, uint256 startedAt, uint256 lastUpdate, uint80 answeredInRound) =
       priceFeeds[token1][token0].latestRoundData();
     uint256 decimals = uint256(priceFeeds[token1][token0].decimals());
-    return (1e18.mul(10**decimals) / uint256(price), lastUpdate);
+    return ((10**decimals).mul(1e18) / uint256(price), lastUpdate);
   }
 }
