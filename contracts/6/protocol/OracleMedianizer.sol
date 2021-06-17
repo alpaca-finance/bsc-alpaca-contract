@@ -105,7 +105,10 @@ contract OracleMedianizer is OwnableUpgradeSafe, PriceOracle {
     // Get valid oracle sources
     uint256 validSourceCount = 0;
     for (uint256 idx = 0; idx < candidateSourceCount; idx++) {
-      try primarySources[token0][token1][idx].getPrice(token0, token1) returns (uint256 price, uint256 lastUpdate) {
+      try primarySources[token0][token1][idx].getPrice(token0, token1) returns (
+        uint256 price,
+        uint256 /*lastUpdate*/
+      ) {
         prices[validSourceCount++] = price;
       } catch {}
     }

@@ -40,7 +40,7 @@ contract ChainLinkPriceOracle is OwnableUpgradeSafe, PriceOracle {
   /// @dev Return the price of token0/token1, multiplied by 1e18
   /// @param token0 Token0 to set oracle sources
   /// @param token1 Token1 to set oracle sources
-  function getPrice(address token0, address token1) external view override returns (uint256 price, uint256 lastUpdate) {
+  function getPrice(address token0, address token1) external view override returns (uint256, uint256) {
     require(
       address(priceFeeds[token0][token1]) != address(0) || address(priceFeeds[token1][token0]) != address(0),
       "ChainLinkPriceOracle::getPrice:: no source"
