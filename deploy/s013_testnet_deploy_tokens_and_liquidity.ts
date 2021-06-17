@@ -26,24 +26,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const PANCAKE_ROUTER = '0xA0bC344E20d89ccA131f869E059499F41d7a13D3'
   const WBNB = '0xDfb1211E2694193df5765d54350e1145FD2404A1'
   const TOKENS: Array<IToken> = [{
-    symbol: 'ALPACA',
-    name: 'ALPACA',
-    address: '0x354b3a11D5Ea2DA89405173977E271F58bE2897D',
-    pairs: [{
-      quoteToken: 'USDT',
-      quoteTokenAddr: '0xE60Fa777dEb72C364447BB18C823C4731FbeD671',
-      reserveQuoteToken: ethers.utils.parseEther('1000000'),
-      reserveBaseToken: ethers.utils.parseEther('970466')
-    }]
-  }, {
-    symbol: 'ETH',
-    name: 'ETH',
-    address: '0xd5c082df9eDE041548fa79e05A1CB077036ca86F',
+    symbol: 'USDT',
+    name: 'USDT',
+    address: '0xE60Fa777dEb72C364447BB18C823C4731FbeD671',
     pairs: [{
       quoteToken: 'BUSD',
       quoteTokenAddr: '0x0266693F9Df932aD7dA8a9b44C2129Ce8a87E81f',
-      reserveQuoteToken: ethers.utils.parseEther('1000000'),
-      reserveBaseToken: ethers.utils.parseEther('371.801')
+      reserveQuoteToken: ethers.utils.parseEther('50000000'),
+      reserveBaseToken: ethers.utils.parseEther('502630000')
     }]
   }]
 

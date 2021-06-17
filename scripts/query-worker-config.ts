@@ -9,8 +9,8 @@ interface IWorkerInfo {
   address: string;
   config: string;
   pId: number;
-  lp: string;
-  stakingLpAt: string;
+  stakingToken: string;
+  stakingTokenAt: string;
   strategies: {
     StrategyAddAllBaseToken: string;
     StrategyLiquidate: string;

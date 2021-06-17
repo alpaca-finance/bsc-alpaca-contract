@@ -1,3 +1,16 @@
+// SPDX-License-Identifier: BUSL-1.1
+/**
+  ∩~~~~∩ 
+  ξ ･×･ ξ 
+  ξ　~　ξ 
+  ξ　　 ξ 
+  ξ　　 “~～~～〇 
+  ξ　　　　　　 ξ 
+  ξ ξ ξ~～~ξ ξ ξ 
+　 ξ_ξξ_ξ　ξ_ξξ_ξ
+Alpaca Fin Corporation
+*/
+
 pragma solidity 0.6.6;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
@@ -11,14 +24,14 @@ import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.so
 
 import "../apis/pancake/IPancakeRouter02.sol";
 import "../interfaces/IStrategy.sol";
-import "../interfaces/IWorker.sol";
+import "../interfaces/IWorker02.sol";
 import "../interfaces/IPancakeMasterChef.sol";
 import "../../utils/AlpacaMath.sol";
 import "../../utils/SafeToken.sol";
 import "../interfaces/IVault.sol";
 
 
-contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker {
+contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02 {
   /// @notice Libraries
   using SafeToken for address;
   using SafeMath for uint256;
@@ -28,6 +41,8 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   event AddShare(uint256 indexed id, uint256 share);
   event RemoveShare(uint256 indexed id, uint256 share);
   event Liquidate(uint256 indexed id, uint256 wad);
+  event SetPath(address indexed caller, address[] newPath);
+  event SetRewardPath(address indexed caller, address[] newRewardPath);
   event SetReinvestBountyBps(address indexed caller, uint256 indexed reinvestBountyBps);
   event SetBeneficialVaultBountyBps(address indexed caller, uint256 indexed beneficialVaultBountyBps);
   event SetMaxReinvestBountyBps(address indexed caller, uint256 indexed maxReinvestBountyBps);
@@ -59,6 +74,8 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   uint256 public maxReinvestBountyBps;
   uint256 public rewardBalance;
   mapping(address => bool) public okReinvestors;
+  address[] public path;
+  address[] public rewardPath;
 
   /// @notice Configuration varaibles for V2
   uint256 public fee;
@@ -74,7 +91,9 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     IStrategy _addStrat,
     IStrategy _liqStrat,
     uint256 _reinvestBountyBps,
-    uint256 _beneficialVaultBountyBps
+    uint256 _beneficialVaultBountyBps,
+    address[] calldata _path,
+    address[] calldata _rewardPath
   ) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
@@ -97,25 +116,31 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     maxReinvestBountyBps = 2000;
     fee = 9975;
     feeDenom = 10000;
+    path = _path;
+    rewardPath = _rewardPath;
 
+    require(path.length >= 2, "CakeMaxiWorker::initialize:: path length must be >= 2");
+    require(path[0] == baseToken && path[path.length-1] == farmingToken, "CakeMaxiWorker::initialize:: path must start with base token and end with farming token");
+    require(rewardPath.length >= 2, "CakeMaxiWorker::initialize:: rewardPath length must be >= 2");
+    require(rewardPath[0] == farmingToken && rewardPath[rewardPath.length-1] == beneficialVault.token(), "CakeMaxiWorker::initialize:: rewardPath must start with farming token and end with beneficialVault.token()");
     require(reinvestBountyBps <= maxReinvestBountyBps, "CakeMaxiWorker::initialize:: reinvestBountyBps exceeded maxReinvestBountyBps");
   }
 
   /// @dev Require that the caller must be an EOA account to avoid flash loans.
   modifier onlyEOA() {
-    require(msg.sender == tx.origin, "CakeMaxiWorker::onlyEOA:: not eoa");
+    require(_msgSender() == tx.origin, "CakeMaxiWorker::onlyEOA:: not eoa");
     _;
   }
 
   /// @dev Require that the caller must be the operator.
   modifier onlyOperator() {
-    require(msg.sender == operator, "CakeMaxiWorker::onlyOperator:: not operator");
+    require(_msgSender() == operator, "CakeMaxiWorker::onlyOperator:: not operator");
     _;
   }
 
   //// @dev Require that the caller must be ok reinvestor.
   modifier onlyReinvestor() {
-    require(okReinvestors[msg.sender], "CakeMaxiWorker::onlyReinvestor:: not reinvestor");
+    require(okReinvestors[_msgSender()], "CakeMaxiWorker::onlyReinvestor:: not reinvestor");
     _;
   }
 
@@ -150,25 +175,27 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     if (bounty > 0) {
       uint256 beneficialVaultBounty = bounty.mul(beneficialVaultBountyBps) / 10000;
       if (beneficialVaultBounty > 0) _rewardToBeneficialVault(beneficialVaultBounty, farmingToken);
-      farmingToken.safeTransfer(msg.sender, bounty.sub(beneficialVaultBounty));
+      farmingToken.safeTransfer(_msgSender(), bounty.sub(beneficialVaultBounty));
     }
     // 5. re stake the farming token to get more rewards
     masterChef.enterStaking(reward.sub(bounty));
     // 6. Reset approval
     farmingToken.safeApprove(address(masterChef), 0);
-    emit Reinvest(msg.sender, reward, bounty);
+    emit Reinvest(_msgSender(), reward, bounty);
   }
 
-  // @notice some portion of a bounty from reinvest will be sent to beneficialVault to increase the size of totalToken
+  /// @notice some portion of a bounty from reinvest will be sent to beneficialVault to increase the size of totalToken
   function _rewardToBeneficialVault(uint256 _beneficialVaultBounty, address _rewardToken) internal {
+    /// 1. approve router to do the trading
     _rewardToken.safeApprove(address(router), uint256(-1));
+    /// 2. read base token from beneficialVault
     address beneficialVaultToken = beneficialVault.token();
-    address[] memory path = _getPath(_rewardToken, beneficialVaultToken);
-    uint256[] memory amounts = router.swapExactTokensForTokens(_beneficialVaultBounty, 0, path, address(this), now);
+    /// 3. swap reward token to beneficialVaultToken
+    uint256[] memory amounts = router.swapExactTokensForTokens(_beneficialVaultBounty, 0, rewardPath, address(this), now);
     beneficialVaultToken.safeTransfer(address(beneficialVault), beneficialVaultToken.myBalance());
     _rewardToken.safeApprove(address(router), 0);
 
-    emit BeneficialVaultTokenBuyback(msg.sender, beneficialVault, amounts[amounts.length - 1]);
+    emit BeneficialVaultTokenBuyback(_msgSender(), beneficialVault, amounts[amounts.length - 1]);
   }
 
   /// @dev Work on the given position. Must be called by the operator.
@@ -192,7 +219,7 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     // 3. Add farming token back to the farming pool. Thus, increasing an LP size of the current position's shares
     _addShare(id);
     // 5. Return any remaining BaseToken back to the operator.
-    baseToken.safeTransfer(msg.sender, baseToken.myBalance());
+    baseToken.safeTransfer(_msgSender(), baseToken.myBalance());
   }
 
   /// @dev Return maximum output given the input amount and the status of Pancakeswap reserves.
@@ -211,23 +238,23 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   /// @dev Return the amount of BaseToken to receive if we are to liquidate the given position.
   /// @param id The position ID to perform health check.
   function health(uint256 id) external override view returns (uint256) {
-    address[] memory path = _getPath(farmingToken, baseToken);
     IPancakePair currentLP;
     uint256[] memory amount;
-    amount = new uint256[](path.length);
+    address[] memory reversedPath = getReversedPath();
+    amount = new uint256[](reversedPath.length);
     amount[0] = shareToBalance(shares[id]);
-    for(uint256 i = 1; i < path.length; i++) {
-        // 1. Get the current LP based on the specified paths.
-        currentLP = IPancakePair(factory.getPair(path[i-1], path[i]));
-        // 2. Get the pool's total supply of the token of path i-1 and the token of path i.
+    for(uint256 i = 1; i < reversedPath.length; i++) {
+        /// 1. Get the current LP based on the specified paths.
+        currentLP = IPancakePair(factory.getPair(reversedPath[i-1], reversedPath[i]));
+        /// 2. Get the pool's total supply of the token of path i-1 and the token of path i.
         (uint256 r0, uint256 r1,) = currentLP.getReserves();
-        (uint256 rOut, uint256 rIn) = currentLP.token0() == path[i] ? (r0, r1) : (r1, r0);
-        // 3. Convert all amount on the token of path i-1 to the token of path i.
+        (uint256 rOut, uint256 rIn) = currentLP.token0() == reversedPath[i] ? (r0, r1) : (r1, r0);
+        /// 3. Convert all amount on the token of path i-1 to the token of path i.
         amount[i] = getMktSellAmount(
             amount[i-1], rIn, rOut
         );
     }
-    // @notice return the last amount, since the last amount is the amount that we shall get in baseToken if we sell the farmingToken at the market price
+    /// @notice return the last amount, since the last amount is the amount that we shall get in baseToken if we sell the farmingToken at the market price
     return amount[amount.length - 1];
   }
 
@@ -240,12 +267,12 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     liqStrat.execute(address(0), 0, abi.encode(0));
     // 2. Return all available base token back to the operator.
     uint256 wad = baseToken.myBalance();
-    baseToken.safeTransfer(msg.sender, wad);
+    baseToken.safeTransfer(_msgSender(), wad);
     emit Liquidate(id, wad);
   }
 
-  // @notice since reward gaining from the masterchef is the same token with farmingToken,
-  // thus the rewardBalance exists to differentiate an actual farming token balance without taking reward balance into account
+  /// @notice since reward gaining from the masterchef is the same token with farmingToken,
+  /// thus the rewardBalance exists to differentiate an actual farming token balance without taking reward balance into account
   function actualFarmingTokenBalance() internal view returns (uint256) {
     return farmingToken.myBalance().sub(rewardBalance);
   }
@@ -271,8 +298,8 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   }
 
   /// @dev Internal function to remove shares of the ID and convert to outstanding LP tokens.
-  // @notice since when removing shares, rewards token can be the same as farming token,
-  // so it needs to return the current reward balance to be excluded fro the farming token balance
+  /// @notice since when removing shares, rewards token can be the same as farming token,
+  /// so it needs to return the current reward balance to be excluded fro the farming token balance
   function _removeShare(uint256 id) internal {
     uint256 share = shares[id];
     if (share > 0) {
@@ -286,24 +313,26 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     }
   }
 
-  // @notice get path from tokenIn to tokenOut
-  function _getPath(address tokenIn, address tokenOut) internal view returns (address[] memory) {
-    address[] memory path;
-    if (tokenOut == wNative) {
-      path = new address[](2);
-      path[0] = tokenIn;
-      path[1] = wNative;
-    } else if (tokenIn == wNative) {
-      path = new address[](2);
-      path[0] = wNative;
-      path[1] = tokenOut;
-    } else {
-      path = new address[](3);
-      path[0] = tokenIn;
-      path[1] = wNative;
-      path[2] = tokenOut;
-    }
+  /// @dev Return the path that the worker is working on.
+  function getPath() external view override returns (address[] memory) {
     return path;
+  }
+
+  /// @dev Return the inverse path.
+  function getReversedPath() public view override returns (address[] memory) {
+    address tmp;
+    address[] memory reversedPath = path;
+    for (uint i = 0; i < reversedPath.length / 2; i++) {
+      tmp = reversedPath[i];
+      reversedPath[i] = reversedPath[reversedPath.length - i - 1];
+      reversedPath[reversedPath.length - i - 1] = tmp;
+    }
+    return reversedPath;
+  }
+
+  /// @dev Return the path that the work is using for convert reward token to beneficial vault token.
+  function getRewardPath() external view override returns (address[] memory) {
+    return rewardPath;
   }
 
   /// @dev Set the reward bounty for calling reinvest operations.
@@ -311,16 +340,16 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   function setReinvestBountyBps(uint256 _reinvestBountyBps) external onlyOwner {
     require(_reinvestBountyBps <= maxReinvestBountyBps, "CakeMaxiWorker::setReinvestBountyBps:: _reinvestBountyBps exceeded maxReinvestBountyBps");
     reinvestBountyBps = _reinvestBountyBps;
-    emit SetReinvestBountyBps(msg.sender, _reinvestBountyBps);
+    emit SetReinvestBountyBps(_msgSender(), _reinvestBountyBps);
   }
 
-  // @notice Set the reward bounty from reinvest operations sending to a beneficial vault.
-  // this bps will be deducted from reinvest bounty bps
+  /// @notice Set the reward bounty from reinvest operations sending to a beneficial vault.
+  /// this bps will be deducted from reinvest bounty bps
   /// @param _beneficialVaultBountyBps The bounty value to update.
   function setBeneficialVaultBountyBps(uint256 _beneficialVaultBountyBps) external onlyOwner {
     require(_beneficialVaultBountyBps <= 10000,  "CakeMaxiWorker::setBeneficialVaultBountyBps:: _beneficialVaultBountyBps exceeds 100%");
     beneficialVaultBountyBps = _beneficialVaultBountyBps;
-    emit SetBeneficialVaultBountyBps(msg.sender, _beneficialVaultBountyBps);
+    emit SetBeneficialVaultBountyBps(_msgSender(), _beneficialVaultBountyBps);
   }
 
   /// @dev Set Max reinvest reward for set upper limit reinvest bounty.
@@ -328,7 +357,7 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   function setMaxReinvestBountyBps(uint256 _maxReinvestBountyBps) external onlyOwner {
     require(_maxReinvestBountyBps >= reinvestBountyBps, "CakeMaxiWorker::setMaxReinvestBountyBps:: _maxReinvestBountyBps lower than reinvestBountyBps");
     maxReinvestBountyBps = _maxReinvestBountyBps;
-    emit SetMaxReinvestBountyBps(msg.sender, _maxReinvestBountyBps);
+    emit SetMaxReinvestBountyBps(_msgSender(), _maxReinvestBountyBps);
   }
 
   /// @dev Set the given strategies' approval status.
@@ -338,7 +367,7 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     uint256 len = strats.length;
     for (uint256 idx = 0; idx < len; idx++) {
       okStrats[strats[idx]] = isOk;
-      emit SetStrategyOK(msg.sender, strats[idx], isOk);
+      emit SetStrategyOK(_msgSender(), strats[idx], isOk);
     }
   }
 
@@ -349,8 +378,30 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     uint256 len = reinvestors.length;
     for (uint256 idx = 0; idx < len; idx++) {
       okReinvestors[reinvestors[idx]] = isOk;
-      emit SetReinvestorOK(msg.sender, reinvestors[idx], isOk);
+      emit SetReinvestorOK(_msgSender(), reinvestors[idx], isOk);
     }
+  }
+
+  /// @dev Set a new path. In case that the liquidity of the given path is changed.
+  /// @param _path The new path.
+  function setPath(address[] calldata _path) external onlyOwner {
+    require(_path.length >= 2, "CakeMaxiWorker::setPath:: path length must be >= 2");
+    require(_path[0] == baseToken && _path[_path.length-1] == farmingToken, "CakeMaxiWorker::setPath:: path must start with base token and end with farming token");
+
+    path = _path;
+
+    emit SetPath(_msgSender(), _path);
+  }
+
+  /// @dev Set a new reward path. In case that the liquidity of the reward path is changed.
+  /// @param _rewardPath The new reward path.
+  function setRewardPath(address[] calldata _rewardPath) external onlyOwner {
+    require(rewardPath.length >= 2, "CakeMaxiWorker::initialize:: rewardPath length must be >= 2");
+    require(rewardPath[0] == farmingToken && rewardPath[rewardPath.length-1] == beneficialVault.token(), "CakeMaxiWorker::initialize:: rewardPath must start with farming token and end with beneficialVault.token()");
+
+    rewardPath = _rewardPath;
+
+    emit SetRewardPath(_msgSender(), _rewardPath);
   }
 
   /// @dev Update critical strategy smart contracts. EMERGENCY ONLY. Bad strategies can steal funds.
@@ -359,7 +410,7 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   function setCriticalStrategies(IStrategy _addStrat, IStrategy _liqStrat) external onlyOwner {
     addStrat = _addStrat;
     liqStrat = _liqStrat;
-    emit SetCriticalStrategy(msg.sender, _addStrat, _liqStrat);
+    emit SetCriticalStrategy(_msgSender(), _addStrat, _liqStrat);
   }
 
 }

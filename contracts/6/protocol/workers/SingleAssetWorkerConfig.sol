@@ -1,3 +1,16 @@
+// SPDX-License-Identifier: MIT
+/**
+  ∩~~~~∩ 
+  ξ ･×･ ξ 
+  ξ　~　ξ 
+  ξ　　 ξ 
+  ξ　　 “~～~～〇 
+  ξ　　　　　　 ξ 
+  ξ ξ ξ~～~ξ ξ ξ 
+　 ξ_ξξ_ξ　ξ_ξξ_ξ
+Alpaca Fin Corporation
+*/
+
 pragma solidity 0.6.6;
 pragma experimental ABIEncoderV2;
 
@@ -7,13 +20,13 @@ import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakeFactory.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
 
-import "../interfaces/IWorker.sol";
+import "../interfaces/IWorker02.sol";
 import "../apis/pancake/IPancakeRouter02.sol";
 import "../interfaces/IWorkerConfig.sol";
 import "../PriceOracle.sol";
 import "../../utils/SafeToken.sol";
 
-contract CakeMaxiWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
+contract SingleAssetWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
   /// @notice Using libraries
   using SafeToken for address;
   using SafeMath for uint256;
@@ -46,7 +59,7 @@ contract CakeMaxiWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
 
   /// @dev Check if the msg.sender is the governor.
   modifier onlyGovernor() {
-    require(_msgSender() == governor, "CakeMaxiWorkerConfig::onlyGovernor:: msg.sender not governor");
+    require(_msgSender() == governor, "SingleAssetWorkerConfig::onlyGovernor:: msg.sender not governor");
     _;
   }
 
@@ -59,7 +72,7 @@ contract CakeMaxiWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
   /// @dev Set worker configurations. Must be called by owner.
   function setConfigs(address[] calldata addrs, Config[] calldata configs) external onlyOwner {
     uint256 len = addrs.length;
-    require(configs.length == len, "CakeMaxiWorkerConfig::setConfigs:: bad len");
+    require(configs.length == len, "SingleAssetWorkerConfig::setConfigs:: bad len");
     for (uint256 idx = 0; idx < len; idx++) {
       workers[addrs[idx]] = Config({
         acceptDebt: configs[idx].acceptDebt,
@@ -73,24 +86,8 @@ contract CakeMaxiWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
 
   /// @dev Return whether the given worker is stable, presumably not under manipulation.
   function isStable(address _worker) public view returns (bool) {
-    IWorker worker = IWorker(_worker);
-    address baseToken = worker.baseToken();
-    address farmingToken = worker.farmingToken();
-    address[] memory path;
-    if (baseToken == wNative) {
-      path = new address[](2);
-      path[0] = address(farmingToken);
-      path[1] = address(wNative);
-    } else if (farmingToken == wNative) {
-      path = new address[](2);
-      path[0] = address(wNative);
-      path[1] = address(baseToken);
-    } else {
-      path = new address[](3);
-      path[0] = address(farmingToken);
-      path[1] = address(wNative);
-      path[2] = address(baseToken);
-    }
+    IWorker02 worker = IWorker02(_worker);
+    address[] memory path = worker.getPath();
     // @notice loop over the path for validating the price of each pair
     IPancakePair currentLP;
     uint256 maxPriceDiff = workers[_worker].maxPriceDiff;
@@ -103,33 +100,33 @@ contract CakeMaxiWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
         (uint256 r0, uint256 r1,) = currentLP.getReserves();
         uint256 t0bal = token0.balanceOf(address(currentLP));
         uint256 t1bal = token1.balanceOf(address(currentLP));
-        require(t0bal.mul(100) <= r0.mul(101), "CakeMaxiWorkerConfig::isStable:: bad t0 balance");
-        require(t1bal.mul(100) <= r1.mul(101), "CakeMaxiWorkerConfig::isStable:: bad t1 balance");
+        require(t0bal.mul(100) <= r0.mul(101), "SingleAssetWorkerConfig::isStable:: bad t0 balance");
+        require(t1bal.mul(100) <= r1.mul(101), "SingleAssetWorkerConfig::isStable:: bad t1 balance");
         // 3. Check that price is in the acceptable range
         (uint256 price, uint256 lastUpdate) = oracle.getPrice(token0, token1);
-        require(lastUpdate >= now - 1 days, "CakeMaxiWorkerConfig::isStable:: price too stale");
+        require(lastUpdate >= now - 1 days, "SingleAssetWorkerConfig::isStable:: price too stale");
         uint256 spotPrice = r1.mul(1e18).div(r0);
-        require(spotPrice.mul(10000) <= price.mul(maxPriceDiff), "CakeMaxiWorkerConfig::isStable:: price too high");
-        require(spotPrice.mul(maxPriceDiff) >= price.mul(10000), "CakeMaxiWorkerConfig::isStable:: price too low");
+        require(spotPrice.mul(10000) <= price.mul(maxPriceDiff), "SingleAssetWorkerConfig::isStable:: price too high");
+        require(spotPrice.mul(maxPriceDiff) >= price.mul(10000), "SingleAssetWorkerConfig::isStable:: price too low");
     }
     return true;
   }
 
   /// @dev Return whether the given worker accepts more debt.
   function acceptDebt(address worker) external override view returns (bool) {
-    require(isStable(worker), "CakeMaxiWorkerConfig::acceptDebt:: !stable");
+    require(isStable(worker), "SingleAssetWorkerConfig::acceptDebt:: !stable");
     return workers[worker].acceptDebt;
   }
 
   /// @dev Return the work factor for the worker + BaseToken debt, using 1e4 as denom.
   function workFactor(address worker, uint256 /* debt */) external override view returns (uint256) {
-    require(isStable(worker), "CakeMaxiWorkerConfig::workFactor:: !stable");
+    require(isStable(worker), "SingleAssetWorkerConfig::workFactor:: !stable");
     return uint256(workers[worker].workFactor);
   }
 
   /// @dev Return the kill factor for the worker + BaseToken debt, using 1e4 as denom.
   function killFactor(address worker, uint256 /* debt */) external override view returns (uint256) {
-    require(isStable(worker), "CakeMaxiWorkerConfig::killFactor:: !stable");
+    require(isStable(worker), "SingleAssetWorkerConfig::killFactor:: !stable");
     return uint256(workers[worker].killFactor);
   }
 

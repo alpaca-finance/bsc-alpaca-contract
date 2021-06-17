@@ -1,23 +1,44 @@
+// SPDX-License-Identifier: MIT
+/**
+  ∩~~~~∩ 
+  ξ ･×･ ξ 
+  ξ　~　ξ 
+  ξ　　 ξ 
+  ξ　　 “~～~～〇 
+  ξ　　　　　　 ξ 
+  ξ ξ ξ~～~ξ ξ ξ 
+　 ξ_ξξ_ξ　ξ_ξξ_ξ
+Alpaca Fin Corporation
+*/
+
 pragma solidity 0.6.6;
 
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
 import "../apis/pancake/IPancakeRouter02.sol";
 import "../interfaces/IStrategy.sol";
-import "../interfaces/IWorker.sol";
+import "../interfaces/IWorker02.sol";
 import "../interfaces/IPancakeMasterChef.sol";
 import "../../utils/AlpacaMath.sol";
 import "../../utils/SafeToken.sol";
 
 /// @notice Simplified version of worker for testing purpose.
-contract MockPancakeswapV2CakeMaxiWorker is IWorker {
+contract MockPancakeswapV2CakeMaxiWorker is IWorker02 {
   using SafeToken for address;
 
   address public override baseToken;
   address public override farmingToken;
+  address[] public path;
+  address[] public rewardPath;
 
-  constructor(address _baseToken, address _farmingToken) public {
+  constructor(
+    address _baseToken,
+    address _farmingToken,
+    address[] memory _path,
+    address[] memory _rewardPath) public {
     baseToken = _baseToken;
     farmingToken = _farmingToken;
+    path = _path;
+    rewardPath = _rewardPath;
   }
 
   /// @dev Work on the given position. Must be called by the operator.
@@ -51,4 +72,22 @@ contract MockPancakeswapV2CakeMaxiWorker is IWorker {
 
   /// @dev LP token holds by worker
   function lpToken() external override view returns (IPancakePair) { return IPancakePair(address(0)); }
+
+  /// @dev Return the trading path that worker is using for convert BTOKEN->...->FTOKEN
+  function getPath() external override view returns (address[] memory) { return path; }
+
+  /// @dev Return the inverse of the path that worker is using for convert BTOKEN->...->FTOKEN
+  function getReversedPath() external override view returns (address[] memory) { 
+    address tmp;
+    address[] memory reversedPath = path;
+    for (uint i = 0; i < reversedPath.length / 2; i++) {
+      tmp = reversedPath[i];
+      reversedPath[i] = reversedPath[reversedPath.length - i - 1];
+      reversedPath[reversedPath.length - i - 1] = tmp;
+    }
+    return reversedPath;
+  }
+
+  /// @dev Return the trading path that the worker is using to convert reward token to beneficial vault token
+  function getRewardPath() external override view returns (address[] memory) { return rewardPath; }
 }
