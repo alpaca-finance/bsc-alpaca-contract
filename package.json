@@ -196,6 +196,7 @@
     "typescript": "^4.1.5"
   },
   "dependencies": {
+    "@chainlink/contracts": "^0.1.7",
     "@ethersproject/bignumber": "^5.0.14",
     "@openzeppelin/contracts": "3.4",
     "@openzeppelin/contracts-ethereum-package": "^3.0.0",
