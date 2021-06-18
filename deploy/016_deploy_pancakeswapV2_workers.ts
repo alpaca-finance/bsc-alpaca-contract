@@ -143,7 +143,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const twoSidesStrat = PancakeswapV2RestrictedStrategyAddTwoSidesOptimal__factory.connect(workerInfos[i].TWO_SIDES_STRAT_ADDR, (await ethers.getSigners())[0])
     await twoSidesStrat.setWorkersOk([pancakeswapV2Worker.address], true)
     const minimizeStrat = PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading__factory.connect(workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR, (await ethers.getSigners())[0])
-    await minimizeStrat.setWorkersOk([minimizeStrat.address], true)
+    await minimizeStrat.setWorkersOk([pancakeswapV2Worker.address], true)
     console.log("✅ Done");
 
     const timelock = Timelock__factory.connect(workerInfos[i].TIMELOCK, (await ethers.getSigners())[0]);

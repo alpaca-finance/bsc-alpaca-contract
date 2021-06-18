@@ -327,6 +327,10 @@
         "pId": 343,
         "name": "ODDZ-WBNB LP",
         "address": "0x3c2c77353E2F6AC1578807b6b2336Bf3a3CbB014"
+      }, {
+        "pId": 0,
+        "name": "CAKE",
+        "address": "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82"
       }]
     },
     "Waultswap": {
