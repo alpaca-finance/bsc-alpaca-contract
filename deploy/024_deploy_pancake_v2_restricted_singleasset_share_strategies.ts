@@ -22,8 +22,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const ROUTER_V2 = '0x367633909278A3C91f4cB130D8e56382F00D1071';
-  const WNATIVE_RELAYER = '0x7e2284c8CC74F13FA6c218c4231b0786E6204728';
+  const ROUTER_V2 = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
+  const WNATIVE_RELAYER = '0xE1D2CA01bc88F325fF7266DD2165944f3CAf0D3D';
   const WHITELIST_WOKERS: Array<string> = []
 
 
