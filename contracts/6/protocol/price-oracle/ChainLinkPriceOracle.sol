@@ -32,21 +32,38 @@ contract ChainLinkPriceOracle is OwnableUpgradeSafe, PriceOracle {
     OwnableUpgradeSafe.__Ownable_init();
   }
 
+  /// @dev Set sources for multiple token pairs
+  /// @param token0s Token0 address to set source
+  /// @param token1s Token1 address to set source
+  /// @param allSources source for the token pair
+  function setPriceFeeds(
+    address[] calldata token0s,
+    address[] calldata token1s,
+    AggregatorV3Interface[] calldata allSources
+  ) external onlyOwner {
+    require(
+      token0s.length == token1s.length && token0s.length == allSources.length,
+      "ChainLinkPriceOracle::setPriceFeeds:: inconsistent length"
+    );
+    for (uint256 idx = 0; idx < token0s.length; idx++) {
+      _setPriceFeed(token0s[idx], token1s[idx], allSources[idx]);
+    }
+  }
+
   /// @dev Set source for the token pair
   /// @param token0 Token0 address to set source
   /// @param token1 Token1 address to set source
   /// @param source source for the token pair
-  function setPriceFeed(
+  function _setPriceFeed(
     address token0,
     address token1,
     AggregatorV3Interface source
-  ) external onlyOwner {
+  ) internal {
     require(
       address(priceFeeds[token1][token0]) == address(0),
       "ChainLinkPriceOracle::setPriceFeed:: source on existed pair"
     );
     priceFeeds[token0][token1] = source;
-
     emit SetPriceFeed(token0, token1, source);
   }
 
