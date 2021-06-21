@@ -17,8 +17,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
 
   const TO_BE_LOCKED = [
-    '0x436F523d778dAa6a32DAf64CdEdDC55c35509949',
-    '0xf4Aa9C8ABb2aaa4Ae0A6cC7b0cA8752073ac3b86'
+    '0x0c1F049ebE3E0537C7E7ce428Bb468d5F6bF83b3',
+    '0x3282d2a151ca00BfE7ed17Aa16E42880248CD3Cd'
   ];
 
 

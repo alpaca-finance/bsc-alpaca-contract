@@ -21,8 +21,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const VAULT_NAME = 'TUSD VAULT'
   const NAME = 'Interest Bearing TUSD'
   const SYMBOL = 'ibTUSD';
-  const DEBT_FAIR_LAUNCH_PID = '18';
-  const EXACT_ETA = '1624293000';
+  const DEBT_FAIR_LAUNCH_PID = '19';
+  const EXACT_ETA = '1624380300';
 
 
 
