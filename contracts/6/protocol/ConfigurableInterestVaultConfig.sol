@@ -55,8 +55,7 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     OwnableUpgradeSafe.__Ownable_init();
 
     maxKillBps = 500;
-    setParams(
-      _minDebtSize, _reservePoolBps, _killBps, _interestModel, _wrappedNative, _wNativeRelayer, _fairLaunch);
+    setParams(_minDebtSize, _reservePoolBps, _killBps, _interestModel, _wrappedNative, _wNativeRelayer, _fairLaunch);
   }
 
   /// @dev Set all the basic parameters. Must only be called by the owner.
@@ -94,7 +93,7 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
 
   /// @dev Set whitelisted callers. Must only be called by the owner.
   function setWhitelistedCallers(address[] calldata callers, bool ok) external onlyOwner {
-    for(uint256 idx = 0; idx < callers.length; idx++) {
+    for (uint256 idx = 0; idx < callers.length; idx++) {
       whitelistedCallers[callers[idx]] = ok;
     }
   }
