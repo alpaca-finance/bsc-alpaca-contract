@@ -35,6 +35,9 @@ interface IVaultConfig {
   /// @dev Return the bps rate for Avada Kill caster.
   function getKillBps() external view returns (uint256);
 
+  /// @dev Return if the caller is whitelisted.
+  function whitelistedCallers(address caller) external returns (bool);
+
   /// @dev Return whether the given address is a worker.
   function isWorker(address worker) external view returns (bool);
 

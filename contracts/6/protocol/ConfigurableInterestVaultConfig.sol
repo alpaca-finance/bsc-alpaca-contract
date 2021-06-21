@@ -40,6 +40,8 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   address public fairLaunch;
   /// maximum killBps
   uint256 public maxKillBps;
+  /// list of whitelisted callers
+  mapping(address => bool) public override whitelistedCallers;
 
   function initialize(
     uint256 _minDebtSize,
@@ -87,6 +89,13 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     require(addrs.length == configs.length, "ConfigurableInterestVaultConfig::setWorkers:: bad length");
     for (uint256 idx = 0; idx < addrs.length; idx++) {
       workers[addrs[idx]] = configs[idx];
+    }
+  }
+
+  /// @dev Set whitelisted callers. Must only be called by the owner.
+  function setWhitelistedCallers(address[] calldata callers, bool ok) external onlyOwner {
+    for(uint256 idx = 0; idx < callers.length; idx++) {
+      whitelistedCallers[callers[idx]] = ok;
     }
   }
 

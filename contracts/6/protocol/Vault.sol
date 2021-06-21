@@ -29,6 +29,8 @@ import "../token/interfaces/IFairLaunch.sol";
 import "../utils/SafeToken.sol";
 import "./WNativeRelayer.sol";
 
+import "hardhat/console.sol";
+
 contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableUpgradeSafe {
   /// @notice Libraries
   using SafeToken for address;
@@ -76,10 +78,11 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
   uint256 public lastAccrueTime;
   uint256 public reservePool;
 
-  /// @dev Require that the caller must be an EOA account to avoid flash loans.
-  modifier onlyEOA() {
-    //
-    require(msg.sender == tx.origin, "Vault::onlyEoa:: not eoa");
+  /// @dev Require that the caller must be an EOA account if not whitelisted.
+  modifier onlyEOAEx() {
+    if (!config.whitelistedCallers(msg.sender)) {
+      require(msg.sender == tx.origin, "Vault::onlyEOAEx:: not eoa");
+    }
     _;
   }
 
@@ -248,7 +251,7 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
   /// @param data The calldata to pass along to the worker for more working context.
   function work(uint256 id, address worker, uint256 principalAmount, uint256 loan, uint256 maxReturn, bytes calldata data)
     external payable
-    onlyEOA transferTokenToVault(principalAmount) accrue(principalAmount) nonReentrant
+    onlyEOAEx transferTokenToVault(principalAmount) accrue(principalAmount) nonReentrant
   {
     require(fairLaunchPoolId != uint256(-1), "Vault::work:: poolId not set");
     // 1. Sanity check the input position, or add a new position of ID is 0.
@@ -311,7 +314,7 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
 
   /// @dev Kill the given to the position. Liquidate it immediately if killFactor condition is met.
   /// @param id The position ID to be killed.
-  function kill(uint256 id) external onlyEOA accrue(0) nonReentrant {
+  function kill(uint256 id) external onlyEOAEx accrue(0) nonReentrant {
     require(fairLaunchPoolId != uint256(-1), "Vault::kill:: poolId not set");
     // 1. Verify that the position is eligible for liquidation.
     Position storage pos = positions[id];
