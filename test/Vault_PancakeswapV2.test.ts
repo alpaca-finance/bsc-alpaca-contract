@@ -425,7 +425,7 @@ describe('Vault - PancakeswapV2', () => {
 
   context('when user uses LYF', async() => {
     context('when user is contract', async() => {
-      it('should revert if evil contract try to call onlyEOAEx function', async () => {           
+      it('should revert if evil contract try to call onlyEOAorWhitelisted function', async () => {           
         await expect(evilContract.executeTransaction(
           vault.address, 0,
           "work(uint256,address,uint256,uint256,uint256,bytes)",
@@ -440,7 +440,7 @@ describe('Vault - PancakeswapV2', () => {
                 )]
             )]
           )
-        )).to.be.revertedWith("Vault::onlyEOAEx:: not eoa")
+        )).to.be.revertedWith("Vault::onlyEOAorWhitelisted:: not eoa")
       })
 
       it('should allow whitelisted contract to open position without debt', async () => {
@@ -480,7 +480,7 @@ describe('Vault - PancakeswapV2', () => {
           )
         )
 
-        const [worker, owner, ] = await vault.positions(1)
+        const [worker, owner ] = await vault.positions(1)
         expect(owner).to.be.eq(whitelistedContract.address)
         expect(worker).to.be.eq(pancakeswapV2Worker.address)
       })
