@@ -101,7 +101,7 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
       minDebtSize,
       getReservePoolBps,
       getKillBps,
-      interestModel,
+      address(interestModel),
       wrappedNative,
       wNativeRelayer,
       fairLaunch
