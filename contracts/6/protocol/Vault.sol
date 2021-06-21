@@ -29,8 +29,6 @@ import "../token/interfaces/IFairLaunch.sol";
 import "../utils/SafeToken.sol";
 import "./WNativeRelayer.sol";
 
-import "hardhat/console.sol";
-
 contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableUpgradeSafe {
   /// @notice Libraries
   using SafeToken for address;
