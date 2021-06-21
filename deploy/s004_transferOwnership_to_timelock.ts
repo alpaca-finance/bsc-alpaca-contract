@@ -1,7 +1,9 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
-import {  Ownable, Ownable__factory } from '../typechain'
-import { ethers, upgrades } from 'hardhat';
+import {  Ownable__factory } from '../typechain'
+import { ethers, network } from 'hardhat';
+import MainnetConfig from '../.mainnet.json'
+import TestnetConfig from '../.testnet.json'
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     /*
@@ -14,9 +16,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const TIMELOCK_ADDRESS = '0x2D5408f2287BF9F9B05404794459a846651D0a59';
   const TO_BE_LOCKED = [
-    '0x6d203f081367Cfa2968bD62dC3122274f735378C',
+    '0x436F523d778dAa6a32DAf64CdEdDC55c35509949',
+    '0xf4Aa9C8ABb2aaa4Ae0A6cC7b0cA8752073ac3b86'
   ];
 
 
@@ -26,12 +28,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 
 
-
+  const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig
 
   for(let i = 0; i < TO_BE_LOCKED.length; i++ ) {
     console.log(`>> Transferring ownership of ${TO_BE_LOCKED[i]} to TIMELOCK`);
     const ownable = Ownable__factory.connect(TO_BE_LOCKED[i], (await ethers.getSigners())[0]);
-    await ownable.transferOwnership(TIMELOCK_ADDRESS);
+    await ownable.transferOwnership(config.Timelock);
     console.log("✅ Done")
   }
 };

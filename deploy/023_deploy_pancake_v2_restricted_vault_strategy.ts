@@ -1,9 +1,11 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
-import { ethers, upgrades } from 'hardhat';
+import { ethers, upgrades, network } from 'hardhat';
 import {
   PancakeswapV2RestrictedStrategyAddTwoSidesOptimal,
   PancakeswapV2RestrictedStrategyAddTwoSidesOptimal__factory } from '../typechain';
+import MainnetConfig from '../.mainnet.json'
+import TestnetConfig from '../.testnet.json'
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     /*
@@ -17,8 +19,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
 
   const NEW_PARAMS = [{
-    VAULT_ADDR: '0x08FC9Ba2cAc74742177e0afC3dC8Aed6961c24e7',
-    ROUTER: '0x10ED43C718714eb63d5aA57B78B54704E256024E',
+    VAULT_SYMBOL: 'ibTUSD',
     WHITELIST_WORKER: []
   }]
 
@@ -28,15 +29,24 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 
 
+  const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig
 
   for(let i = 0; i < NEW_PARAMS.length; i++ ) {
+    const targetedVault = config.Vaults.find((v) => v.symbol === NEW_PARAMS[i].VAULT_SYMBOL)
+    if(targetedVault === undefined) {
+      throw `error: not found vault based on ${NEW_PARAMS[i].VAULT_SYMBOL}`
+    }
+    if(targetedVault.address === "") {
+      throw `error: no address`
+    }
+
     console.log(">> Deploying an upgradable Restricted StrategyAddTwoSidesOptimalV2 contract");
     const StrategyRestrictedAddTwoSidesOptimal = (await ethers.getContractFactory(
       'PancakeswapV2RestrictedStrategyAddTwoSidesOptimal',
       (await ethers.getSigners())[0]
     )) as PancakeswapV2RestrictedStrategyAddTwoSidesOptimal__factory;
     const strategyRestrictedAddTwoSidesOptimal = await upgrades.deployProxy(
-      StrategyRestrictedAddTwoSidesOptimal,[NEW_PARAMS[i].ROUTER, NEW_PARAMS[i].VAULT_ADDR]
+      StrategyRestrictedAddTwoSidesOptimal,[config.Exchanges.Pancakeswap.RouterV2, targetedVault.address]
     ) as PancakeswapV2RestrictedStrategyAddTwoSidesOptimal;
     await strategyRestrictedAddTwoSidesOptimal.deployed();
     console.log(`>> Deployed at ${strategyRestrictedAddTwoSidesOptimal.address}`);

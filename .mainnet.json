@@ -122,6 +122,14 @@
       "id": 18,
       "stakingToken": "ibBTCB",
       "address": "0x08FC9Ba2cAc74742177e0afC3dC8Aed6961c24e7"
+    }, {
+      "id": 19,
+      "stakingToken": "debtIbTUSD V2",
+      "address": ""
+    }, {
+      "id": 20,
+      "stakingToken": "ibTUSD",
+      "address": ""
     }]
   },
   "Exchanges": {
@@ -331,6 +339,10 @@
         "pId": 0,
         "name": "CAKE",
         "address": "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82"
+      }, {
+        "pId": 397,
+        "name": "TUSD-BUSD LP",
+        "address": "0x2E28b9B74D6d99D4697e913b82B41ef1CAC51c6C"
       }]
     },
     "Waultswap": {
@@ -417,7 +429,8 @@
     "WEX": "0xa9c41A46a6B3531d28d5c32F6633dd2fF05dFB90",
     "BORING": "0xffEecbf8D7267757c2dc3d13D730E97E15BfdF7F",
     "WAULTx": "0xb64e638e60d154b43f660a6bf8fd8a3b249a6a21",
-    "ODDZ": "0xcd40f2670cf58720b694968698a5514e924f742d"
+    "ODDZ": "0xcd40f2670cf58720b694968698a5514e924f742d",
+    "TUSD": "0x14016e85a25aeb13065688cafb43044c2ef86784"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x1099C2E6Ed6ebA95099c205b599B409305783E43",
@@ -946,6 +959,19 @@
         "StrategyAddTwoSidesOptimal": "0x61e58dE669d842C2d77288Df629af031b3283c81",
         "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3"
       }
+    }, {
+      "name": "TUSD-BUSD PancakeswapWorker",
+      "address": "",
+      "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+      "pId": 397,
+      "stakingToken": "0x2E28b9B74D6d99D4697e913b82B41ef1CAC51c6C",
+      "stakingTokenAt": "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+        "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+        "StrategyAddTwoSidesOptimal": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
+        "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419"
+      }
     }]
   }, {
     "name": "Interest Bearing ETH",
@@ -1287,6 +1313,33 @@
         "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
         "StrategyAddTwoSidesOptimal": "0xaC712F4Fc61ab96Aa9A1AdF3977b808789aA6682",
         "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3"
+      }
+    }]
+  }, {
+    "name": "Interest Bearing TUSD",
+    "symbol": "ibTUSD",
+    "address": "",
+    "baseToken": "",
+    "debtToken": "",
+    "config": "",
+    "tripleSlopeModel": "0x375D32FadA30d7e6Fea242FCa221a22CC6d52B30",
+    "StrategyAddTwoSidesOptimal": {
+      "Pancakeswap": "",
+      "Waultswap": "",
+      "PancakeswapSingleAsset": ""
+    },
+    "workers": [{
+      "name": "BUSD-TUSD PancakeswapWorker",
+      "address": "",
+      "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+      "pId": 397,
+      "stakingToken": "0x2E28b9B74D6d99D4697e913b82B41ef1CAC51c6C",
+      "stakingTokenAt": "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+        "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+        "StrategyAddTwoSidesOptimal": "",
+        "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419"
       }
     }]
   }]

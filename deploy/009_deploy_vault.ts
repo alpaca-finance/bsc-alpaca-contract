@@ -1,7 +1,9 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
 import { DebtToken, DebtToken__factory, FairLaunch, FairLaunch__factory, Timelock, Timelock__factory, Vault, Vault__factory, WNativeRelayer, WNativeRelayer__factory } from '../typechain';
-import { ethers, upgrades } from 'hardhat';
+import { ethers, upgrades, network } from 'hardhat';
+import MainnetConfig from '../.mainnet.json'
+import TestnetConfig from '../.testnet.json'
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     /*
@@ -14,23 +16,31 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const SHIELD_ADDR = '0x1963f84395C8cf464E5483dE7f2f434c3F1b4656';
-  const FAIR_LAUNCH_ADDR = '0xA625AB01B08ce023B2a342Dbb12a16f2C8489A8F';
   const ALLOC_POINT_FOR_DEPOSIT = 0;
   const ALLOC_POINT_FOR_OPEN_POSITION = 0;
-  const CONFIG_ADDR = '0x6cc80Df354415fA0FfeF78555a06C1DdE7549FB8';
-  const BASE_TOKEN_ADDR = '0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c'
-  const VAULT_NAME = 'BTCB VAULT'
-  const NAME = 'Interest Bearing BTCB'
-  const SYMBOL = 'ibBTCB';
-  const WNATIVE_RELAYER_ADDR = '0xE1D2CA01bc88F325fF7266DD2165944f3CAf0D3D';
-  const TIMELOCK = '0x2D5408f2287BF9F9B05404794459a846651D0a59';
-  const EXACT_ETA = '1622199600';
-  const DEBT_FAIR_LAUNCH_PID = '17';
+  const VAULT_NAME = 'TUSD VAULT'
+  const NAME = 'Interest Bearing TUSD'
+  const SYMBOL = 'ibTUSD';
+  const DEBT_FAIR_LAUNCH_PID = '18';
+  const EXACT_ETA = '1624293000';
 
 
 
 
+  const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig
+  const targetedVault = config.Vaults.find((v) => v.symbol === SYMBOL)
+  if (targetedVault === undefined) {
+    throw `error: not found any vault with ${SYMBOL} symbol`
+  }
+  if (targetedVault.config === "") {
+    throw `error: not config address`
+  }
+
+  const tokenList: any = config.Tokens
+  const baseTokenAddr = tokenList[SYMBOL.replace("ib", "")]
+  if (baseTokenAddr === undefined) {
+    throw `error: not found ${SYMBOL.replace("ib", "")} in tokenList`
+  }
 
   console.log(`>> Deploying debt${SYMBOL}`)
   const DebtToken = (await ethers.getContractFactory(
@@ -38,7 +48,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     (await ethers.getSigners())[0]
   )) as DebtToken__factory;
   const debtToken = await upgrades.deployProxy(DebtToken, [
-    `debt${SYMBOL}_V2`, `debt${SYMBOL}_V2`, TIMELOCK]) as DebtToken;
+    `debt${SYMBOL}_V2`, `debt${SYMBOL}_V2`, config.Timelock]) as DebtToken;
   await debtToken.deployed();
   console.log(`>> Deployed at ${debtToken.address}`);
 
@@ -48,13 +58,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     (await ethers.getSigners())[0]
   )) as Vault__factory;
   const vault = await upgrades.deployProxy(
-    Vault,[CONFIG_ADDR, BASE_TOKEN_ADDR, NAME, SYMBOL, 18, debtToken.address]
+    Vault,[targetedVault.config, baseTokenAddr, NAME, SYMBOL, 18, debtToken.address]
   ) as Vault;
   await vault.deployed();
   console.log(`>> Deployed at ${vault.address}`);
 
   console.log(">> Set okHolders on DebtToken to be be Vault")
-  await debtToken.setOkHolders([vault.address, FAIR_LAUNCH_ADDR], true)
+  await debtToken.setOkHolders([vault.address, config.FairLaunch.address], true)
   console.log("✅ Done");
 
   console.log(">> Transferring ownership of debtToken to Vault");
@@ -62,15 +72,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log("✅ Done");
 
   const timelock = Timelock__factory.connect(
-    TIMELOCK, (await ethers.getSigners())[0]
+    config.Timelock, (await ethers.getSigners())[0]
   ) as Timelock
 
   console.log(">> Queue Transaction to add a debtToken pool through Timelock");
-  await timelock.queueTransaction(SHIELD_ADDR, '0', 'addPool(uint256,address,bool)', ethers.utils.defaultAbiCoder.encode(['uint256','address','bool'], [ALLOC_POINT_FOR_OPEN_POSITION, debtToken.address, true]), EXACT_ETA);
+  await timelock.queueTransaction(config.Shield, '0', 'addPool(uint256,address,bool)', ethers.utils.defaultAbiCoder.encode(['uint256','address','bool'], [ALLOC_POINT_FOR_OPEN_POSITION, debtToken.address, true]), EXACT_ETA);
   console.log("✅ Done");
 
   console.log(">> Generate timelock executeTransaction")
-  console.log(`await timelock.executeTransaction('${SHIELD_ADDR}', '0', 'addPool(uint256,address,bool)', ethers.utils.defaultAbiCoder.encode(['uint256','address','bool'], [${ALLOC_POINT_FOR_OPEN_POSITION}, '${debtToken.address}', true]), ${EXACT_ETA})`);
+  console.log(`await timelock.executeTransaction('${config.Shield}', '0', 'addPool(uint256,address,bool)', ethers.utils.defaultAbiCoder.encode(['uint256','address','bool'], [${ALLOC_POINT_FOR_OPEN_POSITION}, '${debtToken.address}', true]), ${EXACT_ETA})`);
   console.log("✅ Done");
 
   console.log(">> Sleep for 10000msec waiting for fairLaunch to update the pool");
@@ -82,15 +92,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log("✅ Done");
 
   console.log(`>> Queue Transaction to add a ${SYMBOL} pool through Timelock`);
-  await timelock.queueTransaction(SHIELD_ADDR, '0', 'addPool(uint256,address,bool)', ethers.utils.defaultAbiCoder.encode(['uint256','address','bool'], [ALLOC_POINT_FOR_DEPOSIT, vault.address, true]), EXACT_ETA);
+  await timelock.queueTransaction(config.Shield, '0', 'addPool(uint256,address,bool)', ethers.utils.defaultAbiCoder.encode(['uint256','address','bool'], [ALLOC_POINT_FOR_DEPOSIT, vault.address, true]), EXACT_ETA);
   console.log("✅ Done");
 
   console.log(">> Generate timelock executeTransaction")
-  console.log(`await timelock.executeTransaction('${SHIELD_ADDR}', '0', 'addPool(uint256,address,bool)', ethers.utils.defaultAbiCoder.encode(['uint256','address','bool'], [${ALLOC_POINT_FOR_DEPOSIT}, '${vault.address}', true]), ${EXACT_ETA})`);
+  console.log(`await timelock.executeTransaction('${config.Shield}', '0', 'addPool(uint256,address,bool)', ethers.utils.defaultAbiCoder.encode(['uint256','address','bool'], [${ALLOC_POINT_FOR_DEPOSIT}, '${vault.address}', true]), ${EXACT_ETA})`);
   console.log("✅ Done");
 
   const wNativeRelayer = WNativeRelayer__factory.connect(
-    WNATIVE_RELAYER_ADDR, (await ethers.getSigners())[0]
+    config.SharedConfig.WNativeRelayer, (await ethers.getSigners())[0]
   ) as WNativeRelayer;
 
   console.log(">> Whitelisting Vault on WNativeRelayer Contract");
