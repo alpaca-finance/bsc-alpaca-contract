@@ -363,7 +363,7 @@ describe('OracleMedianizer', () => {
       })
       context('when has ChainLinkPriceOracle source', async () => {
         it('should successfully', async () => {
-          await chainLinkPriceOracle.setPriceFeed(token0.address, token1.address, mockAggregatorV3T0T1.address)
+          await chainLinkPriceOracle.setPriceFeeds([token0.address], [token1.address], [mockAggregatorV3T0T1.address])
           await oracleMedianizerAsDeployer.setPrimarySources(
             token0.address,
             token1.address,
@@ -409,7 +409,7 @@ describe('OracleMedianizer', () => {
               [token1.address, token0.address],
               [BigNumber.from('1000000000000000000'), BigNumber.from('1000000000000000000').div(10)],
             )
-            await chainLinkPriceOracle.setPriceFeed(token0.address, token1.address, mockAggregatorV3T0T1.address)
+            await chainLinkPriceOracle.setPriceFeeds([token0.address], [token1.address], [mockAggregatorV3T0T1.address])
   
             await oracleMedianizerAsDeployer.setPrimarySources(
               token0.address,
@@ -454,7 +454,7 @@ describe('OracleMedianizer', () => {
               [token1.address, token0.address],
               [BigNumber.from('1000000000000000000'), BigNumber.from('1000000000000000000').div(10)],
             )
-            await chainLinkPriceOracle.setPriceFeed(token0.address, token1.address, mockAggregatorV3T0T1.address)
+            await chainLinkPriceOracle.setPriceFeeds([token0.address], [token1.address], [mockAggregatorV3T0T1.address])
 
             await oracleMedianizerAsDeployer.setPrimarySources(
               token0.address,
@@ -505,7 +505,7 @@ describe('OracleMedianizer', () => {
               [token1.address, token0.address],
               [BigNumber.from('1000000000000000000'), BigNumber.from('1000000000000000000').div(10)],
             )
-            await chainLinkPriceOracle.setPriceFeed(token0.address, token1.address, mockAggregatorV3T0T1.address)
+            await chainLinkPriceOracle.setPriceFeeds([token0.address], [token1.address], [mockAggregatorV3T0T1.address])
             await evePriceOracleAsFeeder.setPrices(
               [token0.address, token1.address],
               [token1.address, token0.address],
@@ -529,7 +529,7 @@ describe('OracleMedianizer', () => {
             [token1.address, token0.address],
             [BigNumber.from('1100000000000000000'), BigNumber.from('1000000000000000000').div(11)],
           )
-          await chainLinkPriceOracle.setPriceFeed(token0.address, token1.address, mockAggregatorV3T0T1.address)
+          await chainLinkPriceOracle.setPriceFeeds([token0.address], [token1.address], [mockAggregatorV3T0T1.address])
           await evePriceOracleAsFeeder.setPrices(
             [token0.address, token1.address],
             [token1.address, token0.address],
@@ -554,7 +554,7 @@ describe('OracleMedianizer', () => {
             [token1.address, token0.address],
             [BigNumber.from('1000000000000000000'), BigNumber.from('1000000000000000000').div(10)],
           )
-          await chainLinkPriceOracle.setPriceFeed(token0.address, token1.address, mockAggregatorV3T0T1.address)
+          await chainLinkPriceOracle.setPriceFeeds([token0.address], [token1.address], [mockAggregatorV3T0T1.address])
           await evePriceOracleAsFeeder.setPrices(
             [token0.address, token1.address],
             [token1.address, token0.address],
@@ -579,7 +579,7 @@ describe('OracleMedianizer', () => {
             [token1.address, token0.address],
             [BigNumber.from('1000000000000000000'), BigNumber.from('1000000000000000000').div(10)],
           )
-          await chainLinkPriceOracle.setPriceFeed(token0.address, token1.address, mockAggregatorV3T0T1.address)
+          await chainLinkPriceOracle.setPriceFeeds([token0.address], [token1.address], [mockAggregatorV3T0T1.address])
           await evePriceOracleAsFeeder.setPrices(
             [token0.address, token1.address],
             [token1.address, token0.address],
