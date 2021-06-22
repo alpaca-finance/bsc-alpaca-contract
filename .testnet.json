@@ -323,6 +323,10 @@
         "pId": 52,
         "name": "TUSD-BUSD LP",
         "address": "0x557f6a13D6C09bA8918f63C51Dd90eD0Ae5685A7"
+      }, {
+        "pId": 54,
+        "name": "ADA-WBNB LP",
+        "address": "0xc6Ddd130C132458a2d71098eE619fdc5d78E2371"
       }]
     },
     "Waultswap": {
@@ -422,7 +426,8 @@
     "BORING": "0x9576BE6fD507e730fbE6b4A9e1352626efDFcA0d",
     "WAULTx": "0xA70EbF609d5f834cE9798Af6D72A63Dcd6D71075",
     "ODDZ": "0x4d51E18ACbb2C95eb52a85a3683112345dA01656",
-    "TUSD": "0xf2de08AC7d8b8C8630cA5143A49a789698327Da9"
+    "TUSD": "0xf2de08AC7d8b8C8630cA5143A49a789698327Da9",
+    "ADA": "0xb6Fd69f8C4afA4f8b820683932CdbaA3609D1E1F"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x7549b7d0edcd411e7e5013dc74727f8dab13ab0f",
@@ -793,6 +798,19 @@
         "StrategyLiquidate": "0xFA33cAA1F3913Dc9cDb49435F2f80D660114BEE6",
         "StrategyAddTwoSidesOptimal": "0x821154e5F621F534060E56871bC614Aa43528356",
         "StrategyWithdrawMinimizeTrading": "0x0EA3307c33403c81A99C76f7370D78e09Bc50539"
+      }
+    }, {
+      "name": "ADA-WBNB PancakeswapWorker",
+      "address": "0x2AEdC93F773D6B670fe2d65f6686B14985C268E2",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "pId": 54,
+      "stakingToken": "0xc6Ddd130C132458a2d71098eE619fdc5d78E2371",
+      "stakingTokenAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
+        "StrategyLiquidate": "0x58Bbb507248635413172Ed7A2eeC048402C6b39b",
+        "StrategyAddTwoSidesOptimal": "0x0A5515aEdc275b9fF19d11Cd74465e83067f6D40",
+        "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32"
       }
     }]
   }, {
@@ -1383,6 +1401,19 @@
         "StrategyLiquidate": "0xdbcDcd7bE24d0dbf2b167F14435945EC7e0F454A",
         "StrategyAddTwoSidesOptimal": "0x29a8B6f3c9F79314a82f3092EA065F9f15371dB8",
         "StrategyWithdrawMinimizeTrading": "0xE5909854177a493BFeF616e2E142211413aC295d"
+      }
+    }, {
+      "name": "BTCB CakeMaxiWorker",
+      "address": "0x9335E4103eF806E74e6173c5F46d6ab95f9D6b6a",
+      "config": "0x84c8c614826f312BE90f0161498e3d57646Ef34f",
+      "pId": 0,
+      "stakingToken": "0x7aBcA3B5f0Ca1da0eC05631d5788907D030D0a22",
+      "stakingTokenAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x4519d5038B86752edaCef84F779364F1C1C7ed40",
+        "StrategyLiquidate": "0xFA33cAA1F3913Dc9cDb49435F2f80D660114BEE6",
+        "StrategyAddTwoSidesOptimal": "0xF3Cad8B2215DCC7067F2655F78A50f86e2dF724D",
+        "StrategyWithdrawMinimizeTrading": "0x0EA3307c33403c81A99C76f7370D78e09Bc50539"
       }
     }]
   }, {

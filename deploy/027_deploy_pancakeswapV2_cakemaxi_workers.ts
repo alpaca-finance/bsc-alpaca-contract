@@ -66,8 +66,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
   const shortCakeMaxiWorkerInfo: Array<ICakeMaxiWorkerInput> = [{
-    VAULT_SYMBOL: "ibWBNB",
-    WORKER_NAME: "WBNB CakeMaxiWorker",
+    VAULT_SYMBOL: "ibBTCB",
+    WORKER_NAME: "BTCB CakeMaxiWorker",
     POOL_ID: 0,
     REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
     BENEFICIAL_VAULT_SYMBOL: "ibALPACA",
@@ -76,23 +76,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     WORK_FACTOR: "6240",
     KILL_FACTOR: "8000",
     MAX_PRICE_DIFF: "11000",
-    PATH: ["WBNB", "CAKE"],
+    PATH: ["BTCB", "WBNB", "CAKE"],
     REWARD_PATH: ["CAKE", "BUSD", "ALPACA"],
-    EXACT_ETA: "1624237200"
-  }, {
-    VAULT_SYMBOL: "ibBUSD",
-    WORKER_NAME: "BUSD CakeMaxiWorker",
-    POOL_ID: 0,
-    REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-    BENEFICIAL_VAULT_SYMBOL: "ibALPACA",
-    REINVEST_BOUNTY_BPS: "1900",
-    BENEFICIAL_VAULT_BOUNTY_BPS: "5263",
-    WORK_FACTOR: "6240",
-    KILL_FACTOR: "8000",
-    MAX_PRICE_DIFF: "11000",
-    PATH: ["BUSD", "CAKE"],
-    REWARD_PATH: ["CAKE", "BUSD", "ALPACA"],
-    EXACT_ETA: "1624237200"
+    EXACT_ETA: "1624424400"
   }]
 
 

@@ -58,25 +58,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
   const shortWorkerInfos: IPancakeswapWorkerInput[] = [{
-    VAULT_SYMBOL: "ibBUSD",
-    WORKER_NAME: "TUSD-BUSD PancakeswapWorker",
+    VAULT_SYMBOL: "ibWBNB",
+    WORKER_NAME: "ADA-WBNB PancakeswapWorker",
     REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-    POOL_ID: 397,
+    POOL_ID: 253,
     REINVEST_BOUNTY_BPS: '300',
-    WORK_FACTOR: '7800',
-    KILL_FACTOR: '9000',
+    WORK_FACTOR: '7000',
+    KILL_FACTOR: '8333',
     MAX_PRICE_DIFF: '11000',
-    EXACT_ETA: '1624380300'
-  }, {
-    VAULT_SYMBOL: "ibTUSD",
-    WORKER_NAME: "BUSD-TUSD PancakeswapWorker",
-    REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-    POOL_ID: 397,
-    REINVEST_BOUNTY_BPS: '300',
-    WORK_FACTOR: '7800',
-    KILL_FACTOR: '9000',
-    MAX_PRICE_DIFF: '11000',
-    EXACT_ETA: '1624380300'
+    EXACT_ETA: '1624424400'
   }]
 
 

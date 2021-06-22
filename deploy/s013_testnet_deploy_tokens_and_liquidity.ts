@@ -21,40 +21,19 @@ interface IToken {
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const FOREVER = 20000000000;
-  const PANCAKE_MASTERCHEF = '0x85F6A87A056313Fd1717937Cf3cC7BCe3e3445D1'
-  const PANCAKE_FACTORY = '0xC907F67B0fBAEbe7B557B15a5Ef77345578C4202'
-  const PANCAKE_ROUTER = '0xA0bC344E20d89ccA131f869E059499F41d7a13D3'
+  const PANCAKE_MASTERCHEF = '0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B'
+  const PANCAKE_FACTORY = '0xda8EE87e2172d997a7fe05a83FC5c472B40FacCE'
+  const PANCAKE_ROUTER = '0x367633909278A3C91f4cB130D8e56382F00D1071'
   const WBNB = '0xDfb1211E2694193df5765d54350e1145FD2404A1'
   const TOKENS: Array<IToken> = [{
-<<<<<<< HEAD
-    symbol: 'TUSD',
-    name: 'TUSD',
-    mintAmount: ethers.utils.parseEther('8888888888888').toString(),
+    symbol: 'ADA',
+    name: 'ADA',
+    address: '0xb6Fd69f8C4afA4f8b820683932CdbaA3609D1E1F',
     pairs: [{
-      quoteToken: 'BUSD',
-      quoteTokenAddr: '0x0266693F9Df932aD7dA8a9b44C2129Ce8a87E81f',
-      reserveQuoteToken: ethers.utils.parseEther('36113222'),
-      reserveBaseToken: ethers.utils.parseEther('36220736')
-=======
-    symbol: 'ETH',
-    name: 'ETH',
-    address: '0xd5c082df9eDE041548fa79e05A1CB077036ca86F',
-    pairs: [{
-      quoteToken: 'USDT',
-      quoteTokenAddr: '0xE60Fa777dEb72C364447BB18C823C4731FbeD671',
-      reserveQuoteToken: ethers.utils.parseEther('23140000'),
-      reserveBaseToken: ethers.utils.parseEther('10000')
-    }]
-  }, {
-    symbol: 'BTCB',
-    name: 'BTCB',
-    address: '0xCCaf3FC49B0D0F53fe2c08103F75A397052983FB',
-    pairs: [{
-      quoteToken: 'BUSD',
-      quoteTokenAddr: '0x0266693F9Df932aD7dA8a9b44C2129Ce8a87E81f',
-      reserveQuoteToken: ethers.utils.parseEther('3773930'),
-      reserveBaseToken: ethers.utils.parseEther('100')
->>>>>>> deploy/wault-pools-5-cake-maxi-2
+      quoteToken: 'WBNB',
+      quoteTokenAddr: '0xDfb1211E2694193df5765d54350e1145FD2404A1',
+      reserveQuoteToken: ethers.utils.parseEther('100'),
+      reserveBaseToken: ethers.utils.parseEther('22857.7892')
     }]
   }]
 
