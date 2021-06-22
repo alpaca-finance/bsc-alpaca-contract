@@ -20,7 +20,7 @@ import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 
 import "../interfaces/IWorker.sol";
 import "../interfaces/IWorkerConfig.sol";
-import "../PriceOracle.sol";
+import "../interfaces/IPriceOracle.sol";
 import "../../utils/SafeToken.sol";
 
 contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
@@ -30,7 +30,14 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
 
   /// @notice Events
   event SetOracle(address indexed caller, address oracle);
-  event SetConfig(address indexed caller, address indexed worker, bool acceptDebt, uint64 workFactor, uint64 killFactor, uint64 maxPriceDiff);
+  event SetConfig(
+    address indexed caller,
+    address indexed worker,
+    bool acceptDebt,
+    uint64 workFactor,
+    uint64 killFactor,
+    uint64 maxPriceDiff
+  );
   event SetGovernor(address indexed caller, address indexed governor);
 
   /// @notice state variables
@@ -42,7 +49,7 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
   }
 
   PriceOracle public oracle;
-  mapping (address => Config) public workers;
+  mapping(address => Config) public workers;
   address public governor;
 
   function initialize(PriceOracle _oracle) external initializer {
@@ -73,7 +80,14 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
         killFactor: configs[idx].killFactor,
         maxPriceDiff: configs[idx].maxPriceDiff
       });
-      emit SetConfig(_msgSender(), addrs[idx], workers[addrs[idx]].acceptDebt, workers[addrs[idx]].workFactor, workers[addrs[idx]].killFactor, workers[addrs[idx]].maxPriceDiff);
+      emit SetConfig(
+        _msgSender(),
+        addrs[idx],
+        workers[addrs[idx]].acceptDebt,
+        workers[addrs[idx]].workFactor,
+        workers[addrs[idx]].killFactor,
+        workers[addrs[idx]].maxPriceDiff
+      );
     }
   }
 
@@ -83,7 +97,7 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
     address token0 = lp.token0();
     address token1 = lp.token1();
     // 1. Check that reserves and balances are consistent (within 1%)
-    (uint256 r0, uint256 r1,) = lp.getReserves();
+    (uint256 r0, uint256 r1, ) = lp.getReserves();
     uint256 t0bal = token0.balanceOf(address(lp));
     uint256 t1bal = token1.balanceOf(address(lp));
     require(t0bal.mul(100) <= r0.mul(101), "WorkerConfig::isStable:: bad t0 balance");
@@ -100,19 +114,25 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
   }
 
   /// @dev Return whether the given worker accepts more debt.
-  function acceptDebt(address worker) external override view returns (bool) {
+  function acceptDebt(address worker) external view override returns (bool) {
     require(isStable(worker), "WorkerConfig::acceptDebt:: !stable");
     return workers[worker].acceptDebt;
   }
 
   /// @dev Return the work factor for the worker + BaseToken debt, using 1e4 as denom.
-  function workFactor(address worker, uint256 /* debt */) external override view returns (uint256) {
+  function workFactor(
+    address worker,
+    uint256 /* debt */
+  ) external view override returns (uint256) {
     require(isStable(worker), "WorkerConfig::workFactor:: !stable");
     return uint256(workers[worker].workFactor);
   }
 
   /// @dev Return the kill factor for the worker + BaseToken debt, using 1e4 as denom.
-  function killFactor(address worker, uint256 /* debt */) external override view returns (uint256) {
+  function killFactor(
+    address worker,
+    uint256 /* debt */
+  ) external view override returns (uint256) {
     require(isStable(worker), "WorkerConfig::killFactor:: !stable");
     return uint256(workers[worker].killFactor);
   }
@@ -126,9 +146,16 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
   /// @dev EMERGENCY ONLY. Disable accept new position without going through Timelock in case of emergency.
   function emergencySetAcceptDebt(address[] calldata addrs, bool isAcceptDebt) external onlyGovernor {
     uint256 len = addrs.length;
-    for(uint idx = 0; idx < len; idx++) {
+    for (uint256 idx = 0; idx < len; idx++) {
       workers[addrs[idx]].acceptDebt = isAcceptDebt;
-      emit SetConfig(_msgSender(), addrs[idx], workers[addrs[idx]].acceptDebt, workers[addrs[idx]].workFactor, workers[addrs[idx]].killFactor, workers[addrs[idx]].maxPriceDiff);
+      emit SetConfig(
+        _msgSender(),
+        addrs[idx],
+        workers[addrs[idx]].acceptDebt,
+        workers[addrs[idx]].workFactor,
+        workers[addrs[idx]].killFactor,
+        workers[addrs[idx]].maxPriceDiff
+      );
     }
   }
 }

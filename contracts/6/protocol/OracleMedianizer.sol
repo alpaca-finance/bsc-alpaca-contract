@@ -1,10 +1,23 @@
+// SPDX-License-Identifier: MIT
+/**
+  ∩~~~~∩ 
+  ξ ･×･ ξ 
+  ξ　~　ξ 
+  ξ　　 ξ 
+  ξ　　 “~～~～〇 
+  ξ　　　　　　 ξ 
+  ξ ξ ξ~～~ξ ξ ξ 
+　 ξ_ξξ_ξ　ξ_ξξ_ξ
+Alpaca Fin Corporation
+*/
+
 pragma solidity 0.6.6;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 
-import "./PriceOracle.sol";
+import "./interfaces/IPriceOracle.sol";
 
 contract OracleMedianizer is OwnableUpgradeSafe, PriceOracle {
   using SafeMath for uint256;
@@ -105,7 +118,10 @@ contract OracleMedianizer is OwnableUpgradeSafe, PriceOracle {
     // Get valid oracle sources
     uint256 validSourceCount = 0;
     for (uint256 idx = 0; idx < candidateSourceCount; idx++) {
-      try primarySources[token0][token1][idx].getPrice(token0, token1) returns (uint256 price, uint256 lastUpdate) {
+      try primarySources[token0][token1][idx].getPrice(token0, token1) returns (
+        uint256 price,
+        uint256 /*lastUpdate*/
+      ) {
         prices[validSourceCount++] = price;
       } catch {}
     }
