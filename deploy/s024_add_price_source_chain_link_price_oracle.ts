@@ -15,15 +15,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const CHAIN_LINK_PRICE_ORACLE_ADDR = '';
   const TOKEN0_SYMBOLS = [
-    'WBNB'
+    'CAKE'
   ];
   const TOKEN1_SYMBOLS = [
     'BUSD'
   ];
   const AGGREGATORV3S = [
-    ''
+    '0x81faeDDfeBc2F8Ac524327d70Cf913001732224C'
   ];
 
 
@@ -52,7 +51,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     return addr
   })
 
-  const chainLinkPriceOracle = ChainLinkPriceOracle__factory.connect(CHAIN_LINK_PRICE_ORACLE_ADDR, (await ethers.getSigners())[0]);
+  const chainLinkPriceOracle = ChainLinkPriceOracle__factory.connect(config.Oracle.ChainLinkOracle, (await ethers.getSigners())[0]);
   console.log(">> Adding price source to chain link price oracle");
   await chainLinkPriceOracle.setPriceFeeds(token0Addrs, token1Addrs, AGGREGATORV3S ,{ gasLimit: '10000000' });
   console.log("✅ Done")

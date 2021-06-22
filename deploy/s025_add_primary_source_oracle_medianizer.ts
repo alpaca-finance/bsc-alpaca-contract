@@ -15,19 +15,19 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
+  const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig
 
-  const ORACLE_MEDIANIZER_ADDR = '';
   const TOKEN0_SYMBOLS = [
-    'WBNB'
+    'CAKE'
   ];
   const TOKEN1_SYMBOLS = [
     'BUSD'
   ];
   const MAXPRICEDEVIATIONS = [
-    0
+    '1000000000000000000'
   ];
   const SOURCES = [
-    ['']
+    [config.Oracle.ChainLinkOracle]
   ];
 
 
@@ -38,7 +38,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 
 
-  const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig
   const tokenList: any = config.Tokens
   const token0Addrs: Array<string> = TOKEN0_SYMBOLS.map((t) => {
     const addr = tokenList[t]
@@ -55,7 +54,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     return addr
   })
 
-  const oracleMedianizer = OracleMedianizer__factory.connect(ORACLE_MEDIANIZER_ADDR, (await ethers.getSigners())[0]);
+  const oracleMedianizer = OracleMedianizer__factory.connect(config.Oracle.OracleMedianizer, (await ethers.getSigners())[0]);
   console.log(">> Adding primary source to oracle medianizer");
   await oracleMedianizer.setMultiPrimarySources(token0Addrs, token1Addrs, MAXPRICEDEVIATIONS, SOURCES, { gasLimit: '10000000' });
   console.log("✅ Done")
