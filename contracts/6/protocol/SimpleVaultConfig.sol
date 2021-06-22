@@ -37,13 +37,14 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   uint256 public override getKillBps;
   /// Mapping for worker address to its configuration.
   mapping (address => WorkerConfig) public workers;
-  // address for wrapped native eg WBNB, WETH
+  /// address for wrapped native eg WBNB, WETH
   address public wrappedNativeAddr;
-  // address for wNative relater
+  /// address for wNative relater
   address public wNativeRelayer;
-
-  // address of fairLaunch contract
+  /// address of fairLaunch contract
   address public fairLaunch;
+  /// list of whitelisted callers
+  mapping(address => bool) public override whitelistedCallers;
 
   function initialize(
     uint256 _minDebtSize,
@@ -108,6 +109,13 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
       workFactor: _workFactor,
       killFactor: _killFactor
     });
+  }
+
+  /// @dev Set whitelisted callers. Must only be called by the owner.
+  function setWhitelistedCallers(address[] calldata callers, bool ok) external onlyOwner {
+    for(uint256 idx = 0; idx < callers.length; idx++) {
+      whitelistedCallers[callers[idx]] = ok;
+    }
   }
 
   /// @dev Return the interest rate per second, using 1e18 as denom.

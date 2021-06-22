@@ -22,6 +22,21 @@ import "./interfaces/IWorkerConfig.sol";
 import "./interfaces/InterestModel.sol";
 
 contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
+  /// @notice Events
+  event SetWhitelistedCaller(address indexed caller, address indexed addr, bool ok);
+  event SetParams(
+    address indexed caller,
+    uint256 minDebtSize,
+    uint256 reservePoolBps,
+    uint256 killBps,
+    address interestModel,
+    address wrappedNative,
+    address wNativeRelayer,
+    address fairLaunch
+  );
+  event SetWorkers(address indexed caller, address worker, address workerConfig);
+  event SetMaxKillBps(address indexed caller, uint256 maxKillBps);
+
   /// The minimum debt size per position.
   uint256 public override minDebtSize;
   /// The portion of interests allocated to the reserve pool.
@@ -40,6 +55,8 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   address public fairLaunch;
   /// maximum killBps
   uint256 public maxKillBps;
+  /// list of whitelisted callers
+  mapping(address => bool) public override whitelistedCallers;
 
   function initialize(
     uint256 _minDebtSize,
@@ -53,8 +70,7 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     OwnableUpgradeSafe.__Ownable_init();
 
     maxKillBps = 500;
-    setParams(
-      _minDebtSize, _reservePoolBps, _killBps, _interestModel, _wrappedNative, _wNativeRelayer, _fairLaunch);
+    setParams(_minDebtSize, _reservePoolBps, _killBps, _interestModel, _wrappedNative, _wNativeRelayer, _fairLaunch);
   }
 
   /// @dev Set all the basic parameters. Must only be called by the owner.
@@ -80,6 +96,17 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     wrappedNative = _wrappedNative;
     wNativeRelayer = _wNativeRelayer;
     fairLaunch = _fairLaunch;
+
+    emit SetParams(
+      _msgSender(),
+      minDebtSize,
+      getReservePoolBps,
+      getKillBps,
+      address(interestModel),
+      wrappedNative,
+      wNativeRelayer,
+      fairLaunch
+    );
   }
 
   /// @dev Set the configuration for the given workers. Must only be called by the owner.
@@ -87,7 +114,23 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     require(addrs.length == configs.length, "ConfigurableInterestVaultConfig::setWorkers:: bad length");
     for (uint256 idx = 0; idx < addrs.length; idx++) {
       workers[addrs[idx]] = configs[idx];
+      emit SetWorkers(_msgSender(), addrs[idx], address(configs[idx]));
     }
+  }
+
+  /// @dev Set whitelisted callers. Must only be called by the owner.
+  function setWhitelistedCallers(address[] calldata callers, bool ok) external onlyOwner {
+    for (uint256 idx = 0; idx < callers.length; idx++) {
+      whitelistedCallers[callers[idx]] = ok;
+      emit SetWhitelistedCaller(_msgSender(), callers[idx], ok);
+    }
+  }
+
+  /// @dev Set max kill bps. Must only be called by the owner.
+  function setMaxKillBps(uint256 _maxKillBps) external onlyOwner {
+    require(_maxKillBps < 1000, "ConfigurableInterestVaultConfig::setMaxKillBps:: bad _maxKillBps");
+    maxKillBps = _maxKillBps;
+    emit SetMaxKillBps(_msgSender(), maxKillBps);
   }
 
   /// @dev Return the address of wrapped native token

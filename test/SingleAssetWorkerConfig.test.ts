@@ -258,10 +258,10 @@ describe('SingleAssetWorkerConfig', () => {
         it('should be reverted', async() => {
           // feed the price with price too low on the first hop
           await simplePriceOracleAsAlice.setPrices([baseToken.address, wbnb.address],[wbnb.address, baseToken.address], [lpPriceFarmBNB.mul(10000).div(11001), lpPriceBNBFarm.mul(10000).div(11001)])
-          await expect(singleAssetWorkerConfigAsAlice.isStable(cakeMaxiWorkerNonNative.address)).to.revertedWith('SingleAssetWorkerConfig::isStable:: price too high')
+          await expect(singleAssetWorkerConfigAsAlice.isStable(cakeMaxiWorkerNonNative.address), "BTOKEN -> WBNB is not too high").to.revertedWith('SingleAssetWorkerConfig::isStable:: price too high')
           // when price from oracle and PCS is within the range, but price from oracle is lower than the price on PCS on the second hop
-          await simplePriceOracleAsAlice.setPrices([baseToken.address, wbnb.address, cake.address, wbnb.address], [wbnb.address, baseToken.address, wbnb.address, baseToken.address], [lpPriceFarmBNB, lpPriceBNBFarm, lpPriceBaseBnb.mul(10000).div(11001), lpPriceBNBBase.mul(10000).div(11001)])
-          await expect(singleAssetWorkerConfigAsAlice.isStable(cakeMaxiWorkerNonNative.address)).to.revertedWith('SingleAssetWorkerConfig::isStable:: price too high')
+          await simplePriceOracleAsAlice.setPrices([baseToken.address, wbnb.address, cake.address, wbnb.address], [wbnb.address, baseToken.address, wbnb.address, cake.address], [lpPriceFarmBNB, lpPriceBNBFarm, lpPriceBaseBnb.mul(10000).div(11001), lpPriceBNBBase.mul(10000).div(11001)])
+          await expect(singleAssetWorkerConfigAsAlice.isStable(cakeMaxiWorkerNonNative.address), "WBNB -> CAKE is not too high").to.revertedWith('SingleAssetWorkerConfig::isStable:: price too high')
         })
       })
 
@@ -271,7 +271,7 @@ describe('SingleAssetWorkerConfig', () => {
           await simplePriceOracleAsAlice.setPrices([baseToken.address, wbnb.address],[wbnb.address, baseToken.address],[lpPriceFarmBNB.mul(11001).div(10000), lpPriceBNBFarm.mul(11001).div(10000)])
           await expect(singleAssetWorkerConfigAsAlice.isStable(cakeMaxiWorkerNonNative.address)).to.revertedWith('SingleAssetWorkerConfig::isStable:: price too low')
           // when price from oracle and PCS is within the range, but price from oracle is higher than the price on PCS on the second hop
-          await simplePriceOracleAsAlice.setPrices([baseToken.address, wbnb.address, cake.address, wbnb.address], [wbnb.address, baseToken.address, wbnb.address, baseToken.address], [lpPriceFarmBNB, lpPriceBNBFarm, lpPriceBaseBnb.mul(11001).div(10000), lpPriceBNBBase.mul(11001).div(10000)])
+          await simplePriceOracleAsAlice.setPrices([baseToken.address, wbnb.address, cake.address, wbnb.address], [wbnb.address, baseToken.address, wbnb.address, cake.address], [lpPriceFarmBNB, lpPriceBNBFarm, lpPriceBaseBnb.mul(11001).div(10000), lpPriceBNBBase.mul(11001).div(10000)])
           await expect(singleAssetWorkerConfigAsAlice.isStable(cakeMaxiWorkerNonNative.address)).to.revertedWith('SingleAssetWorkerConfig::isStable:: price too low')
         })
       })

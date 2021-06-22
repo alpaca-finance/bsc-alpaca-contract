@@ -307,6 +307,10 @@
         "pId": 50,
         "name": "BORING-WBNB LP",
         "address": "0x98135F51bd36Db97222024F26B588728Ad96BEa3"
+      }, {
+        "pId": 51,
+        "name": "ODDZ-WBNB LP",
+        "address": "0x4B2EB15AE0d772C1846249db78c3Cbe9FbB1F4fB"
       }]
     },
     "Waultswap": {
@@ -349,6 +353,18 @@
         "pId": 9,
         "name": "USDT-BUSD LP",
         "address": "0x867EEC2839f129072d1CE382C0c3Ec338510dA6f"
+      }, {
+        "pId": 10,
+        "name": "BETH-ETH LP",
+        "address": "0x0de1BcAA21329DB5F6efb35849Db6C2Ab209B52D"
+      }, {
+        "pId": 11,
+        "name": "WAULTx-WBNB LP",
+        "address": "0xa740eE9d11722513F311FF9dbcF236E34Fe47542"
+      }, {
+        "pId": 12,
+        "name": "BTCB-USDT LP",
+        "address": "0x98082f983738255517484Ba6f5Bf91462352f38C"
       }]
     }
   },
@@ -383,7 +399,9 @@
     "SWINGBY": "0x588C1F4B4C772dD019691456f143D4e34771F3cE",
     "DODO": "0x80e7Ec7bDFD410AFd073109FC28fB7451e83931B",
     "WEX": "0x1da1dFaAEF18F4587e505C5dE0f9ED1a219e4146",
-    "BORING": "0x9576BE6fD507e730fbE6b4A9e1352626efDFcA0d"
+    "BORING": "0x9576BE6fD507e730fbE6b4A9e1352626efDFcA0d",
+    "WAULTx": "0xA70EbF609d5f834cE9798Af6D72A63Dcd6D71075",
+    "ODDZ": "0x4d51E18ACbb2C95eb52a85a3683112345dA01656"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x7549b7d0edcd411e7e5013dc74727f8dab13ab0f",
@@ -402,9 +420,9 @@
       "StrategyWithdrawMinimizeTrading": "0xE5909854177a493BFeF616e2E142211413aC295d"
     },
     "PancakeswapSingleAsset": {
-      "StrategyAddBaseTokenOnly": "0xE331932D8599c256328B3C649135AC8bfB0Fa5B5",
-      "StrategyLiquidate": "0xfA36a6135433e971AD66BA0032f76c8E43Ac1005",
-      "StrategyWithdrawMinimizeTrading": "0x6C12b05F9235cf0D92B152F47bcB6947B927591e"
+      "StrategyAddBaseTokenOnly": "0x4519d5038B86752edaCef84F779364F1C1C7ed40",
+      "StrategyLiquidate": "0xFA33cAA1F3913Dc9cDb49435F2f80D660114BEE6",
+      "StrategyWithdrawMinimizeTrading": "0x0EA3307c33403c81A99C76f7370D78e09Bc50539"
     }
   },
   "SharedConfig": {
@@ -412,7 +430,7 @@
     "TripleSlopeModelStable20Max150": "0x038cd7a6A397d7f5D07a0c76A4610a7Ca64eb7d3",
     "WNativeRelayer": "0x7e2284c8CC74F13FA6c218c4231b0786E6204728",
     "WorkerConfig": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
-    "SingleAssetWorkerConfig": "0xB3A73ceA38Bf48d7579F25d7fb7F79d33f81650e"
+    "PancakeswapSingleAssetWorkerConfig": "0x84c8c614826f312BE90f0161498e3d57646Ef34f"
   },
   "Oracle": {
     "SimpleOracle": "0xFb0645d38e35DA4C4Aa0079366B7d9905f162fCe"
@@ -428,7 +446,7 @@
     "StrategyAddTwoSidesOptimal": {
       "Pancakeswap": "0x0A5515aEdc275b9fF19d11Cd74465e83067f6D40",
       "Waultswap": "0xC01390eea9A7e27199e03dA5053C2dd63A5169ff",
-      "PancakeswapSingleAsset": "0x3Fa2C873b63baB8e8fD9dB35cFBbc6593034510c"
+      "PancakeswapSingleAsset": "0x821154e5F621F534060E56871bC614Aa43528356"
     },
     "workers": [{
       "name": "CAKE-WBNB PancakeswapWorker",
@@ -716,6 +734,32 @@
         "StrategyAddTwoSidesOptimal": "0xC01390eea9A7e27199e03dA5053C2dd63A5169ff",
         "StrategyWithdrawMinimizeTrading": "0xE5909854177a493BFeF616e2E142211413aC295d"
       }
+    }, {
+      "name": "WAULTx-WBNB WaultswapWorker",
+      "address": "0xc3b7F9635F261e0aC98784ac5D88b91f893C604f",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "pId": 11,
+      "stakingToken": "0xa740eE9d11722513F311FF9dbcF236E34Fe47542",
+      "stakingTokenAt": "0x85F6A87A056313Fd1717937Cf3cC7BCe3e3445D1",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0xD15DBC544ad55d4877cAd426a6e6e16446a012b5",
+        "StrategyLiquidate": "0xdbcDcd7bE24d0dbf2b167F14435945EC7e0F454A",
+        "StrategyAddTwoSidesOptimal": "0xC01390eea9A7e27199e03dA5053C2dd63A5169ff",
+        "StrategyWithdrawMinimizeTrading": "0xE5909854177a493BFeF616e2E142211413aC295d"
+      }
+    }, {
+      "name": "ODDZ-WBNB PancakeswapWorker",
+      "address": "0xeBdDbfa495f9Bb35Ed1B3d5Cb9Fd0a555648f82b",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "pId": 51,
+      "stakingToken": "0x4B2EB15AE0d772C1846249db78c3Cbe9FbB1F4fB",
+      "stakingTokenAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
+        "StrategyLiquidate": "0x58Bbb507248635413172Ed7A2eeC048402C6b39b",
+        "StrategyAddTwoSidesOptimal": "0x0A5515aEdc275b9fF19d11Cd74465e83067f6D40",
+        "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32"
+      }
     }]
   }, {
     "name": "Interest Bearing BUSD",
@@ -728,7 +772,7 @@
     "StrategyAddTwoSidesOptimal": {
       "Pancakeswap": "0x22fC6110d5d9b122f3C2d4715C24566342161a12",
       "Waultswap": "0xFfA12222e3ccEF58684Af20aaa4D5bf13c8faC10",
-      "PancakeswapSingleAsset": "0x146EEb132f5926Fce3582BDEfea81e94c54e2A5F"
+      "PancakeswapSingleAsset": "0x030652c0C544c0c195584Cb60AE1e331A1D3E9C8"
     },
     "workers": [{
       "name": "USDT-BUSD PancakeswapWorker",
@@ -898,7 +942,7 @@
     "StrategyAddTwoSidesOptimal": {
       "Pancakeswap": "0xD8916928Cd542016E319Ad0c816EF01310462BEa",
       "Waultswap": "0xeBfda6D0232335a067aE6a3e5E470D8cDcb22f53",
-      "PancakeswapSingleAsset": "0x4f16fBeA98a33E333AB8Cecf5bD05cD7E58AbA4D"
+      "PancakeswapSingleAsset": "0xf327b3Af3b1691f52F434D71289f1Ae628aab5e8"
     },
     "workers": [{
       "name": "BETH-ETH PancakeswapWorker",
@@ -980,16 +1024,29 @@
       }
     }, {
       "name": "ETH CakeMaxiWorker",
-      "address": "0x3F4Ff5422d51F134d8D4443Bd96A24b99d487505",
-      "config": "0xB3A73ceA38Bf48d7579F25d7fb7F79d33f81650e",
+      "address": "0x80A901864232A77c118ed8B302651D13B0FeEeDA",
+      "config": "0x84c8c614826f312BE90f0161498e3d57646Ef34f",
       "pId": 0,
       "stakingToken": "0x7aBcA3B5f0Ca1da0eC05631d5788907D030D0a22",
       "stakingTokenAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
       "strategies": {
-        "StrategyAddAllBaseToken": "0xE331932D8599c256328B3C649135AC8bfB0Fa5B5",
-        "StrategyLiquidate": "0xfA36a6135433e971AD66BA0032f76c8E43Ac1005",
-        "StrategyAddTwoSidesOptimal": "0x4f16fBeA98a33E333AB8Cecf5bD05cD7E58AbA4D",
-        "StrategyWithdrawMinimizeTrading": "0x6C12b05F9235cf0D92B152F47bcB6947B927591e"
+        "StrategyAddAllBaseToken": "0x4519d5038B86752edaCef84F779364F1C1C7ed40",
+        "StrategyLiquidate": "0xFA33cAA1F3913Dc9cDb49435F2f80D660114BEE6",
+        "StrategyAddTwoSidesOptimal": "0xf327b3Af3b1691f52F434D71289f1Ae628aab5e8",
+        "StrategyWithdrawMinimizeTrading": "0x0EA3307c33403c81A99C76f7370D78e09Bc50539"
+      }
+    }, {
+      "name": "BETH-ETH WaultswapWorker",
+      "address": "0xc2d6a8299107C33aE8d1aF2C909f09f6e71845A7",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "pId": 10,
+      "stakingToken": "0x0de1BcAA21329DB5F6efb35849Db6C2Ab209B52D",
+      "stakingTokenAt": "0x85F6A87A056313Fd1717937Cf3cC7BCe3e3445D1",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0xD15DBC544ad55d4877cAd426a6e6e16446a012b5",
+        "StrategyLiquidate": "0xdbcDcd7bE24d0dbf2b167F14435945EC7e0F454A",
+        "StrategyAddTwoSidesOptimal": "0xeBfda6D0232335a067aE6a3e5E470D8cDcb22f53",
+        "StrategyWithdrawMinimizeTrading": "0xE5909854177a493BFeF616e2E142211413aC295d"
       }
     }]
   }, {
@@ -1003,7 +1060,7 @@
     "StrategyAddTwoSidesOptimal": {
       "Pancakeswap": "0xdA6031c074d41A28dF8827B3cF6B66352eA3Ba7A",
       "Waultswap": "0xbc61195af997e06EfbF4a0991b58c890E33e0642",
-      "PancakeswapSingleAsset": "0x50D683C2b33a03124867215e3A38f1bA43a12E8f"
+      "PancakeswapSingleAsset": "0xa8abDAF399721383A397Fd543687E2983173f54a"
     },
     "workers": [{
       "name": "BUSD-ALPACA PancakeswapWorker",
@@ -1056,7 +1113,7 @@
     "StrategyAddTwoSidesOptimal": {
       "Pancakeswap": "0x4D71d66e598e6dCaAb9a3a96890f60169d968212",
       "Waultswap": "0x48393b82Abac4Fbb807A927E60008eFaf5f79Cf7",
-      "PancakeswapSingleAsset": "0x7A7553B7e46680eae3B97f396150b616401B9d6D"
+      "PancakeswapSingleAsset": "0x44aC65498E51948C79cCF0842Ab505949BC7085B"
     },
     "workers": [{
       "name": "BUSD-USDT PancakeswapWorker",
@@ -1112,16 +1169,16 @@
       }
     }, {
       "name": "USDT CakeMaxiWorker",
-      "address": "0xFFcd49c3Dd0DBd6dbB066F928843d04220f98e5e",
-      "config": "0xB3A73ceA38Bf48d7579F25d7fb7F79d33f81650e",
+      "address": "0x8DbE625685B792889eE8Ac36BbCD6d277b9aD115",
+      "config": "0x84c8c614826f312BE90f0161498e3d57646Ef34f",
       "pId": 0,
       "stakingToken": "0x7aBcA3B5f0Ca1da0eC05631d5788907D030D0a22",
       "stakingTokenAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
       "strategies": {
-        "StrategyAddAllBaseToken": "0xE331932D8599c256328B3C649135AC8bfB0Fa5B5",
-        "StrategyLiquidate": "0xfA36a6135433e971AD66BA0032f76c8E43Ac1005",
-        "StrategyAddTwoSidesOptimal": "0x7A7553B7e46680eae3B97f396150b616401B9d6D",
-        "StrategyWithdrawMinimizeTrading": "0x6C12b05F9235cf0D92B152F47bcB6947B927591e"
+        "StrategyAddAllBaseToken": "0x4519d5038B86752edaCef84F779364F1C1C7ed40",
+        "StrategyLiquidate": "0xFA33cAA1F3913Dc9cDb49435F2f80D660114BEE6",
+        "StrategyAddTwoSidesOptimal": "0x44aC65498E51948C79cCF0842Ab505949BC7085B",
+        "StrategyWithdrawMinimizeTrading": "0x0EA3307c33403c81A99C76f7370D78e09Bc50539"
       }
     }, {
       "name": "BUSD-USDT WaultswapWorker",
@@ -1129,6 +1186,19 @@
       "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
       "pId": 9,
       "stakingToken": "0x867EEC2839f129072d1CE382C0c3Ec338510dA6f",
+      "stakingTokenAt": "0x85F6A87A056313Fd1717937Cf3cC7BCe3e3445D1",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0xD15DBC544ad55d4877cAd426a6e6e16446a012b5",
+        "StrategyLiquidate": "0xdbcDcd7bE24d0dbf2b167F14435945EC7e0F454A",
+        "StrategyAddTwoSidesOptimal": "0x48393b82Abac4Fbb807A927E60008eFaf5f79Cf7",
+        "StrategyWithdrawMinimizeTrading": "0xE5909854177a493BFeF616e2E142211413aC295d"
+      }
+    }, {
+      "name": "BTCB-USDT WaultswapWorker",
+      "address": "0x9AA9304659A0bc0C0C37CF94A795E7c236eb32fd",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "pId": 12,
+      "stakingToken": "0x98082f983738255517484Ba6f5Bf91462352f38C",
       "stakingTokenAt": "0x85F6A87A056313Fd1717937Cf3cC7BCe3e3445D1",
       "strategies": {
         "StrategyAddAllBaseToken": "0xD15DBC544ad55d4877cAd426a6e6e16446a012b5",
@@ -1148,7 +1218,7 @@
     "StrategyAddTwoSidesOptimal": {
       "Pancakeswap": "0x453a9A2500947d2F730068E77C5294D3feb5DA67",
       "Waultswap": "0x29a8B6f3c9F79314a82f3092EA065F9f15371dB8",
-      "PancakeswapSingleAsset": "0x0Bfa5c4Fda1Bd75E3115C9FE9718919DaB524f55"
+      "PancakeswapSingleAsset": "0xF3Cad8B2215DCC7067F2655F78A50f86e2dF724D"
     },
     "workers": [{
       "name": "WBNB-BTCB PancakeswapWorker",
@@ -1182,6 +1252,19 @@
       "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
       "pId": 4,
       "stakingToken": "0x0d4F5eEA92DF10018644F4e69B0E8Dbcf1E9344D",
+      "stakingTokenAt": "0x85F6A87A056313Fd1717937Cf3cC7BCe3e3445D1",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0xD15DBC544ad55d4877cAd426a6e6e16446a012b5",
+        "StrategyLiquidate": "0xdbcDcd7bE24d0dbf2b167F14435945EC7e0F454A",
+        "StrategyAddTwoSidesOptimal": "0x29a8B6f3c9F79314a82f3092EA065F9f15371dB8",
+        "StrategyWithdrawMinimizeTrading": "0xE5909854177a493BFeF616e2E142211413aC295d"
+      }
+    }, {
+      "name": "USDT-BTCB WaultswapWorker",
+      "address": "0x504E1FEF3578b5aAE9d85C31092F560985953187",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "pId": 12,
+      "stakingToken": "0x98082f983738255517484Ba6f5Bf91462352f38C",
       "stakingTokenAt": "0x85F6A87A056313Fd1717937Cf3cC7BCe3e3445D1",
       "strategies": {
         "StrategyAddAllBaseToken": "0xD15DBC544ad55d4877cAd426a6e6e16446a012b5",

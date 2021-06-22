@@ -38,17 +38,25 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
   event AddDebt(uint256 indexed id, uint256 debtShare);
   event RemoveDebt(uint256 indexed id, uint256 debtShare);
   event Work(uint256 indexed id, uint256 loan);
-  event Kill(uint256 indexed id, address indexed killer, address owner, uint256 posVal, uint256 debt, uint256 prize, uint256 left);
+  event Kill(
+    uint256 indexed id,
+    address indexed killer,
+    address owner,
+    uint256 posVal,
+    uint256 debt,
+    uint256 prize,
+    uint256 left
+  );
 
   /// @dev Flags for manage execution scope
-  uint private constant _NOT_ENTERED = 1;
-  uint private constant _ENTERED = 2;
-  uint private constant _NO_ID = uint(-1);
+  uint256 private constant _NOT_ENTERED = 1;
+  uint256 private constant _ENTERED = 2;
+  uint256 private constant _NO_ID = uint256(-1);
   address private constant _NO_ADDRESS = address(1);
 
   /// @dev Temporay variables to manage execution scope
-  uint public _IN_EXEC_LOCK;
-  uint public POSITION_ID;
+  uint256 public _IN_EXEC_LOCK;
+  uint256 public POSITION_ID;
   address public STRATEGY;
 
   /// @dev Attributes for Vault
@@ -67,7 +75,7 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
   }
 
   IVaultConfig public config;
-  mapping (uint256 => Position) public positions;
+  mapping(uint256 => Position) public positions;
   uint256 public nextPositionID;
   uint256 public fairLaunchPoolId;
 
@@ -76,10 +84,11 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
   uint256 public lastAccrueTime;
   uint256 public reservePool;
 
-  /// @dev Require that the caller must be an EOA account to avoid flash loans.
-  modifier onlyEOA() {
-    //
-    require(msg.sender == tx.origin, "Vault::onlyEoa:: not eoa");
+  /// @dev Require that the caller must be an EOA account if not whitelisted.
+  modifier onlyEOAorWhitelisted() {
+    if (!config.whitelistedCallers(msg.sender)) {
+      require(msg.sender == tx.origin, "Vault::onlyEOAorWhitelisted:: not eoa");
+    }
     _;
   }
 
@@ -88,7 +97,7 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     if (msg.value != 0) {
       require(token == config.getWrappedNativeAddr(), "Vault::transferTokenToVault:: baseToken is not wNative");
       require(value == msg.value, "Vault::transferTokenToVault:: value != msg.value");
-      IWETH(config.getWrappedNativeAddr()).deposit{value: msg.value}();
+      IWETH(config.getWrappedNativeAddr()).deposit{ value: msg.value }();
     } else {
       SafeToken.safeTransferFrom(token, msg.sender, address(this), value);
     }
@@ -188,8 +197,13 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
 
   /// @dev Add more token to the lending pool. Hope to get some good returns.
   function deposit(uint256 amountToken)
-    external override payable
-    transferTokenToVault(amountToken) accrue(amountToken) nonReentrant {
+    external
+    payable
+    override
+    transferTokenToVault(amountToken)
+    accrue(amountToken)
+    nonReentrant
+  {
     _deposit(amountToken);
   }
 
@@ -215,7 +229,7 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
   }
 
   /// @dev Request Funds from user through Vault
-  function requestFunds(address targetedToken, uint amount) external override inExec {
+  function requestFunds(address targetedToken, uint256 amount) external override inExec {
     SafeToken.safeTransferFrom(targetedToken, positions[POSITION_ID].owner, msg.sender, amount);
   }
 
@@ -235,8 +249,11 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     if (positions[id].debtShare > 0) {
       // Note: Do this way because we don't want to fail open, close, or kill position
       // if cannot withdraw from FairLaunch somehow. 0xb5c5f672 is a signature of withdraw(address,uint256,uint256)
-      (bool success, ) = config.getFairLaunchAddr().call(abi.encodeWithSelector(0xb5c5f672, positions[id].owner, fairLaunchPoolId, positions[id].debtShare));
-      if(success) IDebtToken(debtToken).burn(address(this), positions[id].debtShare);
+      (bool success, ) =
+        config.getFairLaunchAddr().call(
+          abi.encodeWithSelector(0xb5c5f672, positions[id].owner, fairLaunchPoolId, positions[id].debtShare)
+        );
+      if (success) IDebtToken(debtToken).burn(address(this), positions[id].debtShare);
     }
   }
 
@@ -246,10 +263,14 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
   /// @param loan The amount of Token to borrow from the pool.
   /// @param maxReturn The max amount of Token to return to the pool.
   /// @param data The calldata to pass along to the worker for more working context.
-  function work(uint256 id, address worker, uint256 principalAmount, uint256 loan, uint256 maxReturn, bytes calldata data)
-    external payable
-    onlyEOA transferTokenToVault(principalAmount) accrue(principalAmount) nonReentrant
-  {
+  function work(
+    uint256 id,
+    address worker,
+    uint256 principalAmount,
+    uint256 loan,
+    uint256 maxReturn,
+    bytes calldata data
+  ) external payable onlyEOAorWhitelisted transferTokenToVault(principalAmount) accrue(principalAmount) nonReentrant {
     require(fairLaunchPoolId != uint256(-1), "Vault::work:: poolId not set");
     // 1. Sanity check the input position, or add a new position of ID is 0.
     Position storage pos;
@@ -299,7 +320,7 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     STRATEGY = _NO_ADDRESS;
     // 6. Return excess token back.
     if (back > lessDebt) {
-      if(token == config.getWrappedNativeAddr()) {
+      if (token == config.getWrappedNativeAddr()) {
         SafeToken.safeTransfer(token, config.getWNativeRelayer(), back.sub(lessDebt));
         WNativeRelayer(uint160(config.getWNativeRelayer())).withdraw(back.sub(lessDebt));
         SafeToken.safeTransferETH(msg.sender, back.sub(lessDebt));
@@ -311,7 +332,7 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
 
   /// @dev Kill the given to the position. Liquidate it immediately if killFactor condition is met.
   /// @param id The position ID to be killed.
-  function kill(uint256 id) external onlyEOA accrue(0) nonReentrant {
+  function kill(uint256 id) external onlyEOAorWhitelisted accrue(0) nonReentrant {
     require(fairLaunchPoolId != uint256(-1), "Vault::kill:: poolId not set");
     // 1. Verify that the position is eligible for liquidation.
     Position storage pos = positions[id];

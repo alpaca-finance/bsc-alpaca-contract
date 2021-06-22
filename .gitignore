@@ -9,5 +9,6 @@
 .DS_Store
 *.swp
 .tmp
+/scripts/papaca.ts
 /.openzeppelin/unknown-31337.json
 /yarn-error.log

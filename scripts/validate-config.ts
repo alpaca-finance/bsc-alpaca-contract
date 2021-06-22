@@ -5,6 +5,7 @@ import { solidity } from "ethereum-waffle";
 import "@openzeppelin/test-helpers";
 import {
   CakeMaxiWorker__factory,
+  PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm__factory,
   PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory,
   PancakeswapV2RestrictedStrategyAddTwoSidesOptimal__factory,
   PancakeswapV2RestrictedStrategyLiquidate__factory,
@@ -13,6 +14,7 @@ import {
 } from "../typechain";
 import MainnetConfig from '../.mainnet.json'
 import TestnetConfig from '../.testnet.json'
+import { worker } from "node:cluster";
 
 interface IVaultInfo {
   name: string;
@@ -158,6 +160,7 @@ async function main() {
     const vault = Vault__factory.connect(config.Vaults[i].address, ethers.provider)
     const pcsTwoSides = PancakeswapV2RestrictedStrategyAddTwoSidesOptimal__factory.connect(config.Vaults[i].StrategyAddTwoSidesOptimal.Pancakeswap, ethers.provider)
     const waultTwoSides = WaultSwapRestrictedStrategyAddTwoSidesOptimal__factory.connect(config.Vaults[i].StrategyAddTwoSidesOptimal.Waultswap, ethers.provider)
+    const pcsSingleTwoSides = PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm__factory.connect(config.Vaults[i].StrategyAddTwoSidesOptimal.PancakeswapSingleAsset, ethers.provider)
     console.log("=======================")
     console.log(`> validating ${config.Vaults[i].name}`)
     try {
@@ -166,6 +169,8 @@ async function main() {
       expect(await pcsTwoSides.vault()).to.be.eq(vault.address, "pcs twosides vault mis-config")
       expect(await waultTwoSides.router()).to.be.eq(config.Exchanges.Waultswap.WaultswapRouter, "wault twosides router mis-config")
       expect(await waultTwoSides.vault()).to.be.eq(vault.address, "wault twosides vault mis-config")
+      expect(await pcsSingleTwoSides.router()).to.be.eq(config.Exchanges.Pancakeswap.RouterV2, "pcs single asset twosides mis-config")
+      expect(await pcsSingleTwoSides.vault()).to.be.eq(vault.address, "pcs single asset twosides vault mis-config")
       console.log("> ✅ done, no problem found")
     } catch(e) {
       console.log("> ❌ some problem found")
