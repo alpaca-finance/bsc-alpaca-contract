@@ -23,9 +23,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const TOKEN1_SYMBOLS = [
     'BUSD'
   ];
-  const MAXPRICEDEVIATIONS = [
+  const MAX_PRICE_DEVIATIONS = [
     0
   ];
+  const MAX_PRICE_STALES = [
+    0
+  ]
   const SOURCES = [
     ['']
   ];
@@ -57,7 +60,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const oracleMedianizer = OracleMedianizer__factory.connect(ORACLE_MEDIANIZER_ADDR, (await ethers.getSigners())[0]);
   console.log(">> Adding primary source to oracle medianizer");
-  await oracleMedianizer.setMultiPrimarySources(token0Addrs, token1Addrs, MAXPRICEDEVIATIONS, SOURCES, { gasLimit: '10000000' });
+  await oracleMedianizer.setMultiPrimarySources(token0Addrs, token1Addrs, MAX_PRICE_DEVIATIONS, MAX_PRICE_STALES, SOURCES, { gasLimit: '10000000' });
   console.log("✅ Done")
 };
 
