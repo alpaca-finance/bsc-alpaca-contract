@@ -15,6 +15,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
+  const DEFAULT_MAX_PRICE_DEVIATIONS = '1000000000000000000'
   const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig
 
   const TOKEN0_SYMBOLS = [
@@ -23,9 +24,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const TOKEN1_SYMBOLS = [
     'BUSD'
   ];
-  const MAXPRICEDEVIATIONS = [
-    '1000000000000000000'
+  const MAX_PRICE_DEVIATIONS = [
+    DEFAULT_MAX_PRICE_DEVIATIONS
   ];
+  const MAX_PRICE_STALES = [
+    0
+  ]
   const SOURCES = [
     [config.Oracle.ChainLinkOracle]
   ];
@@ -56,7 +60,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const oracleMedianizer = OracleMedianizer__factory.connect(config.Oracle.OracleMedianizer, (await ethers.getSigners())[0]);
   console.log(">> Adding primary source to oracle medianizer");
-  await oracleMedianizer.setMultiPrimarySources(token0Addrs, token1Addrs, MAXPRICEDEVIATIONS, SOURCES, { gasLimit: '10000000' });
+  await oracleMedianizer.setMultiPrimarySources(token0Addrs, token1Addrs, MAX_PRICE_DEVIATIONS, MAX_PRICE_STALES, SOURCES, { gasLimit: '10000000' });
   console.log("✅ Done")
 };
 
