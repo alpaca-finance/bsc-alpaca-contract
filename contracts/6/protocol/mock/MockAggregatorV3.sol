@@ -17,6 +17,7 @@ import "@chainlink/contracts/src/v0.6/interfaces/AggregatorV3Interface.sol";
 
 contract MockAggregatorV3 {
   int256 public price;
+  uint256 public updateAt;
   uint8 public decimals;
   string public description;
   uint256 public version;
@@ -24,6 +25,7 @@ contract MockAggregatorV3 {
   constructor(int256 _price, uint8 _decimals) public {
     price = _price;
     decimals = _decimals;
+    updateAt = now;
   }
 
   function latestRoundData()
@@ -37,6 +39,6 @@ contract MockAggregatorV3 {
       uint80 answeredInRound
     )
   {
-    return (uint80(0), price, uint256(0), uint256(0), uint80(0));
+    return (uint80(0), price, uint256(0), updateAt, uint80(0));
   }
 }
