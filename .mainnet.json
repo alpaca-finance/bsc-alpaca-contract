@@ -449,8 +449,8 @@
     "PancakeswapSingleAssetWorkerConfig": "0x6d203f081367Cfa2968bD62dC3122274f735378C"
   },
   "Oracle": {
-    "OracleMedianizer": "0x9d4cC31Ad8532c3B46E9a0D7E637D5152FF3C367",
-    "ChainLinkOracle": "0xc4f3330dF77b0E925461ce5b5cfE0795114Cdf8E",
+    "OracleMedianizer": "0xE36154467fB6EB91911Fd11287B93D69fAB01792",
+    "ChainLinkOracle": "0x634902128543b25265da350e2d961C7ff540fC71",
     "SimpleOracle": "0x166f56F2EDa9817cAB77118AE4FCAA0002A17eC7"
   },
   "Vaults": [{
