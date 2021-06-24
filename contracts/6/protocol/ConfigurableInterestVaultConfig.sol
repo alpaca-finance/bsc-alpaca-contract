@@ -35,6 +35,7 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     address fairLaunch
   );
   event SetWorkers(address indexed caller, address worker, address workerConfig);
+  event SetMaxKillBps(address indexed caller, uint256 maxKillBps);
 
   /// The minimum debt size per position.
   uint256 public override minDebtSize;
@@ -123,6 +124,13 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
       whitelistedCallers[callers[idx]] = ok;
       emit SetWhitelistedCaller(_msgSender(), callers[idx], ok);
     }
+  }
+
+  /// @dev Set max kill bps. Must only be called by the owner.
+  function setMaxKillBps(uint256 _maxKillBps) external onlyOwner {
+    require(_maxKillBps < 1000, "ConfigurableInterestVaultConfig::setMaxKillBps:: bad _maxKillBps");
+    maxKillBps = _maxKillBps;
+    emit SetMaxKillBps(_msgSender(), maxKillBps);
   }
 
   /// @dev Return the address of wrapped native token

@@ -1,10 +1,23 @@
+// SPDX-License-Identifier: MIT
+/**
+  ∩~~~~∩ 
+  ξ ･×･ ξ 
+  ξ　~　ξ 
+  ξ　　 ξ 
+  ξ　　 “~～~～〇 
+  ξ　　　　　　 ξ 
+  ξ ξ ξ~～~ξ ξ ξ 
+　 ξ_ξξ_ξ　ξ_ξξ_ξ
+Alpaca Fin Corporation
+*/
+
 pragma solidity 0.6.6;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 
-import "./PriceOracle.sol";
+import "./interfaces/IPriceOracle.sol";
 
 contract OracleMedianizer is OwnableUpgradeSafe, PriceOracle {
   using SafeMath for uint256;
@@ -15,6 +28,8 @@ contract OracleMedianizer is OwnableUpgradeSafe, PriceOracle {
   mapping(address => mapping(address => mapping(uint256 => PriceOracle))) public primarySources;
   // Mapping from token0, token1 to max price deviation (multiplied by 1e18)
   mapping(address => mapping(address => uint256)) public maxPriceDeviations;
+  // Mapping from token0, token1 to max price stale (seconds)
+  mapping(address => mapping(address => uint256)) public maxPriceStales;
   // min price deviation
   uint256 public constant MIN_PRICE_DEVIATION = 1e18;
   // max price deviation
@@ -24,6 +39,7 @@ contract OracleMedianizer is OwnableUpgradeSafe, PriceOracle {
     address indexed token0,
     address indexed token1,
     uint256 maxPriceDeviation,
+    uint256 maxPriceStale,
     PriceOracle[] oracles
   );
 
@@ -35,35 +51,46 @@ contract OracleMedianizer is OwnableUpgradeSafe, PriceOracle {
   /// @param token0 Token0 address to set oracle sources
   /// @param token1 Token1 address to set oracle sources
   /// @param maxPriceDeviation Max price deviation (in 1e18) for token pair
+  /// @param maxPriceStale Max price stale (in seconds) for token pair
   /// @param sources Oracle sources for the token pair
   function setPrimarySources(
     address token0,
     address token1,
     uint256 maxPriceDeviation,
+    uint256 maxPriceStale,
     PriceOracle[] calldata sources
   ) external onlyOwner {
-    _setPrimarySources(token0, token1, maxPriceDeviation, sources);
+    _setPrimarySources(token0, token1, maxPriceDeviation, maxPriceStale, sources);
   }
 
   /// @dev Set oracle primary sources for multiple token pairs
   /// @param token0s List of token0 addresses to set oracle sources
   /// @param token1s List of token1 addresses to set oracle sources
   /// @param maxPriceDeviationList List of max price deviations (in 1e18) for token pairs
+  /// @param maxPriceStaleList List of Max price stale (in seconds) for token pair
   /// @param allSources List of oracle sources for token pairs
   function setMultiPrimarySources(
     address[] calldata token0s,
     address[] calldata token1s,
     uint256[] calldata maxPriceDeviationList,
+    uint256[] calldata maxPriceStaleList,
     PriceOracle[][] calldata allSources
   ) external onlyOwner {
     require(
       token0s.length == token1s.length &&
         token0s.length == allSources.length &&
-        token0s.length == maxPriceDeviationList.length,
+        token0s.length == maxPriceDeviationList.length &&
+        token0s.length == maxPriceStaleList.length,
       "OracleMedianizer::setMultiPrimarySources:: inconsistent length"
     );
     for (uint256 idx = 0; idx < token0s.length; idx++) {
-      _setPrimarySources(token0s[idx], token1s[idx], maxPriceDeviationList[idx], allSources[idx]);
+      _setPrimarySources(
+        token0s[idx],
+        token1s[idx],
+        maxPriceDeviationList[idx],
+        maxPriceStaleList[idx],
+        allSources[idx]
+      );
     }
   }
 
@@ -71,11 +98,13 @@ contract OracleMedianizer is OwnableUpgradeSafe, PriceOracle {
   /// @param token0 Token0 to set oracle sources
   /// @param token1 Token1 to set oracle sources
   /// @param maxPriceDeviation Max price deviation (in 1e18) for token pair
+  /// @param maxPriceStale Max price stale (in seconds) for token pair
   /// @param sources Oracle sources for the token pair
   function _setPrimarySources(
     address token0,
     address token1,
     uint256 maxPriceDeviation,
+    uint256 maxPriceStale,
     PriceOracle[] memory sources
   ) internal {
     require(
@@ -87,11 +116,13 @@ contract OracleMedianizer is OwnableUpgradeSafe, PriceOracle {
     primarySourceCount[token1][token0] = sources.length;
     maxPriceDeviations[token0][token1] = maxPriceDeviation;
     maxPriceDeviations[token1][token0] = maxPriceDeviation;
+    maxPriceStales[token0][token1] = maxPriceStale;
+    maxPriceStales[token1][token0] = maxPriceStale;
     for (uint256 idx = 0; idx < sources.length; idx++) {
       primarySources[token0][token1][idx] = sources[idx];
       primarySources[token1][token0][idx] = sources[idx];
     }
-    emit SetPrimarySources(token0, token1, maxPriceDeviation, sources);
+    emit SetPrimarySources(token0, token1, maxPriceDeviation, maxPriceStale, sources);
   }
 
   /// @dev Return token0/token1 price
@@ -106,7 +137,9 @@ contract OracleMedianizer is OwnableUpgradeSafe, PriceOracle {
     uint256 validSourceCount = 0;
     for (uint256 idx = 0; idx < candidateSourceCount; idx++) {
       try primarySources[token0][token1][idx].getPrice(token0, token1) returns (uint256 price, uint256 lastUpdate) {
-        prices[validSourceCount++] = price;
+        if (lastUpdate >= now - maxPriceStales[token0][token1]) {
+          prices[validSourceCount++] = price;
+        }
       } catch {}
     }
     require(validSourceCount > 0, "OracleMedianizer::getPrice:: no valid source");

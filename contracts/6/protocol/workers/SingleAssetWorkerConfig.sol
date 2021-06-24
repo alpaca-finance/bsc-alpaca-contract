@@ -23,7 +23,7 @@ import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.so
 import "../interfaces/IWorker02.sol";
 import "../apis/pancake/IPancakeRouter02.sol";
 import "../interfaces/IWorkerConfig.sol";
-import "../PriceOracle.sol";
+import "../interfaces/IPriceOracle.sol";
 import "../../utils/SafeToken.sol";
 
 contract SingleAssetWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
@@ -33,7 +33,14 @@ contract SingleAssetWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
 
   /// @notice Events
   event SetOracle(address indexed caller, address oracle);
-  event SetConfig(address indexed caller, address indexed worker, bool acceptDebt, uint64 workFactor, uint64 killFactor, uint64 maxPriceDiff);
+  event SetConfig(
+    address indexed caller,
+    address indexed worker,
+    bool acceptDebt,
+    uint64 workFactor,
+    uint64 killFactor,
+    uint64 maxPriceDiff
+  );
   event SetGovernor(address indexed caller, address indexed governor);
 
   /// @notice state variables
@@ -47,7 +54,7 @@ contract SingleAssetWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
   PriceOracle public oracle;
   IPancakeFactory public factory;
   address public wNative;
-  mapping (address => Config) public workers;
+  mapping(address => Config) public workers;
   address public governor;
 
   function initialize(PriceOracle _oracle, IPancakeRouter02 _router) external initializer {
@@ -80,7 +87,14 @@ contract SingleAssetWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
         killFactor: configs[idx].killFactor,
         maxPriceDiff: configs[idx].maxPriceDiff
       });
-      emit SetConfig(_msgSender(), addrs[idx], workers[addrs[idx]].acceptDebt, workers[addrs[idx]].workFactor, workers[addrs[idx]].killFactor, workers[addrs[idx]].maxPriceDiff);
+      emit SetConfig(
+        _msgSender(),
+        addrs[idx],
+        workers[addrs[idx]].acceptDebt,
+        workers[addrs[idx]].workFactor,
+        workers[addrs[idx]].killFactor,
+        workers[addrs[idx]].maxPriceDiff
+      );
     }
   }
 
@@ -91,41 +105,47 @@ contract SingleAssetWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
     // @notice loop over the path for validating the price of each pair
     IPancakePair currentLP;
     uint256 maxPriceDiff = workers[_worker].maxPriceDiff;
-    for(uint256 i = 1; i < path.length; i++) {
-        // 1. Get the position's LP balance and LP total supply.
-        currentLP = IPancakePair(factory.getPair(path[i-1], path[i]));
-        address token0 = currentLP.token0();
-        address token1 = currentLP.token1();
-        // 2. Check that reserves and balances are consistent (within 1%)
-        (uint256 r0, uint256 r1,) = currentLP.getReserves();
-        uint256 t0bal = token0.balanceOf(address(currentLP));
-        uint256 t1bal = token1.balanceOf(address(currentLP));
-        require(t0bal.mul(100) <= r0.mul(101), "SingleAssetWorkerConfig::isStable:: bad t0 balance");
-        require(t1bal.mul(100) <= r1.mul(101), "SingleAssetWorkerConfig::isStable:: bad t1 balance");
-        // 3. Check that price is in the acceptable range
-        (uint256 price, uint256 lastUpdate) = oracle.getPrice(token0, token1);
-        require(lastUpdate >= now - 1 days, "SingleAssetWorkerConfig::isStable:: price too stale");
-        uint256 spotPrice = r1.mul(1e18).div(r0);
-        require(spotPrice.mul(10000) <= price.mul(maxPriceDiff), "SingleAssetWorkerConfig::isStable:: price too high");
-        require(spotPrice.mul(maxPriceDiff) >= price.mul(10000), "SingleAssetWorkerConfig::isStable:: price too low");
+    for (uint256 i = 1; i < path.length; i++) {
+      // 1. Get the position's LP balance and LP total supply.
+      currentLP = IPancakePair(factory.getPair(path[i - 1], path[i]));
+      address token0 = currentLP.token0();
+      address token1 = currentLP.token1();
+      // 2. Check that reserves and balances are consistent (within 1%)
+      (uint256 r0, uint256 r1, ) = currentLP.getReserves();
+      uint256 t0bal = token0.balanceOf(address(currentLP));
+      uint256 t1bal = token1.balanceOf(address(currentLP));
+      require(t0bal.mul(100) <= r0.mul(101), "SingleAssetWorkerConfig::isStable:: bad t0 balance");
+      require(t1bal.mul(100) <= r1.mul(101), "SingleAssetWorkerConfig::isStable:: bad t1 balance");
+      // 3. Check that price is in the acceptable range
+      (uint256 price, uint256 lastUpdate) = oracle.getPrice(token0, token1);
+      require(lastUpdate >= now - 1 days, "SingleAssetWorkerConfig::isStable:: price too stale");
+      uint256 spotPrice = r1.mul(1e18).div(r0);
+      require(spotPrice.mul(10000) <= price.mul(maxPriceDiff), "SingleAssetWorkerConfig::isStable:: price too high");
+      require(spotPrice.mul(maxPriceDiff) >= price.mul(10000), "SingleAssetWorkerConfig::isStable:: price too low");
     }
     return true;
   }
 
   /// @dev Return whether the given worker accepts more debt.
-  function acceptDebt(address worker) external override view returns (bool) {
+  function acceptDebt(address worker) external view override returns (bool) {
     require(isStable(worker), "SingleAssetWorkerConfig::acceptDebt:: !stable");
     return workers[worker].acceptDebt;
   }
 
   /// @dev Return the work factor for the worker + BaseToken debt, using 1e4 as denom.
-  function workFactor(address worker, uint256 /* debt */) external override view returns (uint256) {
+  function workFactor(
+    address worker,
+    uint256 /* debt */
+  ) external view override returns (uint256) {
     require(isStable(worker), "SingleAssetWorkerConfig::workFactor:: !stable");
     return uint256(workers[worker].workFactor);
   }
 
   /// @dev Return the kill factor for the worker + BaseToken debt, using 1e4 as denom.
-  function killFactor(address worker, uint256 /* debt */) external override view returns (uint256) {
+  function killFactor(
+    address worker,
+    uint256 /* debt */
+  ) external view override returns (uint256) {
     require(isStable(worker), "SingleAssetWorkerConfig::killFactor:: !stable");
     return uint256(workers[worker].killFactor);
   }
@@ -139,9 +159,16 @@ contract SingleAssetWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
   /// @dev EMERGENCY ONLY. Disable accept new position without going through Timelock in case of emergency.
   function emergencySetAcceptDebt(address[] calldata addrs, bool isAcceptDebt) external onlyGovernor {
     uint256 len = addrs.length;
-    for(uint idx = 0; idx < len; idx++) {
+    for (uint256 idx = 0; idx < len; idx++) {
       workers[addrs[idx]].acceptDebt = isAcceptDebt;
-      emit SetConfig(_msgSender(), addrs[idx], workers[addrs[idx]].acceptDebt, workers[addrs[idx]].workFactor, workers[addrs[idx]].killFactor, workers[addrs[idx]].maxPriceDiff);
+      emit SetConfig(
+        _msgSender(),
+        addrs[idx],
+        workers[addrs[idx]].acceptDebt,
+        workers[addrs[idx]].workFactor,
+        workers[addrs[idx]].killFactor,
+        workers[addrs[idx]].maxPriceDiff
+      );
     }
   }
 }
