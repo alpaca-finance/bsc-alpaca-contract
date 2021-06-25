@@ -223,6 +223,23 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate', () =
           )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate::execute:: insufficient baseToken amount received');
         });
       })
+
+    context('When insufficient farmingToken received from worker', async () =>{
+        it('should revert as insufficient farmingToken received from worker', async () => {
+          await farmingTokenAsAlice.transfer(mockPancakeswapV2WorkerBNBFtokenPair.address, ethers.utils.parseEther('0.1'));
+          const farmingTokenToLiquidate = ethers.utils.parseEther('0.2')
+          await expect(mockPancakeswapV2WorkerBNBFtokenPairAsAlice.work(
+            0, await alice.getAddress(), '0',
+            ethers.utils.defaultAbiCoder.encode(
+              ['address', 'bytes'],
+              [strat.address, ethers.utils.defaultAbiCoder.encode(
+                ['uint256','uint256'],
+                ['0', farmingTokenToLiquidate]
+              )],
+            )
+          )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate::execute:: insufficient farmingToken received from worker');
+        })
+      })
     
     context("When caller worker hasn't been whitelisted", async () => {
       it('should revert as bad worker', async () => {
@@ -306,6 +323,23 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate', () =
           )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate::execute:: insufficient baseToken amount received');
         });
     })
+
+    context('When insufficient farmingToken received from worker', async () =>{
+      it('should revert as insufficient farmingToken received from worker', async () => {
+        await farmingTokenAsAlice.transfer(mockPancakeswapV2WorkerBaseFTokenPair.address, ethers.utils.parseEther('0.1'));
+        const farmingTokenToLiquidate = ethers.utils.parseEther('0.2')
+        await expect(mockPancakeswapV2WorkerBaseFTokenPairAsAlice.work(
+          0, await alice.getAddress(), '0',
+          ethers.utils.defaultAbiCoder.encode(
+            ['address', 'bytes'],
+            [strat.address, ethers.utils.defaultAbiCoder.encode(
+              ['uint256','uint256'],
+              ['0', farmingTokenToLiquidate]
+            )],
+          )
+        )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate::execute:: insufficient farmingToken received from worker');
+      })
+    })
     
     context("When caller worker hasn't been whitelisted", async () => {
       it('should revert as bad worker', async () => {
@@ -338,7 +372,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate', () =
         )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate::onlyWhitelistedWorkers:: bad worker');
       });
     })
-  
+
     it('should convert SOME farmingToken to baseToken (WBTC)', async () => {
       await farmingTokenAsAlice.transfer(mockPancakeswapV2WorkerBaseFTokenPair.address, ethers.utils.parseEther('0.1'));
       // amountOut of 0.4 will be

@@ -75,6 +75,10 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate is
     // 2. Approve router to do their stuffs
     farmingToken.safeApprove(address(router), uint256(-1));
     // 3. Convert some farmingTokens back to a baseTokens.
+    require(
+      farmingToken.myBalance() >= farmingTokenToLiquidate,
+      "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate::execute:: insufficient farmingToken received from worker"
+    );
     router.swapExactTokensForTokens(farmingTokenToLiquidate, 0, worker.getReversedPath(), address(this), now);
     // 4. Transfer all baseTokens (as a result of a conversion) back to the calling worker
     require(
