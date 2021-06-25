@@ -82,6 +82,8 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate is
       "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate::execute:: insufficient baseToken amount received"
     );
     baseToken.safeTransfer(msg.sender, baseToken.myBalance());
+    // 4.1 transfer remaining farmingTokens back to worker
+    farmingToken.safeTransfer(msg.sender, farmingToken.myBalance());
     // 5. Reset approval for safety reason
     farmingToken.safeApprove(address(router), 0);
   }
