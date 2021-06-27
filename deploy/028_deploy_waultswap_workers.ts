@@ -59,44 +59,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const shortWorkerInfos: IWorkerInput[] = [{
     VAULT_SYMBOL: "ibUSDT",
-    WORKER_NAME: "ETH-USDT WaultswapWorker",
+    WORKER_NAME: "MATIC-USDT WaultswapWorker",
     REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-    POOL_ID: 44,
+    POOL_ID: 36,
     REINVEST_BOUNTY_BPS: '300',
-    WORK_FACTOR: '7000',
-    KILL_FACTOR: '8333',
+    WORK_FACTOR: '6240',
+    KILL_FACTOR: '8000',
     MAX_PRICE_DIFF: '11000',
-    EXACT_ETA: '1624237200'
-  }, {
-    VAULT_SYMBOL: "ibETH",
-    WORKER_NAME: "USDT-ETH WaultswapWorker",
-    REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-    POOL_ID: 44,
-    REINVEST_BOUNTY_BPS: '300',
-    WORK_FACTOR: '7000',
-    KILL_FACTOR: '8333',
-    MAX_PRICE_DIFF: '11000',
-    EXACT_ETA: '1624237200'
-  }, {
-    VAULT_SYMBOL: "ibBUSD",
-    WORKER_NAME: "BTCB-BUSD WaultswapWorker",
-    REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-    POOL_ID: 8,
-    REINVEST_BOUNTY_BPS: '300',
-    WORK_FACTOR: '7000',
-    KILL_FACTOR: '8333',
-    MAX_PRICE_DIFF: '11000',
-    EXACT_ETA: '1624237200'
-  }, {
-    VAULT_SYMBOL: "ibBTCB",
-    WORKER_NAME: "BUSD-BTCB WaultswapWorker",
-    REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-    POOL_ID: 8,
-    REINVEST_BOUNTY_BPS: '300',
-    WORK_FACTOR: '7000',
-    KILL_FACTOR: '8333',
-    MAX_PRICE_DIFF: '11000',
-    EXACT_ETA: '1624237200'
+    EXACT_ETA: '1624887600'
   }]
 
 

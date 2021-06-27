@@ -402,6 +402,10 @@
         "pId": 8,
         "name": "BTCB-BUSD LP",
         "address": "0x61Ad21f79D1Bf96206Ad28d97B15D98a55944a2a"
+      }, {
+        "pId": 36,
+        "name": "MATIC-USDT LP",
+        "address": "0x4aeA71115DAB37e79C0005a042d6c3985255f3CB"
       }]
     }
   },
@@ -440,7 +444,8 @@
     "WAULTx": "0xb64e638e60d154b43f660a6bf8fd8a3b249a6a21",
     "ODDZ": "0xcd40f2670cf58720b694968698a5514e924f742d",
     "ADA": "0x3ee2200efb3400fabb9aacf31297cbdd1d435d47",
-    "FORM": "0x25A528af62e56512A19ce8c3cAB427807c28CC19"
+    "FORM": "0x25A528af62e56512A19ce8c3cAB427807c28CC19",
+    "MATIC": "0xcc42724c6683b7e57334c4e856f4c9965ed682bd"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x1099C2E6Ed6ebA95099c205b599B409305783E43",
@@ -1329,6 +1334,19 @@
       "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
       "pId": 44,
       "stakingToken": "0xF63509631777DAAeC8a29ecd2B16fD15d668571D",
+      "stakingTokenAt": "0x22fB2663C7ca71Adc2cc99481C77Aaf21E152e2D",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0xeBb8BA21A3703ab30187D3EEC02A3Bc62894970D",
+        "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
+        "StrategyAddTwoSidesOptimal": "0xcE37fD1Ff0A6cb4A6A59cd46CCf55D5Dc70ec585",
+        "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3"
+      }
+    }, {
+      "name": "MATIC-USDT WaultswapWorker",
+      "address": "0x5894AC929E7a63417FA0a473563B2c772Bb62355",
+      "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+      "pId": 36,
+      "stakingToken": "0x4aeA71115DAB37e79C0005a042d6c3985255f3CB",
       "stakingTokenAt": "0x22fB2663C7ca71Adc2cc99481C77Aaf21E152e2D",
       "strategies": {
         "StrategyAddAllBaseToken": "0xeBb8BA21A3703ab30187D3EEC02A3Bc62894970D",
