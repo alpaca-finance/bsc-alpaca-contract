@@ -58,45 +58,45 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
   const shortWorkerInfos: IWorkerInput[] = [{
-    VAULT_SYMBOL: "ibETH",
-    WORKER_NAME: "BETH-ETH WaultswapWorker",
-    REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-    POOL_ID: 42,
-    REINVEST_BOUNTY_BPS: '300',
-    WORK_FACTOR: '7800',
-    KILL_FACTOR: '9000',
-    MAX_PRICE_DIFF: '11000',
-    EXACT_ETA: '1623754800'
-  }, {
-    VAULT_SYMBOL: "ibWBNB",
-    WORKER_NAME: "WAULTx-WBNB WaultswapWorker",
-    REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-    POOL_ID: 4,
-    REINVEST_BOUNTY_BPS: '300',
-    WORK_FACTOR: '5200',
-    KILL_FACTOR: '7000',
-    MAX_PRICE_DIFF: '11000',
-    EXACT_ETA: '1623754800'
-  }, {
     VAULT_SYMBOL: "ibUSDT",
-    WORKER_NAME: "BTCB-USDT WaultswapWorker",
+    WORKER_NAME: "ETH-USDT WaultswapWorker",
     REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-    POOL_ID: 41,
+    POOL_ID: 44,
     REINVEST_BOUNTY_BPS: '300',
     WORK_FACTOR: '7000',
     KILL_FACTOR: '8333',
     MAX_PRICE_DIFF: '11000',
-    EXACT_ETA: '1623754800'
+    EXACT_ETA: '1624237200'
+  }, {
+    VAULT_SYMBOL: "ibETH",
+    WORKER_NAME: "USDT-ETH WaultswapWorker",
+    REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
+    POOL_ID: 44,
+    REINVEST_BOUNTY_BPS: '300',
+    WORK_FACTOR: '7000',
+    KILL_FACTOR: '8333',
+    MAX_PRICE_DIFF: '11000',
+    EXACT_ETA: '1624237200'
+  }, {
+    VAULT_SYMBOL: "ibBUSD",
+    WORKER_NAME: "BTCB-BUSD WaultswapWorker",
+    REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
+    POOL_ID: 8,
+    REINVEST_BOUNTY_BPS: '300',
+    WORK_FACTOR: '7000',
+    KILL_FACTOR: '8333',
+    MAX_PRICE_DIFF: '11000',
+    EXACT_ETA: '1624237200'
   }, {
     VAULT_SYMBOL: "ibBTCB",
-    WORKER_NAME: "USDT-BTCB WaultswapWorker",
+    WORKER_NAME: "BUSD-BTCB WaultswapWorker",
     REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-    POOL_ID: 41,
+    POOL_ID: 8,
     REINVEST_BOUNTY_BPS: '300',
     WORK_FACTOR: '7000',
     KILL_FACTOR: '8333',
     MAX_PRICE_DIFF: '11000',
-    EXACT_ETA: '1623754800'
+    EXACT_ETA: '1624237200'
   }]
 
 
