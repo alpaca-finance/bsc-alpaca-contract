@@ -50,6 +50,11 @@
       "name": "ibALPACA-ODDZ",
       "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
       "rewardToken": "0xcd40f2670cf58720b694968698a5514e924f742d"
+    }, {
+      "id": 8,
+      "name": "ibALPACA-FORM",
+      "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
+      "rewardToken": "0x25A528af62e56512A19ce8c3cAB427807c28CC19"
     }]
   },
   "FairLaunch": {
@@ -335,6 +340,10 @@
         "pId": 253,
         "name": "ADA-WBNB LP",
         "address": "0x28415ff2C35b65B9E5c7de82126b4015ab9d031F"
+      }, {
+        "pId": 417,
+        "name": "FORM-BUSD LP",
+        "address": "0x3E19C18Fe3458A6065D8F0844cB7Eae52C9DAE07"
       }]
     },
     "Waultswap": {
@@ -430,7 +439,8 @@
     "BORING": "0xffEecbf8D7267757c2dc3d13D730E97E15BfdF7F",
     "WAULTx": "0xb64e638e60d154b43f660a6bf8fd8a3b249a6a21",
     "ODDZ": "0xcd40f2670cf58720b694968698a5514e924f742d",
-    "ADA": "0x3ee2200efb3400fabb9aacf31297cbdd1d435d47"
+    "ADA": "0x3ee2200efb3400fabb9aacf31297cbdd1d435d47",
+    "FORM": "0x25A528af62e56512A19ce8c3cAB427807c28CC19"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x1099C2E6Ed6ebA95099c205b599B409305783E43",
@@ -1010,6 +1020,19 @@
         "StrategyLiquidate": "0x6C0105950B1fEE24eE4ADdd1DFF346cceF75D150",
         "StrategyAddTwoSidesOptimal": "0x38912684b1d20Fe9D725e8B39c39458Fac5A4833",
         "StrategyWithdrawMinimizeTrading": "0x94f5E884e11fC054Ca0b332e3a8773750BDBe242"
+      }
+    }, {
+      "name": "FORM-BUSD PancakeswapWorker",
+      "address": "0x56017389d3068CA05aFe3D4E697AFa200f316f0b",
+      "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+      "pId": 417,
+      "stakingToken": "0x3E19C18Fe3458A6065D8F0844cB7Eae52C9DAE07",
+      "stakingTokenAt": "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+        "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+        "StrategyAddTwoSidesOptimal": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
+        "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419"
       }
     }]
   }, {
