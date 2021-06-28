@@ -60,13 +60,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const shortWorkerInfos: IWorkerInput[] = [{
     VAULT_SYMBOL: "ibUSDT",
     WORKER_NAME: "MATIC-USDT WaultswapWorker",
-    REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-    POOL_ID: 36,
+    REINVEST_BOT: "0xcf28b4da7d3ed29986831876b74af6e95211d3f9",
+    POOL_ID: 15,
     REINVEST_BOUNTY_BPS: '300',
     WORK_FACTOR: '6240',
     KILL_FACTOR: '8000',
     MAX_PRICE_DIFF: '11000',
-    EXACT_ETA: '1624887600'
+    EXACT_ETA: '1624854600'
   }]
 
 
