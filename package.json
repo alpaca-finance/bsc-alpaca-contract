@@ -140,6 +140,7 @@
     "test:pan2singleassetaddwithfarm": "hardhat test --no-compile ./test/PancakeswapV2_Restricted_SingleAsset_StrategyAddBaseWithFarm.test.ts",
     "test:pan2singleassetliquidate": "hardhat test --no-compile ./test/PancakeswapV2_Restricted_SingleAsset_StrategyLiquidate.test.ts",
     "test:pan2singleassetminimize": "hardhat test --no-compile ./test/PancakeswapV2_Restricted_SingleAsset_StrategyWithdrawMinimizeTrading.test.ts",
+    "test:pan2singleassetpartialcloseminimize": "hardhat test --no-compile ./test/PancakeswapV2_Restricted_SingleAsset_StrategyPartialCloseWithdrawMinimizeTrading.test.ts",
     "test:workerconf": "hardhat test --no-compile ./test/WorkerConfig.test.ts",
     "test:cakemaxiworker": "hardhat test --no-compile ./test/CakeMaxiWorker.test.ts",
     "test:singleassetworkerconf": "hardhat test --no-compile ./test/SingleAssetWorkerConfig.test.ts",
