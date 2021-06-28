@@ -1,9 +1,11 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
-import { ethers, upgrades } from 'hardhat';
+import { ethers, upgrades, network } from 'hardhat';
 import {
   PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm,
   PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm__factory } from '../typechain';
+import MainnetConfig from '../.mainnet.json'
+import TestnetConfig from '../.testnet.json'
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     /*
@@ -17,34 +19,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
 
   const NEW_PARAMS = [{
-    // BNB Vault
-    VAULT_ADDR: '0xd7D069493685A581d27824Fc46EdA46B7EfC0063',
-    ROUTER: '0x10ED43C718714eb63d5aA57B78B54704E256024E',
-    WHITELIST_WORKERS: []
-  }, {
-    // BUSD Vault
-    VAULT_ADDR: '0x7C9e73d4C71dae564d41F78d56439bB4ba87592f',
-    ROUTER: '0x10ED43C718714eb63d5aA57B78B54704E256024E',
-    WHITELIST_WORKERS: []
-  }, {
-    // ETH Vault
-    VAULT_ADDR: '0xbfF4a34A4644a113E8200D7F1D79b3555f723AfE',
-    ROUTER: '0x10ED43C718714eb63d5aA57B78B54704E256024E',
-    WHITELIST_WORKERS: []
-  }, {
-    // ALPACA Vault
-    VAULT_ADDR: '0xf1bE8ecC990cBcb90e166b71E368299f0116d421',
-    ROUTER: '0x10ED43C718714eb63d5aA57B78B54704E256024E',
-    WHITELIST_WORKERS: []
-  }, {
-    // USDT Vault
-    VAULT_ADDR: '0x158Da805682BdC8ee32d52833aD41E74bb951E59',
-    ROUTER: '0x10ED43C718714eb63d5aA57B78B54704E256024E',
-    WHITELIST_WORKERS: []
-  }, {
-    // BTCB Vault
-    VAULT_ADDR: '0x08FC9Ba2cAc74742177e0afC3dC8Aed6961c24e7',
-    ROUTER: '0x10ED43C718714eb63d5aA57B78B54704E256024E',
+    VAULT_SYMBOL: 'ibTUSD',
     WHITELIST_WORKERS: []
   }]
 
@@ -53,9 +28,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 
 
-
+  const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig
 
   for(let i = 0; i < NEW_PARAMS.length; i++ ) {
+    const targetedVault = config.Vaults.find((v) => v.symbol === NEW_PARAMS[i].VAULT_SYMBOL)
+    if(targetedVault === undefined) {
+      throw `error: not found vault based on ${NEW_PARAMS[i].VAULT_SYMBOL}`
+    }
+    if(targetedVault.address === "") {
+      throw `error: no address`
+    }
+
     console.log(">> Deploying an upgradable RestrictedSingleAssetStrategyAddTwoSidesOptimalV2 contract");
     const PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm = (await ethers.getContractFactory(
       'PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm',
@@ -63,7 +46,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     )) as PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm__factory;
 
     const singleAssetStrategyRestrictedAddBaseWithFarm = await upgrades.deployProxy(
-      PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm,[NEW_PARAMS[i].ROUTER, NEW_PARAMS[i].VAULT_ADDR]
+      PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm,[config.Exchanges.Pancakeswap.RouterV2, targetedVault.address]
     ) as PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm;
     
     await singleAssetStrategyRestrictedAddBaseWithFarm.deployed();
