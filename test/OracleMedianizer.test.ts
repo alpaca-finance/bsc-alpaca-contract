@@ -4,6 +4,10 @@ import { solidity } from 'ethereum-waffle'
 import { BigNumber, Signer } from 'ethers'
 import { ethers, upgrades } from 'hardhat'
 import {
+  ChainLinkPriceOracle,
+  ChainLinkPriceOracle__factory,
+  MockAggregatorV3,
+  MockAggregatorV3__factory,
   MockERC20,
   MockERC20__factory,
   OracleMedianizer,
@@ -11,6 +15,7 @@ import {
   SimplePriceOracle,
   SimplePriceOracle__factory,
 } from '../typechain'
+import * as TimeHelpers from "./helpers/time"
 
 chai.use(solidity)
 const { expect } = chai
@@ -27,6 +32,11 @@ let token3: MockERC20
 
 let simplePriceOracle: SimplePriceOracle
 let simplePriceOracleAsFeeder: SimplePriceOracle
+
+let mockAggregatorV3T0T1: MockAggregatorV3
+let mockAggregatorV3T0T1AsDeployer: MockAggregatorV3
+
+let chainLinkPriceOracle: ChainLinkPriceOracle
 
 let bobPriceOracle: SimplePriceOracle
 let bobPriceOracleAsFeeder: SimplePriceOracle
@@ -62,6 +72,22 @@ describe('OracleMedianizer', () => {
     await simplePriceOracle.deployed()
     simplePriceOracleAsFeeder = SimplePriceOracle__factory.connect(simplePriceOracle.address, feeder)
 
+    const MockAggregatorV3 = (await ethers.getContractFactory(
+      'MockAggregatorV3',
+      deployer,
+    )) as MockAggregatorV3__factory
+    mockAggregatorV3T0T1 = await MockAggregatorV3.deploy(BigNumber.from('900000000000000000'), 18)
+    await mockAggregatorV3T0T1.deployed()
+    mockAggregatorV3T0T1AsDeployer = MockAggregatorV3__factory.connect(mockAggregatorV3T0T1.address, deployer)
+
+
+    const ChainLinkPriceOracle = (await ethers.getContractFactory(
+      'ChainLinkPriceOracle',
+      deployer,
+    )) as ChainLinkPriceOracle__factory
+    chainLinkPriceOracle = (await upgrades.deployProxy(ChainLinkPriceOracle)) as ChainLinkPriceOracle
+    chainLinkPriceOracle.deployed()
+
     const BobPriceOracle = (await ethers.getContractFactory(
       'SimplePriceOracle',
       deployer,
@@ -89,7 +115,7 @@ describe('OracleMedianizer', () => {
     context('when the caller is not the owner', async () => {
       it('should be reverted', async () => {
         await expect(
-            oracleMedianizerAsAlice.setPrimarySources(token0.address, token1.address, BigNumber.from('1000000000000000000'), [
+            oracleMedianizerAsAlice.setPrimarySources(token0.address, token1.address, BigNumber.from('1000000000000000000'), 60, [
             simplePriceOracle.address,
           ]),
         ).to.revertedWith('Ownable: caller is not the owner')
@@ -99,7 +125,7 @@ describe('OracleMedianizer', () => {
       context('when bad max deviation value', async () => {
         it('should be reverted', async () => {
           await expect(
-            oracleMedianizerAsDeployer.setPrimarySources(token0.address, token1.address, BigNumber.from('0'), [
+            oracleMedianizerAsDeployer.setPrimarySources(token0.address, token1.address, BigNumber.from('0'), 60, [
               simplePriceOracle.address,
             ]),
           ).to.revertedWith('OracleMedianizer::setPrimarySources:: bad max deviation value')
@@ -110,6 +136,7 @@ describe('OracleMedianizer', () => {
               token0.address,
               token1.address,
               BigNumber.from('2000000000000000000'),
+              60,
               [simplePriceOracle.address],
             ),
           ).to.revertedWith('OracleMedianizer::setPrimarySources:: bad max deviation value')
@@ -122,6 +149,7 @@ describe('OracleMedianizer', () => {
               token0.address,
               token1.address,
               BigNumber.from('1000000000000000000'),
+              60,
               [
                 simplePriceOracle.address,
                 simplePriceOracle.address,
@@ -132,12 +160,13 @@ describe('OracleMedianizer', () => {
           ).to.revertedWith('OracleMedianizer::setPrimarySources:: sources length exceed 3')
         })
       })
-      context('when successfully', async () => {
+      context('when set SimplePriceOracle source', async () => {
         it('should successfully', async () => {
           await expect(oracleMedianizerAsDeployer.setPrimarySources(
             token0.address,
             token1.address,
             BigNumber.from('1000000000000000000'),
+            60,
             [simplePriceOracle.address],
           )).to.emit(oracleMedianizerAsDeployer, 'SetPrimarySources')
           
@@ -145,19 +174,56 @@ describe('OracleMedianizer', () => {
           const sourceT0T1 = await oracleMedianizerAsDeployer.primarySources(token0.address, token1.address, 0)
           const sourceCountT0T1 = await oracleMedianizerAsDeployer.primarySourceCount(token0.address, token1.address)
           const maxPriceDeviationT0T1 = await oracleMedianizerAsDeployer.maxPriceDeviations(token0.address, token1.address)
+          const maxPriceStaleT0T1 = await oracleMedianizerAsDeployer.maxPriceStales(token0.address, token1.address)
 
           expect(sourceT0T1).to.eq(simplePriceOracle.address)
           expect(sourceCountT0T1).to.eq(BigNumber.from(1))
           expect(maxPriceDeviationT0T1).to.eq(BigNumber.from('1000000000000000000'))
+          expect(maxPriceStaleT0T1).to.eq(60)
 
           // T1T0 pair
           const sourceT1T0 = await oracleMedianizerAsDeployer.primarySources(token1.address, token0.address, 0)
           const sourceCountT1T0 = await oracleMedianizerAsDeployer.primarySourceCount(token1.address, token0.address)
           const maxPriceDeviationT1T0 = await oracleMedianizerAsDeployer.maxPriceDeviations(token1.address, token0.address)
+          const maxPriceStaleT1T0 = await oracleMedianizerAsDeployer.maxPriceStales(token1.address, token0.address)
           
           expect(sourceT1T0).to.eq(simplePriceOracle.address)
           expect(sourceCountT1T0).to.eq(BigNumber.from(1))
           expect(maxPriceDeviationT1T0).to.eq(BigNumber.from('1000000000000000000'))
+          expect(maxPriceStaleT1T0).to.eq(60)
+        })
+      })
+      context('when set ChainLinkPriceOracle source', async () => {
+        it('should successfully', async () => {
+          await expect(oracleMedianizerAsDeployer.setPrimarySources(
+            token0.address,
+            token1.address,
+            BigNumber.from('1000000000000000000'),
+            60,
+            [chainLinkPriceOracle.address],
+          )).to.emit(oracleMedianizerAsDeployer, 'SetPrimarySources')
+          
+          // T0T1 pair
+          const sourceT0T1 = await oracleMedianizerAsDeployer.primarySources(token0.address, token1.address, 0)
+          const sourceCountT0T1 = await oracleMedianizerAsDeployer.primarySourceCount(token0.address, token1.address)
+          const maxPriceDeviationT0T1 = await oracleMedianizerAsDeployer.maxPriceDeviations(token0.address, token1.address)
+          const maxPriceStaleT0T1 = await oracleMedianizerAsDeployer.maxPriceStales(token0.address, token1.address)
+
+          expect(sourceT0T1).to.eq(chainLinkPriceOracle.address)
+          expect(sourceCountT0T1).to.eq(BigNumber.from(1))
+          expect(maxPriceDeviationT0T1).to.eq(BigNumber.from('1000000000000000000'))
+          expect(maxPriceStaleT0T1).to.eq(60)
+
+          // T1T0 pair
+          const sourceT1T0 = await oracleMedianizerAsDeployer.primarySources(token1.address, token0.address, 0)
+          const sourceCountT1T0 = await oracleMedianizerAsDeployer.primarySourceCount(token1.address, token0.address)
+          const maxPriceDeviationT1T0 = await oracleMedianizerAsDeployer.maxPriceDeviations(token1.address, token0.address)
+          const maxPriceStaleT1T0 = await oracleMedianizerAsDeployer.maxPriceStales(token1.address, token0.address)
+          
+          expect(sourceT1T0).to.eq(chainLinkPriceOracle.address)
+          expect(sourceCountT1T0).to.eq(BigNumber.from(1))
+          expect(maxPriceDeviationT1T0).to.eq(BigNumber.from('1000000000000000000'))
+          expect(maxPriceStaleT1T0).to.eq(60)
         })
       })
     })
@@ -171,6 +237,7 @@ describe('OracleMedianizer', () => {
             [token0.address, token2.address],
             [token1.address],
             [BigNumber.from('1000000000000000000')],
+            [60],
             [[simplePriceOracle.address]],
           ),
         ).to.revertedWith('OracleMedianizer::setMultiPrimarySources:: inconsistent length')
@@ -181,6 +248,7 @@ describe('OracleMedianizer', () => {
             [token0.address, token2.address],
             [token1.address, token3.address],
             [BigNumber.from('1000000000000000000')],
+            [60],
             [[simplePriceOracle.address]],
           ),
         ).to.revertedWith('OracleMedianizer::setMultiPrimarySources:: inconsistent length')
@@ -191,6 +259,18 @@ describe('OracleMedianizer', () => {
             [token0.address, token2.address],
             [token1.address, token3.address],
             [BigNumber.from('1000000000000000000'), BigNumber.from('900000000000000000')],
+            [60],
+            [[simplePriceOracle.address]],
+          ),
+        ).to.revertedWith('OracleMedianizer::setMultiPrimarySources:: inconsistent length')
+      })
+      it('should be reverted', async () => {
+        await expect(
+            oracleMedianizerAsDeployer.setMultiPrimarySources(
+            [token0.address, token2.address],
+            [token1.address, token3.address],
+            [BigNumber.from('1000000000000000000'), BigNumber.from('900000000000000000')],
+            [60, 60],
             [[simplePriceOracle.address]],
           ),
         ).to.revertedWith('OracleMedianizer::setMultiPrimarySources:: inconsistent length')
@@ -202,53 +282,68 @@ describe('OracleMedianizer', () => {
           [token0.address, token2.address],
           [token1.address, token3.address],
           [BigNumber.from('1000000000000000000'), BigNumber.from('1100000000000000000')],
-          [[simplePriceOracle.address], [simplePriceOracle.address, bobPriceOracle.address]],
+          [60, 900],
+          [[simplePriceOracle.address], [simplePriceOracle.address, bobPriceOracle.address, chainLinkPriceOracle.address]],
         )).to.emit(oracleMedianizerAsDeployer, 'SetPrimarySources')
         // T0T1 pair
         const sourceT0T1 = await oracleMedianizerAsDeployer.primarySources(token0.address, token1.address, 0)
         const sourceCountT0T1 = await oracleMedianizerAsDeployer.primarySourceCount(token0.address, token1.address)
         const maxPriceDeviationT0T1 = await oracleMedianizerAsDeployer.maxPriceDeviations(token0.address, token1.address)
+        const maxPriceStaleT0T1 = await oracleMedianizerAsDeployer.maxPriceStales(token0.address, token1.address)
 
         expect(sourceT0T1).to.eq(simplePriceOracle.address)
         expect(sourceCountT0T1).to.eq(BigNumber.from(1))
         expect(maxPriceDeviationT0T1).to.eq(BigNumber.from('1000000000000000000'))
+        expect(maxPriceStaleT0T1).to.eq(60)
 
         // T1T0 pair
         const sourceT1T0 = await oracleMedianizerAsDeployer.primarySources(token1.address, token0.address, 0)
         const sourceCountT1T0 = await oracleMedianizerAsDeployer.primarySourceCount(token1.address, token0.address)
         const maxPriceDeviationT1T0 = await oracleMedianizerAsDeployer.maxPriceDeviations(token1.address, token0.address)
+        const maxPriceStaleT1T0 = await oracleMedianizerAsDeployer.maxPriceStales(token1.address, token0.address)
 
         expect(sourceT1T0).to.eq(simplePriceOracle.address)
         expect(sourceCountT1T0).to.eq(BigNumber.from(1))
         expect(maxPriceDeviationT1T0).to.eq(BigNumber.from('1000000000000000000'))
+        expect(maxPriceStaleT1T0).to.eq(60)
 
         // T2T3 pair
         // source 0
         const sourceT2T3 = await oracleMedianizerAsDeployer.primarySources(token2.address, token3.address, 0)
         // source 1
         const source1T2T3 = await oracleMedianizerAsDeployer.primarySources(token2.address, token3.address, 1)
+        // source 2
+        const source2T2T3 = await oracleMedianizerAsDeployer.primarySources(token2.address, token3.address, 2)
 
         const sourceCountT2T3 = await oracleMedianizerAsDeployer.primarySourceCount(token2.address, token3.address)
         const maxPriceDeviationT2T3 = await oracleMedianizerAsDeployer.maxPriceDeviations(token2.address, token3.address)
+        const maxPriceStaleT2T3 = await oracleMedianizerAsDeployer.maxPriceStales(token2.address, token3.address)
         
         expect(sourceT2T3).to.eq(simplePriceOracle.address)
         expect(source1T2T3).to.eq(bobPriceOracle.address)
-        expect(sourceCountT2T3).to.eq(BigNumber.from(2))
+        expect(source2T2T3).to.eq(chainLinkPriceOracle.address)
+        expect(sourceCountT2T3).to.eq(BigNumber.from(3))
         expect(maxPriceDeviationT2T3).to.eq(BigNumber.from('1100000000000000000'))
+        expect(maxPriceStaleT2T3).to.eq(900)
 
         // T3T2 pair
         // source 0
         const sourceT3T2 = await oracleMedianizerAsDeployer.primarySources(token3.address, token2.address, 0)
         // source 1
         const source1T3T2 = await oracleMedianizerAsDeployer.primarySources(token3.address, token2.address, 1)
+        // source 2
+        const source2T3T2 = await oracleMedianizerAsDeployer.primarySources(token3.address, token2.address, 2)
 
         const sourceCountT3T2 = await oracleMedianizerAsDeployer.primarySourceCount(token3.address, token2.address)
         const maxPriceDeviationT3T2 = await oracleMedianizerAsDeployer.maxPriceDeviations(token3.address, token2.address)
+        const maxPriceStaleT3T2 = await oracleMedianizerAsDeployer.maxPriceStales(token3.address, token2.address)
         
         expect(sourceT3T2).to.eq(simplePriceOracle.address)
         expect(source1T3T2).to.eq(bobPriceOracle.address)
-        expect(sourceCountT3T2).to.eq(BigNumber.from(2))
+        expect(source2T3T2).to.eq(chainLinkPriceOracle.address)
+        expect(sourceCountT3T2).to.eq(BigNumber.from(3))
         expect(maxPriceDeviationT3T2).to.eq(BigNumber.from('1100000000000000000'))
+        expect(maxPriceStaleT3T2).to.eq(900)
       })
     })
   })
@@ -260,111 +355,257 @@ describe('OracleMedianizer', () => {
       })
     })
     context('when no valid source', async () => {
-      it('should be reverted', async () => {
-        await oracleMedianizerAsDeployer.setPrimarySources(
-          token0.address,
-          token1.address,
-          BigNumber.from('1000000000000000000'),
-          [simplePriceOracle.address],
-        )
+      context('when has SimplePriceOracle source', async () => {
+        it('should be reverted', async () => {
+          await oracleMedianizerAsDeployer.setPrimarySources(
+            token0.address,
+            token1.address,
+            BigNumber.from('1000000000000000000'),
+            60,
+            [simplePriceOracle.address],
+          )
 
-        await expect(oracleMedianizerAsAlice.getPrice(token0.address, token1.address)).to.revertedWith('OracleMedianizer::getPrice:: no valid source')
+          await expect(oracleMedianizerAsAlice.getPrice(token0.address, token1.address)).to.revertedWith('OracleMedianizer::getPrice:: no valid source')
+        })
+      })
+      context('when has ChainLinkOracle source', async () => {
+        it('should be reverted', async () => {
+          await oracleMedianizerAsDeployer.setPrimarySources(
+            token0.address,
+            token1.address,
+            BigNumber.from('1000000000000000000'),
+            60,
+            [chainLinkPriceOracle.address],
+          )
+
+          await expect(oracleMedianizerAsAlice.getPrice(token0.address, token1.address)).to.revertedWith('OracleMedianizer::getPrice:: no valid source')
+        })
       })
     })
-    context('when has 1 valid sources', async () => {
-      it('should successfully', async () => {
-        await simplePriceOracleAsFeeder.setPrices(
-          [token0.address, token1.address],
-          [token1.address, token0.address],
-          [BigNumber.from('1000000000000000000'), BigNumber.from('1000000000000000000').div(10)],
-        )
-        await oracleMedianizerAsDeployer.setPrimarySources(
-          token0.address,
-          token1.address,
-          BigNumber.from('1000000000000000000'),
-          [simplePriceOracle.address],
-        )
-
-        const [price, lastTime] = await oracleMedianizerAsAlice.getPrice(token0.address, token1.address)
-        // result should be Med(price0) => price0 = 1000000000000000000
-        expect(price).to.eq(BigNumber.from('1000000000000000000'))
-      })
-    })
-    context('when has 2 valid sources', async () => {
-      context('when too much deviation (2 valid sources)', async () => {
+    context('when has 1 sources', async () => {
+      context('when has 1 source price too stale', async () => {
         it('should be reverted', async () => {
           await simplePriceOracleAsFeeder.setPrices(
             [token0.address, token1.address],
             [token1.address, token0.address],
             [BigNumber.from('1000000000000000000'), BigNumber.from('1000000000000000000').div(10)],
           )
-          await bobPriceOracleAsFeeder.setPrices(
-            [token0.address, token1.address],
-            [token1.address, token0.address],
-            [BigNumber.from('900000000000000000'), BigNumber.from('1000000000000000000').div(9)],
-          )
-
           await oracleMedianizerAsDeployer.setPrimarySources(
             token0.address,
             token1.address,
-            BigNumber.from('1100000000000000000'),
-            [simplePriceOracle.address, bobPriceOracle.address],
+            BigNumber.from('1000000000000000000'),
+            900,
+            [simplePriceOracle.address],
           )
-
-          await expect(oracleMedianizerAsAlice.getPrice(token0.address, token1.address)).to.revertedWith("OracleMedianizer::getPrice:: too much deviation 2 valid sources")
+  
+          await TimeHelpers.increase(BigNumber.from('3600')) // 1 hour have passed
+          await expect(oracleMedianizerAsAlice.getPrice(token0.address, token1.address)).to.revertedWith('OracleMedianizer::getPrice:: no valid source')
+        })
+      })
+    })
+    context('when has 1 valid sources', async () => {
+      context('when has SimplePriceOracle source', async () => {
+        context('when successfully', async () => {
+          it('should successfully', async () => {
+            await simplePriceOracleAsFeeder.setPrices(
+              [token0.address, token1.address],
+              [token1.address, token0.address],
+              [BigNumber.from('1000000000000000000'), BigNumber.from('1000000000000000000').div(10)],
+            )
+            await oracleMedianizerAsDeployer.setPrimarySources(
+              token0.address,
+              token1.address,
+              BigNumber.from('1000000000000000000'),
+              900,
+              [simplePriceOracle.address],
+            )
+    
+            await TimeHelpers.increase(BigNumber.from('60')) // 1 minutes have passed
+            const [price, lastTime] = await oracleMedianizerAsAlice.getPrice(token0.address, token1.address)
+            // result should be Med(price0) => price0 = 1000000000000000000
+            expect(price).to.eq(BigNumber.from('1000000000000000000'))
+          })
+        })
+      })
+      context('when has ChainLinkPriceOracle source', async () => {
+        context('when successfully', async () => {
+           it('should successfully', async () => {
+            await chainLinkPriceOracle.setPriceFeeds([token0.address], [token1.address], [mockAggregatorV3T0T1.address])
+            await oracleMedianizerAsDeployer.setPrimarySources(
+              token0.address,
+              token1.address,
+              BigNumber.from('1000000000000000000'),
+              900,
+              [chainLinkPriceOracle.address],
+            )
+    
+            await TimeHelpers.increase(BigNumber.from('60')) // 1 minutes have passed
+            const [price, lastTime] = await oracleMedianizerAsAlice.getPrice(token0.address, token1.address)
+            // result should be Med(price0) => price0 = 900000000000000000
+            expect(price).to.eq(BigNumber.from('900000000000000000'))
+          })
+        })
+      })
+    })
+    context('when has 2 valid sources', async () => {
+      context('when too much deviation (2 valid sources)', async () => {
+        context('when has only SimplePriceOracle source', async () => {
+          it('should be reverted', async () => {
+            await simplePriceOracleAsFeeder.setPrices(
+              [token0.address, token1.address],
+              [token1.address, token0.address],
+              [BigNumber.from('1000000000000000000'), BigNumber.from('1000000000000000000').div(10)],
+            )
+            await bobPriceOracleAsFeeder.setPrices(
+              [token0.address, token1.address],
+              [token1.address, token0.address],
+              [BigNumber.from('900000000000000000'), BigNumber.from('1000000000000000000').div(9)],
+            )
+  
+            await oracleMedianizerAsDeployer.setPrimarySources(
+              token0.address,
+              token1.address,
+              BigNumber.from('1100000000000000000'),
+              900,
+              [simplePriceOracle.address, bobPriceOracle.address],
+            )
+            await TimeHelpers.increase(BigNumber.from('60')) // 1 minutes have passed
+  
+            await expect(oracleMedianizerAsAlice.getPrice(token0.address, token1.address)).to.revertedWith("OracleMedianizer::getPrice:: too much deviation 2 valid sources")
+          })
+        })
+        context('when has SimplePriceOracle and ChainLinkPriceOracle source', async () => {
+          it('should be reverted', async () => {
+            await simplePriceOracleAsFeeder.setPrices(
+              [token0.address, token1.address],
+              [token1.address, token0.address],
+              [BigNumber.from('1000000000000000000'), BigNumber.from('1000000000000000000').div(10)],
+            )
+            await chainLinkPriceOracle.setPriceFeeds([token0.address], [token1.address], [mockAggregatorV3T0T1.address])
+  
+            await oracleMedianizerAsDeployer.setPrimarySources(
+              token0.address,
+              token1.address,
+              BigNumber.from('1100000000000000000'),
+              900,
+              [simplePriceOracle.address, chainLinkPriceOracle.address],
+            )
+            await TimeHelpers.increase(BigNumber.from('60')) // 1 minutes have passed
+  
+            await expect(oracleMedianizerAsAlice.getPrice(token0.address, token1.address)).to.revertedWith("OracleMedianizer::getPrice:: too much deviation 2 valid sources")
+          })
         })
       })
       context('when successfully', async () => {
-        it('should successfully', async () => {
-          await simplePriceOracleAsFeeder.setPrices(
-            [token0.address, token1.address],
-            [token1.address, token0.address],
-            [BigNumber.from('1000000000000000000'), BigNumber.from('1000000000000000000').div(10)],
-          )
-          await bobPriceOracleAsFeeder.setPrices(
-            [token0.address, token1.address],
-            [token1.address, token0.address],
-            [BigNumber.from('900000000000000000'), BigNumber.from('1000000000000000000').div(9)],
-          )
+        context('when has only SimplePriceOracle source', async () => {
+          it('should successfully', async () => {
+            await simplePriceOracleAsFeeder.setPrices(
+              [token0.address, token1.address],
+              [token1.address, token0.address],
+              [BigNumber.from('1000000000000000000'), BigNumber.from('1000000000000000000').div(10)],
+            )
+            await bobPriceOracleAsFeeder.setPrices(
+              [token0.address, token1.address],
+              [token1.address, token0.address],
+              [BigNumber.from('900000000000000000'), BigNumber.from('1000000000000000000').div(9)],
+            )
 
-          await oracleMedianizerAsDeployer.setPrimarySources(
-            token0.address,
-            token1.address,
-            BigNumber.from('1200000000000000000'),
-            [simplePriceOracle.address, bobPriceOracle.address],
-          )
-          const [price, lastTime] = await oracleMedianizerAsAlice.getPrice(token0.address, token1.address)
-          // result should be Med(price0, price1) => (price0 + price1) / 2 = (1000000000000000000 + 900000000000000000) / 2 = 950000000000000000
-          expect(price).to.eq(BigNumber.from('950000000000000000'))
+            await oracleMedianizerAsDeployer.setPrimarySources(
+              token0.address,
+              token1.address,
+              BigNumber.from('1200000000000000000'),
+              900,
+              [simplePriceOracle.address, bobPriceOracle.address],
+            )
+            await TimeHelpers.increase(BigNumber.from('60')) // 1 minutes have passed
+
+            const [price, lastTime] = await oracleMedianizerAsAlice.getPrice(token0.address, token1.address)
+            // result should be Med(price0, price1) => (price0 + price1) / 2 = (1000000000000000000 + 900000000000000000) / 2 = 950000000000000000
+            expect(price).to.eq(BigNumber.from('950000000000000000'))
+          })
+        })
+        context('when has SimplePriceOracle and ChainLinkPriceOracle source', async () => {
+          it('should successfully', async () => {
+            await simplePriceOracleAsFeeder.setPrices(
+              [token0.address, token1.address],
+              [token1.address, token0.address],
+              [BigNumber.from('1000000000000000000'), BigNumber.from('1000000000000000000').div(10)],
+            )
+            await chainLinkPriceOracle.setPriceFeeds([token0.address], [token1.address], [mockAggregatorV3T0T1.address])
+
+            await oracleMedianizerAsDeployer.setPrimarySources(
+              token0.address,
+              token1.address,
+              BigNumber.from('1200000000000000000'),
+              900,
+              [simplePriceOracle.address, chainLinkPriceOracle.address],
+            )
+            await TimeHelpers.increase(BigNumber.from('60')) // 1 minutes have passed
+
+            const [price, lastTime] = await oracleMedianizerAsAlice.getPrice(token0.address, token1.address)
+            // result should be Med(price0, price1) => (price0 + price1) / 2 = (1000000000000000000 + 900000000000000000) / 2 = 950000000000000000
+            expect(price).to.eq(BigNumber.from('950000000000000000'))
+          })
         })
       })
     })
     context('when has 3 valid sources', async () => {
       context('when too much deviation', async () => {
-        it('should be reverted', async () => {
-          await simplePriceOracleAsFeeder.setPrices(
-            [token0.address, token1.address],
-            [token1.address, token0.address],
-            [BigNumber.from('1000000000000000000'), BigNumber.from('1000000000000000000').div(10)],
-          )
-          await bobPriceOracleAsFeeder.setPrices(
-            [token0.address, token1.address],
-            [token1.address, token0.address],
-            [BigNumber.from('900000000000000000'), BigNumber.from('1000000000000000000').div(9)],
-          )
-          await evePriceOracleAsFeeder.setPrices(
-            [token0.address, token1.address],
-            [token1.address, token0.address],
-            [BigNumber.from('800000000000000000'), BigNumber.from('1000000000000000000').div(8)],
-          )
+        context('when has only SimplePriceOracle source', async () => {
+          it('should be reverted', async () => {
+            await simplePriceOracleAsFeeder.setPrices(
+              [token0.address, token1.address],
+              [token1.address, token0.address],
+              [BigNumber.from('1000000000000000000'), BigNumber.from('1000000000000000000').div(10)],
+            )
+            await bobPriceOracleAsFeeder.setPrices(
+              [token0.address, token1.address],
+              [token1.address, token0.address],
+              [BigNumber.from('900000000000000000'), BigNumber.from('1000000000000000000').div(9)],
+            )
+            await evePriceOracleAsFeeder.setPrices(
+              [token0.address, token1.address],
+              [token1.address, token0.address],
+              [BigNumber.from('800000000000000000'), BigNumber.from('1000000000000000000').div(8)],
+            )
+  
+            await oracleMedianizerAsDeployer.setPrimarySources(
+              token0.address,
+              token1.address,
+              BigNumber.from('1100000000000000000'),
+              900,
+              [simplePriceOracle.address, bobPriceOracle.address, evePriceOracleAsFeeder.address],
+            )
+            await TimeHelpers.increase(BigNumber.from('60')) // 1 minutes have passed
 
-          await oracleMedianizerAsDeployer.setPrimarySources(
-            token0.address,
-            token1.address,
-            BigNumber.from('1100000000000000000'),
-            [simplePriceOracle.address, bobPriceOracle.address, evePriceOracleAsFeeder.address],
-          )
-          await expect(oracleMedianizerAsAlice.getPrice(token0.address, token1.address)).to.revertedWith("OracleMedianizer::getPrice:: too much deviation 3 valid sources")
+            await expect(oracleMedianizerAsAlice.getPrice(token0.address, token1.address)).to.revertedWith("OracleMedianizer::getPrice:: too much deviation 3 valid sources")
+          })
+        })
+        context('when has SimplePriceOracle and ChainLinkPriceOracle source', async () => {
+          it('should be reverted', async () => {
+            await simplePriceOracleAsFeeder.setPrices(
+              [token0.address, token1.address],
+              [token1.address, token0.address],
+              [BigNumber.from('1000000000000000000'), BigNumber.from('1000000000000000000').div(10)],
+            )
+            await chainLinkPriceOracle.setPriceFeeds([token0.address], [token1.address], [mockAggregatorV3T0T1.address])
+            await evePriceOracleAsFeeder.setPrices(
+              [token0.address, token1.address],
+              [token1.address, token0.address],
+              [BigNumber.from('800000000000000000'), BigNumber.from('1000000000000000000').div(8)],
+            )
+  
+            await oracleMedianizerAsDeployer.setPrimarySources(
+              token0.address,
+              token1.address,
+              BigNumber.from('1100000000000000000'),
+              900,
+              [simplePriceOracle.address, chainLinkPriceOracle.address, evePriceOracleAsFeeder.address],
+            )
+            await TimeHelpers.increase(BigNumber.from('60')) // 1 minutes have passed
+
+            await expect(oracleMedianizerAsAlice.getPrice(token0.address, token1.address)).to.revertedWith("OracleMedianizer::getPrice:: too much deviation 3 valid sources")
+          })
         })
       })
       context(`when price0 and price1 are within max deviation, but price2 doesn't`, async () => {
@@ -374,11 +615,7 @@ describe('OracleMedianizer', () => {
             [token1.address, token0.address],
             [BigNumber.from('1100000000000000000'), BigNumber.from('1000000000000000000').div(11)],
           )
-          await bobPriceOracleAsFeeder.setPrices(
-            [token0.address, token1.address],
-            [token1.address, token0.address],
-            [BigNumber.from('900000000000000000'), BigNumber.from('1000000000000000000').div(9)],
-          )
+          await chainLinkPriceOracle.setPriceFeeds([token0.address], [token1.address], [mockAggregatorV3T0T1.address])
           await evePriceOracleAsFeeder.setPrices(
             [token0.address, token1.address],
             [token1.address, token0.address],
@@ -389,8 +626,11 @@ describe('OracleMedianizer', () => {
             token0.address,
             token1.address,
             BigNumber.from('1200000000000000000'),
-            [simplePriceOracle.address, bobPriceOracle.address, evePriceOracleAsFeeder.address],
+            900,
+            [simplePriceOracle.address, chainLinkPriceOracle.address, evePriceOracleAsFeeder.address],
           )
+          await TimeHelpers.increase(BigNumber.from('60')) // 1 minutes have passed
+
           const [price, lastTime] = await oracleMedianizerAsAlice.getPrice(token0.address, token1.address)
           // result should be Med(price1, price2) => (price1 + price2) / 2 = (900000000000000000 + 800000000000000000) / 2 = 850000000000000000
           expect(price).to.eq(BigNumber.from('850000000000000000'))
@@ -403,11 +643,7 @@ describe('OracleMedianizer', () => {
             [token1.address, token0.address],
             [BigNumber.from('1000000000000000000'), BigNumber.from('1000000000000000000').div(10)],
           )
-          await bobPriceOracleAsFeeder.setPrices(
-            [token0.address, token1.address],
-            [token1.address, token0.address],
-            [BigNumber.from('900000000000000000'), BigNumber.from('1000000000000000000').div(9)],
-          )
+          await chainLinkPriceOracle.setPriceFeeds([token0.address], [token1.address], [mockAggregatorV3T0T1.address])
           await evePriceOracleAsFeeder.setPrices(
             [token0.address, token1.address],
             [token1.address, token0.address],
@@ -418,8 +654,11 @@ describe('OracleMedianizer', () => {
             token0.address,
             token1.address,
             BigNumber.from('1200000000000000000'),
-            [simplePriceOracle.address, bobPriceOracle.address, evePriceOracleAsFeeder.address],
+            900,
+            [simplePriceOracle.address, chainLinkPriceOracle.address, evePriceOracleAsFeeder.address],
           )
+          await TimeHelpers.increase(BigNumber.from('60')) // 1 minutes have passed
+
           const [price, lastTime] = await oracleMedianizerAsAlice.getPrice(token0.address, token1.address)
           // result should be Med(price0, price1) => (price0 + price1) / 2 = (1000000000000000000 + 900000000000000000) / 2 = 950000000000000000
           expect(price).to.eq(BigNumber.from('950000000000000000'))
@@ -432,11 +671,7 @@ describe('OracleMedianizer', () => {
             [token1.address, token0.address],
             [BigNumber.from('1000000000000000000'), BigNumber.from('1000000000000000000').div(10)],
           )
-          await bobPriceOracleAsFeeder.setPrices(
-            [token0.address, token1.address],
-            [token1.address, token0.address],
-            [BigNumber.from('900000000000000000'), BigNumber.from('1000000000000000000').div(9)],
-          )
+          await chainLinkPriceOracle.setPriceFeeds([token0.address], [token1.address], [mockAggregatorV3T0T1.address])
           await evePriceOracleAsFeeder.setPrices(
             [token0.address, token1.address],
             [token1.address, token0.address],
@@ -447,8 +682,11 @@ describe('OracleMedianizer', () => {
             token0.address,
             token1.address,
             BigNumber.from('1200000000000000000'),
-            [simplePriceOracle.address, bobPriceOracle.address, evePriceOracleAsFeeder.address],
+            900,
+            [simplePriceOracle.address, chainLinkPriceOracle.address, evePriceOracleAsFeeder.address],
           )
+          await TimeHelpers.increase(BigNumber.from('60')) // 1 minutes have passed
+
           const [price, lastTime] = await oracleMedianizerAsAlice.getPrice(token0.address, token1.address)
           // result should be Med(price0, price1, price2) => price1 = 900000000000000000
           expect(price).to.eq(BigNumber.from('900000000000000000'))
