@@ -356,32 +356,36 @@ describe('PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading', () => {
         it('should be successfully', async () => {
           const bobBaseTokenBefore = await baseToken.balanceOf(await bob.getAddress())
           const bobFTOKENBefore = await farmingToken.balanceOf(await bob.getAddress())
-  
-          await mockPancakeswapV2WorkerAsBob.work(
-            0,
-            await bob.getAddress(),
-            '0',
-            ethers.utils.defaultAbiCoder.encode(
-              ['address', 'bytes'],
-              [
-                strat.address,
-                ethers.utils.defaultAbiCoder.encode(
-                  ['uint256', 'uint256', 'uint256'],
-                  [
-                    ethers.utils.parseEther('4.472135954999579393'),
-                    ethers.utils.parseEther('0.8'),
-                    ethers.utils.parseEther('19.2'),
-                  ],
-                ),
-              ],
+
+          await expect(
+            mockPancakeswapV2WorkerAsBob.work(
+              0,
+              await bob.getAddress(),
+              '0',
+              ethers.utils.defaultAbiCoder.encode(
+                ['address', 'bytes'],
+                [
+                  strat.address,
+                  ethers.utils.defaultAbiCoder.encode(
+                    ['uint256', 'uint256', 'uint256'],
+                    [
+                      ethers.utils.parseEther('4.472135954999579393'),
+                      ethers.utils.parseEther('0.8'),
+                      ethers.utils.parseEther('19.2'),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          )
-  
+          ).to.emit(strat, 'PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading')
+
           // remove liquidity 50%: 4.472135954999579393 LP token (20 farming token + 1 base token)
           // no trade
           const bobBaseTokenAfter = await baseToken.balanceOf(await bob.getAddress())
           const bobFTOKENAfter = await farmingToken.balanceOf(await bob.getAddress())
-          expect(await lpV2.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('4.472135954999579392'))
+          expect(await lpV2.balanceOf(strat.address)).to.be.bignumber.eq(
+            ethers.utils.parseEther('4.472135954999579392'),
+          )
           expect(await lpV2.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther('0'))
           TestHelpers.assertAlmostEqual(
             ethers.utils.parseEther('1').toString(),
@@ -467,27 +471,29 @@ describe('PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading', () => {
         it('should be successfully', async () => {
           const bobBaseTokenBefore = await baseToken.balanceOf(await bob.getAddress())
           const bobFTOKENBefore = await farmingToken.balanceOf(await bob.getAddress())
-  
-          await mockPancakeswapV2WorkerAsBob.work(
-            0,
-            await bob.getAddress(),
-            '0',
-            ethers.utils.defaultAbiCoder.encode(
-              ['address', 'bytes'],
-              [
-                strat.address,
-                ethers.utils.defaultAbiCoder.encode(
-                  ['uint256', 'uint256', 'uint256'],
-                  [
-                    ethers.utils.parseEther('0.894427190999915878'),
-                    ethers.utils.parseEther('0.24'),
-                    ethers.utils.parseEther('3.168'),
-                  ],
-                ),
-              ],
+
+          await expect(
+            mockPancakeswapV2WorkerAsBob.work(
+              0,
+              await bob.getAddress(),
+              '0',
+              ethers.utils.defaultAbiCoder.encode(
+                ['address', 'bytes'],
+                [
+                  strat.address,
+                  ethers.utils.defaultAbiCoder.encode(
+                    ['uint256', 'uint256', 'uint256'],
+                    [
+                      ethers.utils.parseEther('0.894427190999915878'),
+                      ethers.utils.parseEther('0.24'),
+                      ethers.utils.parseEther('3.168'),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          )
-  
+          ).to.emit(strat, 'PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading')
+
           // remove liquidity 10%: 0.894427190999915878 LP token (4 farming token + 0.2 base token)
           // trade
           // exactIn = (exactOut * reserveIn * 10000) / (tradingFee * (reserveOut - exactOut))
@@ -496,7 +502,9 @@ describe('PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading', () => {
           // remainingFarmingToken = 4 - 0.810536980749747 = 3.189463019250253
           const bobBaseTokenAfter = await baseToken.balanceOf(await bob.getAddress())
           const bobFTOKENAfter = await farmingToken.balanceOf(await bob.getAddress())
-          expect(await lpV2.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('8.049844718999242907'))
+          expect(await lpV2.balanceOf(strat.address)).to.be.bignumber.eq(
+            ethers.utils.parseEther('8.049844718999242907'),
+          )
           expect(await lpV2.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther('0'))
           TestHelpers.assertAlmostEqual(
             ethers.utils.parseEther('0.24').toString(),
@@ -590,28 +598,30 @@ describe('PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading', () => {
         it('should be successfully', async () => {
           const bobBaseTokenBefore = await baseToken.balanceOf(await bob.getAddress())
           const bobBnbBefore = await ethers.provider.getBalance(await bob.getAddress())
-  
-          mockPancakeswapBaseTokenWbnbV2WorkerAsBob.work(
-            0,
-            await bob.getAddress(),
-            '0',
-            ethers.utils.defaultAbiCoder.encode(
-              ['address', 'bytes'],
-              [
-                strat.address,
-                ethers.utils.defaultAbiCoder.encode(
-                  ['uint256', 'uint256', 'uint256'],
-                  [
-                    ethers.utils.parseEther('0.158113883008418966'),
-                    ethers.utils.parseEther('0.1'),
-                    ethers.utils.parseEther('0.0495'),
-                  ],
-                ),
-              ],
+
+          await expect(
+            mockPancakeswapBaseTokenWbnbV2WorkerAsBob.work(
+              0,
+              await bob.getAddress(),
+              '0',
+              ethers.utils.defaultAbiCoder.encode(
+                ['address', 'bytes'],
+                [
+                  strat.address,
+                  ethers.utils.defaultAbiCoder.encode(
+                    ['uint256', 'uint256', 'uint256'],
+                    [
+                      ethers.utils.parseEther('0.158113883008418966'),
+                      ethers.utils.parseEther('0.1'),
+                      ethers.utils.parseEther('0.0495'),
+                    ],
+                  ),
+                ],
+              ),
+              { gasPrice: 0 },
             ),
-            { gasPrice: 0 },
-          )
-  
+          ).to.emit(strat, 'PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading')
+
           // remove liquidity 50%: 0.158113883008418966 LP token (0.05 farming token + 0.5 base token)
           // no trade
           const bobBaseTokenAfter = await baseToken.balanceOf(await bob.getAddress())
@@ -704,28 +714,30 @@ describe('PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading', () => {
         it('should be successfully', async () => {
           const bobBaseTokenBefore = await baseToken.balanceOf(await bob.getAddress())
           const bobBnbBefore = await ethers.provider.getBalance(await bob.getAddress())
-  
-          await mockPancakeswapBaseTokenWbnbV2WorkerAsBob.work(
-            0,
-            await bob.getAddress(),
-            '0',
-            ethers.utils.defaultAbiCoder.encode(
-              ['address', 'bytes'],
-              [
-                strat.address,
-                ethers.utils.defaultAbiCoder.encode(
-                  ['uint256', 'uint256', 'uint256'],
-                  [
-                    ethers.utils.parseEther('0.158113883008418966'),
-                    ethers.utils.parseEther('0.6'),
-                    ethers.utils.parseEther('0.037'),
-                  ],
-                ),
-              ],
+
+          await expect(
+            mockPancakeswapBaseTokenWbnbV2WorkerAsBob.work(
+              0,
+              await bob.getAddress(),
+              '0',
+              ethers.utils.defaultAbiCoder.encode(
+                ['address', 'bytes'],
+                [
+                  strat.address,
+                  ethers.utils.defaultAbiCoder.encode(
+                    ['uint256', 'uint256', 'uint256'],
+                    [
+                      ethers.utils.parseEther('0.158113883008418966'),
+                      ethers.utils.parseEther('0.6'),
+                      ethers.utils.parseEther('0.037'),
+                    ],
+                  ),
+                ],
+              ),
+              { gasPrice: 0 },
             ),
-            { gasPrice: 0 },
-          )
-  
+          ).to.emit(strat, 'PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading')
+
           // remove liquidity 50%: 0.158113883008418966 LP token (0.05 farming token + 0.5 base token)
           // trade
           // exactIn = (exactOut * reserveIn * 10000) / (tradingFee * (reserveOut - exactOut))
