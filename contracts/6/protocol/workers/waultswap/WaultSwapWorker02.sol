@@ -19,18 +19,18 @@ import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 
-import "../apis/wault/IWaultSwapFactory.sol";
+import "../../apis/wault/IWaultSwapFactory.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
 
-import "../apis/wault/IWaultSwapRouter02.sol";
-import "../interfaces/IStrategy.sol";
-import "../interfaces/IWorker.sol";
-import "../interfaces/IWexMaster.sol";
-import "../../utils/AlpacaMath.sol";
-import "../../utils/SafeToken.sol";
+import "../../apis/wault/IWaultSwapRouter02.sol";
+import "../../interfaces/IStrategy.sol";
+import "../../interfaces/IWorker.sol";
+import "../../interfaces/IWexMaster.sol";
+import "../../../utils/AlpacaMath.sol";
+import "../../../utils/SafeToken.sol";
 
-
-contract WaultSwapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker {
+// @title WaultSwapWorker02 is a reinvest-optimized WaultSwapWorker
+contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker {
   /// @notice Libraries
   using SafeToken for address;
   using SafeMath for uint256;
@@ -65,6 +65,12 @@ contract WaultSwapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWor
   mapping(address => bool) public okReinvestors;
   uint256 public fee;
   uint256 public feeDenom;
+
+  /// @notice Upgraded State Variables
+  address public treasuryAccount;
+  uint256 public treasuryBountyBps;
+  event SetTreasuryBountyBps(address indexed account, uint256 bountyBps);
+  event SetTreasuryAccount(address indexed account);
 
   function initialize(
     address _operator,
@@ -145,6 +151,16 @@ contract WaultSwapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWor
 
   /// @dev Re-invest whatever this worker has earned back to staked LP tokens.
   function reinvest() external override onlyEOA onlyReinvestor nonReentrant {
+    _reinvest(msg.sender, reinvestBountyBps, 0);
+  }
+
+  // @notice internal method for reinvest
+  function _reinvest(
+    address _treasuryAccount,
+    uint256 _treasuryBountyBps,
+    uint256 _callerBalance
+  ) internal {
+    require(_treasuryAccount != address(0), "PancakeswapV2Worker::reinvest:: bad treasury account");
     // 1. Approve tokens
     wex.safeApprove(address(router), uint256(-1));
     address(lpToken).safeApprove(address(wexMaster), uint256(-1));
@@ -153,8 +169,8 @@ contract WaultSwapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWor
     uint256 reward = wex.balanceOf(address(this));
     if (reward == 0) return;
     // 3. Send the reward bounty to the caller.
-    uint256 bounty = reward.mul(reinvestBountyBps) / 10000;
-    if (bounty > 0) wex.safeTransfer(msg.sender, bounty);
+    uint256 bounty = reward.mul(_treasuryBountyBps) / 10000;
+    if (bounty > 0) wex.safeTransfer(_treasuryAccount, bounty);
     // 4. Convert all the remaining rewards to BaseToken via Native for liquidity.
     address[] memory path;
     if (baseToken == wNative) {
@@ -169,14 +185,14 @@ contract WaultSwapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWor
     }
     router.swapExactTokensForTokens(reward.sub(bounty), 0, path, address(this), now);
     // 5. Use add Token strategy to convert all BaseToken to LP tokens.
-    baseToken.safeTransfer(address(addStrat), baseToken.myBalance());
+    baseToken.safeTransfer(address(addStrat), baseToken.myBalance().sub(_callerBalance));
     addStrat.execute(address(0), 0, abi.encode(0));
     // 6. Mint more LP tokens and stake them for more rewards.
     wexMaster.deposit(pid, lpToken.balanceOf(address(this)), true);
     // 7. Reset approve
     wex.safeApprove(address(router), 0);
     address(lpToken).safeApprove(address(wexMaster), 0);
-    emit Reinvest(msg.sender, reward, bounty);
+    emit Reinvest(_treasuryAccount, reward, bounty);
   }
 
   /// @dev Work on the given position. Must be called by the operator.
@@ -190,9 +206,14 @@ contract WaultSwapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWor
     uint256 debt,
     bytes calldata data
   ) external override onlyOperator nonReentrant {
-    // 1. Convert this position back to LP tokens.
+    // 1. If a treasury bounty or an account have a default value (0 bps or address(0)), use reinvestBountyBps and default treasury address instead
+    if (treasuryBountyBps == 0) treasuryBountyBps = reinvestBountyBps;
+    if (treasuryAccount == address(0)) treasuryAccount = address(0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51);
+    // 2. Reinvest and send portion of reward to treasury account.
+    _reinvest(treasuryAccount, treasuryBountyBps, baseToken.myBalance());
+    // 3. Convert this position back to LP tokens.
     _removeShare(id);
-    // 2. Perform the worker strategy; sending LP tokens + BaseToken; expecting LP tokens + BaseToken.
+    // 4. Perform the worker strategy; sending LP tokens + BaseToken; expecting LP tokens + BaseToken.
     (address strat, bytes memory ext) = abi.decode(data, (address, bytes));
     require(okStrats[strat], "WaultSwapWorker::work:: unapproved work strategy");
     require(
@@ -201,9 +222,9 @@ contract WaultSwapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWor
     );
     baseToken.safeTransfer(strat, baseToken.myBalance());
     IStrategy(strat).execute(user, debt, ext);
-    // 3. Add LP tokens back to the farming pool.
+    // 5. Add LP tokens back to the farming pool.
     _addShare(id);
-    // 4. Return any remaining BaseToken back to the operator.
+    // 6. Return any remaining BaseToken back to the operator.
     baseToken.safeTransfer(msg.sender, baseToken.myBalance());
   }
 
@@ -333,5 +354,25 @@ contract WaultSwapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWor
   function setCriticalStrategies(IStrategy _addStrat, IStrategy _liqStrat) external onlyOwner {
     addStrat = _addStrat;
     liqStrat = _liqStrat;
+  }
+
+  /// @notice Set treasury account
+  /// @param _account treasury account
+  function setTreasuryAccount(address _account) external onlyOwner {
+    treasuryAccount = _account;
+
+    emit SetTreasuryAccount(_account);
+  }
+
+  /// @notice Set treasury bounty bps
+  /// @param _treasuryBountyBps treasury account
+  function setTreasuryBountyBps(uint256 _treasuryBountyBps) external onlyOwner {
+    require(
+      _treasuryBountyBps <= maxReinvestBountyBps,
+      "WaultSwapWorker::setTreasuryBountyBps:: _treasuryBountyBps exceeded maxReinvestBountyBps"
+    );
+    treasuryBountyBps = _treasuryBountyBps;
+
+    emit SetTreasuryBountyBps(treasuryAccount, _treasuryBountyBps);
   }
 }
