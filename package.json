@@ -63,6 +63,9 @@
     "deploy:mainnet:s023": "hardhat --network mainnet deploy --no-compile --reset --tags SetMaxKillBps",
     "deploy:mainnet:s024": "hardhat --network mainnet deploy --no-compile --reset --tags AddSourceChainLinkPriceOracle",
     "deploy:mainnet:s025": "hardhat --network mainnet deploy --no-compile --reset --tags AddSourceOracleMedianizer",
+    "deploy:mainnet:s026": "hardhat --network mainnet deploy --no-compile --reset --tags UpgradeWorkers02",
+    "deploy:mainnet:s027": "hardhat --network mainnet deploy --no-compile --reset --tags TimelockAddTreasuryFieldsWorkers02",
+    
     "deploy:testnet:000": "hardhat --network testnet deploy --no-compile --reset --tags Testnet",
     "deploy:testnet:000:panV2": "hardhat --network testnet deploy --no-compile --reset --tags PancakeswapV2",
     "deploy:testnet:000:waultswap": "hardhat --network testnet deploy --no-compile --reset --tags WaultSwap",
@@ -125,7 +128,11 @@
     "deploy:testnet:s023": "hardhat --network testnet deploy --no-compile --reset --tags SetMaxKillBps",
     "deploy:testnet:s024": "hardhat --network testnet deploy --no-compile --reset --tags AddSourceChainLinkPriceOracle",
     "deploy:testnet:s025": "hardhat --network testnet deploy --no-compile --reset --tags AddSourceOracleMedianizer",
+    "deploy:testnet:s026": "hardhat --network testnet deploy --no-compile --reset --tags UpgradeWorkers02",
+    "deploy:testnet:s027": "hardhat --network testnet deploy --no-compile --reset --tags TimelockAddTreasuryFieldsWorkers02",
+    
     "mainnet": "hardhat console --no-compile --network mainnet",
+    
     "test:fairlaunch": "hardhat test --no-compile ./test/FairLaunch.test.ts",
     "test:fairlaunchv2": "hardhat test --no-compile ./test/FairLaunchV2.test.ts",
     "test:pancake": "hardhat test --no-compile ./test/Vault_Pancakeswap.test.ts",
