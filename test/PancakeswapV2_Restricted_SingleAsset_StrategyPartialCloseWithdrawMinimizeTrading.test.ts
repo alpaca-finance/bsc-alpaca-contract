@@ -322,6 +322,22 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
       });
     })
 
+    context("when successfully", async () => {
+      it('should be successfully', async () => {
+        await farmingTokenAsAlice.transfer(mockPancakeswapV2WorkerBNBFtokenPair.address, ethers.utils.parseEther('0.1'));
+        await expect(mockPancakeswapV2WorkerBNBFtokenPairAsAlice.work(
+          0, await alice.getAddress(), ethers.utils.parseEther('0.1'),
+          ethers.utils.defaultAbiCoder.encode(
+            ['address', 'bytes'],
+            [strat.address, ethers.utils.defaultAbiCoder.encode(
+              ['uint256','uint256','uint256'],
+              ['0',ethers.utils.parseEther('0.05'),ethers.utils.parseEther('0.1')]
+            )],
+          )
+        )).to.emit(strat,'PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading');
+      });
+    })
+
     context("when debt > 0", async() => {
       it('should convert to WBNB to be enough for repaying the debt, and return farmingToken to the user', async () => {
         await farmingTokenAsAlice.transfer(mockPancakeswapV2WorkerBNBFtokenPair.address, ethers.utils.parseEther('0.1'));
@@ -481,6 +497,22 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
         )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::onlyWhitelistedWorkers:: bad worker');
       });
     })
+
+    context("when successfully", async () => {
+      it('should be successfully', async () => {
+        await farmingTokenAsAlice.transfer(mockPancakeswapV2WorkerBaseFTokenPair.address, ethers.utils.parseEther('0.1'));
+        await expect(mockPancakeswapV2WorkerBaseFTokenPairAsAlice.work(
+          0, await alice.getAddress(), ethers.utils.parseEther('0.1'),
+          ethers.utils.defaultAbiCoder.encode(
+            ['address', 'bytes'],
+            [strat.address, ethers.utils.defaultAbiCoder.encode(
+              ['uint256','uint256','uint256'],
+              ['0',ethers.utils.parseEther('0.05'),ethers.utils.parseEther('0.1')]
+            )],
+          )
+        )).to.emit(strat,'PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading');
+      });
+    })
   
     context("when debt > 0", async() => {
       it('should convert to BTOKEN to be enough for repaying the debt, and return farmingToken to the user', async () => {
@@ -634,6 +666,22 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
             )],
           )
         )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::onlyWhitelistedWorkers:: bad worker');
+      });
+    })
+
+    context("when successfully", async () => {
+      it('should be successfully', async () => {
+        await wbnbTokenAsAlice.transfer(mockPancakeswapV2WorkerBaseBNBTokenPair.address, ethers.utils.parseEther('1'));
+        await expect(mockPancakeswapV2WorkerBaseBNBTokenPairAsAlice.work(
+          0, await alice.getAddress(), ethers.utils.parseEther('0.1'),
+          ethers.utils.defaultAbiCoder.encode(
+            ['address', 'bytes'],
+            [strat.address, ethers.utils.defaultAbiCoder.encode(
+              ['uint256', 'uint256', 'uint256'],
+              ['0',ethers.utils.parseEther('0.4'),ethers.utils.parseEther('0.1')]
+            )],
+          )
+        )).to.emit(strat,'PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading');
       });
     })
 
