@@ -242,6 +242,8 @@ contract CakeMaxiWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWo
     _rewardToken.safeApprove(address(router), 0);
   }
 
+  /// @notice for transfering a buyback amount to the particular beneficial vault
+  // this will be triggered when beneficialVaultToken equals to baseToken.
   function _buyback() internal {
     if (buybackAmount == 0) return;
     uint256 _buybackAmount = buybackAmount;
