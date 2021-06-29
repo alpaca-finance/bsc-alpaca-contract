@@ -40,6 +40,13 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeT
   mapping(address => bool) public okWorkers;
   IWNativeRelayer public wNativeRelayer;
 
+  event PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading(
+    address indexed baseToken,
+    address indexed farmToken,
+    uint256 amounToLiquidate,
+    uint256 amountToRepayDebt
+  );
+
   // @notice require that only allowed workers are able to do the rest of the method call
   modifier onlyWhitelistedWorkers() {
     require(okWorkers[msg.sender], "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::onlyWhitelistedWorkers:: bad worker");
@@ -69,7 +76,7 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeT
     (
       uint256 minFarmingTokenAmount,
       uint256 farmingTokenToLiquidate,
-      uint256 toBeRepaidBaseTokenDebt
+      uint256 toRepaidBaseTokenDebt
     ) = abi.decode(data, (uint256, uint256, uint256));
     IWorker02 worker = IWorker02(msg.sender);
     address baseToken = worker.baseToken();
@@ -80,11 +87,11 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeT
     uint256 farmingTokenBalance = farmingToken.myBalance();
     require(farmingTokenBalance >= farmingTokenToLiquidate, "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::execute:: insufficient farmingToken received from worker");
     uint256 farmingTokenToBeRepaidDebt = 0;
-    if (toBeRepaidBaseTokenDebt > 0) {
-        uint256[] memory farmingTokenToBeRepaidDebts = router.getAmountsIn(toBeRepaidBaseTokenDebt, worker.getReversedPath());
+    if (toRepaidBaseTokenDebt > 0) {
+        uint256[] memory farmingTokenToBeRepaidDebts = router.getAmountsIn(toRepaidBaseTokenDebt, worker.getReversedPath());
         farmingTokenToBeRepaidDebt = farmingTokenToBeRepaidDebts[0];
         require(farmingTokenToLiquidate >= farmingTokenToBeRepaidDebts[0], "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::execute:: not enough to pay back debt");
-        router.swapTokensForExactTokens(toBeRepaidBaseTokenDebt, farmingTokenBalance, worker.getReversedPath(), address(this), now);
+        router.swapTokensForExactTokens(toRepaidBaseTokenDebt, farmingTokenBalance, worker.getReversedPath(), address(this), now);
     }
     uint256 farmingTokenBalanceToBeSentToTheUser = farmingTokenToLiquidate.sub(farmingTokenToBeRepaidDebt);
     // 4. Return baseToken back to the original caller in order to repay the debt.
@@ -102,6 +109,13 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeT
     }
     // 6. Reset approval for safety reason
     farmingToken.safeApprove(address(router), 0);
+    uint256 lpTokenToLiquidate = 0;
+    emit PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading(
+      baseToken,
+      farmingToken,
+      lpTokenToLiquidate,
+      toRepaidBaseTokenDebt
+    );
   }
 
   function setWorkersOk(address[] calldata workers, bool isOk) external onlyOwner {
