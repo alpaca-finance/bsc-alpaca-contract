@@ -331,6 +331,14 @@
         "pId": 56,
         "name": "FORM-BUSD LP",
         "address": "0xBf4301EF97585016ecB2D955b5190510654E9e96"
+      }, {
+        "pId": 57,
+        "name": "CAKE-USDT LP",
+        "address": "0x68213338E9A2c1010AaB78E79a78f5c27659397F"
+      }, {
+        "pId": 58,
+        "name": "USDC-USDT LP",
+        "address": "0x8E2fFdBf7713b7c68418CFA7ee65430C544C44d7"
       }]
     },
     "Waultswap": {
@@ -1358,6 +1366,32 @@
         "StrategyLiquidate": "0xdbcDcd7bE24d0dbf2b167F14435945EC7e0F454A",
         "StrategyAddTwoSidesOptimal": "0x48393b82Abac4Fbb807A927E60008eFaf5f79Cf7",
         "StrategyWithdrawMinimizeTrading": "0xE5909854177a493BFeF616e2E142211413aC295d"
+      }
+    }, {
+      "name": "CAKE-USDT PancakeswapWorker",
+      "address": "0xda13B624E3D401565e86e19d524BDEd99EE0460f",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "pId": 57,
+      "stakingToken": "0x68213338E9A2c1010AaB78E79a78f5c27659397F",
+      "stakingTokenAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
+        "StrategyLiquidate": "0x58Bbb507248635413172Ed7A2eeC048402C6b39b",
+        "StrategyAddTwoSidesOptimal": "0x4D71d66e598e6dCaAb9a3a96890f60169d968212",
+        "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32"
+      }
+    }, {
+      "name": "USDC-USDT PancakeswapWorker",
+      "address": "0x3f326a6509b6122E9d14a8f611F14ac98Aa19d23",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "pId": 58,
+      "stakingToken": "0x8E2fFdBf7713b7c68418CFA7ee65430C544C44d7",
+      "stakingTokenAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
+        "StrategyLiquidate": "0x58Bbb507248635413172Ed7A2eeC048402C6b39b",
+        "StrategyAddTwoSidesOptimal": "0x4D71d66e598e6dCaAb9a3a96890f60169d968212",
+        "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32"
       }
     }]
   }, {
