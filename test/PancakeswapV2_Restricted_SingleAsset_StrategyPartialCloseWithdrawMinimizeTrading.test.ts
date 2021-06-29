@@ -249,6 +249,26 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
           )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::execute:: insufficient farmingToken amount received');
         });
       })
+      
+      context('When contract get farmingAmount amount < farmingTokenToLiquidate', async () => {
+        it('should revert', async () => {
+          // if 0.1 Ftoken = 1 WBNB
+          // x FToken = (x * 0.9975) * (1 / (0.1 + x*0.9975)) = 0.5
+          // x = ~ 9.975
+          // thus, 0.04 < 9.975 then retrun not enough to pay back debt
+          await farmingTokenAsAlice.transfer(mockPancakeswapV2WorkerBNBFtokenPair.address, ethers.utils.parseEther('0.1'));
+          await expect(mockPancakeswapV2WorkerBNBFtokenPairAsAlice.work(
+            0, await alice.getAddress(), ethers.utils.parseEther('0.1'),
+            ethers.utils.defaultAbiCoder.encode(
+              ['address', 'bytes'],
+              [strat.address, ethers.utils.defaultAbiCoder.encode(
+                ['uint256', 'uint256', 'uint256'],
+                [ethers.utils.parseEther('0.088861041492620439'), ethers.utils.parseEther('1.1'), ethers.utils.parseEther('0.5')]
+              )],
+            )
+          )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::execute:: insufficient farmingToken received from worker');
+        });
+      })
     
     context('When contract get partial farmingAmount amount < farmingAmountToBeRepaidDebt', async () => {
       it('should revert', async () => {
@@ -386,6 +406,30 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
       });
     })
 
+    context('When contract get farmingToken amount < farmingTokenToLiquidate', async () => {
+      it('should revert', async () => {
+        // if 1 WBNB = 1 BaseToken
+        // x WBNB = (x * 0.9975) * (1 / (1 + x * 0.9975)) = 0.1
+        // x WBNB =~ ~ 0.11138958507379568
+
+        // if 0.1 FToken = 1 WBNB
+        // x FToken =  (x * 0.9975) * (1 / (0.1 + x * 0.9975)) = 0.11138958507379568
+        // x = 0.012566672086044004
+        // thus 0.1 - 0.012566672086044 = 0.087433327913955996
+        await farmingTokenAsAlice.transfer(mockPancakeswapV2WorkerBaseFTokenPair.address, ethers.utils.parseEther('0.1'));
+        await expect(mockPancakeswapV2WorkerBaseFTokenPairAsAlice.work(
+          0, await alice.getAddress(), ethers.utils.parseEther('0.1'),
+          ethers.utils.defaultAbiCoder.encode(
+            ['address', 'bytes'],
+            [strat.address, ethers.utils.defaultAbiCoder.encode(
+              ['uint256','uint256','uint256'],
+              [ethers.utils.parseEther('0.087433327913955996').add(1),ethers.utils.parseEther('2'),ethers.utils.parseEther('0.1')]
+            )],
+          )
+        )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::execute:: insufficient farmingToken received from worker');
+      });
+    })
+
     context('When contract get partial farmingAmount amount < farmingAmountToBeRepaidDebt', async () => {
       it('should revert', async () => {
         // if 0.1 Ftoken = 1 WBNB
@@ -399,7 +443,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
             ['address', 'bytes'],
             [strat.address, ethers.utils.defaultAbiCoder.encode(
               ['uint256', 'uint256', 'uint256'],
-              [ethers.utils.parseEther('0.088861041492620439'), ethers.utils.parseEther('0.02'), ethers.utils.parseEther('0.2')]
+              [ethers.utils.parseEther('0.088861041492620439').add(1), ethers.utils.parseEther('0.02'), ethers.utils.parseEther('0.2')]
             )],
           )
         )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::execute:: not enough to pay back debt');
@@ -521,13 +565,33 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
       });
     })
 
+    context('When contract get farmingAmount amount < farmingTokenToLiquidate', async () => {
+      it('should revert', async () => {
+        // if 1 BNB = 1 BaseToken
+        // x BNB = (x * 0.9975) * (1 / (1 + x * 0.9975)) = 0.1
+        // x = ~ 0.11138958507379568
+        // thus, the return farming token will be 0.888610414926204399
+        await wbnbTokenAsAlice.transfer(mockPancakeswapV2WorkerBaseBNBTokenPair.address, ethers.utils.parseEther('1'));
+        await expect(mockPancakeswapV2WorkerBaseBNBTokenPairAsAlice.work(
+          0, await alice.getAddress(), ethers.utils.parseEther('0.1'),
+          ethers.utils.defaultAbiCoder.encode(
+            ['address', 'bytes'],
+            [strat.address, ethers.utils.defaultAbiCoder.encode(
+              ['uint256','uint256','uint256'],
+              [ethers.utils.parseEther('0.888610414926204399').add(1),ethers.utils.parseEther('2'),'0']
+            )],
+          )
+        )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::execute:: insufficient farmingToken received from worker');
+      });
+    })
+
     context('When contract get partial farmingAmount amount < farmingAmountToBeRepaidDebt', async () => {
       it('should revert', async () => {
         // if 0.1 Ftoken = 1 WBNB
         // x FToken = (x * 0.9975) * (1 / (0.1 + x*0.9975)) = 0.5
         // x = ~ 9.975
         // thus, 0.04 < 9.975 then retrun not enough to pay back debt
-        await farmingTokenAsAlice.transfer(mockPancakeswapV2WorkerBaseBNBTokenPair.address, ethers.utils.parseEther('0.1'));
+        await wbnbTokenAsAlice.transfer(mockPancakeswapV2WorkerBaseBNBTokenPair.address, ethers.utils.parseEther('1'));
         await expect(mockPancakeswapV2WorkerBaseBNBTokenPairAsAlice.work(
           0, await alice.getAddress(), ethers.utils.parseEther('0.1'),
           ethers.utils.defaultAbiCoder.encode(
