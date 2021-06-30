@@ -6,6 +6,8 @@ import {
   WaultSwapRestrictedStrategyAddBaseTokenOnly__factory,
   WaultSwapRestrictedStrategyLiquidate,
   WaultSwapRestrictedStrategyLiquidate__factory,
+  WaultSwapRestrictedStrategyPartialCloseMinimizeTrading,
+  WaultSwapRestrictedStrategyPartialCloseMinimizeTrading__factory,
   WaultSwapRestrictedStrategyWithdrawMinimizeTrading,
   WaultSwapRestrictedStrategyWithdrawMinimizeTrading__factory,
   WNativeRelayer__factory
@@ -96,6 +98,29 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const wNativeRelayer = WNativeRelayer__factory.connect(WNATIVE_RELAYER, (await ethers.getSigners())[0]);
   await wNativeRelayer.setCallerOk([strategyRestrictedWithdrawMinimizeTradingV2.address], true);
   console.log("✅ Done")
+
+  /**
+   * Restricted StrategyPartialCloseMinimizeTrading V2
+   */
+   console.log(">> Deploying an upgradable WaultEx Restricted StrategyPartialCloseMinimizeTrading V2 contract");
+   const WaultSwapRestrictedStrategyPartialCloseMinimizeTrading = (await ethers.getContractFactory(
+     "WaultSwapRestrictedStrategyPartialCloseMinimizeTrading",
+     (await ethers.getSigners())[0],
+   )) as WaultSwapRestrictedStrategyPartialCloseMinimizeTrading__factory;
+   const strategyRestrictedPartialCloseMinimizeTradingV2 = await upgrades.deployProxy(
+    WaultSwapRestrictedStrategyPartialCloseMinimizeTrading, [ROUTER, WBNB, WNATIVE_RELAYER]) as WaultSwapRestrictedStrategyPartialCloseMinimizeTrading;
+   await strategyRestrictedPartialCloseMinimizeTradingV2.deployed()
+   console.log(`>> Deployed at ${strategyRestrictedPartialCloseMinimizeTradingV2.address}`);
+   
+   if(WHITELIST_WORKERS.length > 0) {
+     console.log(">> Whitelisting workers for strategyRestrictedPartialCloseMinimizeTradingV2")
+     await strategyRestrictedPartialCloseMinimizeTradingV2.setWorkersOk(WHITELIST_WORKERS, true)
+     console.log("✅ Done")
+   }
+ 
+   console.log(">> Whitelist RestrictedStrategyPartialCloseMinimizeTrading V2 on WNativeRelayer");
+   await wNativeRelayer.setCallerOk([strategyRestrictedPartialCloseMinimizeTradingV2.address], true);
+   console.log("✅ Done")
 };
 
 export default func;
