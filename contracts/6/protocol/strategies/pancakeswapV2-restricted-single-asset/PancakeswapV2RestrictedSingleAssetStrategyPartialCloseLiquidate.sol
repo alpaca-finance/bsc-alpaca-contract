@@ -40,6 +40,13 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate is
   address public wNative;
   mapping(address => bool) public okWorkers;
 
+  event PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate(
+    address indexed baseToken,
+    address indexed farmToken,
+    uint256 amounToLiquidate,
+    uint256 amountToRepayDebt
+  );
+
   // @notice require that only allowed workers are able to do the rest of the method call
   modifier onlyWhitelistedWorkers() {
     require(
@@ -68,7 +75,8 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate is
   ) external override onlyWhitelistedWorkers nonReentrant {
     // 1. minBaseTokenAmount for validating a baseToken amount from a conversion of a farmingToken.
     // and farmingToken amount to liquidated
-    (uint256 minBaseTokenAmount, uint256 farmingTokenToLiquidate) = abi.decode(data, (uint256, uint256));
+    (uint256 minBaseTokenAmount, uint256 farmingTokenToLiquidate, uint256 toRepaidBaseTokenDebt) =
+      abi.decode(data, (uint256, uint256, uint256));
     IWorker02 worker = IWorker02(msg.sender);
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
@@ -90,6 +98,13 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate is
     farmingToken.safeTransfer(msg.sender, farmingToken.myBalance());
     // 5. Reset approval for safety reason
     farmingToken.safeApprove(address(router), 0);
+
+    emit PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate(
+      baseToken,
+      farmingToken,
+      farmingTokenToLiquidate,
+      toRepaidBaseTokenDebt
+    );
   }
 
   function setWorkersOk(address[] calldata workers, bool isOk) external onlyOwner {
