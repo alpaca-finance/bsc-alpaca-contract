@@ -40,7 +40,7 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeT
   mapping(address => bool) public okWorkers;
   IWNativeRelayer public wNativeRelayer;
 
-  event PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading(
+  event PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTradingEvent(
     address indexed baseToken,
     address indexed farmToken,
     uint256 amounToLiquidate,
@@ -110,7 +110,7 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeT
     // 6. Reset approval for safety reason
     farmingToken.safeApprove(address(router), 0);
     uint256 lpTokenToLiquidate = 0;
-    emit PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading(
+    emit PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTradingEvent(
       baseToken,
       farmingToken,
       lpTokenToLiquidate,

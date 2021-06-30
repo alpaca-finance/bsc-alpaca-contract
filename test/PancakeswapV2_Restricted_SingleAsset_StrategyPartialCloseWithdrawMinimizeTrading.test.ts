@@ -334,7 +334,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
               ['0',ethers.utils.parseEther('0.05'),ethers.utils.parseEther('0.1')]
             )],
           )
-        )).to.emit(strat,'PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading');
+        )).to.emit(strat,'PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTradingEvent');
       });
     })
 
@@ -510,7 +510,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
               ['0',ethers.utils.parseEther('0.05'),ethers.utils.parseEther('0.1')]
             )],
           )
-        )).to.emit(strat,'PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading');
+        )).to.emit(strat,'PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTradingEvent');
       });
     })
   
@@ -681,7 +681,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
               ['0',ethers.utils.parseEther('0.4'),ethers.utils.parseEther('0.1')]
             )],
           )
-        )).to.emit(strat,'PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading');
+        )).to.emit(strat,'PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTradingEvent');
       });
     })
 
