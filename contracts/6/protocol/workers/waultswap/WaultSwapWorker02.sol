@@ -40,6 +40,8 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
   event AddShare(uint256 indexed id, uint256 share);
   event RemoveShare(uint256 indexed id, uint256 share);
   event Liquidate(uint256 indexed id, uint256 wad);
+  event SetTreasuryBountyBps(address indexed account, uint256 bountyBps);
+  event SetTreasuryAccount(address indexed account);
 
   /// @notice Immutable variables
   IWexMaster public wexMaster;
@@ -69,8 +71,6 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
   /// @notice Upgraded State Variables
   address public treasuryAccount;
   uint256 public treasuryBountyBps;
-  event SetTreasuryBountyBps(address indexed account, uint256 bountyBps);
-  event SetTreasuryAccount(address indexed account);
 
   function initialize(
     address _operator,
@@ -109,6 +109,7 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
     fee = 998;
     feeDenom = 1000;
 
+    require(baseToken != wex, "WaultSwapWorker::initialize:: base token cannot be a reward token");
     require(
       reinvestBountyBps <= maxReinvestBountyBps,
       "WaultSwapWorker::initialize:: reinvestBountyBps exceeded maxReinvestBountyBps"
@@ -168,7 +169,7 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
     wexMaster.withdraw(pid, 0, true);
     uint256 reward = wex.balanceOf(address(this));
     if (reward == 0) return;
-    // 3. Send the reward bounty to the caller.
+    // 3. Send the reward bounty to the _treasuryAccount.
     uint256 bounty = reward.mul(_treasuryBountyBps) / 10000;
     if (bounty > 0) wex.safeTransfer(_treasuryAccount, bounty);
     // 4. Convert all the remaining rewards to BaseToken via Native for liquidity.
@@ -187,7 +188,7 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
     // 5. Use add Token strategy to convert all BaseToken to LP tokens.
     baseToken.safeTransfer(address(addStrat), baseToken.myBalance().sub(_callerBalance));
     addStrat.execute(address(0), 0, abi.encode(0));
-    // 6. Mint more LP tokens and stake them for more rewards.
+    // 6. Stake LPs for more rewards
     wexMaster.deposit(pid, lpToken.balanceOf(address(this)), true);
     // 7. Reset approve
     wex.safeApprove(address(router), 0);
