@@ -10,7 +10,6 @@ import { ContractFactory } from 'ethers';
 interface IWorker {
   WORKER_NAME: string,
   ADDRESS: string
-  FACTORY: ContractFactory
 }
 
 type IWorkers = Array<IWorker>
@@ -61,7 +60,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   // Testnet: 0x2c6c09b46d00A88161B7e4AcFaFEc58990548aC2
   // Mainnet: 0x5379F32C8D5F663EACb61eeF63F722950294f452
   const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig
-  const PROXY_ADMIN = config.ProxyAdmin
   const [pancakeSwapV2Worker02Factory, waultSwapWorker02Factory, cakeMaxiWorker02Factory] = await Promise.all([
     (await ethers.getContractFactory('PancakeswapV2Worker02')) as PancakeswapV2Worker02__factory,
     (await ethers.getContractFactory('WaultSwapWorker02')) as WaultSwapWorker02__factory,
@@ -73,38 +71,37 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     WAULTSWAP_WORKER_02: waultSwapWorker02Factory,
     CAKEMAXI_WORKER_02: cakeMaxiWorker02Factory,
   }
-  const TO_BE_UPGRADE_WORKERS: IWorkers = config.Vaults.reduce((accum, vault) => {
-    const workers = vault.workers.map((worker) => {
-      return {
-        WORKER_NAME: worker.name,
-        ADDRESS: worker.address,
-        FACTORY: getFactory(worker.name, FACTORY)
-      }
-    })
-    return accum.concat(workers) as IWorkers
-  }, [] as IWorkers)
-  const TIMELOCK = config.Timelock;
+
+  const NEW_IMPL = '0xcac73A0f24968e201c2cc326edbC92A87666b430';
+  const TO_BE_UPGRADE_WORKERS: IWorkers = [
+    // {
+    //   WORKER_NAME: "CAKE-WBNB PancakeswapWorker",
+    //   ADDRESS: "0x7Af938f0EFDD98Dc513109F6A7E85106D26E16c4",
+    // } // Example
+  ];
   const EXACT_ETA = '1620575100';
 
+  const timelock = Timelock__factory.connect(config.Timelock, (await ethers.getSigners())[0]);
 
-
-
-
-
-  const timelock = Timelock__factory.connect(TIMELOCK, (await ethers.getSigners())[0]);
+  let newImpl = NEW_IMPL;
+  // if newImpl doesn't exist, use the first record as a name to find the factory
+  if (newImpl === '') {
+    console.log('>> NEW_IMPL is not set. Prepare upgrade a new IMPL automatically.');
+    const NewPancakeswapWorker: ContractFactory = getFactory(TO_BE_UPGRADE_WORKERS[0].WORKER_NAME, FACTORY)
+    const preparedNewWorker: string = await upgrades.prepareUpgrade(TO_BE_UPGRADE_WORKERS[0].ADDRESS, NewPancakeswapWorker)
+    newImpl = preparedNewWorker;
+    console.log(`>> New implementation deployed at: ${preparedNewWorker}`);
+    console.log("✅ Done");
+  }
 
   for(let i = 0; i < TO_BE_UPGRADE_WORKERS.length; i++) {
     console.log(`>> Upgrading worker: ${TO_BE_UPGRADE_WORKERS[i].WORKER_NAME} at ${TO_BE_UPGRADE_WORKERS[i].ADDRESS} through Timelock + ProxyAdmin`)
-    const preparedNewWorker = await upgrades.prepareUpgrade(TO_BE_UPGRADE_WORKERS[i].ADDRESS, TO_BE_UPGRADE_WORKERS[i].FACTORY)
-    console.log(`>> New implementation deployed at: ${preparedNewWorker}`);
-    console.log("✅ Done");
-
     console.log(`>> Queue tx on Timelock to upgrade the implementation`);
-    await timelock.queueTransaction(PROXY_ADMIN, '0', 'upgrade(address,address)', ethers.utils.defaultAbiCoder.encode(['address','address'], [TO_BE_UPGRADE_WORKERS[i].ADDRESS, preparedNewWorker]), EXACT_ETA, { gasPrice: 100000000000 });
+    await timelock.queueTransaction(config.ProxyAdmin, '0', 'upgrade(address,address)', ethers.utils.defaultAbiCoder.encode(['address','address'], [TO_BE_UPGRADE_WORKERS[i].ADDRESS, newImpl]), EXACT_ETA, { gasPrice: 100000000000 });
     console.log("✅ Done");
 
     console.log(`>> Generate executeTransaction:`);
-    console.log(`await timelock.executeTransaction('${PROXY_ADMIN}', '0', 'upgrade(address,address)', ethers.utils.defaultAbiCoder.encode(['address','address'], ['${TO_BE_UPGRADE_WORKERS[i].ADDRESS}','${preparedNewWorker}']), ${EXACT_ETA})`);
+    console.log(`await timelock.executeTransaction('${config.ProxyAdmin}', '0', 'upgrade(address,address)', ethers.utils.defaultAbiCoder.encode(['address','address'], ['${TO_BE_UPGRADE_WORKERS[i].ADDRESS}','${newImpl}']), ${EXACT_ETA})`);
     console.log("✅ Done");
   }
 };
