@@ -42,7 +42,7 @@ contract PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading is
 
   mapping(address => bool) public okWorkers;
 
-  event PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading(
+  event PancakeswapV2RestrictedStrategyPartialCloseMinimizeTradingEvent(
     address indexed baseToken,
     address indexed farmToken,
     uint256 amounToLiquidate,
@@ -145,7 +145,7 @@ contract PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading is
     );
     farmingToken.safeApprove(address(router), 0);
 
-    emit PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading(
+    emit PancakeswapV2RestrictedStrategyPartialCloseMinimizeTradingEvent(
       baseToken,
       farmingToken,
       lpTokenToLiquidate,

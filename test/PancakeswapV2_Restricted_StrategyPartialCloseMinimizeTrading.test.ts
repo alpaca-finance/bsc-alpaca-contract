@@ -377,7 +377,7 @@ describe('PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading', () => {
                 ],
               ),
             ),
-          ).to.emit(strat, 'PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading')
+          ).to.emit(strat, 'PancakeswapV2RestrictedStrategyPartialCloseMinimizeTradingEvent')
 
           // remove liquidity 50%: 4.472135954999579393 LP token (20 farming token + 1 base token)
           // no trade
@@ -492,7 +492,7 @@ describe('PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading', () => {
                 ],
               ),
             ),
-          ).to.emit(strat, 'PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading')
+          ).to.emit(strat, 'PancakeswapV2RestrictedStrategyPartialCloseMinimizeTradingEvent')
 
           // remove liquidity 10%: 0.894427190999915878 LP token (4 farming token + 0.2 base token)
           // trade
@@ -620,7 +620,7 @@ describe('PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading', () => {
               ),
               { gasPrice: 0 },
             ),
-          ).to.emit(strat, 'PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading')
+          ).to.emit(strat, 'PancakeswapV2RestrictedStrategyPartialCloseMinimizeTradingEvent')
 
           // remove liquidity 50%: 0.158113883008418966 LP token (0.05 farming token + 0.5 base token)
           // no trade
@@ -736,7 +736,7 @@ describe('PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading', () => {
               ),
               { gasPrice: 0 },
             ),
-          ).to.emit(strat, 'PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading')
+          ).to.emit(strat, 'PancakeswapV2RestrictedStrategyPartialCloseMinimizeTradingEvent')
 
           // remove liquidity 50%: 0.158113883008418966 LP token (0.05 farming token + 0.5 base token)
           // trade
