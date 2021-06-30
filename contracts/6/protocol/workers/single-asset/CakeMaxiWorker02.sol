@@ -50,6 +50,8 @@ contract CakeMaxiWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWo
   event SetReinvestorOK(address indexed caller, address indexed reinvestor, bool indexed isOk);
   event SetCriticalStrategy(address indexed caller, IStrategy indexed addStrat, IStrategy indexed liqStrat);
   event BeneficialVaultTokenBuyback(address indexed caller, IVault indexed beneficialVault, uint256 indexed buyback);
+  event SetTreasuryBountyBps(address indexed account, uint256 bountyBps);
+  event SetTreasuryAccount(address indexed account);
 
   /// @notice Configuration variables
   IPancakeMasterChef public masterChef;
@@ -85,8 +87,6 @@ contract CakeMaxiWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWo
   address public treasuryAccount;
   uint256 public treasuryBountyBps;
   uint256 public buybackAmount;
-  event SetTreasuryBountyBps(address indexed account, uint256 bountyBps);
-  event SetTreasuryAccount(address indexed account);
 
   function initialize(
     address _operator,
@@ -231,7 +231,7 @@ contract CakeMaxiWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWo
       router.swapExactTokensForTokens(_beneficialVaultBounty, 0, rewardPath, address(this), now);
     // if beneficialvault token not equal to baseToken regardless of a caller balance, can directly transfer to beneficial vault
     // otherwise, need to keep it as a buybackAmount,
-    // since beneficial vault is the same as the calling vuault, it will think of this reward as a `back` amount to paydebt/ sending back to a position owner
+    // since beneficial vault is the same as the calling vault, it will think of this reward as a `back` amount to paydebt/ sending back to a position owner
     if (beneficialVaultToken != baseToken) {
       buybackAmount = 0;
       beneficialVaultToken.safeTransfer(address(beneficialVault), beneficialVaultToken.myBalance());
@@ -328,7 +328,7 @@ contract CakeMaxiWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWo
     farmingToken.safeTransfer(address(liqStrat), actualFarmingTokenBalance());
     liqStrat.execute(address(0), 0, abi.encode(0));
     // 2. Return all available base token back to the operator.
-    uint256 wad = baseToken.myBalance();
+    uint256 wad = actualBaseTokenBalance();
     baseToken.safeTransfer(_msgSender(), wad);
     emit Liquidate(id, wad);
   }
@@ -340,7 +340,7 @@ contract CakeMaxiWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWo
   }
 
   /// @notice since buybackAmount variable has been created to collect a buyback balance when during the reinvest within the work method,
-  /// thus the actualBaseTokenBalance exists to differentiate an actual base token balance balance without taking to buy back amount into account
+  /// thus the actualBaseTokenBalance exists to differentiate an actual base token balance balance without taking buy back amount into account
   function actualBaseTokenBalance() internal view returns (uint256) {
     return baseToken.myBalance().sub(buybackAmount);
   }
