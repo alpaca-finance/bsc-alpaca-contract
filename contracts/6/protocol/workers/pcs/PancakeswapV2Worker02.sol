@@ -40,6 +40,8 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
   event AddShare(uint256 indexed id, uint256 share);
   event RemoveShare(uint256 indexed id, uint256 share);
   event Liquidate(uint256 indexed id, uint256 wad);
+  event SetTreasuryBountyBps(address indexed account, uint256 bountyBps);
+  event SetTreasuryAccount(address indexed account);
 
   /// @notice Configuration variables
   IPancakeMasterChef public masterChef;
@@ -70,8 +72,6 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
   /// @notice Upgraded State Variables
   address public treasuryAccount;
   uint256 public treasuryBountyBps;
-  event SetTreasuryBountyBps(address indexed account, uint256 bountyBps);
-  event SetTreasuryAccount(address indexed account);
 
   function initialize(
     address _operator,
@@ -108,7 +108,7 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
     maxReinvestBountyBps = 500;
     fee = 9975;
     feeDenom = 10000;
-
+    require(baseToken != cake, "PancakeswapWorker::initialize:: base token cannot be a reward token");
     require(
       reinvestBountyBps <= maxReinvestBountyBps,
       "PancakeswapWorker::initialize:: reinvestBountyBps exceeded maxReinvestBountyBps"
@@ -173,7 +173,7 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
     masterChef.withdraw(pid, 0);
     uint256 reward = cake.balanceOf(address(this));
     if (reward == 0) return;
-    // 3. Send the reward bounty to the caller.
+    // 3. Send the reward bounty to the _treasuryAccount.
     uint256 bounty = reward.mul(_treasuryBountyBps) / 10000;
     if (bounty > 0) cake.safeTransfer(_treasuryAccount, bounty);
     // 4. Convert all the remaining rewards to BaseToken via Native for liquidity.
@@ -192,7 +192,7 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
     // 5. Use add Token strategy to convert all BaseToken to LP tokens.
     baseToken.safeTransfer(address(addStrat), baseToken.myBalance().sub(_callerBalance));
     addStrat.execute(address(0), 0, abi.encode(0));
-    // 6. Mint more LP tokens and stake them for more rewards.
+    // 6. Stake LPs for more rewards
     masterChef.deposit(pid, lpToken.balanceOf(address(this)));
     // 7. Reset approve
     cake.safeApprove(address(router), 0);
