@@ -12,6 +12,12 @@ interface IWorker {
 
 type IWorkers = Array<IWorker>
 
+interface IWorkerInput {
+  WORKER_NAME: string,
+}
+
+type IWorkerInputs = Array<IWorkerInput>
+
 /**
  * @description Deployment script for upgrades workers to 02 version
  * @param  {HardhatRuntimeEnvironment} hre
@@ -26,13 +32,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig
-  const TO_BE_UPGRADE_WORKERS: IWorkers = [
+  const workerInputs: IWorkerInputs = [
     // {
     //   WORKER_NAME: "CAKE-WBNB PancakeswapWorker",
-    //   ADDRESS: "0x7Af938f0EFDD98Dc513109F6A7E85106D26E16c4",
     // } // Example
-  ];
+  ]
   const EXACT_ETA = '1620575100';
   const TREASURY_ACCOUNT = ''; // Address of treasury account
   const TREASURY_BOUNTY_BPS = ''; // Treasury bounty bps
@@ -42,6 +46,30 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 
 
+
+
+
+  const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig
+  const allWorkers: IWorkers = config.Vaults.reduce((accum, vault) => {
+    return accum.concat(vault.workers.map(worker => {
+      return {
+        WORKER_NAME: worker.name,
+        ADDRESS: worker.address
+      }
+    }))
+  }, [] as IWorkers)
+  const TO_BE_UPGRADE_WORKERS: IWorkers = workerInputs.map((workerInput) => {
+    // 1. find each worker having an identical name as workerInput
+    // 2. if hit return
+    // 3. other wise throw error
+    const hit = allWorkers.find((worker) => {
+      return worker.WORKER_NAME === workerInput.WORKER_NAME
+    })
+
+    if(!!hit) return hit
+
+    throw new Error(`could not find ${workerInput.WORKER_NAME}`)
+  })
   const timelock = Timelock__factory.connect(config.Timelock, (await ethers.getSigners())[0]);
 
   for(let i = 0; i < TO_BE_UPGRADE_WORKERS.length; i++) {

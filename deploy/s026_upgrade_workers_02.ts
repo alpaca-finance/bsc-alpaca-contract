@@ -14,6 +14,12 @@ interface IWorker {
 
 type IWorkers = Array<IWorker>
 
+interface IWorkerInput {
+  WORKER_NAME: string,
+}
+
+type IWorkerInputs = Array<IWorkerInput>
+
 interface IFactory {
   PANCAKESWAP_V2_WORKER_02: PancakeswapV2Worker02__factory
   WAULTSWAP_WORKER_02: WaultSwapWorker02__factory
@@ -56,10 +62,42 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  // PROXY_ADMIN
-  // Testnet: 0x2c6c09b46d00A88161B7e4AcFaFEc58990548aC2
-  // Mainnet: 0x5379F32C8D5F663EACb61eeF63F722950294f452
+  const workerInputs: IWorkerInputs = [
+    // {
+    //   WORKER_NAME: "CAKE-WBNB PancakeswapWorker",
+    // } // Example
+  ]
+  const NEW_IMPL = '0xcac73A0f24968e201c2cc326edbC92A87666b430';
+  const EXACT_ETA = '1620575100';
+
+
+
+
+
+
+
+
   const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig
+  const allWorkers: IWorkers = config.Vaults.reduce((accum, vault) => {
+    return accum.concat(vault.workers.map(worker => {
+      return {
+        WORKER_NAME: worker.name,
+        ADDRESS: worker.address
+      }
+    }))
+  }, [] as IWorkers)
+  const TO_BE_UPGRADE_WORKERS: IWorkers = workerInputs.map((workerInput) => {
+    // 1. find each worker having an identical name as workerInput
+    // 2. if hit return
+    // 3. other wise throw error
+    const hit = allWorkers.find((worker) => {
+      return worker.WORKER_NAME === workerInput.WORKER_NAME
+    })
+
+    if(!!hit) return hit
+
+    throw new Error(`could not find ${workerInput.WORKER_NAME}`)
+  })
   const [pancakeSwapV2Worker02Factory, waultSwapWorker02Factory, cakeMaxiWorker02Factory] = await Promise.all([
     (await ethers.getContractFactory('PancakeswapV2Worker02')) as PancakeswapV2Worker02__factory,
     (await ethers.getContractFactory('WaultSwapWorker02')) as WaultSwapWorker02__factory,
@@ -71,16 +109,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     WAULTSWAP_WORKER_02: waultSwapWorker02Factory,
     CAKEMAXI_WORKER_02: cakeMaxiWorker02Factory,
   }
-
-  const NEW_IMPL = '0xcac73A0f24968e201c2cc326edbC92A87666b430';
-  const TO_BE_UPGRADE_WORKERS: IWorkers = [
-    // {
-    //   WORKER_NAME: "CAKE-WBNB PancakeswapWorker",
-    //   ADDRESS: "0x7Af938f0EFDD98Dc513109F6A7E85106D26E16c4",
-    // } // Example
-  ];
-  const EXACT_ETA = '1620575100';
-
   const timelock = Timelock__factory.connect(config.Timelock, (await ethers.getSigners())[0]);
 
   let newImpl = NEW_IMPL;
