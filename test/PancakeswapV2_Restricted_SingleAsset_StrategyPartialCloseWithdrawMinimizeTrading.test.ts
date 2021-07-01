@@ -243,7 +243,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
               ['address', 'bytes'],
               [strat.address, ethers.utils.defaultAbiCoder.encode(
                 ['uint256', 'uint256', 'uint256'],
-                [ethers.utils.parseEther('0.088861041492620439').add(1), ethers.utils.parseEther('0.04'), '0']
+                [ethers.utils.parseEther('0.04'), '0', ethers.utils.parseEther('0.088861041492620439').add(1)]
               )],
             )
           )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::execute:: insufficient farmingToken amount received');
@@ -263,7 +263,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
               ['address', 'bytes'],
               [strat.address, ethers.utils.defaultAbiCoder.encode(
                 ['uint256', 'uint256', 'uint256'],
-                [ethers.utils.parseEther('0.088861041492620439'), ethers.utils.parseEther('1.1'), ethers.utils.parseEther('0.5')]
+                [ethers.utils.parseEther('1.1'), ethers.utils.parseEther('0.5'), ethers.utils.parseEther('0.088861041492620439')]
               )],
             )
           )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::execute:: insufficient farmingToken received from worker');
@@ -283,7 +283,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
             ['address', 'bytes'],
             [strat.address, ethers.utils.defaultAbiCoder.encode(
               ['uint256', 'uint256', 'uint256'],
-              [ethers.utils.parseEther('0.088861041492620439'), ethers.utils.parseEther('0.04'), ethers.utils.parseEther('0.5')]
+              [ethers.utils.parseEther('0.04'), ethers.utils.parseEther('0.5'), ethers.utils.parseEther('0.088861041492620439')]
             )],
           )
         )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::execute:: not enough to pay back debt');
@@ -299,7 +299,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
             ['address', 'bytes'],
             [strat.address, ethers.utils.defaultAbiCoder.encode(
               ['uint256', 'uint256', 'uint256'],
-              [ethers.utils.parseEther('0.05'), ethers.utils.parseEther('0.02'),'0']
+              [ethers.utils.parseEther('0.02'), '0', ethers.utils.parseEther('0.05')]
             )],
           )
         )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::onlyWhitelistedWorkers:: bad worker');
@@ -315,7 +315,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
             ['address', 'bytes'],
             [strat.address, ethers.utils.defaultAbiCoder.encode(
               ['uint256','uint256', 'uint256'],
-              [ethers.utils.parseEther('0.05'), ethers.utils.parseEther('0.02'), '0']
+              [ethers.utils.parseEther('0.02'), '0', ethers.utils.parseEther('0.05')]
             )],
           )
         )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::onlyWhitelistedWorkers:: bad worker');
@@ -331,7 +331,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
             ['address', 'bytes'],
             [strat.address, ethers.utils.defaultAbiCoder.encode(
               ['uint256','uint256','uint256'],
-              ['0',ethers.utils.parseEther('0.05'),ethers.utils.parseEther('0.1')]
+              [ethers.utils.parseEther('0.05'), ethers.utils.parseEther('0.1'), '0']
             )],
           )
         )).to.emit(strat,'PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTradingEvent');
@@ -349,7 +349,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
             ['address', 'bytes'],
             [strat.address, ethers.utils.defaultAbiCoder.encode(
               ['uint256','uint256','uint256'],
-              ['0',ethers.utils.parseEther('0.04'),ethers.utils.parseEther('0.01')]
+              [ethers.utils.parseEther('0.04'), ethers.utils.parseEther('0.01'), '0']
             )],
           )
         );
@@ -362,9 +362,9 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
         // thus, 0.04 - 0.00101263259157996 = 0.03898736740842004 FToken will be returned to ALICE
         // and the worker will return 0.01 WBNB to ALICE as a repaying debt
         expect(aliceWbnbAfter.sub(aliceWbnbBefore)).to.be.bignumber.eq(ethers.utils.parseEther('0.01'))
-        expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0.06'))
+        expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
         expect(await wbnb.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0.06'))
         expect(aliceFarmingTokenAfter.sub(aliceFarmingTokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther('0.038987367408420039'))
       });
     })
@@ -380,16 +380,16 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
             ['address', 'bytes'],
             [strat.address, ethers.utils.defaultAbiCoder.encode(
               ['uint256', 'uint256', 'uint256'],
-              ['0', ethers.utils.parseEther('0.04'), '0']
+              [ethers.utils.parseEther('0.04'), '0', '0']
             )],
           )
         );
         const aliceWbnbAfter = await wbnb.balanceOf(await alice.getAddress())
         const aliceFarmingTokenAfter = await farmingToken.balanceOf(await alice.getAddress())
         // FToken, wbnb in a strategy contract MUST be 0
-        expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0.06'))
+        expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
         expect(await wbnb.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0.06'))
         // Alice will have partial farming token of 0.04 FToken back since she got no debt
         expect(aliceFarmingTokenAfter.sub(aliceFarmingTokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther('0.04'))
         expect(aliceWbnbAfter.sub(aliceWbnbBefore)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
@@ -415,7 +415,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
             ['address', 'bytes'],
             [strat.address, ethers.utils.defaultAbiCoder.encode(
               ['uint256','uint256','uint256'],
-              [ethers.utils.parseEther('0.087433327913955996').add(1),ethers.utils.parseEther('0.04'),ethers.utils.parseEther('0.1')]
+              [ethers.utils.parseEther('0.04'), ethers.utils.parseEther('0.1'), ethers.utils.parseEther('0.087433327913955996').add(1)]
             )],
           )
         )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::execute:: insufficient farmingToken amount received');
@@ -439,7 +439,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
             ['address', 'bytes'],
             [strat.address, ethers.utils.defaultAbiCoder.encode(
               ['uint256','uint256','uint256'],
-              [ethers.utils.parseEther('0.087433327913955996').add(1),ethers.utils.parseEther('2'),ethers.utils.parseEther('0.1')]
+              [ethers.utils.parseEther('2'), ethers.utils.parseEther('0.1'), ethers.utils.parseEther('0.087433327913955996').add(1)]
             )],
           )
         )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::execute:: insufficient farmingToken received from worker');
@@ -459,7 +459,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
             ['address', 'bytes'],
             [strat.address, ethers.utils.defaultAbiCoder.encode(
               ['uint256', 'uint256', 'uint256'],
-              [ethers.utils.parseEther('0.088861041492620439').add(1), ethers.utils.parseEther('0.02'), ethers.utils.parseEther('0.2')]
+              [ethers.utils.parseEther('0.02'), ethers.utils.parseEther('0.2'), ethers.utils.parseEther('0.088861041492620439').add(1)]
             )],
           )
         )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::execute:: not enough to pay back debt');
@@ -475,7 +475,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
             ['address', 'bytes'],
             [strat.address, ethers.utils.defaultAbiCoder.encode(
               ['uint256','uint256','uint256'],
-              [ethers.utils.parseEther('0.05'),ethers.utils.parseEther('0.05'),ethers.utils.parseEther('0.05')]
+              [ethers.utils.parseEther('0.05'), ethers.utils.parseEther('0.05'), ethers.utils.parseEther('0.05')]
             )],
           )
         )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::onlyWhitelistedWorkers:: bad worker');
@@ -491,7 +491,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
             ['address', 'bytes'],
             [strat.address, ethers.utils.defaultAbiCoder.encode(
               ['uint256','uint256','uint256'],
-              [ethers.utils.parseEther('0.05'),ethers.utils.parseEther('0.05'),ethers.utils.parseEther('0.05')]
+              [ethers.utils.parseEther('0.05'), ethers.utils.parseEther('0.05'), ethers.utils.parseEther('0.05')]
             )],
           )
         )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::onlyWhitelistedWorkers:: bad worker');
@@ -507,7 +507,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
             ['address', 'bytes'],
             [strat.address, ethers.utils.defaultAbiCoder.encode(
               ['uint256','uint256','uint256'],
-              ['0',ethers.utils.parseEther('0.05'),ethers.utils.parseEther('0.1')]
+              [ethers.utils.parseEther('0.05'), ethers.utils.parseEther('0.1'), '0']
             )],
           )
         )).to.emit(strat,'PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTradingEvent');
@@ -525,7 +525,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
             ['address', 'bytes'],
             [strat.address, ethers.utils.defaultAbiCoder.encode(
               ['uint256','uint256','uint256'],
-              ['0',ethers.utils.parseEther('0.05'),ethers.utils.parseEther('0.1')]
+              [ethers.utils.parseEther('0.05'), ethers.utils.parseEther('0.1'), '0']
             )],
           )
         );
@@ -541,9 +541,9 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
         // thus 0.05 - 0.012566672086044004 = 0.037433327913955996 FToken will be returned to ALICE
         // Alice will have 0.037433327913955996 FTOKEN back and 0.1 BTOKEN as a repaying debt
         expect(aliceBaseTokenAfter.sub(aliceBaseTokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther('0.1'))
-        expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0.05'))
+        expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
         expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0.05'))
         expect(aliceFarmingTokenAfter.sub(aliceFarmingTokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther('0.037433327913955996'))
       })
     })
@@ -559,16 +559,16 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
             ['address', 'bytes'],
             [strat.address, ethers.utils.defaultAbiCoder.encode(
               ['uint256','uint256','uint256'],
-              ['0',ethers.utils.parseEther('0.04'),'0']
+              [ethers.utils.parseEther('0.04'), '0', '0']
             )],
           )
         );
         const aliceBaseTokenAfter = await baseToken.balanceOf(await alice.getAddress())
         const aliceFarmingTokenAfter = await farmingToken.balanceOf(await alice.getAddress())
         // FToken, BToken in a strategy contract MUST be 0
-        expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0.06'))
+        expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
         expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0.06'))
         // Alice will have partial farming token of 0.04 FToken back since she got no debt
         expect(aliceBaseTokenAfter.sub(aliceBaseTokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
         expect(aliceFarmingTokenAfter.sub(aliceFarmingTokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther('0.04'))
@@ -590,7 +590,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
             ['address', 'bytes'],
             [strat.address, ethers.utils.defaultAbiCoder.encode(
               ['uint256','uint256','uint256'],
-              [ethers.utils.parseEther('0.888610414926204399').add(1),'0','0']
+              ['0', '0', ethers.utils.parseEther('0.888610414926204399').add(1)]
             )],
           )
         )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::execute:: insufficient farmingToken amount received');
@@ -610,7 +610,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
             ['address', 'bytes'],
             [strat.address, ethers.utils.defaultAbiCoder.encode(
               ['uint256','uint256','uint256'],
-              [ethers.utils.parseEther('0.888610414926204399').add(1),ethers.utils.parseEther('2'),'0']
+              [ethers.utils.parseEther('2'), '0', ethers.utils.parseEther('0.888610414926204399').add(1)]
             )],
           )
         )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::execute:: insufficient farmingToken received from worker');
@@ -630,7 +630,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
             ['address', 'bytes'],
             [strat.address, ethers.utils.defaultAbiCoder.encode(
               ['uint256', 'uint256', 'uint256'],
-              [ethers.utils.parseEther('0.088861041492620439'), ethers.utils.parseEther('0.04'), ethers.utils.parseEther('0.5')]
+              [ethers.utils.parseEther('0.04'), ethers.utils.parseEther('0.5'), ethers.utils.parseEther('0.088861041492620439')]
             )],
           )
         )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::execute:: not enough to pay back debt');
@@ -646,7 +646,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
             ['address', 'bytes'],
             [strat.address, ethers.utils.defaultAbiCoder.encode(
               ['uint256','uint256','uint256'],
-              [ethers.utils.parseEther('0.05'),'0','0']
+              ['0', '0', ethers.utils.parseEther('0.05')]
             )],
           )
         )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::onlyWhitelistedWorkers:: bad worker');
@@ -662,7 +662,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
             ['address', 'bytes'],
             [strat.address, ethers.utils.defaultAbiCoder.encode(
               ['uint256','uint256','uint256'],
-              [ethers.utils.parseEther('0.05'),'0','0']
+              ['0', '0', ethers.utils.parseEther('0.05')]
             )],
           )
         )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::onlyWhitelistedWorkers:: bad worker');
@@ -678,7 +678,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
             ['address', 'bytes'],
             [strat.address, ethers.utils.defaultAbiCoder.encode(
               ['uint256', 'uint256', 'uint256'],
-              ['0',ethers.utils.parseEther('0.4'),ethers.utils.parseEther('0.1')]
+              [ethers.utils.parseEther('0.4'), ethers.utils.parseEther('0.1'), '0']
             )],
           )
         )).to.emit(strat,'PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTradingEvent');
@@ -697,7 +697,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
             ['address', 'bytes'],
             [strat.address, ethers.utils.defaultAbiCoder.encode(
               ['uint256','uint256','uint256'],
-              ['0',ethers.utils.parseEther('0.4'),ethers.utils.parseEther('0.1')]
+              [ethers.utils.parseEther('0.4'), ethers.utils.parseEther('0.1'), '0']
             )],
           ),
           {
@@ -712,8 +712,8 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
         const aliceNativeFarmingTokenAfter = await ethers.provider.getBalance(await alice.getAddress())
         expect(aliceBaseTokenAfter.sub(aliceBaseTokenBefore)).to.eq(ethers.utils.parseEther('0.1'))
         expect(aliceNativeFarmingTokenAfter.sub(aliceNativeFarmingTokenBefore)).to.eq(ethers.utils.parseEther('0.288610414926204399'))
-        expect(await wbnb.balanceOf(mockPancakeswapV2WorkerBaseBNBTokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-        expect(await wbnb.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0.6'))
+        expect(await wbnb.balanceOf(mockPancakeswapV2WorkerBaseBNBTokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0.6'))
+        expect(await wbnb.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
         expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
       });
     })
@@ -730,7 +730,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
             ['address', 'bytes'],
             [strat.address, ethers.utils.defaultAbiCoder.encode(
               ['uint256','uint256','uint256'],
-              [ethers.utils.parseEther('0'),ethers.utils.parseEther('0.1'),ethers.utils.parseEther('0')]
+              [ethers.utils.parseEther('0.1'), ethers.utils.parseEther('0'), ethers.utils.parseEther('0')]
             )],
           ),
           {
@@ -743,8 +743,8 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
         expect(aliceBaseTokenAfter.sub(aliceBaseTokenBefore)).to.eq(ethers.utils.parseEther('0'))
         expect(aliceNativeFarmingTokenAfter.sub(aliceNativeFarmingTokenBefore)).to.eq(ethers.utils.parseEther('0.1'))
         // wbnb, BToken in a strategy contract MUST be 0
-        expect(await wbnb.balanceOf(mockPancakeswapV2WorkerBaseBNBTokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-        expect(await wbnb.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0.9'))
+        expect(await wbnb.balanceOf(mockPancakeswapV2WorkerBaseBNBTokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0.9'))
+        expect(await wbnb.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
         expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
       });
     })
