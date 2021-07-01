@@ -265,7 +265,7 @@ describe('PancakeswapV2RestrictedStrategyPartialCloseLiquidate', () => {
               [returnLp, ethers.utils.parseEther('0.1'), ethers.utils.parseEther('0.5')]
             )],
           )
-      )).to.emit(strat, 'PancakeswapV2RestrictedStrategyPartialCloseLiquidateEvent')
+      )).to.emit(strat, 'PancakeswapV2RestrictedStrategyPartialCloseLiquidateEvent').withArgs(baseToken.address, farmingToken.address, returnLp, ethers.utils.parseEther('0.1'))
     
     // After execute strategy successfully. The following conditions must be satisfied
     // - LPs in Strategy contract must be 0
