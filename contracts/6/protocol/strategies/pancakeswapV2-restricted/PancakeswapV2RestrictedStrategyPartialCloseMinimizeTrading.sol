@@ -121,9 +121,14 @@ contract PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading is
         router.swapTokensForExactTokens(remainingDebt, farmingTokenbalance, path, address(this), now);
       }
     }
-    // 5. Return base token back to the original caller.
+    // 5. Return remaining LP token back to the original caller
+    require(
+      lpToken.transfer(msg.sender, lpToken.balanceOf(address(this))),
+      "PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading::execute:: unable to transfer lp to caller"
+    );
+    // 6. Return base token back to the original caller.
     baseToken.safeTransfer(msg.sender, baseToken.myBalance());
-    // 6. Return remaining farming tokens to user.
+    // 7. Return remaining farming tokens to user.
     uint256 remainingFarmingToken = farmingToken.myBalance();
     require(
       remainingFarmingToken >= minFarmingToken,
@@ -138,7 +143,7 @@ contract PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading is
         SafeToken.safeTransfer(farmingToken, user, remainingFarmingToken);
       }
     }
-    // 7. Reset approval for safety reason
+    // 8. Reset approval for safety reason
     require(
       lpToken.approve(address(router), 0),
       "PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading::execute:: unable to reset lp token approval"
