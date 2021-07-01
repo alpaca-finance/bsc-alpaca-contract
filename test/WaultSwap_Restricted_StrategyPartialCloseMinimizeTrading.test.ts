@@ -311,7 +311,6 @@ describe('WaultSwapRestrictedStrategyPartialCloseMinimizeTrading', () => {
     })
 
     context('when no trade (repaid debt <= received BaseToken from LP token)', async () => {
-      // Bob's position: 40 farming token + 2 base token (8.944271909999158785 LP token)
       // LP token to liquidate: 4.472135954999579392 Lp token (20 farming token + 1 base token)
       // Base token to be repaid debt: 0.8 base token
       context('when insufficient farming tokens received', async () => {
@@ -342,7 +341,6 @@ describe('WaultSwapRestrictedStrategyPartialCloseMinimizeTrading', () => {
         })
       })
       context('when successfully', async () => {
-        // Bob's position: 40 farming token + 2 base token (8.944271909999158785 LP token)
         // LP token to liquidate: 4.472135954999579392 Lp token (20 farming token + 1 base token)
         // Base token to be repaid debt: 0.8 base token
         it('should be successfully', async () => {
@@ -369,14 +367,14 @@ describe('WaultSwapRestrictedStrategyPartialCloseMinimizeTrading', () => {
                 ],
               ),
             ),
-          ).to.emit(strat, 'WaultSwapRestrictedStrategyPartialCloseMinimizeTradingEvent')
+          ).to.emit(strat, 'WaultSwapRestrictedStrategyPartialCloseMinimizeTradingEvent').withArgs(baseToken.address, farmingToken.address, ethers.utils.parseEther('4.472135954999579393'), ethers.utils.parseEther('0.8'))
 
           // remove liquidity 50%: 4.472135954999579393 LP token (20 farming token + 1 base token)
           // no trade
           const bobBaseTokenAfter = await baseToken.balanceOf(await bob.getAddress())
           const bobFTOKENAfter = await farmingToken.balanceOf(await bob.getAddress())
           expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(
-            ethers.utils.parseEther('4.472135954999579392'),
+            ethers.utils.parseEther('0'),
           )
           expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther('0'))
           TestHelpers.assertAlmostEqual(
@@ -393,7 +391,6 @@ describe('WaultSwapRestrictedStrategyPartialCloseMinimizeTrading', () => {
 
     context('when some trade (repaid debt > received Base token from LP)', async () => {
       context('when rapaid debt > received Base token from LP + trade', async () => {
-        // Bob's position: 40 farming token + 2 base token (8.944271909999158785 LP token)
         // LP token to liquidate: 0.894427190999915878 Lp token (4 farming token + 0.2 base token) ~ 0.4 base token
         // Base token to be repaid debt: 0.5 base token
         it('should be revert', async () => {
@@ -427,7 +424,6 @@ describe('WaultSwapRestrictedStrategyPartialCloseMinimizeTrading', () => {
       })
 
       context('when insufficient farming tokens received', async () => {
-        // Bob's position: 40 farming token + 2 base token (8.944271909999158785 LP token)
         // LP token to liquidate: 0.894427190999915878 Lp token (4 farming token + 0.2 base token)
         // Base token to be repaid debt: 0.24 base token
         it('should revert', async () => {
@@ -457,7 +453,6 @@ describe('WaultSwapRestrictedStrategyPartialCloseMinimizeTrading', () => {
         })
       })
       context('when successfully', async () => {
-        // Bob's position: 40 farming token + 2 base token (8.944271909999158785 LP token)
         // LP token to liquidate: 0.894427190999915878 Lp token (4 farming token + 0.2 base token)
         // Base token to be repaid debt: 0.24 base token
         it('should be successfully', async () => {
@@ -484,7 +479,7 @@ describe('WaultSwapRestrictedStrategyPartialCloseMinimizeTrading', () => {
                 ],
               ),
             ),
-          ).to.emit(strat, 'WaultSwapRestrictedStrategyPartialCloseMinimizeTradingEvent')
+          ).to.emit(strat, 'WaultSwapRestrictedStrategyPartialCloseMinimizeTradingEvent').withArgs(baseToken.address, farmingToken.address, ethers.utils.parseEther('0.894427190999915878'),ethers.utils.parseEther('0.24'))
 
           // remove liquidity 10%: 0.894427190999915878 LP token (4 farming token + 0.2 base token)
           // trade
@@ -495,7 +490,7 @@ describe('WaultSwapRestrictedStrategyPartialCloseMinimizeTrading', () => {
           const bobBaseTokenAfter = await baseToken.balanceOf(await bob.getAddress())
           const bobFTOKENAfter = await farmingToken.balanceOf(await bob.getAddress())
           expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(
-            ethers.utils.parseEther('8.049844718999242907'),
+            ethers.utils.parseEther('0'),
           )
           expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther('0'))
           TestHelpers.assertAlmostEqual(
@@ -553,7 +548,6 @@ describe('WaultSwapRestrictedStrategyPartialCloseMinimizeTrading', () => {
       )
     })
     context('when no trade (repaid debt <= received BaseToken from LP token)', async () => {
-      // Bob's position: 0.1 WBNB + 1 base token (0.316227766016837933 token)
       // LP token to liquidate: 0.158113883008418966 Lp token (0.05 farming token + 0.5 base token)
       // Base token to be repaid debt: 0.1 base token
       context('when insufficient farming tokens received', async () => {
@@ -584,7 +578,6 @@ describe('WaultSwapRestrictedStrategyPartialCloseMinimizeTrading', () => {
         })
       })
       context('when successfully', async () => {
-        // Bob's position: 0.1 WBNB + 1 base token (0.316227766016837933 token)
         // LP token to liquidate: 0.158113883008418966 Lp token (0.05 farming token + 0.5 base token)
         // Base token to be repaid debt: 0.1 base token
         it('should be successfully', async () => {
@@ -612,7 +605,7 @@ describe('WaultSwapRestrictedStrategyPartialCloseMinimizeTrading', () => {
               ),
               { gasPrice: 0 },
             ),
-          ).to.emit(strat, 'WaultSwapRestrictedStrategyPartialCloseMinimizeTradingEvent')
+          ).to.emit(strat, 'WaultSwapRestrictedStrategyPartialCloseMinimizeTradingEvent').withArgs(baseToken.address, wbnb.address, ethers.utils.parseEther('0.158113883008418966'), ethers.utils.parseEther('0.1'))
 
           // remove liquidity 50%: 0.158113883008418966 LP token (0.05 farming token + 0.5 base token)
           // no trade
@@ -634,7 +627,6 @@ describe('WaultSwapRestrictedStrategyPartialCloseMinimizeTrading', () => {
 
     context('when some trade (repaid debt > received Base token from LP)', async () => {
       context('when rapaid debt > received Base token from LP + trade', async () => {
-        // Bob's position: 0.1 WBNB + 1 base token (0.316227766016837933 token)
         // LP token to liquidate: 0.158113883008418966 Lp token (0.05 farming token + 0.5 base token)
         // Base token to be repaid debt: 1 base token
         it('should be revert', async () => {
@@ -669,7 +661,6 @@ describe('WaultSwapRestrictedStrategyPartialCloseMinimizeTrading', () => {
       })
 
       context('when insufficient farming tokens received', async () => {
-        // Bob's position: 0.1 WBNB + 1 base token (0.316227766016837933 token)
         // LP token to liquidate: 0.158113883008418966 Lp token (0.05 farming token + 0.5 base token)
         // Base token to be repaid debt: 1 base token
         it('should revert', async () => {
@@ -700,7 +691,6 @@ describe('WaultSwapRestrictedStrategyPartialCloseMinimizeTrading', () => {
         })
       })
       context('when successfully', async () => {
-        // Bob's position: 0.1 WBNB + 1 base token (0.316227766016837933 token)
         // LP token to liquidate: 0.158113883008418966 Lp token (0.05 farming token + 0.5 base token)
         // Base token to be repaid debt: 1 base token
         it('should be successfully', async () => {
@@ -728,7 +718,7 @@ describe('WaultSwapRestrictedStrategyPartialCloseMinimizeTrading', () => {
               ),
               { gasPrice: 0 },
             ),
-          ).to.emit(strat, 'WaultSwapRestrictedStrategyPartialCloseMinimizeTradingEvent')
+          ).to.emit(strat, 'WaultSwapRestrictedStrategyPartialCloseMinimizeTradingEvent').withArgs(baseToken.address, wbnb.address, ethers.utils.parseEther('0.158113883008418966'), ethers.utils.parseEther('0.6'))
 
           // remove liquidity 50%: 0.158113883008418966 LP token (0.05 farming token + 0.5 base token)
           // trade
