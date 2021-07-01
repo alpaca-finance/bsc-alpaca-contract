@@ -65,7 +65,7 @@ describe('CakeMaxiWorker02', () => {
   const RESERVE_POOL_BPS = '0'; // 0% reserve pool
   const KILL_PRIZE_BPS = '1000'; // 10% Kill prize
   const INTEREST_RATE = '3472222222222'; // 30% per year
-  const MIN_DEBT_SIZE = ethers.utils.parseEther('0.05'); // 1 BTOKEN min debt size
+  const MIN_DEBT_SIZE = ethers.utils.parseEther('0.05');
   const ZERO_BENEFICIALVAULT_BOUNTY_BPS = '0'
   const BENEFICIALVAULT_BOUNTY_BPS = '1000'
   const poolId = 0
@@ -415,6 +415,7 @@ describe('CakeMaxiWorker02', () => {
     await stratLiq.setWorkersOk([cakeMaxiWorkerNative.address, cakeMaxiWorkerNonNative.address, integratedCakeMaxiWorker.address, integratedCakeMaxiWorker01.address], true)
     await stratMinimize.setWorkersOk([cakeMaxiWorkerNative.address, cakeMaxiWorkerNonNative.address, integratedCakeMaxiWorker.address, integratedCakeMaxiWorker01.address], true)
     await stratEvil.setWorkersOk([cakeMaxiWorkerNative.address, cakeMaxiWorkerNonNative.address, integratedCakeMaxiWorker.address, integratedCakeMaxiWorker01.address], true)
+    
     // Assign contract signer
     baseTokenAsAlice = MockERC20__factory.connect(baseToken.address, alice);
     baseTokenAsBob = MockERC20__factory.connect(baseToken.address, bob);
@@ -431,6 +432,7 @@ describe('CakeMaxiWorker02', () => {
     integratedVaultAsBob = Vault__factory.connect(integratedVault.address, bob)
     integratedCakeMaxiWorkerAsEve =  CakeMaxiWorker02__factory.connect(integratedCakeMaxiWorker.address, eve);
     integratedCakeMaxiWorker01AsEve =  CakeMaxiWorker__factory.connect(integratedCakeMaxiWorker01.address, eve);
+    
     // Adding liquidity to the pool
     await wbnbTokenAsAlice.deposit({
       value: ethers.utils.parseEther('52')
@@ -451,7 +453,7 @@ describe('CakeMaxiWorker02', () => {
     await routerV2AsAlice.addLiquidity(
       baseToken.address, wbnb.address,
       ethers.utils.parseEther('1'), ethers.utils.parseEther('1'), '0', '0', await alice.getAddress(), FOREVER);
-    // Add liquidity to the CAKE-FTOKEN pool on Pancakeswap
+    // Add liquidity to the CAKE-WBNB pool on Pancakeswap
     await routerV2AsAlice.addLiquidity(
       cake.address, wbnb.address,
       ethers.utils.parseEther('0.1'), 
@@ -591,7 +593,7 @@ describe('CakeMaxiWorker02', () => {
         // Alice uses AddBaseTokenOnly strategy to add 0.1 WBNB
         // amountOut of 0.1 will be
         // if 1WBNB = 0.1 FToken
-        // 0.1WBNB will be (0.1*0.9975) * (0.1/(1+0.1*0.9975)) = 0.009070243237099340
+        // 0.1WBNB will be (0.1* 0.9975 * 0.1) / ( 1 + 0.1 * 0.9975) = 0.009070243237099340 FTOKEN
         await wbnbTokenAsAlice.transfer(cakeMaxiWorkerNative.address, ethers.utils.parseEther('0.1'));
         await cakeMaxiWorkerNativeAsAlice.work(
           0, await alice.getAddress(), 0,
@@ -608,13 +610,14 @@ describe('CakeMaxiWorker02', () => {
         let userInfo = await masterChef.userInfo(0, cakeMaxiWorkerNative.address)
         expect(userInfo[0]).to.eq(ethers.utils.parseEther('0.00907024323709934'))
         expect(await cakeMaxiWorkerNative.shares(0)).to.eq(ethers.utils.parseEther('0.00907024323709934'))
+        expect(await cakeMaxiWorkerNative.shareToBalance(await cakeMaxiWorkerNative.shares(0))).to.eq(ethers.utils.parseEther('0.00907024323709934'))
         // Alice uses AddBaseTokenOnly strategy to add another 0.1 WBNB
         // once alice call function `work()` the `reinvest()` will be triggered
         // since it's 2 blocks away from the last `work()`, the reward will be 0.2 CAKE
         // thus, reward staked in the masterchef will be  0.2 - 0.002 (as a reward) + 0.009070243237099340 = 0.207070243237097456
 
         // amountOut of 0.1 from alice will be
-        // if 1.1 WBNB = (0.1 - 0.00907024323709934) FToken
+        // if 1.1 WBNB = (0.1 - 0.00907024323709934) FToken  ((0.1 - 0.00907024323709934) is from a reserve pool changed during swap)
         // if 1.1 WBNB = 0.09092975676290066 FToken
         // 0.1 WBNB will be (0.1 * 0.9975 * 0.09092975676290066) /(1.1 + 0.1 * 0.9975)
         // = 0.0075601110540523785
@@ -636,6 +639,8 @@ describe('CakeMaxiWorker02', () => {
         userInfo = await masterChef.userInfo(0, cakeMaxiWorkerNative.address)
         expect(userInfo[0]).to.eq(ethers.utils.parseEther('0.214630354291149834'))
         expect(await cakeMaxiWorkerNative.shares(0)).to.eq(ethers.utils.parseEther('0.214630354291149834'))
+        expect(await cakeMaxiWorkerNative.shareToBalance(await cakeMaxiWorkerNative.shares(0))).to.eq(ethers.utils.parseEther('0.214630354291149834'))
+        Assert.assertAlmostEqual((await cake.balanceOf(await eve.getAddress())).toString(), ethers.utils.parseEther('0.002').toString())
         Assert.assertAlmostEqual((await cakeMaxiWorkerNative.rewardBalance()).toString(), ethers.utils.parseEther('0').toString())
         // bob start opening his position using 0.1 wbnb
         // once bob call function `work()` the `reinvest()` will be triggered
@@ -647,7 +652,8 @@ describe('CakeMaxiWorker02', () => {
         // if 1.2 WBNB = 0.08336964570884828 FToken
         // 0.1 WBNB will be (0.1 * 0.9975 * 0.08336964570884828) / (1.2+0.1*0.9975) = 0.006398247477943924
         // total farming token amount will be 0.412630354291058781 + 0.006398247477943924 = 0.419028601769002705
-        // bob total share bill be (0.006398247477943924 /  0.412630354291058781) * 0.214630354291149834 = 0.003328058900060705 
+        // bob total share will be (0.006398247477943924 /  0.412630354291058781) * 0.214630354291149834 = 0.003328058900060705
+        // alice total balance will be (0.214630354291149834 /  0.214630354291149834) * 0.419028601769002705 = 0.419028601769002705
         await wbnbTokenAsBob.transfer(cakeMaxiWorkerNative.address, ethers.utils.parseEther('0.1'));
         await cakeMaxiWorkerNativeAsAlice.work(
           1, await bob.getAddress(), 0,
@@ -664,8 +670,10 @@ describe('CakeMaxiWorker02', () => {
         userInfo = await masterChef.userInfo(0, cakeMaxiWorkerNative.address)
         expect(userInfo[0]).to.eq(ethers.utils.parseEther('0.419028601769002705'))
         expect(await cakeMaxiWorkerNative.shares(0)).to.eq(ethers.utils.parseEther('0.214630354291149834'))
+        expect(await cakeMaxiWorkerNative.shareToBalance(await cakeMaxiWorkerNative.shares(0))).to.eq(ethers.utils.parseEther('0.412630354291058781'))
         expect(await cakeMaxiWorkerNative.shares(1)).to.eq(ethers.utils.parseEther('0.003328058900060705'))
         expect(await cakeMaxiWorkerNative.shareToBalance(await cakeMaxiWorkerNative.shares(1))).to.eq(ethers.utils.parseEther('0.006398247477943923'))
+        Assert.assertAlmostEqual((await cake.balanceOf(await eve.getAddress())).toString(), ethers.utils.parseEther('0.004').toString())
         Assert.assertAlmostEqual((await cakeMaxiWorkerNative.rewardBalance()).toString(), ethers.utils.parseEther('0').toString())
       })
     })
@@ -692,7 +700,7 @@ describe('CakeMaxiWorker02', () => {
         let userInfo = await masterChef.userInfo(0, cakeMaxiWorkerNative.address)
         expect(userInfo[0]).to.eq(ethers.utils.parseEther('0.00907024323709934'))
         expect(await cakeMaxiWorkerNative.shares(0)).to.eq(ethers.utils.parseEther('0.00907024323709934'))
-        // Alice uses AddBaseWithFarm strategy to add another 0.1 WBNB
+        // Alice uses AddBaseWithFarm strategy to add another 0.1 WBNB with 0.04 CAKE
         // once alice call function `work()` the `reinvest()` will be triggered
         // since it's 3 blocks away from the last `work()`, the reward will be 0.3 CAKE
         // thus, reward staked in the masterchef will be  0.3 - 0.003 (as a reward) + 0.009070243237099340 = 0.306070243237092023
@@ -720,7 +728,7 @@ describe('CakeMaxiWorker02', () => {
         expect(await cakeMaxiWorkerNative.shares(0)).to.eq(ethers.utils.parseEther('0.353630354291144401'))
         Assert.assertAlmostEqual((await cakeMaxiWorkerNative.rewardBalance()).toString(), ethers.utils.parseEther('0').toString())
 
-        // Bob start opening his position using 0.1 wbnb
+        // Bob start opening his position using 0.1 wbnb with 0.05 CAKE
         // once alice call function `work()` the `reinvest()` will be triggered
         // since it's 3 blocks away from the last `work()`, the reward will be 0.3 CAKE
         // thus, reward staked in the masterchef will be  0.3 - 0.003 (as a reward) + 0.353630354291144401 = 0.650630354290912584
@@ -747,6 +755,8 @@ describe('CakeMaxiWorker02', () => {
         )
         userInfo = await masterChef.userInfo(0, cakeMaxiWorkerNative.address)
         expect(userInfo[0]).to.eq(ethers.utils.parseEther('0.707028601768856508'))
+        expect(await cakeMaxiWorkerNative.shares(0)).to.eq(ethers.utils.parseEther('0.353630354291144401'))
+        expect(await cakeMaxiWorkerNative.shareToBalance(await cakeMaxiWorkerNative.shares(0))).to.eq(ethers.utils.parseEther('0.650630354290912585'))
         expect(await cakeMaxiWorkerNative.shares(1)).to.eq(ethers.utils.parseEther('0.030653553289503376'))
         expect(await cakeMaxiWorkerNative.shareToBalance(await cakeMaxiWorkerNative.shares(1))).to.eq(ethers.utils.parseEther('0.056398247477943922'))
         Assert.assertAlmostEqual((await cakeMaxiWorkerNative.rewardBalance()).toString(), ethers.utils.parseEther('0').toString())
@@ -861,6 +871,7 @@ describe('CakeMaxiWorker02', () => {
             )
           )
           userInfo = await masterChef.userInfo(0, cakeMaxiWorkerNative.address)
+          Assert.assertAlmostEqual((await cake.balanceOf(await eve.getAddress())).toString(), ethers.utils.parseEther('0.002').toString())
           expect(userInfo[0]).to.eq(ethers.utils.parseEther('0.214630354291149834'))
           expect(await cakeMaxiWorkerNative.shares(1)).to.eq(ethers.utils.parseEther('0.000331153550059932'))
           // Alice call liquidate strategy to close her position
@@ -952,6 +963,7 @@ describe('CakeMaxiWorker02', () => {
         userInfo = await masterChef.userInfo(0, cakeMaxiWorkerNative.address)
         const aliceBaseTokenAfter = await wbnb.balanceOf(await alice.getAddress())
         const aliceFarmingTokenAfter = await cake.balanceOf(await alice.getAddress())
+        Assert.assertAlmostEqual((await cake.balanceOf(await eve.getAddress())).toString(), ethers.utils.parseEther('0.001').toString())
         expect(userInfo[0]).to.eq(ethers.utils.parseEther('0'))
         expect(await cakeMaxiWorkerNative.shares(0)).to.eq(ethers.utils.parseEther('0'))
         Assert.assertAlmostEqual((await cakeMaxiWorkerNative.rewardBalance()).toString(), ethers.utils.parseEther('0').toString())
@@ -1133,6 +1145,7 @@ describe('CakeMaxiWorker02', () => {
           expect(await cakeMaxiWorkerNative.shares(0)).to.eq(ethers.utils.parseEther('0.214662221245601331'))
           Assert.assertAlmostEqual((await cake.balanceOf(await eve.getAddress())).toString(), ethers.utils.parseEther('0.0018').toString())
           Assert.assertAlmostEqual((await cakeMaxiWorkerNative.rewardBalance()).toString(), ethers.utils.parseEther('0').toString())
+          Assert.assertAlmostEqual((await alpaca.balanceOf(mockedBeneficialVault.address)).toString(), ethers.utils.parseEther('0.002401520797529707').toString())
           expect(await cakeMaxiWorkerNative.shareToBalance(await cakeMaxiWorkerNative.shares(0))).to.eq(ethers.utils.parseEther('0.214662221245601331'))
           // since it's 2 blocks away from the last `work()`, the reward will be 0.2 CAKE
           // thus, reward staked in the masterchef will be  0.1 - 0.001 (as a reward) + 0.214662221245601331 = 0.313662221245495030
@@ -1157,7 +1170,7 @@ describe('CakeMaxiWorker02', () => {
           // thus, reward staked in the masterchef will be  0.2 - 0.002 (as a reward) + 0.313662221245495030  = 0.511662221245326915
 
           // 90% if reinvest bounty 0.002 * 90 / 100 = 0.00018
-          // thus, alice we get a bounty of 00018
+          // thus, eve we get a bounty of 00018
           // 10% of 0.002 (0.0002) will be distributed to the vault by swapping 0.002 of reward token into a beneficial vault token (this is scenario, it will be ALPACA)
 
           // if 0.083637778754396675 FToken = 1.196163578357295773  WBNB
@@ -1383,7 +1396,7 @@ describe('CakeMaxiWorker02', () => {
             expect(await integratedCakeMaxiWorker01.shares(1)).to.eq(ethers.utils.parseEther('0.00907024323709934'))
             expect(await integratedCakeMaxiWorker01.shareToBalance(await integratedCakeMaxiWorker01.shares(1))).to.eq(ethers.utils.parseEther('0.00907024323709934'))
 
-            // PancakeswapWorker needs to be updated to PancakeswapV2WorkerMigrate
+            // Upgrade from CakeMaxiWorker to CakeMaxiWorker02 for optimized reinvest
             const CakeMaxiWorker02 = (await ethers.getContractFactory(
               'CakeMaxiWorker02',
               deployer
@@ -1624,138 +1637,268 @@ describe('CakeMaxiWorker02', () => {
     })
 
     context("When integrated with an actual vault", async () => {
-      it('should successfully liquidate a certain position after all transactions', async () => {
-        await integratedCakeMaxiWorker.setBeneficialVaultBountyBps(BigNumber.from(BENEFICIALVAULT_BOUNTY_BPS))
-        expect(await integratedCakeMaxiWorker.beneficialVaultBountyBps()).to.eq(BigNumber.from(BENEFICIALVAULT_BOUNTY_BPS))
-        // alice deposit some portion of her native bnb into a vault, thus interest will be accrued afterward
-        await integratedVaultAsAlice.deposit(ethers.utils.parseEther('1'), {
-          value: ethers.utils.parseEther('1')
+      context("when there is buybackAmount left when killing a position", async() => {
+        it('should successfully liquidate a certain position without any returning a buybackAmount', async () => {
+          await integratedCakeMaxiWorker.setBeneficialVaultBountyBps(BigNumber.from(BENEFICIALVAULT_BOUNTY_BPS))
+          expect(await integratedCakeMaxiWorker.beneficialVaultBountyBps()).to.eq(BigNumber.from(BENEFICIALVAULT_BOUNTY_BPS))
+          // alice deposit some portion of her native bnb into a vault, thus interest will be accrued afterward
+          await integratedVaultAsAlice.deposit(ethers.utils.parseEther('1'), {
+            value: ethers.utils.parseEther('1')
+          })
+          // Alice uses AddBaseTokenOnly strategy to add 0.1 WBNB (0.05 as principal amount, 0.05 as a loan)
+          // amountOut of 0.1 will be
+          // if 1WBNB = 0.1 FToken
+          // 0.1WBNB will be (0.1 * 0.9975 * 0.1) / (1 + 0.1 * 0.9975) = 0.009070243237099340
+          await integratedVaultAsAlice.work(
+            0,
+            integratedCakeMaxiWorker.address,
+            ethers.utils.parseEther('0.05'),
+            ethers.utils.parseEther('0.05'),
+            '0', // max return = 0, don't return BTOKEN to the debt
+            ethers.utils.defaultAbiCoder.encode(
+              ['address', 'bytes'],
+              [stratAdd.address, 
+                ethers.utils.defaultAbiCoder.encode(
+                  ['uint256'],
+                  [ethers.utils.parseEther('0')]
+                )
+              ],
+            ),
+            {
+              value: ethers.utils.parseEther('0.05')
+            }
+          )
+          
+          let userInfo = await masterChef.userInfo(0, integratedCakeMaxiWorker.address)
+          expect(userInfo[0]).to.eq(ethers.utils.parseEther('0.00907024323709934'))
+          expect(await integratedCakeMaxiWorker.shares(1)).to.eq(ethers.utils.parseEther('0.00907024323709934'))
+          expect(await integratedCakeMaxiWorker.shareToBalance(await integratedCakeMaxiWorker.shares(1))).to.eq(ethers.utils.parseEther('0.00907024323709934'))
+          // Alice uses AddBaseTokenOnly strategy to add another 0.1 WBNB
+          // once alice call function `work()` the `reinvest()` will be triggered
+          // since it's 1 blocks away from the last `work()`, the reward will be 0.1 CAKE
+          // total bounty will be 0.1 * 1% = 0.001
+          // 90% if reinvest bounty 0.001 * 90 / 100 = 0.0009
+          // thus, alice we get a bounty of 0.0018
+          // 10% of 0.001 (0.0001) will be distributed to the vault by swapping 0.001 of reward token into a beneficial vault token (this is scenario, it will be wbnb)
+          // thus, reward staked in the masterchef will be  0.1 - 0.001 (as a reward) + 0.009070243237099340 = 0.108070243237093908
+  
+          // if (0.1 - 0.00907024323709934 ) FToken = 1.1 WBNB
+          // 0.090929756762900660 FToken = 1.1 WBNB
+          // 0.0001 will be (0.0001 * 0.9975 * 1.1) / (0.090929756762900660  + 0.0001 * 0.9975) = 0.001205378386656404 WBNB
+  
+          // amountOut of 0.1 from alice will be
+          // if (1.1 - 0.001205378386656404) WBNB = (0.090929756762900660 - 0.0001) FToken
+          // if 1.098794621613343596 WBNB = 0.091029756762900654 FToken
+          // 0.1 WBNB will be (0.1 * 0.9975 * 0.091029756762900654) /(1.098794621613343596 + 0.1 * 0.9975)
+          // = 0.007576036864507046
+          // thus, the current amount accumulated with the previous one will be 0.007576036864507046 + 0.108070243237093908 = 0.115646280101600954 CAKE
+          await integratedVaultAsAlice.work(
+            1,
+            integratedCakeMaxiWorker.address,
+            ethers.utils.parseEther('0.1'),
+            ethers.utils.parseEther('0'),
+            '0', // max return = 0, don't return BTOKEN to the debt
+            ethers.utils.defaultAbiCoder.encode(
+              ['address', 'bytes'],
+              [stratAdd.address, 
+                ethers.utils.defaultAbiCoder.encode(
+                  ['uint256'],
+                  [ethers.utils.parseEther('0')]
+                )
+              ],
+            ),
+            {
+              value: ethers.utils.parseEther('0.1')
+            }
+          )
+          userInfo = await masterChef.userInfo(0, integratedCakeMaxiWorker.address)
+          // after all these steps above, alice will have a balance in total of 0.115646280101600954
+          expect(userInfo[0]).to.eq(ethers.utils.parseEther('0.115646280101600954'))
+          expect(await integratedCakeMaxiWorker.shares(1)).to.eq(ethers.utils.parseEther('0.115646280101600954'))
+          Assert.assertAlmostEqual((await cake.balanceOf(await eve.getAddress())).toString(), ethers.utils.parseEther('0.0009').toString())
+          Assert.assertAlmostEqual((await integratedCakeMaxiWorker.rewardBalance()).toString(), ethers.utils.parseEther('0').toString())
+          expect(await integratedCakeMaxiWorker.shareToBalance(await integratedCakeMaxiWorker.shares(1))).to.eq(ethers.utils.parseEther('0.115646280101600954'))
+          Assert.assertAlmostEqual((await wbnb.balanceOf(integratedVault.address)).sub(ethers.utils.parseEther('1').sub(ethers.utils.parseEther('0.05'))).toString(), ethers.utils.parseEther('0').toString())
+          Assert.assertAlmostEqual((await integratedCakeMaxiWorker.buybackAmount()).toString(), ethers.utils.parseEther('0.001205378386656404').toString())
+          // Now it's a liquidation part
+          await cakeAsAlice.approve(routerV2.address, constants.MaxUint256)
+          // alice buy wbnb so that the price will be fluctuated, so that the position can be liquidated
+          // swap tokens for exact 1 WBNB
+          // FTOKEN in = ((0.083453719898393608 * 1) / (1.198794621613343596 - 1 * 0.9975)) + 1 = 0.4208508077942172
+          // now alice health will be (0.115646280101600954 * 0.9975 * 0.198794621613343596) / (0.504304527692610856 + 0.115646280101600954 * 0.9975) = 0.037007909541835700
+          await routerV2AsAlice.swapTokensForExactETH(ethers.utils.parseEther('1'), constants.MaxUint256, [cake.address, wbnb.address], await alice.getAddress(), FOREVER)
+          // set interest rate to be 0 to be easy for testing.
+          await simpleVaultConfig.setParams(
+            MIN_DEBT_SIZE, 0, RESERVE_POOL_BPS, KILL_PRIZE_BPS,
+            wbnb.address, wNativeRelayer.address, fairLaunch.address
+          )
+          // pre calculated left, liquidation reward, health
+          const toBeLiquidatedValue = await integratedCakeMaxiWorker.health(1)
+          const liquidationBounty = toBeLiquidatedValue.mul(1000).div(10000)
+          const bobBalanceBefore = await ethers.provider.getBalance(await bob.getAddress())
+          const aliceBalanceBefore = await ethers.provider.getBalance(await alice.getAddress())
+          const vaultBalanceBefore = await wbnb.balanceOf(integratedVault.address)
+          const debt = await integratedVault.debtShareToVal((await integratedVault.positions(1)).debtShare)
+          const left = debt.gte(toBeLiquidatedValue.sub(liquidationBounty)) ? ethers.constants.Zero : toBeLiquidatedValue.sub(liquidationBounty).sub(debt)
+          const repaid = debt.gte(toBeLiquidatedValue.sub(liquidationBounty)) ? toBeLiquidatedValue.sub(liquidationBounty) : debt
+          // bob call `kill` alice's position, which is position #1
+          await integratedVaultAsBob.kill(
+            1,
+            {
+              gasPrice: 0,
+            }
+          )
+          
+          const bobBalanceAfter = await ethers.provider.getBalance(await bob.getAddress())
+          const aliceBalanceAfter = await ethers.provider.getBalance(await alice.getAddress())
+          const vaultBalanceAfter = await wbnb.balanceOf(integratedVault.address)
+          expect(bobBalanceAfter.sub(bobBalanceBefore)).to.eq(liquidationBounty) // bob should get liquidation reward
+          expect(aliceBalanceAfter.sub(aliceBalanceBefore)).to.eq(left) // alice should get her left back
+          expect(vaultBalanceAfter.sub(vaultBalanceBefore)).to.eq(repaid) // vault should get it's deposit value back
+          expect((await integratedVaultAsAlice.positions(1)).debtShare).to.eq(0)
+          Assert.assertAlmostEqual((await integratedCakeMaxiWorker.buybackAmount()).toString(), ethers.utils.parseEther('0.001205378386656404').toString())
         })
-        // Alice uses AddBaseTokenOnly strategy to add 0.1 WBNB (0.05 as principal amount, 0.05 as a loan)
-        // amountOut of 0.1 will be
-        // if 1WBNB = 0.1 FToken
-        // 0.1WBNB will be (0.1 * 0.9975 * 0.1) / (1 + 0.1 * 0.9975) = 0.009070243237099340
-        await integratedVaultAsAlice.work(
-          0,
-          integratedCakeMaxiWorker.address,
-          ethers.utils.parseEther('0.05'),
-          ethers.utils.parseEther('0.05'),
-          '0', // max return = 0, don't return BTOKEN to the debt
-          ethers.utils.defaultAbiCoder.encode(
-            ['address', 'bytes'],
-            [stratAdd.address, 
-              ethers.utils.defaultAbiCoder.encode(
-                ['uint256'],
-                [ethers.utils.parseEther('0')]
-              )
-            ],
-          ),
-          {
-            value: ethers.utils.parseEther('0.05')
-          }
-        )
-        
-        let userInfo = await masterChef.userInfo(0, integratedCakeMaxiWorker.address)
-        expect(userInfo[0]).to.eq(ethers.utils.parseEther('0.00907024323709934'))
-        expect(await integratedCakeMaxiWorker.shares(1)).to.eq(ethers.utils.parseEther('0.00907024323709934'))
-        expect(await integratedCakeMaxiWorker.shareToBalance(await integratedCakeMaxiWorker.shares(1))).to.eq(ethers.utils.parseEther('0.00907024323709934'))
-        // Alice uses AddBaseTokenOnly strategy to add another 0.1 WBNB
-        // once alice call function `work()` the `reinvest()` will be triggered
-        // since it's 1 blocks away from the last `work()`, the reward will be 0.1 CAKE
-        // total bounty will be 0.1 * 1% = 0.001
-        // 90% if reinvest bounty 0.001 * 90 / 100 = 0.0009
-        // thus, alice we get a bounty of 0.0018
-        // 10% of 0.001 (0.0001) will be distributed to the vault by swapping 0.001 of reward token into a beneficial vault token (this is scenario, it will be wbnb)
-        // thus, reward staked in the masterchef will be  0.1 - 0.001 (as a reward) + 0.009070243237099340 = 0.108070243237093908
+      })
+      context("when there is no buybackAmount left when killing a position", async() => {
+        it('should successfully liquidate a certain position after all transactions', async () => {
+          await integratedCakeMaxiWorker.setBeneficialVaultBountyBps(BigNumber.from(BENEFICIALVAULT_BOUNTY_BPS))
+          expect(await integratedCakeMaxiWorker.beneficialVaultBountyBps()).to.eq(BigNumber.from(BENEFICIALVAULT_BOUNTY_BPS))
+          // alice deposit some portion of her native bnb into a vault, thus interest will be accrued afterward
+          await integratedVaultAsAlice.deposit(ethers.utils.parseEther('1'), {
+            value: ethers.utils.parseEther('1')
+          })
+          // Alice uses AddBaseTokenOnly strategy to add 0.1 WBNB (0.05 as principal amount, 0.05 as a loan)
+          // amountOut of 0.1 will be
+          // if 1WBNB = 0.1 FToken
+          // 0.1WBNB will be (0.1 * 0.9975 * 0.1) / (1 + 0.1 * 0.9975) = 0.009070243237099340
+          await integratedVaultAsAlice.work(
+            0,
+            integratedCakeMaxiWorker.address,
+            ethers.utils.parseEther('0.05'),
+            ethers.utils.parseEther('0.05'),
+            '0', // max return = 0, don't return BTOKEN to the debt
+            ethers.utils.defaultAbiCoder.encode(
+              ['address', 'bytes'],
+              [stratAdd.address, 
+                ethers.utils.defaultAbiCoder.encode(
+                  ['uint256'],
+                  [ethers.utils.parseEther('0')]
+                )
+              ],
+            ),
+            {
+              value: ethers.utils.parseEther('0.05')
+            }
+          )
+          
+          let userInfo = await masterChef.userInfo(0, integratedCakeMaxiWorker.address)
+          expect(userInfo[0]).to.eq(ethers.utils.parseEther('0.00907024323709934'))
+          expect(await integratedCakeMaxiWorker.shares(1)).to.eq(ethers.utils.parseEther('0.00907024323709934'))
+          expect(await integratedCakeMaxiWorker.shareToBalance(await integratedCakeMaxiWorker.shares(1))).to.eq(ethers.utils.parseEther('0.00907024323709934'))
+          // Alice uses AddBaseTokenOnly strategy to add another 0.1 WBNB
+          // once alice call function `work()` the `reinvest()` will be triggered
+          // since it's 1 blocks away from the last `work()`, the reward will be 0.1 CAKE
+          // total bounty will be 0.1 * 1% = 0.001
+          // 90% if reinvest bounty 0.001 * 90 / 100 = 0.0009
+          // thus, alice we get a bounty of 0.0018
+          // 10% of 0.001 (0.0001) will be distributed to the vault by swapping 0.001 of reward token into a beneficial vault token (this is scenario, it will be wbnb)
+          // thus, reward staked in the masterchef will be  0.1 - 0.001 (as a reward) + 0.009070243237099340 = 0.108070243237093908
+  
+          // if (0.1 - 0.00907024323709934 ) FToken = 1.1 WBNB
+          // 0.090929756762900660 FToken = 1.1 WBNB
+          // 0.0001 will be (0.0001 * 0.9975 * 1.1) / (0.090929756762900660  + 0.0001 * 0.9975) = 0.001205378386656404 WBNB
+  
+          // amountOut of 0.1 from alice will be
+          // if (1.1 - 0.001205378386656404) WBNB = (0.090929756762900660 - 0.0001) FToken
+          // if 1.098794621613343596 WBNB = 0.091029756762900654 FToken
+          // 0.1 WBNB will be (0.1 * 0.9975 * 0.091029756762900654) /(1.098794621613343596 + 0.1 * 0.9975)
+          // = 0.007576036864507046
+          // thus, the current amount accumulated with the previous one will be 0.007576036864507046 + 0.108070243237093908 = 0.115646280101600954 CAKE
+          await integratedVaultAsAlice.work(
+            1,
+            integratedCakeMaxiWorker.address,
+            ethers.utils.parseEther('0.1'),
+            ethers.utils.parseEther('0'),
+            '0', // max return = 0, don't return BTOKEN to the debt
+            ethers.utils.defaultAbiCoder.encode(
+              ['address', 'bytes'],
+              [stratAdd.address, 
+                ethers.utils.defaultAbiCoder.encode(
+                  ['uint256'],
+                  [ethers.utils.parseEther('0')]
+                )
+              ],
+            ),
+            {
+              value: ethers.utils.parseEther('0.1')
+            }
+          )
+          userInfo = await masterChef.userInfo(0, integratedCakeMaxiWorker.address)
+          // after all these steps above, alice will have a balance in total of 0.115646280101600954
+          expect(userInfo[0]).to.eq(ethers.utils.parseEther('0.115646280101600954'))
+          expect(await integratedCakeMaxiWorker.shares(1)).to.eq(ethers.utils.parseEther('0.115646280101600954'))
+          Assert.assertAlmostEqual((await cake.balanceOf(await eve.getAddress())).toString(), ethers.utils.parseEther('0.0009').toString())
+          Assert.assertAlmostEqual((await integratedCakeMaxiWorker.rewardBalance()).toString(), ethers.utils.parseEther('0').toString())
+          expect(await integratedCakeMaxiWorker.shareToBalance(await integratedCakeMaxiWorker.shares(1))).to.eq(ethers.utils.parseEther('0.115646280101600954'))
+          Assert.assertAlmostEqual((await wbnb.balanceOf(integratedVault.address)).sub(ethers.utils.parseEther('1').sub(ethers.utils.parseEther('0.05'))).toString(), ethers.utils.parseEther('0').toString())
+          Assert.assertAlmostEqual((await integratedCakeMaxiWorker.buybackAmount()).toString(), ethers.utils.parseEther('0.001205378386656404').toString())
+          // since it's 1 blocks away from the last `work()`, the reward will be 0.2 CAKE
+          // thus, reward staked in the masterchef will be  0.1 - 0.001 (as a reward) + 0.115646280101600954 = 0.214646280101518468
+          // total bounty will be 0.1 * 1% = 0.001
+          // 90% if reinvest bounty 0.001 * 90 / 100 = 0.0009
+          // thus, alice we get a bounty of 0.0027
+          // 10% of 0.001 (0.0001) will be distributed to the vault by swapping 0.001 of reward token into a beneficial vault token (this is scenario, it will be wbnb)
+          // accumulated reward for alice will be 0.1 - 0.001 + 0.115646280101600954 = 0.21464628010160097 FTOKEN
+          
+          // if (0.091029756762900654 - 0.007576036864507046) FToken = 1.198794621613343596  WBNB
+          // 0.083453719898393608 FToken = 1.198794621613343596 WBNB
+          // 0.0001 will be (0.0001 * 0.9975 * 1.198794621613343596) / (0.083453719898393608 + 0.0001 * 0.9975) = 0.001431176510697250 WBNB
 
-        // if (0.1 - 0.00907024323709934 ) FToken = 1.1 WBNB
-        // 0.090929756762900660 FToken = 1.1 WBNB
-        // 0.0001 will be (0.0001 * 0.9975 * 1.1) / (0.090929756762900660  + 0.0001 * 0.9975) = 0.001205378386656404 WBNB
+          userInfo = await masterChef.userInfo(0, integratedCakeMaxiWorker.address)
+          const beforeVaultTotalToken = await integratedVault.totalToken()
+          await integratedCakeMaxiWorkerAsEve.reinvest()
+          const afterVaultTotalToken = await integratedVault.totalToken()
+          Assert.assertAlmostEqual((await cake.balanceOf(await eve.getAddress())).toString(), ethers.utils.parseEther('0.0018').toString())
+          Assert.assertAlmostEqual((await wbnb.balanceOf(integratedVault.address)).sub(ethers.utils.parseEther('1').sub(ethers.utils.parseEther('0.05'))).toString(), ethers.utils.parseEther('0.001431176510697250').add(ethers.utils.parseEther('0.001205378386656404')).toString())
+          Assert.assertAlmostEqual((await integratedCakeMaxiWorker.buybackAmount()).toString(), ethers.utils.parseEther('0').toString())
+          // Now it's a liquidation part
+          await cakeAsAlice.approve(routerV2.address, constants.MaxUint256)
+          // alice buy wbnb so that the price will be fluctuated, so that the position can be liquidated
+          await routerV2AsAlice.swapTokensForExactETH(ethers.utils.parseEther('1'), constants.MaxUint256, [cake.address, wbnb.address], await alice.getAddress(), FOREVER)
+          // swap tokens for exact 1 WBNB
+          // FTOKEN in = ((0.0835534698983936 * 1) / (1.197363445102646346 - 1 * 0.9975)) + 1 = 0.4244107971209399
+          // now alice health will be (0.21464628010160097 * 0.9975 * 0.197363445102646346) / (0.507964267019333532 + 0.21464628010160097 * 0.9975) = 0.058522291357158360
 
-        // amountOut of 0.1 from alice will be
-        // if (1.1 - 0.001205378386656404) WBNB = (0.090929756762900660 - 0.0001) FToken
-        // if 1.098794621613343596 WBNB = 0.091029756762900654 FToken
-        // 0.1 WBNB will be (0.1 * 0.9975 * 0.091029756762900654) /(1.098794621613343596 + 0.1 * 0.9975)
-        // = 0.007576036864507046
-        // thus, the current amount accumulated with the previous one will be 0.007576036864507046 + 0.108070243237093908 = 0.115646280101600954 CAKE
-        await integratedVaultAsAlice.work(
-          1,
-          integratedCakeMaxiWorker.address,
-          ethers.utils.parseEther('0.1'),
-          ethers.utils.parseEther('0'),
-          '0', // max return = 0, don't return BTOKEN to the debt
-          ethers.utils.defaultAbiCoder.encode(
-            ['address', 'bytes'],
-            [stratAdd.address, 
-              ethers.utils.defaultAbiCoder.encode(
-                ['uint256'],
-                [ethers.utils.parseEther('0')]
-              )
-            ],
-          ),
-          {
-            value: ethers.utils.parseEther('0.1')
-          }
-        )
-        userInfo = await masterChef.userInfo(0, integratedCakeMaxiWorker.address)
-        // after all these steps above, alice will have a balance in total of 0.115646280101600954
-        expect(userInfo[0]).to.eq(ethers.utils.parseEther('0.115646280101600954'))
-        expect(await integratedCakeMaxiWorker.shares(1)).to.eq(ethers.utils.parseEther('0.115646280101600954'))
-        Assert.assertAlmostEqual((await cake.balanceOf(await eve.getAddress())).toString(), ethers.utils.parseEther('0.0009').toString())
-        Assert.assertAlmostEqual((await integratedCakeMaxiWorker.rewardBalance()).toString(), ethers.utils.parseEther('0').toString())
-        expect(await (await integratedCakeMaxiWorker.shareToBalance(await integratedCakeMaxiWorker.shares(1)))).to.eq(ethers.utils.parseEther('0.115646280101600954'))
-        Assert.assertAlmostEqual((await wbnb.balanceOf(integratedVault.address)).sub(ethers.utils.parseEther('1').sub(ethers.utils.parseEther('0.05'))).toString(), ethers.utils.parseEther('0').toString())
-        Assert.assertAlmostEqual((await integratedCakeMaxiWorker.buybackAmount()).toString(), ethers.utils.parseEther('0.001205378386656404').toString())
-        // since it's 1 blocks away from the last `work()`, the reward will be 0.2 CAKE
-        // thus, reward staked in the masterchef will be  0.1 - 0.001 (as a reward) + 0.115646280101600954 = 0.214646280101518468
-        // total bounty will be 0.1 * 1% = 0.001
-        // 90% if reinvest bounty 0.001 * 90 / 100 = 0.0009
-        // thus, alice we get a bounty of 0.0027
-        // 10% of 0.001 (0.0001) will be distributed to the vault by swapping 0.001 of reward token into a beneficial vault token (this is scenario, it will be wbnb)
-        
-        // if (0.091029756762900654 - 0.007576036864507046) FToken = 1.198794621613343596  WBNB
-        // 0.083453719898393608 FToken = 1.198794621613343596 WBNB
-        // 0.0001 will be (0.0001 * 0.9975 * 1.198794621613343596) / (0.083453719898393608  + 0.0001 * 0.9975) = 0.001431176510697250 WBNB
-        userInfo = await masterChef.userInfo(0, integratedCakeMaxiWorker.address)
-        const beforeVaultTotalToken = await integratedVault.totalToken()
-        await integratedCakeMaxiWorkerAsEve.reinvest()
-        const afterVaultTotalToken = await integratedVault.totalToken()
-        Assert.assertAlmostEqual((await cake.balanceOf(await eve.getAddress())).toString(), ethers.utils.parseEther('0.0018').toString())
-        Assert.assertAlmostEqual((await wbnb.balanceOf(integratedVault.address)).sub(ethers.utils.parseEther('1').sub(ethers.utils.parseEther('0.05'))).toString(), ethers.utils.parseEther('0.001431176510697250').add(ethers.utils.parseEther('0.001205378386656404')).toString())
-        Assert.assertAlmostEqual((await integratedCakeMaxiWorker.buybackAmount()).toString(), ethers.utils.parseEther('0').toString())
-        // Now it's a liquidation part
-        await cakeAsAlice.approve(routerV2.address, constants.MaxUint256)
-        // alice buy wbnb so that the price will be fluctuated, so that the position can be liquidated
-        await routerV2AsAlice.swapTokensForExactETH(ethers.utils.parseEther('1'), constants.MaxUint256, [cake.address, wbnb.address], await alice.getAddress(), FOREVER)
-        // set interest rate to be 0 to be easy for testing.
-        await simpleVaultConfig.setParams(
-          MIN_DEBT_SIZE, 0, RESERVE_POOL_BPS, KILL_PRIZE_BPS,
-          wbnb.address, wNativeRelayer.address, fairLaunch.address
-        )
-        // pre calculated left, liquidation reward, health
-        const toBeLiquidatedValue = await integratedCakeMaxiWorker.health(1)
-        const liquidationBounty = toBeLiquidatedValue.mul(1000).div(10000)
-        const bobBalanceBefore = await ethers.provider.getBalance(await bob.getAddress())
-        const aliceBalanceBefore = await ethers.provider.getBalance(await alice.getAddress())
-        const vaultBalanceBefore = await wbnb.balanceOf(integratedVault.address)
-        const vaultDebtVal = await integratedVault.vaultDebtVal()
-        const debt = await integratedVault.debtShareToVal((await integratedVault.positions(1)).debtShare)
-        const left = toBeLiquidatedValue.sub(liquidationBounty).sub(debt)
-        // bob call `kill` alice's position, which is position #1
-        await integratedVaultAsBob.kill(
-          1,
-          {
-            gasPrice: 0,
-          }
-        )
-        
-        const bobBalanceAfter = await ethers.provider.getBalance(await bob.getAddress())
-        const aliceBalanceAfter = await ethers.provider.getBalance(await alice.getAddress())
-        const vaultBalanceAfter = await wbnb.balanceOf(integratedVault.address)
-        expect(bobBalanceAfter.sub(bobBalanceBefore)).to.eq(liquidationBounty) // bob should get liquidation reward
-        expect(aliceBalanceAfter.sub(aliceBalanceBefore)).to.eq(left) // alice should get her left back
-        expect(vaultBalanceAfter.sub(vaultBalanceBefore)).to.eq(vaultDebtVal) // vault should get it's deposit value back
-        expect((await integratedVaultAsAlice.positions(1)).debtShare).to.eq(0)
+          // set interest rate to be 0 to be easy for testing.
+          await simpleVaultConfig.setParams(
+            MIN_DEBT_SIZE, 0, RESERVE_POOL_BPS, KILL_PRIZE_BPS,
+            wbnb.address, wNativeRelayer.address, fairLaunch.address
+          )
+          // pre calculated left, liquidation reward, health
+          const toBeLiquidatedValue = await integratedCakeMaxiWorker.health(1)
+          const liquidationBounty = toBeLiquidatedValue.mul(1000).div(10000)
+          const bobBalanceBefore = await ethers.provider.getBalance(await bob.getAddress())
+          const aliceBalanceBefore = await ethers.provider.getBalance(await alice.getAddress())
+          const vaultBalanceBefore = await wbnb.balanceOf(integratedVault.address)
+          const vaultDebtVal = await integratedVault.vaultDebtVal()
+          const debt = await integratedVault.debtShareToVal((await integratedVault.positions(1)).debtShare)
+          const left = debt.gte(toBeLiquidatedValue.sub(liquidationBounty)) ? ethers.constants.Zero : toBeLiquidatedValue.sub(liquidationBounty).sub(debt)
+          // bob call `kill` alice's position, which is position #1
+          await integratedVaultAsBob.kill(
+            1,
+            {
+              gasPrice: 0,
+            }
+          )
+          
+          const bobBalanceAfter = await ethers.provider.getBalance(await bob.getAddress())
+          const aliceBalanceAfter = await ethers.provider.getBalance(await alice.getAddress())
+          const vaultBalanceAfter = await wbnb.balanceOf(integratedVault.address)
+          expect(bobBalanceAfter.sub(bobBalanceBefore)).to.eq(liquidationBounty) // bob should get liquidation reward
+          expect(aliceBalanceAfter.sub(aliceBalanceBefore)).to.eq(left) // alice should get her left back
+          expect(vaultBalanceAfter.sub(vaultBalanceBefore)).to.eq(vaultDebtVal) // vault should get it's deposit value back
+          expect((await integratedVaultAsAlice.positions(1)).debtShare).to.eq(0)
+        })
       })
     })
   })
