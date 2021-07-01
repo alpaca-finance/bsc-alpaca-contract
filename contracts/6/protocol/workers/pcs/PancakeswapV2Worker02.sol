@@ -46,7 +46,7 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
   event BeneficialVaultTokenBuyback(address indexed caller, IVault indexed beneficialVault, uint256 indexed buyback);
   event SetBeneficialVaultData(
     address indexed caller,
-    uint256 indexed maxReinvestBountyBps,
+    uint256 indexed beneficialVaultBountyBps,
     IVault indexed beneficialVault,
     address[] rewardPath
   );

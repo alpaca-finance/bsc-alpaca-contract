@@ -46,7 +46,7 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
   event BeneficialVaultTokenBuyback(address indexed caller, IVault indexed beneficialVault, uint256 indexed buyback);
   event SetBeneficialVaultData(
     address indexed caller,
-    uint256 indexed maxReinvestBountyBps,
+    uint256 indexed beneficialVaultBountyBps,
     IVault indexed beneficialVault,
     address[] rewardPath
   );
