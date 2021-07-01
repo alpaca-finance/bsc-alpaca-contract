@@ -25,7 +25,11 @@ import "../../interfaces/IStrategy.sol";
 import "../../../utils/SafeToken.sol";
 import "../../interfaces/IWorker.sol";
 
-contract PancakeswapV2RestrictedStrategyPartialCloseLiquidate is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
+contract PancakeswapV2RestrictedStrategyPartialCloseLiquidate is
+  OwnableUpgradeSafe,
+  ReentrancyGuardUpgradeSafe,
+  IStrategy
+{
   using SafeToken for address;
 
   IPancakeFactory public factory;
@@ -33,11 +37,21 @@ contract PancakeswapV2RestrictedStrategyPartialCloseLiquidate is OwnableUpgradeS
 
   mapping(address => bool) public okWorkers;
 
+  event PancakeswapV2RestrictedStrategyPartialCloseLiquidateEvent(
+    address indexed baseToken,
+    address indexed farmToken,
+    uint256 amounToLiquidate,
+    uint256 amountToRepayDebt
+  );
+
   // @notice require that only allowed workers are able to do the rest of the method call
   modifier onlyWhitelistedWorkers() {
-    require(okWorkers[msg.sender], "PancakeswapV2RestrictedStrategyPartialCloseLiquidate::onlyWhitelistedWorkers:: bad worker");
+    require(
+      okWorkers[msg.sender],
+      "PancakeswapV2RestrictedStrategyPartialCloseLiquidate::onlyWhitelistedWorkers:: bad worker"
+    );
     _;
-  } 
+  }
 
   /// @dev Create a new liquidate strategy instance.
   /// @param _router The Uniswap router smart contract.
@@ -50,27 +64,30 @@ contract PancakeswapV2RestrictedStrategyPartialCloseLiquidate is OwnableUpgradeS
 
   /// @dev Execute worker strategy. Take LP token. Return  BaseToken.
   /// @param data Extra calldata information passed along to this strategy.
-  function execute(address /* user */, uint256 /* debt */, bytes calldata data)
-    external
-    override
-    onlyWhitelistedWorkers
-    nonReentrant
-  {
+  function execute(
+    address, /* user */
+    uint256, /* debt */
+    bytes calldata data
+  ) external override onlyWhitelistedWorkers nonReentrant {
     // 1. Find out what farming token we are dealing with.
-    (
-      uint256 returnLpToken,
-      uint256 minBaseToken
-    ) = abi.decode(data, (uint256, uint256));
+    (uint256 lpTokenToLiquidate, uint256 toRepaidBaseTokenDebt, uint256 minBaseToken) =
+      abi.decode(data, (uint256, uint256, uint256));
     IWorker worker = IWorker(msg.sender);
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
     IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
-    require(lpToken.balanceOf(address(this)) >= returnLpToken, "PancakeswapV2RestrictedStrategyPartialCloseLiquidate::execute:: insufficient LP amount recevied from worker");
     // 2. Approve router to do their stuffs
-    lpToken.approve(address(router), uint256(-1));
+    require(
+      lpToken.approve(address(router), uint256(-1)),
+      "PancakeswapV2RestrictedStrategyPartialCloseLiquidate::execute:: failed to approve LP token"
+    );
     farmingToken.safeApprove(address(router), uint256(-1));
     // 3. Remove some LP back to BaseToken and farming tokens as we want to return some of the position.
-    router.removeLiquidity(baseToken, farmingToken, returnLpToken, 0, 0, address(this), now);
+    require(
+      lpToken.balanceOf(address(this)) >= lpTokenToLiquidate,
+      "PancakeswapV2RestrictedStrategyPartialCloseLiquidate::execute:: insufficient LP amount recevied from worker"
+    );
+    router.removeLiquidity(baseToken, farmingToken, lpTokenToLiquidate, 0, 0, address(this), now);
     // 4. Convert farming tokens to baseToken.
     address[] memory path = new address[](2);
     path[0] = farmingToken;
@@ -78,12 +95,22 @@ contract PancakeswapV2RestrictedStrategyPartialCloseLiquidate is OwnableUpgradeS
     router.swapExactTokensForTokens(farmingToken.myBalance(), 0, path, address(this), now);
     // 5. Return all baseToken back to the original caller.
     uint256 balance = baseToken.myBalance();
-    require(balance >= minBaseToken, "PancakeswapV2RestrictedStrategyPartialCloseLiquidate::execute:: insufficient baseToken received");
+    require(
+      balance >= minBaseToken,
+      "PancakeswapV2RestrictedStrategyPartialCloseLiquidate::execute:: insufficient baseToken received"
+    );
     SafeToken.safeTransfer(baseToken, msg.sender, balance);
     lpToken.transfer(msg.sender, lpToken.balanceOf(address(this)));
     // 6. Reset approve for safety reason
     lpToken.approve(address(router), 0);
     farmingToken.safeApprove(address(router), 0);
+
+    emit PancakeswapV2RestrictedStrategyPartialCloseLiquidateEvent(
+      baseToken,
+      farmingToken,
+      lpTokenToLiquidate,
+      toRepaidBaseTokenDebt
+    );
   }
 
   function setWorkersOk(address[] calldata workers, bool isOk) external onlyOwner {
