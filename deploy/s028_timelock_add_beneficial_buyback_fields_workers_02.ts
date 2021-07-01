@@ -83,7 +83,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const timelock = Timelock__factory.connect(config.Timelock, (await ethers.getSigners())[0]);
 
   for(let i = 0; i < TO_BE_UPGRADE_WORKERS.length; i++) {
-    console.log(`>> Setting Treasury account to: ${TO_BE_UPGRADE_WORKERS[i].WORKER_NAME} at ${TO_BE_UPGRADE_WORKERS[i].ADDRESS} through Timelock + ProxyAdmin`)
+    console.log(`>> Setting Beneficial Related Data to: ${TO_BE_UPGRADE_WORKERS[i].WORKER_NAME} at ${TO_BE_UPGRADE_WORKERS[i].ADDRESS} through Timelock + ProxyAdmin`)
     console.log(`>> Queue tx on Timelock to upgrade the implementation`);
     await timelock.queueTransaction(TO_BE_UPGRADE_WORKERS[i].ADDRESS, '0', 'setBeneficialVaultRelatedData(uint256,address,address[])', ethers.utils.defaultAbiCoder.encode(['uint256','address','address[]'], [BENEFICIAL_VAULT_BOUNTY_BPS, BENEFICIAL_VAULT_ADDRESS, REWARD_PATH]), EXACT_ETA, { gasPrice: 100000000000 });
     console.log("✅ Done");
