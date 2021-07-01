@@ -73,9 +73,10 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate is
     uint256, /* debt */
     bytes calldata data
   ) external override onlyWhitelistedWorkers nonReentrant {
-    // 1. minBaseTokenAmount for validating a baseToken amount from a conversion of a farmingToken.
-    // and farmingToken amount to liquidated
-    (uint256 minBaseTokenAmount, uint256 farmingTokenToLiquidate, uint256 toRepaidBaseTokenDebt) =
+    // 1. farmingTokenToLiquidate - How much farmingToken to liquidate?
+    // toRepaidBaseTokenDebt - How much the user wants to repaid the debt?
+    // minBaseTokenAmount - For validating slippage
+    (uint256 farmingTokenToLiquidate, uint256 toRepaidBaseTokenDebt, uint256 minBaseTokenAmount) =
       abi.decode(data, (uint256, uint256, uint256));
     IWorker02 worker = IWorker02(msg.sender);
     address baseToken = worker.baseToken();

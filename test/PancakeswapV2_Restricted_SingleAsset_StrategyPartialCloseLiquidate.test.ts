@@ -206,7 +206,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate', () =
   context('When the base token is a wrap native', async () => {
     context('When contract get baseToken amount < minBaseTokenAmount', async () => {
         it('should revert', async () => {
-          // Alice uses Partial Close Liquidate strategy yet again, but now with an unreasonable minFarmingTokenAmount request
+          // Alice uses Partial Close Liquidate strategy, but now with an unreasonable minFarmingTokenAmount request
           // amountOut of 0.1 will be
           // if 0.1 FToken = 1 WBNB
           // 0.1 FToken will be (0.04 * 0.9975) * (1 / (0.1 + 0.04 * 0.9975)) = 0.285203716940671908 WBNB
@@ -217,7 +217,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate', () =
               ['address', 'bytes'],
               [strat.address, ethers.utils.defaultAbiCoder.encode(
                 ['uint256','uint256','uint256'],
-                [ ethers.utils.parseEther('0.285203716940671908').add(1), ethers.utils.parseEther('0.04'),'0']
+                [ethers.utils.parseEther('0.04'), '0', ethers.utils.parseEther('0.285203716940671908').add(1)]
               )],
             )
           )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate::execute:: insufficient baseToken amount received');
@@ -234,7 +234,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate', () =
               ['address', 'bytes'],
               [strat.address, ethers.utils.defaultAbiCoder.encode(
                 ['uint256','uint256','uint256'],
-                ['0', farmingTokenToLiquidate,'0']
+                [farmingTokenToLiquidate, '0', '0']
               )],
             )
           )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate::execute:: insufficient farmingToken received from worker');
@@ -250,7 +250,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate', () =
             ['address', 'bytes'],
             [strat.address, ethers.utils.defaultAbiCoder.encode(
               ['uint256','uint256','uint256'],
-              [ethers.utils.parseEther('0.285203716940671908').add(1),ethers.utils.parseEther('0.04'),'0']
+              [ethers.utils.parseEther('0.04'), '0', ethers.utils.parseEther('0.285203716940671908').add(1)]
             )],
           )
         )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate::onlyWhitelistedWorkers:: bad worker');
@@ -266,7 +266,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate', () =
             ['address', 'bytes'],
             [strat.address, ethers.utils.defaultAbiCoder.encode(
               ['uint256','uint256','uint256'],
-              [ethers.utils.parseEther('0.285203716940671908').add(1),ethers.utils.parseEther('0.04'),'0']
+              [ethers.utils.parseEther('0.04'), '0', ethers.utils.parseEther('0.285203716940671908').add(1)]
             )],
           )
         )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate::onlyWhitelistedWorkers:: bad worker');
@@ -287,10 +287,12 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate', () =
           ['address', 'bytes'],
           [strat.address, ethers.utils.defaultAbiCoder.encode(
             ['uint256','uint256','uint256'],
-            ['0', farmingTokenToLiquidate,'0']
+            [farmingTokenToLiquidate, '0', '0']
           )],
         )
-      )).to.emit(strat, 'PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate');
+      )).to.emit(strat, 'PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate').withArgs(
+        wbnb.address, farmingToken.address , farmingTokenToLiquidate, '0'
+      );
       const aliceBalanceAfter = await wbnb.balanceOf(await alice.getAddress())
            
       // the worker will send 0.285203716940671908 wbnb back to alice
@@ -318,7 +320,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate', () =
               ['address', 'bytes'],
               [strat.address, ethers.utils.defaultAbiCoder.encode(
                 ['uint256','uint256','uint256'],
-                [ ethers.utils.parseEther('0.221481327933600537').add(1), ethers.utils.parseEther('0.04'),'0']
+                [ethers.utils.parseEther('0.04'), '0', ethers.utils.parseEther('0.221481327933600537').add(1)]
               )],
             )
           )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate::execute:: insufficient baseToken amount received');
@@ -335,7 +337,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate', () =
             ['address', 'bytes'],
             [strat.address, ethers.utils.defaultAbiCoder.encode(
               ['uint256','uint256','uint256'],
-              ['0', farmingTokenToLiquidate,'0']
+              [farmingTokenToLiquidate, '0', '0']
             )],
           )
         )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate::execute:: insufficient farmingToken received from worker');
@@ -351,7 +353,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate', () =
             ['address', 'bytes'],
             [strat.address, ethers.utils.defaultAbiCoder.encode(
               ['uint256','uint256','uint256'],
-              [ ethers.utils.parseEther('0.221481327933600537').add(1), ethers.utils.parseEther('0.04'),'0']
+              [ethers.utils.parseEther('0.04'), '0', ethers.utils.parseEther('0.221481327933600537').add(1)]
             )],
           )
         )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate::onlyWhitelistedWorkers:: bad worker');
@@ -367,7 +369,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate', () =
             ['address', 'bytes'],
             [strat.address, ethers.utils.defaultAbiCoder.encode(
               ['uint256','uint256','uint256'],
-              [ ethers.utils.parseEther('0.221481327933600537').add(1), ethers.utils.parseEther('0.04'),'0']
+              [ethers.utils.parseEther('0.04'), '0', ethers.utils.parseEther('0.221481327933600537').add(1)]
             )],
           )
         )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate::onlyWhitelistedWorkers:: bad worker');
@@ -381,8 +383,6 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate', () =
       // 0.1 FToken will be (0.04 * 0.9975) * (1 / (0.1 + 0.04 * 0.9975)) = 0.2852037169406719 WBNB
       // if 1 WBNB = 1 BaseToken
       // 0.2852037169406719 WBNB = (0.2852037169406719* 0.9975) * (1 / (1 + 0.2852037169406719 * 0.9975)) = 0.221481327933600537 BaseToken
-      
-      // 
       const aliceBalanceBefore = await baseToken.balanceOf(await alice.getAddress())
       const farmingTokenToLiquidate = ethers.utils.parseEther('0.04')
       await expect(mockPancakeswapV2WorkerBaseFTokenPairAsAlice.work(
@@ -391,10 +391,12 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate', () =
           ['address', 'bytes'],
           [strat.address, ethers.utils.defaultAbiCoder.encode(
             ['uint256','uint256','uint256'],
-            ['0', farmingTokenToLiquidate,'0']
+            [farmingTokenToLiquidate, '0', '0']
           )],
         )
-      )).to.emit(strat, 'PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate');
+      )).to.emit(strat, 'PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate').withArgs(
+        baseToken.address, farmingToken.address, farmingTokenToLiquidate, '0'
+      );
 
       const aliceBalanceAfter = await baseToken.balanceOf(await alice.getAddress())
 
