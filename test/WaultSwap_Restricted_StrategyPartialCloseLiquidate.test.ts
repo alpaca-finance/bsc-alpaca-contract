@@ -240,8 +240,8 @@ describe('WaultSwapRestrictedStrategyPartialCloseLiquidate', () => {
       ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [strat.address, ethers.utils.defaultAbiCoder.encode(
-          ['uint256', 'uint256'],
-          [ethers.utils.parseEther('1000'), ethers.utils.parseEther('0.5')]
+          ['uint256', 'uint256', 'uint256'],
+          [ethers.utils.parseEther('1000'), ethers.utils.parseEther('1'), ethers.utils.parseEther('0.5')]
           )],
       )
     )).revertedWith('WaultSwapRestrictedStrategyPartialCloseLiquidate::execute:: insufficient LP amount recevied from worker')
@@ -255,16 +255,16 @@ describe('WaultSwapRestrictedStrategyPartialCloseLiquidate', () => {
 
     // Bob uses partial close liquidate strategy to turn the 50% LPs back to BTOKEN with the same minimum value and the same maxReturn
     const returnLp = bobLpBefore.div(2)
-    await mockWaultSwapWorkerAsBob.work(
+    await expect(mockWaultSwapWorkerAsBob.work(
           0, await bob.getAddress(), '0',
           ethers.utils.defaultAbiCoder.encode(
               ['address', 'bytes'],
               [strat.address, ethers.utils.defaultAbiCoder.encode(
-              ['uint256', 'uint256'],
-              [returnLp, ethers.utils.parseEther('0.5')]
+              ['uint256', 'uint256', 'uint256'],
+              [returnLp, ethers.utils.parseEther('0.1'), ethers.utils.parseEther('0.5')]
             )],
           )
-      )
+      )).to.emit(strat, 'WaultSwapRestrictedStrategyPartialCloseLiquidateEvent')
 
     // After execute strategy successfully. The following conditions must be satisfied
     // - LPs in Strategy contract must be 0

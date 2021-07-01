@@ -34,6 +34,13 @@ contract WaultSwapRestrictedStrategyPartialCloseLiquidate is OwnableUpgradeSafe,
 
   mapping(address => bool) public okWorkers;
 
+  event WaultSwapRestrictedStrategyPartialCloseLiquidateEvent(
+    address indexed baseToken,
+    address indexed farmToken,
+    uint256 amounToLiquidate,
+    uint256 amountToRepayDebt
+  );
+
   // @notice require that only allowed workers are able to do the rest of the method call
   modifier onlyWhitelistedWorkers() {
     require(
@@ -60,20 +67,24 @@ contract WaultSwapRestrictedStrategyPartialCloseLiquidate is OwnableUpgradeSafe,
     bytes calldata data
   ) external override onlyWhitelistedWorkers nonReentrant {
     // 1. Find out what farming token we are dealing with.
-    (uint256 returnLpToken, uint256 minBaseToken) = abi.decode(data, (uint256, uint256));
+    (uint256 lpTokenToLiquidate, uint256 toRepaidBaseTokenDebt, uint256 minBaseToken) =
+      abi.decode(data, (uint256, uint256, uint256));
     IWorker worker = IWorker(msg.sender);
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
     IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
-    require(
-      lpToken.balanceOf(address(this)) >= returnLpToken,
-      "WaultSwapRestrictedStrategyPartialCloseLiquidate::execute:: insufficient LP amount recevied from worker"
-    );
     // 2. Approve router to do their stuffs
-    lpToken.approve(address(router), uint256(-1));
+    require(
+      lpToken.approve(address(router), uint256(-1)),
+      "WaultSwapRestrictedStrategyPartialCloseLiquidate::execute:: failed to approve LP token"
+    );
     farmingToken.safeApprove(address(router), uint256(-1));
     // 3. Remove some LP back to BaseToken and farming tokens as we want to return some of the position.
-    router.removeLiquidity(baseToken, farmingToken, returnLpToken, 0, 0, address(this), now);
+    require(
+      lpToken.balanceOf(address(this)) >= lpTokenToLiquidate,
+      "WaultSwapRestrictedStrategyPartialCloseLiquidate::execute:: insufficient LP amount recevied from worker"
+    );
+    router.removeLiquidity(baseToken, farmingToken, lpTokenToLiquidate, 0, 0, address(this), now);
     // 4. Convert farming tokens to baseToken.
     address[] memory path = new address[](2);
     path[0] = farmingToken;
@@ -90,6 +101,13 @@ contract WaultSwapRestrictedStrategyPartialCloseLiquidate is OwnableUpgradeSafe,
     // 6. Reset approve for safety reason
     lpToken.approve(address(router), 0);
     farmingToken.safeApprove(address(router), 0);
+
+    emit WaultSwapRestrictedStrategyPartialCloseLiquidateEvent(
+      baseToken,
+      farmingToken,
+      lpTokenToLiquidate,
+      toRepaidBaseTokenDebt
+    );
   }
 
   function setWorkersOk(address[] calldata workers, bool isOk) external onlyOwner {
