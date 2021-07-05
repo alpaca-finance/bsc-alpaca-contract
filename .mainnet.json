@@ -766,19 +766,6 @@
         "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3"
       }
     }, {
-      "name": "BORING-WBNB PancakeswapWorker",
-      "address": "0xd8BfE852bba29ea5968A3e5AAF21480f36EE89cd",
-      "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
-      "pId": 406,
-      "stakingToken": "0xDfA808Da5CFB9ABA5Fb3748FF85888F79174F378",
-      "stakingTokenAt": "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
-      "strategies": {
-        "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
-        "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
-        "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
-        "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419"
-      }
-    }, {
       "name": "ALPACA-WBNB WaultswapWorker",
       "address": "0x0C5eD4d8df44f20B052Fc6966991e686D594B9C2",
       "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
