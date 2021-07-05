@@ -43,8 +43,7 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate is
   event PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate(
     address indexed baseToken,
     address indexed farmToken,
-    uint256 amounToLiquidate,
-    uint256 amountToRepayDebt
+    uint256 amounToLiquidate
   );
 
   // @notice require that only allowed workers are able to do the rest of the method call
@@ -74,10 +73,8 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate is
     bytes calldata data
   ) external override onlyWhitelistedWorkers nonReentrant {
     // 1. farmingTokenToLiquidate - How much farmingToken to liquidate?
-    // toRepaidBaseTokenDebt - How much the user wants to repaid the debt?
     // minBaseTokenAmount - For validating slippage
-    (uint256 farmingTokenToLiquidate, uint256 toRepaidBaseTokenDebt, uint256 minBaseTokenAmount) =
-      abi.decode(data, (uint256, uint256, uint256));
+    (uint256 farmingTokenToLiquidate, uint256 minBaseTokenAmount) = abi.decode(data, (uint256, uint256));
     IWorker02 worker = IWorker02(msg.sender);
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
@@ -103,8 +100,7 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate is
     emit PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate(
       baseToken,
       farmingToken,
-      farmingTokenToLiquidate,
-      toRepaidBaseTokenDebt
+      farmingTokenToLiquidate
     );
   }
 
