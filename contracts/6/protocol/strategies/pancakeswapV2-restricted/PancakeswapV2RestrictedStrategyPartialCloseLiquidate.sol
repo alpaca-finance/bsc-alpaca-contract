@@ -40,8 +40,7 @@ contract PancakeswapV2RestrictedStrategyPartialCloseLiquidate is
   event PancakeswapV2RestrictedStrategyPartialCloseLiquidateEvent(
     address indexed baseToken,
     address indexed farmToken,
-    uint256 amounToLiquidate,
-    uint256 amountToRepayDebt
+    uint256 amounToLiquidate
   );
 
   // @notice require that only allowed workers are able to do the rest of the method call
@@ -70,8 +69,7 @@ contract PancakeswapV2RestrictedStrategyPartialCloseLiquidate is
     bytes calldata data
   ) external override onlyWhitelistedWorkers nonReentrant {
     // 1. Find out what farming token we are dealing with.
-    (uint256 lpTokenToLiquidate, uint256 toRepaidBaseTokenDebt, uint256 minBaseToken) =
-      abi.decode(data, (uint256, uint256, uint256));
+    (uint256 lpTokenToLiquidate, uint256 minBaseToken) = abi.decode(data, (uint256, uint256));
     IWorker worker = IWorker(msg.sender);
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
@@ -105,12 +103,7 @@ contract PancakeswapV2RestrictedStrategyPartialCloseLiquidate is
     lpToken.approve(address(router), 0);
     farmingToken.safeApprove(address(router), 0);
 
-    emit PancakeswapV2RestrictedStrategyPartialCloseLiquidateEvent(
-      baseToken,
-      farmingToken,
-      lpTokenToLiquidate,
-      toRepaidBaseTokenDebt
-    );
+    emit PancakeswapV2RestrictedStrategyPartialCloseLiquidateEvent(baseToken, farmingToken, lpTokenToLiquidate);
   }
 
   function setWorkersOk(address[] calldata workers, bool isOk) external onlyOwner {

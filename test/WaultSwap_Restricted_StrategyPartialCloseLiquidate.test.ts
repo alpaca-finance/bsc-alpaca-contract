@@ -264,7 +264,7 @@ describe('WaultSwapRestrictedStrategyPartialCloseLiquidate', () => {
               [returnLp, ethers.utils.parseEther('0.1'), ethers.utils.parseEther('0.5')]
             )],
           )
-      )).to.emit(strat, 'WaultSwapRestrictedStrategyPartialCloseLiquidateEvent').withArgs(baseToken.address, farmingToken.address, returnLp, ethers.utils.parseEther('0.1'))
+      )).to.emit(strat, 'WaultSwapRestrictedStrategyPartialCloseLiquidateEvent').withArgs(baseToken.address, farmingToken.address, returnLp)
 
     // After execute strategy successfully. The following conditions must be satisfied
     // - LPs in Strategy contract must be 0
