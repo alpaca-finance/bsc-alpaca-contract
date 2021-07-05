@@ -30,7 +30,7 @@ import "../../../utils/AlpacaMath.sol";
 import "../../../utils/SafeToken.sol";
 import "../../interfaces/IVault.sol";
 
-// @title PancakeswapV2Worker02 is a PancakeswapV2Worker with with reinvest-optimized and beneficial vault buyback functionalities
+/// @title PancakeswapV2Worker02 is a PancakeswapV2Worker with with reinvest-optimized and beneficial vault buyback functionalities
 contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker {
   /// @notice Libraries
   using SafeToken for address;
@@ -41,14 +41,20 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
   event AddShare(uint256 indexed id, uint256 share);
   event RemoveShare(uint256 indexed id, uint256 share);
   event Liquidate(uint256 indexed id, uint256 wad);
-  event SetTreasuryBountyBps(address indexed account, uint256 bountyBps);
-  event SetTreasuryAccount(address indexed account);
+  event SetTreasuryBountyBps(address indexed caller, uint256 bountyBps);
+  event SetTreasuryAccount(address indexed caller, address indexed account);
   event BeneficialVaultTokenBuyback(address indexed caller, IVault indexed beneficialVault, uint256 indexed buyback);
-  event SetBeneficialVaultData(
+  event SetBeneficialVaultConfig(
     address indexed caller,
     uint256 indexed beneficialVaultBountyBps,
     IVault indexed beneficialVault,
     address[] rewardPath
+  );
+  event SetReinvestConfig(
+    address indexed caller,
+    uint256 reinvestBountyBps,
+    uint256 reinvestThreshold,
+    address[] reinvestPath
   );
 
   /// @notice Configuration variables
@@ -78,6 +84,8 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
   uint256 public feeDenom;
 
   /// @notice Upgraded State Variables
+  uint256 public reinvestThreshold;
+  address[] public reinvestPath;
   address public treasuryAccount;
   uint256 public treasuryBountyBps;
   IVault public beneficialVault;
@@ -93,18 +101,24 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
     uint256 _pid,
     IStrategy _addStrat,
     IStrategy _liqStrat,
-    uint256 _reinvestBountyBps
+    uint256 _reinvestBountyBps,
+    address _treasuryAccount,
+    address[] calldata _reinvestPath,
+    uint256 _reinvestThreshold
   ) external initializer {
+    // 1. Initialized imported library
     OwnableUpgradeSafe.__Ownable_init();
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
 
+    // 2. Assign dependency contracts
     operator = _operator;
-    baseToken = _baseToken;
     wNative = _router.WETH();
     masterChef = _masterChef;
     router = _router;
     factory = IPancakeFactory(_router.factory());
-    // Get lpToken and farmingToken from MasterChef pool
+
+    // 3. Assign tokens state variables
+    baseToken = _baseToken;
     pid = _pid;
     (IERC20 _lpToken, , , ) = masterChef.poolInfo(_pid);
     lpToken = IPancakePair(address(_lpToken));
@@ -112,41 +126,57 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
     address token1 = lpToken.token1();
     farmingToken = token0 == baseToken ? token1 : token0;
     cake = address(masterChef.cake());
+
+    // 4. Assign critical strategy contracts
     addStrat = _addStrat;
     liqStrat = _liqStrat;
     okStrats[address(addStrat)] = true;
     okStrats[address(liqStrat)] = true;
+
+    // 5. Assign Re-invest parameters
     reinvestBountyBps = _reinvestBountyBps;
+    reinvestThreshold = _reinvestThreshold;
+    reinvestPath = _reinvestPath;
+    treasuryAccount = _treasuryAccount;
+    treasuryBountyBps = _reinvestBountyBps;
     maxReinvestBountyBps = 500;
+
+    // 6. Set PancakeswapV2 swap fees
     fee = 9975;
     feeDenom = 10000;
-    require(baseToken != cake, "PancakeswapWorker::initialize:: base token cannot be a reward token");
+
+    // 7. Check if critical parameters are config properly
+    require(baseToken != cake, "PancakeswapV2Worker02::initialize:: base token cannot be a reward token");
     require(
       reinvestBountyBps <= maxReinvestBountyBps,
-      "PancakeswapWorker::initialize:: reinvestBountyBps exceeded maxReinvestBountyBps"
+      "PancakeswapV2Worker02::initialize:: reinvestBountyBps exceeded maxReinvestBountyBps"
     );
     require(
       (farmingToken == lpToken.token0() || farmingToken == lpToken.token1()) &&
         (baseToken == lpToken.token0() || baseToken == lpToken.token1()),
-      "PancakeswapWorker::initialize:: LP underlying not match with farm & base token"
+      "PancakeswapV2Worker02::initialize:: LP underlying not match with farm & base token"
+    );
+    require(
+      reinvestPath[0] == cake && reinvestPath[reinvestPath.length - 1] == baseToken,
+      "PancakeswapV2Worker02::initialize:: reinvestPath must start with CAKE, end with BTOKEN"
     );
   }
 
   /// @dev Require that the caller must be an EOA account to avoid flash loans.
   modifier onlyEOA() {
-    require(msg.sender == tx.origin, "PancakeswapWorker::onlyEOA:: not eoa");
+    require(msg.sender == tx.origin, "PancakeswapV2Worker02::onlyEOA:: not eoa");
     _;
   }
 
   /// @dev Require that the caller must be the operator.
   modifier onlyOperator() {
-    require(msg.sender == operator, "PancakeswapWorker::onlyOperator:: not operator");
+    require(msg.sender == operator, "PancakeswapV2Worker02::onlyOperator:: not operator");
     _;
   }
 
   //// @dev Require that the caller must be ok reinvestor.
   modifier onlyReinvestor() {
-    require(okReinvestors[msg.sender], "PancakeswapWorker::onlyReinvestor:: not reinvestor");
+    require(okReinvestors[msg.sender], "PancakeswapV2Worker02::onlyReinvestor:: not reinvestor");
     _;
   }
 
@@ -174,48 +204,49 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
     _buyback();
   }
 
-  // @notice internal method for reinvest
+  /// @notice internal method for reinvest.
+  /// @param _treasuryAccount - The account to receive reinvest fees
+  /// @param _treasuryBountyBps - The fees in BPS that will be charged for reinvest
+  /// @param _callerBalance - The balance that caller passed during the execution scope
   function _reinvest(
     address _treasuryAccount,
     uint256 _treasuryBountyBps,
     uint256 _callerBalance
   ) internal {
-    require(_treasuryAccount != address(0), "PancakeswapV2Worker::reinvest:: bad treasury account");
-    // 1. Approve tokens
+    require(_treasuryAccount != address(0), "PancakeswapV2Worker02::reinvest:: bad treasury account");
+    // 1. Return if pendingCake < reinvestThreshold
+    if (masterChef.pendingCake(pid, address(this)) <= reinvestThreshold) return;
+
+    // 2. Approve tokens
     cake.safeApprove(address(router), uint256(-1));
     address(lpToken).safeApprove(address(masterChef), uint256(-1));
-    // 2. Withdraw all the rewards.
+
+    // 3. Withdraw all the rewards.
     masterChef.withdraw(pid, 0);
     uint256 reward = cake.balanceOf(address(this));
-    if (reward == 0) return;
-    // 3. Send the reward bounty to the _treasuryAccount.
+
+    // 4. Send the reward bounty to the _treasuryAccount.
     uint256 bounty = reward.mul(_treasuryBountyBps) / 10000;
     if (bounty > 0) {
       uint256 beneficialVaultBounty = bounty.mul(beneficialVaultBountyBps) / 10000;
       if (beneficialVaultBounty > 0) _rewardToBeneficialVault(beneficialVaultBounty, _callerBalance);
       cake.safeTransfer(_treasuryAccount, bounty.sub(beneficialVaultBounty));
     }
-    // 4. Convert all the remaining rewards to BaseToken via Native for liquidity.
-    address[] memory path;
-    if (baseToken == wNative) {
-      path = new address[](2);
-      path[0] = address(cake);
-      path[1] = address(wNative);
-    } else {
-      path = new address[](3);
-      path[0] = address(cake);
-      path[1] = address(wNative);
-      path[2] = address(baseToken);
-    }
-    router.swapExactTokensForTokens(reward.sub(bounty), 0, path, address(this), now);
-    // 5. Use add Token strategy to convert all BaseToken without both caller balance and buyback amount to LP tokens.
+
+    // 5. Convert all the remaining rewards to BaseToken according to config path.
+    router.swapExactTokensForTokens(reward.sub(bounty), 0, getReinvestPath(), address(this), now);
+
+    // 6. Use add Token strategy to convert all BaseToken without both caller balance and buyback amount to LP tokens.
     baseToken.safeTransfer(address(addStrat), actualBaseTokenBalance().sub(_callerBalance));
     addStrat.execute(address(0), 0, abi.encode(0));
-    // 6. Stake LPs for more rewards
+
+    // 7. Stake LPs for more rewards
     masterChef.deposit(pid, lpToken.balanceOf(address(this)));
-    // 7. Reset approve
+
+    // 8. Reset approve
     cake.safeApprove(address(router), 0);
     address(lpToken).safeApprove(address(masterChef), 0);
+
     emit Reinvest(_treasuryAccount, reward, bounty);
   }
 
@@ -239,10 +270,10 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
     _removeShare(id);
     // 4. Perform the worker strategy; sending LP tokens + BaseToken; expecting LP tokens + BaseToken.
     (address strat, bytes memory ext) = abi.decode(data, (address, bytes));
-    require(okStrats[strat], "PancakeswapWorker::work:: unapproved work strategy");
+    require(okStrats[strat], "PancakeswapV2Worker02::work:: unapproved work strategy");
     require(
       lpToken.transfer(strat, lpToken.balanceOf(address(this))),
-      "PancakeswapWorker::work:: unable to transfer lp to strat"
+      "PancakeswapV2Worker02::work:: unable to transfer lp to strat"
     );
     baseToken.safeTransfer(strat, actualBaseTokenBalance());
     IStrategy(strat).execute(user, debt, ext);
@@ -262,7 +293,7 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
     uint256 rOut
   ) public view returns (uint256) {
     if (aIn == 0) return 0;
-    require(rIn > 0 && rOut > 0, "PancakeswapWorker::getMktSellAmount:: bad reserve values");
+    require(rIn > 0 && rOut > 0, "PancakeswapV2Worker02::getMktSellAmount:: bad reserve values");
     uint256 aInWithFee = aIn.mul(fee);
     uint256 numerator = aInWithFee.mul(rOut);
     uint256 denominator = rIn.mul(feeDenom).add(aInWithFee);
@@ -313,10 +344,27 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
     if (beneficialVaultToken != baseToken) {
       buybackAmount = 0;
       beneficialVaultToken.safeTransfer(address(beneficialVault), beneficialVaultToken.myBalance());
-      emit BeneficialVaultTokenBuyback(_msgSender(), beneficialVault, amounts[amounts.length - 1]);
+      emit BeneficialVaultTokenBuyback(msg.sender, beneficialVault, amounts[amounts.length - 1]);
     } else {
       buybackAmount = beneficialVaultToken.myBalance().sub(_callerBalance);
     }
+  }
+
+  /// @notice Internal function to get reinvest path. Return route through WBNB if reinvestPath not set.
+  function getReinvestPath() public view returns (address[] memory) {
+    if (reinvestPath.length != 0) return reinvestPath;
+    address[] memory path;
+    if (baseToken == wNative) {
+      path = new address[](2);
+      path[0] = address(cake);
+      path[1] = address(wNative);
+    } else {
+      path = new address[](3);
+      path[0] = address(cake);
+      path[1] = address(wNative);
+      path[2] = address(baseToken);
+    }
+    return path;
   }
 
   /// @notice for transfering a buyback amount to the particular beneficial vault
@@ -326,7 +374,7 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
     uint256 _buybackAmount = buybackAmount;
     buybackAmount = 0;
     beneficialVault.token().safeTransfer(address(beneficialVault), _buybackAmount);
-    emit BeneficialVaultTokenBuyback(_msgSender(), beneficialVault, _buybackAmount);
+    emit BeneficialVaultTokenBuyback(msg.sender, beneficialVault, _buybackAmount);
   }
 
   /// @notice since buybackAmount variable has been created to collect a buyback balance when during the reinvest within the work method,
@@ -367,28 +415,44 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
   }
 
   /// @dev Set the reward bounty for calling reinvest operations.
-  /// @param _reinvestBountyBps The bounty value to update.
-  function setReinvestBountyBps(uint256 _reinvestBountyBps) external onlyOwner {
+  /// @param _reinvestBountyBps - The bounty value to update.
+  /// @param _reinvestThreshold - The threshold to update.
+  /// @param _reinvestPath - The reinvest path to update.
+  function setReinvestConfig(
+    uint256 _reinvestBountyBps,
+    uint256 _reinvestThreshold,
+    address[] calldata _reinvestPath
+  ) external onlyOwner {
     require(
       _reinvestBountyBps <= maxReinvestBountyBps,
-      "PancakeswapWorker::setReinvestBountyBps:: _reinvestBountyBps exceeded maxReinvestBountyBps"
+      "PancakeswapV2Worker02::setReinvestConfig:: _reinvestBountyBps exceeded maxReinvestBountyBps"
     );
+    require(_reinvestPath.length >= 2, "PancakeswapV2Worker02::setReinvestConfig:: reinvestPath length must >= 2");
+    require(
+      _reinvestPath[0] == cake && _reinvestPath[_reinvestPath.length - 1] == baseToken,
+      "PancakeswapV2Worker02::setReinvestConfig:: reinvestPath must start with CAKE, end with BTOKEN"
+    );
+
     reinvestBountyBps = _reinvestBountyBps;
+    reinvestThreshold = _reinvestThreshold;
+    reinvestPath = _reinvestPath;
+
+    emit SetReinvestConfig(msg.sender, _reinvestBountyBps, _reinvestThreshold, _reinvestPath);
   }
 
   /// @dev Set Max reinvest reward for set upper limit reinvest bounty.
-  /// @param _maxReinvestBountyBps The max reinvest bounty value to update.
+  /// @param _maxReinvestBountyBps - The max reinvest bounty value to update.
   function setMaxReinvestBountyBps(uint256 _maxReinvestBountyBps) external onlyOwner {
     require(
       _maxReinvestBountyBps >= reinvestBountyBps,
-      "PancakeswapWorker::setMaxReinvestBountyBps:: _maxReinvestBountyBps lower than reinvestBountyBps"
+      "PancakeswapV2Worker02::setMaxReinvestBountyBps:: _maxReinvestBountyBps lower than reinvestBountyBps"
     );
     maxReinvestBountyBps = _maxReinvestBountyBps;
   }
 
   /// @dev Set the given strategies' approval status.
-  /// @param strats The strategy addresses.
-  /// @param isOk Whether to approve or unapprove the given strategies.
+  /// @param strats - The strategy addresses.
+  /// @param isOk - Whether to approve or unapprove the given strategies.
   function setStrategyOk(address[] calldata strats, bool isOk) external override onlyOwner {
     uint256 len = strats.length;
     for (uint256 idx = 0; idx < len; idx++) {
@@ -397,8 +461,8 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
   }
 
   /// @dev Set the given address's to be reinvestor.
-  /// @param reinvestors The reinvest bot addresses.
-  /// @param isOk Whether to approve or unapprove the given strategies.
+  /// @param reinvestors - The reinvest bot addresses.
+  /// @param isOk - Whether to approve or unapprove the given strategies.
   function setReinvestorOk(address[] calldata reinvestors, bool isOk) external override onlyOwner {
     uint256 len = reinvestors.length;
     for (uint256 idx = 0; idx < len; idx++) {
@@ -407,50 +471,55 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
   }
 
   /// @dev Update critical strategy smart contracts. EMERGENCY ONLY. Bad strategies can steal funds.
-  /// @param _addStrat The new add strategy contract.
-  /// @param _liqStrat The new liquidate strategy contract.
+  /// @param _addStrat - The new add strategy contract.
+  /// @param _liqStrat - The new liquidate strategy contract.
   function setCriticalStrategies(IStrategy _addStrat, IStrategy _liqStrat) external onlyOwner {
     addStrat = _addStrat;
     liqStrat = _liqStrat;
   }
 
-  /// @notice Set treasury account
-  /// @param _account treasury account
+  /// @notice Set treasury account. For receiving reinvest bounty.
+  /// @param _account - The treasury address to update
   function setTreasuryAccount(address _account) external onlyOwner {
     treasuryAccount = _account;
 
-    emit SetTreasuryAccount(_account);
+    emit SetTreasuryAccount(msg.sender, _account);
   }
 
-  /// @notice Set treasury bounty bps
-  /// @param _treasuryBountyBps treasury account
+  /// @notice Set treasury bounty bps.
+  /// @param _treasuryBountyBps - The treasury bounty to update
   function setTreasuryBountyBps(uint256 _treasuryBountyBps) external onlyOwner {
     require(
       _treasuryBountyBps <= maxReinvestBountyBps,
-      "PancakeswapV2Worker::setTreasuryBountyBps:: _treasuryBountyBps exceeded maxReinvestBountyBps"
+      "PancakeswapV2Worker02::setTreasuryBountyBps:: _treasuryBountyBps exceeded maxReinvestBountyBps"
     );
     treasuryBountyBps = _treasuryBountyBps;
 
-    emit SetTreasuryBountyBps(treasuryAccount, _treasuryBountyBps);
+    emit SetTreasuryBountyBps(msg.sender, _treasuryBountyBps);
   }
 
   /// @notice Set beneficial vault related data including beneficialVaultBountyBps, beneficialVaultAddress, and rewardPath
   /// @param _beneficialVaultBountyBps - The bounty value to update.
   /// @param _beneficialVault - beneficialVaultAddress
   /// @param _rewardPath - reward token path from rewardToken to beneficialVaultToken
-  function setBeneficialVaultRelatedData(
+  function setBeneficialVaultConfig(
     uint256 _beneficialVaultBountyBps,
     IVault _beneficialVault,
     address[] calldata _rewardPath
   ) external onlyOwner {
     require(
       _beneficialVaultBountyBps <= 10000,
-      "PancakeswapV2Worker::setBeneficialVaultBountyBps:: _beneficialVaultBountyBps exceeds 100%"
+      "PancakeswapV2Worker02::setBeneficialVaultConfig:: _beneficialVaultBountyBps exceeds 100%"
+    );
+    require(_rewardPath.length >= 2, "PancakeswapV2Worker02::setBeneficialVaultConfig:: rewardPath length must >= 2");
+    require(
+      _rewardPath[0] == cake && _rewardPath[_rewardPath.length - 1] == _beneficialVault.token(),
+      "PancakeswapV2Worker02::setBeneficialVaultConfig:: rewardPath must start with $CAKE, end with beneficialVault token"
     );
     beneficialVaultBountyBps = _beneficialVaultBountyBps;
     beneficialVault = _beneficialVault;
     rewardPath = _rewardPath;
 
-    emit SetBeneficialVaultData(_msgSender(), _beneficialVaultBountyBps, _beneficialVault, _rewardPath);
+    emit SetBeneficialVaultConfig(msg.sender, _beneficialVaultBountyBps, _beneficialVault, _rewardPath);
   }
 }
