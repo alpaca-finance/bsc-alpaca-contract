@@ -310,6 +310,34 @@ describe('WaultSwapRestrictedStrategyPartialCloseMinimizeTrading', () => {
       await lpAsBob.transfer(strat.address, ethers.utils.parseEther('8.944271909999158785'))
     })
 
+    context('when amount to repay debt is greater than debt', async () => {
+      it('should revert', async () => {
+        await expect(
+          mockWaultSwapWorkerAsBob.work(
+            0,
+            await bob.getAddress(),
+            ethers.utils.parseEther('0'),
+            ethers.utils.defaultAbiCoder.encode(
+              ['address', 'bytes'],
+              [
+                strat.address,
+                ethers.utils.defaultAbiCoder.encode(
+                  ['uint256', 'uint256', 'uint256'],
+                  [
+                    ethers.utils.parseEther('4.472135954999579393'),
+                    ethers.utils.parseEther('0.8'),
+                    ethers.utils.parseEther('25'),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ).to.revertedWith(
+          'WaultSwapRestrictedStrategyPartialCloseMinimizeTrading::execute:: amount to repay debt is greater than debt',
+        )
+      })
+    })
+
     context('when no trade (repaid debt <= received BaseToken from LP token)', async () => {
       // LP token to liquidate: 4.472135954999579392 Lp token (20 farming token + 1 base token)
       // Base token to be repaid debt: 0.8 base token
@@ -319,7 +347,7 @@ describe('WaultSwapRestrictedStrategyPartialCloseMinimizeTrading', () => {
             mockWaultSwapWorkerAsBob.work(
               0,
               await bob.getAddress(),
-              '0',
+              ethers.utils.parseEther('2'),
               ethers.utils.defaultAbiCoder.encode(
                 ['address', 'bytes'],
                 [
@@ -351,7 +379,7 @@ describe('WaultSwapRestrictedStrategyPartialCloseMinimizeTrading', () => {
             mockWaultSwapWorkerAsBob.work(
               0,
               await bob.getAddress(),
-              '0',
+              ethers.utils.parseEther('2'),
               ethers.utils.defaultAbiCoder.encode(
                 ['address', 'bytes'],
                 [
@@ -401,7 +429,7 @@ describe('WaultSwapRestrictedStrategyPartialCloseMinimizeTrading', () => {
             mockWaultSwapWorkerAsBob.work(
               0,
               await bob.getAddress(),
-              '0',
+              ethers.utils.parseEther('2'),
               ethers.utils.defaultAbiCoder.encode(
                 ['address', 'bytes'],
                 [
@@ -431,7 +459,7 @@ describe('WaultSwapRestrictedStrategyPartialCloseMinimizeTrading', () => {
             mockWaultSwapWorkerAsBob.work(
               0,
               await bob.getAddress(),
-              '0',
+              ethers.utils.parseEther('2'),
               ethers.utils.defaultAbiCoder.encode(
                 ['address', 'bytes'],
                 [
@@ -463,7 +491,7 @@ describe('WaultSwapRestrictedStrategyPartialCloseMinimizeTrading', () => {
             mockWaultSwapWorkerAsBob.work(
               0,
               await bob.getAddress(),
-              '0',
+              ethers.utils.parseEther('2'),
               ethers.utils.defaultAbiCoder.encode(
                 ['address', 'bytes'],
                 [
@@ -556,7 +584,7 @@ describe('WaultSwapRestrictedStrategyPartialCloseMinimizeTrading', () => {
             mockWaultSwapBaseTokenWbnbV2WorkerAsBob.work(
               0,
               await bob.getAddress(),
-              '0',
+              ethers.utils.parseEther('1'),
               ethers.utils.defaultAbiCoder.encode(
                 ['address', 'bytes'],
                 [
@@ -588,7 +616,7 @@ describe('WaultSwapRestrictedStrategyPartialCloseMinimizeTrading', () => {
             mockWaultSwapBaseTokenWbnbV2WorkerAsBob.work(
               0,
               await bob.getAddress(),
-              '0',
+              ethers.utils.parseEther('1'),
               ethers.utils.defaultAbiCoder.encode(
                 ['address', 'bytes'],
                 [
@@ -637,7 +665,7 @@ describe('WaultSwapRestrictedStrategyPartialCloseMinimizeTrading', () => {
             mockWaultSwapBaseTokenWbnbV2WorkerAsBob.work(
               0,
               await bob.getAddress(),
-              '0',
+              ethers.utils.parseEther('1'),
               ethers.utils.defaultAbiCoder.encode(
                 ['address', 'bytes'],
                 [
@@ -668,7 +696,7 @@ describe('WaultSwapRestrictedStrategyPartialCloseMinimizeTrading', () => {
             mockWaultSwapBaseTokenWbnbV2WorkerAsBob.work(
               0,
               await bob.getAddress(),
-              '0',
+              ethers.utils.parseEther('1'),
               ethers.utils.defaultAbiCoder.encode(
                 ['address', 'bytes'],
                 [
@@ -701,7 +729,7 @@ describe('WaultSwapRestrictedStrategyPartialCloseMinimizeTrading', () => {
             mockWaultSwapBaseTokenWbnbV2WorkerAsBob.work(
               0,
               await bob.getAddress(),
-              '0',
+              ethers.utils.parseEther('1'),
               ethers.utils.defaultAbiCoder.encode(
                 ['address', 'bytes'],
                 [

@@ -82,7 +82,7 @@ contract WaultSwapRestrictedStrategyPartialCloseMinimizeTrading is
   /// @param data Extra calldata information passed along to this strategy.
   function execute(
     address user,
-    uint256, /*debt*/
+    uint256 debt,
     bytes calldata data
   ) external override onlyWhitelistedWorkers nonReentrant {
     // 1. Find out what farming token we are dealing with.
@@ -105,6 +105,10 @@ contract WaultSwapRestrictedStrategyPartialCloseMinimizeTrading is
     );
     router.removeLiquidity(baseToken, farmingToken, lpTokenToLiquidate, 0, 0, address(this), now);
     // 4. Convert farming tokens to base token.
+    require(
+      debt >= toRepaidBaseTokenDebt,
+      "WaultSwapRestrictedStrategyPartialCloseMinimizeTrading::execute:: amount to repay debt is greater than debt"
+    );
     address[] memory path = new address[](2);
     path[0] = farmingToken;
     path[1] = baseToken;
