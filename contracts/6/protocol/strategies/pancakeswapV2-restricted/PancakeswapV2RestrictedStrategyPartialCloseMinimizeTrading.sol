@@ -78,10 +78,11 @@ contract PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading is
   /// @dev Execute worker strategy. Take LP tokens. Return farming token + base token.
   /// However, some base token will be deducted to pay the debt
   /// @param user User address to withdraw liquidity.
+  /// @param debt Debt amount in WAD of the user.
   /// @param data Extra calldata information passed along to this strategy.
   function execute(
     address user,
-    uint256, /*debt*/
+    uint256 debt,
     bytes calldata data
   ) external override onlyWhitelistedWorkers nonReentrant {
     // 1. Find out what farming token we are dealing with.
@@ -104,6 +105,10 @@ contract PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading is
     );
     router.removeLiquidity(baseToken, farmingToken, lpTokenToLiquidate, 0, 0, address(this), now);
     // 4. Convert farming tokens to base token.
+    require(
+      debt >= toRepaidBaseTokenDebt,
+      "PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading::execute:: amount to repay debt is greater than debt"
+    );
     address[] memory path = new address[](2);
     path[0] = farmingToken;
     path[1] = baseToken;
