@@ -64,7 +64,7 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeT
 
   /// @dev Execute worker strategy. take farmingToken, return farmingToken + basetoken that is enough to repay the debt
   /// @param data Extra calldata information passed along to this strategy.
-  function execute(address user, uint256 /*debt*/, bytes calldata data)
+  function execute(address user, uint256 debt, bytes calldata data)
     external
     override
     onlyWhitelistedWorkers
@@ -83,22 +83,24 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeT
     address farmingToken = worker.farmingToken();
     // 2. Approve router to do their stuffs
     farmingToken.safeApprove(address(router), uint256(-1));
-    // 3. check farmingToken amount to liquidate less than farmingToken balance
+    // 3. check farmingToken amount to liquidate more than equal farmingToken balance
     uint256 farmingTokenBalance = farmingToken.myBalance();
     require(farmingTokenBalance >= farmingTokenToLiquidate, "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::execute:: insufficient farmingToken received from worker");
+    // 4. check toRepaidBaseTokenDebt less than equal debt
+    require(toRepaidBaseTokenDebt <= debt, "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::execute:: amount to repay debt is greater than debt");
     uint256 farmingTokenToRepaidDebt = 0;
     if (toRepaidBaseTokenDebt > 0) {
-        // 4. Swap form baseToken to repaid debt -> farmingToken
+        // 5. Swap form baseToken to repaid debt -> farmingToken
         uint256[] memory farmingTokenToRepaidDebts = router.getAmountsIn(toRepaidBaseTokenDebt, worker.getReversedPath());
         farmingTokenToRepaidDebt = farmingTokenToRepaidDebts[0];
         require(farmingTokenToLiquidate >= farmingTokenToRepaidDebts[0], "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::execute:: not enough to pay back debt");
-        // 5. Swap from farming token -> base token according to worker's path
+        // 6. Swap from farming token -> base token according to worker's path
         router.swapTokensForExactTokens(toRepaidBaseTokenDebt, farmingTokenBalance, worker.getReversedPath(), address(this), now);
     }
     uint256 farmingTokenBalanceToBeSentToTheUser = farmingTokenToLiquidate.sub(farmingTokenToRepaidDebt);
-    // 6. Return baseToken back to the original caller in order to repay the debt
+    // 7. Return baseToken back to the original caller in order to repay the debt
     baseToken.safeTransfer(msg.sender, baseToken.myBalance());
-    // 7. Return the partial farmingTokens back to the user.
+    // 8. Return the partial farmingTokens back to the user.
     require(farmingTokenBalanceToBeSentToTheUser >= minFarmingTokenAmount, "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::execute:: insufficient farmingToken amount received");
     if (farmingTokenBalanceToBeSentToTheUser > 0) {
       if (farmingToken == address(wbnb)) {
@@ -109,9 +111,9 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeT
         SafeToken.safeTransfer(farmingToken, user, farmingTokenBalanceToBeSentToTheUser);
       }
     }
-    // 8. Return farmingToken back to the original caller
+    // 9. Return farmingToken back to the original caller
     farmingToken.safeTransfer(msg.sender, farmingToken.myBalance());
-    // 9. Reset approval for safety reason
+    // 10. Reset approval for safety reason
     farmingToken.safeApprove(address(router), 0);
     emit PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTradingEvent(
       baseToken,
