@@ -1,5 +1,5 @@
-import { ethers, upgrades, waffle } from "hardhat";
-import { Signer, BigNumberish, utils, Wallet, constants } from "ethers";
+import { ethers, upgrades } from "hardhat";
+import { Signer, constants } from "ethers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import "@openzeppelin/test-helpers";
@@ -40,17 +40,16 @@ import {
   SimpleVaultConfig__factory,
   SyrupBar,
   SyrupBar__factory,
-  Timelock,
-  Timelock__factory,
   Vault,
   Vault__factory,
   WNativeRelayer,
   WNativeRelayer__factory,
+  MockBeneficialVault__factory,
+  MockBeneficialVault,
 } from "../typechain";
 import * as AssertHelpers from "./helpers/assert"
 import * as TimeHelpers from "./helpers/time"
 import { parseEther } from "ethers/lib/utils";
-import exp from "node:constants";
 
 chai.use(solidity);
 const { expect } = chai;
@@ -361,7 +360,6 @@ describe('Vault - PancakeswapV202', () => {
     // Deployer adds 0.1 FTOKEN + 1 BTOKEN
     await baseToken.approve(routerV2.address, ethers.utils.parseEther('1'));
     await farmToken.approve(routerV2.address, ethers.utils.parseEther('0.1'));
-
     await routerV2.addLiquidity(
       baseToken.address, farmToken.address,
       ethers.utils.parseEther('1'), ethers.utils.parseEther('0.1'),
@@ -377,6 +375,12 @@ describe('Vault - PancakeswapV202', () => {
     await baseToken.approve(routerV2.address, ethers.utils.parseEther('1'));
     await routerV2.addLiquidityETH(
       baseToken.address, ethers.utils.parseEther('1'),
+      '0', '0', await deployer.getAddress(), FOREVER, { value: ethers.utils.parseEther('1') });
+
+    // Deployer adds 1 FTOKEN + 1 NATIVE
+    await farmToken.approve(routerV2.address, ethers.utils.parseEther('1'))
+    await routerV2.addLiquidityETH(
+      farmToken.address, ethers.utils.parseEther('1'),
       '0', '0', await deployer.getAddress(), FOREVER, { value: ethers.utils.parseEther('1') });
 
     // Contract signer
@@ -593,6 +597,7 @@ describe('Vault - PancakeswapV202', () => {
           expect(await pancakeswapV2Worker.treasuryAccount()).to.eq(DEPLOYER)
         })
       })
+
       it('should allow to open a position without debt', async () => {
         // Deployer deposits 3 BTOKEN to the bank
         await baseToken.approve(vault.address, ethers.utils.parseEther('3'));
@@ -802,9 +807,8 @@ describe('Vault - PancakeswapV202', () => {
               // 10% of 0.003039999999998414 will increase a beneficial vault's totalToken, this beneficial vault will get 0.0003039999999998414 CAKE
               // thus, 0.002735999999998573 will be returned to eve
               
-  
               // 0.000303999999999841 CAKE is converted to (0.000303999999999841 * 0.9975 * 1) / (0.1 + 0.000303999999999841 * 0.9975) = 0.003023232350219612 WBNB
-              // 0.003023232350219612 WBNB is converted to (0.003023232350219612 * 0.9975 * 1) / (0.1 + 0.003023232350219612 * 0.9975) = 0.003006607321008077 BTOKEN
+              // 0.003023232350219612 WBNB is converted to (0.003023232350219612 * 0.9975 * 1) / (1 + 0.003023232350219612 * 0.9975) = 0.003006607321008077 FTOKEN
               // 0.003006607321008077 will be returned to beneficial vault
   
               // total reward left to be added to lp is~ 0.300959999999842997 CAKE
@@ -813,7 +817,7 @@ describe('Vault - PancakeswapV202', () => {
               // 0.425053683338158027 BTOKEN will be added to add strat to increase an lp size
               // after optimal swap, 0.425053683338158027 needs to swap 0.205746399352533711 BTOKEN to get the pair
               // thus (0.205746399352533711 * 0.9975 * 0.1) / (2.999999999999999954 + 0.205746399352533711 * 0.9975) = 0.006403032018227551
-              // 0.205746399352533711 BTOKEN - 0.006403032018227551 FTOKEN to be added to  the pool
+              // 0.205746399352533711 BTOKEN + 0.006403032018227551 FTOKEN to be added to  the pool
               // LP from adding the pool will be (0.006403032018227551 / 0.09359696798177246) * 0.547432903386529256 = 0.037450255962328211 LP
               // Accumulated LP will be 0.231205137369691323 + 0.037450255962328211 = 0.268655393332019534
               // now her balance based on share will be equal to (2.31205137369691323 / 2.31205137369691323) * 0.268655393332019534 = 0.268655393332019534 LP
@@ -855,21 +859,23 @@ describe('Vault - PancakeswapV202', () => {
               );
               expect(await pancakeswapV2Worker01.shares(1)).to.eq(ethers.utils.parseEther('0.231205137369691323'))
               expect(await pancakeswapV2Worker01.shareToBalance(await pancakeswapV2Worker01.shares(1))).to.eq(ethers.utils.parseEther('0.268655393332019534'))
-              const baseTokenBefore = await baseToken.balanceOf(await alice.getAddress())
-              const farmingTokenBefore = await farmToken.balanceOf(await alice.getAddress())
-              const vaultDebtValBefore = await vault.vaultDebtVal()
               
               // Alice closes position. This will trigger _reinvest in work function. Hence, positions get reinvested.
               // Reinvest fees should be transferred to DEPLOYER account.
               // it's 2 blocks apart since the first tx, thus 0.0076 * 2 = 0.151999999999986883 CAKE
               // 10% of 0.151999999999986883 will become a bounty, thus DEPLOYER shall get 90% of 0.001519999999999868 CAKE
               // 10% of 0.0015199999999998683 will be returned to the beneficial vault = 0.0001519999999999868 CAKE
-              // thus DEPLOYER will receive 0.001367999999999882 CAKE as a bounty
-              // Eve's CAKE should still be the same.
+              // --------
+              // ***** thus DEPLOYER will receive 0.001367999999999882 CAKE as a bounty *****
+              // ***** Eve's CAKE should still be the same. *****
+              // --------
   
               // 0.0001519999999999868 CAKE is converted to (0.0001519999999999868 * 0.9975 * 0.249682550274155746) / (0.401263999999842838 + 0.0001519999999999868 * 0.9975) = 0.000094308408508315 WBNB
               // 0.000094308408508315 WBNB is converted to (0.000094308408508315 * 0.9975 * 0.571939709340833896) / (1.750317449725844254+ 0.000094308408508315 * 0.9975) = 0.000030737844360520 BTOKEN
-              // 0.01367999999999882 will be returned to beneficial vault
+              // --------
+              // ***** 0.000030737844360520 BTOKEN will be returned to beneficial vault *****
+              // ***** However, beneficialVault is operator. Hence, this amount will be hold with in contract first. *****
+              // --------
   
               // total bounty left to be added to lp is~ 0.150479999999987015 CAKE
               // 0.150479999999987015 CAKE is converted to (0.150479999999987015 * 0.9975 * 0.249588241865647431) / (0.401415999999842824 + 0.150479999999987015  * 0.9975) = 0.067928918489165924 WBNB
@@ -877,24 +883,29 @@ describe('Vault - PancakeswapV202', () => {
               // 0.021313747781736658 BTOKEN will be added to add strat to increase an lp size
               // after optimal swap, 0.021313747781736658 needs to swap 0.010653663230585143 BTOKEN to get the pair
               // thus (0.010653663230585143 * 0.9975 * 0.1) / (3.425053683338158027 + 0.010653663230585143 * 0.9975) = 0.000309313640063257
-              // 0.010653663230585143 BTOKEN - 0.000309313640063257 FTOKEN to be added to  the pool
+              // 0.010653663230585143 BTOKEN + 0.000309313640063257 FTOKEN to be added to  the pool
               // LP from adding the pool will be (0.000309313640063257 / 0.099690686359936743) * 0.584883159348857467 = 0.001814736618190215 LP
               // latest balance of BTOKEN-FTOKEN pair will be 3.446367431119894685 BTOKEN 0.100000000000000000 FTOKEN
-              // latest total supply will be 0.584883159348857467 + 0.001814736618190215 = 0.5866978959670477
-              // Accumulated LP will be 0.26865539333201954 + 0.001814736618190215 = 0.270470129950209749
-              // now her balance based on share will be equal to (2.31205137369691323 / 2.31205137369691323) * 0.270470129950209749 = 0.270470129950209749
+              // latest BTOKEN-FTOKEN's LP total supply will be 0.584883159348857467 + 0.001814736618190215 = 0.5866978959670477 LPs
+              // Accumulated LP will be 0.26865539333201954 + 0.001814736618190215 = 0.270470129950209749 LPs
+              // now her balance based on share will be equal to (2.31205137369691323 / 2.31205137369691323) * 0.270470129950209749 = 0.270470129950209749 LPs
   
               // now she removes 0.270470129950209749 of her lp to BTOKEN-FTOKEN pair
               // (0.270470129950209749 / 0.5866978959670477) * 0.1 = 0.046100409053691391 FTOKEN
               // (0.270470129950209749 / 0.5866978959670477) * 3.446367431119894685 = 1.5887894832394673 BTOKEN
-              // 0.046100409053691391 FTOKEN will be converted to (0.046100409053691391 * 0.9975 * 1.857577947880427336) / (0.553899590946308609 + 0.046100409053691391) = 0.855195776761125094 BTOKEN
+              // 0.046100409053691391 FTOKEN will be converted to (0.046100409053691391 * 0.9975 * 1.857577947880427336) / (0.553899590946308609 + 0.046100409053691391 * 0.9975) = 0.855195776761125094 BTOKEN
               // latest balance of BTOKEN-FTOKEN pair will be 1.002379264603457950 BTOKEN 0.100000000000000000 FTOKEN
-              // thus, alice will receive 1.5887894832394673 + 0.855195776761125094 = 2.4439852600005922 BTOKEN
+              // --------
+              // ***** thus, alice will receive 1.5887894832394673 + 0.855195776761125094 = 2.4439852600005922 BTOKEN *****
+              // --------
               vaultBalanceBefore = await baseToken.balanceOf(vault.address)
+              const aliceBaseTokenBefore = await baseToken.balanceOf(await alice.getAddress())
+              const aliceFarmingTokenBefore = await farmToken.balanceOf(await alice.getAddress())
+              const vaultDebtValBefore = await vault.vaultDebtVal()
               const eveCakeBefore = await cake.balanceOf(await eve.getAddress())
               await vaultAsAlice.work(
                 1,
-                pancakeswapV2Worker01.address,
+                pancakeswapV2Worker02.address,
                 '0',
                 '0',
                 '115792089237316195423570985008687907853269984665640564039457584007913129639935',
@@ -907,18 +918,253 @@ describe('Vault - PancakeswapV202', () => {
                 )
               );
               vaultBalanceAfter = await baseToken.balanceOf(vault.address)
+              const aliceBaseTokenAfter = await baseToken.balanceOf(await alice.getAddress())
+              const aliceFarmingTokenAfter = await farmToken.balanceOf(await alice.getAddress())
+
               AssertHelpers.assertAlmostEqual(vaultBalanceAfter.sub(vaultBalanceBefore).toString(), ethers.utils.parseEther('0.000030737844360520').add(vaultDebtValBefore).toString())
               expect(await cake.balanceOf(await eve.getAddress())).to.be.eq(eveCakeBefore)
               AssertHelpers.assertAlmostEqual(
                 ethers.utils.parseEther('0.001367999999999882').toString(),
                 (await cake.balanceOf(DEPLOYER)).toString(),
               );
-              const baseTokenAfter = await baseToken.balanceOf(await alice.getAddress())
-              const farmingTokenAfter = await farmToken.balanceOf(await alice.getAddress())
-              expect(await pancakeswapV2Worker01.shares(1)).to.eq(ethers.utils.parseEther('0'))
-              expect(await pancakeswapV2Worker01.shareToBalance(await pancakeswapV2Worker01.shares(1))).to.eq(ethers.utils.parseEther('0'))
-              AssertHelpers.assertAlmostEqual(baseTokenAfter.sub(baseTokenBefore).toString(), ethers.utils.parseEther('1.5887894832394673').add(ethers.utils.parseEther('0.855195776761125094')).sub(interest.add(loan)).toString())
-              expect(farmingTokenAfter.sub(farmingTokenBefore)).to.eq('0')
+              expect(await pancakeswapV2Worker02.buybackAmount()).to.be.eq(ethers.utils.parseEther('0.000030737844360520'))
+              expect(await baseToken.balanceOf(pancakeswapV2Worker02.address)).to.be.eq(ethers.utils.parseEther('0.000030737844360520'))
+              expect(await pancakeswapV2Worker02.shares(1)).to.eq(ethers.utils.parseEther('0'))
+              expect(await pancakeswapV2Worker02.shareToBalance(await pancakeswapV2Worker02.shares(1))).to.eq(ethers.utils.parseEther('0'))
+              AssertHelpers.assertAlmostEqual(aliceBaseTokenAfter.sub(aliceBaseTokenBefore).toString(), ethers.utils.parseEther('1.5887894832394673').add(ethers.utils.parseEther('0.855195776761125094')).sub(interest.add(loan)).toString())
+              expect(aliceFarmingTokenAfter.sub(aliceFarmingTokenBefore)).to.eq('0')
+            });
+          })
+
+          context("when beneficialVault != operator", async() => {
+            it('should work with the new upgraded worker', async () => {
+              // Deploy MockBeneficialVault
+              const MockBeneficialVault = (await ethers.getContractFactory(
+                'MockBeneficialVault',
+                deployer
+              )) as MockBeneficialVault__factory
+              const mockFtokenVault = await upgrades.deployProxy(
+                MockBeneficialVault, [farmToken.address]
+              ) as MockBeneficialVault
+
+              // Deployer deposits 3 BTOKEN to the bank
+              const deposit = ethers.utils.parseEther('3');
+              await baseToken.approve(vault.address, deposit);
+              await vault.deposit(deposit);
+          
+              // Now Alice can take 1 BTOKEN loan + 1 BTOKEN of her to create a new position
+              const loan = ethers.utils.parseEther('1');
+              await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther('1'))
+              // Position#1: Bob borrows 1 BTOKEN loan and supply another 1 BToken
+              // Thus, Bob's position value will be worth 20 BTOKEN 
+              // After calling `work()` 
+              // 2 BTOKEN needs to swap 0.0732967258967755614 BTOKEN to 0.042234424701074812 FTOKEN
+              // new reserve after swap will be 1.732967258967755614 ฺBTOKEN 0.057765575298925188 FTOKEN
+              // based on optimal swap formula, BTOKEN-FTOKEN to be added into the LP will be 1.267032741032244386 BTOKEN - 0.042234424701074812 FTOKEN
+              // lp amount from adding liquidity will be (0.042234424701074812 / 0.057765575298925188) * 0.316227766016837933(first total supply) = 0.231205137369691323 LP
+              // new reserve after adding liquidity 2.999999999999999954 BTOKEN - 0.100000000000000000 FTOKEN
+              await vaultAsAlice.work(
+                0,
+                pancakeswapV2Worker01.address,
+                ethers.utils.parseEther('1'),
+                loan,
+                '0',
+                ethers.utils.defaultAbiCoder.encode(
+                  ['address', 'bytes'],
+                  [addStrat.address, ethers.utils.defaultAbiCoder.encode(
+                    ['uint256'],
+                    ['0'])
+                  ]
+                )
+              );
+          
+              // Her position should have ~2 NATIVE health (minus some small trading fee)
+              expect(await pancakeswapV2Worker01.health(1)).to.be.bignumber.eq(ethers.utils.parseEther('1.997883397660681282'));
+              expect(await pancakeswapV2Worker01.shares(1)).to.eq(ethers.utils.parseEther('0.231205137369691323'))
+              expect(await pancakeswapV2Worker01.shareToBalance(await pancakeswapV2Worker01.shares(1))).to.eq(ethers.utils.parseEther('0.231205137369691323'))
+              
+              // PancakeswapV2Worker needs to be updated to PancakeswapV2Worker02
+              const PancakeswapV2Worker02 = (await ethers.getContractFactory(
+                'PancakeswapV2Worker02',
+                deployer
+              )) as PancakeswapV2Worker02__factory
+              const pancakeswapV2Worker02 = await upgrades.upgradeProxy(pancakeswapV2Worker01.address, PancakeswapV2Worker02) as PancakeswapV2Worker02
+              await pancakeswapV2Worker02.deployed()
+              
+              // except that important states must be the same.
+              // - health(1) should return the same value as before upgrade
+              // - shares(1) should return the same value as before upgrade
+              // - shareToBalance(shares(1)) should return the same value as before upgrade
+              // - reinvestPath[0] should be reverted as reinvestPath.lenth == 0
+              // - reinvestPath should return default reinvest path ($CAKE->$WBNB->$BTOKEN)
+              expect(await pancakeswapV2Worker02.health(1)).to.be.bignumber.eq(ethers.utils.parseEther('1.997883397660681282'));
+              expect(await pancakeswapV2Worker02.shares(1)).to.eq(ethers.utils.parseEther('0.231205137369691323'))
+              expect(await pancakeswapV2Worker02.shareToBalance(await pancakeswapV2Worker01.shares(1))).to.eq(ethers.utils.parseEther('0.231205137369691323'))
+              expect(pancakeswapV2Worker02.address).to.eq(pancakeswapV2Worker01.address)
+              await expect(pancakeswapV2Worker02.reinvestPath(0)).to.be.reverted
+              expect(await pancakeswapV2Worker02.getReinvestPath()).to.be.deep.eq([cake.address, wbnb.address, baseToken.address])
+              
+              const pancakeswapV2Worker02AsEve = PancakeswapV2Worker02__factory.connect(pancakeswapV2Worker02.address, eve)
+              
+              // set beneficialVaultConfig
+              await pancakeswapV2Worker02.setBeneficialVaultConfig(BENEFICIALVAULT_BOUNTY_BPS, mockFtokenVault.address, [cake.address, wbnb.address, farmToken.address])
+  
+              expect(await pancakeswapV2Worker02.beneficialVault(), 'expect beneficialVault to be equal to input vault').to.eq(mockFtokenVault.address)
+              expect(await pancakeswapV2Worker02.beneficialVaultBountyBps(), 'expect beneficialVaultBountyBps to be equal to BENEFICIALVAULT_BOUNTY_BPS').to.eq(BENEFICIALVAULT_BOUNTY_BPS)
+              expect(await pancakeswapV2Worker02.getRewardPath()).to.be.deep.eq([cake.address, wbnb.address, farmToken.address])
+              
+              // Eve comes and trigger reinvest
+              await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from('1')));
+              // Eve calls reinvest to increase the LP size and receive portion of rewards
+              // it's 4 blocks apart since the first tx, thus 0.0076 * 4 = 0.303999999999841411 CAKE
+              // 1% of 0.303999999999841411 will become a bounty, thus eve shall get 90% of 0.003039999999998414 CAKE
+              // 10% of 0.003039999999998414 will increase a beneficial vault's totalToken, this beneficial vault will get 0.0003039999999998414 CAKE
+              // --------
+              // ******* thus, 0.002735999999998573 will be returned to eve *******
+              // --------
+              
+  
+              // 0.000303999999999841 CAKE is converted to (0.000303999999999841 * 0.9975 * 1) / (0.1 + 0.000303999999999841 * 0.9975) = 0.003023232350219612 WBNB
+              // 0.003023232350219612 WBNB is converted to (0.003023232350219612 * 0.9975 * 1) / (1 + 0.003023232350219612 * 0.9975) = 0.003006607321008077 FTOKEN
+              // --------
+              // ******* 0.003006607321008077 FTOKEN will be returned to beneficial vault *******
+              // --------
+  
+              // total reward left to be added to lp is~ 0.300959999999842997 CAKE
+              // 0.300959999999842997 CAKE is converted to (0.300959999999842997 * 0.9975 * 0.996976767649780388) / (1.00303999999999841 * 0.9975) = 0.747294217375624642 WBNB
+              // 0.747294217375624642 WBNB is converted to (0.747294217375624642 * 0.9975 * 1) / (1 + 0.747294217375624642 * 0.9975) = 0.427073957641965907 BTOKEN
+              // 0.427073957641965907 BTOKEN will be added to add strat to increase an lp size
+              // after optimal swap, 0.427073957641965907 needs to swap 0.206692825002604811 BTOKEN to get the pair
+              // thus (0.206692825002604811 * 0.9975 * 0.1) / (2.999999999999999954 + 0.206692825002604811 * 0.9975) = 0.006430591675675324
+              // 0.220381132639361117 BTOKEN + 0.006430591675675324 FTOKEN to be added to  the pool
+              // LP from adding the pool will be (0.006430591675675324 / 0.093569408324324676) * 0.547432903386529256 = 0.037622525722362969 LP
+              // --------
+              // ******* LP total supply = 0.547432903386529256 + 0.037622525722362969 = 0.585055429108892225 LPs
+              // ******* Accumulated LP will be 0.231205137369691323 + 0.037622525722362969 = 0.268827663092054292 LPs *******
+              // ******* now her balance based on share will be equal to (0.231205137369691323 / 0.231205137369691323) * 0.268827663092054292 = 0.268827663092054292 LP *******
+              // --------
+              await pancakeswapV2Worker02AsEve.reinvest();
+              expect(await farmToken.balanceOf(mockFtokenVault.address)).to.be.eq(ethers.utils.parseEther('0.003006607321008077'))
+              AssertHelpers.assertAlmostEqual(
+                (CAKE_REWARD_PER_BLOCK.mul('4').mul(REINVEST_BOUNTY_BPS).div('10000'))
+                .sub(
+                  (CAKE_REWARD_PER_BLOCK.mul('4').mul(REINVEST_BOUNTY_BPS).mul(BENEFICIALVAULT_BOUNTY_BPS).div('10000').div('10000'))
+                ).toString(),
+                (await cake.balanceOf(await eve.getAddress())).toString(),
+              );
+              await vault.deposit(0); // Random action to trigger interest computation
+              const healthDebt = await vault.positionInfo('1');
+              expect(healthDebt[0]).to.be.bignumber.above(ethers.utils.parseEther('2'));
+              const interest = ethers.utils.parseEther('0.300001') // 30% interest rate + 0.000001 for margin
+              AssertHelpers.assertAlmostEqual(
+                healthDebt[1].toString(),
+                interest.add(loan).toString(),
+              );
+              AssertHelpers.assertAlmostEqual(
+                (await vault.vaultDebtVal()).toString(),
+                interest.add(loan).toString(),
+              );
+              // add 0.000001 for error-margin
+              const reservePool = interest.mul(RESERVE_POOL_BPS).div('10000');
+              AssertHelpers.assertAlmostEqual(
+                reservePool.toString(),
+                (await vault.reservePool()).toString(),
+              );
+              expect(await pancakeswapV2Worker02.shares(1)).to.eq(ethers.utils.parseEther('0.231205137369691323'))
+              expect(await pancakeswapV2Worker02.shareToBalance(await pancakeswapV2Worker02.shares(1))).to.eq(ethers.utils.parseEther('0.268827663092054292'))
+              
+              // Alice closes position. This will trigger _reinvest in work function. Hence, positions get reinvested.
+              // Reinvest fees should be transferred to DEPLOYER account.
+              // it's 2 blocks apart since the first tx, thus 0.0076 * 2 = 0.151999999999983265 CAKE
+              // 1% of 0.151999999999983265 will become a bounty, thus DEPLOYER shall get 90% of 0.001519999999999832 CAKE
+              // 10% of 0.001519999999999832 will be returned to the beneficial vault = 0.000151999999999983 CAKE
+              // --------
+              // ***** thus DEPLOYER will receive 0.001367999999999849 CAKE as a bounty *****
+              // ***** Eve's CAKE should still be the same. *****
+              // --------
+  
+              // 0.000151999999999983 CAKE is converted to (0.000151999999999983 * 0.9975 * 0.249682550274155746) / (0.401263999999842838 + 0.000151999999999983 * 0.9975) = 0.000094308408508313 WBNB
+              // 0.000094308408508313 WBNB is converted to (0.000094308408508313 * 0.9975 * 0.996993392678991923) / (1.003023232350219612 + 0.000094308408508313 * 0.9975) = 0.000030791025239651 FTOKEN
+              // --------
+              // ***** 0.000093498335179868 FTOKEN will be returned to beneficial vault automatically *****
+              // --------
+  
+              // total bounty left to be added to lp is ~0.150479999999983433 CAKE
+              // 0.150479999999983433 CAKE is converted to (0.150479999999983433 * 0.9975 * 0.249588241865647431) / (0.401415999999842824 + 0.150479999999983433  * 0.9975) = 0.067928918489164747 WBNB
+              // 0.067928918489164747 WBNB is converted to (0.067928918489164747 * 0.9975 * 0.572926042358034093) / (1.747294217375624642 + 0.067928918489164747 * 0.9975) = 0.021388325359575162 BTOKEN
+              // 0.021388325359575162 BTOKEN will be added to add strat to increase an lp size
+              // after optimal swap, 0.021388325359575162 needs to swap 0.010690892652857716 BTOKEN to get the pair
+              // thus (0.010690892652857716 * 0.9975 * 0.1) / (3.427073957641965907 + 0.010690892652857716 * 0.9975) = 0.000310208777965998 FTOKEN
+              // 0.010697432706717446 BTOKEN + 0.000310208777965998 FTOKEN to be added to  the pool
+              // --------
+              // ***** LP from adding the pool will be (0.000310208777965998 / 0.099689791222034002) * 0.585055429108892225 = 0.001820540774350906 LP
+              // ***** latest balance of BTOKEN-FTOKEN pair will be 3.448462283001541069 BTOKEN 0.100000000000000000 FTOKEN
+              // ***** latest BTOKEN-FTOKEN's LP total supply will be 0.585055429108892225 + 0.001820540774350906 = 0.586875969883243131 LPs
+              // ***** Accumulated LP will be 0.268827663092054292 + 0.001820540774350906 = 0.270648203866405198 LPs
+              // ***** now her balance based on share will be equal to (2.31205137369691323 / 2.31205137369691323) * 0.270648203866405198 = 0.270648203866405198 LPs
+              // --------
+  
+              // now she removes 0.270648203866405198 of her lp to BTOKEN-FTOKEN pair
+              // (0.270648203866405198 / 0.586875969883243131) * 0.1 = 0.046116763635807015 FTOKEN
+              // (0.270648203866405198 / 0.586875969883243131) * 3.448462283001541069 = 1.590319200121775090 BTOKEN
+              // 0.046116763635807015 FTOKEN will be converted to (0.046116763635807015 * 0.9975 * 1.858143082879765979) / (0.053883236364192985 + 0.046116763635807015 * 0.9975) = 0.855759786708208700 BTOKEN
+              // --------
+              // ***** latest balance of BTOKEN-FTOKEN pair will be 1.002383296171557279 BTOKEN 0.100000000000000000 FTOKEN
+              // ***** thus, alice will receive 1.590319200121775090 + 0.855759786708208700 - 1 (debt) - 0.3 (interest) = 2.445092365034667512 BTOKEN *****
+              // --------
+              const aliceBaseTokenBefore = await baseToken.balanceOf(await alice.getAddress())
+              const aliceFarmingTokenBefore = await farmToken.balanceOf(await alice.getAddress())
+              const eveCakeBefore = await cake.balanceOf(await eve.getAddress())
+              await vaultAsAlice.work(
+                1,
+                pancakeswapV2Worker02.address,
+                '0',
+                '0',
+                '115792089237316195423570985008687907853269984665640564039457584007913129639935',
+                ethers.utils.defaultAbiCoder.encode(
+                  ['address', 'bytes'],
+                  [liqStrat.address, ethers.utils.defaultAbiCoder.encode(
+                    ['uint256'],
+                    ['0'])
+                  ]
+                )
+              );
+              const aliceBaseTokenAfter = await baseToken.balanceOf(await alice.getAddress())
+              const aliceFarmingTokenAfter = await farmToken.balanceOf(await alice.getAddress())
+
+              expect(
+                await cake.balanceOf(await eve.getAddress()),
+                "expect Eve's CAKE stay the same"
+              ).to.be.eq(eveCakeBefore)
+              expect(
+                await cake.balanceOf(DEPLOYER),
+                "expect deployer get 0.001367999999999849 CAKE"
+              ).to.be.eq(ethers.utils.parseEther('0.001367999999999849'))
+              expect(
+                await farmToken.balanceOf(mockFtokenVault.address),
+                "expect mockFtokenVault get 0.003100105656187945 FTOKEN from buyback & redistribute"
+              ).to.be.eq(ethers.utils.parseEther('0.003100105656187945'))
+              expect(
+                await baseToken.balanceOf(pancakeswapV2Worker02.address),
+                "expect worker shouldn't has any BTOKEN due to operator != beneficialVault")
+              .to.be.eq(ethers.utils.parseEther('0'))
+              expect(
+                await farmToken.balanceOf(pancakeswapV2Worker02.address),
+                "expect worker shouldn't has any FTOKEN due to it is automatically redistribute to ibFTOKEN holder")
+              .to.be.eq(ethers.utils.parseEther('0'))
+              expect(
+                await pancakeswapV2Worker02.shares(1),
+                "expect shares(1) is 0 as Alice closed position"
+              ).to.eq(ethers.utils.parseEther('0'))
+              expect(
+                await pancakeswapV2Worker02.shareToBalance(await pancakeswapV2Worker02.shares(1)),
+                "expect shareToBalance(shares(1) is 0 as Alice closed position"
+              ).to.eq(ethers.utils.parseEther('0'))
+              AssertHelpers.assertAlmostEqual(
+                aliceBaseTokenAfter.sub(aliceBaseTokenBefore).toString(),
+                ethers.utils.parseEther('1.590319200121775090').add(ethers.utils.parseEther('0.855759786708208700')).sub(interest.add(loan)).toString()
+              )
+              expect(aliceFarmingTokenAfter.sub(aliceFarmingTokenBefore)).to.eq('0')
             });
           })
         })

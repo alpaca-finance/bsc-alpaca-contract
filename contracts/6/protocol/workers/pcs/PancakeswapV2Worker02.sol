@@ -24,14 +24,14 @@ import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.so
 
 import "../../apis/pancake/IPancakeRouter02.sol";
 import "../../interfaces/IStrategy.sol";
-import "../../interfaces/IWorker.sol";
+import "../../interfaces/IWorker02.sol";
 import "../../interfaces/IPancakeMasterChef.sol";
 import "../../../utils/AlpacaMath.sol";
 import "../../../utils/SafeToken.sol";
 import "../../interfaces/IVault.sol";
 
 /// @title PancakeswapV2Worker02 is a PancakeswapV2Worker with with reinvest-optimized and beneficial vault buyback functionalities
-contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker {
+contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02 {
   /// @notice Libraries
   using SafeToken for address;
   using SafeMath for uint256;
@@ -214,7 +214,7 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
     uint256 _callerBalance
   ) internal {
     require(_treasuryAccount != address(0), "PancakeswapV2Worker02::reinvest:: bad treasury account");
-    // 1. Return if pendingCake < reinvestThreshold
+    // 1. Return if pendingCake <= reinvestThreshold
     if (masterChef.pendingCake(pid, address(this)) <= reinvestThreshold) return;
 
     // 2. Approve tokens
@@ -234,7 +234,8 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
     }
 
     // 5. Convert all the remaining rewards to BaseToken according to config path.
-    router.swapExactTokensForTokens(reward.sub(bounty), 0, getReinvestPath(), address(this), now);
+    uint256[] memory amts =
+      router.swapExactTokensForTokens(reward.sub(bounty), 0, getReinvestPath(), address(this), now);
 
     // 6. Use add Token strategy to convert all BaseToken without both caller balance and buyback amount to LP tokens.
     baseToken.safeTransfer(address(addStrat), actualBaseTokenBalance().sub(_callerBalance));
@@ -348,6 +349,27 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
     } else {
       buybackAmount = beneficialVaultToken.myBalance().sub(_callerBalance);
     }
+  }
+
+  /// @dev Return the path that the worker is working on.
+  function getPath() external view override returns (address[] memory) {
+    address[] memory path = new address[](2);
+    path[0] = baseToken;
+    path[1] = farmingToken;
+    return path;
+  }
+
+  /// @dev Return the inverse path.
+  function getReversedPath() public view override returns (address[] memory) {
+    address[] memory reversePath = new address[](2);
+    reversePath[0] = farmingToken;
+    reversePath[1] = baseToken;
+    return reversePath;
+  }
+
+  /// @dev Return the path that the work is using for convert reward token to beneficial vault token.
+  function getRewardPath() external view override returns (address[] memory) {
+    return rewardPath;
   }
 
   /// @notice Internal function to get reinvest path. Return route through WBNB if reinvestPath not set.

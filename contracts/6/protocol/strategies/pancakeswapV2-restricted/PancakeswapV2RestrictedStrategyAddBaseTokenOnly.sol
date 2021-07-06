@@ -20,13 +20,11 @@ import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakeFactory.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
 
-
 import "../../apis/pancake/IPancakeRouter02.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../../utils/SafeToken.sol";
 import "../../../utils/AlpacaMath.sol";
 import "../../interfaces/IWorker.sol";
-
 
 contract PancakeswapV2RestrictedStrategyAddBaseTokenOnly is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeToken for address;
@@ -38,9 +36,12 @@ contract PancakeswapV2RestrictedStrategyAddBaseTokenOnly is OwnableUpgradeSafe, 
 
   // @notice require that only allowed workers are able to do the rest of the method call
   modifier onlyWhitelistedWorkers() {
-    require(okWorkers[msg.sender], "PancakeswapV2RestrictedStrategyAddBaseTokenOnly::onlyWhitelistedWorkers:: bad worker");
+    require(
+      okWorkers[msg.sender],
+      "PancakeswapV2RestrictedStrategyAddBaseTokenOnly::onlyWhitelistedWorkers:: bad worker"
+    );
     _;
-  } 
+  }
 
   /// @dev Create a new add Token only strategy instance.
   /// @param _router The Uniswap router smart contract.
@@ -53,16 +54,13 @@ contract PancakeswapV2RestrictedStrategyAddBaseTokenOnly is OwnableUpgradeSafe, 
 
   /// @dev Execute worker strategy. Take BaseToken. Return LP tokens.
   /// @param data Extra calldata information passed along to this strategy.
-  function execute(address /* user */, uint256 /* debt */, bytes calldata data)
-    external
-    override
-    onlyWhitelistedWorkers
-    nonReentrant
-  {
+  function execute(
+    address, /* user */
+    uint256, /* debt */
+    bytes calldata data
+  ) external override onlyWhitelistedWorkers nonReentrant {
     // 1. Find out what farming token we are dealing with and min additional LP tokens.
-    (
-      uint256 minLPAmount
-    ) = abi.decode(data, (uint256));
+    uint256 minLPAmount = abi.decode(data, (uint256));
     IWorker worker = IWorker(msg.sender);
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
@@ -86,12 +84,27 @@ contract PancakeswapV2RestrictedStrategyAddBaseTokenOnly is OwnableUpgradeSafe, 
     path[0] = baseToken;
     path[1] = farmingToken;
     router.swapExactTokensForTokens(aIn, 0, path, address(this), now);
+    (r0, r1, ) = lpToken.getReserves();
     // 5. Mint more LP tokens and return all LP tokens to the sender.
-    (,, uint256 moreLPAmount) = router.addLiquidity(
-      baseToken, farmingToken, baseToken.myBalance(), farmingToken.myBalance(), 0, 0, address(this), now
+    (, , uint256 moreLPAmount) =
+      router.addLiquidity(
+        baseToken,
+        farmingToken,
+        baseToken.myBalance(),
+        farmingToken.myBalance(),
+        0,
+        0,
+        address(this),
+        now
+      );
+    require(
+      moreLPAmount >= minLPAmount,
+      "PancakeswapV2RestrictedStrategyAddBaseTokenOnly::execute:: insufficient LP tokens received"
     );
-    require(moreLPAmount >= minLPAmount, "PancakeswapV2RestrictedStrategyAddBaseTokenOnly::execute:: insufficient LP tokens received");
-    require(lpToken.transfer(msg.sender, lpToken.balanceOf(address(this))), "PancakeswapV2RestrictedStrategyAddBaseTokenOnly::execute:: failed to transfer LP token to msg.sender");
+    require(
+      lpToken.transfer(msg.sender, lpToken.balanceOf(address(this))),
+      "PancakeswapV2RestrictedStrategyAddBaseTokenOnly::execute:: failed to transfer LP token to msg.sender"
+    );
     // 6. Reset approval for safety reason
     baseToken.safeApprove(address(router), 0);
     farmingToken.safeApprove(address(router), 0);
