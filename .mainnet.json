@@ -842,7 +842,7 @@
       }
     }, {
       "name": "TRX-WBNB PancakeswapWorker",
-      "address": "",
+      "address": "0xf80c39D3D5D5Ca4581ec1982cc0c3C88494CBE62",
       "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
       "pId": 368,
       "stakingToken": "0x3cd338c3BB249B6b3C55799F85a589FEbBBFf9Dd",
@@ -855,7 +855,7 @@
       }
     }, {
       "name": "BTT-WBNB PancakeswapWorker",
-      "address": "",
+      "address": "0x807554b56F682e87234fd82712aa31548bA73DB2",
       "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
       "pId": 367,
       "stakingToken": "0x946696344e7d4346b223e1Cf77035a76690d6A73",
