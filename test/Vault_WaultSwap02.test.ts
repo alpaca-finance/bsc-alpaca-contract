@@ -1,5 +1,5 @@
-import { ethers, upgrades, waffle } from "hardhat";
-import { Signer, BigNumberish, utils, Wallet, constants } from "ethers";
+import { ethers, upgrades } from "hardhat";
+import { Signer } from "ethers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import "@openzeppelin/test-helpers";
@@ -40,6 +40,8 @@ import {
   WNativeRelayer__factory,
   WaultSwapWorker,
   WaultSwapWorker__factory,
+  MockBeneficialVault__factory,
+  MockBeneficialVault,
 } from "../typechain";
 import * as AssertHelpers from "./helpers/assert"
 import * as TimeHelpers from "./helpers/time"
@@ -288,7 +290,17 @@ describe('Vault - WaultSwap02', () => {
       deployer,
     )) as WaultSwapWorker02__factory;
     waultSwapWorker = await upgrades.deployProxy(WaultSwapWorker02, [
-      vault.address, baseToken.address, wexMaster.address, router.address, poolId, addStrat.address, liqStrat.address, REINVEST_BOUNTY_BPS
+      vault.address,
+      baseToken.address,
+      wexMaster.address,
+      router.address,
+      poolId,
+      addStrat.address,
+      liqStrat.address,
+      REINVEST_BOUNTY_BPS,
+      DEPLOYER,
+      [wex.address, wbnb.address, baseToken.address],
+      '0'
     ]) as WaultSwapWorker02
     await waultSwapWorker.deployed();
 
@@ -333,6 +345,12 @@ describe('Vault - WaultSwap02', () => {
       baseToken.address, ethers.utils.parseEther('1'),
       '0', '0', await deployer.getAddress(), FOREVER, { value: ethers.utils.parseEther('1') });
 
+    // Deployer adds 1 FTOKEN + 1 NATIVE
+    await farmToken.approve(router.address, ethers.utils.parseEther('1'))
+    await router.addLiquidityETH(
+      farmToken.address, ethers.utils.parseEther('1'),
+      '0', '0', await deployer.getAddress(), FOREVER, { value: ethers.utils.parseEther('1') });
+
     // Contract signer
     baseTokenAsAlice = MockERC20__factory.connect(baseToken.address, alice);
     baseTokenAsBob = MockERC20__factory.connect(baseToken.address, bob);
@@ -350,7 +368,7 @@ describe('Vault - WaultSwap02', () => {
     vaultAsEve = Vault__factory.connect(vault.address, eve);
 
     waultSwapWorkerAsEve = WaultSwapWorker02__factory.connect(waultSwapWorker.address, eve);
-    waultSwapWorker01AsEve = WaultSwapWorker02__factory.connect(waultSwapWorker01.address, eve);
+    waultSwapWorker01AsEve = WaultSwapWorker__factory.connect(waultSwapWorker01.address, eve);
   });
 
   context('when worker is initialized', async() => {
@@ -365,9 +383,14 @@ describe('Vault - WaultSwap02', () => {
   });
 
   context('when owner is setting worker', async() => {
-    it('should set reinvest bounty if < max', async() => {
-      await waultSwapWorker.setReinvestBountyBps(250);
+    it('should set reinvest config correctly', async() => {
+      await expect(waultSwapWorker.setReinvestConfig(
+        250, ethers.utils.parseEther('1'), [wex.address, baseToken.address]
+      )).to.be.emit(waultSwapWorker, 'SetReinvestConfig')
+        .withArgs(await deployer.getAddress(), 250, ethers.utils.parseEther('1'), [wex.address, baseToken.address])
       expect(await waultSwapWorker.reinvestBountyBps()).to.be.bignumber.eq(250);
+      expect(await waultSwapWorker.reinvestThreshold()).to.be.bignumber.eq(ethers.utils.parseEther('1'))
+      expect(await waultSwapWorker.getReinvestPath()).to.deep.eq([wex.address, baseToken.address])
     });
 
     it('should set max reinvest bounty', async() => {
@@ -383,7 +406,7 @@ describe('Vault - WaultSwap02', () => {
 
     context('when treasury bounty > max reinvest bounty', async () => {
       it('should revert', async() => {
-        await expect(waultSwapWorker.setTreasuryBountyBps(parseInt(MAX_REINVEST_BOUNTY) + 1)).to.revertedWith('WaultSwapWorker::setTreasuryBountyBps:: _treasuryBountyBps exceeded maxReinvestBountyBps');
+        await expect(waultSwapWorker.setTreasuryBountyBps(parseInt(MAX_REINVEST_BOUNTY) + 1)).to.revertedWith('WaultSwapWorker02::setTreasuryBountyBps:: _treasuryBountyBps exceeded maxReinvestBountyBps');
         expect(await waultSwapWorker.treasuryBountyBps()).to.eq(REINVEST_BOUNTY_BPS)
       })
     })
@@ -396,7 +419,9 @@ describe('Vault - WaultSwap02', () => {
     })
 
     it('should revert when owner set reinvestBountyBps > max', async() => {
-      await expect(waultSwapWorker.setReinvestBountyBps(1000)).to.be.revertedWith('WaultSwapWorker::setReinvestBountyBps:: _reinvestBountyBps exceeded maxReinvestBountyBps');
+      await expect(
+        waultSwapWorker.setReinvestConfig(1000, '0', [wex.address, baseToken.address])
+      ).to.be.revertedWith('WaultSwapWorker02::setReinvestConfig:: _reinvestBountyBps exceeded maxReinvestBountyBps');
       expect(await waultSwapWorker.reinvestBountyBps()).to.be.bignumber.eq(100);
     });
 
@@ -575,7 +600,7 @@ describe('Vault - WaultSwap02', () => {
 
     context("When the treasury Account and treasury bounty bps haven't been set", async () => {
       it('should use reinvestBountyBps and deployer account', async () => {
-        await waultSwapWorker.setTreasuryAccount(constants.AddressZero)
+        await waultSwapWorker.setTreasuryAccount(ethers.constants.AddressZero)
         await waultSwapWorker.setTreasuryBountyBps(0)
         // Deployer deposits 3 BTOKEN to the bank
         const deposit = ethers.utils.parseEther('3');
@@ -606,191 +631,427 @@ describe('Vault - WaultSwap02', () => {
 
     context("when the worker is an older version", async() => {
       context("when upgrade is during the tx flow", async() => {
-        it('should work with the new upgraded worker', async () => {
-          // Deployer deposits 3 BTOKEN to the bank
-          const deposit = ethers.utils.parseEther('3');
-          await baseToken.approve(vault.address, deposit);
-          await vault.deposit(deposit);
-      
-          // Now Alice can take 1 BTOKEN loan + 1 BTOKEN of her to create a new position
-          const loan = ethers.utils.parseEther('1');
-          await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther('1'))
-          // Position#1: Bob borrows 1 BTOKEN loan and supply another 1 BToken
-          // Thus, Bob's position value will be worth 20 BTOKEN 
-          // After calling `work()` 
-          // 2 BTOKEN needs to swap 0.0732967258967755614 BTOKEN to 0.042234424701074812 FTOKEN
-          // new reserve after swap will be 1.732967258967755614 ฺBTOKEN 0.057759458210855529 FTOKEN
-          // based on optimal swap formula, BTOKEN-FTOKEN to be added into the LP will be 1.267032741032244386 BTOKEN - 0.042234424701074812 FTOKEN
-          // lp amount from adding liquidity will be (0.042234424701074812 / 0.057759458210855529) * 316227766016837933(first total supply) = 0.231263113939866546 LP
-          // new reserve after adding liquidity 2.999999999999999954 BTOKEN - 0.100000000000000000 FTOKEN
-          await vaultAsAlice.work(
-            0,
-            waultSwapWorker01.address,
-            ethers.utils.parseEther('1'),
-            loan,
-            '0',
-            ethers.utils.defaultAbiCoder.encode(
-              ['address', 'bytes'],
-              [addStrat.address, ethers.utils.defaultAbiCoder.encode(
-                ['uint256'],
-                ['0'])
-              ]
+        context("When beneficialVault == operator", async() => {
+          it('should work with the new upgraded worker', async () => {
+            // Deployer deposits 3 BTOKEN to the bank
+            const deposit = ethers.utils.parseEther('3');
+            await baseToken.approve(vault.address, deposit);
+            await vault.deposit(deposit);
+        
+            // Now Alice can take 1 BTOKEN loan + 1 BTOKEN of her to create a new position
+            const loan = ethers.utils.parseEther('1');
+            await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther('1'))
+            // Position#1: Bob borrows 1 BTOKEN loan and supply another 1 BToken
+            // Thus, Bob's position value will be worth 20 BTOKEN 
+            // After calling `work()` 
+            // 2 BTOKEN needs to swap 0.0732967258967755614 BTOKEN to 0.042234424701074812 FTOKEN
+            // new reserve after swap will be 1.732967258967755614 ฺBTOKEN 0.057759458210855529 FTOKEN
+            // based on optimal swap formula, BTOKEN-FTOKEN to be added into the LP will be 1.267032741032244386 BTOKEN - 0.042234424701074812 FTOKEN
+            // lp amount from adding liquidity will be (0.042234424701074812 / 0.057759458210855529) * 316227766016837933(first total supply) = 0.231263113939866546 LP
+            // new reserve after adding liquidity 2.999999999999999954 BTOKEN - 0.100000000000000000 FTOKEN
+            await vaultAsAlice.work(
+              0,
+              waultSwapWorker01.address,
+              ethers.utils.parseEther('1'),
+              loan,
+              '0',
+              ethers.utils.defaultAbiCoder.encode(
+                ['address', 'bytes'],
+                [addStrat.address, ethers.utils.defaultAbiCoder.encode(
+                  ['uint256'],
+                  ['0'])
+                ]
+              )
+            );
+        
+            // Her position should have ~2 NATIVE health (minus some small trading fee)
+            expect(await waultSwapWorker01.health(1)).to.be.bignumber.eq(ethers.utils.parseEther('1.998307255271658491'));
+            expect(await waultSwapWorker01.shares(1)).to.eq(ethers.utils.parseEther('0.231263113939866546'))
+            expect(await waultSwapWorker01.shareToBalance(await waultSwapWorker01.shares(1))).to.eq(ethers.utils.parseEther('0.231263113939866546'))
+            
+            // WaultSwapWorker needs to be updated to WaultSwapWorker02
+            const WaultSwapWorker02 = (await ethers.getContractFactory(
+              'WaultSwapWorker02',
+              deployer
+            )) as WaultSwapWorker02__factory
+            const waultSwapWorker02 = await upgrades.upgradeProxy(waultSwapWorker01.address, WaultSwapWorker02) as WaultSwapWorker02
+            await waultSwapWorker02.deployed()
+  
+            expect(await waultSwapWorker02.health(1)).to.be.bignumber.eq(ethers.utils.parseEther('1.998307255271658491'));
+            expect(waultSwapWorker02.address).to.eq(waultSwapWorker01.address)
+            
+            const waultSwapWorker02AsEve = WaultSwapWorker02__factory.connect(waultSwapWorker02.address, eve)
+             // set beneficialVaultRelatedData
+             await waultSwapWorker02.setBeneficialVaultConfig(BENEFICIALVAULT_BOUNTY_BPS, vault.address, [wex.address, wbnb.address, baseToken.address])
+  
+             expect(await waultSwapWorker02.beneficialVault(), 'expect beneficialVault to be equal to input vault').to.eq(vault.address)
+             expect(await waultSwapWorker02.beneficialVaultBountyBps(), 'expect beneficialVaultBountyBps to be equal to BENEFICIALVAULT_BOUNTY_BPS').to.eq(BENEFICIALVAULT_BOUNTY_BPS)
+             expect(await waultSwapWorker02.rewardPath(0), 'index #0 of reward path should be wex').to.eq(wex.address)
+             expect(await waultSwapWorker02.rewardPath(1), 'index #1 of reward path should be wbnb').to.eq(wbnb.address)
+             expect(await waultSwapWorker02.rewardPath(2), 'index #2 of reward path should be baseToken').to.eq(baseToken.address)
+  
+            // Eve comes and trigger reinvest
+            await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from('1')));
+            // Eve calls reinvest to increase the LP size and receive portion of rewards
+            // it's 4 blocks apart since the first tx, thus 0.0076 * 4 = 0.303999999999841411 WEX
+            // 10% of 0.303999999999841411 will become a bounty, thus eve shall get 90% of 0.003039999999998414 WEX
+            // 10% of 0.003039999999998414 will increase a beneficial vault's totalToken, this beneficial vault will get 0.0003039999999998414 WEX
+            // thus, 0.002735999999998573 will be returned to eve
+            
+  
+            // 0.000303999999999841 WEX is converted to (0.000303999999999841 * 0.998 * 1) / (0.1 + 0.000303999999999841 * 0.998) = 0.003024743171197493 WBNB
+            // 0.003024743171197493 WBNB is converted to (0.003024743171197493 * 0.998 * 1) / (0.1 + 0.003024743171197493 * 0.998) = 0.003009608598385266 BTOKEN
+            // 0.003009608598385266 will be returned to beneficial vault
+  
+            // total reward left to be added to lp is~ 0.300959999999946471 WEX
+            // 0.300959999999946471 WEX is converted to (0.300959999999946471 * 0.998 * 0.996975256828802507) / (1.00303999999999945 * 0.998) = 0.747386860140577110 WBNB
+            // 0.747386860140577110 WBNB is converted to (0.747386860140577110 * 0.998 * 0.996990391401614734) / (1.003024743171197493 + 0.747386860140577110 * 0.998) = 0.425204464043745703 BTOKEN
+            // 0.425204464043745703 BTOKEN will be added to add strat to increase an lp size
+            // after optimal swap, 0.425204464043745703 needs to swap 0.205765534821723126 BTOKEN to get the pair
+            // thus (0.205765534821723126 * 0.998 * 0.1) / (2.999999999999999958 + 0.205765534821723126 * 0.998) = 0.006406593577860641
+            // 0.205765534821723126 BTOKEN - 0.006406593577860641 FTOKEN to be added to  the pool
+            // LP from adding the pool will be (0.006406593577860641 / 0.093593406422139359) * 0.547490879956704479 = 0.037476481405619496 LP
+            // Accumulated LP will be 0.231263113939866546 + 0.037476481405619496 = 0.268739595345486042
+            // now her balance based on share will be equal to (2.31205137369691323 / 2.31205137369691323) * 0.268739595345486042 = 0.268739595345486042 LP
+            let vaultBalanceBefore = await baseToken.balanceOf(vault.address)
+            await waultSwapWorker02AsEve.reinvest();
+            let vaultBalanceAfter = await baseToken.balanceOf(vault.address)
+            AssertHelpers.assertAlmostEqual(vaultBalanceAfter.sub(vaultBalanceBefore).toString(), ethers.utils.parseEther('0.003009608598385266').toString())
+            expect(await waultSwapWorker02.buybackAmount()).to.eq(ethers.utils.parseEther('0'))
+            AssertHelpers.assertAlmostEqual(
+              (WEX_REWARD_PER_BLOCK.mul('4').mul(REINVEST_BOUNTY_BPS).div('10000'))
+              .sub(
+                (WEX_REWARD_PER_BLOCK.mul('4').mul(REINVEST_BOUNTY_BPS).mul(BENEFICIALVAULT_BOUNTY_BPS).div('10000').div('10000'))
+              ).toString(),
+              (await wex.balanceOf(await eve.getAddress())).toString(),
+            );
+            await vault.deposit(0); // Random action to trigger interest computation
+            const healthDebt = await vault.positionInfo('1');
+            expect(healthDebt[0]).to.be.bignumber.above(ethers.utils.parseEther('2'));
+            const interest = ethers.utils.parseEther('0.3'); // 30% interest rate
+            AssertHelpers.assertAlmostEqual(
+              healthDebt[1].toString(),
+              interest.add(loan).toString(),
+            );
+            AssertHelpers.assertAlmostEqual(
+              (await baseToken.balanceOf(vault.address)).toString(),
+              deposit.sub(loan).add(ethers.utils.parseEther('0.003009608598385266')).toString(),
+            );
+            AssertHelpers.assertAlmostEqual(
+              (await vault.vaultDebtVal()).toString(),
+              interest.add(loan).toString(),
+            );
+            const reservePool = interest.mul(RESERVE_POOL_BPS).div('10000');
+            AssertHelpers.assertAlmostEqual(
+              reservePool.toString(),
+              (await vault.reservePool()).toString(),
+            );
+            AssertHelpers.assertAlmostEqual(
+              deposit.add(ethers.utils.parseEther('0.003009608598385266')).add(interest).sub(reservePool).toString(),
+              (await vault.totalToken()).toString(),
+            );
+            expect(await waultSwapWorker01.shares(1)).to.eq(ethers.utils.parseEther('0.231263113939866546'))
+            expect(await waultSwapWorker01.shareToBalance(await waultSwapWorker01.shares(1))).to.eq(ethers.utils.parseEther('0.268739595345486042'))
+            const baseTokenBefore = await baseToken.balanceOf(await alice.getAddress())
+            const farmingTokenBefore = await farmToken.balanceOf(await alice.getAddress())
+            const vaultDebtValBefore = await vault.vaultDebtVal()
+            // Eve calls reinvest to increase the LP size and receive portion of rewards
+            // it's 2 blocks apart since the first tx, thus 0.0076 * 2 = 0.151999999999986883 WEX
+            // 10% of 0.151999999999986883 will become a bounty, thus eve shall get 90% of 0.001519999999999868 WEX
+            // 10% of 0.0015199999999998683 will be returned to the beneficial vault = 0.0001519999999999868 WEX
+            // thus eve will receive 0.001367999999999882 WEX as a bounty
+  
+            // 0.0001519999999999868 WEX is converted to (0.0001519999999999868 * 0.998 * 0.249588396688225397) / (0.401263999999946416 + 0.0001519999999999868 * 0.998) = 0.000094320082152387 WBNB
+            // 0.000094320082152387 WBNB is converted to (0.000094320082152387 * 0.998 * 0.571785927357869031) / (1.750411603311774603 + 0.000094320082152387 * 0.998) = 0.000030747133689487 BTOKEN
+            // 0.000030747133689487 will be returned to beneficial vault
+  
+            // total bounty left to be added to lp is~ 0.150479999999824522 WEX
+            // 0.150479999999824522 WEX is converted to (0.150479999999824522 * 0.998 * 0.249494076606073010) / (0.401415999999946238 + 0.150479999999824522  * 0.998) = 0.067928059886757425 WBNB
+            // 0.067928059886757425 WBNB is converted to (0.067928059886757425 * 0.998 * 0.571755180224179544) / (1.750505923393926990 + 0.067928059886757425 * 0.998) = 0.021316935382376963 BTOKEN
+            // 0.021316935382376963 BTOKEN will be added to add strat to increase an lp size
+            // after optimal swap, 0.021316935382376963 needs to swap 0.010652588320054788 BTOKEN to get the pair
+            // thus (0.010652588320054788 * 0.998 * 0.1) / (3.425204464043745703 + 0.010652588320054788 * 0.998) = 0.000309423497677916
+            // 0.010652588320054788 BTOKEN - 0.000309423497677916 FTOKEN to be added to  the pool
+            // LP from adding the pool will be (0.000309423497677916 / 0.099690576502322084) * 0.584967361362323975 = 0.001815644500520424 LP
+            // latest balance of BTOKEN-FTOKEN pair will be 3.446521399426122666 BTOKEN 0.100000000000000000 FTOKEN
+            // latest total supply will be 0.584967361362323975 + 0.001815644500520424 = 0.5867830058628444
+            // Accumulated LP will be 0.268739595345486042 + 0.001815644500520424 = 0.27055523984600643
+            // now her balance based on share will be equal to (2.31205137369691323 / 2.31205137369691323) * 0.27055523984600643 = 0.27055523984600643
+  
+            // now she removes 0.27055523984600643 of her lp to BTOKEN-FTOKEN pair
+            // (0.27055523984600643 / 0.5867830058628444) * 0.1 = 0.046108226915700159 FTOKEN
+            // (0.27055523984600643 / 0.5867830058628444) * 3.446521399426122666 = 1.5891299075455612 BTOKEN
+            // 0.046108226915700159 FTOKEN will be converted to (0.046108226915700159 * 0.998 * 1.857391491880561374) / (0.53891773084299841 + 0.046108226915700159) = 0.855486362408043276 BTOKEN
+            // latest balance of BTOKEN-FTOKEN pair will be 1.001905129472518098 BTOKEN 0.100000000000000000 FTOKEN
+            // thus, alice will receive 1.5891299075455612 + 0.855486362408043276 = 2.444616269953604568 BTOKEN
+            vaultBalanceBefore = await baseToken.balanceOf(vault.address)
+            await vaultAsAlice.work(
+              1,
+              waultSwapWorker01.address,
+              '0',
+              '0',
+              '115792089237316195423570985008687907853269984665640564039457584007913129639935',
+              ethers.utils.defaultAbiCoder.encode(
+                ['address', 'bytes'],
+                [liqStrat.address, ethers.utils.defaultAbiCoder.encode(
+                  ['uint256'],
+                  ['0'])
+                ]
+              )
+            );
+            vaultBalanceAfter = await baseToken.balanceOf(vault.address)
+            const baseTokenAfter = await baseToken.balanceOf(await alice.getAddress())
+            const farmingTokenAfter = await farmToken.balanceOf(await alice.getAddress())
+            AssertHelpers.assertAlmostEqual(vaultBalanceAfter.sub(vaultBalanceBefore).toString(), ethers.utils.parseEther('0.000030747133689487').add(vaultDebtValBefore).toString())
+            AssertHelpers.assertAlmostEqual(
+              ethers.utils.parseEther('0.002735999999998573').toString(),
+              (await wex.balanceOf(await eve.getAddress())).toString(),
+            );
+            AssertHelpers.assertAlmostEqual(
+              ethers.utils.parseEther('0.001367999999999882').toString(),
+              (await wex.balanceOf(DEPLOYER)).toString(),
+            );
+            expect(await waultSwapWorker02.buybackAmount()).to.eq(ethers.utils.parseEther('0.000030747133689487'))
+            expect(await waultSwapWorker01.shares(1)).to.eq(ethers.utils.parseEther('0'))
+            expect(await waultSwapWorker01.shareToBalance(await waultSwapWorker01.shares(1))).to.eq(ethers.utils.parseEther('0'))
+            AssertHelpers.assertAlmostEqual(baseTokenAfter.sub(baseTokenBefore).toString(), ethers.utils.parseEther('1.5891299075455612').add(ethers.utils.parseEther('0.855486362408043276')).sub(interest.add(loan)).toString())
+            expect(farmingTokenAfter.sub(farmingTokenBefore)).to.eq('0')
+          });
+        })
+        
+        context("when beneficialVault != operator", async() => {
+          it('should work with the new upgraded worker', async () => {
+            // Deploy MockBeneficialVault
+            const MockBeneficialVault = (await ethers.getContractFactory(
+              'MockBeneficialVault',
+              deployer
+            )) as MockBeneficialVault__factory
+            const mockFtokenVault = await upgrades.deployProxy(
+              MockBeneficialVault, [farmToken.address]
+            ) as MockBeneficialVault
+  
+            // Deployer deposits 3 BTOKEN to the bank
+            const deposit = ethers.utils.parseEther('3');
+            await baseToken.approve(vault.address, deposit);
+            await vault.deposit(deposit);
+        
+            // Now Alice can take 1 BTOKEN loan + 1 BTOKEN of her to create a new position
+            const loan = ethers.utils.parseEther('1');
+            await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther('1'))
+            // Position#1: Bob borrows 1 BTOKEN loan and supply another 1 BToken
+            // Thus, Bob's position value will be worth 20 BTOKEN 
+            // After calling `work()` 
+            // 2 BTOKEN needs to swap 0.732783746325665846 BTOKEN to make 50-50
+            // thus (0.732783746325665846 * 0.998 * 0.1) / (1 + 0.732783746325665846 * 0.998) = 0.042240541789144471
+            // BTOKEN-FTOKEN reserve after swap -> 1.732783746325665846 BTOKEN 0.057759458210855529 FTOKEN
+            // BTOKEN-FTOKEN to be added into the -> 1.267216253674334154 BTOKEN + 0.042240541789144471 FTOKEN
+            // lp amount from adding liquidity will be (0.042240541789144471 / 0.057759458210855529) * 0.316227766016837933 (first total supply) = 0.231263113939866546 LP
+            // new reserve after adding liquidity 2.999999999999999958 BTOKEN - 0.100000000000000000 FTOKEN
+            await vaultAsAlice.work(
+              0,
+              waultSwapWorker01.address,
+              ethers.utils.parseEther('1'),
+              loan,
+              '0',
+              ethers.utils.defaultAbiCoder.encode(
+                ['address', 'bytes'],
+                [addStrat.address, ethers.utils.defaultAbiCoder.encode(
+                  ['uint256'],
+                  ['0'])
+                ]
+              )
+            );
+        
+            // Her position should have ~2 NATIVE health (minus some small trading fee)
+            expect(await waultSwapWorker01.health(1)).to.be.bignumber.eq(ethers.utils.parseEther('1.998307255271658491'));
+            expect(await waultSwapWorker01.shares(1)).to.eq(ethers.utils.parseEther('0.231263113939866546'))
+            expect(await waultSwapWorker01.shareToBalance(await waultSwapWorker01.shares(1))).to.eq(ethers.utils.parseEther('0.231263113939866546'))
+            
+            // WaultSwapWorker needs to be updated to WaultSwapWorker02
+            const WaultSwapWorker02 = (await ethers.getContractFactory(
+              'WaultSwapWorker02',
+              deployer
+            )) as WaultSwapWorker02__factory
+            const waultSwapWorker02 = await upgrades.upgradeProxy(waultSwapWorker01.address, WaultSwapWorker02) as WaultSwapWorker02
+            await waultSwapWorker02.deployed()
+  
+            expect(await waultSwapWorker02.health(1)).to.be.bignumber.eq(ethers.utils.parseEther('1.998307255271658491'));
+            expect(waultSwapWorker02.address).to.eq(waultSwapWorker01.address)
+            
+            const waultSwapWorker02AsEve = WaultSwapWorker02__factory.connect(waultSwapWorker02.address, eve)
+
+            // set beneficialVaultRelatedData
+            await waultSwapWorker02.setBeneficialVaultConfig(BENEFICIALVAULT_BOUNTY_BPS, mockFtokenVault.address, [wex.address, wbnb.address, farmToken.address])
+
+            expect(await waultSwapWorker02.beneficialVault(), 'expect beneficialVault to be equal to input vault').to.eq(mockFtokenVault.address)
+            expect(await waultSwapWorker02.beneficialVaultBountyBps(), 'expect beneficialVaultBountyBps to be equal to BENEFICIALVAULT_BOUNTY_BPS').to.eq(BENEFICIALVAULT_BOUNTY_BPS)
+            expect(await waultSwapWorker02.getReinvestPath()).to.be.deep.eq([wex.address, wbnb.address, baseToken.address])
+            expect(await waultSwapWorker02.getRewardPath()).to.be.deep.eq([wex.address, wbnb.address, farmToken.address])
+  
+            // Eve comes and trigger reinvest
+            await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from('1')));
+            // Eve calls reinvest to increase the LP size and receive portion of rewards
+            // it's 4 blocks apart since the first tx, thus 0.0076 * 4 = 0.30399999999994593 WEX
+            // 1% of 0.30399999999994593 will become a bounty, thus eve shall get 90% of 0.003039999999999450 WEX
+            // 10% of 0.003039999999999450 will increase a beneficial vault's totalToken, this beneficial vault will get 0.000303999999999945 WEX
+            // --------
+            // ******* thus, 0.002735999999999505 WEX will be returned to eve *******
+            // --------
+            
+
+            // 0.000303999999999945 WEX is converted to (0.000303999999999945 * 0.998 * 1) / (0.1 + 0.000303999999999945 * 0.998) = 0.003024743171197493 WBNB
+            // 0.003024743171197493 WBNB is converted to (0.003024743171197493 * 0.998 * 1) / (1 + 0.003024743171197493 * 0.998) = 0.003009608598385266 FTOKEN
+            // --------
+            // ******* 0.003009608598385266 FTOKEN will be returned to beneficial vault *******
+            // ******* WEX-WBNB after swap 0.100303999999999945 WEX + 0.996975256828802507 WBNB *******
+            // ******* WBNB-FTOKEN after swap 0.996990391401614734 FTOKEN + 1.003024743171197493 WBNB ******
+            // --------
+
+            // total reward left to be added to lp is ~0.300959999999946471 WEX
+            // 0.300959999999946471 WEX is converted to (0.300959999999946471 * 0.998 * 0.996975256828802507) / (0.100303999999999945 + 0.300959999999946471 * 0.998) = 0.747386860140577110 WBNB
+            // 0.747386860140577110 WBNB is converted to (0.747386860140577110 * 0.998 * 1) / (1 + 0.747386860140577110 * 0.998) = 0.427226912947203892 BTOKEN
+            // 0.427226912947203892 BTOKEN will be added to add strat to increase an lp size
+            // after optimal swap, 0.427226912947203892 needs to swap 0.206712721069059174 BTOKEN to get the pair
+            // thus (0.206712721069059174 * 0.998 * 0.1) / (2.999999999999999958 + 0.206712721069059174 * 0.998) = 0.006434187098761900
+            // 0.220514191878144760 BTOKEN + 0.006434187098761900 FTOKEN to be added to  the pool
+            // --------
+            // ******* LP from adding the pool will be (0.006434187098761900 / 0.093565812901238100) * 0.547490879956704479 = 0.037648994299077102 LP
+            // ******* WEX-WBNB after swap: 0.401263999999946416 WEX + 0.249588396688225397 WBNB
+            // ******* WBNB-BTOKN after swap: 0.572773087052796108 BTOKEN + 1.74738686014057711 WBNB
+            // ******* FTOKEN-BTOKEN after swap & add liq: 0.1 FTOKEN + 3.427226912947203892 BTOKEN
+            // ******* LP total supply = 0.547490879956704479 + 0.037648994299077102 = 0.585139874255781581 LPs
+            // ******* Accumulated LP will be 0.231263113939866546 + 0.037648994299077102 = 0.268912108238943648 LPs *******
+            // ******* now her balance based on share will be equal to (0.231263113939866546 / 0.231263113939866546) * 0.268912108238943648 = 0.268912108238943648 LP *******
+            // --------
+            await waultSwapWorker02AsEve.reinvest();
+            expect(await farmToken.balanceOf(mockFtokenVault.address)).to.be.eq(ethers.utils.parseEther('0.003009608598385266'))
+            AssertHelpers.assertAlmostEqual(
+              (WEX_REWARD_PER_BLOCK.mul('4').mul(REINVEST_BOUNTY_BPS).div('10000'))
+              .sub(
+                (WEX_REWARD_PER_BLOCK.mul('4').mul(REINVEST_BOUNTY_BPS).mul(BENEFICIALVAULT_BOUNTY_BPS).div('10000').div('10000'))
+              ).toString(),
+              (await wex.balanceOf(await eve.getAddress())).toString(),
+            );
+            await vault.deposit(0); // Random action to trigger interest computation
+            const healthDebt = await vault.positionInfo('1');
+            expect(healthDebt[0]).to.be.bignumber.above(ethers.utils.parseEther('2'));
+            const interest = ethers.utils.parseEther('0.300001') // 30% interest rate + 0.000001 for margin
+            AssertHelpers.assertAlmostEqual(
+              healthDebt[1].toString(),
+              interest.add(loan).toString(),
+            );
+            AssertHelpers.assertAlmostEqual(
+              (await vault.vaultDebtVal()).toString(),
+              interest.add(loan).toString(),
+            );
+            // add 0.000001 for error-margin
+            const reservePool = interest.mul(RESERVE_POOL_BPS).div('10000');
+            AssertHelpers.assertAlmostEqual(
+              reservePool.toString(),
+              (await vault.reservePool()).toString(),
+            );
+            expect(await waultSwapWorker02.shares(1)).to.eq(ethers.utils.parseEther('0.231263113939866546'))
+            expect(await waultSwapWorker02.shareToBalance(await waultSwapWorker02.shares(1))).to.eq(ethers.utils.parseEther('0.268912108238943648'))
+            
+            // Alice closes position. This will trigger _reinvest in work function. Hence, positions get reinvested.
+            // Reinvest fees should be transferred to DEPLOYER account.
+            // it's 2 blocks apart since the first tx, thus 0.0076 * 2 = 0.151999999999814464 WEX
+            // 1% of 0.151999999999814464 will become a bounty, thus DEPLOYER shall get 90% of 0.001519999999998144 WEX
+            // 10% of 0.001519999999998144 will be returned to the beneficial vault = 0.000151999999999814 WEX
+            // --------
+            // ***** thus DEPLOYER will receive 0.00136799999999833 WEX as a bounty *****
+            // ***** Eve's WEX should still be the same. *****
+            // --------
+
+            // 0.000151999999999814 WEX is converted to (0.000151999999999814 * 0.998 * 0.249588396688225397) / (0.401263999999946416 + 0.000151999999999814 * 0.998) = 0.000094320082152382 WBNB
+            // 0.000094320082152382 WBNB is converted to (0.000094320082152382 * 0.998 * 0.996990391401614734) / (1.003024743171197493 + 0.000094320082152382 * 0.998) = 0.000093556352657685 FTOKEN
+            // --------
+            // ***** WEX-WBNB reserve after swap: 0.40141599999994623 WEX + 0.249494076606073015 WBNB
+            // ***** FTOKEN-WBNB reserve after swap: 0.996896893066434866 FTOKEN + 1.003119063253349875 WBNB
+            // ***** 0.000093498335179868 FTOKEN will be returned to beneficial vault automatically *****
+            // ***** Hence mockFtokenVault's FTOKN = 0.000093556352657685 + 0.003009608598385266 = 0.003103164951042951 FTOKEN
+            // --------
+
+            // total bounty left to be added to lp is ~0.150479999999816320 WEX
+            // 0.150479999999816320 WEX is converted to (0.150479999999816320 * 0.998 * 0.249494076606073015) / (0.40141599999994623 + 0.150479999999816320  * 0.998) = 0.067928059886754733 WBNB
+            // 0.067928059886754733 WBNB is converted to (0.067928059886754733 * 0.998 * 0.572773087052796108) / (1.74738686014057711 + 0.067928059886754733 * 0.998) = 0.021391580919921574 BTOKEN
+            // 0.021391580919921574 BTOKEN will be added to add strat to increase an lp size
+            // after optimal swap, 0.021391580919921574 needs to swap 0.010689842334257086 BTOKEN to get the pair
+            // thus (0.010689842334257086 * 0.998 * 0.1) / (3.427226912947203892 + 0.010689842334257086 * 0.998) = 0.000310319584630658 FTOKEN
+            // 0.010701738585664525 BTOKEN + 0.000310319584630658 FTOKEN to be added to the pool
+            // --------
+            // ******* LP from adding the pool will be (0.000310319584630658 / 0.099689680415369342) * 0.585139874255781581 = 0.001821455961874013 LP
+            // ******* WEX-WBNB after swap: 0.55189599999976255 WEX + 0.181566016719318282 WBNB
+            // ******* WBNB-BTOKN after swap: 0.551381506132874534 BTOKEN + 1.815314920027331843 WBNB
+            // ******* FTOKEN-BTOKEN after swap & add liq: 0.1 FTOKEN + 3.448618493867125503 BTOKEN
+            // ******* LP total supply = 0.585139874255781581 + 0.001821455961874013 = 0.586961330217655594 LPs
+            // ******* Accumulated LP will be 0.268912108238943648 + 0.001821455961874013 = 0.270733564200817661 LPs *******
+            // ******* now her balance based on share will be equal to (0.231263113939866546 / 0.231263113939866546) * 0.270733564200817661 = 0.270733564200817661 LP *******
+            // --------
+
+            // now she removes 0.270733564200817661 of her lp to BTOKEN-FTOKEN pair
+            // (0.270733564200817661 / 0.586961330217655594) * 0.1 = 0.046124599741591986 FTOKEN
+            // (0.270733564200817661 / 0.586961330217655594) * 3.448618493867125503 = 1.590661476910729640 BTOKEN
+            // 0.046124599741591986 FTOKEN will be converted to (0.046124599741591986 * 0.998 * 1.857957016956395863) / (0.053875400258408014 + 0.046124599741591986 * 0.998) = 0.856050987149889685 BTOKEN
+            // --------
+            // ***** latest balance of BTOKEN-FTOKEN pair will be 1.001906029806506178 BTOKEN 0.100000000000000000 FTOKEN
+            // ***** thus, alice will receive 1.590661476910729640 + 0.856050987149889685 - 1 (debt) - 0.3 (interest) ~= 1.146712464060619325 BTOKEN *****
+            // --------
+            const aliceBaseTokenBefore = await baseToken.balanceOf(await alice.getAddress())
+            const aliceFarmingTokenBefore = await farmToken.balanceOf(await alice.getAddress())
+            const eveWexBefore = await wex.balanceOf(await eve.getAddress())
+            await vaultAsAlice.work(
+              1,
+              waultSwapWorker02.address,
+              '0',
+              '0',
+              '115792089237316195423570985008687907853269984665640564039457584007913129639935',
+              ethers.utils.defaultAbiCoder.encode(
+                ['address', 'bytes'],
+                [liqStrat.address, ethers.utils.defaultAbiCoder.encode(
+                  ['uint256'],
+                  ['0'])
+                ]
+              )
+            );
+            const aliceBaseTokenAfter = await baseToken.balanceOf(await alice.getAddress())
+            const aliceFarmingTokenAfter = await farmToken.balanceOf(await alice.getAddress())
+
+            expect(
+              await wex.balanceOf(await eve.getAddress()),
+              "expect Eve's WEX stay the same"
+            ).to.be.eq(eveWexBefore)
+            expect(
+              await wex.balanceOf(DEPLOYER),
+              "expect deployer get 0.00136799999999833 WEX"
+            ).to.be.eq(ethers.utils.parseEther('0.00136799999999833'))
+            expect(
+              await farmToken.balanceOf(mockFtokenVault.address),
+              "expect mockFtokenVault get 0.003103164951042951 FTOKEN from buyback & redistribute"
+            ).to.be.eq(ethers.utils.parseEther('0.003103164951042951'))
+            expect(
+              await baseToken.balanceOf(waultSwapWorker02.address),
+              "expect worker shouldn't has any BTOKEN due to operator != beneficialVault")
+            .to.be.eq(ethers.utils.parseEther('0'))
+            expect(
+              await farmToken.balanceOf(waultSwapWorker02.address),
+              "expect worker shouldn't has any FTOKEN due to it is automatically redistribute to ibFTOKEN holder")
+            .to.be.eq(ethers.utils.parseEther('0'))
+            expect(
+              await waultSwapWorker02.shares(1),
+              "expect shares(1) is 0 as Alice closed position"
+            ).to.eq(ethers.utils.parseEther('0'))
+            expect(
+              await waultSwapWorker02.shareToBalance(await waultSwapWorker02.shares(1)),
+              "expect shareToBalance(shares(1) is 0 as Alice closed position"
+            ).to.eq(ethers.utils.parseEther('0'))
+            AssertHelpers.assertAlmostEqual(
+              aliceBaseTokenAfter.sub(aliceBaseTokenBefore).toString(),
+              ethers.utils.parseEther('1.590661476910729640').add(ethers.utils.parseEther('0.856050987149889685')).sub(interest.add(loan)).toString()
             )
-          );
-      
-          // Her position should have ~2 NATIVE health (minus some small trading fee)
-          expect(await waultSwapWorker01.health(1)).to.be.bignumber.eq(ethers.utils.parseEther('1.998307255271658491'));
-          expect(await waultSwapWorker01.shares(1)).to.eq(ethers.utils.parseEther('0.231263113939866546'))
-          expect(await waultSwapWorker01.shareToBalance(await waultSwapWorker01.shares(1))).to.eq(ethers.utils.parseEther('0.231263113939866546'))
-          
-          // WaultSwapWorker needs to be updated to WaultSwapWorker02
-          const WaultSwapWorker02 = (await ethers.getContractFactory(
-            'WaultSwapWorker02',
-            deployer
-          )) as WaultSwapWorker02__factory
-          const waultSwapWorker02 = await upgrades.upgradeProxy(waultSwapWorker01.address, WaultSwapWorker02) as WaultSwapWorker02
-          await waultSwapWorker02.deployed()
-
-          expect(await waultSwapWorker02.health(1)).to.be.bignumber.eq(ethers.utils.parseEther('1.998307255271658491'));
-          expect(waultSwapWorker02.address).to.eq(waultSwapWorker01.address)
-          
-          const waultSwapWorker02AsEve = WaultSwapWorker02__factory.connect(waultSwapWorker02.address, eve)
-           // set beneficialVaultRelatedData
-           await waultSwapWorker02.setBeneficialVaultRelatedData(BENEFICIALVAULT_BOUNTY_BPS, vault.address, [wex.address, wbnb.address, baseToken.address])
-
-           expect(await waultSwapWorker02.beneficialVault(), 'expect beneficialVault to be equal to input vault').to.eq(vault.address)
-           expect(await waultSwapWorker02.beneficialVaultBountyBps(), 'expect beneficialVaultBountyBps to be equal to BENEFICIALVAULT_BOUNTY_BPS').to.eq(BENEFICIALVAULT_BOUNTY_BPS)
-           expect(await waultSwapWorker02.rewardPath(0), 'index #0 of reward path should be wex').to.eq(wex.address)
-           expect(await waultSwapWorker02.rewardPath(1), 'index #1 of reward path should be wbnb').to.eq(wbnb.address)
-           expect(await waultSwapWorker02.rewardPath(2), 'index #2 of reward path should be baseToken').to.eq(baseToken.address)
-
-          // Eve comes and trigger reinvest
-          await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from('1')));
-          // Eve calls reinvest to increase the LP size and receive portion of rewards
-          // it's 4 blocks apart since the first tx, thus 0.0076 * 4 = 0.303999999999841411 WEX
-          // 10% of 0.303999999999841411 will become a bounty, thus eve shall get 90% of 0.003039999999998414 WEX
-          // 10% of 0.003039999999998414 will increase a beneficial vault's totalToken, this beneficial vault will get 0.0003039999999998414 WEX
-          // thus, 0.002735999999998573 will be returned to eve
-          
-
-          // 0.000303999999999841 WEX is converted to (0.000303999999999841 * 0.998 * 1) / (0.1 + 0.000303999999999841 * 0.998) = 0.003024743171197493 WBNB
-          // 0.003024743171197493 WBNB is converted to (0.003024743171197493 * 0.998 * 1) / (0.1 + 0.003024743171197493 * 0.998) = 0.003009608598385266 BTOKEN
-          // 0.003009608598385266 will be returned to beneficial vault
-
-          // total reward left to be added to lp is~ 0.300959999999946471 WEX
-          // 0.300959999999946471 WEX is converted to (0.300959999999946471 * 0.998 * 0.996975256828802507) / (1.00303999999999945 * 0.998) = 0.747386860140577110 WBNB
-          // 0.747386860140577110 WBNB is converted to (0.747386860140577110 * 0.998 * 0.996990391401614734) / (1.003024743171197493 + 0.747386860140577110 * 0.998) = 0.425204464043745703 BTOKEN
-          // 0.425204464043745703 BTOKEN will be added to add strat to increase an lp size
-          // after optimal swap, 0.425204464043745703 needs to swap 0.205765534821723126 BTOKEN to get the pair
-          // thus (0.205765534821723126 * 0.998 * 0.1) / (2.999999999999999958 + 0.205765534821723126 * 0.998) = 0.006406593577860641
-          // 0.205765534821723126 BTOKEN - 0.006406593577860641 FTOKEN to be added to  the pool
-          // LP from adding the pool will be (0.006406593577860641 / 0.093593406422139359) * 0.547490879956704479 = 0.037476481405619496 LP
-          // Accumulated LP will be 0.231263113939866546 + 0.037476481405619496 = 0.268739595345486042
-          // now her balance based on share will be equal to (2.31205137369691323 / 2.31205137369691323) * 0.268739595345486042 = 0.268739595345486042 LP
-          let vaultBalanceBefore = await baseToken.balanceOf(vault.address)
-          await waultSwapWorker02AsEve.reinvest();
-          let vaultBalanceAfter = await baseToken.balanceOf(vault.address)
-          AssertHelpers.assertAlmostEqual(vaultBalanceAfter.sub(vaultBalanceBefore).toString(), ethers.utils.parseEther('0.003009608598385266').toString())
-          expect(await waultSwapWorker02.buybackAmount()).to.eq(ethers.utils.parseEther('0'))
-          AssertHelpers.assertAlmostEqual(
-            (WEX_REWARD_PER_BLOCK.mul('4').mul(REINVEST_BOUNTY_BPS).div('10000'))
-            .sub(
-              (WEX_REWARD_PER_BLOCK.mul('4').mul(REINVEST_BOUNTY_BPS).mul(BENEFICIALVAULT_BOUNTY_BPS).div('10000').div('10000'))
-            ).toString(),
-            (await wex.balanceOf(await eve.getAddress())).toString(),
-          );
-          await vault.deposit(0); // Random action to trigger interest computation
-          const healthDebt = await vault.positionInfo('1');
-          expect(healthDebt[0]).to.be.bignumber.above(ethers.utils.parseEther('2'));
-          const interest = ethers.utils.parseEther('0.3'); // 30% interest rate
-          AssertHelpers.assertAlmostEqual(
-            healthDebt[1].toString(),
-            interest.add(loan).toString(),
-          );
-          AssertHelpers.assertAlmostEqual(
-            (await baseToken.balanceOf(vault.address)).toString(),
-            deposit.sub(loan).add(ethers.utils.parseEther('0.003009608598385266')).toString(),
-          );
-          AssertHelpers.assertAlmostEqual(
-            (await vault.vaultDebtVal()).toString(),
-            interest.add(loan).toString(),
-          );
-          const reservePool = interest.mul(RESERVE_POOL_BPS).div('10000');
-          AssertHelpers.assertAlmostEqual(
-            reservePool.toString(),
-            (await vault.reservePool()).toString(),
-          );
-          AssertHelpers.assertAlmostEqual(
-            deposit.add(ethers.utils.parseEther('0.003009608598385266')).add(interest).sub(reservePool).toString(),
-            (await vault.totalToken()).toString(),
-          );
-          expect(await waultSwapWorker01.shares(1)).to.eq(ethers.utils.parseEther('0.231263113939866546'))
-          expect(await waultSwapWorker01.shareToBalance(await waultSwapWorker01.shares(1))).to.eq(ethers.utils.parseEther('0.268739595345486042'))
-          const baseTokenBefore = await baseToken.balanceOf(await alice.getAddress())
-          const farmingTokenBefore = await farmToken.balanceOf(await alice.getAddress())
-          const vaultDebtValBefore = await vault.vaultDebtVal()
-          // Eve calls reinvest to increase the LP size and receive portion of rewards
-          // it's 2 blocks apart since the first tx, thus 0.0076 * 2 = 0.151999999999986883 WEX
-          // 10% of 0.151999999999986883 will become a bounty, thus eve shall get 90% of 0.001519999999999868 WEX
-          // 10% of 0.0015199999999998683 will be returned to the beneficial vault = 0.0001519999999999868 WEX
-          // thus eve will receive 0.001367999999999882 WEX as a bounty
-
-          // 0.0001519999999999868 WEX is converted to (0.0001519999999999868 * 0.998 * 0.249588396688225397) / (0.401263999999946416 + 0.0001519999999999868 * 0.998) = 0.000094320082152387 WBNB
-          // 0.000094320082152387 WBNB is converted to (0.000094320082152387 * 0.998 * 0.571785927357869031) / (1.750411603311774603 + 0.000094320082152387 * 0.998) = 0.000030747133689487 BTOKEN
-          // 0.000030747133689487 will be returned to beneficial vault
-
-          // total bounty left to be added to lp is~ 0.150479999999824522 WEX
-          // 0.150479999999824522 WEX is converted to (0.150479999999824522 * 0.998 * 0.249494076606073010) / (0.401415999999946238 + 0.150479999999824522  * 0.998) = 0.067928059886757425 WBNB
-          // 0.067928059886757425 WBNB is converted to (0.067928059886757425 * 0.998 * 0.571755180224179544) / (1.750505923393926990 + 0.067928059886757425 * 0.998) = 0.021316935382376963 BTOKEN
-          // 0.021316935382376963 BTOKEN will be added to add strat to increase an lp size
-          // after optimal swap, 0.021316935382376963 needs to swap 0.010652588320054788 BTOKEN to get the pair
-          // thus (0.010652588320054788 * 0.998 * 0.1) / (3.425204464043745703 + 0.010652588320054788 * 0.998) = 0.000309423497677916
-          // 0.010652588320054788 BTOKEN - 0.000309423497677916 FTOKEN to be added to  the pool
-          // LP from adding the pool will be (0.000309423497677916 / 0.099690576502322084) * 0.584967361362323975 = 0.001815644500520424 LP
-          // latest balance of BTOKEN-FTOKEN pair will be 3.446521399426122666 BTOKEN 0.100000000000000000 FTOKEN
-          // latest total supply will be 0.584967361362323975 + 0.001815644500520424 = 0.5867830058628444
-          // Accumulated LP will be 0.268739595345486042 + 0.001815644500520424 = 0.27055523984600643
-          // now her balance based on share will be equal to (2.31205137369691323 / 2.31205137369691323) * 0.27055523984600643 = 0.27055523984600643
-
-          // now she removes 0.27055523984600643 of her lp to BTOKEN-FTOKEN pair
-          // (0.27055523984600643 / 0.5867830058628444) * 0.1 = 0.046108226915700159 FTOKEN
-          // (0.27055523984600643 / 0.5867830058628444) * 3.446521399426122666 = 1.5891299075455612 BTOKEN
-          // 0.046108226915700159 FTOKEN will be converted to (0.046108226915700159 * 0.998 * 1.857391491880561374) / (0.53891773084299841 + 0.046108226915700159) = 0.855486362408043276 BTOKEN
-          // latest balance of BTOKEN-FTOKEN pair will be 1.001905129472518098 BTOKEN 0.100000000000000000 FTOKEN
-          // thus, alice will receive 1.5891299075455612 + 0.855486362408043276 = 2.444616269953604568 BTOKEN
-          vaultBalanceBefore = await baseToken.balanceOf(vault.address)
-          await vaultAsAlice.work(
-            1,
-            waultSwapWorker01.address,
-            '0',
-            '0',
-            '115792089237316195423570985008687907853269984665640564039457584007913129639935',
-            ethers.utils.defaultAbiCoder.encode(
-              ['address', 'bytes'],
-              [liqStrat.address, ethers.utils.defaultAbiCoder.encode(
-                ['uint256'],
-                ['0'])
-              ]
-            )
-          );
-          vaultBalanceAfter = await baseToken.balanceOf(vault.address)
-          const baseTokenAfter = await baseToken.balanceOf(await alice.getAddress())
-          const farmingTokenAfter = await farmToken.balanceOf(await alice.getAddress())
-          AssertHelpers.assertAlmostEqual(vaultBalanceAfter.sub(vaultBalanceBefore).toString(), ethers.utils.parseEther('0.000030747133689487').add(vaultDebtValBefore).toString())
-          AssertHelpers.assertAlmostEqual(
-            ethers.utils.parseEther('0.002735999999998573').toString(),
-            (await wex.balanceOf(await eve.getAddress())).toString(),
-          );
-          AssertHelpers.assertAlmostEqual(
-            ethers.utils.parseEther('0.001367999999999882').toString(),
-            (await wex.balanceOf(DEPLOYER)).toString(),
-          );
-          expect(await waultSwapWorker02.buybackAmount()).to.eq(ethers.utils.parseEther('0.000030747133689487'))
-          expect(await waultSwapWorker01.shares(1)).to.eq(ethers.utils.parseEther('0'))
-          expect(await waultSwapWorker01.shareToBalance(await waultSwapWorker01.shares(1))).to.eq(ethers.utils.parseEther('0'))
-          AssertHelpers.assertAlmostEqual(baseTokenAfter.sub(baseTokenBefore).toString(), ethers.utils.parseEther('1.5891299075455612').add(ethers.utils.parseEther('0.855486362408043276')).sub(interest.add(loan)).toString())
-          expect(farmingTokenAfter.sub(farmingTokenBefore)).to.eq('0')
-        });
+            expect(aliceFarmingTokenAfter.sub(aliceFarmingTokenBefore)).to.eq('0')
+          });
+        })
       })
     })
 
@@ -1318,7 +1579,7 @@ describe('Vault - WaultSwap02', () => {
       );
 
       // Set Reinvest bounty to 10% of the reward
-      await waultSwapWorker.setReinvestBountyBps('100');
+      await waultSwapWorker.setReinvestConfig('100', '0', [wex.address, wbnb.address, baseToken.address]);
 
       // Bob deposits 10 BTOKEN
       await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther('10'));
@@ -1584,7 +1845,7 @@ describe('Vault - WaultSwap02', () => {
       );
 
       // Set Reinvest bounty to 10% of the reward
-      await waultSwapWorker.setReinvestBountyBps('100');
+      await waultSwapWorker.setReinvestConfig('100', '0', [wex.address, wbnb.address, baseToken.address]);
 
       // Bob deposits 10 BTOKEN
       await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther('10'));
@@ -1782,7 +2043,7 @@ describe('Vault - WaultSwap02', () => {
       );
 
       // Set Reinvest bounty to 10% of the reward
-      await waultSwapWorker.setReinvestBountyBps('100');
+      await waultSwapWorker.setReinvestConfig('100', '0', [wex.address, wbnb.address, baseToken.address]);
 
       // Bob deposits 10 BTOKEN
       await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther('10'));
@@ -1981,7 +2242,7 @@ describe('Vault - WaultSwap02', () => {
       );
 
       // Set Reinvest bounty to 10% of the reward
-      await waultSwapWorker.setReinvestBountyBps('100');
+      await waultSwapWorker.setReinvestConfig('100', '0', [wex.address, wbnb.address, baseToken.address]);
 
       // Bob deposits 10 BTOKEN
       await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther('10'));

@@ -24,14 +24,14 @@ import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.so
 
 import "../../apis/wault/IWaultSwapRouter02.sol";
 import "../../interfaces/IStrategy.sol";
-import "../../interfaces/IWorker.sol";
+import "../../interfaces/IWorker02.sol";
 import "../../interfaces/IWexMaster.sol";
 import "../../../utils/AlpacaMath.sol";
 import "../../../utils/SafeToken.sol";
 import "../../interfaces/IVault.sol";
 
-// @title WaultSwapWorker02 is a WaultSwapWorker with reinvest-optimized and beneficial vault buyback functionalities
-contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker {
+/// @title WaultSwapWorker02 is a WaultSwapWorker with reinvest-optimized and beneficial vault buyback functionalities
+contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02 {
   /// @notice Libraries
   using SafeToken for address;
   using SafeMath for uint256;
@@ -41,14 +41,25 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
   event AddShare(uint256 indexed id, uint256 share);
   event RemoveShare(uint256 indexed id, uint256 share);
   event Liquidate(uint256 indexed id, uint256 wad);
-  event SetTreasuryBountyBps(address indexed account, uint256 bountyBps);
-  event SetTreasuryAccount(address indexed account);
+  event SetTreasuryBountyBps(address indexed caller, uint256 bountyBps);
+  event SetTreasuryAccount(address indexed caller, address indexed account);
   event BeneficialVaultTokenBuyback(address indexed caller, IVault indexed beneficialVault, uint256 indexed buyback);
-  event SetBeneficialVaultData(
+  event SetStrategyOK(address indexed caller, address indexed strategy, bool indexed isOk);
+  event SetReinvestorOK(address indexed caller, address indexed reinvestor, bool indexed isOk);
+  event SetCriticalStrategy(address indexed caller, IStrategy indexed addStrat, IStrategy indexed liqStrat);
+  event SetMaxReinvestBountyBps(address indexed caller, uint256 indexed maxReinvestBountyBps);
+  event SetRewardPath(address indexed caller, address[] newRewardPath);
+  event SetBeneficialVaultConfig(
     address indexed caller,
     uint256 indexed beneficialVaultBountyBps,
     IVault indexed beneficialVault,
     address[] rewardPath
+  );
+  event SetReinvestConfig(
+    address indexed caller,
+    uint256 reinvestBountyBps,
+    uint256 reinvestThreshold,
+    address[] reinvestPath
   );
 
   /// @notice Immutable variables
@@ -76,7 +87,9 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
   uint256 public fee;
   uint256 public feeDenom;
 
-  /// @notice Upgraded State Variables
+  /// @notice Upgraded State Variables for WaultSwapWorker02
+  uint256 public reinvestThreshold;
+  address[] public reinvestPath;
   address public treasuryAccount;
   uint256 public treasuryBountyBps;
   IVault public beneficialVault;
@@ -92,19 +105,24 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
     uint256 _pid,
     IStrategy _addStrat,
     IStrategy _liqStrat,
-    uint256 _reinvestBountyBps
+    uint256 _reinvestBountyBps,
+    address _treasuryAccount,
+    address[] calldata _reinvestPath,
+    uint256 _reinvestThreshold
   ) external initializer {
+    // 1. Initialized imported library
     OwnableUpgradeSafe.__Ownable_init();
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
 
+    // 2. Assign dependency contracts
     operator = _operator;
-    baseToken = _baseToken;
     wNative = _router.WETH();
     wexMaster = _wexMaster;
     router = _router;
     factory = IWaultSwapFactory(_router.factory());
 
-    // Get lpToken and farmingToken from MasterChef pool
+    // 3. Assign tokens state variables
+    baseToken = _baseToken;
     pid = _pid;
     (IERC20 _lpToken, , , ) = wexMaster.poolInfo(_pid);
     lpToken = IPancakePair(address(_lpToken));
@@ -112,37 +130,56 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
     address token1 = lpToken.token1();
     farmingToken = token0 == baseToken ? token1 : token0;
     wex = address(wexMaster.wex());
+
+    // 4. Assign critical strategy contracts
     addStrat = _addStrat;
     liqStrat = _liqStrat;
     okStrats[address(addStrat)] = true;
     okStrats[address(liqStrat)] = true;
+
+    // 5. Assign Re-invest parameters
     reinvestBountyBps = _reinvestBountyBps;
+    reinvestThreshold = _reinvestThreshold;
+    reinvestPath = _reinvestPath;
+    treasuryAccount = _treasuryAccount;
+    treasuryBountyBps = _reinvestBountyBps;
     maxReinvestBountyBps = 500;
+
+    // 6. Set WSwap swap fees
     fee = 998;
     feeDenom = 1000;
 
-    require(baseToken != wex, "WaultSwapWorker::initialize:: base token cannot be a reward token");
+    require(baseToken != wex, "WaultSwapWorker02::initialize:: base token cannot be a reward token");
     require(
       reinvestBountyBps <= maxReinvestBountyBps,
-      "WaultSwapWorker::initialize:: reinvestBountyBps exceeded maxReinvestBountyBps"
+      "WaultSwapWorker02::initialize:: _reinvestBountyBps exceeded maxReinvestBountyBps"
+    );
+    require(
+      (farmingToken == lpToken.token0() || farmingToken == lpToken.token1()) &&
+        (baseToken == lpToken.token0() || baseToken == lpToken.token1()),
+      "WaultSwapWorker02::initialize:: LP underlying not match with farm & base token"
+    );
+    require(
+      reinvestPath[0] == wex && reinvestPath[reinvestPath.length - 1] == baseToken,
+      "WaultSwapWorker02::initialize:: _reinvestPath must start with WEX, end with BTOKEN"
     );
   }
 
   /// @dev Require that the caller must be an EOA account to avoid flash loans.
   modifier onlyEOA() {
-    require(msg.sender == tx.origin, "WaultSwapWorker::onlyEOA:: not eoa");
+    require(msg.sender == tx.origin, "WaultSwapWorker02::onlyEOA:: not eoa");
     _;
   }
 
   /// @dev Require that the caller must be the operator.
   modifier onlyOperator() {
-    require(msg.sender == operator, "WaultSwapWorker::onlyOperator:: not operator");
+    require(msg.sender == operator, "WaultSwapWorker02::onlyOperator:: not operator");
     _;
   }
 
   //// @dev Require that the caller must be ok reinvestor.
   modifier onlyReinvestor() {
-    require(okReinvestors[msg.sender], "WaultSwapWorker::onlyReinvestor:: not reinvestor");
+    require(okReinvestors[msg.sender], "WaultSwapWorker02::onlyReinvestor:: not reinvestor");
     _;
   }
 
@@ -164,7 +201,7 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
 
   /// @dev Re-invest whatever this worker has earned back to staked LP tokens.
   function reinvest() external override onlyEOA onlyReinvestor nonReentrant {
-    _reinvest(msg.sender, reinvestBountyBps, 0);
+    _reinvest(msg.sender, reinvestBountyBps);
     // in case of beneficial vault equals to operator vault, call buyback to transfer some buyback amount back to the vault
     // This can't be called within the _reinvest statement since _reinvest is called within the `work` as well
     _buyback();
@@ -173,45 +210,42 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
   // @notice internal method for reinvest
   function _reinvest(
     address _treasuryAccount,
-    uint256 _treasuryBountyBps,
-    uint256 _callerBalance
+    uint256 _treasuryBountyBps
   ) internal {
-    require(_treasuryAccount != address(0), "WaultSwapWorker::reinvest:: bad treasury account");
-    // 1. Approve tokens
+    require(_treasuryAccount != address(0), "WaultSwapWorker02::_reinvest:: bad treasury account");
+    // 1. Return if pendingWex <= reinvestThreshold
+    if (wexMaster.pendingWex(pid, address(this)) <= reinvestThreshold) return;
+
+    // 2. Approve tokens
     wex.safeApprove(address(router), uint256(-1));
     address(lpToken).safeApprove(address(wexMaster), uint256(-1));
-    // 2. Withdraw all the rewards.
+
+    // 3. Withdraw all the rewards.
     wexMaster.withdraw(pid, 0, true);
     uint256 reward = wex.balanceOf(address(this));
-    if (reward == 0) return;
-    // 3. Send the reward bounty to the _treasuryAccount.
+
+    // 4. Send the reward bounty to the _treasuryAccount.
     uint256 bounty = reward.mul(_treasuryBountyBps) / 10000;
     if (bounty > 0) {
       uint256 beneficialVaultBounty = bounty.mul(beneficialVaultBountyBps) / 10000;
-      if (beneficialVaultBounty > 0) _rewardToBeneficialVault(beneficialVaultBounty, _callerBalance);
+      if (beneficialVaultBounty > 0) _rewardToBeneficialVault(beneficialVaultBounty);
       wex.safeTransfer(_treasuryAccount, bounty.sub(beneficialVaultBounty));
     }
-    // 4. Convert all the remaining rewards to BaseToken via Native for liquidity.
-    address[] memory path;
-    if (baseToken == wNative) {
-      path = new address[](2);
-      path[0] = address(wex);
-      path[1] = address(wNative);
-    } else {
-      path = new address[](3);
-      path[0] = address(wex);
-      path[1] = address(wNative);
-      path[2] = address(baseToken);
-    }
-    router.swapExactTokensForTokens(reward.sub(bounty), 0, path, address(this), now);
-    // 5. Use add Token strategy to convert all BaseToken without both caller balance and buyback amount to LP tokens.
-    baseToken.safeTransfer(address(addStrat), actualBaseTokenBalance().sub(_callerBalance));
+
+    // 5. Convert all the remaining rewards to BaseToken via Native for liquidity.
+    uint256[] memory amts = router.swapExactTokensForTokens(reward.sub(bounty), 0, getReinvestPath(), address(this), now);
+
+    // 6. Use add Token strategy to convert all BaseToken without both caller balance and buyback amount to LP tokens.
+    baseToken.safeTransfer(address(addStrat), amts[amts.length - 1]);
     addStrat.execute(address(0), 0, abi.encode(0));
-    // 6. Stake LPs for more rewards
+
+    // 7. Stake LPs for more rewards
     wexMaster.deposit(pid, lpToken.balanceOf(address(this)), true);
-    // 7. Reset approve
+
+    // 8. Reset approve
     wex.safeApprove(address(router), 0);
     address(lpToken).safeApprove(address(wexMaster), 0);
+
     emit Reinvest(_treasuryAccount, reward, bounty);
   }
 
@@ -230,15 +264,15 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
     if (treasuryBountyBps == 0) treasuryBountyBps = reinvestBountyBps;
     if (treasuryAccount == address(0)) treasuryAccount = address(0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51);
     // 2. Reinvest and send portion of reward to treasury account.
-    _reinvest(treasuryAccount, treasuryBountyBps, actualBaseTokenBalance());
+    _reinvest(treasuryAccount, treasuryBountyBps);
     // 3. Convert this position back to LP tokens.
     _removeShare(id);
     // 4. Perform the worker strategy; sending LP tokens + BaseToken; expecting LP tokens + BaseToken.
     (address strat, bytes memory ext) = abi.decode(data, (address, bytes));
-    require(okStrats[strat], "WaultSwapWorker::work:: unapproved work strategy");
+    require(okStrats[strat], "WaultSwapWorker02::work:: unapproved work strategy");
     require(
       lpToken.transfer(strat, lpToken.balanceOf(address(this))),
-      "WaultSwapWorker::work:: unable to transfer lp to strat"
+      "WaultSwapWorker02::work:: unable to transfer lp to strat"
     );
     baseToken.safeTransfer(strat, actualBaseTokenBalance());
     IStrategy(strat).execute(user, debt, ext);
@@ -258,7 +292,7 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
     uint256 rOut
   ) public view returns (uint256) {
     if (aIn == 0) return 0;
-    require(rIn > 0 && rOut > 0, "WaultSwapWorker::getMktSellAmount:: bad reserve values");
+    require(rIn > 0 && rOut > 0, "WaultSwapWorker02::getMktSellAmount:: bad reserve values");
     uint256 aInWithFee = aIn.mul(fee);
     uint256 numerator = aInWithFee.mul(rOut);
     uint256 denominator = rIn.mul(feeDenom).add(aInWithFee);
@@ -297,7 +331,7 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
   }
 
   /// @notice some portion of a bounty from reinvest will be sent to beneficialVault to increase the size of totalToken
-  function _rewardToBeneficialVault(uint256 _beneficialVaultBounty, uint256 _callerBalance) internal {
+  function _rewardToBeneficialVault(uint256 _beneficialVaultBounty) internal {
     /// 1. read base token from beneficialVault
     address beneficialVaultToken = beneficialVault.token();
     /// 2. swap reward token to beneficialVaultToken
@@ -308,10 +342,10 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
     /// since beneficial vault is the same as the calling vault, it will think of this reward as a `back` amount to paydebt/ sending back to a position owner
     if (beneficialVaultToken != baseToken) {
       buybackAmount = 0;
-      beneficialVaultToken.safeTransfer(address(beneficialVault), beneficialVaultToken.myBalance());
-      emit BeneficialVaultTokenBuyback(_msgSender(), beneficialVault, amounts[amounts.length - 1]);
+      beneficialVaultToken.safeTransfer(address(beneficialVault), amounts[amounts.length - 1]);
+      emit BeneficialVaultTokenBuyback(msg.sender, beneficialVault, amounts[amounts.length - 1]);
     } else {
-      buybackAmount = beneficialVaultToken.myBalance().sub(_callerBalance);
+      buybackAmount = buybackAmount.add(amounts[amounts.length - 1]);
     }
   }
 
@@ -322,7 +356,7 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
     uint256 _buybackAmount = buybackAmount;
     buybackAmount = 0;
     beneficialVault.token().safeTransfer(address(beneficialVault), _buybackAmount);
-    emit BeneficialVaultTokenBuyback(_msgSender(), beneficialVault, _buybackAmount);
+    emit BeneficialVaultTokenBuyback(msg.sender, beneficialVault, _buybackAmount);
   }
 
   /// @notice since buybackAmount variable has been created to collect a buyback balance when during the reinvest within the work method,
@@ -363,14 +397,68 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
     }
   }
 
+    /// @dev Return the path that the worker is working on.
+  function getPath() external view override returns (address[] memory) {
+    address[] memory path = new address[](2);
+    path[0] = baseToken;
+    path[1] = farmingToken;
+    return path;
+  }
+
+  /// @dev Return the inverse path.
+  function getReversedPath() public view override returns (address[] memory) {
+    address[] memory reversePath = new address[](2);
+    reversePath[0] = farmingToken;
+    reversePath[1] = baseToken;
+    return reversePath;
+  }
+
+  /// @dev Return the path that the work is using for convert reward token to beneficial vault token.
+  function getRewardPath() external view override returns (address[] memory) {
+    return rewardPath;
+  }
+
+  /// @notice Internal function to get reinvest path. Return route through WBNB if reinvestPath not set (in case upgrade from WaultSwapWorker.sol).
+  function getReinvestPath() public view returns (address[] memory) {
+    if (reinvestPath.length != 0) return reinvestPath;
+    address[] memory path;
+    if (baseToken == wNative) {
+      path = new address[](2);
+      path[0] = address(wex);
+      path[1] = address(wNative);
+    } else {
+      path = new address[](3);
+      path[0] = address(wex);
+      path[1] = address(wNative);
+      path[2] = address(baseToken);
+    }
+    return path;
+  }
+
   /// @dev Set the reward bounty for calling reinvest operations.
-  /// @param _reinvestBountyBps The bounty value to update.
-  function setReinvestBountyBps(uint256 _reinvestBountyBps) external onlyOwner {
+  /// @param _reinvestBountyBps - The bounty value to update.
+  /// @param _reinvestThreshold - The threshold to update.
+  /// @param _reinvestPath - The reinvest path to update.
+  function setReinvestConfig(
+    uint256 _reinvestBountyBps,
+    uint256 _reinvestThreshold,
+    address[] calldata _reinvestPath
+  ) external onlyOwner {
     require(
       _reinvestBountyBps <= maxReinvestBountyBps,
-      "WaultSwapWorker::setReinvestBountyBps:: _reinvestBountyBps exceeded maxReinvestBountyBps"
+      "WaultSwapWorker02::setReinvestConfig:: _reinvestBountyBps exceeded maxReinvestBountyBps"
     );
+    require(_reinvestPath.length >= 2, "WaultSwapWorker02::setReinvestConfig:: _reinvestPath length must >= 2");
+    require(
+      _reinvestPath[0] == wex && _reinvestPath[_reinvestPath.length - 1] == baseToken,
+      "WaultSwapWorker02::setReinvestConfig:: _reinvestPath must start with WEX, end with BTOKEN"
+    );
+
     reinvestBountyBps = _reinvestBountyBps;
+    reinvestThreshold = _reinvestThreshold;
+    reinvestPath = _reinvestPath;
+
+    emit SetReinvestConfig(msg.sender, _reinvestBountyBps, _reinvestThreshold, _reinvestPath);
   }
 
   /// @dev Set Max reinvest reward for set upper limit reinvest bounty.
@@ -378,9 +466,11 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
   function setMaxReinvestBountyBps(uint256 _maxReinvestBountyBps) external onlyOwner {
     require(
       _maxReinvestBountyBps >= reinvestBountyBps,
-      "WaultSwapWorker::setMaxReinvestBountyBps:: _maxReinvestBountyBps lower than reinvestBountyBps"
+      "WaultSwapWorker02::setMaxReinvestBountyBps:: _maxReinvestBountyBps lower than reinvestBountyBps"
     );
     maxReinvestBountyBps = _maxReinvestBountyBps;
+
+    emit SetMaxReinvestBountyBps(msg.sender, maxReinvestBountyBps);
   }
 
   /// @dev Set the given strategies' approval status.
@@ -390,6 +480,7 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
     uint256 len = strats.length;
     for (uint256 idx = 0; idx < len; idx++) {
       okStrats[strats[idx]] = isOk;
+      emit SetStrategyOK(msg.sender, strats[idx], isOk);
     }
   }
 
@@ -400,7 +491,22 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
     uint256 len = reinvestors.length;
     for (uint256 idx = 0; idx < len; idx++) {
       okReinvestors[reinvestors[idx]] = isOk;
+      emit SetReinvestorOK(msg.sender, reinvestors[idx], isOk);
     }
+  }
+
+  /// @dev Set a new reward path. In case that the liquidity of the reward path is changed.
+  /// @param _rewardPath The new reward path.
+  function setRewardPath(address[] calldata _rewardPath) external onlyOwner {
+    require(rewardPath.length >= 2, "WaultSwapWorker02::setRewardPath:: _rewardPath length must be >= 2");
+    require(
+      rewardPath[0] == wex && rewardPath[rewardPath.length - 1] == beneficialVault.token(),
+      "WaultSwapWorker02::setRewardPath:: _rewardPath must start with WEX and end with beneficialVault token"
+    );
+
+    rewardPath = _rewardPath;
+
+    emit SetRewardPath(msg.sender, _rewardPath);
   }
 
   /// @dev Update critical strategy smart contracts. EMERGENCY ONLY. Bad strategies can steal funds.
@@ -409,6 +515,8 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
   function setCriticalStrategies(IStrategy _addStrat, IStrategy _liqStrat) external onlyOwner {
     addStrat = _addStrat;
     liqStrat = _liqStrat;
+
+    emit SetCriticalStrategy(msg.sender, addStrat, liqStrat);
   }
 
   /// @notice Set treasury account
@@ -416,7 +524,7 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
   function setTreasuryAccount(address _account) external onlyOwner {
     treasuryAccount = _account;
 
-    emit SetTreasuryAccount(_account);
+    emit SetTreasuryAccount(msg.sender, _account);
   }
 
   /// @notice Set treasury bounty bps
@@ -424,30 +532,38 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
   function setTreasuryBountyBps(uint256 _treasuryBountyBps) external onlyOwner {
     require(
       _treasuryBountyBps <= maxReinvestBountyBps,
-      "WaultSwapWorker::setTreasuryBountyBps:: _treasuryBountyBps exceeded maxReinvestBountyBps"
+      "WaultSwapWorker02::setTreasuryBountyBps:: _treasuryBountyBps exceeded maxReinvestBountyBps"
     );
     treasuryBountyBps = _treasuryBountyBps;
 
-    emit SetTreasuryBountyBps(treasuryAccount, _treasuryBountyBps);
+    emit SetTreasuryBountyBps(msg.sender, _treasuryBountyBps);
   }
 
   /// @notice Set beneficial vault related data including beneficialVaultBountyBps, beneficialVaultAddress, and rewardPath
   /// @param _beneficialVaultBountyBps - The bounty value to update.
   /// @param _beneficialVault - beneficialVaultAddress
   /// @param _rewardPath - reward token path from rewardToken to beneficialVaultToken
-  function setBeneficialVaultRelatedData(
+  function setBeneficialVaultConfig(
     uint256 _beneficialVaultBountyBps,
     IVault _beneficialVault,
     address[] calldata _rewardPath
   ) external onlyOwner {
     require(
       _beneficialVaultBountyBps <= 10000,
-      "WaultSwapWorker::setBeneficialVaultBountyBps:: _beneficialVaultBountyBps exceeds 100%"
+      "WaultSwapWorker02::setBeneficialVaultConfig:: _beneficialVaultBountyBps exceeds 100%"
     );
+    require(_rewardPath.length >= 2, "WaultSwapWorker02::setBeneficialVaultConfig:: _rewardPath length must >= 2");
+    require(
+      _rewardPath[0] == wex && _rewardPath[_rewardPath.length - 1] == _beneficialVault.token(),
+      "WaultSwapWorker02::setBeneficialVaultConfig:: _rewardPath must start with WEX, end with beneficialVault token"
+    );
+
+    _buyback();
+
     beneficialVaultBountyBps = _beneficialVaultBountyBps;
     beneficialVault = _beneficialVault;
     rewardPath = _rewardPath;
 
-    emit SetBeneficialVaultData(_msgSender(), _beneficialVaultBountyBps, _beneficialVault, _rewardPath);
+    emit SetBeneficialVaultConfig(msg.sender, _beneficialVaultBountyBps, _beneficialVault, _rewardPath);
   }
 }
