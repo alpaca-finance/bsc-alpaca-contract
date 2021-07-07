@@ -38,6 +38,8 @@ import {
   Vault__factory,
   WNativeRelayer,
   WNativeRelayer__factory,
+  WaultSwapRestrictedStrategyPartialCloseMinimizeTrading__factory,
+  WaultSwapRestrictedStrategyPartialCloseMinimizeTrading,
 } from "../typechain";
 import * as AssertHelpers from "./helpers/assert"
 import * as TimeHelpers from "./helpers/time"
@@ -75,6 +77,7 @@ describe('Vault - WaultSwap', () => {
   let addStrat: WaultSwapRestrictedStrategyAddBaseTokenOnly;
   let liqStrat: WaultSwapRestrictedStrategyLiquidate;
   let partialCloseStrat: WaultSwapRestrictedStrategyPartialCloseLiquidate;
+  let partialCloseMinimizeStrat: WaultSwapRestrictedStrategyPartialCloseMinimizeTrading;
 
   /// Vault-related instance(s)
   let simpleVaultConfig: SimpleVaultConfig;
@@ -168,29 +171,6 @@ describe('Vault - WaultSwap', () => {
     lp = PancakePair__factory.connect(await factory.getPair(farmToken.address, baseToken.address), deployer);
     await lp.deployed();
 
-    /// Setup strategy
-    const WaultSwapRestrictedStrategyAddBaseTokenOnly = (await ethers.getContractFactory(
-      "WaultSwapRestrictedStrategyAddBaseTokenOnly",
-      deployer
-    )) as WaultSwapRestrictedStrategyAddBaseTokenOnly__factory;
-    addStrat = await upgrades.deployProxy(WaultSwapRestrictedStrategyAddBaseTokenOnly, [router.address]) as WaultSwapRestrictedStrategyAddBaseTokenOnly
-    await addStrat.deployed();
-
-    const WaultSwapRestrictedStrategyLiquidate = (await ethers.getContractFactory(
-      "WaultSwapRestrictedStrategyLiquidate",
-      deployer
-    )) as WaultSwapRestrictedStrategyLiquidate__factory;
-    liqStrat = await upgrades.deployProxy(WaultSwapRestrictedStrategyLiquidate, [router.address]) as WaultSwapRestrictedStrategyLiquidate;
-    await liqStrat.deployed();
-
-    const WaultSwapRestrictedStrategyPartialCloseLiquidate = (await ethers.getContractFactory(
-      "WaultSwapRestrictedStrategyPartialCloseLiquidate",
-      deployer
-    )) as WaultSwapRestrictedStrategyPartialCloseLiquidate__factory;
-    partialCloseStrat = await upgrades.deployProxy(
-        WaultSwapRestrictedStrategyPartialCloseLiquidate, [router.address]) as WaultSwapRestrictedStrategyPartialCloseLiquidate
-    await partialCloseStrat.deployed();
-
     // Setup FairLaunch contract
     // Deploy ALPACAs
     const AlpacaToken = (await ethers.getContractFactory(
@@ -259,7 +239,7 @@ describe('Vault - WaultSwap', () => {
     await fairLaunch.addPool(1, (await vault.debtToken()), false);
     await vault.setFairLaunchPoolId(0);
 
-    /// Setup MasterChef
+    /// Setup wexMaster
     const WexMaster = (await ethers.getContractFactory(
       "WexMaster",
       deployer
@@ -270,8 +250,39 @@ describe('Vault - WaultSwap', () => {
     // Transfer mintership so wexMaster can mint WEX
     await wex.transferMintership(wexMaster.address);
 
-    // Add lp to masterChef's pool
+    // Add lp to wexMaster's pool
     await wexMaster.add(1, lp.address, true);
+
+    /// Setup strategy
+    const WaultSwapRestrictedStrategyAddBaseTokenOnly = (await ethers.getContractFactory(
+      "WaultSwapRestrictedStrategyAddBaseTokenOnly",
+      deployer
+    )) as WaultSwapRestrictedStrategyAddBaseTokenOnly__factory;
+    addStrat = await upgrades.deployProxy(WaultSwapRestrictedStrategyAddBaseTokenOnly, [router.address]) as WaultSwapRestrictedStrategyAddBaseTokenOnly
+    await addStrat.deployed();
+
+    const WaultSwapRestrictedStrategyLiquidate = (await ethers.getContractFactory(
+      "WaultSwapRestrictedStrategyLiquidate",
+      deployer
+    )) as WaultSwapRestrictedStrategyLiquidate__factory;
+    liqStrat = await upgrades.deployProxy(WaultSwapRestrictedStrategyLiquidate, [router.address]) as WaultSwapRestrictedStrategyLiquidate;
+    await liqStrat.deployed();
+
+    const WaultSwapRestrictedStrategyPartialCloseLiquidate = (await ethers.getContractFactory(
+      "WaultSwapRestrictedStrategyPartialCloseLiquidate",
+      deployer
+    )) as WaultSwapRestrictedStrategyPartialCloseLiquidate__factory;
+    partialCloseStrat = await upgrades.deployProxy(
+        WaultSwapRestrictedStrategyPartialCloseLiquidate, [router.address]) as WaultSwapRestrictedStrategyPartialCloseLiquidate
+    await partialCloseStrat.deployed();
+
+    const WaultSwapRestrictedStrategyPartialCloseMinimizeTrading = (await ethers.getContractFactory(
+      "WaultSwapRestrictedStrategyPartialCloseMinimizeTrading",
+      deployer
+    )) as WaultSwapRestrictedStrategyPartialCloseMinimizeTrading__factory;
+    partialCloseMinimizeStrat = await upgrades.deployProxy(
+      WaultSwapRestrictedStrategyPartialCloseMinimizeTrading, [router.address, wbnb.address, wNativeRelayer.address]) as WaultSwapRestrictedStrategyPartialCloseMinimizeTrading
+    await partialCloseMinimizeStrat.deployed();
 
     /// Setup WaultSwapWorker
     poolId = 0;
@@ -285,10 +296,12 @@ describe('Vault - WaultSwap', () => {
     await waultSwapWorker.deployed();
     await simpleVaultConfig.setWorker(waultSwapWorker.address, true, true, WORK_FACTOR, KILL_FACTOR);
     await waultSwapWorker.setStrategyOk([partialCloseStrat.address], true);
+    await waultSwapWorker.setStrategyOk([partialCloseMinimizeStrat.address], true);
     await waultSwapWorker.setReinvestorOk([await eve.getAddress()], true);
     await addStrat.setWorkersOk([waultSwapWorker.address], true)
     await liqStrat.setWorkersOk([waultSwapWorker.address], true)
     await partialCloseStrat.setWorkersOk([waultSwapWorker.address], true)
+    await partialCloseMinimizeStrat.setWorkersOk([waultSwapWorker.address], true)
 
     // Deployer adds 0.1 FTOKEN + 1 BTOKEN
     await baseToken.approve(router.address, ethers.utils.parseEther('1'));
@@ -1835,7 +1848,7 @@ describe('Vault - WaultSwap', () => {
       expect(bobHealth).to.be.bignumber.lt(bobHealthBefore.div(2));
       // Bob's debt should be left only 5 BTOKEN due he said he wants to return at max 5 BTOKEN
       expect(bobDebtToShare).to.be.bignumber.eq(ethers.utils.parseEther('5'));
-      // Check LP deposited by Worker on MasterChef
+      // Check LP deposited by Worker on wexMaster
       [workerLPAfter, workerDebtAfter] = await wexMaster.userInfo(poolId, waultSwapWorker.address);
       // LP tokens of worker should be decreased by lpUnderBobPosition/2
       // due to Bob execute StrategyClosePartialLiquidate
@@ -1917,7 +1930,7 @@ describe('Vault - WaultSwap', () => {
       expect(bobHealth).to.be.bignumber.lt(bobHealthBefore.div(2));
       // Bob's debt should be 0 BTOKEN due he said he wants to return at max 5,000,000,000 BTOKEN (> debt, return all debt)
       expect(bobDebtVal).to.be.bignumber.eq('0');
-      // Check LP deposited by Worker on MasterChef
+      // Check LP deposited by Worker on wexMaster
       const [workerLPAfter,] = await wexMaster.userInfo(poolId, waultSwapWorker.address);
       // LP tokens of worker should be decreased by lpUnderBobPosition/2
       // due to Bob execute StrategyClosePartialLiquidate
@@ -2032,5 +2045,330 @@ describe('Vault - WaultSwap', () => {
       )).to.be.revertedWith('StrategyPartialCloseLiquidate::execute:: insufficient LP amount recevied from worker');
     }).timeout(50000);
 
-  });
+    it('should partially close minimize trading position successfully, when maxReturn < liquidated amount, payback part of the debt', async () => {
+      // Set Bank's debt interests to 0% per year
+      await simpleVaultConfig.setParams(
+        ethers.utils.parseEther('1'), // 1 BTOKEN min debt size,
+        '0', // 0% per year
+        '1000', // 10% reserve pool
+        '1000', // 10% Kill prize
+        wbnb.address,
+        wNativeRelayer.address,
+        fairLaunch.address,
+      );
+
+      // Bob deposits 10 BTOKEN
+      await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther('10'));
+      await vaultAsBob.deposit(ethers.utils.parseEther('10'));
+
+      // Position#1: Bob borrows 10 BTOKEN loan
+      await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther('10'))
+      await vaultAsBob.work(
+        0,
+        waultSwapWorker.address,
+        ethers.utils.parseEther('10'),
+        ethers.utils.parseEther('10'),
+        '0', // max return = 0, don't return BTOKEN to the debt
+        ethers.utils.defaultAbiCoder.encode(
+          ['address', 'bytes'],
+          [addStrat.address, ethers.utils.defaultAbiCoder.encode(
+            ['uint256'],
+            ['0'])
+          ]
+        ),
+      );
+
+      // Bob think he made enough. He now wants to close position partially minimize trading.
+      // He close 50% of his position and return all debt
+      const bobBTokenBefore = await baseToken.balanceOf(await bob.getAddress());
+      const bobFTokenBefore = await farmToken.balanceOf(await bob.getAddress());
+      const [bobHealthBefore, ] = await vault.positionInfo('1');
+      const lpUnderBobPosition = await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1));
+      const [workerLPBefore,] = await wexMaster.userInfo(poolId, waultSwapWorker.address);
+
+      // Bob closes position with maxReturn 5,000,000,000 and liquidate half of his position
+      // Expect that Bob will close position successfully and his debt must be reduce as liquidated amount pay debt
+      await vaultAsBob.work(
+        1,
+        waultSwapWorker.address,
+        '0',
+        '0',
+        ethers.utils.parseEther('5'),
+        ethers.utils.defaultAbiCoder.encode(
+          ['address', 'bytes'],
+          [partialCloseMinimizeStrat.address, ethers.utils.defaultAbiCoder.encode(
+            ['uint256', 'uint256', 'uint256'],
+            [lpUnderBobPosition.div(2), ethers.utils.parseEther('10'), '0'])
+          ]
+        )
+      );
+      const bobBTokenAfter = await baseToken.balanceOf(await bob.getAddress());
+      const bobFTokenAfter = await farmToken.balanceOf(await bob.getAddress());
+      // After Bob liquidate half of his position which worth
+      // 10 BTOKEN + 0.029130343017579222 FTOKEN (price impact+trading fee included)
+      // Bob returns 5 BTOKEN to payback the debt hence; He should be
+      // The following criteria must be stratified:
+      // - Bob should get 10 - 5 = 5 BTOKEN back.
+      // - Bob should get 0.29130343017579222 FTOKEN back.
+      // - Bob's position debt must be 0
+      expect(bobBTokenBefore.add(ethers.utils.parseEther('5'))).to.be.bignumber.eq(bobBTokenAfter)
+      expect(
+        bobFTokenBefore.add(ethers.utils.parseEther('0.029130343017579222')),
+        "Expect BTOKEN in Bob's account after close position to increase by ~0.029 FTOKEN").to.be.bignumber.eq(bobFTokenAfter)
+      // Check Bob position info
+      const [bobHealth, bobDebtVal] = await vault.positionInfo('1');
+      // Bob's health after partial close position must be 50% less than before
+      // due to he exit half of lp under his position
+      expect(bobHealth).to.be.bignumber.lt(bobHealthBefore.div(2));
+      // Bob's debt should be left only 5 BTOKEN due he said he wants to return at max 5 BTOKEN
+      expect(bobDebtVal).to.be.bignumber.eq(ethers.utils.parseEther('5'));
+      // Check LP deposited by Worker on wexMaster
+      const [workerLPAfter,] = await wexMaster.userInfo(poolId, waultSwapWorker.address);
+      // LP tokens of worker should be decreased by lpUnderBobPosition/2
+      // due to Bob execute StrategyClosePartialLiquidate
+      expect(workerLPAfter).to.be.bignumber.eq(workerLPBefore.sub(lpUnderBobPosition.div(2)));
+    }).timeout(50000);
+
+    it('should partially close minimize trading position successfully, when maxReturn > liquidated amount and liquidated amount > debt', async () => {
+      // Set Bank's debt interests to 0% per year
+      await simpleVaultConfig.setParams(
+        ethers.utils.parseEther('1'), // 1 BTOKEN min debt size,
+        '0', // 0% per year
+        '1000', // 10% reserve pool
+        '1000', // 10% Kill prize
+        wbnb.address,
+        wNativeRelayer.address,
+        fairLaunch.address,
+      );
+
+      // Bob deposits 10 BTOKEN
+      await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther('10'));
+      await vaultAsBob.deposit(ethers.utils.parseEther('10'));
+
+      // Position#1: Bob borrows 10 BTOKEN loan
+      await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther('10'))
+      await vaultAsBob.work(
+        0,
+        waultSwapWorker.address,
+        ethers.utils.parseEther('10'),
+        ethers.utils.parseEther('10'),
+        '0', // max return = 0, don't return BTOKEN to the debt
+        ethers.utils.defaultAbiCoder.encode(
+          ['address', 'bytes'],
+          [addStrat.address, ethers.utils.defaultAbiCoder.encode(
+            ['uint256'],
+            ['0'])
+          ]
+        ),
+      );
+
+      // Bob think he made enough. He now wants to close position partially minimize trading.
+      // He close 50% of his position and return all debt
+      const bobBTokenBefore = await baseToken.balanceOf(await bob.getAddress());
+      const bobFTokenBefore = await farmToken.balanceOf(await bob.getAddress());
+      const [bobHealthBefore, ] = await vault.positionInfo('1');
+      const lpUnderBobPosition = await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1));
+      const [workerLPBefore,] = await wexMaster.userInfo(poolId, waultSwapWorker.address);
+
+      // Bob closes position with maxReturn 5,000,000,000 and liquidate half of his position
+      // Expect that Bob will close position successfully and his debt must be reduce as liquidated amount pay debt
+      await vaultAsBob.work(
+        1,
+        waultSwapWorker.address,
+        '0',
+        '0',
+        ethers.utils.parseEther('5000000000'),
+        ethers.utils.defaultAbiCoder.encode(
+          ['address', 'bytes'],
+          [partialCloseMinimizeStrat.address, ethers.utils.defaultAbiCoder.encode(
+            ['uint256', 'uint256', 'uint256'],
+            [lpUnderBobPosition.div(2), ethers.utils.parseEther('10'), '0'])
+          ]
+        )
+      );
+      const bobBTokenAfter = await baseToken.balanceOf(await bob.getAddress());
+      const bobFTokenAfter = await farmToken.balanceOf(await bob.getAddress());
+      // After Bob liquidate half of his position which worth
+      // 10 BTOKEN + 0.029130343017579222 FTOKEN (price impact+trading fee included)
+      // Bob wish to return 5,000,000,000 BTOKEN (when maxReturn > debt, return all debt) 
+      // The following criteria must be stratified:
+      // - Bob should get 10 - 10 = 0 BTOKEN back.
+      // - Bob should get 0.029130343017579222 FTOKEN back.
+      // - Bob's position debt must be 0
+      expect(bobBTokenBefore).to.be.bignumber.eq(bobBTokenAfter)
+      expect(
+        bobFTokenBefore.add(ethers.utils.parseEther('0.029130343017579222')),
+        "Expect BTOKEN in Bob's account after close position to increase by ~0.029 FTOKEN").to.be.bignumber.eq(bobFTokenAfter)
+      // Check Bob position info
+      const [bobHealth, bobDebtVal] = await vault.positionInfo('1');
+      // Bob's health after partial close position must be 50% less than before
+      // due to he exit half of lp under his position
+      expect(bobHealth).to.be.bignumber.lt(bobHealthBefore.div(2));
+      // Bob's debt should be 0 BTOKEN due he said he wants to return at max 5,000,000,000 BTOKEN (> debt, return all debt)
+      expect(bobDebtVal).to.be.bignumber.eq('0');
+      // Check LP deposited by Worker on wexMaster
+      const [workerLPAfter,] = await wexMaster.userInfo(poolId, waultSwapWorker.address);
+      // LP tokens of worker should be decreased by lpUnderBobPosition/2
+      // due to Bob execute StrategyClosePartialLiquidate
+      expect(workerLPAfter).to.be.bignumber.eq(workerLPBefore.sub(lpUnderBobPosition.div(2)));
+    }).timeout(50000);
+    it('should revert when partial close minimize trading position made leverage higher than work factor', async () => {
+      // Set Bank's debt interests to 0% per year
+      await simpleVaultConfig.setParams(
+        ethers.utils.parseEther('1'), // 1 BTOKEN min debt size,
+        '0', // 0% per year
+        '1000', // 10% reserve pool
+        '1000', // 10% Kill prize
+        wbnb.address,
+        wNativeRelayer.address,
+        fairLaunch.address,
+      );
+
+      // Bob deposits 10 BTOKEN
+      await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther('10'));
+      await vaultAsBob.deposit(ethers.utils.parseEther('10'));
+
+      // Position#1: Bob borrows 10 BTOKEN loan
+      await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther('10'))
+      await vaultAsBob.work(
+        0,
+        waultSwapWorker.address,
+        ethers.utils.parseEther('10'),
+        ethers.utils.parseEther('10'),
+        '0', // max return = 0, don't return BTOKEN to the debt
+        ethers.utils.defaultAbiCoder.encode(
+          ['address', 'bytes'],
+          [addStrat.address, ethers.utils.defaultAbiCoder.encode(
+            ['uint256'],
+            ['0'])
+          ]
+        ),
+      );
+
+      // Bob think he made enough. He now wants to close position partially minimize trading.
+      // He liquidate half of his position but not payback the debt.
+      const lpUnderBobPosition = await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1));
+      // Bob closes position with maxReturn 0 and liquidate half of his position
+      // Expect that Bob will not be able to close his position as he liquidate underlying assets but not paydebt
+      // which made his position debt ratio higher than allow work factor
+      await expect(vaultAsBob.work(
+        1,
+        waultSwapWorker.address,
+        '0',
+        '0',
+        '0',
+        ethers.utils.defaultAbiCoder.encode(
+          ['address', 'bytes'],
+          [partialCloseMinimizeStrat.address, ethers.utils.defaultAbiCoder.encode(
+            ['uint256', 'uint256', 'uint256'],
+            [lpUnderBobPosition.div(2), '0', '0'])
+          ]
+        )
+      )).revertedWith("Vault::work:: bad work factor");
+    }).timeout(50000);
+
+    it('should not allow to partially close minimize trading position, when toRepaidBaseTokenDebt > debt', async () => {
+      // Set Bank's debt interests to 0% per year
+      await simpleVaultConfig.setParams(
+        ethers.utils.parseEther('1'), // 1 BTOKEN min debt size,
+        '0', // 0% per year
+        '1000', // 10% reserve pool
+        '1000', // 10% Kill prize
+        wbnb.address,
+        wNativeRelayer.address,
+        fairLaunch.address,
+      );
+
+      // Bob deposits 10 BTOKEN
+      await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther('10'));
+      await vaultAsBob.deposit(ethers.utils.parseEther('10'));
+
+      // Position#1: Bob borrows 10 BTOKEN loan
+      await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther('10'))
+      await vaultAsBob.work(
+        0,
+        waultSwapWorker.address,
+        ethers.utils.parseEther('10'),
+        ethers.utils.parseEther('10'),
+        '0', // max return = 0, don't return NATIVE to the debt
+        ethers.utils.defaultAbiCoder.encode(
+          ['address', 'bytes'],
+          [addStrat.address, ethers.utils.defaultAbiCoder.encode(
+            ['uint256'],
+            ['0'])
+          ]
+        ),
+      );
+
+      // Bob think he made enough. He now wants to close position partially. However, his input is invalid.
+      const lpUnderBobPosition = await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1));
+      await expect(vaultAsBob.work(
+        1,
+        waultSwapWorker.address,
+        '0',
+        '0',
+        ethers.utils.parseEther('10'),
+        ethers.utils.defaultAbiCoder.encode(
+          ['address', 'bytes'],
+          [partialCloseMinimizeStrat.address, ethers.utils.defaultAbiCoder.encode(
+            ['uint256', 'uint256', 'uint256'],
+            [lpUnderBobPosition, ethers.utils.parseEther('20'), '0'])
+          ]
+        )
+      )).to.be.revertedWith('WaultSwapRestrictedStrategyPartialCloseMinimizeTrading::execute:: amount to repay debt is greater than debt');
+    }).timeout(50000);
+    
+    it('should not allow to partially close minimize trading position, when returnLpAmount > LpUnderPosition', async () => {
+      // Set Bank's debt interests to 0% per year
+      await simpleVaultConfig.setParams(
+        ethers.utils.parseEther('1'), // 1 BTOKEN min debt size,
+        '0', // 0% per year
+        '1000', // 10% reserve pool
+        '1000', // 10% Kill prize
+        wbnb.address,
+        wNativeRelayer.address,
+        fairLaunch.address,
+      );
+
+      // Bob deposits 10 BTOKEN
+      await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther('10'));
+      await vaultAsBob.deposit(ethers.utils.parseEther('10'));
+
+      // Position#1: Bob borrows 10 BTOKEN loan
+      await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther('10'))
+      await vaultAsBob.work(
+        0,
+        waultSwapWorker.address,
+        ethers.utils.parseEther('10'),
+        ethers.utils.parseEther('10'),
+        '0', // max return = 0, don't return NATIVE to the debt
+        ethers.utils.defaultAbiCoder.encode(
+          ['address', 'bytes'],
+          [addStrat.address, ethers.utils.defaultAbiCoder.encode(
+            ['uint256'],
+            ['0'])
+          ]
+        ),
+      );
+
+      // Bob think he made enough. He now wants to close position partially. However, his input is invalid.
+      // He put returnLpAmount > Lp that is under his position
+      const lpUnderBobPosition = await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1));
+      // Transaction should be revert due to Bob is asking contract to liquidate Lp amount > Lp that is under his position
+      await expect(vaultAsBob.work(
+        1,
+        waultSwapWorker.address,
+        '0',
+        '0',
+        ethers.utils.parseEther('10'),
+        ethers.utils.defaultAbiCoder.encode(
+          ['address', 'bytes'],
+          [partialCloseMinimizeStrat.address, ethers.utils.defaultAbiCoder.encode(
+            ['uint256', 'uint256', 'uint256'],
+            [lpUnderBobPosition.mul(2), '0', '0'])
+          ]
+        )
+      )).to.be.revertedWith('WaultSwapRestrictedStrategyPartialCloseMinimizeTrading::execute:: insufficient LP amount recevied from worker');
+    }).timeout(50000);
+  })
 });
