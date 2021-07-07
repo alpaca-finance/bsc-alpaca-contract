@@ -905,11 +905,13 @@ describe('Vault - Pancakeswap', () => {
   
       // Alice liquidates Bob position#1
       let aliceBefore = await baseToken.balanceOf(await alice.getAddress());
+      let eveBefore = await baseToken.balanceOf(await eve.getAddress());
 
       await expect(vaultAsAlice.kill('1'))
         .to.emit(vaultAsAlice, 'Kill')
 
       let aliceAfter = await baseToken.balanceOf(await alice.getAddress());
+      let eveAfter = await baseToken.balanceOf(await eve.getAddress());
 
       // Bank balance is increase by liquidation
       AssertHelpers.assertAlmostEqual(
@@ -923,6 +925,12 @@ describe('Vault - Pancakeswap', () => {
         aliceAfter.sub(aliceBefore).toString(),
       );
   
+      // Eve is Wallet to buyback -> 1%  -> 0.0000300199830261993
+      AssertHelpers.assertAlmostEqual(
+        ethers.utils.parseEther('0.0000300099799424023').toString(),
+        eveAfter.sub(eveBefore).toString(),
+      );
+
       // Alice withdraws 2 BOKTEN
       aliceBefore = await baseToken.balanceOf(await alice.getAddress());
       await vaultAsAlice.withdraw(await vault.balanceOf(await alice.getAddress()));

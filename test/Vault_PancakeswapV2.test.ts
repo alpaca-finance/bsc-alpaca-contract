@@ -994,9 +994,8 @@ describe('Vault - PancakeswapV2', () => {
     
         // Alice liquidates Bob position#1
         let aliceBefore = await baseToken.balanceOf(await alice.getAddress());
-        
         let eveBefore = await baseToken.balanceOf(await eve.getAddress());
-        console.log("eve before",eveBefore.toString())
+        
         await expect(vaultAsAlice.kill('1'))
           .to.emit(vaultAsAlice, 'Kill')
   
