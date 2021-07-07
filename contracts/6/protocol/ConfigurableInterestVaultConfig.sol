@@ -33,8 +33,8 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     address wrappedNative,
     address wNativeRelayer,
     address fairLaunch,
-    uint256 buyBackBps,
-    address buyBack
+    uint256 buybackBps,
+    address buyback
   );
   event SetWorkers(address indexed caller, address worker, address workerConfig);
   event SetMaxKillBps(address indexed caller, uint256 maxKillBps);
