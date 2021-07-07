@@ -18,10 +18,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const FAIR_LAUNCH_ADDR = '';
   const MIN_DEBT_SIZE = ethers.utils.parseEther('1');
   const RESERVE_POOL_BPS = '1000'
-  const KILL_PRIZE_BPS = '1000'
+  const KILL_PRIZE_BPS = '250'
   const INTEREST_MODEL = '0xDa76598183f11c5a8a3D8EF7A065BFC2Dc009a0D';
   const WNATV_ADDR = '0xd419CEfb9471475B1a27aC3bA46233563180F17B';
   const WNATV_RELAYER = ''
+  const BUYBACK_BPS = '100'
+  const BUYBACK_ADDR = '250';
 
 
 
@@ -37,7 +39,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     INTEREST_MODEL,
     WNATV_ADDR,
     WNATV_RELAYER,
-    FAIR_LAUNCH_ADDR, { gasLimit: '300000' }
+    FAIR_LAUNCH_ADDR,
+    BUYBACK_BPS,
+    BUYBACK_ADDR, { gasLimit: '300000' }
   )
   console.log("✅ Done");
 };
