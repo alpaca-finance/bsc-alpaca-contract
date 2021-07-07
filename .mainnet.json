@@ -356,6 +356,14 @@
         "pId": 397,
         "name": "TUSD-BUSD LP",
         "address": "0x2E28b9B74D6d99D4697e913b82B41ef1CAC51c6C"
+      }, {
+        "pId": 368,
+        "name": "TRX-WBNB LP",
+        "address": "0x3cd338c3BB249B6b3C55799F85a589FEbBBFf9Dd"
+      }, {
+        "pId": 367,
+        "name": "BTT-WBNB LP",
+        "address": "0x946696344e7d4346b223e1Cf77035a76690d6A73"
       }]
     },
     "Waultswap": {
@@ -458,7 +466,9 @@
     "ADA": "0x3ee2200efb3400fabb9aacf31297cbdd1d435d47",
     "FORM": "0x25A528af62e56512A19ce8c3cAB427807c28CC19",
     "MATIC": "0xcc42724c6683b7e57334c4e856f4c9965ed682bd",
-    "TUSD": "0x14016e85a25aeb13065688cafb43044c2ef86784"
+    "TUSD": "0x14016e85a25aeb13065688cafb43044c2ef86784",
+    "TRX": "0x85eac5ac2f758618dfa09bdbe0cf174e7d574d5b",
+    "BTT": "0x8595f9da7b868b1822194faed312235e43007b49"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x1099C2E6Ed6ebA95099c205b599B409305783E43",
@@ -823,6 +833,32 @@
       "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
       "pId": 253,
       "stakingToken": "0x28415ff2C35b65B9E5c7de82126b4015ab9d031F",
+      "stakingTokenAt": "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+        "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+        "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
+        "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419"
+      }
+    }, {
+      "name": "TRX-WBNB PancakeswapWorker",
+      "address": "",
+      "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+      "pId": 368,
+      "stakingToken": "0x3cd338c3BB249B6b3C55799F85a589FEbBBFf9Dd",
+      "stakingTokenAt": "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+        "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+        "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
+        "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419"
+      }
+    }, {
+      "name": "BTT-WBNB PancakeswapWorker",
+      "address": "",
+      "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+      "pId": 367,
+      "stakingToken": "0x946696344e7d4346b223e1Cf77035a76690d6A73",
       "stakingTokenAt": "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
       "strategies": {
         "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
