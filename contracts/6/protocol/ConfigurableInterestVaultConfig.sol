@@ -59,10 +59,10 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   uint256 public maxKillBps;
   /// list of whitelisted callers
   mapping(address => bool) public override whitelistedCallers;
-  // The reward for buyback and burn after successfully killing a position.
-  uint256 public override getBuyBackBps;
-  // The address of buyback
-  address public buyBack;
+  // The portion of reward for buyback and burn after successfully killing a position.
+  uint256 public override getBuybackBps;
+  // The address where buyback and burn portion will be transferred to.
+  address public buyback;
 
   function initialize(
     uint256 _minDebtSize,
@@ -72,8 +72,8 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     address _wrappedNative,
     address _wNativeRelayer,
     address _fairLaunch,
-    uint256 _buyBackBps,
-    address _buyBack
+    uint256 _buybackBps,
+    address _buyback
   ) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
 
@@ -86,8 +86,8 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
       _wrappedNative,
       _wNativeRelayer,
       _fairLaunch,
-      _buyBackBps,
-      _buyBack
+      _buybackBps,
+      _buyback
     );
   }
 
@@ -96,8 +96,8 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   /// @param _reservePoolBps The new interests allocated to the reserve pool value.
   /// @param _killBps The new reward for killing a position value.
   /// @param _interestModel The new interest rate model contract.
-  /// @param _buyBackBps The reward for buyback and burn after successfully killing a position.
-  /// @param _buyBack The reward for buybackAnd Burn Address
+  /// @param _buybackBps The portion of reward for buyback and burn after successfully killing a position.
+  /// @param _buyback The address where buyback and burn portion will be transferred to.
   function setParams(
     uint256 _minDebtSize,
     uint256 _reservePoolBps,
@@ -106,8 +106,8 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     address _wrappedNative,
     address _wNativeRelayer,
     address _fairLaunch,
-    uint256 _buyBackBps,
-    address _buyBack
+    uint256 _buybackBps,
+    address _buyback
   ) public onlyOwner {
     require(_killBps <= maxKillBps, "ConfigurableInterestVaultConfig::setParams:: kill bps exceeded max kill bps");
 
@@ -118,8 +118,8 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     wrappedNative = _wrappedNative;
     wNativeRelayer = _wNativeRelayer;
     fairLaunch = _fairLaunch;
-    getBuyBackBps = _buyBackBps;
-    buyBack = _buyBack;
+    getBuybackBps = _buybackBps;
+    buyback = _buyback;
 
     emit SetParams(
       _msgSender(),
@@ -130,8 +130,8 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
       wrappedNative,
       wNativeRelayer,
       fairLaunch,
-      getBuyBackBps,
-      buyBack
+      getBuybackBps,
+      buyback
     );
   }
 
@@ -199,7 +199,7 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   }
 
   /// @dev return the buyback Address
-  function getBuyBackAddr() external view override returns (address) {
-    return buyBack;
+  function getBuybackAddr() external view override returns (address) {
+    return buyback;
   }
 }

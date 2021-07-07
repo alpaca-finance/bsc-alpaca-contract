@@ -46,9 +46,9 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   /// list of whitelisted callers
   mapping(address => bool) public override whitelistedCallers;
   // The reward for buyback and burn after successfully killing a position.
-  uint256 public override getBuyBackBps;
+  uint256 public override getBuybackBps;
   // The address of buyback
-  address public buyBack;
+  address public buyback;
 
   function initialize(
     uint256 _minDebtSize,
@@ -59,7 +59,7 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     address _wNativeRelayer,
     address _fairLaunch,
     uint256 _buybackBps,
-    address _buyBack
+    address _buyback
   ) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
 
@@ -72,7 +72,7 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
       _wNativeRelayer,
       _fairLaunch,
       _buybackBps,
-      _buyBack
+      _buyback
     );
   }
 
@@ -89,8 +89,8 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     address _wrappedNative,
     address _wNativeRelayer,
     address _fairLaunch,
-    uint256 _buyBackBps,
-    address _buyBack
+    uint256 _buybackBps,
+    address _buyback
   ) public onlyOwner {
     minDebtSize = _minDebtSize;
     interestRate = _interestRate;
@@ -99,8 +99,8 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     wrappedNativeAddr = _wrappedNative;
     wNativeRelayer = _wNativeRelayer;
     fairLaunch = _fairLaunch;
-    getBuyBackBps = _buyBackBps;
-    buyBack = _buyBack;
+    getBuybackBps = _buybackBps;
+    buyback = _buyback;
   }
 
   /// @dev Set the configuration for the given worker. Must only be called by the owner.
@@ -183,7 +183,7 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   }
 
   /// @dev return the buyback Address
-  function getBuyBackAddr() external view override returns (address) {
-    return buyBack;
+  function getBuybackAddr() external view override returns (address) {
+    return buyback;
   }
 }

@@ -925,9 +925,9 @@ describe('Vault - Pancakeswap', () => {
         aliceAfter.sub(aliceBefore).toString(),
       );
   
-      // Eve is Wallet to buyback -> 1%  -> 0.0000300199830261993
+      // Eve is Wallet to buyback -> 1%  -> 0.000030009979942402
       AssertHelpers.assertAlmostEqual(
-        ethers.utils.parseEther('0.0000300099799424023').toString(),
+        ethers.utils.parseEther('0.000030009979942402').toString(),
         eveAfter.sub(eveBefore).toString(),
       );
 

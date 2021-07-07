@@ -349,7 +349,7 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     uint256 back = SafeToken.myBalance(token).sub(beforeToken);
 
     uint256 liquidatorPrize = back.mul(config.getKillBps()).div(10000);
-    uint256 buybackBurnPrize = back.mul(config.getBuyBackBps()).div(10000);
+    uint256 buybackBurnPrize = back.mul(config.getBuybackBps()).div(10000);
     uint256 prize = liquidatorPrize.add(buybackBurnPrize);
     uint256 rest = back.sub(prize);
     // 4. Clear position debt and return funds to liquidator and position owner.
@@ -367,9 +367,9 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
       if (token == config.getWrappedNativeAddr()) {
         SafeToken.safeTransfer(token, config.getWNativeRelayer(), buybackBurnPrize);
         WNativeRelayer(uint160(config.getWNativeRelayer())).withdraw(buybackBurnPrize);
-        SafeToken.safeTransferETH(config.getBuyBackAddr(), buybackBurnPrize);
+        SafeToken.safeTransferETH(config.getBuybackAddr(), buybackBurnPrize);
       } else {
-        SafeToken.safeTransfer(token, config.getBuyBackAddr(), buybackBurnPrize);
+        SafeToken.safeTransfer(token, config.getBuybackAddr(), buybackBurnPrize);
       }
     }
 
