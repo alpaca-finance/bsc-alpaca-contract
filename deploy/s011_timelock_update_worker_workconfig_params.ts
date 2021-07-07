@@ -1,24 +1,9 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
 import { ethers, network } from 'hardhat';
-import { IWorker__factory, IStrategy__factory, Timelock__factory } from '../typechain'
+import { Timelock__factory } from '../typechain'
 import MainnetConfig from '../.mainnet.json'
 import TestnetConfig from '../.testnet.json'
-
-interface IWorkerInfo {
-  name: string;
-  address: string;
-  config: string;
-  pId: number;
-  stakingToken: string;
-  stakingTokenAt: string;
-  strategies: {
-    StrategyAddAllBaseToken: string;
-    StrategyLiquidate: string;
-    StrategyAddTwoSidesOptimal: string;
-    StrategyWithdrawMinimizeTrading: string;
-  };
-}
 
 interface IInput {
   workerName: string;
