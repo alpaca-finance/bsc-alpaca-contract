@@ -917,20 +917,21 @@ describe('CakeMaxiWorker', () => {
           const aliceBaseTokenAfter = await wbnb.balanceOf(await alice.getAddress())
           const aliceBNBAfter = await alice.getBalance()
           const aliceFarmingTokenAfter = await cake.balanceOf(await alice.getAddress())
-
+          const [aliceHealthAfter, aliceDebtToShareAfter] = await integratedVaultAsAlice.positionInfo(1)
           userInfo = await masterChef.userInfo(0, integratedCakeMaxiWorker.address)
+          
           // alice should have half of her farmingToken left in her position 0.016631929970821175 - 0.008315964985410587 = 0.008315964985410587 
-          expect(userInfo[0]).to.eq(ethers.utils.parseEther('0.008315964985410588'))
-          expect(await integratedCakeMaxiWorker.shares(1)).to.eq(ethers.utils.parseEther('0.008315964985410588'))
-          expect(await integratedCakeMaxiWorker.shareToBalance(await integratedCakeMaxiWorker.shares(1))).to.eq(ethers.utils.parseEther('0.008315964985410588'))
           // alice should have half of her debt remain in vault = 0.05
-          Assert.assertAlmostEqual((await integratedVaultAsAlice.positions(1)).debtShare.toString() ,ethers.utils.parseEther('0.05').toString());
           // worker will get a base token based on 0.008315964985410587 FTOKEN to liquidate will get 0.108595436223603774 baseToken
           // if 0.1 - 0.016631929970821175 FTOKEN = 1.2 BNB
           // if 0.08336807002917883 FTOKEN = 1.2 BNB
-          // 0.008315964985410587 FTOKEN will be (0.008315964985410587 * 0.9975 * 1.2 ) / (0.08336807002917883 + (0.008315964985410587 * 0.9975)) = 0.10859543622360375
+          // 0.008315964985410587 FTOKEN will be (0.008315964985410587 * 0.9975 * 1.2 ) / (0.08336807002917883 + (0.008315964985410587 * 0.9975)) = 0.108595436223603774
           // repaid debt 0.05 baseToken
           // thus, alice should get a bnb amount of 0.108595436223603774 - 0.05 = 0.058595436223603774
+          expect(userInfo[0]).to.eq(ethers.utils.parseEther('0.008315964985410588'))
+          expect(await integratedCakeMaxiWorker.shares(1)).to.eq(ethers.utils.parseEther('0.008315964985410588'))
+          expect(await integratedCakeMaxiWorker.shareToBalance(await integratedCakeMaxiWorker.shares(1))).to.eq(ethers.utils.parseEther('0.008315964985410588'))
+          Assert.assertAlmostEqual(aliceDebtToShareAfter.toString(),ethers.utils.parseEther('0.05').toString());
           expect(aliceBNBAfter.sub(aliceBNBBefore)).to.eq(ethers.utils.parseEther('0.058595436223603774'))
           expect(aliceFarmingTokenAfter.sub(aliceFarmingTokenBefore)).to.eq(ethers.utils.parseEther('0'))
         })
