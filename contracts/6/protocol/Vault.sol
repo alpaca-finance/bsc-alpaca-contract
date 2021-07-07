@@ -347,18 +347,32 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     uint256 beforeToken = SafeToken.myBalance(token);
     IWorker(pos.worker).liquidate(id);
     uint256 back = SafeToken.myBalance(token).sub(beforeToken);
-    uint256 prize = back.mul(config.getKillBps()).div(10000);
+
+    uint256 liquidatorPrize = back.mul(config.getKillBps()).div(10000);
+    uint256 buybackBurnPrize = back.mul(config.getBuyBackBps()).div(10000);
+    uint256 prize = liquidatorPrize.add(buybackBurnPrize);
     uint256 rest = back.sub(prize);
     // 4. Clear position debt and return funds to liquidator and position owner.
-    if (prize > 0) {
+    if (liquidatorPrize > 0) {
       if (token == config.getWrappedNativeAddr()) {
-        SafeToken.safeTransfer(token, config.getWNativeRelayer(), prize);
-        WNativeRelayer(uint160(config.getWNativeRelayer())).withdraw(prize);
-        SafeToken.safeTransferETH(msg.sender, prize);
+        SafeToken.safeTransfer(token, config.getWNativeRelayer(), liquidatorPrize);
+        WNativeRelayer(uint160(config.getWNativeRelayer())).withdraw(liquidatorPrize);
+        SafeToken.safeTransferETH(msg.sender, liquidatorPrize);
       } else {
-        SafeToken.safeTransfer(token, msg.sender, prize);
+        SafeToken.safeTransfer(token, msg.sender, liquidatorPrize);
       }
     }
+
+    if (buybackBurnPrize > 0) {
+      if (token == config.getWrappedNativeAddr()) {
+        SafeToken.safeTransfer(token, config.getWNativeRelayer(), buybackBurnPrize);
+        WNativeRelayer(uint160(config.getWNativeRelayer())).withdraw(buybackBurnPrize);
+        SafeToken.safeTransferETH(config.getBuyBackAddr(), buybackBurnPrize);
+      } else {
+        SafeToken.safeTransfer(token, config.getBuyBackAddr(), buybackBurnPrize);
+      }
+    }
+
     uint256 left = rest > debt ? rest - debt : 0;
     if (left > 0) {
       if (token == config.getWrappedNativeAddr()) {

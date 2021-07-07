@@ -61,6 +61,7 @@ describe('PancakeswapV2 - StrategyAddTwoSidesOptimal', () => {
   const MIN_DEBT_SIZE = '1';
   const WORK_FACTOR = '7000';
   const KILL_FACTOR = '8000';
+  const BUYBACK_BPS = '100';
 
   /// Pancakeswap-related instance(s)
   let factoryV2: PancakeFactory;
@@ -96,6 +97,7 @@ describe('PancakeswapV2 - StrategyAddTwoSidesOptimal', () => {
   let deployer: Signer;
   let alice: Signer;
   let bob: Signer;
+  let eve: Signer;
 
   // Contract Signer
   let addStratAsAlice: PancakeswapV2StrategyAddTwoSidesOptimal;
@@ -111,7 +113,7 @@ describe('PancakeswapV2 - StrategyAddTwoSidesOptimal', () => {
   let vaultAsBob: Vault;
 
   beforeEach(async () => {
-    [deployer, alice, bob] = await ethers.getSigners();
+    [deployer, alice, bob, eve] = await ethers.getSigners();
 
     // Setup Pancakeswap
     const PancakeFactoryV2 = (await ethers.getContractFactory(
@@ -209,7 +211,7 @@ describe('PancakeswapV2 - StrategyAddTwoSidesOptimal', () => {
     )) as SimpleVaultConfig__factory;
     config = await upgrades.deployProxy(SimpleVaultConfig, [
       MIN_DEBT_SIZE, INTEREST_RATE, RESERVE_POOL_BPS, KILL_PRIZE_BPS,
-      wbnb.address, wNativeRelayer.address, fairLaunch.address
+      wbnb.address, wNativeRelayer.address, fairLaunch.address, BUYBACK_BPS, await eve.getAddress()
     ]) as SimpleVaultConfig;
     await config.deployed();
 

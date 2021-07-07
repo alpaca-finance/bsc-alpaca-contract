@@ -36,7 +36,7 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   /// The reward for successfully killing a position.
   uint256 public override getKillBps;
   /// Mapping for worker address to its configuration.
-  mapping (address => WorkerConfig) public workers;
+  mapping(address => WorkerConfig) public workers;
   /// address for wrapped native eg WBNB, WETH
   address public wrappedNativeAddr;
   /// address for wNative relater
@@ -45,6 +45,10 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   address public fairLaunch;
   /// list of whitelisted callers
   mapping(address => bool) public override whitelistedCallers;
+  // The reward for buyback and burn after successfully killing a position.
+  uint256 public override getBuyBackBps;
+  // The address of buyback
+  address public buyBack;
 
   function initialize(
     uint256 _minDebtSize,
@@ -53,7 +57,9 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     uint256 _killBps,
     address _wrappedNative,
     address _wNativeRelayer,
-    address _fairLaunch
+    address _fairLaunch,
+    uint256 _buybackBps,
+    address _buyBack
   ) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
 
@@ -64,7 +70,10 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
       _killBps,
       _wrappedNative,
       _wNativeRelayer,
-      _fairLaunch);
+      _fairLaunch,
+      _buybackBps,
+      _buyBack
+    );
   }
 
   /// @dev Set all the basic parameters. Must only be called by the owner.
@@ -79,7 +88,9 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     uint256 _killBps,
     address _wrappedNative,
     address _wNativeRelayer,
-    address _fairLaunch
+    address _fairLaunch,
+    uint256 _buyBackBps,
+    address _buyBack
   ) public onlyOwner {
     minDebtSize = _minDebtSize;
     interestRate = _interestRate;
@@ -88,6 +99,8 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     wrappedNativeAddr = _wrappedNative;
     wNativeRelayer = _wNativeRelayer;
     fairLaunch = _fairLaunch;
+    getBuyBackBps = _buyBackBps;
+    buyBack = _buyBack;
   }
 
   /// @dev Set the configuration for the given worker. Must only be called by the owner.
@@ -113,13 +126,16 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
 
   /// @dev Set whitelisted callers. Must only be called by the owner.
   function setWhitelistedCallers(address[] calldata callers, bool ok) external onlyOwner {
-    for(uint256 idx = 0; idx < callers.length; idx++) {
+    for (uint256 idx = 0; idx < callers.length; idx++) {
       whitelistedCallers[callers[idx]] = ok;
     }
   }
 
   /// @dev Return the interest rate per second, using 1e18 as denom.
-  function getInterestRate(uint256 /* debt */, uint256 /* floating */) external view override returns (uint256) {
+  function getInterestRate(
+    uint256, /* debt */
+    uint256 /* floating */
+  ) external view override returns (uint256) {
     return interestRate;
   }
 
@@ -149,15 +165,25 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   }
 
   /// @dev Return the work factor for the worker + BaseToken debt, using 1e4 as denom. Revert on non-worker.
-  function workFactor(address worker, uint256 /* debt */) external view override returns (uint256) {
+  function workFactor(
+    address worker,
+    uint256 /* debt */
+  ) external view override returns (uint256) {
     require(workers[worker].isWorker, "SimpleVaultConfig::workFactor:: !worker");
     return workers[worker].workFactor;
   }
 
   /// @dev Return the kill factor for the worker + BaseToken debt, using 1e4 as denom. Revert on non-worker.
-  function killFactor(address worker, uint256 /* debt */) external view override returns (uint256) {
+  function killFactor(
+    address worker,
+    uint256 /* debt */
+  ) external view override returns (uint256) {
     require(workers[worker].isWorker, "SimpleVaultConfig::killFactor:: !worker");
     return workers[worker].killFactor;
   }
 
+  /// @dev return the buyback Address
+  function getBuyBackAddr() external view override returns (address) {
+    return buyBack;
+  }
 }

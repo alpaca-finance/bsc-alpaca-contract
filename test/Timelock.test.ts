@@ -63,6 +63,7 @@ describe("Timelock", () => {
   const WORK_FACTOR = '7000';
   const KILL_FACTOR = '8000';
   const MAX_PRICE_DIFF = '1300';
+  const BUYBACK_BPS = '100';
 
   // Timelock-related instance(s)
   let timelock: Timelock;
@@ -220,7 +221,7 @@ describe("Timelock", () => {
       deployer
     )) as SimpleVaultConfig__factory;
     simpleVaultConfig = await upgrades.deployProxy(SimpleVaultConfig, [
-      MIN_DEBT_SIZE, INTEREST_RATE, RESERVE_POOL_BPS, KILL_PRIZE_BPS, wbnb.address, ADDRESS0, fairLaunch.address
+      MIN_DEBT_SIZE, INTEREST_RATE, RESERVE_POOL_BPS, KILL_PRIZE_BPS, wbnb.address, ADDRESS0, fairLaunch.address,BUYBACK_BPS,await bob.getAddress()
     ]) as SimpleVaultConfig;
     await simpleVaultConfig.deployed();
 
@@ -229,9 +230,10 @@ describe("Timelock", () => {
       deployer
     )) as ConfigurableInterestVaultConfig__factory;
     configurableInterestVaultConfig = await upgrades.deployProxy(ConfigurableInterestVaultConfig, [
-      MIN_DEBT_SIZE, RESERVE_POOL_BPS, KILL_PRIZE_BPS, ADDRESS0, ADDRESS0, ADDRESS0, fairLaunch.address
+      MIN_DEBT_SIZE, RESERVE_POOL_BPS, KILL_PRIZE_BPS, ADDRESS0, ADDRESS0, ADDRESS0, fairLaunch.address,BUYBACK_BPS,await bob.getAddress()
     ]) as ConfigurableInterestVaultConfig;
     await configurableInterestVaultConfig.deployed();
+
 
     const DebtToken = (await ethers.getContractFactory(
       "DebtToken",
@@ -378,7 +380,7 @@ describe("Timelock", () => {
     it('should not allow to do so on SimpleVaultConfig', async () => {
       await expect(
         simpleVaultConfigAsAlice.setParams(
-          1, 1, 1, 1, ADDRESS0, ADDRESS0, ADDRESS0
+          1, 1, 1, ADDRESS0, ADDRESS0, ADDRESS0, ADDRESS0, 1 ,ADDRESS0
         )
       ).to.be.revertedWith('Ownable: caller is not the owner');
 
@@ -390,7 +392,7 @@ describe("Timelock", () => {
     it('should not allow to do so on ConfigurableInterestVaultConfig', async () => {
       await expect(
         configurableInterestVaultConfigAsAlice.setParams(
-          1, 1, 1, ADDRESS0, ADDRESS0, ADDRESS0, ADDRESS0
+          1, 1, 1, ADDRESS0, ADDRESS0, ADDRESS0, ADDRESS0, 1, ADDRESS0
         )
       ).to.be.revertedWith('Ownable: caller is not the owner');
 
