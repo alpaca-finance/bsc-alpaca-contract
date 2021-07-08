@@ -196,7 +196,7 @@ describe('CakeMaxiWorker', () => {
     )) as CakeToken__factory;
     cake = await CakeToken.deploy();
     await cake.deployed()
-    await cake["mint(address,uint256)"](await deployer.getAddress(), ethers.utils.parseEther('100'));
+    await cake["mint(address,uint256)"](await deployer.getAddress(), ethers.utils.parseEther('10000'));
     await cake["mint(address,uint256)"](await alice.getAddress(), ethers.utils.parseEther('10'));
     await cake["mint(address,uint256)"](await bob.getAddress(), ethers.utils.parseEther('10'));
     await factoryV2.createPair(baseToken.address, wbnb.address);
@@ -1392,21 +1392,24 @@ describe('CakeMaxiWorker', () => {
         expect(eveBalanceAfter.sub(eveBalanceBefore)).to.eq(buyBackBounty) // eve should get buyback bounty 
         expect((await integratedVaultAsAlice.positions(1)).debtShare).to.eq(0)
         
-        
       })
 
       it('should successfully liquidate with bad debt',async () => {
         
-        await integratedCakeMaxiWorker.setBeneficialVaultBountyBps(BigNumber.from(BENEFICIALVAULT_BOUNTY_BPS))
-        expect(await integratedCakeMaxiWorker.beneficialVaultBountyBps()).to.eq(BigNumber.from(BENEFICIALVAULT_BOUNTY_BPS))
-        // alice deposit some portion of her native bnb into a vault, thus interest will be accrued afterward
-        await integratedVaultAsAlice.deposit(ethers.utils.parseEther('1'), {
-          value: ethers.utils.parseEther('1')
+        // SET UP
+       const deployerAddress = await deployer.getAddress()
+       const aliceAddress = await alice.getAddress()
+       const bobAddress = await bob.getAddress()
+        // set interest rate to be 0 to be easy for testing, change to deployerAddress
+        await simpleVaultConfig.setParams(
+          MIN_DEBT_SIZE, 0, RESERVE_POOL_BPS, KILL_PRIZE_BPS,
+          wbnb.address, wNativeRelayer.address, fairLaunch.address,BUYBACK_BPS, deployerAddress)
+
+        await integratedVaultAsAlice.deposit(ethers.utils.parseEther('5'), {
+          value: ethers.utils.parseEther('5')
         })
-        // Alice uses AddBaseTokenOnly strategy to add 0.1 WBNB (0.05 as principal amount, 0.05 as a loan)
-        // amountOut of 0.1 will be
-        // if 1WBNB = 0.1 FToken
-        // 0.1WBNB will be (0.1 * 0.9975 * 0.1) / (1 + 0.1 * 0.9975) = 0.009070243237099340
+        const vaultBalanceBefore = await wbnb.balanceOf(integratedVault.address)
+
         await integratedVaultAsAlice.work(
           0,
           integratedCakeMaxiWorker.address,
@@ -1426,112 +1429,50 @@ describe('CakeMaxiWorker', () => {
             value: ethers.utils.parseEther('0.05')
           }
         )
-        let userInfo = await masterChef.userInfo(0, integratedCakeMaxiWorker.address)
-        expect(userInfo[0]).to.eq(ethers.utils.parseEther('0.00907024323709934'))
-        expect(await integratedCakeMaxiWorker.shares(1)).to.eq(ethers.utils.parseEther('0.00907024323709934'))
-        expect(await integratedCakeMaxiWorker.shareToBalance(await integratedCakeMaxiWorker.shares(1))).to.eq(ethers.utils.parseEther('0.00907024323709934'))
+        // // Now it's a liquidation part swap 10000 cake for wbnb 
+        await cake.approve(routerV2.address, ethers.utils.parseEther('10000'));
+        await routerV2.swapExactTokensForTokens(
+          ethers.utils.parseEther('10000'),
+          '0',
+          [cake.address, wbnb.address],
+          await deployer.getAddress(),
+          FOREVER
+        );
 
-        // Alice uses AddBaseTokenOnly strategy to add another 0.1 WBNB
-        // amountOut of 0.1 will be
-        // if 1.1 WBNB = (0.1 - 0.00907024323709934) FToken
-        // if 1.1 WBNB = 0.09092975676290066 FToken
-        // 0.1 WBNB will be (0.1 * 0.9975 * 0.09092975676290066) / (1.1 + 0.1 * 0.9975) = 0.0075601110540523785
-        // thus, the current amount accumulated with the previous one will be 0.0075601110540523785 + 0.009070243237099340
-        // = 0.01663035429115172
-        await integratedVaultAsAlice.work(
-          1,
-          integratedCakeMaxiWorker.address,
-          ethers.utils.parseEther('0.1'),
-          ethers.utils.parseEther('0'),
-          '0', // max return = 0, don't return BTOKEN to the debt
-          ethers.utils.defaultAbiCoder.encode(
-            ['address', 'bytes'],
-            [stratAdd.address, 
-              ethers.utils.defaultAbiCoder.encode(
-                ['uint256'],
-                [ethers.utils.parseEther('0')]
-              )
-            ],
-          ),
-          {
-            value: ethers.utils.parseEther('0.1')
-          }
-        )
-        // after all these steps above, alice will have a balance in total of 0.016630354291151718 
-        userInfo = await masterChef.userInfo(0, integratedCakeMaxiWorker.address)
-        expect(userInfo[0]).to.eq(ethers.utils.parseEther('0.016630354291151718'))
-        expect(await integratedCakeMaxiWorker.shares(1)).to.eq(ethers.utils.parseEther('0.016630354291151718'))
-        Assert.assertAlmostEqual((await integratedCakeMaxiWorker.rewardBalance()).toString(), ethers.utils.parseEther('0.1').toString())
-        expect(await integratedCakeMaxiWorker.shareToBalance(await integratedCakeMaxiWorker.shares(1))).to.eq(ethers.utils.parseEther('0.016630354291151718'))
-        // total bounty will be 0.2 * 1% = 0.002
-        // 90% if reinvest bounty 0.002 * 90 / 100 = 0.0018
-        // thus, alice we get a bounty of 0.0018
-        // 10% of 0.002 (0.0002) will be distributed to the vault by swapping 0.002 of reward token into a beneficial vault token (this is scenario, it will be ALPACA)
-        // if (0.1 - (0.00907024323709934 + 0.0075601110540523785)) FToken = 1.2 WBNB
-        // 0.08336964570884828 FToken = 1.2 WBNB
-        // 0.0002 FToken will be (0.0002 * 0.9975 * 1.2) / (0.08336964570884828  + 0.0002 * 0.9975) = 0.0028646936374587396 WBNB
-        // thus, 0.0028646936374587396 will be sent to integrated Vault
-        userInfo = await masterChef.userInfo(0, integratedCakeMaxiWorker.address)
-        const beforeVaultTotalToken = await integratedVault.totalToken()
-        await integratedCakeMaxiWorkerAsEve.reinvest()
-        const afterVaultTotalToken = await integratedVault.totalToken()
-        Assert.assertAlmostEqual(afterVaultTotalToken.sub(beforeVaultTotalToken).toString(), ethers.utils.parseEther('0.002864693637458739').toString())
-        Assert.assertAlmostEqual((await cake.balanceOf(await eve.getAddress())).toString(), ethers.utils.parseEther('0.0018').toString())
-        // Now it's a liquidation part
-        await cakeAsAlice.approve(routerV2.address, constants.MaxUint256)
-        // alice buy wbnb so that the price will be fluctuated, so that the position can be liquidated
-        await routerV2AsAlice.swapTokensForExactETH(ethers.utils.parseEther('1'), constants.MaxUint256, [cake.address, wbnb.address], await alice.getAddress(), FOREVER)
-        // set interest rate to be 0 to be easy for testing.
-     
-
-        await simpleVaultConfig.setParams(
-          MIN_DEBT_SIZE, 0, RESERVE_POOL_BPS, KILL_PRIZE_BPS,
-          wbnb.address, wNativeRelayer.address, fairLaunch.address,BUYBACK_OVERFLOW_BPS,
-        await eve.getAddress())
-        // pre calculated left, liquidation reward, health
         const toBeLiquidatedValue = await integratedCakeMaxiWorker.health(1)
         const liquidationBounty = toBeLiquidatedValue.mul(1000).div(10000)
-      
-        const buyBackBounty = toBeLiquidatedValue.mul(BigNumber.from(BUYBACK_OVERFLOW_BPS)).div(10000);
-        
-        const bobBalanceBefore = await ethers.provider.getBalance(await bob.getAddress())
-        const aliceBalanceBefore = await ethers.provider.getBalance(await alice.getAddress())
-        const vaultBalanceBefore = await wbnb.balanceOf(integratedVault.address)
-        const eveBalanceBefore = await ethers.provider.getBalance(await eve.getAddress())
+        const buyBackBounty = toBeLiquidatedValue.mul(100).div(10000)
 
+        const bobBalanceBefore = await ethers.provider.getBalance(bobAddress)
+        const aliceBalanceBefore = await ethers.provider.getBalance(aliceAddress)
         const vaultDebtVal = await integratedVault.vaultDebtVal()
-       
-        const debt = await integratedVault.debtShareToVal((await integratedVault.positions(1)).debtShare)
-        const leftBounty = toBeLiquidatedValue.sub(liquidationBounty).sub(buyBackBounty);
-        // check left < debt?
-        const left = leftBounty > debt ? leftBounty.sub(debt): 0; 
+        const deployerBalanceBefore = await ethers.provider.getBalance(deployerAddress)
 
-        // bob call `kill` alice's position, which is position #1
-        await integratedVaultAsBob.kill(
-          1,
+        // assert bob getting kill price 
+        await integratedVaultAsBob.kill(1,
           {
             gasPrice: 0,
-          }
-        )
-        
-        const bobBalanceAfter = await ethers.provider.getBalance(await bob.getAddress())
-        const aliceBalanceAfter = await ethers.provider.getBalance(await alice.getAddress())
+          });
+
+        const bobBalanceAfter = await ethers.provider.getBalance(bobAddress)
+        const aliceBalanceAfter = await ethers.provider.getBalance(aliceAddress)
         const vaultBalanceAfter = await wbnb.balanceOf(integratedVault.address)
-        const eveBalanceAfter = await ethers.provider.getBalance(await eve.getAddress())
+        const deployerBalanceAfter = await ethers.provider.getBalance(deployerAddress)
 
         expect(bobBalanceAfter.sub(bobBalanceBefore)).to.eq(liquidationBounty) // bob should get liquidation reward
-        expect(aliceBalanceAfter.sub(aliceBalanceBefore)).to.eq(left) // alice should get her left back
+        expect(aliceBalanceAfter.sub(aliceBalanceBefore)).to.eq(0) // alice before and after baseToken should be the same
         expect(vaultBalanceAfter.sub(vaultBalanceBefore)).to.not.equal(vaultDebtVal) // vault should get it's deposit value back
-        expect(eveBalanceAfter.sub(eveBalanceBefore)).to.eq(buyBackBounty) // eve should get buyback bounty 
-        expect((await integratedVaultAsAlice.positions(1)).debtShare).to.eq(0)
+        expect(vaultBalanceAfter).to.be.bignumber.lt(vaultBalanceBefore) // vaultBalance after must less than before cuz bad debt
+        expect(deployerBalanceAfter.sub(deployerBalanceBefore)).to.eq(buyBackBounty) // deployer should get buyback bounty 
+        expect((await integratedVaultAsAlice.positions(1)).debtShare).to.eq(0) 
+        
       })
       
     })
 
     
   })
-
-  describe("#setBeneficialVaultBountyBps", async() => {
+   describe("#setBeneficialVaultBountyBps", async() => {
     context('When the caller is not an owner', async () => {
       it('should be reverted', async() => {
         await expect(cakeMaxiWorkerNonNativeAsAlice.setBeneficialVaultBountyBps(BigNumber.from('1000'))).to.reverted
@@ -1552,5 +1493,5 @@ describe('CakeMaxiWorker', () => {
         expect(await cakeMaxiWorkerNonNative.beneficialVaultBountyBps()).to.eq(BigNumber.from('5000'))
       })
     })
-  })
+  }) 
 })
