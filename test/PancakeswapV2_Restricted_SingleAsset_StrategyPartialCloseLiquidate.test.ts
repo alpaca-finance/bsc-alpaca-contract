@@ -1,5 +1,5 @@
-import { ethers, upgrades, waffle } from "hardhat";
-import { Signer, BigNumberish, utils, Wallet } from "ethers";
+import { ethers, upgrades } from "hardhat";
+import { Signer } from "ethers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import "@openzeppelin/test-helpers";
@@ -11,8 +11,8 @@ import {
   PancakeRouter,
   PancakeRouterV2__factory,
   PancakeRouter__factory,
-  PancakeswapV2RestrictedSingleAssetStrategyLiquidate,
-  PancakeswapV2RestrictedSingleAssetStrategyLiquidate__factory,
+  PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate,
+  PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate__factory,
   WETH,
   WETH__factory
 } from "../typechain";
@@ -22,7 +22,7 @@ import { MockPancakeswapV2CakeMaxiWorker } from "../typechain/MockPancakeswapV2C
 chai.use(solidity);
 const { expect } = chai;
 
-describe('PancakeswapV2RestrictedSingleAssetStrategyLiquidate', () => {
+describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate', () => {
   const FOREVER = '2000000000';
 
   /// Pancakeswap-related instance(s)
@@ -40,7 +40,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyLiquidate', () => {
   let farmingToken: MockERC20;
 
   /// Strategy instance(s)
-  let strat: PancakeswapV2RestrictedSingleAssetStrategyLiquidate;
+  let strat: PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate;
 
   // Accounts
   let deployer: Signer;
@@ -59,8 +59,8 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyLiquidate', () => {
   let routerV2AsAlice: PancakeRouter;
   let routerV2AsBob: PancakeRouter;
 
-  let stratAsAlice: PancakeswapV2RestrictedSingleAssetStrategyLiquidate;
-  let stratAsBob: PancakeswapV2RestrictedSingleAssetStrategyLiquidate;
+  let stratAsAlice: PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate;
+  let stratAsBob: PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate;
 
   let mockPancakeswapV2WorkerBaseFTokenPairAsAlice: MockPancakeswapV2CakeMaxiWorker;
   let mockPancakeswapV2WorkerBNBFtokenPairAsAlice: MockPancakeswapV2CakeMaxiWorker;
@@ -132,11 +132,11 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyLiquidate', () => {
       [farmingToken.address, wbnb.address
     ]) as MockPancakeswapV2CakeMaxiWorker
     await mockPancakeswapV2EvilWorker.deployed();
-    const PancakeswapV2RestrictedSingleAssetStrategyLiquidate = (await ethers.getContractFactory(
-      "PancakeswapV2RestrictedSingleAssetStrategyLiquidate",
+    const PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate = (await ethers.getContractFactory(
+      "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate",
       deployer
-    )) as PancakeswapV2RestrictedSingleAssetStrategyLiquidate__factory;
-    strat = await upgrades.deployProxy(PancakeswapV2RestrictedSingleAssetStrategyLiquidate, [routerV2.address]) as PancakeswapV2RestrictedSingleAssetStrategyLiquidate;
+    )) as PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate__factory;
+    strat = await upgrades.deployProxy(PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate, [routerV2.address]) as PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate;
     await strat.deployed();
     await strat.setWorkersOk([mockPancakeswapV2WorkerBaseFTokenPair.address, mockPancakeswapV2WorkerBNBFtokenPair.address], true)
     
@@ -152,8 +152,8 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyLiquidate', () => {
     routerV2AsAlice = PancakeRouter__factory.connect(routerV2.address, alice);
     routerV2AsBob = PancakeRouter__factory.connect(routerV2.address, bob);
 
-    stratAsAlice = PancakeswapV2RestrictedSingleAssetStrategyLiquidate__factory.connect(strat.address, alice);
-    stratAsBob = PancakeswapV2RestrictedSingleAssetStrategyLiquidate__factory.connect(strat.address, bob);
+    stratAsAlice = PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate__factory.connect(strat.address, alice);
+    stratAsBob = PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate__factory.connect(strat.address, bob);
 
     mockPancakeswapV2WorkerBaseFTokenPairAsAlice = MockPancakeswapV2CakeMaxiWorker__factory.connect(mockPancakeswapV2WorkerBaseFTokenPair.address, alice);
     mockPancakeswapV2WorkerBNBFtokenPairAsAlice = MockPancakeswapV2CakeMaxiWorker__factory.connect(mockPancakeswapV2WorkerBNBFtokenPair.address, alice);
@@ -206,22 +206,39 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyLiquidate', () => {
   context('When the base token is a wrap native', async () => {
     context('When contract get baseToken amount < minBaseTokenAmount', async () => {
         it('should revert', async () => {
-          // Alice uses Liquidate strategy yet again, but now with an unreasonable minFarmingTokenAmount request
+          // Alice uses Partial Close Liquidate strategy, but now with an unreasonable minFarmingTokenAmount request
           // amountOut of 0.1 will be
           // if 0.1 FToken = 1 WBNB
-          // 0.1 FToken will be (0.1 * 0.9975) * (1 / (0.1 + 0.1 * 0.9975)) = 0.4993742177722153 WBNB
+          // 0.1 FToken will be (0.04 * 0.9975) * (1 / (0.1 + 0.04 * 0.9975)) = 0.285203716940671908 WBNB
           await farmingTokenAsAlice.transfer(mockPancakeswapV2WorkerBNBFtokenPair.address, ethers.utils.parseEther('0.1'));
           await expect(mockPancakeswapV2WorkerBNBFtokenPairAsAlice.work(
             0, await alice.getAddress(), '0',
             ethers.utils.defaultAbiCoder.encode(
               ['address', 'bytes'],
               [strat.address, ethers.utils.defaultAbiCoder.encode(
-                ['uint256'],
-                [ ethers.utils.parseEther('0.4993742177722153').add(1)]
+                ['uint256','uint256'],
+                [ethers.utils.parseEther('0.04'), ethers.utils.parseEther('0.285203716940671908').add(1)]
               )],
             )
-          )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyLiquidate::execute:: insufficient baseToken amount received');
+          )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate::execute:: insufficient baseToken amount received');
         });
+      })
+
+    context('When insufficient farmingToken received from worker', async () =>{
+        it('should revert as insufficient farmingToken received from worker', async () => {
+          await farmingTokenAsAlice.transfer(mockPancakeswapV2WorkerBNBFtokenPair.address, ethers.utils.parseEther('0.1'));
+          const farmingTokenToLiquidate = ethers.utils.parseEther('0.2')
+          await expect(mockPancakeswapV2WorkerBNBFtokenPairAsAlice.work(
+            0, await alice.getAddress(), '0',
+            ethers.utils.defaultAbiCoder.encode(
+              ['address', 'bytes'],
+              [strat.address, ethers.utils.defaultAbiCoder.encode(
+                ['uint256','uint256'],
+                [farmingTokenToLiquidate, '0']
+              )],
+            )
+          )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate::execute:: insufficient farmingToken received from worker');
+        })
       })
     
     context("When caller worker hasn't been whitelisted", async () => {
@@ -232,11 +249,11 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyLiquidate', () => {
           ethers.utils.defaultAbiCoder.encode(
             ['address', 'bytes'],
             [strat.address, ethers.utils.defaultAbiCoder.encode(
-              ['uint256'],
-              [ethers.utils.parseEther('0.05')]
+              ['uint256','uint256'],
+              [ethers.utils.parseEther('0.04'), ethers.utils.parseEther('0.285203716940671908').add(1)]
             )],
           )
-        )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyLiquidate::onlyWhitelistedWorkers:: bad worker');
+        )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate::onlyWhitelistedWorkers:: bad worker');
       });
     })
   
@@ -248,62 +265,83 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyLiquidate', () => {
           ethers.utils.defaultAbiCoder.encode(
             ['address', 'bytes'],
             [strat.address, ethers.utils.defaultAbiCoder.encode(
-              ['uint256'],
-              [ethers.utils.parseEther('0.05')]
+              ['uint256','uint256'],
+              [ethers.utils.parseEther('0.04'), ethers.utils.parseEther('0.285203716940671908').add(1)]
             )],
           )
-        )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyLiquidate::onlyWhitelistedWorkers:: bad worker');
+        )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate::onlyWhitelistedWorkers:: bad worker');
       });
     })
   
-    it('should convert ALL farmingToken to baseToken (WBNB)', async () => {
+    it('should convert SOME farmingToken to baseToken (WBNB)', async () => {
       await farmingTokenAsAlice.transfer(mockPancakeswapV2WorkerBNBFtokenPair.address, ethers.utils.parseEther('0.1'));
-      // amountOut of 0.1 will be
+      const farmingTokenToLiquidate = ethers.utils.parseEther('0.04')
+      // amountOut of 0.04 will be
       // if 0.1 FToken = 1 WBNB
-      // 0.1 FToken will be (0.1 * 0.9975) * (1 / (0.1 + 0.1 * 0.9975)) = 0.499374217772215269 WBNB
+      // 0.04 FToken will be (0.04 * 0.9975) * (1 / (0.1 + 0.04 * 0.9975)) = 0.285203716940671908 WBNB
+
       const aliceBalanceBefore = await wbnb.balanceOf(await alice.getAddress())
-      await mockPancakeswapV2WorkerBNBFtokenPairAsAlice.work(
+      await expect(mockPancakeswapV2WorkerBNBFtokenPairAsAlice.work(
         0, await alice.getAddress(), '0',
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [strat.address, ethers.utils.defaultAbiCoder.encode(
-            ['uint256'],
-            ['0']
+            ['uint256','uint256'],
+            [farmingTokenToLiquidate, '0']
           )],
         )
+      )).to.emit(strat, 'PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate').withArgs(
+        wbnb.address, farmingToken.address , farmingTokenToLiquidate
       );
       const aliceBalanceAfter = await wbnb.balanceOf(await alice.getAddress())
-            
-      // the worker will send 0.499374217772215269 wbnb back to alice
-      // so alice will get 50.499374217772215269 - 50 = 0.499374217772215269
-      expect(aliceBalanceAfter.sub(aliceBalanceBefore)).to.be.bignumber.eq(ethers.utils.parseEther('0.499374217772215269'))
+           
+      // the worker will send 0.285203716940671908 wbnb back to alice
+      expect(aliceBalanceAfter.sub(aliceBalanceBefore)).to.be.bignumber.eq(ethers.utils.parseEther('0.285203716940671908'))
+      // there should be no baseToken or farmingToken left in strategy
       expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
       expect(await wbnb.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-      expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-  
+      // the strategy should send 0.06 farmingToken back to worker
+      expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0.06'))
     });
   })
 
   context('When the base token is not a wrap native', async () => {
     context('When contract get baseToken amount < minBaseTokenAmount', async () => {
         it('should revert', async () => {
-          // amountOut of 0.1 will be
+          // amountOut of 0.4 will be
           // if 0.1 FToken = 1 WBNB
-          // 0.1 FToken will be (0.1 * 0.9975) * (1 / (0.1 + 0.1 * 0.9975)) = 0.499374217772215269 WBNB
+          // 0.1 FToken will be (0.04 * 0.9975) * (1 / (0.1 + 0.04 * 0.9975)) = 0.2852037169406719 WBNB
           // if 1 WBNB = 1 BaseToken
-          // 0.499374217772215269 WBNB = (0.499374217772215269* 0.9975) * (1 / (1 + 0.499374217772215269 * 0.9975)) = 0.332499305557005937 BaseToken
+          // 0.2852037169406719 WBNB = (0.2852037169406719* 0.9975) * (1 / (1 + 0.2852037169406719 * 0.9975)) = 0.221481327933600537 BaseToken
           await farmingTokenAsAlice.transfer(mockPancakeswapV2WorkerBaseFTokenPair.address, ethers.utils.parseEther('0.1'));
           await expect(mockPancakeswapV2WorkerBaseFTokenPairAsAlice.work(
             0, await alice.getAddress(), '0',
             ethers.utils.defaultAbiCoder.encode(
               ['address', 'bytes'],
               [strat.address, ethers.utils.defaultAbiCoder.encode(
-                ['uint256'],
-                [ ethers.utils.parseEther('0.332499305557005937').add(1)]
+                ['uint256','uint256'],
+                [ethers.utils.parseEther('0.04'), ethers.utils.parseEther('0.221481327933600537').add(1)]
               )],
             )
-          )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyLiquidate::execute:: insufficient baseToken amount received');
+          )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate::execute:: insufficient baseToken amount received');
         });
+    })
+
+    context('When insufficient farmingToken received from worker', async () =>{
+      it('should revert as insufficient farmingToken received from worker', async () => {
+        await farmingTokenAsAlice.transfer(mockPancakeswapV2WorkerBaseFTokenPair.address, ethers.utils.parseEther('0.1'));
+        const farmingTokenToLiquidate = ethers.utils.parseEther('0.2')
+        await expect(mockPancakeswapV2WorkerBaseFTokenPairAsAlice.work(
+          0, await alice.getAddress(), '0',
+          ethers.utils.defaultAbiCoder.encode(
+            ['address', 'bytes'],
+            [strat.address, ethers.utils.defaultAbiCoder.encode(
+              ['uint256','uint256'],
+              [farmingTokenToLiquidate, '0']
+            )],
+          )
+        )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate::execute:: insufficient farmingToken received from worker');
+      })
     })
     
     context("When caller worker hasn't been whitelisted", async () => {
@@ -314,11 +352,11 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyLiquidate', () => {
           ethers.utils.defaultAbiCoder.encode(
             ['address', 'bytes'],
             [strat.address, ethers.utils.defaultAbiCoder.encode(
-              ['uint256'],
-              [ethers.utils.parseEther('0.05')]
+              ['uint256','uint256'],
+              [ethers.utils.parseEther('0.04'), ethers.utils.parseEther('0.221481327933600537').add(1)]
             )],
           )
-        )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyLiquidate::onlyWhitelistedWorkers:: bad worker');
+        )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate::onlyWhitelistedWorkers:: bad worker');
       });
     })
   
@@ -330,40 +368,45 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyLiquidate', () => {
           ethers.utils.defaultAbiCoder.encode(
             ['address', 'bytes'],
             [strat.address, ethers.utils.defaultAbiCoder.encode(
-              ['uint256'],
-              [ethers.utils.parseEther('0.05')]
+              ['uint256','uint256'],
+              [ethers.utils.parseEther('0.04'), ethers.utils.parseEther('0.221481327933600537').add(1)]
             )],
           )
-        )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyLiquidate::onlyWhitelistedWorkers:: bad worker');
+        )).to.be.revertedWith('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate::onlyWhitelistedWorkers:: bad worker');
       });
     })
-  
-    it('should convert ALL farmingToken to baseToken (WBTC)', async () => {
+
+    it('should convert SOME farmingToken to baseToken (WBTC)', async () => {
       await farmingTokenAsAlice.transfer(mockPancakeswapV2WorkerBaseFTokenPair.address, ethers.utils.parseEther('0.1'));
-      // amountOut of 0.1 will be
+      // amountOut of 0.4 will be
       // if 0.1 FToken = 1 WBNB
-      // 0.1 FToken will be (0.1 * 0.9975) * (1 / (0.1 + 0.1 * 0.9975)) = 0.499374217772215269 WBNB
+      // 0.1 FToken will be (0.04 * 0.9975) * (1 / (0.1 + 0.04 * 0.9975)) = 0.2852037169406719 WBNB
       // if 1 WBNB = 1 BaseToken
-      // 0.499374217772215269 WBNB = (0.499374217772215269* 0.9975) * (1 / (1 + 0.499374217772215269 * 0.9975)) = 0.332499305557005937 BaseToken
+      // 0.2852037169406719 WBNB = (0.2852037169406719* 0.9975) * (1 / (1 + 0.2852037169406719 * 0.9975)) = 0.221481327933600537 BaseToken
       const aliceBalanceBefore = await baseToken.balanceOf(await alice.getAddress())
-      await mockPancakeswapV2WorkerBaseFTokenPairAsAlice.work(
+      const farmingTokenToLiquidate = ethers.utils.parseEther('0.04')
+      await expect(mockPancakeswapV2WorkerBaseFTokenPairAsAlice.work(
         0, await alice.getAddress(), '0',
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'bytes'],
           [strat.address, ethers.utils.defaultAbiCoder.encode(
-            ['uint256'],
-            ['0']
+            ['uint256','uint256'],
+            [farmingTokenToLiquidate, '0']
           )],
         )
+      )).to.emit(strat, 'PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate').withArgs(
+        baseToken.address, farmingToken.address, farmingTokenToLiquidate
       );
+
       const aliceBalanceAfter = await baseToken.balanceOf(await alice.getAddress())
-  
-      // the worker will send 0.332499305557005937 baseToken back to alice
-      // thus, alice will get 99.332499305557005937 - 99 = 0.332499305557005937
-      expect(aliceBalanceAfter.sub(aliceBalanceBefore)).to.be.bignumber.eq(ethers.utils.parseEther('0.332499305557005937'))
+
+      // the worker will send 0.221481327933600537 baseToken back to alice
+      expect(aliceBalanceAfter.sub(aliceBalanceBefore)).to.be.bignumber.eq(ethers.utils.parseEther('0.221481327933600537'))
+      // there should be no baseToken or farmingToken left in strategy
       expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
       expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
-      expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'))
+      // the strategy should send 0.06 farmingToken back to worker
+      expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(ethers.utils.parseEther('0.06'))
     })
   })
 })

@@ -11865,6 +11865,179 @@
         }
       }
     },
+    "30d78a3dea42b331e3fe39e7a62e3c178625d552d335541ef1aead4d6ba3e581": {
+      "address": "0xacEa47914E77c5241eA11e2e4264b4b928b6f135",
+      "txHash": "0x5db6b5d43571eee54ba5aff9ea0755c64f677a691558405e4ec31a0729dfdc39",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:26"
+          },
+          {
+            "contract": "Initializable",
+            "label": "______gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:61"
+          },
+          {
+            "contract": "ContextUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol:37"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:18"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:78"
+          },
+          {
+            "contract": "OracleMedianizer",
+            "label": "primarySourceCount",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))",
+            "src": "contracts/6/protocol/OracleMedianizer.sol:26"
+          },
+          {
+            "contract": "OracleMedianizer",
+            "label": "primarySources",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_mapping(t_uint256,t_contract(PriceOracle)16607)))",
+            "src": "contracts/6/protocol/OracleMedianizer.sol:28"
+          },
+          {
+            "contract": "OracleMedianizer",
+            "label": "maxPriceDeviations",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))",
+            "src": "contracts/6/protocol/OracleMedianizer.sol:30"
+          }
+        ],
+        "types": {
+          "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
+            "label": "mapping(address => mapping(address => uint256))"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_mapping(t_uint256,t_contract(PriceOracle)16607)))": {
+            "label": "mapping(address => mapping(address => mapping(uint256 => contract PriceOracle)))"
+          },
+          "t_mapping(t_address,t_mapping(t_uint256,t_contract(PriceOracle)16607))": {
+            "label": "mapping(address => mapping(uint256 => contract PriceOracle))"
+          },
+          "t_mapping(t_uint256,t_contract(PriceOracle)16607)": {
+            "label": "mapping(uint256 => contract PriceOracle)"
+          },
+          "t_contract(PriceOracle)16607": {
+            "label": "contract PriceOracle"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_bool": {
+            "label": "bool"
+          }
+        }
+      }
+    },
+    "7e3bb24126c1ed5dfb12be3c890b52b8cab0ca0879abedcad9da26066f8af8a6": {
+      "address": "0xc96d0389A82ca6435B5D414Cbd44388523D0c537",
+      "txHash": "0xd844349b9c614953a024fea044094964f4c1155d27ee2ab6a92f5cd6061e2e33",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:26"
+          },
+          {
+            "contract": "Initializable",
+            "label": "______gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:61"
+          },
+          {
+            "contract": "ContextUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol:37"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:18"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:78"
+          },
+          {
+            "contract": "ChainLinkPriceOracle",
+            "label": "priceFeeds",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_contract(AggregatorV3Interface)45))",
+            "src": "contracts/6/protocol/price-oracle/ChainLinkPriceOracle.sol:27"
+          }
+        ],
+        "types": {
+          "t_mapping(t_address,t_mapping(t_address,t_contract(AggregatorV3Interface)45))": {
+            "label": "mapping(address => mapping(address => contract AggregatorV3Interface))"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_mapping(t_address,t_contract(AggregatorV3Interface)45)": {
+            "label": "mapping(address => contract AggregatorV3Interface)"
+          },
+          "t_contract(AggregatorV3Interface)45": {
+            "label": "contract AggregatorV3Interface"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_bool": {
+            "label": "bool"
+          }
+        }
+      }
+    },
     "53d8a580bfee38780474e0cbd3234d673390d73f89251fcc2337f3c1d654cbf6": {
       "address": "0x8AD71A587dB708435f52eb2e11902e487775f3Fb",
       "txHash": "0x4a93c9ac829804a7e6cd5808d793d9ef7abcf3a5556f80beafc43bc0c203ba6f",
