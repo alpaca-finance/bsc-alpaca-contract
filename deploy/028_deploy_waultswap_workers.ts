@@ -58,45 +58,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
   const shortWorkerInfos: IWorkerInput[] = [{
-    VAULT_SYMBOL: "ibETH",
-    WORKER_NAME: "BETH-ETH WaultswapWorker",
-    REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-    POOL_ID: 42,
-    REINVEST_BOUNTY_BPS: '300',
-    WORK_FACTOR: '7800',
-    KILL_FACTOR: '9000',
-    MAX_PRICE_DIFF: '11000',
-    EXACT_ETA: '1623754800'
-  }, {
-    VAULT_SYMBOL: "ibWBNB",
-    WORKER_NAME: "WAULTx-WBNB WaultswapWorker",
-    REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-    POOL_ID: 4,
-    REINVEST_BOUNTY_BPS: '300',
-    WORK_FACTOR: '5200',
-    KILL_FACTOR: '7000',
-    MAX_PRICE_DIFF: '11000',
-    EXACT_ETA: '1623754800'
-  }, {
     VAULT_SYMBOL: "ibUSDT",
-    WORKER_NAME: "BTCB-USDT WaultswapWorker",
-    REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-    POOL_ID: 41,
+    WORKER_NAME: "MATIC-USDT WaultswapWorker",
+    REINVEST_BOT: "0xcf28b4da7d3ed29986831876b74af6e95211d3f9",
+    POOL_ID: 15,
     REINVEST_BOUNTY_BPS: '300',
-    WORK_FACTOR: '7000',
-    KILL_FACTOR: '8333',
+    WORK_FACTOR: '6240',
+    KILL_FACTOR: '8000',
     MAX_PRICE_DIFF: '11000',
-    EXACT_ETA: '1623754800'
-  }, {
-    VAULT_SYMBOL: "ibBTCB",
-    WORKER_NAME: "USDT-BTCB WaultswapWorker",
-    REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-    POOL_ID: 41,
-    REINVEST_BOUNTY_BPS: '300',
-    WORK_FACTOR: '7000',
-    KILL_FACTOR: '8333',
-    MAX_PRICE_DIFF: '11000',
-    EXACT_ETA: '1623754800'
+    EXACT_ETA: '1624854600'
   }]
 
 
