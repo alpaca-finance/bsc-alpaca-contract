@@ -127,10 +127,7 @@ contract PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading is
       }
     }
     // 5. Return remaining LP token back to the original caller
-    require(
-      lpToken.transfer(msg.sender, lpToken.balanceOf(address(this))),
-      "PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading::execute:: unable to transfer lp to caller"
-    );
+    address(lpToken).safeTransfer(msg.sender, lpToken.balanceOf(address(this)));
     // 6. Return base token back to the original caller.
     baseToken.safeTransfer(msg.sender, baseToken.myBalance());
     // 7. Return remaining farming tokens to user.

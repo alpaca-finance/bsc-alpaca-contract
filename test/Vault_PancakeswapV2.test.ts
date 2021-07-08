@@ -2214,7 +2214,7 @@ describe('Vault - PancakeswapV2', () => {
         const lpUnderBobPosition = await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(1));
         const [workerLPBefore,] = await masterChef.userInfo(poolId, pancakeswapV2Worker.address);
   
-        // Bob closes position with maxReturn 5,000,000,000 and liquidate half of his position
+        // Bob closes position with maxReturn 5 BTOKEN and liquidate half of his position
         // Expect that Bob will close position successfully and his debt must be reduce as liquidated amount pay debt
         await vaultAsBob.work(
           1,
@@ -2240,7 +2240,7 @@ describe('Vault - PancakeswapV2', () => {
         // The following criteria must be stratified:
         // - Bob should get 10 - 5 = 5 BTOKEN back.
         // - Bob should get 0.029120372484366723 FTOKEN back.
-        // - Bob's position debt must be 0
+        // - Bob's position debt must be 5 BTOKEN
         expect(bobBTokenBefore.add(ethers.utils.parseEther('5'))).to.be.bignumber.eq(bobBTokenAfter)
         expect(
           bobFTokenBefore.add(ethers.utils.parseEther('0.029120372484366723')),
