@@ -6,6 +6,8 @@ import {
   PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly__factory,
   PancakeswapV2RestrictedSingleAssetStrategyLiquidate,
   PancakeswapV2RestrictedSingleAssetStrategyLiquidate__factory,
+  PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate,
+  PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate__factory,
   PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading,
   PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading__factory,
   WNativeRelayer__factory
@@ -75,6 +77,28 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await singleStrategyRestrictedLiquidateV2.setWorkersOk(WHITELIST_WOKERS, true)
     console.log("✅ Done")
   }
+
+  /**
+   * Restricted Single Asset StrategyPartialCloseLiquidate V2
+   */
+  console.log(">> Deploying an upgradable Restricted Single Asset StrategyPartialCloseLiquidate V2 contract");
+  const PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate = (await ethers.getContractFactory(
+    "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate",
+    (await ethers.getSigners())[0],
+  )) as PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate__factory;
+
+  const singleStrategyRestrictedPartialCloseLiquidateV2 = await upgrades.deployProxy(PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate, [ROUTER_V2]) as PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate;
+  
+  await singleStrategyRestrictedPartialCloseLiquidateV2.deployed();
+  console.log(`>> Deployed at ${singleStrategyRestrictedPartialCloseLiquidateV2.address}`);
+  console.log("✅ Done")
+  
+  if(WHITELIST_WOKERS.length > 0) {
+    console.log(">> Whitelisting workers for PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate")
+    await singleStrategyRestrictedPartialCloseLiquidateV2.setWorkersOk(WHITELIST_WOKERS, true)
+    console.log("✅ Done")
+  }
+
 
   /**
    * Restricted Single Asset StrategyWithdrawMinimizeTrading V2

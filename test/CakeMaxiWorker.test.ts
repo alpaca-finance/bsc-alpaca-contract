@@ -45,11 +45,14 @@ import {
   FairLaunch,
   FairLaunch__factory,
   AlpacaToken__factory,
-  AlpacaToken
+  AlpacaToken,
+  PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate,
+  PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate__factory
 } from "../typechain";
 import * as TimeHelpers from "./helpers/time"
 import * as Assert from "./helpers/assert"
 import { MAX_INTEGER } from "ethereumjs-util";
+import { formatEther } from "ethers/lib/utils";
 
 chai.use(solidity);
 const { expect } = chai;
@@ -91,7 +94,8 @@ describe('CakeMaxiWorker', () => {
   let stratAdd: PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly
   let stratLiq: PancakeswapV2RestrictedSingleAssetStrategyLiquidate
   let stratAddWithFarm: PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm
-  let stratMinimize: PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading;
+  let stratMinimize: PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading
+  let stratPartialCloseLiq : PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate
   let stratEvil: PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading
 
   // Accounts
@@ -235,6 +239,14 @@ describe('CakeMaxiWorker', () => {
     )) as PancakeswapV2RestrictedSingleAssetStrategyLiquidate__factory;
     stratLiq = await upgrades.deployProxy(PancakeswapV2RestrictedSingleAssetStrategyLiquidate, [routerV2.address]) as PancakeswapV2RestrictedSingleAssetStrategyLiquidate;
     await stratLiq.deployed();
+
+    const PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate = (await ethers.getContractFactory(
+      "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate",
+      deployer
+    )) as PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate__factory;
+    stratPartialCloseLiq = await upgrades.deployProxy(PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate, [routerV2.address]) as PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate;
+    await stratPartialCloseLiq.deployed();
+
     const PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading = (await ethers.getContractFactory(
       "PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading",
       deployer
@@ -362,20 +374,22 @@ describe('CakeMaxiWorker', () => {
       [wbnb.address, cake.address],
       [cake.address, wbnb.address]
     ]) as CakeMaxiWorker
-    await cakeMaxiWorkerNonNative.deployed();
+    await integratedCakeMaxiWorker.deployed();
+    
 
     // Setting up dependencies for workers & strategies
     await simpleVaultConfig.setWorker(integratedCakeMaxiWorker.address, true, true, WORK_FACTOR, KILL_FACTOR);
-    await wNativeRelayer.setCallerOk([stratMinimize.address, stratLiq.address, stratAddWithFarm.address, stratAdd.address, integratedVault.address], true)
-    await cakeMaxiWorkerNative.setStrategyOk([stratAdd.address, stratAddWithFarm.address, stratLiq.address, stratMinimize.address], true);
+    await wNativeRelayer.setCallerOk([stratMinimize.address, stratLiq.address, stratAddWithFarm.address, stratAdd.address, integratedVault.address, stratPartialCloseLiq.address], true)
+    await cakeMaxiWorkerNative.setStrategyOk([stratAdd.address, stratAddWithFarm.address, stratLiq.address, stratMinimize.address, stratPartialCloseLiq.address], true);
     await cakeMaxiWorkerNative.setReinvestorOk([await eve.getAddress()], true);
-    await cakeMaxiWorkerNonNative.setStrategyOk([stratAdd.address, stratAddWithFarm.address, stratLiq.address, stratMinimize.address], true);
+    await cakeMaxiWorkerNonNative.setStrategyOk([stratAdd.address, stratAddWithFarm.address, stratLiq.address, stratMinimize.address, stratPartialCloseLiq.address], true);
     await cakeMaxiWorkerNonNative.setReinvestorOk([await eve.getAddress()], true);
-    await integratedCakeMaxiWorker.setStrategyOk([stratAdd.address, stratAddWithFarm.address, stratLiq.address, stratMinimize.address], true)
+    await integratedCakeMaxiWorker.setStrategyOk([stratAdd.address, stratAddWithFarm.address, stratLiq.address, stratMinimize.address, stratPartialCloseLiq.address], true)
     await integratedCakeMaxiWorker.setReinvestorOk([await eve.getAddress()], true)
     await stratAdd.setWorkersOk([cakeMaxiWorkerNative.address, cakeMaxiWorkerNonNative.address, integratedCakeMaxiWorker.address], true)
     await stratAddWithFarm.setWorkersOk([cakeMaxiWorkerNative.address, cakeMaxiWorkerNonNative.address, integratedCakeMaxiWorker.address], true)   
     await stratLiq.setWorkersOk([cakeMaxiWorkerNative.address, cakeMaxiWorkerNonNative.address, integratedCakeMaxiWorker.address], true)
+    await stratPartialCloseLiq.setWorkersOk([cakeMaxiWorkerNative.address, cakeMaxiWorkerNonNative.address, integratedCakeMaxiWorker.address], true)
     await stratMinimize.setWorkersOk([cakeMaxiWorkerNative.address, cakeMaxiWorkerNonNative.address, integratedCakeMaxiWorker.address], true)
     await stratEvil.setWorkersOk([cakeMaxiWorkerNative.address, cakeMaxiWorkerNonNative.address, integratedCakeMaxiWorker.address], true)
     
@@ -694,7 +708,6 @@ describe('CakeMaxiWorker', () => {
             )
           )
           // alice will get a base token based on 0.00907024323709934 farming token (staked balance)
-          // alice will get a base token based on 0.00907024323709934 farming token (staked balance)
           // if  0.1  - 0.00907024323709934 FTOKEN = 1.1 BNB
           // if 0.09092975676290066 FTOKEN = 1.1 BNB
           // 0.00907024323709934 FTOKEN = (0.00907024323709934 * 0.9975) * (1.1 / (0.09092975676290066 + 0.00907024323709934 * 0.9975)) = 0.0995458165383035 BNB
@@ -841,6 +854,90 @@ describe('CakeMaxiWorker', () => {
         expect(aliceFarmingTokenAfter.sub(aliceFarmingTokenBefore)).to.eq(ethers.utils.parseEther('0.004729402718521912'))
       })
     })
+    context("When the user passes partial close strategy to partially liquidate the position", async () => {
+      context("When alice opened and partially closed her position ", async() => {
+        it("should liquidate a portion of alice's position", async() => {
+          // bob deposit some portion of his native bnb into a vault
+          await integratedVaultAsBob.deposit(ethers.utils.parseEther('1'), {
+            value: ethers.utils.parseEther('1')
+          })
+          // Alice uses AddBaseTokenOnly strategy to add 0.2 WBNB (0.1 as principal amount, 0.1 as a loan)
+          // amountOut of 0.2 will be
+          // if 1WBNB = 0.1 FToken
+          // 0.2WBNB will be (0.2 * 0.9975 * 0.1) / (1 + 0.2 * 0.9975) = 0.016631929970821175
+          await integratedVaultAsAlice.work(
+            0,
+            integratedCakeMaxiWorker.address,
+            ethers.utils.parseEther('0.1'),
+            ethers.utils.parseEther('0.1'),
+            '0',
+            ethers.utils.defaultAbiCoder.encode(
+              ['address', 'bytes'],
+              [stratAdd.address, 
+                ethers.utils.defaultAbiCoder.encode(
+                  ['uint256'],
+                  [ethers.utils.parseEther('0')]
+                )
+              ],
+            ),
+            {
+              value: ethers.utils.parseEther('0.1')
+            }
+          )
+          let userInfo = await masterChef.userInfo(0, integratedCakeMaxiWorker.address)
+          expect(userInfo[0]).to.eq(ethers.utils.parseEther('0.016631929970821175'))
+          expect(await integratedCakeMaxiWorker.shares(1)).to.eq(ethers.utils.parseEther('0.016631929970821175'))
+          expect(await integratedCakeMaxiWorker.shareToBalance(await integratedCakeMaxiWorker.shares(1))).to.eq(ethers.utils.parseEther('0.016631929970821175'))
+         
+          const aliceBaseTokenBefore = await wbnb.balanceOf(await alice.getAddress())
+          const aliceBNBBefore = await alice.getBalance()
+          const aliceFarmingTokenBefore = await cake.balanceOf(await alice.getAddress())
+          // Alice call partial close liquidate strategy through vault
+          // set gasPrice = 0 in order to assert native balance movement easier
+          // alice wanted to liquidate 0.008315964985410587 farmingTokens which is 50% of her current position
+          // alice also wanted to repay 50% of her debt which is 0.05 baseTokens
+          await integratedVaultAsAlice.work(
+            1,
+            integratedCakeMaxiWorker.address,
+            '0',
+            '0',
+            ethers.utils.parseEther('0.05'),
+            ethers.utils.defaultAbiCoder.encode(
+              ['address', 'bytes'],
+              [stratPartialCloseLiq.address, 
+                ethers.utils.defaultAbiCoder.encode(
+                  ['uint256','uint256'],
+                  [ethers.utils.parseEther('0.008315964985410587'), ethers.utils.parseEther('0')]
+                )
+              ],
+            ),
+            { gasPrice: 0 }
+          )
+        
+          const aliceBaseTokenAfter = await wbnb.balanceOf(await alice.getAddress())
+          const aliceBNBAfter = await alice.getBalance()
+          const aliceFarmingTokenAfter = await cake.balanceOf(await alice.getAddress())
+          const [aliceHealthAfter, aliceDebtToShareAfter] = await integratedVaultAsAlice.positionInfo(1)
+          userInfo = await masterChef.userInfo(0, integratedCakeMaxiWorker.address)
+          
+          // alice should have half of her farmingToken left in her position 0.016631929970821175 - 0.008315964985410587 = 0.008315964985410587 
+          // alice should have half of her debt remain in vault = 0.05
+          // worker will get a base token based on 0.008315964985410587 FTOKEN to liquidate will get 0.108595436223603774 baseToken
+          // if 0.1 - 0.016631929970821175 FTOKEN = 1.2 BNB
+          // if 0.08336807002917883 FTOKEN = 1.2 BNB
+          // 0.008315964985410587 FTOKEN will be (0.008315964985410587 * 0.9975 * 1.2 ) / (0.08336807002917883 + (0.008315964985410587 * 0.9975)) = 0.108595436223603774
+          // repaid debt 0.05 baseToken
+          // thus, alice should get a bnb amount of 0.108595436223603774 - 0.05 = 0.058595436223603774
+          expect(userInfo[0]).to.eq(ethers.utils.parseEther('0.008315964985410588'))
+          expect(await integratedCakeMaxiWorker.shares(1)).to.eq(ethers.utils.parseEther('0.008315964985410588'))
+          expect(await integratedCakeMaxiWorker.shareToBalance(await integratedCakeMaxiWorker.shares(1))).to.eq(ethers.utils.parseEther('0.008315964985410588'))
+          Assert.assertAlmostEqual(aliceDebtToShareAfter.toString(),ethers.utils.parseEther('0.05').toString());
+          expect(aliceBNBAfter.sub(aliceBNBBefore)).to.eq(ethers.utils.parseEther('0.058595436223603774'))
+          expect(aliceFarmingTokenAfter.sub(aliceFarmingTokenBefore)).to.eq(ethers.utils.parseEther('0'))
+        })
+      })
+    })
+ 
   })
 
   describe("#reinvest()", async() => {
