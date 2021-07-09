@@ -20,7 +20,6 @@ import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakeFactory.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
 
-
 import "../../apis/pancake/IPancakeRouter02.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../../utils/SafeToken.sol";
@@ -28,8 +27,11 @@ import "../../../utils/AlpacaMath.sol";
 import "../../interfaces/IWorker02.sol";
 import "../../interfaces/IWNativeRelayer.sol";
 
-
-contract PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
+contract PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading is
+  OwnableUpgradeSafe,
+  ReentrancyGuardUpgradeSafe,
+  IStrategy
+{
   using SafeToken for address;
   using SafeMath for uint256;
 
@@ -39,11 +41,14 @@ contract PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading is Ow
   mapping(address => bool) public okWorkers;
   IWNativeRelayer public wNativeRelayer;
 
-  // @notice require that only allowed workers are able to do the rest of the method call
+  /// @notice require that only allowed workers are able to do the rest of the method call
   modifier onlyWhitelistedWorkers() {
-    require(okWorkers[msg.sender], "PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading::onlyWhitelistedWorkers:: bad worker");
+    require(
+      okWorkers[msg.sender],
+      "PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading::onlyWhitelistedWorkers:: bad worker"
+    );
     _;
-  } 
+  }
 
   /// @dev Create a new add Token only strategy instance.
   /// @param _router The Pancakeswap router smart contract.
@@ -58,16 +63,13 @@ contract PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading is Ow
 
   /// @dev Execute worker strategy. take farmingToken, return farmingToken + basetoken that is enough to repay the debt
   /// @param data Extra calldata information passed along to this strategy.
-  function execute(address user, uint256 debt, bytes calldata data)
-    external
-    override
-    onlyWhitelistedWorkers
-    nonReentrant
-  {
+  function execute(
+    address user,
+    uint256 debt,
+    bytes calldata data
+  ) external override onlyWhitelistedWorkers nonReentrant {
     // 1. minFarmingTokenAmount for validating a farmingToken amount after leaving the stake.
-    (
-      uint256 minFarmingTokenAmount
-    ) = abi.decode(data, (uint256));
+    uint256 minFarmingTokenAmount = abi.decode(data, (uint256));
     IWorker02 worker = IWorker02(msg.sender);
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
@@ -81,7 +83,10 @@ contract PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading is Ow
     baseToken.safeTransfer(msg.sender, baseToken.myBalance());
     // 5. Return the remaining farmingTokens back to the user.
     uint256 remainingFarmingToken = farmingToken.myBalance();
-    require(remainingFarmingToken >= minFarmingTokenAmount, "PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading::execute:: insufficient farmingToken amount received");
+    require(
+      remainingFarmingToken >= minFarmingTokenAmount,
+      "PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading::execute:: insufficient farmingToken amount received"
+    );
     if (remainingFarmingToken > 0) {
       if (farmingToken == address(wNative)) {
         SafeToken.safeTransfer(farmingToken, address(wNativeRelayer), remainingFarmingToken);

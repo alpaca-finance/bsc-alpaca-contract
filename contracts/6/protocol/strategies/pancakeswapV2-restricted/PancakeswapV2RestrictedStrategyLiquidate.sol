@@ -62,10 +62,7 @@ contract PancakeswapV2RestrictedStrategyLiquidate is OwnableUpgradeSafe, Reentra
     address farmingToken = worker.farmingToken();
     IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
     // 2. Approve router to do their stuffs
-    require(
-      lpToken.approve(address(router), uint256(-1)),
-      "PancakeswapV2RestrictedStrategyLiquidate::execute:: unable to approve LP token"
-    );
+    address(lpToken).safeApprove(address(router), uint256(-1));
     farmingToken.safeApprove(address(router), uint256(-1));
     // 3. Remove all liquidity back to BaseToken and farming tokens.
     router.removeLiquidity(baseToken, farmingToken, lpToken.balanceOf(address(this)), 0, 0, address(this), now);
@@ -82,10 +79,7 @@ contract PancakeswapV2RestrictedStrategyLiquidate is OwnableUpgradeSafe, Reentra
     );
     SafeToken.safeTransfer(baseToken, msg.sender, balance);
     // 6. Reset approve for safety reason
-    require(
-      lpToken.approve(address(router), 0),
-      "PancakeswapV2RestrictedStrategyLiquidate::execute:: unable to reset LP token approval"
-    );
+    address(lpToken).safeApprove(address(router), 0);
     farmingToken.safeApprove(address(router), 0);
   }
 
