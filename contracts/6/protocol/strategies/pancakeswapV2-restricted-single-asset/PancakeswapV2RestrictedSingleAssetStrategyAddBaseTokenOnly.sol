@@ -26,7 +26,11 @@ import "../../../utils/SafeToken.sol";
 import "../../../utils/AlpacaMath.sol";
 import "../../interfaces/IWorker02.sol";
 
-contract PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
+contract PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly is
+  OwnableUpgradeSafe,
+  ReentrancyGuardUpgradeSafe,
+  IStrategy
+{
   using SafeToken for address;
   using SafeMath for uint256;
 
@@ -35,11 +39,14 @@ contract PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly is OwnableUp
   address public wNative;
   mapping(address => bool) public okWorkers;
 
-  // @notice require that only allowed workers are able to do the rest of the method call
+  /// @notice require that only allowed workers are able to do the rest of the method call
   modifier onlyWhitelistedWorkers() {
-    require(okWorkers[msg.sender], "PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly::onlyWhitelistedWorkers:: bad worker");
+    require(
+      okWorkers[msg.sender],
+      "PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly::onlyWhitelistedWorkers:: bad worker"
+    );
     _;
-  } 
+  }
 
   /// @dev Create a new add Token only strategy instance.
   /// @param _router The Pancakeswap router smart contract.
@@ -53,16 +60,13 @@ contract PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly is OwnableUp
 
   /// @dev Execute worker strategy. Take BaseToken. Return Farming tokens.
   /// @param data Extra calldata information passed along to this strategy.
-  function execute(address /* user */, uint256 /* debt */, bytes calldata data)
-    external
-    override
-    onlyWhitelistedWorkers
-    nonReentrant
-  {
+  function execute(
+    address, /* user */
+    uint256, /* debt */
+    bytes calldata data
+  ) external override onlyWhitelistedWorkers nonReentrant {
     // 1. minFarmingTokenAmount for validating a farmingToken amount from a conversion of a baseToken.
-    (
-      uint256 minFarmingTokenAmount
-    ) = abi.decode(data, (uint256));
+    uint256 minFarmingTokenAmount = abi.decode(data, (uint256));
     IWorker02 worker = IWorker02(msg.sender);
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
@@ -72,7 +76,10 @@ contract PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly is OwnableUp
     // 3. Convert that all baseTokens into farmingTokens.
     router.swapExactTokensForTokens(balance, 0, worker.getPath(), address(this), now);
     // 4. Transfer all farmingTokens (as a result of a conversion) back to the calling worker
-    require(farmingToken.myBalance() >= minFarmingTokenAmount, "PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly::execute:: insufficient farmingToken amount received");
+    require(
+      farmingToken.myBalance() >= minFarmingTokenAmount,
+      "PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly::execute:: insufficient farmingToken amount received"
+    );
     farmingToken.safeTransfer(msg.sender, farmingToken.myBalance());
     // 5. Reset approval for safety reason
     baseToken.safeApprove(address(router), 0);

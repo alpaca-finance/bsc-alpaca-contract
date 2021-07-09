@@ -10,6 +10,8 @@ import {
   PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate__factory,
   PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading,
   PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading__factory,
+  PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading,
+  PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading__factory,
   WNativeRelayer__factory
  } from '../typechain';
 
@@ -125,6 +127,32 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const wNativeRelayer = WNativeRelayer__factory.connect(WNATIVE_RELAYER, (await ethers.getSigners())[0]);
   await wNativeRelayer.setCallerOk([singleAssetStrategyRestrictedWithdrawMinimizeTradingV2.address], true);
   console.log("✅ Done")
+
+  /**
+   * Restricted Single Asset StrategyPartialCloseWithdrawMinimizeTrading V2
+   */
+   console.log(">> Deploying an upgradable Restricted Single Asset StrategyPartialCloseWithdrawMinimizeTrading V2 contract");
+   const PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading = (await ethers.getContractFactory(
+     "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading",
+     (await ethers.getSigners())[0],
+   )) as PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading__factory;
+ 
+   const singleAssetStrategyRestrictedPartialCloseWithdrawMinimizeTradingV2 = await upgrades.deployProxy(
+     PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading, [ROUTER_V2, WNATIVE_RELAYER]) as PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading;
+   await singleAssetStrategyRestrictedPartialCloseWithdrawMinimizeTradingV2.deployed()
+ 
+   console.log(`>> Deployed at ${singleAssetStrategyRestrictedPartialCloseWithdrawMinimizeTradingV2.address}`);
+   
+   if(WHITELIST_WOKERS.length > 0) {
+     console.log(">> Whitelisting workers for PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading")
+     await singleAssetStrategyRestrictedPartialCloseWithdrawMinimizeTradingV2.setWorkersOk(WHITELIST_WOKERS, true)
+     console.log("✅ Done")
+   }
+ 
+   console.log(">> Whitelist RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading V2 on WNativeRelayer");
+   const wNativeRelayerPartial = WNativeRelayer__factory.connect(WNATIVE_RELAYER, (await ethers.getSigners())[0]);
+   await wNativeRelayerPartial.setCallerOk([singleAssetStrategyRestrictedPartialCloseWithdrawMinimizeTradingV2.address], true);
+   console.log("✅ Done")
 };
 
 export default func;
