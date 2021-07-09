@@ -14,11 +14,7 @@ interface IWorker {
 
 type IWorkers = Array<IWorker>
 
-interface IWorkerInput {
-  WORKER_NAME: string,
-}
-
-type IWorkerInputs = Array<IWorkerInput>
+type IWorkerInputs = Array<string>
 
 interface IFactory {
   PANCAKESWAP_V2_WORKER_02: PancakeswapV2Worker02__factory
@@ -91,12 +87,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     // 2. if hit return
     // 3. other wise throw error
     const hit = allWorkers.find((worker) => {
-      return worker.WORKER_NAME === workerInput.WORKER_NAME
+      return worker.WORKER_NAME === workerInput
     })
 
     if(!!hit) return hit
 
-    throw new Error(`could not find ${workerInput.WORKER_NAME}`)
+    throw new Error(`could not find ${workerInput}`)
   })
   const [pancakeSwapV2Worker02Factory, waultSwapWorker02Factory, cakeMaxiWorker02Factory] = await Promise.all([
     (await ethers.getContractFactory('PancakeswapV2Worker02')) as PancakeswapV2Worker02__factory,
