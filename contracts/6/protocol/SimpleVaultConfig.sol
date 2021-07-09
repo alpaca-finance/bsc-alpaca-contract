@@ -40,7 +40,7 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   /// address for wrapped native eg WBNB, WETH
   address public override getWrappedNativeAddr;
   /// address for wNative relater
-  address public override getWNativeRelayerAddr;
+  address public override getWNativeRelayer;
   /// address of fairLaunch contract
   address public override getFairLaunchAddr;
   /// list of whitelisted callers
@@ -56,7 +56,7 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     uint256 _reservePoolBps,
     uint256 _killBps,
     address _getWrappedNativeAddr,
-    address _getWNativeRelayerAddr,
+    address _getWNativeRelayer,
     address _getFairLaunchAddr,
     uint256 _getKillTreasuryBps,
     address _treasury
@@ -69,7 +69,7 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
       _reservePoolBps,
       _killBps,
       _getWrappedNativeAddr,
-      _getWNativeRelayerAddr,
+      _getWNativeRelayer,
       _getFairLaunchAddr,
       _getKillTreasuryBps,
       _treasury
@@ -87,7 +87,7 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     uint256 _reservePoolBps,
     uint256 _killBps,
     address _getWrappedNativeAddr,
-    address _getWNativeRelayerAddr,
+    address _getWNativeRelayer,
     address _getFairLaunchAddr,
     uint256 _getKillTreasuryBps,
     address _treasury
@@ -97,7 +97,7 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     getReservePoolBps = _reservePoolBps;
     getKillBps = _killBps;
     getWrappedNativeAddr = _getWrappedNativeAddr;
-    getWNativeRelayerAddr = _getWNativeRelayerAddr;
+    getWNativeRelayer = _getWNativeRelayer;
     getFairLaunchAddr = _getFairLaunchAddr;
     getKillTreasuryBps = _getKillTreasuryBps;
     treasury = _treasury;

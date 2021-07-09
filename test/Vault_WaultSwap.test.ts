@@ -59,7 +59,7 @@ describe('Vault - WaultSwap', () => {
   const MIN_DEBT_SIZE = ethers.utils.parseEther('1'); // 1 BTOKEN min debt size
   const WORK_FACTOR = '7000';
   const KILL_FACTOR = '8000';
-  const BUYBACK_BPS = '100';
+  const KILL_TREASURY_BPS = '100';
 
   /// WaultSwap-related instance(s)
   let factory: WaultSwapFactory;
@@ -207,7 +207,7 @@ describe('Vault - WaultSwap', () => {
     )) as SimpleVaultConfig__factory;
     simpleVaultConfig = await upgrades.deployProxy(SimpleVaultConfig, [
       MIN_DEBT_SIZE, INTEREST_RATE, RESERVE_POOL_BPS, KILL_PRIZE_BPS,
-      wbnb.address, wNativeRelayer.address, fairLaunch.address,BUYBACK_BPS,await eve.getAddress()
+      wbnb.address, wNativeRelayer.address, fairLaunch.address,KILL_TREASURY_BPS,await deployer.getAddress()
     ]) as SimpleVaultConfig;
     await simpleVaultConfig.deployed();
 
@@ -1064,8 +1064,8 @@ describe('Vault - WaultSwap', () => {
         wbnb.address,
         wNativeRelayer.address,
         fairLaunch.address,
-        BUYBACK_BPS,
-        await eve.getAddress(),
+        KILL_TREASURY_BPS,
+        await deployer.getAddress(),
       );
 
       // Set Reinvest bounty to 10% of the reward
@@ -1295,8 +1295,8 @@ describe('Vault - WaultSwap', () => {
         wbnb.address,
         wNativeRelayer.address,
         fairLaunch.address,
-        BUYBACK_BPS,
-        await eve.getAddress(),
+        KILL_TREASURY_BPS,
+        await deployer.getAddress(),
       );
 
       // Set Reinvest bounty to 10% of the reward
@@ -1495,8 +1495,8 @@ describe('Vault - WaultSwap', () => {
         wbnb.address,
         wNativeRelayer.address,
         fairLaunch.address,
-        BUYBACK_BPS,
-        await eve.getAddress(),
+        KILL_TREASURY_BPS,
+        await deployer.getAddress(),
       );
 
       // Set Reinvest bounty to 10% of the reward
@@ -1696,8 +1696,8 @@ describe('Vault - WaultSwap', () => {
         wbnb.address,
         wNativeRelayer.address,
         fairLaunch.address,
-        BUYBACK_BPS,
-        await eve.getAddress(),
+        KILL_TREASURY_BPS,
+        await deployer.getAddress(),
       );
 
       // Set Reinvest bounty to 10% of the reward
@@ -1870,12 +1870,12 @@ describe('Vault - WaultSwap', () => {
         ethers.utils.parseEther('1'), // 1 BTOKEN min debt size,
         '0', // 0% per year
         '1000', // 10% reserve pool
-        '1000', // 10% Kill prize
+        '300', // 10% Kill prize
         wbnb.address,
         wNativeRelayer.address,
         fairLaunch.address,
-        BUYBACK_BPS,
-        await eve.getAddress(),
+        KILL_TREASURY_BPS,
+        await deployer.getAddress(),
       );
 
       // Bob deposits 10 BTOKEN
@@ -1958,8 +1958,8 @@ describe('Vault - WaultSwap', () => {
         wbnb.address,
         wNativeRelayer.address,
         fairLaunch.address,
-        BUYBACK_BPS,
-        await eve.getAddress(),
+        KILL_TREASURY_BPS,
+        await deployer.getAddress(),
       );
 
       // Bob deposits 10 BTOKEN
@@ -2015,8 +2015,8 @@ describe('Vault - WaultSwap', () => {
         wbnb.address,
         wNativeRelayer.address,
         fairLaunch.address,
-        BUYBACK_BPS,
-        await eve.getAddress(),
+        KILL_TREASURY_BPS,
+        await deployer.getAddress(),
       );
 
       // Bob deposits 10 BTOKEN
@@ -2070,6 +2070,8 @@ describe('Vault - WaultSwap', () => {
         wbnb.address,
         wNativeRelayer.address,
         fairLaunch.address,
+        KILL_TREASURY_BPS,
+        await deployer.getAddress(),
       );
 
       // Bob deposits 10 BTOKEN
@@ -2154,6 +2156,8 @@ describe('Vault - WaultSwap', () => {
         wbnb.address,
         wNativeRelayer.address,
         fairLaunch.address,
+        KILL_TREASURY_BPS,
+        await deployer.getAddress(),
       );
 
       // Bob deposits 10 BTOKEN
@@ -2237,6 +2241,8 @@ describe('Vault - WaultSwap', () => {
         wbnb.address,
         wNativeRelayer.address,
         fairLaunch.address,
+        KILL_TREASURY_BPS,
+        await deployer.getAddress(),
       );
 
       // Bob deposits 10 BTOKEN
@@ -2292,6 +2298,8 @@ describe('Vault - WaultSwap', () => {
         wbnb.address,
         wNativeRelayer.address,
         fairLaunch.address,
+        KILL_TREASURY_BPS,
+        await deployer.getAddress(),
       );
 
       // Bob deposits 10 BTOKEN
@@ -2343,6 +2351,8 @@ describe('Vault - WaultSwap', () => {
         wbnb.address,
         wNativeRelayer.address,
         fairLaunch.address,
+        KILL_TREASURY_BPS,
+        await deployer.getAddress(),
       );
 
       // Bob deposits 10 BTOKEN

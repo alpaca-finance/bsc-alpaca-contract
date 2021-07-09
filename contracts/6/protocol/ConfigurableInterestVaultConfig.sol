@@ -52,7 +52,7 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   /// address for wrapped native eg WBNB, WETH
   address public override getWrappedNativeAddr;
   /// address for wNtive Relayer
-  address public override getWNativeRelayerAddr;
+  address public override getWNativeRelayer;
   /// address of fairLaunch contract
   address public override getFairLaunchAddr;
   /// maximum killBps
@@ -70,7 +70,7 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     uint256 _killBps,
     InterestModel _interestModel,
     address _getWrappedNativeAddr,
-    address _getWNativeRelayerAddr,
+    address _getWNativeRelayer,
     address _getFairLaunchAddr,
     uint256 _getKillTreasuryBps,
     address _treasury
@@ -84,7 +84,7 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
       _killBps,
       _interestModel,
       _getWrappedNativeAddr,
-      _getWNativeRelayerAddr,
+      _getWNativeRelayer,
       _getFairLaunchAddr,
       _getKillTreasuryBps,
       _treasury
@@ -105,7 +105,7 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     uint256 _killBps,
     InterestModel _interestModel,
     address _getWrappedNativeAddr,
-    address _getWNativeRelayerAddr,
+    address _getWNativeRelayer,
     address _getFairLaunchAddr,
     uint256 _getKillTreasuryBps,
     address _treasury
@@ -120,7 +120,7 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     getKillBps = _killBps;
     interestModel = _interestModel;
     getWrappedNativeAddr = _getWrappedNativeAddr;
-    getWNativeRelayerAddr = _getWNativeRelayerAddr;
+    getWNativeRelayer = _getWNativeRelayer;
     getFairLaunchAddr = _getFairLaunchAddr;
     getKillTreasuryBps = _getKillTreasuryBps;
     treasury = _treasury;
@@ -132,7 +132,7 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
       getKillBps,
       address(interestModel),
       getWrappedNativeAddr,
-      getWNativeRelayerAddr,
+      getWNativeRelayer,
       getFairLaunchAddr,
       getKillTreasuryBps,
       treasury

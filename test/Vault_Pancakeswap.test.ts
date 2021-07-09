@@ -59,7 +59,7 @@ describe('Vault - Pancakeswap', () => {
   const MIN_DEBT_SIZE = ethers.utils.parseEther('1'); // 1 BTOKEN min debt size
   const WORK_FACTOR = '7000';
   const KILL_FACTOR = '8000';
-  const BUYBACK_BPS = '100';
+  const KILL_TREASURY_BPS = '100';
 
 
   /// Pancakeswap-related instance(s)
@@ -239,7 +239,7 @@ describe('Vault - Pancakeswap', () => {
     )) as SimpleVaultConfig__factory;
     simpleVaultConfig = await upgrades.deployProxy(SimpleVaultConfig, [
       MIN_DEBT_SIZE, INTEREST_RATE, RESERVE_POOL_BPS, KILL_PRIZE_BPS,
-      wbnb.address, wNativeRelayer.address, fairLaunch.address,BUYBACK_BPS, await eve.getAddress()
+      wbnb.address, wNativeRelayer.address, fairLaunch.address,KILL_TREASURY_BPS, await deployer.getAddress()
     ]) as SimpleVaultConfig;
     await simpleVaultConfig.deployed();
 
@@ -905,13 +905,13 @@ describe('Vault - Pancakeswap', () => {
   
       // Alice liquidates Bob position#1
       let aliceBefore = await baseToken.balanceOf(await alice.getAddress());
-      let eveBefore = await baseToken.balanceOf(await eve.getAddress());
+      let deployerBefore = await baseToken.balanceOf(await deployer.getAddress());
 
       await expect(vaultAsAlice.kill('1'))
         .to.emit(vaultAsAlice, 'Kill')
 
       let aliceAfter = await baseToken.balanceOf(await alice.getAddress());
-      let eveAfter = await baseToken.balanceOf(await eve.getAddress());
+      let deployerAfter = await baseToken.balanceOf(await deployer.getAddress());
 
       // Bank balance is increase by liquidation
       AssertHelpers.assertAlmostEqual(
@@ -925,10 +925,10 @@ describe('Vault - Pancakeswap', () => {
         aliceAfter.sub(aliceBefore).toString(),
       );
   
-      // Eve is Wallet to buyback -> 1%  -> 0.000030009979942402
+      // Deployer is Wallet to buyback -> 1%  -> 0.000030009979942402
       AssertHelpers.assertAlmostEqual(
         ethers.utils.parseEther('0.000030009979942402').toString(),
-        eveAfter.sub(eveBefore).toString(),
+        deployerAfter.sub(deployerBefore).toString(),
       );
 
       // Alice withdraws 2 BOKTEN
@@ -1035,8 +1035,8 @@ describe('Vault - Pancakeswap', () => {
         wbnb.address,
         wNativeRelayer.address,
         fairLaunch.address,
-        BUYBACK_BPS,
-        await eve.getAddress()
+        KILL_TREASURY_BPS,
+        await deployer.getAddress()
       );
   
       // Set Reinvest bounty to 10% of the reward
@@ -1330,8 +1330,8 @@ describe('Vault - Pancakeswap', () => {
         wbnb.address,
         wNativeRelayer.address,
         fairLaunch.address,
-        BUYBACK_BPS,
-        await eve.getAddress(),
+        KILL_TREASURY_BPS,
+        await deployer.getAddress(),
       );
 
       // Set Reinvest bounty to 10% of the reward
@@ -1530,8 +1530,8 @@ describe('Vault - Pancakeswap', () => {
         wbnb.address,
         wNativeRelayer.address,
         fairLaunch.address,
-        BUYBACK_BPS,
-        await eve.getAddress(),
+        KILL_TREASURY_BPS,
+        await deployer.getAddress(),
       );
   
       // Set Reinvest bounty to 10% of the reward
@@ -1731,8 +1731,8 @@ describe('Vault - Pancakeswap', () => {
         wbnb.address,
         wNativeRelayer.address,
         fairLaunch.address,
-        BUYBACK_BPS,
-        await eve.getAddress(),
+        KILL_TREASURY_BPS,
+        await deployer.getAddress(),
       );
 
       // Set Reinvest bounty to 10% of the reward
@@ -1909,8 +1909,8 @@ describe('Vault - Pancakeswap', () => {
         wbnb.address,
         wNativeRelayer.address,
         fairLaunch.address,
-        BUYBACK_BPS,
-        await eve.getAddress(),
+        KILL_TREASURY_BPS,
+        await deployer.getAddress(),
       );
 
       // Bob deposits 10 BTOKEN
@@ -1991,8 +1991,8 @@ describe('Vault - Pancakeswap', () => {
         wbnb.address,
         wNativeRelayer.address,
         fairLaunch.address,
-        BUYBACK_BPS,
-        await eve.getAddress(),
+        KILL_TREASURY_BPS,
+        await deployer.getAddress(),
       );
 
       // Bob deposits 10 BTOKEN
@@ -2048,8 +2048,8 @@ describe('Vault - Pancakeswap', () => {
         wbnb.address,
         wNativeRelayer.address,
         fairLaunch.address,
-        BUYBACK_BPS,
-        await eve.getAddress(),
+        KILL_TREASURY_BPS,
+        await deployer.getAddress(),
       );
 
       // Bob deposits 10 BTOKEN
