@@ -41,8 +41,7 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
   event AddShare(uint256 indexed id, uint256 share);
   event RemoveShare(uint256 indexed id, uint256 share);
   event Liquidate(uint256 indexed id, uint256 wad);
-  event SetTreasuryBountyBps(address indexed caller, uint256 bountyBps);
-  event SetTreasuryAccount(address indexed caller, address indexed account);
+  event SetTreasuryConfig(address indexed caller, address indexed account, uint256 bountyBps);
   event BeneficialVaultTokenBuyback(address indexed caller, IVault indexed beneficialVault, uint256 indexed buyback);
   event SetStrategyOK(address indexed caller, address indexed strategy, bool indexed isOk);
   event SetReinvestorOK(address indexed caller, address indexed reinvestor, bool indexed isOk);
@@ -201,7 +200,7 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
 
   /// @dev Re-invest whatever this worker has earned back to staked LP tokens.
   function reinvest() external override onlyEOA onlyReinvestor nonReentrant {
-    _reinvest(msg.sender, reinvestBountyBps);
+    _reinvest(msg.sender, reinvestBountyBps, 0);
     // in case of beneficial vault equals to operator vault, call buyback to transfer some buyback amount back to the vault
     // This can't be called within the _reinvest statement since _reinvest is called within the `work` as well
     _buyback();
@@ -210,7 +209,8 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
   // @notice internal method for reinvest
   function _reinvest(
     address _treasuryAccount,
-    uint256 _treasuryBountyBps
+    uint256 _treasuryBountyBps,
+    uint256 _callerBalance
   ) internal {
     require(_treasuryAccount != address(0), "WaultSwapWorker02::_reinvest:: bad treasury account");
     // 1. Return if pendingWex <= reinvestThreshold
@@ -228,15 +228,15 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
     uint256 bounty = reward.mul(_treasuryBountyBps) / 10000;
     if (bounty > 0) {
       uint256 beneficialVaultBounty = bounty.mul(beneficialVaultBountyBps) / 10000;
-      if (beneficialVaultBounty > 0) _rewardToBeneficialVault(beneficialVaultBounty);
+      if (beneficialVaultBounty > 0) _rewardToBeneficialVault(beneficialVaultBounty, _callerBalance);
       wex.safeTransfer(_treasuryAccount, bounty.sub(beneficialVaultBounty));
     }
 
     // 5. Convert all the remaining rewards to BaseToken via Native for liquidity.
-    uint256[] memory amts = router.swapExactTokensForTokens(reward.sub(bounty), 0, getReinvestPath(), address(this), now);
+    router.swapExactTokensForTokens(reward.sub(bounty), 0, getReinvestPath(), address(this), now);
 
     // 6. Use add Token strategy to convert all BaseToken without both caller balance and buyback amount to LP tokens.
-    baseToken.safeTransfer(address(addStrat), amts[amts.length - 1]);
+    baseToken.safeTransfer(address(addStrat), actualBaseTokenBalance().sub(_callerBalance));
     addStrat.execute(address(0), 0, abi.encode(0));
 
     // 7. Stake LPs for more rewards
@@ -260,14 +260,12 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
     uint256 debt,
     bytes calldata data
   ) external override onlyOperator nonReentrant {
-    // 1. If a treasury bounty or an account have a default value (0 bps or address(0)), use reinvestBountyBps and default treasury address instead
-    if (treasuryBountyBps == 0) treasuryBountyBps = reinvestBountyBps;
-    if (treasuryAccount == address(0)) treasuryAccount = address(0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51);
-    // 2. Reinvest and send portion of reward to treasury account.
-    _reinvest(treasuryAccount, treasuryBountyBps);
-    // 3. Convert this position back to LP tokens.
+    // 1. If a treasury configs are not ready. Not reinvest.
+    if (treasuryAccount != address(0) && treasuryBountyBps != 0)
+      _reinvest(treasuryAccount, treasuryBountyBps, actualBaseTokenBalance());
+    // 2. Convert this position back to LP tokens.
     _removeShare(id);
-    // 4. Perform the worker strategy; sending LP tokens + BaseToken; expecting LP tokens + BaseToken.
+    // 3. Perform the worker strategy; sending LP tokens + BaseToken; expecting LP tokens + BaseToken.
     (address strat, bytes memory ext) = abi.decode(data, (address, bytes));
     require(okStrats[strat], "WaultSwapWorker02::work:: unapproved work strategy");
     require(
@@ -276,9 +274,9 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
     );
     baseToken.safeTransfer(strat, actualBaseTokenBalance());
     IStrategy(strat).execute(user, debt, ext);
-    // 5. Add LP tokens back to the farming pool.
+    // 4. Add LP tokens back to the farming pool.
     _addShare(id);
-    // 6. Return any remaining BaseToken back to the operator.
+    // 5. Return any remaining BaseToken back to the operator.
     baseToken.safeTransfer(msg.sender, actualBaseTokenBalance());
   }
 
@@ -325,13 +323,13 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
     lpToken.transfer(address(liqStrat), lpToken.balanceOf(address(this)));
     liqStrat.execute(address(0), 0, abi.encode(0));
     // 2. Return all available BaseToken back to the operator.
-    uint256 wad = actualBaseTokenBalance();
-    baseToken.safeTransfer(msg.sender, wad);
-    emit Liquidate(id, wad);
+    uint256 liquidatedAmount = actualBaseTokenBalance();
+    baseToken.safeTransfer(msg.sender, liquidatedAmount);
+    emit Liquidate(id, liquidatedAmount);
   }
 
   /// @notice some portion of a bounty from reinvest will be sent to beneficialVault to increase the size of totalToken
-  function _rewardToBeneficialVault(uint256 _beneficialVaultBounty) internal {
+  function _rewardToBeneficialVault(uint256 _beneficialVaultBounty, uint256 _callerBalance) internal {
     /// 1. read base token from beneficialVault
     address beneficialVaultToken = beneficialVault.token();
     /// 2. swap reward token to beneficialVaultToken
@@ -342,10 +340,10 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
     /// since beneficial vault is the same as the calling vault, it will think of this reward as a `back` amount to paydebt/ sending back to a position owner
     if (beneficialVaultToken != baseToken) {
       buybackAmount = 0;
-      beneficialVaultToken.safeTransfer(address(beneficialVault), amounts[amounts.length - 1]);
+      beneficialVaultToken.safeTransfer(address(beneficialVault), beneficialVaultToken.myBalance());
       emit BeneficialVaultTokenBuyback(msg.sender, beneficialVault, amounts[amounts.length - 1]);
     } else {
-      buybackAmount = buybackAmount.add(amounts[amounts.length - 1]);
+      buybackAmount = beneficialVaultToken.myBalance().sub(_callerBalance);
     }
   }
 
@@ -397,7 +395,7 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
     }
   }
 
-    /// @dev Return the path that the worker is working on.
+  /// @dev Return the path that the worker is working on.
   function getPath() external view override returns (address[] memory) {
     address[] memory path = new address[](2);
     path[0] = baseToken;
@@ -519,24 +517,19 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
     emit SetCriticalStrategy(msg.sender, addStrat, liqStrat);
   }
 
-  /// @notice Set treasury account
-  /// @param _account treasury account
-  function setTreasuryAccount(address _account) external onlyOwner {
-    treasuryAccount = _account;
-
-    emit SetTreasuryAccount(msg.sender, _account);
-  }
-
-  /// @notice Set treasury bounty bps
-  /// @param _treasuryBountyBps treasury account
-  function setTreasuryBountyBps(uint256 _treasuryBountyBps) external onlyOwner {
+  /// @notice Set treasury configurations.
+  /// @param _treasuryAccount - The treasury address to update
+  /// @param _treasuryBountyBps - The treasury bounty to update
+  function setTreasuryConfig(address _treasuryAccount, uint256 _treasuryBountyBps) external onlyOwner {
     require(
       _treasuryBountyBps <= maxReinvestBountyBps,
-      "WaultSwapWorker02::setTreasuryBountyBps:: _treasuryBountyBps exceeded maxReinvestBountyBps"
+      "WaultSwapWorker02::setTreasuryConfig:: _treasuryBountyBps exceeded maxReinvestBountyBps"
     );
+
+    treasuryAccount = _treasuryAccount;
     treasuryBountyBps = _treasuryBountyBps;
 
-    emit SetTreasuryBountyBps(msg.sender, _treasuryBountyBps);
+    emit SetTreasuryConfig(msg.sender, treasuryAccount, treasuryBountyBps);
   }
 
   /// @notice Set beneficial vault related data including beneficialVaultBountyBps, beneficialVaultAddress, and rewardPath

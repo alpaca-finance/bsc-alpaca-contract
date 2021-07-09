@@ -141,6 +141,8 @@
     
     "mainnet": "hardhat console --no-compile --network mainnet",
     
+    "test:case": "mocha --require hardhat/register --extension ts -g",
+    "test:parallel": "mocha --require hardhat/register --recursive --parallel --extension ts --exit",
     "test:fairlaunch": "hardhat test --no-compile ./test/FairLaunch.test.ts",
     "test:fairlaunchv2": "hardhat test --no-compile ./test/FairLaunchV2.test.ts",
     "test:pancake": "hardhat test --no-compile ./test/Vault_Pancakeswap.test.ts",

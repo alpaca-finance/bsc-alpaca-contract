@@ -84,7 +84,6 @@ contract PancakeswapV2RestrictedStrategyAddBaseTokenOnly is OwnableUpgradeSafe, 
     path[0] = baseToken;
     path[1] = farmingToken;
     router.swapExactTokensForTokens(aIn, 0, path, address(this), now);
-    (r0, r1, ) = lpToken.getReserves();
     // 5. Mint more LP tokens and return all LP tokens to the sender.
     (, , uint256 moreLPAmount) =
       router.addLiquidity(

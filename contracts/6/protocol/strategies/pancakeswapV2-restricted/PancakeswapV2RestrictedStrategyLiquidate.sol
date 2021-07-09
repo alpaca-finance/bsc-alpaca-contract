@@ -68,15 +68,12 @@ contract PancakeswapV2RestrictedStrategyLiquidate is OwnableUpgradeSafe, Reentra
     );
     farmingToken.safeApprove(address(router), uint256(-1));
     // 3. Remove all liquidity back to BaseToken and farming tokens.
-    (uint256 r0, uint256 r1, ) = lpToken.getReserves();
     router.removeLiquidity(baseToken, farmingToken, lpToken.balanceOf(address(this)), 0, 0, address(this), now);
-    (r0, r1, ) = lpToken.getReserves();
     // 4. Convert farming tokens to baseToken.
     address[] memory path = new address[](2);
     path[0] = farmingToken;
     path[1] = baseToken;
     router.swapExactTokensForTokens(farmingToken.myBalance(), 0, path, address(this), now);
-    (r0, r1, ) = lpToken.getReserves();
     // 5. Return all baseToken back to the original caller.
     uint256 balance = baseToken.myBalance();
     require(
