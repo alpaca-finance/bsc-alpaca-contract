@@ -51,8 +51,8 @@ interface IVaultConfig {
   function killFactor(address worker, uint256 debt) external view returns (uint256);
 
   /// @dev Return the Buyback value
-  function getBuybackBps() external view returns (uint256);
+  function getKillTreasuryBps() external view returns (uint256);
 
   /// @dev Return The address where buyback and burn portion will be transferred to.
-  function getBuybackAddr() external view returns (address);
+  function getTreasuryAddr() external view returns (address);
 }

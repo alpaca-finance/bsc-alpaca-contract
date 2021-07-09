@@ -46,20 +46,20 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   /// list of whitelisted callers
   mapping(address => bool) public override whitelistedCallers;
   // The reward for buyback and burn after successfully killing a position.
-  uint256 public override getBuybackBps;
+  uint256 public override getKillTreasuryBps;
   // The address of buyback
-  address public override getBuybackAddr;
+  address public treasury;
 
   function initialize(
     uint256 _minDebtSize,
     uint256 _interestRate,
     uint256 _reservePoolBps,
     uint256 _killBps,
-    address _wrappedNative,
-    address _wNativeRelayer,
-    address _fairLaunch,
-    uint256 _buybackBps,
-    address _buyback
+    address _getWrappedNativeAddr,
+    address _getWNativeRelayerAddr,
+    address _getFairLaunchAddr,
+    uint256 _getKillTreasuryBps,
+    address _treasury
   ) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
 
@@ -68,11 +68,11 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
       _interestRate,
       _reservePoolBps,
       _killBps,
-      _wrappedNative,
-      _wNativeRelayer,
-      _fairLaunch,
-      _buybackBps,
-      _buyback
+      _getWrappedNativeAddr,
+      _getWNativeRelayerAddr,
+      _getFairLaunchAddr,
+      _getKillTreasuryBps,
+      _treasury
     );
   }
 
@@ -86,21 +86,21 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     uint256 _interestRate,
     uint256 _reservePoolBps,
     uint256 _killBps,
-    address _wrappedNative,
-    address _wNativeRelayer,
-    address _fairLaunch,
-    uint256 _buybackBps,
-    address _buyback
+    address _getWrappedNativeAddr,
+    address _getWNativeRelayerAddr,
+    address _getFairLaunchAddr,
+    uint256 _getKillTreasuryBps,
+    address _treasury
   ) public onlyOwner {
     minDebtSize = _minDebtSize;
     interestRate = _interestRate;
     getReservePoolBps = _reservePoolBps;
     getKillBps = _killBps;
-    getWrappedNativeAddr = _wrappedNative;
-    getWNativeRelayerAddr = _wNativeRelayer;
-    getFairLaunchAddr = _fairLaunch;
-    getBuybackBps = _buybackBps;
-    getBuybackAddr = _buyback;
+    getWrappedNativeAddr = _getWrappedNativeAddr;
+    getWNativeRelayerAddr = _getWNativeRelayerAddr;
+    getFairLaunchAddr = _getFairLaunchAddr;
+    getKillTreasuryBps = _getKillTreasuryBps;
+    treasury = _treasury;
   }
 
   /// @dev Set the configuration for the given worker. Must only be called by the owner.
@@ -166,5 +166,10 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   ) external view override returns (uint256) {
     require(workers[worker].isWorker, "SimpleVaultConfig::killFactor:: !worker");
     return workers[worker].killFactor;
+  }
+
+  /// @dev Return the treasuryAddr
+  function getTreasuryAddr() external view override returns (address) {
+    return treasury == address(0) ? 0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51 : treasury;
   }
 }

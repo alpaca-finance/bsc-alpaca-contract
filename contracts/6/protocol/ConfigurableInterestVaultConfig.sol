@@ -33,8 +33,8 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     address wrappedNative,
     address wNativeRelayer,
     address fairLaunch,
-    uint256 buybackBps,
-    address buyback
+    uint256 killTreasuryBps,
+    address treasury
   );
   event SetWorkers(address indexed caller, address worker, address workerConfig);
   event SetMaxKillBps(address indexed caller, uint256 maxKillBps);
@@ -60,9 +60,9 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   /// list of whitelisted callers
   mapping(address => bool) public override whitelistedCallers;
   // The portion of reward for buyback and burn after successfully killing a position.
-  uint256 public override getBuybackBps;
+  uint256 public override getKillTreasuryBps;
   // The address where buyback and burn portion will be transferred to.
-  address public override getBuybackAddr;
+  address public treasury;
 
   function initialize(
     uint256 _minDebtSize,
@@ -70,10 +70,10 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     uint256 _killBps,
     InterestModel _interestModel,
     address _getWrappedNativeAddr,
-    address _getWNativeRelayer,
+    address _getWNativeRelayerAddr,
     address _getFairLaunchAddr,
-    uint256 _buybackBps,
-    address _getbuybackAddr
+    uint256 _getKillTreasuryBps,
+    address _treasury
   ) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
 
@@ -84,10 +84,10 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
       _killBps,
       _interestModel,
       _getWrappedNativeAddr,
-      _getWNativeRelayer,
+      _getWNativeRelayerAddr,
       _getFairLaunchAddr,
-      _buybackBps,
-      _getbuybackAddr
+      _getKillTreasuryBps,
+      _treasury
     );
   }
 
@@ -96,30 +96,34 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   /// @param _reservePoolBps The new interests allocated to the reserve pool value.
   /// @param _killBps The new reward for killing a position value.
   /// @param _interestModel The new interest rate model contract.
-  /// @param _buybackBps The portion of reward for buyback and burn after successfully killing a position.
-  /// @param _getbuybackAddr The address where buyback and burn portion will be transferred to.
+  /// @param _getKillTreasuryBps The portion of reward for buyback and burn after successfully killing a position.
+  /// @param _treasury The address where buyback and burn portion will be transferred to.
+
   function setParams(
     uint256 _minDebtSize,
     uint256 _reservePoolBps,
     uint256 _killBps,
     InterestModel _interestModel,
     address _getWrappedNativeAddr,
-    address _getWNativeRelayer,
+    address _getWNativeRelayerAddr,
     address _getFairLaunchAddr,
-    uint256 _buybackBps,
-    address _getbuybackAddr
+    uint256 _getKillTreasuryBps,
+    address _treasury
   ) public onlyOwner {
-    require(_killBps <= maxKillBps, "ConfigurableInterestVaultConfig::setParams:: kill bps exceeded max kill bps");
+    require(
+      _killBps + _getKillTreasuryBps <= maxKillBps,
+      "ConfigurableInterestVaultConfig::setParams:: kill bps exceeded max kill bps"
+    );
 
     minDebtSize = _minDebtSize;
     getReservePoolBps = _reservePoolBps;
     getKillBps = _killBps;
     interestModel = _interestModel;
     getWrappedNativeAddr = _getWrappedNativeAddr;
-    getWNativeRelayerAddr = _getWNativeRelayer;
+    getWNativeRelayerAddr = _getWNativeRelayerAddr;
     getFairLaunchAddr = _getFairLaunchAddr;
-    getBuybackBps = _buybackBps;
-    getBuybackAddr = _getbuybackAddr;
+    getKillTreasuryBps = _getKillTreasuryBps;
+    treasury = _treasury;
 
     emit SetParams(
       _msgSender(),
@@ -130,8 +134,8 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
       getWrappedNativeAddr,
       getWNativeRelayerAddr,
       getFairLaunchAddr,
-      getBuybackBps,
-      getBuybackAddr
+      getKillTreasuryBps,
+      treasury
     );
   }
 
@@ -182,5 +186,10 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   /// @dev Return the kill factor for the worker + debt, using 1e4 as denom. Revert on non-worker.
   function killFactor(address worker, uint256 debt) external view override returns (uint256) {
     return workers[worker].killFactor(worker, debt);
+  }
+
+  /// @dev Return the treasuryAddr
+  function getTreasuryAddr() external view override returns (address) {
+    return treasury == address(0) ? 0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51 : treasury;
   }
 }
