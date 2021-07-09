@@ -870,7 +870,8 @@ describe('CakeMaxiWorker', () => {
         // Alice uses AddBaseTokenOnly strategy to add 0.1 WBNB
         // amountOut of 0.1 will be
         // if 1WBNB = 0.1 FToken
-        // 0.1WBNB will be (0.1 * 0.9975 * 0.1) / ( 1 + 0.1 * 0.9975) = 0.009070243237099340
+        // 0.1WBNB will be (0.1 * 0.9975 * 0.1) / ( 1 + 0.1 * 0.9975) = 0.009070243237099340 FToken
+        
         await wbnbTokenAsAlice.transfer(cakeMaxiWorkerNative.address, ethers.utils.parseEther('0.1'));
         const aliceBaseTokenBefore = await wbnb.balanceOf(await alice.getAddress())
         const aliceFarmingTokenBefore = await cake.balanceOf(await alice.getAddress())
@@ -889,7 +890,18 @@ describe('CakeMaxiWorker', () => {
         let userInfo = await masterChef.userInfo(0, cakeMaxiWorkerNative.address)
         expect(userInfo[0]).to.eq(ethers.utils.parseEther('0.00907024323709934'))
         expect(await cakeMaxiWorkerNative.shares(0)).to.eq(ethers.utils.parseEther('0.00907024323709934'))
-        // Alice call minimize trading strategy to close her position
+
+        // Alice call partial close minimize trading strategy to close some her position
+        // if Alice bedt's is 50% of her position which is 0.1 wbnb
+        // if 1 BNB = 1 BaseToken
+        // alice will get a base token based on 0.00907024323709934 farming token
+        // if 0.1 - 0.00907024323709934 FToken = 1.1 WBNB
+        // if 0.09092975676290066 FToken = 1.1 WBNB
+        // x FToken = (x * 0.9975 * 1.1) / (0.09092975676290066 + (x * 0.9975)) = 0.05 WBNB
+        // x = 0.004340840518577427 FToken
+        // thus, alice debt's is 0.004340840518577427 FToken
+
+        // Alice want to liquidate 0.005 FToken and repaid her debt 0.02 BToken which her debt is 0.05 BToken
         await cakeMaxiWorkerNativeAsAlice.work(
           0, await alice.getAddress(), ethers.utils.parseEther('0.05'),
           ethers.utils.defaultAbiCoder.encode(
@@ -902,18 +914,16 @@ describe('CakeMaxiWorker', () => {
             ],
           )
         )
-        // 0.1 - 0.00907024323709934 FTOKEN = 1.1 WBNB
-        // 0.09092975676290066 FTOKEN =  1.1 WBNB
-        // x FTOKEN = (x * 0.9975 * 1.1) / (0.09092975676290066 + (x * 0.9975)) = 0.05 WBNB
-        // x = 0.004340840518577427
+        // alice want to repaid bedt only 0.02 BToken
         // x FTOKEN = (x * 0.9975 * 1.1) / (0.09092975676290066 + (x * 0.9975)) = 0.02 WBNB
-        // x = 0.0016881046461134437
-        // thus, the remaining farming token will be 0.005 - 0.0016881046461134437 
-        // = 0.003311895353886556
+        // x = 0.0016881046461134437 Ftoken
+        // thus, alice will be received farming token is 0.005 - 0.0016881046461134437 
+        // = 0.003311895353886556 Ftoken
         userInfo = await masterChef.userInfo(0, cakeMaxiWorkerNative.address)
         const aliceBaseTokenAfter = await wbnb.balanceOf(await alice.getAddress())
         const aliceFarmingTokenAfter = await cake.balanceOf(await alice.getAddress())
-        // 0.00907024323709934 - 0.005 = 0.00407024323709934
+        // the remaining farming token will be
+        // 0.00907024323709934 - 0.005 = 0.00407024323709934 Ftoken
         expect(userInfo[0]).to.eq(ethers.utils.parseEther('0.00407024323709934'))
         expect(await cakeMaxiWorkerNative.shares(0)).to.eq(ethers.utils.parseEther('0.00407024323709934'))
         Assert.assertAlmostEqual((await cakeMaxiWorkerNative.rewardBalance()).toString(), ethers.utils.parseEther('0.1').toString())
