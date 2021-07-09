@@ -219,8 +219,8 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     uint256 amount = share.mul(totalToken()).div(totalSupply());
     _burn(msg.sender, share);
     if (token == config.getWrappedNativeAddr()) {
-      SafeToken.safeTransfer(token, config.getWNativeRelayer(), amount);
-      WNativeRelayer(uint160(config.getWNativeRelayer())).withdraw(amount);
+      SafeToken.safeTransfer(token, config.getWNativeRelayerAddr(), amount);
+      WNativeRelayer(uint160(config.getWNativeRelayerAddr())).withdraw(amount);
       SafeToken.safeTransferETH(msg.sender, amount);
     } else {
       SafeToken.safeTransfer(token, msg.sender, amount);
@@ -321,8 +321,8 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     // 6. Return excess token back.
     if (back > lessDebt) {
       if (token == config.getWrappedNativeAddr()) {
-        SafeToken.safeTransfer(token, config.getWNativeRelayer(), back.sub(lessDebt));
-        WNativeRelayer(uint160(config.getWNativeRelayer())).withdraw(back.sub(lessDebt));
+        SafeToken.safeTransfer(token, config.getWNativeRelayerAddr(), back.sub(lessDebt));
+        WNativeRelayer(uint160(config.getWNativeRelayerAddr())).withdraw(back.sub(lessDebt));
         SafeToken.safeTransferETH(msg.sender, back.sub(lessDebt));
       } else {
         SafeToken.safeTransfer(token, msg.sender, back.sub(lessDebt));
@@ -355,8 +355,8 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     // 4. Clear position debt and return funds to liquidator and position owner.
     if (liquidatorPrize > 0) {
       if (token == config.getWrappedNativeAddr()) {
-        SafeToken.safeTransfer(token, config.getWNativeRelayer(), liquidatorPrize);
-        WNativeRelayer(uint160(config.getWNativeRelayer())).withdraw(liquidatorPrize);
+        SafeToken.safeTransfer(token, config.getWNativeRelayerAddr(), liquidatorPrize);
+        WNativeRelayer(uint160(config.getWNativeRelayerAddr())).withdraw(liquidatorPrize);
         SafeToken.safeTransferETH(msg.sender, liquidatorPrize);
       } else {
         SafeToken.safeTransfer(token, msg.sender, liquidatorPrize);
@@ -365,8 +365,8 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
 
     if (buybackBurnPrize > 0) {
       if (token == config.getWrappedNativeAddr()) {
-        SafeToken.safeTransfer(token, config.getWNativeRelayer(), buybackBurnPrize);
-        WNativeRelayer(uint160(config.getWNativeRelayer())).withdraw(buybackBurnPrize);
+        SafeToken.safeTransfer(token, config.getWNativeRelayerAddr(), buybackBurnPrize);
+        WNativeRelayer(uint160(config.getWNativeRelayerAddr())).withdraw(buybackBurnPrize);
         SafeToken.safeTransferETH(config.getBuybackAddr(), buybackBurnPrize);
       } else {
         SafeToken.safeTransfer(token, config.getBuybackAddr(), buybackBurnPrize);
@@ -376,8 +376,8 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     uint256 left = rest > debt ? rest - debt : 0;
     if (left > 0) {
       if (token == config.getWrappedNativeAddr()) {
-        SafeToken.safeTransfer(token, config.getWNativeRelayer(), left);
-        WNativeRelayer(uint160(config.getWNativeRelayer())).withdraw(left);
+        SafeToken.safeTransfer(token, config.getWNativeRelayerAddr(), left);
+        WNativeRelayer(uint160(config.getWNativeRelayerAddr())).withdraw(left);
         SafeToken.safeTransferETH(pos.owner, left);
       } else {
         SafeToken.safeTransfer(token, pos.owner, left);

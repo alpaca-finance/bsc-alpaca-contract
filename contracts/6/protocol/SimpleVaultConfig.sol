@@ -38,17 +38,17 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   /// Mapping for worker address to its configuration.
   mapping(address => WorkerConfig) public workers;
   /// address for wrapped native eg WBNB, WETH
-  address public wrappedNativeAddr;
+  address public override getWrappedNativeAddr;
   /// address for wNative relater
-  address public wNativeRelayer;
+  address public override getWNativeRelayerAddr;
   /// address of fairLaunch contract
-  address public fairLaunch;
+  address public override getFairLaunchAddr;
   /// list of whitelisted callers
   mapping(address => bool) public override whitelistedCallers;
   // The reward for buyback and burn after successfully killing a position.
   uint256 public override getBuybackBps;
   // The address of buyback
-  address public buyback;
+  address public override getBuybackAddr;
 
   function initialize(
     uint256 _minDebtSize,
@@ -96,11 +96,11 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     interestRate = _interestRate;
     getReservePoolBps = _reservePoolBps;
     getKillBps = _killBps;
-    wrappedNativeAddr = _wrappedNative;
-    wNativeRelayer = _wNativeRelayer;
-    fairLaunch = _fairLaunch;
+    getWrappedNativeAddr = _wrappedNative;
+    getWNativeRelayerAddr = _wNativeRelayer;
+    getFairLaunchAddr = _fairLaunch;
     getBuybackBps = _buybackBps;
-    buyback = _buyback;
+    getBuybackAddr = _buyback;
   }
 
   /// @dev Set the configuration for the given worker. Must only be called by the owner.
@@ -139,20 +139,6 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     return interestRate;
   }
 
-  /// @dev Return the address of wrapped native token
-  function getWrappedNativeAddr() external view override returns (address) {
-    return wrappedNativeAddr;
-  }
-
-  function getWNativeRelayer() external view override returns (address) {
-    return wNativeRelayer;
-  }
-
-  /// @dev Return the address of fair launch contract
-  function getFairLaunchAddr() external view override returns (address) {
-    return fairLaunch;
-  }
-
   /// @dev Return whether the given address is a worker.
   function isWorker(address worker) external view override returns (bool) {
     return workers[worker].isWorker;
@@ -180,10 +166,5 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   ) external view override returns (uint256) {
     require(workers[worker].isWorker, "SimpleVaultConfig::killFactor:: !worker");
     return workers[worker].killFactor;
-  }
-
-  /// @dev return the buyback Address
-  function getBuybackAddr() external view override returns (address) {
-    return buyback;
   }
 }

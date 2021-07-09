@@ -24,7 +24,7 @@ interface IVaultConfig {
   function getWrappedNativeAddr() external view returns (address);
 
   /// @dev Return the address of wNative relayer.
-  function getWNativeRelayer() external view returns (address);
+  function getWNativeRelayerAddr() external view returns (address);
 
   /// @dev Return the address of fair launch contract.
   function getFairLaunchAddr() external view returns (address);

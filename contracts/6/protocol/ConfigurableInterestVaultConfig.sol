@@ -50,11 +50,11 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   /// Interest rate model
   InterestModel public interestModel;
   /// address for wrapped native eg WBNB, WETH
-  address public wrappedNative;
+  address public override getWrappedNativeAddr;
   /// address for wNtive Relayer
-  address public wNativeRelayer;
+  address public override getWNativeRelayerAddr;
   /// address of fairLaunch contract
-  address public fairLaunch;
+  address public override getFairLaunchAddr;
   /// maximum killBps
   uint256 public maxKillBps;
   /// list of whitelisted callers
@@ -62,18 +62,18 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   // The portion of reward for buyback and burn after successfully killing a position.
   uint256 public override getBuybackBps;
   // The address where buyback and burn portion will be transferred to.
-  address public buyback;
+  address public override getBuybackAddr;
 
   function initialize(
     uint256 _minDebtSize,
     uint256 _reservePoolBps,
     uint256 _killBps,
     InterestModel _interestModel,
-    address _wrappedNative,
-    address _wNativeRelayer,
-    address _fairLaunch,
+    address _getWrappedNativeAddr,
+    address _getWNativeRelayer,
+    address _getFairLaunchAddr,
     uint256 _buybackBps,
-    address _buyback
+    address _getbuybackAddr
   ) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
 
@@ -83,11 +83,11 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
       _reservePoolBps,
       _killBps,
       _interestModel,
-      _wrappedNative,
-      _wNativeRelayer,
-      _fairLaunch,
+      _getWrappedNativeAddr,
+      _getWNativeRelayer,
+      _getFairLaunchAddr,
       _buybackBps,
-      _buyback
+      _getbuybackAddr
     );
   }
 
@@ -97,17 +97,17 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   /// @param _killBps The new reward for killing a position value.
   /// @param _interestModel The new interest rate model contract.
   /// @param _buybackBps The portion of reward for buyback and burn after successfully killing a position.
-  /// @param _buyback The address where buyback and burn portion will be transferred to.
+  /// @param _getbuybackAddr The address where buyback and burn portion will be transferred to.
   function setParams(
     uint256 _minDebtSize,
     uint256 _reservePoolBps,
     uint256 _killBps,
     InterestModel _interestModel,
-    address _wrappedNative,
-    address _wNativeRelayer,
-    address _fairLaunch,
+    address _getWrappedNativeAddr,
+    address _getWNativeRelayer,
+    address _getFairLaunchAddr,
     uint256 _buybackBps,
-    address _buyback
+    address _getbuybackAddr
   ) public onlyOwner {
     require(_killBps <= maxKillBps, "ConfigurableInterestVaultConfig::setParams:: kill bps exceeded max kill bps");
 
@@ -115,11 +115,11 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     getReservePoolBps = _reservePoolBps;
     getKillBps = _killBps;
     interestModel = _interestModel;
-    wrappedNative = _wrappedNative;
-    wNativeRelayer = _wNativeRelayer;
-    fairLaunch = _fairLaunch;
+    getWrappedNativeAddr = _getWrappedNativeAddr;
+    getWNativeRelayerAddr = _getWNativeRelayer;
+    getFairLaunchAddr = _getFairLaunchAddr;
     getBuybackBps = _buybackBps;
-    buyback = _buyback;
+    getBuybackAddr = _getbuybackAddr;
 
     emit SetParams(
       _msgSender(),
@@ -127,11 +127,11 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
       getReservePoolBps,
       getKillBps,
       address(interestModel),
-      wrappedNative,
-      wNativeRelayer,
-      fairLaunch,
+      getWrappedNativeAddr,
+      getWNativeRelayerAddr,
+      getFairLaunchAddr,
       getBuybackBps,
-      buyback
+      getBuybackAddr
     );
   }
 
@@ -159,20 +159,6 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     emit SetMaxKillBps(_msgSender(), maxKillBps);
   }
 
-  /// @dev Return the address of wrapped native token
-  function getWrappedNativeAddr() external view override returns (address) {
-    return wrappedNative;
-  }
-
-  function getWNativeRelayer() external view override returns (address) {
-    return wNativeRelayer;
-  }
-
-  /// @dev Return the address of fair launch contract
-  function getFairLaunchAddr() external view override returns (address) {
-    return fairLaunch;
-  }
-
   /// @dev Return the interest rate per second, using 1e18 as denom.
   function getInterestRate(uint256 debt, uint256 floating) external view override returns (uint256) {
     return interestModel.getInterestRate(debt, floating);
@@ -196,10 +182,5 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   /// @dev Return the kill factor for the worker + debt, using 1e4 as denom. Revert on non-worker.
   function killFactor(address worker, uint256 debt) external view override returns (uint256) {
     return workers[worker].killFactor(worker, debt);
-  }
-
-  /// @dev return the buyback Address
-  function getBuybackAddr() external view override returns (address) {
-    return buyback;
   }
 }
