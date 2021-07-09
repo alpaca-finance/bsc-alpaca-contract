@@ -892,9 +892,9 @@ describe('CakeMaxiWorker', () => {
         expect(await cakeMaxiWorkerNative.shares(0)).to.eq(ethers.utils.parseEther('0.00907024323709934'))
 
         // Alice call partial close minimize trading strategy to close some her position
-        // if Alice bedt's is 50% of her position which is 0.1 wbnb
+        // if Alice debt's is 50% of her position which is 0.1 wbnb
         // if 1 BNB = 1 BaseToken
-        // alice will get a base token based on 0.00907024323709934 farming token
+        // Alice has 0.05 WBNB as debt. Finding how much 0.05 WBNB worth in FTOKEN:
         // if 0.1 - 0.00907024323709934 FToken = 1.1 WBNB
         // if 0.09092975676290066 FToken = 1.1 WBNB
         // x FToken = (x * 0.9975 * 1.1) / (0.09092975676290066 + (x * 0.9975)) = 0.05 WBNB
