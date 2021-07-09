@@ -146,6 +146,7 @@
     "test:pan2restrictedliquidate": "hardhat test --no-compile ./test/PancakeswapV2_Restricted_StrategyLiquidate.test.ts",
     "test:pan2restrictedpartialclose": "hardhat test --no-compile ./test/PancakeswapV2_Restricted_StrategyPartialCloseLiquidate.test.ts",
     "test:pan2restrictedminimize": "hardhat test --no-compile ./test/PancakeswapV2_Restricted_StrategyWithdrawMinimizeTrading.test.ts",
+    "test:pan2restrictedpartialcloseminimize": "hardhat test --no-compile ./test/PancakeswapV2_Restricted_StrategyPartialCloseMinimizeTrading.test.ts",
     "test:pan2singleassetadd": "hardhat test --no-compile ./test/PancakeswapV2_Restricted_SingleAsset_StrategyAddBaseTokenOnly.test.ts",
     "test:pan2singleassetaddwithfarm": "hardhat test --no-compile ./test/PancakeswapV2_Restricted_SingleAsset_StrategyAddBaseWithFarm.test.ts",
     "test:pan2singleassetliquidate": "hardhat test --no-compile ./test/PancakeswapV2_Restricted_SingleAsset_StrategyLiquidate.test.ts",
