@@ -914,7 +914,7 @@ describe('CakeMaxiWorker', () => {
             ],
           )
         )
-        // alice want to repaid bedt only 0.02 BToken
+        // alice want to repaid debt only 0.02 BToken
         // x FTOKEN = (x * 0.9975 * 1.1) / (0.09092975676290066 + (x * 0.9975)) = 0.02 WBNB
         // x = 0.0016881046461134437 Ftoken
         // thus, alice will be received farming token is 0.005 - 0.0016881046461134437 
