@@ -26,24 +26,24 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const PANCAKE_ROUTER = '0x367633909278A3C91f4cB130D8e56382F00D1071'
   const WBNB = '0xDfb1211E2694193df5765d54350e1145FD2404A1'
   const TOKENS: Array<IToken> = [{
-    symbol: 'CAKE',
-    name: 'CAKE',
-    address: '0x7aBcA3B5f0Ca1da0eC05631d5788907D030D0a22',
+    symbol: 'TRX',
+    name: 'TRX',
+    mintAmount: ethers.utils.parseEther('8888888888').toString(),
     pairs: [{
-      quoteToken: 'USDT',
-      quoteTokenAddr: '0xE60Fa777dEb72C364447BB18C823C4731FbeD671',
-      reserveQuoteToken: ethers.utils.parseEther('1000000'),
-      reserveBaseToken: ethers.utils.parseEther('72833.2119')
+      quoteToken: 'WBNB',
+      quoteTokenAddr: '0xDfb1211E2694193df5765d54350e1145FD2404A1',
+      reserveQuoteToken: ethers.utils.parseEther('100'),
+      reserveBaseToken: ethers.utils.parseEther('499721.673')
     }]
   }, {
-    symbol: 'USDC',
-    name: 'USDC',
-    address: '0x74E6d184A8cD7d43E9b2B46b66F6Eb92d36a768B',
+    symbol: 'BTT',
+    name: 'BTT',
+    mintAmount: ethers.utils.parseEther('8888888888').toString(),
     pairs: [{
-      quoteToken: 'USDT',
-      quoteTokenAddr: '0xE60Fa777dEb72C364447BB18C823C4731FbeD671',
-      reserveQuoteToken: ethers.utils.parseEther('1000000'),
-      reserveBaseToken: ethers.utils.parseEther('1000000')
+      quoteToken: 'WBNB',
+      quoteTokenAddr: '0xDfb1211E2694193df5765d54350e1145FD2404A1',
+      reserveQuoteToken: ethers.utils.parseEther('100'),
+      reserveBaseToken: ethers.utils.parseEther('12143212.5')
     }]
   }]
 
