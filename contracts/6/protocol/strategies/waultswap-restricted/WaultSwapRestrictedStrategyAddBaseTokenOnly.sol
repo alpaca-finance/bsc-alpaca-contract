@@ -74,7 +74,7 @@ contract WaultSwapRestrictedStrategyAddBaseTokenOnly is OwnableUpgradeSafe, Reen
     // find how many baseToken need to be converted to farmingToken
     // Constants come from
     // 2-f = 2-0.002 = 1.998
-    // 4(1-f) = 4*998*1000 = 3992000, where f = 0.0020 and 10,000 is a way to avoid floating point
+    // 4(1-f) = 4*998*1000 = 3992000, where f = 0.0020 and 1,000 is a way to avoid floating point
     // 1998^2 = 3992004
     // 998*2 = 1996
     uint256 aIn = AlpacaMath.sqrt(rIn.mul(balance.mul(3992000).add(rIn.mul(3992004)))).sub(rIn.mul(1998)) / 1996;

@@ -22,14 +22,14 @@ import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakeFactory.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
 
-import "../apis/pancake/IPancakeRouter02.sol";
-import "../interfaces/IStrategy.sol";
-import "../interfaces/IWorker.sol";
-import "../interfaces/IPancakeMasterChef.sol";
-import "../../utils/AlpacaMath.sol";
-import "../../utils/SafeToken.sol";
+import "../../apis/pancake/IPancakeRouter02.sol";
+import "../../interfaces/IStrategy.sol";
+import "../../interfaces/IWorker.sol";
+import "../../interfaces/IPancakeMasterChef.sol";
+import "../../../utils/AlpacaMath.sol";
+import "../../../utils/SafeToken.sol";
 
-contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker {
+contract PancakeswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker {
   /// @notice Libraries
   using SafeToken for address;
   using SafeMath for uint256;
@@ -40,7 +40,7 @@ contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, 
   event RemoveShare(uint256 indexed id, uint256 share);
   event Liquidate(uint256 indexed id, uint256 wad);
 
-  /// @notice Configuration variables
+  /// @notice Immutable variables
   IPancakeMasterChef public masterChef;
   IPancakeFactory public factory;
   IPancakeRouter02 public router;
@@ -61,10 +61,6 @@ contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, 
   uint256 public reinvestBountyBps;
   uint256 public maxReinvestBountyBps;
   mapping(address => bool) public okReinvestors;
-
-  /// @notice Configuration varaibles for V2
-  uint256 public fee;
-  uint256 public feeDenom;
 
   function initialize(
     address _operator,
@@ -99,17 +95,10 @@ contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, 
     okStrats[address(liqStrat)] = true;
     reinvestBountyBps = _reinvestBountyBps;
     maxReinvestBountyBps = 500;
-    fee = 9975;
-    feeDenom = 10000;
 
     require(
       reinvestBountyBps <= maxReinvestBountyBps,
       "PancakeswapWorker::initialize:: reinvestBountyBps exceeded maxReinvestBountyBps"
-    );
-    require(
-      (farmingToken == lpToken.token0() || farmingToken == lpToken.token1()) &&
-        (baseToken == lpToken.token0() || baseToken == lpToken.token1()),
-      "PancakeswapWorker::initialize:: LP underlying not match with farm & base token"
     );
   }
 
@@ -174,7 +163,7 @@ contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, 
     router.swapExactTokensForTokens(reward.sub(bounty), 0, path, address(this), now);
     // 5. Use add Token strategy to convert all BaseToken to LP tokens.
     baseToken.safeTransfer(address(addStrat), baseToken.myBalance());
-    addStrat.execute(address(0), 0, abi.encode(0));
+    addStrat.execute(address(0), 0, abi.encode(baseToken, farmingToken, 0));
     // 6. Mint more LP tokens and stake them for more rewards.
     masterChef.deposit(pid, lpToken.balanceOf(address(this)));
     // 7. Reset approve
@@ -219,12 +208,12 @@ contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, 
     uint256 aIn,
     uint256 rIn,
     uint256 rOut
-  ) public view returns (uint256) {
+  ) public pure returns (uint256) {
     if (aIn == 0) return 0;
     require(rIn > 0 && rOut > 0, "PancakeswapWorker::getMktSellAmount:: bad reserve values");
-    uint256 aInWithFee = aIn.mul(fee);
+    uint256 aInWithFee = aIn.mul(998);
     uint256 numerator = aInWithFee.mul(rOut);
-    uint256 denominator = rIn.mul(feeDenom).add(aInWithFee);
+    uint256 denominator = rIn.mul(1000).add(aInWithFee);
     return numerator / denominator;
   }
 
@@ -252,7 +241,7 @@ contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, 
     // 1. Convert the position back to LP tokens and use liquidate strategy.
     _removeShare(id);
     lpToken.transfer(address(liqStrat), lpToken.balanceOf(address(this)));
-    liqStrat.execute(address(0), 0, abi.encode(0));
+    liqStrat.execute(address(0), 0, abi.encode(baseToken, farmingToken, 0));
     // 2. Return all available BaseToken back to the operator.
     uint256 wad = baseToken.myBalance();
     baseToken.safeTransfer(msg.sender, wad);

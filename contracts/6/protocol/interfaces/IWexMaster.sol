@@ -51,4 +51,7 @@ abstract contract IWexMaster {
     uint256 _amount,
     bool _withdrawRewards
   ) external virtual;
+
+  // Query pending WEX
+  function pendingWex(uint256 _pid, address _user) external virtual returns (uint256);
 }
