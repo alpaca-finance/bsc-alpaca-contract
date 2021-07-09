@@ -37,7 +37,7 @@ contract PancakeswapV2RestrictedStrategyLiquidate is OwnableUpgradeSafe, Reentra
   modifier onlyWhitelistedWorkers() {
     require(okWorkers[msg.sender], "PancakeswapV2RestrictedStrategyLiquidate::onlyWhitelistedWorkers:: bad worker");
     _;
-  } 
+  }
 
   /// @dev Create a new liquidate strategy instance.
   /// @param _router The Uniswap router smart contract.
@@ -50,22 +50,19 @@ contract PancakeswapV2RestrictedStrategyLiquidate is OwnableUpgradeSafe, Reentra
 
   /// @dev Execute worker strategy. Take LP token. Return  BaseToken.
   /// @param data Extra calldata information passed along to this strategy.
-  function execute(address /* user */, uint256 /* debt */, bytes calldata data)
-    external
-    override
-    onlyWhitelistedWorkers
-    nonReentrant
-  {
+  function execute(
+    address, /* user */
+    uint256, /* debt */
+    bytes calldata data
+  ) external override onlyWhitelistedWorkers nonReentrant {
     // 1. Find out what farming token we are dealing with.
-    (
-      uint256 minBaseToken
-    ) = abi.decode(data, (uint256));
+    uint256 minBaseToken = abi.decode(data, (uint256));
     IWorker worker = IWorker(msg.sender);
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
     IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
     // 2. Approve router to do their stuffs
-    require(lpToken.approve(address(router), uint256(-1)), "PancakeswapV2RestrictedStrategyLiquidate::execute:: unable to approve LP token");
+    address(lpToken).safeApprove(address(router), uint256(-1));
     farmingToken.safeApprove(address(router), uint256(-1));
     // 3. Remove all liquidity back to BaseToken and farming tokens.
     router.removeLiquidity(baseToken, farmingToken, lpToken.balanceOf(address(this)), 0, 0, address(this), now);
@@ -76,10 +73,13 @@ contract PancakeswapV2RestrictedStrategyLiquidate is OwnableUpgradeSafe, Reentra
     router.swapExactTokensForTokens(farmingToken.myBalance(), 0, path, address(this), now);
     // 5. Return all baseToken back to the original caller.
     uint256 balance = baseToken.myBalance();
-    require(balance >= minBaseToken, "PancakeswapV2RestrictedStrategyLiquidate::execute:: insufficient baseToken received");
+    require(
+      balance >= minBaseToken,
+      "PancakeswapV2RestrictedStrategyLiquidate::execute:: insufficient baseToken received"
+    );
     SafeToken.safeTransfer(baseToken, msg.sender, balance);
     // 6. Reset approve for safety reason
-    require(lpToken.approve(address(router), 0), "PancakeswapV2RestrictedStrategyLiquidate::execute:: unable to reset LP token approval");
+    address(lpToken).safeApprove(address(router), 0);
     farmingToken.safeApprove(address(router), 0);
   }
 
