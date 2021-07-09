@@ -22,14 +22,14 @@ import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakeFactory.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
 
-import "../apis/pancake/IPancakeRouter02.sol";
-import "../interfaces/IStrategy.sol";
-import "../interfaces/IWorker.sol";
-import "../interfaces/IPancakeMasterChef.sol";
-import "../../utils/AlpacaMath.sol";
-import "../../utils/SafeToken.sol";
+import "../../apis/pancake/IPancakeRouter02.sol";
+import "../../interfaces/IStrategy.sol";
+import "../../interfaces/IWorker.sol";
+import "../../interfaces/IPancakeMasterChef.sol";
+import "../../../utils/AlpacaMath.sol";
+import "../../../utils/SafeToken.sol";
 
-contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker {
+contract PancakeswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker {
   /// @notice Libraries
   using SafeToken for address;
   using SafeMath for uint256;
@@ -40,7 +40,7 @@ contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, 
   event RemoveShare(uint256 indexed id, uint256 share);
   event Liquidate(uint256 indexed id, uint256 wad);
 
-  /// @notice Configuration variables
+  /// @notice Immutable variables
   IPancakeMasterChef public masterChef;
   IPancakeFactory public factory;
   IPancakeRouter02 public router;
@@ -61,10 +61,6 @@ contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, 
   uint256 public reinvestBountyBps;
   uint256 public maxReinvestBountyBps;
   mapping(address => bool) public okReinvestors;
-
-  /// @notice Configuration varaibles for V2
-  uint256 public fee;
-  uint256 public feeDenom;
 
   function initialize(
     address _operator,
@@ -99,13 +95,11 @@ contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, 
     okStrats[address(liqStrat)] = true;
     reinvestBountyBps = _reinvestBountyBps;
     maxReinvestBountyBps = 500;
-    fee = 9975;
-    feeDenom = 10000;
 
-    require(reinvestBountyBps <= maxReinvestBountyBps, "PancakeswapWorker::initialize:: reinvestBountyBps exceeded maxReinvestBountyBps");
     require(
-      (farmingToken == lpToken.token0() || farmingToken == lpToken.token1()) && 
-      (baseToken == lpToken.token0() || baseToken == lpToken.token1()), "PancakeswapWorker::initialize:: LP underlying not match with farm & base token");
+      reinvestBountyBps <= maxReinvestBountyBps,
+      "PancakeswapWorker::initialize:: reinvestBountyBps exceeded maxReinvestBountyBps"
+    );
   }
 
   /// @dev Require that the caller must be an EOA account to avoid flash loans.
@@ -169,7 +163,7 @@ contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, 
     router.swapExactTokensForTokens(reward.sub(bounty), 0, path, address(this), now);
     // 5. Use add Token strategy to convert all BaseToken to LP tokens.
     baseToken.safeTransfer(address(addStrat), baseToken.myBalance());
-    addStrat.execute(address(0), 0, abi.encode(0));
+    addStrat.execute(address(0), 0, abi.encode(baseToken, farmingToken, 0));
     // 6. Mint more LP tokens and stake them for more rewards.
     masterChef.deposit(pid, lpToken.balanceOf(address(this)));
     // 7. Reset approve
@@ -183,17 +177,21 @@ contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, 
   /// @param user The original user that is interacting with the operator.
   /// @param debt The amount of user debt to help the strategy make decisions.
   /// @param data The encoded data, consisting of strategy address and calldata.
-  function work(uint256 id, address user, uint256 debt, bytes calldata data)
-    override
-    external
-    onlyOperator nonReentrant
-  {
+  function work(
+    uint256 id,
+    address user,
+    uint256 debt,
+    bytes calldata data
+  ) external override onlyOperator nonReentrant {
     // 1. Convert this position back to LP tokens.
     _removeShare(id);
     // 2. Perform the worker strategy; sending LP tokens + BaseToken; expecting LP tokens + BaseToken.
     (address strat, bytes memory ext) = abi.decode(data, (address, bytes));
     require(okStrats[strat], "PancakeswapWorker::work:: unapproved work strategy");
-    require(lpToken.transfer(strat, lpToken.balanceOf(address(this))), "PancakeswapWorker::work:: unable to transfer lp to strat");
+    require(
+      lpToken.transfer(strat, lpToken.balanceOf(address(this))),
+      "PancakeswapWorker::work:: unable to transfer lp to strat"
+    );
     baseToken.safeTransfer(strat, baseToken.myBalance());
     IStrategy(strat).execute(user, debt, ext);
     // 3. Add LP tokens back to the farming pool.
@@ -206,31 +204,35 @@ contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, 
   /// @param aIn The amount of asset to market sell.
   /// @param rIn the amount of asset in reserve for input.
   /// @param rOut The amount of asset in reserve for output.
-  function getMktSellAmount(uint256 aIn, uint256 rIn, uint256 rOut) public view returns (uint256) {
+  function getMktSellAmount(
+    uint256 aIn,
+    uint256 rIn,
+    uint256 rOut
+  ) public pure returns (uint256) {
     if (aIn == 0) return 0;
     require(rIn > 0 && rOut > 0, "PancakeswapWorker::getMktSellAmount:: bad reserve values");
-    uint256 aInWithFee = aIn.mul(fee);
+    uint256 aInWithFee = aIn.mul(998);
     uint256 numerator = aInWithFee.mul(rOut);
-    uint256 denominator = rIn.mul(feeDenom).add(aInWithFee);
+    uint256 denominator = rIn.mul(1000).add(aInWithFee);
     return numerator / denominator;
   }
 
   /// @dev Return the amount of BaseToken to receive if we are to liquidate the given position.
   /// @param id The position ID to perform health check.
-  function health(uint256 id) external override view returns (uint256) {
+  function health(uint256 id) external view override returns (uint256) {
     // 1. Get the position's LP balance and LP total supply.
     uint256 lpBalance = shareToBalance(shares[id]);
     uint256 lpSupply = lpToken.totalSupply(); // Ignore pending mintFee as it is insignificant
     // 2. Get the pool's total supply of BaseToken and FarmingToken.
-    (uint256 r0, uint256 r1,) = lpToken.getReserves();
+    (uint256 r0, uint256 r1, ) = lpToken.getReserves();
     (uint256 totalBaseToken, uint256 totalFarmingToken) = lpToken.token0() == baseToken ? (r0, r1) : (r1, r0);
     // 3. Convert the position's LP tokens to the underlying assets.
     uint256 userBaseToken = lpBalance.mul(totalBaseToken).div(lpSupply);
     uint256 userFarmingToken = lpBalance.mul(totalFarmingToken).div(lpSupply);
     // 4. Convert all FarmingToken to BaseToken and return total BaseToken.
-    return getMktSellAmount(
-      userFarmingToken, totalFarmingToken.sub(userFarmingToken), totalBaseToken.sub(userBaseToken)
-    ).add(userBaseToken);
+    return
+      getMktSellAmount(userFarmingToken, totalFarmingToken.sub(userFarmingToken), totalBaseToken.sub(userBaseToken))
+        .add(userBaseToken);
   }
 
   /// @dev Liquidate the given position by converting it to BaseToken and return back to caller.
@@ -239,7 +241,7 @@ contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, 
     // 1. Convert the position back to LP tokens and use liquidate strategy.
     _removeShare(id);
     lpToken.transfer(address(liqStrat), lpToken.balanceOf(address(this)));
-    liqStrat.execute(address(0), 0, abi.encode(0));
+    liqStrat.execute(address(0), 0, abi.encode(baseToken, farmingToken, 0));
     // 2. Return all available BaseToken back to the operator.
     uint256 wad = baseToken.myBalance();
     baseToken.safeTransfer(msg.sender, wad);
@@ -280,14 +282,20 @@ contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, 
   /// @dev Set the reward bounty for calling reinvest operations.
   /// @param _reinvestBountyBps The bounty value to update.
   function setReinvestBountyBps(uint256 _reinvestBountyBps) external onlyOwner {
-    require(_reinvestBountyBps <= maxReinvestBountyBps, "PancakeswapWorker::setReinvestBountyBps:: _reinvestBountyBps exceeded maxReinvestBountyBps");
+    require(
+      _reinvestBountyBps <= maxReinvestBountyBps,
+      "PancakeswapWorker::setReinvestBountyBps:: _reinvestBountyBps exceeded maxReinvestBountyBps"
+    );
     reinvestBountyBps = _reinvestBountyBps;
   }
 
   /// @dev Set Max reinvest reward for set upper limit reinvest bounty.
   /// @param _maxReinvestBountyBps The max reinvest bounty value to update.
   function setMaxReinvestBountyBps(uint256 _maxReinvestBountyBps) external onlyOwner {
-    require(_maxReinvestBountyBps >= reinvestBountyBps, "PancakeswapWorker::setMaxReinvestBountyBps:: _maxReinvestBountyBps lower than reinvestBountyBps");
+    require(
+      _maxReinvestBountyBps >= reinvestBountyBps,
+      "PancakeswapWorker::setMaxReinvestBountyBps:: _maxReinvestBountyBps lower than reinvestBountyBps"
+    );
     maxReinvestBountyBps = _maxReinvestBountyBps;
   }
 
@@ -318,5 +326,4 @@ contract PancakeswapV2Worker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, 
     addStrat = _addStrat;
     liqStrat = _liqStrat;
   }
-
 }

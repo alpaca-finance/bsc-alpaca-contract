@@ -75,10 +75,7 @@ contract PancakeswapV2RestrictedStrategyPartialCloseLiquidate is
     address farmingToken = worker.farmingToken();
     IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
     // 2. Approve router to do their stuffs
-    require(
-      lpToken.approve(address(router), uint256(-1)),
-      "PancakeswapV2RestrictedStrategyPartialCloseLiquidate::execute:: failed to approve LP token"
-    );
+    address(lpToken).safeApprove(address(router), uint256(-1));
     farmingToken.safeApprove(address(router), uint256(-1));
     // 3. Remove some LP back to BaseToken and farming tokens as we want to return some of the position.
     require(
@@ -100,7 +97,7 @@ contract PancakeswapV2RestrictedStrategyPartialCloseLiquidate is
     SafeToken.safeTransfer(baseToken, msg.sender, balance);
     lpToken.transfer(msg.sender, lpToken.balanceOf(address(this)));
     // 6. Reset approve for safety reason
-    lpToken.approve(address(router), 0);
+    address(lpToken).safeApprove(address(router), 0);
     farmingToken.safeApprove(address(router), 0);
 
     emit PancakeswapV2RestrictedStrategyPartialCloseLiquidateEvent(baseToken, farmingToken, lpTokenToLiquidate);

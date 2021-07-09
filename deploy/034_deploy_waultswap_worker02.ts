@@ -7,25 +7,31 @@ import {
   PancakeswapV2RestrictedStrategyLiquidate__factory,
   PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading__factory,
   PancakeswapV2Worker,
+  PancakeswapV2Worker02,
+  PancakeswapV2Worker02__factory,
   PancakeswapV2Worker__factory,
   Timelock__factory,
+  WaultSwapWorker02,
+  WaultSwapWorker02__factory,
 } from '../typechain';
 import MainnetConfig from '../.mainnet.json'
 import TestnetConfig from '../.testnet.json'
 
-interface IPancakeswapWorkerInput {
+interface IWorkerInput {
   VAULT_SYMBOL: string
   WORKER_NAME: string
   REINVEST_BOT: string
   POOL_ID: number
   REINVEST_BOUNTY_BPS: string
+  REINVEST_PATH: Array<string>
+  REINVEST_THRESHOLD: string
   WORK_FACTOR: string
   KILL_FACTOR: string
   MAX_PRICE_DIFF: string
   EXACT_ETA: string
 }
 
-interface IPancakeswapWorkerInfo {
+interface IWaultWorkerInfo {
   WORKER_NAME: string
   VAULT_CONFIG_ADDR: string
   WORKER_CONFIG_ADDR: string
@@ -40,6 +46,8 @@ interface IPancakeswapWorkerInfo {
   TWO_SIDES_STRAT_ADDR: string
   MINIMIZE_TRADE_STRAT_ADDR: string
   REINVEST_BOUNTY_BPS: string
+  REINVEST_PATH: Array<string>
+  REINVEST_THRESHOLD: string
   WORK_FACTOR: string
   KILL_FACTOR: string
   MAX_PRICE_DIFF: string
@@ -57,26 +65,18 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const shortWorkerInfos: IPancakeswapWorkerInput[] = [{
-    VAULT_SYMBOL: "ibUSDT",
-    WORKER_NAME: "CAKE-USDT PancakeswapWorker",
+  const shortWorkerInfos: IWorkerInput[] = [{
+    VAULT_SYMBOL: "ibWBNB",
+    WORKER_NAME: "ADA-WBNB WaultswapWorker",
     REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-    POOL_ID: 422,
+    POOL_ID: 253,
     REINVEST_BOUNTY_BPS: '300',
-    WORK_FACTOR: '6240',
-    KILL_FACTOR: '8000',
+    REINVEST_PATH: [],
+    REINVEST_THRESHOLD: '1',
+    WORK_FACTOR: '7000',
+    KILL_FACTOR: '8333',
     MAX_PRICE_DIFF: '11000',
-    EXACT_ETA: '1625043600'
-  }, {
-    VAULT_SYMBOL: "ibUSDT",
-    WORKER_NAME: "USDC-USDT PancakeswapWorker",
-    REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-    POOL_ID: 423,
-    REINVEST_BOUNTY_BPS: '300',
-    WORK_FACTOR: '7800',
-    KILL_FACTOR: '9000',
-    MAX_PRICE_DIFF: '11000',
-    EXACT_ETA: '1625043600'
+    EXACT_ETA: '1624424400'
   }]
 
 
@@ -91,11 +91,20 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 
   const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig
-  const workerInfos: IPancakeswapWorkerInfo[] = shortWorkerInfos.map((n) => {
+  const workerInfos: IWaultWorkerInfo[] = shortWorkerInfos.map((n) => {
     const vault = config.Vaults.find((v) => v.symbol === n.VAULT_SYMBOL)
     if (vault === undefined) {
       throw(`error: unable to find vault from ${n.VAULT_SYMBOL}`)
     }
+
+    const tokenList: any = config.Tokens
+    const reinvestPath: Array<string> = n.REINVEST_PATH.map((p) => {
+      const addr = tokenList[p]
+      if (addr === undefined) {
+        throw(`error: path: unable to find address of ${p}`)
+      }
+      return addr
+    })
 
     return {
       WORKER_NAME: n.WORKER_NAME,
@@ -112,6 +121,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       TWO_SIDES_STRAT_ADDR: vault.StrategyAddTwoSidesOptimal.Pancakeswap,
       MINIMIZE_TRADE_STRAT_ADDR: config.SharedStrategies.Pancakeswap.StrategyWithdrawMinimizeTrading,
       REINVEST_BOUNTY_BPS: n.REINVEST_BOUNTY_BPS,
+      REINVEST_PATH: reinvestPath,
+      REINVEST_THRESHOLD: ethers.utils.parseEther(n.REINVEST_THRESHOLD).toString(),
       WORK_FACTOR: n.WORK_FACTOR,
       KILL_FACTOR: n.KILL_FACTOR,
       MAX_PRICE_DIFF: n.MAX_PRICE_DIFF,
@@ -122,38 +133,46 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   for(let i = 0; i < workerInfos.length; i++) {
     console.log("===================================================================================")
-    console.log(`>> Deploying an upgradable PancakeswapV2Worker contract for ${workerInfos[i].WORKER_NAME}`);
-    const PancakeswapV2Worker = (await ethers.getContractFactory(
-      'PancakeswapV2Worker',
+    console.log(`>> Deploying an upgradable WaultSwapWorker02 contract for ${workerInfos[i].WORKER_NAME}`);
+    const WaultSwapWorker02 = (await ethers.getContractFactory(
+      'WaultSwapWorker02',
       (await ethers.getSigners())[0]
-    )) as PancakeswapV2Worker__factory;
-    const pancakeswapV2Worker = await upgrades.deployProxy(
-      PancakeswapV2Worker,[
-        workerInfos[i].VAULT_ADDR, workerInfos[i].BASE_TOKEN_ADDR, workerInfos[i].MASTER_CHEF_ADDR,
-        workerInfos[i].PANCAKESWAP_ROUTER_ADDR, workerInfos[i].POOL_ID, workerInfos[i].ADD_STRAT_ADDR,
-        workerInfos[i].LIQ_STRAT_ADDR, workerInfos[i].REINVEST_BOUNTY_BPS
+    )) as WaultSwapWorker02__factory;
+    const waultswapWorker02 = await upgrades.deployProxy(
+      WaultSwapWorker02,[
+        workerInfos[i].VAULT_ADDR,
+        workerInfos[i].BASE_TOKEN_ADDR,
+        workerInfos[i].MASTER_CHEF_ADDR,
+        workerInfos[i].PANCAKESWAP_ROUTER_ADDR,
+        workerInfos[i].POOL_ID,
+        workerInfos[i].ADD_STRAT_ADDR,
+        workerInfos[i].LIQ_STRAT_ADDR,
+        workerInfos[i].REINVEST_BOUNTY_BPS,
+        workerInfos[i].REINVEST_BOT,
+        workerInfos[i].REINVEST_PATH,
+        workerInfos[i].REINVEST_THRESHOLD
       ]
-    ) as PancakeswapV2Worker;
-    await pancakeswapV2Worker.deployed();
-    console.log(`>> Deployed at ${pancakeswapV2Worker.address}`);
+    ) as WaultSwapWorker02;
+    await waultswapWorker02.deployed();
+    console.log(`>> Deployed at ${waultswapWorker02.address}`);
 
     console.log(`>> Adding REINVEST_BOT`);
-    await pancakeswapV2Worker.setReinvestorOk([workerInfos[i].REINVEST_BOT], true);
+    await waultswapWorker02.setReinvestorOk([workerInfos[i].REINVEST_BOT], true);
     console.log("✅ Done");
 
     console.log(`>> Adding Strategies`);
-    await pancakeswapV2Worker.setStrategyOk([workerInfos[i].TWO_SIDES_STRAT_ADDR, workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR], true);
+    await waultswapWorker02.setStrategyOk([workerInfos[i].TWO_SIDES_STRAT_ADDR, workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR], true);
     console.log("✅ Done");
 
     console.log(`>> Whitelisting a worker on strats`);
     const addStrat = PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory.connect(workerInfos[i].ADD_STRAT_ADDR, (await ethers.getSigners())[0])
-    await addStrat.setWorkersOk([pancakeswapV2Worker.address], true)
+    await addStrat.setWorkersOk([waultswapWorker02.address], true)
     const liqStrat = PancakeswapV2RestrictedStrategyLiquidate__factory.connect(workerInfos[i].LIQ_STRAT_ADDR, (await ethers.getSigners())[0])
-    await liqStrat.setWorkersOk([pancakeswapV2Worker.address], true)
+    await liqStrat.setWorkersOk([waultswapWorker02.address], true)
     const twoSidesStrat = PancakeswapV2RestrictedStrategyAddTwoSidesOptimal__factory.connect(workerInfos[i].TWO_SIDES_STRAT_ADDR, (await ethers.getSigners())[0])
-    await twoSidesStrat.setWorkersOk([pancakeswapV2Worker.address], true)
+    await twoSidesStrat.setWorkersOk([waultswapWorker02.address], true)
     const minimizeStrat = PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading__factory.connect(workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR, (await ethers.getSigners())[0])
-    await minimizeStrat.setWorkersOk([pancakeswapV2Worker.address], true)
+    await minimizeStrat.setWorkersOk([waultswapWorker02.address], true)
     console.log("✅ Done");
 
     const timelock = Timelock__factory.connect(workerInfos[i].TIMELOCK, (await ethers.getSigners())[0]);
@@ -165,13 +184,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       ethers.utils.defaultAbiCoder.encode(
         ['address[]','(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]'],
         [
-          [pancakeswapV2Worker.address], [{acceptDebt: true, workFactor: workerInfos[i].WORK_FACTOR, killFactor: workerInfos[i].KILL_FACTOR, maxPriceDiff: workerInfos[i].MAX_PRICE_DIFF}]
+          [waultswapWorker02.address], [{acceptDebt: true, workFactor: workerInfos[i].WORK_FACTOR, killFactor: workerInfos[i].KILL_FACTOR, maxPriceDiff: workerInfos[i].MAX_PRICE_DIFF}]
         ]
       ), workerInfos[i].EXACT_ETA
     );
     console.log(`queue setConfigs at: ${setConfigsTx.hash}`)
     console.log("generate timelock.executeTransaction:")
-    console.log(`await timelock.executeTransaction('${workerInfos[i].WORKER_CONFIG_ADDR}', '0', 'setConfigs(address[],(bool,uint64,uint64,uint64)[])', ethers.utils.defaultAbiCoder.encode(['address[]','(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]'],[['${pancakeswapV2Worker.address}'], [{acceptDebt: true, workFactor: ${workerInfos[i].WORK_FACTOR}, killFactor: ${workerInfos[i].KILL_FACTOR}, maxPriceDiff: ${workerInfos[i].MAX_PRICE_DIFF}}]]), ${workerInfos[i].EXACT_ETA})`)
+    console.log(`await timelock.executeTransaction('${workerInfos[i].WORKER_CONFIG_ADDR}', '0', 'setConfigs(address[],(bool,uint64,uint64,uint64)[])', ethers.utils.defaultAbiCoder.encode(['address[]','(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]'],[['${waultswapWorker02.address}'], [{acceptDebt: true, workFactor: ${workerInfos[i].WORK_FACTOR}, killFactor: ${workerInfos[i].KILL_FACTOR}, maxPriceDiff: ${workerInfos[i].MAX_PRICE_DIFF}}]]), ${workerInfos[i].EXACT_ETA})`)
     console.log("✅ Done");
 
     console.log(">> Timelock: Linking VaultConfig with WorkerConfig via Timelock");
@@ -181,16 +200,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       ethers.utils.defaultAbiCoder.encode(
         ['address[]','address[]'],
         [
-          [pancakeswapV2Worker.address], [workerInfos[i].WORKER_CONFIG_ADDR]
+          [waultswapWorker02.address], [workerInfos[i].WORKER_CONFIG_ADDR]
         ]
       ), workerInfos[i].EXACT_ETA
     );
     console.log(`queue setWorkers at: ${setWorkersTx.hash}`)
     console.log("generate timelock.executeTransaction:")
-    console.log(`await timelock.executeTransaction('${workerInfos[i].VAULT_CONFIG_ADDR}', '0','setWorkers(address[],address[])', ethers.utils.defaultAbiCoder.encode(['address[]','address[]'],[['${pancakeswapV2Worker.address}'], ['${workerInfos[i].WORKER_CONFIG_ADDR}']]), ${workerInfos[i].EXACT_ETA})`)
+    console.log(`await timelock.executeTransaction('${workerInfos[i].VAULT_CONFIG_ADDR}', '0','setWorkers(address[],address[])', ethers.utils.defaultAbiCoder.encode(['address[]','address[]'],[['${waultswapWorker02.address}'], ['${workerInfos[i].WORKER_CONFIG_ADDR}']]), ${workerInfos[i].EXACT_ETA})`)
     console.log("✅ Done");
   }
 };
 
 export default func;
-func.tags = ['PancakeswapWorkers'];
+func.tags = ['WaultSwapWokers02'];
