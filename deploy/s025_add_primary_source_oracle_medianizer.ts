@@ -15,22 +15,134 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
+  const DEFAULT_MAX_PRICE_DEVIATION = '1000000000000000000'
+  const DEFAULT_MAX_PRICE_STALE = '86400'
+  const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig
 
-  const ORACLE_MEDIANIZER_ADDR = '';
   const TOKEN0_SYMBOLS = [
-    'WBNB'
+    'UNI',
+    'XVS',
+    'UST',
+    'COMP',
+    'SUSHI',
+    'ITAM',
+    'ALPACA',
+    'bMXX',
+    'BELT',
+    'BOR',
+    'BRY',
+    'pCWS',
+    'SWINGBY',
+    'DODO',
+    'ODDZ',
+    'ALPACA',
+    'WEX',
+    'WEX',
+    'ETH',
+    'ALPACA',
+    'BETH',
+    'WAULTx',
+    'BTCB',
   ];
   const TOKEN1_SYMBOLS = [
-    'BUSD'
+    'WBNB',
+    'WBNB',
+    'BUSD',
+    'ETH',
+    'ETH',
+    'WBNB',
+    'BUSD',
+    'WBNB',
+    'WBNB',
+    'WBNB',
+    'WBNB',
+    'WBNB',
+    'WBNB',
+    'WBNB',
+    'WBNB',
+    'USDT',
+    'WBNB',
+    'USDT',
+    'BTCB',
+    'WBNB',
+    'ETH',
+    'WBNB',
+    'USDT'
   ];
   const MAX_PRICE_DEVIATIONS = [
-    0
+    DEFAULT_MAX_PRICE_DEVIATION,
+    DEFAULT_MAX_PRICE_DEVIATION,
+    DEFAULT_MAX_PRICE_DEVIATION,
+    DEFAULT_MAX_PRICE_DEVIATION,
+    DEFAULT_MAX_PRICE_DEVIATION,
+    DEFAULT_MAX_PRICE_DEVIATION,
+    DEFAULT_MAX_PRICE_DEVIATION,
+    DEFAULT_MAX_PRICE_DEVIATION,
+    DEFAULT_MAX_PRICE_DEVIATION,
+    DEFAULT_MAX_PRICE_DEVIATION,
+    DEFAULT_MAX_PRICE_DEVIATION,
+    DEFAULT_MAX_PRICE_DEVIATION,
+    DEFAULT_MAX_PRICE_DEVIATION,
+    DEFAULT_MAX_PRICE_DEVIATION,
+    DEFAULT_MAX_PRICE_DEVIATION,
+    DEFAULT_MAX_PRICE_DEVIATION,
+    DEFAULT_MAX_PRICE_DEVIATION,
+    DEFAULT_MAX_PRICE_DEVIATION,
+    DEFAULT_MAX_PRICE_DEVIATION,
+    DEFAULT_MAX_PRICE_DEVIATION,
+    DEFAULT_MAX_PRICE_DEVIATION,
+    DEFAULT_MAX_PRICE_DEVIATION,
+    DEFAULT_MAX_PRICE_DEVIATION,
   ];
   const MAX_PRICE_STALES = [
-    0
+    DEFAULT_MAX_PRICE_STALE,
+    DEFAULT_MAX_PRICE_STALE,
+    DEFAULT_MAX_PRICE_STALE,
+    DEFAULT_MAX_PRICE_STALE,
+    DEFAULT_MAX_PRICE_STALE,
+    DEFAULT_MAX_PRICE_STALE,
+    DEFAULT_MAX_PRICE_STALE,
+    DEFAULT_MAX_PRICE_STALE,
+    DEFAULT_MAX_PRICE_STALE,
+    DEFAULT_MAX_PRICE_STALE,
+    DEFAULT_MAX_PRICE_STALE,
+    DEFAULT_MAX_PRICE_STALE,
+    DEFAULT_MAX_PRICE_STALE,
+    DEFAULT_MAX_PRICE_STALE,
+    DEFAULT_MAX_PRICE_STALE,
+    DEFAULT_MAX_PRICE_STALE,
+    DEFAULT_MAX_PRICE_STALE,
+    DEFAULT_MAX_PRICE_STALE,
+    DEFAULT_MAX_PRICE_STALE,
+    DEFAULT_MAX_PRICE_STALE,
+    DEFAULT_MAX_PRICE_STALE,
+    DEFAULT_MAX_PRICE_STALE,
+    DEFAULT_MAX_PRICE_STALE,
   ]
   const SOURCES = [
-    ['']
+    [config.Oracle.SimpleOracle],
+    [config.Oracle.SimpleOracle],
+    [config.Oracle.SimpleOracle],
+    [config.Oracle.SimpleOracle],
+    [config.Oracle.SimpleOracle],
+    [config.Oracle.SimpleOracle],
+    [config.Oracle.SimpleOracle],
+    [config.Oracle.SimpleOracle],
+    [config.Oracle.SimpleOracle],
+    [config.Oracle.SimpleOracle],
+    [config.Oracle.SimpleOracle],
+    [config.Oracle.SimpleOracle],
+    [config.Oracle.SimpleOracle],
+    [config.Oracle.SimpleOracle],
+    [config.Oracle.SimpleOracle],
+    [config.Oracle.SimpleOracle],
+    [config.Oracle.SimpleOracle],
+    [config.Oracle.SimpleOracle],
+    [config.Oracle.SimpleOracle],
+    [config.Oracle.SimpleOracle],
+    [config.Oracle.SimpleOracle],
+    [config.Oracle.SimpleOracle],
+    [config.Oracle.SimpleOracle],
   ];
 
 
@@ -41,7 +153,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 
 
-  const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig
   const tokenList: any = config.Tokens
   const token0Addrs: Array<string> = TOKEN0_SYMBOLS.map((t) => {
     const addr = tokenList[t]
@@ -58,7 +169,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     return addr
   })
 
-  const oracleMedianizer = OracleMedianizer__factory.connect(ORACLE_MEDIANIZER_ADDR, (await ethers.getSigners())[0]);
+  const oracleMedianizer = OracleMedianizer__factory.connect(config.Oracle.OracleMedianizer, (await ethers.getSigners())[0]);
   console.log(">> Adding primary source to oracle medianizer");
   await oracleMedianizer.setMultiPrimarySources(token0Addrs, token1Addrs, MAX_PRICE_DEVIATIONS, MAX_PRICE_STALES, SOURCES, { gasLimit: '10000000' });
   console.log("✅ Done")

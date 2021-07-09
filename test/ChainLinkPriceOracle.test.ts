@@ -27,6 +27,7 @@ let token3: MockERC20
 let mockAggregatorV3T0T1: MockAggregatorV3
 let mockAggregatorV3T1T0: MockAggregatorV3
 let mockAggregatorV3T2T3: MockAggregatorV3
+let mockAggregatorV3T0T2: MockAggregatorV3
 
 let chainLinkOracle: ChainLinkPriceOracle
 let chainLinkOracleAsDeployer: ChainLinkPriceOracle
@@ -56,6 +57,8 @@ describe('ChainLinkPriceOracle', () => {
     await mockAggregatorV3T1T0.deployed()
     mockAggregatorV3T2T3 = await MockAggregatorV3.deploy(BigNumber.from('100000000'), 8)
     await mockAggregatorV3T2T3.deployed()
+    mockAggregatorV3T0T2 = await MockAggregatorV3.deploy(BigNumber.from('10000000000000000000'), 19)
+    await mockAggregatorV3T0T2.deployed()
 
     const ChainLinkPriceOracle = (await ethers.getContractFactory(
       'ChainLinkPriceOracle',
@@ -124,23 +127,34 @@ describe('ChainLinkPriceOracle', () => {
     })
     context('when successfully', async () => {
       it('should successfully', async () => {
-        await chainLinkOracleAsDeployer.setPriceFeeds([token0.address, token2.address], [token1.address, token3.address], [mockAggregatorV3T0T1.address, mockAggregatorV3T2T3.address])
+        await chainLinkOracleAsDeployer.setPriceFeeds(
+          [token0.address, token2.address, token0.address],
+          [token1.address, token3.address, token2.address],
+          [mockAggregatorV3T0T1.address, mockAggregatorV3T2T3.address, mockAggregatorV3T0T2.address])
 
-        const [priceT0T1, lastUpdateT0T1] = await chainLinkOracleAsAlice.getPrice(token0.address, token1.address)
+        const [priceT0T1, ] = await chainLinkOracleAsAlice.getPrice(token0.address, token1.address)
         // result should be (priceT0T1 * 1e18) / (10**decimals) = (36500000000 * 1e18) / (10**8) = 365000000000000000000
         expect(priceT0T1).to.eq(BigNumber.from('365000000000000000000'))
 
-        const [priceT1T0, lastUpdateT1T0] = await chainLinkOracleAsDeployer.getPrice(token1.address, token0.address)
+        const [priceT1T0, ] = await chainLinkOracleAsDeployer.getPrice(token1.address, token0.address)
         // result should be (1e18 * 10**decimals) / (priceT0T1) = (1e18 * 10**8) / (36500000000) = 2739726027397260
         expect(priceT1T0).to.eq(BigNumber.from('2739726027397260'))
 
-        const [priceT2T3, lastUpdateT2T3] = await chainLinkOracleAsAlice.getPrice(token2.address, token3.address)
+        const [priceT2T3, ] = await chainLinkOracleAsAlice.getPrice(token2.address, token3.address)
         // result should be (priceT2T3 * 1e18) / (10**decimals) = (100000000 * 1e18) / (10**8) = 1000000000000000000
         expect(priceT2T3).to.eq(BigNumber.from('1000000000000000000'))
 
-        const [priceT3T2, lastUpdateT3T2] = await chainLinkOracleAsDeployer.getPrice(token3.address, token2.address)
+        const [priceT3T2, ] = await chainLinkOracleAsDeployer.getPrice(token3.address, token2.address)
         // result should be (1e18 * 10**decimals) / (priceT2T3) = (1e18 * 10**8) / (100000000) = 1000000000000000000
         expect(priceT3T2).to.eq(BigNumber.from('1000000000000000000'))
+
+        const [priceT0T2, ] = await chainLinkOracleAsDeployer.getPrice(token0.address, token2.address)
+        // result should be (priceT0T2 * 1e18) / (10**decimals) = (10000000000000000000 * 1e18) / (10**19) = 1000000000000000000
+        expect(priceT0T2).to.eq('1000000000000000000')
+
+        const [priceT2T0, ] = await chainLinkOracleAsDeployer.getPrice(token2.address, token0.address)
+        // result should be (1e18 * 10**decimals) / (priceT2T0) = (1e18 * 10**19) / (10000000000000000000) = 1000000000000000000
+        expect(priceT2T0).to.eq('1000000000000000000')
       })
     })
   })
