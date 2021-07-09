@@ -40,7 +40,7 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate is
   address public wNative;
   mapping(address => bool) public okWorkers;
 
-  event PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate(
+  event PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidateEvent(
     address indexed baseToken,
     address indexed farmToken,
     uint256 amounToLiquidate
@@ -97,7 +97,7 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate is
     // 5. Reset approval for safety reason
     farmingToken.safeApprove(address(router), 0);
 
-    emit PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate(
+    emit PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidateEvent(
       baseToken,
       farmingToken,
       farmingTokenToLiquidate

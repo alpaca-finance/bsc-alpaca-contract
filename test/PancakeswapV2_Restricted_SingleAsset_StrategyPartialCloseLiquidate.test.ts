@@ -290,7 +290,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate', () =
             [farmingTokenToLiquidate, '0']
           )],
         )
-      )).to.emit(strat, 'PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate').withArgs(
+      )).to.emit(strat, 'PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidateEvent').withArgs(
         wbnb.address, farmingToken.address , farmingTokenToLiquidate
       );
       const aliceBalanceAfter = await wbnb.balanceOf(await alice.getAddress())
@@ -394,7 +394,7 @@ describe('PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate', () =
             [farmingTokenToLiquidate, '0']
           )],
         )
-      )).to.emit(strat, 'PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate').withArgs(
+      )).to.emit(strat, 'PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidateEvent').withArgs(
         baseToken.address, farmingToken.address, farmingTokenToLiquidate
       );
 
