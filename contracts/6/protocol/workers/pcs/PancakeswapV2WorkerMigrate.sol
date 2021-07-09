@@ -22,12 +22,12 @@ import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakeFactory.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
 
-import "../apis/pancake/IPancakeRouter02.sol";
-import "../interfaces/IStrategy.sol";
-import "../interfaces/IWorker.sol";
-import "../interfaces/IPancakeMasterChef.sol";
-import "../../utils/AlpacaMath.sol";
-import "../../utils/SafeToken.sol";
+import "../../apis/pancake/IPancakeRouter02.sol";
+import "../../interfaces/IStrategy.sol";
+import "../../interfaces/IWorker.sol";
+import "../../interfaces/IPancakeMasterChef.sol";
+import "../../../utils/AlpacaMath.sol";
+import "../../../utils/SafeToken.sol";
 
 contract PancakeswapV2WorkerMigrate is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker {
   /// @notice Libraries
@@ -100,7 +100,10 @@ contract PancakeswapV2WorkerMigrate is OwnableUpgradeSafe, ReentrancyGuardUpgrad
     reinvestBountyBps = _reinvestBountyBps;
     maxReinvestBountyBps = 500;
 
-    require(reinvestBountyBps <= maxReinvestBountyBps, "PancakeswapWorker::initialize:: reinvestBountyBps exceeded maxReinvestBountyBps");
+    require(
+      reinvestBountyBps <= maxReinvestBountyBps,
+      "PancakeswapWorker::initialize:: reinvestBountyBps exceeded maxReinvestBountyBps"
+    );
   }
 
   /// @dev Require that the caller must be an EOA account to avoid flash loans.
@@ -178,17 +181,21 @@ contract PancakeswapV2WorkerMigrate is OwnableUpgradeSafe, ReentrancyGuardUpgrad
   /// @param user The original user that is interacting with the operator.
   /// @param debt The amount of user debt to help the strategy make decisions.
   /// @param data The encoded data, consisting of strategy address and calldata.
-  function work(uint256 id, address user, uint256 debt, bytes calldata data)
-    override
-    external
-    onlyOperator nonReentrant
-  {
+  function work(
+    uint256 id,
+    address user,
+    uint256 debt,
+    bytes calldata data
+  ) external override onlyOperator nonReentrant {
     // 1. Convert this position back to LP tokens.
     _removeShare(id);
     // 2. Perform the worker strategy; sending LP tokens + BaseToken; expecting LP tokens + BaseToken.
     (address strat, bytes memory ext) = abi.decode(data, (address, bytes));
     require(okStrats[strat], "PancakeswapWorker::work:: unapproved work strategy");
-    require(lpToken.transfer(strat, lpToken.balanceOf(address(this))), "PancakeswapWorker::work:: unable to transfer lp to strat");
+    require(
+      lpToken.transfer(strat, lpToken.balanceOf(address(this))),
+      "PancakeswapWorker::work:: unable to transfer lp to strat"
+    );
     baseToken.safeTransfer(strat, baseToken.myBalance());
     IStrategy(strat).execute(user, debt, ext);
     // 3. Add LP tokens back to the farming pool.
@@ -201,10 +208,14 @@ contract PancakeswapV2WorkerMigrate is OwnableUpgradeSafe, ReentrancyGuardUpgrad
   /// @param aIn The amount of asset to market sell.
   /// @param rIn the amount of asset in reserve for input.
   /// @param rOut The amount of asset in reserve for output.
-  function getMktSellAmount(uint256 aIn, uint256 rIn, uint256 rOut) public view returns (uint256) {
+  function getMktSellAmount(
+    uint256 aIn,
+    uint256 rIn,
+    uint256 rOut
+  ) public view returns (uint256) {
     if (aIn == 0) return 0;
     require(rIn > 0 && rOut > 0, "PancakeswapWorker::getMktSellAmount:: bad reserve values");
-    /// if fee is not set, 
+    /// if fee is not set,
     /// revert to V1 fee first as this can implied that migrationLp hasn't bee executed
     uint256 _fee = fee;
     uint256 _feeDenom = feeDenom;
@@ -218,20 +229,20 @@ contract PancakeswapV2WorkerMigrate is OwnableUpgradeSafe, ReentrancyGuardUpgrad
 
   /// @dev Return the amount of BaseToken to receive if we are to liquidate the given position.
   /// @param id The position ID to perform health check.
-  function health(uint256 id) external override view returns (uint256) {
+  function health(uint256 id) external view override returns (uint256) {
     // 1. Get the position's LP balance and LP total supply.
     uint256 lpBalance = shareToBalance(shares[id]);
     uint256 lpSupply = lpToken.totalSupply(); // Ignore pending mintFee as it is insignificant
     // 2. Get the pool's total supply of BaseToken and FarmingToken.
-    (uint256 r0, uint256 r1,) = lpToken.getReserves();
+    (uint256 r0, uint256 r1, ) = lpToken.getReserves();
     (uint256 totalBaseToken, uint256 totalFarmingToken) = lpToken.token0() == baseToken ? (r0, r1) : (r1, r0);
     // 3. Convert the position's LP tokens to the underlying assets.
     uint256 userBaseToken = lpBalance.mul(totalBaseToken).div(lpSupply);
     uint256 userFarmingToken = lpBalance.mul(totalFarmingToken).div(lpSupply);
     // 4. Convert all FarmingToken to BaseToken and return total BaseToken.
-    return getMktSellAmount(
-      userFarmingToken, totalFarmingToken.sub(userFarmingToken), totalBaseToken.sub(userBaseToken)
-    ).add(userBaseToken);
+    return
+      getMktSellAmount(userFarmingToken, totalFarmingToken.sub(userFarmingToken), totalBaseToken.sub(userBaseToken))
+        .add(userBaseToken);
   }
 
   /// @dev Liquidate the given position by converting it to BaseToken and return back to caller.
@@ -281,14 +292,20 @@ contract PancakeswapV2WorkerMigrate is OwnableUpgradeSafe, ReentrancyGuardUpgrad
   /// @dev Set the reward bounty for calling reinvest operations.
   /// @param _reinvestBountyBps The bounty value to update.
   function setReinvestBountyBps(uint256 _reinvestBountyBps) external onlyOwner {
-    require(_reinvestBountyBps <= maxReinvestBountyBps, "PancakeswapWorker::setReinvestBountyBps:: _reinvestBountyBps exceeded maxReinvestBountyBps");
+    require(
+      _reinvestBountyBps <= maxReinvestBountyBps,
+      "PancakeswapWorker::setReinvestBountyBps:: _reinvestBountyBps exceeded maxReinvestBountyBps"
+    );
     reinvestBountyBps = _reinvestBountyBps;
   }
 
   /// @dev Set Max reinvest reward for set upper limit reinvest bounty.
   /// @param _maxReinvestBountyBps The max reinvest bounty value to update.
   function setMaxReinvestBountyBps(uint256 _maxReinvestBountyBps) external onlyOwner {
-    require(_maxReinvestBountyBps >= reinvestBountyBps, "PancakeswapWorker::setMaxReinvestBountyBps:: _maxReinvestBountyBps lower than reinvestBountyBps");
+    require(
+      _maxReinvestBountyBps >= reinvestBountyBps,
+      "PancakeswapWorker::setMaxReinvestBountyBps:: _maxReinvestBountyBps lower than reinvestBountyBps"
+    );
     maxReinvestBountyBps = _maxReinvestBountyBps;
   }
 
@@ -321,7 +338,7 @@ contract PancakeswapV2WorkerMigrate is OwnableUpgradeSafe, ReentrancyGuardUpgrad
   }
 
   /// @dev Migrate LP token from V1 to V2. FOR PCS MIGRATION ONLY.
-  /// @param _routerV2 The new router 
+  /// @param _routerV2 The new router
   /// @param _newPId The new pool id
   /// @param _twoSideOptimalMigrateStrat The migration strategy
   /// @param _newAddStrat The new add strategy for PCSv2
@@ -342,7 +359,15 @@ contract PancakeswapV2WorkerMigrate is OwnableUpgradeSafe, ReentrancyGuardUpgrad
 
     /// 2. Remove LPv1 from masterChef
     masterChef.withdraw(pid, shareToBalance(totalShare));
-    router.removeLiquidity(baseToken, farmingToken, lpToken.balanceOf(address(this)), 0, 0, address(this), block.timestamp);
+    router.removeLiquidity(
+      baseToken,
+      farmingToken,
+      lpToken.balanceOf(address(this)),
+      0,
+      0,
+      address(this),
+      block.timestamp
+    );
 
     /// 3. Reset approval
     address(lpToken).safeApprove(address(router), 0);
@@ -385,7 +410,9 @@ contract PancakeswapV2WorkerMigrate is OwnableUpgradeSafe, ReentrancyGuardUpgrad
     }
 
     require(
-      (farmingToken == lpToken.token0() || farmingToken == lpToken.token1()) && 
-      (baseToken == lpToken.token0() || baseToken == lpToken.token1()), "PancakeswapWorker::migrateLP:: lpV2 is mis-configed");
+      (farmingToken == lpToken.token0() || farmingToken == lpToken.token1()) &&
+        (baseToken == lpToken.token0() || baseToken == lpToken.token1()),
+      "PancakeswapWorker::migrateLP:: lpV2 is mis-configed"
+    );
   }
 }

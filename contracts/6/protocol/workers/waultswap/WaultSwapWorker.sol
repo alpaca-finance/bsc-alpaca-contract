@@ -19,16 +19,15 @@ import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 
-import "../apis/wault/IWaultSwapFactory.sol";
+import "../../apis/wault/IWaultSwapFactory.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
 
-import "../apis/wault/IWaultSwapRouter02.sol";
-import "../interfaces/IStrategy.sol";
-import "../interfaces/IWorker.sol";
-import "../interfaces/IWexMaster.sol";
-import "../../utils/AlpacaMath.sol";
-import "../../utils/SafeToken.sol";
-
+import "../../apis/wault/IWaultSwapRouter02.sol";
+import "../../interfaces/IStrategy.sol";
+import "../../interfaces/IWorker.sol";
+import "../../interfaces/IWexMaster.sol";
+import "../../../utils/AlpacaMath.sol";
+import "../../../utils/SafeToken.sol";
 
 contract WaultSwapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker {
   /// @notice Libraries

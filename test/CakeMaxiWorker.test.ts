@@ -468,6 +468,14 @@ describe('CakeMaxiWorker', () => {
       expect(await cakeMaxiWorkerNative.getRewardPath()).to.be.deep.eq([cake.address, wbnb.address, alpaca.address])
       expect(await cakeMaxiWorkerNonNative.getRewardPath()).to.be.deep.eq([cake.address, wbnb.address, alpaca.address])
     })
+
+    it('should set the new path', async() => {
+      await cakeMaxiWorkerNative.setPath([wbnb.address, alpaca.address, cake.address])
+      expect(await cakeMaxiWorkerNative.getPath()).to.be.deep.eq([wbnb.address, alpaca.address, cake.address])
+
+      await cakeMaxiWorkerNative.setPath([wbnb.address, cake.address])
+      expect(await cakeMaxiWorkerNative.getPath()).to.be.deep.eq([wbnb.address, cake.address])
+    })
   })
 
   describe("#work()", async () => {
