@@ -93,10 +93,7 @@ contract WaultSwapRestrictedStrategyPartialCloseMinimizeTrading is
     address farmingToken = worker.farmingToken();
     IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
     // 2. Approve router to do their stuffs
-    require(
-      lpToken.approve(address(router), uint256(-1)),
-      "WaultSwapRestrictedStrategyPartialCloseMinimizeTrading::execute:: failed to approve LP token"
-    );
+    address(lpToken).safeApprove(address(router), uint256(-1));
     farmingToken.safeApprove(address(router), uint256(-1));
     // 3. Remove all liquidity back to base token and farming tokens.
     require(
@@ -146,10 +143,7 @@ contract WaultSwapRestrictedStrategyPartialCloseMinimizeTrading is
       }
     }
     // 8. Reset approval for safety reason
-    require(
-      lpToken.approve(address(router), 0),
-      "WaultSwapRestrictedStrategyPartialCloseMinimizeTrading::execute:: unable to reset lp token approval"
-    );
+    address(lpToken).safeApprove(address(router), 0);
     farmingToken.safeApprove(address(router), 0);
 
     emit WaultSwapRestrictedStrategyPartialCloseMinimizeTradingEvent(
