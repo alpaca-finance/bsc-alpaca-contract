@@ -202,23 +202,26 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
 
   /// @dev Re-invest whatever this worker has earned back to staked LP tokens.
   function reinvest() external override onlyEOA onlyReinvestor nonReentrant {
-    _reinvest(msg.sender, reinvestBountyBps, 0);
+    _reinvest(msg.sender, reinvestBountyBps, 0, 0);
     // in case of beneficial vault equals to operator vault, call buyback to transfer some buyback amount back to the vault
     // This can't be called within the _reinvest statement since _reinvest is called within the `work` as well
     _buyback();
   }
 
-  /// @notice internal method for reinvest.
-  /// @param _treasuryAccount - The account to receive reinvest fees
-  /// @param _treasuryBountyBps - The fees in BPS that will be charged for reinvest
+  /// @dev internal method for reinvest.
+  /// @param _treasuryAccount - The account to receive reinvest fees.
+  /// @param _treasuryBountyBps - The fees in BPS that will be charged for reinvest.
+  /// @param _callerBalance - The balance that is owned by the msg.sender within the execution scope.
+  /// @param _reinvestThreshold - The threshold to be reinvested if pendingCake pass over.
   function _reinvest(
     address _treasuryAccount,
     uint256 _treasuryBountyBps,
-    uint256 _callerBalance
+    uint256 _callerBalance,
+    uint256 _reinvestThreshold
   ) internal {
     require(_treasuryAccount != address(0), "PancakeswapV2Worker02::_reinvest:: bad treasury account");
-    // 1. Return if pendingCake <= reinvestThreshold
-    if (masterChef.pendingCake(pid, address(this)) <= reinvestThreshold) return;
+    // 1. Return if pendingCake <= _reinvestThreshold
+    if (masterChef.pendingCake(pid, address(this)) <= _reinvestThreshold) return;
 
     // 2. Approve tokens
     cake.safeApprove(address(router), uint256(-1));
@@ -266,7 +269,7 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
   ) external override onlyOperator nonReentrant {
     // 1. If a treasury configs are not ready. Not reinvest.
     if (treasuryAccount != address(0) && treasuryBountyBps != 0)
-      _reinvest(treasuryAccount, treasuryBountyBps, actualBaseTokenBalance());
+      _reinvest(treasuryAccount, treasuryBountyBps, actualBaseTokenBalance(), reinvestThreshold);
     // 2. Convert this position back to LP tokens.
     _removeShare(id);
     // 3. Perform the worker strategy; sending LP tokens + BaseToken; expecting LP tokens + BaseToken.
@@ -332,7 +335,9 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
     emit Liquidate(id, liquidatedAmount);
   }
 
-  /// @notice some portion of a bounty from reinvest will be sent to beneficialVault to increase the size of totalToken
+  /// @dev Some portion of a bounty from reinvest will be sent to beneficialVault to increase the size of totalToken.
+  /// @param _beneficialVaultBounty - The amount of CAKE to be swapped to BTOKEN & send back to the Vault.
+  /// @param _callerBalance - The balance that is owned by the msg.sender within the execution scope.
   function _rewardToBeneficialVault(uint256 _beneficialVaultBounty, uint256 _callerBalance) internal {
     /// 1. read base token from beneficialVault
     address beneficialVaultToken = beneficialVault.token();
@@ -351,7 +356,7 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
     }
   }
 
-  /// @notice for transfering a buyback amount to the particular beneficial vault
+  /// @dev for transfering a buyback amount to the particular beneficial vault
   // this will be triggered when beneficialVaultToken equals to baseToken.
   function _buyback() internal {
     if (buybackAmount == 0) return;
@@ -361,7 +366,7 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
     emit BeneficialVaultTokenBuyback(msg.sender, beneficialVault, _buybackAmount);
   }
 
-  /// @notice since buybackAmount variable has been created to collect a buyback balance when during the reinvest within the work method,
+  /// @dev since buybackAmount variable has been created to collect a buyback balance when during the reinvest within the work method,
   /// thus the actualBaseTokenBalance exists to differentiate an actual base token balance balance without taking buy back amount into account
   function actualBaseTokenBalance() internal view returns (uint256) {
     return baseToken.myBalance().sub(buybackAmount);
@@ -419,7 +424,7 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
     return rewardPath;
   }
 
-  /// @notice Internal function to get reinvest path. Return route through WBNB if reinvestPath not set.
+  /// @dev Internal function to get reinvest path. Return route through WBNB if reinvestPath not set.
   function getReinvestPath() public view returns (address[] memory) {
     if (reinvestPath.length != 0) return reinvestPath;
     address[] memory path;
@@ -436,7 +441,7 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
     return path;
   }
 
-  /// @dev Set the reward bounty for calling reinvest operations.
+  /// @dev Set the reinvest configuration.
   /// @param _reinvestBountyBps - The bounty value to update.
   /// @param _reinvestThreshold - The threshold to update.
   /// @param _reinvestPath - The reinvest path to update.
@@ -522,7 +527,7 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
     emit SetCriticalStrategy(msg.sender, addStrat, liqStrat);
   }
 
-  /// @notice Set treasury configurations.
+  /// @dev Set treasury configurations.
   /// @param _treasuryAccount - The treasury address to update
   /// @param _treasuryBountyBps - The treasury bounty to update
   function setTreasuryConfig(address _treasuryAccount, uint256 _treasuryBountyBps) external onlyOwner {
@@ -537,7 +542,7 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
     emit SetTreasuryConfig(msg.sender, treasuryAccount, treasuryBountyBps);
   }
 
-  /// @notice Set beneficial vault related data including beneficialVaultBountyBps, beneficialVaultAddress, and rewardPath
+  /// @dev Set beneficial vault related data including beneficialVaultBountyBps, beneficialVaultAddress, and rewardPath
   /// @param _beneficialVaultBountyBps - The bounty value to update.
   /// @param _beneficialVault - beneficialVaultAddress
   /// @param _rewardPath - reward token path from rewardToken to beneficialVaultToken
