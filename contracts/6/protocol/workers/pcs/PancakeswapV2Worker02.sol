@@ -230,6 +230,7 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
     // 3. Withdraw all the rewards.
     masterChef.withdraw(pid, 0);
     uint256 reward = cake.balanceOf(address(this));
+    if (reward == 0) return;
 
     // 4. Send the reward bounty to the _treasuryAccount.
     uint256 bounty = reward.mul(_treasuryBountyBps) / 10000;

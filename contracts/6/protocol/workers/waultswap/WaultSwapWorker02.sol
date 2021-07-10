@@ -228,6 +228,7 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
     // 3. Withdraw all the rewards.
     wexMaster.withdraw(pid, 0, true);
     uint256 reward = wex.balanceOf(address(this));
+    if (reward == 0) return;
 
     // 4. Send the reward bounty to the _treasuryAccount.
     uint256 bounty = reward.mul(_treasuryBountyBps) / 10000;
