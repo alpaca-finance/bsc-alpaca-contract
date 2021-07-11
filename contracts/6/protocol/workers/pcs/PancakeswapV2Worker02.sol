@@ -220,22 +220,16 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
     uint256 _reinvestThreshold
   ) internal {
     require(_treasuryAccount != address(0), "PancakeswapV2Worker02::_reinvest:: bad treasury account");
-
-    // 1. Approve tokens
-    cake.safeApprove(address(router), uint256(-1));
-    address(lpToken).safeApprove(address(masterChef), uint256(-1));
-
     // 1. Withdraw all the rewards. Return if reward <= _reinvestThreshold.
     masterChef.withdraw(pid, 0);
     uint256 reward = cake.balanceOf(address(this));
-    if (reward <= _reinvestThreshold) {
-      // reset approvals and return.
-      cake.safeApprove(address(router), 0);
-      address(lpToken).safeApprove(address(masterChef), 0);
-      return;
-    }
+    if (reward <= _reinvestThreshold) return;
 
-    // 2. Send the reward bounty to the _treasuryAccount.
+    // 2. Approve tokens
+    cake.safeApprove(address(router), uint256(-1));
+    address(lpToken).safeApprove(address(masterChef), uint256(-1));
+
+    // 3. Send the reward bounty to the _treasuryAccount.
     uint256 bounty = reward.mul(_treasuryBountyBps) / 10000;
     if (bounty > 0) {
       uint256 beneficialVaultBounty = bounty.mul(beneficialVaultBountyBps) / 10000;
@@ -243,14 +237,14 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
       cake.safeTransfer(_treasuryAccount, bounty.sub(beneficialVaultBounty));
     }
 
-    // 3. Convert all the remaining rewards to BaseToken according to config path.
+    // 4. Convert all the remaining rewards to BaseToken according to config path.
     router.swapExactTokensForTokens(reward.sub(bounty), 0, getReinvestPath(), address(this), now);
 
-    // 4. Use add Token strategy to convert all BaseToken without both caller balance and buyback amount to LP tokens.
+    // 5. Use add Token strategy to convert all BaseToken without both caller balance and buyback amount to LP tokens.
     baseToken.safeTransfer(address(addStrat), actualBaseTokenBalance().sub(_callerBalance));
     addStrat.execute(address(0), 0, abi.encode(0));
 
-    // 5. Stake LPs for more rewards
+    // 6. Stake LPs for more rewards
     masterChef.deposit(pid, lpToken.balanceOf(address(this)));
 
     // 7. Reset approval

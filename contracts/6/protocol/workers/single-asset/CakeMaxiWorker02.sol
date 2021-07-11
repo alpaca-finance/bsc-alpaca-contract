@@ -217,21 +217,16 @@ contract CakeMaxiWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWo
     uint256 _reinvestThreshold
   ) internal {
     require(_treasuryAccount != address(0), "CakeMaxiWorker02::_reinvest:: bad treasury account");
-
-    // 1. approve tokens
-    farmingToken.safeApprove(address(masterChef), uint256(-1));
-
-    // 2. reset all reward balance since all rewards will be reinvested
+    // 1. reset all reward balance since all rewards will be reinvested
     rewardBalance = 0;
 
-    // 3. withdraw all the rewards.
+    // 2. withdraw all the rewards. Return if rewards smaller than the threshold.
     masterChef.leaveStaking(0);
     uint256 reward = farmingToken.myBalance();
-    if (reward <= _reinvestThreshold) {
-      // reset approvals and return.
-      farmingToken.safeApprove(address(masterChef), 0);
-      return;
-    }
+    if (reward <= _reinvestThreshold) return;
+
+    // 3. approve tokens
+    farmingToken.safeApprove(address(masterChef), uint256(-1));
 
     // 4. send the reward bounty to the caller.
     uint256 bounty = reward.mul(_treasuryBountyBps) / 10000;

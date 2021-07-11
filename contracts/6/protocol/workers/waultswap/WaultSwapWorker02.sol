@@ -218,20 +218,14 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
     uint256 _reinvestThreshold
   ) internal {
     require(_treasuryAccount != address(0), "WaultSwapWorker02::_reinvest:: bad treasury account");
-
-    // 1. Approve tokens
-    wex.safeApprove(address(router), uint256(-1));
-    address(lpToken).safeApprove(address(wexMaster), uint256(-1));
-
-    // 2. Withdraw all the rewards. Return if reward <= _reinvestThershold.
+    // 1. Withdraw all the rewards. Return if reward <= _reinvestThershold.
     wexMaster.withdraw(pid, 0, true);
     uint256 reward = wex.balanceOf(address(this));
-    if (reward <= _reinvestThreshold) {
-      // reset approvals and return.
-      wex.safeApprove(address(router), 0);
-      address(lpToken).safeApprove(address(wexMaster), 0);
-      return;
-    }
+    if (reward <= _reinvestThreshold) return;
+
+    // 2. Approve tokens
+    wex.safeApprove(address(router), uint256(-1));
+    address(lpToken).safeApprove(address(wexMaster), uint256(-1));
 
     // 3. Send the reward bounty to the _treasuryAccount.
     uint256 bounty = reward.mul(_treasuryBountyBps) / 10000;
