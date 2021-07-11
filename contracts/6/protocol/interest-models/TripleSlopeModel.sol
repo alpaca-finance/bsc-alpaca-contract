@@ -18,7 +18,7 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 contract TripleSlopeModel {
   using SafeMath for uint256;
 
-  uint256 public constant CEIL_SLOPE_1 = 50e18;
+  uint256 public constant CEIL_SLOPE_1 = 60e18;
   uint256 public constant CEIL_SLOPE_2 = 90e18;
   uint256 public constant CEIL_SLOPE_3 = 100e18;
 
@@ -40,7 +40,11 @@ contract TripleSlopeModel {
       return uint256(MAX_INTEREST_SLOPE_2) / 365 days;
     } else if (utilization < CEIL_SLOPE_3) {
       // Between 90% and 100% - 20%-150% APY
-      return (MAX_INTEREST_SLOPE_2 + utilization.sub(CEIL_SLOPE_2).mul(MAX_INTEREST_SLOPE_3.sub(MAX_INTEREST_SLOPE_2)).div(CEIL_SLOPE_3.sub(CEIL_SLOPE_2))) / 365 days;
+      return
+        (MAX_INTEREST_SLOPE_2 +
+          utilization.sub(CEIL_SLOPE_2).mul(MAX_INTEREST_SLOPE_3.sub(MAX_INTEREST_SLOPE_2)).div(
+            CEIL_SLOPE_3.sub(CEIL_SLOPE_2)
+          )) / 365 days;
     } else {
       // Not possible, but just in case - 150% APY
       return MAX_INTEREST_SLOPE_3 / 365 days;
