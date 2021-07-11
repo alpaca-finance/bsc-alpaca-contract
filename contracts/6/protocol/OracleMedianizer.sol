@@ -98,7 +98,7 @@ contract OracleMedianizer is OwnableUpgradeSafe, PriceOracle {
   /// @param token0 Token0 to get price of
   /// @param token1 Token1 to get price of
   /// NOTE: Support at most 3 oracle sources per token
-  function _getPrice(address token0, address token1) public view returns (uint256) {
+  function _getPrice(address token0, address token1) internal view returns (uint256) {
     uint256 candidateSourceCount = primarySourceCount[token0][token1];
     require(candidateSourceCount > 0, "OracleMedianizer::getPrice:: no primary source");
     uint256[] memory prices = new uint256[](candidateSourceCount);
