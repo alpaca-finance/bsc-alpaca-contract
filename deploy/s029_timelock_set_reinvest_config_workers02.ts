@@ -53,7 +53,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       REINVEST_PATH: ['CAKE', 'BUSD', 'ALPACA']
     }
   ]
-  const EXACT_ETA = '1625816700';
+  const EXACT_ETA = '1626087600';
 
 
 

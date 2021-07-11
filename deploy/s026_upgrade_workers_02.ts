@@ -62,7 +62,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "BUSD-ALPACA PancakeswapWorker"   
   ]
   const NEW_IMPL = '';
-  const EXACT_ETA = '1625816700';
+  const EXACT_ETA = '1626087600';
 
 
 

@@ -347,6 +347,10 @@
         "pId": 60,
         "name": "BTT-WBNB LP",
         "address": "0x2D7B149Ee7659254fd39d6F33e7b713544403257"
+      }, {
+        "pId": 61,
+        "name": "ORBS-BUSD LP",
+        "address": "0x367D7858baC57B32DeEC5B0C9C81bB2794DE1dB8"
       }]
     },
     "Waultswap": {
@@ -455,7 +459,8 @@
     "FORM": "0xbcCcc3CA4C7ced85E319e23caD252A2b2E37DBD3",
     "MATIC": "0x43bA788e45A479880613155950CD2f45c5C4e16b",
     "TRX": "0x1C240979179F929D3F72171275cB7Ec8c55B0d3f",
-    "BTT": "0x415baCAb125Be426d916bF0D67d952FCD1Cc922b"
+    "BTT": "0x415baCAb125Be426d916bF0D67d952FCD1Cc922b",
+    "ORBS": "0x6f01395Ae92776D98F509BBECE53160051F6a872"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x7549b7d0edcd411e7e5013dc74727f8dab13ab0f",
@@ -1083,6 +1088,19 @@
       "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
       "pId": 56,
       "stakingToken": "0xBf4301EF97585016ecB2D955b5190510654E9e96",
+      "stakingTokenAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
+        "StrategyLiquidate": "0x58Bbb507248635413172Ed7A2eeC048402C6b39b",
+        "StrategyAddTwoSidesOptimal": "0x22fC6110d5d9b122f3C2d4715C24566342161a12",
+        "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32"
+      }
+    }, {
+      "name": "ORBS-BUSD PancakeswapWorker",
+      "address": "0xa092B5315C2dEa32B449392221D13026E5A6f2A1",
+      "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+      "pId": 61,
+      "stakingToken": "0x367D7858baC57B32DeEC5B0C9C81bB2794DE1dB8",
       "stakingTokenAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
       "strategies": {
         "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
