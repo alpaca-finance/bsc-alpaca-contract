@@ -33,13 +33,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
   const workerInputs: IWorkerInputs = [
-    // {
-    //   WORKER_NAME: "CAKE-WBNB PancakeswapWorker",
-    // } // Example
+    {
+      WORKER_NAME: "BUSD-ALPACA PancakeswapWorker",
+    } // Example
   ]
-  const EXACT_ETA = '1620575100';
-  const TREASURY_ACCOUNT = ''; // Address of treasury account
-  const TREASURY_BOUNTY_BPS = ''; // Treasury bounty bps
+  const EXACT_ETA = '1625820300';
+  const TREASURY_ACCOUNT = '0x212C2a2891227f39B48D655C5ecA0b1377daFF90'; // Address of treasury account
+  const TREASURY_BOUNTY_BPS = '300'; // Treasury bounty bps
 
 
 

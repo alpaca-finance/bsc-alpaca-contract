@@ -59,12 +59,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
   const workerInputs: IWorkerInputs = [
-    // {
-    //   WORKER_NAME: "CAKE-WBNB PancakeswapWorker",
-    // } // Example
+    "BUSD-ALPACA PancakeswapWorker"   
   ]
-  const NEW_IMPL = '0xcac73A0f24968e201c2cc326edbC92A87666b430';
-  const EXACT_ETA = '1620575100';
+  const NEW_IMPL = '';
+  const EXACT_ETA = '1625816700';
 
 
 

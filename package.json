@@ -69,6 +69,7 @@
     "deploy:mainnet:s026": "hardhat --network mainnet deploy --no-compile --reset --tags UpgradeWorkers02",
     "deploy:mainnet:s027": "hardhat --network mainnet deploy --no-compile --reset --tags TimelockAddTreasuryFieldsWorkers02",
     "deploy:mainnet:s028": "hardhat --network mainnet deploy --no-compile --reset --tags TimelockAddBeneficialBuybackFieldsWorkers02",
+    "deploy:mainnet:s029": "hardhat --network mainnet deploy --no-compile --reset --tags TimelockSetReinvestConfigWorkers02",
     
     "deploy:testnet:000": "hardhat --network testnet deploy --no-compile --reset --tags Testnet",
     "deploy:testnet:000:panV2": "hardhat --network testnet deploy --no-compile --reset --tags PancakeswapV2",
@@ -138,6 +139,7 @@
     "deploy:testnet:s026": "hardhat --network testnet deploy --no-compile --reset --tags UpgradeWorkers02",
     "deploy:testnet:s027": "hardhat --network testnet deploy --no-compile --reset --tags TimelockAddTreasuryFieldsWorkers02",
     "deploy:testnet:s028": "hardhat --network testnet deploy --no-compile --reset --tags TimelockAddBeneficialBuybackFieldsWorkers02",
+    "deploy:testnet:s029": "hardhat --network testnet deploy --no-compile --reset --tags TimelockSetReinvestConfigWorkers02",
     
     "mainnet": "hardhat console --no-compile --network mainnet",
     
