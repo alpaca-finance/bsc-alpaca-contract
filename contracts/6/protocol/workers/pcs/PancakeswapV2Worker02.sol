@@ -220,19 +220,22 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
     uint256 _reinvestThreshold
   ) internal {
     require(_treasuryAccount != address(0), "PancakeswapV2Worker02::_reinvest:: bad treasury account");
-    // 1. Return if pendingCake <= _reinvestThreshold
-    if (masterChef.pendingCake(pid, address(this)) <= _reinvestThreshold) return;
 
-    // 2. Approve tokens
+    // 1. Approve tokens
     cake.safeApprove(address(router), uint256(-1));
     address(lpToken).safeApprove(address(masterChef), uint256(-1));
 
-    // 3. Withdraw all the rewards.
+    // 1. Withdraw all the rewards. Return if reward <= _reinvestThreshold.
     masterChef.withdraw(pid, 0);
     uint256 reward = cake.balanceOf(address(this));
-    if (reward == 0) return;
+    if (reward <= _reinvestThreshold) {
+      // reset approvals and return.
+      cake.safeApprove(address(router), 0);
+      address(lpToken).safeApprove(address(masterChef), 0);
+      return;
+    }
 
-    // 4. Send the reward bounty to the _treasuryAccount.
+    // 2. Send the reward bounty to the _treasuryAccount.
     uint256 bounty = reward.mul(_treasuryBountyBps) / 10000;
     if (bounty > 0) {
       uint256 beneficialVaultBounty = bounty.mul(beneficialVaultBountyBps) / 10000;
@@ -240,17 +243,17 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
       cake.safeTransfer(_treasuryAccount, bounty.sub(beneficialVaultBounty));
     }
 
-    // 5. Convert all the remaining rewards to BaseToken according to config path.
+    // 3. Convert all the remaining rewards to BaseToken according to config path.
     router.swapExactTokensForTokens(reward.sub(bounty), 0, getReinvestPath(), address(this), now);
 
-    // 6. Use add Token strategy to convert all BaseToken without both caller balance and buyback amount to LP tokens.
+    // 4. Use add Token strategy to convert all BaseToken without both caller balance and buyback amount to LP tokens.
     baseToken.safeTransfer(address(addStrat), actualBaseTokenBalance().sub(_callerBalance));
     addStrat.execute(address(0), 0, abi.encode(0));
 
-    // 7. Stake LPs for more rewards
+    // 5. Stake LPs for more rewards
     masterChef.deposit(pid, lpToken.balanceOf(address(this)));
 
-    // 8. Reset approve
+    // 7. Reset approval
     cake.safeApprove(address(router), 0);
     address(lpToken).safeApprove(address(masterChef), 0);
 
@@ -413,7 +416,7 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
   }
 
   /// @dev Return the inverse path.
-  function getReversedPath() public view override returns (address[] memory) {
+  function getReversedPath() external view override returns (address[] memory) {
     address[] memory reversePath = new address[](2);
     reversePath[0] = farmingToken;
     reversePath[1] = baseToken;
@@ -455,10 +458,10 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
       _reinvestBountyBps <= maxReinvestBountyBps,
       "PancakeswapV2Worker02::setReinvestConfig:: _reinvestBountyBps exceeded maxReinvestBountyBps"
     );
-    require(_reinvestPath.length >= 2, "PancakeswapV2Worker02::setReinvestConfig:: reinvestPath length must >= 2");
+    require(_reinvestPath.length >= 2, "PancakeswapV2Worker02::setReinvestConfig:: _reinvestPath length must >= 2");
     require(
       _reinvestPath[0] == cake && _reinvestPath[_reinvestPath.length - 1] == baseToken,
-      "PancakeswapV2Worker02::setReinvestConfig:: reinvestPath must start with CAKE, end with BTOKEN"
+      "PancakeswapV2Worker02::setReinvestConfig:: _reinvestPath must start with CAKE, end with BTOKEN"
     );
 
     reinvestBountyBps = _reinvestBountyBps;
@@ -475,6 +478,11 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
       _maxReinvestBountyBps >= reinvestBountyBps,
       "PancakeswapV2Worker02::setMaxReinvestBountyBps:: _maxReinvestBountyBps lower than reinvestBountyBps"
     );
+    require(
+      _maxReinvestBountyBps <= 3000,
+      "PancakeswapV2Worker02::setMaxReinvestBountyBps:: _maxReinvestBountyBps exceeded 30%"
+    );
+
     maxReinvestBountyBps = _maxReinvestBountyBps;
 
     emit SetMaxReinvestBountyBps(msg.sender, maxReinvestBountyBps);

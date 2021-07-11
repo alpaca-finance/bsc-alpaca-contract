@@ -218,19 +218,22 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
     uint256 _reinvestThreshold
   ) internal {
     require(_treasuryAccount != address(0), "WaultSwapWorker02::_reinvest:: bad treasury account");
-    // 1. Return if pendingWex <= reinvestThreshold
-    if (wexMaster.pendingWex(pid, address(this)) <= _reinvestThreshold) return;
 
-    // 2. Approve tokens
+    // 1. Approve tokens
     wex.safeApprove(address(router), uint256(-1));
     address(lpToken).safeApprove(address(wexMaster), uint256(-1));
 
-    // 3. Withdraw all the rewards.
+    // 2. Withdraw all the rewards. Return if reward <= _reinvestThershold.
     wexMaster.withdraw(pid, 0, true);
     uint256 reward = wex.balanceOf(address(this));
-    if (reward == 0) return;
+    if (reward <= _reinvestThreshold) {
+      // reset approvals and return.
+      wex.safeApprove(address(router), 0);
+      address(lpToken).safeApprove(address(wexMaster), 0);
+      return;
+    }
 
-    // 4. Send the reward bounty to the _treasuryAccount.
+    // 3. Send the reward bounty to the _treasuryAccount.
     uint256 bounty = reward.mul(_treasuryBountyBps) / 10000;
     if (bounty > 0) {
       uint256 beneficialVaultBounty = bounty.mul(beneficialVaultBountyBps) / 10000;
@@ -238,17 +241,18 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
       wex.safeTransfer(_treasuryAccount, bounty.sub(beneficialVaultBounty));
     }
 
-    // 5. Convert all the remaining rewards to BaseToken via Native for liquidity.
+    // 4. Convert all the remaining rewards to BaseToken via Native for liquidity.
     router.swapExactTokensForTokens(reward.sub(bounty), 0, getReinvestPath(), address(this), now);
+    wex.safeApprove(address(router), 0);
 
-    // 6. Use add Token strategy to convert all BaseToken without both caller balance and buyback amount to LP tokens.
+    // 5. Use add Token strategy to convert all BaseToken without both caller balance and buyback amount to LP tokens.
     baseToken.safeTransfer(address(addStrat), actualBaseTokenBalance().sub(_callerBalance));
     addStrat.execute(address(0), 0, abi.encode(0));
 
-    // 7. Stake LPs for more rewards
+    // 6. Stake LPs for more rewards
     wexMaster.deposit(pid, lpToken.balanceOf(address(this)), true);
 
-    // 8. Reset approve
+    // 7. Reset approvals
     wex.safeApprove(address(router), 0);
     address(lpToken).safeApprove(address(wexMaster), 0);
 
@@ -412,7 +416,7 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
   }
 
   /// @dev Return the inverse path.
-  function getReversedPath() public view override returns (address[] memory) {
+  function getReversedPath() external view override returns (address[] memory) {
     address[] memory reversePath = new address[](2);
     reversePath[0] = farmingToken;
     reversePath[1] = baseToken;
@@ -475,6 +479,11 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
       _maxReinvestBountyBps >= reinvestBountyBps,
       "WaultSwapWorker02::setMaxReinvestBountyBps:: _maxReinvestBountyBps lower than reinvestBountyBps"
     );
+    require(
+      _maxReinvestBountyBps <= 3000,
+      "WaultSwapWorker02::setMaxReinvestBountyBps:: _maxReinvestBountyBps exceeded 30%"
+    );
+
     maxReinvestBountyBps = _maxReinvestBountyBps;
 
     emit SetMaxReinvestBountyBps(msg.sender, maxReinvestBountyBps);

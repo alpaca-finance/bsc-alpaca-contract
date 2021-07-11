@@ -217,21 +217,23 @@ contract CakeMaxiWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWo
     uint256 _reinvestThreshold
   ) internal {
     require(_treasuryAccount != address(0), "CakeMaxiWorker02::_reinvest:: bad treasury account");
-    // 1. return if pendingCake <= reinvestThreshold
-    if (masterChef.pendingCake(pid, address(this)) <= _reinvestThreshold) return;
 
-    // 2. approve tokens
+    // 1. approve tokens
     farmingToken.safeApprove(address(masterChef), uint256(-1));
 
-    // 3. reset all reward balance since all rewards will be reinvested
+    // 2. reset all reward balance since all rewards will be reinvested
     rewardBalance = 0;
 
-    // 4. withdraw all the rewards.
+    // 3. withdraw all the rewards.
     masterChef.leaveStaking(0);
     uint256 reward = farmingToken.myBalance();
-    if (reward == 0) return;
+    if (reward <= _reinvestThreshold) {
+      // reset approvals and return.
+      farmingToken.safeApprove(address(masterChef), 0);
+      return;
+    }
 
-    // 5. send the reward bounty to the caller.
+    // 4. send the reward bounty to the caller.
     uint256 bounty = reward.mul(_treasuryBountyBps) / 10000;
     if (bounty > 0) {
       uint256 beneficialVaultBounty = bounty.mul(beneficialVaultBountyBps) / 10000;
@@ -239,10 +241,10 @@ contract CakeMaxiWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWo
       farmingToken.safeTransfer(_treasuryAccount, bounty.sub(beneficialVaultBounty));
     }
 
-    // 6. re-stake the farming token to get more rewards
+    // 5. re-stake the farming token to get more rewards
     masterChef.enterStaking(reward.sub(bounty));
 
-    // 7. reset approval
+    // 6. reset approvals
     farmingToken.safeApprove(address(masterChef), 0);
 
     emit Reinvest(_treasuryAccount, reward, bounty);
@@ -465,7 +467,13 @@ contract CakeMaxiWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWo
       _maxReinvestBountyBps >= reinvestBountyBps,
       "CakeMaxiWorker02::setMaxReinvestBountyBps:: _maxReinvestBountyBps lower than reinvestBountyBps"
     );
+    require(
+      _maxReinvestBountyBps <= 3000,
+      "CakeMaxiWorker02::setMaxReinvestBountyBps:: _maxReinvestBountyBps exceeded 30%"
+    );
+
     maxReinvestBountyBps = _maxReinvestBountyBps;
+
     emit SetMaxReinvestBountyBps(msg.sender, _maxReinvestBountyBps);
   }
 
