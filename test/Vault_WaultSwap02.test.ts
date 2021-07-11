@@ -382,53 +382,69 @@ describe('Vault - WaultSwap02', () => {
   });
 
   context('when owner is setting worker', async() => {
-    it('should set reinvest config correctly', async() => {
-      await expect(waultSwapWorker.setReinvestConfig(
-        250, ethers.utils.parseEther('1'), [wex.address, baseToken.address]
-      )).to.be.emit(waultSwapWorker, 'SetReinvestConfig')
-        .withArgs(await deployer.getAddress(), 250, ethers.utils.parseEther('1'), [wex.address, baseToken.address])
-      expect(await waultSwapWorker.reinvestBountyBps()).to.be.bignumber.eq(250);
-      expect(await waultSwapWorker.reinvestThreshold()).to.be.bignumber.eq(ethers.utils.parseEther('1'))
-      expect(await waultSwapWorker.getReinvestPath()).to.deep.eq([wex.address, baseToken.address])
-    });
+    describe("#setReinvestConfig", async() => {
+      it('should set reinvest config correctly', async() => {
+        await expect(waultSwapWorker.setReinvestConfig(
+          250, ethers.utils.parseEther('1'), [wex.address, baseToken.address]
+        )).to.be.emit(waultSwapWorker, 'SetReinvestConfig')
+          .withArgs(await deployer.getAddress(), 250, ethers.utils.parseEther('1'), [wex.address, baseToken.address])
+        expect(await waultSwapWorker.reinvestBountyBps()).to.be.bignumber.eq(250);
+        expect(await waultSwapWorker.reinvestThreshold()).to.be.bignumber.eq(ethers.utils.parseEther('1'))
+        expect(await waultSwapWorker.getReinvestPath()).to.deep.eq([wex.address, baseToken.address])
+      })
 
-    it('should set max reinvest bounty', async() => {
-      await waultSwapWorker.setMaxReinvestBountyBps(200);
-      expect(await waultSwapWorker.maxReinvestBountyBps()).to.be.bignumber.eq(200);
-    });
+      it('should revert when owner set reinvestBountyBps > max', async() => {
+        await expect(
+          waultSwapWorker.setReinvestConfig(1000, '0', [wex.address, baseToken.address])
+        ).to.be.revertedWith('WaultSwapWorker02::setReinvestConfig:: _reinvestBountyBps exceeded maxReinvestBountyBps');
+        expect(await waultSwapWorker.reinvestBountyBps()).to.be.bignumber.eq(100);
+      })
 
-    it('should successfully set a treasury account', async() => {
-      const aliceAddr = await alice.getAddress()
-      await waultSwapWorker.setTreasuryConfig(aliceAddr, REINVEST_BOUNTY_BPS);
-      expect(await waultSwapWorker.treasuryAccount()).to.eq(aliceAddr)
+      it('should revert when owner set reinvest path that does not start with WEX and end with BTOKEN', async() => {
+        await expect(
+          waultSwapWorker.setReinvestConfig(200, '0', [baseToken.address, wex.address])
+        ).to.be.revertedWith('WaultSwapWorker02::setReinvestConfig:: _reinvestPath must start with WEX, end with BTOKEN')
+      })
     })
 
-    context('when treasury bounty > max reinvest bounty', async () => {
-      it('should revert', async() => {
+    describe("#setMaxReinvestBountyBps", async() => {
+      it('should set max reinvest bounty', async() => {
+        await waultSwapWorker.setMaxReinvestBountyBps(200);
+        expect(await waultSwapWorker.maxReinvestBountyBps()).to.be.bignumber.eq(200);
+      })
+
+      it('should revert when new max reinvest bounty over 30%', async() => {
+        await expect(waultSwapWorker.setMaxReinvestBountyBps('3001'))
+          .to.be.revertedWith('WaultSwapWorker02::setMaxReinvestBountyBps:: _maxReinvestBountyBps exceeded 30%')
+        expect(await waultSwapWorker.maxReinvestBountyBps()).to.be.eq('500')
+      })
+    })
+
+    describe("#setTreasuryConfig", async() => {
+      it('should successfully set a treasury account', async() => {
+        const aliceAddr = await alice.getAddress()
+        await waultSwapWorker.setTreasuryConfig(aliceAddr, REINVEST_BOUNTY_BPS);
+        expect(await waultSwapWorker.treasuryAccount()).to.eq(aliceAddr)
+      })
+
+      it('should successfully set a treasury bounty', async() => {
+        await waultSwapWorker.setTreasuryConfig(DEPLOYER, 499);
+        expect(await waultSwapWorker.treasuryBountyBps()).to.eq(499)
+      })
+  
+      it('should revert when treasury bounty > max reinvest bounty', async() => {
         await expect(waultSwapWorker.setTreasuryConfig(DEPLOYER, parseInt(MAX_REINVEST_BOUNTY) + 1))
           .to.revertedWith('WaultSwapWorker02::setTreasuryConfig:: _treasuryBountyBps exceeded maxReinvestBountyBps');
         expect(await waultSwapWorker.treasuryBountyBps()).to.eq(REINVEST_BOUNTY_BPS)
       })
     })
 
-    context('when treasury bounty <= max reinvest bounty', async () => {
-      it('should successfully set a treasury bounty', async() => {
-        await waultSwapWorker.setTreasuryConfig(DEPLOYER, 499);
-        expect(await waultSwapWorker.treasuryBountyBps()).to.eq(499)
-      })
+    describe("#setStrategyOk", async() => {
+      it('should set strat ok', async() => {
+        await waultSwapWorker.setStrategyOk([await alice.getAddress()], true);
+        expect(await waultSwapWorker.okStrats(await alice.getAddress())).to.be.eq(true);
+      });
     })
-
-    it('should revert when owner set reinvestBountyBps > max', async() => {
-      await expect(
-        waultSwapWorker.setReinvestConfig(1000, '0', [wex.address, baseToken.address])
-      ).to.be.revertedWith('WaultSwapWorker02::setReinvestConfig:: _reinvestBountyBps exceeded maxReinvestBountyBps');
-      expect(await waultSwapWorker.reinvestBountyBps()).to.be.bignumber.eq(100);
-    });
-
-    it('should set strat ok', async() => {
-      await waultSwapWorker.setStrategyOk([await alice.getAddress()], true);
-      expect(await waultSwapWorker.okStrats(await alice.getAddress())).to.be.eq(true);
-    });
   });
 
   context('when user uses LYF', async() => {
