@@ -199,35 +199,36 @@ contract CakeMaxiWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWo
 
   /// @dev Re-invest whatever this worker has earned to the staking pool.
   function reinvest() external override onlyEOA onlyReinvestor nonReentrant {
-    _reinvest(msg.sender, reinvestBountyBps, 0);
+    _reinvest(msg.sender, reinvestBountyBps, 0, 0);
     // in case of beneficial vault equals to operator vault, call buyback to transfer some buyback amount back to the vault
     // This can't be called within the _reinvest statement since _reinvest is called within the `work` as well
     _buyback();
   }
 
   /// @dev Internal method containing reinvest logic
-  /// @param _treasuryAccount is the account that the reinvest bounty will be sent.
-  /// @param _treasuryBountyBps is the bounty bps deducted from the reinvest reward.
+  /// @param _treasuryAccount - The account that the reinvest bounty will be sent.
+  /// @param _treasuryBountyBps - The bounty bps deducted from the reinvest reward.
+  /// @param _callerBalance - The balance that is owned by the msg.sender within the execution scope.
+  /// @param _reinvestThreshold - The threshold to be reinvested if pendingCake pass over.
   function _reinvest(
     address _treasuryAccount,
     uint256 _treasuryBountyBps,
-    uint256 _callerBalance
+    uint256 _callerBalance,
+    uint256 _reinvestThreshold
   ) internal {
     require(_treasuryAccount != address(0), "CakeMaxiWorker02::_reinvest:: bad treasury account");
-    // 1. return if pendingCake <= reinvestThreshold
-    if (masterChef.pendingCake(pid, address(this)) <= reinvestThreshold) return;
-
-    // 2. approve tokens
-    farmingToken.safeApprove(address(masterChef), uint256(-1));
-
-    // 3. reset all reward balance since all rewards will be reinvested
+    // 1. reset all reward balance since all rewards will be reinvested
     rewardBalance = 0;
 
-    // 4. withdraw all the rewards.
+    // 2. withdraw all the rewards. Return if rewards smaller than the threshold.
     masterChef.leaveStaking(0);
     uint256 reward = farmingToken.myBalance();
+    if (reward <= _reinvestThreshold) return;
 
-    // 5. send the reward bounty to the caller.
+    // 3. approve tokens
+    farmingToken.safeApprove(address(masterChef), uint256(-1));
+
+    // 4. send the reward bounty to the caller.
     uint256 bounty = reward.mul(_treasuryBountyBps) / 10000;
     if (bounty > 0) {
       uint256 beneficialVaultBounty = bounty.mul(beneficialVaultBountyBps) / 10000;
@@ -235,16 +236,18 @@ contract CakeMaxiWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWo
       farmingToken.safeTransfer(_treasuryAccount, bounty.sub(beneficialVaultBounty));
     }
 
-    // 6. re-stake the farming token to get more rewards
+    // 5. re-stake the farming token to get more rewards
     masterChef.enterStaking(reward.sub(bounty));
 
-    // 7. reset approval
+    // 6. reset approvals
     farmingToken.safeApprove(address(masterChef), 0);
 
     emit Reinvest(_treasuryAccount, reward, bounty);
   }
 
-  /// @notice some portion of a bounty from reinvest will be sent to beneficialVault to increase the size of totalToken
+  /// @dev Some portion of a bounty from reinvest will be sent to beneficialVault to increase the size of totalToken.
+  /// @param _beneficialVaultBounty - The amount of CAKE to be swapped to BTOKEN & send back to the Vault.
+  /// @param _callerBalance - The balance that is owned by the msg.sender within the execution scope.
   function _rewardToBeneficialVault(uint256 _beneficialVaultBounty, uint256 _callerBalance) internal {
     /// 1. approve router to do the trading
     farmingToken.safeApprove(address(router), uint256(-1));
@@ -266,7 +269,7 @@ contract CakeMaxiWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWo
     farmingToken.safeApprove(address(router), 0);
   }
 
-  /// @notice for transfering a buyback amount to the particular beneficial vault
+  /// @dev for transfering a buyback amount to the particular beneficial vault
   // this will be triggered when beneficialVaultToken equals to baseToken.
   function _buyback() internal {
     if (buybackAmount == 0) return;
@@ -289,7 +292,7 @@ contract CakeMaxiWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWo
   ) external override onlyOperator nonReentrant {
     // 1. If a treasury configs are not ready. Not reinvest.
     if (treasuryAccount != address(0) && treasuryBountyBps != 0)
-      _reinvest(treasuryAccount, treasuryBountyBps, actualBaseTokenBalance());
+      _reinvest(treasuryAccount, treasuryBountyBps, actualBaseTokenBalance(), reinvestThreshold);
     // 2. Remove shares on this position back to farming tokens
     _removeShare(id);
     // 3. Perform the worker strategy; sending a basetoken amount to the strategy.
@@ -355,13 +358,13 @@ contract CakeMaxiWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWo
     emit Liquidate(id, liquidatedAmount);
   }
 
-  /// @notice since reward gaining from the masterchef is the same token with farmingToken,
+  /// @dev since reward gaining from the masterchef is the same token with farmingToken,
   /// thus the rewardBalance exists to differentiate an actual farming token balance without taking reward balance into account
   function actualFarmingTokenBalance() internal view returns (uint256) {
     return farmingToken.myBalance().sub(rewardBalance);
   }
 
-  /// @notice since buybackAmount variable has been created to collect a buyback balance when during the reinvest within the work method,
+  /// @dev since buybackAmount variable has been created to collect a buyback balance when during the reinvest within the work method,
   /// thus the actualBaseTokenBalance exists to differentiate an actual base token balance balance without taking buy back amount into account
   function actualBaseTokenBalance() internal view returns (uint256) {
     return baseToken.myBalance().sub(buybackAmount);
@@ -425,7 +428,7 @@ contract CakeMaxiWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWo
     return rewardPath;
   }
 
-  /// @dev Set the reward bounty for calling reinvest operations.
+  /// @dev Set the reinvest configuration.
   /// @param _reinvestBountyBps - The bounty value to update.
   /// @param _reinvestThreshold - The threshold to update.
   function setReinvestConfig(uint256 _reinvestBountyBps, uint256 _reinvestThreshold) external onlyOwner {
@@ -440,7 +443,7 @@ contract CakeMaxiWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWo
     emit SetReinvestConfig(msg.sender, _reinvestBountyBps, _reinvestThreshold);
   }
 
-  /// @notice Set the reward bounty from reinvest operations sending to a beneficial vault.
+  /// @dev Set the reward bounty from reinvest operations sending to a beneficial vault.
   /// this bps will be deducted from reinvest bounty bps
   /// @param _beneficialVaultBountyBps The bounty value to update.
   function setBeneficialVaultBountyBps(uint256 _beneficialVaultBountyBps) external onlyOwner {
@@ -459,7 +462,13 @@ contract CakeMaxiWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWo
       _maxReinvestBountyBps >= reinvestBountyBps,
       "CakeMaxiWorker02::setMaxReinvestBountyBps:: _maxReinvestBountyBps lower than reinvestBountyBps"
     );
+    require(
+      _maxReinvestBountyBps <= 3000,
+      "CakeMaxiWorker02::setMaxReinvestBountyBps:: _maxReinvestBountyBps exceeded 30%"
+    );
+
     maxReinvestBountyBps = _maxReinvestBountyBps;
+
     emit SetMaxReinvestBountyBps(msg.sender, _maxReinvestBountyBps);
   }
 
@@ -522,7 +531,7 @@ contract CakeMaxiWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWo
     emit SetCriticalStrategy(msg.sender, _addStrat, _liqStrat);
   }
 
-  /// @notice Set treasury configurations.
+  /// @dev Set treasury configurations.
   /// @param _treasuryAccount - The treasury address to update
   /// @param _treasuryBountyBps - The treasury bounty to update
   function setTreasuryConfig(address _treasuryAccount, uint256 _treasuryBountyBps) external onlyOwner {
@@ -537,7 +546,7 @@ contract CakeMaxiWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWo
     emit SetTreasuryConfig(msg.sender, treasuryAccount, treasuryBountyBps);
   }
 
-  /// @notice Set beneficial vault related configuration including beneficialVaultBountyBps, beneficialVaultAddress, and rewardPath
+  /// @dev Set beneficial vault related configuration including beneficialVaultBountyBps, beneficialVaultAddress, and rewardPath
   /// @param _beneficialVaultBountyBps - The bounty value to update.
   /// @param _beneficialVault - beneficialVaultAddress
   /// @param _rewardPath - reward token path from rewardToken to beneficialVaultToken
