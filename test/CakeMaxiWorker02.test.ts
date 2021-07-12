@@ -516,6 +516,19 @@ describe('CakeMaxiWorker02', () => {
     })
   })
 
+  describe("#setMaxReinvestBountyBps", async() => {
+    it('should successfully set a max reinvest bounty bps', async() => {
+      await cakeMaxiWorkerNative.setMaxReinvestBountyBps('3000')
+      expect(await cakeMaxiWorkerNative.maxReinvestBountyBps()).to.be.eq('3000')
+    })
+
+    it('should revert when new max reinvest bounty over 30%', async() => {
+      await expect(cakeMaxiWorkerNative.setMaxReinvestBountyBps('3001'))
+        .to.be.revertedWith('CakeMaxiWorker02::setMaxReinvestBountyBps:: _maxReinvestBountyBps exceeded 30%')
+      expect(await cakeMaxiWorkerNative.maxReinvestBountyBps()).to.be.eq('2000')
+    })
+  })
+
   describe("#work()", async () => {
     context("When the caller is not an operator", async() => {
       it('should be reverted', async () => {
