@@ -45,9 +45,9 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   address public override getFairLaunchAddr;
   /// list of whitelisted callers
   mapping(address => bool) public override whitelistedCallers;
-  // The reward for buyback and burn after successfully killing a position.
+  /// The portion of reward that will be transferred to treasury account after successfully killing a position.
   uint256 public override getKillTreasuryBps;
-  // The address of buyback
+  /// address of treasury account
   address public treasury;
 
   function initialize(

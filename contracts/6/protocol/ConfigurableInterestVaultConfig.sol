@@ -59,9 +59,9 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   uint256 public maxKillBps;
   /// list of whitelisted callers
   mapping(address => bool) public override whitelistedCallers;
-  // The portion of reward for buyback and burn after successfully killing a position.
+  // The portion of reward that will be transferred to treasury account after successfully killing a position.
   uint256 public override getKillTreasuryBps;
-  // The address where buyback and burn portion will be transferred to.
+  // address of treasury account
   address public treasury;
 
   function initialize(
@@ -96,8 +96,8 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   /// @param _reservePoolBps The new interests allocated to the reserve pool value.
   /// @param _killBps The new reward for killing a position value.
   /// @param _interestModel The new interest rate model contract.
-  /// @param _getKillTreasuryBps The portion of reward for buyback and burn after successfully killing a position.
-  /// @param _treasury The address where buyback and burn portion will be transferred to.
+  /// @param _getKillTreasuryBps The portion of reward that will be transferred to treasury account after successfully killing a position.
+  /// @param _treasury address of treasury account
 
   function setParams(
     uint256 _minDebtSize,
