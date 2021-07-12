@@ -33,10 +33,10 @@ contract TripleSlopeModel {
     uint256 total = debt.add(floating);
     uint256 utilization = debt.mul(100e18).div(total);
     if (utilization < CEIL_SLOPE_1) {
-      // Less than 50% utilization - 0%-20% APY
+      // Less than 60% utilization - 0%-20% APY
       return utilization.mul(MAX_INTEREST_SLOPE_1).div(CEIL_SLOPE_1) / 365 days;
     } else if (utilization < CEIL_SLOPE_2) {
-      // Between 50% and 90% - 20% APY
+      // Between 60% and 90% - 20% APY
       return uint256(MAX_INTEREST_SLOPE_2) / 365 days;
     } else if (utilization < CEIL_SLOPE_3) {
       // Between 90% and 100% - 20%-150% APY
