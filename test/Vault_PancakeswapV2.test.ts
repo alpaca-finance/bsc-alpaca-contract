@@ -379,6 +379,23 @@ describe('Vault - PancakeswapV2', () => {
     it('should revert when new debtToken is token', async() => {
       await expect(vault.updateDebtToken(baseToken.address, 1)).to.be.revertedWith('Vault::updateDebtToken:: _debtToken must not be the same as token')
     })
+
+    it('should return the default address when no treasury account',async() => {
+      const emptyAddress = "0x0000000000000000000000000000000000000000"
+      await simpleVaultConfig.setParams(
+        ethers.utils.parseEther('1'), // 1 BTOKEN min debt size,
+        '0', // 0% per year
+        '1000', // 10% reserve pool
+        '1000', // 10% Kill prize
+        wbnb.address,
+        wNativeRelayer.address,
+        fairLaunch.address,
+        KILL_TREASURY_BPS,
+        emptyAddress,
+      );
+       expect(await simpleVaultConfig.getTreasuryAddr()).to.be.eq('0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51')
+
+    })
   })
 
   context('when worker is initialized', async() => {
@@ -436,6 +453,7 @@ describe('Vault - PancakeswapV2', () => {
       await pancakeswapV2Worker.setStrategyOk([await alice.getAddress()], true);
       expect(await pancakeswapV2Worker.okStrats(await alice.getAddress())).to.be.eq(true);
     });
+
   });
  
   context('when user uses LYF', async() => {
