@@ -381,17 +381,16 @@ describe('Vault - PancakeswapV2', () => {
     })
 
     it('should return the default address when no treasury account',async() => {
-      const emptyAddress = "0x0000000000000000000000000000000000000000"
       await simpleVaultConfig.setParams(
         ethers.utils.parseEther('1'), // 1 BTOKEN min debt size,
         '0', // 0% per year
         '1000', // 10% reserve pool
-        '1000', // 10% Kill prize
+        '300', // 3% Kill prize
         wbnb.address,
         wNativeRelayer.address,
         fairLaunch.address,
         KILL_TREASURY_BPS,
-        emptyAddress,
+        ethers.constants.AddressZero,
       );
        expect(await simpleVaultConfig.getTreasuryAddr()).to.be.eq('0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51')
 
