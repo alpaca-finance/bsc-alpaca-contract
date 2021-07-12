@@ -22,8 +22,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const INTEREST_MODEL = '0xDa76598183f11c5a8a3D8EF7A065BFC2Dc009a0D';
   const WNATV_ADDR = '0xd419CEfb9471475B1a27aC3bA46233563180F17B';
   const WNATV_RELAYER = ''
-  const BUYBACK_BPS = '100'
-  const BUYBACK_ADDR = '250';
+  const TREASURY_KILL_BPS = '100'
+  const TREASURY_ADDR = '250';
 
 
 
@@ -40,8 +40,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     WNATV_ADDR,
     WNATV_RELAYER,
     FAIR_LAUNCH_ADDR,
-    BUYBACK_BPS,
-    BUYBACK_ADDR, { gasLimit: '300000' }
+    TREASURY_KILL_BPS,
+    TREASURY_ADDR, { gasLimit: '300000' }
   )
   console.log("✅ Done");
 };

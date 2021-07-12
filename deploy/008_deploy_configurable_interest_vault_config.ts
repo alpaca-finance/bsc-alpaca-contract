@@ -18,8 +18,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const MIN_DEBT_SIZE = ethers.utils.parseEther('100');
   const RESERVE_POOL_BPS = '1000';
   const KILL_PRIZE_BPS = '250';
-  const BUYBACK_BPS = '250';
-  const BUYBACK_ADDR = '';
+  const TREASURY_KILL_BPS = '250';
+  const TREASURY_ADDR = '';
 
 
 
@@ -46,8 +46,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       config.Tokens.WBNB, 
       config.SharedConfig.WNativeRelayer, 
       config.FairLaunch.address,
-      BUYBACK_BPS,
-      BUYBACK_ADDR
+      TREASURY_KILL_BPS,
+      TREASURY_ADDR
     ]
   );
   await configurableInterestVaultConfig.deployed();
