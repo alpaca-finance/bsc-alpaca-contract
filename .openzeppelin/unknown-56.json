@@ -6957,6 +6957,109 @@
           }
         }
       }
+    },
+    "1dac03f2ffae2ee766c042fbcb96d5f091f92503bfbd8e37c488ef129e35214b": {
+      "address": "0x3297961610d8A64f41CB4f577448bf3a57738303",
+      "txHash": "0xafe2dd11397e26a904d76cbcff1174a8cefee9aa1087c97236e9d713d3980f32",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:26"
+          },
+          {
+            "contract": "Initializable",
+            "label": "______gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:61"
+          },
+          {
+            "contract": "ContextUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol:37"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:18"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:78"
+          },
+          {
+            "contract": "OracleMedianizer",
+            "label": "primarySourceCount",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))",
+            "src": "contracts/6/protocol/OracleMedianizer.sol:26"
+          },
+          {
+            "contract": "OracleMedianizer",
+            "label": "primarySources",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_mapping(t_uint256,t_contract(PriceOracle)16660)))",
+            "src": "contracts/6/protocol/OracleMedianizer.sol:28"
+          },
+          {
+            "contract": "OracleMedianizer",
+            "label": "maxPriceDeviations",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))",
+            "src": "contracts/6/protocol/OracleMedianizer.sol:30"
+          },
+          {
+            "contract": "OracleMedianizer",
+            "label": "maxPriceStales",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))",
+            "src": "contracts/6/protocol/OracleMedianizer.sol:32"
+          }
+        ],
+        "types": {
+          "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
+            "label": "mapping(address => mapping(address => uint256))"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_mapping(t_uint256,t_contract(PriceOracle)16660)))": {
+            "label": "mapping(address => mapping(address => mapping(uint256 => contract PriceOracle)))"
+          },
+          "t_mapping(t_address,t_mapping(t_uint256,t_contract(PriceOracle)16660))": {
+            "label": "mapping(address => mapping(uint256 => contract PriceOracle))"
+          },
+          "t_mapping(t_uint256,t_contract(PriceOracle)16660)": {
+            "label": "mapping(uint256 => contract PriceOracle)"
+          },
+          "t_contract(PriceOracle)16660": {
+            "label": "contract PriceOracle"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_bool": {
+            "label": "bool"
+          }
+        }
+      }
     }
   },
   "admin": {
