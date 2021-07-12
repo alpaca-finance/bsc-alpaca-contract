@@ -74,6 +74,7 @@ describe('Vault - Pancakeswap Migrate', () => {
   const MIN_DEBT_SIZE = ethers.utils.parseEther('1'); // 1 BTOKEN min debt size
   const WORK_FACTOR = '7000';
   const KILL_FACTOR = '8000';
+  const KILL_TREASURY_BPS = '100';
 
   /// Pancakeswap-related instance(s)
   let factory: PancakeFactory;
@@ -260,7 +261,7 @@ describe('Vault - Pancakeswap Migrate', () => {
     )) as SimpleVaultConfig__factory;
     simpleVaultConfig = await upgrades.deployProxy(SimpleVaultConfig, [
       MIN_DEBT_SIZE, INTEREST_RATE, RESERVE_POOL_BPS, KILL_PRIZE_BPS,
-      wbnb.address, wNativeRelayer.address, fairLaunch.address
+      wbnb.address, wNativeRelayer.address, fairLaunch.address,KILL_TREASURY_BPS, await eve.getAddress()
     ]) as SimpleVaultConfig;
     await simpleVaultConfig.deployed();
 
@@ -455,6 +456,8 @@ describe('Vault - Pancakeswap Migrate', () => {
           wbnb.address,
           wNativeRelayer.address,
           fairLaunch.address,
+          KILL_TREASURY_BPS,
+          await eve.getAddress()
         );
     
         // Set Reinvest bounty to 10% of the reward
@@ -754,6 +757,8 @@ describe('Vault - Pancakeswap Migrate', () => {
           wbnb.address,
           wNativeRelayer.address,
           fairLaunch.address,
+          KILL_TREASURY_BPS,
+          await eve.getAddress()
         );
     
         // Set Reinvest bounty to 10% of the reward
@@ -1088,6 +1093,8 @@ describe('Vault - Pancakeswap Migrate', () => {
           wbnb.address,
           wNativeRelayer.address,
           fairLaunch.address,
+          KILL_TREASURY_BPS,
+          await eve.getAddress()
         );
     
         // Set Reinvest bounty to 10% of the reward
@@ -1424,6 +1431,8 @@ describe('Vault - Pancakeswap Migrate', () => {
           wbnb.address,
           wNativeRelayer.address,
           fairLaunch.address,
+          KILL_TREASURY_BPS,
+          await eve.getAddress()
         );
     
         // Set Reinvest bounty to 10% of the reward

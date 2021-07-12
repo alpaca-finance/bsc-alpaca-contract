@@ -66,6 +66,8 @@ describe('Vault - PancakeswapV2', () => {
   const MIN_DEBT_SIZE = ethers.utils.parseEther('1'); // 1 BTOKEN min debt size
   const WORK_FACTOR = '7000';
   const KILL_FACTOR = '8000';
+  const KILL_TREASURY_BPS = '100';
+  
 
   /// Pancakeswap-related instance(s)
   let factoryV2: PancakeFactory;
@@ -234,7 +236,7 @@ describe('Vault - PancakeswapV2', () => {
     )) as SimpleVaultConfig__factory;
     simpleVaultConfig = await upgrades.deployProxy(SimpleVaultConfig, [
       MIN_DEBT_SIZE, INTEREST_RATE, RESERVE_POOL_BPS, KILL_PRIZE_BPS,
-      wbnb.address, wNativeRelayer.address, fairLaunch.address
+      wbnb.address, wNativeRelayer.address, fairLaunch.address,KILL_TREASURY_BPS, await eve.getAddress()
     ]) as SimpleVaultConfig;
     await simpleVaultConfig.deployed();
 
@@ -377,6 +379,22 @@ describe('Vault - PancakeswapV2', () => {
     it('should revert when new debtToken is token', async() => {
       await expect(vault.updateDebtToken(baseToken.address, 1)).to.be.revertedWith('Vault::updateDebtToken:: _debtToken must not be the same as token')
     })
+
+    it('should return the default address when no treasury account',async() => {
+      await simpleVaultConfig.setParams(
+        ethers.utils.parseEther('1'), // 1 BTOKEN min debt size,
+        '0', // 0% per year
+        '1000', // 10% reserve pool
+        '300', // 3% Kill prize
+        wbnb.address,
+        wNativeRelayer.address,
+        fairLaunch.address,
+        KILL_TREASURY_BPS,
+        ethers.constants.AddressZero,
+      );
+       expect(await simpleVaultConfig.getTreasuryAddr()).to.be.eq('0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51')
+
+    })
   })
 
   context('when worker is initialized', async() => {
@@ -434,10 +452,11 @@ describe('Vault - PancakeswapV2', () => {
       await pancakeswapV2Worker.setStrategyOk([await alice.getAddress()], true);
       expect(await pancakeswapV2Worker.okStrats(await alice.getAddress())).to.be.eq(true);
     });
-  });
 
+  });
+ 
   context('when user uses LYF', async() => {
-    context('when user is contract', async() => {
+     context('when user is contract', async() => {
       it('should revert if evil contract try to call onlyEOAorWhitelisted function', async () => {           
         await expect(evilContract.executeTransaction(
           vault.address, 0,
@@ -497,10 +516,10 @@ describe('Vault - PancakeswapV2', () => {
         expect(owner).to.be.eq(whitelistedContract.address)
         expect(worker).to.be.eq(pancakeswapV2Worker.address)
       })
-    })
+    }) 
 
     context('when user is EOA', async() => {
-      it('should allow to open a position without debt', async () => {
+       it('should allow to open a position without debt', async () => {
         // Deployer deposits 3 BTOKEN to the bank
         await baseToken.approve(vault.address, ethers.utils.parseEther('3'));
         await vault.deposit(ethers.utils.parseEther('3'));
@@ -1006,12 +1025,14 @@ describe('Vault - PancakeswapV2', () => {
     
         // Alice liquidates Bob position#1
         let aliceBefore = await baseToken.balanceOf(await alice.getAddress());
-  
+        let eveBefore = await baseToken.balanceOf(await eve.getAddress());
+        
         await expect(vaultAsAlice.kill('1'))
           .to.emit(vaultAsAlice, 'Kill')
   
         let aliceAfter = await baseToken.balanceOf(await alice.getAddress());
-  
+        let eveAfter = await baseToken.balanceOf(await eve.getAddress());
+        
         // Bank balance is increase by liquidation
         AssertHelpers.assertAlmostEqual(
           ethers.utils.parseEther('10.002702699312215556').toString(),
@@ -1023,7 +1044,14 @@ describe('Vault - PancakeswapV2', () => {
           ethers.utils.parseEther('0.000300199830261993').toString(),
           aliceAfter.sub(aliceBefore).toString(),
         );
-    
+  
+        // deployer is Wallet to buyback -> 1%  -> 0.0000300199830261993
+        AssertHelpers.assertAlmostEqual(
+          ethers.utils.parseEther('0.000030019983026199').toString(),
+          eveAfter.sub(eveBefore).toString(),
+        );
+        
+  
         // Alice withdraws 2 BOKTEN
         aliceBefore = await baseToken.balanceOf(await alice.getAddress());
         await vaultAsAlice.withdraw(await vault.balanceOf(await alice.getAddress()));
@@ -1128,6 +1156,8 @@ describe('Vault - PancakeswapV2', () => {
           wbnb.address,
           wNativeRelayer.address,
           fairLaunch.address,
+          KILL_TREASURY_BPS,
+          await eve.getAddress(),
         );
     
         // Set Reinvest bounty to 10% of the reward
@@ -1408,7 +1438,9 @@ describe('Vault - PancakeswapV2', () => {
         const eveBefore = await baseToken.balanceOf(await eve.getAddress());
         await expect(vaultAsEve.kill('1'))
           .to.emit(vaultAsEve, 'Kill')
-        expect(await baseToken.balanceOf(await eve.getAddress())).to.be.bignumber.gt(eveBefore);
+
+        const eveAfter = await baseToken.balanceOf(await eve.getAddress());
+        expect(eveAfter).to.be.bignumber.gt(eveBefore);
       });
   
       it('should close position correctly when user holds multiple positions', async () => {
@@ -1421,6 +1453,8 @@ describe('Vault - PancakeswapV2', () => {
           wbnb.address,
           wNativeRelayer.address,
           fairLaunch.address,
+          KILL_TREASURY_BPS,
+          await eve.getAddress(),
         );
   
         // Set Reinvest bounty to 10% of the reward
@@ -1476,6 +1510,7 @@ describe('Vault - PancakeswapV2', () => {
         await pancakeswapV2WorkerAsEve.reinvest();
         // PancakeWorker receives 303999999998816250 cake as a reward
         // Eve got 10% of 303999999998816250 cake = 0.01 * 303999999998816250 = 3039999999988162 bounty
+       
         AssertHelpers.assertAlmostEqual(
           ethers.utils.parseEther('0.003039999999988162').toString(),
           (await cake.balanceOf(await eve.getAddress())).toString(),
@@ -1619,6 +1654,8 @@ describe('Vault - PancakeswapV2', () => {
           wbnb.address,
           wNativeRelayer.address,
           fairLaunch.address,
+          KILL_TREASURY_BPS,
+          await eve.getAddress(),
         );
     
         // Set Reinvest bounty to 10% of the reward
@@ -1818,6 +1855,8 @@ describe('Vault - PancakeswapV2', () => {
           wbnb.address,
           wNativeRelayer.address,
           fairLaunch.address,
+          KILL_TREASURY_BPS,
+          await eve.getAddress(),
         );
   
         // Set Reinvest bounty to 10% of the reward
@@ -1994,6 +2033,8 @@ describe('Vault - PancakeswapV2', () => {
           wbnb.address,
           wNativeRelayer.address,
           fairLaunch.address,
+          KILL_TREASURY_BPS,
+          await eve.getAddress(),
         );
   
         // Bob deposits 10 BTOKEN
@@ -2075,6 +2116,8 @@ describe('Vault - PancakeswapV2', () => {
           wbnb.address,
           wNativeRelayer.address,
           fairLaunch.address,
+          KILL_TREASURY_BPS,
+          await eve.getAddress(),
         );
   
         // Bob deposits 10 BTOKEN
@@ -2130,6 +2173,8 @@ describe('Vault - PancakeswapV2', () => {
           wbnb.address,
           wNativeRelayer.address,
           fairLaunch.address,
+          KILL_TREASURY_BPS,
+          await eve.getAddress(),
         );
   
         // Bob deposits 10 BTOKEN
@@ -2183,6 +2228,8 @@ describe('Vault - PancakeswapV2', () => {
           wbnb.address,
           wNativeRelayer.address,
           fairLaunch.address,
+          KILL_TREASURY_BPS,
+          await deployer.getAddress(),
         );
   
         // Bob deposits 10 BTOKEN
@@ -2269,6 +2316,8 @@ describe('Vault - PancakeswapV2', () => {
           wbnb.address,
           wNativeRelayer.address,
           fairLaunch.address,
+          KILL_TREASURY_BPS,
+          await deployer.getAddress()
         );
   
         // Bob deposits 10 BTOKEN
@@ -2356,6 +2405,8 @@ describe('Vault - PancakeswapV2', () => {
           wbnb.address,
           wNativeRelayer.address,
           fairLaunch.address,
+          KILL_TREASURY_BPS,
+          await deployer.getAddress(),
         );
   
         // Bob deposits 10 BTOKEN
@@ -2411,6 +2462,8 @@ describe('Vault - PancakeswapV2', () => {
           wbnb.address,
           wNativeRelayer.address,
           fairLaunch.address,
+          KILL_TREASURY_BPS,
+          await deployer.getAddress()
         );
   
         // Bob deposits 10 BTOKEN
@@ -2462,6 +2515,8 @@ describe('Vault - PancakeswapV2', () => {
           wbnb.address,
           wNativeRelayer.address,
           fairLaunch.address,
+          KILL_TREASURY_BPS,
+          await deployer.getAddress(),
         );
   
         // Bob deposits 10 BTOKEN
@@ -2505,4 +2560,6 @@ describe('Vault - PancakeswapV2', () => {
         )).to.be.revertedWith('PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading::execute:: insufficient LP amount recevied from worker');
       }).timeout(50000);
   });
+
+
 });

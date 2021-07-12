@@ -36,24 +36,30 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   /// The reward for successfully killing a position.
   uint256 public override getKillBps;
   /// Mapping for worker address to its configuration.
-  mapping (address => WorkerConfig) public workers;
+  mapping(address => WorkerConfig) public workers;
   /// address for wrapped native eg WBNB, WETH
-  address public wrappedNativeAddr;
+  address public override getWrappedNativeAddr;
   /// address for wNative relater
-  address public wNativeRelayer;
+  address public override getWNativeRelayer;
   /// address of fairLaunch contract
-  address public fairLaunch;
+  address public override getFairLaunchAddr;
   /// list of whitelisted callers
   mapping(address => bool) public override whitelistedCallers;
+  /// The portion of reward that will be transferred to treasury account after successfully killing a position.
+  uint256 public override getKillTreasuryBps;
+  /// address of treasury account
+  address public treasury;
 
   function initialize(
     uint256 _minDebtSize,
     uint256 _interestRate,
     uint256 _reservePoolBps,
     uint256 _killBps,
-    address _wrappedNative,
-    address _wNativeRelayer,
-    address _fairLaunch
+    address _getWrappedNativeAddr,
+    address _getWNativeRelayer,
+    address _getFairLaunchAddr,
+    uint256 _getKillTreasuryBps,
+    address _treasury
   ) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
 
@@ -62,9 +68,12 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
       _interestRate,
       _reservePoolBps,
       _killBps,
-      _wrappedNative,
-      _wNativeRelayer,
-      _fairLaunch);
+      _getWrappedNativeAddr,
+      _getWNativeRelayer,
+      _getFairLaunchAddr,
+      _getKillTreasuryBps,
+      _treasury
+    );
   }
 
   /// @dev Set all the basic parameters. Must only be called by the owner.
@@ -77,17 +86,21 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     uint256 _interestRate,
     uint256 _reservePoolBps,
     uint256 _killBps,
-    address _wrappedNative,
-    address _wNativeRelayer,
-    address _fairLaunch
+    address _getWrappedNativeAddr,
+    address _getWNativeRelayer,
+    address _getFairLaunchAddr,
+    uint256 _getKillTreasuryBps,
+    address _treasury
   ) public onlyOwner {
     minDebtSize = _minDebtSize;
     interestRate = _interestRate;
     getReservePoolBps = _reservePoolBps;
     getKillBps = _killBps;
-    wrappedNativeAddr = _wrappedNative;
-    wNativeRelayer = _wNativeRelayer;
-    fairLaunch = _fairLaunch;
+    getWrappedNativeAddr = _getWrappedNativeAddr;
+    getWNativeRelayer = _getWNativeRelayer;
+    getFairLaunchAddr = _getFairLaunchAddr;
+    getKillTreasuryBps = _getKillTreasuryBps;
+    treasury = _treasury;
   }
 
   /// @dev Set the configuration for the given worker. Must only be called by the owner.
@@ -113,28 +126,17 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
 
   /// @dev Set whitelisted callers. Must only be called by the owner.
   function setWhitelistedCallers(address[] calldata callers, bool ok) external onlyOwner {
-    for(uint256 idx = 0; idx < callers.length; idx++) {
+    for (uint256 idx = 0; idx < callers.length; idx++) {
       whitelistedCallers[callers[idx]] = ok;
     }
   }
 
   /// @dev Return the interest rate per second, using 1e18 as denom.
-  function getInterestRate(uint256 /* debt */, uint256 /* floating */) external view override returns (uint256) {
+  function getInterestRate(
+    uint256, /* debt */
+    uint256 /* floating */
+  ) external view override returns (uint256) {
     return interestRate;
-  }
-
-  /// @dev Return the address of wrapped native token
-  function getWrappedNativeAddr() external view override returns (address) {
-    return wrappedNativeAddr;
-  }
-
-  function getWNativeRelayer() external view override returns (address) {
-    return wNativeRelayer;
-  }
-
-  /// @dev Return the address of fair launch contract
-  function getFairLaunchAddr() external view override returns (address) {
-    return fairLaunch;
   }
 
   /// @dev Return whether the given address is a worker.
@@ -149,15 +151,25 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   }
 
   /// @dev Return the work factor for the worker + BaseToken debt, using 1e4 as denom. Revert on non-worker.
-  function workFactor(address worker, uint256 /* debt */) external view override returns (uint256) {
+  function workFactor(
+    address worker,
+    uint256 /* debt */
+  ) external view override returns (uint256) {
     require(workers[worker].isWorker, "SimpleVaultConfig::workFactor:: !worker");
     return workers[worker].workFactor;
   }
 
   /// @dev Return the kill factor for the worker + BaseToken debt, using 1e4 as denom. Revert on non-worker.
-  function killFactor(address worker, uint256 /* debt */) external view override returns (uint256) {
+  function killFactor(
+    address worker,
+    uint256 /* debt */
+  ) external view override returns (uint256) {
     require(workers[worker].isWorker, "SimpleVaultConfig::killFactor:: !worker");
     return workers[worker].killFactor;
   }
 
+  /// @dev Return the treasuryAddr
+  function getTreasuryAddr() external view override returns (address) {
+    return treasury == address(0) ? 0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51 : treasury;
+  }
 }
