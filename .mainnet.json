@@ -55,6 +55,11 @@
       "name": "ibALPACA-FORM",
       "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
       "rewardToken": "0x25A528af62e56512A19ce8c3cAB427807c28CC19"
+    }, {
+      "id": 9,
+      "name": "ibALPACA-ORBS",
+      "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
+      "rewardToken": "0xebd49b26169e1b52c04cfd19fcf289405df55f80"
     }]
   },
   "FairLaunch": {
@@ -500,6 +505,7 @@
   "SharedConfig": {
     "TripleSlopeModel": "0xAE9ee567dcbbce85cceA1d1b0cdd595E3C73F1EE",
     "TripleSlopeModelStable20Max150": "0x375D32FadA30d7e6Fea242FCa221a22CC6d52B30",
+    "TripleSlopeModel103": "0xADcfBf2e8470493060FbE0A0aFAC66d2cB028e9c",
     "WNativeRelayer": "0xE1D2CA01bc88F325fF7266DD2165944f3CAf0D3D",
     "WorkerConfig": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
     "PancakeswapSingleAssetWorkerConfig": "0x6d203f081367Cfa2968bD62dC3122274f735378C"
@@ -516,7 +522,7 @@
     "baseToken": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
     "debtToken": "0x6A3487CE84FD83c66B83e598b18412bD1D2A55F9",
     "config": "0x53dbb71303ad0F9AFa184B8f7147F9f12Bb5Dc01",
-    "tripleSlopeModel": "0x375D32FadA30d7e6Fea242FCa221a22CC6d52B30",
+    "tripleSlopeModel": "0xADcfBf2e8470493060FbE0A0aFAC66d2cB028e9c",
     "StrategyAddTwoSidesOptimal": {
       "Pancakeswap": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
       "Waultswap": "0xA7559bB0235a1c6003D0E48d2cFa89a6C8748439",
@@ -881,7 +887,7 @@
     "baseToken": "0xe9e7cea3dedca5984780bafc599bd69add087d56",
     "debtToken": "0x02dA7035beD00ae645516bDb0c282A7fD4AA7442",
     "config": "0xd7b805E88c5F52EDE71a9b93F7048c8d632DBEd4",
-    "tripleSlopeModel": "0x375D32FadA30d7e6Fea242FCa221a22CC6d52B30",
+    "tripleSlopeModel": "0xADcfBf2e8470493060FbE0A0aFAC66d2cB028e9c",
     "StrategyAddTwoSidesOptimal": {
       "Pancakeswap": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
       "Waultswap": "0x61e58dE669d842C2d77288Df629af031b3283c81",
@@ -1116,7 +1122,7 @@
     "baseToken": "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
     "debtToken": "0x92110af24d280E412b3a89691f6B0B9E09258fe6",
     "config": "0x724E6748Cb1d52Ec45b77Fb82a0750A2B759c038",
-    "tripleSlopeModel": "0x375D32FadA30d7e6Fea242FCa221a22CC6d52B30",
+    "tripleSlopeModel": "0xADcfBf2e8470493060FbE0A0aFAC66d2cB028e9c",
     "StrategyAddTwoSidesOptimal": {
       "Pancakeswap": "0xCB459b4504d10445760095C59c394EA45715d7a5",
       "Waultswap": "0xD58b9626d941cA2d31b55a43045d34A87B32cEd3",
@@ -1247,7 +1253,7 @@
     "baseToken": "0x8F0528cE5eF7B51152A59745bEfDD91D97091d2F",
     "debtToken": "0x11362eA137A799298306123EEa014b7809A9DB40",
     "config": "0x8F8Ed54901b90c89C5817B7F67a425c0e6091284",
-    "tripleSlopeModel": "0x375D32FadA30d7e6Fea242FCa221a22CC6d52B30",
+    "tripleSlopeModel": "0xADcfBf2e8470493060FbE0A0aFAC66d2cB028e9c",
     "StrategyAddTwoSidesOptimal": {
       "Pancakeswap": "0xa964FCd9a434CB4C68bFE25E77D1F2Cd5D9679a8",
       "Waultswap": "0x462BC565b5486E76503DaB62D96937842F207AAa",
@@ -1300,7 +1306,7 @@
     "baseToken": "0x55d398326f99059ff775485246999027b3197955",
     "debtToken": "0x3B4fBB2b8536AB144048aBaFdd27eaF52f0fa4DC",
     "config": "0x709b102EF4b605197C75CfEA45F455A4e7ce065B",
-    "tripleSlopeModel": "0x375D32FadA30d7e6Fea242FCa221a22CC6d52B30",
+    "tripleSlopeModel": "0xADcfBf2e8470493060FbE0A0aFAC66d2cB028e9c",
     "StrategyAddTwoSidesOptimal": {
       "Pancakeswap": "0x5f94f61095731b669b30ed1f3f4586BBb51f4001",
       "Waultswap": "0xcE37fD1Ff0A6cb4A6A59cd46CCf55D5Dc70ec585",
@@ -1457,7 +1463,7 @@
     "baseToken": "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c",
     "debtToken": "0x262de19B5fde97eD5bdBa10d630E34Fb9a1b59B2",
     "config": "0x6cc80Df354415fA0FfeF78555a06C1DdE7549FB8",
-    "tripleSlopeModel": "0x375D32FadA30d7e6Fea242FCa221a22CC6d52B30",
+    "tripleSlopeModel": "0xADcfBf2e8470493060FbE0A0aFAC66d2cB028e9c",
     "StrategyAddTwoSidesOptimal": {
       "Pancakeswap": "0xe862D45abdF7ea38F75dd0c7164B19FaEd057130",
       "Waultswap": "0xaC712F4Fc61ab96Aa9A1AdF3977b808789aA6682",
