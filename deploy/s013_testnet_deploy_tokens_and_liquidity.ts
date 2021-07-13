@@ -26,24 +26,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const PANCAKE_ROUTER = '0x367633909278A3C91f4cB130D8e56382F00D1071'
   const WBNB = '0xDfb1211E2694193df5765d54350e1145FD2404A1'
   const TOKENS: Array<IToken> = [{
-    symbol: 'TRX',
-    name: 'TRX',
+    symbol: 'ORBS',
+    name: 'ORBS',
     mintAmount: ethers.utils.parseEther('8888888888').toString(),
     pairs: [{
-      quoteToken: 'WBNB',
-      quoteTokenAddr: '0xDfb1211E2694193df5765d54350e1145FD2404A1',
-      reserveQuoteToken: ethers.utils.parseEther('100'),
-      reserveBaseToken: ethers.utils.parseEther('499721.673')
-    }]
-  }, {
-    symbol: 'BTT',
-    name: 'BTT',
-    mintAmount: ethers.utils.parseEther('8888888888').toString(),
-    pairs: [{
-      quoteToken: 'WBNB',
-      quoteTokenAddr: '0xDfb1211E2694193df5765d54350e1145FD2404A1',
-      reserveQuoteToken: ethers.utils.parseEther('100'),
-      reserveBaseToken: ethers.utils.parseEther('12143212.5')
+      quoteToken: 'BUSD',
+      quoteTokenAddr: '0x0266693F9Df932aD7dA8a9b44C2129Ce8a87E81f',
+      reserveQuoteToken: ethers.utils.parseEther('1859007'),
+      reserveBaseToken: ethers.utils.parseEther('27350591')
     }]
   }]
 

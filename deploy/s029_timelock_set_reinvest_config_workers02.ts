@@ -50,10 +50,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       WORKER_NAME: "BUSD-ALPACA PancakeswapWorker",
       REINVEST_BOUNTY_BPS: '300',
       REINVEST_THRESHOLD: '1',
-      REINVEST_PATH: []
+      REINVEST_PATH: ['CAKE', 'BUSD', 'ALPACA']
     }
   ]
-  const EXACT_ETA = '1620575100';
+  const EXACT_ETA = '1626087600';
 
 
 
@@ -105,24 +105,25 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   for(let i = 0; i < reinvestConfigs.length; i++) {
     console.log("========")
     console.log(`>> Setting reinvest params to: ${reinvestConfigs[i].WORKER_NAME} at ${reinvestConfigs[i].ADDRESS} through Timelock`)
-    console.log(`>> Queue tx on Timelock to upgrade the implementation`);
+    console.log(`>> Queue tx on Timelock to update reinvest config`);
     await timelock.queueTransaction(
       reinvestConfigs[i].ADDRESS, '0',
       'setReinvestConfig(uint256,uint256,address[])',
-      ethers.utils.defaultAbiCoder.encode(['uint256,uint256,address[]'],
+      ethers.utils.defaultAbiCoder.encode(['uint256','uint256','address[]'],
       [reinvestConfigs[i].REINVEST_BOUNTY_BPS, reinvestConfigs[i].REINVEST_THRESHOLD, reinvestConfigs[i].REINVEST_PATH]), 
       EXACT_ETA, { gasPrice: 100000000000 });
     console.log("✅ Done");
     
     reinvestConfigs[i].REINVEST_PATH = reinvestConfigs[i].REINVEST_PATH.map((hop) => `'${hop}'`)
     console.log(`>> Generate executeTransaction:`);
-    const executionTx = `await timelock.executeTransaction('${reinvestConfigs[i].ADDRESS}', '0', 'setReinvestConfig(uint256,uint256,address[])', ethers.utils.defaultAbiCoder.encode(['uint256,uint256,address[]'], ['${reinvestConfigs[i].REINVEST_BOUNTY_BPS}', '${reinvestConfigs[i].REINVEST_THRESHOLD}', [${reinvestConfigs[i].REINVEST_PATH}]]), ${EXACT_ETA})`
+    const executionTx = `await timelock.executeTransaction('${reinvestConfigs[i].ADDRESS}', '0', 'setReinvestConfig(uint256,uint256,address[])', ethers.utils.defaultAbiCoder.encode(['uint256','uint256','address[]'], ['${reinvestConfigs[i].REINVEST_BOUNTY_BPS}', '${reinvestConfigs[i].REINVEST_THRESHOLD}', [${reinvestConfigs[i].REINVEST_PATH}]]), ${EXACT_ETA})`
     console.log(executionTx);
     console.log("✅ Done");
-
-    executionTxs.push(`${reinvestConfigs[i].WORKER_NAME}\n${executionTx}`)
+    
+    executionTxs.push(`// Config reinvest params of ${reinvestConfigs[i].WORKER_NAME}\n${executionTx}`)
   }
 
+  console.log("=========")
   executionTxs.forEach((eTx) => console.log(eTx))
 };
 
