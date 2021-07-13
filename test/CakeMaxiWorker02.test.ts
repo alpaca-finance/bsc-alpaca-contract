@@ -49,7 +49,6 @@ import {
   PancakePair__factory
 } from "../typechain";
 import * as Assert from "./helpers/assert"
-import exp from "node:constants";
 
 chai.use(solidity);
 const { expect } = chai;
@@ -332,7 +331,7 @@ describe('CakeMaxiWorker02', () => {
     )) as SimpleVaultConfig__factory;
     simpleVaultConfig = await upgrades.deployProxy(SimpleVaultConfig, [
       MIN_DEBT_SIZE, INTEREST_RATE, RESERVE_POOL_BPS, KILL_PRIZE_BPS,
-      wbnb.address, wNativeRelayer.address, fairLaunch.address
+      wbnb.address, wNativeRelayer.address, fairLaunch.address, '0', ethers.constants.AddressZero
     ]) as SimpleVaultConfig;
     await simpleVaultConfig.deployed();
 
@@ -1858,25 +1857,26 @@ describe('CakeMaxiWorker02', () => {
           // Now it's a liquidation part
           await cakeAsAlice.approve(routerV2.address, constants.MaxUint256)
           // alice buy wbnb so that the price will be fluctuated, so that the position can be liquidated
-          // swap tokens for exact 1 WBNB
-          // FTOKEN in = ((0.083453719898393608 * 1) / (1.198794621613343596 - 1 * 0.9975)) + 1 = 0.4208508077942172
-          // now alice health will be (0.115646280101600954 * 0.9975 * 0.198794621613343596) / (0.504304527692610856 + 0.115646280101600954 * 0.9975) = 0.037007909541835700
-          await routerV2AsAlice.swapTokensForExactETH(ethers.utils.parseEther('1'), constants.MaxUint256, [cake.address, wbnb.address], await alice.getAddress(), FOREVER)
+          // swap tokens for exact 0.935 WBNB.
+          await routerV2AsAlice.swapTokensForExactETH(ethers.utils.parseEther('0.935'), constants.MaxUint256, [cake.address, wbnb.address], await alice.getAddress(), FOREVER)
           // set interest rate to be 0 to be easy for testing.
           await simpleVaultConfig.setParams(
             MIN_DEBT_SIZE, 0, RESERVE_POOL_BPS, KILL_PRIZE_BPS,
             wbnb.address, wNativeRelayer.address, fairLaunch.address,
-            KILL_TREASURY_BPS,await deployer.getAddress()
+            KILL_TREASURY_BPS, await deployer.getAddress()
           )
           // pre calculated left, liquidation reward, health
           const toBeLiquidatedValue = await integratedCakeMaxiWorker.health(1)
           const liquidationBounty = toBeLiquidatedValue.mul(1000).div(10000)
+          const treasuryKillFees = toBeLiquidatedValue.mul(100).div(10000)
+          const totalLiquidationFees = liquidationBounty.add(treasuryKillFees)
           const bobBalanceBefore = await ethers.provider.getBalance(await bob.getAddress())
           const aliceBalanceBefore = await ethers.provider.getBalance(await alice.getAddress())
+          const deployerBalanceBefore = await ethers.provider.getBalance(await deployer.getAddress())
           const vaultBalanceBefore = await wbnb.balanceOf(integratedVault.address)
           const debt = await integratedVault.debtShareToVal((await integratedVault.positions(1)).debtShare)
-          const left = debt.gte(toBeLiquidatedValue.sub(liquidationBounty)) ? ethers.constants.Zero : toBeLiquidatedValue.sub(liquidationBounty).sub(debt)
-          const repaid = debt.gte(toBeLiquidatedValue.sub(liquidationBounty)) ? toBeLiquidatedValue.sub(liquidationBounty) : debt
+          const left = debt.gte(toBeLiquidatedValue.sub(totalLiquidationFees)) ? ethers.constants.Zero : toBeLiquidatedValue.sub(totalLiquidationFees).sub(debt)
+          const repaid = debt.gte(toBeLiquidatedValue.sub(totalLiquidationFees)) ? toBeLiquidatedValue.sub(totalLiquidationFees) : debt
           // bob call `kill` alice's position, which is position #1
           await integratedVaultAsBob.kill(
             1,
@@ -1888,9 +1888,23 @@ describe('CakeMaxiWorker02', () => {
           const bobBalanceAfter = await ethers.provider.getBalance(await bob.getAddress())
           const aliceBalanceAfter = await ethers.provider.getBalance(await alice.getAddress())
           const vaultBalanceAfter = await wbnb.balanceOf(integratedVault.address)
-          expect(bobBalanceAfter.sub(bobBalanceBefore)).to.eq(liquidationBounty) // bob should get liquidation reward
-          expect(aliceBalanceAfter.sub(aliceBalanceBefore)).to.eq(left) // alice should get her left back
-          expect(vaultBalanceAfter.sub(vaultBalanceBefore)).to.eq(repaid) // vault should get it's deposit value back
+          const deployerBalanceAfter = await ethers.provider.getBalance(await deployer.getAddress())
+          expect(
+            bobBalanceAfter.sub(bobBalanceBefore),
+            "expect Bob to get a correct liquidation bounty"
+          ).to.eq(liquidationBounty)
+          expect(
+            aliceBalanceAfter.sub(aliceBalanceBefore),
+            "expect Alice to get a correct left amount"
+          ).to.eq(left) 
+          expect(
+            vaultBalanceAfter.sub(vaultBalanceBefore),
+            "expect Vault should get its funds back"
+          ).to.eq(repaid)
+          expect(
+            deployerBalanceAfter.sub(deployerBalanceBefore),
+            "expect Deployer should get tresaury fees"
+          ).to.eq(treasuryKillFees)
           expect((await integratedVaultAsAlice.positions(1)).debtShare).to.eq(0)
           Assert.assertAlmostEqual((await integratedCakeMaxiWorker.buybackAmount()).toString(), ethers.utils.parseEther('0.001205378386656404').toString())
         })
@@ -2000,25 +2014,26 @@ describe('CakeMaxiWorker02', () => {
           // Now it's a liquidation part
           await cakeAsAlice.approve(routerV2.address, constants.MaxUint256)
           // alice buy wbnb so that the price will be fluctuated, so that the position can be liquidated
+          // swap tokens for exact 0.935 WBNB.
           await routerV2AsAlice.swapTokensForExactETH(ethers.utils.parseEther('1'), constants.MaxUint256, [cake.address, wbnb.address], await alice.getAddress(), FOREVER)
-          // swap tokens for exact 1 WBNB
-          // FTOKEN in = ((0.0835534698983936 * 1) / (1.197363445102646346 - 1 * 0.9975)) + 1 = 0.4244107971209399
-          // now alice health will be (0.21464628010160097 * 0.9975 * 0.197363445102646346) / (0.507964267019333532 + 0.21464628010160097 * 0.9975) = 0.058522291357158360
 
           // set interest rate to be 0 to be easy for testing.
           await simpleVaultConfig.setParams(
             MIN_DEBT_SIZE, 0, RESERVE_POOL_BPS, KILL_PRIZE_BPS,
-            wbnb.address, wNativeRelayer.address, fairLaunch.address,KILL_TREASURY_BPS,await deployer.getAddress()
+            wbnb.address, wNativeRelayer.address, fairLaunch.address, KILL_TREASURY_BPS,await deployer.getAddress()
           )
           // pre calculated left, liquidation reward, health
           const toBeLiquidatedValue = await integratedCakeMaxiWorker.health(1)
-          const liquidationBounty = toBeLiquidatedValue.mul(1000).div(10000)
+          const liquidationBounty = toBeLiquidatedValue.mul(KILL_PRIZE_BPS).div(10000)
+          const treasuryKillFees = toBeLiquidatedValue.mul(KILL_TREASURY_BPS).div(10000)
+          const totalLiquidationFees = liquidationBounty.add(treasuryKillFees)
           const bobBalanceBefore = await ethers.provider.getBalance(await bob.getAddress())
           const aliceBalanceBefore = await ethers.provider.getBalance(await alice.getAddress())
           const vaultBalanceBefore = await wbnb.balanceOf(integratedVault.address)
+          const deployerBalanceBefore = await ethers.provider.getBalance(await deployer.getAddress())
           const vaultDebtVal = await integratedVault.vaultDebtVal()
           const debt = await integratedVault.debtShareToVal((await integratedVault.positions(1)).debtShare)
-          const left = debt.gte(toBeLiquidatedValue.sub(liquidationBounty)) ? ethers.constants.Zero : toBeLiquidatedValue.sub(liquidationBounty).sub(debt)
+          const left = debt.gte(toBeLiquidatedValue.sub(totalLiquidationFees)) ? ethers.constants.Zero : toBeLiquidatedValue.sub(totalLiquidationFees).sub(debt)
           // bob call `kill` alice's position, which is position #1
           await integratedVaultAsBob.kill(
             1,
@@ -2030,6 +2045,8 @@ describe('CakeMaxiWorker02', () => {
           const bobBalanceAfter = await ethers.provider.getBalance(await bob.getAddress())
           const aliceBalanceAfter = await ethers.provider.getBalance(await alice.getAddress())
           const vaultBalanceAfter = await wbnb.balanceOf(integratedVault.address)
+          const deployerBalanceAfter = await ethers.provider.getBalance(await deployer.getAddress())
+          expect(deployerBalanceAfter.sub(deployerBalanceBefore)).to.be.eq(treasuryKillFees)
           expect(bobBalanceAfter.sub(bobBalanceBefore)).to.eq(liquidationBounty) // bob should get liquidation reward
           expect(aliceBalanceAfter.sub(aliceBalanceBefore)).to.eq(left) // alice should get her left back
           expect(vaultBalanceAfter.sub(vaultBalanceBefore)).to.eq(vaultDebtVal) // vault should get it's deposit value back

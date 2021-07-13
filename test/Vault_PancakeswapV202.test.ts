@@ -50,7 +50,6 @@ import {
 import * as AssertHelpers from "./helpers/assert"
 import * as TimeHelpers from "./helpers/time"
 import { parseEther } from "ethers/lib/utils";
-import exp from "node:constants";
 
 chai.use(solidity);
 const { expect } = chai;
@@ -264,7 +263,7 @@ describe('Vault - PancakeswapV202', () => {
     )) as SimpleVaultConfig__factory;
     simpleVaultConfig = await upgrades.deployProxy(SimpleVaultConfig, [
       MIN_DEBT_SIZE, INTEREST_RATE, RESERVE_POOL_BPS, KILL_PRIZE_BPS,
-      wbnb.address, wNativeRelayer.address, fairLaunch.address
+      wbnb.address, wNativeRelayer.address, fairLaunch.address, '0', ethers.constants.AddressZero
     ]) as SimpleVaultConfig;
     await simpleVaultConfig.deployed();
 
@@ -1203,6 +1202,8 @@ describe('Vault - PancakeswapV202', () => {
           wbnb.address,
           wNativeRelayer.address,
           fairLaunch.address,
+          '0',
+          ethers.constants.AddressZero,
         );
     
         // Set Reinvest bounty to 10% of the reward
@@ -1496,6 +1497,8 @@ describe('Vault - PancakeswapV202', () => {
           wbnb.address,
           wNativeRelayer.address,
           fairLaunch.address,
+          '0',
+          ethers.constants.AddressZero,
         );
   
         // Set Reinvest bounty to 10% of the reward
@@ -1694,6 +1697,8 @@ describe('Vault - PancakeswapV202', () => {
           wbnb.address,
           wNativeRelayer.address,
           fairLaunch.address,
+          '0',
+          ethers.constants.AddressZero,
         );
     
         // Set Reinvest bounty to 10% of the reward
@@ -1893,6 +1898,8 @@ describe('Vault - PancakeswapV202', () => {
           wbnb.address,
           wNativeRelayer.address,
           fairLaunch.address,
+          '0',
+          ethers.constants.AddressZero,
         );
         
         // Set Reinvest bounty to 10% of the reward
@@ -2124,6 +2131,8 @@ describe('Vault - PancakeswapV202', () => {
           wbnb.address,
           wNativeRelayer.address,
           fairLaunch.address,
+          '0',
+          ethers.constants.AddressZero,
         );
   
         // Bob deposits 10 BTOKEN
@@ -2232,6 +2241,8 @@ describe('Vault - PancakeswapV202', () => {
           wbnb.address,
           wNativeRelayer.address,
           fairLaunch.address,
+          '0',
+          ethers.constants.AddressZero,
         );
   
         // Bob deposits 10 BTOKEN
@@ -2287,6 +2298,8 @@ describe('Vault - PancakeswapV202', () => {
           wbnb.address,
           wNativeRelayer.address,
           fairLaunch.address,
+          '0',
+          ethers.constants.AddressZero,
         );
   
         // Bob deposits 10 BTOKEN

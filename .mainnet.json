@@ -132,6 +132,14 @@
       "id": 18,
       "stakingToken": "ibBTCB",
       "address": "0x08FC9Ba2cAc74742177e0afC3dC8Aed6961c24e7"
+    }, {
+      "id": 19,
+      "stakingToken": "debtIbTUSD V2",
+      "address": "0xb76ED435B93477511e4604c441550A23d5aeAF84"
+    }, {
+      "id": 20,
+      "stakingToken": "ibTUSD",
+      "address": "0x3282d2a151ca00BfE7ed17Aa16E42880248CD3Cd"
     }]
   },
   "Exchanges": {
@@ -1546,6 +1554,33 @@
         "StrategyLiquidate": "0x6C0105950B1fEE24eE4ADdd1DFF346cceF75D150",
         "StrategyAddTwoSidesOptimal": "0x30A937B9d22d71e58Ad9dC96a6A3d552B9C0724e",
         "StrategyWithdrawMinimizeTrading": "0x94f5E884e11fC054Ca0b332e3a8773750BDBe242"
+      }
+    }]
+  }, {
+    "name": "Interest Bearing TUSD",
+    "symbol": "ibTUSD",
+    "address": "0x3282d2a151ca00BfE7ed17Aa16E42880248CD3Cd",
+    "baseToken": "0x14016e85a25aeb13065688cafb43044c2ef86784",
+    "debtToken": "0xb76ED435B93477511e4604c441550A23d5aeAF84",
+    "config": "0x0c1F049ebE3E0537C7E7ce428Bb468d5F6bF83b3",
+    "tripleSlopeModel": "0xADcfBf2e8470493060FbE0A0aFAC66d2cB028e9c",
+    "StrategyAddTwoSidesOptimal": {
+      "Pancakeswap": "0xA8F37daF3D290F636f0B79E47ea50aB7f7A82d51",
+      "Waultswap": "0x8cE75fF793D7832302BeA91c275e2509060DfEaA",
+      "PancakeswapSingleAsset": "0x67a2CdB9F0760663B5E70c1517f1a603BA3F50f0"
+    },
+    "workers": [{
+      "name": "BUSD-TUSD PancakeswapWorker",
+      "address": "0xC979CaB6424Fb6138abf28689ed8EfAba1Ec49AC",
+      "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+      "pId": 397,
+      "stakingToken": "0x2E28b9B74D6d99D4697e913b82B41ef1CAC51c6C",
+      "stakingTokenAt": "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+        "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+        "StrategyAddTwoSidesOptimal": "0xA8F37daF3D290F636f0B79E47ea50aB7f7A82d51",
+        "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419"
       }
     }]
   }]
