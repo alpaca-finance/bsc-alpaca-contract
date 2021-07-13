@@ -16,7 +16,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
   const TARGETED_VAULT_CONFIG = ['ibWBNB', 'ibBUSD', 'ibETH', 'ibALPACA', 'ibUSDT', 'ibBTCB', 'ibTUSD'];
-  const EXACT_ETA = '1626248400';
+  const EXACT_ETA = '1626174900';
 
 
 
@@ -46,7 +46,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   for(const toBeUpgradedVault of toBeUpgradedVaults) {
     console.log('>> Prepare upgrade a new IMPL. (It should return the same impl address)');
     const NewVaultConfig = (await ethers.getContractFactory('ConfigurableInterestVaultConfig')) as ConfigurableInterestVaultConfig__factory;
-    const preparedNewVaultConfig = await upgrades.prepareUpgrade(toBeUpgradedVaults[0].config, NewVaultConfig)
+    const preparedNewVaultConfig = await upgrades.prepareUpgrade(toBeUpgradedVaults[0].config, NewVaultConfig, { unsafeAllowRenames: true })
     console.log(`>> Implementation deployed at: ${preparedNewVaultConfig}`);
     console.log("✅ Done");
 

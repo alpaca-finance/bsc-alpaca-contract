@@ -260,14 +260,15 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
   /// @dev Create a new farming position to unlock your yield farming potential.
   /// @param id The ID of the position to unlock the earning. Use ZERO for new position.
   /// @param worker The address of the authorized worker to work for this position.
-  /// @param loan The amount of Token to borrow from the pool.
+  /// @param principalAmount The anout of Token to supply by user.
+  /// @param borrowAmount The amount of Token to borrow from the pool.
   /// @param maxReturn The max amount of Token to return to the pool.
   /// @param data The calldata to pass along to the worker for more working context.
   function work(
     uint256 id,
     address worker,
     uint256 principalAmount,
-    uint256 loan,
+    uint256 borrowAmount,
     uint256 maxReturn,
     bytes calldata data
   ) external payable onlyEOAorWhitelisted transferTokenToVault(principalAmount) accrue(principalAmount) nonReentrant {
@@ -286,18 +287,18 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
       require(pos.owner == msg.sender, "Vault::work:: not position owner");
       _fairLaunchWithdraw(id);
     }
-    emit Work(id, loan);
+    emit Work(id, borrowAmount);
     // Update execution scope variables
     POSITION_ID = id;
     (STRATEGY, ) = abi.decode(data, (address, bytes));
     // 2. Make sure the worker can accept more debt and remove the existing debt.
     require(config.isWorker(worker), "Vault::work:: not a worker");
-    require(loan == 0 || config.acceptDebt(worker), "Vault::work:: worker not accept more debt");
-    uint256 debt = _removeDebt(id).add(loan);
+    require(borrowAmount == 0 || config.acceptDebt(worker), "Vault::work:: worker not accept more debt");
+    uint256 debt = _removeDebt(id).add(borrowAmount);
     // 3. Perform the actual work, using a new scope to avoid stack-too-deep errors.
     uint256 back;
     {
-      uint256 sendBEP20 = principalAmount.add(loan);
+      uint256 sendBEP20 = principalAmount.add(borrowAmount);
       require(sendBEP20 <= SafeToken.myBalance(token), "Vault::work:: insufficient funds in the vault");
       uint256 beforeBEP20 = SafeToken.myBalance(token).sub(sendBEP20);
       SafeToken.safeTransfer(token, worker, sendBEP20);
