@@ -70,6 +70,7 @@ describe('Vault - PancakeswapV202', () => {
   const DEPLOYER = '0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51';
   const BENEFICIALVAULT_BOUNTY_BPS = '1000'
   const REINVEST_THRESHOLD = ethers.utils.parseEther('1') // If pendingCake > 1 $CAKE, then reinvest
+  const KILL_TREASURY_BPS = '100';
 
   /// Pancakeswap-related instance(s)
   let factoryV2: PancakeFactory;
@@ -263,7 +264,7 @@ describe('Vault - PancakeswapV202', () => {
     )) as SimpleVaultConfig__factory;
     simpleVaultConfig = await upgrades.deployProxy(SimpleVaultConfig, [
       MIN_DEBT_SIZE, INTEREST_RATE, RESERVE_POOL_BPS, KILL_PRIZE_BPS,
-      wbnb.address, wNativeRelayer.address, fairLaunch.address, '0', ethers.constants.AddressZero
+      wbnb.address, wNativeRelayer.address, fairLaunch.address, KILL_TREASURY_BPS, ethers.constants.AddressZero
     ]) as SimpleVaultConfig;
     await simpleVaultConfig.deployed();
 
@@ -852,14 +853,35 @@ describe('Vault - PancakeswapV202', () => {
           (await vault.totalToken()).toString()
         );
     
-        const eveBefore = await baseToken.balanceOf(await eve.getAddress());
+        // Calculate the expected result.
+        // set interest rate to be 0 to be easy for testing.
+        await simpleVaultConfig.setParams(
+          MIN_DEBT_SIZE, 0, RESERVE_POOL_BPS, KILL_PRIZE_BPS,
+          wbnb.address, wNativeRelayer.address, fairLaunch.address, KILL_TREASURY_BPS,await deployer.getAddress()
+        )
+        const toBeLiquidatedValue = await pancakeswapV2Worker.health(1)
+        const liquidationBounty = toBeLiquidatedValue.mul(KILL_PRIZE_BPS).div(10000)
+        const treasuryKillFees = toBeLiquidatedValue.mul(KILL_TREASURY_BPS).div(10000)
+        const totalLiquidationFees = liquidationBounty.add(treasuryKillFees)
+        const eveBalanceBefore = await baseToken.balanceOf(await eve.getAddress())
         const aliceAlpacaBefore = await alpacaToken.balanceOf(await alice.getAddress());
+        const aliceBalanceBefore = await baseToken.balanceOf(await alice.getAddress())
+        const vaultBalanceBefore = await baseToken.balanceOf(vault.address)
+        const deployerBalanceBefore = await baseToken.balanceOf(await deployer.getAddress())
+        const vaultDebtVal = await vault.vaultDebtVal()
+        const debt = await vault.debtShareToVal((await vault.positions(1)).debtShare)
+        const left = debt.gte(toBeLiquidatedValue.sub(totalLiquidationFees)) ? ethers.constants.Zero : toBeLiquidatedValue.sub(totalLiquidationFees).sub(debt)
         
-        // Now you can liquidate because of the insane interest rate
+        // Now eve kill the position
         await expect(vaultAsEve.kill('1'))
-          .to.emit(vaultAsEve, 'Kill')  
+          .to.emit(vaultAsEve, 'Kill')
+        
+        // Getting balances after killed
+        const eveBalanceAfter = await baseToken.balanceOf(await eve.getAddress())
+        const aliceBalanceAfter = await baseToken.balanceOf(await alice.getAddress())
+        const vaultBalanceAfter = await baseToken.balanceOf(vault.address)
+        const deployerBalanceAfter = await baseToken.balanceOf(await deployer.getAddress())
   
-        expect(await baseToken.balanceOf(await eve.getAddress())).to.be.bignumber.gt(eveBefore);
         AssertHelpers.assertAlmostEqual(
           deposit
             .add(interest)
@@ -879,8 +901,30 @@ describe('Vault - PancakeswapV202', () => {
             .add(interest.sub(reservePool).mul(13).div(10)).toString(),
           (await vault.totalToken()).toString(),
         );
-        expect(await baseToken.balanceOf(await eve.getAddress())).to.be.bignumber.gt(eveBefore);
-        expect(await alpacaToken.balanceOf(await alice.getAddress())).to.be.bignumber.gt(aliceAlpacaBefore);
+        expect(
+          eveBalanceAfter.sub(eveBalanceBefore),
+          "expect Eve to get her liquidation bounty"
+        ).to.be.eq(liquidationBounty)
+        expect(
+          deployerBalanceAfter.sub(deployerBalanceBefore),
+          "expect Deployer to get treasury liquidation fees"
+        ).to.be.eq(treasuryKillFees)
+        expect(
+          aliceBalanceAfter.sub(aliceBalanceBefore),
+          "expect Alice to get her leftover back"
+        ).to.be.eq(left)
+        expect(
+          vaultBalanceAfter.sub(vaultBalanceBefore),
+          "expect Vault to get its funds + interest"
+        ).to.be.eq(vaultDebtVal)
+        expect(
+          (await vault.positions(1)).debtShare,
+          "expect Pos#1 debt share to be 0"
+        ).to.be.eq(0)
+        expect(
+          await alpacaToken.balanceOf(await alice.getAddress()),
+          "expect Alice to get some ALPACA from holding LYF position"
+        ).to.be.bignumber.gt(aliceAlpacaBefore);
   
         // Alice creates a new position again
         await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther('1'));
