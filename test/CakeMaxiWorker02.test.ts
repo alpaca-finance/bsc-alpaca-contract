@@ -72,6 +72,7 @@ describe('CakeMaxiWorker02', () => {
   const MAX_REINVEST_BOUNTY = '2000';
   const DEPLOYER = '0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51';
   const ZERO_REINVEST_THRESHOLD = '0';
+  const KILL_TREASURY_BPS = '100';
 
   /// PancakeswapV2-related instance(s)
   let factoryV2: PancakeFactory;
@@ -1864,7 +1865,8 @@ describe('CakeMaxiWorker02', () => {
           // set interest rate to be 0 to be easy for testing.
           await simpleVaultConfig.setParams(
             MIN_DEBT_SIZE, 0, RESERVE_POOL_BPS, KILL_PRIZE_BPS,
-            wbnb.address, wNativeRelayer.address, fairLaunch.address
+            wbnb.address, wNativeRelayer.address, fairLaunch.address,
+            KILL_TREASURY_BPS,await deployer.getAddress()
           )
           // pre calculated left, liquidation reward, health
           const toBeLiquidatedValue = await integratedCakeMaxiWorker.health(1)
@@ -2006,7 +2008,7 @@ describe('CakeMaxiWorker02', () => {
           // set interest rate to be 0 to be easy for testing.
           await simpleVaultConfig.setParams(
             MIN_DEBT_SIZE, 0, RESERVE_POOL_BPS, KILL_PRIZE_BPS,
-            wbnb.address, wNativeRelayer.address, fairLaunch.address
+            wbnb.address, wNativeRelayer.address, fairLaunch.address,KILL_TREASURY_BPS,await deployer.getAddress()
           )
           // pre calculated left, liquidation reward, health
           const toBeLiquidatedValue = await integratedCakeMaxiWorker.health(1)

@@ -17,7 +17,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const MIN_DEBT_SIZE = ethers.utils.parseEther('100');
   const RESERVE_POOL_BPS = '1000';
-  const KILL_PRIZE_BPS = '500';
+  const KILL_PRIZE_BPS = '250';
+  const TREASURY_KILL_BPS = '250';
+  const TREASURY_ADDR = '';
 
 
 
@@ -43,7 +45,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       config.SharedConfig.TripleSlopeModelStable20Max150, 
       config.Tokens.WBNB, 
       config.SharedConfig.WNativeRelayer, 
-      config.FairLaunch.address
+      config.FairLaunch.address,
+      TREASURY_KILL_BPS,
+      TREASURY_ADDR
     ]
   );
   await configurableInterestVaultConfig.deployed();

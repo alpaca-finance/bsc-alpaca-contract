@@ -57,12 +57,13 @@ describe("Timelock", () => {
   const CAKE_REWARD_PER_BLOCK = ethers.utils.parseEther('0.076');
   const REINVEST_BOUNTY_BPS = '100'; // 1% reinvest bounty
   const RESERVE_POOL_BPS = '1000'; // 10% reserve pool
-  const KILL_PRIZE_BPS = '500'; // 5% Kill prize
+  const KILL_PRIZE_BPS = '300'; // 3% Kill prize
   const INTEREST_RATE = '3472222222222'; // 30% per year
   const MIN_DEBT_SIZE = '1'; // 1 ETH min debt size
   const WORK_FACTOR = '7000';
   const KILL_FACTOR = '8000';
   const MAX_PRICE_DIFF = '1300';
+  const KILL_TREASURY_BPS = '100';
 
   // Timelock-related instance(s)
   let timelock: Timelock;
@@ -220,7 +221,7 @@ describe("Timelock", () => {
       deployer
     )) as SimpleVaultConfig__factory;
     simpleVaultConfig = await upgrades.deployProxy(SimpleVaultConfig, [
-      MIN_DEBT_SIZE, INTEREST_RATE, RESERVE_POOL_BPS, KILL_PRIZE_BPS, wbnb.address, ADDRESS0, fairLaunch.address
+      MIN_DEBT_SIZE, INTEREST_RATE, RESERVE_POOL_BPS, KILL_PRIZE_BPS, wbnb.address, ADDRESS0, fairLaunch.address,KILL_TREASURY_BPS,await deployer.getAddress()
     ]) as SimpleVaultConfig;
     await simpleVaultConfig.deployed();
 
@@ -229,7 +230,7 @@ describe("Timelock", () => {
       deployer
     )) as ConfigurableInterestVaultConfig__factory;
     configurableInterestVaultConfig = await upgrades.deployProxy(ConfigurableInterestVaultConfig, [
-      MIN_DEBT_SIZE, RESERVE_POOL_BPS, KILL_PRIZE_BPS, ADDRESS0, ADDRESS0, ADDRESS0, fairLaunch.address
+      MIN_DEBT_SIZE, RESERVE_POOL_BPS, KILL_PRIZE_BPS, ADDRESS0, ADDRESS0, ADDRESS0, fairLaunch.address,KILL_TREASURY_BPS,await deployer.getAddress()
     ]) as ConfigurableInterestVaultConfig;
     await configurableInterestVaultConfig.deployed();
 
@@ -378,7 +379,7 @@ describe("Timelock", () => {
     it('should not allow to do so on SimpleVaultConfig', async () => {
       await expect(
         simpleVaultConfigAsAlice.setParams(
-          1, 1, 1, 1, ADDRESS0, ADDRESS0, ADDRESS0
+          1, 1, 1, ADDRESS0, ADDRESS0, ADDRESS0, ADDRESS0, 1 ,ADDRESS0
         )
       ).to.be.revertedWith('Ownable: caller is not the owner');
 
@@ -390,7 +391,7 @@ describe("Timelock", () => {
     it('should not allow to do so on ConfigurableInterestVaultConfig', async () => {
       await expect(
         configurableInterestVaultConfigAsAlice.setParams(
-          1, 1, 1, ADDRESS0, ADDRESS0, ADDRESS0, ADDRESS0
+          1, 1, 1, ADDRESS0, ADDRESS0, ADDRESS0, ADDRESS0, 1, ADDRESS0
         )
       ).to.be.revertedWith('Ownable: caller is not the owner');
 
