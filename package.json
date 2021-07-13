@@ -70,7 +70,6 @@
     "deploy:mainnet:s027": "hardhat --network mainnet deploy --no-compile --reset --tags TimelockAddTreasuryFieldsWorkers02",
     "deploy:mainnet:s028": "hardhat --network mainnet deploy --no-compile --reset --tags TimelockAddBeneficialBuybackFieldsWorkers02",
     "deploy:mainnet:s029": "hardhat --network mainnet deploy --no-compile --reset --tags TimelockSetReinvestConfigWorkers02",
-    
     "deploy:testnet:000": "hardhat --network testnet deploy --no-compile --reset --tags Testnet",
     "deploy:testnet:000:panV2": "hardhat --network testnet deploy --no-compile --reset --tags PancakeswapV2",
     "deploy:testnet:000:waultswap": "hardhat --network testnet deploy --no-compile --reset --tags WaultSwap",
@@ -140,9 +139,7 @@
     "deploy:testnet:s027": "hardhat --network testnet deploy --no-compile --reset --tags TimelockAddTreasuryFieldsWorkers02",
     "deploy:testnet:s028": "hardhat --network testnet deploy --no-compile --reset --tags TimelockAddBeneficialBuybackFieldsWorkers02",
     "deploy:testnet:s029": "hardhat --network testnet deploy --no-compile --reset --tags TimelockSetReinvestConfigWorkers02",
-    
     "mainnet": "hardhat console --no-compile --network mainnet",
-    
     "test:case": "mocha --require hardhat/register --extension ts -g",
     "test:parallel": "mocha --require hardhat/register --recursive --parallel --extension ts --exit",
     "test:fairlaunch": "hardhat test --no-compile ./test/FairLaunch.test.ts",
