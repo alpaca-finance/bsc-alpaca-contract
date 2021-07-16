@@ -42,7 +42,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     VAULT_SYMBOL: 'ibTUSD',
     MAX_KILL_BPS: '500'
   }];
-  const EXACT_ETA = '1626174900'
+  const EXACT_ETA = '1626321600';
 
 
 

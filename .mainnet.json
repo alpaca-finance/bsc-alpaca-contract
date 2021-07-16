@@ -1563,7 +1563,7 @@
     "baseToken": "0x14016e85a25aeb13065688cafb43044c2ef86784",
     "debtToken": "0xb76ED435B93477511e4604c441550A23d5aeAF84",
     "config": "0x0c1F049ebE3E0537C7E7ce428Bb468d5F6bF83b3",
-    "tripleSlopeModel": "0xADcfBf2e8470493060FbE0A0aFAC66d2cB028e9c",
+    "tripleSlopeModel": "0x375D32FadA30d7e6Fea242FCa221a22CC6d52B30",
     "StrategyAddTwoSidesOptimal": {
       "Pancakeswap": "0xA8F37daF3D290F636f0B79E47ea50aB7f7A82d51",
       "Waultswap": "0x8cE75fF793D7832302BeA91c275e2509060DfEaA",
