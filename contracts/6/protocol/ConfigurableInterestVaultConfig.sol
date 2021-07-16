@@ -98,7 +98,6 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   /// @param _interestModel The new interest rate model contract.
   /// @param _getKillTreasuryBps The portion of reward that will be transferred to treasury account after successfully killing a position.
   /// @param _treasury address of treasury account
-
   function setParams(
     uint256 _minDebtSize,
     uint256 _reservePoolBps,

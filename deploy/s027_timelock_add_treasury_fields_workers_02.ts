@@ -11,13 +11,6 @@ interface IWorker {
 }
 
 type IWorkers = Array<IWorker>
-
-interface IWorkerInput {
-  WORKER_NAME: string,
-}
-
-type IWorkerInputs = Array<IWorkerInput>
-
 /**
  * @description Deployment script for upgrades workers to 02 version
  * @param  {HardhatRuntimeEnvironment} hre
@@ -32,13 +25,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const workerInputs: IWorkerInputs = [
-    {
-      WORKER_NAME: "BUSD-ALPACA PancakeswapWorker",
-    } // Example
+  const workerInputs: Array<string> = [
+    "BUSD-ALPACA PancakeswapWorker",
   ]
-  const EXACT_ETA = '1625820300';
-  const TREASURY_ACCOUNT = '0x212C2a2891227f39B48D655C5ecA0b1377daFF90'; // Address of treasury account
+  const EXACT_ETA = '1626252600';
+  const TREASURY_ACCOUNT = '0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De'; // Address of treasury account
   const TREASURY_BOUNTY_BPS = '300'; // Treasury bounty bps
 
 
@@ -63,18 +54,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     // 2. if hit return
     // 3. other wise throw error
     const hit = allWorkers.find((worker) => {
-      return worker.WORKER_NAME === workerInput.WORKER_NAME
+      return worker.WORKER_NAME === workerInput
     })
 
     if(!!hit) return hit
 
-    throw new Error(`could not find ${workerInput.WORKER_NAME}`)
+    throw new Error(`could not find ${workerInput}`)
   })
   const timelock = Timelock__factory.connect(config.Timelock, (await ethers.getSigners())[0]);
 
   for(let i = 0; i < TO_BE_UPGRADE_WORKERS.length; i++) {
-    console.log(`>> Setting Treasury account to: ${TO_BE_UPGRADE_WORKERS[i].WORKER_NAME} at ${TO_BE_UPGRADE_WORKERS[i].ADDRESS} through Timelock + ProxyAdmin`)
-    console.log(`>> Queue tx on Timelock to upgrade the implementation`);
+    console.log(`>> Setting Treasury account to: ${TO_BE_UPGRADE_WORKERS[i].WORKER_NAME} at ${TO_BE_UPGRADE_WORKERS[i].ADDRESS} through Timelock`)
     await timelock.queueTransaction(TO_BE_UPGRADE_WORKERS[i].ADDRESS, '0', 'setTreasuryConfig(address,uint256)', ethers.utils.defaultAbiCoder.encode(['address', 'uint256'], [TREASURY_ACCOUNT, TREASURY_BOUNTY_BPS]), EXACT_ETA, { gasPrice: 100000000000 });
     console.log("✅ Done");
 

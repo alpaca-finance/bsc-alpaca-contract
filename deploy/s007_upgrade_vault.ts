@@ -1,7 +1,9 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
-import { ethers, upgrades } from 'hardhat';
-import { Timelock__factory, Vault, Vault__factory } from '../typechain'
+import { ethers, upgrades, network } from 'hardhat';
+import { Timelock__factory, Vault__factory } from '../typechain'
+import MainnetConfig from '../.mainnet.json'
+import TestnetConfig from '../.testnet.json'
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -13,18 +15,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  // PROXY_ADMIN
-  // Testnet: 0x2c6c09b46d00A88161B7e4AcFaFEc58990548aC2
-  // Mainnet: 0x5379F32C8D5F663EACb61eeF63F722950294f452
-  const PROXY_ADMIN = '0x5379F32C8D5F663EACb61eeF63F722950294f452';
-  const NEW_IMPL = '0x7EEAA96bf1aBaA206615046c0991E678a2b12Da1';
-  const TO_BE_UPGRADE_VAULT = '0x7C9e73d4C71dae564d41F78d56439bB4ba87592f';
-
-  const TIMELOCK = '0x2D5408f2287BF9F9B05404794459a846651D0a59';
-  const EXACT_ETA = '1616574600';
-
-  const NEW_DEBT_TOKEN = '0x02dA7035beD00ae645516bDb0c282A7fD4AA7442';
-  const DEBT_PID = '7';
+  const TARGETED_VAULTS = ['ibWBNB', 'ibBUSD', 'ibETH', 'ibALPACA', 'ibUSDT', 'ibBTCB', 'ibTUSD']
+  const EXACT_ETA = '1626321600';
 
 
 
@@ -34,35 +26,36 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 
 
-  const timelock = Timelock__factory.connect(TIMELOCK, (await ethers.getSigners())[0]);
+  const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig
 
-  let newImpl = NEW_IMPL;
-  console.log(`>> Upgrading Vault at ${TO_BE_UPGRADE_VAULT} through Timelock + ProxyAdmin`);
-  if (newImpl === '') {
-    console.log('>> NEW_IMPL is not set. Prepare upgrade a new IMPL automatically.');
+  const timelock = Timelock__factory.connect(config.Timelock, (await ethers.getSigners())[0]);
+  const toBeUpgradedVaults = TARGETED_VAULTS.map((tv) => {
+    const vault = config.Vaults.find((v) => tv == v.symbol)
+    if(vault === undefined) {
+      throw `error: not found vault with ${tv} symbol`
+    }
+    if(vault.config === "") {
+      throw `error: not found config address`
+    }
+
+    return vault
+  })
+
+  for(const vault of toBeUpgradedVaults) {
+    console.log(`============`)
+    console.log(`>> Upgrading Vault at ${vault.symbol} through Timelock + ProxyAdmin`);
+    console.log('>> Prepare upgrade & deploy if needed a new IMPL automatically.');
     const NewVaultFactory = (await ethers.getContractFactory('Vault')) as Vault__factory;
-    const preparedNewVault = await upgrades.prepareUpgrade(TO_BE_UPGRADE_VAULT, NewVaultFactory)
-    newImpl = preparedNewVault;
-    console.log(`>> New implementation deployed at: ${preparedNewVault}`);
+    const preparedNewVault = await upgrades.prepareUpgrade(vault.address, NewVaultFactory)
+    console.log(`>> Implementation address: ${preparedNewVault}`);
     console.log("✅ Done");
-  }
 
-  console.log(`>> Queue tx on Timelock to upgrade the implementation`);
-  await timelock.queueTransaction(PROXY_ADMIN, '0', 'upgrade(address,address)', ethers.utils.defaultAbiCoder.encode(['address','address'], [TO_BE_UPGRADE_VAULT, newImpl]), EXACT_ETA);
-  console.log("✅ Done");
-
-  console.log(`>> Generate executeTransaction:`);
-  console.log(`await timelock.executeTransaction('${PROXY_ADMIN}', '0', 'upgrade(address,address)', ethers.utils.defaultAbiCoder.encode(['address','address'], ['${TO_BE_UPGRADE_VAULT}','${newImpl}']), ${EXACT_ETA})`);
-  console.log("✅ Done");
-
-  let newDebtToken = NEW_DEBT_TOKEN
-  if (newDebtToken !== '') {
-    console.log(`>> Queue tx on Timelock to updateDebtToken on the Vault`);
-    await timelock.queueTransaction(TO_BE_UPGRADE_VAULT, '0', 'updateDebtToken(address,uint256)', ethers.utils.defaultAbiCoder.encode(['address','uint256'], [NEW_DEBT_TOKEN, DEBT_PID]), EXACT_ETA);
+    console.log(`>> Queue tx on Timelock to upgrade the implementation`);
+    await timelock.queueTransaction(config.ProxyAdmin, '0', 'upgrade(address,address)', ethers.utils.defaultAbiCoder.encode(['address','address'], [vault.address, preparedNewVault]), EXACT_ETA);
     console.log("✅ Done");
 
     console.log(`>> Generate executeTransaction:`);
-    console.log(`await timelock.executeTransaction('${TO_BE_UPGRADE_VAULT}', '0', 'updateDebtToken(address,uint256)', ethers.utils.defaultAbiCoder.encode(['address','uint256'], ['${NEW_DEBT_TOKEN}', ${DEBT_PID}]), ${EXACT_ETA})`);
+    console.log(`await timelock.executeTransaction('${config.ProxyAdmin}', '0', 'upgrade(address,address)', ethers.utils.defaultAbiCoder.encode(['address','address'], ['${vault.address}','${preparedNewVault}']), ${EXACT_ETA})`);
     console.log("✅ Done");
   }
 };

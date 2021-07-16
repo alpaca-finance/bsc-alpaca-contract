@@ -32,41 +32,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
 
   const NEW_PARAMS: Array<IInput> = [{
-    VAULT_SYMBOL: 'ibWBNB',
-    MIN_DEBT_SIZE: '0.2',
-    RESERVE_POOL_BPS: '1000',
-    KILL_PRIZE_BPS: '500',
-    INTEREST_MODEL: '0x111ae8da53D0998260DfdfA2172d4f88f969d386',
-    TREASURY_KILL_BPS: '',
-    TREASURY_ADDR: '',
-    EXACT_ETA: '1626063180',
-  }, {
-    VAULT_SYMBOL: 'ibBUSD',
+    VAULT_SYMBOL: 'ibTUSD',
     MIN_DEBT_SIZE: '100',
     RESERVE_POOL_BPS: '1000',
     KILL_PRIZE_BPS: '500',
-    INTEREST_MODEL: '0x111ae8da53D0998260DfdfA2172d4f88f969d386',
-    TREASURY_KILL_BPS: '',
-    TREASURY_ADDR: '',
-    EXACT_ETA: '1626063180',
-  }, {
-    VAULT_SYMBOL: 'ibETH',
-    MIN_DEBT_SIZE: '0.04',
-    RESERVE_POOL_BPS: '1000',
-    KILL_PRIZE_BPS: '500',
-    INTEREST_MODEL: '0x111ae8da53D0998260DfdfA2172d4f88f969d386',
-    EXACT_ETA: '1617926400',
-    TREASURY_KILL_BPS :'250',
-    TREASURY_ADDR: '0x2D5408f2287BF9F9B05404794459a846651D0a59'
-  }, {
-    VAULT_SYMBOL: 'ibALPACA',
-    MIN_DEBT_SIZE: '50',
-    RESERVE_POOL_BPS: '1000',
-    KILL_PRIZE_BPS: '500',
-    TREASURY_KILL_BPS: '',
-    TREASURY_ADDR: '',
-    INTEREST_MODEL: '0x111ae8da53D0998260DfdfA2172d4f88f969d386',
-    EXACT_ETA: '1626063180'
+    INTEREST_MODEL: '0xADcfBf2e8470493060FbE0A0aFAC66d2cB028e9c',
+    TREASURY_KILL_BPS: '0',
+    TREASURY_ADDR: '0x0FfA891ab6f410bbd7403b709e7d38D7a812125B',
+    EXACT_ETA: '1626423300',
   }]
 
 
@@ -115,7 +88,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       info.VAULT_CONFIG, '0',
       'setParams(uint256,uint256,uint256,address,address,address,address,uint256,address)',
       ethers.utils.defaultAbiCoder.encode(
-        ['uint256','uint256','uint256','address','address','address','address', 'uint256', 'address'],
+        ['uint256','uint256','uint256','address','address','address','address','uint256','address'],
         [ethers.utils.parseEther(info.MIN_DEBT_SIZE), info.RESERVE_POOL_BPS, info.KILL_PRIZE_BPS, info.INTEREST_MODEL, config.Tokens.WBNB, config.SharedConfig.WNativeRelayer, config.FairLaunch.address, info.TREASURY_KILL_BPS, info.TREASURY_ADDR]), info.EXACT_ETA)
     console.log("✅ Done")
     console.log("timelock execution:");
