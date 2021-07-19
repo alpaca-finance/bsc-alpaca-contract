@@ -2,7 +2,8 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
 import { ethers } from 'hardhat';
 import { Timelock__factory } from '../typechain'
-import { time } from 'node:console';
+import { mapWorkers } from './entities/worker';
+import { getConfig } from './entities/config';
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -14,24 +15,23 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const OK_FLAG = false
-  const STRATEGY = [
-    '0xd80783De91fbEd9F7995A97D4C02917295F86F68',
-    '0xE38EBFE8F314dcaD61d5aDCB29c1A26F41BEd0Be',
-    '0xE574dc08aa579720Dfacd70D3DAE883d29874599',
-    '0x95Ff1336985723aa46078995454d7A7Fd9F5401e'
-  ]
-
   const ADD_STRAT = ''
   const LIQ_STRAT = ''
 
+  const OK_FLAG = true
+  const STRATEGY = [
+    '0x193c3F7e669Baa1C2421affd5EC0Dc879DEBbe44',
+    '0x34566a837d46E75468AB0d050B31dA265ffE1E75',
+  ]
   const WORKERS = [
-    // Alpaca Vault
-    '0xeF1C5D2c20b22Ae50437a2F3bd258Ab1117D1BaD', // BUSD-ALPACA PancakeswapWorker
+    "BTCB CakeMaxiWorker",
+    "USDT CakeMaxiWorker",
+    "ETH CakeMaxiWorker",
+    "BUSD CakeMaxiWorker",
+    "WBNB CakeMaxiWorker",
+    "TUSD CakeMaxiWorker",
   ];
-
-  const TIMELOCK = '0x2D5408f2287BF9F9B05404794459a846651D0a59';
-  const EXACT_ETA = '1620561000';
+  const EXACT_ETA = '1626685200';
 
 
 
@@ -42,14 +42,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 
 
+  const config = getConfig()
+  const timelock = Timelock__factory.connect(config.Timelock, (await ethers.getSigners())[0]);
+  const workerAddrs = mapWorkers(WORKERS).map((w) => w.address)
+  const executionTxs: Array<String> = []
 
-  const timelock = Timelock__factory.connect(TIMELOCK, (await ethers.getSigners())[0]);
-
-  for(let i = 0; i < WORKERS.length; i++) {
+  for(const workerAddr of workerAddrs) {
     if(ADD_STRAT && LIQ_STRAT) {
       console.log(">> Timelock: Setting critical strat via Timelock");
       await timelock.queueTransaction(
-        WORKERS[i], '0',
+        workerAddr, '0',
         'setCriticalStrategies(address,address)',
         ethers.utils.defaultAbiCoder.encode(
           ['address', 'address'],
@@ -57,27 +59,32 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         ), EXACT_ETA
       )
       console.log("generate timelock.executeTransaction:")
-      console.log(`await timelock.executeTransaction('${WORKERS[i]}', '0', 'setCriticalStrategies(address,address)', ethers.utils.defaultAbiCoder.encode(['address','address'],['${ADD_STRAT}', '${LIQ_STRAT}']), ${EXACT_ETA})`)
+      console.log(`await timelock.executeTransaction('${workerAddr}', '0', 'setCriticalStrategies(address,address)', ethers.utils.defaultAbiCoder.encode(['address','address'],['${ADD_STRAT}', '${LIQ_STRAT}']), ${EXACT_ETA})`)
       console.log("✅ Done");
     }
 
     console.log(">> Timelock: Setting okStrats via Timelock");
     await timelock.queueTransaction(
-      WORKERS[i], '0',
+      workerAddr, '0',
       'setStrategyOk(address[],bool)',
       ethers.utils.defaultAbiCoder.encode(
         ['address[]','bool'],
         [
-          STRATEGY, false
+          STRATEGY, OK_FLAG
         ]
       ), EXACT_ETA
     );
     const strats = STRATEGY.map((strat) => `'${strat}'`)
-    const ok = 'false'
     console.log("generate timelock.executeTransaction:")
-    console.log(`await timelock.executeTransaction('${WORKERS[i]}', '0', 'setStrategyOk(address[],bool)', ethers.utils.defaultAbiCoder.encode(['address[]','bool'],[[${strats}], ${ok}]), ${EXACT_ETA})`)
+    const executionTx = `await timelock.executeTransaction('${workerAddr}', '0', 'setStrategyOk(address[],bool)', ethers.utils.defaultAbiCoder.encode(['address[]','bool'],[[${strats}], ${OK_FLAG}]), ${EXACT_ETA})`
+    console.log(executionTx)
     console.log("✅ Done");
+
+    executionTxs.push(`// Approve strats for ${workerAddr}\n${executionTx}\n`)
   }
+
+  console.log("\n\n\n")
+  for(const exTx of executionTxs) console.log(exTx)
 };
 
 export default func;
