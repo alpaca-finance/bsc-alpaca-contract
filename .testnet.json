@@ -1569,6 +1569,19 @@
         "StrategyAddTwoSidesOptimal": "0xDB399666fc696f9FF7114609fBd891a71944FA05",
         "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32"
       }
+    }, {
+      "name": "TUSD CakeMaxiWorker",
+      "address": "0xD17674684b01f455a39973A963Aefe618c47D7c7",
+      "config": "0x84c8c614826f312BE90f0161498e3d57646Ef34f",
+      "pId": 0,
+      "stakingToken": "0x7aBcA3B5f0Ca1da0eC05631d5788907D030D0a22",
+      "stakingTokenAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
+      "strategies": {
+        "StrategyAddAllBaseToken": "0x4519d5038B86752edaCef84F779364F1C1C7ed40",
+        "StrategyLiquidate": "0xFA33cAA1F3913Dc9cDb49435F2f80D660114BEE6",
+        "StrategyAddTwoSidesOptimal": "0x7aDaE260f5135Ef1050Fee880d8A8d02C410dFA7",
+        "StrategyWithdrawMinimizeTrading": "0x0EA3307c33403c81A99C76f7370D78e09Bc50539"
+      }
     }]
   }]
 }

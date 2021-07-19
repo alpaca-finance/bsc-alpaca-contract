@@ -59,10 +59,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
   const workerInputs: IWorkerInputs = [
-    "BUSD-ALPACA PancakeswapWorker"   
+    "WBNB CakeMaxiWorker",
+    "BUSD CakeMaxiWorker",
+    "ETH CakeMaxiWorker",
+    "USDT CakeMaxiWorker",
+    "BTCB CakeMaxiWorker",
   ]
-  const NEW_IMPL = '';
-  const EXACT_ETA = '1626087600';
+  const EXACT_ETA = '1626705000';
 
 
 
@@ -104,28 +107,31 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     CAKEMAXI_WORKER_02: cakeMaxiWorker02Factory,
   }
   const timelock = Timelock__factory.connect(config.Timelock, (await ethers.getSigners())[0]);
-
-  let newImpl = NEW_IMPL;
-  // if newImpl doesn't exist, use the first record as a name to find the factory
-  if (newImpl === '') {
-    console.log('>> NEW_IMPL is not set. Prepare upgrade a new IMPL automatically.');
-    const NewPancakeswapWorker: ContractFactory = getFactory(TO_BE_UPGRADE_WORKERS[0].WORKER_NAME, FACTORY)
-    const preparedNewWorker: string = await upgrades.prepareUpgrade(TO_BE_UPGRADE_WORKERS[0].ADDRESS, NewPancakeswapWorker)
-    newImpl = preparedNewWorker;
-    console.log(`>> New implementation deployed at: ${preparedNewWorker}`);
-    console.log("✅ Done");
-  }
+  const executionTxs: Array<string> = []
 
   for(let i = 0; i < TO_BE_UPGRADE_WORKERS.length; i++) {
+    console.log(`>> Preparing to upgrade ${TO_BE_UPGRADE_WORKERS[i].WORKER_NAME}`);
+    const NewPancakeswapWorker: ContractFactory = getFactory(TO_BE_UPGRADE_WORKERS[0].WORKER_NAME, FACTORY)
+    const preparedNewWorker: string = await upgrades.prepareUpgrade(TO_BE_UPGRADE_WORKERS[0].ADDRESS, NewPancakeswapWorker)
+    const newImpl = preparedNewWorker;
+    console.log(`>> New implementation deployed at: ${preparedNewWorker}`);
+    console.log("✅ Done");
+
     console.log(`>> Upgrading worker: ${TO_BE_UPGRADE_WORKERS[i].WORKER_NAME} at ${TO_BE_UPGRADE_WORKERS[i].ADDRESS} through Timelock + ProxyAdmin`)
     console.log(`>> Queue tx on Timelock to upgrade the implementation`);
     await timelock.queueTransaction(config.ProxyAdmin, '0', 'upgrade(address,address)', ethers.utils.defaultAbiCoder.encode(['address','address'], [TO_BE_UPGRADE_WORKERS[i].ADDRESS, newImpl]), EXACT_ETA, { gasPrice: 100000000000 });
     console.log("✅ Done");
 
     console.log(`>> Generate executeTransaction:`);
-    console.log(`await timelock.executeTransaction('${config.ProxyAdmin}', '0', 'upgrade(address,address)', ethers.utils.defaultAbiCoder.encode(['address','address'], ['${TO_BE_UPGRADE_WORKERS[i].ADDRESS}','${newImpl}']), ${EXACT_ETA})`);
+    const executionTx = `await timelock.executeTransaction('${config.ProxyAdmin}', '0', 'upgrade(address,address)', ethers.utils.defaultAbiCoder.encode(['address','address'], ['${TO_BE_UPGRADE_WORKERS[i].ADDRESS}','${newImpl}']), ${EXACT_ETA})`
+    console.log(executionTx);
     console.log("✅ Done");
+
+    executionTxs.push(`// Upgrade ${TO_BE_UPGRADE_WORKERS[i].WORKER_NAME} to Worker02\n${executionTx}\n`)
   }
+
+  console.log("\n\n\n")
+  for(const exTx of executionTxs) console.log(exTx)
 };
 
 export default func;

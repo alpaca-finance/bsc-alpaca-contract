@@ -25,31 +25,31 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
   const REWARDINFO: IAddGrazingRangeRewardInfoParamList = [{
-    // ✅ 735,848.064 ORBS
+    // 1,922,499.94 WEX
     PHASE_NAME: 'WEEK_1',
-    CAMPAIGN_ID: '9',
-    ENDBLOCK: '9322300',
-    REWARD_PER_BLOCK: ethers.utils.parseEther('3.650040').toString()
+    CAMPAIGN_ID: '10',
+    ENDBLOCK: '9523700',
+    REWARD_PER_BLOCK: ethers.utils.parseEther('9.536210').toString()
   }, {
-    // ✅ 408,804.48 ORBS
+    // 1,922,499.94 WEX
     PHASE_NAME: 'WEEK_2',
-    CAMPAIGN_ID: '9',
-    ENDBLOCK: '9523900',
-    REWARD_PER_BLOCK: ethers.utils.parseEther('2.027800').toString()
+    CAMPAIGN_ID: '10',
+    ENDBLOCK: '9725300',
+    REWARD_PER_BLOCK: ethers.utils.parseEther('9.536210').toString()
   }, {
-    // ✅ 310,689.792 ORBS
+    // 1,922,499.94 WEX
     PHASE_NAME: 'WEEK_3',
-    CAMPAIGN_ID: '9',
-    ENDBLOCK: '9725500',
-    REWARD_PER_BLOCK: ethers.utils.parseEther('1.541120').toString()
+    CAMPAIGN_ID: '10',
+    ENDBLOCK: '9926900',
+    REWARD_PER_BLOCK: ethers.utils.parseEther('9.536210').toString()
   }, {
-    // ✅ 179,873.568 ORBS
+    // 1,922,499.94 WEX
     PHASE_NAME: 'WEEK_4',
-    CAMPAIGN_ID: '9',
-    ENDBLOCK: '9927100',
-    REWARD_PER_BLOCK: ethers.utils.parseEther('0.892230').toString()
+    CAMPAIGN_ID: '10',
+    ENDBLOCK: '10128500',
+    REWARD_PER_BLOCK: ethers.utils.parseEther('9.536210').toString()
   }]
-  const EXACT_ETA = '1626087600'
+  const EXACT_ETA = '1626701400'
   
 
 

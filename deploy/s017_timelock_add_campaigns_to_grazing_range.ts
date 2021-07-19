@@ -25,12 +25,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
   const CAMPAIGNS: IAddGrazingRangeCampaignParamList = [{
-    NAME: 'ibALPACA-ORBS',
+    NAME: 'ibALPACA-WEX',
     STAKING_TOKEN: '0xf1bE8ecC990cBcb90e166b71E368299f0116d421',
-    REWARD_TOKEN: '0xebd49b26169e1b52c04cfd19fcf289405df55f80',
-    START_BLOCK: '9120700'
+    REWARD_TOKEN: '0xa9c41a46a6b3531d28d5c32f6633dd2ff05dfb90',
+    START_BLOCK: '9322100'
   }]
-  const EXACT_ETA = '1626087600'
+  const EXACT_ETA = '1626701400'
     
 
 

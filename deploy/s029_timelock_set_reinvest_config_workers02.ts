@@ -47,13 +47,397 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const workerInputs: IWorkerReinvestConfigInputs = [
     {
-      WORKER_NAME: "BUSD-ALPACA PancakeswapWorker",
+      WORKER_NAME: "CAKE-WBNB PancakeswapWorker",
       REINVEST_BOUNTY_BPS: '300',
       REINVEST_THRESHOLD: '1',
-      REINVEST_PATH: ['CAKE', 'BUSD', 'ALPACA']
-    }
+      REINVEST_PATH: ['CAKE', 'WBNB'],
+    },
+    {
+      WORKER_NAME: "BTCB-WBNB PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'WBNB'],
+    },
+    {
+      WORKER_NAME: "ETH-WBNB PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'WBNB'],
+    },
+    {
+      WORKER_NAME: "DOT-WBNB PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'WBNB'],
+    },
+    {
+      WORKER_NAME: "UNI-WBNB PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'WBNB'],
+    },
+    {
+      WORKER_NAME: "LINK-WBNB PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'WBNB'],
+    },
+    {
+      WORKER_NAME: "XVS-WBNB PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'WBNB'],
+    },
+    {
+      WORKER_NAME: "YFI-WBNB PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'WBNB'],
+    },
+    {
+      WORKER_NAME: "ITAM-WBNB PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'WBNB'],
+    },
+    {
+      WORKER_NAME: "BUSD-WBNB PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'WBNB'],
+    },
+    {
+      WORKER_NAME: "bMXX-WBNB PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'WBNB'],
+    },
+    {
+      WORKER_NAME: "BELT-WBNB PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'WBNB'],
+    },
+    {
+      WORKER_NAME: "BOR-WBNB PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'WBNB'],
+    },
+    {
+      WORKER_NAME: "BRY-WBNB PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'WBNB'],
+    },
+    {
+      WORKER_NAME: "pCWS-WBNB PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'WBNB'],
+    },
+    {
+      WORKER_NAME: "SWINGBY-WBNB PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'WBNB'],
+    },
+    {
+      WORKER_NAME: "DODO-WBNB PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'WBNB'],
+    },
+    {
+      WORKER_NAME: "USDT-WBNB PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'WBNB'],
+    },
+    {
+      WORKER_NAME: "ODDZ-WBNB PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'WBNB'],
+    },
+    {
+      WORKER_NAME: "ADA-WBNB PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'WBNB'],
+    },
+    {
+      WORKER_NAME: "TRX-WBNB PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'WBNB'],
+    },
+    {
+      WORKER_NAME: "BTT-WBNB PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'WBNB'],
+    },
+    {
+      WORKER_NAME: "USDT-BUSD PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'BUSD'],
+    },
+    {
+      WORKER_NAME: "WBNB-BUSD PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'BUSD'],
+    },
+    {
+      WORKER_NAME: "VAI-BUSD PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'BUSD'],
+    },
+    {
+      WORKER_NAME: "USDC-BUSD PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'BUSD'],
+    },
+    {
+      WORKER_NAME: "DAI-BUSD PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'BUSD'],
+    },
+    {
+      WORKER_NAME: "UST-BUSD PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'BUSD'],
+    },
+    {
+      WORKER_NAME: "BTCB-BUSD PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'BUSD'],
+    },
+    {
+      WORKER_NAME: "ALPACA-BUSD PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'BUSD'],
+    },
+    {
+      WORKER_NAME: "CAKE-BUSD PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'BUSD'],
+    },
+    {
+      WORKER_NAME: "FORM-BUSD PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'BUSD'],
+    },
+    {
+      WORKER_NAME: "TUSD-BUSD PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'BUSD'],
+    },
+    {
+      WORKER_NAME: "COMP-ETH PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'WBNB', 'ETH'],
+    },
+    {
+      WORKER_NAME: "SUSHI-ETH PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'WBNB', 'ETH'],
+    },
+    {
+      WORKER_NAME: "WBNB-ETH PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'WBNB', 'ETH'],
+    },
+    {
+      WORKER_NAME: "BUSD-USDT PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'USDT'],
+    },
+    {
+      WORKER_NAME: "WBNB-USDT PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'USDT'],
+    },
+    {
+      WORKER_NAME: "CAKE-USDT PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'USDT'],
+    },
+    {
+      WORKER_NAME: "USDC-USDT PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'USDT'],
+    },
+    {
+      WORKER_NAME: "WBNB-BTCB PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'WBNB', 'BTCB'],
+    },
+    {
+      WORKER_NAME: "BUSD-BTCB PancakeswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['CAKE', 'WBNB', 'BTCB'],
+    },
+    {
+      WORKER_NAME: "WEX-WBNB WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['WEX', 'WBNB'],
+    },
+    {
+      WORKER_NAME: "BUSD-WBNB WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['WEX', 'WBNB'],
+    },
+    {
+      WORKER_NAME: "ALPACA-WBNB WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['WEX', 'WBNB'],
+    },
+    {
+      WORKER_NAME: "WAULTx-WBNB WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['WEX', 'WBNB'],
+    },
+    {
+      WORKER_NAME: "ETH-BUSD WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['WEX', 'WBNB', 'BUSD'],
+    },
+    {
+      WORKER_NAME: "WBNB-BUSD WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['WEX', 'WBNB', 'BUSD'],
+    },
+    {
+      WORKER_NAME: "USDT-BUSD WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['WEX', 'WBNB', 'BUSD'],
+    },
+    {
+      WORKER_NAME: "BTCB-BUSD WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['WEX', 'WBNB', 'BUSD'],
+    },
+    {
+      WORKER_NAME: "BUSD-ETH WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['WEX', 'WBNB', 'ETH'],
+    },
+    {
+      WORKER_NAME: "BTCB-ETH WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['WEX', 'WBNB', 'ETH'],
+    },
+    {
+      WORKER_NAME: "BETH-ETH WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['WEX', 'WBNB', 'ETH'],
+    },
+    {
+      WORKER_NAME: "USDT-ETH WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['WEX', 'WBNB', 'ETH'],
+    },
+    {
+      WORKER_NAME: "USDT-ALPACA WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['WEX', 'WBNB', 'ALPACA'],
+    },
+    {
+      WORKER_NAME: "WBNB-ALPACA WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['WEX', 'WBNB', 'ALPACA'],
+    },
+    {
+      WORKER_NAME: "ALPACA-USDT WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['WEX', 'USDT'],
+    },
+    {
+      WORKER_NAME: "WEX-USDT WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['WEX', 'USDT'],
+    },
+    {
+      WORKER_NAME: "BUSD-USDT WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['WEX', 'USDT'],
+    },
+    {
+      WORKER_NAME: "BTCB-USDT WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['WEX', 'USDT'],
+    },
+    {
+      WORKER_NAME: "ETH-USDT WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['WEX', 'USDT'],
+    },
+    {
+      WORKER_NAME: "MATIC-USDT WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['WEX', 'USDT'],
+    },
+    {
+      WORKER_NAME: "ETH-BTCB WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['WEX', 'BTCB'],
+    },
+    {
+      WORKER_NAME: "USDT-BTCB WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['WEX', 'BTCB'],
+    },
+    {
+      WORKER_NAME: "BUSD-BTCB WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '1',
+      REINVEST_PATH: ['WEX', 'BTCB'],
+    },
   ]
-  const EXACT_ETA = '1626087600';
+  const EXACT_ETA = '1626705000';
 
 
 
@@ -120,11 +504,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(executionTx);
     console.log("✅ Done");
     
-    executionTxs.push(`// Config reinvest params of ${reinvestConfigs[i].WORKER_NAME}\n${executionTx}`)
+    executionTxs.push(`// Config reinvest params of ${reinvestConfigs[i].WORKER_NAME}\n${executionTx}\n`)
   }
 
-  console.log("=========")
-  executionTxs.forEach((eTx) => console.log(eTx))
+  console.log("\n\n\n")
+  for(const exTx of executionTxs) console.log(exTx)
 };
 
 export default func;

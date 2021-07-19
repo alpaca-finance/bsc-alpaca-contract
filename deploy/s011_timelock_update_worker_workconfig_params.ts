@@ -26,13 +26,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
   const UPDATES = [{
-    WORKER: 'BUSD-ALPACA PancakeswapWorker',
+    WORKER: 'CAKE-WBNB PancakeswapWorker',
     ACCEPT_DEBT: true,
-    WORK_FACTOR: '5200',
-    KILL_FACTOR: '7000',
-    MAX_PRICE_DIFF: '1100000000000',
+    WORK_FACTOR: '7000',
+    KILL_FACTOR: '8000',
+    MAX_PRICE_DIFF: '10500',
   }]
-  const EXACT_ETA = '1625820000';
+  const EXACT_ETA = '1626753600';
 
 
 

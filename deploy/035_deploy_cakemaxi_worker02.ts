@@ -2,13 +2,13 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
 import { ethers, upgrades, network } from 'hardhat';
 import {
-  CakeMaxiWorker,
-  CakeMaxiWorker__factory,
   Timelock__factory,
   PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly__factory,
   PancakeswapV2RestrictedSingleAssetStrategyLiquidate__factory,
   PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm__factory,
   PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading__factory,
+  CakeMaxiWorker02__factory,
+  CakeMaxiWorker02,
 } from '../typechain';
 import MainnetConfig from '../.mainnet.json'
 import TestnetConfig from '../.testnet.json'
@@ -68,20 +68,20 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
   const shortCakeMaxiWorkerInfo: Array<ICakeMaxiWorkerInput> = [{
-    VAULT_SYMBOL: "ibBTCB",
-    WORKER_NAME: "BTCB CakeMaxiWorker",
+    VAULT_SYMBOL: "ibTUSD",
+    WORKER_NAME: "TUSD CakeMaxiWorker",
     POOL_ID: 0,
-    REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
+    REINVEST_BOT: "0xcf28b4da7d3ed29986831876b74af6e95211d3f9",
     BENEFICIAL_VAULT_SYMBOL: "ibALPACA",
     REINVEST_BOUNTY_BPS: "1900",
     BENEFICIAL_VAULT_BOUNTY_BPS: "5263",
     WORK_FACTOR: "6240",
     KILL_FACTOR: "8000",
     MAX_PRICE_DIFF: "11000",
-    PATH: ["BTCB", "WBNB", "CAKE"],
+    PATH: ["TUSD", "BUSD", "CAKE"],
     REWARD_PATH: ["CAKE", "BUSD", "ALPACA"],
     REINVEST_THRESHOLD: '1',
-    EXACT_ETA: "1624424400"
+    EXACT_ETA: "1626667200"
   }]
 
 
@@ -158,13 +158,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   for(let i = 0; i < workerInfos.length; i++) {
     console.log("===================================================================================")
-    console.log(`>> Deploying an upgradable CakeMaxiWorker contract for ${workerInfos[i].WORKER_NAME}`);
-    const CakeMaxiWorker = (await ethers.getContractFactory(
-      'CakeMaxiWorker',
+    console.log(`>> Deploying an upgradable CakeMaxiWorker02 contract for ${workerInfos[i].WORKER_NAME}`);
+    const CakeMaxiWorker02 = (await ethers.getContractFactory(
+      'CakeMaxiWorker02',
       (await ethers.getSigners())[0]
-    )) as CakeMaxiWorker__factory;
-    const cakeMaxiWorker = await upgrades.deployProxy(
-      CakeMaxiWorker,[
+    )) as CakeMaxiWorker02__factory;
+    const cakeMaxiWorker02 = await upgrades.deployProxy(
+      CakeMaxiWorker02,[
         workerInfos[i].VAULT_ADDR,
         workerInfos[i].BASE_TOKEN_ADDR,
         workerInfos[i].MASTER_CHEF_ADDR,
@@ -179,27 +179,27 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         workerInfos[i].REWARD_PATH,
         workerInfos[i].REINVEST_THRESHOLD
       ]
-    ) as CakeMaxiWorker;
-    await cakeMaxiWorker.deployed();
-    console.log(`>> Deployed at ${cakeMaxiWorker.address}`);
+    ) as CakeMaxiWorker02;
+    await cakeMaxiWorker02.deployed();
+    console.log(`>> Deployed at ${cakeMaxiWorker02.address}`);
 
     console.log(`>> Adding REINVEST_BOT`);
-    await cakeMaxiWorker.setReinvestorOk([workerInfos[i].REINVEST_BOT], true);
+    await cakeMaxiWorker02.setReinvestorOk([workerInfos[i].REINVEST_BOT], true);
     console.log("✅ Done");
 
     console.log(`>> Adding Strategies`);
-    await cakeMaxiWorker.setStrategyOk([workerInfos[i].ADD_BASE_WITH_FARM_STRAT_ADDR, workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR], true);
+    await cakeMaxiWorker02.setStrategyOk([workerInfos[i].ADD_BASE_WITH_FARM_STRAT_ADDR, workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR], true);
     console.log("✅ Done");
 
     console.log(`>> Whitelisting a worker on strats`);
     const addStrat = PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly__factory.connect(workerInfos[i].ADD_STRAT_ADDR, (await ethers.getSigners())[0])
-    await addStrat.setWorkersOk([cakeMaxiWorker.address], true)
+    await addStrat.setWorkersOk([cakeMaxiWorker02.address], true)
     const liqStrat = PancakeswapV2RestrictedSingleAssetStrategyLiquidate__factory.connect(workerInfos[i].LIQ_STRAT_ADDR, (await ethers.getSigners())[0])
-    await liqStrat.setWorkersOk([cakeMaxiWorker.address], true)
+    await liqStrat.setWorkersOk([cakeMaxiWorker02.address], true)
     const twoSidesStrat = PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm__factory.connect(workerInfos[i].ADD_BASE_WITH_FARM_STRAT_ADDR, (await ethers.getSigners())[0])
-    await twoSidesStrat.setWorkersOk([cakeMaxiWorker.address], true)
+    await twoSidesStrat.setWorkersOk([cakeMaxiWorker02.address], true)
     const minimizeStrat = PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading__factory.connect(workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR, (await ethers.getSigners())[0])
-    await minimizeStrat.setWorkersOk([cakeMaxiWorker.address], true)
+    await minimizeStrat.setWorkersOk([cakeMaxiWorker02.address], true)
     console.log("✅ Done");
 
     const timelock = Timelock__factory.connect(config.Timelock, (await ethers.getSigners())[0]);
@@ -211,13 +211,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       ethers.utils.defaultAbiCoder.encode(
         ['address[]','(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]'],
         [
-          [cakeMaxiWorker.address], [{acceptDebt: true, workFactor: workerInfos[i].WORK_FACTOR, killFactor: workerInfos[i].KILL_FACTOR, maxPriceDiff: workerInfos[i].MAX_PRICE_DIFF}]
+          [cakeMaxiWorker02.address], [{acceptDebt: true, workFactor: workerInfos[i].WORK_FACTOR, killFactor: workerInfos[i].KILL_FACTOR, maxPriceDiff: workerInfos[i].MAX_PRICE_DIFF}]
         ]
       ), workerInfos[i].EXACT_ETA
     );
     console.log(`queue setConfigs at: ${setConfigsTx.hash}`)
     console.log("generate timelock.executeTransaction:")
-    console.log(`await timelock.executeTransaction('${workerInfos[i].WORKER_CONFIG_ADDR}', '0', 'setConfigs(address[],(bool,uint64,uint64,uint64)[])', ethers.utils.defaultAbiCoder.encode(['address[]','(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]'],[['${cakeMaxiWorker.address}'], [{acceptDebt: true, workFactor: ${workerInfos[i].WORK_FACTOR}, killFactor: ${workerInfos[i].KILL_FACTOR}, maxPriceDiff: ${workerInfos[i].MAX_PRICE_DIFF}}]]), ${workerInfos[i].EXACT_ETA})`)
+    console.log(`await timelock.executeTransaction('${workerInfos[i].WORKER_CONFIG_ADDR}', '0', 'setConfigs(address[],(bool,uint64,uint64,uint64)[])', ethers.utils.defaultAbiCoder.encode(['address[]','(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]'],[['${cakeMaxiWorker02.address}'], [{acceptDebt: true, workFactor: ${workerInfos[i].WORK_FACTOR}, killFactor: ${workerInfos[i].KILL_FACTOR}, maxPriceDiff: ${workerInfos[i].MAX_PRICE_DIFF}}]]), ${workerInfos[i].EXACT_ETA})`)
     console.log("✅ Done");
 
     console.log(">> Timelock: Linking VaultConfig with WorkerConfig via Timelock");
@@ -227,13 +227,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       ethers.utils.defaultAbiCoder.encode(
         ['address[]','address[]'],
         [
-          [cakeMaxiWorker.address], [workerInfos[i].WORKER_CONFIG_ADDR]
+          [cakeMaxiWorker02.address], [workerInfos[i].WORKER_CONFIG_ADDR]
         ]
       ), workerInfos[i].EXACT_ETA
     );
     console.log(`queue setWorkers at: ${setWorkersTx.hash}`)
     console.log("generate timelock.executeTransaction:")
-    console.log(`await timelock.executeTransaction('${workerInfos[i].VAULT_CONFIG_ADDR}', '0','setWorkers(address[],address[])', ethers.utils.defaultAbiCoder.encode(['address[]','address[]'],[['${cakeMaxiWorker.address}'], ['${workerInfos[i].WORKER_CONFIG_ADDR}']]), ${workerInfos[i].EXACT_ETA})`)
+    console.log(`await timelock.executeTransaction('${workerInfos[i].VAULT_CONFIG_ADDR}', '0','setWorkers(address[],address[])', ethers.utils.defaultAbiCoder.encode(['address[]','address[]'],[['${cakeMaxiWorker02.address}'], ['${workerInfos[i].WORKER_CONFIG_ADDR}']]), ${workerInfos[i].EXACT_ETA})`)
     console.log("✅ Done");
   }
 };
