@@ -31,7 +31,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const DEPLOY_STRATS = [
     Strats.partialCloseLiquidate,
-    Strats.partialCloseWithdrawMinizmie
   ]
   const WHITELIST_WORKERS: string[] = [
     "BUSD-BTCB WaultswapWorker",
@@ -153,7 +152,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       (await ethers.getSigners())[0],
     )) as WaultSwapRestrictedStrategyPartialCloseLiquidate__factory;
     const restrictedStrategyPartialCloseLiquidate = await upgrades.deployProxy(
-      WaultSwapRestrictedStrategyPartialCloseLiquidate, [config.Exchanges.Pancakeswap.RouterV2]
+      WaultSwapRestrictedStrategyPartialCloseLiquidate, [config.Exchanges.Waultswap.WaultswapRouter]
     ) as WaultSwapRestrictedStrategyPartialCloseLiquidate;
     await restrictedStrategyPartialCloseLiquidate.deployed();
     console.log(`>> Deployed at ${restrictedStrategyPartialCloseLiquidate.address}`);

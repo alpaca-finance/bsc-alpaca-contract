@@ -11,6 +11,7 @@ export async function queueTransaction(
   params: Array<any>,
   eta: string,
 ): Promise<TimelockEntity.Transaction> {
+  console.log(`==========`)
   console.log(`>> Queue tx for: ${info}`)
   const config = ConfigEntity.getConfig()
   const timelock = Timelock__factory.connect(config.Timelock, (await ethers.getSigners())[0])
@@ -28,6 +29,10 @@ export async function queueTransaction(
       return `[${vauleWithQuote}]`
     }
 
+    if(typeof p === "string") {
+      return `'${p}'`
+    }
+
     return p
   })
 
@@ -36,6 +41,45 @@ export async function queueTransaction(
   return {
     info: info,
     queuedAt: queueTx.hash,
+    executedAt: "",
+    executionTransaction: executionTx,
+    target,
+    value,
+    signature,
+    paramTypes,
+    params,
+    eta,
+  }
+}
+
+export async function executeTransaction(
+  info: string,
+  queuedAt: string,
+  executionTx: string,
+  target: string,
+  value: string,
+  signature: string,
+  paramTypes: Array<string>,
+  params: Array<any>,
+  eta: string,
+): Promise<TimelockEntity.Transaction> {
+  console.log(`==========`)
+  console.log(`>> Execute tx for: ${info}`)
+  const config = ConfigEntity.getConfig()
+  const timelock = Timelock__factory.connect(config.Timelock, (await ethers.getSigners())[0])
+  const executeTx = await timelock.executeTransaction(
+    target,
+    value,
+    signature,
+    ethers.utils.defaultAbiCoder.encode(paramTypes, params),
+    eta
+  )
+  console.log(`>> Done.`)
+  
+  return {
+    info: info,
+    queuedAt: queuedAt,
+    executedAt: executeTx.hash,
     executionTransaction: executionTx,
     target,
     value,

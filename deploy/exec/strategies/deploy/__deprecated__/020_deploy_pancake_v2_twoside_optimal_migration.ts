@@ -1,7 +1,7 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
 import { ethers, upgrades } from 'hardhat';
-import { PancakeswapV2StrategyAddTwoSidesOptimalMigrate__factory } from '../typechain';
+import { PancakeswapV2StrategyAddTwoSidesOptimalMigrate__factory } from '../../../../../typechain';
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     /*

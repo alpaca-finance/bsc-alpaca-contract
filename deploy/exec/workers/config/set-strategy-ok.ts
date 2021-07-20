@@ -19,13 +19,34 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const OK_FLAG = true
   const STRATEGY = [
-    '0x193c3F7e669Baa1C2421affd5EC0Dc879DEBbe44',
-    '0x34566a837d46E75468AB0d050B31dA265ffE1E75',
+    '0x844e25ffD2C5D8Cc37D877c940aDB6c01320a16E',
   ]
   const WORKERS = [
-    "BTCB CakeMaxiWorker",
+    "BUSD-BTCB WaultswapWorker",
+    "USDT-BTCB WaultswapWorker",
+    "ETH-BTCB WaultswapWorker",
+    "MATIC-USDT WaultswapWorker",
+    "ETH-USDT WaultswapWorker",
+    "BTCB-USDT WaultswapWorker",
+    "BUSD-USDT WaultswapWorker",
+    "WEX-USDT WaultswapWorker",
+    "ALPACA-USDT WaultswapWorker",
+    "WBNB-ALPACA WaultswapWorker",
+    "USDT-ALPACA WaultswapWorker",
+    "USDT-ETH WaultswapWorker",
+    "BETH-ETH WaultswapWorker",
+    "BTCB-ETH WaultswapWorker",
+    "BUSD-ETH WaultswapWorker",
+    "BTCB-BUSD WaultswapWorker",
+    "USDT-BUSD WaultswapWorker",
+    "WBNB-BUSD WaultswapWorker",
+    "ETH-BUSD WaultswapWorker",
+    "WAULTx-WBNB WaultswapWorker",
+    "ALPACA-WBNB WaultswapWorker",
+    "BUSD-WBNB WaultswapWorker",
+    "WEX-WBNB WaultswapWorker",
   ];
-  const EXACT_ETA = '1626783300';
+  const EXACT_ETA = '1626775200';
 
 
 

@@ -9,9 +9,9 @@ import {
   Timelock__factory,
   WaultSwapRestrictedStrategyAddTwoSidesOptimal__factory,
   WaultSwapRestrictedStrategyWithdrawMinimizeTrading__factory,
-} from '../typechain';
-import MainnetConfig from '../.mainnet.json'
-import TestnetConfig from '../.testnet.json'
+} from '../../../../../typechain';
+import MainnetConfig from '../../../../../.mainnet.json'
+import TestnetConfig from '../../../../../.testnet.json'
 
 interface IWorkerInput {
   VAULT_SYMBOL: string

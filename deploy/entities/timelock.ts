@@ -1,6 +1,7 @@
 export interface Transaction {
   info: string
   queuedAt: string
+  executedAt: string
   executionTransaction: string
   target: string,
   value: string,
