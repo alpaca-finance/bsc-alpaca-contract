@@ -17,9 +17,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const ADD_STRAT = ''
   const LIQ_STRAT = ''
 
-  const OK_FLAG = true
+  const OK_FLAG = false
   const STRATEGY = [
-    '0x844e25ffD2C5D8Cc37D877c940aDB6c01320a16E',
+    '0xDec689385Fee29516D221D887F9C1535Ae066bD1',
   ]
   const WORKERS = [
     "BUSD-BTCB WaultswapWorker",
@@ -46,7 +46,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "BUSD-WBNB WaultswapWorker",
     "WEX-WBNB WaultswapWorker",
   ];
-  const EXACT_ETA = '1626775200';
+  const EXACT_ETA = '1626775800';
 
 
 

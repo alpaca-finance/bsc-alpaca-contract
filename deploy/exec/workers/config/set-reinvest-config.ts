@@ -47,34 +47,148 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
+  const title = 'set-wault-pools-reinvest-config'
   const workerInputs: IWorkerReinvestConfigInputs = [
     {
-      WORKER_NAME: "WBNB CakeMaxiWorker",
-      REINVEST_BOUNTY_BPS: '1900',
-      REINVEST_THRESHOLD: '1',
+      WORKER_NAME: "WEX-WBNB WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '2000',
+      REINVEST_PATH: ['WEX', 'WBNB'],
     },
     {
-      WORKER_NAME: "BUSD CakeMaxiWorker",
-      REINVEST_BOUNTY_BPS: '1900',
-      REINVEST_THRESHOLD: '1',
+      WORKER_NAME: "BUSD-WBNB WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '2000',
+      REINVEST_PATH: ['WEX', 'WBNB'],
     },
     {
-      WORKER_NAME: "ETH CakeMaxiWorker",
-      REINVEST_BOUNTY_BPS: '1900',
-      REINVEST_THRESHOLD: '1',
+      WORKER_NAME: "ALPACA-WBNB WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '2000',
+      REINVEST_PATH: ['WEX', 'WBNB'],
     },
     {
-      WORKER_NAME: "USDT CakeMaxiWorker",
-      REINVEST_BOUNTY_BPS: '1900',
-      REINVEST_THRESHOLD: '1',
+      WORKER_NAME: "WAULTx-WBNB WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '2000',
+      REINVEST_PATH: ['WEX', 'WBNB'],
     },
     {
-      WORKER_NAME: "BTCB CakeMaxiWorker",
-      REINVEST_BOUNTY_BPS: '1900',
-      REINVEST_THRESHOLD: '1',
+      WORKER_NAME: "ETH-BUSD WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '2000',
+      REINVEST_PATH: ['WEX', 'WBNB', 'BUSD'],
+    },
+    {
+      WORKER_NAME: "WBNB-BUSD WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '2000',
+      REINVEST_PATH: ['WEX', 'WBNB', 'BUSD'],
+    },
+    {
+      WORKER_NAME: "USDT-BUSD WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '2000',
+      REINVEST_PATH: ['WEX', 'WBNB', 'BUSD'],
+    },
+    {
+      WORKER_NAME: "BTCB-BUSD WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '2000',
+      REINVEST_PATH: ['WEX', 'WBNB', 'BUSD'],
+    },
+    {
+      WORKER_NAME: "BUSD-ETH WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '2000',
+      REINVEST_PATH: ['WEX', 'WBNB', 'ETH'],
+    },
+    {
+      WORKER_NAME: "BTCB-ETH WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '2000',
+      REINVEST_PATH: ['WEX', 'WBNB', 'ETH'],
+    },
+    {
+      WORKER_NAME: "BETH-ETH WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '2000',
+      REINVEST_PATH: ['WEX', 'WBNB', 'ETH'],
+    },
+    {
+      WORKER_NAME: "USDT-ETH WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '2000',
+      REINVEST_PATH: ['WEX', 'WBNB', 'ETH'],
+    },
+    {
+      WORKER_NAME: "USDT-ALPACA WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '2000',
+      REINVEST_PATH: ['WEX', 'WBNB', 'ALPACA'],
+    },
+    {
+      WORKER_NAME: "WBNB-ALPACA WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '2000',
+      REINVEST_PATH: ['WEX', 'WBNB', 'ALPACA'],
+    },
+    {
+      WORKER_NAME: "ALPACA-USDT WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '2000',
+      REINVEST_PATH: ['WEX', 'USDT'],
+    },
+    {
+      WORKER_NAME: "WEX-USDT WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '2000',
+      REINVEST_PATH: ['WEX', 'USDT'],
+    },
+    {
+      WORKER_NAME: "BUSD-USDT WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '2000',
+      REINVEST_PATH: ['WEX', 'USDT'],
+    },
+    {
+      WORKER_NAME: "BTCB-USDT WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '2000',
+      REINVEST_PATH: ['WEX', 'USDT'],
+    },
+    {
+      WORKER_NAME: "ETH-USDT WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '2000',
+      REINVEST_PATH: ['WEX', 'USDT'],
+    },
+    {
+      WORKER_NAME: "MATIC-USDT WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '2000',
+      REINVEST_PATH: ['WEX', 'USDT'],
+    },
+    {
+      WORKER_NAME: "ETH-BTCB WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '2000',
+      REINVEST_PATH: ['WEX', 'BTCB'],
+    },
+    {
+      WORKER_NAME: "USDT-BTCB WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '2000',
+      REINVEST_PATH: ['WEX', 'BTCB'],
+    },
+    {
+      WORKER_NAME: "BUSD-BTCB WaultswapWorker",
+      REINVEST_BOUNTY_BPS: '300',
+      REINVEST_THRESHOLD: '2000',
+      REINVEST_PATH: ['WEX', 'BTCB'],
     },
   ]
-  const EXACT_ETA = '1626857100';
+  const EXACT_ETA = '1626868800';
 
 
 
@@ -149,7 +263,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     }
   }
 
-  await FileService.write('set-reinvest-config', timelockTransactions)
+  await FileService.write(`${title}`, timelockTransactions)
 };
 
 export default func;
