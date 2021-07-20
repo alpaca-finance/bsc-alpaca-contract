@@ -117,6 +117,8 @@ export interface PancakeswapOrWaultswapOrPancakeswapSingleAsset {
   StrategyAddBaseTokenOnly: string;
   StrategyLiquidate: string;
   StrategyWithdrawMinimizeTrading: string;
+  StrategyPartialCloseLiquidate: string;
+  StrategyPartialCloseMinimizeTrading: string;
 }
 export interface SharedConfig {
   TripleSlopeModel: string;
@@ -161,4 +163,6 @@ export interface Strategies {
   StrategyLiquidate: string;
   StrategyAddTwoSidesOptimal: string;
   StrategyWithdrawMinimizeTrading: string;
+  StrategyPartialCloseLiquidate: string;
+  StrategyPartialCloseMinimizeTrading: string;
 }
