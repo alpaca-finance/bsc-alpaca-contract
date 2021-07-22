@@ -13,17 +13,17 @@ Alpaca Fin Corporation
 
 pragma solidity 0.6.6;
 
-import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
+
+import "../../apis/pancake/IPancakeRouter02.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakeFactory.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
 
-import "../../apis/pancake/IPancakeRouter02.sol";
 import "../../interfaces/IStrategy.sol";
-import "../../../utils/SafeToken.sol";
 import "../../interfaces/IWorker.sol";
+
+import "../../../utils/SafeToken.sol";
 
 contract PancakeswapV2RestrictedStrategyPartialCloseLiquidate is
   OwnableUpgradeSafe,
@@ -43,7 +43,7 @@ contract PancakeswapV2RestrictedStrategyPartialCloseLiquidate is
     uint256 amounToLiquidate
   );
 
-  // @notice require that only allowed workers are able to do the rest of the method call
+  /// @notice require that only allowed workers are able to do the rest of the method call
   modifier onlyWhitelistedWorkers() {
     require(
       okWorkers[msg.sender],
@@ -53,7 +53,7 @@ contract PancakeswapV2RestrictedStrategyPartialCloseLiquidate is
   }
 
   /// @dev Create a new liquidate strategy instance.
-  /// @param _router The Uniswap router smart contract.
+  /// @param _router The PancakeSwap Router smart contract.
   function initialize(IPancakeRouter02 _router) public initializer {
     OwnableUpgradeSafe.__Ownable_init();
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
@@ -95,7 +95,7 @@ contract PancakeswapV2RestrictedStrategyPartialCloseLiquidate is
       "PancakeswapV2RestrictedStrategyPartialCloseLiquidate::execute:: insufficient baseToken received"
     );
     SafeToken.safeTransfer(baseToken, msg.sender, balance);
-    lpToken.transfer(msg.sender, lpToken.balanceOf(address(this)));
+    address(lpToken).safeTransfer(msg.sender, lpToken.balanceOf(address(this)));
     // 6. Reset approve for safety reason
     address(lpToken).safeApprove(address(router), 0);
     farmingToken.safeApprove(address(router), 0);

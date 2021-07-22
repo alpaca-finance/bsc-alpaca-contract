@@ -35,14 +35,14 @@ contract WaultSwapRestrictedStrategyAddBaseTokenOnly is OwnableUpgradeSafe, Reen
   IWaultSwapRouter02 public router;
   mapping(address => bool) public okWorkers;
 
-  // @notice require that only allowed workers are able to do the rest of the method call
+  /// @notice require that only allowed workers are able to do the rest of the method call
   modifier onlyWhitelistedWorkers() {
     require(okWorkers[msg.sender], "WaultSwapRestrictedStrategyAddBaseTokenOnly::onlyWhitelistedWorkers:: bad worker");
     _;
   }
 
   /// @dev Create a new add Token only strategy instance.
-  /// @param _router The Uniswap router smart contract.
+  /// @param _router The WaultSwap Router smart contract.
   function initialize(IWaultSwapRouter02 _router) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();

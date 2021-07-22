@@ -27,7 +27,11 @@ import "../../interfaces/IWNativeRelayer.sol";
 import "../../../utils/SafeToken.sol";
 import "../../interfaces/IWorker.sol";
 
-contract PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
+contract PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading is
+  OwnableUpgradeSafe,
+  ReentrancyGuardUpgradeSafe,
+  IStrategy
+{
   using SafeToken for address;
   using SafeMath for uint256;
 
@@ -38,17 +42,24 @@ contract PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading is OwnableUpgrad
 
   mapping(address => bool) public okWorkers;
 
-  // @notice require that only allowed workers are able to do the rest of the method call
+  /// @notice require that only allowed workers are able to do the rest of the method call
   modifier onlyWhitelistedWorkers() {
-    require(okWorkers[msg.sender], "PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading::onlyWhitelistedWorkers:: bad worker");
+    require(
+      okWorkers[msg.sender],
+      "PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading::onlyWhitelistedWorkers:: bad worker"
+    );
     _;
-  } 
+  }
 
   /// @dev Create a new withdraw minimize trading strategy instance.
-  /// @param _router The Uniswap router smart contract.
+  /// @param _router The PancakeSwap Router smart contract.
   /// @param _wbnb The wrapped BNB token.
   /// @param _wNativeRelayer The relayer to support native transfer
-  function initialize(IPancakeRouter02 _router, IWETH _wbnb, IWNativeRelayer _wNativeRelayer) external initializer {
+  function initialize(
+    IPancakeRouter02 _router,
+    IWETH _wbnb,
+    IWNativeRelayer _wNativeRelayer
+  ) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
     factory = IPancakeFactory(_router.factory());
@@ -62,17 +73,22 @@ contract PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading is OwnableUpgrad
   /// @param user User address to withdraw liquidity.
   /// @param debt Debt amount in WAD of the user.
   /// @param data Extra calldata information passed along to this strategy.
-  function execute(address user, uint256 debt, bytes calldata data) external override onlyWhitelistedWorkers nonReentrant {
+  function execute(
+    address user,
+    uint256 debt,
+    bytes calldata data
+  ) external override onlyWhitelistedWorkers nonReentrant {
     // 1. Find out what farming token we are dealing with.
-    (
-      uint256 minFarmingToken
-    ) = abi.decode(data, (uint256));
+    uint256 minFarmingToken = abi.decode(data, (uint256));
     IWorker worker = IWorker(msg.sender);
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
     IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
     // 2. Approve router to do their stuffs
-    require(lpToken.approve(address(router), uint256(-1)), "PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading::execute:: failed to approve LP token");
+    require(
+      lpToken.approve(address(router), uint256(-1)),
+      "PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading::execute:: failed to approve LP token"
+    );
     farmingToken.safeApprove(address(router), uint256(-1));
     // 3. Remove all liquidity back to BaseToken and farming tokens.
     router.removeLiquidity(baseToken, farmingToken, lpToken.balanceOf(address(this)), 0, 0, address(this), now);
@@ -91,7 +107,10 @@ contract PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading is OwnableUpgrad
     baseToken.safeTransfer(msg.sender, remainingBalance);
     // 6. Return remaining farming tokens to user.
     uint256 remainingFarmingToken = farmingToken.myBalance();
-    require(remainingFarmingToken >= minFarmingToken, "PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading::execute:: insufficient farming tokens received");
+    require(
+      remainingFarmingToken >= minFarmingToken,
+      "PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading::execute:: insufficient farming tokens received"
+    );
     if (remainingFarmingToken > 0) {
       if (farmingToken == address(wbnb)) {
         SafeToken.safeTransfer(farmingToken, address(wNativeRelayer), remainingFarmingToken);
@@ -102,7 +121,10 @@ contract PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading is OwnableUpgrad
       }
     }
     // 7. Reset approval for safety reason
-    require(lpToken.approve(address(router), 0), "PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading::execute:: unable to reset lp token approval");
+    require(
+      lpToken.approve(address(router), 0),
+      "PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading::execute:: unable to reset lp token approval"
+    );
     farmingToken.safeApprove(address(router), 0);
   }
 

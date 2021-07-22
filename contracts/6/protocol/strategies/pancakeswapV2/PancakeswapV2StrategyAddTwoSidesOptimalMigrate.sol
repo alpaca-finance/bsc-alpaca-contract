@@ -35,7 +35,7 @@ contract PancakeswapV2StrategyAddTwoSidesOptimalMigrate is ReentrancyGuardUpgrad
   IPancakeRouter02 public router;
 
   /// @dev Create a new add two-side optimal strategy instance.
-  /// @param _router The Uniswap router smart contract.
+  /// @param _router The PancakeSwap Router smart contract.
   function initialize(IPancakeRouter02 _router) external initializer {
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
 
@@ -92,13 +92,14 @@ contract PancakeswapV2StrategyAddTwoSidesOptimalMigrate is ReentrancyGuardUpgrad
 
   /// @dev Execute worker strategy. Take BaseToken + FarmingToken. Return LP tokens.
   /// @param data Extra calldata information passed along to this strategy.
-  function execute(address /* user */, uint256, /* debt */ bytes calldata data) external override nonReentrant
-  {
+  function execute(
+    address, /* user */
+    uint256,
+    /* debt */
+    bytes calldata data
+  ) external override nonReentrant {
     // 1. Find out what farming token we are dealing with.
-    (
-        address baseToken,
-        address farmingToken
-    ) = abi.decode(data, (address, address));
+    (address baseToken, address farmingToken) = abi.decode(data, (address, address));
     IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
     // 2. Approve router to do their stuffs
     baseToken.safeApprove(address(router), uint256(-1));
@@ -110,7 +111,12 @@ contract PancakeswapV2StrategyAddTwoSidesOptimalMigrate is ReentrancyGuardUpgrad
     {
       (uint256 r0, uint256 r1, ) = lpToken.getReserves();
       (uint256 baseTokenReserve, uint256 farmingTokenReserve) = lpToken.token0() == baseToken ? (r0, r1) : (r1, r0);
-      (swapAmt, isReversed) = optimalDeposit(baseTokenBalance, farmingToken.myBalance(), baseTokenReserve, farmingTokenReserve);
+      (swapAmt, isReversed) = optimalDeposit(
+        baseTokenBalance,
+        farmingToken.myBalance(),
+        baseTokenReserve,
+        farmingTokenReserve
+      );
     }
     // 4. Convert between BaseToken and farming tokens
     address[] memory path = new address[](2);
@@ -119,12 +125,21 @@ contract PancakeswapV2StrategyAddTwoSidesOptimalMigrate is ReentrancyGuardUpgrad
     if (swapAmt > 0) router.swapExactTokensForTokens(swapAmt, 0, path, address(this), now);
     // 6. Mint more LP tokens and return all LP tokens to the sender.
     router.addLiquidity(
-      baseToken, farmingToken, baseToken.myBalance(), farmingToken.myBalance(), 0, 0, address(this), now
+      baseToken,
+      farmingToken,
+      baseToken.myBalance(),
+      farmingToken.myBalance(),
+      0,
+      0,
+      address(this),
+      now
     );
-    require(lpToken.transfer(msg.sender, lpToken.balanceOf(address(this))), "PancakeswapV2StrategyAddTwoSidesOptimalMigrate::execute:: failed to transfer LP token to msg.sender");
+    require(
+      lpToken.transfer(msg.sender, lpToken.balanceOf(address(this))),
+      "PancakeswapV2StrategyAddTwoSidesOptimalMigrate::execute:: failed to transfer LP token to msg.sender"
+    );
     // 7. Reset approve to 0 for safety reason
     farmingToken.safeApprove(address(router), 0);
     baseToken.safeApprove(address(router), 0);
   }
-
 }

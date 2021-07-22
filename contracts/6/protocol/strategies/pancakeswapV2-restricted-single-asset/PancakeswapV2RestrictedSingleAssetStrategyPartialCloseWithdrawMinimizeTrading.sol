@@ -13,19 +13,19 @@ Alpaca Fin Corporation
 
 pragma solidity 0.6.6;
 
-import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
-import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakeFactory.sol";
-import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 
 import "../../apis/pancake/IPancakeRouter02.sol";
+import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakeFactory.sol";
+
 import "../../interfaces/IStrategy.sol";
-import "../../../utils/SafeToken.sol";
-import "../../../utils/AlpacaMath.sol";
 import "../../interfaces/IWorker02.sol";
 import "../../interfaces/IWNativeRelayer.sol";
+
+import "../../../utils/SafeToken.sol";
+import "../../../utils/AlpacaMath.sol";
 
 contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading is
   OwnableUpgradeSafe,

@@ -34,14 +34,14 @@ contract WaultSwapRestrictedStrategyLiquidate is OwnableUpgradeSafe, ReentrancyG
 
   mapping(address => bool) public okWorkers;
 
-  // @notice require that only allowed workers are able to do the rest of the method call
+  /// @notice require that only allowed workers are able to do the rest of the method call
   modifier onlyWhitelistedWorkers() {
     require(okWorkers[msg.sender], "WaultSwapRestrictedStrategyLiquidate::onlyWhitelistedWorkers:: bad worker");
     _;
   }
 
   /// @dev Create a new liquidate strategy instance.
-  /// @param _router The Uniswap router smart contract.
+  /// @param _router The WaultSwap Router smart contract.
   function initialize(IWaultSwapRouter02 _router) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();

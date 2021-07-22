@@ -42,7 +42,7 @@ contract PancakeswapV2RestrictedStrategyAddTwoSidesOptimal is
 
   mapping(address => bool) public okWorkers;
 
-  // @notice require that only allowed workers are able to do the rest of the method call
+  /// @notice require that only allowed workers are able to do the rest of the method call
   modifier onlyWhitelistedWorkers() {
     require(
       okWorkers[msg.sender],
@@ -52,7 +52,7 @@ contract PancakeswapV2RestrictedStrategyAddTwoSidesOptimal is
   }
 
   /// @dev Create a new add two-side optimal strategy instance.
-  /// @param _router The Uniswap router smart contract.
+  /// @param _router The PancakeSwap Router smart contract.
   function initialize(IPancakeRouter02 _router, IVault _vault) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();

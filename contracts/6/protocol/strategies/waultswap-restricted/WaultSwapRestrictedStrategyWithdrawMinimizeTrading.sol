@@ -43,7 +43,7 @@ contract WaultSwapRestrictedStrategyWithdrawMinimizeTrading is
 
   mapping(address => bool) public okWorkers;
 
-  // @notice require that only allowed workers are able to do the rest of the method call
+  /// @notice require that only allowed workers are able to do the rest of the method call
   modifier onlyWhitelistedWorkers() {
     require(
       okWorkers[msg.sender],
@@ -53,7 +53,7 @@ contract WaultSwapRestrictedStrategyWithdrawMinimizeTrading is
   }
 
   /// @dev Create a new withdraw minimize trading strategy instance.
-  /// @param _router The Uniswap router smart contract.
+  /// @param _router The WaultSwap Router smart contract.
   /// @param _wbnb The wrapped BNB token.
   /// @param _wNativeRelayer The relayer to support native transfer
   function initialize(

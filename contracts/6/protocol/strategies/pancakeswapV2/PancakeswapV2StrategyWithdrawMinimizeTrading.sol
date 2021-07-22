@@ -36,10 +36,14 @@ contract PancakeswapV2StrategyWithdrawMinimizeTrading is ReentrancyGuardUpgradeS
   IWNativeRelayer public wNativeRelayer;
 
   /// @dev Create a new withdraw minimize trading strategy instance.
-  /// @param _router The Uniswap router smart contract.
+  /// @param _router The PancakeSwap Router smart contract.
   /// @param _wbnb The wrapped BNB token.
   /// @param _wNativeRelayer The relayer to support native transfer
-  function initialize(IPancakeRouter02 _router, IWETH _wbnb, IWNativeRelayer _wNativeRelayer) external initializer {
+  function initialize(
+    IPancakeRouter02 _router,
+    IWETH _wbnb,
+    IWNativeRelayer _wNativeRelayer
+  ) external initializer {
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
 
     factory = IPancakeFactory(_router.factory());
@@ -53,16 +57,19 @@ contract PancakeswapV2StrategyWithdrawMinimizeTrading is ReentrancyGuardUpgradeS
   /// @param user User address to withdraw liquidity.
   /// @param debt Debt amount in WAD of the user.
   /// @param data Extra calldata information passed along to this strategy.
-  function execute(address user, uint256 debt, bytes calldata data) external override nonReentrant {
+  function execute(
+    address user,
+    uint256 debt,
+    bytes calldata data
+  ) external override nonReentrant {
     // 1. Find out what farming token we are dealing with.
-    (
-      address baseToken,
-      address farmingToken,
-      uint256 minFarmingToken
-    ) = abi.decode(data, (address, address, uint256));
+    (address baseToken, address farmingToken, uint256 minFarmingToken) = abi.decode(data, (address, address, uint256));
     IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
     // 2. Approve router to do their stuffs
-    require(lpToken.approve(address(router), uint256(-1)), "PancakeswapV2StrategyWithdrawMinimizeTrading::execute:: failed to approve LP token");
+    require(
+      lpToken.approve(address(router), uint256(-1)),
+      "PancakeswapV2StrategyWithdrawMinimizeTrading::execute:: failed to approve LP token"
+    );
     farmingToken.safeApprove(address(router), uint256(-1));
     // 3. Remove all liquidity back to BaseToken and farming tokens.
     router.removeLiquidity(baseToken, farmingToken, lpToken.balanceOf(address(this)), 0, 0, address(this), now);
@@ -81,7 +88,10 @@ contract PancakeswapV2StrategyWithdrawMinimizeTrading is ReentrancyGuardUpgradeS
     baseToken.safeTransfer(msg.sender, remainingBalance);
     // 6. Return remaining farming tokens to user.
     uint256 remainingFarmingToken = farmingToken.myBalance();
-    require(remainingFarmingToken >= minFarmingToken, "PancakeswapV2StrategyWithdrawMinimizeTrading::execute:: insufficient farming tokens received");
+    require(
+      remainingFarmingToken >= minFarmingToken,
+      "PancakeswapV2StrategyWithdrawMinimizeTrading::execute:: insufficient farming tokens received"
+    );
     if (remainingFarmingToken > 0) {
       if (farmingToken == address(wbnb)) {
         SafeToken.safeTransfer(farmingToken, address(wNativeRelayer), remainingFarmingToken);
@@ -92,7 +102,10 @@ contract PancakeswapV2StrategyWithdrawMinimizeTrading is ReentrancyGuardUpgradeS
       }
     }
     // 7. Reset approval for safety reason
-    require(lpToken.approve(address(router), 0), "PancakeswapV2StrategyWithdrawMinimizeTrading::execute:: unable to reset lp token approval");
+    require(
+      lpToken.approve(address(router), 0),
+      "PancakeswapV2StrategyWithdrawMinimizeTrading::execute:: unable to reset lp token approval"
+    );
     farmingToken.safeApprove(address(router), 0);
   }
 

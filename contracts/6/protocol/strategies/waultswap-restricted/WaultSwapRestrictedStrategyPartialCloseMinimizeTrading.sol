@@ -13,20 +13,19 @@ Alpaca Fin Corporation
 
 pragma solidity 0.6.6;
 
-import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
-
-import "../../apis/wault/IWaultSwapFactory.sol";
-import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 
 import "../../apis/wault/IWaultSwapRouter02.sol";
+import "../../apis/wault/IWaultSwapFactory.sol";
+
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IWETH.sol";
 import "../../interfaces/IWNativeRelayer.sol";
-import "../../../utils/SafeToken.sol";
 import "../../interfaces/IWorker.sol";
+
+import "../../../utils/SafeToken.sol";
 
 contract WaultSwapRestrictedStrategyPartialCloseMinimizeTrading is
   OwnableUpgradeSafe,
@@ -50,7 +49,7 @@ contract WaultSwapRestrictedStrategyPartialCloseMinimizeTrading is
     uint256 amountToRepayDebt
   );
 
-  // @notice require that only allowed workers are able to do the rest of the method call
+  /// @notice require that only allowed workers are able to do the rest of the method call
   modifier onlyWhitelistedWorkers() {
     require(
       okWorkers[msg.sender],
@@ -60,7 +59,7 @@ contract WaultSwapRestrictedStrategyPartialCloseMinimizeTrading is
   }
 
   /// @dev Create a new withdraw minimize trading strategy instance.
-  /// @param _router The Uniswap router smart contract.
+  /// @param _router The WaultSwap Router smart contract.
   /// @param _wbnb The wrapped BNB token.
   /// @param _wNativeRelayer The relayer to support native transfer
   function initialize(
@@ -106,14 +105,14 @@ contract WaultSwapRestrictedStrategyPartialCloseMinimizeTrading is
       debt >= toRepaidBaseTokenDebt,
       "WaultSwapRestrictedStrategyPartialCloseMinimizeTrading::execute:: amount to repay debt is greater than debt"
     );
-    address[] memory path = new address[](2);
-    path[0] = farmingToken;
-    path[1] = baseToken;
     {
       uint256 balance = baseToken.myBalance();
       uint256 farmingTokenbalance = farmingToken.myBalance();
       if (toRepaidBaseTokenDebt > balance) {
         // Convert some farming tokens to base token.
+        address[] memory path = new address[](2);
+        path[0] = farmingToken;
+        path[1] = baseToken;
         uint256 remainingDebt = toRepaidBaseTokenDebt.sub(balance);
         uint256[] memory farmingTokenToBeRepaidDebts = router.getAmountsIn(remainingDebt, path);
         require(

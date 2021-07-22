@@ -31,7 +31,7 @@ contract PancakeswapV2StrategyLiquidate is ReentrancyGuardUpgradeSafe, IStrategy
   IPancakeRouter02 public router;
 
   /// @dev Create a new liquidate strategy instance.
-  /// @param _router The Uniswap router smart contract.
+  /// @param _router The PancakeSwap Router smart contract.
   function initialize(IPancakeRouter02 _router) external initializer {
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
 
@@ -41,20 +41,19 @@ contract PancakeswapV2StrategyLiquidate is ReentrancyGuardUpgradeSafe, IStrategy
 
   /// @dev Execute worker strategy. Take LP token. Return  BaseToken.
   /// @param data Extra calldata information passed along to this strategy.
-  function execute(address /* user */, uint256 /* debt */, bytes calldata data)
-    external
-    override
-    nonReentrant
-  {
+  function execute(
+    address, /* user */
+    uint256, /* debt */
+    bytes calldata data
+  ) external override nonReentrant {
     // 1. Find out what farming token we are dealing with.
-    (
-      address baseToken,
-      address farmingToken,
-      uint256 minBaseToken
-    ) = abi.decode(data, (address, address, uint256));
+    (address baseToken, address farmingToken, uint256 minBaseToken) = abi.decode(data, (address, address, uint256));
     IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
     // 2. Approve router to do their stuffs
-    require(lpToken.approve(address(router), uint256(-1)), "PancakeswapV2StrategyLiquidate::execute:: unable to approve LP token");
+    require(
+      lpToken.approve(address(router), uint256(-1)),
+      "PancakeswapV2StrategyLiquidate::execute:: unable to approve LP token"
+    );
     farmingToken.safeApprove(address(router), uint256(-1));
     // 3. Remove all liquidity back to BaseToken and farming tokens.
     router.removeLiquidity(baseToken, farmingToken, lpToken.balanceOf(address(this)), 0, 0, address(this), now);
@@ -68,7 +67,10 @@ contract PancakeswapV2StrategyLiquidate is ReentrancyGuardUpgradeSafe, IStrategy
     require(balance >= minBaseToken, "PancakeswapV2StrategyLiquidate::execute:: insufficient baseToken received");
     SafeToken.safeTransfer(baseToken, msg.sender, balance);
     // 6. Reset approve for safety reason
-    require(lpToken.approve(address(router), 0), "PancakeswapV2StrategyLiquidate::execute:: unable to reset LP token approval");
+    require(
+      lpToken.approve(address(router), 0),
+      "PancakeswapV2StrategyLiquidate::execute:: unable to reset LP token approval"
+    );
     farmingToken.safeApprove(address(router), 0);
   }
 }
