@@ -18,7 +18,6 @@ import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard
 
 import "../../apis/wault/IWaultSwapRouter02.sol";
 import "../../apis/wault/IWaultSwapFactory.sol";
-import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
 
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IWorker.sol";
