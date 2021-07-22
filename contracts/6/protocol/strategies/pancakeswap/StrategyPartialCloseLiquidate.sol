@@ -31,7 +31,7 @@ contract StrategyPartialCloseLiquidate is ReentrancyGuardUpgradeSafe, IStrategy 
   IPancakeRouter02 public router;
 
   /// @dev Create a new liquidate strategy instance.
-  /// @param _router The Uniswap router smart contract.
+  /// @param _router The PancakeSwap Router smart contract.
   function initialize(IPancakeRouter02 _router) public initializer {
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
 
@@ -41,20 +41,19 @@ contract StrategyPartialCloseLiquidate is ReentrancyGuardUpgradeSafe, IStrategy 
 
   /// @dev Execute worker strategy. Take LP token. Return  BaseToken.
   /// @param data Extra calldata information passed along to this strategy.
-  function execute(address /* user */, uint256 /* debt */, bytes calldata data)
-    external
-    override
-    nonReentrant
-  {
+  function execute(
+    address, /* user */
+    uint256, /* debt */
+    bytes calldata data
+  ) external override nonReentrant {
     // 1. Find out what farming token we are dealing with.
-    (
-      address baseToken,
-      address farmingToken,
-      uint256 returnLpToken,
-      uint256 minBaseToken
-    ) = abi.decode(data, (address, address, uint256, uint256));
+    (address baseToken, address farmingToken, uint256 returnLpToken, uint256 minBaseToken) =
+      abi.decode(data, (address, address, uint256, uint256));
     IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
-    require(lpToken.balanceOf(address(this)) >= returnLpToken, "StrategyPartialCloseLiquidate::execute:: insufficient LP amount recevied from worker");
+    require(
+      lpToken.balanceOf(address(this)) >= returnLpToken,
+      "StrategyPartialCloseLiquidate::execute:: insufficient LP amount recevied from worker"
+    );
     // 2. Approve router to do their stuffs
     lpToken.approve(address(router), uint256(-1));
     farmingToken.safeApprove(address(router), uint256(-1));

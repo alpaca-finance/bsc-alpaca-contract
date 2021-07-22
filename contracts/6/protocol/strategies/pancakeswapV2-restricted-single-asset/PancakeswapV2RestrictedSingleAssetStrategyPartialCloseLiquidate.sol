@@ -13,19 +13,20 @@ Alpaca Fin Corporation
 
 pragma solidity 0.6.6;
 
-import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
+
+import "../../apis/pancake/IPancakeRouter02.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakeFactory.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
 
-import "../../apis/pancake/IPancakeRouter02.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IVault.sol";
+import "../../interfaces/IWorker02.sol";
+
 import "../../../utils/SafeToken.sol";
 import "../../../utils/AlpacaMath.sol";
-import "../../interfaces/IWorker02.sol";
 
 contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate is
   OwnableUpgradeSafe,
@@ -85,10 +86,11 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate is
       farmingToken.myBalance() >= farmingTokenToLiquidate,
       "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate::execute:: insufficient farmingToken received from worker"
     );
+    uint256 baseTokenBefore = baseToken.myBalance();
     router.swapExactTokensForTokens(farmingTokenToLiquidate, 0, worker.getReversedPath(), address(this), now);
     // 4. Transfer all baseTokens (as a result of a conversion) back to the calling worker
     require(
-      baseToken.myBalance() >= minBaseTokenAmount,
+      baseToken.myBalance().sub(baseTokenBefore) >= minBaseTokenAmount,
       "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate::execute:: insufficient baseToken amount received"
     );
     baseToken.safeTransfer(msg.sender, baseToken.myBalance());

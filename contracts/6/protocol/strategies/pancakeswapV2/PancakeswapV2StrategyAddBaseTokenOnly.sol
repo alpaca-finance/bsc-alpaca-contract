@@ -33,7 +33,7 @@ contract PancakeswapV2StrategyAddBaseTokenOnly is ReentrancyGuardUpgradeSafe, IS
   IPancakeRouter02 public router;
 
   /// @dev Create a new add Token only strategy instance.
-  /// @param _router The Uniswap router smart contract.
+  /// @param _router The PancakeSwap Router smart contract.
   function initialize(IPancakeRouter02 _router) external initializer {
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
 
@@ -43,17 +43,13 @@ contract PancakeswapV2StrategyAddBaseTokenOnly is ReentrancyGuardUpgradeSafe, IS
 
   /// @dev Execute worker strategy. Take BaseToken. Return LP tokens.
   /// @param data Extra calldata information passed along to this strategy.
-  function execute(address /* user */, uint256 /* debt */, bytes calldata data)
-    external
-    override
-    nonReentrant
-  {
+  function execute(
+    address, /* user */
+    uint256, /* debt */
+    bytes calldata data
+  ) external override nonReentrant {
     // 1. Find out what farming token we are dealing with and min additional LP tokens.
-    (
-      address baseToken,
-      address farmingToken,
-      uint256 minLPAmount
-    ) = abi.decode(data, (address, address, uint256));
+    (address baseToken, address farmingToken, uint256 minLPAmount) = abi.decode(data, (address, address, uint256));
     IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
     // 2. Approve router to do their stuffs
     farmingToken.safeApprove(address(router), uint256(-1));
@@ -75,11 +71,25 @@ contract PancakeswapV2StrategyAddBaseTokenOnly is ReentrancyGuardUpgradeSafe, IS
     path[1] = farmingToken;
     router.swapExactTokensForTokens(aIn, 0, path, address(this), now);
     // 5. Mint more LP tokens and return all LP tokens to the sender.
-    (,, uint256 moreLPAmount) = router.addLiquidity(
-      baseToken, farmingToken, baseToken.myBalance(), farmingToken.myBalance(), 0, 0, address(this), now
+    (, , uint256 moreLPAmount) =
+      router.addLiquidity(
+        baseToken,
+        farmingToken,
+        baseToken.myBalance(),
+        farmingToken.myBalance(),
+        0,
+        0,
+        address(this),
+        now
+      );
+    require(
+      moreLPAmount >= minLPAmount,
+      "PancakeswapV2StrategyAddBaseTokenOnly::execute:: insufficient LP tokens received"
     );
-    require(moreLPAmount >= minLPAmount, "PancakeswapV2StrategyAddBaseTokenOnly::execute:: insufficient LP tokens received");
-    require(lpToken.transfer(msg.sender, lpToken.balanceOf(address(this))), "PancakeswapV2StrategyAddBaseTokenOnly::execute:: failed to transfer LP token to msg.sender");
+    require(
+      lpToken.transfer(msg.sender, lpToken.balanceOf(address(this))),
+      "PancakeswapV2StrategyAddBaseTokenOnly::execute:: failed to transfer LP token to msg.sender"
+    );
     // 6. Reset approval for safety reason
     baseToken.safeApprove(address(router), 0);
     farmingToken.safeApprove(address(router), 0);

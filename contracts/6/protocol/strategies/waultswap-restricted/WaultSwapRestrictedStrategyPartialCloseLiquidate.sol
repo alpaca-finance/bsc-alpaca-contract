@@ -13,18 +13,17 @@ Alpaca Fin Corporation
 
 pragma solidity 0.6.6;
 
-import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
 
+import "../../apis/wault/IWaultSwapRouter02.sol";
 import "../../apis/wault/IWaultSwapFactory.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
 
-import "../../apis/wault/IWaultSwapRouter02.sol";
 import "../../interfaces/IStrategy.sol";
-import "../../../utils/SafeToken.sol";
 import "../../interfaces/IWorker.sol";
+
+import "../../../utils/SafeToken.sol";
 
 contract WaultSwapRestrictedStrategyPartialCloseLiquidate is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeToken for address;
@@ -40,7 +39,7 @@ contract WaultSwapRestrictedStrategyPartialCloseLiquidate is OwnableUpgradeSafe,
     uint256 amounToLiquidate
   );
 
-  // @notice require that only allowed workers are able to do the rest of the method call
+  /// @notice require that only allowed workers are able to do the rest of the method call
   modifier onlyWhitelistedWorkers() {
     require(
       okWorkers[msg.sender],
@@ -50,7 +49,7 @@ contract WaultSwapRestrictedStrategyPartialCloseLiquidate is OwnableUpgradeSafe,
   }
 
   /// @dev Create a new liquidate strategy instance.
-  /// @param _router The Uniswap router smart contract.
+  /// @param _router The WaultSwap Router smart contract.
   function initialize(IWaultSwapRouter02 _router) public initializer {
     OwnableUpgradeSafe.__Ownable_init();
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
@@ -92,7 +91,7 @@ contract WaultSwapRestrictedStrategyPartialCloseLiquidate is OwnableUpgradeSafe,
       "WaultSwapRestrictedStrategyPartialCloseLiquidate::execute:: insufficient baseToken received"
     );
     SafeToken.safeTransfer(baseToken, msg.sender, balance);
-    lpToken.transfer(msg.sender, lpToken.balanceOf(address(this)));
+    address(lpToken).safeTransfer(msg.sender, lpToken.balanceOf(address(this)));
     // 6. Reset approve for safety reason
     address(lpToken).safeApprove(address(router), 0);
     farmingToken.safeApprove(address(router), 0);
