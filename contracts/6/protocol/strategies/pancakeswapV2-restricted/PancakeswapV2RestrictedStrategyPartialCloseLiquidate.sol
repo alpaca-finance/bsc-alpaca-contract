@@ -15,6 +15,7 @@ pragma solidity 0.6.6;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 
 import "../../apis/pancake/IPancakeRouter02.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakeFactory.sol";
@@ -31,6 +32,7 @@ contract PancakeswapV2RestrictedStrategyPartialCloseLiquidate is
   IStrategy
 {
   using SafeToken for address;
+  using SafeMath for uint256;
 
   IPancakeFactory public factory;
   IPancakeRouter02 public router;
@@ -84,17 +86,18 @@ contract PancakeswapV2RestrictedStrategyPartialCloseLiquidate is
     );
     router.removeLiquidity(baseToken, farmingToken, lpTokenToLiquidate, 0, 0, address(this), now);
     // 4. Convert farming tokens to baseToken.
+    uint256 baseTokenBefore = baseToken.myBalance();
     address[] memory path = new address[](2);
     path[0] = farmingToken;
     path[1] = baseToken;
     router.swapExactTokensForTokens(farmingToken.myBalance(), 0, path, address(this), now);
     // 5. Return all baseToken back to the original caller.
-    uint256 balance = baseToken.myBalance();
+    uint256 baseTokenAfter = baseToken.myBalance();
     require(
-      balance >= minBaseToken,
+      baseTokenAfter.sub(baseTokenBefore) >= minBaseToken,
       "PancakeswapV2RestrictedStrategyPartialCloseLiquidate::execute:: insufficient baseToken received"
     );
-    SafeToken.safeTransfer(baseToken, msg.sender, balance);
+    SafeToken.safeTransfer(baseToken, msg.sender, baseTokenAfter);
     address(lpToken).safeTransfer(msg.sender, lpToken.balanceOf(address(this)));
     // 6. Reset approve for safety reason
     address(lpToken).safeApprove(address(router), 0);

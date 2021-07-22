@@ -87,12 +87,13 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate is
     );
     uint256 baseTokenBefore = baseToken.myBalance();
     router.swapExactTokensForTokens(farmingTokenToLiquidate, 0, worker.getReversedPath(), address(this), now);
+    uint256 baseTokenAfter = baseToken.myBalance();
     // 4. Transfer all baseTokens (as a result of a conversion) back to the calling worker
     require(
-      baseToken.myBalance().sub(baseTokenBefore) >= minBaseTokenAmount,
+      baseTokenAfter.sub(baseTokenBefore) >= minBaseTokenAmount,
       "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate::execute:: insufficient baseToken amount received"
     );
-    baseToken.safeTransfer(msg.sender, baseToken.myBalance());
+    baseToken.safeTransfer(msg.sender, baseTokenAfter);
     // 4.1 transfer remaining farmingTokens back to worker
     farmingToken.safeTransfer(msg.sender, farmingToken.myBalance());
     // 5. Reset approval for safety reason
