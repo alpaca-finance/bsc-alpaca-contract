@@ -38,6 +38,9 @@ interface IVaultConfig {
   /// @dev Return if the caller is whitelisted.
   function whitelistedCallers(address caller) external returns (bool);
 
+  /// @dev Return if the caller is whitelisted.
+  function whitelistedLiquidators(address caller) external returns (bool);
+
   /// @dev Return whether the given address is a worker.
   function isWorker(address worker) external view returns (bool);
 
