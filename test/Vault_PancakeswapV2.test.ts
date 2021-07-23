@@ -243,6 +243,9 @@ describe('Vault - PancakeswapV2', () => {
     // whitelisted contract to be able to call work
     await simpleVaultConfig.setWhitelistedCallers([whitelistedContract.address], true)
 
+    // whitelisted to be able to call kill
+    await simpleVaultConfig.setWhitelistedLiquidators([await alice.getAddress(), await eve.getAddress()], true)
+
     const DebtToken = (await ethers.getContractFactory(
       "DebtToken",
       deployer
@@ -516,6 +519,17 @@ describe('Vault - PancakeswapV2', () => {
         expect(owner).to.be.eq(whitelistedContract.address)
         expect(worker).to.be.eq(pancakeswapV2Worker.address)
       })
+
+      it('should revert if evil contract try to call onlyWhitelistedLiquidators function', async () => {           
+        await expect(evilContract.executeTransaction(
+          vault.address, 0, 
+          "kill(uint256)", 
+          ethers.utils.defaultAbiCoder.encode(
+            ['uint256'],
+            [0]
+          )
+        )).to.be.revertedWith("Vault::onlyWhitelistedLiquidators:: not whitelisted liquidator")
+      })
     }) 
 
     context('when user is EOA', async() => {
@@ -612,6 +626,10 @@ describe('Vault - PancakeswapV2', () => {
           )
         ).to.be.revertedWith('insufficient funds in the vault');
       });
+
+      it('should not allow user not whitelisted to liquidate', async () => {           
+        await expect(vaultAsBob.kill('1')).to.be.revertedWith("Vault::onlyWhitelistedLiquidators:: not whitelisted liquidator")
+      })
   
       it('should not able to liquidate healthy position', async () => {
         // Deployer deposits 3 BTOKEN to the bank

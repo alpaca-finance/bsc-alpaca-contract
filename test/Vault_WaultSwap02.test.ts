@@ -242,6 +242,9 @@ describe('Vault - WaultSwap02', () => {
     ]) as SimpleVaultConfig;
     await simpleVaultConfig.deployed();
 
+    // whitelisted to be able to call kill
+    await simpleVaultConfig.setWhitelistedLiquidators([await alice.getAddress(), await eve.getAddress()], true)
+
     const DebtToken = (await ethers.getContractFactory(
       "DebtToken",
       deployer

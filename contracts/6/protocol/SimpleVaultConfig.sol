@@ -49,6 +49,8 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   uint256 public override getKillTreasuryBps;
   /// address of treasury account
   address public treasury;
+  /// list of whitelisted liquidators
+  mapping(address => bool) public override whitelistedLiquidators;
 
   function initialize(
     uint256 _minDebtSize,
@@ -128,6 +130,13 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   function setWhitelistedCallers(address[] calldata callers, bool ok) external onlyOwner {
     for (uint256 idx = 0; idx < callers.length; idx++) {
       whitelistedCallers[callers[idx]] = ok;
+    }
+  }
+
+  /// @dev Set whitelisted liquidators. Must only be called by the owner.
+  function setWhitelistedLiquidators(address[] calldata callers, bool ok) external onlyOwner {
+    for (uint256 idx = 0; idx < callers.length; idx++) {
+      whitelistedLiquidators[callers[idx]] = ok;
     }
   }
 
