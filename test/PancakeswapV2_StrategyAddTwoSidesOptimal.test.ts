@@ -281,7 +281,7 @@ describe('PancakeswapV2 - StrategyAddTwoSidesOptimal', () => {
       vault.address, baseToken.address, masterChef.address, routerV2.address, poolId, addStrat.address, liqStrat.address, REINVEST_BOUNTY_BPS
     ]) as PancakeswapWorker
     await pancakeswapWorker.deployed();
-    await config.setWorker(pancakeswapWorker.address, true, true, WORK_FACTOR, KILL_FACTOR);
+    await config.setWorker(pancakeswapWorker.address, true, true, WORK_FACTOR, KILL_FACTOR, true);
 
     // Deployer adds 0.1 FTOKEN + 1 BTOKEN
     await baseToken.approve(routerV2.address, ethers.utils.parseEther('1'));

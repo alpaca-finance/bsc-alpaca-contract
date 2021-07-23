@@ -315,8 +315,8 @@ describe('Vault - WaultSwap02', () => {
     ]) as WaultSwapWorker
     await waultSwapWorker01.deployed();
 
-    await simpleVaultConfig.setWorker(waultSwapWorker.address, true, true, WORK_FACTOR, KILL_FACTOR);
-    await simpleVaultConfig.setWorker(waultSwapWorker01.address, true, true, WORK_FACTOR, KILL_FACTOR);
+    await simpleVaultConfig.setWorker(waultSwapWorker.address, true, true, WORK_FACTOR, KILL_FACTOR, true);
+    await simpleVaultConfig.setWorker(waultSwapWorker01.address, true, true, WORK_FACTOR, KILL_FACTOR, true);
     await waultSwapWorker.setStrategyOk([partialCloseStrat.address], true);
     await waultSwapWorker.setReinvestorOk([await eve.getAddress()], true);
     await waultSwapWorker.setTreasuryConfig(await eve.getAddress(), REINVEST_BOUNTY_BPS)

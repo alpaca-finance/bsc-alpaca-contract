@@ -327,7 +327,7 @@ describe('Vault - PancakeswapV2', () => {
       vault.address, baseToken.address, masterChef.address, routerV2.address, poolId, addStrat.address, liqStrat.address, REINVEST_BOUNTY_BPS
     ]) as PancakeswapV2Worker
     await pancakeswapV2Worker.deployed();
-    await simpleVaultConfig.setWorker(pancakeswapV2Worker.address, true, true, WORK_FACTOR, KILL_FACTOR);
+    await simpleVaultConfig.setWorker(pancakeswapV2Worker.address, true, true, WORK_FACTOR, KILL_FACTOR, true);
     await pancakeswapV2Worker.setStrategyOk([partialCloseStrat.address], true);
     await pancakeswapV2Worker.setStrategyOk([partialCloseMinimizeStrat.address], true);
     await pancakeswapV2Worker.setReinvestorOk([await eve.getAddress()], true);

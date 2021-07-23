@@ -25,6 +25,7 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     bool acceptDebt;
     uint256 workFactor;
     uint256 killFactor;
+    bool isStable;
   }
 
   /// The minimum BaseToken debt size per position.
@@ -109,18 +110,21 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   /// @param _acceptDebt Whether the worker is accepting new debts.
   /// @param _workFactor The work factor value for this worker.
   /// @param _killFactor The kill factor value for this worker.
+  /// @param _isStable Whether the given worker is stable or not.
   function setWorker(
     address worker,
     bool _isWorker,
     bool _acceptDebt,
     uint256 _workFactor,
-    uint256 _killFactor
+    uint256 _killFactor,
+    bool _isStable
   ) public onlyOwner {
     workers[worker] = WorkerConfig({
       isWorker: _isWorker,
       acceptDebt: _acceptDebt,
       workFactor: _workFactor,
-      killFactor: _killFactor
+      killFactor: _killFactor,
+      isStable: _isStable
     });
   }
 
@@ -166,6 +170,12 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   ) external view override returns (uint256) {
     require(workers[worker].isWorker, "SimpleVaultConfig::killFactor:: !worker");
     return workers[worker].killFactor;
+  }
+
+  /// @dev Return worker stability
+  function isWorkerStable(address worker) external view override returns (bool) {
+    require(workers[worker].isWorker, "SimpleVaultConfig::isWorkerStable:: !worker");
+    return workers[worker].isStable;
   }
 
   /// @dev Return the treasuryAddr

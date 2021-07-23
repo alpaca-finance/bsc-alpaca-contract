@@ -295,7 +295,7 @@ describe('Vault - WaultSwap', () => {
       vault.address, baseToken.address, wexMaster.address, router.address, poolId, addStrat.address, liqStrat.address, REINVEST_BOUNTY_BPS
     ]) as WaultSwapWorker
     await waultSwapWorker.deployed();
-    await simpleVaultConfig.setWorker(waultSwapWorker.address, true, true, WORK_FACTOR, KILL_FACTOR);
+    await simpleVaultConfig.setWorker(waultSwapWorker.address, true, true, WORK_FACTOR, KILL_FACTOR, true);
     await waultSwapWorker.setStrategyOk([partialCloseStrat.address], true);
     await waultSwapWorker.setStrategyOk([partialCloseMinimizeStrat.address], true);
     await waultSwapWorker.setReinvestorOk([await eve.getAddress()], true);

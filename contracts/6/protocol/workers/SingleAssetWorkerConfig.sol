@@ -99,7 +99,7 @@ contract SingleAssetWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
   }
 
   /// @dev Return whether the given worker is stable, presumably not under manipulation.
-  function isStable(address _worker) public view returns (bool) {
+  function isStable(address _worker) public view override returns (bool) {
     IWorker02 worker = IWorker02(_worker);
     address[] memory path = worker.getPath();
     // @notice loop over the path for validating the price of each pair

@@ -55,4 +55,7 @@ interface IVaultConfig {
 
   /// @dev Return the address of treasury account
   function getTreasuryAddr() external view returns (address);
+
+  /// @dev Return if worker is stable
+  function isWorkerStable(address worker) external view returns (bool);
 }

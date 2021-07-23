@@ -389,7 +389,7 @@ describe('CakeMaxiWorker', () => {
     
 
     // Setting up dependencies for workers & strategies
-    await simpleVaultConfig.setWorker(integratedCakeMaxiWorker.address, true, true, WORK_FACTOR, KILL_FACTOR);
+    await simpleVaultConfig.setWorker(integratedCakeMaxiWorker.address, true, true, WORK_FACTOR, KILL_FACTOR, true);
     await wNativeRelayer.setCallerOk([stratMinimize.address, stratLiq.address, stratAddWithFarm.address, stratAdd.address, integratedVault.address, stratPartialCloseLiq.address, stratPartialCloseMinimize.address], true)
     await cakeMaxiWorkerNative.setStrategyOk([stratAdd.address, stratAddWithFarm.address, stratLiq.address, stratMinimize.address, stratPartialCloseLiq.address, stratPartialCloseMinimize.address], true);
     await cakeMaxiWorkerNative.setReinvestorOk([await eve.getAddress()], true);

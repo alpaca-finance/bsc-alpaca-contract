@@ -187,6 +187,11 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     return workers[worker].killFactor(worker, debt);
   }
 
+  /// @dev Return if worker is stable.
+  function isWorkerStable(address worker) external view override returns (bool) {
+    return workers[worker].isStable(worker);
+  }
+
   /// @dev Return the treasuryAddr
   function getTreasuryAddr() external view override returns (address) {
     return treasury == address(0) ? 0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51 : treasury;

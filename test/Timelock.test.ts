@@ -279,7 +279,7 @@ describe("Timelock", () => {
       vault.address, baseToken.address, masterChef.address, router.address, poolId, addStrat.address, liqStrat.address, REINVEST_BOUNTY_BPS
     ]) as PancakeswapWorker
     await pancakeswapWorker.deployed();
-    await simpleVaultConfig.setWorker(pancakeswapWorker.address, true, true, WORK_FACTOR, KILL_FACTOR);
+    await simpleVaultConfig.setWorker(pancakeswapWorker.address, true, true, WORK_FACTOR, KILL_FACTOR, true);
 
     /// Deploy SimpleOracle
     const SimplePriceOracle = (await ethers.getContractFactory(
@@ -384,7 +384,7 @@ describe("Timelock", () => {
       ).to.be.revertedWith('Ownable: caller is not the owner');
 
       await expect(
-        simpleVaultConfigAsAlice.setWorker(ADDRESS0, true, true, 1, 1)
+        simpleVaultConfigAsAlice.setWorker(ADDRESS0, true, true, 1, 1, true)
       ).to.be.revertedWith('Ownable: caller is not the owner');
     });
 
