@@ -20,6 +20,8 @@ import {
   PancakeMasterChef__factory,
   PancakeRouterV2,
   PancakeRouterV2__factory,
+  PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading,
+  PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading__factory,
   PancakeswapV2RestrictedStrategyAddBaseTokenOnly,
   PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory,
   PancakeswapV2RestrictedStrategyAddTwoSidesOptimal,
@@ -28,6 +30,10 @@ import {
   PancakeswapV2RestrictedStrategyLiquidate__factory,
   PancakeswapV2RestrictedStrategyPartialCloseLiquidate,
   PancakeswapV2RestrictedStrategyPartialCloseLiquidate__factory,
+  PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading,
+  PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading__factory,
+  PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading,
+  PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading__factory,
   PancakeswapV2Worker,
   PancakeswapV2Worker02,
   PancakeswapV2Worker02__factory,
@@ -38,6 +44,26 @@ import {
   SyrupBar__factory,
   Vault,
   Vault__factory,
+  WaultSwapFactory,
+  WaultSwapFactory__factory,
+  WaultSwapRestrictedStrategyAddBaseTokenOnly,
+  WaultSwapRestrictedStrategyAddBaseTokenOnly__factory,
+  WaultSwapRestrictedStrategyAddTwoSidesOptimal,
+  WaultSwapRestrictedStrategyAddTwoSidesOptimal__factory,
+  WaultSwapRestrictedStrategyLiquidate,
+  WaultSwapRestrictedStrategyLiquidate__factory,
+  WaultSwapRestrictedStrategyPartialCloseLiquidate,
+  WaultSwapRestrictedStrategyPartialCloseLiquidate__factory,
+  WaultSwapRestrictedStrategyPartialCloseMinimizeTrading,
+  WaultSwapRestrictedStrategyPartialCloseMinimizeTrading__factory,
+  WaultSwapRestrictedStrategyWithdrawMinimizeTrading,
+  WaultSwapRestrictedStrategyWithdrawMinimizeTrading__factory,
+  WaultSwapRouter,
+  WaultSwapRouter__factory,
+  WaultSwapToken,
+  WaultSwapToken__factory,
+  WexMaster,
+  WexMaster__factory,
   WNativeRelayer,
   WNativeRelayer__factory,
 } from "../../typechain";
@@ -126,13 +152,17 @@ export class DeployHelper {
 
   public async deployPancakeV2Strategies(
     router: PancakeRouterV2,
-    vault: Vault
+    vault: Vault,
+    wbnb: MockWBNB,
+    wNativeRelayer: WNativeRelayer
   ): Promise<
     [
       PancakeswapV2RestrictedStrategyAddBaseTokenOnly,
       PancakeswapV2RestrictedStrategyLiquidate,
       PancakeswapV2RestrictedStrategyAddTwoSidesOptimal,
-      PancakeswapV2RestrictedStrategyPartialCloseLiquidate
+      PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading,
+      PancakeswapV2RestrictedStrategyPartialCloseLiquidate,
+      PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading
     ]
   > {
     /// Setup strategy
@@ -163,6 +193,16 @@ export class DeployHelper {
       vault.address,
     ])) as PancakeswapV2RestrictedStrategyAddTwoSidesOptimal;
 
+    const PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading = (await ethers.getContractFactory(
+      "PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading",
+      this.deployer
+    )) as PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading__factory;
+    const minimizeTradeStrat = (await upgrades.deployProxy(PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading, [
+      router.address,
+      wbnb.address,
+      wNativeRelayer.address,
+    ])) as PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading;
+
     const PancakeswapV2RestrictedStrategyPartialCloseLiquidate = (await ethers.getContractFactory(
       "PancakeswapV2RestrictedStrategyPartialCloseLiquidate",
       this.deployer
@@ -171,8 +211,20 @@ export class DeployHelper {
       router.address,
     ])) as PancakeswapV2RestrictedStrategyPartialCloseLiquidate;
     await partialCloseStrat.deployed();
+    await wNativeRelayer.setCallerOk([partialCloseStrat.address], true);
 
-    return [addStrat, liqStrat, twoSidesStrat, partialCloseStrat];
+    const PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading = (await ethers.getContractFactory(
+      "PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading",
+      this.deployer
+    )) as PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading__factory;
+    const partialCloseMinimizeStrat = (await upgrades.deployProxy(
+      PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading,
+      [router.address, wbnb.address, wNativeRelayer.address]
+    )) as PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading;
+    await partialCloseMinimizeStrat.deployed();
+    await wNativeRelayer.setCallerOk([partialCloseMinimizeStrat.address], true);
+
+    return [addStrat, liqStrat, twoSidesStrat, minimizeTradeStrat, partialCloseStrat, partialCloseMinimizeStrat];
   }
 
   public async deployBEP20(bep20s: Array<IBEP20>): Promise<Array<MockERC20>> {
@@ -317,7 +369,7 @@ export class DeployHelper {
     ])) as PancakeswapV2Worker02;
     await pancakeswapV2Worker02.deployed();
 
-    await simpleVaultConfig.setWorker(pancakeswapV2Worker02.address, true, true, workFactor, killFactor, true);
+    await simpleVaultConfig.setWorker(pancakeswapV2Worker02.address, true, true, workFactor, killFactor, true, true);
     await pancakeswapV2Worker02.setStrategyOk(extraStrategies, true);
     await pancakeswapV2Worker02.setReinvestorOk(okReinvestor, true);
     await pancakeswapV2Worker02.setTreasuryConfig(treasuryAddress, reinvestBountyBps);
@@ -362,7 +414,7 @@ export class DeployHelper {
     ])) as PancakeswapV2Worker;
     await pancakeswapV2Worker.deployed();
 
-    await simpleVaultConfig.setWorker(pancakeswapV2Worker.address, true, true, workFactor, killFactor, true);
+    await simpleVaultConfig.setWorker(pancakeswapV2Worker.address, true, true, workFactor, killFactor, true, true);
     await pancakeswapV2Worker.setStrategyOk(extraStrategies, true);
     await pancakeswapV2Worker.setReinvestorOk(okReinvestor, true);
 
@@ -373,5 +425,119 @@ export class DeployHelper {
     });
 
     return pancakeswapV2Worker;
+  }
+
+  public async deployWaultSwap(
+    wbnb: MockWBNB,
+    wexPerBlock: BigNumberish
+  ): Promise<[WaultSwapFactory, WaultSwapRouter, WaultSwapToken, WexMaster]> {
+    // Setup WaultSwap
+    const WaultSwapFactory = (await ethers.getContractFactory(
+      "WaultSwapFactory",
+      this.deployer
+    )) as WaultSwapFactory__factory;
+    const factory = await WaultSwapFactory.deploy(await this.deployer.getAddress());
+    await factory.deployed();
+
+    const WaultSwapRouter = (await ethers.getContractFactory(
+      "WaultSwapRouter",
+      this.deployer
+    )) as WaultSwapRouter__factory;
+    const router = await WaultSwapRouter.deploy(factory.address, wbnb.address);
+    await router.deployed();
+
+    const WaultSwapToken = (await ethers.getContractFactory(
+      "WaultSwapToken",
+      this.deployer
+    )) as WaultSwapToken__factory;
+    const wex = await WaultSwapToken.deploy();
+    await wex.deployed();
+    await wex.mint(await this.deployer.getAddress(), ethers.utils.parseEther("100"));
+
+    /// Setup MasterChef
+    const WexMaster = (await ethers.getContractFactory("WexMaster", this.deployer)) as WexMaster__factory;
+    const wexMaster = await WexMaster.deploy(wex.address, wexPerBlock, 0);
+    await wexMaster.deployed();
+    // Transfer mintership so wexMaster can mint WEX
+    await wex.transferMintership(wexMaster.address);
+
+    return [factory, router, wex, wexMaster];
+  }
+
+  public async deployWaultSwapStrategies(
+    router: WaultSwapRouter,
+    vault: Vault,
+    wbnb: MockWBNB,
+    wNativeRelayer: WNativeRelayer
+  ): Promise<
+    [
+      WaultSwapRestrictedStrategyAddBaseTokenOnly,
+      WaultSwapRestrictedStrategyLiquidate,
+      WaultSwapRestrictedStrategyAddTwoSidesOptimal,
+      WaultSwapRestrictedStrategyWithdrawMinimizeTrading,
+      WaultSwapRestrictedStrategyPartialCloseLiquidate,
+      WaultSwapRestrictedStrategyPartialCloseMinimizeTrading
+    ]
+  > {
+    /// Setup strategy
+    const WaultSwapRestrictedStrategyAddBaseTokenOnly = (await ethers.getContractFactory(
+      "WaultSwapRestrictedStrategyAddBaseTokenOnly",
+      this.deployer
+    )) as WaultSwapRestrictedStrategyAddBaseTokenOnly__factory;
+    const addStrat = (await upgrades.deployProxy(WaultSwapRestrictedStrategyAddBaseTokenOnly, [
+      router.address,
+    ])) as WaultSwapRestrictedStrategyAddBaseTokenOnly;
+    await addStrat.deployed();
+
+    const WaultSwapRestrictedStrategyLiquidate = (await ethers.getContractFactory(
+      "WaultSwapRestrictedStrategyLiquidate",
+      this.deployer
+    )) as WaultSwapRestrictedStrategyLiquidate__factory;
+    const liqStrat = (await upgrades.deployProxy(WaultSwapRestrictedStrategyLiquidate, [
+      router.address,
+    ])) as WaultSwapRestrictedStrategyLiquidate;
+    await liqStrat.deployed();
+
+    const WaultSwapRestrictedStrategyAddTwoSidesOptimal = (await ethers.getContractFactory(
+      "WaultSwapRestrictedStrategyAddTwoSidesOptimal",
+      this.deployer
+    )) as WaultSwapRestrictedStrategyAddTwoSidesOptimal__factory;
+    const twoSidesStrat = (await upgrades.deployProxy(WaultSwapRestrictedStrategyAddTwoSidesOptimal, [
+      router.address,
+      vault.address,
+    ])) as WaultSwapRestrictedStrategyAddTwoSidesOptimal;
+
+    const WaultSwapRestrictedStrategyWithdrawMinimizeTrading = (await ethers.getContractFactory(
+      "WaultSwapRestrictedStrategyWithdrawMinimizeTrading",
+      this.deployer
+    )) as WaultSwapRestrictedStrategyWithdrawMinimizeTrading__factory;
+    const minimizeTradeStrat = (await upgrades.deployProxy(WaultSwapRestrictedStrategyWithdrawMinimizeTrading, [
+      router.address,
+      wbnb.address,
+      wNativeRelayer.address,
+    ])) as WaultSwapRestrictedStrategyWithdrawMinimizeTrading;
+
+    const WaultSwapRestrictedStrategyPartialCloseLiquidate = (await ethers.getContractFactory(
+      "WaultSwapRestrictedStrategyPartialCloseLiquidate",
+      this.deployer
+    )) as WaultSwapRestrictedStrategyPartialCloseLiquidate__factory;
+    const partialCloseStrat = (await upgrades.deployProxy(WaultSwapRestrictedStrategyPartialCloseLiquidate, [
+      router.address,
+    ])) as WaultSwapRestrictedStrategyPartialCloseLiquidate;
+    await partialCloseStrat.deployed();
+    await wNativeRelayer.setCallerOk([partialCloseStrat.address], true);
+
+    const WaultSwapRestrictedStrategyPartialCloseMinimizeTrading = (await ethers.getContractFactory(
+      "WaultSwapRestrictedStrategyPartialCloseMinimizeTrading",
+      this.deployer
+    )) as WaultSwapRestrictedStrategyPartialCloseMinimizeTrading__factory;
+    const partialCloseMinimizeStrat = (await upgrades.deployProxy(
+      WaultSwapRestrictedStrategyPartialCloseMinimizeTrading,
+      [router.address, wbnb.address, wNativeRelayer.address]
+    )) as WaultSwapRestrictedStrategyPartialCloseMinimizeTrading;
+    await partialCloseMinimizeStrat.deployed();
+    await wNativeRelayer.setCallerOk([partialCloseMinimizeStrat.address], true);
+
+    return [addStrat, liqStrat, twoSidesStrat, minimizeTradeStrat, partialCloseStrat, partialCloseMinimizeStrat];
   }
 }

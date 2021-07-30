@@ -26,6 +26,7 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     uint256 workFactor;
     uint256 killFactor;
     bool isStable;
+    bool isReserveConsistent;
   }
 
   /// The minimum BaseToken debt size per position.
@@ -50,6 +51,8 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   uint256 public override getKillTreasuryBps;
   /// address of treasury account
   address public treasury;
+  // Mapping of approved add strategies
+  mapping(address => bool) public override approvedAddStrategies;
 
   function initialize(
     uint256 _minDebtSize,
@@ -117,14 +120,16 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     bool _acceptDebt,
     uint256 _workFactor,
     uint256 _killFactor,
-    bool _isStable
+    bool _isStable,
+    bool _isReserveConsistent
   ) public onlyOwner {
     workers[worker] = WorkerConfig({
       isWorker: _isWorker,
       acceptDebt: _acceptDebt,
       workFactor: _workFactor,
       killFactor: _killFactor,
-      isStable: _isStable
+      isStable: _isStable,
+      isReserveConsistent: _isReserveConsistent
     });
   }
 
@@ -132,6 +137,13 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   function setWhitelistedCallers(address[] calldata callers, bool ok) external onlyOwner {
     for (uint256 idx = 0; idx < callers.length; idx++) {
       whitelistedCallers[callers[idx]] = ok;
+    }
+  }
+
+  /// @dev Set approved add strategies. Must only be called by the owner.
+  function setApprovedAddStrategy(address[] calldata addStrats, bool ok) external onlyOwner {
+    for (uint256 idx = 0; idx < addStrats.length; idx++) {
+      approvedAddStrategies[addStrats[idx]] = ok;
     }
   }
 
@@ -176,6 +188,11 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   function isWorkerStable(address worker) external view override returns (bool) {
     require(workers[worker].isWorker, "SimpleVaultConfig::isWorkerStable:: !worker");
     return workers[worker].isStable;
+  }
+
+  /// @dev Return if pools is consistent
+  function isWorkerReserveConsistent(address worker) external view override returns (bool) {
+    return workers[worker].isReserveConsistent;
   }
 
   /// @dev Return the treasuryAddr

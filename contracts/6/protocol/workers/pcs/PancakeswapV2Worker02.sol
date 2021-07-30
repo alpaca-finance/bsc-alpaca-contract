@@ -30,8 +30,6 @@ import "../../../utils/AlpacaMath.sol";
 import "../../../utils/SafeToken.sol";
 import "../../interfaces/IVault.sol";
 
-import "hardhat/console.sol";
-
 /// @title PancakeswapV2Worker02 is a PancakeswapV2Worker with with reinvest-optimized and beneficial vault buyback functionalities
 contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02 {
   /// @notice Libraries
@@ -226,7 +224,6 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
     masterChef.withdraw(pid, 0);
     uint256 reward = cake.balanceOf(address(this));
     if (reward <= _reinvestThreshold) return;
-    console.log("CAKE:", reward);
 
     // 2. Approve tokens
     cake.safeApprove(address(router), uint256(-1));
@@ -234,7 +231,6 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
 
     // 3. Send the reward bounty to the _treasuryAccount.
     uint256 bounty = reward.mul(_treasuryBountyBps) / 10000;
-    console.log("CAKE bounty: ", bounty);
     if (bounty > 0) {
       uint256 beneficialVaultBounty = bounty.mul(beneficialVaultBountyBps) / 10000;
       if (beneficialVaultBounty > 0) _rewardToBeneficialVault(beneficialVaultBounty, _callerBalance);
@@ -242,11 +238,7 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
     }
 
     // 4. Convert all the remaining rewards to BaseToken according to config path.
-    uint256[] memory amts =
-      router.swapExactTokensForTokens(reward.sub(bounty), 0, getReinvestPath(), address(this), now);
-    console.log("reinvest[0]: ", amts[0]);
-    console.log("reinvest[1]: ", amts[1]);
-    console.log("reinvest[2]: ", amts[2]);
+    router.swapExactTokensForTokens(reward.sub(bounty), 0, getReinvestPath(), address(this), now);
 
     // 5. Use add Token strategy to convert all BaseToken without both caller balance and buyback amount to LP tokens.
     baseToken.safeTransfer(address(addStrat), actualBaseTokenBalance().sub(_callerBalance));

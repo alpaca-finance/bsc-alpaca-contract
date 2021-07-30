@@ -253,16 +253,23 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     }
   }
 
+  /// @dev Transfer to "to". Automatically unwrap if BTOKEN is WBNB
+  /// @param to The address of the receiver
+  /// @param amount The amount to be withdrawn
   function _safeUnwrap(address to, uint256 amount) internal {
     if (token == config.getWrappedNativeAddr()) {
-      SafeToken.safeTransfer(token, to, amount);
-      IWNativeRelayer(uint160(to)).withdraw(amount);
+      SafeToken.safeTransfer(token, config.getWNativeRelayer(), amount);
+      IWNativeRelayer(uint160(config.getWNativeRelayer())).withdraw(amount);
       SafeToken.safeTransferETH(to, amount);
     } else {
       SafeToken.safeTransfer(token, to, amount);
     }
   }
 
+  /// @dev addCollateral to the given position.
+  /// @param id The ID of the position to add collaterals.
+  /// @param amount The anout of BTOKEN to be added to the position
+  /// @param data The calldata to pass along to the worker for more working context.
   function addCollateral(
     uint256 id,
     uint256 amount,
@@ -275,29 +282,32 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     // 1. Load position from state & sanity check
     Position storage pos = positions[id];
     address worker = pos.worker;
+    uint256 healthBefore = IWorker(worker).health(id);
     require(id < nextPositionID, "bad position id");
-    require(pos.owner == msg.sender, "not position owner");
-    // 2. Book execution scope variables
+    require(pos.owner == msg.sender, "!position owner");
+    require(healthBefore != 0, "!active position");
+    // 2. Book execution scope variables. Check if the given strategy is known add strat.
     POSITION_ID = id;
     (STRATEGY, ) = abi.decode(data, (address, bytes));
-    // 3. If not goRouge than check worker stability
+    require(config.approvedAddStrategies(STRATEGY), "!approved strat");
+    // 3. If not goRouge than check worker stability, else only check reserve consistency.
     if (!goRogue) require(config.isWorkerStable(worker), "worker !stable");
+    else require(config.isWorkerReserveConsistent(worker), "reserve !consistent");
     // 4. Getting required info
     uint256 debt = debtShareToVal(pos.debtShare);
-    uint256 healthBefore = IWorker(worker).health(id);
-    // 5. Perform force add collateral, using a new scope to avoid stack-too-deep errors.
+    // 5. Perform add collateral according to the strategy
     uint256 beforeBEP20 = SafeToken.myBalance(token).sub(amount);
     SafeToken.safeTransfer(token, worker, amount);
     IWorker(worker).work(id, msg.sender, debt, data);
+    uint256 healthAfter = IWorker(worker).health(id);
     uint256 back = SafeToken.myBalance(token).sub(beforeBEP20);
     // 6. Sanity check states after perform add collaterals
-    // - healthAfter must be increased as LP under user's position get increased.
     // - if not goRouge then check worker stability
     // - back must be 0 as it is adding collateral only. No BTOKEN needed to be returned.
-    uint256 healthAfter = IWorker(worker).health(id);
-    require(healthAfter > healthBefore, "health !increase");
-    require(back == 0, "back !0");
+    // - not goRouge than check worker stability, else only check reserve consistency.
     if (!goRogue) require(config.isWorkerStable(worker), "worker !stable");
+    else require(config.isWorkerReserveConsistent(worker), "reserve !consistent");
+    require(back == 0, "back !0");
     // 7. Release execution scope
     POSITION_ID = _NO_ID;
     STRATEGY = _NO_ADDRESS;

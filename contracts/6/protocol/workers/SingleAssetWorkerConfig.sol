@@ -98,6 +98,34 @@ contract SingleAssetWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
     }
   }
 
+  function isReserveConsistent(address _worker) public view override returns (bool) {
+    IWorker02 worker = IWorker02(_worker);
+    address[] memory path = worker.getPath();
+    IPancakePair currentLP;
+    for (uint256 i = 1; i < path.length; i++) {
+      // 1. Get the position's LP balance and LP total supply.
+      currentLP = IPancakePair(factory.getPair(path[i - 1], path[i]));
+      address token0 = currentLP.token0();
+      address token1 = currentLP.token1();
+      // 2. Check that reserves and balances are consistent (within 1%)
+      (uint256 r0, uint256 r1, ) = currentLP.getReserves();
+      uint256 t0bal = token0.balanceOf(address(currentLP));
+      uint256 t1bal = token1.balanceOf(address(currentLP));
+      _isReserveConsistent(r0, r1, t0bal, t1bal);
+    }
+    return true;
+  }
+
+  function _isReserveConsistent(
+    uint256 r0,
+    uint256 r1,
+    uint256 t0bal,
+    uint256 t1bal
+  ) internal pure {
+    require(t0bal.mul(100) <= r0.mul(101), "SingleAssetWorkerConfig::isReserveConsistent:: bad t0 balance");
+    require(t1bal.mul(100) <= r1.mul(101), "SingleAssetWorkerConfig::isReserveConsistent:: bad t1 balance");
+  }
+
   /// @dev Return whether the given worker is stable, presumably not under manipulation.
   function isStable(address _worker) public view override returns (bool) {
     IWorker02 worker = IWorker02(_worker);
@@ -114,8 +142,7 @@ contract SingleAssetWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
       (uint256 r0, uint256 r1, ) = currentLP.getReserves();
       uint256 t0bal = token0.balanceOf(address(currentLP));
       uint256 t1bal = token1.balanceOf(address(currentLP));
-      require(t0bal.mul(100) <= r0.mul(101), "SingleAssetWorkerConfig::isStable:: bad t0 balance");
-      require(t1bal.mul(100) <= r1.mul(101), "SingleAssetWorkerConfig::isStable:: bad t1 balance");
+      _isReserveConsistent(r0, r1, t0bal, t1bal);
       // 3. Check that price is in the acceptable range
       (uint256 price, uint256 lastUpdate) = oracle.getPrice(token0, token1);
       require(lastUpdate >= now - 1 days, "SingleAssetWorkerConfig::isStable:: price too stale");

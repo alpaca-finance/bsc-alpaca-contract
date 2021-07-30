@@ -28,8 +28,6 @@ import "../../../utils/SafeToken.sol";
 import "../../../utils/AlpacaMath.sol";
 import "../../interfaces/IWorker.sol";
 
-import "hardhat/console.sol";
-
 contract PancakeswapV2RestrictedStrategyAddTwoSidesOptimal is
   OwnableUpgradeSafe,
   ReentrancyGuardUpgradeSafe,
@@ -141,23 +139,12 @@ contract PancakeswapV2RestrictedStrategyAddTwoSidesOptimal is
         baseTokenReserve,
         farmingTokenReserve
       );
-      console.log("btoken: ", baseTokenBalance);
-      console.log("ftoken: ", farmingToken.myBalance());
-      console.log("swapAmt: ", swapAmt);
-      console.log("r0 (before): ", r0);
-      console.log("r1 (before): ", r1);
     }
     // 4. Convert between BaseToken and farming tokens
     address[] memory path = new address[](2);
     (path[0], path[1]) = isReversed ? (farmingToken, baseToken) : (baseToken, farmingToken);
     // 5. Swap according to path
     if (swapAmt > 0) router.swapExactTokensForTokens(swapAmt, 0, path, address(this), now);
-    (uint256 r0, uint256 r1, ) = lpToken.getReserves();
-    console.log("btoken (swap): ", baseToken.myBalance());
-    console.log("ftoken (swap): ", farmingToken.myBalance());
-    console.log("totalSupply: ", lpToken.totalSupply());
-    console.log("r0 (after swap): ", r0);
-    console.log("r1 (after swap): ", r1);
     // 6. Mint more LP tokens and return all LP tokens to the sender.
     (, , uint256 moreLPAmount) =
       router.addLiquidity(
@@ -170,10 +157,6 @@ contract PancakeswapV2RestrictedStrategyAddTwoSidesOptimal is
         address(this),
         now
       );
-    console.log("LP: ", moreLPAmount);
-    (r0, r1, ) = lpToken.getReserves();
-    console.log("r0 (after): ", r0);
-    console.log("r1 (after): ", r1);
     require(
       moreLPAmount >= minLPAmount,
       "PancakeswapV2RestrictedStrategyAddTwoSidesOptimal::execute:: insufficient LP tokens received"

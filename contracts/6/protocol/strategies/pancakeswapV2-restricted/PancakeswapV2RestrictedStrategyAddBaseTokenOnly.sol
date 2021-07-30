@@ -26,8 +26,6 @@ import "../../../utils/SafeToken.sol";
 import "../../../utils/AlpacaMath.sol";
 import "../../interfaces/IWorker.sol";
 
-import "hardhat/console.sol";
-
 contract PancakeswapV2RestrictedStrategyAddBaseTokenOnly is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeToken for address;
   using SafeMath for uint256;
@@ -81,10 +79,6 @@ contract PancakeswapV2RestrictedStrategyAddBaseTokenOnly is OwnableUpgradeSafe, 
     // 19975^2 = 399000625
     // 9975*2 = 19950
     uint256 aIn = AlpacaMath.sqrt(rIn.mul(balance.mul(399000000).add(rIn.mul(399000625)))).sub(rIn.mul(19975)) / 19950;
-    console.log("btoken: ", balance);
-    console.log("swapAmt: ", aIn);
-    console.log("r0 (before): ", r0);
-    console.log("r1 (before): ", r1);
     // 4. Convert that portion of baseToken to farmingToken.
     address[] memory path = new address[](2);
     path[0] = baseToken;
@@ -102,10 +96,6 @@ contract PancakeswapV2RestrictedStrategyAddBaseTokenOnly is OwnableUpgradeSafe, 
         address(this),
         now
       );
-    (r0, r1, ) = lpToken.getReserves();
-    console.log("LP: ", moreLPAmount);
-    console.log("r0 (after): ", r0);
-    console.log("r1 (after): ", r1);
     require(
       moreLPAmount >= minLPAmount,
       "PancakeswapV2RestrictedStrategyAddBaseTokenOnly::execute:: insufficient LP tokens received"

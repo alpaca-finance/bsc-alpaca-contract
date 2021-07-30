@@ -25,4 +25,7 @@ interface IWorkerConfig {
 
   /// @dev Return if worker is stable.
   function isStable(address worker) external view returns (bool);
+
+  /// @dev Revert if liquidity pool under manipulation
+  function isReserveConsistent(address worker) external view returns (bool);
 }
