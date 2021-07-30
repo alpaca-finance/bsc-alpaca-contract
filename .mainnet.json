@@ -476,6 +476,11 @@
           "pId": 416,
           "name": "ORBS-BUSD LP",
           "address": "0xB87b857670A44356f2b70337E0F218713D2378e8"
+        },
+        {
+          "pId": 430,
+          "name": "AXS-WBNB LP",
+          "address": "0xC2d00De94795e60FB76Bc37d899170996cBdA436"
         }
       ]
     },
@@ -553,6 +558,11 @@
           "pId": 36,
           "name": "MATIC-USDT LP",
           "address": "0x4aeA71115DAB37e79C0005a042d6c3985255f3CB"
+        },
+        {
+          "pId": 55,
+          "name": "TUSD-USDT LP",
+          "address": "0xBE66b44015734D881ACcfBa478d957885612A902"
         }
       ]
     }
@@ -597,7 +607,8 @@
     "TUSD": "0x14016e85a25aeb13065688cafb43044c2ef86784",
     "TRX": "0x85eac5ac2f758618dfa09bdbe0cf174e7d574d5b",
     "BTT": "0x8595f9da7b868b1822194faed312235e43007b49",
-    "ORBS": "0xebd49b26169e1b52c04cfd19fcf289405df55f80"
+    "ORBS": "0xebd49b26169e1b52c04cfd19fcf289405df55f80",
+    "AXS": "0x715D400F88C167884bbCc41C5FeA407ed4D2f8A0"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x1099C2E6Ed6ebA95099c205b599B409305783E43",
@@ -1077,6 +1088,22 @@
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 367,
           "stakingToken": "0x946696344e7d4346b223e1Cf77035a76690d6A73",
+          "stakingTokenAt": "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+            "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+            "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
+            "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
+            "StrategyPartialCloseLiquidate": "",
+            "StrategyPartialCloseMinimizeTrading": ""
+          }
+        },
+        {
+          "name": "AXS-WBNB PancakeswapWorker",
+          "address": "0x1eaAf599b95d7cab0151B8384d15fe3F68Aa4ee3",
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 430,
+          "stakingToken": "0xC2d00De94795e60FB76Bc37d899170996cBdA436",
           "stakingTokenAt": "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
@@ -1790,6 +1817,22 @@
             "StrategyPartialCloseLiquidate": "",
             "StrategyPartialCloseMinimizeTrading": ""
           }
+        },
+        {
+          "name": "TUSD-USDT WaultswapWorker",
+          "address": "0xF4B424DB20d8664cF559Fa3c095C54F4569A7f57",
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 55,
+          "stakingToken": "0xBE66b44015734D881ACcfBa478d957885612A902",
+          "stakingTokenAt": "0x22fB2663C7ca71Adc2cc99481C77Aaf21E152e2D",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0xeBb8BA21A3703ab30187D3EEC02A3Bc62894970D",
+            "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
+            "StrategyAddTwoSidesOptimal": "0xcE37fD1Ff0A6cb4A6A59cd46CCf55D5Dc70ec585",
+            "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3",
+            "StrategyPartialCloseLiquidate": "",
+            "StrategyPartialCloseMinimizeTrading": ""
+          }
         }
       ]
     },
@@ -1912,7 +1955,7 @@
       "baseToken": "0x14016e85a25aeb13065688cafb43044c2ef86784",
       "debtToken": "0xb76ED435B93477511e4604c441550A23d5aeAF84",
       "config": "0x0c1F049ebE3E0537C7E7ce428Bb468d5F6bF83b3",
-      "tripleSlopeModel": "0x375D32FadA30d7e6Fea242FCa221a22CC6d52B30",
+      "tripleSlopeModel": "0xADcfBf2e8470493060FbE0A0aFAC66d2cB028e9c",
       "StrategyAddTwoSidesOptimal": {
         "Pancakeswap": "0xA8F37daF3D290F636f0B79E47ea50aB7f7A82d51",
         "Waultswap": "0x8cE75fF793D7832302BeA91c275e2509060DfEaA",
@@ -1947,6 +1990,22 @@
             "StrategyLiquidate": "0x6C0105950B1fEE24eE4ADdd1DFF346cceF75D150",
             "StrategyAddTwoSidesOptimal": "0x67a2CdB9F0760663B5E70c1517f1a603BA3F50f0",
             "StrategyWithdrawMinimizeTrading": "0x94f5E884e11fC054Ca0b332e3a8773750BDBe242",
+            "StrategyPartialCloseLiquidate": "",
+            "StrategyPartialCloseMinimizeTrading": ""
+          }
+        },
+        {
+          "name": "USDT-TUSD WaultswapWorker",
+          "address": "0x50441d9c8E08E3Dcce8D517E2257a3882d43fee9",
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 55,
+          "stakingToken": "0xBE66b44015734D881ACcfBa478d957885612A902",
+          "stakingTokenAt": "0x22fB2663C7ca71Adc2cc99481C77Aaf21E152e2D",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0xeBb8BA21A3703ab30187D3EEC02A3Bc62894970D",
+            "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
+            "StrategyAddTwoSidesOptimal": "0x8cE75fF793D7832302BeA91c275e2509060DfEaA",
+            "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3",
             "StrategyPartialCloseLiquidate": "",
             "StrategyPartialCloseMinimizeTrading": ""
           }

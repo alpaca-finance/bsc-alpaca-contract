@@ -4,6 +4,8 @@ import { ethers, network } from 'hardhat';
 import { Timelock__factory } from '../../../../typechain'
 import MainnetConfig from '../../../../.mainnet.json'
 import TestnetConfig from '../../../../.testnet.json'
+import { TimelockEntity } from '../../../entities';
+import { FileService, TimelockService } from '../../../services';
 
 interface IInput {
   VAULT_SYMBOL: string
@@ -30,16 +32,70 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-
+  const TITLTE = 'update-19-reserve-pool-bps'
   const NEW_PARAMS: Array<IInput> = [{
+    VAULT_SYMBOL: 'ibWBNB',
+    MIN_DEBT_SIZE: '0.2',
+    RESERVE_POOL_BPS: '1900',
+    INTEREST_MODEL: '0xADcfBf2e8470493060FbE0A0aFAC66d2cB028e9c',
+    KILL_PRIZE_BPS: '100',
+    TREASURY_KILL_BPS: '400',
+    TREASURY_ADDR: '0x0FfA891ab6f410bbd7403b709e7d38D7a812125B',
+    EXACT_ETA: '1627453800',
+  }, {
+    VAULT_SYMBOL: 'ibBUSD',
+    MIN_DEBT_SIZE: '100',
+    RESERVE_POOL_BPS: '1900',
+    INTEREST_MODEL: '0xADcfBf2e8470493060FbE0A0aFAC66d2cB028e9c',
+    KILL_PRIZE_BPS: '100',
+    TREASURY_KILL_BPS: '400',
+    TREASURY_ADDR: '0x0FfA891ab6f410bbd7403b709e7d38D7a812125B',
+    EXACT_ETA: '1627453800',
+  }, {
+    VAULT_SYMBOL: 'ibETH',
+    MIN_DEBT_SIZE: '0.04',
+    RESERVE_POOL_BPS: '1900',
+    INTEREST_MODEL: '0xADcfBf2e8470493060FbE0A0aFAC66d2cB028e9c',
+    KILL_PRIZE_BPS: '100',
+    TREASURY_KILL_BPS :'400',
+    TREASURY_ADDR: '0x0FfA891ab6f410bbd7403b709e7d38D7a812125B',
+    EXACT_ETA: '1627453800',
+  }, {
+    VAULT_SYMBOL: 'ibALPACA',
+    MIN_DEBT_SIZE: '50',
+    RESERVE_POOL_BPS: '1900',
+    INTEREST_MODEL: '0xADcfBf2e8470493060FbE0A0aFAC66d2cB028e9c',
+    KILL_PRIZE_BPS: '100',
+    TREASURY_KILL_BPS: '400',
+    TREASURY_ADDR: '0x0FfA891ab6f410bbd7403b709e7d38D7a812125B',
+    EXACT_ETA: '1627453800'
+  }, {
+    VAULT_SYMBOL: 'ibBTCB',
+    MIN_DEBT_SIZE: '0.002',
+    RESERVE_POOL_BPS: '1900',
+    INTEREST_MODEL: '0xADcfBf2e8470493060FbE0A0aFAC66d2cB028e9c',
+    KILL_PRIZE_BPS: '100',
+    TREASURY_KILL_BPS: '400',
+    TREASURY_ADDR: '0x0FfA891ab6f410bbd7403b709e7d38D7a812125B',
+    EXACT_ETA: '1627453800'
+  }, {
+    VAULT_SYMBOL: 'ibUSDT',
+    MIN_DEBT_SIZE: '100',
+    RESERVE_POOL_BPS: '1900',
+    INTEREST_MODEL: '0xADcfBf2e8470493060FbE0A0aFAC66d2cB028e9c',
+    KILL_PRIZE_BPS: '100',
+    TREASURY_KILL_BPS: '400',
+    TREASURY_ADDR: '0x0FfA891ab6f410bbd7403b709e7d38D7a812125B',
+    EXACT_ETA: '1627453800'
+  }, {
     VAULT_SYMBOL: 'ibTUSD',
     MIN_DEBT_SIZE: '100',
-    RESERVE_POOL_BPS: '1000',
-    KILL_PRIZE_BPS: '500',
+    RESERVE_POOL_BPS: '1900',
     INTEREST_MODEL: '0xADcfBf2e8470493060FbE0A0aFAC66d2cB028e9c',
-    TREASURY_KILL_BPS: '0',
+    KILL_PRIZE_BPS: '100',
+    TREASURY_KILL_BPS: '400',
     TREASURY_ADDR: '0x0FfA891ab6f410bbd7403b709e7d38D7a812125B',
-    EXACT_ETA: '1626423300',
+    EXACT_ETA: '1627453800'
   }]
 
 
@@ -50,7 +106,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 
   const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig
-  const timelock = Timelock__factory.connect(config.Timelock, (await ethers.getSigners())[0]);
+  const timelockTransactions: Array<TimelockEntity.Transaction> = []
 
   /// @dev derived input
   const infos: Array<IInfo> = NEW_PARAMS.map((n) => {
@@ -71,8 +127,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   })
 
   for(const info of infos) {
-    console.log("===================================================================================")
-    console.log(`>> Queuing transaction to update ${info.VAULT_SYMBOL} Vault config`);
     // function setParams(
       // uint256 _minDebtSize,
       // uint256 _reservePoolBps,
@@ -84,16 +138,18 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       // uint256 _getKillTreasuryBps,
       // address _treasury
     // )
-    await timelock.queueTransaction(
-      info.VAULT_CONFIG, '0',
+    timelockTransactions.push(await TimelockService.queueTransaction(
+      `Update ${info.VAULT_SYMBOL} Vault config`,
+      info.VAULT_CONFIG,
+      '0',
       'setParams(uint256,uint256,uint256,address,address,address,address,uint256,address)',
-      ethers.utils.defaultAbiCoder.encode(
-        ['uint256','uint256','uint256','address','address','address','address','uint256','address'],
-        [ethers.utils.parseEther(info.MIN_DEBT_SIZE), info.RESERVE_POOL_BPS, info.KILL_PRIZE_BPS, info.INTEREST_MODEL, config.Tokens.WBNB, config.SharedConfig.WNativeRelayer, config.FairLaunch.address, info.TREASURY_KILL_BPS, info.TREASURY_ADDR]), info.EXACT_ETA)
-    console.log("✅ Done")
-    console.log("timelock execution:");
-    console.log(`await timelock.executeTransaction('${info.VAULT_CONFIG}', '0', 'setParams(uint256,uint256,uint256,address,address,address,address,uint256,address)', ethers.utils.defaultAbiCoder.encode(['uint256','uint256','uint256','address','address','address','address','uint256','address'],['${ethers.utils.parseEther(info.MIN_DEBT_SIZE)}', '${info.RESERVE_POOL_BPS}', '${info.KILL_PRIZE_BPS}', '${info.INTEREST_MODEL}', '${config.Tokens.WBNB}', '${config.SharedConfig.WNativeRelayer}', '${config.FairLaunch.address}', '${info.TREASURY_KILL_BPS}', '${info.TREASURY_ADDR}']), ${info.EXACT_ETA})`);
+      ['uint256','uint256','uint256','address','address','address','address','uint256','address'],
+      [ethers.utils.parseEther(info.MIN_DEBT_SIZE), info.RESERVE_POOL_BPS, info.KILL_PRIZE_BPS, info.INTEREST_MODEL, config.Tokens.WBNB, config.SharedConfig.WNativeRelayer, config.FairLaunch.address, info.TREASURY_KILL_BPS, info.TREASURY_ADDR],
+      info.EXACT_ETA
+    ))
   }
+
+  FileService.write(TITLTE, timelockTransactions)
 };
 
 export default func;
