@@ -16,6 +16,7 @@ pragma solidity 0.6.6;
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/math/Math.sol";
 
 import "../../apis/wault/IWaultSwapRouter02.sol";
 import "../../apis/wault/IWaultSwapFactory.sol";
@@ -85,12 +86,13 @@ contract WaultSwapRestrictedStrategyPartialCloseMinimizeTrading is
     bytes calldata data
   ) external override onlyWhitelistedWorkers nonReentrant {
     // 1. Find out what farming token we are dealing with.
-    (uint256 lpTokenToLiquidate, uint256 toRepaidBaseTokenDebt, uint256 minFarmingToken) =
+    (uint256 lpTokenToLiquidate, uint256 maxReturnDebt, uint256 minFarmingToken) =
       abi.decode(data, (uint256, uint256, uint256));
     IWorker worker = IWorker(msg.sender);
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
     IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
+    uint256 lessDebt = Math.min(debt, maxReturnDebt);
     // 2. Approve router to do their stuffs
     address(lpToken).safeApprove(address(router), uint256(-1));
     farmingToken.safeApprove(address(router), uint256(-1));
@@ -101,19 +103,15 @@ contract WaultSwapRestrictedStrategyPartialCloseMinimizeTrading is
     );
     router.removeLiquidity(baseToken, farmingToken, lpTokenToLiquidate, 0, 0, address(this), now);
     // 4. Convert farming tokens to base token.
-    require(
-      debt >= toRepaidBaseTokenDebt,
-      "WaultSwapRestrictedStrategyPartialCloseMinimizeTrading::execute:: amount to repay debt is greater than debt"
-    );
     {
       uint256 balance = baseToken.myBalance();
       uint256 farmingTokenbalance = farmingToken.myBalance();
-      if (toRepaidBaseTokenDebt > balance) {
+      if (lessDebt > balance) {
         // Convert some farming tokens to base token.
         address[] memory path = new address[](2);
         path[0] = farmingToken;
         path[1] = baseToken;
-        uint256 remainingDebt = toRepaidBaseTokenDebt.sub(balance);
+        uint256 remainingDebt = lessDebt.sub(balance);
         uint256[] memory farmingTokenToBeRepaidDebts = router.getAmountsIn(remainingDebt, path);
         require(
           farmingTokenbalance >= farmingTokenToBeRepaidDebts[0],
@@ -149,7 +147,7 @@ contract WaultSwapRestrictedStrategyPartialCloseMinimizeTrading is
       baseToken,
       farmingToken,
       lpTokenToLiquidate,
-      toRepaidBaseTokenDebt
+      lessDebt
     );
   }
 

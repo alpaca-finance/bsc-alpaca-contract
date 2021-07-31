@@ -16,6 +16,7 @@ pragma solidity 0.6.6;
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/math/Math.sol";
 
 import "../../apis/pancake/IPancakeRouter02.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakeFactory.sol";
@@ -75,14 +76,15 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeT
     uint256 debt,
     bytes calldata data
   ) external override onlyWhitelistedWorkers nonReentrant {
-    // 1.1 farmingTokenToLiquidate for farmingToken amount that user want to liquidate.
-    // 1.2 toRepaidBaseTokenDebt for baseToken amount that user want to repaid debt.
-    // 1.3 minFarmingTokenAmount for validating a farmingToken amount.
-    (uint256 farmingTokenToLiquidate, uint256 toRepaidBaseTokenDebt, uint256 minFarmingTokenAmount) =
+    // 1.1 farmingTokenToLiquidate - farmingToken amount that user want to liquidate.
+    // 1.2 maxReturnDebt - Max BTOKEN amount that user want to repaid debt.
+    // 1.3 minFarmingTokenAmount - validating a farmingToken amount.
+    (uint256 farmingTokenToLiquidate, uint256 maxReturnDebt, uint256 minFarmingTokenAmount) =
       abi.decode(data, (uint256, uint256, uint256));
     IWorker02 worker = IWorker02(msg.sender);
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
+    uint256 lessDebt = Math.min(debt, maxReturnDebt);
     // 2. Approve router to do their stuffs
     farmingToken.safeApprove(address(router), uint256(-1));
     // 3. check farmingToken amount to liquidate more than equal farmingToken balance
@@ -91,28 +93,17 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeT
       farmingTokenBalance >= farmingTokenToLiquidate,
       "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::execute:: insufficient farmingToken received from worker"
     );
-    // 4. check toRepaidBaseTokenDebt less than equal debt
-    require(
-      toRepaidBaseTokenDebt <= debt,
-      "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::execute:: amount to repay debt is greater than debt"
-    );
     uint256 farmingTokenToRepaidDebt = 0;
-    if (toRepaidBaseTokenDebt > 0) {
+    if (lessDebt > 0) {
       // 5. Swap form baseToken to repaid debt -> farmingToken
-      uint256[] memory farmingTokenToRepaidDebts = router.getAmountsIn(toRepaidBaseTokenDebt, worker.getReversedPath());
+      uint256[] memory farmingTokenToRepaidDebts = router.getAmountsIn(lessDebt, worker.getReversedPath());
       farmingTokenToRepaidDebt = farmingTokenToRepaidDebts[0];
       require(
         farmingTokenToLiquidate >= farmingTokenToRepaidDebts[0],
         "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::execute:: not enough to pay back debt"
       );
       // 6. Swap from farming token -> base token according to worker's path
-      router.swapTokensForExactTokens(
-        toRepaidBaseTokenDebt,
-        farmingTokenBalance,
-        worker.getReversedPath(),
-        address(this),
-        now
-      );
+      router.swapTokensForExactTokens(lessDebt, farmingTokenBalance, worker.getReversedPath(), address(this), now);
     }
     uint256 farmingTokenBalanceToBeSentToTheUser = farmingTokenToLiquidate.sub(farmingTokenToRepaidDebt);
     // 7. Return baseToken back to the original caller in order to repay the debt
@@ -139,7 +130,7 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeT
       baseToken,
       farmingToken,
       farmingTokenToLiquidate,
-      toRepaidBaseTokenDebt
+      lessDebt
     );
   }
 
