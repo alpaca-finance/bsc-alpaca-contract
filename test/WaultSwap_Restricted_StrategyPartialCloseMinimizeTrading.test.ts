@@ -264,30 +264,6 @@ describe("WaultSwapRestrictedStrategyPartialCloseMinimizeTrading", () => {
     });
   });
 
-  context("when lp amount that bob wish to return > the actual lp amount that he holds", async () => {
-    it("should revert", async () => {
-      await expect(
-        mockWaultSwapWorkerAsBob.work(
-          0,
-          bobAddress,
-          "0",
-          ethers.utils.defaultAbiCoder.encode(
-            ["address", "bytes"],
-            [
-              strat.address,
-              ethers.utils.defaultAbiCoder.encode(
-                ["uint256", "uint256", "uint256"],
-                [ethers.utils.parseEther("0.5"), ethers.utils.parseEther("0.5"), ethers.utils.parseEther("0.5")]
-              ),
-            ]
-          )
-        )
-      ).to.revertedWith(
-        "WaultSwapRestrictedStrategyPartialCloseMinimizeTrading::execute:: insufficient LP amount recevied from worker"
-      );
-    });
-  });
-
   context("when farming token is NOT WBNB", async () => {
     beforeEach(async () => {
       // Alice adds 40 FTOKEN + 2 BaseToken
@@ -318,6 +294,54 @@ describe("WaultSwapRestrictedStrategyPartialCloseMinimizeTrading", () => {
         FOREVER
       );
       await lpAsBob.transfer(strat.address, ethers.utils.parseEther("8.944271909999158785"));
+    });
+
+    context("when maxLpTokenToLiquidate > LP from worker", async () => {
+      it("should use all LP", async () => {
+        // debt: 1 BTOKEN
+        // LP token to liquidate:
+        // Math.min(888, 8.944271909999158785) = 8.944271909999158785 LP (40 FTOKEN + 2 BTOKEN)
+        // maxReturnDebt: 888 base token
+        const bobBaseTokenBefore = await baseToken.balanceOf(bobAddress);
+        const bobFTOKENBefore = await farmingToken.balanceOf(bobAddress);
+
+        await expect(
+          mockWaultSwapWorkerAsBob.work(
+            0,
+            bobAddress,
+            ethers.utils.parseEther("1"),
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "bytes"],
+              [
+                strat.address,
+                ethers.utils.defaultAbiCoder.encode(
+                  ["uint256", "uint256", "uint256"],
+                  [ethers.utils.parseEther("888"), ethers.utils.parseEther("888"), ethers.utils.parseEther("40")]
+                ),
+              ]
+            )
+          )
+        )
+          .to.emit(strat, "WaultSwapRestrictedStrategyPartialCloseMinimizeTradingEvent")
+          .withArgs(
+            baseToken.address,
+            farmingToken.address,
+            ethers.utils.parseEther("8.944271909999158785"),
+            ethers.utils.parseEther("1")
+          );
+
+        const bobBaseTokenAfter = await baseToken.balanceOf(bobAddress);
+        const bobFTOKENAfter = await farmingToken.balanceOf(bobAddress);
+
+        expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+        expect(await lp.balanceOf(bobAddress)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+        expect(bobBaseTokenAfter.sub(bobBaseTokenBefore), "Bob (as Vault) should get 2 BTOKEN back").to.be.bignumber.eq(
+          ethers.utils.parseEther("2")
+        );
+        expect(bobFTOKENAfter.sub(bobFTOKENBefore), "Bob should get 40 FTOKEN back").to.be.bignumber.eq(
+          ethers.utils.parseEther("40")
+        );
+      });
     });
 
     context("when maxReturnDebt > debt", async () => {
@@ -488,9 +512,7 @@ describe("WaultSwapRestrictedStrategyPartialCloseMinimizeTrading", () => {
                   ]
                 )
               )
-            ).to.revertedWith(
-              "WaultSwapRestrictedStrategyPartialCloseMinimizeTrading::execute:: not enough to pay back debt"
-            );
+            ).to.revertedWith("WaultSwapRouter: EXCESSIVE_INPUT_AMOUNT");
           });
         }
       );
@@ -625,6 +647,57 @@ describe("WaultSwapRestrictedStrategyPartialCloseMinimizeTrading", () => {
         mockWaultSwapBaseTokenWbnbV2Worker.address,
         ethers.utils.parseEther("0.316227766016837933")
       );
+    });
+
+    context("when maxLpTokenToLiquiate > LP from worker", async () => {
+      it("should use all LP", async () => {
+        // debt: 0.5 BTOKEN
+        // LP token to liquidate:
+        // Math.min(888, 0.316227766016837933) = 0.316227766016837933 LP (0.1 BNB + 1 BTOKEN)
+        // maxReturnDebt: 888 base token
+        const bobBaseTokenBefore = await baseToken.balanceOf(bobAddress);
+        const bobBnbBefore = await bob.getBalance();
+
+        await expect(
+          mockWaultSwapBaseTokenWbnbV2WorkerAsBob.work(
+            0,
+            bobAddress,
+            ethers.utils.parseEther("0.5"),
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "bytes"],
+              [
+                strat.address,
+                ethers.utils.defaultAbiCoder.encode(
+                  ["uint256", "uint256", "uint256"],
+                  [ethers.utils.parseEther("888"), ethers.utils.parseEther("888"), ethers.utils.parseEther("0.1")]
+                ),
+              ]
+            ),
+            { gasPrice: 0 }
+          )
+        )
+          .to.emit(strat, "WaultSwapRestrictedStrategyPartialCloseMinimizeTradingEvent")
+          .withArgs(
+            baseToken.address,
+            wbnb.address,
+            ethers.utils.parseEther("0.316227766016837933"),
+            ethers.utils.parseEther("0.5")
+          );
+
+        // no trade
+        const bobBaseTokenAfter = await baseToken.balanceOf(bobAddress);
+        const bobBnbAfter = await bob.getBalance();
+
+        expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+        expect(await lp.balanceOf(bobAddress)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+        expect(
+          bobBaseTokenAfter.sub(bobBaseTokenBefore),
+          "Bob (as Vault) should get 1 BTOKEN back."
+        ).to.be.bignumber.eq(ethers.utils.parseEther("1"));
+        expect(bobBnbAfter.sub(bobBnbBefore), "Bob should get 0.1 BNB back.").to.be.bignumber.eq(
+          ethers.utils.parseEther("0.1")
+        );
+      });
     });
 
     context("when maxReturnDebt > debt", async () => {
@@ -798,9 +871,7 @@ describe("WaultSwapRestrictedStrategyPartialCloseMinimizeTrading", () => {
                 ),
                 { gasPrice: 0 }
               )
-            ).to.revertedWith(
-              "WaultSwapRestrictedStrategyPartialCloseMinimizeTrading::execute:: not enough to pay back debt"
-            );
+            ).to.revertedWith("WaultSwapRouter: EXCESSIVE_INPUT_AMOUNT");
           });
         }
       );

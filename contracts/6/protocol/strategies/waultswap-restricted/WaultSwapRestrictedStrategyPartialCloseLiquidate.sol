@@ -16,6 +16,7 @@ pragma solidity 0.6.6;
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/math/Math.sol";
 
 import "../../apis/wault/IWaultSwapRouter02.sol";
 import "../../apis/wault/IWaultSwapFactory.sol";
@@ -65,20 +66,19 @@ contract WaultSwapRestrictedStrategyPartialCloseLiquidate is OwnableUpgradeSafe,
     uint256, /* debt */
     bytes calldata data
   ) external override onlyWhitelistedWorkers nonReentrant {
-    // 1. Find out what farming token we are dealing with.
-    (uint256 lpTokenToLiquidate, uint256 minBaseToken) = abi.decode(data, (uint256, uint256));
+    // 1. Decode variables from extra data & load required variables.
+    // - maxLpTokenToLiquidate -> maximum lpToken amount that user want to liquidate.
+    // - minBaseToken -> minimum baseToken amount that user want to receive.
+    (uint256 maxLpTokenToLiquidate, uint256 minBaseToken) = abi.decode(data, (uint256, uint256));
     IWorker worker = IWorker(msg.sender);
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
     IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
-    // 2. Approve router to do their stuffs
+    uint256 lpTokenToLiquidate = Math.min(address(lpToken).myBalance(), maxLpTokenToLiquidate);
+    // 2. Approve router to do their stuffs.
     address(lpToken).safeApprove(address(router), uint256(-1));
     farmingToken.safeApprove(address(router), uint256(-1));
     // 3. Remove some LP back to BaseToken and farming tokens as we want to return some of the position.
-    require(
-      lpToken.balanceOf(address(this)) >= lpTokenToLiquidate,
-      "WaultSwapRestrictedStrategyPartialCloseLiquidate::execute:: insufficient LP amount recevied from worker"
-    );
     router.removeLiquidity(baseToken, farmingToken, lpTokenToLiquidate, 0, 0, address(this), now);
     // 4. Convert farming tokens to baseToken.
     uint256 baseTokenBefore = baseToken.myBalance();
@@ -94,7 +94,7 @@ contract WaultSwapRestrictedStrategyPartialCloseLiquidate is OwnableUpgradeSafe,
     );
     SafeToken.safeTransfer(baseToken, msg.sender, baseTokenAfter);
     address(lpToken).safeTransfer(msg.sender, lpToken.balanceOf(address(this)));
-    // 6. Reset approve for safety reason
+    // 6. Reset approve for safety reason.
     address(lpToken).safeApprove(address(router), 0);
     farmingToken.safeApprove(address(router), 0);
 

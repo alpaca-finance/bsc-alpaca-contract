@@ -76,39 +76,36 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeT
     uint256 debt,
     bytes calldata data
   ) external override onlyWhitelistedWorkers nonReentrant {
-    // 1.1 farmingTokenToLiquidate - farmingToken amount that user want to liquidate.
-    // 1.2 maxReturnDebt - Max BTOKEN amount that user want to repaid debt.
-    // 1.3 minFarmingTokenAmount - validating a farmingToken amount.
-    (uint256 farmingTokenToLiquidate, uint256 maxReturnDebt, uint256 minFarmingTokenAmount) =
+    // 1. Decode variables from extra data & load required variables.
+    // - maxFarmingTokenToLiquidate -> maximum farmingToken amount that user want to liquidate.
+    // - maxDebtRepayment -> maximum BTOKEN amount that user want to repaid debt.
+    // - minFarmingTokenAmount -> minimum farmingToken that user want to receive.
+    (uint256 maxFarmingTokenToLiquidate, uint256 maxDebtRepayment, uint256 minFarmingTokenAmount) =
       abi.decode(data, (uint256, uint256, uint256));
     IWorker02 worker = IWorker02(msg.sender);
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
-    uint256 lessDebt = Math.min(debt, maxReturnDebt);
-    // 2. Approve router to do their stuffs
+    uint256 farmingTokenToLiquidate = Math.min(farmingToken.myBalance(), maxFarmingTokenToLiquidate);
+    uint256 lessDebt = Math.min(debt, maxDebtRepayment);
+    // 2. Approve router to do their stuffs.
     farmingToken.safeApprove(address(router), uint256(-1));
-    // 3. check farmingToken amount to liquidate more than equal farmingToken balance
-    uint256 farmingTokenBalance = farmingToken.myBalance();
-    require(
-      farmingTokenBalance >= farmingTokenToLiquidate,
-      "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::execute:: insufficient farmingToken received from worker"
-    );
+    // 3. check farmingToken amount to liquidate more than equal farmingToken balance.
     uint256 farmingTokenToRepaidDebt = 0;
     if (lessDebt > 0) {
-      // 5. Swap form baseToken to repaid debt -> farmingToken
-      uint256[] memory farmingTokenToRepaidDebts = router.getAmountsIn(lessDebt, worker.getReversedPath());
-      farmingTokenToRepaidDebt = farmingTokenToRepaidDebts[0];
-      require(
-        farmingTokenToLiquidate >= farmingTokenToRepaidDebts[0],
-        "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::execute:: not enough to pay back debt"
-      );
-      // 6. Swap from farming token -> base token according to worker's path
-      router.swapTokensForExactTokens(lessDebt, farmingTokenBalance, worker.getReversedPath(), address(this), now);
+      // 4. Swap from farming token -> base token according to worker's path.
+      // Router will be reverted with 'PancakeRouter: EXCESSIVE_INPUT_AMOUNT' if not enough farmingToken
+      farmingTokenToRepaidDebt = router.swapTokensForExactTokens(
+        lessDebt,
+        farmingTokenToLiquidate,
+        worker.getReversedPath(),
+        address(this),
+        now
+      )[0];
     }
     uint256 farmingTokenBalanceToBeSentToTheUser = farmingTokenToLiquidate.sub(farmingTokenToRepaidDebt);
-    // 7. Return baseToken back to the original caller in order to repay the debt
+    // 5. Return baseToken back to the original caller in order to repay the debt.
     baseToken.safeTransfer(msg.sender, baseToken.myBalance());
-    // 8. Return the partial farmingTokens back to the user.
+    // 6. Return the partial farmingTokens back to the user.
     require(
       farmingTokenBalanceToBeSentToTheUser >= minFarmingTokenAmount,
       "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::execute:: insufficient farmingToken amount received"
@@ -122,9 +119,9 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeT
         SafeToken.safeTransfer(farmingToken, user, farmingTokenBalanceToBeSentToTheUser);
       }
     }
-    // 9. Return farmingToken back to the original caller
+    // 7. Return farmingToken back to the original caller.
     farmingToken.safeTransfer(msg.sender, farmingToken.myBalance());
-    // 10. Reset approval for safety reason
+    // 8. Reset approval for safety reason.
     farmingToken.safeApprove(address(router), 0);
     emit PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTradingEvent(
       baseToken,
