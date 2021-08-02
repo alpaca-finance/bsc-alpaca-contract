@@ -26,7 +26,6 @@ import "../../interfaces/IVault.sol";
 import "../../interfaces/IWorker02.sol";
 
 import "../../../utils/SafeToken.sol";
-import "../../../utils/AlpacaMath.sol";
 
 contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate is
   OwnableUpgradeSafe,
@@ -47,7 +46,7 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate is
     uint256 amounToLiquidate
   );
 
-  // @notice require that only allowed workers are able to do the rest of the method call
+  /// @notice require that only allowed workers are able to do the rest of the method call
   modifier onlyWhitelistedWorkers() {
     require(
       okWorkers[msg.sender],

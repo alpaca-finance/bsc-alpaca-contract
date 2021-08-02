@@ -26,7 +26,6 @@ import "../../interfaces/IWorker02.sol";
 import "../../interfaces/IWNativeRelayer.sol";
 
 import "../../../utils/SafeToken.sol";
-import "../../../utils/AlpacaMath.sol";
 
 contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading is
   OwnableUpgradeSafe,

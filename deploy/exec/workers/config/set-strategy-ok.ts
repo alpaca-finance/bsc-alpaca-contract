@@ -14,12 +14,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "cakemaxi-worker02-turn-on-new-partial-close-minimize";
+  const TITLE = "cakemaxi-worker02-turn-on-new-partial-close-strats";
   const ADD_STRAT = "";
   const LIQ_STRAT = "";
 
   const OK_FLAG = true;
-  const STRATEGY = ["0x90ECdCB6E5Fa404B2C6219a71925CA0B70de85c3"];
+  const STRATEGY = ["0xdE0DD9Ed04a04f08A96D7E80D72A3D18E2F766A6", "0xd34Ffa026D2754118Cb32525df93eb9a3AC57761"];
   const WORKERS = [
     "TUSD CakeMaxiWorker",
     "BTCB CakeMaxiWorker",
@@ -28,7 +28,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "BUSD CakeMaxiWorker",
     "WBNB CakeMaxiWorker",
   ];
-  const EXACT_ETA = "1627731000";
+  const EXACT_ETA = "1627884000";
 
   const miniWorkers: Array<WorkerEntity.IMiniWorker> = mapWorkers(WORKERS).map((w) => {
     return {

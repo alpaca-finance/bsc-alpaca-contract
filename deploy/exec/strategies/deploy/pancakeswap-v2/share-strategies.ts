@@ -28,7 +28,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const DEPLOY_STRATS = [Strats.partialCloseWithdrawMinizmie];
+  const DEPLOY_STRATS = [Strats.partialCloseLiquidate, Strats.partialCloseWithdrawMinizmie];
   const WHITELIST_WOKERS = [
     "BUSD-TUSD PancakeswapWorker",
     "BUSD-BTCB PancakeswapWorker",
