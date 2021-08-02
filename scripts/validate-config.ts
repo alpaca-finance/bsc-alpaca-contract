@@ -254,6 +254,7 @@ async function main() {
 
     console.log("=======================");
     console.log(`> validating ${config.Vaults[i].name}`);
+    console.log(`> validate vault strategies`);
     try {
       await Promise.all([
         validateTwoSidesStrategy(
