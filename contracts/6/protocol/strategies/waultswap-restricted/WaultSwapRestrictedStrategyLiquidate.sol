@@ -17,16 +17,19 @@ import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard
 import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 
 import "../../apis/wault/IWaultSwapFactory.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
-
 import "../../apis/wault/IWaultSwapRouter02.sol";
+
 import "../../interfaces/IStrategy.sol";
-import "../../../utils/SafeToken.sol";
 import "../../interfaces/IWorker.sol";
 
+import "../../../utils/SafeToken.sol";
+
 contract WaultSwapRestrictedStrategyLiquidate is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
+  using SafeMath for uint256;
   using SafeToken for address;
 
   IWaultSwapFactory public factory;
@@ -53,7 +56,7 @@ contract WaultSwapRestrictedStrategyLiquidate is OwnableUpgradeSafe, ReentrancyG
   /// @param data Extra calldata information passed along to this strategy.
   function execute(
     address, /* user */
-    uint256, /* debt */
+    uint256 debt,
     bytes calldata data
   ) external override onlyWhitelistedWorkers nonReentrant {
     // 1. Find out what farming token we are dealing with.
@@ -74,7 +77,10 @@ contract WaultSwapRestrictedStrategyLiquidate is OwnableUpgradeSafe, ReentrancyG
     router.swapExactTokensForTokens(farmingToken.myBalance(), 0, path, address(this), now);
     // 5. Return all baseToken back to the original caller.
     uint256 balance = baseToken.myBalance();
-    require(balance >= minBaseToken, "WaultSwapRestrictedStrategyLiquidate::execute:: insufficient baseToken received");
+    require(
+      balance.sub(debt) >= minBaseToken,
+      "WaultSwapRestrictedStrategyLiquidate::execute:: insufficient baseToken received"
+    );
     SafeToken.safeTransfer(baseToken, msg.sender, balance);
     // 6. Reset approve for safety reason
     address(lpToken).safeApprove(address(router), 0);

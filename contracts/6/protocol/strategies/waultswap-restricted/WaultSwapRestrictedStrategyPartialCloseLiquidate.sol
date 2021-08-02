@@ -38,7 +38,8 @@ contract WaultSwapRestrictedStrategyPartialCloseLiquidate is OwnableUpgradeSafe,
   event WaultSwapRestrictedStrategyPartialCloseLiquidateEvent(
     address indexed baseToken,
     address indexed farmToken,
-    uint256 amounToLiquidate
+    uint256 amountToLiquidate,
+    uint256 amountToRepayDebt
   );
 
   /// @notice require that only allowed workers are able to do the rest of the method call
@@ -63,25 +64,28 @@ contract WaultSwapRestrictedStrategyPartialCloseLiquidate is OwnableUpgradeSafe,
   /// @param data Extra calldata information passed along to this strategy.
   function execute(
     address, /* user */
-    uint256, /* debt */
+    uint256 debt,
     bytes calldata data
   ) external override onlyWhitelistedWorkers nonReentrant {
     // 1. Decode variables from extra data & load required variables.
     // - maxLpTokenToLiquidate -> maximum lpToken amount that user want to liquidate.
+    // - maxDebtRepayment -> maximum BTOKEN amount that user want to repaid debt.
     // - minBaseToken -> minimum baseToken amount that user want to receive.
-    (uint256 maxLpTokenToLiquidate, uint256 minBaseToken) = abi.decode(data, (uint256, uint256));
+    (uint256 maxLpTokenToLiquidate, uint256 maxDebtRepayment, uint256 minBaseToken) =
+      abi.decode(data, (uint256, uint256, uint256));
     IWorker worker = IWorker(msg.sender);
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
     IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
     uint256 lpTokenToLiquidate = Math.min(address(lpToken).myBalance(), maxLpTokenToLiquidate);
+    uint256 lessDebt = Math.min(debt, maxDebtRepayment);
+    uint256 baseTokenBefore = baseToken.myBalance();
     // 2. Approve router to do their stuffs.
     address(lpToken).safeApprove(address(router), uint256(-1));
     farmingToken.safeApprove(address(router), uint256(-1));
     // 3. Remove some LP back to BaseToken and farming tokens as we want to return some of the position.
     router.removeLiquidity(baseToken, farmingToken, lpTokenToLiquidate, 0, 0, address(this), now);
     // 4. Convert farming tokens to baseToken.
-    uint256 baseTokenBefore = baseToken.myBalance();
     address[] memory path = new address[](2);
     path[0] = farmingToken;
     path[1] = baseToken;
@@ -89,7 +93,7 @@ contract WaultSwapRestrictedStrategyPartialCloseLiquidate is OwnableUpgradeSafe,
     // 5. Return all baseToken back to the original caller.
     uint256 baseTokenAfter = baseToken.myBalance();
     require(
-      baseTokenAfter.sub(baseTokenBefore) >= minBaseToken,
+      baseTokenAfter.sub(baseTokenBefore).sub(lessDebt) >= minBaseToken,
       "WaultSwapRestrictedStrategyPartialCloseLiquidate::execute:: insufficient baseToken received"
     );
     SafeToken.safeTransfer(baseToken, msg.sender, baseTokenAfter);
@@ -98,7 +102,7 @@ contract WaultSwapRestrictedStrategyPartialCloseLiquidate is OwnableUpgradeSafe,
     address(lpToken).safeApprove(address(router), 0);
     farmingToken.safeApprove(address(router), 0);
 
-    emit WaultSwapRestrictedStrategyPartialCloseLiquidateEvent(baseToken, farmingToken, lpTokenToLiquidate);
+    emit WaultSwapRestrictedStrategyPartialCloseLiquidateEvent(baseToken, farmingToken, lpTokenToLiquidate, lessDebt);
   }
 
   function setWorkersOk(address[] calldata workers, bool isOk) external onlyOwner {

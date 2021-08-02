@@ -43,7 +43,8 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate is
   event PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidateEvent(
     address indexed baseToken,
     address indexed farmToken,
-    uint256 amounToLiquidate
+    uint256 amounToLiquidate,
+    uint256 amountToRepayDebt
   );
 
   /// @notice require that only allowed workers are able to do the rest of the method call
@@ -69,17 +70,20 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate is
   /// @param data Extra calldata information passed along to this strategy.
   function execute(
     address, /* user */
-    uint256, /* debt */
+    uint256 debt,
     bytes calldata data
   ) external override onlyWhitelistedWorkers nonReentrant {
     // 1. Decode variables from extra data & load required variables.
-    // maxFarmingTokenToLiquidate - maximum farmingToken amount that user want to liquidate.
-    // minBaseTokenAmount - minimum baseToken amount that user want to receive.
-    (uint256 maxFarmingTokenToLiquidate, uint256 minBaseTokenAmount) = abi.decode(data, (uint256, uint256));
+    // - maxFarmingTokenToLiquidate - maximum farmingToken amount that user want to liquidate.
+    // - maxDebtRepayment -> maximum BTOKEN amount that user want to repaid debt.
+    // - minBaseTokenAmount - minimum baseToken amount that user want to receive.
+    (uint256 maxFarmingTokenToLiquidate, uint256 maxDebtRepayment, uint256 minBaseTokenAmount) =
+      abi.decode(data, (uint256, uint256, uint256));
     IWorker02 worker = IWorker02(msg.sender);
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
     uint256 farmingTokenToLiquidate = Math.min(farmingToken.myBalance(), maxFarmingTokenToLiquidate);
+    uint256 lessDebt = Math.min(debt, maxDebtRepayment);
     // 2. Approve router to do their stuffs.
     farmingToken.safeApprove(address(router), uint256(-1));
     // 3. Convert some farmingTokens back to a baseTokens.
@@ -88,7 +92,7 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate is
     uint256 baseTokenAfter = baseToken.myBalance();
     // 4. Transfer all baseTokens (as a result of a conversion) back to the calling worker.
     require(
-      baseTokenAfter.sub(baseTokenBefore) >= minBaseTokenAmount,
+      baseTokenAfter.sub(baseTokenBefore).sub(lessDebt) >= minBaseTokenAmount,
       "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate::execute:: insufficient baseToken amount received"
     );
     baseToken.safeTransfer(msg.sender, baseTokenAfter);
@@ -100,7 +104,8 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate is
     emit PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidateEvent(
       baseToken,
       farmingToken,
-      farmingTokenToLiquidate
+      farmingTokenToLiquidate,
+      lessDebt
     );
   }
 

@@ -10,8 +10,8 @@ import {
   PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate__factory,
   PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading,
   PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading__factory,
-  PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading,
-  PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading__factory,
+  PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading,
+  PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading__factory,
   WNativeRelayer__factory,
 } from "../../../../../typechain";
 import { Strats } from "../../../../entities/strats";
@@ -163,43 +163,32 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   if (DEPLOY_STRATS.includes(Strats.partialCloseWithdrawMinizmie)) {
     /**
-     * Restricted Single Asset StrategyPartialCloseWithdrawMinimizeTrading V2
+     * Restricted Single Asset StrategyPartialCloseMinimizeTrading V2
      */
-    console.log(
-      ">> Deploying an upgradable Restricted Single Asset StrategyPartialCloseWithdrawMinimizeTrading V2 contract"
-    );
-    const PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading =
-      (await ethers.getContractFactory(
-        "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading",
-        (
-          await ethers.getSigners()
-        )[0]
-      )) as PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading__factory;
+    console.log(">> Deploying an upgradable Restricted Single Asset StrategyPartialCloseMinimizeTrading V2 contract");
+    const PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading = (await ethers.getContractFactory(
+      "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading",
+      (
+        await ethers.getSigners()
+      )[0]
+    )) as PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading__factory;
 
-    const singleAssetStrategyRestrictedPartialCloseWithdrawMinimizeTradingV2 = (await upgrades.deployProxy(
-      PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading,
+    const singleAssetStrategyRestrictedPartialCloseMinimizeTradingV2 = (await upgrades.deployProxy(
+      PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading,
       [config.Exchanges.Pancakeswap.RouterV2, config.SharedConfig.WNativeRelayer]
-    )) as PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading;
-    await singleAssetStrategyRestrictedPartialCloseWithdrawMinimizeTradingV2.deployed();
+    )) as PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading;
+    await singleAssetStrategyRestrictedPartialCloseMinimizeTradingV2.deployed();
 
-    console.log(`>> Deployed at ${singleAssetStrategyRestrictedPartialCloseWithdrawMinimizeTradingV2.address}`);
+    console.log(`>> Deployed at ${singleAssetStrategyRestrictedPartialCloseMinimizeTradingV2.address}`);
 
     if (whitelistedWorkerAddrs.length > 0) {
-      console.log(
-        ">> Whitelisting workers for PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading"
-      );
-      await singleAssetStrategyRestrictedPartialCloseWithdrawMinimizeTradingV2.setWorkersOk(
-        whitelistedWorkerAddrs,
-        true
-      );
+      console.log(">> Whitelisting workers for PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading");
+      await singleAssetStrategyRestrictedPartialCloseMinimizeTradingV2.setWorkersOk(whitelistedWorkerAddrs, true);
       console.log("✅ Done");
     }
 
-    console.log(">> Whitelist RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading V2 on WNativeRelayer");
-    await wNativeRelayer.setCallerOk(
-      [singleAssetStrategyRestrictedPartialCloseWithdrawMinimizeTradingV2.address],
-      true
-    );
+    console.log(">> Whitelist RestrictedSingleAssetStrategyPartialCloseMinimizeTrading V2 on WNativeRelayer");
+    await wNativeRelayer.setCallerOk([singleAssetStrategyRestrictedPartialCloseMinimizeTradingV2.address], true);
     console.log("✅ Done");
   }
 };

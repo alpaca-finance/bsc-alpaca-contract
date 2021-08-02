@@ -11,8 +11,8 @@ import {
   PancakeRouter,
   PancakeRouterV2__factory,
   PancakeRouter__factory,
-  PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading,
-  PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading__factory,
+  PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading,
+  PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading__factory,
   WETH,
   WETH__factory,
   WNativeRelayer__factory,
@@ -24,7 +24,7 @@ import { MockPancakeswapV2CakeMaxiWorker } from "../typechain/MockPancakeswapV2C
 chai.use(solidity);
 const { expect } = chai;
 
-describe("PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading", () => {
+describe("PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading", () => {
   const FOREVER = "2000000000";
 
   /// Pancakeswap-related instance(s)
@@ -43,7 +43,7 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
   let farmingToken: MockERC20;
 
   /// Strategy instance(s)
-  let strat: PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading;
+  let strat: PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading;
 
   // Accounts
   let deployer: Signer;
@@ -66,8 +66,8 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
   let routerV2AsAlice: PancakeRouter;
   let routerV2AsBob: PancakeRouter;
 
-  let stratAsAlice: PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading;
-  let stratAsBob: PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading;
+  let stratAsAlice: PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading;
+  let stratAsBob: PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading;
 
   let mockPancakeswapV2WorkerBaseFTokenPairAsAlice: MockPancakeswapV2CakeMaxiWorker;
   let mockPancakeswapV2WorkerBNBFtokenPairAsAlice: MockPancakeswapV2CakeMaxiWorker;
@@ -151,15 +151,14 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
     )) as MockPancakeswapV2CakeMaxiWorker;
     await mockPancakeswapV2EvilWorker.deployed();
 
-    const PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading =
-      (await ethers.getContractFactory(
-        "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading",
-        deployer
-      )) as PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading__factory;
-    strat = (await upgrades.deployProxy(PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading, [
+    const PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading = (await ethers.getContractFactory(
+      "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading",
+      deployer
+    )) as PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading__factory;
+    strat = (await upgrades.deployProxy(PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading, [
       routerV2.address,
       wNativeRelayer.address,
-    ])) as PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading;
+    ])) as PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading;
     await strat.deployed();
     await strat.setWorkersOk(
       [
@@ -183,11 +182,11 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
     routerV2AsAlice = PancakeRouter__factory.connect(routerV2.address, alice);
     routerV2AsBob = PancakeRouter__factory.connect(routerV2.address, bob);
 
-    stratAsAlice = PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading__factory.connect(
+    stratAsAlice = PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading__factory.connect(
       strat.address,
       alice
     );
-    stratAsBob = PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading__factory.connect(
+    stratAsBob = PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading__factory.connect(
       strat.address,
       bob
     );
@@ -281,7 +280,7 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
           )
         )
       ).to.be.revertedWith(
-        "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::onlyWhitelistedWorkers:: bad worker"
+        "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading::onlyWhitelistedWorkers:: bad worker"
       );
     });
   });
@@ -306,7 +305,7 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
           )
         )
       ).to.be.revertedWith(
-        "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::onlyWhitelistedWorkers:: bad worker"
+        "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading::onlyWhitelistedWorkers:: bad worker"
       );
     });
   });
@@ -389,7 +388,7 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
             { gasPrice: 0 }
           )
         )
-          .emit(strat, "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTradingEvent")
+          .emit(strat, "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTradingEvent")
           .withArgs(wbnb.address, farmingToken.address, ethers.utils.parseEther("0.1"), ethers.utils.parseEther("0.1"));
 
         const workerFarmingTokenAfter = await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address);
@@ -453,7 +452,7 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
             { gasPrice: "0" }
           )
         )
-          .to.emit(strat, "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTradingEvent")
+          .to.emit(strat, "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTradingEvent")
           .withArgs(
             wbnb.address,
             farmingToken.address,
@@ -506,7 +505,7 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
             )
           )
         ).to.be.revertedWith(
-          "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::execute:: insufficient farmingToken amount received"
+          "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading::execute:: insufficient farmingToken amount received"
         );
       });
     });
@@ -672,7 +671,7 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
             { gasPrice: "0" }
           )
         )
-          .to.emit(strat, "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTradingEvent")
+          .to.emit(strat, "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTradingEvent")
           .withArgs(
             baseToken.address,
             farmingToken.address,
@@ -743,7 +742,7 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
             { gasPrice: "0" }
           )
         )
-          .to.emit(strat, "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTradingEvent")
+          .to.emit(strat, "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTradingEvent")
           .withArgs(
             baseToken.address,
             farmingToken.address,
@@ -804,7 +803,7 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
             )
           )
         ).to.be.revertedWith(
-          "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::execute:: insufficient farmingToken amount received"
+          "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading::execute:: insufficient farmingToken amount received"
         );
       });
     });
@@ -965,7 +964,7 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
             { gasPrice: "0" }
           )
         )
-          .to.emit(strat, "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTradingEvent")
+          .to.emit(strat, "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTradingEvent")
           .withArgs(baseToken.address, wbnb.address, ethers.utils.parseEther("1"), ethers.utils.parseEther("0.1"));
 
         const workerWbnbAfter = await wbnb.balanceOf(mockPancakeswapV2WorkerBaseBNBTokenPair.address);
@@ -1023,7 +1022,7 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
             { gasPrice: "0" }
           )
         )
-          .to.emit(strat, "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTradingEvent")
+          .to.emit(strat, "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTradingEvent")
           .withArgs(baseToken.address, wbnb.address, ethers.utils.parseEther("0.5"), ethers.utils.parseEther("0.1"));
 
         const workerWbnbAfter = await wbnb.balanceOf(mockPancakeswapV2WorkerBaseBNBTokenPair.address);
@@ -1065,7 +1064,7 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimize
             )
           )
         ).to.be.revertedWith(
-          "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::execute:: insufficient farmingToken amount received"
+          "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading::execute:: insufficient farmingToken amount received"
         );
       });
     });

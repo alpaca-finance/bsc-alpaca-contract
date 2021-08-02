@@ -226,13 +226,18 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate", () =
     });
   });
 
-  context("when BOTOKEN is a WBNB", async () => {
-    context("when contract get baseToken amount < minBaseTokenAmount", async () => {
-      it("should revert", async () => {
-        // Alice uses Partial Close Liquidate strategy, but now with an unreasonable minFarmingTokenAmount request
-        // amountOut of 0.1 will be
-        // if 0.1 FToken = 1 WBNB
-        // 0.1 FToken will be (0.04 * 0.9975) * (1 / (0.1 + 0.04 * 0.9975)) = 0.285203716940671908 WBNB
+  context("when BTOKEN is a WBNB", async () => {
+    context("maxDebtRepayment >= debt", async () => {
+      it("should compare slippage by taking convertingPostionValue - debt", async () => {
+        // Alice's position: 0.1 FTOKEN
+        // lpTokenToLiquidate: Math.min(888, 0.1) = 0.1 FTOKEN
+        // maxDebtRepayment = Math.min(888, 0.1) = 0.1 WBNB
+        // After execute strategy. The following conditions must be satisfied:
+        // - FTOKEN in strat must be 0
+        // - Worker should has 0 FTOKEN left as Alice liquidate her whole position
+        // - Alice's BTOKEN should increase by [((0.1*9975)*1)/(0.1*10000+(0.1*9975))]
+        // = 0.499374217772215269 WBNB
+        // - minBaseToken <= 0.499374217772215269 - 0.1 = 0.399374217772215269 must pass slippage check
         await farmingTokenAsAlice.transfer(
           mockPancakeswapV2WorkerBNBFtokenPair.address,
           ethers.utils.parseEther("0.1")
@@ -241,14 +246,18 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate", () =
           mockPancakeswapV2WorkerBNBFtokenPairAsAlice.work(
             0,
             aliceAddress,
-            "0",
+            ethers.utils.parseEther("0.1"),
             ethers.utils.defaultAbiCoder.encode(
               ["address", "bytes"],
               [
                 strat.address,
                 ethers.utils.defaultAbiCoder.encode(
-                  ["uint256", "uint256"],
-                  [ethers.utils.parseEther("0.04"), ethers.utils.parseEther("0.285203716940671908").add(1)]
+                  ["uint256", "uint256", "uint256"],
+                  [
+                    ethers.utils.parseEther("888"),
+                    ethers.utils.parseEther("888"),
+                    ethers.utils.parseEther("0.399374217772215269").add(1),
+                  ]
                 ),
               ]
             )
@@ -256,6 +265,138 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate", () =
         ).to.be.revertedWith(
           "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate::execute:: insufficient baseToken amount received"
         );
+
+        const aliceBalanceBefore = await wbnb.balanceOf(aliceAddress);
+        await expect(
+          mockPancakeswapV2WorkerBNBFtokenPairAsAlice.work(
+            0,
+            aliceAddress,
+            ethers.utils.parseEther("0.1"),
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "bytes"],
+              [
+                strat.address,
+                ethers.utils.defaultAbiCoder.encode(
+                  ["uint256", "uint256", "uint256"],
+                  [
+                    ethers.utils.parseEther("888"),
+                    ethers.utils.parseEther("888"),
+                    ethers.utils.parseEther("0.399374217772215269"),
+                  ]
+                ),
+              ]
+            )
+          )
+        )
+          .to.emit(strat, "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidateEvent")
+          .withArgs(wbnb.address, farmingToken.address, ethers.utils.parseEther("0.1"), ethers.utils.parseEther("0.1"));
+        const aliceBalanceAfter = await wbnb.balanceOf(aliceAddress);
+
+        expect(
+          aliceBalanceAfter.sub(aliceBalanceBefore),
+          "Alice's WBNB should increase by 0.499374217772215269"
+        ).to.be.bignumber.eq(ethers.utils.parseEther("0.499374217772215269"));
+        expect(
+          await farmingToken.balanceOf(strat.address),
+          "There shouldn't be any FTOKEN left in strategy contract"
+        ).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+        expect(
+          await wbnb.balanceOf(strat.address),
+          "There shouldn't be any WBNB left in strategy contract"
+        ).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+        expect(
+          await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address),
+          "Worker should has 0 FTOKEN left as all FTOKEN is liquidated"
+        ).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+      });
+    });
+
+    context("maxDebtRepayment < debt", async () => {
+      it("should compare slippage by taking convertingPostionValue - maxDebtRepayment", async () => {
+        // Alice's position: 0.1 FTOKEN
+        // lpTokenToLiquidate: Math.min(888, 0.1) = 0.1 FTOKEN
+        // maxDebtRepayment = Math.min(0.05, 0.1) = 0.05 WBNB
+        // After execute strategy. The following conditions must be satisfied:
+        // - FTOKEN in strat must be 0
+        // - Worker should has 0 FTOKEN left as Alice liquidate her whole position
+        // - Alice's BTOKEN should increase by [((0.1*9975)*1)/(0.1*10000+(0.1*9975))]
+        // = 0.499374217772215269 WBNB
+        // - minBaseToken <= 0.499374217772215269 - 0.05 = 0.449374217772215269 must pass slippage check
+        await farmingTokenAsAlice.transfer(
+          mockPancakeswapV2WorkerBNBFtokenPair.address,
+          ethers.utils.parseEther("0.1")
+        );
+        await expect(
+          mockPancakeswapV2WorkerBNBFtokenPairAsAlice.work(
+            0,
+            aliceAddress,
+            ethers.utils.parseEther("0.1"),
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "bytes"],
+              [
+                strat.address,
+                ethers.utils.defaultAbiCoder.encode(
+                  ["uint256", "uint256", "uint256"],
+                  [
+                    ethers.utils.parseEther("888"),
+                    ethers.utils.parseEther("0.05"),
+                    ethers.utils.parseEther("0.449374217772215269").add(1),
+                  ]
+                ),
+              ]
+            )
+          )
+        ).to.be.revertedWith(
+          "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate::execute:: insufficient baseToken amount received"
+        );
+
+        const aliceBalanceBefore = await wbnb.balanceOf(aliceAddress);
+        await expect(
+          mockPancakeswapV2WorkerBNBFtokenPairAsAlice.work(
+            0,
+            aliceAddress,
+            ethers.utils.parseEther("0.1"),
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "bytes"],
+              [
+                strat.address,
+                ethers.utils.defaultAbiCoder.encode(
+                  ["uint256", "uint256", "uint256"],
+                  [
+                    ethers.utils.parseEther("888"),
+                    ethers.utils.parseEther("0.05"),
+                    ethers.utils.parseEther("0.449374217772215269"),
+                  ]
+                ),
+              ]
+            )
+          )
+        )
+          .to.emit(strat, "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidateEvent")
+          .withArgs(
+            wbnb.address,
+            farmingToken.address,
+            ethers.utils.parseEther("0.1"),
+            ethers.utils.parseEther("0.05")
+          );
+        const aliceBalanceAfter = await wbnb.balanceOf(aliceAddress);
+
+        expect(
+          aliceBalanceAfter.sub(aliceBalanceBefore),
+          "Alice's WBNB should increase by 0.499374217772215269"
+        ).to.be.bignumber.eq(ethers.utils.parseEther("0.499374217772215269"));
+        expect(
+          await farmingToken.balanceOf(strat.address),
+          "There shouldn't be any FTOKEN left in strategy contract"
+        ).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+        expect(
+          await wbnb.balanceOf(strat.address),
+          "There shouldn't be any WBNB left in strategy contract"
+        ).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+        expect(
+          await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address),
+          "Worker should has 0 FTOKEN left as all FTOKEN is liquidated"
+        ).to.be.bignumber.eq(ethers.utils.parseEther("0"));
       });
     });
 
@@ -334,15 +475,15 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate", () =
               [
                 strat.address,
                 ethers.utils.defaultAbiCoder.encode(
-                  ["uint256", "uint256"],
-                  [ethers.utils.parseEther("888"), ethers.utils.parseEther("0.499374217772215269")]
+                  ["uint256", "uint256", "uint256"],
+                  [ethers.utils.parseEther("888"), "0", ethers.utils.parseEther("0.499374217772215269")]
                 ),
               ]
             )
           )
         )
           .to.emit(strat, "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidateEvent")
-          .withArgs(wbnb.address, farmingToken.address, ethers.utils.parseEther("0.1"));
+          .withArgs(wbnb.address, farmingToken.address, ethers.utils.parseEther("0.1"), "0");
         const aliceBalanceAfter = await wbnb.balanceOf(aliceAddress);
 
         expect(
@@ -385,13 +526,16 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate", () =
               ["address", "bytes"],
               [
                 strat.address,
-                ethers.utils.defaultAbiCoder.encode(["uint256", "uint256"], [farmingTokenToLiquidate, "0"]),
+                ethers.utils.defaultAbiCoder.encode(
+                  ["uint256", "uint256", "uint256"],
+                  [farmingTokenToLiquidate, "0", "0"]
+                ),
               ]
             )
           )
         )
           .to.emit(strat, "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidateEvent")
-          .withArgs(wbnb.address, farmingToken.address, farmingTokenToLiquidate);
+          .withArgs(wbnb.address, farmingToken.address, farmingTokenToLiquidate, "0");
         const aliceBalanceAfter = await wbnb.balanceOf(aliceAddress);
 
         // the worker will send 0.285203716940671908 wbnb back to alice
@@ -410,13 +554,19 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate", () =
   });
 
   context("when the base token is not a wrap native", async () => {
-    context("when contract get baseToken amount < minBaseTokenAmount", async () => {
-      it("should revert", async () => {
-        // amountOut of 0.4 will be
-        // if 0.1 FToken = 1 WBNB
-        // 0.1 FToken will be (0.04 * 0.9975) * (1 / (0.1 + 0.04 * 0.9975)) = 0.2852037169406719 WBNB
-        // if 1 WBNB = 1 BaseToken
-        // 0.2852037169406719 WBNB = (0.2852037169406719* 0.9975) * (1 / (1 + 0.2852037169406719 * 0.9975)) = 0.221481327933600537 BaseToken
+    context("maxDebtRepayment >= debt", async () => {
+      it("should compare slippage by taking convertingPostionValue - debt", async () => {
+        // Alice's position: 0.1 FTOKEN
+        // Debt: 0.1 BTOKEN
+        // lpTokenToLiquidate: Math.min(888, 0.1) = 0.1 FTOKEN
+        // maxDebtRepayment = Math.min(888, 0.1) = 0.1 BTOKEN
+        // After execute strategy. The following conditions must be satisfied:
+        // - FTOKEN in strat must be 0
+        // - Worker should has 0 FTOKEN left as Alice liquidate her whole position
+        // - Alice's 0.1 FTOKEN will get swap through FTOKEN->WBNB->WBTC
+        // [((0.1*9975)*1)/(0.1*10000+(0.1*9975))] = 0.499374217772215269 WBNB
+        // [((0.499374217772215269*9975)*1)/(1*10000+(0.499374217772215269*9975))] = 0.332499305557005937 WBTC
+        // - minBaseToken <= 0.332499305557005937 - 0.1 = 0.232499305557005937 must pass slippage check
         await farmingTokenAsAlice.transfer(
           mockPancakeswapV2WorkerBaseFTokenPair.address,
           ethers.utils.parseEther("0.1")
@@ -425,14 +575,18 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate", () =
           mockPancakeswapV2WorkerBaseFTokenPairAsAlice.work(
             0,
             aliceAddress,
-            "0",
+            ethers.utils.parseEther("0.1"),
             ethers.utils.defaultAbiCoder.encode(
               ["address", "bytes"],
               [
                 strat.address,
                 ethers.utils.defaultAbiCoder.encode(
-                  ["uint256", "uint256"],
-                  [ethers.utils.parseEther("0.04"), ethers.utils.parseEther("0.221481327933600537").add(1)]
+                  ["uint256", "uint256", "uint256"],
+                  [
+                    ethers.utils.parseEther("888"),
+                    ethers.utils.parseEther("888"),
+                    ethers.utils.parseEther("0.232499305557005937").add(1),
+                  ]
                 ),
               ]
             )
@@ -440,6 +594,107 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate", () =
         ).to.be.revertedWith(
           "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate::execute:: insufficient baseToken amount received"
         );
+
+        await expect(
+          mockPancakeswapV2WorkerBaseFTokenPairAsAlice.work(
+            0,
+            aliceAddress,
+            ethers.utils.parseEther("0.1"),
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "bytes"],
+              [
+                strat.address,
+                ethers.utils.defaultAbiCoder.encode(
+                  ["uint256", "uint256", "uint256"],
+                  [
+                    ethers.utils.parseEther("888"),
+                    ethers.utils.parseEther("888"),
+                    ethers.utils.parseEther("0.232499305557005937"),
+                  ]
+                ),
+              ]
+            )
+          )
+        )
+          .to.emit(strat, "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidateEvent")
+          .withArgs(
+            baseToken.address,
+            farmingToken.address,
+            ethers.utils.parseEther("0.1"),
+            ethers.utils.parseEther("0.1")
+          );
+      });
+    });
+
+    context("maxDebtRepayment < debt", async () => {
+      it("should compare slippage by taking convertingPostionValue - maxDebtRepayment", async () => {
+        // Alice's position: 0.1 FTOKEN
+        // Debt: 0.1 BTOKEN
+        // lpTokenToLiquidate: Math.min(888, 0.1) = 0.1 FTOKEN
+        // maxDebtRepayment = Math.min(0.05, 0.1) = 0.05 BTOKEN
+        // After execute strategy. The following conditions must be satisfied:
+        // - FTOKEN in strat must be 0
+        // - Worker should has 0 FTOKEN left as Alice liquidate her whole position
+        // - Alice's 0.1 FTOKEN will get swap through FTOKEN->WBNB->WBTC
+        // [((0.1*9975)*1)/(0.1*10000+(0.1*9975))] = 0.499374217772215269 WBNB
+        // [((0.499374217772215269*9975)*1)/(1*10000+(0.499374217772215269*9975))] = 0.332499305557005937 WBTC
+        // - minBaseToken <= 0.332499305557005937 - 0.05 = 0.282499305557005937 must pass slippage check
+        await farmingTokenAsAlice.transfer(
+          mockPancakeswapV2WorkerBaseFTokenPair.address,
+          ethers.utils.parseEther("0.1")
+        );
+        await expect(
+          mockPancakeswapV2WorkerBaseFTokenPairAsAlice.work(
+            0,
+            aliceAddress,
+            ethers.utils.parseEther("0.1"),
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "bytes"],
+              [
+                strat.address,
+                ethers.utils.defaultAbiCoder.encode(
+                  ["uint256", "uint256", "uint256"],
+                  [
+                    ethers.utils.parseEther("888"),
+                    ethers.utils.parseEther("0.05"),
+                    ethers.utils.parseEther("0.282499305557005937").add(1),
+                  ]
+                ),
+              ]
+            )
+          )
+        ).to.be.revertedWith(
+          "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate::execute:: insufficient baseToken amount received"
+        );
+
+        await expect(
+          mockPancakeswapV2WorkerBaseFTokenPairAsAlice.work(
+            0,
+            aliceAddress,
+            ethers.utils.parseEther("0.1"),
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "bytes"],
+              [
+                strat.address,
+                ethers.utils.defaultAbiCoder.encode(
+                  ["uint256", "uint256", "uint256"],
+                  [
+                    ethers.utils.parseEther("888"),
+                    ethers.utils.parseEther("0.05"),
+                    ethers.utils.parseEther("0.282499305557005937"),
+                  ]
+                ),
+              ]
+            )
+          )
+        )
+          .to.emit(strat, "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidateEvent")
+          .withArgs(
+            baseToken.address,
+            farmingToken.address,
+            ethers.utils.parseEther("0.1"),
+            ethers.utils.parseEther("0.05")
+          );
       });
     });
 
@@ -519,15 +774,15 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate", () =
               [
                 strat.address,
                 ethers.utils.defaultAbiCoder.encode(
-                  ["uint256", "uint256"],
-                  [ethers.utils.parseEther("888"), ethers.utils.parseEther("0.332499305557005937")]
+                  ["uint256", "uint256", "uint256"],
+                  [ethers.utils.parseEther("888"), "0", ethers.utils.parseEther("0.332499305557005937")]
                 ),
               ]
             )
           )
         )
           .to.emit(strat, "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidateEvent")
-          .withArgs(baseToken.address, farmingToken.address, ethers.utils.parseEther("0.1"));
+          .withArgs(baseToken.address, farmingToken.address, ethers.utils.parseEther("0.1"), "0");
 
         const aliceBalanceAfter = await baseToken.balanceOf(aliceAddress);
 
@@ -572,13 +827,16 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate", () =
               ["address", "bytes"],
               [
                 strat.address,
-                ethers.utils.defaultAbiCoder.encode(["uint256", "uint256"], [farmingTokenToLiquidate, "0"]),
+                ethers.utils.defaultAbiCoder.encode(
+                  ["uint256", "uint256", "uint256"],
+                  [farmingTokenToLiquidate, "0", "0"]
+                ),
               ]
             )
           )
         )
           .to.emit(strat, "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidateEvent")
-          .withArgs(baseToken.address, farmingToken.address, farmingTokenToLiquidate);
+          .withArgs(baseToken.address, farmingToken.address, farmingTokenToLiquidate, "0");
 
         const aliceBalanceAfter = await baseToken.balanceOf(aliceAddress);
 
