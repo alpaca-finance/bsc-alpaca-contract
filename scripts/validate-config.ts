@@ -1,43 +1,18 @@
-import { ethers, upgrades, waffle, network } from "hardhat";
-import { Overrides, Signer, BigNumberish, utils, Wallet } from "ethers";
-import chai, { expect } from "chai";
-import { solidity } from "ethereum-waffle";
+import { ethers, network } from "hardhat";
+import { expect } from "chai";
 import "@openzeppelin/test-helpers";
 import {
   CakeMaxiWorker__factory,
-  PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm__factory,
   PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory,
   PancakeswapV2RestrictedStrategyAddTwoSidesOptimal__factory,
-  PancakeswapV2RestrictedStrategyLiquidate__factory,
-  PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading__factory,
   PancakeswapV2Worker__factory,
   Vault,
   Vault__factory,
-  WaultSwapRestrictedStrategyAddBaseTokenOnly__factory,
-  WaultSwapRestrictedStrategyAddTwoSidesOptimal__factory,
-  WaultSwapRestrictedStrategyLiquidate__factory,
-  WaultSwapRestrictedStrategyWithdrawMinimizeTrading__factory,
-  WaultSwapWorker,
   WaultSwapWorker__factory,
 } from "../typechain";
 import MainnetConfig from "../.mainnet.json";
 import TestnetConfig from "../.testnet.json";
-import { worker } from "node:cluster";
 import { WorkersEntity } from "../deploy/interfaces/config";
-
-interface IVaultInfo {
-  name: string;
-  symbol: string;
-  address: string;
-  debtToken: string;
-  config: string;
-  tripleSlopeModel: string;
-  StrategyAddTwoSidesOptimal: {
-    Pancakeswap: string;
-    Waultswap: string;
-  };
-  workers: WorkersEntity[];
-}
 
 interface IDexRouter {
   pancakeswap: string;
