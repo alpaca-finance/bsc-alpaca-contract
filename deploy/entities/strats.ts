@@ -94,31 +94,26 @@ export function getShareStratsProxy(group: string): Array<IProxyStrat> {
       },
     ];
   }
-  throw "error";
+  throw new Error("getShareStratsProxy: unknown group");
 }
 
 export async function getStratFactory(group: string, strat: Strats): Promise<ContractFactory> {
-  let newStratImpl: ContractFactory;
   let singleAsset = group.includes("SingleAsset") ? "SingleAsset" : "";
   group = singleAsset != "" ? group.replace("SingleAsset", "") : group;
 
   if (strat === Strats.btokenOnly) {
-    newStratImpl = await ethers.getContractFactory(`${group}Restricted${singleAsset}StrategyAddBaseTokenOnly`);
+    return await ethers.getContractFactory(`${group}Restricted${singleAsset}StrategyAddBaseTokenOnly`);
   } else if (strat === Strats.twosides) {
-    newStratImpl = await ethers.getContractFactory(`${group}Restricted${singleAsset}StrategyAddTwoSidesOptimal`);
+    return await ethers.getContractFactory(`${group}Restricted${singleAsset}StrategyAddTwoSidesOptimal`);
   } else if (strat === Strats.withdrawMinimize) {
-    newStratImpl = await ethers.getContractFactory(`${group}Restricted${singleAsset}StrategyWithdrawMinimizeTrading`);
+    return await ethers.getContractFactory(`${group}Restricted${singleAsset}StrategyWithdrawMinimizeTrading`);
   } else if (strat === Strats.liquidateAll) {
-    newStratImpl = await ethers.getContractFactory(`${group}Restricted${singleAsset}StrategyLiquidate`);
+    return await ethers.getContractFactory(`${group}Restricted${singleAsset}StrategyLiquidate`);
   } else if (strat === Strats.partialCloseLiquidate) {
-    newStratImpl = await ethers.getContractFactory(`${group}Restricted${singleAsset}StrategyPartialCloseLiquidate`);
+    return await ethers.getContractFactory(`${group}Restricted${singleAsset}StrategyPartialCloseLiquidate`);
   } else if (strat === Strats.partialCloseWithdrawMinizmie) {
-    newStratImpl = await ethers.getContractFactory(
-      `${group}Restricted${singleAsset}StrategyPartialCloseMinimizeTrading`
-    );
-  } else {
-    throw "not found factory";
+    return await ethers.getContractFactory(`${group}Restricted${singleAsset}StrategyPartialCloseMinimizeTrading`);
   }
 
-  return newStratImpl;
+  throw new Error("getStratFactory: not found factory");
 }
