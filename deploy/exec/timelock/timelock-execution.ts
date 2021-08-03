@@ -1,7 +1,7 @@
 import { TimelockEntity } from "../../entities";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import TimelockTransactions from "../../results/1627882236_pcs-worker02-turn-off-old-partial-close-strats.json";
+import TimelockTransactions from "../../results/mock.json";
 import { FileService, TimelockService } from "../../services";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -26,7 +26,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(e);
   }
 
-  await FileService.write("timelock-execution", timelockTransactions);
+  FileService.write("timelock-execution", timelockTransactions);
 };
 
 export default func;

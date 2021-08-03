@@ -48,20 +48,20 @@ import {
 chai.use(solidity);
 const { expect } = chai;
 
-describe('PancakeswapV2 - StrategyAddTwoSidesOptimal', () => {
-  const FOREVER = '2000000000';
-  const MAX_ROUNDING_ERROR = Number('15');
-  const CAKE_REWARD_PER_BLOCK = ethers.utils.parseEther('0.076');
-  const ALPACA_REWARD_PER_BLOCK = ethers.utils.parseEther('5000');
+describe("PancakeswapV2 - StrategyAddTwoSidesOptimal", () => {
+  const FOREVER = "2000000000";
+  const MAX_ROUNDING_ERROR = Number("15");
+  const CAKE_REWARD_PER_BLOCK = ethers.utils.parseEther("0.076");
+  const ALPACA_REWARD_PER_BLOCK = ethers.utils.parseEther("5000");
   const ALPACA_BONUS_LOCK_UP_BPS = 7000;
-  const REINVEST_BOUNTY_BPS = '100'; // 1% reinvest bounty
-  const RESERVE_POOL_BPS = '1000'; // 10% reserve pool
-  const KILL_PRIZE_BPS = '1000'; // 10% Kill prize
-  const INTEREST_RATE = '3472222222222'; // 30% per year
-  const MIN_DEBT_SIZE = '1';
-  const WORK_FACTOR = '7000';
-  const KILL_FACTOR = '8000';
-  const KILL_TREASURY_BPS = '100';
+  const REINVEST_BOUNTY_BPS = "100"; // 1% reinvest bounty
+  const RESERVE_POOL_BPS = "1000"; // 10% reserve pool
+  const KILL_PRIZE_BPS = "1000"; // 10% Kill prize
+  const INTEREST_RATE = "3472222222222"; // 30% per year
+  const MIN_DEBT_SIZE = "1";
+  const WORK_FACTOR = "7000";
+  const KILL_FACTOR = "8000";
+  const KILL_TREASURY_BPS = "100";
 
   /// Pancakeswap-related instance(s)
   let factoryV2: PancakeFactory;
@@ -116,55 +116,37 @@ describe('PancakeswapV2 - StrategyAddTwoSidesOptimal', () => {
     [deployer, alice, bob, eve] = await ethers.getSigners();
 
     // Setup Pancakeswap
-    const PancakeFactoryV2 = (await ethers.getContractFactory(
-      "PancakeFactory",
-      deployer
-    )) as PancakeFactory__factory;
-    factoryV2 = await PancakeFactoryV2.deploy((await deployer.getAddress()));
+    const PancakeFactoryV2 = (await ethers.getContractFactory("PancakeFactory", deployer)) as PancakeFactory__factory;
+    factoryV2 = await PancakeFactoryV2.deploy(await deployer.getAddress());
     await factoryV2.deployed();
 
-    const WBNB = (await ethers.getContractFactory(
-      "WETH",
-      deployer
-    )) as WETH__factory;
+    const WBNB = (await ethers.getContractFactory("WETH", deployer)) as WETH__factory;
     wbnb = await WBNB.deploy();
     await wbnb.deployed();
 
-    const PancakeRouterV2 = (await ethers.getContractFactory(
-      "PancakeRouterV2",
-      deployer
-    )) as PancakeRouter__factory;
+    const PancakeRouterV2 = (await ethers.getContractFactory("PancakeRouterV2", deployer)) as PancakeRouter__factory;
     routerV2 = await PancakeRouterV2.deploy(factoryV2.address, wbnb.address);
     await routerV2.deployed();
 
     /// Setup token stuffs
-    const MockERC20 = (await ethers.getContractFactory(
-      "MockERC20",
-      deployer
-    )) as MockERC20__factory
-    baseToken = await upgrades.deployProxy(MockERC20, ['BTOKEN', 'BTOKEN']) as MockERC20;
+    const MockERC20 = (await ethers.getContractFactory("MockERC20", deployer)) as MockERC20__factory;
+    baseToken = (await upgrades.deployProxy(MockERC20, ["BTOKEN", "BTOKEN"])) as MockERC20;
     await baseToken.deployed();
-    await baseToken.mint(await deployer.getAddress(), ethers.utils.parseEther('100'));
-    await baseToken.mint(await alice.getAddress(), ethers.utils.parseEther('100'));
-    await baseToken.mint(await bob.getAddress(), ethers.utils.parseEther('100'));
-    farmingToken = await upgrades.deployProxy(MockERC20, ['FTOKEN', 'FTOKEN']) as MockERC20;
+    await baseToken.mint(await deployer.getAddress(), ethers.utils.parseEther("100"));
+    await baseToken.mint(await alice.getAddress(), ethers.utils.parseEther("100"));
+    await baseToken.mint(await bob.getAddress(), ethers.utils.parseEther("100"));
+    farmingToken = (await upgrades.deployProxy(MockERC20, ["FTOKEN", "FTOKEN"])) as MockERC20;
     await farmingToken.deployed();
-    await farmingToken.mint(await deployer.getAddress(), ethers.utils.parseEther('100'))
-    await farmingToken.mint(await alice.getAddress(), ethers.utils.parseEther('100'));
-    await farmingToken.mint(await bob.getAddress(), ethers.utils.parseEther('100'));
+    await farmingToken.mint(await deployer.getAddress(), ethers.utils.parseEther("100"));
+    await farmingToken.mint(await alice.getAddress(), ethers.utils.parseEther("100"));
+    await farmingToken.mint(await bob.getAddress(), ethers.utils.parseEther("100"));
 
-    const CakeToken = (await ethers.getContractFactory(
-      "CakeToken",
-      deployer
-    )) as CakeToken__factory;
+    const CakeToken = (await ethers.getContractFactory("CakeToken", deployer)) as CakeToken__factory;
     cake = await CakeToken.deploy();
     await cake.deployed();
-    await cake["mint(address,uint256)"](await deployer.getAddress(), ethers.utils.parseEther('100'));
+    await cake["mint(address,uint256)"](await deployer.getAddress(), ethers.utils.parseEther("100"));
 
-    const SyrupBar = (await ethers.getContractFactory(
-      "SyrupBar",
-      deployer
-    )) as SyrupBar__factory;
+    const SyrupBar = (await ethers.getContractFactory("SyrupBar", deployer)) as SyrupBar__factory;
     syrup = await SyrupBar.deploy(cake.address);
     await syrup.deployed();
 
@@ -178,19 +160,18 @@ describe('PancakeswapV2 - StrategyAddTwoSidesOptimal', () => {
 
     // Setup FairLaunch contract
     // Deploy ALPACAs
-    const AlpacaToken = (await ethers.getContractFactory(
-      "AlpacaToken",
-      deployer
-    )) as AlpacaToken__factory;
+    const AlpacaToken = (await ethers.getContractFactory("AlpacaToken", deployer)) as AlpacaToken__factory;
     alpacaToken = await AlpacaToken.deploy(132, 137);
     await alpacaToken.deployed();
 
-    const FairLaunch = (await ethers.getContractFactory(
-      "FairLaunch",
-      deployer
-    )) as FairLaunch__factory;
+    const FairLaunch = (await ethers.getContractFactory("FairLaunch", deployer)) as FairLaunch__factory;
     fairLaunch = await FairLaunch.deploy(
-      alpacaToken.address, (await alice.getAddress()), ALPACA_REWARD_PER_BLOCK, 0, ALPACA_BONUS_LOCK_UP_BPS, 0
+      alpacaToken.address,
+      await alice.getAddress(),
+      ALPACA_REWARD_PER_BLOCK,
+      0,
+      ALPACA_BONUS_LOCK_UP_BPS,
+      0
     );
     await fairLaunch.deployed();
 
@@ -198,10 +179,7 @@ describe('PancakeswapV2 - StrategyAddTwoSidesOptimal', () => {
 
     // Config & Deploy Vault ibBTOKEN
     // Create a new instance of BankConfig & Vault
-    const WNativeRelayer = (await ethers.getContractFactory(
-      "WNativeRelayer",
-      deployer
-    )) as WNativeRelayer__factory;
+    const WNativeRelayer = (await ethers.getContractFactory("WNativeRelayer", deployer)) as WNativeRelayer__factory;
     wNativeRelayer = await WNativeRelayer.deploy(wbnb.address);
     await wNativeRelayer.deployed();
 
@@ -209,37 +187,46 @@ describe('PancakeswapV2 - StrategyAddTwoSidesOptimal', () => {
       "SimpleVaultConfig",
       deployer
     )) as SimpleVaultConfig__factory;
-    config = await upgrades.deployProxy(SimpleVaultConfig, [
-      MIN_DEBT_SIZE, INTEREST_RATE, RESERVE_POOL_BPS, KILL_PRIZE_BPS,
-      wbnb.address, wNativeRelayer.address, fairLaunch.address, KILL_TREASURY_BPS, await eve.getAddress()
-    ]) as SimpleVaultConfig;
+    config = (await upgrades.deployProxy(SimpleVaultConfig, [
+      MIN_DEBT_SIZE,
+      INTEREST_RATE,
+      RESERVE_POOL_BPS,
+      KILL_PRIZE_BPS,
+      wbnb.address,
+      wNativeRelayer.address,
+      fairLaunch.address,
+      KILL_TREASURY_BPS,
+      await eve.getAddress(),
+    ])) as SimpleVaultConfig;
     await config.deployed();
 
-    const DebtToken = (await ethers.getContractFactory(
-      "DebtToken",
-      deployer
-    )) as DebtToken__factory;
-    const debtToken = await upgrades.deployProxy(DebtToken, [
-      'debtibBTOKEN_V2', 'debtibBTOKEN_V2', (await deployer.getAddress())]) as DebtToken;
+    const DebtToken = (await ethers.getContractFactory("DebtToken", deployer)) as DebtToken__factory;
+    const debtToken = (await upgrades.deployProxy(DebtToken, [
+      "debtibBTOKEN_V2",
+      "debtibBTOKEN_V2",
+      await deployer.getAddress(),
+    ])) as DebtToken;
     await debtToken.deployed();
 
-    const Vault = (await ethers.getContractFactory(
-      "Vault",
-      deployer
-    )) as Vault__factory;
-    vault = await upgrades.deployProxy(Vault, [
-      config.address, baseToken.address, 'Interest Bearing BTOKEN', 'ibBTOKEN', 18, debtToken.address
-    ]) as Vault;
+    const Vault = (await ethers.getContractFactory("Vault", deployer)) as Vault__factory;
+    vault = (await upgrades.deployProxy(Vault, [
+      config.address,
+      baseToken.address,
+      "Interest Bearing BTOKEN",
+      "ibBTOKEN",
+      18,
+      debtToken.address,
+    ])) as Vault;
     await vault.deployed();
 
     await wNativeRelayer.setCallerOk([vault.address], true);
 
     // Transfer ownership to vault
+    await debtToken.setOkHolders([vault.address, fairLaunch.address], true);
     await debtToken.transferOwnership(vault.address);
-    await vault.updateDebtToken(debtToken.address, 0);
 
     // Set add FairLaunch poool and set fairLaunchPoolId for Vault
-    await fairLaunch.addPool(1, (await vault.debtToken()), false);
+    await fairLaunch.addPool(1, await vault.debtToken(), false);
     await vault.setFairLaunchPoolId(0);
 
     /// Setup strategy
@@ -247,14 +234,19 @@ describe('PancakeswapV2 - StrategyAddTwoSidesOptimal', () => {
       "PancakeswapV2StrategyAddTwoSidesOptimal",
       deployer
     )) as PancakeswapV2StrategyAddTwoSidesOptimal__factory;
-    addStrat = await upgrades.deployProxy(PancakeswapV2StrategyAddTwoSidesOptimal, [routerV2.address, vault.address]) as PancakeswapV2StrategyAddTwoSidesOptimal
+    addStrat = (await upgrades.deployProxy(PancakeswapV2StrategyAddTwoSidesOptimal, [
+      routerV2.address,
+      vault.address,
+    ])) as PancakeswapV2StrategyAddTwoSidesOptimal;
     await addStrat.deployed();
 
     const PancakeswapV2StrategyLiquidate = (await ethers.getContractFactory(
       "PancakeswapV2StrategyLiquidate",
       deployer
     )) as PancakeswapV2StrategyLiquidate__factory;
-    liqStrat = await upgrades.deployProxy(PancakeswapV2StrategyLiquidate, [routerV2.address]) as PancakeswapV2StrategyLiquidate;
+    liqStrat = (await upgrades.deployProxy(PancakeswapV2StrategyLiquidate, [
+      routerV2.address,
+    ])) as PancakeswapV2StrategyLiquidate;
     await liqStrat.deployed();
 
     /// Setup MasterChef
@@ -263,7 +255,12 @@ describe('PancakeswapV2 - StrategyAddTwoSidesOptimal', () => {
       deployer
     )) as PancakeMasterChef__factory;
     masterChef = await PancakeMasterChef.deploy(
-      cake.address, syrup.address, await deployer.getAddress(), CAKE_REWARD_PER_BLOCK, 0);
+      cake.address,
+      syrup.address,
+      await deployer.getAddress(),
+      CAKE_REWARD_PER_BLOCK,
+      0
+    );
     await masterChef.deployed();
     // Transfer ownership so masterChef can mint CAKE
     await cake.transferOwnership(masterChef.address);
@@ -275,33 +272,58 @@ describe('PancakeswapV2 - StrategyAddTwoSidesOptimal', () => {
     poolId = 1;
     const PancakeswapWorker = (await ethers.getContractFactory(
       "PancakeswapWorker",
-      deployer,
+      deployer
     )) as PancakeswapWorker__factory;
-    pancakeswapWorker = await upgrades.deployProxy(PancakeswapWorker, [
-      vault.address, baseToken.address, masterChef.address, routerV2.address, poolId, addStrat.address, liqStrat.address, REINVEST_BOUNTY_BPS
-    ]) as PancakeswapWorker
+    pancakeswapWorker = (await upgrades.deployProxy(PancakeswapWorker, [
+      vault.address,
+      baseToken.address,
+      masterChef.address,
+      routerV2.address,
+      poolId,
+      addStrat.address,
+      liqStrat.address,
+      REINVEST_BOUNTY_BPS,
+    ])) as PancakeswapWorker;
     await pancakeswapWorker.deployed();
-    await config.setWorker(pancakeswapWorker.address, true, true, WORK_FACTOR, KILL_FACTOR);
+    await config.setWorker(pancakeswapWorker.address, true, true, WORK_FACTOR, KILL_FACTOR, true, true);
 
     // Deployer adds 0.1 FTOKEN + 1 BTOKEN
-    await baseToken.approve(routerV2.address, ethers.utils.parseEther('1'));
-    await farmingToken.approve(routerV2.address, ethers.utils.parseEther('0.1'));
+    await baseToken.approve(routerV2.address, ethers.utils.parseEther("1"));
+    await farmingToken.approve(routerV2.address, ethers.utils.parseEther("0.1"));
     await routerV2.addLiquidity(
-      baseToken.address, farmingToken.address,
-      ethers.utils.parseEther('1'), ethers.utils.parseEther('0.1'),
-      '0', '0', await deployer.getAddress(), FOREVER);
+      baseToken.address,
+      farmingToken.address,
+      ethers.utils.parseEther("1"),
+      ethers.utils.parseEther("0.1"),
+      "0",
+      "0",
+      await deployer.getAddress(),
+      FOREVER
+    );
 
     // Deployer adds 0.1 CAKE + 1 NATIVE
-    await cake.approve(routerV2.address, ethers.utils.parseEther('1'));
+    await cake.approve(routerV2.address, ethers.utils.parseEther("1"));
     await routerV2.addLiquidityETH(
-      cake.address, ethers.utils.parseEther('0.1'),
-      '0', '0', await deployer.getAddress(), FOREVER, { value: ethers.utils.parseEther('1') });
+      cake.address,
+      ethers.utils.parseEther("0.1"),
+      "0",
+      "0",
+      await deployer.getAddress(),
+      FOREVER,
+      { value: ethers.utils.parseEther("1") }
+    );
 
     // Deployer adds 1 BTOKEN + 1 NATIVE
-    await baseToken.approve(routerV2.address, ethers.utils.parseEther('1'));
+    await baseToken.approve(routerV2.address, ethers.utils.parseEther("1"));
     await routerV2.addLiquidityETH(
-      baseToken.address, ethers.utils.parseEther('1'),
-      '0', '0', await deployer.getAddress(), FOREVER, { value: ethers.utils.parseEther('1') });
+      baseToken.address,
+      ethers.utils.parseEther("1"),
+      "0",
+      "0",
+      await deployer.getAddress(),
+      FOREVER,
+      { value: ethers.utils.parseEther("1") }
+    );
 
     // Contract signer
     addStratAsAlice = PancakeswapV2StrategyAddTwoSidesOptimal__factory.connect(addStrat.address, alice);
@@ -317,179 +339,159 @@ describe('PancakeswapV2 - StrategyAddTwoSidesOptimal', () => {
     vaultAsBob = Vault__factory.connect(vault.address, bob);
   });
 
-  it('should revert when strategy execution is not in the scope', async () => {
+  it("should revert when strategy execution is not in the scope", async () => {
     await expect(
       addStratAsBob.execute(
         await bob.getAddress(),
-        '0',
-        ethers.utils.defaultAbiCoder.encode([
-          'address','address', 'uint256', 'uint256'],
-          [baseToken.address, farmingToken.address, '0', '0']),
+        "0",
+        ethers.utils.defaultAbiCoder.encode(
+          ["address", "address", "uint256", "uint256"],
+          [baseToken.address, farmingToken.address, "0", "0"]
+        )
       )
-    ).to.be.revertedWith('not within execution scope');
+    ).to.be.revertedWith("not within execution scope");
   });
 
-  it('should revert on bad calldata', async () => {
+  it("should revert on bad calldata", async () => {
     // Deployer deposits 3 BTOKEN to the vault
-    await baseToken.approve(vault.address, ethers.utils.parseEther('3'));
-    await vault.deposit(ethers.utils.parseEther('3'));
+    await baseToken.approve(vault.address, ethers.utils.parseEther("3"));
+    await vault.deposit(ethers.utils.parseEther("3"));
 
     // Now Alice leverage 2x on her 1 BTOKEN.
     // So totally Alice will take 1 BTOKEN from the pool and 1 BTOKEN from her pocket to
     // Provide liquidity in the BTOKEN-FTOKEN pool on Pancakeswap
-    await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther('1'));
+    await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
     await expect(
       vaultAsAlice.work(
-      0,
-      pancakeswapWorker.address,
-      ethers.utils.parseEther('1'),
-      ethers.utils.parseEther('1'),
-      '0',
-      ethers.utils.defaultAbiCoder.encode(
-        ['address', 'bytes'],
-        [addStrat.address, '0x1234'])
+        0,
+        pancakeswapWorker.address,
+        ethers.utils.parseEther("1"),
+        ethers.utils.parseEther("1"),
+        "0",
+        ethers.utils.defaultAbiCoder.encode(["address", "bytes"], [addStrat.address, "0x1234"])
       )
     ).to.be.reverted;
   });
 
-  it('should convert all BTOKEN to LP tokens at best rate', async () => {
+  it("should convert all BTOKEN to LP tokens at best rate", async () => {
     // Deployer deposits 3 BTOKEN to the vault
-    await baseToken.approve(vault.address, ethers.utils.parseEther('3'));
-    await vault.deposit(ethers.utils.parseEther('3'));
+    await baseToken.approve(vault.address, ethers.utils.parseEther("3"));
+    await vault.deposit(ethers.utils.parseEther("3"));
 
     // Now Alice leverage 2x on her 1 BTOKEN.
     // So totally Alice will take 1 BTOKEN from the pool and 1 BTOKEN from her pocket to
     // Provide liquidity in the BTOKEN-FTOKEN pool on Pancakeswap
-    await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther('1'));
+    await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
     await vaultAsAlice.work(
       0,
       pancakeswapWorker.address,
-      ethers.utils.parseEther('1'),
-      ethers.utils.parseEther('1'),
-      '0',
+      ethers.utils.parseEther("1"),
+      ethers.utils.parseEther("1"),
+      "0",
       ethers.utils.defaultAbiCoder.encode(
-        ['address', 'bytes'],
-        [addStrat.address, ethers.utils.defaultAbiCoder.encode(
-          ['address', 'address', 'uint256', 'uint256'],
-          [baseToken.address, farmingToken.address, ethers.utils.parseEther('0'), ethers.utils.parseEther('0.01')]
-        )]
+        ["address", "bytes"],
+        [
+          addStrat.address,
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "address", "uint256", "uint256"],
+            [baseToken.address, farmingToken.address, ethers.utils.parseEther("0"), ethers.utils.parseEther("0.01")]
+          ),
+        ]
       )
-    )
+    );
 
     const masterChefLPBalanceRound1 = await lp.balanceOf(masterChef.address);
-    expect(masterChefLPBalanceRound1).to.be.bignumber.above(ethers.utils.parseEther('0'));
-    expect(await lp.balanceOf(addStrat.address)).to.be.bignumber.eq('0');
+    expect(masterChefLPBalanceRound1).to.be.bignumber.above(ethers.utils.parseEther("0"));
+    expect(await lp.balanceOf(addStrat.address)).to.be.bignumber.eq("0");
     expect(await farmingToken.balanceOf(addStrat.address)).to.be.bignumber.below(MAX_ROUNDING_ERROR);
 
     // Now Alice leverage 2x on her 0.1 BTOKEN.
     // So totally Alice will take 0.1 BTOKEN from the pool and 0.1 BTOKEN from her pocket to
     // Provide liquidity in the BTOKEN-FTOKEN pool on Pancakeswap
-    await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther('0.1'));
+    await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("0.1"));
     await vaultAsAlice.work(
       0,
       pancakeswapWorker.address,
-      ethers.utils.parseEther('0.1'),
-      ethers.utils.parseEther('0.1'),
-      '0',
-      ethers.utils.defaultAbiCoder.encode([
-        'address',
-        'bytes'
-      ], [
-        addStrat.address,
-        ethers.utils.defaultAbiCoder.encode([
-          'address',
-          'address',
-          'uint256',
-          'uint256'
-        ], [
-          baseToken.address,
-          farmingToken.address,
-          ethers.utils.parseEther('0'),
-          ethers.utils.parseEther('0')
-        ])]
+      ethers.utils.parseEther("0.1"),
+      ethers.utils.parseEther("0.1"),
+      "0",
+      ethers.utils.defaultAbiCoder.encode(
+        ["address", "bytes"],
+        [
+          addStrat.address,
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "address", "uint256", "uint256"],
+            [baseToken.address, farmingToken.address, ethers.utils.parseEther("0"), ethers.utils.parseEther("0")]
+          ),
+        ]
       )
-    )
+    );
 
     expect(await lp.balanceOf(masterChef.address)).to.be.bignumber.above(masterChefLPBalanceRound1);
-    expect(await lp.balanceOf(addStrat.address)).to.be.bignumber.equal('0');
+    expect(await lp.balanceOf(addStrat.address)).to.be.bignumber.equal("0");
     expect(await farmingToken.balanceOf(addStrat.address)).to.be.bignumber.below(MAX_ROUNDING_ERROR);
-  })
+  });
 
-  it('should convert some BTOKEN and some FTOKEN to LP tokens at best rate', async () => {
+  it("should convert some BTOKEN and some FTOKEN to LP tokens at best rate", async () => {
     // Deployer deposits 3 BTOKEN to the vault
-    await baseToken.approve(vault.address, ethers.utils.parseEther('3'));
-    await vault.deposit(ethers.utils.parseEther('3'));
+    await baseToken.approve(vault.address, ethers.utils.parseEther("3"));
+    await vault.deposit(ethers.utils.parseEther("3"));
 
     // Now Alice leverage 2x on her 1 BTOKEN.
     // So totally Alice will take 1 BTOKEN from the pool and 1 BTOKEN from her pocket to
     // Provide liquidity in the BTOKEN-FTOKEN pool on Pancakeswap
     // However, this time Alice use StrategyAddTwoSides + farmingToken
-    await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther('1'));
-    await farmingTokenAsAlice.approve(vault.address, ethers.utils.parseEther('1'));
+    await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
+    await farmingTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
     await vaultAsAlice.work(
       0,
       pancakeswapWorker.address,
-      ethers.utils.parseEther('1'),
-      ethers.utils.parseEther('1'),
-      '0',
-      ethers.utils.defaultAbiCoder.encode([
-        'address',
-        'bytes'
-      ], [
-        addStrat.address,
-        ethers.utils.defaultAbiCoder.encode([
-          'address',
-          'address',
-          'uint256',
-          'uint256'
-        ], [
-          baseToken.address,
-          farmingToken.address,
-          ethers.utils.parseEther('0.05'),
-          ethers.utils.parseEther('0'),
-        ])]
+      ethers.utils.parseEther("1"),
+      ethers.utils.parseEther("1"),
+      "0",
+      ethers.utils.defaultAbiCoder.encode(
+        ["address", "bytes"],
+        [
+          addStrat.address,
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "address", "uint256", "uint256"],
+            [baseToken.address, farmingToken.address, ethers.utils.parseEther("0.05"), ethers.utils.parseEther("0")]
+          ),
+        ]
       )
-    )
+    );
 
     const stakingLPBalanceRound1 = await lp.balanceOf(masterChef.address);
-    expect(stakingLPBalanceRound1).to.be.bignumber.above(ethers.utils.parseEther('0'));
-    expect(await lp.balanceOf(addStrat.address)).to.be.bignumber.eq('0');
+    expect(stakingLPBalanceRound1).to.be.bignumber.above(ethers.utils.parseEther("0"));
+    expect(await lp.balanceOf(addStrat.address)).to.be.bignumber.eq("0");
     expect(await farmingToken.balanceOf(addStrat.address)).to.be.bignumber.below(MAX_ROUNDING_ERROR);
 
     // Now Alice leverage 2x on her 1 BTOKEN.
     // So totally Alice will take 1 BTOKEN from the pool and 1 BTOKEN from her pocket to
     // Provide liquidity in the BTOKEN-FTOKEN pool on Pancakeswap
     // However, this time Alice use StrategyAddTwoSides + farmingToken
-    await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther('1'));
-    await farmingTokenAsAlice.approve(vault.address, ethers.utils.parseEther('1'));
+    await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
+    await farmingTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
     await vaultAsAlice.work(
       0,
       pancakeswapWorker.address,
-      ethers.utils.parseEther('1'),
-      ethers.utils.parseEther('1'),
-      '0',
-      ethers.utils.defaultAbiCoder.encode([
-        'address',
-        'bytes'
-      ], [
-        addStrat.address,
-        ethers.utils.defaultAbiCoder.encode([
-          'address',
-          'address',
-          'uint256',
-          'uint256'
-        ], [
-          baseToken.address,
-          farmingToken.address,
-          ethers.utils.parseEther('1'),
-          ethers.utils.parseEther('0.1')
-        ])]
+      ethers.utils.parseEther("1"),
+      ethers.utils.parseEther("1"),
+      "0",
+      ethers.utils.defaultAbiCoder.encode(
+        ["address", "bytes"],
+        [
+          addStrat.address,
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "address", "uint256", "uint256"],
+            [baseToken.address, farmingToken.address, ethers.utils.parseEther("1"), ethers.utils.parseEther("0.1")]
+          ),
+        ]
       )
-    )
+    );
 
     expect(await lp.balanceOf(masterChef.address)).to.be.bignumber.above(stakingLPBalanceRound1);
-    expect(await lp.balanceOf(addStrat.address)).to.be.bignumber.equal('0');
+    expect(await lp.balanceOf(addStrat.address)).to.be.bignumber.equal("0");
     expect(await farmingToken.balanceOf(addStrat.address)).to.be.bignumber.below(MAX_ROUNDING_ERROR);
-  })
-
+  });
 });

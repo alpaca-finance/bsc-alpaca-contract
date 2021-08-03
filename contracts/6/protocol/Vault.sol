@@ -27,7 +27,8 @@ import "./interfaces/IWorker.sol";
 import "./interfaces/IVault.sol";
 import "../token/interfaces/IFairLaunch.sol";
 import "../utils/SafeToken.sol";
-import "./WNativeRelayer.sol";
+import "./interfaces/IWETH.sol";
+import "./interfaces/IWNativeRelayer.sol";
 
 contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableUpgradeSafe {
   /// @notice Libraries
@@ -47,6 +48,7 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     uint256 prize,
     uint256 left
   );
+  event AddCollateral(uint256 indexed id, uint256 amount, uint256 healthBefore, uint256 healthAfter);
 
   /// @dev Flags for manage execution scope
   uint256 private constant _NOT_ENTERED = 1;
@@ -87,7 +89,7 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
   /// @dev Require that the caller must be an EOA account if not whitelisted.
   modifier onlyEOAorWhitelisted() {
     if (!config.whitelistedCallers(msg.sender)) {
-      require(msg.sender == tx.origin, "Vault::onlyEOAorWhitelisted:: not eoa");
+      require(msg.sender == tx.origin, "not eoa");
     }
     _;
   }
@@ -95,8 +97,8 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
   /// @dev Get token from msg.sender
   modifier transferTokenToVault(uint256 value) {
     if (msg.value != 0) {
-      require(token == config.getWrappedNativeAddr(), "Vault::transferTokenToVault:: baseToken is not wNative");
-      require(value == msg.value, "Vault::transferTokenToVault:: value != msg.value");
+      require(token == config.getWrappedNativeAddr(), "baseToken is not wNative");
+      require(value == msg.value, "value != msg.value");
       IWETH(config.getWrappedNativeAddr()).deposit{ value: msg.value }();
     } else {
       SafeToken.safeTransferFrom(token, msg.sender, address(this), value);
@@ -106,9 +108,9 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
 
   /// @dev Ensure that the function is called with the execution scope
   modifier inExec() {
-    require(POSITION_ID != _NO_ID, "Vault::inExec:: not within execution scope");
-    require(STRATEGY == msg.sender, "Vault::inExec:: not from the strategy");
-    require(_IN_EXEC_LOCK == _NOT_ENTERED, "Vault::inExec:: in exec lock");
+    require(POSITION_ID != _NO_ID, "not within execution scope");
+    require(STRATEGY == msg.sender, "not from the strategy");
+    require(_IN_EXEC_LOCK == _NOT_ENTERED, "in exec lock");
     _IN_EXEC_LOCK = _ENTERED;
     _;
     _IN_EXEC_LOCK = _NOT_ENTERED;
@@ -211,21 +213,15 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     uint256 total = totalToken().sub(amountToken);
     uint256 share = total == 0 ? amountToken : amountToken.mul(totalSupply()).div(total);
     _mint(msg.sender, share);
-    require(totalSupply() > 1e17, "Vault::deposit:: no tiny shares");
+    require(totalSupply() > 1e17, "no tiny shares");
   }
 
   /// @dev Withdraw token from the lending and burning ibToken.
   function withdraw(uint256 share) external override accrue(0) nonReentrant {
     uint256 amount = share.mul(totalToken()).div(totalSupply());
     _burn(msg.sender, share);
-    if (token == config.getWrappedNativeAddr()) {
-      SafeToken.safeTransfer(token, config.getWNativeRelayer(), amount);
-      WNativeRelayer(uint160(config.getWNativeRelayer())).withdraw(amount);
-      SafeToken.safeTransferETH(msg.sender, amount);
-    } else {
-      SafeToken.safeTransfer(token, msg.sender, amount);
-    }
-    require(totalSupply() > 1e17, "Vault::withdraw:: no tiny shares");
+    _safeUnwrap(msg.sender, amount);
+    require(totalSupply() > 1e17, "no tiny shares");
   }
 
   /// @dev Request Funds from user through Vault
@@ -257,6 +253,70 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     }
   }
 
+  /// @dev Transfer to "to". Automatically unwrap if BTOKEN is WBNB
+  /// @param to The address of the receiver
+  /// @param amount The amount to be withdrawn
+  function _safeUnwrap(address to, uint256 amount) internal {
+    if (token == config.getWrappedNativeAddr()) {
+      SafeToken.safeTransfer(token, config.getWNativeRelayer(), amount);
+      IWNativeRelayer(uint160(config.getWNativeRelayer())).withdraw(amount);
+      SafeToken.safeTransferETH(to, amount);
+    } else {
+      SafeToken.safeTransfer(token, to, amount);
+    }
+  }
+
+  /// @dev addCollateral to the given position.
+  /// @param id The ID of the position to add collaterals.
+  /// @param amount The amount of BTOKEN to be added to the position
+  /// @param goRogue If on skip worker stability check, else only check reserve consistency.
+  /// @param data The calldata to pass along to the worker for more working context.
+  function addCollateral(
+    uint256 id,
+    uint256 amount,
+    bool goRogue,
+    bytes calldata data
+  ) external payable onlyEOAorWhitelisted transferTokenToVault(amount) accrue(amount) nonReentrant {
+    require(fairLaunchPoolId != uint256(-1), "poolId not set");
+    require(id != 0, "no id 0");
+
+    // 1. Load position from state & sanity check
+    Position storage pos = positions[id];
+    address worker = pos.worker;
+    uint256 healthBefore = IWorker(worker).health(id);
+    require(id < nextPositionID, "bad position id");
+    require(pos.owner == msg.sender, "!position owner");
+    require(healthBefore != 0, "!active position");
+    // 2. Book execution scope variables. Check if the given strategy is known add strat.
+    POSITION_ID = id;
+    (STRATEGY, ) = abi.decode(data, (address, bytes));
+    require(config.approvedAddStrategies(STRATEGY), "!approved strat");
+    // 3. If not goRouge then check worker stability, else only check reserve consistency.
+    if (!goRogue) require(config.isWorkerStable(worker), "worker !stable");
+    else require(config.isWorkerReserveConsistent(worker), "reserve !consistent");
+    // 4. Getting required info.
+    uint256 debt = debtShareToVal(pos.debtShare);
+    // 5. Perform add collateral according to the strategy.
+    uint256 beforeBEP20 = SafeToken.myBalance(token).sub(amount);
+    SafeToken.safeTransfer(token, worker, amount);
+    IWorker(worker).work(id, msg.sender, debt, data);
+    uint256 healthAfter = IWorker(worker).health(id);
+    uint256 back = SafeToken.myBalance(token).sub(beforeBEP20);
+    // 6. Sanity check states after perform add collaterals
+    // - if not goRouge then check worker stability else only check reserve consistency.
+    // - back must be 0 as it is adding collateral only. No BTOKEN needed to be returned.
+    // - healthAfter must more than before.
+    if (!goRogue) require(config.isWorkerStable(worker), "worker !stable");
+    else require(config.isWorkerReserveConsistent(worker), "reserve !consistent");
+    require(back == 0, "back !0");
+    require(healthAfter > healthBefore, "health !increase");
+    // 7. Release execution scope
+    POSITION_ID = _NO_ID;
+    STRATEGY = _NO_ADDRESS;
+    // 8. Emit event
+    emit AddCollateral(id, amount, healthBefore, healthAfter);
+  }
+
   /// @dev Create a new farming position to unlock your yield farming potential.
   /// @param id The ID of the position to unlock the earning. Use ZERO for new position.
   /// @param worker The address of the authorized worker to work for this position.
@@ -272,7 +332,7 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     uint256 maxReturn,
     bytes calldata data
   ) external payable onlyEOAorWhitelisted transferTokenToVault(principalAmount) accrue(principalAmount) nonReentrant {
-    require(fairLaunchPoolId != uint256(-1), "Vault::work:: poolId not set");
+    require(fairLaunchPoolId != uint256(-1), "poolId not set");
     // 1. Sanity check the input position, or add a new position of ID is 0.
     Position storage pos;
     if (id == 0) {
@@ -282,9 +342,9 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
       pos.owner = msg.sender;
     } else {
       pos = positions[id];
-      require(id < nextPositionID, "Vault::work:: bad position id");
-      require(pos.worker == worker, "Vault::work:: bad position worker");
-      require(pos.owner == msg.sender, "Vault::work:: not position owner");
+      require(id < nextPositionID, "bad position id");
+      require(pos.worker == worker, "bad position worker");
+      require(pos.owner == msg.sender, "not position owner");
       _fairLaunchWithdraw(id);
     }
     emit Work(id, borrowAmount);
@@ -292,14 +352,14 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     POSITION_ID = id;
     (STRATEGY, ) = abi.decode(data, (address, bytes));
     // 2. Make sure the worker can accept more debt and remove the existing debt.
-    require(config.isWorker(worker), "Vault::work:: not a worker");
-    require(borrowAmount == 0 || config.acceptDebt(worker), "Vault::work:: worker not accept more debt");
+    require(config.isWorker(worker), "not a worker");
+    require(borrowAmount == 0 || config.acceptDebt(worker), "worker not accept more debt");
     uint256 debt = _removeDebt(id).add(borrowAmount);
     // 3. Perform the actual work, using a new scope to avoid stack-too-deep errors.
     uint256 back;
     {
       uint256 sendBEP20 = principalAmount.add(borrowAmount);
-      require(sendBEP20 <= SafeToken.myBalance(token), "Vault::work:: insufficient funds in the vault");
+      require(sendBEP20 <= SafeToken.myBalance(token), "insufficient funds in the vault");
       uint256 beforeBEP20 = SafeToken.myBalance(token).sub(sendBEP20);
       SafeToken.safeTransfer(token, worker, sendBEP20);
       IWorker(worker).work(id, msg.sender, debt, data);
@@ -309,10 +369,10 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     uint256 lessDebt = Math.min(debt, Math.min(back, maxReturn));
     debt = debt.sub(lessDebt);
     if (debt > 0) {
-      require(debt >= config.minDebtSize(), "Vault::work:: too small debt size");
+      require(debt >= config.minDebtSize(), "too small debt size");
       uint256 health = IWorker(worker).health(id);
       uint256 workFactor = config.workFactor(worker, debt);
-      require(health.mul(workFactor) >= debt.mul(10000), "Vault::work:: bad work factor");
+      require(health.mul(workFactor) >= debt.mul(10000), "bad work factor");
       _addDebt(id, debt);
       _fairLaunchDeposit(id, pos.debtShare);
     }
@@ -321,29 +381,23 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     STRATEGY = _NO_ADDRESS;
     // 6. Return excess token back.
     if (back > lessDebt) {
-      if (token == config.getWrappedNativeAddr()) {
-        SafeToken.safeTransfer(token, config.getWNativeRelayer(), back.sub(lessDebt));
-        WNativeRelayer(uint160(config.getWNativeRelayer())).withdraw(back.sub(lessDebt));
-        SafeToken.safeTransferETH(msg.sender, back.sub(lessDebt));
-      } else {
-        SafeToken.safeTransfer(token, msg.sender, back.sub(lessDebt));
-      }
+      _safeUnwrap(msg.sender, back.sub(lessDebt));
     }
   }
 
   /// @dev Kill the given to the position. Liquidate it immediately if killFactor condition is met.
   /// @param id The position ID to be killed.
   function kill(uint256 id) external onlyEOAorWhitelisted accrue(0) nonReentrant {
-    require(fairLaunchPoolId != uint256(-1), "Vault::kill:: poolId not set");
+    require(fairLaunchPoolId != uint256(-1), "poolId not set");
     // 1. Verify that the position is eligible for liquidation.
     Position storage pos = positions[id];
-    require(pos.debtShare > 0, "Vault::kill:: no debt");
+    require(pos.debtShare > 0, "no debt");
     // 2. Distribute ALPACAs in FairLaunch to owner
     _fairLaunchWithdraw(id);
     uint256 debt = _removeDebt(id);
     uint256 health = IWorker(pos.worker).health(id);
     uint256 killFactor = config.killFactor(pos.worker, debt);
-    require(health.mul(killFactor) < debt.mul(10000), "Vault::kill:: can't liquidate");
+    require(health.mul(killFactor) < debt.mul(10000), "can't liquidate");
     // 3. Perform liquidation and compute the amount of token received.
     uint256 beforeToken = SafeToken.myBalance(token);
     IWorker(pos.worker).liquidate(id);
@@ -355,35 +409,18 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     uint256 rest = back.sub(prize);
     // 4. Clear position debt and return funds to liquidator and position owner.
     if (liquidatorPrize > 0) {
-      if (token == config.getWrappedNativeAddr()) {
-        SafeToken.safeTransfer(token, config.getWNativeRelayer(), liquidatorPrize);
-        WNativeRelayer(uint160(config.getWNativeRelayer())).withdraw(liquidatorPrize);
-        SafeToken.safeTransferETH(msg.sender, liquidatorPrize);
-      } else {
-        SafeToken.safeTransfer(token, msg.sender, liquidatorPrize);
-      }
+      _safeUnwrap(msg.sender, liquidatorPrize);
     }
 
     if (tresauryFees > 0) {
-      if (token == config.getWrappedNativeAddr()) {
-        SafeToken.safeTransfer(token, config.getWNativeRelayer(), tresauryFees);
-        WNativeRelayer(uint160(config.getWNativeRelayer())).withdraw(tresauryFees);
-        SafeToken.safeTransferETH(config.getTreasuryAddr(), tresauryFees);
-      } else {
-        SafeToken.safeTransfer(token, config.getTreasuryAddr(), tresauryFees);
-      }
+      _safeUnwrap(config.getTreasuryAddr(), tresauryFees);
     }
 
     uint256 left = rest > debt ? rest - debt : 0;
     if (left > 0) {
-      if (token == config.getWrappedNativeAddr()) {
-        SafeToken.safeTransfer(token, config.getWNativeRelayer(), left);
-        WNativeRelayer(uint160(config.getWNativeRelayer())).withdraw(left);
-        SafeToken.safeTransferETH(pos.owner, left);
-      } else {
-        SafeToken.safeTransfer(token, pos.owner, left);
-      }
+      _safeUnwrap(pos.owner, left);
     }
+
     emit Kill(id, msg.sender, pos.owner, health, debt, prize, left);
   }
 
@@ -419,19 +456,6 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     config = _config;
   }
 
-  /// @dev Update debtToken to a new address. Must only be called by owner.
-  /// @param _debtToken The new DebtToken
-  function updateDebtToken(address _debtToken, uint256 _newPid) external onlyOwner {
-    require(_debtToken != token, "Vault::updateDebtToken:: _debtToken must not be the same as token");
-    address[] memory okHolders = new address[](2);
-    okHolders[0] = address(this);
-    okHolders[1] = config.getFairLaunchAddr();
-    IDebtToken(_debtToken).setOkHolders(okHolders, true);
-    debtToken = _debtToken;
-    fairLaunchPoolId = _newPid;
-    SafeToken.safeApprove(debtToken, config.getFairLaunchAddr(), uint256(-1));
-  }
-
   function setFairLaunchPoolId(uint256 _poolId) external onlyOwner {
     SafeToken.safeApprove(debtToken, config.getFairLaunchAddr(), uint256(-1));
     fairLaunchPoolId = _poolId;
@@ -451,6 +475,6 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     reservePool = reservePool.sub(value);
   }
 
-  /// @dev Fallback function to accept ETH. Workers will send ETH back the pool.
+  /// @dev Fallback function to accept BNB.
   receive() external payable {}
 }

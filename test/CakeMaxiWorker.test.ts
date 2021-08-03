@@ -11,8 +11,6 @@ import {
   PancakeRouterV2__factory,
   PancakeMasterChef,
   PancakeMasterChef__factory,
-  PancakePair,
-  PancakePair__factory,
   PancakeRouterV2,
   PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading,
   PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading__factory,
@@ -51,10 +49,7 @@ import {
   PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate,
   PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate__factory,
 } from "../typechain";
-import * as TimeHelpers from "./helpers/time";
 import * as Assert from "./helpers/assert";
-import { MAX_INTEGER } from "ethereumjs-util";
-import { formatEther } from "ethers/lib/utils";
 
 chai.use(solidity);
 const { expect } = chai;
@@ -247,6 +242,7 @@ describe("CakeMaxiWorker", () => {
       wNativeRelayer.address,
     ])) as PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading;
     await stratMinimize.deployed();
+
     const PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading = (await ethers.getContractFactory(
       "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading",
       deployer
@@ -256,6 +252,7 @@ describe("CakeMaxiWorker", () => {
       [routerV2.address, wNativeRelayer.address]
     )) as PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading;
     await stratPartialCloseMinimize.deployed();
+
     const EvilStrat = (await ethers.getContractFactory(
       "PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading",
       deployer
@@ -366,9 +363,8 @@ describe("CakeMaxiWorker", () => {
       debtToken.address,
     ])) as Vault;
     await integratedVault.deployed();
+    await debtToken.setOkHolders([fairLaunch.address, integratedVault.address], true);
     await debtToken.transferOwnership(integratedVault.address);
-    // Update DebtToken
-    await integratedVault.updateDebtToken(debtToken.address, 0);
 
     // Add FairLaunch pool and set fairLaunchPoolId for Vault
     await fairLaunch.addPool(1, await integratedVault.debtToken(), false);
@@ -392,7 +388,16 @@ describe("CakeMaxiWorker", () => {
     await integratedCakeMaxiWorker.deployed();
 
     // Setting up dependencies for workers & strategies
-    await simpleVaultConfig.setWorker(integratedCakeMaxiWorker.address, true, true, WORK_FACTOR, KILL_FACTOR);
+    await simpleVaultConfig.setWorker(
+      integratedCakeMaxiWorker.address,
+      true,
+      true,
+      WORK_FACTOR,
+      KILL_FACTOR,
+      true,
+      true
+    );
+
     await wNativeRelayer.setCallerOk(
       [
         stratMinimize.address,
