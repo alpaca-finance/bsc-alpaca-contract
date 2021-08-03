@@ -2713,17 +2713,6 @@ describe("Vault - WaultSwap02", () => {
 
         // Now Alice can borrow 1 BTOKEN + 1 BTOKEN of her to create a new position
         await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
-        // Position#1: Alice borrows 1 BTOKEN and supply another 1 BTOKEN
-        // After calling `work()`
-        // 2 BTOKEN needs to swap 0.0732967258967755614 BTOKEN to 0.042234424701074812 FTOKEN
-        // new reserve after swap will be 1.732967258967755614 BTOKEN 0.057765575298925188 FTOKEN
-        // based on optimal swap formula, BTOKEN-FTOKEN to be added into the LP will be 1.267032741032244386 BTOKEN + 0.042234424701074812 FTOKEN
-        // lp amount from adding liquidity will be (0.042234424701074812 / 0.057765575298925188) * 0.316227766016837933(first total supply) = 0.231205137369691323 LP
-        // new reserve after adding liquidity 2.999999999999999954 BTOKEN + 0.100000000000000000 FTOKEN
-        // ----------------
-        // BTOKEN-FTOKEN reserve = 2.999999999999999954 BTOKEN + 0.100000000000000000 FTOKEN
-        // BTOKEN-FTOKEN total supply = 0.547432903386529256 BTOKEN-FTOKEN LP
-        // ----------------
         await swapHelper.loadReserves(await waultSwapWorker.getPath());
         await vaultAsAlice.work(
           0,
@@ -3036,24 +3025,24 @@ describe("Vault - WaultSwap02", () => {
           it("should revert when using partial close minimize start", async () => {
             await revertUnapprovedStrat(true, partialCloseMinimizeStrat.address);
           });
+        });
 
-          context("when reserve is inconsistent", async () => {
-            beforeEach(async () => {
-              // Set worker to unstable
-              await simpleVaultConfig.setWorker(
-                waultSwapWorker.address,
-                true,
-                true,
-                WORK_FACTOR,
-                KILL_FACTOR,
-                false,
-                false
-              );
-            });
+        context("when reserve is inconsistent", async () => {
+          beforeEach(async () => {
+            // Set worker to unstable
+            await simpleVaultConfig.setWorker(
+              waultSwapWorker.address,
+              true,
+              true,
+              WORK_FACTOR,
+              KILL_FACTOR,
+              false,
+              false
+            );
+          });
 
-            it("should revert", async () => {
-              await revertReserveNotConsistent(true, addStrat.address);
-            });
+          it("should revert", async () => {
+            await revertReserveNotConsistent(true, addStrat.address);
           });
         });
       });

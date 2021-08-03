@@ -268,7 +268,8 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
 
   /// @dev addCollateral to the given position.
   /// @param id The ID of the position to add collaterals.
-  /// @param amount The anout of BTOKEN to be added to the position
+  /// @param amount The amount of BTOKEN to be added to the position
+  /// @param goRogue If on skip worker stability check, else only check reserve consistency.
   /// @param data The calldata to pass along to the worker for more working context.
   function addCollateral(
     uint256 id,
@@ -290,24 +291,25 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     POSITION_ID = id;
     (STRATEGY, ) = abi.decode(data, (address, bytes));
     require(config.approvedAddStrategies(STRATEGY), "!approved strat");
-    // 3. If not goRouge than check worker stability, else only check reserve consistency.
+    // 3. If not goRouge then check worker stability, else only check reserve consistency.
     if (!goRogue) require(config.isWorkerStable(worker), "worker !stable");
     else require(config.isWorkerReserveConsistent(worker), "reserve !consistent");
-    // 4. Getting required info
+    // 4. Getting required info.
     uint256 debt = debtShareToVal(pos.debtShare);
-    // 5. Perform add collateral according to the strategy
+    // 5. Perform add collateral according to the strategy.
     uint256 beforeBEP20 = SafeToken.myBalance(token).sub(amount);
     SafeToken.safeTransfer(token, worker, amount);
     IWorker(worker).work(id, msg.sender, debt, data);
     uint256 healthAfter = IWorker(worker).health(id);
     uint256 back = SafeToken.myBalance(token).sub(beforeBEP20);
     // 6. Sanity check states after perform add collaterals
-    // - if not goRouge then check worker stability
+    // - if not goRouge then check worker stability else only check reserve consistency.
     // - back must be 0 as it is adding collateral only. No BTOKEN needed to be returned.
-    // - not goRouge than check worker stability, else only check reserve consistency.
+    // - healthAfter must more than before.
     if (!goRogue) require(config.isWorkerStable(worker), "worker !stable");
     else require(config.isWorkerReserveConsistent(worker), "reserve !consistent");
     require(back == 0, "back !0");
+    require(healthAfter > healthBefore, "health !increase");
     // 7. Release execution scope
     POSITION_ID = _NO_ID;
     STRATEGY = _NO_ADDRESS;

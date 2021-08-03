@@ -3211,24 +3211,24 @@ describe("Vault - PancakeswapV202", () => {
             it("should revert when using partial close minimize start", async () => {
               await revertUnapprovedStrat(true, partialCloseMinimizeStrat.address);
             });
+          });
 
-            context("when reserve is inconsistent", async () => {
-              beforeEach(async () => {
-                // Set worker to unstable
-                await simpleVaultConfig.setWorker(
-                  pancakeswapV2Worker.address,
-                  true,
-                  true,
-                  WORK_FACTOR,
-                  KILL_FACTOR,
-                  false,
-                  false
-                );
-              });
+          context("when reserve is inconsistent", async () => {
+            beforeEach(async () => {
+              // Set worker to unstable
+              await simpleVaultConfig.setWorker(
+                pancakeswapV2Worker.address,
+                true,
+                true,
+                WORK_FACTOR,
+                KILL_FACTOR,
+                false,
+                false
+              );
+            });
 
-              it("should revert", async () => {
-                await revertReserveNotConsistent(true, addStrat.address);
-              });
+            it("should revert", async () => {
+              await revertReserveNotConsistent(true, addStrat.address);
             });
           });
         });
