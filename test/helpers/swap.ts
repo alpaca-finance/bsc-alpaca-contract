@@ -115,7 +115,7 @@ export class SwapHelper {
       const currLp = PancakePair__factory.connect(await this.factory.getPair(path[i - 1], path[i]), this.signer);
       const reserveIdx = this.reserves.findIndex((r) => r.lp === currLp.address);
       if (reserveIdx === -1) {
-        throw "not found reserve";
+        throw new Error("computeSwapExactTokensForTokens: not found reserve");
       }
       const isReverse = (await currLp.token0()) != path[i];
       const [rOut, rIn] = isReverse
@@ -144,7 +144,7 @@ export class SwapHelper {
     );
     const reserveIdx = this.reserves.findIndex((r) => r.lp === currLp.address);
     if (reserveIdx === -1) {
-      throw "not found reserve";
+      throw new Error("computeOneSidedOptimalSwap: not found reserve");
     }
     const con1 = BigNumber.from(2).mul(this.feeDenom).sub(this.feeDenom.sub(this.fee));
     const con2 = BigNumber.from(4).mul(this.fee).mul(this.feeDenom);
@@ -170,7 +170,7 @@ export class SwapHelper {
     );
     const reserveIdx = this.reserves.findIndex((r) => r.lp === currLp.address);
     if (reserveIdx === -1) {
-      throw "not found reserve";
+      throw new Error("computeTwoSidesOptimalSwap: not found reserve");
     }
     const [r0, r1] =
       (await currLp.token0()) === path[0]
@@ -211,7 +211,7 @@ export class SwapHelper {
     const currLp = PancakePair__factory.connect(await this.factory.getPair(tokenA, tokenB), this.signer);
     const reserveIdx = this.reserves.findIndex((r) => r.lp === currLp.address);
     if (reserveIdx === -1) {
-      throw "removeLiquidity: not found reserve";
+      throw new Error("removeLiquidity: not found reserve");
     }
 
     const isReversed = (await currLp.token0()) !== tokenA;
@@ -238,7 +238,7 @@ export class SwapHelper {
     const currLp = PancakePair__factory.connect(await this.factory.getPair(tokenA, tokenB), this.signer);
     const reserveIdx = this.reserves.findIndex((r) => r.lp === currLp.address);
     if (reserveIdx === -1) {
-      throw "not found reserve";
+      throw new Error("computeAddLiquidity: not found reserve");
     }
 
     const isReversed = (await currLp.token0()) !== tokenA;
@@ -343,7 +343,7 @@ export class SwapHelper {
     const currLp = PancakePair__factory.connect(await this.factory.getPair(tokenA, tokenB), this.signer);
     const reserveIdx = this.reserves.findIndex((r) => r.lp === currLp.address);
     if (reserveIdx === -1) {
-      throw "not found reserve";
+      throw new Error("computeUnderlaying: not found reserve");
     }
 
     const [r0, r1] = await currLp.getReserves();
