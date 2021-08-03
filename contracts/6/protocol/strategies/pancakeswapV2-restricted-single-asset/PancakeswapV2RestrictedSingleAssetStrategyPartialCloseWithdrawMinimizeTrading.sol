@@ -27,7 +27,7 @@ import "../../interfaces/IWNativeRelayer.sol";
 
 import "../../../utils/SafeToken.sol";
 
-contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading is
+contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading is
   OwnableUpgradeSafe,
   ReentrancyGuardUpgradeSafe,
   IStrategy
@@ -41,7 +41,7 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeT
   mapping(address => bool) public okWorkers;
   IWNativeRelayer public wNativeRelayer;
 
-  event PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTradingEvent(
+  event PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTradingEvent(
     address indexed baseToken,
     address indexed farmToken,
     uint256 amounToLiquidate,
@@ -52,7 +52,7 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeT
   modifier onlyWhitelistedWorkers() {
     require(
       okWorkers[msg.sender],
-      "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::onlyWhitelistedWorkers:: bad worker"
+      "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading::onlyWhitelistedWorkers:: bad worker"
     );
     _;
   }
@@ -107,7 +107,7 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeT
     // 6. Return the partial farmingTokens back to the user.
     require(
       farmingTokenBalanceToBeSentToTheUser >= minFarmingTokenAmount,
-      "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading::execute:: insufficient farmingToken amount received"
+      "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading::execute:: insufficient farmingToken amount received"
     );
     if (farmingTokenBalanceToBeSentToTheUser > 0) {
       if (farmingToken == address(wbnb)) {
@@ -122,7 +122,7 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeT
     farmingToken.safeTransfer(msg.sender, farmingToken.myBalance());
     // 8. Reset approval for safety reason.
     farmingToken.safeApprove(address(router), 0);
-    emit PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTradingEvent(
+    emit PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTradingEvent(
       baseToken,
       farmingToken,
       farmingTokenToLiquidate,

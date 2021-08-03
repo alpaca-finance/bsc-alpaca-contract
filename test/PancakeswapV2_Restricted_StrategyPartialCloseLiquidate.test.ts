@@ -294,7 +294,7 @@ describe("PancakeswapV2RestrictedStrategyPartialCloseLiquidate", () => {
                 ["uint256", "uint256", "uint256"],
                 [
                   ethers.utils.parseEther("8888"),
-                  ethers.utils.parseEther("0.1"),
+                  ethers.utils.parseEther("0"),
                   ethers.utils.parseEther("1.499374217772215269"),
                 ]
               ),
@@ -303,7 +303,7 @@ describe("PancakeswapV2RestrictedStrategyPartialCloseLiquidate", () => {
         )
       )
         .to.emit(strat, "PancakeswapV2RestrictedStrategyPartialCloseLiquidateEvent")
-        .withArgs(baseToken.address, farmingToken.address, ethers.utils.parseEther("0.316227766016837933"));
+        .withArgs(baseToken.address, farmingToken.address, ethers.utils.parseEther("0.316227766016837933"), "0");
 
       expect(await lpV2.balanceOf(strat.address), "Strategy should has 0 LP").to.be.bignumber.eq(
         ethers.utils.parseEther("0")
@@ -348,14 +348,14 @@ describe("PancakeswapV2RestrictedStrategyPartialCloseLiquidate", () => {
               strat.address,
               ethers.utils.defaultAbiCoder.encode(
                 ["uint256", "uint256", "uint256"],
-                [returnLp, ethers.utils.parseEther("0.1"), ethers.utils.parseEther("0.5")]
+                [returnLp, ethers.utils.parseEther("0"), ethers.utils.parseEther("0.5")]
               ),
             ]
           )
         )
       )
         .to.emit(strat, "PancakeswapV2RestrictedStrategyPartialCloseLiquidateEvent")
-        .withArgs(baseToken.address, farmingToken.address, returnLp);
+        .withArgs(baseToken.address, farmingToken.address, returnLp, "0");
 
       // After execute strategy successfully. The following conditions must be satisfied
       // - LPs in Strategy contract must be 0
@@ -379,6 +379,198 @@ describe("PancakeswapV2RestrictedStrategyPartialCloseLiquidate", () => {
       assertAlmostEqual(
         ethers.utils.parseEther("0.2").toString(),
         (await farmingToken.balanceOf(lpV2.address)).toString()
+      );
+    });
+  });
+
+  context("when maxDebtRepayment >= debt", async () => {
+    it("should compare slippage by taking convertingPostionValue - debt", async () => {
+      // Bob transfer LP to strategy first
+      const bobBTokenBefore = await baseToken.balanceOf(bobAddress);
+      await lpAsBob.transfer(strat.address, ethers.utils.parseEther("0.316227766016837933"));
+
+      // Bob's position: 0.316227766016837933 LP
+      // Debt: 1 BTOKEN
+      // lpToLiquidate: Math.min(888, 0.316227766016837933) = 0.316227766016837933 LP (0.1 FTOKEN + 1 FTOKEN)
+      // maxDebtRepayment: Math.min(888, 1) = 1 BTOKEN
+      // The following conditions are expected:
+      // - LPs in Strategy contract must be 0
+      // - Worker should have 0 LP left as all LP is liquidated
+      // - Bob should have:
+      // bobBtokenBefore + 1 BTOKEN + [((0.1*9975)*1)/(0.1*10000+(0.1*9975))] = 0.499374217772215269 BTOKEN] (from swap 0.1 FTOKEN to BTOKEN) in his account
+      // - BTOKEN in reserve should be 1-0.499374217772215269 = 0.500625782227784731 BTOKEN
+      // - FTOKEN in reserve should be 0.1+0.1 = 0.2 FTOKEN
+      // - minBaseToken <= 1.499374217772215269 - 1 (debt) = 0.499374217772215269 BTOKEN must pass slippage check
+
+      // Expect to be reverted if slippage is set at 0.499374217772215270 BTOKEN
+      await expect(
+        mockPancakeswapV2WorkerAsBob.work(
+          0,
+          bobAddress,
+          ethers.utils.parseEther("1"),
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [
+              strat.address,
+              ethers.utils.defaultAbiCoder.encode(
+                ["uint256", "uint256", "uint256"],
+                [
+                  ethers.utils.parseEther("8888"),
+                  ethers.utils.parseEther("8888"),
+                  ethers.utils.parseEther("0.499374217772215270"),
+                ]
+              ),
+            ]
+          )
+        )
+      ).to.be.revertedWith(
+        "PancakeswapV2RestrictedStrategyPartialCloseLiquidate::execute:: insufficient baseToken received"
+      );
+
+      await expect(
+        mockPancakeswapV2WorkerAsBob.work(
+          0,
+          bobAddress,
+          ethers.utils.parseEther("1"),
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [
+              strat.address,
+              ethers.utils.defaultAbiCoder.encode(
+                ["uint256", "uint256", "uint256"],
+                [
+                  ethers.utils.parseEther("8888"),
+                  ethers.utils.parseEther("8888"),
+                  ethers.utils.parseEther("0.499374217772215269"),
+                ]
+              ),
+            ]
+          )
+        )
+      )
+        .to.emit(strat, "PancakeswapV2RestrictedStrategyPartialCloseLiquidateEvent")
+        .withArgs(
+          baseToken.address,
+          farmingToken.address,
+          ethers.utils.parseEther("0.316227766016837933"),
+          ethers.utils.parseEther("1")
+        );
+
+      expect(await lpV2.balanceOf(strat.address), "Strategy should has 0 LP").to.be.bignumber.eq(
+        ethers.utils.parseEther("0")
+      );
+      expect(
+        await lpV2.balanceOf(mockPancakeswapV2Worker.address),
+        "Worker should has 0 LP as all LP is liquidated"
+      ).to.be.bignumber.eq("0");
+      expect(
+        await baseToken.balanceOf(bobAddress),
+        "Bob's BTOKEN should increase by 1.499374217772215269 BTOKEN"
+      ).to.be.bignumber.eq(
+        bobBTokenBefore.add(ethers.utils.parseEther("1")).add(ethers.utils.parseEther("0.499374217772215269"))
+      );
+      expect(
+        await baseToken.balanceOf(lpV2.address),
+        "FTOKEN-BTOKEN LP should has 0.500625782227784731 BTOKEN"
+      ).to.be.bignumber.eq(ethers.utils.parseEther("0.500625782227784731"));
+      expect(await farmingToken.balanceOf(lpV2.address), "FTOKEN-BTOKEN LP should as 0.2 FTOKEN").to.be.bignumber.eq(
+        ethers.utils.parseEther("0.2")
+      );
+    });
+  });
+
+  context("when maxDebtRepayment < debt", async () => {
+    it("should compare slippage by taking convertingPostionValue - maxDebtRepayment", async () => {
+      // Bob transfer LP to strategy first
+      const bobBTokenBefore = await baseToken.balanceOf(bobAddress);
+      await lpAsBob.transfer(strat.address, ethers.utils.parseEther("0.316227766016837933"));
+
+      // Bob's position: 0.316227766016837933 LP
+      // Debt: 1 BTOKEN
+      // lpToLiquidate: Math.min(888, 0.316227766016837933) = 0.316227766016837933 LP (0.1 FTOKEN + 1 FTOKEN)
+      // maxDebtRepayment: 0.1 BTOKEN
+      // The following conditions are expected
+      // - LPs in Strategy contract must be 0
+      // - Worker should have 0 LP left as all LP is liquidated
+      // - Bob should have:
+      // bobBtokenBefore + 1 BTOKEN + [((0.1*9975)*1)/(0.1*10000+(0.1*9975))] = 0.499374217772215269 BTOKEN] (from swap 0.1 FTOKEN to BTOKEN) in his account
+      // - BTOKEN in reserve should be 1-0.499374217772215269 = 0.500625782227784731 BTOKEN
+      // - FTOKEN in reserve should be 0.1+0.1 = 0.2 FTOKEN
+      // - minBaseToken <= 1.399374217772215269 BTOKEN should pass slippage check
+
+      // Expect to be reverted if slippage is set at 1.399374217772215270 BTOKEN
+      await expect(
+        mockPancakeswapV2WorkerAsBob.work(
+          0,
+          bobAddress,
+          ethers.utils.parseEther("1"),
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [
+              strat.address,
+              ethers.utils.defaultAbiCoder.encode(
+                ["uint256", "uint256", "uint256"],
+                [
+                  ethers.utils.parseEther("8888"),
+                  ethers.utils.parseEther("0.1"),
+                  ethers.utils.parseEther("1.399374217772215270"),
+                ]
+              ),
+            ]
+          )
+        )
+      ).to.be.revertedWith(
+        "PancakeswapV2RestrictedStrategyPartialCloseLiquidate::execute:: insufficient baseToken received"
+      );
+
+      await expect(
+        mockPancakeswapV2WorkerAsBob.work(
+          0,
+          bobAddress,
+          ethers.utils.parseEther("1"),
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [
+              strat.address,
+              ethers.utils.defaultAbiCoder.encode(
+                ["uint256", "uint256", "uint256"],
+                [
+                  ethers.utils.parseEther("8888"),
+                  ethers.utils.parseEther("0.1"),
+                  ethers.utils.parseEther("1.399374217772215269"),
+                ]
+              ),
+            ]
+          )
+        )
+      )
+        .to.emit(strat, "PancakeswapV2RestrictedStrategyPartialCloseLiquidateEvent")
+        .withArgs(
+          baseToken.address,
+          farmingToken.address,
+          ethers.utils.parseEther("0.316227766016837933"),
+          ethers.utils.parseEther("0.1")
+        );
+
+      expect(await lpV2.balanceOf(strat.address), "Strategy should has 0 LP").to.be.bignumber.eq(
+        ethers.utils.parseEther("0")
+      );
+      expect(
+        await lpV2.balanceOf(mockPancakeswapV2Worker.address),
+        "Worker should has 0 LP as all LP is liquidated"
+      ).to.be.bignumber.eq("0");
+      expect(
+        await baseToken.balanceOf(bobAddress),
+        "Bob's BTOKEN should increase by 1.499374217772215269 BTOKEN"
+      ).to.be.bignumber.eq(
+        bobBTokenBefore.add(ethers.utils.parseEther("1")).add(ethers.utils.parseEther("0.499374217772215269"))
+      );
+      expect(
+        await baseToken.balanceOf(lpV2.address),
+        "FTOKEN-BTOKEN LP should has 0.500625782227784731 BTOKEN"
+      ).to.be.bignumber.eq(ethers.utils.parseEther("0.500625782227784731"));
+      expect(await farmingToken.balanceOf(lpV2.address), "FTOKEN-BTOKEN LP should as 0.2 FTOKEN").to.be.bignumber.eq(
+        ethers.utils.parseEther("0.2")
       );
     });
   });

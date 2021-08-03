@@ -17,16 +17,20 @@ import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard
 import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
+
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakeFactory.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
-
 import "../../apis/pancake/IPancakeRouter02.sol";
+
 import "../../interfaces/IStrategy.sol";
-import "../../../utils/SafeToken.sol";
 import "../../interfaces/IWorker.sol";
+
+import "../../../utils/SafeToken.sol";
 
 contract PancakeswapV2RestrictedStrategyLiquidate is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeToken for address;
+  using SafeMath for uint256;
 
   IPancakeFactory public factory;
   IPancakeRouter02 public router;
@@ -52,7 +56,7 @@ contract PancakeswapV2RestrictedStrategyLiquidate is OwnableUpgradeSafe, Reentra
   /// @param data Extra calldata information passed along to this strategy.
   function execute(
     address, /* user */
-    uint256, /* debt */
+    uint256 debt,
     bytes calldata data
   ) external override onlyWhitelistedWorkers nonReentrant {
     // 1. Find out what farming token we are dealing with.
@@ -74,7 +78,7 @@ contract PancakeswapV2RestrictedStrategyLiquidate is OwnableUpgradeSafe, Reentra
     // 5. Return all baseToken back to the original caller.
     uint256 balance = baseToken.myBalance();
     require(
-      balance >= minBaseToken,
+      balance.sub(debt) >= minBaseToken,
       "PancakeswapV2RestrictedStrategyLiquidate::execute:: insufficient baseToken received"
     );
     SafeToken.safeTransfer(baseToken, msg.sender, balance);
