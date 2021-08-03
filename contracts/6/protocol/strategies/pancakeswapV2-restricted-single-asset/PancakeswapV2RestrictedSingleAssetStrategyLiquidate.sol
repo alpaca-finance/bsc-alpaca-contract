@@ -17,14 +17,15 @@ import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
+
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakeFactory.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
-
 import "../../apis/pancake/IPancakeRouter02.sol";
+
 import "../../interfaces/IStrategy.sol";
-import "../../../utils/SafeToken.sol";
-import "../../../utils/AlpacaMath.sol";
 import "../../interfaces/IWorker02.sol";
+
+import "../../../utils/SafeToken.sol";
 
 contract PancakeswapV2RestrictedSingleAssetStrategyLiquidate is
   OwnableUpgradeSafe,
@@ -62,7 +63,7 @@ contract PancakeswapV2RestrictedSingleAssetStrategyLiquidate is
   /// @param data Extra calldata information passed along to this strategy.
   function execute(
     address, /* user */
-    uint256, /* debt */
+    uint256 debt,
     bytes calldata data
   ) external override onlyWhitelistedWorkers nonReentrant {
     // 1. minBaseTokenAmount for validating a baseToken amount from a conversion of a farmingToken.
@@ -77,7 +78,7 @@ contract PancakeswapV2RestrictedSingleAssetStrategyLiquidate is
     router.swapExactTokensForTokens(balance, 0, worker.getReversedPath(), address(this), now);
     // 4. Transfer all baseTokens (as a result of a conversion) back to the calling worker
     require(
-      baseToken.myBalance() >= minBaseTokenAmount,
+      baseToken.myBalance().sub(debt) >= minBaseTokenAmount,
       "PancakeswapV2RestrictedSingleAssetStrategyLiquidate::execute:: insufficient baseToken amount received"
     );
     baseToken.safeTransfer(msg.sender, baseToken.myBalance());

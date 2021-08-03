@@ -16,6 +16,7 @@ pragma solidity 0.6.6;
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/math/Math.sol";
 
 import "../../apis/pancake/IPancakeRouter02.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakeFactory.sol";
@@ -25,7 +26,6 @@ import "../../interfaces/IVault.sol";
 import "../../interfaces/IWorker02.sol";
 
 import "../../../utils/SafeToken.sol";
-import "../../../utils/AlpacaMath.sol";
 
 contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate is
   OwnableUpgradeSafe,
@@ -43,10 +43,11 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate is
   event PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidateEvent(
     address indexed baseToken,
     address indexed farmToken,
-    uint256 amounToLiquidate
+    uint256 amounToLiquidate,
+    uint256 amountToRepayDebt
   );
 
-  // @notice require that only allowed workers are able to do the rest of the method call
+  /// @notice require that only allowed workers are able to do the rest of the method call
   modifier onlyWhitelistedWorkers() {
     require(
       okWorkers[msg.sender],
@@ -69,40 +70,42 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate is
   /// @param data Extra calldata information passed along to this strategy.
   function execute(
     address, /* user */
-    uint256, /* debt */
+    uint256 debt,
     bytes calldata data
   ) external override onlyWhitelistedWorkers nonReentrant {
-    // 1. farmingTokenToLiquidate - How much farmingToken to liquidate?
-    // minBaseTokenAmount - For validating slippage
-    (uint256 farmingTokenToLiquidate, uint256 minBaseTokenAmount) = abi.decode(data, (uint256, uint256));
+    // 1. Decode variables from extra data & load required variables.
+    // - maxFarmingTokenToLiquidate - maximum farmingToken amount that user want to liquidate.
+    // - maxDebtRepayment -> maximum BTOKEN amount that user want to repaid debt.
+    // - minBaseTokenAmount - minimum baseToken amount that user want to receive.
+    (uint256 maxFarmingTokenToLiquidate, uint256 maxDebtRepayment, uint256 minBaseTokenAmount) =
+      abi.decode(data, (uint256, uint256, uint256));
     IWorker02 worker = IWorker02(msg.sender);
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
-    // 2. Approve router to do their stuffs
+    uint256 farmingTokenToLiquidate = Math.min(farmingToken.myBalance(), maxFarmingTokenToLiquidate);
+    uint256 lessDebt = Math.min(debt, maxDebtRepayment);
+    // 2. Approve router to do their stuffs.
     farmingToken.safeApprove(address(router), uint256(-1));
     // 3. Convert some farmingTokens back to a baseTokens.
-    require(
-      farmingToken.myBalance() >= farmingTokenToLiquidate,
-      "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate::execute:: insufficient farmingToken received from worker"
-    );
     uint256 baseTokenBefore = baseToken.myBalance();
     router.swapExactTokensForTokens(farmingTokenToLiquidate, 0, worker.getReversedPath(), address(this), now);
     uint256 baseTokenAfter = baseToken.myBalance();
-    // 4. Transfer all baseTokens (as a result of a conversion) back to the calling worker
+    // 4. Transfer all baseTokens (as a result of a conversion) back to the calling worker.
     require(
-      baseTokenAfter.sub(baseTokenBefore) >= minBaseTokenAmount,
+      baseTokenAfter.sub(baseTokenBefore).sub(lessDebt) >= minBaseTokenAmount,
       "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate::execute:: insufficient baseToken amount received"
     );
     baseToken.safeTransfer(msg.sender, baseTokenAfter);
-    // 4.1 transfer remaining farmingTokens back to worker
+    // 5. transfer remaining farmingTokens back to worker.
     farmingToken.safeTransfer(msg.sender, farmingToken.myBalance());
-    // 5. Reset approval for safety reason
+    // 6. Reset approval for safety reason.
     farmingToken.safeApprove(address(router), 0);
 
     emit PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidateEvent(
       baseToken,
       farmingToken,
-      farmingTokenToLiquidate
+      farmingTokenToLiquidate,
+      lessDebt
     );
   }
 

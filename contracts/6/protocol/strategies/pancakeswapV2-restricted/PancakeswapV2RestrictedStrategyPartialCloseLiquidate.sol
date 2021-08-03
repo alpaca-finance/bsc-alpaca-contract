@@ -16,6 +16,7 @@ pragma solidity 0.6.6;
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/math/Math.sol";
 
 import "../../apis/pancake/IPancakeRouter02.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakeFactory.sol";
@@ -42,7 +43,8 @@ contract PancakeswapV2RestrictedStrategyPartialCloseLiquidate is
   event PancakeswapV2RestrictedStrategyPartialCloseLiquidateEvent(
     address indexed baseToken,
     address indexed farmToken,
-    uint256 amounToLiquidate
+    uint256 amountToLiquidate,
+    uint256 amountToRepayDebt
   );
 
   /// @notice require that only allowed workers are able to do the rest of the method call
@@ -67,26 +69,28 @@ contract PancakeswapV2RestrictedStrategyPartialCloseLiquidate is
   /// @param data Extra calldata information passed along to this strategy.
   function execute(
     address, /* user */
-    uint256, /* debt */
+    uint256 debt,
     bytes calldata data
   ) external override onlyWhitelistedWorkers nonReentrant {
-    // 1. Find out what farming token we are dealing with.
-    (uint256 lpTokenToLiquidate, uint256 minBaseToken) = abi.decode(data, (uint256, uint256));
+    // 1. Decode variables from extra data & load required variables.
+    // - maxLpTokenToLiquidate -> maximum lpToken amount that user want to liquidate.
+    // - maxDebtRepayment -> maximum BTOKEN amount that user want to repaid debt.
+    // - minBaseToken -> minimum baseToken amount that user want to receive.
+    (uint256 maxLpTokenToLiquidate, uint256 maxDebtRepayment, uint256 minBaseToken) =
+      abi.decode(data, (uint256, uint256, uint256));
     IWorker worker = IWorker(msg.sender);
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
     IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
-    // 2. Approve router to do their stuffs
+    uint256 lpTokenToLiquidate = Math.min(address(lpToken).myBalance(), maxLpTokenToLiquidate);
+    uint256 lessDebt = Math.min(maxDebtRepayment, debt);
+    uint256 baseTokenBefore = baseToken.myBalance();
+    // 2. Approve router to do their stuffs.
     address(lpToken).safeApprove(address(router), uint256(-1));
     farmingToken.safeApprove(address(router), uint256(-1));
     // 3. Remove some LP back to BaseToken and farming tokens as we want to return some of the position.
-    require(
-      lpToken.balanceOf(address(this)) >= lpTokenToLiquidate,
-      "PancakeswapV2RestrictedStrategyPartialCloseLiquidate::execute:: insufficient LP amount recevied from worker"
-    );
     router.removeLiquidity(baseToken, farmingToken, lpTokenToLiquidate, 0, 0, address(this), now);
     // 4. Convert farming tokens to baseToken.
-    uint256 baseTokenBefore = baseToken.myBalance();
     address[] memory path = new address[](2);
     path[0] = farmingToken;
     path[1] = baseToken;
@@ -94,16 +98,21 @@ contract PancakeswapV2RestrictedStrategyPartialCloseLiquidate is
     // 5. Return all baseToken back to the original caller.
     uint256 baseTokenAfter = baseToken.myBalance();
     require(
-      baseTokenAfter.sub(baseTokenBefore) >= minBaseToken,
+      baseTokenAfter.sub(baseTokenBefore).sub(lessDebt) >= minBaseToken,
       "PancakeswapV2RestrictedStrategyPartialCloseLiquidate::execute:: insufficient baseToken received"
     );
     SafeToken.safeTransfer(baseToken, msg.sender, baseTokenAfter);
     address(lpToken).safeTransfer(msg.sender, lpToken.balanceOf(address(this)));
-    // 6. Reset approve for safety reason
+    // 6. Reset approve for safety reason.
     address(lpToken).safeApprove(address(router), 0);
     farmingToken.safeApprove(address(router), 0);
 
-    emit PancakeswapV2RestrictedStrategyPartialCloseLiquidateEvent(baseToken, farmingToken, lpTokenToLiquidate);
+    emit PancakeswapV2RestrictedStrategyPartialCloseLiquidateEvent(
+      baseToken,
+      farmingToken,
+      lpTokenToLiquidate,
+      lessDebt
+    );
   }
 
   function setWorkersOk(address[] calldata workers, bool isOk) external onlyOwner {

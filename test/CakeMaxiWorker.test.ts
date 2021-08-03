@@ -11,13 +11,11 @@ import {
   PancakeRouterV2__factory,
   PancakeMasterChef,
   PancakeMasterChef__factory,
-  PancakePair,
-  PancakePair__factory,
   PancakeRouterV2,
   PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading,
   PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading__factory,
-  PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading,
-  PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading__factory,
+  PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading,
+  PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading__factory,
   PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly,
   PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly__factory,
   PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm,
@@ -51,10 +49,7 @@ import {
   PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate,
   PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate__factory,
 } from "../typechain";
-import * as TimeHelpers from "./helpers/time";
 import * as Assert from "./helpers/assert";
-import { MAX_INTEGER } from "ethereumjs-util";
-import { formatEther } from "ethers/lib/utils";
 
 chai.use(solidity);
 const { expect } = chai;
@@ -101,7 +96,7 @@ describe("CakeMaxiWorker", () => {
   let stratMinimize: PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading;
   let stratPartialCloseLiq: PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate;
   let stratEvil: PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading;
-  let stratPartialCloseMinimize: PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading;
+  let stratPartialCloseMinimize: PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading;
 
   // Accounts
   let deployer: Signer;
@@ -247,16 +242,17 @@ describe("CakeMaxiWorker", () => {
       wNativeRelayer.address,
     ])) as PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading;
     await stratMinimize.deployed();
-    const PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading =
-      (await ethers.getContractFactory(
-        "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading",
-        deployer
-      )) as PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading__factory;
+
+    const PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading = (await ethers.getContractFactory(
+      "PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading",
+      deployer
+    )) as PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading__factory;
     stratPartialCloseMinimize = (await upgrades.deployProxy(
-      PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading,
+      PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading,
       [routerV2.address, wNativeRelayer.address]
-    )) as PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading;
+    )) as PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading;
     await stratPartialCloseMinimize.deployed();
+
     const EvilStrat = (await ethers.getContractFactory(
       "PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading",
       deployer
@@ -401,6 +397,7 @@ describe("CakeMaxiWorker", () => {
       true,
       true
     );
+
     await wNativeRelayer.setCallerOk(
       [
         stratMinimize.address,
