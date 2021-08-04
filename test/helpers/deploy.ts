@@ -9,6 +9,7 @@ import {
   DebtToken__factory,
   FairLaunch,
   FairLaunch__factory,
+  IERC20,
   MasterChef,
   MockERC20,
   MockERC20__factory,
@@ -20,8 +21,8 @@ import {
   PancakeMasterChef__factory,
   PancakeRouterV2,
   PancakeRouterV2__factory,
-  PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading,
-  PancakeswapV2RestrictedSingleAssetStrategyPartialCloseWithdrawMinimizeTrading__factory,
+  PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading,
+  PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading__factory,
   PancakeswapV2RestrictedStrategyAddBaseTokenOnly,
   PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory,
   PancakeswapV2RestrictedStrategyAddTwoSidesOptimal,
@@ -104,7 +105,8 @@ export class DeployHelper {
 
   public async deployPancakeV2(
     wbnb: MockWBNB,
-    cakePerBlock: BigNumberish
+    cakePerBlock: BigNumberish,
+    cakeHolders: Array<IHolder>
   ): Promise<[PancakeFactory, PancakeRouterV2, CakeToken, SyrupBar, PancakeMasterChef]> {
     // Setup Pancakeswap
     const PancakeFactory = (await ethers.getContractFactory(
@@ -121,10 +123,15 @@ export class DeployHelper {
     const routerV2 = await PancakeRouterV2.deploy(factoryV2.address, wbnb.address);
     await routerV2.deployed();
 
+    // Deploy CAKE
     const CakeToken = (await ethers.getContractFactory("CakeToken", this.deployer)) as CakeToken__factory;
     const cake = await CakeToken.deploy();
     await cake.deployed();
-    await cake["mint(address,uint256)"](await this.deployer.getAddress(), ethers.utils.parseEther("100"));
+    if (cakeHolders !== undefined) {
+      cakeHolders.forEach(
+        async (cakeHolder) => await cake["mint(address,uint256)"](cakeHolder.address, cakeHolder.amount)
+      );
+    }
 
     const SyrupBar = (await ethers.getContractFactory("SyrupBar", this.deployer)) as SyrupBar__factory;
     const syrup = await SyrupBar.deploy(cake.address);
@@ -143,9 +150,12 @@ export class DeployHelper {
       0
     );
     await masterChef.deployed();
+
     // Transfer ownership so masterChef can mint CAKE
-    await cake.transferOwnership(masterChef.address);
-    await syrup.transferOwnership(masterChef.address);
+    await Promise.all([
+      await cake.transferOwnership(masterChef.address),
+      await syrup.transferOwnership(masterChef.address),
+    ]);
 
     return [factoryV2, routerV2, cake, syrup, masterChef];
   }
@@ -228,18 +238,21 @@ export class DeployHelper {
   }
 
   public async deployBEP20(bep20s: Array<IBEP20>): Promise<Array<MockERC20>> {
-    const deployedBEP20: Array<MockERC20> = [];
-    for (const bep20 of bep20s) {
-      const MockERC20 = (await ethers.getContractFactory("MockERC20", this.deployer)) as MockERC20__factory;
-      const mockBep20 = (await upgrades.deployProxy(MockERC20, [bep20.name, bep20.symbol])) as MockERC20;
-      await mockBep20.deployed();
-      deployedBEP20.push(mockBep20);
+    const promises = [];
+    for (const bep20 of bep20s) promises.push(this._deployBEP20(bep20));
+    return await Promise.all(promises);
+  }
 
-      if (bep20.holders !== undefined) {
-        bep20.holders.forEach(async (holder) => await mockBep20.mint(holder.address, holder.amount));
-      }
+  private async _deployBEP20(bep20: IBEP20): Promise<MockERC20> {
+    const MockERC20 = (await ethers.getContractFactory("MockERC20", this.deployer)) as MockERC20__factory;
+    const mockBep20 = (await upgrades.deployProxy(MockERC20, [bep20.name, bep20.symbol])) as MockERC20;
+    await mockBep20.deployed();
+
+    if (bep20.holders !== undefined) {
+      bep20.holders.forEach(async (holder) => await mockBep20.mint(holder.address, holder.amount));
     }
-    return deployedBEP20;
+
+    return mockBep20;
   }
 
   public async deployAlpacaFairLaunch(

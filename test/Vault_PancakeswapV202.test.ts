@@ -185,7 +185,9 @@ describe("Vault - PancakeswapV202", () => {
       },
     ]);
     wbnb = await deployHelper.deployWBNB();
-    [factoryV2, routerV2, cake, syrup, masterChef] = await deployHelper.deployPancakeV2(wbnb, CAKE_REWARD_PER_BLOCK);
+    [factoryV2, routerV2, cake, syrup, masterChef] = await deployHelper.deployPancakeV2(wbnb, CAKE_REWARD_PER_BLOCK, [
+      { address: deployerAddress, amount: ethers.utils.parseEther("100") },
+    ]);
     [alpacaToken, fairLaunch] = await deployHelper.deployAlpacaFairLaunch(
       ALPACA_REWARD_PER_BLOCK,
       ALPACA_BONUS_LOCK_UP_BPS,
@@ -1944,349 +1946,328 @@ describe("Vault - PancakeswapV202", () => {
       });
 
       context("#partialclose", async () => {
-        it("should partially close position successfully, when maxReturn < liquidated amount, payback part of the debt", async () => {
-          // Set interests to 0% per year for easy testing
-          await simpleVaultConfig.setParams(
-            ethers.utils.parseEther("1"), // 1 BTOKEN min debt size,
-            "0", // 0% per year
-            "1000", // 10% reserve pool
-            "1000", // 10% Kill prize
-            wbnb.address,
-            wNativeRelayer.address,
-            fairLaunch.address,
-            "0",
-            ethers.constants.AddressZero
-          );
+        context("#liquidate", async () => {
+          context("when maxReturn is lessDebt", async () => {
+            // back cannot be less than lessDebt as less debt is Min(debt, back, maxReturn) = maxReturn
+            it("should pay debt 'maxReturn' BTOKEN and return 'liquidatedAmount - maxReturn' BTOKEN to user", async () => {
+              // Set interests to 0% per year for easy testing
+              await simpleVaultConfig.setParams(
+                ethers.utils.parseEther("1"), // 1 BTOKEN min debt size,
+                "0", // 0% per year
+                "1000", // 10% reserve pool
+                "1000", // 10% Kill prize
+                wbnb.address,
+                wNativeRelayer.address,
+                fairLaunch.address,
+                "0",
+                ethers.constants.AddressZero
+              );
 
-          const [path, reinvestPath] = await Promise.all([
-            pancakeswapV2Worker.getPath(),
-            pancakeswapV2Worker.getReinvestPath(),
-          ]);
+              const [path, reinvestPath] = await Promise.all([
+                pancakeswapV2Worker.getPath(),
+                pancakeswapV2Worker.getReinvestPath(),
+              ]);
 
-          // Set Reinvest bounty to 1% of the reward
-          await pancakeswapV2Worker.setReinvestConfig("100", "0", [cake.address, wbnb.address, baseToken.address]);
+              // Set Reinvest bounty to 1% of the reward
+              await pancakeswapV2Worker.setReinvestConfig("100", "0", [cake.address, wbnb.address, baseToken.address]);
 
-          // Bob deposits 10 BTOKEN
-          await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-          await vaultAsBob.deposit(ethers.utils.parseEther("10"));
+              // Bob deposits 10 BTOKEN
+              await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
+              await vaultAsBob.deposit(ethers.utils.parseEther("10"));
 
-          // Position#1: Bob borrows 10 BTOKEN loan and supply another 10 BToken
-          // Thus, Bob's position value will be worth 20 BTOKEN
-          // After calling `work()`
-          // 20 BTOKEN needs to swap 3.587061715703192586 BTOKEN to FTOKEN
-          // new reserve after swap will be 4.587061715703192586 0.021843151027158060
-          // based on optimal swap formula, BTOKEN-FTOKEN to be added into the LP will be 16.412938284296807414 BTOKEN - 0.078156848972841940 FTOKEN
-          // new reserve after adding liquidity 21.000000000000000000 BTOKEN - 0.100000000000000000 FTOKEN
-          // lp amount from adding liquidity will be 1.131492691639043045 LP
-          const borrowedAmount = ethers.utils.parseEther("10");
-          const principalAmount = ethers.utils.parseEther("10");
-          let [workerLpBefore] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
-          await swapHelper.loadReserves(path);
-          await swapHelper.loadReserves(reinvestPath);
+              // Position#1: Bob borrows 10 BTOKEN loan and supply another 10 BToken
+              // Thus, Bob's position value will be worth 20 BTOKEN
+              // After calling `work()`
+              // 20 BTOKEN needs to swap 3.587061715703192586 BTOKEN to FTOKEN
+              // new reserve after swap will be 4.587061715703192586 0.021843151027158060
+              // based on optimal swap formula, BTOKEN-FTOKEN to be added into the LP will be 16.412938284296807414 BTOKEN - 0.078156848972841940 FTOKEN
+              // new reserve after adding liquidity 21.000000000000000000 BTOKEN - 0.100000000000000000 FTOKEN
+              // lp amount from adding liquidity will be 1.131492691639043045 LP
+              const borrowedAmount = ethers.utils.parseEther("10");
+              const principalAmount = ethers.utils.parseEther("10");
+              let [workerLpBefore] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
+              await swapHelper.loadReserves(path);
+              await swapHelper.loadReserves(reinvestPath);
 
-          await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-          await vaultAsBob.work(
-            0,
-            pancakeswapV2Worker.address,
-            principalAmount,
-            borrowedAmount,
-            "0", // max return = 0, don't return NATIVE to the debt
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "bytes"],
-              [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-            )
-          );
+              await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
+              await vaultAsBob.work(
+                0,
+                pancakeswapV2Worker.address,
+                principalAmount,
+                borrowedAmount,
+                "0", // max return = 0, don't return NATIVE to the debt
+                ethers.utils.defaultAbiCoder.encode(
+                  ["address", "bytes"],
+                  [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+                )
+              );
 
-          let [workerLpAfter] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
+              let [workerLpAfter] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
 
-          const [expectedLp, debrisBtoken] = await swapHelper.computeOneSidedOptimalLp(
-            borrowedAmount.add(principalAmount),
-            path
-          );
+              const [expectedLp, debrisBtoken] = await swapHelper.computeOneSidedOptimalLp(
+                borrowedAmount.add(principalAmount),
+                path
+              );
 
-          expect(workerLpAfter.sub(workerLpBefore)).to.eq(expectedLp);
+              expect(workerLpAfter.sub(workerLpBefore)).to.eq(expectedLp);
 
-          const bobBefore = await baseToken.balanceOf(bobAddress);
-          const [bobHealthBefore] = await vault.positionInfo("1");
-          const lpUnderBobPosition = await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(1));
-          const liquidatedLp = lpUnderBobPosition.div(2);
-          const returnDebt = ethers.utils.parseEther("6");
-          [workerLpBefore] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
-          await swapHelper.loadReserves(path);
-          await swapHelper.loadReserves(reinvestPath);
-          await vaultAsBob.work(
-            1,
-            pancakeswapV2Worker.address,
-            "0",
-            "0",
-            returnDebt,
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "bytes"],
-              [
-                partialCloseStrat.address,
-                ethers.utils.defaultAbiCoder.encode(["uint256", "uint256"], [liquidatedLp, "0"]),
-              ]
-            )
-          );
-          const bobAfter = await baseToken.balanceOf(bobAddress);
+              const deployerCakeBefore = await cake.balanceOf(DEPLOYER);
+              const bobBefore = await baseToken.balanceOf(bobAddress);
+              const [bobHealthBefore] = await vault.positionInfo("1");
+              const lpUnderBobPosition = await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(1));
+              const liquidatedLp = lpUnderBobPosition.div(2);
+              const returnDebt = ethers.utils.parseEther("6");
+              [workerLpBefore] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
 
-          // Compute reinvest
-          const [reinvestFees, reinvestLp] = await swapHelper.computeReinvestLp(
-            workerLpBefore,
-            debrisBtoken,
-            CAKE_REWARD_PER_BLOCK,
-            BigNumber.from(REINVEST_BOUNTY_BPS),
-            reinvestPath,
-            path,
-            BigNumber.from(1)
-          );
+              // Pre-compute
+              await swapHelper.loadReserves(path);
+              await swapHelper.loadReserves(reinvestPath);
 
-          // Compute liquidate
-          const [btokenAmount, ftokenAmount] = await swapHelper.computeRemoveLiquidiy(
-            baseToken.address,
-            farmToken.address,
-            liquidatedLp
-          );
-          const sellFtokenAmounts = await swapHelper.computeSwapExactTokensForTokens(
-            ftokenAmount,
-            await pancakeswapV2Worker.getReversedPath(),
-            true
-          );
-          const liquidatedBtoken = sellFtokenAmounts[sellFtokenAmounts.length - 1].add(btokenAmount).sub(returnDebt);
+              // Compute reinvest
+              const [reinvestFees, reinvestLp] = await swapHelper.computeReinvestLp(
+                workerLpBefore,
+                debrisBtoken,
+                CAKE_REWARD_PER_BLOCK,
+                BigNumber.from(REINVEST_BOUNTY_BPS),
+                reinvestPath,
+                path,
+                BigNumber.from(1)
+              );
 
-          expect(bobAfter.sub(bobBefore), `expect Bob get ${liquidatedBtoken}`).to.be.eq(liquidatedBtoken);
-          // Check Bob position info
-          const [bobHealth, bobDebtToShare] = await vault.positionInfo("1");
-          // Bob's health after partial close position must be 50% less than before
-          // due to he exit half of lp under his position
-          expect(bobHealth).to.be.bignumber.lt(bobHealthBefore.div(2));
-          // Bob's debt should be left only 4 BTOKEN due he said he wants to return at max 4 BTOKEN
-          expect(bobDebtToShare).to.be.bignumber.eq(borrowedAmount.sub(returnDebt));
-          // Check LP deposited by Worker on MasterChef
-          [workerLpAfter] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
-          // LP tokens + 0.000207570473714694 LP from reinvest of worker should be decreased by lpUnderBobPosition/2
-          // due to Bob execute StrategyClosePartialLiquidate
-          expect(workerLpAfter).to.be.bignumber.eq(workerLpBefore.add(reinvestLp).sub(lpUnderBobPosition.div(2)));
-        });
+              // Compute liquidate
+              const [btokenAmount, ftokenAmount] = await swapHelper.computeRemoveLiquidiy(
+                baseToken.address,
+                farmToken.address,
+                liquidatedLp
+              );
+              const sellFtokenAmounts = await swapHelper.computeSwapExactTokensForTokens(
+                ftokenAmount,
+                await pancakeswapV2Worker.getReversedPath(),
+                true
+              );
+              const liquidatedBtoken = sellFtokenAmounts[sellFtokenAmounts.length - 1]
+                .add(btokenAmount)
+                .sub(returnDebt);
 
-        it("should partially close position successfully, when maxReturn > liquidated amount and liquidated amount > debt", async () => {
-          // Set interests to 0% per year for easy testing
-          await simpleVaultConfig.setParams(
-            ethers.utils.parseEther("1"), // 1 BTOKEN min debt size,
-            "0", // 0% per year
-            "1000", // 10% reserve pool
-            "1000", // 10% Kill prize
-            wbnb.address,
-            wNativeRelayer.address,
-            fairLaunch.address,
-            "0",
-            ethers.constants.AddressZero
-          );
+              await vaultAsBob.work(
+                1,
+                pancakeswapV2Worker.address,
+                "0",
+                "0",
+                returnDebt,
+                ethers.utils.defaultAbiCoder.encode(
+                  ["address", "bytes"],
+                  [
+                    partialCloseStrat.address,
+                    ethers.utils.defaultAbiCoder.encode(
+                      ["uint256", "uint256", "uint256"],
+                      [liquidatedLp, returnDebt, liquidatedBtoken]
+                    ),
+                  ]
+                )
+              );
+              const bobAfter = await baseToken.balanceOf(bobAddress);
+              const deployerCakeAfter = await cake.balanceOf(DEPLOYER);
 
-          // Bob deposits 10 BTOKEN
-          await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-          await vaultAsBob.deposit(ethers.utils.parseEther("10"));
+              expect(deployerCakeAfter.sub(deployerCakeBefore), `expect Deployer to get ${reinvestFees}`).to.be.eq(
+                reinvestFees
+              );
+              expect(bobAfter.sub(bobBefore), `expect Bob get ${liquidatedBtoken}`).to.be.eq(liquidatedBtoken);
+              // Check Bob position info
+              const [bobHealth, bobDebtToShare] = await vault.positionInfo("1");
+              // Bob's health after partial close position must be 50% less than before
+              // due to he exit half of lp under his position
+              expect(bobHealth).to.be.bignumber.lt(bobHealthBefore.div(2));
+              // Bob's debt should be left only 4 BTOKEN due he said he wants to return at max 4 BTOKEN
+              expect(bobDebtToShare).to.be.bignumber.eq(borrowedAmount.sub(returnDebt));
+              // Check LP deposited by Worker on MasterChef
+              [workerLpAfter] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
+              // LP tokens + 0.000207570473714694 LP from reinvest of worker should be decreased by lpUnderBobPosition/2
+              // due to Bob execute StrategyClosePartialLiquidate
+              expect(workerLpAfter).to.be.bignumber.eq(workerLpBefore.add(reinvestLp).sub(lpUnderBobPosition.div(2)));
+            });
+          });
 
-          // Position#1: Bob borrows 10 BTOKEN loan and supply another 10 BToken
-          // Thus, Bob's position value will be worth 20 BTOKEN
-          // After calling `work()`
-          // 20 BTOKEN needs to swap 3.587061715703192586 BTOKEN to FTOKEN
-          // new reserve after swap will be 4.587061715703192586 0.021843151027158060
-          // based on optimal swap formula, BTOKEN-FTOKEN to be added into the LP will be 16.412938284296807414 BTOKEN - 0.078156848972841940 FTOKEN
-          // new reserve after adding liquidity 21.000000000000000000 BTOKEN - 0.100000000000000000 FTOKEN
-          // lp amount from adding liquidity will be 1.131492691639043045 LP
-          let [workerLPBefore] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
-          await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-          await vaultAsBob.work(
-            0,
-            pancakeswapV2Worker.address,
-            ethers.utils.parseEther("10"),
-            ethers.utils.parseEther("10"),
-            "0", // max return = 0, don't return BTOKEN to the debt
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "bytes"],
-              [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-            )
-          );
+          context("when debt is lessDebt", async () => {
+            // back cannot be less than lessDebt as less debt is Min(debt, back, maxReturn) = debt
+            it("should pay back all debt and return 'liquidatedAmount - debt' BTOKEN to user", async () => {
+              // Set interests to 0% per year for easy testing
+              await simpleVaultConfig.setParams(
+                ethers.utils.parseEther("1"), // 1 BTOKEN min debt size,
+                "0", // 0% per year
+                "1000", // 10% reserve pool
+                "1000", // 10% Kill prize
+                wbnb.address,
+                wNativeRelayer.address,
+                fairLaunch.address,
+                "0",
+                ethers.constants.AddressZero
+              );
 
-          let [workerLPAfter] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
-          expect(workerLPAfter.sub(workerLPBefore)).to.eq(parseEther("1.131492691639043045"));
+              // Bob deposits 10 BTOKEN
+              await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
+              await vaultAsBob.deposit(ethers.utils.parseEther("10"));
 
-          // Bob think he made enough. He now wants to close position partially.
-          // He close 50% of his position and return all debt
-          const bobBefore = await baseToken.balanceOf(bobAddress);
-          const [bobHealthBefore] = await vault.positionInfo("1");
-          const lpUnderBobPosition = await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(1));
-          [workerLPBefore] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
+              // Position#1: Bob borrows 10 BTOKEN loan and supply another 10 BToken
+              // Thus, Bob's position value will be worth 20 BTOKEN
+              // After calling `work()`
+              // 20 BTOKEN needs to swap 3.587061715703192586 BTOKEN to FTOKEN
+              // new reserve after swap will be 4.587061715703192586 0.021843151027158060
+              // based on optimal swap formula, BTOKEN-FTOKEN to be added into the LP will be 16.412938284296807414 BTOKEN - 0.078156848972841940 FTOKEN
+              // new reserve after adding liquidity 21.000000000000000000 BTOKEN - 0.100000000000000000 FTOKEN
+              // lp amount from adding liquidity will be 1.131492691639043045 LP
+              let [workerLPBefore] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
+              await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
+              await vaultAsBob.work(
+                0,
+                pancakeswapV2Worker.address,
+                ethers.utils.parseEther("10"),
+                ethers.utils.parseEther("10"),
+                "0", // max return = 0, don't return BTOKEN to the debt
+                ethers.utils.defaultAbiCoder.encode(
+                  ["address", "bytes"],
+                  [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+                )
+              );
 
-          // Bob think he made enough. He now wants to close position partially.
-          // After calling `work()`, the `_reinvest()` is invoked
-          // since 1 blocks have passed since approve and work now reward will be 0.076 * 1 =~ 0.075999999998831803 ~   CAKE
-          // reward without bounty will be 0.075999999998831803 - 0.000759999999988318 =~ 0.0752399999988435 CAKE
-          // 0.0752399999988435 CAKE can be converted into:
-          // (0.0752399999988435 * 0.9975 * 1) / (0.1 + 0.0752399999988435 * 0.9975) = 0.428740847712892766 WBNB
-          // 0.428740847712892766 WBNB can be converted into (0.428740847712892766 * 0.9975 * 1) / (1 + 0.428740847712892766 * 0.9975) = 0.299557528330150526 BTOKEN
-          // based on optimal swap formula, 0.299557528330150526 BTOKEN needs to swap 0.149435199790075736 BTOKEN
-          // new reserve after swap will be 21.149435199790075736 BTOKEN - 0.099295185694161018 FTOKEN
-          // based on optimal swap formula, BTOKEN-FTOKEN to be added into the LP will be 0.150122328540074790 BTOKEN - 0.000704814305838982 FTOKEN
-          // new reserve after adding liquidity receiving from `_reinvest()` is 21.299557528330150526 BTOKEN - 0.100000000000000000 FTOKEN
-          // more LP amount after executing add strategy will be 0.010276168801924356 LP
-          // accumulated LP of the worker will be 1.131492691639043045 + 0.010276168801924356 = 1.1417688604409675 LP
+              let [workerLPAfter] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
+              expect(workerLPAfter.sub(workerLPBefore)).to.eq(parseEther("1.131492691639043045"));
 
-          // bob close 50% of his position, thus he will close 1.131492691639043045 * (1.131492691639043045 / (1.131492691639043045)) =~ 1.131492691639043045 / 2 = 0.5657463458195215 LP
-          // 0.5657463458195215 LP will be converted into 8.264866063854500749 BTOKEN - 0.038802994160144191 FTOKEN
-          // 0.038802994160144191 FTOKEN will be converted into (0.038802994160144191 * 0.9975 * 13.034691464475649777) / (0.061197005839855809 + 0.038802994160144191 * 0.9975) = 5.050104921127982573 BTOKEN
-          // thus, Bob will receive 8.264866063854500749 + 5.050104921127982573 = 13.314970984982483322 BTOKEN
-          await vaultAsBob.work(
-            1,
-            pancakeswapV2Worker.address,
-            "0",
-            "0",
-            ethers.utils.parseEther("5000000000"),
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "bytes"],
-              [
-                partialCloseStrat.address,
-                ethers.utils.defaultAbiCoder.encode(["uint256", "uint256"], [lpUnderBobPosition.div(2), "0"]),
-              ]
-            )
-          );
-          const bobAfter = await baseToken.balanceOf(bobAddress);
+              // Bob think he made enough. He now wants to close position partially.
+              // He close 50% of his position and return all debt
+              const bobBefore = await baseToken.balanceOf(bobAddress);
+              const [bobHealthBefore] = await vault.positionInfo("1");
+              const lpUnderBobPosition = await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(1));
+              [workerLPBefore] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
 
-          // After Bob liquidate half of his position which worth
-          // 13.314970984982483322 BTOKEN (price impact+trading fee included)
-          // Bob wish to return 5,000,000,000 BTOKEN (when maxReturn > debt, return all debt)
-          // The following criteria must be stratified:
-          // - Bob should get 13.314970984982483322 - 10 = 3.314970984982483322 BTOKEN back.
-          // - Bob's position debt must be 0
-          expect(
-            bobBefore.add(ethers.utils.parseEther("3.314970984982483322")),
-            "Expect BTOKEN in Bob's account after close position to increase by ~3.32 BTOKEN"
-          ).to.be.bignumber.eq(bobAfter);
-          // Check Bob position info
-          const [bobHealth, bobDebtVal] = await vault.positionInfo("1");
-          // Bob's health after partial close position must be 50% less than before
-          // due to he exit half of lp under his position
-          expect(bobHealth).to.be.bignumber.lt(bobHealthBefore.div(2));
-          // Bob's debt should be 0 BTOKEN due he said he wants to return at max 5,000,000,000 BTOKEN (> debt, return all debt)
-          expect(bobDebtVal).to.be.bignumber.eq("0");
-          // Check LP deposited by Worker on MasterChef
-          [workerLPAfter] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
-          // LP tokens + LP tokens from reinvest of worker should be decreased by lpUnderBobPosition/2
-          // due to Bob execute StrategyClosePartialLiquidate
-          expect(workerLPAfter).to.be.bignumber.eq(
-            workerLPBefore.add(parseEther("0.010276168801924356")).sub(lpUnderBobPosition.div(2))
-          );
-        });
+              // Bob think he made enough. He now wants to close position partially.
+              // After calling `work()`, the `_reinvest()` is invoked
+              // since 1 blocks have passed since approve and work now reward will be 0.076 * 1 =~ 0.075999999998831803 ~   CAKE
+              // reward without bounty will be 0.075999999998831803 - 0.000759999999988318 =~ 0.0752399999988435 CAKE
+              // 0.0752399999988435 CAKE can be converted into:
+              // (0.0752399999988435 * 0.9975 * 1) / (0.1 + 0.0752399999988435 * 0.9975) = 0.428740847712892766 WBNB
+              // 0.428740847712892766 WBNB can be converted into (0.428740847712892766 * 0.9975 * 1) / (1 + 0.428740847712892766 * 0.9975) = 0.299557528330150526 BTOKEN
+              // based on optimal swap formula, 0.299557528330150526 BTOKEN needs to swap 0.149435199790075736 BTOKEN
+              // new reserve after swap will be 21.149435199790075736 BTOKEN - 0.099295185694161018 FTOKEN
+              // based on optimal swap formula, BTOKEN-FTOKEN to be added into the LP will be 0.150122328540074790 BTOKEN - 0.000704814305838982 FTOKEN
+              // new reserve after adding liquidity receiving from `_reinvest()` is 21.299557528330150526 BTOKEN - 0.100000000000000000 FTOKEN
+              // more LP amount after executing add strategy will be 0.010276168801924356 LP
+              // accumulated LP of the worker will be 1.131492691639043045 + 0.010276168801924356 = 1.1417688604409675 LP
 
-        it("should revert when partial close position made leverage higher than work factor", async () => {
-          // Set interests to 0% per year for easy testing
-          await simpleVaultConfig.setParams(
-            ethers.utils.parseEther("1"), // 1 BTOKEN min debt size,
-            "0", // 0% per year
-            "1000", // 10% reserve pool
-            "1000", // 10% Kill prize
-            wbnb.address,
-            wNativeRelayer.address,
-            fairLaunch.address,
-            "0",
-            ethers.constants.AddressZero
-          );
+              // bob close 50% of his position, thus he will close 1.131492691639043045 * (1.131492691639043045 / (1.131492691639043045)) =~ 1.131492691639043045 / 2 = 0.5657463458195215 LP
+              // 0.5657463458195215 LP will be converted into 8.264866063854500749 BTOKEN - 0.038802994160144191 FTOKEN
+              // 0.038802994160144191 FTOKEN will be converted into (0.038802994160144191 * 0.9975 * 13.034691464475649777) / (0.061197005839855809 + 0.038802994160144191 * 0.9975) = 5.050104921127982573 BTOKEN
+              // thus, Bob will receive 8.264866063854500749 + 5.050104921127982573 = 13.314970984982483322 BTOKEN
+              await vaultAsBob.work(
+                1,
+                pancakeswapV2Worker.address,
+                "0",
+                "0",
+                ethers.utils.parseEther("5000000000"),
+                ethers.utils.defaultAbiCoder.encode(
+                  ["address", "bytes"],
+                  [
+                    partialCloseStrat.address,
+                    ethers.utils.defaultAbiCoder.encode(
+                      ["uint256", "uint256", "uint256"],
+                      [
+                        lpUnderBobPosition.div(2),
+                        ethers.utils.parseEther("5000000000"),
+                        ethers.utils.parseEther("3.314970984982483322"),
+                      ]
+                    ),
+                  ]
+                )
+              );
+              const bobAfter = await baseToken.balanceOf(bobAddress);
 
-          // Bob deposits 10 BTOKEN
-          await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-          await vaultAsBob.deposit(ethers.utils.parseEther("10"));
+              // After Bob liquidate half of his position which worth
+              // 13.314970984982483322 BTOKEN (price impact+trading fee included)
+              // Bob wish to return 5,000,000,000 BTOKEN (when maxReturn > debt, return all debt)
+              // The following criteria must be stratified:
+              // - Bob should get 13.314970984982483322 - 10 = 3.314970984982483322 BTOKEN back.
+              // - Bob's position debt must be 0
+              expect(
+                bobBefore.add(ethers.utils.parseEther("3.314970984982483322")),
+                "Expect BTOKEN in Bob's account after close position to increase by ~3.32 BTOKEN"
+              ).to.be.bignumber.eq(bobAfter);
+              // Check Bob position info
+              const [bobHealth, bobDebtVal] = await vault.positionInfo("1");
+              // Bob's health after partial close position must be 50% less than before
+              // due to he exit half of lp under his position
+              expect(bobHealth).to.be.bignumber.lt(bobHealthBefore.div(2));
+              // Bob's debt should be 0 BTOKEN due he said he wants to return at max 5,000,000,000 BTOKEN (> debt, return all debt)
+              expect(bobDebtVal).to.be.bignumber.eq("0");
+              // Check LP deposited by Worker on MasterChef
+              [workerLPAfter] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
+              // LP tokens + LP tokens from reinvest of worker should be decreased by lpUnderBobPosition/2
+              // due to Bob execute StrategyClosePartialLiquidate
+              expect(workerLPAfter).to.be.bignumber.eq(
+                workerLPBefore.add(parseEther("0.010276168801924356")).sub(lpUnderBobPosition.div(2))
+              );
+            });
+          });
 
-          // Position#1: Bob borrows 10 BTOKEN
-          await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-          await vaultAsBob.work(
-            0,
-            pancakeswapV2Worker.address,
-            ethers.utils.parseEther("10"),
-            ethers.utils.parseEther("10"),
-            "0", // max return = 0, don't return BTOKEN to the debt
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "bytes"],
-              [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-            )
-          );
+          context("when worker factor is not satisfy", async () => {
+            it("should revert bad work factor", async () => {
+              // Set interests to 0% per year for easy testing
+              await simpleVaultConfig.setParams(
+                ethers.utils.parseEther("1"), // 1 BTOKEN min debt size,
+                "0", // 0% per year
+                "1000", // 10% reserve pool
+                "1000", // 10% Kill prize
+                wbnb.address,
+                wNativeRelayer.address,
+                fairLaunch.address,
+                "0",
+                ethers.constants.AddressZero
+              );
 
-          // Bob think he made enough. He now wants to close position partially.
-          // He liquidate all of his position but not payback the debt.
-          const lpUnderBobPosition = await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(1));
-          // Bob closes position with maxReturn 5,000,000,000 and liquidate half of his position
-          // Expect that Bob will not be able to close his position as he liquidate all underlying assets but not paydebt
-          // which made his position debt ratio higher than allow work factor
-          await expect(
-            vaultAsBob.work(
-              1,
-              pancakeswapV2Worker.address,
-              "0",
-              "0",
-              "0",
-              ethers.utils.defaultAbiCoder.encode(
-                ["address", "bytes"],
-                [
-                  partialCloseStrat.address,
-                  ethers.utils.defaultAbiCoder.encode(["uint256", "uint256"], [lpUnderBobPosition, "0"]),
-                ]
-              )
-            )
-          ).revertedWith("bad work factor");
-        });
+              // Bob deposits 10 BTOKEN
+              await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
+              await vaultAsBob.deposit(ethers.utils.parseEther("10"));
 
-        it("should not allow to partially close position, when returnLpAmount > LpUnderPosition", async () => {
-          // Set interests to 0% per year for easy testing
-          await simpleVaultConfig.setParams(
-            ethers.utils.parseEther("1"), // 1 BTOKEN min debt size,
-            "0", // 0% per year
-            "1000", // 10% reserve pool
-            "1000", // 10% Kill prize
-            wbnb.address,
-            wNativeRelayer.address,
-            fairLaunch.address,
-            "0",
-            ethers.constants.AddressZero
-          );
+              // Position#1: Bob borrows 10 BTOKEN
+              await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
+              await vaultAsBob.work(
+                0,
+                pancakeswapV2Worker.address,
+                ethers.utils.parseEther("10"),
+                ethers.utils.parseEther("10"),
+                "0", // max return = 0, don't return BTOKEN to the debt
+                ethers.utils.defaultAbiCoder.encode(
+                  ["address", "bytes"],
+                  [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+                )
+              );
 
-          // Bob deposits 10 BTOKEN
-          await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-          await vaultAsBob.deposit(ethers.utils.parseEther("10"));
-
-          // Position#1: Bob borrows 10 BTOKEN loan
-          await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-          await vaultAsBob.work(
-            0,
-            pancakeswapV2Worker.address,
-            ethers.utils.parseEther("10"),
-            ethers.utils.parseEther("10"),
-            "0", // max return = 0, don't return NATIVE to the debt
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "bytes"],
-              [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-            )
-          );
-
-          // Bob think he made enough. He now wants to close position partially. However, his input is invalid.
-          // He put returnLpAmount > Lp that is under his position
-          const lpUnderBobPosition = await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(1));
-          // Transaction should be revert due to Bob is asking contract to liquidate Lp amount > Lp that is under his position
-          await expect(
-            vaultAsBob.work(
-              1,
-              pancakeswapV2Worker.address,
-              "0",
-              "0",
-              ethers.utils.parseEther("10"),
-              ethers.utils.defaultAbiCoder.encode(
-                ["address", "bytes"],
-                [
-                  partialCloseStrat.address,
-                  ethers.utils.defaultAbiCoder.encode(["uint256", "uint256"], [lpUnderBobPosition.mul(2), "0"]),
-                ]
-              )
-            )
-          ).to.be.revertedWith("StrategyPartialCloseLiquidate::execute:: insufficient LP amount recevied from worker");
+              // Bob think he made enough. He now wants to close position partially.
+              // He liquidate all of his position but not payback the debt.
+              const lpUnderBobPosition = await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(1));
+              // Bob closes position with maxReturn 0 and liquidate all of his position
+              // Expect that Bob will not be able to close his position as he liquidate all underlying assets but not paydebt
+              // which made his position debt ratio higher than allow work factor
+              await expect(
+                vaultAsBob.work(
+                  1,
+                  pancakeswapV2Worker.address,
+                  "0",
+                  "0",
+                  "0",
+                  ethers.utils.defaultAbiCoder.encode(
+                    ["address", "bytes"],
+                    [
+                      partialCloseStrat.address,
+                      ethers.utils.defaultAbiCoder.encode(
+                        ["uint256", "uint256", "uint256"],
+                        [lpUnderBobPosition, "0", "0"]
+                      ),
+                    ]
+                  )
+                )
+              ).revertedWith("bad work factor");
+            });
+          });
         });
       });
 
