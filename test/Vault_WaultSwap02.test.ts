@@ -381,1783 +381,1778 @@ describe("Vault - WaultSwap02", () => {
   });
 
   context("when user uses LYF", async () => {
-    it("should allow to open a position without debt", async () => {
-      // Deployer deposits 3 BTOKEN to the bank
-      await baseToken.approve(vault.address, ethers.utils.parseEther("3"));
-      await vault.deposit(ethers.utils.parseEther("3"));
+    context("#work", async () => {
+      it("should allow to open a position without debt", async () => {
+        // Deployer deposits 3 BTOKEN to the Vault
+        await baseToken.approve(vault.address, ethers.utils.parseEther("3"));
+        await vault.deposit(ethers.utils.parseEther("3"));
 
-      // Alice can take 0 debt ok
-      await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("0.3"));
-      await vaultAsAlice.work(
-        0,
-        waultSwapWorker.address,
-        ethers.utils.parseEther("0.3"),
-        ethers.utils.parseEther("0"),
-        "0",
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-        )
-      );
-
-      // To find health of the position, derive following variables:
-      // totalBaseToken = 1.3
-      // totalFarmingToken = 0.1
-      // userBaseToken = 0.159684250517396851
-      // userFarmingToken = 0.012283403885953603
-
-      // health = amount of underlying of lp after converted to BTOKEN
-      // = userBaseToken + userFarmingTokenAfterSellToBaseToken
-
-      // Find userFarmingTokenAfterSellToBaseToken from
-      // mktSellAMount
-      // = [(userFarmingToken * 9980) * (totalBaseToken - userBaseToken)] / [((totalFarmingToken - userFarmingToken) * 10000) + (userFarmingToken * 9980)]
-      // = [(0.012283403885953603 * 9980) * (1.3 - 0.159684250517396851)] / [((0.1 - 0.012283403885953603) * 10000) + (0.012283403885953603 * 9980)]
-      // = 0.139823800150121109
-
-      // health = userBaseToken + userFarmingTokenAfterSellToBaseToken
-      // = 0.159684250517396851 + 0.139823800150121109
-      // = 0.29950805066751796
-      expect(await waultSwapWorker.health(1)).to.be.equal(ethers.utils.parseEther("0.29950805066751796"));
-
-      // must be able to close position
-      await vaultAsAlice.work(
-        1,
-        waultSwapWorker.address,
-        "0",
-        "0",
-        ethers.constants.MaxUint256.toString(),
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [liqStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-        )
-      );
-      expect(await waultSwapWorker.health(1)).to.be.equal(ethers.constants.Zero);
-    });
-
-    it("should not allow to open a position with debt less than MIN_DEBT_SIZE", async () => {
-      // Deployer deposits 3 BTOKEN to the bank
-      await baseToken.approve(vault.address, ethers.utils.parseEther("3"));
-      await vault.deposit(ethers.utils.parseEther("3"));
-
-      // Alice cannot take 0.3 debt because it is too small
-      await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("0.3"));
-      await expect(
-        vaultAsAlice.work(
+        // Alice can take 0 debt ok
+        await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("0.3"));
+        await vaultAsAlice.work(
           0,
           waultSwapWorker.address,
           ethers.utils.parseEther("0.3"),
-          ethers.utils.parseEther("0.3"),
+          ethers.utils.parseEther("0"),
           "0",
           ethers.utils.defaultAbiCoder.encode(
             ["address", "bytes"],
             [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
           )
-        )
-      ).to.be.revertedWith("too small debt size");
-    });
-
-    it("should not allow to open the position with bad work factor", async () => {
-      // Deployer deposits 3 BTOKEN to the bank
-      await baseToken.approve(vault.address, ethers.utils.parseEther("3"));
-      await vault.deposit(ethers.utils.parseEther("3"));
-
-      // Alice cannot take 1 BTOKEN loan because she only put 0.3 BTOKEN as a collateral
-      await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("0.3"));
-      await expect(
-        vaultAsAlice.work(
-          0,
-          waultSwapWorker.address,
-          ethers.utils.parseEther("0.3"),
-          ethers.utils.parseEther("1"),
-          "0",
-          ethers.utils.defaultAbiCoder.encode(
-            ["address", "bytes"],
-            [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-          )
-        )
-      ).to.be.revertedWith("bad work factor");
-    });
-
-    it("should not allow positions if Vault has less BaseToken than requested loan", async () => {
-      // Alice cannot take 1 BTOKEN loan because the contract does not have it
-      baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
-      await expect(
-        vaultAsAlice.work(
-          0,
-          waultSwapWorker.address,
-          ethers.utils.parseEther("1"),
-          ethers.utils.parseEther("1"),
-          "0",
-          ethers.utils.defaultAbiCoder.encode(
-            ["address", "bytes"],
-            [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-          )
-        )
-      ).to.be.revertedWith("insufficient funds in the vault");
-    });
-
-    it("should not able to liquidate healthy position", async () => {
-      // Deployer deposits 3 BTOKEN to the bank
-      const deposit = ethers.utils.parseEther("3");
-      await baseToken.approve(vault.address, deposit);
-      await vault.deposit(deposit);
-
-      // Now Alice can take 1 BTOKEN loan + 1 BTOKEN of her to create a new position
-      const loan = ethers.utils.parseEther("1");
-      await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
-      await vaultAsAlice.work(
-        0,
-        waultSwapWorker.address,
-        ethers.utils.parseEther("1"),
-        loan,
-        "0",
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-        )
-      );
-
-      // Her position should have ~2 BTOKEN health (minus some small trading fee)
-      await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-      await waultSwapWorkerAsEve.reinvest();
-      await vault.deposit(0); // Random action to trigger interest computation
-
-      // You can't liquidate her position yet
-      await expect(vaultAsEve.kill("1")).to.be.revertedWith("can't liquidate");
-      await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-      await expect(vaultAsEve.kill("1")).to.be.revertedWith("can't liquidate");
-    });
-
-    it("should work", async () => {
-      // Deployer deposits 3 BTOKEN to the bank
-      const deposit = ethers.utils.parseEther("3");
-      await baseToken.approve(vault.address, deposit);
-      await vault.deposit(deposit);
-
-      // Now Alice can take 1 BTOKEN loan + 1 BTOKEN of her to create a new position
-      const loan = ethers.utils.parseEther("1");
-      await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
-      await vaultAsAlice.work(
-        0,
-        waultSwapWorker.address,
-        ethers.utils.parseEther("1"),
-        loan,
-        "0",
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-        )
-      );
-
-      // Her position should have ~2 NATIVE health (minus some small trading fee)
-      // To find health of the position, derive following variables:
-      // totalBaseToken = 2.999999999999999958
-      // totalFarmingToken = 0.1
-      // userBaseToken = 1.267216253674334111
-      // userFarmingToken = 0.042240541789144470
-
-      // health = amount of underlying of lp after converted to BTOKEN
-      // = userBaseToken + userFarmingTokenAfterSellToBaseToken
-
-      // Find userFarmingTokenAfterSellToBaseToken from
-      // mktSellAMount
-      // = [(userFarmingToken * 9980) * (totalBaseToken - userBaseToken)] / [((totalFarmingToken - userFarmingToken) * 10000) + (userFarmingToken * 9980)]
-      // = [(0.042240541789144470 * 9980) * (2.999999999999999958 - 1.267216253674334111)] / [((0.1 - 0.042240541789144470) * 10000) + (0.042240541789144470 * 9980)]
-      // = 0.731091001597324380
-
-      // health = userBaseToken + userFarmingTokenAfterSellToBaseToken
-      // = 1.267216253674334111 + 0.731091001597324380
-      // = 1.998307255271658491
-
-      expect(await waultSwapWorker.health(1)).to.be.bignumber.eq(ethers.utils.parseEther("1.998307255271658491"));
-
-      // Eve comes and trigger reinvest
-      await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-      await waultSwapWorkerAsEve.reinvest();
-      AssertHelpers.assertAlmostEqual(
-        WEX_REWARD_PER_BLOCK.mul("2").mul(REINVEST_BOUNTY_BPS).div("10000").toString(),
-        (await wex.balanceOf(eveAddress)).toString()
-      );
-
-      await vault.deposit(0); // Random action to trigger interest computation
-      const healthDebt = await vault.positionInfo("1");
-      expect(healthDebt[0]).to.be.bignumber.above(ethers.utils.parseEther("2"));
-      const interest = ethers.utils.parseEther("0.3"); // 30% interest rate
-      AssertHelpers.assertAlmostEqual(healthDebt[1].toString(), interest.add(loan).toString());
-      AssertHelpers.assertAlmostEqual(
-        (await baseToken.balanceOf(vault.address)).toString(),
-        deposit.sub(loan).toString()
-      );
-      AssertHelpers.assertAlmostEqual((await vault.vaultDebtVal()).toString(), interest.add(loan).toString());
-
-      const reservePool = interest.mul(RESERVE_POOL_BPS).div("10000");
-      AssertHelpers.assertAlmostEqual(reservePool.toString(), (await vault.reservePool()).toString());
-      AssertHelpers.assertAlmostEqual(
-        deposit.add(interest).sub(reservePool).toString(),
-        (await vault.totalToken()).toString()
-      );
-    });
-
-    it("should has correct interest rate growth", async () => {
-      // Deployer deposits 3 BTOKEN to the bank
-      const deposit = ethers.utils.parseEther("3");
-      await baseToken.approve(vault.address, deposit);
-      await vault.deposit(deposit);
-
-      // Now Alice can take 1 BTOKEN loan + 1 BTOKEN of her to create a new position
-      const loan = ethers.utils.parseEther("1");
-      await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
-      await vaultAsAlice.work(
-        0,
-        waultSwapWorker.address,
-        ethers.utils.parseEther("1"),
-        loan,
-        "0",
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-        )
-      );
-
-      await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-      await waultSwapWorkerAsEve.reinvest();
-      await vault.deposit(0); // Random action to trigger interest computation
-
-      await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-      await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-
-      await vault.deposit(0); // Random action to trigger interest computation
-      const interest = ethers.utils.parseEther("0.3"); //30% interest rate
-      const reservePool = interest.mul(RESERVE_POOL_BPS).div("10000");
-      AssertHelpers.assertAlmostEqual(
-        deposit
-          .add(interest.sub(reservePool))
-          .add(interest.sub(reservePool).mul(13).div(10))
-          .add(interest.sub(reservePool).mul(13).div(10))
-          .toString(),
-        (await vault.totalToken()).toString()
-      );
-    });
-
-    it("should be able to liquidate bad position", async () => {
-      // Deployer deposits 3 BTOKEN to the bank
-      const deposit = ethers.utils.parseEther("3");
-      await baseToken.approve(vault.address, deposit);
-      await vault.deposit(deposit);
-
-      // Now Alice can take 1 BTOKEN loan + 1 BTOKEN of her to create a new position
-      const loan = ethers.utils.parseEther("1");
-      await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
-      await vaultAsAlice.work(
-        0,
-        waultSwapWorker.address,
-        ethers.utils.parseEther("1"),
-        loan,
-        "0",
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-        )
-      );
-
-      await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-      await waultSwapWorkerAsEve.reinvest();
-      await vault.deposit(0); // Random action to trigger interest computation
-
-      await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-      await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-
-      await vault.deposit(0); // Random action to trigger interest computation
-      const interest = ethers.utils.parseEther("0.3"); //30% interest rate
-      const reservePool = interest.mul(RESERVE_POOL_BPS).div("10000");
-      AssertHelpers.assertAlmostEqual(
-        deposit
-          .add(interest.sub(reservePool))
-          .add(interest.sub(reservePool).mul(13).div(10))
-          .add(interest.sub(reservePool).mul(13).div(10))
-          .toString(),
-        (await vault.totalToken()).toString()
-      );
-
-      // Calculate the expected result.
-      // set interest rate to be 0 to be easy for testing.
-      await simpleVaultConfig.setParams(
-        MIN_DEBT_SIZE,
-        0,
-        RESERVE_POOL_BPS,
-        KILL_PRIZE_BPS,
-        wbnb.address,
-        wNativeRelayer.address,
-        fairLaunch.address,
-        KILL_TREASURY_BPS,
-        deployerAddress
-      );
-      const toBeLiquidatedValue = await waultSwapWorker.health(1);
-      const liquidationBounty = toBeLiquidatedValue.mul(KILL_PRIZE_BPS).div(10000);
-      const treasuryKillFees = toBeLiquidatedValue.mul(KILL_TREASURY_BPS).div(10000);
-      const totalLiquidationFees = liquidationBounty.add(treasuryKillFees);
-      const eveBalanceBefore = await baseToken.balanceOf(eveAddress);
-      const aliceAlpacaBefore = await alpacaToken.balanceOf(aliceAddress);
-      const aliceBalanceBefore = await baseToken.balanceOf(aliceAddress);
-      const vaultBalanceBefore = await baseToken.balanceOf(vault.address);
-      const deployerBalanceBefore = await baseToken.balanceOf(deployerAddress);
-      const vaultDebtVal = await vault.vaultDebtVal();
-      const debt = await vault.debtShareToVal((await vault.positions(1)).debtShare);
-      const left = debt.gte(toBeLiquidatedValue.sub(totalLiquidationFees))
-        ? ethers.constants.Zero
-        : toBeLiquidatedValue.sub(totalLiquidationFees).sub(debt);
-
-      // Now eve kill the position
-      await expect(vaultAsEve.kill("1")).to.emit(vaultAsEve, "Kill");
-
-      // Getting balances after killed
-      const eveBalanceAfter = await baseToken.balanceOf(eveAddress);
-      const aliceBalanceAfter = await baseToken.balanceOf(aliceAddress);
-      const vaultBalanceAfter = await baseToken.balanceOf(vault.address);
-      const deployerBalanceAfter = await baseToken.balanceOf(deployerAddress);
-
-      AssertHelpers.assertAlmostEqual(
-        deposit.add(interest).add(interest.mul(13).div(10)).add(interest.mul(13).div(10)).toString(),
-        (await baseToken.balanceOf(vault.address)).toString()
-      );
-      expect(await vault.vaultDebtVal()).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      AssertHelpers.assertAlmostEqual(
-        reservePool.add(reservePool.mul(13).div(10)).add(reservePool.mul(13).div(10)).toString(),
-        (await vault.reservePool()).toString()
-      );
-      AssertHelpers.assertAlmostEqual(
-        deposit
-          .add(interest.sub(reservePool))
-          .add(interest.sub(reservePool).mul(13).div(10))
-          .add(interest.sub(reservePool).mul(13).div(10))
-          .toString(),
-        (await vault.totalToken()).toString()
-      );
-      expect(eveBalanceAfter.sub(eveBalanceBefore), "expect Eve to get her liquidation bounty").to.be.eq(
-        liquidationBounty
-      );
-      expect(
-        deployerBalanceAfter.sub(deployerBalanceBefore),
-        "expect Deployer to get treasury liquidation fees"
-      ).to.be.eq(treasuryKillFees);
-      expect(aliceBalanceAfter.sub(aliceBalanceBefore), "expect Alice to get her leftover back").to.be.eq(left);
-      expect(vaultBalanceAfter.sub(vaultBalanceBefore), "expect Vault to get its funds + interest").to.be.eq(
-        vaultDebtVal
-      );
-      expect((await vault.positions(1)).debtShare, "expect Pos#1 debt share to be 0").to.be.eq(0);
-      expect(
-        await alpacaToken.balanceOf(aliceAddress),
-        "expect Alice to get some ALPACA from holding LYF position"
-      ).to.be.bignumber.gt(aliceAlpacaBefore);
-
-      // Alice creates a new position again
-      await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
-      await vaultAsAlice.work(
-        0,
-        waultSwapWorker.address,
-        ethers.utils.parseEther("1"),
-        ethers.utils.parseEther("1"),
-        "0",
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-        )
-      );
-
-      // She can close position
-      await vaultAsAlice.work(
-        2,
-        waultSwapWorker.address,
-        "0",
-        "0",
-        "115792089237316195423570985008687907853269984665640564039457584007913129639935",
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [liqStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-        )
-      );
-    });
-
-    it("should be not allow user to emergencyWithdraw debtToken on FairLaunch", async () => {
-      // Deployer deposits 3 BTOKEN to the bank
-      const deposit = ethers.utils.parseEther("3");
-      await baseToken.approve(vault.address, deposit);
-      await vault.deposit(deposit);
-
-      // Now Alice can take 1 BTOKEN loan + 1 BTOKEN of her to create a new position
-      const loan = ethers.utils.parseEther("1");
-      await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
-      await vaultAsAlice.work(
-        0,
-        waultSwapWorker.address,
-        ethers.utils.parseEther("1"),
-        loan,
-        "0",
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-        )
-      );
-
-      await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-      await waultSwapWorkerAsEve.reinvest();
-      await vault.deposit(0); // Random action to trigger interest computation
-
-      await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-      await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-
-      await vault.deposit(0); // Random action to trigger interest computation
-      const interest = ethers.utils.parseEther("0.3"); //30% interest rate
-      const reservePool = interest.mul(RESERVE_POOL_BPS).div("10000");
-      AssertHelpers.assertAlmostEqual(
-        deposit
-          .add(interest.sub(reservePool))
-          .add(interest.sub(reservePool).mul(13).div(10))
-          .add(interest.sub(reservePool).mul(13).div(10))
-          .toString(),
-        (await vault.totalToken()).toString()
-      );
-
-      // Alice emergencyWithdraw from FairLaunch
-      await expect(fairLaunchAsAlice.emergencyWithdraw(0)).to.be.revertedWith("only funder");
-
-      const eveBefore = await baseToken.balanceOf(eveAddress);
-
-      // Now you can liquidate because of the insane interest rate
-      await expect(vaultAsEve.kill("1")).to.emit(vaultAsEve, "Kill");
-
-      expect(await baseToken.balanceOf(eveAddress)).to.be.bignumber.gt(eveBefore);
-      AssertHelpers.assertAlmostEqual(
-        deposit.add(interest).add(interest.mul(13).div(10)).add(interest.mul(13).div(10)).toString(),
-        (await baseToken.balanceOf(vault.address)).toString()
-      );
-      expect(await vault.vaultDebtVal()).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      AssertHelpers.assertAlmostEqual(
-        reservePool.add(reservePool.mul(13).div(10)).add(reservePool.mul(13).div(10)).toString(),
-        (await vault.reservePool()).toString()
-      );
-      AssertHelpers.assertAlmostEqual(
-        deposit
-          .add(interest.sub(reservePool))
-          .add(interest.sub(reservePool).mul(13).div(10))
-          .add(interest.sub(reservePool).mul(13).div(10))
-          .toString(),
-        (await vault.totalToken()).toString()
-      );
-
-      // Alice creates a new position again
-      await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
-      await vaultAsAlice.work(
-        0,
-        waultSwapWorker.address,
-        ethers.utils.parseEther("1"),
-        ethers.utils.parseEther("1"),
-        "0",
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-        )
-      );
-
-      // She can close position
-      await vaultAsAlice.work(
-        2,
-        waultSwapWorker.address,
-        "0",
-        "0",
-        "115792089237316195423570985008687907853269984665640564039457584007913129639935",
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [liqStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-        )
-      );
-    });
-
-    it("should deposit and withdraw BTOKEN from Vault (bad debt case)", async () => {
-      // Deployer deposits 10 BTOKEN to the Vault
-      const deposit = ethers.utils.parseEther("10");
-      await baseToken.approve(vault.address, deposit);
-      await vault.deposit(deposit);
-
-      expect(await vault.balanceOf(deployerAddress)).to.be.bignumber.equal(deposit);
-
-      // Bob borrows 2 BTOKEN loan
-      const loan = ethers.utils.parseEther("2");
-      await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("1"));
-      await vaultAsBob.work(
-        0,
-        waultSwapWorker.address,
-        ethers.utils.parseEther("1"),
-        loan,
-        "0", // max return = 0, don't return BTOKEN to the debt
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-        )
-      );
-
-      expect(await baseToken.balanceOf(vault.address)).to.be.bignumber.equal(deposit.sub(loan));
-      expect(await vault.vaultDebtVal()).to.be.bignumber.equal(loan);
-      expect(await vault.totalToken()).to.be.bignumber.equal(deposit);
-
-      // Alice deposits 2 BTOKEN
-      const aliceDeposit = ethers.utils.parseEther("2");
-      await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("2"));
-      await vaultAsAlice.deposit(aliceDeposit);
-
-      AssertHelpers.assertAlmostEqual(
-        deposit.sub(loan).add(aliceDeposit).toString(),
-        (await baseToken.balanceOf(vault.address)).toString()
-      );
-
-      // check Alice ibBTOKEN balance = 2/10 * 10 = 2 ibBTOKEN
-      AssertHelpers.assertAlmostEqual(aliceDeposit.toString(), (await vault.balanceOf(aliceAddress)).toString());
-      AssertHelpers.assertAlmostEqual(deposit.add(aliceDeposit).toString(), (await vault.totalSupply()).toString());
-
-      // Simulate BTOKEN price is very high by swap FTOKEN to BTOKEN (reduce BTOKEN supply)
-      await farmToken.mint(deployerAddress, ethers.utils.parseEther("100"));
-      await farmToken.approve(router.address, ethers.utils.parseEther("100"));
-      await router.swapExactTokensForTokens(
-        ethers.utils.parseEther("100"),
-        "0",
-        [farmToken.address, baseToken.address],
-        deployerAddress,
-        FOREVER
-      );
-
-      // Alice liquidates Bob position#1
-      const vaultBaseBefore = await baseToken.balanceOf(vault.address);
-      let aliceBefore = await baseToken.balanceOf(aliceAddress);
-      await expect(vaultAsAlice.kill("1")) // at health = 0.003000997994240237
-        .to.emit(vaultAsAlice, "Kill");
-
-      let aliceAfter = await baseToken.balanceOf(aliceAddress);
-
-      // Bank balance is increase by liquidation (0.002700898194816214 = 0.9 * 0.003000997994240237)
-      AssertHelpers.assertAlmostEqual(
-        vaultBaseBefore.add(ethers.utils.parseEther("0.002700898194816214")).toString(),
-        (await baseToken.balanceOf(vault.address)).toString()
-      );
-
-      // Alice is liquidator, Alice should receive 10% Kill prize
-      // BTOKEN back from liquidation 0.003000997994240237, 3% of it is 0.000300099799424023
-      AssertHelpers.assertAlmostEqual(
-        ethers.utils.parseEther("0.000300099799424023").toString(),
-        aliceAfter.sub(aliceBefore).toString()
-      );
-
-      // Alice withdraws 2 BOKTEN
-      aliceBefore = await baseToken.balanceOf(aliceAddress);
-      await vaultAsAlice.withdraw(await vault.balanceOf(aliceAddress));
-      aliceAfter = await baseToken.balanceOf(aliceAddress);
-
-      // alice gots 2/12 * 10.002700898194816214 = 1.667116816365802702
-      AssertHelpers.assertAlmostEqual(
-        ethers.utils.parseEther("1.667116816365802702").toString(),
-        aliceAfter.sub(aliceBefore).toString()
-      );
-    });
-
-    it("should liquidate user position correctly", async () => {
-      // Bob deposits 20 BTOKEN
-      await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("20"));
-      await vaultAsBob.deposit(ethers.utils.parseEther("20"));
-
-      // Position#1: Alice borrows 10 BTOKEN loan
-      await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("10"));
-      await vaultAsAlice.work(
-        0,
-        waultSwapWorker.address,
-        ethers.utils.parseEther("10"),
-        ethers.utils.parseEther("10"),
-        "0", // max return = 0, don't return BTOKEN to the debt
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-        )
-      );
-
-      await farmToken.mint(deployerAddress, ethers.utils.parseEther("100"));
-      await farmToken.approve(router.address, ethers.utils.parseEther("100"));
-
-      // Price swing 10%
-      // Add more token to the pool equals to sqrt(10*((0.1)**2) / 9) - 0.1 = 0.005409255338945984, (0.1 is the balance of token in the pool)
-      await router.swapExactTokensForTokens(
-        ethers.utils.parseEther("0.005409255338945984"),
-        "0",
-        [farmToken.address, baseToken.address],
-        deployerAddress,
-        FOREVER
-      );
-      await expect(vaultAsEve.kill("1")).to.be.revertedWith("can't liquidate");
-
-      // Price swing 20%
-      // Add more token to the pool equals to
-      // sqrt(10*((0.10540925533894599)**2) / 8) - 0.10540925533894599 = 0.012441874858811944
-      // (0.10540925533894599 is the balance of token in the pool)
-      await router.swapExactTokensForTokens(
-        ethers.utils.parseEther("0.012441874858811944"),
-        "0",
-        [farmToken.address, baseToken.address],
-        deployerAddress,
-        FOREVER
-      );
-      await expect(vaultAsEve.kill("1")).to.be.revertedWith("can't liquidate");
-
-      // Price swing 23.43%
-      // Existing token on the pool = 0.10540925533894599 + 0.012441874858811944 = 0.11785113019775793
-      // Add more token to the pool equals to
-      // sqrt(10*((0.11785113019775793)**2) / 7.656999999999999) - 0.11785113019775793 = 0.016829279312591913
-      await router.swapExactTokensForTokens(
-        ethers.utils.parseEther("0.016829279312591913"),
-        "0",
-        [farmToken.address, baseToken.address],
-        deployerAddress,
-        FOREVER
-      );
-      await expect(vaultAsEve.kill("1")).to.be.revertedWith("can't liquidate");
-
-      // Price swing 30%
-      // Existing token on the pool = 0.11785113019775793 + 0.016829279312591913 = 0.13468040951034985
-      // Add more token to the pool equals to
-      // sqrt(10*((0.13468040951034985)**2) / 7) - 0.13468040951034985 = 0.026293469053292218
-      await router.swapExactTokensForTokens(
-        ethers.utils.parseEther("0.026293469053292218"),
-        "0",
-        [farmToken.address, baseToken.address],
-        deployerAddress,
-        FOREVER
-      );
-
-      // Now you can liquidate because of the price fluctuation
-      const eveBefore = await baseToken.balanceOf(eveAddress);
-      await expect(vaultAsEve.kill("1")).to.emit(vaultAsEve, "Kill");
-
-      expect(await baseToken.balanceOf(eveAddress)).to.be.bignumber.gt(eveBefore);
-    });
-
-    it("should reinvest correctly", async () => {
-      // Set interests to 0% per year for easy testing
-      await simpleVaultConfig.setParams(
-        ethers.utils.parseEther("1"), // 1 BTOKEN min debt size,
-        "0", // 0% per year
-        "1000", // 10% reserve pool
-        "1000", // 10% Kill prize
-        wbnb.address,
-        wNativeRelayer.address,
-        fairLaunch.address,
-        "0",
-        ethers.constants.AddressZero
-      );
-
-      // Set Reinvest bounty to 10% of the reward
-      await waultSwapWorker.setReinvestConfig("100", "0", [wex.address, wbnb.address, baseToken.address]);
-
-      const [path, reinvestPath] = await Promise.all([waultSwapWorker.getPath(), waultSwapWorker.getReinvestPath()]);
-
-      // Bob deposits 10 BTOKEN
-      await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-      await vaultAsBob.deposit(ethers.utils.parseEther("10"));
-
-      // Alice deposits 12 BTOKEN
-      await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("12"));
-      await vaultAsAlice.deposit(ethers.utils.parseEther("12"));
-
-      // Position#1: Bob borrows 10 BTOKEN
-      await swapHelper.loadReserves(path);
-      let accumLp = BigNumber.from(0);
-      let workerLpBefore = BigNumber.from(0);
-      let totalShare = BigNumber.from(0);
-      let shares: Array<BigNumber> = [];
-      await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-      await vaultAsBob.work(
-        0,
-        waultSwapWorker.address,
-        ethers.utils.parseEther("10"),
-        ethers.utils.parseEther("10"),
-        "0", // max return = 0, don't return NATIVE to the debt
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-        )
-      );
-      // Pre-compute expectation
-      let [expectedLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(
-        ethers.utils.parseEther("20"),
-        path
-      );
-      accumLp = accumLp.add(expectedLp);
-
-      let expectedShare = workerHelper.computeBalanceToShare(expectedLp, totalShare, workerLpBefore);
-      shares.push(expectedShare);
-      totalShare = totalShare.add(expectedShare);
-
-      // Expect
-      let [workerLpAfter] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
-      expect(await waultSwapWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(shares[0]);
-      expect(
-        await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1)),
-        `expect Pos#1 LPs = ${expectedLp}`
-      ).to.be.bignumber.eq(expectedLp);
-      expect(await waultSwapWorker.totalShare(), `expect totalShare = ${totalShare}`).to.be.bignumber.eq(totalShare);
-      expect(
-        await baseToken.balanceOf(addStrat.address),
-        `expect add BTOKEN strat to have ${debrisBtoken} BTOKEN debris`
-      ).to.be.bignumber.eq(debrisBtoken);
-      expect(
-        await farmToken.balanceOf(addStrat.address),
-        `expect add BTOKEN strat to have ${debrisFtoken} FTOKEN debris`
-      ).to.be.bignumber.eq(debrisFtoken);
-      expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.bignumber.eq(accumLp);
-
-      // Position#2: Bob borrows another 2 BTOKEN
-      [workerLpBefore] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
-      let eveWexBefore = await wex.balanceOf(eveAddress);
-      let deployerWexBefore = await wex.balanceOf(DEPLOYER);
-      await swapHelper.loadReserves(path);
-      await swapHelper.loadReserves(reinvestPath);
-      await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
-      await vaultAsAlice.work(
-        0,
-        waultSwapWorker.address,
-        ethers.utils.parseEther("1"),
-        ethers.utils.parseEther("2"),
-        "0", // max return = 0, don't return BTOKEN to the debt
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-        )
-      );
-      [workerLpAfter] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
-      let eveWexAfter = await wex.balanceOf(eveAddress);
-      let deployerWexAfter = await wex.balanceOf(DEPLOYER);
-      let totalRewards = swapHelper.computeTotalRewards(workerLpBefore, WEX_REWARD_PER_BLOCK, BigNumber.from(2));
-      let reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
-      let reinvestLeft = totalRewards.sub(reinvestFees);
-
-      let reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
-      let reinvestBtoken = reinvestAmts[reinvestAmts.length - 1].add(debrisBtoken);
-      let reinvestLp = BigNumber.from(0);
-      [reinvestLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
-      accumLp = accumLp.add(reinvestLp);
-
-      [expectedLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(
-        ethers.utils.parseEther("3"),
-        path
-      );
-      accumLp = accumLp.add(expectedLp);
-
-      expectedShare = workerHelper.computeBalanceToShare(expectedLp, totalShare, workerLpBefore.add(reinvestLp));
-      shares.push(expectedShare);
-      totalShare = totalShare.add(expectedShare);
-
-      expect(await waultSwapWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(shares[0]);
-      expect(
-        await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1)),
-        `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
-      ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
-
-      expect(await waultSwapWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(shares[1]);
-      expect(
-        await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(2)),
-        `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
-      ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
-
-      expect(
-        deployerWexAfter.sub(deployerWexBefore),
-        `expect DEPLOYER to get ${reinvestFees} WEX as treasury fees`
-      ).to.be.bignumber.eq(reinvestFees);
-      expect(eveWexAfter.sub(eveWexBefore), `expect eve's WEX to remain the same`).to.be.bignumber.eq("0");
-      expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.bignumber.eq(accumLp);
-      expect(
-        await baseToken.balanceOf(addStrat.address),
-        `expect add BTOKEN strat to have ${debrisBtoken} BTOKEN debris`
-      ).to.be.bignumber.eq(debrisBtoken);
-      expect(
-        await farmToken.balanceOf(addStrat.address),
-        `expect add BTOKEN strat to have ${debrisFtoken} FTOKEN debris`
-      ).to.be.bignumber.eq(debrisFtoken);
-
-      // ---------------- Reinvest#1 -------------------
-      // Wait for 1 day and someone calls reinvest
-      await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-
-      let [workerLPBefore] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
-      deployerWexBefore = await wex.balanceOf(DEPLOYER);
-      eveWexBefore = await wex.balanceOf(eveAddress);
-      await swapHelper.loadReserves(path);
-      await swapHelper.loadReserves(reinvestPath);
-
-      await waultSwapWorkerAsEve.reinvest();
-
-      deployerWexAfter = await wex.balanceOf(DEPLOYER);
-      eveWexAfter = await wex.balanceOf(eveAddress);
-      [workerLpAfter] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
-      totalRewards = swapHelper.computeTotalRewards(workerLPBefore, WEX_REWARD_PER_BLOCK, BigNumber.from(2));
-      reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
-      reinvestLeft = totalRewards.sub(reinvestFees);
-
-      reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
-      reinvestBtoken = reinvestAmts[reinvestAmts.length - 1].add(debrisBtoken);
-      [reinvestLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
-      accumLp = accumLp.add(reinvestLp);
-
-      expect(await waultSwapWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(shares[0]);
-      expect(
-        await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1)),
-        `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
-      ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
-
-      expect(await waultSwapWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(shares[1]);
-      expect(
-        await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(2)),
-        `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
-      ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
-
-      expect(deployerWexAfter.sub(deployerWexBefore), `expect DEPLOYER's WEX to remain the same`).to.be.bignumber.eq(
-        "0"
-      );
-      expect(eveWexAfter.sub(eveWexBefore), `expect eve to get ${reinvestFees}`).to.be.bignumber.eq(reinvestFees);
-      expect(workerLpAfter).to.be.bignumber.eq(accumLp);
-
-      // Check Position#1 info
-      let [bob1Health, bob1DebtToShare] = await vault.positionInfo("1");
-      const bob1ExpectedHealth = await swapHelper.computeLpHealth(
-        await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1)),
-        baseToken.address,
-        farmToken.address
-      );
-      expect(bob1Health, `expect Pos#1 health = ${bob1ExpectedHealth}`).to.be.bignumber.eq(bob1ExpectedHealth);
-      expect(bob1Health).to.be.gt(ethers.utils.parseEther("20"));
-      AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("10").toString(), bob1DebtToShare.toString());
-
-      // Check Position#2 info
-      let [alice2Health, alice2DebtToShare] = await vault.positionInfo("2");
-      const alice2ExpectedHealth = await swapHelper.computeLpHealth(
-        await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(2)),
-        baseToken.address,
-        farmToken.address
-      );
-      expect(alice2Health, `expect Pos#2 health = ${alice2ExpectedHealth}`).to.be.bignumber.eq(alice2ExpectedHealth);
-      expect(alice2Health).to.be.gt(ethers.utils.parseEther("3"));
-      AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("2").toString(), alice2DebtToShare.toString());
-
-      const bobBefore = await baseToken.balanceOf(bobAddress);
-      // Bob close position#1
-      await vaultAsBob.work(
-        1,
-        waultSwapWorker.address,
-        "0",
-        "0",
-        "1000000000000000000000",
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [liqStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-        )
-      );
-      const bobAfter = await baseToken.balanceOf(bobAddress);
-
-      // Check Bob account, Bob must be richer as he earn more from yield
-      expect(bobAfter).to.be.bignumber.gt(bobBefore);
-
-      // Alice add another 10 BTOKEN
-      await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("10"));
-      await vaultAsAlice.work(
-        2,
-        waultSwapWorker.address,
-        ethers.utils.parseEther("10"),
-        0,
-        "0", // max return = 0, don't return NATIVE to the debt
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-        )
-      );
-
-      const aliceBefore = await baseToken.balanceOf(aliceAddress);
-      // Alice close position#2
-      await vaultAsAlice.work(
-        2,
-        waultSwapWorker.address,
-        "0",
-        "0",
-        "1000000000000000000000000000000",
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [liqStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-        )
-      );
-      const aliceAfter = await baseToken.balanceOf(aliceAddress);
-
-      // Check Alice account, Alice must be richer as she earned from leverage yield farm without getting liquidated
-      expect(aliceAfter).to.be.bignumber.gt(aliceBefore);
-    });
-
-    it("should close position correctly when user holds multiple positions", async () => {
-      // Set interests to 0% per year for easy testing
-      await simpleVaultConfig.setParams(
-        ethers.utils.parseEther("1"), // 1 BTOKEN min debt size,
-        "0", // 0% per year
-        "1000", // 10% reserve pool
-        "1000", // 10% Kill prize
-        wbnb.address,
-        wNativeRelayer.address,
-        fairLaunch.address,
-        "0",
-        ethers.constants.AddressZero
-      );
-      // Set Reinvest bounty to 10% of the reward
-      await waultSwapWorker.setReinvestConfig("100", "0", [wex.address, wbnb.address, baseToken.address]);
-
-      const [path, reinvestPath] = await Promise.all([waultSwapWorker.getPath(), waultSwapWorker.getReinvestPath()]);
-
-      // Bob deposits 10 BTOKEN
-      await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-      await vaultAsBob.deposit(ethers.utils.parseEther("10"));
-
-      // Alice deposits 12 BTOKEN
-      await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("12"));
-      await vaultAsAlice.deposit(ethers.utils.parseEther("12"));
-
-      // Position#1: Bob borrows 10 BTOKEN
-      await swapHelper.loadReserves(path);
-      let accumLp = BigNumber.from(0);
-      let workerLpBefore = BigNumber.from(0);
-      let totalShare = BigNumber.from(0);
-      let shares: Array<BigNumber> = [];
-      await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-      await vaultAsBob.work(
-        0,
-        waultSwapWorker.address,
-        ethers.utils.parseEther("10"),
-        ethers.utils.parseEther("10"),
-        "0", // max return = 0, don't return NATIVE to the debt
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-        )
-      );
-      // Pre-compute expectation
-      let [expectedLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(
-        ethers.utils.parseEther("20"),
-        path
-      );
-      accumLp = accumLp.add(expectedLp);
-
-      let expectedShare = workerHelper.computeBalanceToShare(expectedLp, totalShare, workerLpBefore);
-      shares.push(expectedShare);
-      totalShare = totalShare.add(expectedShare);
-
-      // Expect
-      let [workerLpAfter] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
-      expect(await waultSwapWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(shares[0]);
-      expect(
-        await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1)),
-        `expect Pos#1 LPs = ${expectedLp}`
-      ).to.be.bignumber.eq(expectedLp);
-      expect(await waultSwapWorker.totalShare(), `expect totalShare = ${totalShare}`).to.be.bignumber.eq(totalShare);
-      expect(
-        await baseToken.balanceOf(addStrat.address),
-        `expect add BTOKEN strat to have ${debrisBtoken} BTOKEN debris`
-      ).to.be.bignumber.eq(debrisBtoken);
-      expect(
-        await farmToken.balanceOf(addStrat.address),
-        `expect add BTOKEN strat to have ${debrisFtoken} FTOKEN debris`
-      ).to.be.bignumber.eq(debrisFtoken);
-      expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.bignumber.eq(accumLp);
-
-      // Position#2: Bob borrows another 2 BTOKEN
-      [workerLpBefore] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
-      let eveWexBefore = await wex.balanceOf(eveAddress);
-      let deployerWexBefore = await wex.balanceOf(DEPLOYER);
-      await swapHelper.loadReserves(path);
-      await swapHelper.loadReserves(reinvestPath);
-      await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("1"));
-      await vaultAsBob.work(
-        0,
-        waultSwapWorker.address,
-        ethers.utils.parseEther("1"),
-        ethers.utils.parseEther("2"),
-        "0", // max return = 0, don't return BTOKEN to the debt
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-        )
-      );
-      [workerLpAfter] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
-      let eveWexAfter = await wex.balanceOf(eveAddress);
-      let deployerWexAfter = await wex.balanceOf(DEPLOYER);
-      let totalRewards = swapHelper.computeTotalRewards(workerLpBefore, WEX_REWARD_PER_BLOCK, BigNumber.from(2));
-      let reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
-      let reinvestLeft = totalRewards.sub(reinvestFees);
-
-      let reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
-      let reinvestBtoken = reinvestAmts[reinvestAmts.length - 1].add(debrisBtoken);
-      let reinvestLp = BigNumber.from(0);
-      [reinvestLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
-      accumLp = accumLp.add(reinvestLp);
-
-      [expectedLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(
-        ethers.utils.parseEther("3"),
-        path
-      );
-      accumLp = accumLp.add(expectedLp);
-
-      expectedShare = workerHelper.computeBalanceToShare(expectedLp, totalShare, workerLpBefore.add(reinvestLp));
-      shares.push(expectedShare);
-      totalShare = totalShare.add(expectedShare);
-
-      expect(await waultSwapWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(shares[0]);
-      expect(
-        await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1)),
-        `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
-      ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
-
-      expect(await waultSwapWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(shares[1]);
-      expect(
-        await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(2)),
-        `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
-      ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
-
-      expect(
-        deployerWexAfter.sub(deployerWexBefore),
-        `expect DEPLOYER to get ${reinvestFees} WEX as treasury fees`
-      ).to.be.bignumber.eq(reinvestFees);
-      expect(eveWexAfter.sub(eveWexBefore), `expect eve's WEX to remain the same`).to.be.bignumber.eq("0");
-      expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.bignumber.eq(accumLp);
-      expect(
-        await baseToken.balanceOf(addStrat.address),
-        `expect add BTOKEN strat to have ${debrisBtoken} BTOKEN debris`
-      ).to.be.bignumber.eq(debrisBtoken);
-      expect(
-        await farmToken.balanceOf(addStrat.address),
-        `expect add BTOKEN strat to have ${debrisFtoken} FTOKEN debris`
-      ).to.be.bignumber.eq(debrisFtoken);
-
-      // ---------------- Reinvest#1 -------------------
-      // Wait for 1 day and someone calls reinvest
-      await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-
-      let [workerLPBefore] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
-      deployerWexBefore = await wex.balanceOf(DEPLOYER);
-      eveWexBefore = await wex.balanceOf(eveAddress);
-      await swapHelper.loadReserves(path);
-      await swapHelper.loadReserves(reinvestPath);
-
-      await waultSwapWorkerAsEve.reinvest();
-
-      deployerWexAfter = await wex.balanceOf(DEPLOYER);
-      eveWexAfter = await wex.balanceOf(eveAddress);
-      [workerLpAfter] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
-      totalRewards = swapHelper.computeTotalRewards(workerLPBefore, WEX_REWARD_PER_BLOCK, BigNumber.from(2));
-      reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
-      reinvestLeft = totalRewards.sub(reinvestFees);
-
-      reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
-      reinvestBtoken = reinvestAmts[reinvestAmts.length - 1].add(debrisBtoken);
-      [reinvestLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
-      accumLp = accumLp.add(reinvestLp);
-
-      expect(await waultSwapWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(shares[0]);
-      expect(
-        await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1)),
-        `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
-      ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
-
-      expect(await waultSwapWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(shares[1]);
-      expect(
-        await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(2)),
-        `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
-      ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
-
-      expect(deployerWexAfter.sub(deployerWexBefore), `expect DEPLOYER's WEX to remain the same`).to.be.bignumber.eq(
-        "0"
-      );
-      expect(eveWexAfter.sub(eveWexBefore), `expect eve to get ${reinvestFees}`).to.be.bignumber.eq(reinvestFees);
-      expect(workerLpAfter).to.be.bignumber.eq(accumLp);
-
-      // Check Position#1 info
-      let [bob1Health, bob1DebtToShare] = await vault.positionInfo("1");
-      const bob1ExpectedHealth = await swapHelper.computeLpHealth(
-        await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1)),
-        baseToken.address,
-        farmToken.address
-      );
-      expect(bob1Health, `expect Pos#1 health = ${bob1ExpectedHealth}`).to.be.bignumber.eq(bob1ExpectedHealth);
-      expect(bob1Health).to.be.gt(ethers.utils.parseEther("20"));
-      AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("10").toString(), bob1DebtToShare.toString());
-
-      // Check Position#2 info
-      let [bob2Health, bob2DebtToShare] = await vault.positionInfo("2");
-      const bob2ExpectedHealth = await swapHelper.computeLpHealth(
-        await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(2)),
-        baseToken.address,
-        farmToken.address
-      );
-      expect(bob2Health, `expect Pos#2 health = ${bob2ExpectedHealth}`).to.be.bignumber.eq(bob2ExpectedHealth);
-      expect(bob2Health).to.be.gt(ethers.utils.parseEther("3"));
-      AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("2").toString(), bob2DebtToShare.toString());
-
-      let bobBefore = await baseToken.balanceOf(bobAddress);
-      let bobAlpacaBefore = await alpacaToken.balanceOf(bobAddress);
-      // Bob close position#1
-      await vaultAsBob.work(
-        1,
-        waultSwapWorker.address,
-        "0",
-        "0",
-        "1000000000000000000000",
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [liqStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-        )
-      );
-      let bobAfter = await baseToken.balanceOf(bobAddress);
-      let bobAlpacaAfter = await alpacaToken.balanceOf(bobAddress);
-
-      // Check Bob account, Bob must be richer as he earn more from yield
-      expect(bobAlpacaAfter).to.be.bignumber.gt(bobAlpacaBefore);
-      expect(bobAfter).to.be.bignumber.gt(bobBefore);
-
-      // Bob add another 10 BTOKEN
-      await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-      await vaultAsBob.work(
-        2,
-        waultSwapWorker.address,
-        ethers.utils.parseEther("10"),
-        0,
-        "0", // max return = 0, don't return NATIVE to the debt
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-        )
-      );
-
-      bobBefore = await baseToken.balanceOf(bobAddress);
-      bobAlpacaBefore = await alpacaToken.balanceOf(bobAddress);
-      // Bob close position#2
-      await vaultAsBob.work(
-        2,
-        waultSwapWorker.address,
-        "0",
-        "0",
-        "1000000000000000000000000000000",
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [liqStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-        )
-      );
-      bobAfter = await baseToken.balanceOf(bobAddress);
-      bobAlpacaAfter = await alpacaToken.balanceOf(bobAddress);
-
-      // Check Bob account, Bob must be richer as she earned from leverage yield farm without getting liquidated
-      expect(bobAfter).to.be.bignumber.gt(bobBefore);
-      expect(bobAlpacaAfter).to.be.bignumber.gt(bobAlpacaBefore);
-    });
-
-    it("should close position correctly when user holds mix positions of leveraged and non-leveraged", async () => {
-      // Set interests to 0% per year for easy testing
-      await simpleVaultConfig.setParams(
-        ethers.utils.parseEther("1"), // 1 BTOKEN min debt size,
-        "0", // 0% per year
-        "1000", // 10% reserve pool
-        "1000", // 10% Kill prize
-        wbnb.address,
-        wNativeRelayer.address,
-        fairLaunch.address,
-        "0",
-        ethers.constants.AddressZero
-      );
-
-      const [path, reinvestPath] = await Promise.all([waultSwapWorker.getPath(), waultSwapWorker.getReinvestPath()]);
-
-      // Set Reinvest bounty to 10% of the reward
-      await waultSwapWorker.setReinvestConfig("100", "0", [wex.address, wbnb.address, baseToken.address]);
-
-      // Bob deposits 10 BTOKEN
-      await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-      await vaultAsBob.deposit(ethers.utils.parseEther("10"));
-
-      // Alice deposits 12 BTOKEN
-      await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("12"));
-      await vaultAsAlice.deposit(ethers.utils.parseEther("12"));
-
-      // Position#1: Bob borrows 10 BTOKEN
-      await swapHelper.loadReserves(path);
-      let accumLp = BigNumber.from(0);
-      let workerLpBefore = BigNumber.from(0);
-      let totalShare = BigNumber.from(0);
-      let shares: Array<BigNumber> = [];
-      await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-      await vaultAsBob.work(
-        0,
-        waultSwapWorker.address,
-        ethers.utils.parseEther("10"),
-        ethers.utils.parseEther("10"),
-        "0", // max return = 0, don't return NATIVE to the debt
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-        )
-      );
-      // Pre-compute expectation
-      let [expectedLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(
-        ethers.utils.parseEther("20"),
-        path
-      );
-      accumLp = accumLp.add(expectedLp);
-
-      let expectedShare = workerHelper.computeBalanceToShare(expectedLp, totalShare, workerLpBefore);
-      shares.push(expectedShare);
-      totalShare = totalShare.add(expectedShare);
-
-      // Expect
-      let [workerLpAfter] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
-      expect(await waultSwapWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(shares[0]);
-      expect(
-        await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1)),
-        `expect Pos#1 LPs = ${expectedLp}`
-      ).to.be.bignumber.eq(expectedLp);
-      expect(await waultSwapWorker.totalShare(), `expect totalShare = ${totalShare}`).to.be.bignumber.eq(totalShare);
-      expect(
-        await baseToken.balanceOf(addStrat.address),
-        `expect add BTOKEN strat to have ${debrisBtoken} BTOKEN debris`
-      ).to.be.bignumber.eq(debrisBtoken);
-      expect(
-        await farmToken.balanceOf(addStrat.address),
-        `expect add BTOKEN strat to have ${debrisFtoken} FTOKEN debris`
-      ).to.be.bignumber.eq(debrisFtoken);
-      expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.bignumber.eq(accumLp);
-
-      // Position#2: Bob borrows another 2 BTOKEN
-      [workerLpBefore] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
-      let eveWexBefore = await wex.balanceOf(eveAddress);
-      let deployerWexBefore = await wex.balanceOf(DEPLOYER);
-
-      // Position#2: Bob open 1x position with 3 BTOKEN
-      await swapHelper.loadReserves(path);
-      await swapHelper.loadReserves(reinvestPath);
-      await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("3"));
-      await vaultAsBob.work(
-        0,
-        waultSwapWorker.address,
-        ethers.utils.parseEther("3"),
-        "0",
-        "0", // max return = 0, don't return BTOKEN to the debt
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-        )
-      );
-      [workerLpAfter] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
-      let eveWexAfter = await wex.balanceOf(eveAddress);
-      let deployerWexAfter = await wex.balanceOf(DEPLOYER);
-      let totalRewards = swapHelper.computeTotalRewards(workerLpBefore, WEX_REWARD_PER_BLOCK, BigNumber.from(2));
-      let reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
-      let reinvestLeft = totalRewards.sub(reinvestFees);
-
-      let reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
-      let reinvestBtoken = reinvestAmts[reinvestAmts.length - 1].add(debrisBtoken);
-      let reinvestLp = BigNumber.from(0);
-      [reinvestLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
-      accumLp = accumLp.add(reinvestLp);
-
-      [expectedLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(
-        ethers.utils.parseEther("3"),
-        path
-      );
-      accumLp = accumLp.add(expectedLp);
-
-      expectedShare = workerHelper.computeBalanceToShare(expectedLp, totalShare, workerLpBefore.add(reinvestLp));
-      shares.push(expectedShare);
-      totalShare = totalShare.add(expectedShare);
-
-      expect(await waultSwapWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(shares[0]);
-      expect(
-        await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1)),
-        `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
-      ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
-
-      expect(await waultSwapWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(shares[1]);
-      expect(
-        await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(2)),
-        `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
-      ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
-
-      expect(
-        deployerWexAfter.sub(deployerWexBefore),
-        `expect DEPLOYER to get ${reinvestFees} WEX as treasury fees`
-      ).to.be.bignumber.eq(reinvestFees);
-      expect(eveWexAfter.sub(eveWexBefore), `expect eve's WEX to remain the same`).to.be.bignumber.eq("0");
-      expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.bignumber.eq(accumLp);
-      expect(
-        await baseToken.balanceOf(addStrat.address),
-        `expect add BTOKEN strat to have ${debrisBtoken} BTOKEN debris`
-      ).to.be.bignumber.eq(debrisBtoken);
-      expect(
-        await farmToken.balanceOf(addStrat.address),
-        `expect add BTOKEN strat to have ${debrisFtoken} FTOKEN debris`
-      ).to.be.bignumber.eq(debrisFtoken);
-
-      // ---------------- Reinvest#1 -------------------
-      // Wait for 1 day and someone calls reinvest
-      await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-
-      let [workerLPBefore] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
-      deployerWexBefore = await wex.balanceOf(DEPLOYER);
-      eveWexBefore = await wex.balanceOf(eveAddress);
-      await swapHelper.loadReserves(path);
-      await swapHelper.loadReserves(reinvestPath);
-
-      await waultSwapWorkerAsEve.reinvest();
-
-      deployerWexAfter = await wex.balanceOf(DEPLOYER);
-      eveWexAfter = await wex.balanceOf(eveAddress);
-      [workerLpAfter] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
-      totalRewards = swapHelper.computeTotalRewards(workerLPBefore, WEX_REWARD_PER_BLOCK, BigNumber.from(2));
-      reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
-      reinvestLeft = totalRewards.sub(reinvestFees);
-
-      reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
-      reinvestBtoken = reinvestAmts[reinvestAmts.length - 1].add(debrisBtoken);
-      [reinvestLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
-      accumLp = accumLp.add(reinvestLp);
-
-      expect(await waultSwapWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(shares[0]);
-      expect(
-        await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1)),
-        `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
-      ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
-
-      expect(await waultSwapWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(shares[1]);
-      expect(
-        await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(2)),
-        `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
-      ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
-
-      expect(deployerWexAfter.sub(deployerWexBefore), `expect DEPLOYER's WEX to remain the same`).to.be.bignumber.eq(
-        "0"
-      );
-      expect(eveWexAfter.sub(eveWexBefore), `expect eve to get ${reinvestFees}`).to.be.bignumber.eq(reinvestFees);
-      expect(workerLpAfter).to.be.bignumber.eq(accumLp);
-
-      // Check Position#1 info
-      let [bob1Health, bob1DebtToShare] = await vault.positionInfo("1");
-      const bob1ExpectedHealth = await swapHelper.computeLpHealth(
-        await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1)),
-        baseToken.address,
-        farmToken.address
-      );
-      expect(bob1Health, `expect Pos#1 health = ${bob1ExpectedHealth}`).to.be.bignumber.eq(bob1ExpectedHealth);
-      expect(bob1Health).to.be.gt(ethers.utils.parseEther("20"));
-      AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("10").toString(), bob1DebtToShare.toString());
-
-      // Check Position#2 info
-      let [bob2Health, bob2DebtToShare] = await vault.positionInfo("2");
-      const bob2ExpectedHealth = await swapHelper.computeLpHealth(
-        await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(2)),
-        baseToken.address,
-        farmToken.address
-      );
-      expect(bob2Health, `expect Pos#2 health = ${bob2ExpectedHealth}`).to.be.bignumber.eq(bob2ExpectedHealth);
-      expect(bob2Health).to.be.gt(ethers.utils.parseEther("3"));
-      AssertHelpers.assertAlmostEqual("0", bob2DebtToShare.toString());
-
-      let bobBefore = await baseToken.balanceOf(bobAddress);
-      let bobAlpacaBefore = await alpacaToken.balanceOf(bobAddress);
-      // Bob close position#1
-      await vaultAsBob.work(
-        1,
-        waultSwapWorker.address,
-        "0",
-        "0",
-        "1000000000000000000000",
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [liqStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-        )
-      );
-      let bobAfter = await baseToken.balanceOf(bobAddress);
-      let bobAlpacaAfter = await alpacaToken.balanceOf(bobAddress);
-
-      // Check Bob account, Bob must be richer as he earn more from yield
-      expect(bobAlpacaAfter).to.be.bignumber.gt(bobAlpacaBefore);
-      expect(bobAfter).to.be.bignumber.gt(bobBefore);
-
-      // Bob add another 10 BTOKEN
-      await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-      await vaultAsBob.work(
-        2,
-        waultSwapWorker.address,
-        ethers.utils.parseEther("10"),
-        0,
-        "0", // max return = 0, don't return NATIVE to the debt
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-        )
-      );
-
-      bobBefore = await baseToken.balanceOf(bobAddress);
-      bobAlpacaBefore = await alpacaToken.balanceOf(bobAddress);
-      // Bob close position#2
-      await vaultAsBob.work(
-        2,
-        waultSwapWorker.address,
-        "0",
-        "0",
-        "1000000000000000000000000000000",
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [liqStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-        )
-      );
-      bobAfter = await baseToken.balanceOf(bobAddress);
-      bobAlpacaAfter = await alpacaToken.balanceOf(bobAddress);
-
-      // Check Bob account, Bob must be richer as she earned from leverage yield farm without getting liquidated
-      // But bob shouldn't earn more ALPACAs from closing position#2
-      expect(bobAfter).to.be.bignumber.gt(bobBefore);
-      expect(bobAlpacaAfter).to.be.bignumber.eq(bobAlpacaBefore);
-    });
-
-    it("should partially close position successfully, when maxReturn < liquidated amount, payback part of the debt", async () => {
-      // Set interests to 0% per year for easy testing
-      await simpleVaultConfig.setParams(
-        ethers.utils.parseEther("1"), // 1 BTOKEN min debt size,
-        "0", // 0% per year
-        "1000", // 10% reserve pool
-        "1000", // 10% Kill prize
-        wbnb.address,
-        wNativeRelayer.address,
-        fairLaunch.address,
-        "0",
-        ethers.constants.AddressZero
-      );
-
-      const [path, reinvestPath] = await Promise.all([waultSwapWorker.getPath(), waultSwapWorker.getReinvestPath()]);
-
-      // Set Reinvest bounty to 1% of the reward
-      await waultSwapWorker.setReinvestConfig("100", "0", [wex.address, wbnb.address, baseToken.address]);
-
-      // Bob deposits 10 BTOKEN
-      await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-      await vaultAsBob.deposit(ethers.utils.parseEther("10"));
-
-      // Action 1: Bob a new position. Providing 10 BTOKEN and borrow 10 BTOKEN
-      const borrowedAmount = ethers.utils.parseEther("10");
-      const principalAmount = ethers.utils.parseEther("10");
-      await swapHelper.loadReserves(path);
-      await swapHelper.loadReserves(reinvestPath);
-
-      await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-      let [workerLpBefore] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
-      await vaultAsBob.work(
-        0,
-        waultSwapWorker.address,
-        principalAmount,
-        borrowedAmount,
-        "0", // max return = 0, don't return NATIVE to the debt
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-        )
-      );
-      let [workerLpAfter] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
-
-      const [expectedLp, debrisBtoken] = await swapHelper.computeOneSidedOptimalLp(
-        borrowedAmount.add(principalAmount),
-        path
-      );
-      expect(workerLpAfter.sub(workerLpBefore)).to.eq(expectedLp);
-
-      const bobBefore = await baseToken.balanceOf(bobAddress);
-      const [bobHealthBefore] = await vault.positionInfo("1");
-      const lpUnderBobPosition = await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1));
-      const liquidatedLp = lpUnderBobPosition.div(2);
-      const returnDebt = ethers.utils.parseEther("6");
-      [workerLpBefore] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
-      await swapHelper.loadReserves(path);
-      await swapHelper.loadReserves(reinvestPath);
-      await vaultAsBob.work(
-        1,
-        waultSwapWorker.address,
-        "0",
-        "0",
-        returnDebt,
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [partialCloseStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256", "uint256"], [liquidatedLp, "0"])]
-        )
-      );
-      const bobAfter = await baseToken.balanceOf(bobAddress);
-
-      // Compute reinvest
-      const [reinvestFees, reinvestLp] = await swapHelper.computeReinvestLp(
-        workerLpBefore,
-        debrisBtoken,
-        WEX_REWARD_PER_BLOCK,
-        BigNumber.from(REINVEST_BOUNTY_BPS),
-        reinvestPath,
-        path,
-        BigNumber.from(1)
-      );
-
-      // Compute liquidate
-      const [btokenAmount, ftokenAmount] = await swapHelper.computeRemoveLiquidiy(
-        baseToken.address,
-        farmToken.address,
-        liquidatedLp
-      );
-      const sellFtokenAmounts = await swapHelper.computeSwapExactTokensForTokens(
-        ftokenAmount,
-        await waultSwapWorker.getReversedPath(),
-        true
-      );
-      const liquidatedBtoken = sellFtokenAmounts[sellFtokenAmounts.length - 1].add(btokenAmount).sub(returnDebt);
-
-      expect(bobAfter.sub(bobBefore), `expect Bob get ${liquidatedBtoken}`).to.be.eq(liquidatedBtoken);
-      // Check Bob position info
-      const [bobHealth, bobDebtToShare] = await vault.positionInfo("1");
-      // Bob's health after partial close position must be 50% less than before
-      // due to he exit half of lp under his position
-      expect(bobHealth).to.be.bignumber.lt(bobHealthBefore.div(2));
-      // Bob's debt should be left only 4 BTOKEN due he said he wants to return at max 4 BTOKEN
-      expect(bobDebtToShare).to.be.bignumber.eq(borrowedAmount.sub(returnDebt));
-      // Check LP deposited by Worker on MasterChef
-      [workerLpAfter] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
-      // LP tokens + 0.000207570473714694 LP from reinvest of worker should be decreased by lpUnderBobPosition/2
-      // due to Bob execute StrategyClosePartialLiquidate
-      expect(workerLpAfter).to.be.bignumber.eq(workerLpBefore.add(reinvestLp).sub(lpUnderBobPosition.div(2)));
-    });
-
-    it("should partially close position successfully, when maxReturn > liquidated amount and liquidated amount > debt", async () => {
-      // Set Bank's debt interests to 0% per year
-      await simpleVaultConfig.setParams(
-        ethers.utils.parseEther("1"), // 1 BTOKEN min debt size,
-        "0", // 0% per year
-        "1000", // 10% reserve pool
-        "1000", // 10% Kill prize
-        wbnb.address,
-        wNativeRelayer.address,
-        fairLaunch.address,
-        KILL_TREASURY_BPS,
-        deployerAddress
-      );
-
-      // Bob deposits 10 BTOKEN
-      await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-      await vaultAsBob.deposit(ethers.utils.parseEther("10"));
-
-      // Position#1: Bob borrows 10 BTOKEN loan and supply another 10 BToken
-      // Thus, Bob's position value will be worth 20 BTOKEN
-      // After calling `work()`
-      // 20 BTOKEN needs to swap 3.586163261419937287 BTOKEN to FTOKEN
-      // 3.586163261419937287 BTOKEN will be swapped to (3.586163261419937287  * 0.998 * 0.1) / (1 + 3.586163261419937287  * 0.998) = 0.078161127326571727
-      // new reserve after swap will be 4.586163261419937287 BTOKEN - 0.021838872673428273 FTOKEN
-      // based on optimal swap formula,
-      // BTOKEN-FTOKEN to be added into the LP will be 16.413836738580062713 BTOKEN - 0.078161127326571727 FTOKEN = min((16.413836738580062713 / 4.586163261419937287 * 0.031622776601683793), (0.078161127326571727 / 0.021838872673428273 * 0.031622776601683793)) =~ 1.131776307937023350 LP
-      // new reserve after adding liquidity 21.000000000000000000 BTOKEN - 0.100000000000000000 FTOKEN
-      // lp amount from adding liquidity will be 1.131776307937023350 LP
-      await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-      await vaultAsBob.work(
-        0,
-        waultSwapWorker.address,
-        ethers.utils.parseEther("10"),
-        ethers.utils.parseEther("10"),
-        "0", // max return = 0, don't return BTOKEN to the debt
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-        )
-      );
-
-      // Bob think he made enough. He now wants to close position partially.
-      // He close 50% of his position and return all debt
-      const bobBefore = await baseToken.balanceOf(bobAddress);
-      const [bobHealthBefore] = await vault.positionInfo("1");
-      const lpUnderBobPosition = await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1));
-      const [workerLPBefore] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
-
-      // Bob closes position with maxReturn 5,000,000,000 and liquidate half of his position
-      // Expect that Bob will close position successfully and his debt must be reduce as liquidated amount pay debt
-      // Bob think he made enough. He now wants to close position partially.
-
-      // After calling `work()`, the `_reinvest()` is invoked
-      // since 1 blocks have passed since approve and work now reward will be 0.076 * 1 =~ 0.075999999998831803 ~   wex
-      // reward without bounty will be 0.075999999998831803 - 0.000759999999988318 =~ 0.0752399999988435 wex
-      // 0.0752399999988435 wex can be converted into:
-      // (0.0752399999988435 * 0.998 * 1) / (0.1 + 0.0752399999988435 * 0.998) = 0.428863589322029016 WBNB
-      // 0.021792385851914001 WBNB can be converted into (0.428863589322029016 * 0.998 * 1) / (1 + 0.428863589322029016 * 0.998) = 0.299722762692979212 BTOKEN
-      // based on optimal swap formula, 0.299722762692979212 BTOKEN needs to swap 0.149479919413161109 BTOKEN
-      // new reserve after swap will be 21.149479919413161109 BTOKEN - 0.099294625357551732 FTOKEN
-      // based on optimal swap formula, 0.150242843279818103 BTOKEN - 0/000705374642448268 FTOKEN will be converted into (0.150242843279818103 / 21.149479919413161109) * 1.448004073953861283 =~ 0.010286411296189659 LP
-      // new reserve after adding liquidity receiving from `_reinvest()` is 21.299722762692979212 BTOKEN - 0.100000000000000000 FTOKEN
-      // more LP amount after executing add strategy will be 0.010286411296189659 LP
-      // accumulated LP of the worker will be 1.131776307937023350 + 0.010286411296189659 = 1142062719233213009 LP
-
-      // bob close 50% of his position, thus he will close 1.131776307937023350 (bob lp) * (1.131776307937023350 (total balance) /  (1.131776307937023350 (bob's share))) =~ 1.131776307937023350 / 2 =~ 0.565888153968511675 LP
-      // 0.565888153968511675 LP will be converted into 8.265335964360120225 BTOKEN - 0.038804899277079193 FTOKEN
-      // 0.038804899277079193 FTOKEN will be converted into (0.038804899277079193 * 0.998 * 13.034386798332858987) / (0.061195100722920807 + 0.038804899277079193 * 0.998) = 5.051785387603725080 BTOKEN
-      // thus, Bob will receive 5.051785387603725080+ 8.265335964360120225 = 13.317121351963845305 BTOKEN
-      await vaultAsBob.work(
-        1,
-        waultSwapWorker.address,
-        "0",
-        "0",
-        ethers.utils.parseEther("5000000000"),
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [
-            partialCloseStrat.address,
-            ethers.utils.defaultAbiCoder.encode(["uint256", "uint256"], [lpUnderBobPosition.div(2), "0"]),
-          ]
-        )
-      );
-
-      const bobAfter = await baseToken.balanceOf(bobAddress);
-
-      // After Bob liquidate half of his position which worth
-      // swapAmount = 13.317121351963845305 BTOKEN (price impact+trading fee included)
-      // Bob wish to return 5,000,000,000 BTOKEN (when maxReturn > debt, return all debt)
-      // The following criteria must be stratified:
-      // - Bob should get 13.317121351963845305 - 10 = 3.317121351963845305 BTOKEN back.
-      // - Bob's position debt must be 0
-      expect(
-        bobBefore.add(ethers.utils.parseEther("3.317121351963845305")),
-        "Expect BTOKEN in Bob's account after close position to increase by ~3.31 BTOKEN"
-      ).to.be.bignumber.eq(bobAfter);
-      // Check Bob position info
-      const [bobHealth, bobDebtVal] = await vault.positionInfo("1");
-      // Bob's health after partial close position must be 50% less than before
-      // due to he exit half of lp under his position
-      expect(bobHealth).to.be.bignumber.lt(bobHealthBefore.div(2));
-      // Bob's debt should be 0 BTOKEN due he said he wants to return at max 5,000,000,000 BTOKEN (> debt, return all debt)
-      expect(bobDebtVal).to.be.bignumber.eq("0");
-      // Check LP deposited by Worker on MasterChef
-      const [workerLPAfter] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
-      // LP tokens of worker should be decreased by lpUnderBobPosition/2
-      // due to Bob execute StrategyClosePartialLiquidate
-      expect(workerLPAfter).to.be.bignumber.eq(
-        workerLPBefore.add(parseEther("0.010286411296189659")).sub(lpUnderBobPosition.div(2))
-      );
-    });
-
-    it("should revert when partial close position made leverage higher than work factor", async () => {
-      // Set Bank's debt interests to 0% per year
-      await simpleVaultConfig.setParams(
-        ethers.utils.parseEther("1"), // 1 BTOKEN min debt size,
-        "0", // 0% per year
-        "1000", // 10% reserve pool
-        "1000", // 10% Kill prize
-        wbnb.address,
-        wNativeRelayer.address,
-        fairLaunch.address,
-        KILL_TREASURY_BPS,
-        deployerAddress
-      );
-
-      // Bob deposits 10 BTOKEN
-      await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-      await vaultAsBob.deposit(ethers.utils.parseEther("10"));
-
-      // Position#1: Bob borrows 10 BTOKEN loan
-      await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-      await vaultAsBob.work(
-        0,
-        waultSwapWorker.address,
-        ethers.utils.parseEther("10"),
-        ethers.utils.parseEther("10"),
-        "0", // max return = 0, don't return BTOKEN to the debt
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-        )
-      );
-
-      // Bob think he made enough. He now wants to close position partially.
-      // He liquidate all of his position but not payback the debt.
-      const lpUnderBobPosition = await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1));
-      // Bob closes position with maxReturn 5,000,000,000 and liquidate half of his position
-      // Expect that Bob will not be able to close his position as he liquidate all underlying assets but not paydebt
-      // which made his position debt ratio higher than allow work factor
-      await expect(
-        vaultAsBob.work(
+        );
+
+        // To find health of the position, derive following variables:
+        // totalBaseToken = 1.3
+        // totalFarmingToken = 0.1
+        // userBaseToken = 0.159684250517396851
+        // userFarmingToken = 0.012283403885953603
+
+        // health = amount of underlying of lp after converted to BTOKEN
+        // = userBaseToken + userFarmingTokenAfterSellToBaseToken
+
+        // Find userFarmingTokenAfterSellToBaseToken from
+        // mktSellAMount
+        // = [(userFarmingToken * 9980) * (totalBaseToken - userBaseToken)] / [((totalFarmingToken - userFarmingToken) * 10000) + (userFarmingToken * 9980)]
+        // = [(0.012283403885953603 * 9980) * (1.3 - 0.159684250517396851)] / [((0.1 - 0.012283403885953603) * 10000) + (0.012283403885953603 * 9980)]
+        // = 0.139823800150121109
+
+        // health = userBaseToken + userFarmingTokenAfterSellToBaseToken
+        // = 0.159684250517396851 + 0.139823800150121109
+        // = 0.29950805066751796
+        expect(await waultSwapWorker.health(1)).to.be.equal(ethers.utils.parseEther("0.29950805066751796"));
+
+        // must be able to close position
+        await vaultAsAlice.work(
           1,
           waultSwapWorker.address,
           "0",
           "0",
+          ethers.constants.MaxUint256.toString(),
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [liqStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          )
+        );
+        expect(await waultSwapWorker.health(1)).to.be.equal(ethers.constants.Zero);
+      });
+
+      it("should not allow to open a position with debt less than MIN_DEBT_SIZE", async () => {
+        // Deployer deposits 3 BTOKEN to the Vault
+        await baseToken.approve(vault.address, ethers.utils.parseEther("3"));
+        await vault.deposit(ethers.utils.parseEther("3"));
+
+        // Alice cannot take 0.3 debt because it is too small
+        await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("0.3"));
+        await expect(
+          vaultAsAlice.work(
+            0,
+            waultSwapWorker.address,
+            ethers.utils.parseEther("0.3"),
+            ethers.utils.parseEther("0.3"),
+            "0",
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "bytes"],
+              [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+            )
+          )
+        ).to.be.revertedWith("too small debt size");
+      });
+
+      it("should not allow to open the position with bad work factor", async () => {
+        // Deployer deposits 3 BTOKEN to the Vault
+        await baseToken.approve(vault.address, ethers.utils.parseEther("3"));
+        await vault.deposit(ethers.utils.parseEther("3"));
+
+        // Alice cannot take 1 BTOKEN loan because she only put 0.3 BTOKEN as a collateral
+        await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("0.3"));
+        await expect(
+          vaultAsAlice.work(
+            0,
+            waultSwapWorker.address,
+            ethers.utils.parseEther("0.3"),
+            ethers.utils.parseEther("1"),
+            "0",
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "bytes"],
+              [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+            )
+          )
+        ).to.be.revertedWith("bad work factor");
+      });
+
+      it("should not allow positions if Vault has less BaseToken than requested loan", async () => {
+        // Alice cannot take 1 BTOKEN loan because the contract does not have it
+        baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
+        await expect(
+          vaultAsAlice.work(
+            0,
+            waultSwapWorker.address,
+            ethers.utils.parseEther("1"),
+            ethers.utils.parseEther("1"),
+            "0",
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "bytes"],
+              [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+            )
+          )
+        ).to.be.revertedWith("insufficient funds in the vault");
+      });
+
+      it("should work", async () => {
+        // Deployer deposits 3 BTOKEN to the Vault
+        const deposit = ethers.utils.parseEther("3");
+        await baseToken.approve(vault.address, deposit);
+        await vault.deposit(deposit);
+
+        // Now Alice can take 1 BTOKEN loan + 1 BTOKEN of her to create a new position
+        const loan = ethers.utils.parseEther("1");
+        await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
+        await vaultAsAlice.work(
+          0,
+          waultSwapWorker.address,
+          ethers.utils.parseEther("1"),
+          loan,
           "0",
           ethers.utils.defaultAbiCoder.encode(
             ["address", "bytes"],
-            [
-              partialCloseStrat.address,
-              ethers.utils.defaultAbiCoder.encode(["uint256", "uint256"], [lpUnderBobPosition, "0"]),
-            ]
+            [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
           )
-        )
-      ).revertedWith("bad work factor");
-    });
+        );
 
-    it("should not allow to partially close position, when returnLpAmount > LpUnderPosition", async () => {
-      // Set Bank's debt interests to 0% per year
-      await simpleVaultConfig.setParams(
-        ethers.utils.parseEther("1"), // 1 BTOKEN min debt size,
-        "0", // 0% per year
-        "1000", // 10% reserve pool
-        "1000", // 10% Kill prize
-        wbnb.address,
-        wNativeRelayer.address,
-        fairLaunch.address,
-        KILL_TREASURY_BPS,
-        deployerAddress
-      );
+        // Her position should have ~2 NATIVE health (minus some small trading fee)
+        // To find health of the position, derive following variables:
+        // totalBaseToken = 2.999999999999999958
+        // totalFarmingToken = 0.1
+        // userBaseToken = 1.267216253674334111
+        // userFarmingToken = 0.042240541789144470
 
-      // Bob deposits 10 BTOKEN
-      await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-      await vaultAsBob.deposit(ethers.utils.parseEther("10"));
+        // health = amount of underlying of lp after converted to BTOKEN
+        // = userBaseToken + userFarmingTokenAfterSellToBaseToken
 
-      // Position#1: Bob borrows 10 BTOKEN loan
-      await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-      await vaultAsBob.work(
-        0,
-        waultSwapWorker.address,
-        ethers.utils.parseEther("10"),
-        ethers.utils.parseEther("10"),
-        "0", // max return = 0, don't return NATIVE to the debt
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-        )
-      );
+        // Find userFarmingTokenAfterSellToBaseToken from
+        // mktSellAMount
+        // = [(userFarmingToken * 9980) * (totalBaseToken - userBaseToken)] / [((totalFarmingToken - userFarmingToken) * 10000) + (userFarmingToken * 9980)]
+        // = [(0.042240541789144470 * 9980) * (2.999999999999999958 - 1.267216253674334111)] / [((0.1 - 0.042240541789144470) * 10000) + (0.042240541789144470 * 9980)]
+        // = 0.731091001597324380
 
-      // Bob think he made enough. He now wants to close position partially. However, his input is invalid.
-      // He put returnLpAmount > Lp that is under his position
-      const lpUnderBobPosition = await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1));
-      // Transaction should be revert due to Bob is asking contract to liquidate Lp amount > Lp that is under his position
-      await expect(
-        vaultAsBob.work(
-          1,
+        // health = userBaseToken + userFarmingTokenAfterSellToBaseToken
+        // = 1.267216253674334111 + 0.731091001597324380
+        // = 1.998307255271658491
+
+        expect(await waultSwapWorker.health(1)).to.be.bignumber.eq(ethers.utils.parseEther("1.998307255271658491"));
+
+        // Eve comes and trigger reinvest
+        await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
+        await waultSwapWorkerAsEve.reinvest();
+        AssertHelpers.assertAlmostEqual(
+          WEX_REWARD_PER_BLOCK.mul("2").mul(REINVEST_BOUNTY_BPS).div("10000").toString(),
+          (await wex.balanceOf(eveAddress)).toString()
+        );
+
+        await vault.deposit(0); // Random action to trigger interest computation
+        const healthDebt = await vault.positionInfo("1");
+        expect(healthDebt[0]).to.be.bignumber.above(ethers.utils.parseEther("2"));
+        const interest = ethers.utils.parseEther("0.3"); // 30% interest rate
+        AssertHelpers.assertAlmostEqual(healthDebt[1].toString(), interest.add(loan).toString());
+        AssertHelpers.assertAlmostEqual(
+          (await baseToken.balanceOf(vault.address)).toString(),
+          deposit.sub(loan).toString()
+        );
+        AssertHelpers.assertAlmostEqual((await vault.vaultDebtVal()).toString(), interest.add(loan).toString());
+
+        const reservePool = interest.mul(RESERVE_POOL_BPS).div("10000");
+        AssertHelpers.assertAlmostEqual(reservePool.toString(), (await vault.reservePool()).toString());
+        AssertHelpers.assertAlmostEqual(
+          deposit.add(interest).sub(reservePool).toString(),
+          (await vault.totalToken()).toString()
+        );
+      });
+
+      it("should has correct interest rate growth", async () => {
+        // Deployer deposits 3 BTOKEN to the Vault
+        const deposit = ethers.utils.parseEther("3");
+        await baseToken.approve(vault.address, deposit);
+        await vault.deposit(deposit);
+
+        // Now Alice can take 1 BTOKEN loan + 1 BTOKEN of her to create a new position
+        const loan = ethers.utils.parseEther("1");
+        await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
+        await vaultAsAlice.work(
+          0,
           waultSwapWorker.address,
+          ethers.utils.parseEther("1"),
+          loan,
           "0",
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          )
+        );
+
+        await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
+        await waultSwapWorkerAsEve.reinvest();
+        await vault.deposit(0); // Random action to trigger interest computation
+
+        await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
+        await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
+
+        await vault.deposit(0); // Random action to trigger interest computation
+        const interest = ethers.utils.parseEther("0.3"); //30% interest rate
+        const reservePool = interest.mul(RESERVE_POOL_BPS).div("10000");
+        AssertHelpers.assertAlmostEqual(
+          deposit
+            .add(interest.sub(reservePool))
+            .add(interest.sub(reservePool).mul(13).div(10))
+            .add(interest.sub(reservePool).mul(13).div(10))
+            .toString(),
+          (await vault.totalToken()).toString()
+        );
+      });
+
+      it("should close position correctly when user holds multiple positions", async () => {
+        // Set interests to 0% per year for easy testing
+        await simpleVaultConfig.setParams(
+          ethers.utils.parseEther("1"), // 1 BTOKEN min debt size,
+          "0", // 0% per year
+          "1000", // 10% reserve pool
+          "1000", // 10% Kill prize
+          wbnb.address,
+          wNativeRelayer.address,
+          fairLaunch.address,
           "0",
+          ethers.constants.AddressZero
+        );
+        // Set Reinvest bounty to 10% of the reward
+        await waultSwapWorker.setReinvestConfig("100", "0", [wex.address, wbnb.address, baseToken.address]);
+
+        const [path, reinvestPath] = await Promise.all([waultSwapWorker.getPath(), waultSwapWorker.getReinvestPath()]);
+
+        // Bob deposits 10 BTOKEN
+        await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
+        await vaultAsBob.deposit(ethers.utils.parseEther("10"));
+
+        // Alice deposits 12 BTOKEN
+        await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("12"));
+        await vaultAsAlice.deposit(ethers.utils.parseEther("12"));
+
+        // Position#1: Bob borrows 10 BTOKEN
+        await swapHelper.loadReserves(path);
+        let accumLp = BigNumber.from(0);
+        let workerLpBefore = BigNumber.from(0);
+        let totalShare = BigNumber.from(0);
+        let shares: Array<BigNumber> = [];
+        await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
+        await vaultAsBob.work(
+          0,
+          waultSwapWorker.address,
           ethers.utils.parseEther("10"),
+          ethers.utils.parseEther("10"),
+          "0", // max return = 0, don't return NATIVE to the debt
           ethers.utils.defaultAbiCoder.encode(
             ["address", "bytes"],
-            [
-              partialCloseStrat.address,
-              ethers.utils.defaultAbiCoder.encode(["uint256", "uint256"], [lpUnderBobPosition.mul(2), "0"]),
-            ]
+            [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
           )
-        )
-      ).to.be.revertedWith("StrategyPartialCloseLiquidate::execute:: insufficient LP amount recevied from worker");
+        );
+        // Pre-compute expectation
+        let [expectedLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(
+          ethers.utils.parseEther("20"),
+          path
+        );
+        accumLp = accumLp.add(expectedLp);
+
+        let expectedShare = workerHelper.computeBalanceToShare(expectedLp, totalShare, workerLpBefore);
+        shares.push(expectedShare);
+        totalShare = totalShare.add(expectedShare);
+
+        // Expect
+        let [workerLpAfter] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
+        expect(await waultSwapWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(shares[0]);
+        expect(
+          await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1)),
+          `expect Pos#1 LPs = ${expectedLp}`
+        ).to.be.bignumber.eq(expectedLp);
+        expect(await waultSwapWorker.totalShare(), `expect totalShare = ${totalShare}`).to.be.bignumber.eq(totalShare);
+        expect(
+          await baseToken.balanceOf(addStrat.address),
+          `expect add BTOKEN strat to have ${debrisBtoken} BTOKEN debris`
+        ).to.be.bignumber.eq(debrisBtoken);
+        expect(
+          await farmToken.balanceOf(addStrat.address),
+          `expect add BTOKEN strat to have ${debrisFtoken} FTOKEN debris`
+        ).to.be.bignumber.eq(debrisFtoken);
+        expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.bignumber.eq(accumLp);
+
+        // Position#2: Bob borrows another 2 BTOKEN
+        [workerLpBefore] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
+        let eveWexBefore = await wex.balanceOf(eveAddress);
+        let deployerWexBefore = await wex.balanceOf(DEPLOYER);
+        await swapHelper.loadReserves(path);
+        await swapHelper.loadReserves(reinvestPath);
+        await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("1"));
+        await vaultAsBob.work(
+          0,
+          waultSwapWorker.address,
+          ethers.utils.parseEther("1"),
+          ethers.utils.parseEther("2"),
+          "0", // max return = 0, don't return BTOKEN to the debt
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          )
+        );
+        [workerLpAfter] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
+        let eveWexAfter = await wex.balanceOf(eveAddress);
+        let deployerWexAfter = await wex.balanceOf(DEPLOYER);
+        let totalRewards = swapHelper.computeTotalRewards(workerLpBefore, WEX_REWARD_PER_BLOCK, BigNumber.from(2));
+        let reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
+        let reinvestLeft = totalRewards.sub(reinvestFees);
+
+        let reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
+        let reinvestBtoken = reinvestAmts[reinvestAmts.length - 1].add(debrisBtoken);
+        let reinvestLp = BigNumber.from(0);
+        [reinvestLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
+        accumLp = accumLp.add(reinvestLp);
+
+        [expectedLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(
+          ethers.utils.parseEther("3"),
+          path
+        );
+        accumLp = accumLp.add(expectedLp);
+
+        expectedShare = workerHelper.computeBalanceToShare(expectedLp, totalShare, workerLpBefore.add(reinvestLp));
+        shares.push(expectedShare);
+        totalShare = totalShare.add(expectedShare);
+
+        expect(await waultSwapWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(shares[0]);
+        expect(
+          await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1)),
+          `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
+        ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
+
+        expect(await waultSwapWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(shares[1]);
+        expect(
+          await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(2)),
+          `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
+        ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
+
+        expect(
+          deployerWexAfter.sub(deployerWexBefore),
+          `expect DEPLOYER to get ${reinvestFees} WEX as treasury fees`
+        ).to.be.bignumber.eq(reinvestFees);
+        expect(eveWexAfter.sub(eveWexBefore), `expect eve's WEX to remain the same`).to.be.bignumber.eq("0");
+        expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.bignumber.eq(accumLp);
+        expect(
+          await baseToken.balanceOf(addStrat.address),
+          `expect add BTOKEN strat to have ${debrisBtoken} BTOKEN debris`
+        ).to.be.bignumber.eq(debrisBtoken);
+        expect(
+          await farmToken.balanceOf(addStrat.address),
+          `expect add BTOKEN strat to have ${debrisFtoken} FTOKEN debris`
+        ).to.be.bignumber.eq(debrisFtoken);
+
+        // ---------------- Reinvest#1 -------------------
+        // Wait for 1 day and someone calls reinvest
+        await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
+
+        let [workerLPBefore] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
+        deployerWexBefore = await wex.balanceOf(DEPLOYER);
+        eveWexBefore = await wex.balanceOf(eveAddress);
+        await swapHelper.loadReserves(path);
+        await swapHelper.loadReserves(reinvestPath);
+
+        await waultSwapWorkerAsEve.reinvest();
+
+        deployerWexAfter = await wex.balanceOf(DEPLOYER);
+        eveWexAfter = await wex.balanceOf(eveAddress);
+        [workerLpAfter] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
+        totalRewards = swapHelper.computeTotalRewards(workerLPBefore, WEX_REWARD_PER_BLOCK, BigNumber.from(2));
+        reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
+        reinvestLeft = totalRewards.sub(reinvestFees);
+
+        reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
+        reinvestBtoken = reinvestAmts[reinvestAmts.length - 1].add(debrisBtoken);
+        [reinvestLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
+        accumLp = accumLp.add(reinvestLp);
+
+        expect(await waultSwapWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(shares[0]);
+        expect(
+          await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1)),
+          `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
+        ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
+
+        expect(await waultSwapWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(shares[1]);
+        expect(
+          await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(2)),
+          `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
+        ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
+
+        expect(deployerWexAfter.sub(deployerWexBefore), `expect DEPLOYER's WEX to remain the same`).to.be.bignumber.eq(
+          "0"
+        );
+        expect(eveWexAfter.sub(eveWexBefore), `expect eve to get ${reinvestFees}`).to.be.bignumber.eq(reinvestFees);
+        expect(workerLpAfter).to.be.bignumber.eq(accumLp);
+
+        // Check Position#1 info
+        let [bob1Health, bob1DebtToShare] = await vault.positionInfo("1");
+        const bob1ExpectedHealth = await swapHelper.computeLpHealth(
+          await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1)),
+          baseToken.address,
+          farmToken.address
+        );
+        expect(bob1Health, `expect Pos#1 health = ${bob1ExpectedHealth}`).to.be.bignumber.eq(bob1ExpectedHealth);
+        expect(bob1Health).to.be.gt(ethers.utils.parseEther("20"));
+        AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("10").toString(), bob1DebtToShare.toString());
+
+        // Check Position#2 info
+        let [bob2Health, bob2DebtToShare] = await vault.positionInfo("2");
+        const bob2ExpectedHealth = await swapHelper.computeLpHealth(
+          await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(2)),
+          baseToken.address,
+          farmToken.address
+        );
+        expect(bob2Health, `expect Pos#2 health = ${bob2ExpectedHealth}`).to.be.bignumber.eq(bob2ExpectedHealth);
+        expect(bob2Health).to.be.gt(ethers.utils.parseEther("3"));
+        AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("2").toString(), bob2DebtToShare.toString());
+
+        let bobBefore = await baseToken.balanceOf(bobAddress);
+        let bobAlpacaBefore = await alpacaToken.balanceOf(bobAddress);
+        // Bob close position#1
+        await vaultAsBob.work(
+          1,
+          waultSwapWorker.address,
+          "0",
+          "0",
+          "1000000000000000000000",
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [liqStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          )
+        );
+        let bobAfter = await baseToken.balanceOf(bobAddress);
+        let bobAlpacaAfter = await alpacaToken.balanceOf(bobAddress);
+
+        // Check Bob account, Bob must be richer as he earn more from yield
+        expect(bobAlpacaAfter).to.be.bignumber.gt(bobAlpacaBefore);
+        expect(bobAfter).to.be.bignumber.gt(bobBefore);
+
+        // Bob add another 10 BTOKEN
+        await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
+        await vaultAsBob.work(
+          2,
+          waultSwapWorker.address,
+          ethers.utils.parseEther("10"),
+          0,
+          "0", // max return = 0, don't return NATIVE to the debt
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          )
+        );
+
+        bobBefore = await baseToken.balanceOf(bobAddress);
+        bobAlpacaBefore = await alpacaToken.balanceOf(bobAddress);
+        // Bob close position#2
+        await vaultAsBob.work(
+          2,
+          waultSwapWorker.address,
+          "0",
+          "0",
+          "1000000000000000000000000000000",
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [liqStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          )
+        );
+        bobAfter = await baseToken.balanceOf(bobAddress);
+        bobAlpacaAfter = await alpacaToken.balanceOf(bobAddress);
+
+        // Check Bob account, Bob must be richer as she earned from leverage yield farm without getting liquidated
+        expect(bobAfter).to.be.bignumber.gt(bobBefore);
+        expect(bobAlpacaAfter).to.be.bignumber.gt(bobAlpacaBefore);
+      });
+
+      it("should close position correctly when user holds mix positions of leveraged and non-leveraged", async () => {
+        // Set interests to 0% per year for easy testing
+        await simpleVaultConfig.setParams(
+          ethers.utils.parseEther("1"), // 1 BTOKEN min debt size,
+          "0", // 0% per year
+          "1000", // 10% reserve pool
+          "1000", // 10% Kill prize
+          wbnb.address,
+          wNativeRelayer.address,
+          fairLaunch.address,
+          "0",
+          ethers.constants.AddressZero
+        );
+
+        const [path, reinvestPath] = await Promise.all([waultSwapWorker.getPath(), waultSwapWorker.getReinvestPath()]);
+
+        // Set Reinvest bounty to 10% of the reward
+        await waultSwapWorker.setReinvestConfig("100", "0", [wex.address, wbnb.address, baseToken.address]);
+
+        // Bob deposits 10 BTOKEN
+        await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
+        await vaultAsBob.deposit(ethers.utils.parseEther("10"));
+
+        // Alice deposits 12 BTOKEN
+        await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("12"));
+        await vaultAsAlice.deposit(ethers.utils.parseEther("12"));
+
+        // Position#1: Bob borrows 10 BTOKEN
+        await swapHelper.loadReserves(path);
+        let accumLp = BigNumber.from(0);
+        let workerLpBefore = BigNumber.from(0);
+        let totalShare = BigNumber.from(0);
+        let shares: Array<BigNumber> = [];
+        await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
+        await vaultAsBob.work(
+          0,
+          waultSwapWorker.address,
+          ethers.utils.parseEther("10"),
+          ethers.utils.parseEther("10"),
+          "0", // max return = 0, don't return NATIVE to the debt
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          )
+        );
+        // Pre-compute expectation
+        let [expectedLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(
+          ethers.utils.parseEther("20"),
+          path
+        );
+        accumLp = accumLp.add(expectedLp);
+
+        let expectedShare = workerHelper.computeBalanceToShare(expectedLp, totalShare, workerLpBefore);
+        shares.push(expectedShare);
+        totalShare = totalShare.add(expectedShare);
+
+        // Expect
+        let [workerLpAfter] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
+        expect(await waultSwapWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(shares[0]);
+        expect(
+          await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1)),
+          `expect Pos#1 LPs = ${expectedLp}`
+        ).to.be.bignumber.eq(expectedLp);
+        expect(await waultSwapWorker.totalShare(), `expect totalShare = ${totalShare}`).to.be.bignumber.eq(totalShare);
+        expect(
+          await baseToken.balanceOf(addStrat.address),
+          `expect add BTOKEN strat to have ${debrisBtoken} BTOKEN debris`
+        ).to.be.bignumber.eq(debrisBtoken);
+        expect(
+          await farmToken.balanceOf(addStrat.address),
+          `expect add BTOKEN strat to have ${debrisFtoken} FTOKEN debris`
+        ).to.be.bignumber.eq(debrisFtoken);
+        expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.bignumber.eq(accumLp);
+
+        // Position#2: Bob borrows another 2 BTOKEN
+        [workerLpBefore] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
+        let eveWexBefore = await wex.balanceOf(eveAddress);
+        let deployerWexBefore = await wex.balanceOf(DEPLOYER);
+
+        // Position#2: Bob open 1x position with 3 BTOKEN
+        await swapHelper.loadReserves(path);
+        await swapHelper.loadReserves(reinvestPath);
+        await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("3"));
+        await vaultAsBob.work(
+          0,
+          waultSwapWorker.address,
+          ethers.utils.parseEther("3"),
+          "0",
+          "0", // max return = 0, don't return BTOKEN to the debt
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          )
+        );
+        [workerLpAfter] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
+        let eveWexAfter = await wex.balanceOf(eveAddress);
+        let deployerWexAfter = await wex.balanceOf(DEPLOYER);
+        let totalRewards = swapHelper.computeTotalRewards(workerLpBefore, WEX_REWARD_PER_BLOCK, BigNumber.from(2));
+        let reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
+        let reinvestLeft = totalRewards.sub(reinvestFees);
+
+        let reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
+        let reinvestBtoken = reinvestAmts[reinvestAmts.length - 1].add(debrisBtoken);
+        let reinvestLp = BigNumber.from(0);
+        [reinvestLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
+        accumLp = accumLp.add(reinvestLp);
+
+        [expectedLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(
+          ethers.utils.parseEther("3"),
+          path
+        );
+        accumLp = accumLp.add(expectedLp);
+
+        expectedShare = workerHelper.computeBalanceToShare(expectedLp, totalShare, workerLpBefore.add(reinvestLp));
+        shares.push(expectedShare);
+        totalShare = totalShare.add(expectedShare);
+
+        expect(await waultSwapWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(shares[0]);
+        expect(
+          await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1)),
+          `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
+        ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
+
+        expect(await waultSwapWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(shares[1]);
+        expect(
+          await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(2)),
+          `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
+        ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
+
+        expect(
+          deployerWexAfter.sub(deployerWexBefore),
+          `expect DEPLOYER to get ${reinvestFees} WEX as treasury fees`
+        ).to.be.bignumber.eq(reinvestFees);
+        expect(eveWexAfter.sub(eveWexBefore), `expect eve's WEX to remain the same`).to.be.bignumber.eq("0");
+        expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.bignumber.eq(accumLp);
+        expect(
+          await baseToken.balanceOf(addStrat.address),
+          `expect add BTOKEN strat to have ${debrisBtoken} BTOKEN debris`
+        ).to.be.bignumber.eq(debrisBtoken);
+        expect(
+          await farmToken.balanceOf(addStrat.address),
+          `expect add BTOKEN strat to have ${debrisFtoken} FTOKEN debris`
+        ).to.be.bignumber.eq(debrisFtoken);
+
+        // ---------------- Reinvest#1 -------------------
+        // Wait for 1 day and someone calls reinvest
+        await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
+
+        let [workerLPBefore] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
+        deployerWexBefore = await wex.balanceOf(DEPLOYER);
+        eveWexBefore = await wex.balanceOf(eveAddress);
+        await swapHelper.loadReserves(path);
+        await swapHelper.loadReserves(reinvestPath);
+
+        await waultSwapWorkerAsEve.reinvest();
+
+        deployerWexAfter = await wex.balanceOf(DEPLOYER);
+        eveWexAfter = await wex.balanceOf(eveAddress);
+        [workerLpAfter] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
+        totalRewards = swapHelper.computeTotalRewards(workerLPBefore, WEX_REWARD_PER_BLOCK, BigNumber.from(2));
+        reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
+        reinvestLeft = totalRewards.sub(reinvestFees);
+
+        reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
+        reinvestBtoken = reinvestAmts[reinvestAmts.length - 1].add(debrisBtoken);
+        [reinvestLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
+        accumLp = accumLp.add(reinvestLp);
+
+        expect(await waultSwapWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(shares[0]);
+        expect(
+          await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1)),
+          `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
+        ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
+
+        expect(await waultSwapWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(shares[1]);
+        expect(
+          await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(2)),
+          `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
+        ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
+
+        expect(deployerWexAfter.sub(deployerWexBefore), `expect DEPLOYER's WEX to remain the same`).to.be.bignumber.eq(
+          "0"
+        );
+        expect(eveWexAfter.sub(eveWexBefore), `expect eve to get ${reinvestFees}`).to.be.bignumber.eq(reinvestFees);
+        expect(workerLpAfter).to.be.bignumber.eq(accumLp);
+
+        // Check Position#1 info
+        let [bob1Health, bob1DebtToShare] = await vault.positionInfo("1");
+        const bob1ExpectedHealth = await swapHelper.computeLpHealth(
+          await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1)),
+          baseToken.address,
+          farmToken.address
+        );
+        expect(bob1Health, `expect Pos#1 health = ${bob1ExpectedHealth}`).to.be.bignumber.eq(bob1ExpectedHealth);
+        expect(bob1Health).to.be.gt(ethers.utils.parseEther("20"));
+        AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("10").toString(), bob1DebtToShare.toString());
+
+        // Check Position#2 info
+        let [bob2Health, bob2DebtToShare] = await vault.positionInfo("2");
+        const bob2ExpectedHealth = await swapHelper.computeLpHealth(
+          await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(2)),
+          baseToken.address,
+          farmToken.address
+        );
+        expect(bob2Health, `expect Pos#2 health = ${bob2ExpectedHealth}`).to.be.bignumber.eq(bob2ExpectedHealth);
+        expect(bob2Health).to.be.gt(ethers.utils.parseEther("3"));
+        AssertHelpers.assertAlmostEqual("0", bob2DebtToShare.toString());
+
+        let bobBefore = await baseToken.balanceOf(bobAddress);
+        let bobAlpacaBefore = await alpacaToken.balanceOf(bobAddress);
+        // Bob close position#1
+        await vaultAsBob.work(
+          1,
+          waultSwapWorker.address,
+          "0",
+          "0",
+          "1000000000000000000000",
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [liqStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          )
+        );
+        let bobAfter = await baseToken.balanceOf(bobAddress);
+        let bobAlpacaAfter = await alpacaToken.balanceOf(bobAddress);
+
+        // Check Bob account, Bob must be richer as he earn more from yield
+        expect(bobAlpacaAfter).to.be.bignumber.gt(bobAlpacaBefore);
+        expect(bobAfter).to.be.bignumber.gt(bobBefore);
+
+        // Bob add another 10 BTOKEN
+        await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
+        await vaultAsBob.work(
+          2,
+          waultSwapWorker.address,
+          ethers.utils.parseEther("10"),
+          0,
+          "0", // max return = 0, don't return NATIVE to the debt
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          )
+        );
+
+        bobBefore = await baseToken.balanceOf(bobAddress);
+        bobAlpacaBefore = await alpacaToken.balanceOf(bobAddress);
+        // Bob close position#2
+        await vaultAsBob.work(
+          2,
+          waultSwapWorker.address,
+          "0",
+          "0",
+          "1000000000000000000000000000000",
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [liqStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          )
+        );
+        bobAfter = await baseToken.balanceOf(bobAddress);
+        bobAlpacaAfter = await alpacaToken.balanceOf(bobAddress);
+
+        // Check Bob account, Bob must be richer as she earned from leverage yield farm without getting liquidated
+        // But bob shouldn't earn more ALPACAs from closing position#2
+        expect(bobAfter).to.be.bignumber.gt(bobBefore);
+        expect(bobAlpacaAfter).to.be.bignumber.eq(bobAlpacaBefore);
+      });
+    });
+
+    context("#kill", async () => {
+      it("should not able to liquidate healthy position", async () => {
+        // Deployer deposits 3 BTOKEN to the Vault
+        const deposit = ethers.utils.parseEther("3");
+        await baseToken.approve(vault.address, deposit);
+        await vault.deposit(deposit);
+
+        // Now Alice can take 1 BTOKEN loan + 1 BTOKEN of her to create a new position
+        const loan = ethers.utils.parseEther("1");
+        await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
+        await vaultAsAlice.work(
+          0,
+          waultSwapWorker.address,
+          ethers.utils.parseEther("1"),
+          loan,
+          "0",
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          )
+        );
+
+        // Her position should have ~2 BTOKEN health (minus some small trading fee)
+        await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
+        await waultSwapWorkerAsEve.reinvest();
+        await vault.deposit(0); // Random action to trigger interest computation
+
+        // You can't liquidate her position yet
+        await expect(vaultAsEve.kill("1")).to.be.revertedWith("can't liquidate");
+        await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
+        await expect(vaultAsEve.kill("1")).to.be.revertedWith("can't liquidate");
+      });
+
+      it("should be able to liquidate bad position", async () => {
+        // Deployer deposits 3 BTOKEN to the Vault
+        const deposit = ethers.utils.parseEther("3");
+        await baseToken.approve(vault.address, deposit);
+        await vault.deposit(deposit);
+
+        // Now Alice can take 1 BTOKEN loan + 1 BTOKEN of her to create a new position
+        const loan = ethers.utils.parseEther("1");
+        await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
+        await vaultAsAlice.work(
+          0,
+          waultSwapWorker.address,
+          ethers.utils.parseEther("1"),
+          loan,
+          "0",
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          )
+        );
+
+        await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
+        await waultSwapWorkerAsEve.reinvest();
+        await vault.deposit(0); // Random action to trigger interest computation
+
+        await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
+        await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
+
+        await vault.deposit(0); // Random action to trigger interest computation
+        const interest = ethers.utils.parseEther("0.3"); //30% interest rate
+        const reservePool = interest.mul(RESERVE_POOL_BPS).div("10000");
+        AssertHelpers.assertAlmostEqual(
+          deposit
+            .add(interest.sub(reservePool))
+            .add(interest.sub(reservePool).mul(13).div(10))
+            .add(interest.sub(reservePool).mul(13).div(10))
+            .toString(),
+          (await vault.totalToken()).toString()
+        );
+
+        // Calculate the expected result.
+        // set interest rate to be 0 to be easy for testing.
+        await simpleVaultConfig.setParams(
+          MIN_DEBT_SIZE,
+          0,
+          RESERVE_POOL_BPS,
+          KILL_PRIZE_BPS,
+          wbnb.address,
+          wNativeRelayer.address,
+          fairLaunch.address,
+          KILL_TREASURY_BPS,
+          deployerAddress
+        );
+        const toBeLiquidatedValue = await waultSwapWorker.health(1);
+        const liquidationBounty = toBeLiquidatedValue.mul(KILL_PRIZE_BPS).div(10000);
+        const treasuryKillFees = toBeLiquidatedValue.mul(KILL_TREASURY_BPS).div(10000);
+        const totalLiquidationFees = liquidationBounty.add(treasuryKillFees);
+        const eveBalanceBefore = await baseToken.balanceOf(eveAddress);
+        const aliceAlpacaBefore = await alpacaToken.balanceOf(aliceAddress);
+        const aliceBalanceBefore = await baseToken.balanceOf(aliceAddress);
+        const vaultBalanceBefore = await baseToken.balanceOf(vault.address);
+        const deployerBalanceBefore = await baseToken.balanceOf(deployerAddress);
+        const vaultDebtVal = await vault.vaultDebtVal();
+        const debt = await vault.debtShareToVal((await vault.positions(1)).debtShare);
+        const left = debt.gte(toBeLiquidatedValue.sub(totalLiquidationFees))
+          ? ethers.constants.Zero
+          : toBeLiquidatedValue.sub(totalLiquidationFees).sub(debt);
+
+        // Now eve kill the position
+        await expect(vaultAsEve.kill("1")).to.emit(vaultAsEve, "Kill");
+
+        // Getting balances after killed
+        const eveBalanceAfter = await baseToken.balanceOf(eveAddress);
+        const aliceBalanceAfter = await baseToken.balanceOf(aliceAddress);
+        const vaultBalanceAfter = await baseToken.balanceOf(vault.address);
+        const deployerBalanceAfter = await baseToken.balanceOf(deployerAddress);
+
+        AssertHelpers.assertAlmostEqual(
+          deposit.add(interest).add(interest.mul(13).div(10)).add(interest.mul(13).div(10)).toString(),
+          (await baseToken.balanceOf(vault.address)).toString()
+        );
+        expect(await vault.vaultDebtVal()).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+        AssertHelpers.assertAlmostEqual(
+          reservePool.add(reservePool.mul(13).div(10)).add(reservePool.mul(13).div(10)).toString(),
+          (await vault.reservePool()).toString()
+        );
+        AssertHelpers.assertAlmostEqual(
+          deposit
+            .add(interest.sub(reservePool))
+            .add(interest.sub(reservePool).mul(13).div(10))
+            .add(interest.sub(reservePool).mul(13).div(10))
+            .toString(),
+          (await vault.totalToken()).toString()
+        );
+        expect(eveBalanceAfter.sub(eveBalanceBefore), "expect Eve to get her liquidation bounty").to.be.eq(
+          liquidationBounty
+        );
+        expect(
+          deployerBalanceAfter.sub(deployerBalanceBefore),
+          "expect Deployer to get treasury liquidation fees"
+        ).to.be.eq(treasuryKillFees);
+        expect(aliceBalanceAfter.sub(aliceBalanceBefore), "expect Alice to get her leftover back").to.be.eq(left);
+        expect(vaultBalanceAfter.sub(vaultBalanceBefore), "expect Vault to get its funds + interest").to.be.eq(
+          vaultDebtVal
+        );
+        expect((await vault.positions(1)).debtShare, "expect Pos#1 debt share to be 0").to.be.eq(0);
+        expect(
+          await alpacaToken.balanceOf(aliceAddress),
+          "expect Alice to get some ALPACA from holding LYF position"
+        ).to.be.bignumber.gt(aliceAlpacaBefore);
+
+        // Alice creates a new position again
+        await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
+        await vaultAsAlice.work(
+          0,
+          waultSwapWorker.address,
+          ethers.utils.parseEther("1"),
+          ethers.utils.parseEther("1"),
+          "0",
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          )
+        );
+
+        // She can close position
+        await vaultAsAlice.work(
+          2,
+          waultSwapWorker.address,
+          "0",
+          "0",
+          "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [liqStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          )
+        );
+      });
+
+      it("should liquidate user position correctly", async () => {
+        // Bob deposits 20 BTOKEN
+        await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("20"));
+        await vaultAsBob.deposit(ethers.utils.parseEther("20"));
+
+        // Position#1: Alice borrows 10 BTOKEN loan
+        await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("10"));
+        await vaultAsAlice.work(
+          0,
+          waultSwapWorker.address,
+          ethers.utils.parseEther("10"),
+          ethers.utils.parseEther("10"),
+          "0", // max return = 0, don't return BTOKEN to the debt
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          )
+        );
+
+        await farmToken.mint(deployerAddress, ethers.utils.parseEther("100"));
+        await farmToken.approve(router.address, ethers.utils.parseEther("100"));
+
+        // Price swing 10%
+        // Add more token to the pool equals to sqrt(10*((0.1)**2) / 9) - 0.1 = 0.005409255338945984, (0.1 is the balance of token in the pool)
+        await router.swapExactTokensForTokens(
+          ethers.utils.parseEther("0.005409255338945984"),
+          "0",
+          [farmToken.address, baseToken.address],
+          deployerAddress,
+          FOREVER
+        );
+        await expect(vaultAsEve.kill("1")).to.be.revertedWith("can't liquidate");
+
+        // Price swing 20%
+        // Add more token to the pool equals to
+        // sqrt(10*((0.10540925533894599)**2) / 8) - 0.10540925533894599 = 0.012441874858811944
+        // (0.10540925533894599 is the balance of token in the pool)
+        await router.swapExactTokensForTokens(
+          ethers.utils.parseEther("0.012441874858811944"),
+          "0",
+          [farmToken.address, baseToken.address],
+          deployerAddress,
+          FOREVER
+        );
+        await expect(vaultAsEve.kill("1")).to.be.revertedWith("can't liquidate");
+
+        // Price swing 23.43%
+        // Existing token on the pool = 0.10540925533894599 + 0.012441874858811944 = 0.11785113019775793
+        // Add more token to the pool equals to
+        // sqrt(10*((0.11785113019775793)**2) / 7.656999999999999) - 0.11785113019775793 = 0.016829279312591913
+        await router.swapExactTokensForTokens(
+          ethers.utils.parseEther("0.016829279312591913"),
+          "0",
+          [farmToken.address, baseToken.address],
+          deployerAddress,
+          FOREVER
+        );
+        await expect(vaultAsEve.kill("1")).to.be.revertedWith("can't liquidate");
+
+        // Price swing 30%
+        // Existing token on the pool = 0.11785113019775793 + 0.016829279312591913 = 0.13468040951034985
+        // Add more token to the pool equals to
+        // sqrt(10*((0.13468040951034985)**2) / 7) - 0.13468040951034985 = 0.026293469053292218
+        await router.swapExactTokensForTokens(
+          ethers.utils.parseEther("0.026293469053292218"),
+          "0",
+          [farmToken.address, baseToken.address],
+          deployerAddress,
+          FOREVER
+        );
+
+        // Now you can liquidate because of the price fluctuation
+        const eveBefore = await baseToken.balanceOf(eveAddress);
+        await expect(vaultAsEve.kill("1")).to.emit(vaultAsEve, "Kill");
+
+        expect(await baseToken.balanceOf(eveAddress)).to.be.bignumber.gt(eveBefore);
+      });
+    });
+
+    context("#onlyApproveHolders", async () => {
+      it("should be not allow user to emergencyWithdraw debtToken on FairLaunch", async () => {
+        // Deployer deposits 3 BTOKEN to the Vault
+        const deposit = ethers.utils.parseEther("3");
+        await baseToken.approve(vault.address, deposit);
+        await vault.deposit(deposit);
+
+        // Now Alice can take 1 BTOKEN loan + 1 BTOKEN of her to create a new position
+        const loan = ethers.utils.parseEther("1");
+        await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
+        await vaultAsAlice.work(
+          0,
+          waultSwapWorker.address,
+          ethers.utils.parseEther("1"),
+          loan,
+          "0",
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          )
+        );
+
+        await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
+        await waultSwapWorkerAsEve.reinvest();
+        await vault.deposit(0); // Random action to trigger interest computation
+
+        await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
+        await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
+
+        await vault.deposit(0); // Random action to trigger interest computation
+        const interest = ethers.utils.parseEther("0.3"); //30% interest rate
+        const reservePool = interest.mul(RESERVE_POOL_BPS).div("10000");
+        AssertHelpers.assertAlmostEqual(
+          deposit
+            .add(interest.sub(reservePool))
+            .add(interest.sub(reservePool).mul(13).div(10))
+            .add(interest.sub(reservePool).mul(13).div(10))
+            .toString(),
+          (await vault.totalToken()).toString()
+        );
+
+        // Alice emergencyWithdraw from FairLaunch
+        await expect(fairLaunchAsAlice.emergencyWithdraw(0)).to.be.revertedWith("only funder");
+
+        const eveBefore = await baseToken.balanceOf(eveAddress);
+
+        // Now you can liquidate because of the insane interest rate
+        await expect(vaultAsEve.kill("1")).to.emit(vaultAsEve, "Kill");
+
+        expect(await baseToken.balanceOf(eveAddress)).to.be.bignumber.gt(eveBefore);
+        AssertHelpers.assertAlmostEqual(
+          deposit.add(interest).add(interest.mul(13).div(10)).add(interest.mul(13).div(10)).toString(),
+          (await baseToken.balanceOf(vault.address)).toString()
+        );
+        expect(await vault.vaultDebtVal()).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+        AssertHelpers.assertAlmostEqual(
+          reservePool.add(reservePool.mul(13).div(10)).add(reservePool.mul(13).div(10)).toString(),
+          (await vault.reservePool()).toString()
+        );
+        AssertHelpers.assertAlmostEqual(
+          deposit
+            .add(interest.sub(reservePool))
+            .add(interest.sub(reservePool).mul(13).div(10))
+            .add(interest.sub(reservePool).mul(13).div(10))
+            .toString(),
+          (await vault.totalToken()).toString()
+        );
+
+        // Alice creates a new position again
+        await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
+        await vaultAsAlice.work(
+          0,
+          waultSwapWorker.address,
+          ethers.utils.parseEther("1"),
+          ethers.utils.parseEther("1"),
+          "0",
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          )
+        );
+
+        // She can close position
+        await vaultAsAlice.work(
+          2,
+          waultSwapWorker.address,
+          "0",
+          "0",
+          "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [liqStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          )
+        );
+      });
+    });
+
+    context("#deposit-withdraw", async () => {
+      it("should deposit and withdraw BTOKEN from Vault (bad debt case)", async () => {
+        // Deployer deposits 10 BTOKEN to the Vault
+        const deposit = ethers.utils.parseEther("10");
+        await baseToken.approve(vault.address, deposit);
+        await vault.deposit(deposit);
+
+        expect(await vault.balanceOf(deployerAddress)).to.be.bignumber.equal(deposit);
+
+        // Bob borrows 2 BTOKEN loan
+        const loan = ethers.utils.parseEther("2");
+        await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("1"));
+        await vaultAsBob.work(
+          0,
+          waultSwapWorker.address,
+          ethers.utils.parseEther("1"),
+          loan,
+          "0", // max return = 0, don't return BTOKEN to the debt
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          )
+        );
+
+        expect(await baseToken.balanceOf(vault.address)).to.be.bignumber.equal(deposit.sub(loan));
+        expect(await vault.vaultDebtVal()).to.be.bignumber.equal(loan);
+        expect(await vault.totalToken()).to.be.bignumber.equal(deposit);
+
+        // Alice deposits 2 BTOKEN
+        const aliceDeposit = ethers.utils.parseEther("2");
+        await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("2"));
+        await vaultAsAlice.deposit(aliceDeposit);
+
+        AssertHelpers.assertAlmostEqual(
+          deposit.sub(loan).add(aliceDeposit).toString(),
+          (await baseToken.balanceOf(vault.address)).toString()
+        );
+
+        // check Alice ibBTOKEN balance = 2/10 * 10 = 2 ibBTOKEN
+        AssertHelpers.assertAlmostEqual(aliceDeposit.toString(), (await vault.balanceOf(aliceAddress)).toString());
+        AssertHelpers.assertAlmostEqual(deposit.add(aliceDeposit).toString(), (await vault.totalSupply()).toString());
+
+        // Simulate BTOKEN price is very high by swap FTOKEN to BTOKEN (reduce BTOKEN supply)
+        await farmToken.mint(deployerAddress, ethers.utils.parseEther("100"));
+        await farmToken.approve(router.address, ethers.utils.parseEther("100"));
+        await router.swapExactTokensForTokens(
+          ethers.utils.parseEther("100"),
+          "0",
+          [farmToken.address, baseToken.address],
+          deployerAddress,
+          FOREVER
+        );
+
+        // Alice liquidates Bob position#1
+        const vaultBaseBefore = await baseToken.balanceOf(vault.address);
+        let aliceBefore = await baseToken.balanceOf(aliceAddress);
+        await expect(vaultAsAlice.kill("1")) // at health = 0.003000997994240237
+          .to.emit(vaultAsAlice, "Kill");
+
+        let aliceAfter = await baseToken.balanceOf(aliceAddress);
+
+        // Vault balance is increase by liquidation (0.002700898194816214 = 0.9 * 0.003000997994240237)
+        AssertHelpers.assertAlmostEqual(
+          vaultBaseBefore.add(ethers.utils.parseEther("0.002700898194816214")).toString(),
+          (await baseToken.balanceOf(vault.address)).toString()
+        );
+
+        // Alice is liquidator, Alice should receive 10% Kill prize
+        // BTOKEN back from liquidation 0.003000997994240237, 3% of it is 0.000300099799424023
+        AssertHelpers.assertAlmostEqual(
+          ethers.utils.parseEther("0.000300099799424023").toString(),
+          aliceAfter.sub(aliceBefore).toString()
+        );
+
+        // Alice withdraws 2 BOKTEN
+        aliceBefore = await baseToken.balanceOf(aliceAddress);
+        await vaultAsAlice.withdraw(await vault.balanceOf(aliceAddress));
+        aliceAfter = await baseToken.balanceOf(aliceAddress);
+
+        // alice gots 2/12 * 10.002700898194816214 = 1.667116816365802702
+        AssertHelpers.assertAlmostEqual(
+          ethers.utils.parseEther("1.667116816365802702").toString(),
+          aliceAfter.sub(aliceBefore).toString()
+        );
+      });
+    });
+
+    context("#reinvest", async () => {
+      it("should reinvest correctly", async () => {
+        // Set interests to 0% per year for easy testing
+        await simpleVaultConfig.setParams(
+          ethers.utils.parseEther("1"), // 1 BTOKEN min debt size,
+          "0", // 0% per year
+          "1000", // 10% reserve pool
+          "1000", // 10% Kill prize
+          wbnb.address,
+          wNativeRelayer.address,
+          fairLaunch.address,
+          "0",
+          ethers.constants.AddressZero
+        );
+
+        // Set Reinvest bounty to 10% of the reward
+        await waultSwapWorker.setReinvestConfig("100", "0", [wex.address, wbnb.address, baseToken.address]);
+
+        const [path, reinvestPath] = await Promise.all([waultSwapWorker.getPath(), waultSwapWorker.getReinvestPath()]);
+
+        // Bob deposits 10 BTOKEN
+        await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
+        await vaultAsBob.deposit(ethers.utils.parseEther("10"));
+
+        // Alice deposits 12 BTOKEN
+        await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("12"));
+        await vaultAsAlice.deposit(ethers.utils.parseEther("12"));
+
+        // Position#1: Bob borrows 10 BTOKEN
+        await swapHelper.loadReserves(path);
+        let accumLp = BigNumber.from(0);
+        let workerLpBefore = BigNumber.from(0);
+        let totalShare = BigNumber.from(0);
+        let shares: Array<BigNumber> = [];
+        await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
+        await vaultAsBob.work(
+          0,
+          waultSwapWorker.address,
+          ethers.utils.parseEther("10"),
+          ethers.utils.parseEther("10"),
+          "0", // max return = 0, don't return NATIVE to the debt
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          )
+        );
+        // Pre-compute expectation
+        let [expectedLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(
+          ethers.utils.parseEther("20"),
+          path
+        );
+        accumLp = accumLp.add(expectedLp);
+
+        let expectedShare = workerHelper.computeBalanceToShare(expectedLp, totalShare, workerLpBefore);
+        shares.push(expectedShare);
+        totalShare = totalShare.add(expectedShare);
+
+        // Expect
+        let [workerLpAfter] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
+        expect(await waultSwapWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(shares[0]);
+        expect(
+          await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1)),
+          `expect Pos#1 LPs = ${expectedLp}`
+        ).to.be.bignumber.eq(expectedLp);
+        expect(await waultSwapWorker.totalShare(), `expect totalShare = ${totalShare}`).to.be.bignumber.eq(totalShare);
+        expect(
+          await baseToken.balanceOf(addStrat.address),
+          `expect add BTOKEN strat to have ${debrisBtoken} BTOKEN debris`
+        ).to.be.bignumber.eq(debrisBtoken);
+        expect(
+          await farmToken.balanceOf(addStrat.address),
+          `expect add BTOKEN strat to have ${debrisFtoken} FTOKEN debris`
+        ).to.be.bignumber.eq(debrisFtoken);
+        expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.bignumber.eq(accumLp);
+
+        // Position#2: Bob borrows another 2 BTOKEN
+        [workerLpBefore] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
+        let eveWexBefore = await wex.balanceOf(eveAddress);
+        let deployerWexBefore = await wex.balanceOf(DEPLOYER);
+        await swapHelper.loadReserves(path);
+        await swapHelper.loadReserves(reinvestPath);
+        await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
+        await vaultAsAlice.work(
+          0,
+          waultSwapWorker.address,
+          ethers.utils.parseEther("1"),
+          ethers.utils.parseEther("2"),
+          "0", // max return = 0, don't return BTOKEN to the debt
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          )
+        );
+        [workerLpAfter] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
+        let eveWexAfter = await wex.balanceOf(eveAddress);
+        let deployerWexAfter = await wex.balanceOf(DEPLOYER);
+        let totalRewards = swapHelper.computeTotalRewards(workerLpBefore, WEX_REWARD_PER_BLOCK, BigNumber.from(2));
+        let reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
+        let reinvestLeft = totalRewards.sub(reinvestFees);
+
+        let reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
+        let reinvestBtoken = reinvestAmts[reinvestAmts.length - 1].add(debrisBtoken);
+        let reinvestLp = BigNumber.from(0);
+        [reinvestLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
+        accumLp = accumLp.add(reinvestLp);
+
+        [expectedLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(
+          ethers.utils.parseEther("3"),
+          path
+        );
+        accumLp = accumLp.add(expectedLp);
+
+        expectedShare = workerHelper.computeBalanceToShare(expectedLp, totalShare, workerLpBefore.add(reinvestLp));
+        shares.push(expectedShare);
+        totalShare = totalShare.add(expectedShare);
+
+        expect(await waultSwapWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(shares[0]);
+        expect(
+          await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1)),
+          `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
+        ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
+
+        expect(await waultSwapWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(shares[1]);
+        expect(
+          await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(2)),
+          `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
+        ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
+
+        expect(
+          deployerWexAfter.sub(deployerWexBefore),
+          `expect DEPLOYER to get ${reinvestFees} WEX as treasury fees`
+        ).to.be.bignumber.eq(reinvestFees);
+        expect(eveWexAfter.sub(eveWexBefore), `expect eve's WEX to remain the same`).to.be.bignumber.eq("0");
+        expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.bignumber.eq(accumLp);
+        expect(
+          await baseToken.balanceOf(addStrat.address),
+          `expect add BTOKEN strat to have ${debrisBtoken} BTOKEN debris`
+        ).to.be.bignumber.eq(debrisBtoken);
+        expect(
+          await farmToken.balanceOf(addStrat.address),
+          `expect add BTOKEN strat to have ${debrisFtoken} FTOKEN debris`
+        ).to.be.bignumber.eq(debrisFtoken);
+
+        // ---------------- Reinvest#1 -------------------
+        // Wait for 1 day and someone calls reinvest
+        await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
+
+        let [workerLPBefore] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
+        deployerWexBefore = await wex.balanceOf(DEPLOYER);
+        eveWexBefore = await wex.balanceOf(eveAddress);
+        await swapHelper.loadReserves(path);
+        await swapHelper.loadReserves(reinvestPath);
+
+        await waultSwapWorkerAsEve.reinvest();
+
+        deployerWexAfter = await wex.balanceOf(DEPLOYER);
+        eveWexAfter = await wex.balanceOf(eveAddress);
+        [workerLpAfter] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
+        totalRewards = swapHelper.computeTotalRewards(workerLPBefore, WEX_REWARD_PER_BLOCK, BigNumber.from(2));
+        reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
+        reinvestLeft = totalRewards.sub(reinvestFees);
+
+        reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
+        reinvestBtoken = reinvestAmts[reinvestAmts.length - 1].add(debrisBtoken);
+        [reinvestLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
+        accumLp = accumLp.add(reinvestLp);
+
+        expect(await waultSwapWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(shares[0]);
+        expect(
+          await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1)),
+          `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
+        ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
+
+        expect(await waultSwapWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(shares[1]);
+        expect(
+          await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(2)),
+          `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
+        ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
+
+        expect(deployerWexAfter.sub(deployerWexBefore), `expect DEPLOYER's WEX to remain the same`).to.be.bignumber.eq(
+          "0"
+        );
+        expect(eveWexAfter.sub(eveWexBefore), `expect eve to get ${reinvestFees}`).to.be.bignumber.eq(reinvestFees);
+        expect(workerLpAfter).to.be.bignumber.eq(accumLp);
+
+        // Check Position#1 info
+        let [bob1Health, bob1DebtToShare] = await vault.positionInfo("1");
+        const bob1ExpectedHealth = await swapHelper.computeLpHealth(
+          await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1)),
+          baseToken.address,
+          farmToken.address
+        );
+        expect(bob1Health, `expect Pos#1 health = ${bob1ExpectedHealth}`).to.be.bignumber.eq(bob1ExpectedHealth);
+        expect(bob1Health).to.be.gt(ethers.utils.parseEther("20"));
+        AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("10").toString(), bob1DebtToShare.toString());
+
+        // Check Position#2 info
+        let [alice2Health, alice2DebtToShare] = await vault.positionInfo("2");
+        const alice2ExpectedHealth = await swapHelper.computeLpHealth(
+          await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(2)),
+          baseToken.address,
+          farmToken.address
+        );
+        expect(alice2Health, `expect Pos#2 health = ${alice2ExpectedHealth}`).to.be.bignumber.eq(alice2ExpectedHealth);
+        expect(alice2Health).to.be.gt(ethers.utils.parseEther("3"));
+        AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("2").toString(), alice2DebtToShare.toString());
+
+        const bobBefore = await baseToken.balanceOf(bobAddress);
+        // Bob close position#1
+        await vaultAsBob.work(
+          1,
+          waultSwapWorker.address,
+          "0",
+          "0",
+          "1000000000000000000000",
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [liqStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          )
+        );
+        const bobAfter = await baseToken.balanceOf(bobAddress);
+
+        // Check Bob account, Bob must be richer as he earn more from yield
+        expect(bobAfter).to.be.bignumber.gt(bobBefore);
+
+        // Alice add another 10 BTOKEN
+        await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("10"));
+        await vaultAsAlice.work(
+          2,
+          waultSwapWorker.address,
+          ethers.utils.parseEther("10"),
+          0,
+          "0", // max return = 0, don't return NATIVE to the debt
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          )
+        );
+
+        const aliceBefore = await baseToken.balanceOf(aliceAddress);
+        // Alice close position#2
+        await vaultAsAlice.work(
+          2,
+          waultSwapWorker.address,
+          "0",
+          "0",
+          "1000000000000000000000000000000",
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [liqStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          )
+        );
+        const aliceAfter = await baseToken.balanceOf(aliceAddress);
+
+        // Check Alice account, Alice must be richer as she earned from leverage yield farm without getting liquidated
+        expect(aliceAfter).to.be.bignumber.gt(aliceBefore);
+      });
+    });
+
+    context("#partialclose", async () => {
+      context("#liquidate", async () => {
+        context("when maxReturn is lessDebt", async () => {
+          // back cannot be less than lessDebt as less debt is Min(debt, back, maxReturn) = maxReturn
+          it("should pay debt 'maxReturn' BTOKEN and return 'liquidatedAmount - maxReturn' BTOKEN to user", async () => {
+            // Set interests to 0% per year for easy testing
+            await simpleVaultConfig.setParams(
+              ethers.utils.parseEther("1"), // 1 BTOKEN min debt size,
+              "0", // 0% per year
+              "1000", // 10% reserve pool
+              "1000", // 10% Kill prize
+              wbnb.address,
+              wNativeRelayer.address,
+              fairLaunch.address,
+              "0",
+              ethers.constants.AddressZero
+            );
+
+            const [path, reinvestPath] = await Promise.all([
+              waultSwapWorker.getPath(),
+              waultSwapWorker.getReinvestPath(),
+            ]);
+
+            // Set Reinvest bounty to 1% of the reward
+            await waultSwapWorker.setReinvestConfig("100", "0", [wex.address, wbnb.address, baseToken.address]);
+
+            // Bob deposits 10 BTOKEN
+            await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
+            await vaultAsBob.deposit(ethers.utils.parseEther("10"));
+
+            // Action 1: Bob a new position. Providing 10 BTOKEN and borrow 10 BTOKEN
+            const borrowedAmount = ethers.utils.parseEther("10");
+            const principalAmount = ethers.utils.parseEther("10");
+            await swapHelper.loadReserves(path);
+            await swapHelper.loadReserves(reinvestPath);
+
+            await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
+            let [workerLpBefore] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
+            await vaultAsBob.work(
+              0,
+              waultSwapWorker.address,
+              principalAmount,
+              borrowedAmount,
+              "0", // max return = 0, don't return NATIVE to the debt
+              ethers.utils.defaultAbiCoder.encode(
+                ["address", "bytes"],
+                [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+              )
+            );
+            let [workerLpAfter] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
+
+            const [expectedLp, debrisBtoken] = await swapHelper.computeOneSidedOptimalLp(
+              borrowedAmount.add(principalAmount),
+              path
+            );
+            expect(workerLpAfter.sub(workerLpBefore)).to.eq(expectedLp);
+
+            const deployerWexBefore = await wex.balanceOf(DEPLOYER);
+            const bobBefore = await baseToken.balanceOf(bobAddress);
+            const [bobHealthBefore] = await vault.positionInfo("1");
+            const lpUnderBobPosition = await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1));
+            const liquidatedLp = lpUnderBobPosition.div(2);
+            const returnDebt = ethers.utils.parseEther("6");
+            [workerLpBefore] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
+
+            // Pre-compute
+            await swapHelper.loadReserves(path);
+            await swapHelper.loadReserves(reinvestPath);
+
+            // Compute reinvest
+            const [reinvestFees, reinvestLp] = await swapHelper.computeReinvestLp(
+              workerLpBefore,
+              debrisBtoken,
+              WEX_REWARD_PER_BLOCK,
+              BigNumber.from(REINVEST_BOUNTY_BPS),
+              reinvestPath,
+              path,
+              BigNumber.from(1)
+            );
+
+            // Compute liquidate
+            const [btokenAmount, ftokenAmount] = await swapHelper.computeRemoveLiquidiy(
+              baseToken.address,
+              farmToken.address,
+              liquidatedLp
+            );
+            const sellFtokenAmounts = await swapHelper.computeSwapExactTokensForTokens(
+              ftokenAmount,
+              await waultSwapWorker.getReversedPath(),
+              true
+            );
+            const liquidatedBtoken = sellFtokenAmounts[sellFtokenAmounts.length - 1].add(btokenAmount).sub(returnDebt);
+
+            await vaultAsBob.work(
+              1,
+              waultSwapWorker.address,
+              "0",
+              "0",
+              returnDebt,
+              ethers.utils.defaultAbiCoder.encode(
+                ["address", "bytes"],
+                [
+                  partialCloseStrat.address,
+                  ethers.utils.defaultAbiCoder.encode(
+                    ["uint256", "uint256", "uint256"],
+                    [liquidatedLp, returnDebt, liquidatedBtoken]
+                  ),
+                ]
+              )
+            );
+            const bobAfter = await baseToken.balanceOf(bobAddress);
+            const deployerWexAfter = await wex.balanceOf(DEPLOYER);
+
+            expect(deployerWexAfter.sub(deployerWexBefore), `expect Deployer to get ${reinvestFees}`).to.be.eq(
+              reinvestFees
+            );
+            expect(bobAfter.sub(bobBefore), `expect Bob get ${liquidatedBtoken}`).to.be.eq(liquidatedBtoken);
+            // Check Bob position info
+            const [bobHealth, bobDebtToShare] = await vault.positionInfo("1");
+            // Bob's health after partial close position must be 50% less than before
+            // due to he exit half of lp under his position
+            expect(bobHealth).to.be.bignumber.lt(bobHealthBefore.div(2));
+            // Bob's debt should be left only 4 BTOKEN due he said he wants to return at max 4 BTOKEN
+            expect(bobDebtToShare).to.be.bignumber.eq(borrowedAmount.sub(returnDebt));
+            // Check LP deposited by Worker on MasterChef
+            [workerLpAfter] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
+            // LP tokens + 0.000207570473714694 LP from reinvest of worker should be decreased by lpUnderBobPosition/2
+            // due to Bob execute StrategyClosePartialLiquidate
+            expect(workerLpAfter).to.be.bignumber.eq(workerLpBefore.add(reinvestLp).sub(lpUnderBobPosition.div(2)));
+          });
+        });
+
+        context("when debt is lessDebt", async () => {
+          // back cannot be less than lessDebt as less debt is Min(debt, back, maxReturn) = debt
+          it("should pay back all debt and return 'liquidatedAmount - debt' BTOKEN to user", async () => {
+            // Set Vault's debt interests to 0% per year
+            await simpleVaultConfig.setParams(
+              ethers.utils.parseEther("1"), // 1 BTOKEN min debt size,
+              "0", // 0% per year
+              "1000", // 10% reserve pool
+              "1000", // 10% Kill prize
+              wbnb.address,
+              wNativeRelayer.address,
+              fairLaunch.address,
+              KILL_TREASURY_BPS,
+              deployerAddress
+            );
+
+            // Bob deposits 10 BTOKEN
+            await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
+            await vaultAsBob.deposit(ethers.utils.parseEther("10"));
+
+            // Position#1: Bob borrows 10 BTOKEN loan and supply another 10 BToken
+            // Thus, Bob's position value will be worth 20 BTOKEN
+            // After calling `work()`
+            // 20 BTOKEN needs to swap 3.586163261419937287 BTOKEN to FTOKEN
+            // 3.586163261419937287 BTOKEN will be swapped to (3.586163261419937287  * 0.998 * 0.1) / (1 + 3.586163261419937287  * 0.998) = 0.078161127326571727
+            // new reserve after swap will be 4.586163261419937287 BTOKEN - 0.021838872673428273 FTOKEN
+            // based on optimal swap formula,
+            // BTOKEN-FTOKEN to be added into the LP will be 16.413836738580062713 BTOKEN - 0.078161127326571727 FTOKEN = min((16.413836738580062713 / 4.586163261419937287 * 0.031622776601683793), (0.078161127326571727 / 0.021838872673428273 * 0.031622776601683793)) =~ 1.131776307937023350 LP
+            // new reserve after adding liquidity 21.000000000000000000 BTOKEN - 0.100000000000000000 FTOKEN
+            // lp amount from adding liquidity will be 1.131776307937023350 LP
+            await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
+            await vaultAsBob.work(
+              0,
+              waultSwapWorker.address,
+              ethers.utils.parseEther("10"),
+              ethers.utils.parseEther("10"),
+              "0", // max return = 0, don't return BTOKEN to the debt
+              ethers.utils.defaultAbiCoder.encode(
+                ["address", "bytes"],
+                [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+              )
+            );
+
+            // Bob think he made enough. He now wants to close position partially.
+            // He close 50% of his position and return all debt
+            const bobBefore = await baseToken.balanceOf(bobAddress);
+            const [bobHealthBefore] = await vault.positionInfo("1");
+            const lpUnderBobPosition = await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1));
+            const [workerLPBefore] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
+
+            // Bob closes position with maxReturn 5,000,000,000 and liquidate half of his position
+            // Expect that Bob will close position successfully and his debt must be reduce as liquidated amount pay debt
+            // Bob think he made enough. He now wants to close position partially.
+
+            // After calling `work()`, the `_reinvest()` is invoked
+            // since 1 blocks have passed since approve and work now reward will be 0.076 * 1 =~ 0.075999999998831803 ~   wex
+            // reward without bounty will be 0.075999999998831803 - 0.000759999999988318 =~ 0.0752399999988435 wex
+            // 0.0752399999988435 wex can be converted into:
+            // (0.0752399999988435 * 0.998 * 1) / (0.1 + 0.0752399999988435 * 0.998) = 0.428863589322029016 WBNB
+            // 0.021792385851914001 WBNB can be converted into (0.428863589322029016 * 0.998 * 1) / (1 + 0.428863589322029016 * 0.998) = 0.299722762692979212 BTOKEN
+            // based on optimal swap formula, 0.299722762692979212 BTOKEN needs to swap 0.149479919413161109 BTOKEN
+            // new reserve after swap will be 21.149479919413161109 BTOKEN - 0.099294625357551732 FTOKEN
+            // based on optimal swap formula, 0.150242843279818103 BTOKEN - 0/000705374642448268 FTOKEN will be converted into (0.150242843279818103 / 21.149479919413161109) * 1.448004073953861283 =~ 0.010286411296189659 LP
+            // new reserve after adding liquidity receiving from `_reinvest()` is 21.299722762692979212 BTOKEN - 0.100000000000000000 FTOKEN
+            // more LP amount after executing add strategy will be 0.010286411296189659 LP
+            // accumulated LP of the worker will be 1.131776307937023350 + 0.010286411296189659 = 1142062719233213009 LP
+
+            // bob close 50% of his position, thus he will close 1.131776307937023350 (bob lp) * (1.131776307937023350 (total balance) /  (1.131776307937023350 (bob's share))) =~ 1.131776307937023350 / 2 =~ 0.565888153968511675 LP
+            // 0.565888153968511675 LP will be converted into 8.265335964360120225 BTOKEN - 0.038804899277079193 FTOKEN
+            // 0.038804899277079193 FTOKEN will be converted into (0.038804899277079193 * 0.998 * 13.034386798332858987) / (0.061195100722920807 + 0.038804899277079193 * 0.998) = 5.051785387603725080 BTOKEN
+            // thus, Bob will receive 5.051785387603725080+ 8.265335964360120225 = 13.317121351963845305 BTOKEN
+            await vaultAsBob.work(
+              1,
+              waultSwapWorker.address,
+              "0",
+              "0",
+              ethers.utils.parseEther("5000000000"),
+              ethers.utils.defaultAbiCoder.encode(
+                ["address", "bytes"],
+                [
+                  partialCloseStrat.address,
+                  ethers.utils.defaultAbiCoder.encode(
+                    ["uint256", "uint256", "uint256"],
+                    [
+                      lpUnderBobPosition.div(2),
+                      ethers.utils.parseEther("5000000000"),
+                      ethers.utils.parseEther("3.317121351963845305"),
+                    ]
+                  ),
+                ]
+              )
+            );
+
+            const bobAfter = await baseToken.balanceOf(bobAddress);
+
+            // After Bob liquidate half of his position which worth
+            // swapAmount = 13.317121351963845305 BTOKEN (price impact+trading fee included)
+            // Bob wish to return 5,000,000,000 BTOKEN (when maxReturn > debt, return all debt)
+            // The following criteria must be stratified:
+            // - Bob should get 13.317121351963845305 - 10 = 3.317121351963845305 BTOKEN back.
+            // - Bob's position debt must be 0
+            expect(
+              bobBefore.add(ethers.utils.parseEther("3.317121351963845305")),
+              "Expect BTOKEN in Bob's account after close position to increase by ~3.31 BTOKEN"
+            ).to.be.bignumber.eq(bobAfter);
+            // Check Bob position info
+            const [bobHealth, bobDebtVal] = await vault.positionInfo("1");
+            // Bob's health after partial close position must be 50% less than before
+            // due to he exit half of lp under his position
+            expect(bobHealth).to.be.bignumber.lt(bobHealthBefore.div(2));
+            // Bob's debt should be 0 BTOKEN due he said he wants to return at max 5,000,000,000 BTOKEN (> debt, return all debt)
+            expect(bobDebtVal).to.be.bignumber.eq("0");
+            // Check LP deposited by Worker on MasterChef
+            const [workerLPAfter] = await wexMaster.userInfo(POOL_ID, waultSwapWorker.address);
+            // LP tokens of worker should be decreased by lpUnderBobPosition/2
+            // due to Bob execute StrategyClosePartialLiquidate
+            expect(workerLPAfter).to.be.bignumber.eq(
+              workerLPBefore.add(parseEther("0.010286411296189659")).sub(lpUnderBobPosition.div(2))
+            );
+          });
+        });
+
+        context("when work factor is not satisfy", async () => {
+          it("should revert", async () => {
+            // Set Vault's debt interests to 0% per year
+            await simpleVaultConfig.setParams(
+              ethers.utils.parseEther("1"), // 1 BTOKEN min debt size,
+              "0", // 0% per year
+              "1000", // 10% reserve pool
+              "1000", // 10% Kill prize
+              wbnb.address,
+              wNativeRelayer.address,
+              fairLaunch.address,
+              KILL_TREASURY_BPS,
+              deployerAddress
+            );
+
+            // Bob deposits 10 BTOKEN
+            await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
+            await vaultAsBob.deposit(ethers.utils.parseEther("10"));
+
+            // Position#1: Bob borrows 10 BTOKEN loan
+            await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
+            await vaultAsBob.work(
+              0,
+              waultSwapWorker.address,
+              ethers.utils.parseEther("10"),
+              ethers.utils.parseEther("10"),
+              "0", // max return = 0, don't return BTOKEN to the debt
+              ethers.utils.defaultAbiCoder.encode(
+                ["address", "bytes"],
+                [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+              )
+            );
+
+            // Bob think he made enough. He now wants to close position partially.
+            // He liquidate all of his position but not payback the debt.
+            const lpUnderBobPosition = await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1));
+            // Bob closes position with maxReturn 0 and liquidate full of his position
+            // Expect that Bob will not be able to close his position as he liquidate all underlying assets but not paydebt
+            // which made his position debt ratio higher than allow work factor
+            await expect(
+              vaultAsBob.work(
+                1,
+                waultSwapWorker.address,
+                "0",
+                "0",
+                "0",
+                ethers.utils.defaultAbiCoder.encode(
+                  ["address", "bytes"],
+                  [
+                    partialCloseStrat.address,
+                    ethers.utils.defaultAbiCoder.encode(
+                      ["uint256", "uint256", "uint256"],
+                      [lpUnderBobPosition, "0", "0"]
+                    ),
+                  ]
+                )
+              )
+            ).to.be.revertedWith("bad work factor");
+          });
+        });
+      });
     });
 
     context("When the treasury Account and treasury bounty bps haven't been set", async () => {
       it("should not reinvest", async () => {
         await waultSwapWorker.setTreasuryConfig(ethers.constants.AddressZero, ethers.constants.Zero);
-        // Deployer deposits 3 BTOKEN to the bank
+        // Deployer deposits 3 BTOKEN to the Vault
         const deposit = ethers.utils.parseEther("3");
         await baseToken.approve(vault.address, deposit);
         await vault.deposit(deposit);
@@ -2210,7 +2205,7 @@ describe("Vault - WaultSwap02", () => {
       context("when upgrade is during the tx flow", async () => {
         context("When beneficialVault == operator", async () => {
           it("should work with the new upgraded worker", async () => {
-            // Deployer deposits 3 BTOKEN to the bank
+            // Deployer deposits 3 BTOKEN to the Vault
             const deposit = ethers.utils.parseEther("3");
             await baseToken.approve(vault.address, deposit);
             await vault.deposit(deposit);
@@ -2453,7 +2448,7 @@ describe("Vault - WaultSwap02", () => {
               farmToken.address,
             ])) as MockBeneficialVault;
 
-            // Deployer deposits 3 BTOKEN to the bank
+            // Deployer deposits 3 BTOKEN to the Vault
             const deposit = ethers.utils.parseEther("3");
             await baseToken.approve(vault.address, deposit);
             await vault.deposit(deposit);
@@ -2707,7 +2702,7 @@ describe("Vault - WaultSwap02", () => {
       const borrowedAmount = ethers.utils.parseEther("1");
 
       beforeEach(async () => {
-        // Deployer deposits 3 BTOKEN to the bank
+        // Deployer deposits 3 BTOKEN to the Vault
         await baseToken.approve(vault.address, deposit);
         await vault.deposit(deposit);
 
