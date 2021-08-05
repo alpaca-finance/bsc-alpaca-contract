@@ -17,7 +17,7 @@ export enum Strats {
   liquidateAll = 2,
   withdrawMinimize = 3,
   partialCloseLiquidate = 4,
-  partialCloseWithdrawMinizmie = 5,
+  partialCloseWithdrawMinimize = 5,
 }
 
 export function getShareStratsProxy(group: string): Array<IProxyStrat> {
@@ -38,7 +38,7 @@ export function getShareStratsProxy(group: string): Array<IProxyStrat> {
       },
       {
         proxy: config.SharedStrategies.Pancakeswap.StrategyPartialCloseMinimizeTrading,
-        strat: Strats.partialCloseWithdrawMinizmie,
+        strat: Strats.partialCloseWithdrawMinimize,
       },
       {
         proxy: config.SharedStrategies.Pancakeswap.StrategyWithdrawMinimizeTrading,
@@ -62,7 +62,7 @@ export function getShareStratsProxy(group: string): Array<IProxyStrat> {
       },
       {
         proxy: config.SharedStrategies.PancakeswapSingleAsset.StrategyPartialCloseMinimizeTrading,
-        strat: Strats.partialCloseWithdrawMinizmie,
+        strat: Strats.partialCloseWithdrawMinimize,
       },
       {
         proxy: config.SharedStrategies.PancakeswapSingleAsset.StrategyWithdrawMinimizeTrading,
@@ -86,7 +86,7 @@ export function getShareStratsProxy(group: string): Array<IProxyStrat> {
       },
       {
         proxy: config.SharedStrategies.Waultswap.StrategyPartialCloseMinimizeTrading,
-        strat: Strats.partialCloseWithdrawMinizmie,
+        strat: Strats.partialCloseWithdrawMinimize,
       },
       {
         proxy: config.SharedStrategies.Waultswap.StrategyWithdrawMinimizeTrading,
@@ -111,7 +111,7 @@ export async function getStratFactory(group: string, strat: Strats): Promise<Con
     return await ethers.getContractFactory(`${group}Restricted${singleAsset}StrategyLiquidate`);
   } else if (strat === Strats.partialCloseLiquidate) {
     return await ethers.getContractFactory(`${group}Restricted${singleAsset}StrategyPartialCloseLiquidate`);
-  } else if (strat === Strats.partialCloseWithdrawMinizmie) {
+  } else if (strat === Strats.partialCloseWithdrawMinimize) {
     return await ethers.getContractFactory(`${group}Restricted${singleAsset}StrategyPartialCloseMinimizeTrading`);
   }
 
