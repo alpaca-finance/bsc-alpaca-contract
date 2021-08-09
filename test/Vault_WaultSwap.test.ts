@@ -1874,76 +1874,152 @@ describe("Vault - WaultSwap", () => {
 
         context("when back is lessDebt", async () => {
           // back is eqaul to less debt as Min(debt, back, maxReturn) = back itself
-          it("should revert", async () => {
-            // Set Bank's debt interests to 0% per year
-            await simpleVaultConfig.setParams(
-              ethers.utils.parseEther("1"), // 1 BTOKEN min debt size,
-              "0", // 0% per year
-              "1000", // 10% reserve pool
-              "300", // 10% Kill prize
-              wbnb.address,
-              wNativeRelayer.address,
-              fairLaunch.address,
-              KILL_TREASURY_BPS,
-              deployerAddress
-            );
+          context("when maxDebtRepayment < debt", async () => {
+            it("should revert bad work factor", async () => {
+              // Set Bank's debt interests to 0% per year
+              await simpleVaultConfig.setParams(
+                ethers.utils.parseEther("1"), // 1 BTOKEN min debt size,
+                "0", // 0% per year
+                "1000", // 10% reserve pool
+                "300", // 10% Kill prize
+                wbnb.address,
+                wNativeRelayer.address,
+                fairLaunch.address,
+                KILL_TREASURY_BPS,
+                deployerAddress
+              );
 
-            // Bob deposits 10 BTOKEN
-            await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-            await vaultAsBob.deposit(ethers.utils.parseEther("10"));
+              // Bob deposits 10 BTOKEN
+              await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
+              await vaultAsBob.deposit(ethers.utils.parseEther("10"));
 
-            // Position#1: Bob borrows 10 BTOKEN loan
-            await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-            await vaultAsBob.work(
-              0,
-              waultSwapWorker.address,
-              ethers.utils.parseEther("10"),
-              ethers.utils.parseEther("10"),
-              "0", // max return = 0, don't return BTOKEN to the debt
-              ethers.utils.defaultAbiCoder.encode(
-                ["address", "bytes"],
-                [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-              )
-            );
-
-            // Price swing so it makes back = lessDebt
-            await farmToken.mint(deployerAddress, ethers.utils.parseEther("100"));
-            await farmToken.approve(router.address, ethers.utils.parseEther("100"));
-
-            // Price swing 80%
-            // Add more token to the pool equals to sqrt(10*((0.1)**2) / 2) - 0.1 = 0.123607
-            await router.swapExactTokensForTokens(
-              ethers.utils.parseEther("0.123607"),
-              "0",
-              [farmToken.address, baseToken.address],
-              deployerAddress,
-              FOREVER
-            );
-
-            // He now wants to close the whole position with partial close liquidate strategy.
-            const lpUnderBobPosition = await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1));
-
-            // Bob closes position with maxReturn 5,000,000,000 and liquidate full of his position
-            // Expect that the transaction will be reverted.
-            await expect(
-              vaultAsBob.work(
-                1,
+              // Position#1: Bob borrows 10 BTOKEN loan
+              await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
+              await vaultAsBob.work(
+                0,
                 waultSwapWorker.address,
-                "0",
-                "0",
-                ethers.utils.parseEther("5000000000"),
+                ethers.utils.parseEther("10"),
+                ethers.utils.parseEther("10"),
+                "0", // max return = 0, don't return BTOKEN to the debt
                 ethers.utils.defaultAbiCoder.encode(
                   ["address", "bytes"],
-                  [
-                    partialCloseStrat.address,
-                    ethers.utils.defaultAbiCoder.encode(
-                      ["uint256", "uint256", "uint256"],
-                      [lpUnderBobPosition, ethers.utils.parseEther("5000000000"), "0"]
-                    ),
-                  ]
+                  [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
                 )
-              )
-            ).to.be.reverted;
+              );
+
+              // Price swing so it makes back = lessDebt
+              await farmToken.mint(deployerAddress, ethers.utils.parseEther("100"));
+              await farmToken.approve(router.address, ethers.utils.parseEther("100"));
+
+              // Price swing 80%
+              // Add more token to the pool equals to sqrt(10*((0.1)**2) / 2) - 0.1 = 0.123607
+              await router.swapExactTokensForTokens(
+                ethers.utils.parseEther("0.123607"),
+                "0",
+                [farmToken.address, baseToken.address],
+                deployerAddress,
+                FOREVER
+              );
+
+              // He now wants to close the whole position with partial close liquidate strategy.
+              const lpUnderBobPosition = await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1));
+
+              // Bob closes position with maxReturn 5,000,000,000 and liquidate full of his position
+              // Expect that the transaction will be reverted.
+              await expect(
+                vaultAsBob.work(
+                  1,
+                  waultSwapWorker.address,
+                  "0",
+                  "0",
+                  ethers.utils.parseEther("5000000000"),
+                  ethers.utils.defaultAbiCoder.encode(
+                    ["address", "bytes"],
+                    [
+                      partialCloseStrat.address,
+                      ethers.utils.defaultAbiCoder.encode(
+                        ["uint256", "uint256", "uint256"],
+                        [lpUnderBobPosition, "0", "0"]
+                      ),
+                    ]
+                  )
+                )
+              ).to.be.revertedWith("bad work factor");
+            });
+          });
+
+          context("when maxDebtRepayment >= debt", async () => {
+            it("should revert subtraction overflow", async () => {
+              // Set Bank's debt interests to 0% per year
+              await simpleVaultConfig.setParams(
+                ethers.utils.parseEther("1"), // 1 BTOKEN min debt size,
+                "0", // 0% per year
+                "1000", // 10% reserve pool
+                "300", // 10% Kill prize
+                wbnb.address,
+                wNativeRelayer.address,
+                fairLaunch.address,
+                KILL_TREASURY_BPS,
+                deployerAddress
+              );
+
+              // Bob deposits 10 BTOKEN
+              await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
+              await vaultAsBob.deposit(ethers.utils.parseEther("10"));
+
+              // Position#1: Bob borrows 10 BTOKEN loan
+              await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
+              await vaultAsBob.work(
+                0,
+                waultSwapWorker.address,
+                ethers.utils.parseEther("10"),
+                ethers.utils.parseEther("10"),
+                "0", // max return = 0, don't return BTOKEN to the debt
+                ethers.utils.defaultAbiCoder.encode(
+                  ["address", "bytes"],
+                  [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+                )
+              );
+
+              // Price swing so it makes back = lessDebt
+              await farmToken.mint(deployerAddress, ethers.utils.parseEther("100"));
+              await farmToken.approve(router.address, ethers.utils.parseEther("100"));
+
+              // Price swing 80%
+              // Add more token to the pool equals to sqrt(10*((0.1)**2) / 2) - 0.1 = 0.123607
+              await router.swapExactTokensForTokens(
+                ethers.utils.parseEther("0.123607"),
+                "0",
+                [farmToken.address, baseToken.address],
+                deployerAddress,
+                FOREVER
+              );
+
+              // He now wants to close the whole position with partial close liquidate strategy.
+              const lpUnderBobPosition = await waultSwapWorker.shareToBalance(await waultSwapWorker.shares(1));
+
+              // Bob closes position with maxReturn 5,000,000,000 and liquidate full of his position
+              // Expect that the transaction will be reverted.
+              await expect(
+                vaultAsBob.work(
+                  1,
+                  waultSwapWorker.address,
+                  "0",
+                  "0",
+                  ethers.utils.parseEther("5000000000"),
+                  ethers.utils.defaultAbiCoder.encode(
+                    ["address", "bytes"],
+                    [
+                      partialCloseStrat.address,
+                      ethers.utils.defaultAbiCoder.encode(
+                        ["uint256", "uint256", "uint256"],
+                        [lpUnderBobPosition, ethers.utils.parseEther("5000000000"), "0"]
+                      ),
+                    ]
+                  )
+                )
+              ).to.be.revertedWith("subtraction overflow");
+            });
           });
         });
 
