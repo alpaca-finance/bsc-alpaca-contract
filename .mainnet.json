@@ -481,6 +481,16 @@
           "pId": 430,
           "name": "AXS-WBNB LP",
           "address": "0xC2d00De94795e60FB76Bc37d899170996cBdA436"
+        },
+        {
+          "pId": 442,
+          "name": "TRX-BUSD LP",
+          "address": "0xb5D108578Be3750209d1b3A8f45FFee8C5a75146"
+        },
+        {
+          "pId": 443,
+          "name": "BTT-BUSD LP",
+          "address": "0xdcfbB12DED3FEa12D2A078Bc6324131cD14bF835"
         }
       ]
     },
@@ -620,22 +630,22 @@
       "StrategyAddBaseTokenOnly": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
       "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
       "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-      "StrategyPartialCloseLiquidate": "",
-      "StrategyPartialCloseMinimizeTrading": ""
+      "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+      "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
     },
     "Waultswap": {
       "StrategyAddBaseTokenOnly": "0xeBb8BA21A3703ab30187D3EEC02A3Bc62894970D",
       "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
       "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3",
-      "StrategyPartialCloseLiquidate": "",
-      "StrategyPartialCloseMinimizeTrading": ""
+      "StrategyPartialCloseLiquidate": "0xfE49AffC3fFa7bed8346F8f33f8250d3C6fDf073",
+      "StrategyPartialCloseMinimizeTrading": "0x3FFa4Cd446F8127db0ED316b1E952876Be2E61B0"
     },
     "PancakeswapSingleAsset": {
       "StrategyAddBaseTokenOnly": "0x5cB454fc86068e710212FBECBC93070b90011F2B",
       "StrategyLiquidate": "0x6C0105950B1fEE24eE4ADdd1DFF346cceF75D150",
       "StrategyWithdrawMinimizeTrading": "0x94f5E884e11fC054Ca0b332e3a8773750BDBe242",
-      "StrategyPartialCloseLiquidate": "",
-      "StrategyPartialCloseMinimizeTrading": ""
+      "StrategyPartialCloseLiquidate": "0xa6b2a3Fdd415Ca304a36909a35f974B670960843",
+      "StrategyPartialCloseMinimizeTrading": "0xDD8A4302299115226676F943E01306107DD98495"
     }
   },
   "SharedConfig": {
@@ -678,8 +688,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -694,8 +704,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -710,8 +720,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -726,8 +736,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -742,8 +752,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -758,8 +768,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -774,8 +784,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -822,8 +832,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -838,8 +848,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -854,8 +864,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -902,8 +912,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -918,8 +928,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -934,8 +944,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -950,8 +960,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -966,8 +976,8 @@
             "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
             "StrategyAddTwoSidesOptimal": "0xA7559bB0235a1c6003D0E48d2cFa89a6C8748439",
             "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0xfE49AffC3fFa7bed8346F8f33f8250d3C6fDf073",
+            "StrategyPartialCloseMinimizeTrading": "0x3FFa4Cd446F8127db0ED316b1E952876Be2E61B0"
           }
         },
         {
@@ -982,8 +992,8 @@
             "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
             "StrategyAddTwoSidesOptimal": "0xA7559bB0235a1c6003D0E48d2cFa89a6C8748439",
             "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0xfE49AffC3fFa7bed8346F8f33f8250d3C6fDf073",
+            "StrategyPartialCloseMinimizeTrading": "0x3FFa4Cd446F8127db0ED316b1E952876Be2E61B0"
           }
         },
         {
@@ -998,8 +1008,8 @@
             "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
             "StrategyAddTwoSidesOptimal": "0xA7559bB0235a1c6003D0E48d2cFa89a6C8748439",
             "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0xfE49AffC3fFa7bed8346F8f33f8250d3C6fDf073",
+            "StrategyPartialCloseMinimizeTrading": "0x3FFa4Cd446F8127db0ED316b1E952876Be2E61B0"
           }
         },
         {
@@ -1014,8 +1024,8 @@
             "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
             "StrategyAddTwoSidesOptimal": "0xA7559bB0235a1c6003D0E48d2cFa89a6C8748439",
             "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0xfE49AffC3fFa7bed8346F8f33f8250d3C6fDf073",
+            "StrategyPartialCloseMinimizeTrading": "0x3FFa4Cd446F8127db0ED316b1E952876Be2E61B0"
           }
         },
         {
@@ -1030,8 +1040,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -1046,8 +1056,8 @@
             "StrategyLiquidate": "0x6C0105950B1fEE24eE4ADdd1DFF346cceF75D150",
             "StrategyAddTwoSidesOptimal": "0xB0951EB5eCd9948AAA8Eb76D1061361F592BA029",
             "StrategyWithdrawMinimizeTrading": "0x94f5E884e11fC054Ca0b332e3a8773750BDBe242",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0xa6b2a3Fdd415Ca304a36909a35f974B670960843",
+            "StrategyPartialCloseMinimizeTrading": "0xDD8A4302299115226676F943E01306107DD98495"
           }
         },
         {
@@ -1062,8 +1072,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -1078,8 +1088,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -1094,8 +1104,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -1110,8 +1120,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         }
       ]
@@ -1142,8 +1152,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -1158,8 +1168,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -1174,8 +1184,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -1190,8 +1200,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -1206,8 +1216,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -1222,8 +1232,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -1238,8 +1248,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -1254,8 +1264,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -1270,8 +1280,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -1286,8 +1296,8 @@
             "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
             "StrategyAddTwoSidesOptimal": "0x61e58dE669d842C2d77288Df629af031b3283c81",
             "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0xfE49AffC3fFa7bed8346F8f33f8250d3C6fDf073",
+            "StrategyPartialCloseMinimizeTrading": "0x3FFa4Cd446F8127db0ED316b1E952876Be2E61B0"
           }
         },
         {
@@ -1302,8 +1312,8 @@
             "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
             "StrategyAddTwoSidesOptimal": "0x61e58dE669d842C2d77288Df629af031b3283c81",
             "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0xfE49AffC3fFa7bed8346F8f33f8250d3C6fDf073",
+            "StrategyPartialCloseMinimizeTrading": "0x3FFa4Cd446F8127db0ED316b1E952876Be2E61B0"
           }
         },
         {
@@ -1318,8 +1328,8 @@
             "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
             "StrategyAddTwoSidesOptimal": "0x61e58dE669d842C2d77288Df629af031b3283c81",
             "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0xfE49AffC3fFa7bed8346F8f33f8250d3C6fDf073",
+            "StrategyPartialCloseMinimizeTrading": "0x3FFa4Cd446F8127db0ED316b1E952876Be2E61B0"
           }
         },
         {
@@ -1334,8 +1344,8 @@
             "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
             "StrategyAddTwoSidesOptimal": "0x61e58dE669d842C2d77288Df629af031b3283c81",
             "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0xfE49AffC3fFa7bed8346F8f33f8250d3C6fDf073",
+            "StrategyPartialCloseMinimizeTrading": "0x3FFa4Cd446F8127db0ED316b1E952876Be2E61B0"
           }
         },
         {
@@ -1350,8 +1360,8 @@
             "StrategyLiquidate": "0x6C0105950B1fEE24eE4ADdd1DFF346cceF75D150",
             "StrategyAddTwoSidesOptimal": "0x38912684b1d20Fe9D725e8B39c39458Fac5A4833",
             "StrategyWithdrawMinimizeTrading": "0x94f5E884e11fC054Ca0b332e3a8773750BDBe242",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0xa6b2a3Fdd415Ca304a36909a35f974B670960843",
+            "StrategyPartialCloseMinimizeTrading": "0xDD8A4302299115226676F943E01306107DD98495"
           }
         },
         {
@@ -1366,8 +1376,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -1382,8 +1392,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -1398,8 +1408,40 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
+          }
+        },
+        {
+          "name": "TRX-BUSD PancakeswapWorker",
+          "address": "0x9f612544075d3E088Ef004b99eC2c77Fe622DA8e",
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 442,
+          "stakingToken": "0xb5D108578Be3750209d1b3A8f45FFee8C5a75146",
+          "stakingTokenAt": "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+            "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+            "StrategyAddTwoSidesOptimal": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
+            "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
+          }
+        },
+        {
+          "name": "BTT-BUSD PancakeswapWorker",
+          "address": "0xCfE0fA9Eae5a225A4C33e39d4AefE32667EFf11F",
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 443,
+          "stakingToken": "0xdcfbB12DED3FEa12D2A078Bc6324131cD14bF835",
+          "stakingTokenAt": "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+            "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+            "StrategyAddTwoSidesOptimal": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
+            "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         }
       ]
@@ -1446,8 +1488,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0xCB459b4504d10445760095C59c394EA45715d7a5",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -1462,8 +1504,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0xCB459b4504d10445760095C59c394EA45715d7a5",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -1478,8 +1520,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0xCB459b4504d10445760095C59c394EA45715d7a5",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -1494,8 +1536,8 @@
             "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
             "StrategyAddTwoSidesOptimal": "0xD58b9626d941cA2d31b55a43045d34A87B32cEd3",
             "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0xfE49AffC3fFa7bed8346F8f33f8250d3C6fDf073",
+            "StrategyPartialCloseMinimizeTrading": "0x3FFa4Cd446F8127db0ED316b1E952876Be2E61B0"
           }
         },
         {
@@ -1510,8 +1552,8 @@
             "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
             "StrategyAddTwoSidesOptimal": "0xD58b9626d941cA2d31b55a43045d34A87B32cEd3",
             "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0xfE49AffC3fFa7bed8346F8f33f8250d3C6fDf073",
+            "StrategyPartialCloseMinimizeTrading": "0x3FFa4Cd446F8127db0ED316b1E952876Be2E61B0"
           }
         },
         {
@@ -1526,8 +1568,8 @@
             "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
             "StrategyAddTwoSidesOptimal": "0xD58b9626d941cA2d31b55a43045d34A87B32cEd3",
             "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0xfE49AffC3fFa7bed8346F8f33f8250d3C6fDf073",
+            "StrategyPartialCloseMinimizeTrading": "0x3FFa4Cd446F8127db0ED316b1E952876Be2E61B0"
           }
         },
         {
@@ -1542,8 +1584,8 @@
             "StrategyLiquidate": "0x6C0105950B1fEE24eE4ADdd1DFF346cceF75D150",
             "StrategyAddTwoSidesOptimal": "0x86547E01b7F1BAc1F4cE80A4964829009D2dE1Cc",
             "StrategyWithdrawMinimizeTrading": "0x94f5E884e11fC054Ca0b332e3a8773750BDBe242",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0xa6b2a3Fdd415Ca304a36909a35f974B670960843",
+            "StrategyPartialCloseMinimizeTrading": "0xDD8A4302299115226676F943E01306107DD98495"
           }
         },
         {
@@ -1558,8 +1600,8 @@
             "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
             "StrategyAddTwoSidesOptimal": "0xD58b9626d941cA2d31b55a43045d34A87B32cEd3",
             "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0xfE49AffC3fFa7bed8346F8f33f8250d3C6fDf073",
+            "StrategyPartialCloseMinimizeTrading": "0x3FFa4Cd446F8127db0ED316b1E952876Be2E61B0"
           }
         }
       ]
@@ -1590,8 +1632,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0xa964FCd9a434CB4C68bFE25E77D1F2Cd5D9679a8",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -1606,8 +1648,8 @@
             "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
             "StrategyAddTwoSidesOptimal": "0x462BC565b5486E76503DaB62D96937842F207AAa",
             "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0xfE49AffC3fFa7bed8346F8f33f8250d3C6fDf073",
+            "StrategyPartialCloseMinimizeTrading": "0x3FFa4Cd446F8127db0ED316b1E952876Be2E61B0"
           }
         },
         {
@@ -1622,8 +1664,8 @@
             "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
             "StrategyAddTwoSidesOptimal": "0x462BC565b5486E76503DaB62D96937842F207AAa",
             "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0xfE49AffC3fFa7bed8346F8f33f8250d3C6fDf073",
+            "StrategyPartialCloseMinimizeTrading": "0x3FFa4Cd446F8127db0ED316b1E952876Be2E61B0"
           }
         }
       ]
@@ -1654,8 +1696,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0x5f94f61095731b669b30ed1f3f4586BBb51f4001",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -1670,8 +1712,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0x5f94f61095731b669b30ed1f3f4586BBb51f4001",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -1686,8 +1728,8 @@
             "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
             "StrategyAddTwoSidesOptimal": "0xcE37fD1Ff0A6cb4A6A59cd46CCf55D5Dc70ec585",
             "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0xfE49AffC3fFa7bed8346F8f33f8250d3C6fDf073",
+            "StrategyPartialCloseMinimizeTrading": "0x3FFa4Cd446F8127db0ED316b1E952876Be2E61B0"
           }
         },
         {
@@ -1702,8 +1744,8 @@
             "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
             "StrategyAddTwoSidesOptimal": "0xcE37fD1Ff0A6cb4A6A59cd46CCf55D5Dc70ec585",
             "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0xfE49AffC3fFa7bed8346F8f33f8250d3C6fDf073",
+            "StrategyPartialCloseMinimizeTrading": "0x3FFa4Cd446F8127db0ED316b1E952876Be2E61B0"
           }
         },
         {
@@ -1718,8 +1760,8 @@
             "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
             "StrategyAddTwoSidesOptimal": "0xcE37fD1Ff0A6cb4A6A59cd46CCf55D5Dc70ec585",
             "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0xfE49AffC3fFa7bed8346F8f33f8250d3C6fDf073",
+            "StrategyPartialCloseMinimizeTrading": "0x3FFa4Cd446F8127db0ED316b1E952876Be2E61B0"
           }
         },
         {
@@ -1734,8 +1776,8 @@
             "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
             "StrategyAddTwoSidesOptimal": "0xcE37fD1Ff0A6cb4A6A59cd46CCf55D5Dc70ec585",
             "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0xfE49AffC3fFa7bed8346F8f33f8250d3C6fDf073",
+            "StrategyPartialCloseMinimizeTrading": "0x3FFa4Cd446F8127db0ED316b1E952876Be2E61B0"
           }
         },
         {
@@ -1750,8 +1792,8 @@
             "StrategyLiquidate": "0x6C0105950B1fEE24eE4ADdd1DFF346cceF75D150",
             "StrategyAddTwoSidesOptimal": "0x50380Ac8DA73D73719785F0A4433192F4e0E6c90",
             "StrategyWithdrawMinimizeTrading": "0x94f5E884e11fC054Ca0b332e3a8773750BDBe242",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0xa6b2a3Fdd415Ca304a36909a35f974B670960843",
+            "StrategyPartialCloseMinimizeTrading": "0xDD8A4302299115226676F943E01306107DD98495"
           }
         },
         {
@@ -1766,8 +1808,8 @@
             "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
             "StrategyAddTwoSidesOptimal": "0xcE37fD1Ff0A6cb4A6A59cd46CCf55D5Dc70ec585",
             "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0xfE49AffC3fFa7bed8346F8f33f8250d3C6fDf073",
+            "StrategyPartialCloseMinimizeTrading": "0x3FFa4Cd446F8127db0ED316b1E952876Be2E61B0"
           }
         },
         {
@@ -1782,8 +1824,8 @@
             "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
             "StrategyAddTwoSidesOptimal": "0xcE37fD1Ff0A6cb4A6A59cd46CCf55D5Dc70ec585",
             "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0xfE49AffC3fFa7bed8346F8f33f8250d3C6fDf073",
+            "StrategyPartialCloseMinimizeTrading": "0x3FFa4Cd446F8127db0ED316b1E952876Be2E61B0"
           }
         },
         {
@@ -1798,8 +1840,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0x5f94f61095731b669b30ed1f3f4586BBb51f4001",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -1814,8 +1856,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0x5f94f61095731b669b30ed1f3f4586BBb51f4001",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -1830,8 +1872,8 @@
             "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
             "StrategyAddTwoSidesOptimal": "0xcE37fD1Ff0A6cb4A6A59cd46CCf55D5Dc70ec585",
             "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0xfE49AffC3fFa7bed8346F8f33f8250d3C6fDf073",
+            "StrategyPartialCloseMinimizeTrading": "0x3FFa4Cd446F8127db0ED316b1E952876Be2E61B0"
           }
         }
       ]
@@ -1862,8 +1904,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0xe862D45abdF7ea38F75dd0c7164B19FaEd057130",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -1878,8 +1920,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0xe862D45abdF7ea38F75dd0c7164B19FaEd057130",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -1894,8 +1936,8 @@
             "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
             "StrategyAddTwoSidesOptimal": "0xaC712F4Fc61ab96Aa9A1AdF3977b808789aA6682",
             "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0xfE49AffC3fFa7bed8346F8f33f8250d3C6fDf073",
+            "StrategyPartialCloseMinimizeTrading": "0x3FFa4Cd446F8127db0ED316b1E952876Be2E61B0"
           }
         },
         {
@@ -1910,8 +1952,8 @@
             "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
             "StrategyAddTwoSidesOptimal": "0xaC712F4Fc61ab96Aa9A1AdF3977b808789aA6682",
             "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0xfE49AffC3fFa7bed8346F8f33f8250d3C6fDf073",
+            "StrategyPartialCloseMinimizeTrading": "0x3FFa4Cd446F8127db0ED316b1E952876Be2E61B0"
           }
         },
         {
@@ -1926,8 +1968,8 @@
             "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
             "StrategyAddTwoSidesOptimal": "0xaC712F4Fc61ab96Aa9A1AdF3977b808789aA6682",
             "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0xfE49AffC3fFa7bed8346F8f33f8250d3C6fDf073",
+            "StrategyPartialCloseMinimizeTrading": "0x3FFa4Cd446F8127db0ED316b1E952876Be2E61B0"
           }
         },
         {
@@ -1942,8 +1984,8 @@
             "StrategyLiquidate": "0x6C0105950B1fEE24eE4ADdd1DFF346cceF75D150",
             "StrategyAddTwoSidesOptimal": "0x30A937B9d22d71e58Ad9dC96a6A3d552B9C0724e",
             "StrategyWithdrawMinimizeTrading": "0x94f5E884e11fC054Ca0b332e3a8773750BDBe242",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0xa6b2a3Fdd415Ca304a36909a35f974B670960843",
+            "StrategyPartialCloseMinimizeTrading": "0xDD8A4302299115226676F943E01306107DD98495"
           }
         }
       ]
@@ -1974,8 +2016,8 @@
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
             "StrategyAddTwoSidesOptimal": "0xA8F37daF3D290F636f0B79E47ea50aB7f7A82d51",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         },
         {
@@ -1990,8 +2032,8 @@
             "StrategyLiquidate": "0x6C0105950B1fEE24eE4ADdd1DFF346cceF75D150",
             "StrategyAddTwoSidesOptimal": "0x67a2CdB9F0760663B5E70c1517f1a603BA3F50f0",
             "StrategyWithdrawMinimizeTrading": "0x94f5E884e11fC054Ca0b332e3a8773750BDBe242",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0xa6b2a3Fdd415Ca304a36909a35f974B670960843",
+            "StrategyPartialCloseMinimizeTrading": "0xDD8A4302299115226676F943E01306107DD98495"
           }
         },
         {
@@ -2006,8 +2048,8 @@
             "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
             "StrategyAddTwoSidesOptimal": "0x8cE75fF793D7832302BeA91c275e2509060DfEaA",
             "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
+            "StrategyPartialCloseLiquidate": "0xfE49AffC3fFa7bed8346F8f33f8250d3C6fDf073",
+            "StrategyPartialCloseMinimizeTrading": "0x3FFa4Cd446F8127db0ED316b1E952876Be2E61B0"
           }
         }
       ]

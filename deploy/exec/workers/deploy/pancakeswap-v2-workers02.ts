@@ -66,17 +66,30 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const shortWorkerInfos: IPancakeswapWorkerInput[] = [
     {
-      VAULT_SYMBOL: "ibWBNB",
-      WORKER_NAME: "AXS-WBNB PancakeswapWorker",
+      VAULT_SYMBOL: "ibBUSD",
+      WORKER_NAME: "TRX-BUSD PancakeswapWorker",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 430,
+      POOL_ID: 442,
       REINVEST_BOUNTY_BPS: "300",
-      REINVEST_PATH: ["CAKE", "WBNB"],
+      REINVEST_PATH: ["CAKE", "BUSD"],
+      REINVEST_THRESHOLD: "1",
+      WORK_FACTOR: "7000",
+      KILL_FACTOR: "8333",
+      MAX_PRICE_DIFF: "10500",
+      EXACT_ETA: "1628577000",
+    },
+    {
+      VAULT_SYMBOL: "ibBUSD",
+      WORKER_NAME: "BTT-BUSD PancakeswapWorker",
+      REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
+      POOL_ID: 443,
+      REINVEST_BOUNTY_BPS: "300",
+      REINVEST_PATH: ["CAKE", "BUSD"],
       REINVEST_THRESHOLD: "1",
       WORK_FACTOR: "7000",
       KILL_FACTOR: "8333",
       MAX_PRICE_DIFF: "11000",
-      EXACT_ETA: "1627465500",
+      EXACT_ETA: "1628577000",
     },
   ];
 
@@ -195,7 +208,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     }
 
     if (workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR != "") {
-      console.log(">> partial close liquidate is deployed");
+      console.log(">> partial close minimize is deployed");
       const partialCloseMinimize = PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading__factory.connect(
         workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR,
         (await ethers.getSigners())[0]

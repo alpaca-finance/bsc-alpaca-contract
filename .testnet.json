@@ -439,6 +439,16 @@
           "pId": 62,
           "name": "AXS-WBNB LP",
           "address": "0xa51969919bccF97EE5d98563091Ad94E365489Cf"
+        },
+        {
+          "pId": 63,
+          "name": "TRX-BUSD LP",
+          "address": "0x8Eaa1Ab40fF74A93976e4B86Fa9602fE37532b19"
+        },
+        {
+          "pId": 64,
+          "name": "BTT-BUSD LP",
+          "address": "0x9984332666105b8a9578C4Fb8C22944CC3280cE7"
         }
       ]
     },
@@ -1371,6 +1381,38 @@
           "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
           "pId": 61,
           "stakingToken": "0x367D7858baC57B32DeEC5B0C9C81bB2794DE1dB8",
+          "stakingTokenAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
+            "StrategyLiquidate": "0x58Bbb507248635413172Ed7A2eeC048402C6b39b",
+            "StrategyAddTwoSidesOptimal": "0x22fC6110d5d9b122f3C2d4715C24566342161a12",
+            "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32",
+            "StrategyPartialCloseLiquidate": "0x566aC15667Ae05c1F50Ed9944Aeef5A9dae4AB55",
+            "StrategyPartialCloseMinimizeTrading": "0xBb79EB494Da88F115430D174D5372b51Fc37De50"
+          }
+        },
+        {
+          "name": "TRX-BUSD PancakeswapWorker",
+          "address": "0x8730CEeff138078a87DaFD639a07c17a62163ffC",
+          "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+          "pId": 63,
+          "stakingToken": "0x8Eaa1Ab40fF74A93976e4B86Fa9602fE37532b19",
+          "stakingTokenAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
+            "StrategyLiquidate": "0x58Bbb507248635413172Ed7A2eeC048402C6b39b",
+            "StrategyAddTwoSidesOptimal": "0x22fC6110d5d9b122f3C2d4715C24566342161a12",
+            "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32",
+            "StrategyPartialCloseLiquidate": "0x566aC15667Ae05c1F50Ed9944Aeef5A9dae4AB55",
+            "StrategyPartialCloseMinimizeTrading": "0xBb79EB494Da88F115430D174D5372b51Fc37De50"
+          }
+        },
+        {
+          "name": "BTT-BUSD PancakeswapWorker",
+          "address": "0x748d0378d10e0C7fdA66200408715d2a4529C60B",
+          "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+          "pId": 64,
+          "stakingToken": "0x9984332666105b8a9578C4Fb8C22944CC3280cE7",
           "stakingTokenAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
           "strategies": {
             "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
