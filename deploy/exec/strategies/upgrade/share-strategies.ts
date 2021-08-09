@@ -61,11 +61,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
   const input: IInput = {
-    PANCAKESWAP: [Strats.liquidateAll, Strats.partialCloseLiquidate, Strats.partialCloseWithdrawMinizmie],
-    PANCAKESWAP_SINGLE_ASSET: [Strats.liquidateAll, Strats.partialCloseLiquidate, Strats.partialCloseWithdrawMinizmie],
-    WAULTSWAP: [Strats.liquidateAll, Strats.partialCloseLiquidate, Strats.partialCloseWithdrawMinizmie],
+    PANCAKESWAP: [Strats.liquidateAll],
+    PANCAKESWAP_SINGLE_ASSET: [Strats.liquidateAll],
+    WAULTSWAP: [Strats.liquidateAll],
   };
-  const EXACT_ETA = "1627914600";
+  const EXACT_ETA = "1628146800";
 
   const config = getConfig();
   const timelock = Timelock__factory.connect(config.Timelock, (await ethers.getSigners())[0]);
