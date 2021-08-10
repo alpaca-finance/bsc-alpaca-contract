@@ -1,7 +1,7 @@
 import { TimelockEntity } from "../../entities";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import TimelockTransactions from "../../results/mock.json";
+import TimelockTransactions from "../../results/1628515017_set_approved_add_strategies.json";
 import { FileService, TimelockService } from "../../services";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
