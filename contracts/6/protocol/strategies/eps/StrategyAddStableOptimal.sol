@@ -1,10 +1,14 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 /**
-Optimal Stable Swap Strategy
-Ellipsis -> Pancake
-https://docs.ellipsis.finance/deployment-links
-https://bscscan.com/address/0x160CAed03795365F3A589f10C379FfA7d75d4E76
-https://bscscan.com/address/0x1B3771a66ee31180906972580adE9b81AFc5fCDc
+  ∩~~~~∩ 
+  ξ ･×･ ξ 
+  ξ　~　ξ 
+  ξ　　 ξ 
+  ξ　　 “~～~～〇 
+  ξ　　　　　　 ξ 
+  ξ ξ ξ~～~ξ ξ ξ 
+　 ξ_ξξ_ξ　ξ_ξξ_ξ
+Alpaca Fin Corporation
 */
 
 pragma solidity 0.6.6;
@@ -29,7 +33,7 @@ import "../../../utils/AlpacaMath.sol";
 
 import "../../../utils/SafeToken.sol";
 
-contract StrategyAddStableOptimal is Ownable, ReentrancyGuardUpgradeSafe, IStrategy  {
+contract StrategyAddStableOptimal is Ownable, ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeMath for uint256;
   using SafeToken for address;
 
@@ -47,18 +51,18 @@ contract StrategyAddStableOptimal is Ownable, ReentrancyGuardUpgradeSafe, IStrat
   /* ========== CONSTRUCTOR ========== */
 
   function initialize(
-   address _EPSPool,
-   address _router,
-   uint256 _FEE_DENOMINATOR,
-   IVault _vault
+    address _EPSPool,
+    address _router,
+    uint256 _FEE_DENOMINATOR,
+    IVault _vault
   ) external onlyOwner {
-   EPSPool = ICurveBase(_EPSPool);
-   router = IPancakeRouter02(_router);
-   factory = IPancakeFactory(router.factory());
-   vault = _vault;
-   A = EPSPool.A();
-   fee = EPSPool.fee();
-   FEE_DENOMINATOR = _FEE_DENOMINATOR;
+    EPSPool = ICurveBase(_EPSPool);
+    router = IPancakeRouter02(_router);
+    factory = IPancakeFactory(router.factory());
+    vault = _vault;
+    A = EPSPool.A();
+    fee = EPSPool.fee();
+    FEE_DENOMINATOR = _FEE_DENOMINATOR;
   }
 
   struct PoolState {
@@ -90,12 +94,12 @@ contract StrategyAddStableOptimal is Ownable, ReentrancyGuardUpgradeSafe, IStrat
   // TODO: remove this before deploy
   event print_log(uint128 iterate);
 
-  function execute(address, uint256, bytes calldata data) external override nonReentrant
-  {
-    (
-    uint256 farmingTokenAmount,
-    uint256 minLPAmount
-    ) = abi.decode(data, (uint256, uint256));
+  function execute(
+    address,
+    uint256,
+    bytes calldata data
+  ) external override nonReentrant {
+    (uint256 farmingTokenAmount, uint256 minLPAmount) = abi.decode(data, (uint256, uint256));
 
     IWorker worker = IWorker(msg.sender);
     address baseToken = worker.baseToken();
@@ -104,7 +108,7 @@ contract StrategyAddStableOptimal is Ownable, ReentrancyGuardUpgradeSafe, IStrat
     vault.requestFunds(farmingToken, farmingTokenAmount);
     uint256 Xinit = baseToken.myBalance();
     uint256 Yinit = farmingTokenAmount;
-    
+
     BalancePair memory user_balances = BalancePair(Xinit, (Yinit.mul(FEE_DENOMINATOR)).div(FEE_DENOMINATOR.sub(fee)));
 
     PoolState memory fp_state;
@@ -114,13 +118,13 @@ contract StrategyAddStableOptimal is Ownable, ReentrancyGuardUpgradeSafe, IStrat
       uint256[3] memory fp_balances = [_reserve0, _reserve1, 0];
       uint128 i_fp = 0;
       uint128 j_fp = 1;
-      if(lpToken.token0() != baseToken) {
+      if (lpToken.token0() != baseToken) {
         i_fp = 1;
         j_fp = 0;
       }
       fp_state = PoolState(i_fp, j_fp, fp_balances);
     }
-    
+
     PoolState memory sb_state;
     {
       uint256[3] memory sb_balances = [EPSPool.balances(0), EPSPool.balances(1), EPSPool.balances(2)];
@@ -132,7 +136,7 @@ contract StrategyAddStableOptimal is Ownable, ReentrancyGuardUpgradeSafe, IStrat
         if (EPSPool.coins(2) == farmingToken) {
           j_sb = 2;
         }
-      } else if(EPSPool.coins(1) == baseToken) {
+      } else if (EPSPool.coins(1) == baseToken) {
         i_sb = 1;
         j_sb = 2;
         if (EPSPool.coins(0) == farmingToken) {
@@ -147,8 +151,8 @@ contract StrategyAddStableOptimal is Ownable, ReentrancyGuardUpgradeSafe, IStrat
       }
       sb_state = PoolState(i_sb, j_sb, sb_balances);
     }
-    
-    // calc dx to swap on EPS 
+
+    // calc dx to swap on EPS
     // dy = expected Y amount got from swap on EPS
     uint256 dx;
     uint256 dy;
@@ -162,22 +166,32 @@ contract StrategyAddStableOptimal is Ownable, ReentrancyGuardUpgradeSafe, IStrat
     // approve PCS router to do their stuffs
     baseToken.safeApprove(address(router), uint256(-1));
     farmingToken.safeApprove(address(router), uint256(-1));
-    
+
     // swap on EPS
-    // `dy` is basically `min_dy` 
-    if(dx > 0) EPSPool.exchange(sb_state.i, sb_state.j, dx, dy);
+    // `dy` is basically `min_dy`
+    if (dx > 0) EPSPool.exchange(sb_state.i, sb_state.j, dx, dy);
 
     // add LP
     uint256 moreLPAmount;
     {
-      (,, moreLPAmount) = router.addLiquidity(
-        baseToken, farmingToken, baseToken.myBalance(), farmingToken.myBalance(), 0, 0, address(this), now
+      (, , moreLPAmount) = router.addLiquidity(
+        baseToken,
+        farmingToken,
+        baseToken.myBalance(),
+        farmingToken.myBalance(),
+        0,
+        0,
+        address(this),
+        now
       );
     }
-    
+
     require(moreLPAmount >= minLPAmount, "StrategyAddStableOptimal::execute:: insufficient LP tokens received");
-    require(lpToken.transfer(msg.sender, lpToken.balanceOf(address(this))), "StrategyAddStableOptimal::execute:: failed to transfer LP token to msg.sender");
-    
+    require(
+      lpToken.transfer(msg.sender, lpToken.balanceOf(address(this))),
+      "StrategyAddStableOptimal::execute:: failed to transfer LP token to msg.sender"
+    );
+
     // Reset PCS router and EPS pool approve to 0 for safety reason
     farmingToken.safeApprove(address(EPSPool), 0);
     baseToken.safeApprove(address(EPSPool), 0);
@@ -187,21 +201,24 @@ contract StrategyAddStableOptimal is Ownable, ReentrancyGuardUpgradeSafe, IStrat
 
   function simplify_fp_state(PoolState memory fp_state, uint256 D) private pure returns (PoolState memory) {
     // only ratio that matters (order of D but remain ratio)
-    fp_state.balances[fp_state.i] = D; 
+    fp_state.balances[fp_state.i] = D;
     fp_state.balances[fp_state.j] = D.mul(fp_state.balances[fp_state.j].div(fp_state.balances[fp_state.i]));
     return fp_state;
   }
 
-  // sb_state = constant from stable (crv, eps) 
+  // sb_state = constant from stable (crv, eps)
   // fp_state = constant from fixed-product (pcs)
   // user_balances = constant from user inputs
-  function get_dx(PoolState memory fp_state, PoolState memory sb_state, BalancePair memory user_balances) private returns (uint256, uint256) {
+  function get_dx(
+    PoolState memory fp_state,
+    PoolState memory sb_state,
+    BalancePair memory user_balances
+  ) private returns (uint256, uint256) {
     uint256 N_COINS = sb_state.balances.length;
     uint256 Ann = A.mul(N_COINS);
     uint256 D = get_D(sb_state.balances, A);
     fp_state = simplify_fp_state(fp_state, D);
 
-    // TODO: Wait for Mitya about this
     // new Xfp
     // Xfp_ = Xfp - Xfp * curve_fee / curve_fee_denominator
     // new Yinit
@@ -211,8 +228,8 @@ contract StrategyAddStableOptimal is Ownable, ReentrancyGuardUpgradeSafe, IStrat
     uint256 S = 0;
     uint256 U = D;
     {
-      for(uint128 _i = 0; _i < N_COINS; _i++) {
-        if(_i != sb_state.i && _i != sb_state.j) {
+      for (uint128 _i = 0; _i < N_COINS; _i++) {
+        if (_i != sb_state.i && _i != sb_state.j) {
           S = S.add(sb_state.balances[_i]);
           U = (U.mul(D)).div(sb_state.balances[_i].mul(N_COINS));
         }
@@ -222,32 +239,73 @@ contract StrategyAddStableOptimal is Ownable, ReentrancyGuardUpgradeSafe, IStrat
     uint256 x = 0;
     uint256 y = 0;
     // avoid stack too deep
-    {  
-      VariablePack memory var_pack = VariablePack(user_balances.x, user_balances.y, sb_state.balances[sb_state.i], sb_state.balances[sb_state.j], D, S, U, fp_state.balances[fp_state.i], fp_state.balances[fp_state.j], N_COINS, Ann);
+    {
+      VariablePack memory var_pack =
+        VariablePack(
+          user_balances.x,
+          user_balances.y,
+          sb_state.balances[sb_state.i],
+          sb_state.balances[sb_state.j],
+          D,
+          S,
+          U,
+          fp_state.balances[fp_state.i],
+          fp_state.balances[fp_state.j],
+          N_COINS,
+          Ann
+        );
       (x, y) = find_intersection_of_l_with_tangent(var_pack, N_COINS);
     }
     {
-      VariablePack memory var_pack = VariablePack(user_balances.x, user_balances.y, sb_state.balances[sb_state.i], sb_state.balances[sb_state.j], D, S, U, fp_state.balances[fp_state.i], fp_state.balances[fp_state.j], N_COINS, Ann);
+      VariablePack memory var_pack =
+        VariablePack(
+          user_balances.x,
+          user_balances.y,
+          sb_state.balances[sb_state.i],
+          sb_state.balances[sb_state.j],
+          D,
+          S,
+          U,
+          fp_state.balances[fp_state.i],
+          fp_state.balances[fp_state.j],
+          N_COINS,
+          Ann
+        );
       (x, y) = ver_her_newton_step(x, y, var_pack);
     }
-    return (x - sb_state.balances[sb_state.i], (sb_state.balances[sb_state.j]-y) - (sb_state.balances[sb_state.j]-y) * fee / FEE_DENOMINATOR);
+    return (
+      x - sb_state.balances[sb_state.i],
+      (sb_state.balances[sb_state.j] - y) - ((sb_state.balances[sb_state.j] - y) * fee) / FEE_DENOMINATOR
+    );
   }
-  
-  function f_pos(uint256 Yfp, uint256 yi_, uint256 Y0, uint256 Xfp, uint256 x) private pure returns (uint256) {
+
+  function f_pos(
+    uint256 Yfp,
+    uint256 yi_,
+    uint256 Y0,
+    uint256 Xfp,
+    uint256 x
+  ) private pure returns (uint256) {
     return Yfp.mul(x).add((yi_.add(Y0)).mul(Xfp));
   }
 
-  function f_neg(uint256 Xfp, uint256 xi, uint256 X0, uint256 Yfp, uint256 y) private pure returns (uint256) {
+  function f_neg(
+    uint256 Xfp,
+    uint256 xi,
+    uint256 X0,
+    uint256 Yfp,
+    uint256 y
+  ) private pure returns (uint256) {
     return Xfp.mul(y).add((xi.add(X0)).mul(Yfp));
   }
 
-  function pow(uint n, uint e) private pure returns (uint) { 
+  function pow(uint256 n, uint256 e) private pure returns (uint256) {
     if (e == 0) {
       return 1;
     } else if (e == 1) {
       return n;
     } else {
-      uint p = pow(n, e.div(2));
+      uint256 p = pow(n, e.div(2));
       p = p.mul(p);
       if (e.mod(2) == 1) {
         p = p.mul(n);
@@ -259,34 +317,35 @@ contract StrategyAddStableOptimal is Ownable, ReentrancyGuardUpgradeSafe, IStrat
   function get_D(uint256[3] memory xp, uint256 amp) private pure returns (uint256) {
     uint256 S = 0;
     uint256 N_COINS = 3;
-    for(uint256 _x = 0; _x < xp.length; _x++) {
+    for (uint256 _x = 0; _x < xp.length; _x++) {
       S = S.add(xp[_x]);
     }
-    if(S == 0)
-      return 0;
+    if (S == 0) return 0;
 
     uint256 Dprev = 0;
     uint256 D = S;
     uint256 Ann = amp.mul(N_COINS);
-    for(uint8 _i = 0; _i < 255; _i++) {
+    for (uint8 _i = 0; _i < 255; _i++) {
       uint256 D_P = D;
-      for(uint256 _x = 0; _x < xp.length; _x++) {
+      for (uint256 _x = 0; _x < xp.length; _x++) {
         D_P = D_P.mul(D).div(xp[_x].mul(N_COINS));
       }
       Dprev = D;
       D = ((Ann.mul(S)).add(D_P.mul(N_COINS))).mul(D).div(((Ann.sub(1)).mul(D).add((N_COINS.add(1)).mul(D_P))));
       if (D > Dprev)
-        if (D.sub(Dprev) <= 1)
-          break;
-      else{
-        if (Dprev.sub(D) <= 1)
-          break;
-      }
+        if (D.sub(Dprev) <= 1) break;
+        else {
+          if (Dprev.sub(D) <= 1) break;
+        }
     }
     return D;
   }
 
-  function find_intersection_of_l_with_tangent(VariablePack memory var_pack, uint256 N_COINS) internal view returns (uint256 x, uint256 y) {
+  function find_intersection_of_l_with_tangent(VariablePack memory var_pack, uint256 N_COINS)
+    internal
+    view
+    returns (uint256 x, uint256 y)
+  {
     // X0 = sb_state.balances[sb_state.i];
     // Y0 = sb_state.balances[sb_state.j];
     uint256 step_x_pos = 0;
@@ -305,12 +364,22 @@ contract StrategyAddStableOptimal is Ownable, ReentrancyGuardUpgradeSafe, IStrat
     return (var_pack.X0.add(step_x_pos).sub(step_x_neg), var_pack.Y0.add(step_y_pos).sub(step_y_neg));
   }
 
-  function get_step_x(VariablePack memory var_pack, uint256 fX0Y0_pos, uint256 fX0Y0_neg, uint256 omega) private pure returns (uint256, uint256) {
+  function get_step_x(
+    VariablePack memory var_pack,
+    uint256 fX0Y0_pos,
+    uint256 fX0Y0_neg,
+    uint256 omega
+  ) private pure returns (uint256, uint256) {
     uint256 step_x_den = var_pack.Yfp.add((var_pack.Xfp.mul(omega)).div(var_pack.D));
     return (fX0Y0_neg.div(step_x_den), fX0Y0_pos.div(step_x_den));
   }
 
-  function get_step_y(VariablePack memory var_pack, uint256 fX0Y0_pos, uint256 fX0Y0_neg, uint256 omega) private pure returns (uint256, uint256) {
+  function get_step_y(
+    VariablePack memory var_pack,
+    uint256 fX0Y0_pos,
+    uint256 fX0Y0_neg,
+    uint256 omega
+  ) private pure returns (uint256, uint256) {
     uint256 step_y_den = ((var_pack.Yfp.mul(var_pack.D)).div(omega)).add(var_pack.Xfp);
     return (fX0Y0_pos.div(step_y_den), fX0Y0_neg.div(step_y_den));
   }
@@ -323,19 +392,36 @@ contract StrategyAddStableOptimal is Ownable, ReentrancyGuardUpgradeSafe, IStrat
     return omega_num.div(omega_den);
   }
 
-  function newton_step_along_line(uint256 X0, uint256 Y0, uint256 Pr_, uint256 D, uint256 Yfp, uint256 Xfp, uint256 S, uint256 Ann) private pure returns (uint256 x, uint256 y) {
+  function newton_step_along_line(
+    uint256 X0,
+    uint256 Y0,
+    uint256 Pr_,
+    uint256 D,
+    uint256 Yfp,
+    uint256 Xfp,
+    uint256 S,
+    uint256 Ann
+  ) private pure returns (uint256 x, uint256 y) {
     x = X0;
     y = Y0;
     uint256 xy = x.mul(y);
     uint256 xy_by_D = xy.div(D);
     uint256 alpha_pos = xy_by_D.mul(x.add(y).add(S).add(D).sub(Ann));
     uint256 alpha_neg = xy.add(Pr_.mul(D));
-    uint256 beta = (((xy.mul(2).add(pow(y, 2)).add(y.mul(S))).div(D)).add(y.div(Ann)).sub(y)).mul(Xfp).add((xy.mul(2).add(pow(x, 2)).add(x.mul(S))).div(D).add(x.div(Ann)).sub(x)).mul(Yfp);
+    uint256 beta =
+      (((xy.mul(2).add(pow(y, 2)).add(y.mul(S))).div(D)).add(y.div(Ann)).sub(y))
+        .mul(Xfp)
+        .add((xy.mul(2).add(pow(x, 2)).add(x.mul(S))).div(D).add(x.div(Ann)).sub(x))
+        .mul(Yfp);
     x = x.add(alpha_neg.div((beta.div(Xfp))).sub(alpha_pos.div((beta.div(Xfp)))));
     y = y.add(alpha_neg.div(beta.div(Yfp))).sub(alpha_pos.div(beta.div(Yfp)));
   }
 
-  function update_x_y_(uint256 x, uint256 y, VariablePack memory var_pack) internal pure returns (uint256 x_, uint256 y_) {
+  function update_x_y_(
+    uint256 x,
+    uint256 y,
+    VariablePack memory var_pack
+  ) internal pure returns (uint256 x_, uint256 y_) {
     uint256 temp_1 = var_pack.D.div(var_pack.Ann.mul(var_pack.N_COINS));
     uint256 temp_2 = var_pack.U.mul(var_pack.D);
     uint256 temp_3 = var_pack.S.add(var_pack.D.div(var_pack.Ann)).add(x).add(y).sub(var_pack.D);
@@ -343,13 +429,17 @@ contract StrategyAddStableOptimal is Ownable, ReentrancyGuardUpgradeSafe, IStrat
     y_ = ((y.mul(y)).add((temp_2.div(x.mul(var_pack.N_COINS))).mul(temp_1))).div(y.add(temp_3));
   }
 
-  function ver_her_newton_step(uint256 x, uint256 y, VariablePack memory var_pack) internal returns (uint256, uint256) {
+  function ver_her_newton_step(
+    uint256 x,
+    uint256 y,
+    VariablePack memory var_pack
+  ) internal returns (uint256, uint256) {
     // TODO: Find better place to calc Ann
     uint256 x_ = 0;
     uint256 y_ = 0;
     uint256 vxdy_pos = 0;
     uint256 vydx_pos = 0;
-    for(uint128 _i = 0; _i < 255; _i++) {
+    for (uint128 _i = 0; _i < 255; _i++) {
       (x_, y_) = update_x_y_(x, y, var_pack);
 
       if (within_distance(y, y_, 1) || ((x_.mul(y_)).add(x.mul(y)) <= ((x_.mul(y)).add(x.mul(y_)).add(1)))) {
@@ -365,7 +455,7 @@ contract StrategyAddStableOptimal is Ownable, ReentrancyGuardUpgradeSafe, IStrat
         vxdy_pos = var_pack.Xfp.mul(y.sub(y_));
         vydx_pos = var_pack.Yfp.mul(x.sub(x_));
       }
-      
+
       if (vxdy_pos > pow(var_pack.D, 2)) {
         // To prevent overflow
         vxdy_pos = vxdy_pos.div(var_pack.D);
@@ -382,7 +472,11 @@ contract StrategyAddStableOptimal is Ownable, ReentrancyGuardUpgradeSafe, IStrat
     return (x, y);
   }
 
-  function within_distance(uint256 x1, uint256 x2, uint256 d) private pure returns (bool) {
+  function within_distance(
+    uint256 x1,
+    uint256 x2,
+    uint256 d
+  ) private pure returns (bool) {
     if (x1 > x2) {
       if (x1.sub(x2) <= d) {
         return true;
