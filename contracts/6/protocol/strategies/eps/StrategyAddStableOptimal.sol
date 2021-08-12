@@ -14,61 +14,75 @@ Alpaca Fin Corporation
 pragma solidity 0.6.6;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakeFactory.sol";
+import "../../apis/pancake/IPancakeRouter02.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
 
-import "../../apis/pancake/IPancakeRouter02.sol";
 import "../../interfaces/ICurveBase.sol";
+
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IWorker.sol";
 import "../../interfaces/IVault.sol";
+
 import "../../../utils/SafeToken.sol";
 import "../../../utils/AlpacaMath.sol";
-
 import "../../../utils/SafeToken.sol";
 
-contract StrategyAddStableOptimal is Ownable, ReentrancyGuardUpgradeSafe, IStrategy {
+contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe {
   using SafeMath for uint256;
   using SafeToken for address;
 
   /* ========== STATE VARIABLES ========== */
-
-  uint256 public A;
-  uint256 public FEE_DENOMINATOR;
-  uint256 public fee;
-
   IPancakeRouter02 public router;
   IPancakeFactory public factory;
+
+  ICurveBase public epsPool;
+  mapping(address => bool) public espPoolTokens;
+  uint256 public epsA;
+  uint256 public epsFee;
+  uint256 public epsFeeDenom;
+
   IVault public vault;
-  ICurveBase public EPSPool;
 
   /* ========== CONSTRUCTOR ========== */
 
   function initialize(
-    address _EPSPool,
+    address _epsPool,
     address _router,
-    uint256 _FEE_DENOMINATOR,
-    IVault _vault
-  ) external onlyOwner {
-    EPSPool = ICurveBase(_EPSPool);
+    IVault _vault,
+    address[] calldata _epsPoolTokens
+  ) external initializer {
+    // 1. Initialized imported library
+    OwnableUpgradeSafe.__Ownable_init();
+    ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
+
+    // 2. Assign Pancakeswap dependency contracts
     router = IPancakeRouter02(_router);
     factory = IPancakeFactory(router.factory());
+
+    // 3. Assign EPS depency contracts & variables
+    epsPool = ICurveBase(_epsPool);
+    epsA = epsPool.A();
+    epsFee = epsPool.fee();
+    epsFeeDenom = 10**10;
+    uint256 len = _epsPoolTokens.length;
+    require(len == 3, "only 3eps pool");
+    for (uint256 idx = 0; idx < len; idx++) {
+      espPoolTokens[_epsPoolTokens[idx]] = true;
+    }
+
+    // 4. Assign Vault contract
     vault = _vault;
-    A = EPSPool.A();
-    fee = EPSPool.fee();
-    FEE_DENOMINATOR = _FEE_DENOMINATOR;
   }
 
   struct PoolState {
     uint128 i;
     uint128 j;
-    // TODO: what if coins > 3?
     uint256[3] balances;
   }
 
@@ -95,8 +109,8 @@ contract StrategyAddStableOptimal is Ownable, ReentrancyGuardUpgradeSafe, IStrat
   event print_log(uint128 iterate);
 
   function execute(
-    address,
-    uint256,
+    address, /* user */
+    uint256, /* debt */
     bytes calldata data
   ) external override nonReentrant {
     (uint256 farmingTokenAmount, uint256 minLPAmount) = abi.decode(data, (uint256, uint256));
@@ -105,11 +119,14 @@ contract StrategyAddStableOptimal is Ownable, ReentrancyGuardUpgradeSafe, IStrat
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
 
-    vault.requestFunds(farmingToken, farmingTokenAmount);
-    uint256 Xinit = baseToken.myBalance();
-    uint256 Yinit = farmingTokenAmount;
+    require(espPoolTokens[baseToken] && espPoolTokens[farmingToken], "!worker not compatiable");
 
-    BalancePair memory user_balances = BalancePair(Xinit, (Yinit.mul(FEE_DENOMINATOR)).div(FEE_DENOMINATOR.sub(fee)));
+    vault.requestFunds(farmingToken, farmingTokenAmount);
+
+    uint256 baseTokenAmount = baseToken.myBalance();
+
+    BalancePair memory user_balances =
+      BalancePair(baseTokenAmount, (farmingTokenAmount.mul(epsFeeDenom)).div(epsFeeDenom.sub(epsFee)));
 
     PoolState memory fp_state;
     IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
@@ -127,25 +144,25 @@ contract StrategyAddStableOptimal is Ownable, ReentrancyGuardUpgradeSafe, IStrat
 
     PoolState memory sb_state;
     {
-      uint256[3] memory sb_balances = [EPSPool.balances(0), EPSPool.balances(1), EPSPool.balances(2)];
+      uint256[3] memory sb_balances = [epsPool.balances(0), epsPool.balances(1), epsPool.balances(2)];
       uint128 i_sb;
       uint128 j_sb;
-      if (EPSPool.coins(0) == baseToken) {
+      if (epsPool.coins(0) == baseToken) {
         i_sb = 0;
         j_sb = 1;
-        if (EPSPool.coins(2) == farmingToken) {
+        if (epsPool.coins(2) == farmingToken) {
           j_sb = 2;
         }
-      } else if (EPSPool.coins(1) == baseToken) {
+      } else if (epsPool.coins(1) == baseToken) {
         i_sb = 1;
         j_sb = 2;
-        if (EPSPool.coins(0) == farmingToken) {
+        if (epsPool.coins(0) == farmingToken) {
           j_sb = 0;
         }
       } else {
         i_sb = 2;
         j_sb = 0;
-        if (EPSPool.coins(1) == farmingToken) {
+        if (epsPool.coins(1) == farmingToken) {
           j_sb = 1;
         }
       }
@@ -161,15 +178,15 @@ contract StrategyAddStableOptimal is Ownable, ReentrancyGuardUpgradeSafe, IStrat
     }
 
     // approve EPS pool
-    baseToken.safeApprove(address(EPSPool), uint256(-1));
-    farmingToken.safeApprove(address(EPSPool), uint256(-1));
+    baseToken.safeApprove(address(epsPool), uint256(-1));
+    farmingToken.safeApprove(address(epsPool), uint256(-1));
     // approve PCS router to do their stuffs
     baseToken.safeApprove(address(router), uint256(-1));
     farmingToken.safeApprove(address(router), uint256(-1));
 
     // swap on EPS
     // `dy` is basically `min_dy`
-    if (dx > 0) EPSPool.exchange(sb_state.i, sb_state.j, dx, dy);
+    if (dx > 0) epsPool.exchange(sb_state.i, sb_state.j, dx, dy);
 
     // add LP
     uint256 moreLPAmount;
@@ -186,15 +203,12 @@ contract StrategyAddStableOptimal is Ownable, ReentrancyGuardUpgradeSafe, IStrat
       );
     }
 
-    require(moreLPAmount >= minLPAmount, "StrategyAddStableOptimal::execute:: insufficient LP tokens received");
-    require(
-      lpToken.transfer(msg.sender, lpToken.balanceOf(address(this))),
-      "StrategyAddStableOptimal::execute:: failed to transfer LP token to msg.sender"
-    );
+    require(moreLPAmount >= minLPAmount, "insufficient LP tokens received");
+    address(lpToken).safeTransfer(msg.sender, lpToken.balanceOf(address(this)));
 
     // Reset PCS router and EPS pool approve to 0 for safety reason
-    farmingToken.safeApprove(address(EPSPool), 0);
-    baseToken.safeApprove(address(EPSPool), 0);
+    farmingToken.safeApprove(address(epsPool), 0);
+    baseToken.safeApprove(address(epsPool), 0);
     farmingToken.safeApprove(address(router), 0);
     baseToken.safeApprove(address(router), 0);
   }
@@ -215,8 +229,8 @@ contract StrategyAddStableOptimal is Ownable, ReentrancyGuardUpgradeSafe, IStrat
     BalancePair memory user_balances
   ) private returns (uint256, uint256) {
     uint256 N_COINS = sb_state.balances.length;
-    uint256 Ann = A.mul(N_COINS);
-    uint256 D = get_D(sb_state.balances, A);
+    uint256 Ann = epsA.mul(N_COINS);
+    uint256 D = get_D(sb_state.balances, epsA);
     fp_state = simplify_fp_state(fp_state, D);
 
     // new Xfp
@@ -275,7 +289,7 @@ contract StrategyAddStableOptimal is Ownable, ReentrancyGuardUpgradeSafe, IStrat
     }
     return (
       x - sb_state.balances[sb_state.i],
-      (sb_state.balances[sb_state.j] - y) - ((sb_state.balances[sb_state.j] - y) * fee) / FEE_DENOMINATOR
+      (sb_state.balances[sb_state.j] - y) - ((sb_state.balances[sb_state.j] - y) * epsFee) / epsFeeDenom
     );
   }
 
@@ -386,7 +400,7 @@ contract StrategyAddStableOptimal is Ownable, ReentrancyGuardUpgradeSafe, IStrat
 
   function get_omega(VariablePack memory var_pack, uint256 N_COINS) internal view returns (uint256 omega) {
     uint256 tmp1 = var_pack.X0.mul(var_pack.Y0);
-    uint256 tmp2 = A.mul(pow(N_COINS, 3));
+    uint256 tmp2 = epsA.mul(pow(N_COINS, 3));
     uint256 omega_num = tmp1.add(var_pack.U.mul(pow(var_pack.D, 2).div(var_pack.Y0)).div(tmp2));
     uint256 omega_den = tmp1.div(var_pack.D.add(var_pack.U.mul(var_pack.D))).div(var_pack.X0.mul(tmp2));
     return omega_num.div(omega_den);
