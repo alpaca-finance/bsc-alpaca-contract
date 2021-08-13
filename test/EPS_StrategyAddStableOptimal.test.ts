@@ -16,7 +16,6 @@ import {
   PancakeRouterV2,
   PancakeswapV2RestrictedStrategyAddBaseTokenOnly,
   PancakeswapV2Worker02,
-  SimpleVaultConfig,
   StrategyAddStableOptimal,
   StrategyAddStableOptimal__factory,
   StrategyLiquidate,
@@ -25,6 +24,14 @@ import {
   WNativeRelayer,
   MockPancakeswapV2Worker,
   MockPancakeswapV2Worker__factory,
+  MockVaultForStrategy,
+  MockVaultForStrategy__factory,
+  StableSwap,
+  StableSwap__factory,
+  Token,
+  Token__factory,
+  FeeConverter,
+  FeeConverter__factory,
 } from "../typechain";
 import { DeployHelper } from "./helpers/deploy";
 
@@ -66,21 +73,27 @@ describe("EPS - StrategyAddStableOptimal", () => {
   let cake: CakeToken;
   let syrup: SyrupBar;
 
+  /// Vault-related instance(s)
+  let mockedVault_BUSD: MockVaultForStrategy;
+  let mockedVault_USDT: MockVaultForStrategy;
+
   // V2
   let mockPancakeswapV2Worker_USDT_BUSD: MockPancakeswapV2Worker;
   let mockPancakeswapV2Worker_USDC_USDT: MockPancakeswapV2Worker;
   let mockPancakeswapV2Worker_USDC_BUSD: MockPancakeswapV2Worker;
+  let mockPancakeswapV2Worker_USDT_BUSD_AsBob: MockPancakeswapV2Worker;
+  let mockPancakeswapV2Worker_USDC_USDT_AsBob: MockPancakeswapV2Worker;
+  let mockPancakeswapV2Worker_USDC_BUSD_AsBob: MockPancakeswapV2Worker;
+
+  /// StableSwap related instance(s)
+  let stableLPToken: Token;
+  let stableFeeConverter: FeeConverter;
+  let stableSwap: StableSwap;
 
   /// Strategy-related instance(s)
   let addStrat: PancakeswapV2RestrictedStrategyAddBaseTokenOnly;
   let addStableStrat: StrategyAddStableOptimal;
   let liqStrat: StrategyLiquidate;
-
-  /// Vault-related instance(s)
-  let simpleVaultConfig: SimpleVaultConfig;
-  let wNativeRelayer: WNativeRelayer;
-  let vaultBUSD: Vault;
-  let vaultUSDT: Vault;
 
   /// FairLaunch-related instance(s)
   let fairLaunch: FairLaunch;
@@ -118,6 +131,9 @@ describe("EPS - StrategyAddStableOptimal", () => {
   beforeEach(async () => {
     [deployer, alice, bob, eve] = await ethers.getSigners();
     const deployHelper = new DeployHelper(deployer);
+
+  // █▀█ ▄▀█ █▄░█ █▀▀ ▄▀█ █▄▀ █▀▀ █▀ █░█░█ ▄▀█ █▀█
+  // █▀▀ █▀█ █░▀█ █▄▄ █▀█ █░█ ██▄ ▄█ ▀▄▀▄▀ █▀█ █▀▀
 
     // Setup Pancakeswap
     wbnb = await deployHelper.deployWBNB();
@@ -169,46 +185,20 @@ describe("EPS - StrategyAddStableOptimal", () => {
     USDC_BUSD = PancakePair__factory.connect(await factoryV2.getPair(BUSD.address, USDC.address), deployer);
     await USDC_BUSD.deployed();
 
-    // const DebtToken = (await ethers.getContractFactory("DebtToken", deployer)) as DebtToken__factory;
-    // const debtToken = (await upgrades.deployProxy(DebtToken, [
-    //   "debtibBTOKEN_V2",
-    //   "debtibBTOKEN_V2",
-    //   await deployer.getAddress(),
-    // ])) as DebtToken;
-    // await debtToken.deployed();
+    // Add LPs on PancakeSwap
+    await masterChef.add(1, USDT_BUSD.address, false);
+    await masterChef.add(1, USDC_USDT.address, false);
+    await masterChef.add(1, USDC_BUSD.address, false);
 
-    [alpacaToken, fairLaunch] = await deployHelper.deployAlpacaFairLaunch(
-      ALPACA_REWARD_PER_BLOCK,
-      ALPACA_BONUS_LOCK_UP_BPS,
-      132,
-      137
-    );
-    [vaultBUSD, simpleVaultConfig, wNativeRelayer] = await deployHelper.deployVault(
-      wbnb,
-      {
-        minDebtSize: MIN_DEBT_SIZE,
-        interestRate: INTEREST_RATE,
-        reservePoolBps: RESERVE_POOL_BPS,
-        killPrizeBps: KILL_PRIZE_BPS,
-        killTreasuryBps: KILL_TREASURY_BPS,
-        killTreasuryAddress: DEPLOYER,
-      },
-      fairLaunch,
-      BUSD
-    );
-    [vaultUSDT, simpleVaultConfig, wNativeRelayer] = await deployHelper.deployVault(
-      wbnb,
-      {
-        minDebtSize: MIN_DEBT_SIZE,
-        interestRate: INTEREST_RATE,
-        reservePoolBps: RESERVE_POOL_BPS,
-        killPrizeBps: KILL_PRIZE_BPS,
-        killTreasuryBps: KILL_TREASURY_BPS,
-        killTreasuryAddress: DEPLOYER,
-      },
-      fairLaunch,
-      USDT
-    );
+    // Setup Vault
+    const MockVaultForStrategy =  (await ethers.getContractFactory(
+      "MockVaultForStrategy",
+      deployer
+    )) as MockVaultForStrategy__factory;
+    mockedVault_BUSD = await upgrades.deployProxy(MockVaultForStrategy) as MockVaultForStrategy;
+    await mockedVault_BUSD.deployed();
+    mockedVault_USDT = await upgrades.deployProxy(MockVaultForStrategy) as MockVaultForStrategy;
+    await mockedVault_USDT.deployed();
 
     // Setup Strategy
     const StrategyAddStableOptimal = (await ethers.getContractFactory(
@@ -217,40 +207,23 @@ describe("EPS - StrategyAddStableOptimal", () => {
     )) as StrategyAddStableOptimal__factory;
     addStableStrat = (await upgrades.deployProxy(StrategyAddStableOptimal, [
       routerV2.address,
-      vaultBUSD.address,
+      mockedVault_BUSD.address,
     ])) as StrategyAddStableOptimal;
     await addStableStrat.deployed();
-
-    // Add LPs on PancakeSwap
-    await masterChef.add(1, USDT_BUSD.address, false);
-    await masterChef.add(1, USDC_USDT.address, false);
-    await masterChef.add(1, USDC_BUSD.address, false);
+    // TODO: Should another addStableStrat for mockedVault_USDT follows here?
+    // ...
 
     /// Setup MockPancakeswapV2Worker
-    const MockPancakeswapV2Worker_USDT_BUSD = (await ethers.getContractFactory(
+    const MockPancakeswapV2Worker = (await ethers.getContractFactory(
       "MockPancakeswapV2Worker",
       deployer,
     )) as MockPancakeswapV2Worker__factory;
-    mockPancakeswapV2Worker_USDT_BUSD = await MockPancakeswapV2Worker_USDT_BUSD.deploy(USDT_BUSD.address, USDT.address, BUSD.address) as MockPancakeswapV2Worker
+    mockPancakeswapV2Worker_USDT_BUSD = await MockPancakeswapV2Worker.deploy(USDT_BUSD.address, USDT.address, BUSD.address) as MockPancakeswapV2Worker
     await mockPancakeswapV2Worker_USDT_BUSD.deployed();
-
-    /// Setup MockPancakeswapV2Worker
-    const MockPancakeswapV2Worker_USDC_USDT = (await ethers.getContractFactory(
-      "MockPancakeswapV2Worker",
-      deployer,
-    )) as MockPancakeswapV2Worker__factory;
-    mockPancakeswapV2Worker_USDC_USDT = await MockPancakeswapV2Worker_USDC_USDT.deploy(USDC_USDT.address, USDC.address, USDT.address) as MockPancakeswapV2Worker
+    mockPancakeswapV2Worker_USDC_USDT = await MockPancakeswapV2Worker.deploy(USDC_USDT.address, USDC.address, USDT.address) as MockPancakeswapV2Worker
     await mockPancakeswapV2Worker_USDC_USDT.deployed();
-
-    /// Setup MockPancakeswapV2Worker
-    const MockPancakeswapV2Worker_USDC_BUSD = (await ethers.getContractFactory(
-      "MockPancakeswapV2Worker",
-      deployer,
-    )) as MockPancakeswapV2Worker__factory;
-    mockPancakeswapV2Worker_USDC_BUSD = await MockPancakeswapV2Worker_USDC_BUSD.deploy(USDT_BUSD.address, USDT.address, BUSD.address) as MockPancakeswapV2Worker
+    mockPancakeswapV2Worker_USDC_BUSD = await MockPancakeswapV2Worker.deploy(USDT_BUSD.address, USDT.address, BUSD.address) as MockPancakeswapV2Worker
     await mockPancakeswapV2Worker_USDC_BUSD.deployed();
-
-    await simpleVaultConfig.setWorker(mockPancakeswapV2Worker_USDC_BUSD.address, true, true, WORK_FACTOR, KILL_FACTOR, true, true);
 
     await BUSD.approve(routerV2.address, ethers.utils.parseEther("-1"));
     await USDC.approve(routerV2.address, ethers.utils.parseEther("-1"));
@@ -291,10 +264,61 @@ describe("EPS - StrategyAddStableOptimal", () => {
       await deployer.getAddress(),
       FOREVER
     );
-   
-    // Contract signer
-    addStratAsAlice = StrategyAddStableOptimal__factory.connect(addStrat.address, alice);
-    addStratAsBob = StrategyAddStableOptimal__factory.connect(addStrat.address, bob);
+    
+    /// Contract signer
+    mockPancakeswapV2Worker_USDT_BUSD_AsBob = MockPancakeswapV2Worker__factory.connect(mockPancakeswapV2Worker_USDT_BUSD.address, bob);
+    mockPancakeswapV2Worker_USDC_USDT_AsBob = MockPancakeswapV2Worker__factory.connect(mockPancakeswapV2Worker_USDC_USDT.address, bob);
+    mockPancakeswapV2Worker_USDC_BUSD_AsBob = MockPancakeswapV2Worker__factory.connect(mockPancakeswapV2Worker_USDC_BUSD.address, bob);
+
+    // █▀ ▀█▀ ▄▀█ █▄▄ █░░ █▀▀ █▀ █░█░█ ▄▀█ █▀█
+    // ▄█ ░█░ █▀█ █▄█ █▄▄ ██▄ ▄█ ▀▄▀▄▀ █▀█ █▀▀
+
+    // deploy StableToken (EPS)
+    const StableLPToken = (await ethers.getContractFactory(
+      "Token",
+      deployer
+    )) as Token__factory;
+    stableLPToken = await StableLPToken.deploy("Ellipsis.finance BUSD/USDC/USDT", "3EPS", 0);
+
+    // deploy StableFeeConverter (EPS)
+    const StableFeeConverter = (await ethers.getContractFactory(
+      "FeeConverter",
+      deployer
+    )) as FeeConverter__factory;
+    stableFeeConverter = await StableFeeConverter.deploy();
+
+    // deploy StableSwap (EPS)
+    const StableSwap = (await ethers.getContractFactory(
+      "StableSwap",
+      deployer
+    )) as StableSwap__factory;
+    stableSwap = await StableSwap.deploy(
+      deployerAddress,
+      [
+        BUSD.address,
+        USDC.address,
+        USDT.address
+      ], 
+      stableLPToken.address,
+      1500, // A
+      4000000, // fee
+      5000000000, // admin fee
+      stableFeeConverter.address
+    )
+
+    // const StableSwap = await ethers.getContractFactory("StableSwap");
+    // const stableSwap = await StableSwap.deploy(deployerAddress,
+    //   [
+    //     BUSD.address,
+    //     USDC.address,
+    //     USDT.address
+    //   ], 
+    //   stableLPToken.address,
+    //   1500, // A
+    //   4000000, // fee
+    //   5000000000, // admin fee
+    //   stableFeeConverter.address
+    // );
   });
 
   // test cases go here...
