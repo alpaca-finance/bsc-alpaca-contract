@@ -21,7 +21,6 @@ import {
   StrategyLiquidate,
   SyrupBar,
   Vault,
-  WNativeRelayer,
   MockPancakeswapV2Worker,
   MockPancakeswapV2Worker__factory,
   MockVaultForStrategy,
@@ -69,9 +68,9 @@ describe("EPS - StrategyAddStableOptimal", () => {
   let mockPancakeswapV2Worker_USDT_BUSD: MockPancakeswapV2Worker;
   let mockPancakeswapV2Worker_USDC_USDT: MockPancakeswapV2Worker;
   let mockPancakeswapV2Worker_USDC_BUSD: MockPancakeswapV2Worker;
-  let mockPancakeswapV2Worker_USDT_BUSD_AsBob: MockPancakeswapV2Worker;
-  let mockPancakeswapV2Worker_USDC_USDT_AsBob: MockPancakeswapV2Worker;
-  let mockPancakeswapV2Worker_USDC_BUSD_AsBob: MockPancakeswapV2Worker;
+  let mockPancakeswapV2Worker_USDT_BUSD_asBob: MockPancakeswapV2Worker;
+  let mockPancakeswapV2Worker_USDC_USDT_asBob: MockPancakeswapV2Worker;
+  let mockPancakeswapV2Worker_USDC_BUSD_asBob: MockPancakeswapV2Worker;
 
   /// StableSwap related instance(s)
   let stableLPToken: Token;
@@ -124,6 +123,9 @@ describe("EPS - StrategyAddStableOptimal", () => {
   let BUSD_asBob: MockERC20;
   let USDC_asBob: MockERC20;
   let USDT_asBob: MockERC20;
+  let BUSD_asAlice: MockERC20;
+  let USDC_asAlice: MockERC20;
+  let USDT_asAlice: MockERC20;
 
   let swapHelper: SwapHelper;
 
@@ -183,6 +185,9 @@ describe("EPS - StrategyAddStableOptimal", () => {
     BUSD_asBob = MockERC20__factory.connect(BUSD.address, bob);
     USDC_asBob = MockERC20__factory.connect(USDC.address, bob);
     USDT_asBob = MockERC20__factory.connect(USDT.address, bob);
+    BUSD_asAlice = MockERC20__factory.connect(BUSD.address, alice);
+    USDC_asAlice = MockERC20__factory.connect(USDC.address, alice);
+    USDT_asAlice = MockERC20__factory.connect(USDT.address, alice);
 
     /// Setup all stable pool pairs on Pancakeswap
     swapHelper = new SwapHelper(
@@ -289,15 +294,15 @@ describe("EPS - StrategyAddStableOptimal", () => {
     await mockPancakeswapV2Worker_USDC_BUSD.deployed();
 
     /// Contract signer (PCS)
-    mockPancakeswapV2Worker_USDT_BUSD_AsBob = MockPancakeswapV2Worker__factory.connect(
+    mockPancakeswapV2Worker_USDT_BUSD_asBob = MockPancakeswapV2Worker__factory.connect(
       mockPancakeswapV2Worker_USDT_BUSD.address,
       bob
     );
-    mockPancakeswapV2Worker_USDC_USDT_AsBob = MockPancakeswapV2Worker__factory.connect(
+    mockPancakeswapV2Worker_USDC_USDT_asBob = MockPancakeswapV2Worker__factory.connect(
       mockPancakeswapV2Worker_USDC_USDT.address,
       bob
     );
-    mockPancakeswapV2Worker_USDC_BUSD_AsBob = MockPancakeswapV2Worker__factory.connect(
+    mockPancakeswapV2Worker_USDC_BUSD_asBob = MockPancakeswapV2Worker__factory.connect(
       mockPancakeswapV2Worker_USDC_BUSD.address,
       bob
     );
