@@ -177,30 +177,12 @@ describe("EPS - StrategyAddStableOptimal", () => {
     ]);
 
     // sign stable tokens to users
-    BUSD_asDeployer = MockERC20__factory.connect(
-      BUSD.address,
-      deployer
-    );
-    USDC_asDeployer = MockERC20__factory.connect(
-      USDC.address,
-      deployer
-    );
-    USDT_asDeployer = MockERC20__factory.connect(
-      USDT.address,
-      deployer
-    );
-    BUSD_asBob = MockERC20__factory.connect(
-      BUSD.address,
-      bob
-    );
-    USDC_asBob = MockERC20__factory.connect(
-      USDC.address,
-      bob
-    );
-    USDT_asBob = MockERC20__factory.connect(
-      USDT.address,
-      bob
-    );
+    BUSD_asDeployer = MockERC20__factory.connect(BUSD.address, deployer);
+    USDC_asDeployer = MockERC20__factory.connect(USDC.address, deployer);
+    USDT_asDeployer = MockERC20__factory.connect(USDT.address, deployer);
+    BUSD_asBob = MockERC20__factory.connect(BUSD.address, bob);
+    USDC_asBob = MockERC20__factory.connect(USDC.address, bob);
+    USDT_asBob = MockERC20__factory.connect(USDT.address, bob);
 
     /// Setup all stable pool pairs on Pancakeswap
     swapHelper = new SwapHelper(
@@ -238,7 +220,7 @@ describe("EPS - StrategyAddStableOptimal", () => {
     // ▄█ ░█░ █▀█ █▄█ █▄▄ ██▄ ▄█ ▀▄▀▄▀ █▀█ █▀▀
     // deploy StableToken (EPS)
     const StableLPToken = (await ethers.getContractFactory("Token", deployer)) as Token__factory;
-    stableLPToken = await StableLPToken.deploy("Ellipsis.finance BUSD/USDC/USDT", "3EPS", 1000);
+    stableLPToken = await StableLPToken.deploy("Ellipsis.finance BUSD/USDC/USDT", "3EPS", 0);
 
     // deploy StableFeeConverter (EPS)
     const StableFeeConverter = (await ethers.getContractFactory("FeeConverter", deployer)) as FeeConverter__factory;
@@ -255,6 +237,7 @@ describe("EPS - StrategyAddStableOptimal", () => {
       5000000000, // admin fee
       stableFeeConverter.address
     );
+    await stableLPToken.set_minter(stableSwap.address);
 
     // Setup Vault
     const MockVaultForStrategy = (await ethers.getContractFactory(
@@ -320,31 +303,25 @@ describe("EPS - StrategyAddStableOptimal", () => {
     );
 
     /// Contract signer (EPS)
-    stableSwapAsDeployer = StableSwap__factory.connect(
-      stableSwap.address,
-      deployer
-    );
-    stableSwapAsBob = StableSwap__factory.connect(
-      stableSwap.address,
-      bob,
-    );
-    stableSwapAsAlice = StableSwap__factory.connect(
-      stableSwap.address,
-      alice,
-    );
+    stableSwapAsDeployer = StableSwap__factory.connect(stableSwap.address, deployer);
+    stableSwapAsBob = StableSwap__factory.connect(stableSwap.address, bob);
+    stableSwapAsAlice = StableSwap__factory.connect(stableSwap.address, alice);
     await BUSD_asBob.approve(stableSwap.address, ethers.constants.MaxUint256);
     await USDC_asBob.approve(stableSwap.address, ethers.constants.MaxUint256);
     await USDT_asBob.approve(stableSwap.address, ethers.constants.MaxUint256);
     await BUSD_asDeployer.approve(stableSwap.address, ethers.constants.MaxUint256);
     await USDC_asDeployer.approve(stableSwap.address, ethers.constants.MaxUint256);
     await USDT_asDeployer.approve(stableSwap.address, ethers.constants.MaxUint256);
-    
+
     /// deployer add LP to StableSwap pool $150M USD each
-    await stableSwapAsDeployer.add_liquidity([
-      ethers.utils.parseEther("150000000"),
-      ethers.utils.parseEther("150000000"),
-      ethers.utils.parseEther("150000000"),
-    ], ethers.BigNumber.from("1"));
+    await stableSwapAsDeployer.add_liquidity(
+      [
+        ethers.utils.parseEther("150000000"),
+        ethers.utils.parseEther("150000000"),
+        ethers.utils.parseEther("150000000"),
+      ],
+      ethers.BigNumber.from("1")
+    );
   });
 
   it("should do stableswap normally", async () => {
