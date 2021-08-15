@@ -14,6 +14,7 @@ import {
   PancakePair,
   PancakePair__factory,
   PancakeRouterV2,
+  PancakeRouterV2__factory,
   PancakeswapV2RestrictedStrategyAddBaseTokenOnly,
   PancakeswapV2Worker02,
   StrategyAddStableOptimal,
@@ -37,6 +38,8 @@ import {
 } from "../typechain";
 import { DeployHelper } from "./helpers/deploy";
 import { SwapHelper } from "./helpers/swap";
+import assert from 'assert';
+import * as TestHelpers from "./helpers/assert";
 
 chai.use(solidity);
 const { expect } = chai;
@@ -113,6 +116,11 @@ describe("EPS - StrategyAddStableOptimal", () => {
   let farmingTokenAsBob: MockERC20;
   let vaultAsAlice: Vault;
   let vaultAsBob: Vault;
+
+  let routerV2AsDeployer: PancakeRouterV2;
+  let routerV2AsAlice: PancakeRouterV2;
+  let routerV2AsBob: PancakeRouterV2;
+
   let stableSwapAsDeployer: StableSwap;
   let stableSwapAsBob: StableSwap;
   let stableSwapAsAlice: StableSwap;
@@ -146,6 +154,9 @@ describe("EPS - StrategyAddStableOptimal", () => {
     [factoryV2, routerV2, cake, syrup, masterChef] = await deployHelper.deployPancakeV2(wbnb, CAKE_REWARD_PER_BLOCK, [
       { address: deployerAddress, amount: ethers.utils.parseEther("100") },
     ]);
+    routerV2AsDeployer = PancakeRouterV2__factory.connect(routerV2.address, deployer);
+    routerV2AsAlice = PancakeRouterV2__factory.connect(routerV2.address, alice);
+    routerV2AsBob = PancakeRouterV2__factory.connect(routerV2.address, bob);
 
     /// Setup token stuffs
     [BUSD, USDC, USDT] = await deployHelper.deployBEP20([
@@ -201,20 +212,20 @@ describe("EPS - StrategyAddStableOptimal", () => {
       {
         token0: USDT,
         token1: BUSD,
-        amount0desired: ethers.utils.parseEther("1000"),
-        amount1desired: ethers.utils.parseEther("1000"),
+        amount0desired: ethers.utils.parseEther("200000000"),
+        amount1desired: ethers.utils.parseEther("200000000"),
       },
       {
         token0: USDC,
         token1: USDT,
-        amount0desired: ethers.utils.parseEther("1000"),
-        amount1desired: ethers.utils.parseEther("1000"),
+        amount0desired: ethers.utils.parseEther("200000000"),
+        amount1desired: ethers.utils.parseEther("200000000"),
       },
       {
         token0: USDC,
         token1: BUSD,
-        amount0desired: ethers.utils.parseEther("1000"),
-        amount1desired: ethers.utils.parseEther("1000"),
+        amount0desired: ethers.utils.parseEther("200000000"),
+        amount1desired: ethers.utils.parseEther("200000000"),
       },
     ]);
     USDT_BUSD = PancakePair__factory.connect(await factoryV2.getPair(USDT.address, BUSD.address), deployer);
@@ -311,43 +322,75 @@ describe("EPS - StrategyAddStableOptimal", () => {
     stableSwapAsDeployer = StableSwap__factory.connect(stableSwap.address, deployer);
     stableSwapAsBob = StableSwap__factory.connect(stableSwap.address, bob);
     stableSwapAsAlice = StableSwap__factory.connect(stableSwap.address, alice);
-    await BUSD_asBob.approve(stableSwap.address, ethers.constants.MaxUint256);
-    await USDC_asBob.approve(stableSwap.address, ethers.constants.MaxUint256);
-    await USDT_asBob.approve(stableSwap.address, ethers.constants.MaxUint256);
-    await BUSD_asDeployer.approve(stableSwap.address, ethers.constants.MaxUint256);
-    await USDC_asDeployer.approve(stableSwap.address, ethers.constants.MaxUint256);
-    await USDT_asDeployer.approve(stableSwap.address, ethers.constants.MaxUint256);
+    for (let address of [routerV2.address, stableSwap.address]) {
+      await BUSD_asDeployer.approve(address, ethers.constants.MaxUint256);
+      await BUSD_asDeployer.approve(address, ethers.constants.MaxUint256);
+      await BUSD_asDeployer.approve(address, ethers.constants.MaxUint256);
+      await BUSD_asBob.approve(address, ethers.constants.MaxUint256);
+      await USDC_asBob.approve(address, ethers.constants.MaxUint256);
+      await USDT_asBob.approve(address, ethers.constants.MaxUint256);
+      await BUSD_asDeployer.approve(address, ethers.constants.MaxUint256);
+      await USDC_asDeployer.approve(address, ethers.constants.MaxUint256);
+      await USDT_asDeployer.approve(address, ethers.constants.MaxUint256);
+    }
 
     /// deployer add LP to StableSwap pool $150M USD each
     await stableSwapAsDeployer.add_liquidity(
       [
-        ethers.utils.parseEther("150000000"),
-        ethers.utils.parseEther("150000000"),
-        ethers.utils.parseEther("150000000"),
+        ethers.utils.parseEther("200000000"),
+        ethers.utils.parseEther("200000000"),
+        ethers.utils.parseEther("200000000"),
       ],
       ethers.BigNumber.from("1")
     );
   });
 
-  it("should do stableswap normally", async () => {
-    stableSwapAsBob.exchange(idx_BUSD, idx_USDC, ethers.BigNumber.from(500), ethers.BigNumber.from(499));
+  function getFractionOfBigNumber(input: BigNumber, nom: Number, denom: Number) {
+    return input.mul(ethers.utils.parseEther(nom.toString())).div(ethers.utils.parseEther(denom.toString()));
+  }
+
+  it("should swap stable coins at a fairly good ratio", async () => {
+    /// Bob has 1000 BUSD, 1000 USDC
+    const preSwapBal_BUSD = await BUSD.balanceOf(bobAddress);
+    const preSwapBal_USDC = await USDC.balanceOf(bobAddress);
+
+    /// Preswap 
+    let amountIn_BUSD: BigNumber = ethers.utils.parseEther("700")
+    let expectedPostSwapBal_BUSD: BigNumber = ethers.utils.parseEther("300");
+    let expectedMinAmountOut_USDC: BigNumber = getFractionOfBigNumber(amountIn_BUSD, 999, 1000); // slippageTolerance = 0.1%
+    /// Swap (700 BUSD) to (700 USDC) on StableSwap
+    await stableSwapAsBob.exchange(idx_BUSD, idx_USDC, amountIn_BUSD, expectedMinAmountOut_USDC);
+    /// Postswap
+    const postSwapBal_BUSD:BigNumber = await BUSD.balanceOf(bobAddress);
+    const postSwapBal_USDC:BigNumber = await USDC.balanceOf(bobAddress);
+    let actualAmountOut_USDC:BigNumber = postSwapBal_USDC.sub(preSwapBal_USDC);
+
+    /// assert
+    expect(postSwapBal_BUSD).to.be.eq(expectedPostSwapBal_BUSD)
+    expect(actualAmountOut_USDC).to.be.lte(amountIn_BUSD)
+    expect(actualAmountOut_USDC).to.be.gte(expectedMinAmountOut_USDC)
+  }); 
+
+  it("should show StableSwap gives a better rate than PancakeSwap", async () => {
+    /// Bob has 1000 BUSD, 1000 USDC
+    let preSwapBal_USDC = await USDC.balanceOf(bobAddress);
+
+    /// Preswap 
+    let amountIn_BUSD: BigNumber = ethers.utils.parseEther("500")
+    let expectedMinAmountOut_USDC: BigNumber = getFractionOfBigNumber(amountIn_BUSD, 999, 1000); // slippageTolerance = 0.1%
+    /// Swap (500 BUSD) to (500 USDC) on StableSwap
+    await stableSwapAsBob.exchange(idx_BUSD, idx_USDC, amountIn_BUSD, expectedMinAmountOut_USDC);
+    let stableSwapAmountOut_USDC:BigNumber = (await USDC.balanceOf(bobAddress)).sub(preSwapBal_USDC);
+    let prePancakeSwapBal_USDC = await USDC.balanceOf(bobAddress);
+    /// Swap (500 BUSD) to (500 USDC) on PancakeSwap
+    await routerV2AsBob.swapExactTokensForTokens(amountIn_BUSD, 0, [BUSD.address, USDC.address], bobAddress, FOREVER);
+    let pancakeSwapAmountOut_USDC:BigNumber = (await USDC.balanceOf(bobAddress)).sub(prePancakeSwapBal_USDC);
+    /// Postswap
+    const postSwapBal_BUSD:BigNumber = await BUSD.balanceOf(bobAddress);
+    const postSwapBal_USDC:BigNumber = await USDC.balanceOf(bobAddress);
+
+    /// assert
+    expect(postSwapBal_BUSD).to.be.eq(0)
+    expect(stableSwapAmountOut_USDC).to.be.gt(pancakeSwapAmountOut_USDC)
   });
-
-  // test cases go here...
-  // it("should ...", async () => {
-  //   await expect(
-  //     addStra.execute(
-  //       await bob.getAddress(),
-  //       "0",
-  //       ethers.utils.defaultAbiCoder.encode(
-  //         ["address", "address", "uint256", "uint256"],
-  //         [baseToken.address, farmingToken.address, "0", "0"]
-  //       )
-  //     )
-  //   ).to.be.revertedWith("not within execution scope");
-  // });
-
-  // expect(await lp.balanceOf(masterChef.address)).to.be.bignumber.above(stakingLPBalanceRound1);
-  // expect(await lp.balanceOf(addStrat.address)).to.be.bignumber.equal("0");
-  // expect(await farmingToken.balanceOf(addStrat.address)).to.be.bignumber.below(MAX_ROUNDING_ERROR * 2);
 });
