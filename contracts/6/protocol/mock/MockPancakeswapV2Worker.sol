@@ -21,6 +21,8 @@ import "../interfaces/IPancakeMasterChef.sol";
 import "../../utils/AlpacaMath.sol";
 import "../../utils/SafeToken.sol";
 
+import "hardhat/console.sol";
+
 /// @notice Simplified version of worker for testing purpose.
 contract MockPancakeswapV2Worker {
   using SafeToken for address;
@@ -45,6 +47,7 @@ contract MockPancakeswapV2Worker {
     (address strat, bytes memory ext) = abi.decode(data, (address, bytes));
     baseToken.safeTransfer(strat, baseToken.myBalance());
     require(lpToken.transfer(strat, lpToken.balanceOf(address(this))), "PancakeswapWorker::work:: unable to transfer lp to strat");
+    console.log("All transfer done, starting strategy...");
     IStrategy(strat).execute(user, debt, ext);
     baseToken.safeTransfer(msg.sender, baseToken.myBalance());
   }

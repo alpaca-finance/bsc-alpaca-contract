@@ -33,6 +33,8 @@ import "../../../utils/SafeToken.sol";
 import "../../../utils/AlpacaMath.sol";
 import "../../../utils/SafeToken.sol";
 
+import "hardhat/console.sol";
+
 contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe {
   using SafeMath for uint256;
   using SafeToken for address;
@@ -113,20 +115,30 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     uint256, /* debt */
     bytes calldata data
   ) external override nonReentrant {
+    console.log("decoding abi...");
     (uint256 farmingTokenAmount, uint256 minLPAmount) = abi.decode(data, (uint256, uint256));
 
     IWorker worker = IWorker(msg.sender);
+    console.log("get worker baseToken...");
     address baseToken = worker.baseToken();
+    console.log("get worker farmingToken...");
     address farmingToken = worker.farmingToken();
 
+    console.log("espPoolTokens[baseToken] is", espPoolTokens[baseToken]);
+    console.log("espPoolTokens[farmingToken] is", espPoolTokens[farmingToken]);
     require(espPoolTokens[baseToken] && espPoolTokens[farmingToken], "!worker not compatiable");
 
+    console.log("requesting funds from vault...");
     vault.requestFunds(farmingToken, farmingTokenAmount);
 
     uint256 baseTokenAmount = baseToken.myBalance();
+    console.log("baseTokenAmount = ", baseTokenAmount);
+    console.log("farmingTokenAmount = ", farmingTokenAmount);
 
     BalancePair memory user_balances =
       BalancePair(baseTokenAmount, (farmingTokenAmount.mul(epsFeeDenom)).div(epsFeeDenom.sub(epsFee)));
+
+    console.log("BalancePair = ", BalancePair);
 
     PoolState memory fp_state;
     IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));

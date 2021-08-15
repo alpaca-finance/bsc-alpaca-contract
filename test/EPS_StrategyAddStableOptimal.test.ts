@@ -71,6 +71,9 @@ describe("EPS - StrategyAddStableOptimal", () => {
   let mockPancakeswapV2Worker_USDT_BUSD: MockPancakeswapV2Worker;
   let mockPancakeswapV2Worker_USDC_USDT: MockPancakeswapV2Worker;
   let mockPancakeswapV2Worker_USDC_BUSD: MockPancakeswapV2Worker;
+  let mockPancakeswapV2Worker_USDT_BUSD_asAlice: MockPancakeswapV2Worker;
+  let mockPancakeswapV2Worker_USDC_USDT_asAlice: MockPancakeswapV2Worker;
+  let mockPancakeswapV2Worker_USDC_BUSD_asAlice: MockPancakeswapV2Worker;
   let mockPancakeswapV2Worker_USDT_BUSD_asBob: MockPancakeswapV2Worker;
   let mockPancakeswapV2Worker_USDC_USDT_asBob: MockPancakeswapV2Worker;
   let mockPancakeswapV2Worker_USDC_BUSD_asBob: MockPancakeswapV2Worker;
@@ -84,9 +87,7 @@ describe("EPS - StrategyAddStableOptimal", () => {
   const idx_USDT: BigNumberish = 2;
 
   /// Strategy-related instance(s)
-  let addStrat: PancakeswapV2RestrictedStrategyAddBaseTokenOnly;
   let addStableStrat: StrategyAddStableOptimal;
-  let liqStrat: StrategyLiquidate;
 
   /// FairLaunch-related instance(s)
   let fairLaunch: FairLaunch;
@@ -109,13 +110,11 @@ describe("EPS - StrategyAddStableOptimal", () => {
   let eveAddress: string;
 
   // Contract Signer
-  let addStratAsAlice: StrategyAddStableOptimal;
-  let addStratAsBob: StrategyAddStableOptimal;
+  let addStableStratAsAlice: StrategyAddStableOptimal;
+  let addStableStratAsBob: StrategyAddStableOptimal;
   let baseTokenAsAlice: MockERC20;
   let farmingTokenAsAlice: MockERC20;
   let farmingTokenAsBob: MockERC20;
-  let vaultAsAlice: Vault;
-  let vaultAsBob: Vault;
 
   let routerV2AsDeployer: PancakeRouterV2;
   let routerV2AsAlice: PancakeRouterV2;
@@ -287,36 +286,34 @@ describe("EPS - StrategyAddStableOptimal", () => {
     )) as MockPancakeswapV2Worker__factory;
     mockPancakeswapV2Worker_USDT_BUSD = (await MockPancakeswapV2Worker.deploy(
       USDT_BUSD.address,
+      BUSD.address,
       USDT.address,
-      BUSD.address
     )) as MockPancakeswapV2Worker;
     await mockPancakeswapV2Worker_USDT_BUSD.deployed();
     mockPancakeswapV2Worker_USDC_USDT = (await MockPancakeswapV2Worker.deploy(
       USDC_USDT.address,
+      USDT.address,
       USDC.address,
-      USDT.address
     )) as MockPancakeswapV2Worker;
     await mockPancakeswapV2Worker_USDC_USDT.deployed();
     mockPancakeswapV2Worker_USDC_BUSD = (await MockPancakeswapV2Worker.deploy(
-      USDT_BUSD.address,
+      USDC_BUSD.address,
+      BUSD.address,
       USDT.address,
-      BUSD.address
     )) as MockPancakeswapV2Worker;
     await mockPancakeswapV2Worker_USDC_BUSD.deployed();
 
-    /// Contract signer (PCS)
-    mockPancakeswapV2Worker_USDT_BUSD_asBob = MockPancakeswapV2Worker__factory.connect(
-      mockPancakeswapV2Worker_USDT_BUSD.address,
-      bob
-    );
-    mockPancakeswapV2Worker_USDC_USDT_asBob = MockPancakeswapV2Worker__factory.connect(
-      mockPancakeswapV2Worker_USDC_USDT.address,
-      bob
-    );
-    mockPancakeswapV2Worker_USDC_BUSD_asBob = MockPancakeswapV2Worker__factory.connect(
-      mockPancakeswapV2Worker_USDC_BUSD.address,
-      bob
-    );
+    /// Contract signer (workers)
+    mockPancakeswapV2Worker_USDT_BUSD_asAlice = MockPancakeswapV2Worker__factory.connect(mockPancakeswapV2Worker_USDT_BUSD.address, alice);
+    mockPancakeswapV2Worker_USDC_USDT_asAlice = MockPancakeswapV2Worker__factory.connect(mockPancakeswapV2Worker_USDC_USDT.address, alice);  
+    mockPancakeswapV2Worker_USDC_BUSD_asAlice = MockPancakeswapV2Worker__factory.connect(mockPancakeswapV2Worker_USDC_BUSD.address, alice);
+    mockPancakeswapV2Worker_USDT_BUSD_asBob = MockPancakeswapV2Worker__factory.connect(mockPancakeswapV2Worker_USDT_BUSD.address, bob);
+    mockPancakeswapV2Worker_USDC_USDT_asBob = MockPancakeswapV2Worker__factory.connect(mockPancakeswapV2Worker_USDC_USDT.address, bob);  
+    mockPancakeswapV2Worker_USDC_BUSD_asBob = MockPancakeswapV2Worker__factory.connect(mockPancakeswapV2Worker_USDC_BUSD.address, bob);
+
+    // Contract signer (Strategies)
+    addStableStratAsAlice = StrategyAddStableOptimal__factory.connect(addStableStrat.address, alice);
+    addStableStratAsBob = StrategyAddStableOptimal__factory.connect(addStableStrat.address, bob);
 
     /// Contract signer (EPS)
     stableSwapAsDeployer = StableSwap__factory.connect(stableSwap.address, deployer);
@@ -392,5 +389,21 @@ describe("EPS - StrategyAddStableOptimal", () => {
     /// assert
     expect(postSwapBal_BUSD).to.be.eq(0)
     expect(stableSwapAmountOut_USDC).to.be.gt(pancakeSwapAmountOut_USDC)
+  });
+
+  it("should gives a larger LP to Alice when use StrategyAddStableOptimal than normal human can do", async () => {
+    /// set Alice as vault owner for test sake
+    mockedVault_BUSD.setMockOwner(aliceAddress);
+    /// mint into worker
+    await BUSD.mint(mockPancakeswapV2Worker_USDT_BUSD_asAlice.address, ethers.utils.parseEther('100'))
+
+    await mockPancakeswapV2Worker_USDT_BUSD_asAlice.work(0, aliceAddress, 0, 
+      ethers.utils.defaultAbiCoder.encode(
+        ['address', 'bytes'],
+        [addStableStrat.address, ethers.utils.defaultAbiCoder.encode(
+          ['uint256','uint256'],
+          ['0', '0']
+        )],
+    ));
   });
 });
