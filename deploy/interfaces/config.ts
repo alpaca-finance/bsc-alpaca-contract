@@ -21,7 +21,8 @@ export interface MerkleDistributor {
 }
 export interface GrazingRange {
   address: string;
-  pools?: PoolsEntity[] | null;
+  deployedBlock: number;
+  pools: PoolsEntity[];
 }
 export interface PoolsEntity {
   id: number;
@@ -31,7 +32,8 @@ export interface PoolsEntity {
 }
 export interface FairLaunch {
   address: string;
-  pools?: PoolsEntity1[] | null;
+  deployedBlock: number;
+  pools: PoolsEntity1[];
 }
 export interface PoolsEntity1 {
   id: number;
@@ -48,7 +50,7 @@ export interface Pancakeswap {
   FactoryV2: string;
   RouterV2: string;
   MasterChef: string;
-  LpTokens?: LpTokensEntity[] | null;
+  LpTokens: LpTokensEntity[];
 }
 export interface LpTokensEntity {
   pId: number;
@@ -59,7 +61,7 @@ export interface Waultswap {
   WexMaster: string;
   WaultswapRouter: string;
   WaultswapFactory: string;
-  LpTokens?: LpTokensEntity[] | null;
+  LpTokens: LpTokensEntity[];
 }
 export interface Tokens {
   WBNB: string;
@@ -138,6 +140,7 @@ export interface VaultsEntity {
   name: string;
   symbol: string;
   address: string;
+  deployedBlock: number;
   baseToken: string;
   debtToken: string;
   config: string;
@@ -153,6 +156,7 @@ export interface StrategyAddTwoSidesOptimal {
 export interface WorkersEntity {
   name: string;
   address: string;
+  deployedBlock: number;
   config: string;
   pId: number;
   stakingToken: string;
