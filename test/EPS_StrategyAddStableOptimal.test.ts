@@ -253,7 +253,6 @@ describe("EPS - StrategyAddStableOptimal", () => {
       stableFeeConverter.address
     );
     await stableLPToken.set_minter(stableSwap.address);
-
     // Setup Vault
     const MockVaultForStrategy = (await ethers.getContractFactory(
       "MockVaultForStrategy",
@@ -319,16 +318,17 @@ describe("EPS - StrategyAddStableOptimal", () => {
     stableSwapAsDeployer = StableSwap__factory.connect(stableSwap.address, deployer);
     stableSwapAsBob = StableSwap__factory.connect(stableSwap.address, bob);
     stableSwapAsAlice = StableSwap__factory.connect(stableSwap.address, alice);
-    for (let address of [routerV2.address, stableSwap.address]) {
-      await BUSD_asDeployer.approve(address, ethers.constants.MaxUint256);
-      await BUSD_asDeployer.approve(address, ethers.constants.MaxUint256);
-      await BUSD_asDeployer.approve(address, ethers.constants.MaxUint256);
-      await BUSD_asBob.approve(address, ethers.constants.MaxUint256);
-      await USDC_asBob.approve(address, ethers.constants.MaxUint256);
-      await USDT_asBob.approve(address, ethers.constants.MaxUint256);
+    for (let address of [routerV2.address, stableSwap.address, mockedVault_BUSD.address]) {
+      console.log('approving', address)
       await BUSD_asDeployer.approve(address, ethers.constants.MaxUint256);
       await USDC_asDeployer.approve(address, ethers.constants.MaxUint256);
       await USDT_asDeployer.approve(address, ethers.constants.MaxUint256);
+      await BUSD_asAlice.approve(address, ethers.constants.MaxUint256);
+      await USDC_asAlice.approve(address, ethers.constants.MaxUint256);
+      await USDT_asAlice.approve(address, ethers.constants.MaxUint256);
+      await BUSD_asBob.approve(address, ethers.constants.MaxUint256);
+      await USDC_asBob.approve(address, ethers.constants.MaxUint256);
+      await USDT_asBob.approve(address, ethers.constants.MaxUint256);
     }
 
     /// deployer add LP to StableSwap pool $150M USD each
@@ -391,18 +391,18 @@ describe("EPS - StrategyAddStableOptimal", () => {
     expect(stableSwapAmountOut_USDC).to.be.gt(pancakeSwapAmountOut_USDC)
   });
 
-  it("should gives a larger LP to Alice when use StrategyAddStableOptimal than normal human can do", async () => {
+  it("should gives a larger LP to Alice when use StrategyAddStableOptimal than normal human think of", async () => {
     /// set Alice as vault owner for test sake
     mockedVault_BUSD.setMockOwner(aliceAddress);
-    /// mint into worker
-    await BUSD.mint(mockPancakeswapV2Worker_USDT_BUSD_asAlice.address, ethers.utils.parseEther('100'))
+    /// mint into worker (baseToken)
+    await BUSD.mint(mockPancakeswapV2Worker_USDT_BUSD_asAlice.address, ethers.utils.parseEther('300'))
 
     await mockPancakeswapV2Worker_USDT_BUSD_asAlice.work(0, aliceAddress, 0, 
       ethers.utils.defaultAbiCoder.encode(
         ['address', 'bytes'],
         [addStableStrat.address, ethers.utils.defaultAbiCoder.encode(
           ['uint256','uint256'],
-          ['0', '0']
+          [ethers.utils.parseEther('200'), '0']
         )],
     ));
   });
