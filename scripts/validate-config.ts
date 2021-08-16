@@ -36,6 +36,11 @@ async function validateWorker(vault: Vault, workerInfo: WorkersEntity, routers: 
     const worker = PancakeswapV2Worker__factory.connect(workerInfo.address, ethers.provider);
 
     try {
+      expect(
+        (await ethers.provider.getCode(worker.address, workerInfo.deployedBlock - 1)) === "0x" &&
+          (await ethers.provider.getCode(worker.address, workerInfo.deployedBlock)) !== "0x",
+        "deployedBlock mis-config"
+      ).to.be.true;
       expect(await worker.operator()).to.be.eq(vault.address, "operator mis-config");
       expect(workerInfo.stakingToken).to.be.eq(await worker.lpToken(), "stakingToken mis-config");
       expect(workerInfo.pId).to.be.eq(await worker.pid(), "pool id mis-config");
@@ -84,6 +89,11 @@ async function validateWorker(vault: Vault, workerInfo: WorkersEntity, routers: 
   } else if (workerInfo.name.includes("WaultswapWorker")) {
     const worker = WaultSwapWorker__factory.connect(workerInfo.address, ethers.provider);
     try {
+      expect(
+        (await ethers.provider.getCode(worker.address, workerInfo.deployedBlock - 1)) === "0x" &&
+          (await ethers.provider.getCode(worker.address, workerInfo.deployedBlock)) !== "0x",
+        "deployedBlock mis-config"
+      ).to.be.true;
       expect(await worker.operator()).to.be.eq(vault.address, "operator mis-config");
       expect(workerInfo.stakingToken).to.be.eq(await worker.lpToken(), "lpToken mis-config");
       expect(workerInfo.pId).to.be.eq(await worker.pid(), "pool id mis-config");
@@ -129,6 +139,11 @@ async function validateWorker(vault: Vault, workerInfo: WorkersEntity, routers: 
   } else if (workerInfo.name.includes("CakeMaxiWorker")) {
     const worker = CakeMaxiWorker__factory.connect(workerInfo.address, ethers.provider);
     try {
+      expect(
+        (await ethers.provider.getCode(worker.address, workerInfo.deployedBlock - 1)) === "0x" &&
+          (await ethers.provider.getCode(worker.address, workerInfo.deployedBlock)) !== "0x",
+        "deployedBlock mis-config"
+      ).to.be.true;
       expect(await worker.operator()).to.be.eq(vault.address, "operator mis-config");
       expect(workerInfo.stakingToken).to.be.eq(await worker.farmingToken(), "farmingToken mis-config");
       expect(workerInfo.pId).to.be.eq(await worker.pid(), "pool id mis-config");
