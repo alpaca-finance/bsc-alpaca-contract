@@ -107,39 +107,22 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     uint256 Ann;
   }
 
-  // TODO: remove this before deploy
-  event print_log(uint128 iterate);
-
   function execute(
     address, /* user */
     uint256, /* debt */
     bytes calldata data
   ) external override nonReentrant {
-    console.log("decoding abi...");
     (uint256 farmingTokenAmount, uint256 minLPAmount) = abi.decode(data, (uint256, uint256));
 
     IWorker worker = IWorker(msg.sender);
-    console.log("get worker baseToken...");
     address baseToken = worker.baseToken();
-    console.log("get worker farmingToken...");
     address farmingToken = worker.farmingToken();
-
-    console.log("espPoolTokens[baseToken] is", espPoolTokens[baseToken]);
-    console.log("espPoolTokens[farmingToken] is", espPoolTokens[farmingToken]);
     require(espPoolTokens[baseToken] && espPoolTokens[farmingToken], "!worker not compatiable");
 
-    console.log("requesting funds from vault...");
     vault.requestFunds(farmingToken, farmingTokenAmount);
-
     uint256 baseTokenAmount = baseToken.myBalance();
-    console.log("baseTokenAmount = ", baseTokenAmount);
-    console.log("farmingTokenAmount = ", farmingTokenAmount);
-
     BalancePair memory user_balances =
       BalancePair(baseTokenAmount, (farmingTokenAmount.mul(epsFeeDenom)).div(epsFeeDenom.sub(epsFee)));
-
-    console.log("user_balances.x = ", user_balances.x);
-    console.log("user_balances.y = ", user_balances.y);
 
     PoolState memory fp_state;
     IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
@@ -155,29 +138,11 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
       fp_state = PoolState(i_fp, j_fp, fp_balances);
     }
 
-    console.log("fp_state.i = ", fp_state.i);
-    console.log("fp_state.j = ", fp_state.j);
-    console.log("fp_state.balances = ", fp_state.balances[0], fp_state.balances[1], fp_state.balances[2]);
-
     PoolState memory sb_state;
     {
-      console.log("getting sb balances...");
-      console.log("test get sb balance(0)", epsPool.balances(0));
-      console.log("test get sb balance(1)", epsPool.balances(1));
-      console.log("test get sb balance(2)", epsPool.balances(2));
-
       uint256[3] memory sb_balances = [epsPool.balances(0), epsPool.balances(1), epsPool.balances(2)];
-      console.log("sb_balances", sb_balances[0], sb_balances[1], sb_balances[2]);
-
       uint128 i_sb;
       uint128 j_sb;
-
-      console.log("baseToken addr", baseToken);
-      console.log("farmingToken addr", farmingToken);
-      console.log("test get sb coins(0)", epsPool.coins(0));
-      console.log("test get sb coins(1)", epsPool.coins(1));
-      console.log("test get sb coins(2)", epsPool.coins(2));
-
       if (epsPool.coins(0) == baseToken) {
         i_sb = 0;
         j_sb = 1;
@@ -200,53 +165,27 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
       sb_state = PoolState(i_sb, j_sb, sb_balances);
     }
 
-    console.log("sb_state.i = ", sb_state.i);
-    console.log("sb_state.j = ", sb_state.i);
-    console.log("sb_state.balances = ", sb_state.balances[0], sb_state.balances[1], sb_state.balances[2]);
-
     // calc dx to swap on EPS
     // dy = expected Y amount got from swap on EPS
     uint256 dx;
     uint256 dy;
     {
-      console.log('dx', dx);
-      console.log('dy', dy);
-      console.log('start get_dx');
       (dx, dy) = get_dx(fp_state, sb_state, user_balances);
     }
 
-    console.log('[Done] Newton process...');
-    console.log('dx', dx);
-    console.log('dy', dy);
-
-
     // approve EPS pool
-    console.log('approving baseToken to epsPool', baseToken);
     baseToken.safeApprove(address(epsPool), uint256(-1));
-    console.log('approving farmingToken to epsPool', farmingToken);
     farmingToken.safeApprove(address(epsPool), uint256(-1));
     // approve PCS router to do their stuffs
-    console.log('approving baseToken to router', baseToken);
     baseToken.safeApprove(address(router), uint256(-1));
-    console.log('approving farmingToken to router', farmingToken);
     farmingToken.safeApprove(address(router), uint256(-1));
 
     // swap on EPS
     // `dy` is basically `min_dy`
-    console.log('about to exchange', sb_state.i);
-    console.log('(', dx, ')');
-    console.log('to', sb_state.j);
-    console.log('(', dy, ') on eps');
-    if (dx > 0) epsPool.exchange(int128(sb_state.i), int128(sb_state.j), dx, dy);
-    console.log('[DONE] eps exchange');
-
+    // TODO: Tune for min_dy
+    if (dx > 0) epsPool.exchange(int128(sb_state.i), int128(sb_state.j), dx, dy.mul(999999).div(1000000));
     // add LP
     uint256 moreLPAmount;
-    console.log('adding PCS LP');
-    console.log('baseToken', baseToken);
-    console.log('farmingToken', farmingToken);
-    console.log('baseToken.myBalance()', baseToken.myBalance());
-    console.log('farmingToken.myBalance()', farmingToken.myBalance());
     {
       (, , moreLPAmount) = router.addLiquidity(
         baseToken,
@@ -260,7 +199,6 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
       );
     }
 
-    console.log('moreLPAmount', moreLPAmount);
     require(moreLPAmount >= minLPAmount, "insufficient LP tokens received");
     address(lpToken).safeTransfer(msg.sender, lpToken.balanceOf(address(this)));
 
@@ -271,15 +209,11 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     baseToken.safeApprove(address(router), 0);
   }
 
-  // TODO: CHANGE BACK TO COMMENTED LINE
-  // function simplify_fp_state(PoolState memory fp_state, uint256 D) private pure returns (PoolState memory) {
-  function simplify_fp_state(PoolState memory fp_state, uint256 D) private returns (PoolState memory) {
+  function simplify_fp_state(PoolState memory fp_state, uint256 D) private pure returns (PoolState memory) {
     // only ratio that matters (order of D but remain ratio)
-    fp_state.balances[fp_state.i] = D;
+    // must compute fp_state.j then fp_state.i, never swap line
     fp_state.balances[fp_state.j] = D.mul(fp_state.balances[fp_state.j]).div(fp_state.balances[fp_state.i]);
-    console.log("Simplified fp_state.i", fp_state.i);
-    console.log("Simplified fp_state.j", fp_state.j);
-    console.log("Simplified fp_state.balances = ", fp_state.balances[0], fp_state.balances[1], fp_state.balances[2]);
+    fp_state.balances[fp_state.i] = D;
     return fp_state;
   }
 
@@ -290,22 +224,16 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     PoolState memory fp_state,
     PoolState memory sb_state,
     BalancePair memory user_balances
-  ) private returns (uint256, uint256) {
-    uint256 N_COINS = sb_state.balances.length;
+  ) private view returns (uint256, uint256) {
+    uint256 N_COINS = sb_state.balances.length; 
     uint256 Ann = epsA.mul(N_COINS);
     uint256 D = get_D(sb_state.balances, epsA);
-    console.log('N_COINS', N_COINS);
-    console.log('Ann', Ann);
-    console.log('D', D);
-
-    console.log('simplify_fp_state...');
     fp_state = simplify_fp_state(fp_state, D);
-
 
     // avoid stack too deep
     uint256 S = 0;
     uint256 U = D;
-    console.log('calc S and U...');
+    
     {
       for (uint128 _i = 0; _i < N_COINS; _i++) {
         if (_i != sb_state.i && _i != sb_state.j) {
@@ -314,20 +242,16 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
         }
       }
     }
-    console.log('S', S);
-    console.log('U', U);
-
+    
     uint256 x = 0;
     uint256 y = 0;
-    console.log('Packing var to VariablePack...');
     // avoid stack too deep
     {
-      uint256 Xfp = fp_state.balances[fp_state.i].sub(fp_state.balances[fp_state.i].mul(epsFee).div(epsFeeDenom));
       VariablePack memory var_pack =
         VariablePack(
           user_balances.x,
           user_balances.y,
-          Xfp, 
+          sb_state.balances[sb_state.i], 
           sb_state.balances[sb_state.j],
           D,
           S,
@@ -337,13 +261,9 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
           N_COINS,
           Ann
         );
-      console.log('find_intersection_of_l_with_tangent...');
+      var_pack.Xfp = (var_pack.Xfp).sub((var_pack.Xfp).mul(epsFee).div(epsFeeDenom));
       (x, y) = find_intersection_of_l_with_tangent(var_pack, N_COINS);
-      console.log('[Done] find_intersection_of_l_with_tangent...');
-      console.log('x', x);
-      console.log('y', y);
     }
-    console.log('Packing var to VariablePack...');
     {
       VariablePack memory var_pack =
         VariablePack(
@@ -359,7 +279,6 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
           N_COINS,
           Ann
         );
-      console.log('ver_her_newton_step...');
       (x, y) = ver_her_newton_step(x, y, var_pack);
     }
     return (
@@ -374,14 +293,7 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     uint256 Y0,
     uint256 Xfp,
     uint256 x
-  ) private returns (uint256) {
-    // TODO: CHANGE BACK TO COMMENTED LINE
-  // ) private pure returns (uint256) {
-    console.log("Yfp", Yfp);
-    console.log("yi_", yi_);
-    console.log("Y0", Y0);
-    console.log("Xfp", Xfp);
-    console.log("x", x);
+  ) private pure returns (uint256) {
     return Yfp.mul(x).add((yi_.add(Y0)).mul(Xfp));
   }
 
@@ -437,13 +349,9 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     return D;
   }
 
-  // TODO: CHANGE BACK TO COMMENTED LINE
-  // function find_intersection_of_l_with_tangent(VariablePack memory var_pack, uint256 N_COINS)
-  //   internal
-  //   view
-  //   returns (uint256 x, uint256 y)
   function find_intersection_of_l_with_tangent(VariablePack memory var_pack, uint256 N_COINS)
     internal
+    view
     returns (uint256 x, uint256 y)
   {
     // X0 = sb_state.balances[sb_state.i];
@@ -454,19 +362,11 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     uint256 step_y_neg = 0;
     {
       uint256 omega = get_omega(var_pack, N_COINS);
-      console.log('omega', omega);
       uint256 fX0Y0_pos = f_pos(var_pack.Yfp, var_pack.Yinit, var_pack.Y0, var_pack.Xfp, var_pack.X0);
-      console.log('fX0Y0_pos', fX0Y0_pos);
       uint256 fX0Y0_neg = f_neg(var_pack.Xfp, var_pack.Xinit, var_pack.X0, var_pack.Yfp, var_pack.Y0);
-      console.log('fX0Y0_neg', fX0Y0_neg);
       (step_x_pos, step_x_neg) = get_step_x(var_pack, fX0Y0_pos, fX0Y0_neg, omega);
-      console.log('step_x_pos', step_x_pos);
-      console.log('step_x_neg', step_x_neg);
       (step_y_pos, step_y_neg) = get_step_y(var_pack, fX0Y0_pos, fX0Y0_neg, omega);
-      console.log('step_y_pos', step_y_pos);
-      console.log('step_y_neg', step_y_neg);
     }
-    console.log('Almost done find_intersection_of_l_with_tangent...');
     require(var_pack.Y0.add(step_y_pos) > step_y_neg, "Cannot trade, not enough money in CURVE pool");
     return (var_pack.X0.add(step_x_pos).sub(step_x_neg), var_pack.Y0.add(step_y_pos).sub(step_y_neg));
   }
@@ -492,23 +392,10 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
   }
 
   function get_omega(VariablePack memory var_pack, uint256 N_COINS) internal view returns (uint256 omega) {
-    console.log("get_omega...");
-    console.log("var_pack.X0", var_pack.X0);
-    console.log("var_pack.Y0", var_pack.Y0);
-    console.log("epsA", epsA);
-    console.log("N_COINS", N_COINS);
-    console.log("var_pack.U", var_pack.U);
-    console.log("var_pack.D", var_pack.D);
-    console.log("var_pack.Y0", var_pack.Y0);
-    console.log("var_pack.Y0", var_pack.Y0);
     uint256 tmp1 = var_pack.X0.mul(var_pack.Y0);
-    console.log("tmp1", tmp1);
     uint256 tmp2 = epsA.mul(pow(N_COINS, 3));
-    console.log("tmp1", tmp2);
     uint256 omega_num = tmp1.add((var_pack.U.mul(pow(var_pack.D, 2).div(var_pack.Y0))).div(tmp2));
-    console.log("omega_num", omega_num);
     uint256 omega_den = tmp1.div(var_pack.D).add(var_pack.U.mul(var_pack.D).div(var_pack.X0.mul(tmp2)));
-    console.log("omega_den", omega_den);
     return omega_num.div(omega_den);
   }
 
@@ -553,19 +440,17 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     uint256 x,
     uint256 y,
     VariablePack memory var_pack
-  ) internal returns (uint256, uint256) {
-    // TODO: Find better place to calc Ann
+  ) internal view returns (uint256, uint256) {
     uint256 x_ = 0;
     uint256 y_ = 0;
     uint256 vxdy_pos = 0;
     uint256 vydx_pos = 0;
-    console.log('starting 255 max loop...');
     for (uint128 _i = 0; _i < 255; _i++) {
       (x_, y_) = update_x_y_(x, y, var_pack);
 
       if (within_distance(y, y_, 1) || ((x_.mul(y_)).add(x.mul(y)) <= ((x_.mul(y)).add(x.mul(y_)).add(1)))) {
-        // emit iter
-        emit print_log(_i);
+        // TODO: REMOVE console.log
+        console.log("Terminated at iter", _i);
         break;
       }
 
