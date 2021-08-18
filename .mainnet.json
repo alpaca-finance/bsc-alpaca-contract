@@ -77,6 +77,12 @@
         "name": "ibALPACA-WEX",
         "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
         "rewardToken": "0xa9c41a46a6b3531d28d5c32f6633dd2ff05dfb90"
+      },
+      {
+        "id": 11,
+        "name": "ibALPACA-PMON",
+        "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
+        "rewardToken": "0x1796ae0b0fa4862485106a0de9b654efe301d0b2"
       }
     ]
   },
@@ -493,6 +499,11 @@
           "pId": 443,
           "name": "BTT-BUSD LP",
           "address": "0xdcfbB12DED3FEa12D2A078Bc6324131cD14bF835"
+        },
+        {
+          "pId": 379,
+          "name": "PMON-BUSD LP",
+          "address": "0xcdb0016d97FD0E7EC2C3B78aA4786Cbd8e19C14C"
         }
       ]
     },
@@ -620,7 +631,8 @@
     "TRX": "0x85eac5ac2f758618dfa09bdbe0cf174e7d574d5b",
     "BTT": "0x8595f9da7b868b1822194faed312235e43007b49",
     "ORBS": "0xebd49b26169e1b52c04cfd19fcf289405df55f80",
-    "AXS": "0x715D400F88C167884bbCc41C5FeA407ed4D2f8A0"
+    "AXS": "0x715D400F88C167884bbCc41C5FeA407ed4D2f8A0",
+    "PMON": "0x1796ae0b0fa4862485106a0de9b654efe301d0b2"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x1099C2E6Ed6ebA95099c205b599B409305783E43",
@@ -1485,6 +1497,23 @@
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 443,
           "stakingToken": "0xdcfbB12DED3FEa12D2A078Bc6324131cD14bF835",
+          "stakingTokenAt": "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+            "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+            "StrategyAddTwoSidesOptimal": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
+            "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
+          }
+        },
+        {
+          "name": "PMON-BUSD PancakeswapWorker",
+          "address": "0xbD861fE2D91A2E82928FE0413fA77BfEB822F373",
+          "deployedBlock": 10071923,
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 379,
+          "stakingToken": "0xcdb0016d97FD0E7EC2C3B78aA4786Cbd8e19C14C",
           "stakingTokenAt": "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",

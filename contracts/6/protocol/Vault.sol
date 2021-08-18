@@ -398,6 +398,8 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     uint256 health = IWorker(pos.worker).health(id);
     uint256 killFactor = config.killFactor(pos.worker, debt);
     require(health.mul(killFactor) < debt.mul(10000), "can't liquidate");
+    // 100 * 7000 = 700000
+    // 71 * 10100 = 710000
     // 3. Perform liquidation and compute the amount of token received.
     uint256 beforeToken = SafeToken.myBalance(token);
     IWorker(pos.worker).liquidate(id);
