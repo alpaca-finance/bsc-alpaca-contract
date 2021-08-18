@@ -3068,6 +3068,31 @@ describe("Vault - PancakeswapV202", () => {
           ).to.be.bignumber.eq(debrisFtoken);
         }
 
+        async function revertNotEnoughCollateral(goRouge: boolean, stratAddress: string) {
+          // Simulate price swing to make position under water
+          await farmToken.approve(routerV2.address, ethers.utils.parseEther("888"));
+          await routerV2.swapExactTokensForTokens(
+            ethers.utils.parseEther("888"),
+            "0",
+            [farmToken.address, baseToken.address],
+            deployerAddress,
+            FOREVER
+          );
+          // Add super small collateral that it would still under the water after collateral is getting added
+          await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("0.000000000000000001"));
+          await expect(
+            vaultAsAlice.addCollateral(
+              1,
+              ethers.utils.parseEther("0.000000000000000001"),
+              goRouge,
+              ethers.utils.defaultAbiCoder.encode(
+                ["address", "bytes"],
+                [stratAddress, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+              )
+            )
+          ).to.be.revertedWith("debtRatio > killFactor margin");
+        }
+
         async function revertUnapprovedStrat(goRouge: boolean, stratAddress: string) {
           await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("88"));
           await expect(
@@ -3106,6 +3131,10 @@ describe("Vault - PancakeswapV202", () => {
 
             it("should increase health when twosides strat is choosen", async () => {
               await successTwoSides(await TimeHelpers.latestBlockNumber(), false);
+            });
+
+            it("should revert when not enough collateral to pass kill factor", async () => {
+              await revertNotEnoughCollateral(false, addStrat.address);
             });
 
             it("should revert when using liquidate strat", async () => {
@@ -3175,6 +3204,10 @@ describe("Vault - PancakeswapV202", () => {
 
             it("should increase health when twosides strat is choosen", async () => {
               await successTwoSides((await TimeHelpers.latestBlockNumber()).sub(1), true);
+            });
+
+            it("should revert when not enough collateral to pass kill factor", async () => {
+              await revertNotEnoughCollateral(true, addStrat.address);
             });
 
             it("should revert when using liquidate strat", async () => {
