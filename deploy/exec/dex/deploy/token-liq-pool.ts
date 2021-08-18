@@ -38,28 +38,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const WBNB = config.Tokens.WBNB;
   const TOKENS: Array<IToken> = [
     {
-      symbol: "TRX",
-      name: "TRX",
-      address: config.Tokens.TRX,
+      symbol: "PMON",
+      name: "PMON",
+      mintAmount: ethers.utils.parseEther("88888888888").toString(),
       pairs: [
         {
           quoteToken: "BUSD",
           quoteTokenAddr: config.Tokens.BUSD,
-          reserveQuoteToken: ethers.utils.parseEther("5000000"),
-          reserveBaseToken: ethers.utils.parseEther("356130.75"),
-        },
-      ],
-    },
-    {
-      symbol: "BTT",
-      name: "BTT",
-      address: config.Tokens.BTT,
-      pairs: [
-        {
-          quoteToken: "BUSD",
-          quoteTokenAddr: config.Tokens.BUSD,
-          reserveQuoteToken: ethers.utils.parseEther("5000000"),
-          reserveBaseToken: ethers.utils.parseEther("1327377777"),
+          reserveQuoteToken: ethers.utils.parseEther("132045.45"),
+          reserveBaseToken: ethers.utils.parseEther("2000000"),
         },
       ],
     },

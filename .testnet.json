@@ -451,6 +451,11 @@
           "pId": 64,
           "name": "BTT-BUSD LP",
           "address": "0x9984332666105b8a9578C4Fb8C22944CC3280cE7"
+        },
+        {
+          "pId": 65,
+          "name": "PMON-BUSD LP",
+          "address": "0xECdD9c374D037418cC6840ffC8C2DB25D6b8Cf62"
         }
       ]
     },
@@ -583,7 +588,8 @@
     "TRX": "0x1C240979179F929D3F72171275cB7Ec8c55B0d3f",
     "BTT": "0x415baCAb125Be426d916bF0D67d952FCD1Cc922b",
     "ORBS": "0x6f01395Ae92776D98F509BBECE53160051F6a872",
-    "AXS": "0x8Aa44e8bef88ba4dfB7520bc973E4F08AC109373"
+    "AXS": "0x8Aa44e8bef88ba4dfB7520bc973E4F08AC109373",
+    "PMON": "0x19a70AA2b35f4FB1C24E59d7F679bf120b44B7cD"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x7549b7d0edcd411e7e5013dc74727f8dab13ab0f",
@@ -1465,6 +1471,23 @@
           "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
           "pId": 64,
           "stakingToken": "0x9984332666105b8a9578C4Fb8C22944CC3280cE7",
+          "stakingTokenAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
+            "StrategyLiquidate": "0x58Bbb507248635413172Ed7A2eeC048402C6b39b",
+            "StrategyAddTwoSidesOptimal": "0x22fC6110d5d9b122f3C2d4715C24566342161a12",
+            "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32",
+            "StrategyPartialCloseLiquidate": "0x566aC15667Ae05c1F50Ed9944Aeef5A9dae4AB55",
+            "StrategyPartialCloseMinimizeTrading": "0xBb79EB494Da88F115430D174D5372b51Fc37De50"
+          }
+        },
+        {
+          "name": "PMON-BUSD PancakeswapWorker",
+          "address": "0xbeA76403dd34254eB64bB6d952E76db4080B6b96",
+          "deployedBlock": 11522372,
+          "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+          "pId": 65,
+          "stakingToken": "0xECdD9c374D037418cC6840ffC8C2DB25D6b8Cf62",
           "stakingTokenAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
           "strategies": {
             "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
