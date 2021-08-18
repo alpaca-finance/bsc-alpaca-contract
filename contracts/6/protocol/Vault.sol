@@ -306,10 +306,13 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     // - if not goRouge then check worker stability else only check reserve consistency.
     // - back must be 0 as it is adding collateral only. No BTOKEN needed to be returned.
     // - healthAfter must more than before.
+    // - debt ratio must below kill factor - 1%
     if (!goRogue) require(config.isWorkerStable(worker), "worker !stable");
     else require(config.isWorkerReserveConsistent(worker), "reserve !consistent");
     require(back == 0, "back !0");
     require(healthAfter > healthBefore, "health !increase");
+    uint256 killFactor = config.killFactor(pos.worker, debt);
+    require(debt.mul(10000) <= healthAfter.mul(killFactor.sub(100)), "debtRatio > killFactor margin");
     // 7. Release execution scope
     POSITION_ID = _NO_ID;
     STRATEGY = _NO_ADDRESS;

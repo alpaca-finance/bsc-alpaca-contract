@@ -127,8 +127,8 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
     require(lastUpdate >= now - 1 days, "WorkerConfig::isStable:: price too stale");
     uint256 lpPrice = r1.mul(1e18).div(r0);
     uint256 maxPriceDiff = workers[worker].maxPriceDiff;
-    require(lpPrice <= price.mul(maxPriceDiff).div(10000), "WorkerConfig::isStable:: price too high");
-    require(lpPrice >= price.mul(10000).div(maxPriceDiff), "WorkerConfig::isStable:: price too low");
+    require(lpPrice.mul(10000) <= price.mul(maxPriceDiff), "WorkerConfig::isStable:: price too high");
+    require(lpPrice.mul(maxPriceDiff) >= price.mul(10000), "WorkerConfig::isStable:: price too low");
     // 3. Done
     return true;
   }
