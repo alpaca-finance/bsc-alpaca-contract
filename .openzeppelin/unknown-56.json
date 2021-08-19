@@ -5358,33 +5358,33 @@
           {
             "contract": "WorkerConfig",
             "label": "oracle",
-            "type": "t_contract(PriceOracle)4516",
-            "src": "contracts/6/protocol/workers/WorkerConfig.sol:31"
+            "type": "t_contract(PriceOracle)16906",
+            "src": "contracts/6/protocol/workers/WorkerConfig.sol:52"
           },
           {
             "contract": "WorkerConfig",
             "label": "workers",
-            "type": "t_mapping(t_address,t_struct(Config)33168_storage)",
-            "src": "contracts/6/protocol/workers/WorkerConfig.sol:32"
+            "type": "t_mapping(t_address,t_struct(Config)29450_storage)",
+            "src": "contracts/6/protocol/workers/WorkerConfig.sol:54"
           },
           {
             "contract": "WorkerConfig",
             "label": "governor",
             "type": "t_address",
-            "src": "contracts/6/protocol/workers/WorkerConfig.sol:33"
+            "src": "contracts/6/protocol/workers/WorkerConfig.sol:55"
           }
         ],
         "types": {
-          "t_contract(PriceOracle)4516": {
+          "t_contract(PriceOracle)16906": {
             "label": "contract PriceOracle"
           },
-          "t_mapping(t_address,t_struct(Config)33168_storage)": {
+          "t_mapping(t_address,t_struct(Config)29450_storage)": {
             "label": "mapping(address => struct WorkerConfig.Config)"
           },
           "t_address": {
             "label": "address"
           },
-          "t_struct(Config)33168_storage": {
+          "t_struct(Config)29450_storage": {
             "label": "struct WorkerConfig.Config",
             "members": [
               {
@@ -5909,48 +5909,48 @@
           {
             "contract": "SingleAssetWorkerConfig",
             "label": "oracle",
-            "type": "t_contract(PriceOracle)4516",
-            "src": "contracts/6/protocol/workers/SingleAssetWorkerConfig.sol:49"
+            "type": "t_contract(PriceOracle)16906",
+            "src": "contracts/6/protocol/workers/SingleAssetWorkerConfig.sol:56"
           },
           {
             "contract": "SingleAssetWorkerConfig",
             "label": "factory",
-            "type": "t_contract(IPancakeFactory)3222",
-            "src": "contracts/6/protocol/workers/SingleAssetWorkerConfig.sol:50"
+            "type": "t_contract(IPancakeFactory)3268",
+            "src": "contracts/6/protocol/workers/SingleAssetWorkerConfig.sol:57"
           },
           {
             "contract": "SingleAssetWorkerConfig",
             "label": "wNative",
             "type": "t_address",
-            "src": "contracts/6/protocol/workers/SingleAssetWorkerConfig.sol:51"
+            "src": "contracts/6/protocol/workers/SingleAssetWorkerConfig.sol:58"
           },
           {
             "contract": "SingleAssetWorkerConfig",
             "label": "workers",
-            "type": "t_mapping(t_address,t_struct(Config)31217_storage)",
-            "src": "contracts/6/protocol/workers/SingleAssetWorkerConfig.sol:51"
+            "type": "t_mapping(t_address,t_struct(Config)28866_storage)",
+            "src": "contracts/6/protocol/workers/SingleAssetWorkerConfig.sol:59"
           },
           {
             "contract": "SingleAssetWorkerConfig",
             "label": "governor",
             "type": "t_address",
-            "src": "contracts/6/protocol/workers/SingleAssetWorkerConfig.sol:53"
+            "src": "contracts/6/protocol/workers/SingleAssetWorkerConfig.sol:60"
           }
         ],
         "types": {
-          "t_contract(PriceOracle)4516": {
+          "t_contract(PriceOracle)16906": {
             "label": "contract PriceOracle"
           },
-          "t_contract(IPancakeFactory)3222": {
+          "t_contract(IPancakeFactory)3268": {
             "label": "contract IPancakeFactory"
           },
           "t_address": {
             "label": "address"
           },
-          "t_mapping(t_address,t_struct(Config)31217_storage)": {
+          "t_mapping(t_address,t_struct(Config)28866_storage)": {
             "label": "mapping(address => struct SingleAssetWorkerConfig.Config)"
           },
-          "t_struct(Config)31217_storage": {
+          "t_struct(Config)28866_storage": {
             "label": "struct SingleAssetWorkerConfig.Config",
             "members": [
               {
@@ -9015,6 +9015,621 @@
           },
           "t_uint256": {
             "label": "uint256"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "59e0c0b2246a9ffe76b89a6edf3a09782dd871068693623adc2cc80d37ed2495": {
+      "address": "0xC2d5CF622F314E8d79f84C5c643e18C509425857",
+      "txHash": "0x03da2fdb828655be4054e9f5a1d20ceac3d752c1f73c2f1b434cf05485fcf883",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:26"
+          },
+          {
+            "contract": "Initializable",
+            "label": "______gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:61"
+          },
+          {
+            "contract": "ContextUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol:37"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:18"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:78"
+          },
+          {
+            "contract": "WorkerConfig",
+            "label": "oracle",
+            "type": "t_contract(PriceOracle)16976",
+            "src": "contracts/6/protocol/workers/WorkerConfig.sol:52"
+          },
+          {
+            "contract": "WorkerConfig",
+            "label": "workers",
+            "type": "t_mapping(t_address,t_struct(Config)29671_storage)",
+            "src": "contracts/6/protocol/workers/WorkerConfig.sol:54"
+          },
+          {
+            "contract": "WorkerConfig",
+            "label": "governor",
+            "type": "t_address",
+            "src": "contracts/6/protocol/workers/WorkerConfig.sol:55"
+          }
+        ],
+        "types": {
+          "t_contract(PriceOracle)16976": {
+            "label": "contract PriceOracle"
+          },
+          "t_mapping(t_address,t_struct(Config)29671_storage)": {
+            "label": "mapping(address => struct WorkerConfig.Config)"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_struct(Config)29671_storage": {
+            "label": "struct WorkerConfig.Config",
+            "members": [
+              {
+                "label": "acceptDebt",
+                "type": "t_bool"
+              },
+              {
+                "label": "workFactor",
+                "type": "t_uint64"
+              },
+              {
+                "label": "killFactor",
+                "type": "t_uint64"
+              },
+              {
+                "label": "maxPriceDiff",
+                "type": "t_uint64"
+              }
+            ]
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_uint64": {
+            "label": "uint64"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "b400d79171b91d78211fd33cb45021684a9871b8739daf91db74ab55bbc09f06": {
+      "address": "0x9b659a26938e6Bf15264A89457B555B46b034D34",
+      "txHash": "0x2b50edf5c6b695b0058add28585d3871097c9a22f0476ede032066c1f37c36d3",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:26"
+          },
+          {
+            "contract": "Initializable",
+            "label": "______gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:61"
+          },
+          {
+            "contract": "ContextUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol:37"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:18"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:78"
+          },
+          {
+            "contract": "SingleAssetWorkerConfig",
+            "label": "oracle",
+            "type": "t_contract(PriceOracle)16976",
+            "src": "contracts/6/protocol/workers/SingleAssetWorkerConfig.sol:56"
+          },
+          {
+            "contract": "SingleAssetWorkerConfig",
+            "label": "factory",
+            "type": "t_contract(IPancakeFactory)3268",
+            "src": "contracts/6/protocol/workers/SingleAssetWorkerConfig.sol:57"
+          },
+          {
+            "contract": "SingleAssetWorkerConfig",
+            "label": "wNative",
+            "type": "t_address",
+            "src": "contracts/6/protocol/workers/SingleAssetWorkerConfig.sol:58"
+          },
+          {
+            "contract": "SingleAssetWorkerConfig",
+            "label": "workers",
+            "type": "t_mapping(t_address,t_struct(Config)28963_storage)",
+            "src": "contracts/6/protocol/workers/SingleAssetWorkerConfig.sol:59"
+          },
+          {
+            "contract": "SingleAssetWorkerConfig",
+            "label": "governor",
+            "type": "t_address",
+            "src": "contracts/6/protocol/workers/SingleAssetWorkerConfig.sol:60"
+          }
+        ],
+        "types": {
+          "t_contract(PriceOracle)16976": {
+            "label": "contract PriceOracle"
+          },
+          "t_contract(IPancakeFactory)3268": {
+            "label": "contract IPancakeFactory"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_mapping(t_address,t_struct(Config)28963_storage)": {
+            "label": "mapping(address => struct SingleAssetWorkerConfig.Config)"
+          },
+          "t_struct(Config)28963_storage": {
+            "label": "struct SingleAssetWorkerConfig.Config",
+            "members": [
+              {
+                "label": "acceptDebt",
+                "type": "t_bool"
+              },
+              {
+                "label": "workFactor",
+                "type": "t_uint64"
+              },
+              {
+                "label": "killFactor",
+                "type": "t_uint64"
+              },
+              {
+                "label": "maxPriceDiff",
+                "type": "t_uint64"
+              }
+            ]
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_uint64": {
+            "label": "uint64"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "c55d5475e8dbfabafd9064d18301d39849b12c357967ba5bf07052ac48eac05b": {
+      "address": "0x5702223873b50b934265360074AF68973900613F",
+      "txHash": "0x820f7e2c5be6136b627f6d16d3176cba80a5cb93bd4fd9ce368240b0221c5ffb",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:26"
+          },
+          {
+            "contract": "Initializable",
+            "label": "______gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:61"
+          },
+          {
+            "contract": "ContextUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol:37"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:18"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:78"
+          },
+          {
+            "contract": "ConfigurableInterestVaultConfig",
+            "label": "minDebtSize",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/ConfigurableInterestVaultConfig.sol:45"
+          },
+          {
+            "contract": "ConfigurableInterestVaultConfig",
+            "label": "getReservePoolBps",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/ConfigurableInterestVaultConfig.sol:47"
+          },
+          {
+            "contract": "ConfigurableInterestVaultConfig",
+            "label": "getKillBps",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/ConfigurableInterestVaultConfig.sol:49"
+          },
+          {
+            "contract": "ConfigurableInterestVaultConfig",
+            "label": "workers",
+            "type": "t_mapping(t_address,t_contract(IWorkerConfig)17383)",
+            "src": "contracts/6/protocol/ConfigurableInterestVaultConfig.sol:51"
+          },
+          {
+            "contract": "ConfigurableInterestVaultConfig",
+            "label": "interestModel",
+            "type": "t_contract(InterestModel)17396",
+            "src": "contracts/6/protocol/ConfigurableInterestVaultConfig.sol:53"
+          },
+          {
+            "contract": "ConfigurableInterestVaultConfig",
+            "label": "getWrappedNativeAddr",
+            "type": "t_address",
+            "src": "contracts/6/protocol/ConfigurableInterestVaultConfig.sol:55"
+          },
+          {
+            "contract": "ConfigurableInterestVaultConfig",
+            "label": "getWNativeRelayer",
+            "type": "t_address",
+            "src": "contracts/6/protocol/ConfigurableInterestVaultConfig.sol:57"
+          },
+          {
+            "contract": "ConfigurableInterestVaultConfig",
+            "label": "getFairLaunchAddr",
+            "type": "t_address",
+            "src": "contracts/6/protocol/ConfigurableInterestVaultConfig.sol:60"
+          },
+          {
+            "contract": "ConfigurableInterestVaultConfig",
+            "label": "maxKillBps",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/ConfigurableInterestVaultConfig.sol:62"
+          },
+          {
+            "contract": "ConfigurableInterestVaultConfig",
+            "label": "whitelistedCallers",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/6/protocol/ConfigurableInterestVaultConfig.sol:63"
+          },
+          {
+            "contract": "ConfigurableInterestVaultConfig",
+            "label": "getKillTreasuryBps",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/ConfigurableInterestVaultConfig.sol:65"
+          },
+          {
+            "contract": "ConfigurableInterestVaultConfig",
+            "label": "treasury",
+            "type": "t_address",
+            "src": "contracts/6/protocol/ConfigurableInterestVaultConfig.sol:68"
+          },
+          {
+            "contract": "ConfigurableInterestVaultConfig",
+            "label": "approvedAddStrategies",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/6/protocol/ConfigurableInterestVaultConfig.sol:70"
+          }
+        ],
+        "types": {
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_address,t_contract(IWorkerConfig)17383)": {
+            "label": "mapping(address => contract IWorkerConfig)"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_contract(IWorkerConfig)17383": {
+            "label": "contract IWorkerConfig"
+          },
+          "t_contract(InterestModel)17396": {
+            "label": "contract InterestModel"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "99fe2a72b87783175f0648b6b3c9dcb9eb326004a9f2bbedcea9d477be805716": {
+      "address": "0xac85FA48997B9CC3784c4FeDff0070091a322C31",
+      "txHash": "0x1977297028d1033cc38858f7cf9dad0fd0210967db1b89d4f307d2bf5825dd82",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:26"
+          },
+          {
+            "contract": "Initializable",
+            "label": "______gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:61"
+          },
+          {
+            "contract": "ContextUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol:37"
+          },
+          {
+            "contract": "ERC20UpgradeSafe",
+            "label": "_balances",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol:37"
+          },
+          {
+            "contract": "ERC20UpgradeSafe",
+            "label": "_allowances",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol:39"
+          },
+          {
+            "contract": "ERC20UpgradeSafe",
+            "label": "_totalSupply",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol:41"
+          },
+          {
+            "contract": "ERC20UpgradeSafe",
+            "label": "_name",
+            "type": "t_string_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol:43"
+          },
+          {
+            "contract": "ERC20UpgradeSafe",
+            "label": "_symbol",
+            "type": "t_string_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol:44"
+          },
+          {
+            "contract": "ERC20UpgradeSafe",
+            "label": "_decimals",
+            "type": "t_uint8",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol:45"
+          },
+          {
+            "contract": "ERC20UpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)44_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol:317"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "_notEntered",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:21"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:63"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:18"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:78"
+          },
+          {
+            "contract": "Vault",
+            "label": "_IN_EXEC_LOCK",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/Vault.sol:62"
+          },
+          {
+            "contract": "Vault",
+            "label": "POSITION_ID",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/Vault.sol:64"
+          },
+          {
+            "contract": "Vault",
+            "label": "STRATEGY",
+            "type": "t_address",
+            "src": "contracts/6/protocol/Vault.sol:65"
+          },
+          {
+            "contract": "Vault",
+            "label": "token",
+            "type": "t_address",
+            "src": "contracts/6/protocol/Vault.sol:73"
+          },
+          {
+            "contract": "Vault",
+            "label": "debtToken",
+            "type": "t_address",
+            "src": "contracts/6/protocol/Vault.sol:75"
+          },
+          {
+            "contract": "Vault",
+            "label": "config",
+            "type": "t_contract(IVaultConfig)17152",
+            "src": "contracts/6/protocol/Vault.sol:80"
+          },
+          {
+            "contract": "Vault",
+            "label": "positions",
+            "type": "t_mapping(t_uint256,t_struct(Position)5942_storage)",
+            "src": "contracts/6/protocol/Vault.sol:81"
+          },
+          {
+            "contract": "Vault",
+            "label": "nextPositionID",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/Vault.sol:84"
+          },
+          {
+            "contract": "Vault",
+            "label": "fairLaunchPoolId",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/Vault.sol:85"
+          },
+          {
+            "contract": "Vault",
+            "label": "vaultDebtShare",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/Vault.sol:86"
+          },
+          {
+            "contract": "Vault",
+            "label": "vaultDebtVal",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/Vault.sol:87"
+          },
+          {
+            "contract": "Vault",
+            "label": "lastAccrueTime",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/Vault.sol:89"
+          },
+          {
+            "contract": "Vault",
+            "label": "reservePool",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/Vault.sol:89"
+          }
+        ],
+        "types": {
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_contract(IVaultConfig)17152": {
+            "label": "contract IVaultConfig"
+          },
+          "t_mapping(t_uint256,t_struct(Position)5942_storage)": {
+            "label": "mapping(uint256 => struct Vault.Position)"
+          },
+          "t_struct(Position)5942_storage": {
+            "label": "struct Vault.Position",
+            "members": [
+              {
+                "label": "worker",
+                "type": "t_address"
+              },
+              {
+                "label": "owner",
+                "type": "t_address"
+              },
+              {
+                "label": "debtShare",
+                "type": "t_uint256"
+              }
+            ]
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
+            "label": "mapping(address => mapping(address => uint256))"
+          },
+          "t_string_storage": {
+            "label": "string"
+          },
+          "t_uint8": {
+            "label": "uint8"
+          },
+          "t_array(t_uint256)44_storage": {
+            "label": "uint256[44]"
           },
           "t_array(t_uint256)50_storage": {
             "label": "uint256[50]"
