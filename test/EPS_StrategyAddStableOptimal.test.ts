@@ -336,7 +336,6 @@ describe("EPS - StrategyAddStableOptimal", () => {
     stableSwapAsBob = StableSwap__factory.connect(stableSwap.address, bob);
     stableSwapAsAlice = StableSwap__factory.connect(stableSwap.address, alice);
     for (let address of [routerV2.address, stableSwap.address, mockedVault_BUSD.address]) {
-      console.log('approving', address)
       await BUSD_asDeployer.approve(address, ethers.constants.MaxUint256);
       await USDC_asDeployer.approve(address, ethers.constants.MaxUint256);
       await USDT_asDeployer.approve(address, ethers.constants.MaxUint256);
@@ -363,15 +362,13 @@ describe("EPS - StrategyAddStableOptimal", () => {
     return input.mul(ethers.utils.parseEther(nom.toString())).div(ethers.utils.parseEther(denom.toString()));
   }
 
-  it("should swap stable coins at a fairly good ratio", async () => {
-    let amount_BUSD = ethers.utils.parseEther("1000");
-    let amount_USDT = ethers.utils.parseEther("1000");
-    let amount_USDC = ethers.utils.parseEther("1000");
+  it("should swap stable coins at StableSwap a fairly good ratio (slippageTolerance < 0.1%)", async () => {
+    let amount_BUSD = 1000;
+    let amount_USDC = 1000;
 
     // mint to Bob
     BUSD.mint(bobAddress, ethers.utils.parseEther(amount_BUSD.toString()));
-    USDT.mint(aliceAddress, ethers.utils.parseEther(amount_USDT.toString()));
-    USDC.mint(aliceAddress, ethers.utils.parseEther(amount_USDC.toString()));
+    USDC.mint(bobAddress, ethers.utils.parseEther(amount_USDC.toString()));
 
     /// Bob has 1000 BUSD, 1000 USDC
     const preSwapBal_BUSD = await BUSD.balanceOf(bobAddress);
@@ -380,8 +377,8 @@ describe("EPS - StrategyAddStableOptimal", () => {
     /// Preswap 
     let amountIn_BUSD: BigNumber = ethers.utils.parseEther("700")
     let expectedPostSwapBal_BUSD: BigNumber = ethers.utils.parseEther("300");
-    let expectedMinAmountOut_USDC: BigNumber = getFractionOfBigNumber(amountIn_BUSD, 999, 1000); // slippageTolerance = 0.1%
-    /// Swap (700 BUSD) to (700 USDC) on StableSwap
+    let expectedMinAmountOut_USDC: BigNumber =  getFractionOfBigNumber(amountIn_BUSD, 999, 1000); // slippageTolerance < 0.1% (999/1000 of expected amt.)
+    /// Swap (700 BUSD) to (~700 USDC) on StableSwap
     await stableSwapAsBob.exchange(idx_BUSD, idx_USDC, amountIn_BUSD, expectedMinAmountOut_USDC);
     /// Postswap
     const postSwapBal_BUSD:BigNumber = await BUSD.balanceOf(bobAddress);
@@ -395,13 +392,11 @@ describe("EPS - StrategyAddStableOptimal", () => {
   }); 
 
   it("should show StableSwap gives a better rate than PancakeSwap", async () => {
-    let amount_BUSD = ethers.utils.parseEther("1000");
-    let amount_USDT = ethers.utils.parseEther("1000");
-    let amount_USDC = ethers.utils.parseEther("1000");
+    let amount_BUSD = 1000;
+    let amount_USDC = 1000;
 
     // mint to Bob
     BUSD.mint(bobAddress, ethers.utils.parseEther(amount_BUSD.toString()));
-    USDT.mint(aliceAddress, ethers.utils.parseEther(amount_USDT.toString()));
     USDC.mint(aliceAddress, ethers.utils.parseEther(amount_USDC.toString()));
 
     /// Bob has 1000 BUSD, 1000 USDC
@@ -427,8 +422,8 @@ describe("EPS - StrategyAddStableOptimal", () => {
   });
 
   it("should gives a larger LP to Alice when use StrategyAddStableOptimal than normal human can think of", async () => {
-    let amountIn_BUSD = 300;
-    let amountIn_USDT = 200;
+    let amountIn_BUSD = 30000;
+    let amountIn_USDT = 20000;
 
     // mint to Alice
     await BUSD.mint(aliceAddress, ethers.utils.parseEther(amountIn_BUSD.toString()));
@@ -445,56 +440,21 @@ describe("EPS - StrategyAddStableOptimal", () => {
           [await USDT.balanceOf(aliceAddress), '0']
         )],
     ));
-    // await mockPancakeswapV2Worker_USDT_BUSD.approve(aliceAddress, ethers.constants.MaxUint256);
-    // USDT_BUSD.transferFrom(mockPancakeswapV2Worker_USDT_BUSD.address, aliceAddress, await USDT_BUSD.balanceOf(mockPancakeswapV2Worker_USDT_BUSD.address))
-    console.log('USDT_BUSD', (await USDT_BUSD.totalSupply()).toString());
-    console.log('Alice has USDT_BUSD =', (await USDT_BUSD.balanceOf(mockPancakeswapV2Worker_USDT_BUSD.address)).toString());
-    // LP from swap = 249.989997995434363189
-    // LP work has = 249.989997995434363189
-    // LP total supp = 200000249.989997995434363189
+    const alice_USDT_BUSD = await USDT_BUSD.balanceOf(mockPancakeswapV2Worker_USDT_BUSD.address);
 
-    //factoryV2.getPair(await USDT.address, await BUSD.address)
-
-    // USDT_BUSD = PancakePair__factory.connect(await factoryV2.getPair(USDT.address, BUSD.address), deployer);
-    // USDC_USDT = PancakePair__factory.connect(await factoryV2.getPair(USDT.address, USDC.address), deployer);
-    // USDC_BUSD = PancakePair__factory.connect(await factoryV2.getPair(BUSD.address, USDC.address), deployer);
-
-    // const USDT_BUSD_total_supply = await USDT_BUSD.totalSupply();
-    // const USDC_USDT_total_supply = await USDC_USDT.totalSupply();
-    // const USDC_BUSD_total_supply = await USDC_BUSD.totalSupply();
-
-    // const USDT_BUSD_reserve_PAIR = await USDT_BUSD.getReserves();
-    // const USDC_USDT_reserve_PAIR = await USDC_USDT.getReserves();
-    // const USDC_BUSD_reserve_PAIR = await USDC_BUSD.getReserves();
-
-    // const USDT_token_amount_USDT_BUSD_PAIR = USDT_BUSD_reserve_PAIR["_reserve0"];
-    // const BUSD_token_amount_USDT_BUSD_PAIR = USDT_BUSD_reserve_PAIR["_reserve1"];
-  
-    /// test simple pancake scenario 
-    let amountIn_USDC = 200;
+    /// Bob use simple maths to balance through StableSwap and then add LP to PancakeSwap
+    let amountIn_USDC = 20000;
     // mint to Bob
     await BUSD.mint(bobAddress, ethers.utils.parseEther(amountIn_BUSD.toString()));
     await USDC.mint(bobAddress, ethers.utils.parseEther(amountIn_USDC.toString()));
-    console.log('Before swap')
-    console.log('Bob\'s BUSD', (await BUSD.balanceOf(bobAddress)).toString());
-    console.log('Bob\'s USDC', (await USDC.balanceOf(bobAddress)).toString());
-    // Bob think he should swap 50 BUSD to 50 USDC so he would have a balance assets for LP
-    await routerV2AsBob.swapExactTokensForTokens(ethers.utils.parseEther('50'), 0, [BUSD.address, USDC.address], bobAddress, FOREVER);
-    console.log('After swap')
-    console.log('Bob\'s BUSD', (await BUSD.balanceOf(bobAddress)).toString());
-    console.log('Bob\'s USDC', (await USDC.balanceOf(bobAddress)).toString());
-    await mockedVault_BUSD.setMockOwner(bobAddress);
-    await BUSD_asBob.transfer(mockPancakeswapV2Worker_USDC_BUSD_asBob.address, await BUSD.balanceOf(bobAddress));
-    console.log('Transferred all...')
-    await mockPancakeswapV2Worker_USDC_BUSD_asBob.work(0, bobAddress, 0, 
-      ethers.utils.defaultAbiCoder.encode(
-      ['address', 'bytes'],
-      [addStrat.address, ethers.utils.defaultAbiCoder.encode(
-        ['uint256'],
-        ['0']
-      )],
-    ))
-    console.log('USDC_BUSD', (await USDC_BUSD.totalSupply()).toString());
-    console.log('Bob has USDC_BUSD =', (await USDC_BUSD.balanceOf(mockPancakeswapV2Worker_USDC_BUSD_asBob.address)).toString());
+    // Bob think he should swap (BUSD + USDC)/2 BUSD to USDC so he would have around balance assets for LP
+    await stableSwapAsBob.exchange(idx_BUSD, idx_USDC, ethers.utils.parseEther(((amountIn_BUSD + amountIn_USDT)/2).toString()), 0);
+    await routerV2AsBob.addLiquidity(USDC.address, BUSD.address, await USDC.balanceOf(bobAddress), await BUSD.balanceOf(bobAddress), 0, 0, bobAddress, FOREVER);
+    const bob_USDC_BUSD = await USDC_BUSD.balanceOf(bobAddress);
+
+    /// assert
+    expect(alice_USDT_BUSD).to.be.gt(0);
+    expect(bob_USDC_BUSD).to.be.gt(0);
+    expect(alice_USDT_BUSD).to.be.gt(bob_USDC_BUSD);
   });
 });
