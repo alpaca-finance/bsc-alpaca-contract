@@ -1,4 +1,4 @@
-import { ethers, upgrades } from "hardhat";
+import { ethers, upgrades, waffle } from "hardhat";
 import { Signer, constants, BigNumber } from "ethers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
@@ -37,6 +37,7 @@ import {
   PancakeswapV2RestrictedStrategyAddTwoSidesOptimal,
   PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading,
   PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading,
+  MasterChef,
 } from "../typechain";
 import * as AssertHelpers from "./helpers/assert";
 import * as TimeHelpers from "./helpers/time";
@@ -143,9 +144,36 @@ describe("Vault - PancakeswapV202", () => {
   let swapHelper: SwapHelper;
   let workerHelper: Worker02Helper;
 
-  beforeEach(async () => {
-    [deployer, alice, bob, eve] = await ethers.getSigners();
-    [deployerAddress, aliceAddress, bobAddress, eveAddress] = await Promise.all([
+  interface IVaultPancakeswapV202fixture {
+    whitelistedContract: MockContractContext;
+    evilContract: MockContractContext;
+    baseToken: MockERC20;
+    farmToken: MockERC20;
+    lp: PancakePair;
+    wbnb: MockWBNB;
+    factoryV2: PancakeFactory;
+    routerV2: PancakeRouterV2;
+    cake: CakeToken;
+    syrup: SyrupBar;
+    masterChef: PancakeMasterChef;
+    alpacaToken: AlpacaToken;
+    fairLaunch: FairLaunch;
+    vault: Vault;
+    simpleVaultConfig: SimpleVaultConfig;
+    wNativeRelayer: WNativeRelayer;
+    addStrat: PancakeswapV2RestrictedStrategyAddBaseTokenOnly;
+    liqStrat: PancakeswapV2RestrictedStrategyLiquidate;
+    twoSidesStrat: PancakeswapV2RestrictedStrategyAddTwoSidesOptimal;
+    minimizeStrat: PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading;
+    partialCloseStrat: PancakeswapV2RestrictedStrategyPartialCloseLiquidate;
+    partialCloseMinimizeStrat: PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading;
+    pancakeswapV2Worker: PancakeswapV2Worker02;
+    pancakeswapV2Worker01: PancakeswapV2Worker;
+  }
+
+  async function fixture(): Promise<IVaultPancakeswapV202fixture> {
+    const [deployer, alice, bob, eve] = await ethers.getSigners();
+    const [deployerAddress, aliceAddress, bobAddress, eveAddress] = await Promise.all([
       deployer.getAddress(),
       alice.getAddress(),
       bob.getAddress(),
@@ -158,13 +186,13 @@ describe("Vault - PancakeswapV202", () => {
       "MockContractContext",
       deployer
     )) as MockContractContext__factory;
-    whitelistedContract = await MockContractContext.deploy();
+    const whitelistedContract = await MockContractContext.deploy();
     await whitelistedContract.deployed();
-    evilContract = await MockContractContext.deploy();
+    const evilContract = await MockContractContext.deploy();
     await evilContract.deployed();
 
     /// Setup token stuffs
-    [baseToken, farmToken] = await deployHelper.deployBEP20([
+    const [baseToken, farmToken] = await deployHelper.deployBEP20([
       {
         name: "BTOKEN",
         symbol: "BTOKEN",
@@ -184,17 +212,19 @@ describe("Vault - PancakeswapV202", () => {
         ],
       },
     ]);
-    wbnb = await deployHelper.deployWBNB();
-    [factoryV2, routerV2, cake, syrup, masterChef] = await deployHelper.deployPancakeV2(wbnb, CAKE_REWARD_PER_BLOCK, [
-      { address: deployerAddress, amount: ethers.utils.parseEther("100") },
-    ]);
-    [alpacaToken, fairLaunch] = await deployHelper.deployAlpacaFairLaunch(
+    const wbnb = await deployHelper.deployWBNB();
+    const [factoryV2, routerV2, cake, syrup, masterChef] = await deployHelper.deployPancakeV2(
+      wbnb,
+      CAKE_REWARD_PER_BLOCK,
+      [{ address: deployerAddress, amount: ethers.utils.parseEther("100") }]
+    );
+    const [alpacaToken, fairLaunch] = await deployHelper.deployAlpacaFairLaunch(
       ALPACA_REWARD_PER_BLOCK,
       ALPACA_BONUS_LOCK_UP_BPS,
       132,
       137
     );
-    [vault, simpleVaultConfig, wNativeRelayer] = await deployHelper.deployVault(
+    const [vault, simpleVaultConfig, wNativeRelayer] = await deployHelper.deployVault(
       wbnb,
       {
         minDebtSize: MIN_DEBT_SIZE,
@@ -208,7 +238,7 @@ describe("Vault - PancakeswapV202", () => {
       baseToken
     );
     // Setup strategies
-    [addStrat, liqStrat, twoSidesStrat, minimizeStrat, partialCloseStrat, partialCloseMinimizeStrat] =
+    const [addStrat, liqStrat, twoSidesStrat, minimizeStrat, partialCloseStrat, partialCloseMinimizeStrat] =
       await deployHelper.deployPancakeV2Strategies(routerV2, vault, wbnb, wNativeRelayer);
 
     // whitelisted contract to be able to call work
@@ -220,11 +250,11 @@ describe("Vault - PancakeswapV202", () => {
     // Setup BTOKEN-FTOKEN pair on Pancakeswap
     // Add lp to masterChef's pool
     await factoryV2.createPair(baseToken.address, farmToken.address);
-    lp = PancakePair__factory.connect(await factoryV2.getPair(farmToken.address, baseToken.address), deployer);
+    const lp = PancakePair__factory.connect(await factoryV2.getPair(farmToken.address, baseToken.address), deployer);
     await masterChef.add(1, lp.address, true);
 
     /// Setup PancakeswapV2Worker02
-    pancakeswapV2Worker = await deployHelper.deployPancakeV2Worker02(
+    const pancakeswapV2Worker = await deployHelper.deployPancakeV2Worker02(
       vault,
       baseToken,
       masterChef,
@@ -242,7 +272,7 @@ describe("Vault - PancakeswapV202", () => {
       simpleVaultConfig
     );
 
-    pancakeswapV2Worker01 = await deployHelper.deployPancakeV2Worker(
+    const pancakeswapV2Worker01 = await deployHelper.deployPancakeV2Worker(
       vault,
       baseToken,
       masterChef,
@@ -258,8 +288,7 @@ describe("Vault - PancakeswapV202", () => {
       simpleVaultConfig
     );
 
-    workerHelper = new Worker02Helper(pancakeswapV2Worker.address, masterChef.address);
-    swapHelper = new SwapHelper(
+    const swapHelper = new SwapHelper(
       factoryV2.address,
       routerV2.address,
       BigNumber.from(9975),
@@ -292,6 +321,79 @@ describe("Vault - PancakeswapV202", () => {
         amount1desired: ethers.utils.parseEther("1"),
       },
     ]);
+
+    return {
+      whitelistedContract,
+      evilContract,
+      baseToken,
+      farmToken,
+      lp,
+      wbnb,
+      factoryV2,
+      routerV2,
+      cake,
+      syrup,
+      masterChef,
+      alpacaToken,
+      fairLaunch,
+      vault,
+      simpleVaultConfig,
+      wNativeRelayer,
+      addStrat,
+      liqStrat,
+      twoSidesStrat,
+      minimizeStrat,
+      partialCloseStrat,
+      partialCloseMinimizeStrat,
+      pancakeswapV2Worker,
+      pancakeswapV2Worker01,
+    };
+  }
+
+  beforeEach(async () => {
+    [deployer, alice, bob, eve] = await ethers.getSigners();
+    [deployerAddress, aliceAddress, bobAddress, eveAddress] = await Promise.all([
+      deployer.getAddress(),
+      alice.getAddress(),
+      bob.getAddress(),
+      eve.getAddress(),
+    ]);
+
+    ({
+      whitelistedContract,
+      evilContract,
+      baseToken,
+      farmToken,
+      lp,
+      wbnb,
+      factoryV2,
+      routerV2,
+      cake,
+      syrup,
+      masterChef,
+      alpacaToken,
+      fairLaunch,
+      vault,
+      simpleVaultConfig,
+      wNativeRelayer,
+      addStrat,
+      liqStrat,
+      twoSidesStrat,
+      minimizeStrat,
+      partialCloseStrat,
+      partialCloseMinimizeStrat,
+      pancakeswapV2Worker,
+      pancakeswapV2Worker01,
+    } = await waffle.loadFixture(fixture));
+
+    workerHelper = new Worker02Helper(pancakeswapV2Worker.address, masterChef.address);
+    swapHelper = new SwapHelper(
+      factoryV2.address,
+      routerV2.address,
+      BigNumber.from(9975),
+      BigNumber.from(10000),
+      deployer
+    );
 
     // Contract signer
     baseTokenAsAlice = MockERC20__factory.connect(baseToken.address, alice);
