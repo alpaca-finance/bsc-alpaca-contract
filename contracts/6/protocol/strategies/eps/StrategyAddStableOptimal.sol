@@ -183,7 +183,12 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     // swap on EPS
     // `dy` is basically `min_dy`
     // TODO: Tune for min_dy
+    console.log("Suggest to convert (i):", dx);
+    console.log("To (j)", dy);
     if (dx > 0) epsPool.exchange(int128(sb_state.i), int128(sb_state.j), dx, dy.mul(999999).div(1000000));
+    console.log("Actually balance before add LP (i):", baseToken.myBalance());
+    console.log("Actually balance before add LP (j):", farmingToken.myBalance());
+
     // add LP
     uint256 moreLPAmount;
     {
