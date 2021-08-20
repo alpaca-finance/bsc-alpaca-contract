@@ -198,6 +198,11 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     return workers[worker].killFactor(worker, debt);
   }
 
+  /// @dev Return the kill factor for the worker + BaseToken debt, using 1e4 as denom.
+  function rawKillFactor(address worker, uint256 debt) external view override returns (uint256) {
+    return workers[worker].rawKillFactor(worker, debt);
+  }
+
   /// @dev Return if worker is stable.
   function isWorkerStable(address worker) external view override returns (bool) {
     return workers[worker].isStable(worker);

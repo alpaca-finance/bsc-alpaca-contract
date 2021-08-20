@@ -184,6 +184,15 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     return workers[worker].killFactor;
   }
 
+  /// @dev Return the kill factor for the worker + BaseToken debt, using 1e4 as denom.
+  function rawKillFactor(
+    address worker,
+    uint256 /* debt */
+  ) external view override returns (uint256) {
+    require(workers[worker].isWorker, "SimpleVaultConfig::killFactor:: !worker");
+    return workers[worker].killFactor;
+  }
+
   /// @dev Return worker stability
   function isWorkerStable(address worker) external view override returns (bool) {
     require(workers[worker].isWorker, "SimpleVaultConfig::isWorkerStable:: !worker");

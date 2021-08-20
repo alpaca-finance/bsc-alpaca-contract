@@ -311,7 +311,7 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     else require(config.isWorkerReserveConsistent(worker), "reserve !consistent");
     require(back == 0, "back !0");
     require(healthAfter > healthBefore, "health !increase");
-    uint256 killFactor = config.killFactor(pos.worker, debt);
+    uint256 killFactor = config.rawKillFactor(pos.worker, debt);
     require(debt.mul(10000) <= healthAfter.mul(killFactor.sub(100)), "debtRatio > killFactor margin");
     // 7. Release execution scope
     POSITION_ID = _NO_ID;
