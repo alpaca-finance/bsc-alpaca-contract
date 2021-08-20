@@ -1,4 +1,4 @@
-import { ethers, upgrades } from "hardhat";
+import { ethers, upgrades, waffle } from "hardhat";
 import { Signer, BigNumber } from "ethers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
@@ -80,7 +80,7 @@ describe("SingleAssetWorkerConfig", () => {
   let lpPriceBNBFarm: BigNumber;
   let lpPriceBNBBase: BigNumber;
 
-  beforeEach(async () => {
+  async function fixture() {
     [deployer, alice, bob, eve] = await ethers.getSigners();
     /// Deploy SimpleOracle
     const SimplePriceOracle = (await ethers.getContractFactory(
@@ -214,6 +214,10 @@ describe("SingleAssetWorkerConfig", () => {
         { acceptDebt: true, workFactor: 1, killFactor: 1, maxPriceDiff: 11000 },
       ]
     );
+  }
+
+  beforeEach(async () => {
+    await waffle.loadFixture(fixture);
   });
 
   describe("#emergencySetAcceptDebt", async () => {

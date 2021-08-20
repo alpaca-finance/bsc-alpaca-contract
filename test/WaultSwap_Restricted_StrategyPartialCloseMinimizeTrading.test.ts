@@ -1,4 +1,4 @@
-import { ethers, upgrades } from "hardhat";
+import { ethers, upgrades, waffle } from "hardhat";
 import { Signer } from "ethers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
@@ -80,7 +80,7 @@ describe("WaultSwapRestrictedStrategyPartialCloseMinimizeTrading", () => {
   let wbnbAsAlice: WETH;
   let wbnbAsBob: WETH;
 
-  beforeEach(async () => {
+  async function fixture() {
     [deployer, alice, bob] = await ethers.getSigners();
     [deployerAddress, aliceAddress, bobAddress] = await Promise.all([
       deployer.getAddress(),
@@ -188,6 +188,10 @@ describe("WaultSwapRestrictedStrategyPartialCloseMinimizeTrading", () => {
 
     wbnbAsAlice = WETH__factory.connect(wbnb.address, alice);
     wbnbAsBob = WETH__factory.connect(wbnb.address, bob);
+  }
+
+  beforeEach(async () => {
+    await waffle.loadFixture(fixture);
   });
 
   context("when the setOkWorkers caller is not an owner", async () => {

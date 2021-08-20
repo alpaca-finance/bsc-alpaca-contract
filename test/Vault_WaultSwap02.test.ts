@@ -1,4 +1,4 @@
-import { ethers, upgrades } from "hardhat";
+import { ethers, upgrades, waffle } from "hardhat";
 import { BigNumber, Signer } from "ethers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
@@ -134,7 +134,7 @@ describe("Vault - WaultSwap02", () => {
   let swapHelper: SwapHelper;
   let workerHelper: Worker02Helper;
 
-  beforeEach(async () => {
+  async function fixture() {
     [deployer, alice, bob, eve] = await ethers.getSigners();
     [deployerAddress, aliceAddress, bobAddress, eveAddress] = await Promise.all([
       deployer.getAddress(),
@@ -298,6 +298,10 @@ describe("Vault - WaultSwap02", () => {
 
     waultSwapWorkerAsEve = WaultSwapWorker02__factory.connect(waultSwapWorker.address, eve);
     waultSwapWorker01AsEve = WaultSwapWorker__factory.connect(waultSwapWorker01.address, eve);
+  }
+
+  beforeEach(async () => {
+    await waffle.loadFixture(fixture);
   });
 
   context("when worker is initialized", async () => {

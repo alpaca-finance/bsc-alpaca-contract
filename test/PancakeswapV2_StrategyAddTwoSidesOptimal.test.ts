@@ -112,7 +112,7 @@ describe("PancakeswapV2 - StrategyAddTwoSidesOptimal", () => {
   let vaultAsAlice: Vault;
   let vaultAsBob: Vault;
 
-  beforeEach(async () => {
+  async function fixture() {
     [deployer, alice, bob, eve] = await ethers.getSigners();
 
     // Setup Pancakeswap
@@ -337,6 +337,10 @@ describe("PancakeswapV2 - StrategyAddTwoSidesOptimal", () => {
 
     vaultAsAlice = Vault__factory.connect(vault.address, alice);
     vaultAsBob = Vault__factory.connect(vault.address, bob);
+  }
+
+  beforeEach(async () => {
+    await waffle.loadFixture(fixture);
   });
 
   it("should revert when strategy execution is not in the scope", async () => {

@@ -143,7 +143,7 @@ describe("CakeMaxiWorker", () => {
 
   let deployHelper: DeployHelper;
 
-  beforeEach(async () => {
+  async function fixture() {
     [deployer, alice, bob, eve] = await ethers.getSigners();
     [deployerAddress, aliceAddress, bobAddress, eveAddress] = await Promise.all([
       deployer.getAddress(),
@@ -534,6 +534,10 @@ describe("CakeMaxiWorker", () => {
         FOREVER
       ),
     ]);
+  }
+
+  beforeEach(async () => {
+    await waffle.loadFixture(fixture);
   });
 
   describe("iworker2", async () => {
@@ -1778,6 +1782,7 @@ describe("CakeMaxiWorker", () => {
       });
     });
   });
+
   describe("#setBeneficialVaultBountyBps", async () => {
     context("When the caller is not an owner", async () => {
       it("should be reverted", async () => {

@@ -118,7 +118,7 @@ describe("Timelock", () => {
   let alice: Signer;
   let bob: Signer;
 
-  beforeEach(async () => {
+  async function fixture() {
     [deployer, admin, alice, bob] = await ethers.getSigners();
 
     // Setup Pancakeswap
@@ -331,6 +331,10 @@ describe("Timelock", () => {
     pancakeswapWorkerConfigAsAlice = WorkerConfig__factory.connect(pancakeswapWorkerConfig.address, alice);
     simplePriceOracleAsAlice = SimplePriceOracle__factory.connect(simplePriceOracle.address, alice);
     simpleVaultConfigAsAlice = SimpleVaultConfig__factory.connect(simpleVaultConfig.address, alice);
+  }
+
+  beforeEach(async () => {
+    await waffle.loadFixture(fixture);
   });
 
   context("when non-owner try to adjust params", async () => {
