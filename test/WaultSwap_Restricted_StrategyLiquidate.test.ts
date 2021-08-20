@@ -68,7 +68,7 @@ describe("WaultSwapRestrictedStrategyLiquidate", () => {
   let mockWaultSwapWorkerAsBob: MockWaultSwapWorker;
   let mockWaultSwapWorkerEvilAsBob: MockWaultSwapWorker;
 
-  beforeEach(async () => {
+  async function fixture() {
     [deployer, alice, bob] = await ethers.getSigners();
 
     // Setup WaultSwap
@@ -148,6 +148,10 @@ describe("WaultSwapRestrictedStrategyLiquidate", () => {
 
     mockWaultSwapWorkerAsBob = MockWaultSwapWorker__factory.connect(mockWaultSwapWorker.address, bob);
     mockWaultSwapWorkerEvilAsBob = MockWaultSwapWorker__factory.connect(mockWaultSwapEvilWorker.address, bob);
+  }
+
+  beforeEach(async () => {
+    await waffle.loadFixture(fixture);
   });
 
   context("When bad calldata", async () => {

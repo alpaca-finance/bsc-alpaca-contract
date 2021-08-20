@@ -66,7 +66,7 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyLiquidate", () => {
   let mockPancakeswapV2WorkerBNBFtokenPairAsAlice: MockPancakeswapV2CakeMaxiWorker;
   let mockPancakeswapV2EvilWorkerAsAlice: MockPancakeswapV2CakeMaxiWorker;
 
-  beforeEach(async () => {
+  async function fixture() {
     [deployer, alice, bob] = await ethers.getSigners();
     // Setup Pancakeswap
     const PancakeFactory = (await ethers.getContractFactory("PancakeFactory", deployer)) as PancakeFactory__factory;
@@ -191,6 +191,10 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyLiquidate", () => {
       await alice.getAddress(),
       FOREVER
     );
+  }
+
+  beforeEach(async () => {
+    await waffle.loadFixture(fixture);
   });
 
   context("When bad calldata", async () => {

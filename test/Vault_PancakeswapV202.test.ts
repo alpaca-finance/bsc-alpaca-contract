@@ -1,4 +1,4 @@
-import { ethers, upgrades } from "hardhat";
+import { ethers, upgrades, waffle } from "hardhat";
 import { Signer, constants, BigNumber } from "ethers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
@@ -37,6 +37,7 @@ import {
   PancakeswapV2RestrictedStrategyAddTwoSidesOptimal,
   PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading,
   PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading,
+  MasterChef,
 } from "../typechain";
 import * as AssertHelpers from "./helpers/assert";
 import * as TimeHelpers from "./helpers/time";
@@ -143,7 +144,7 @@ describe("Vault - PancakeswapV202", () => {
   let swapHelper: SwapHelper;
   let workerHelper: Worker02Helper;
 
-  beforeEach(async () => {
+  async function fixture() {
     [deployer, alice, bob, eve] = await ethers.getSigners();
     [deployerAddress, aliceAddress, bobAddress, eveAddress] = await Promise.all([
       deployer.getAddress(),
@@ -258,7 +259,6 @@ describe("Vault - PancakeswapV202", () => {
       simpleVaultConfig
     );
 
-    workerHelper = new Worker02Helper(pancakeswapV2Worker.address, masterChef.address);
     swapHelper = new SwapHelper(
       factoryV2.address,
       routerV2.address,
@@ -313,6 +313,13 @@ describe("Vault - PancakeswapV202", () => {
 
     pancakeswapV2WorkerAsEve = PancakeswapV2Worker02__factory.connect(pancakeswapV2Worker.address, eve);
     pancakeswapV2Worker01AsEve = PancakeswapV2Worker__factory.connect(pancakeswapV2Worker01.address, eve);
+  }
+
+  beforeEach(async () => {
+    await waffle.loadFixture(fixture);
+
+    // reassign SwapHelper here due to provider will be different for each test-case
+    workerHelper = new Worker02Helper(pancakeswapV2Worker.address, masterChef.address);
   });
 
   context("when worker is initialized", async () => {

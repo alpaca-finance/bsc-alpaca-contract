@@ -68,7 +68,7 @@ describe("PancakeswapV2RestrictedStrategyLiquidate", () => {
   let mockPancakeswapV2WorkerAsBob: MockPancakeswapV2Worker;
   let mockPancakeswapV2EvilWorkerAsBob: MockPancakeswapV2Worker;
 
-  beforeEach(async () => {
+  async function fixture() {
     [deployer, alice, bob] = await ethers.getSigners();
 
     // Setup Pancakeswap
@@ -148,6 +148,10 @@ describe("PancakeswapV2RestrictedStrategyLiquidate", () => {
       mockPancakeswapV2EvilWorker.address,
       bob
     );
+  }
+
+  beforeEach(async () => {
+    await waffle.loadFixture(fixture);
   });
 
   context("When bad calldata", async () => {

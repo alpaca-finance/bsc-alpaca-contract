@@ -119,7 +119,7 @@ describe("Vault - Pancakeswap", () => {
   let vaultAsBob: Vault;
   let vaultAsEve: Vault;
 
-  beforeEach(async () => {
+  async function fixture() {
     [deployer, alice, bob, eve] = await ethers.getSigners();
 
     // Setup Pancakeswap
@@ -353,6 +353,10 @@ describe("Vault - Pancakeswap", () => {
     vaultAsEve = Vault__factory.connect(vault.address, eve);
 
     pancakeswapWorkerAsEve = PancakeswapWorker__factory.connect(pancakeswapWorker.address, eve);
+  }
+
+  beforeEach(async () => {
+    await waffle.loadFixture(fixture);
   });
 
   context("when worker is initialized", async () => {

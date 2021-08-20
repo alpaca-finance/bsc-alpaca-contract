@@ -72,7 +72,7 @@ describe("PancakeswapV2RestrictedStrategyPartialCloseLiquidate", () => {
   let mockPancakeswapV2WorkerAsBob: MockPancakeswapV2Worker;
   let mockPancakeswapV2EvilWorkerAsBob: MockPancakeswapV2Worker;
 
-  beforeEach(async () => {
+  async function fixture() {
     [deployer, alice, bob] = await ethers.getSigners();
     [deployerAddress, aliceAddress, bobAddress] = await Promise.all([
       deployer.getAddress(),
@@ -190,6 +190,10 @@ describe("PancakeswapV2RestrictedStrategyPartialCloseLiquidate", () => {
     expect(await baseToken.balanceOf(bobAddress)).to.be.bignumber.eq(ethers.utils.parseEther("99"));
     expect(await farmingToken.balanceOf(bobAddress)).to.be.bignumber.eq(ethers.utils.parseEther("9.9"));
     expect(await lpV2.balanceOf(bobAddress)).to.be.bignumber.eq(ethers.utils.parseEther("0.316227766016837933"));
+  }
+
+  beforeEach(async () => {
+    await waffle.loadFixture(fixture);
   });
 
   context("When bad calldata", async () => {
