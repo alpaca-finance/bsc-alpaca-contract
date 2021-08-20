@@ -76,7 +76,7 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading"
 
   let wNativeRelayer: WNativeRelayer;
 
-  beforeEach(async () => {
+  async function fixture() {
     [deployer, alice, bob] = await ethers.getSigners();
     [deployerAddress, aliceAddress, bobAddress] = await Promise.all([
       deployer.getAddress(),
@@ -238,6 +238,10 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading"
       aliceAddress,
       FOREVER
     );
+  }
+
+  beforeEach(async () => {
+    await waffle.loadFixture(fixture);
   });
 
   context("when bad calldata", async () => {

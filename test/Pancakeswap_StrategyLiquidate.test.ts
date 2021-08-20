@@ -15,14 +15,14 @@ import {
   StrategyLiquidate,
   StrategyLiquidate__factory,
   WETH,
-  WETH__factory
+  WETH__factory,
 } from "../typechain";
 
 chai.use(solidity);
 const { expect } = chai;
 
-describe('Pancakeswap - StrategyLiquidate', () => {
-  const FOREVER = '2000000000';
+describe("Pancakeswap - StrategyLiquidate", () => {
+  const FOREVER = "2000000000";
 
   /// Pancake-related instance(s)
   let factory: PancakeFactory;
@@ -54,44 +54,32 @@ describe('Pancakeswap - StrategyLiquidate', () => {
   let routerAsAlice: PancakeRouter;
   let routerAsBob: PancakeRouter;
 
-  beforeEach(async () => {
+  async function fixture() {
     [deployer, alice, bob] = await ethers.getSigners();
 
     // Setup Pancakeswap
-    const PancakeFactory = (await ethers.getContractFactory(
-      "PancakeFactory",
-      deployer
-    )) as PancakeFactory__factory;
-    factory = await PancakeFactory.deploy((await deployer.getAddress()));
+    const PancakeFactory = (await ethers.getContractFactory("PancakeFactory", deployer)) as PancakeFactory__factory;
+    factory = await PancakeFactory.deploy(await deployer.getAddress());
     await factory.deployed();
 
-    const WBNB = (await ethers.getContractFactory(
-      "WETH",
-      deployer
-    )) as WETH__factory;
+    const WBNB = (await ethers.getContractFactory("WETH", deployer)) as WETH__factory;
     wbnb = await WBNB.deploy();
     await factory.deployed();
 
-    const PancakeRouter = (await ethers.getContractFactory(
-      "PancakeRouter",
-      deployer
-    )) as PancakeRouter__factory;
+    const PancakeRouter = (await ethers.getContractFactory("PancakeRouter", deployer)) as PancakeRouter__factory;
     router = await PancakeRouter.deploy(factory.address, wbnb.address);
     await router.deployed();
 
     /// Setup token stuffs
-    const MockERC20 = (await ethers.getContractFactory(
-      "MockERC20",
-      deployer
-    )) as MockERC20__factory
-    baseToken = await upgrades.deployProxy(MockERC20, ['BTOKEN', 'BTOKEN']) as MockERC20;
+    const MockERC20 = (await ethers.getContractFactory("MockERC20", deployer)) as MockERC20__factory;
+    baseToken = (await upgrades.deployProxy(MockERC20, ["BTOKEN", "BTOKEN"])) as MockERC20;
     await baseToken.deployed();
-    await baseToken.mint(await alice.getAddress(), ethers.utils.parseEther('100'));
-    await baseToken.mint(await bob.getAddress(), ethers.utils.parseEther('100'));
-    farmingToken = await upgrades.deployProxy(MockERC20, ['FTOKEN', 'FTOKEN']) as MockERC20;
+    await baseToken.mint(await alice.getAddress(), ethers.utils.parseEther("100"));
+    await baseToken.mint(await bob.getAddress(), ethers.utils.parseEther("100"));
+    farmingToken = (await upgrades.deployProxy(MockERC20, ["FTOKEN", "FTOKEN"])) as MockERC20;
     await farmingToken.deployed();
-    await farmingToken.mint(await alice.getAddress(), ethers.utils.parseEther('10'));
-    await farmingToken.mint(await bob.getAddress(), ethers.utils.parseEther('10'));
+    await farmingToken.mint(await alice.getAddress(), ethers.utils.parseEther("10"));
+    await farmingToken.mint(await bob.getAddress(), ethers.utils.parseEther("10"));
 
     await factory.createPair(baseToken.address, farmingToken.address);
 
@@ -101,7 +89,7 @@ describe('Pancakeswap - StrategyLiquidate', () => {
       "StrategyLiquidate",
       deployer
     )) as StrategyLiquidate__factory;
-    strat = await upgrades.deployProxy(StrategyLiquidate, [router.address]) as StrategyLiquidate;
+    strat = (await upgrades.deployProxy(StrategyLiquidate, [router.address])) as StrategyLiquidate;
     await strat.deployed();
 
     // Assign contract signer
@@ -115,52 +103,73 @@ describe('Pancakeswap - StrategyLiquidate', () => {
     routerAsBob = PancakeRouter__factory.connect(router.address, bob);
 
     lpAsBob = PancakePair__factory.connect(lp.address, bob);
+  }
 
+  beforeEach(async () => {
+    await waffle.loadFixture(fixture);
   });
 
-  it('should convert all LP tokens back to baseToken', async () => {
+  it("should convert all LP tokens back to baseToken", async () => {
     // Alice adds 0.1 FTOKEN + 1 BTOKEN
-    await baseTokenAsAlice.approve(router.address, ethers.utils.parseEther('1'));
-    await farmingTokenAsAlice.approve(router.address, ethers.utils.parseEther('0.1'));
+    await baseTokenAsAlice.approve(router.address, ethers.utils.parseEther("1"));
+    await farmingTokenAsAlice.approve(router.address, ethers.utils.parseEther("0.1"));
     await routerAsAlice.addLiquidity(
-      baseToken.address, farmingToken.address,
-      ethers.utils.parseEther('1'), ethers.utils.parseEther('0.1'), '0', '0',
-      await alice.getAddress(), FOREVER);
+      baseToken.address,
+      farmingToken.address,
+      ethers.utils.parseEther("1"),
+      ethers.utils.parseEther("0.1"),
+      "0",
+      "0",
+      await alice.getAddress(),
+      FOREVER
+    );
 
     // Bob tries to add 1 FTOKEN + 1 BTOKEN (but obviously can only add 0.1 FTOKEN)
-    await baseTokenAsBob.approve(router.address, ethers.utils.parseEther('1'));
-    await farmingTokenAsBob.approve(router.address, ethers.utils.parseEther('1'));
+    await baseTokenAsBob.approve(router.address, ethers.utils.parseEther("1"));
+    await farmingTokenAsBob.approve(router.address, ethers.utils.parseEther("1"));
     await routerAsBob.addLiquidity(
-      baseToken.address, farmingToken.address,
-      ethers.utils.parseEther('1'), ethers.utils.parseEther('1'), '0', '0',
-      await bob.getAddress(), FOREVER);
+      baseToken.address,
+      farmingToken.address,
+      ethers.utils.parseEther("1"),
+      ethers.utils.parseEther("1"),
+      "0",
+      "0",
+      await bob.getAddress(),
+      FOREVER
+    );
 
-    expect(await baseToken.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther('99'));
-    expect(await farmingToken.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther('9.9'));
-    expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther('0.316227766016837933'));
+    expect(await baseToken.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("99"));
+    expect(await farmingToken.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("9.9"));
+    expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(
+      ethers.utils.parseEther("0.316227766016837933")
+    );
 
     // Bob uses liquidate strategy to turn all LPs back to BTOKEN but with an unreasonable expectation
-    await lpAsBob.transfer(strat.address, ethers.utils.parseEther('0.316227766016837933'));
+    await lpAsBob.transfer(strat.address, ethers.utils.parseEther("0.316227766016837933"));
     await expect(
-      strat.execute(await bob.getAddress(), '0',
+      strat.execute(
+        await bob.getAddress(),
+        "0",
         ethers.utils.defaultAbiCoder.encode(
-          ['address', 'address', 'uint256'],
-          [baseToken.address, farmingToken.address, ethers.utils.parseEther('2')]
+          ["address", "address", "uint256"],
+          [baseToken.address, farmingToken.address, ethers.utils.parseEther("2")]
         )
       )
-    ).to.be.revertedWith('insufficient baseToken received');
+    ).to.be.revertedWith("insufficient baseToken received");
 
     // Bob uses liquidate strategy to turn all LPs back to BTOKEN with a same minimum value
-    await strat.execute(await bob.getAddress(), '0',
+    await strat.execute(
+      await bob.getAddress(),
+      "0",
       ethers.utils.defaultAbiCoder.encode(
-        ['address', 'address', 'uint256'],
-        [baseToken.address, farmingToken.address, ethers.utils.parseEther('1')]
+        ["address", "address", "uint256"],
+        [baseToken.address, farmingToken.address, ethers.utils.parseEther("1")]
       )
     );
 
-    expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther('0'));
-    expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther('0'));
-    expect(await baseToken.balanceOf(lp.address)).to.be.bignumber.eq(ethers.utils.parseEther('0.500500500500500501'))
-    expect(await farmingToken.balanceOf(lp.address)).to.be.bignumber.eq(ethers.utils.parseEther('0.2'))
+    expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+    expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+    expect(await baseToken.balanceOf(lp.address)).to.be.bignumber.eq(ethers.utils.parseEther("0.500500500500500501"));
+    expect(await farmingToken.balanceOf(lp.address)).to.be.bignumber.eq(ethers.utils.parseEther("0.2"));
   });
 });

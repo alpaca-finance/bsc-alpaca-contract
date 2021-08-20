@@ -1,7 +1,7 @@
-import { ethers, upgrades } from "hardhat";
-import { Signer, BigNumber, constants } from "ethers";
+import { ethers, upgrades, waffle } from "hardhat";
+import { Signer, BigNumber, constants, Wallet } from "ethers";
 import chai from "chai";
-import { solidity } from "ethereum-waffle";
+import { MockProvider, solidity } from "ethereum-waffle";
 import "@openzeppelin/test-helpers";
 import {
   MockERC20,
@@ -135,7 +135,7 @@ describe("CakeMaxiWorker02", () => {
 
   let wNativeRelayer: WNativeRelayer;
 
-  beforeEach(async () => {
+  async function fixture(maybeWallets?: Wallet[], maybeProvider?: MockProvider) {
     [deployer, alice, bob, eve] = await ethers.getSigners();
 
     // Setup Mocked Vault (for unit testing purposed)
@@ -549,6 +549,10 @@ describe("CakeMaxiWorker02", () => {
       await deployer.getAddress(),
       FOREVER
     );
+  }
+
+  beforeEach(async () => {
+    await waffle.loadFixture(fixture);
   });
 
   describe("iworker2", async () => {

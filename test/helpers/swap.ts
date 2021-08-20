@@ -77,6 +77,7 @@ export class SwapHelper {
       const [r0, r1] = await currLp.getReserves();
       const foundReserveIdx = this.reserves.findIndex((r) => r.lp === currLp.address);
       if (foundReserveIdx !== -1) {
+        this.reserves[foundReserveIdx].totalSupply = await currLp.totalSupply();
         this.reserves[foundReserveIdx].r0 = r0;
         this.reserves[foundReserveIdx].r1 = r1;
       } else {
