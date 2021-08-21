@@ -172,7 +172,6 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     {
       (dx, dy) = get_dx(fp_state, sb_state, user_balances);
     }
-
     // approve EPS pool
     baseToken.safeApprove(address(epsPool), uint256(-1));
     farmingToken.safeApprove(address(epsPool), uint256(-1));
@@ -186,8 +185,6 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     console.log("Suggest to convert (i):", dx);
     console.log("To (j)", dy);
     if (dx > 0) epsPool.exchange(int128(sb_state.i), int128(sb_state.j), dx, dy.mul(999999).div(1000000));
-    console.log("Actually balance before add LP (i):", baseToken.myBalance());
-    console.log("Actually balance before add LP (j):", farmingToken.myBalance());
 
     // add LP
     uint256 moreLPAmount;
@@ -247,7 +244,6 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
         }
       }
     }
-    
     uint256 x = 0;
     uint256 y = 0;
     // avoid stack too deep
@@ -268,23 +264,7 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
         );
       var_pack.Xfp = (var_pack.Xfp).sub((var_pack.Xfp).mul(epsFee).div(epsFeeDenom));
       (x, y) = find_intersection_of_l_with_tangent(var_pack, N_COINS);
-    }
-    {
-      VariablePack memory var_pack =
-        VariablePack(
-          user_balances.x,
-          user_balances.y,
-          sb_state.balances[sb_state.i],
-          sb_state.balances[sb_state.j],
-          D,
-          S,
-          U,
-          fp_state.balances[fp_state.i],
-          fp_state.balances[fp_state.j],
-          N_COINS,
-          Ann
-        );
-      (x, y) = ver_her_newton_step(x, y, var_pack);
+      (x, y) = ver_hor_newton_step(x, y, var_pack);
     }
     return (
       x - sb_state.balances[sb_state.i],
@@ -441,7 +421,7 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     y_ = ((y.mul(y)).add((temp_2.div(x.mul(var_pack.N_COINS))).mul(temp_1))).div(y.add(temp_3));
   }
 
-  function ver_her_newton_step(
+  function ver_hor_newton_step(
     uint256 x,
     uint256 y,
     VariablePack memory var_pack
