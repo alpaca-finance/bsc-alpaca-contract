@@ -170,6 +170,14 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     uint256 dx;
     uint256 dy;
     {
+      if ((fp_state.balances[fp_state.i]).mul(user_balances.y) >= (fp_state.balances[fp_state.j]).mul(user_balances.x)) {
+        console.log("swapping indexes (converting farm => base) ...");
+        (fp_state.balances[fp_state.i], fp_state.balances[fp_state.j]) = (fp_state.balances[fp_state.j], fp_state.balances[fp_state.i]);
+        (fp_state.i, fp_state.j) = (fp_state.j, fp_state.i);
+        (sb_state.balances[sb_state.i], sb_state.balances[sb_state.j]) = (sb_state.balances[sb_state.j], sb_state.balances[sb_state.i]);
+        (sb_state.i, sb_state.j) = (sb_state.j, sb_state.i);
+        (user_balances.x, user_balances.y) = (user_balances.y, user_balances.x);
+      }
       (dx, dy) = get_dx(fp_state, sb_state, user_balances);
     }
     // approve EPS pool
@@ -184,7 +192,10 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     // TODO: Tune for min_dy
     console.log("Suggest to convert (i):", dx);
     console.log("To (j)", dy);
-    if (dx > 0) epsPool.exchange(int128(sb_state.i), int128(sb_state.j), dx, dy.mul(999999).div(1000000));
+    if (dx > 0) epsPool.exchange(int128(sb_state.i), int128(sb_state.j), dx, dy.mul(99).div(100));
+    console.log("Before add PCS LP");
+    console.log("baseToken:", baseToken.myBalance());
+    console.log("farmingToken:", farmingToken.myBalance());
 
     // add LP
     uint256 moreLPAmount;

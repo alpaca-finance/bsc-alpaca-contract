@@ -66,8 +66,7 @@ describe("EPS - StrategyAddStableOptimal", () => {
   let syrup: SyrupBar;
 
   /// Vault-related instance(s)
-  let mockedVault_BUSD: MockVaultForStrategy;
-  let mockedVault_USDT: MockVaultForStrategy;
+  let mockedVault: MockVaultForStrategy;
 
   // V2
   let mockPancakeswapV2Worker_USDT_BUSD: MockPancakeswapV2Worker;
@@ -263,10 +262,8 @@ describe("EPS - StrategyAddStableOptimal", () => {
       "MockVaultForStrategy",
       deployer
     )) as MockVaultForStrategy__factory;
-    mockedVault_BUSD = (await upgrades.deployProxy(MockVaultForStrategy)) as MockVaultForStrategy;
-    await mockedVault_BUSD.deployed();
-    mockedVault_USDT = (await upgrades.deployProxy(MockVaultForStrategy)) as MockVaultForStrategy;
-    await mockedVault_USDT.deployed();
+    mockedVault = (await upgrades.deployProxy(MockVaultForStrategy)) as MockVaultForStrategy;
+    await mockedVault.deployed();
 
     // Setup StrategyAddStableOptimal strategy
     const StrategyAddStableOptimal = (await ethers.getContractFactory(
@@ -276,7 +273,7 @@ describe("EPS - StrategyAddStableOptimal", () => {
     addStableStrat = (await upgrades.deployProxy(StrategyAddStableOptimal, [
       stableSwap.address,
       routerV2.address,
-      mockedVault_BUSD.address,
+      mockedVault.address,
       [BUSD.address, USDC.address, USDT.address],
     ])) as StrategyAddStableOptimal;
     await addStableStrat.deployed();
@@ -288,7 +285,7 @@ describe("EPS - StrategyAddStableOptimal", () => {
     )) as PancakeswapV2StrategyAddTwoSidesOptimal__factory;
     addStrat = await upgrades.deployProxy(PancakeswapV2StrategyAddTwoSidesOptimal, [
       routerV2.address, 
-      mockedVault_BUSD.address
+      mockedVault.address
     ]) as PancakeswapV2StrategyAddTwoSidesOptimal
     await addStrat.deployed();
 
@@ -336,7 +333,7 @@ describe("EPS - StrategyAddStableOptimal", () => {
     stableSwapAsDeployer = StableSwap__factory.connect(stableSwap.address, deployer);
     stableSwapAsBob = StableSwap__factory.connect(stableSwap.address, bob);
     stableSwapAsAlice = StableSwap__factory.connect(stableSwap.address, alice);
-    for (let address of [routerV2.address, stableSwap.address, mockedVault_BUSD.address]) {
+    for (let address of [routerV2.address, stableSwap.address, mockedVault.address]) {
       await BUSD_asDeployer.approve(address, ethers.constants.MaxUint256);
       await USDC_asDeployer.approve(address, ethers.constants.MaxUint256);
       await USDT_asDeployer.approve(address, ethers.constants.MaxUint256);
@@ -442,7 +439,7 @@ describe("EPS - StrategyAddStableOptimal", () => {
     expect(stableSwapAmountOut_USDC).to.be.gt(pancakeSwapAmountOut_USDC)
   });
 
-  it("should gives a larger LP to Alice when use StrategyAddStableOptimal than PancakeswapV2StrategyAddTwoSidesOptimal", async () => {
+  it("should gives a larger LP to Alice when use StrategyAddStableOptimal (base to farm) than PancakeswapV2StrategyAddTwoSidesOptimal", async () => {
     /// add liquidities to PancakeSwap
     await swapHelper.addLiquidities([
       {
@@ -476,7 +473,7 @@ describe("EPS - StrategyAddStableOptimal", () => {
     await USDT.mint(aliceAddress, ethers.utils.parseEther(amountIn_USDT.toString()));
 
     // Alice use StrategyAddStableOptimal to find the largest LP amount through StableSwap
-    await mockedVault_BUSD.setMockOwner(aliceAddress);
+    await mockedVault.setMockOwner(aliceAddress);
     await BUSD_asAlice.transfer(mockPancakeswapV2Worker_USDT_BUSD_asAlice.address, await BUSD.balanceOf(aliceAddress))
     const aliceStratTx = await mockPancakeswapV2Worker_USDT_BUSD_asAlice.work(0, aliceAddress, 0, 
       ethers.utils.defaultAbiCoder.encode(
@@ -497,7 +494,7 @@ describe("EPS - StrategyAddStableOptimal", () => {
     await BUSD.mint(bobAddress, ethers.utils.parseEther(amountIn_BUSD.toString()));
     await USDC.mint(bobAddress, ethers.utils.parseEther(amountIn_USDC.toString()));
     // Bob think he should swap (BUSD + USDC)/2 BUSD to USDC so he would have around balance assets for LP
-    await mockedVault_BUSD.setMockOwner(bobAddress);
+    await mockedVault.setMockOwner(bobAddress);
     await BUSD_asBob.transfer(mockPancakeswapV2Worker_USDC_BUSD_asBob.address, await BUSD.balanceOf(bobAddress))
     const bobStratTx = await mockPancakeswapV2Worker_USDC_BUSD_asBob.work(0, bobAddress, 0, 
       ethers.utils.defaultAbiCoder.encode(
@@ -508,6 +505,98 @@ describe("EPS - StrategyAddStableOptimal", () => {
         )],
     ));
     const bob_USDC_BUSD = await USDC_BUSD.balanceOf(mockPancakeswapV2Worker_USDC_BUSD.address);
+
+    /// assert
+    expect(alice_USDT_BUSD).to.be.gt(0);
+    expect(bob_USDC_BUSD).to.be.gt(0);
+    expect(alice_USDT_BUSD).to.be.gt(bob_USDC_BUSD);
+    // assert no debris left (less than 100 * 10^-18 on both sides)
+    expect(alice_strat_BUSD).to.be.lt(100);
+    expect(alice_strat_USDT).to.be.lt(100);
+  });
+
+  it("should gives a larger LP to Alice when use StrategyAddStableOptimal (farm to base) than PancakeswapV2StrategyAddTwoSidesOptimal", async () => {
+    /// add liquidities to PancakeSwap
+    await swapHelper.addLiquidities([
+      {
+        token0: USDT,
+        token1: BUSD,
+        amount0desired: ethers.utils.parseEther("200000000"),
+        amount1desired: ethers.utils.parseEther("200000000"),
+      },
+      {
+        token0: USDC,
+        token1: BUSD,
+        amount0desired: ethers.utils.parseEther("200000000"),
+        amount1desired: ethers.utils.parseEther("200000000"),
+      },
+    ]);
+    /// add liquidities to StableSwap
+    await stableSwapAsDeployer.add_liquidity(
+      [
+        ethers.utils.parseEther("197500000"), // BUSD
+        ethers.utils.parseEther("200000000"), // USDC
+        ethers.utils.parseEther("202500000"), // USDT
+      ],
+      ethers.BigNumber.from("1")
+    );
+
+    let amountIn_BUSD = 20000;
+    let amountIn_USDT = 30000;
+
+    // mint to Alice
+    await BUSD.mint(aliceAddress, ethers.utils.parseEther(amountIn_BUSD.toString()));
+    await USDT.mint(aliceAddress, ethers.utils.parseEther(amountIn_USDT.toString()));
+
+    // Alice use StrategyAddStableOptimal to find the largest LP amount through StableSwap
+    await mockedVault.setMockOwner(aliceAddress);
+    await BUSD_asAlice.transfer(mockPancakeswapV2Worker_USDT_BUSD_asAlice.address, await BUSD.balanceOf(aliceAddress))
+    const aliceStratTx = await mockPancakeswapV2Worker_USDT_BUSD_asAlice.work(0, aliceAddress, 0, 
+      ethers.utils.defaultAbiCoder.encode(
+        ['address', 'bytes'],
+        [addStableStrat.address, ethers.utils.defaultAbiCoder.encode(
+          ['uint256','uint256'],
+          [await USDT.balanceOf(aliceAddress), '0']
+        )],
+    ));
+    const alice_USDT_BUSD = await USDT_BUSD.balanceOf(mockPancakeswapV2Worker_USDT_BUSD.address);
+    /// alice's debris after strategy
+    const alice_strat_BUSD = await BUSD.balanceOf(addStableStrat.address);
+    const alice_strat_USDT = await USDT.balanceOf(addStableStrat.address);
+
+    /// Bob use simple maths to balance through StableSwap and then add LP to PancakeSwap
+    let amountIn_USDC = 30000;
+    // mint to Bob
+    await BUSD.mint(bobAddress, ethers.utils.parseEther(amountIn_BUSD.toString()));
+    await USDC.mint(bobAddress, ethers.utils.parseEther(amountIn_USDC.toString()));
+    // Bob think he should swap (BUSD + USDC)/2 BUSD to USDC so he would have around balance assets for LP
+    await mockedVault.setMockOwner(bobAddress);
+    await BUSD_asBob.transfer(mockPancakeswapV2Worker_USDC_BUSD_asBob.address, await BUSD.balanceOf(bobAddress))
+    const bobStratTx = await mockPancakeswapV2Worker_USDC_BUSD_asBob.work(0, bobAddress, 0, 
+      ethers.utils.defaultAbiCoder.encode(
+        ['address', 'bytes'],
+        [addStratAsBob.address, ethers.utils.defaultAbiCoder.encode(
+          ["address", "address", "uint256", "uint256"],
+          [BUSD.address, USDC.address, await USDC.balanceOf(bobAddress), 0]
+        )],
+    ));
+    const bob_USDC_BUSD = await USDC_BUSD.balanceOf(mockPancakeswapV2Worker_USDC_BUSD.address);
+    /// bob's debris after strategy
+    const bob_strat_BUSD = await BUSD.balanceOf(addStrat.address);
+    const bob_strat_USDC = await USDC.balanceOf(addStrat.address);
+
+    const alice_BUSD = await BUSD.balanceOf(aliceAddress);
+    const alice_USDT = await USDT.balanceOf(aliceAddress);
+    const bob_BUSD = await BUSD.balanceOf(bobAddress);
+    const bob_USDC = await USDC.balanceOf(bobAddress);
+    console.log(' TOKEN: ');
+    console.log('alice_USDT_BUSD', alice_USDT_BUSD.toString());
+    console.log('bob_USDC_BUSD', bob_USDC_BUSD.toString());
+    console.log(' DEBRIS: ');
+    console.log('alice_strat_BUSD', alice_strat_BUSD.toString());
+    console.log('alice_strat_USDT', alice_strat_USDT.toString());
+    console.log('bob_strat_BUSD', bob_strat_BUSD.toString());
+    console.log('bob_strat_USDC', bob_strat_USDC.toString());
 
     /// assert
     expect(alice_USDT_BUSD).to.be.gt(0);
