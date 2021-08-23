@@ -146,7 +146,7 @@ describe("EPS - StrategyAddStableOptimal", () => {
 
   let swapHelper: SwapHelper;
 
-  beforeEach(async () => {
+  async function fixture() {
     [deployer, alice, bob, eve] = await ethers.getSigners();
     [deployerAddress, aliceAddress, bobAddress, eveAddress] = await Promise.all([
       deployer.getAddress(),
@@ -344,6 +344,10 @@ describe("EPS - StrategyAddStableOptimal", () => {
       await USDC_asBob.approve(address, ethers.constants.MaxUint256);
       await USDT_asBob.approve(address, ethers.constants.MaxUint256);
     }
+  }
+
+  beforeEach(async () => {
+    await waffle.loadFixture(fixture);
   });
 
   function getFractionOfBigNumber(input: BigNumber, nom: Number, denom: Number) {
