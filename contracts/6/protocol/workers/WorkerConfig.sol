@@ -91,8 +91,29 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
     }
   }
 
+  function isReserveConsistent(address worker) public view override returns (bool) {
+    IPancakePair lp = IWorker(worker).lpToken();
+    address token0 = lp.token0();
+    address token1 = lp.token1();
+    (uint256 r0, uint256 r1, ) = lp.getReserves();
+    uint256 t0bal = token0.balanceOf(address(lp));
+    uint256 t1bal = token1.balanceOf(address(lp));
+    _isReserveConsistent(r0, r1, t0bal, t1bal);
+    return true;
+  }
+
+  function _isReserveConsistent(
+    uint256 r0,
+    uint256 r1,
+    uint256 t0bal,
+    uint256 t1bal
+  ) internal pure {
+    require(t0bal.mul(100) <= r0.mul(101), "WorkerConfig::isReserveConsistent:: bad t0 balance");
+    require(t1bal.mul(100) <= r1.mul(101), "WorkerConfig::isReserveConsistent:: bad t1 balance");
+  }
+
   /// @dev Return whether the given worker is stable, presumably not under manipulation.
-  function isStable(address worker) public view returns (bool) {
+  function isStable(address worker) public view override returns (bool) {
     IPancakePair lp = IWorker(worker).lpToken();
     address token0 = lp.token0();
     address token1 = lp.token1();
@@ -100,15 +121,14 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
     (uint256 r0, uint256 r1, ) = lp.getReserves();
     uint256 t0bal = token0.balanceOf(address(lp));
     uint256 t1bal = token1.balanceOf(address(lp));
-    require(t0bal.mul(100) <= r0.mul(101), "WorkerConfig::isStable:: bad t0 balance");
-    require(t1bal.mul(100) <= r1.mul(101), "WorkerConfig::isStable:: bad t1 balance");
+    _isReserveConsistent(r0, r1, t0bal, t1bal);
     // 2. Check that price is in the acceptable range
     (uint256 price, uint256 lastUpdate) = oracle.getPrice(token0, token1);
     require(lastUpdate >= now - 1 days, "WorkerConfig::isStable:: price too stale");
     uint256 lpPrice = r1.mul(1e18).div(r0);
     uint256 maxPriceDiff = workers[worker].maxPriceDiff;
-    require(lpPrice <= price.mul(maxPriceDiff).div(10000), "WorkerConfig::isStable:: price too high");
-    require(lpPrice >= price.mul(10000).div(maxPriceDiff), "WorkerConfig::isStable:: price too low");
+    require(lpPrice.mul(10000) <= price.mul(maxPriceDiff), "WorkerConfig::isStable:: price too high");
+    require(lpPrice.mul(maxPriceDiff) >= price.mul(10000), "WorkerConfig::isStable:: price too low");
     // 3. Done
     return true;
   }

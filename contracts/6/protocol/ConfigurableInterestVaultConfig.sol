@@ -39,6 +39,7 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   event SetWorkers(address indexed caller, address worker, address workerConfig);
   event SetMaxKillBps(address indexed caller, uint256 maxKillBps);
   event SetWhitelistedLiquidator(address indexed caller, address indexed addr, bool ok);
+  event SetApprovedAddStrategy(address indexed caller, address addStrat, bool ok);
 
   /// The minimum debt size per position.
   uint256 public override minDebtSize;
@@ -66,6 +67,8 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   address public treasury;
   // list of whitelisted liquidators
   mapping(address => bool) public override whitelistedLiquidators;
+  // Mapping of approved add strategies
+  mapping(address => bool) public override approvedAddStrategies;
 
   function initialize(
     uint256 _minDebtSize,
@@ -158,6 +161,14 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     }
   }
 
+  /// @dev Set approved add strategies. Must only be called by the owner.
+  function setApprovedAddStrategy(address[] calldata addStrats, bool ok) external onlyOwner {
+    for (uint256 idx = 0; idx < addStrats.length; idx++) {
+      approvedAddStrategies[addStrats[idx]] = ok;
+      emit SetApprovedAddStrategy(_msgSender(), addStrats[idx], ok);
+    }
+  }
+
   /// @dev Set max kill bps. Must only be called by the owner.
   function setMaxKillBps(uint256 _maxKillBps) external onlyOwner {
     require(_maxKillBps < 1000, "ConfigurableInterestVaultConfig::setMaxKillBps:: bad _maxKillBps");
@@ -196,6 +207,16 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   /// @dev Return the kill factor for the worker + debt, using 1e4 as denom. Revert on non-worker.
   function killFactor(address worker, uint256 debt) external view override returns (uint256) {
     return workers[worker].killFactor(worker, debt);
+  }
+
+  /// @dev Return if worker is stable.
+  function isWorkerStable(address worker) external view override returns (bool) {
+    return workers[worker].isStable(worker);
+  }
+
+  /// @dev Return if pools is consistent
+  function isWorkerReserveConsistent(address worker) external view override returns (bool) {
+    return workers[worker].isReserveConsistent(worker);
   }
 
   /// @dev Return the treasuryAddr

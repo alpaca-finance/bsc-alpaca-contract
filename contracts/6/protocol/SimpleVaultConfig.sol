@@ -25,6 +25,8 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     bool acceptDebt;
     uint256 workFactor;
     uint256 killFactor;
+    bool isStable;
+    bool isReserveConsistent;
   }
 
   /// The minimum BaseToken debt size per position.
@@ -51,6 +53,8 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   address public treasury;
   /// list of whitelisted liquidators
   mapping(address => bool) public override whitelistedLiquidators;
+  // Mapping of approved add strategies
+  mapping(address => bool) public override approvedAddStrategies;
 
   function initialize(
     uint256 _minDebtSize,
@@ -111,18 +115,23 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   /// @param _acceptDebt Whether the worker is accepting new debts.
   /// @param _workFactor The work factor value for this worker.
   /// @param _killFactor The kill factor value for this worker.
+  /// @param _isStable Whether the given worker is stable or not.
   function setWorker(
     address worker,
     bool _isWorker,
     bool _acceptDebt,
     uint256 _workFactor,
-    uint256 _killFactor
+    uint256 _killFactor,
+    bool _isStable,
+    bool _isReserveConsistent
   ) public onlyOwner {
     workers[worker] = WorkerConfig({
       isWorker: _isWorker,
       acceptDebt: _acceptDebt,
       workFactor: _workFactor,
-      killFactor: _killFactor
+      killFactor: _killFactor,
+      isStable: _isStable,
+      isReserveConsistent: _isReserveConsistent
     });
   }
 
@@ -137,6 +146,13 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   function setWhitelistedLiquidators(address[] calldata callers, bool ok) external onlyOwner {
     for (uint256 idx = 0; idx < callers.length; idx++) {
       whitelistedLiquidators[callers[idx]] = ok;
+    }
+  }
+
+  /// @dev Set approved add strategies. Must only be called by the owner.
+  function setApprovedAddStrategy(address[] calldata addStrats, bool ok) external onlyOwner {
+    for (uint256 idx = 0; idx < addStrats.length; idx++) {
+      approvedAddStrategies[addStrats[idx]] = ok;
     }
   }
 
@@ -175,6 +191,17 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   ) external view override returns (uint256) {
     require(workers[worker].isWorker, "SimpleVaultConfig::killFactor:: !worker");
     return workers[worker].killFactor;
+  }
+
+  /// @dev Return worker stability
+  function isWorkerStable(address worker) external view override returns (bool) {
+    require(workers[worker].isWorker, "SimpleVaultConfig::isWorkerStable:: !worker");
+    return workers[worker].isStable;
+  }
+
+  /// @dev Return if pools is consistent
+  function isWorkerReserveConsistent(address worker) external view override returns (bool) {
+    return workers[worker].isReserveConsistent;
   }
 
   /// @dev Return the treasuryAddr
