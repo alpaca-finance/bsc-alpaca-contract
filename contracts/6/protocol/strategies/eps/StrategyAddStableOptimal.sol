@@ -121,8 +121,7 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
 
     vault.requestFunds(farmingToken, farmingTokenAmount);
     uint256 baseTokenAmount = baseToken.myBalance();
-    BalancePair memory user_balances =
-      BalancePair(baseTokenAmount, (farmingTokenAmount.mul(epsFeeDenom)).div(epsFeeDenom.sub(epsFee)));
+    BalancePair memory user_balances = BalancePair(baseTokenAmount, farmingTokenAmount);
 
     PoolState memory fp_state;
     IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
@@ -171,13 +170,11 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     uint256 dy;
     {
       if ((fp_state.balances[fp_state.i]).mul(user_balances.y) >= (fp_state.balances[fp_state.j]).mul(user_balances.x)) {
-        console.log("swapping indexes (converting farm => base) ...");
-        (fp_state.balances[fp_state.i], fp_state.balances[fp_state.j]) = (fp_state.balances[fp_state.j], fp_state.balances[fp_state.i]);
         (fp_state.i, fp_state.j) = (fp_state.j, fp_state.i);
-        (sb_state.balances[sb_state.i], sb_state.balances[sb_state.j]) = (sb_state.balances[sb_state.j], sb_state.balances[sb_state.i]);
         (sb_state.i, sb_state.j) = (sb_state.j, sb_state.i);
         (user_balances.x, user_balances.y) = (user_balances.y, user_balances.x);
       }
+      user_balances.y = (user_balances.y.mul(epsFeeDenom)).div(epsFeeDenom.sub(epsFee));
       (dx, dy) = get_dx(fp_state, sb_state, user_balances);
     }
     // approve EPS pool
@@ -190,10 +187,15 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     // swap on EPS
     // `dy` is basically `min_dy`
     // TODO: Tune for min_dy
+    console.log("");
     console.log("Suggest to convert (i):", dx);
     console.log("To (j)", dy);
+    console.log("");
+    console.log("Before EPS exchange");
+    console.log("baseToken:", baseToken.myBalance());
+    console.log("farmingToken:", farmingToken.myBalance());
     if (dx > 0) epsPool.exchange(int128(sb_state.i), int128(sb_state.j), dx, dy.mul(99).div(100));
-    console.log("Before add PCS LP");
+    console.log("After EPS exchange, Before add PCS LP");
     console.log("baseToken:", baseToken.myBalance());
     console.log("farmingToken:", farmingToken.myBalance());
 

@@ -514,9 +514,9 @@ describe("EPS - StrategyAddStableOptimal", () => {
     expect(alice_USDT_BUSD).to.be.gt(0);
     expect(bob_USDC_BUSD).to.be.gt(0);
     expect(alice_USDT_BUSD).to.be.gt(bob_USDC_BUSD);
-    // assert no debris left (less than 100 * 10^-18 on both sides)
-    expect(alice_strat_BUSD).to.be.lt(100);
-    expect(alice_strat_USDT).to.be.lt(100);
+    // assert no debris left (less than 10 * 10^-18 on both sides)
+    expect(alice_strat_BUSD).to.be.lt(10);
+    expect(alice_strat_USDT).to.be.lt(10);
   });
 
   it("should gives a larger LP to Alice when use StrategyAddStableOptimal (farm to base) than PancakeswapV2StrategyAddTwoSidesOptimal", async () => {
@@ -585,29 +585,13 @@ describe("EPS - StrategyAddStableOptimal", () => {
         )],
     ));
     const bob_USDC_BUSD = await USDC_BUSD.balanceOf(mockPancakeswapV2Worker_USDC_BUSD.address);
-    /// bob's debris after strategy
-    const bob_strat_BUSD = await BUSD.balanceOf(addStrat.address);
-    const bob_strat_USDC = await USDC.balanceOf(addStrat.address);
-
-    const alice_BUSD = await BUSD.balanceOf(aliceAddress);
-    const alice_USDT = await USDT.balanceOf(aliceAddress);
-    const bob_BUSD = await BUSD.balanceOf(bobAddress);
-    const bob_USDC = await USDC.balanceOf(bobAddress);
-    console.log(' TOKEN: ');
-    console.log('alice_USDT_BUSD', alice_USDT_BUSD.toString());
-    console.log('bob_USDC_BUSD', bob_USDC_BUSD.toString());
-    console.log(' DEBRIS: ');
-    console.log('alice_strat_BUSD', alice_strat_BUSD.toString());
-    console.log('alice_strat_USDT', alice_strat_USDT.toString());
-    console.log('bob_strat_BUSD', bob_strat_BUSD.toString());
-    console.log('bob_strat_USDC', bob_strat_USDC.toString());
 
     /// assert
     expect(alice_USDT_BUSD).to.be.gt(0);
     expect(bob_USDC_BUSD).to.be.gt(0);
     expect(alice_USDT_BUSD).to.be.gt(bob_USDC_BUSD);
-    // assert no debris left (less than 100 * 10^-18 on both sides)
-    expect(alice_strat_BUSD).to.be.lt(100);
-    expect(alice_strat_USDT).to.be.lt(100);
+    // assert no debris left (less than 10 * 10^-18 on both sides)
+    expect(alice_strat_BUSD).to.be.lt(10);
+    expect(alice_strat_USDT).to.be.lt(10);
   });
 });
