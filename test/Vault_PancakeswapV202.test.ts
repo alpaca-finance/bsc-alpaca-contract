@@ -218,24 +218,6 @@ describe("Vault - PancakeswapV202", () => {
     // whitelisted to be able to call kill
     await simpleVaultConfig.setWhitelistedLiquidators([await alice.getAddress(), await eve.getAddress()], true)
 
-    // const DebtToken = (await ethers.getContractFactory(
-    //   "DebtToken",
-    //   deployer
-    // )) as DebtToken__factory;
-    // debtToken = await upgrades.deployProxy(DebtToken, [
-    //   'debtibBTOKEN_V2', 'debtibBTOKEN_V2', (await deployer.getAddress())]) as DebtToken;
-    // await debtToken.deployed();
-
-    // const Vault = (await ethers.getContractFactory(
-    //   "Vault",
-    //   deployer
-    // )) as Vault__factory;
-    // vault = await upgrades.deployProxy(Vault, [
-    //   simpleVaultConfig.address, baseToken.address, 'Interest Bearing BTOKEN', 'ibBTOKEN', 18, debtToken.address
-    // ]) as Vault;
-    // await vault.deployed();
-
-    // await wNativeRelayer.setCallerOk([vault.address], true);
     // Set approved add strategies
     await simpleVaultConfig.setApprovedAddStrategy([addStrat.address, twoSidesStrat.address], true);
 
