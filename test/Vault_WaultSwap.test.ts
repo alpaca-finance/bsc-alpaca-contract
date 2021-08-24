@@ -978,7 +978,7 @@ describe("Vault - WaultSwap", () => {
 
     context("#kill", async () => {
       it('should not allow user not whitelisted to liquidate', async () => {           
-        await expect(vaultAsBob.kill('1')).to.be.revertedWith("Vault::onlyWhitelistedLiquidators:: not whitelisted liquidator")
+        await expect(vaultAsBob.kill('1')).to.be.revertedWith("!whitelisted liquidator")
       })
 
       it("should not able to liquidate healthy position", async () => {

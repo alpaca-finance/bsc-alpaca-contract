@@ -96,10 +96,7 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
 
   /// @dev Require that the caller must be an EOA account if not whitelisted.
   modifier onlyWhitelistedLiqudators() {
-    require(
-      config.whitelistedLiquidators(msg.sender),
-      "Vault::onlyWhitelistedLiquidators:: not whitelisted liquidator"
-    );
+    require(config.whitelistedLiquidators(msg.sender), "!whitelisted liquidator");
     _;
   }
 

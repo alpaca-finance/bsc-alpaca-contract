@@ -537,7 +537,7 @@ describe("Vault - PancakeswapV2", () => {
             ['uint256'],
             [0]
           )
-        )).to.be.revertedWith("Vault::onlyWhitelistedLiquidators:: not whitelisted liquidator")
+        )).to.be.revertedWith("!whitelisted liquidator")
       })
     })
 
@@ -1070,7 +1070,7 @@ describe("Vault - PancakeswapV2", () => {
 
       context("#kill", async () => {
         it('should not allow user not whitelisted to liquidate', async () => {           
-          await expect(vaultAsBob.kill('1')).to.be.revertedWith("Vault::onlyWhitelistedLiquidators:: not whitelisted liquidator")
+          await expect(vaultAsBob.kill('1')).to.be.revertedWith("!whitelisted liquidator")
         })
 
         it("should not able to liquidate healthy position", async () => {

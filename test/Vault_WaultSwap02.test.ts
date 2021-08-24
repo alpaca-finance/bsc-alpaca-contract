@@ -1145,9 +1145,9 @@ describe("Vault - WaultSwap02", () => {
 
     context("#kill", async () => {
       it('should not allow user not whitelisted to liquidate', async () => {           
-        await expect(vaultAsBob.kill('1')).to.be.revertedWith("Vault::onlyWhitelistedLiquidators:: not whitelisted liquidator")
+        await expect(vaultAsBob.kill('1')).to.be.revertedWith("!whitelisted liquidator")
       })
-      
+
       it("should not able to liquidate healthy position", async () => {
         // Deployer deposits 3 BTOKEN to the Vault
         const deposit = ethers.utils.parseEther("3");
