@@ -51,10 +51,10 @@ contract SimpleVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   uint256 public override getKillTreasuryBps;
   /// address of treasury account
   address public treasury;
-  /// list of whitelisted liquidators
-  mapping(address => bool) public override whitelistedLiquidators;
   // Mapping of approved add strategies
   mapping(address => bool) public override approvedAddStrategies;
+  // list of whitelisted liquidators
+  mapping(address => bool) public override whitelistedLiquidators;
 
   function initialize(
     uint256 _minDebtSize,
