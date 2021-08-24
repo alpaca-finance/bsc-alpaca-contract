@@ -313,6 +313,7 @@ describe("Vault - WaultSwap", () => {
     await liqStrat.setWorkersOk([waultSwapWorker.address], true);
     await partialCloseStrat.setWorkersOk([waultSwapWorker.address], true);
     await partialCloseMinimizeStrat.setWorkersOk([waultSwapWorker.address], true);
+    await simpleVaultConfig.setWhitelistedLiquidators([await alice.getAddress(), await eve.getAddress()], true)
 
     // Deployer adds 0.1 FTOKEN + 1 BTOKEN
     await baseToken.approve(router.address, ethers.utils.parseEther("1"));
@@ -976,6 +977,10 @@ describe("Vault - WaultSwap", () => {
     });
 
     context("#kill", async () => {
+      it('should not allow user not whitelisted to liquidate', async () => {           
+        await expect(vaultAsBob.kill('1')).to.be.revertedWith("!whitelisted liquidator")
+      })
+
       it("should not able to liquidate healthy position", async () => {
         // Deployer deposits 3 BTOKEN to the bank
         const deposit = ethers.utils.parseEther("3");

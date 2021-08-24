@@ -228,6 +228,9 @@ describe("Vault - Pancakeswap", () => {
     ])) as SimpleVaultConfig;
     await simpleVaultConfig.deployed();
 
+    // whitelisted to be able to call kill
+    await simpleVaultConfig.setWhitelistedLiquidators([await alice.getAddress(), await eve.getAddress()], true)
+
     const DebtToken = (await ethers.getContractFactory("DebtToken", deployer)) as DebtToken__factory;
     debtToken = (await upgrades.deployProxy(DebtToken, [
       "debtibBTOKEN_V2",

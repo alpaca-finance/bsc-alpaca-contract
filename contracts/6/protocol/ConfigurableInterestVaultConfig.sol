@@ -38,6 +38,7 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   );
   event SetWorkers(address indexed caller, address worker, address workerConfig);
   event SetMaxKillBps(address indexed caller, uint256 maxKillBps);
+  event SetWhitelistedLiquidator(address indexed caller, address indexed addr, bool ok);
   event SetApprovedAddStrategy(address indexed caller, address addStrat, bool ok);
 
   /// The minimum debt size per position.
@@ -66,6 +67,8 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   address public treasury;
   // Mapping of approved add strategies
   mapping(address => bool) public override approvedAddStrategies;
+  // list of whitelisted liquidators
+  mapping(address => bool) public override whitelistedLiquidators;
 
   function initialize(
     uint256 _minDebtSize,
@@ -171,6 +174,14 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     require(_maxKillBps < 1000, "ConfigurableInterestVaultConfig::setMaxKillBps:: bad _maxKillBps");
     maxKillBps = _maxKillBps;
     emit SetMaxKillBps(_msgSender(), maxKillBps);
+  }
+
+  /// @dev Set whitelisted liquidators. Must only be called by the owner.
+  function setWhitelistedLiquidators(address[] calldata callers, bool ok) external onlyOwner {
+    for (uint256 idx = 0; idx < callers.length; idx++) {
+      whitelistedLiquidators[callers[idx]] = ok;
+      emit SetWhitelistedLiquidator(_msgSender(), callers[idx], ok);
+    }
   }
 
   /// @dev Return the interest rate per second, using 1e18 as denom.

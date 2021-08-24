@@ -241,6 +241,7 @@ describe("Vault - WaultSwap02", () => {
     await liqStrat.setWorkersOk([waultSwapWorker.address, waultSwapWorker01.address], true);
     await partialCloseStrat.setWorkersOk([waultSwapWorker.address, waultSwapWorker01.address], true);
     await simpleVaultConfig.setApprovedAddStrategy([addStrat.address, twoSidesStrat.address], true);
+    await simpleVaultConfig.setWhitelistedLiquidators([await alice.getAddress(), await eve.getAddress()], true)
 
     // Initiate swapHelper
     swapHelper = new SwapHelper(factory.address, router.address, BigNumber.from(998), BigNumber.from(1000), deployer);
@@ -1143,6 +1144,10 @@ describe("Vault - WaultSwap02", () => {
     });
 
     context("#kill", async () => {
+      it('should not allow user not whitelisted to liquidate', async () => {           
+        await expect(vaultAsBob.kill('1')).to.be.revertedWith("!whitelisted liquidator")
+      })
+
       it("should not able to liquidate healthy position", async () => {
         // Deployer deposits 3 BTOKEN to the Vault
         const deposit = ethers.utils.parseEther("3");

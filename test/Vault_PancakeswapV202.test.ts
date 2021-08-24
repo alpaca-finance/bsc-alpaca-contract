@@ -215,6 +215,9 @@ describe("Vault - PancakeswapV202", () => {
     // whitelisted contract to be able to call work
     await simpleVaultConfig.setWhitelistedCallers([whitelistedContract.address], true);
 
+    // whitelisted to be able to call kill
+    await simpleVaultConfig.setWhitelistedLiquidators([await alice.getAddress(), await eve.getAddress()], true)
+
     // Set approved add strategies
     await simpleVaultConfig.setApprovedAddStrategy([addStrat.address, twoSidesStrat.address], true);
 
@@ -503,6 +506,17 @@ describe("Vault - PancakeswapV202", () => {
         expect(owner).to.be.eq(whitelistedContract.address);
         expect(worker).to.be.eq(pancakeswapV2Worker.address);
       });
+
+      it('should revert if evil contract try to call onlyWhitelistedLiquidators function', async () => {           
+        await expect(evilContract.executeTransaction(
+          vault.address, 0, 
+          "kill(uint256)", 
+          ethers.utils.defaultAbiCoder.encode(
+            ['uint256'],
+            [0]
+          )
+        )).to.be.revertedWith("!whitelisted liquidator")
+      })
     });
 
     context("when user is EOA", async () => {
@@ -1277,6 +1291,10 @@ describe("Vault - PancakeswapV202", () => {
       });
 
       context("#kill", async () => {
+        it('should not allow user not whitelisted to liquidate', async () => {           
+          await expect(vaultAsBob.kill('1')).to.be.revertedWith("!whitelisted liquidator")
+        })
+        
         it("should be able to liquidate bad position", async () => {
           // Deployer deposits 3 BTOKEN to the bank
           const deposit = ethers.utils.parseEther("3");

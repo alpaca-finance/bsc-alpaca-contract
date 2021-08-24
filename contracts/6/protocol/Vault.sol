@@ -94,6 +94,12 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     _;
   }
 
+  /// @dev Require that the caller must be an EOA account if not whitelisted.
+  modifier onlyWhitelistedLiqudators() {
+    require(config.whitelistedLiquidators(msg.sender), "!whitelisted liquidator");
+    _;
+  }
+
   /// @dev Get token from msg.sender
   modifier transferTokenToVault(uint256 value) {
     if (msg.value != 0) {
@@ -390,7 +396,7 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
 
   /// @dev Kill the given to the position. Liquidate it immediately if killFactor condition is met.
   /// @param id The position ID to be killed.
-  function kill(uint256 id) external onlyEOAorWhitelisted accrue(0) nonReentrant {
+  function kill(uint256 id) external onlyWhitelistedLiqudators accrue(0) nonReentrant {
     require(fairLaunchPoolId != uint256(-1), "poolId not set");
     // 1. Verify that the position is eligible for liquidation.
     Position storage pos = positions[id];

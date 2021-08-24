@@ -38,6 +38,9 @@ interface IVaultConfig {
   /// @dev Return if the caller is whitelisted.
   function whitelistedCallers(address caller) external returns (bool);
 
+  /// @dev Return if the caller is whitelisted.
+  function whitelistedLiquidators(address caller) external returns (bool);
+
   /// @dev Return if the given strategy is approved.
   function approvedAddStrategies(address addStrats) external returns (bool);
 
