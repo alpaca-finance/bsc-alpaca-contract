@@ -157,6 +157,14 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
     return uint256(workers[worker].killFactor);
   }
 
+  /// @dev Return the kill factor for the worker + BaseToken debt, using 1e4 as denom.
+  function rawKillFactor(
+    address worker,
+    uint256 /* debt */
+  ) external view override returns (uint256) {
+    return uint256(workers[worker].killFactor);
+  }
+
   /// @dev Set governor address. OnlyOwner can set governor.
   function setGovernor(address newGovernor) external onlyOwner {
     governor = newGovernor;

@@ -56,6 +56,9 @@ interface IVaultConfig {
   /// @dev Return the kill factor for the worker + BaseToken debt, using 1e4 as denom. Revert on non-worker.
   function killFactor(address worker, uint256 debt) external view returns (uint256);
 
+  /// @dev Return the kill factor for the worker + BaseToken debt without checking isStable, using 1e4 as denom. Revert on non-worker.
+  function rawKillFactor(address worker, uint256 debt) external view returns (uint256);
+
   /// @dev Return the portion of reward that will be transferred to treasury account after successfully killing a position.
   function getKillTreasuryBps() external view returns (uint256);
 
