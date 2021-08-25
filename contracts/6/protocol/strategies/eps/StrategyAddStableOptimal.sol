@@ -165,9 +165,7 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     }
 
     // calc dx to swap on EPS
-    // dy = expected Y amount got from swap on EPS
     uint256 dx;
-    uint256 dy;
     {
       if ((fp_state.balances[fp_state.i]).mul(user_balances.y) >= (fp_state.balances[fp_state.j]).mul(user_balances.x)) {
         (fp_state.i, fp_state.j) = (fp_state.j, fp_state.i);
@@ -175,7 +173,7 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
         (user_balances.x, user_balances.y) = (user_balances.y, user_balances.x);
       }
       user_balances.y = (user_balances.y.mul(epsFeeDenom)).div(epsFeeDenom.sub(epsFee));
-      (dx, dy) = get_dx(fp_state, sb_state, user_balances);
+      dx = get_dx(fp_state, sb_state, user_balances);
     }
     // approve EPS pool
     baseToken.safeApprove(address(epsPool), uint256(-1));
@@ -227,7 +225,7 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     PoolState memory fp_state,
     PoolState memory sb_state,
     BalancePair memory user_balances
-  ) private view returns (uint256, uint256) {
+  ) private view returns (uint256) {
     uint256 N_COINS = sb_state.balances.length; 
     uint256 Ann = epsA.mul(N_COINS);
     uint256 D = get_D(sb_state.balances, epsA);
@@ -267,10 +265,8 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
       (x, y) = find_intersection_of_l_with_tangent(var_pack, N_COINS);
       (x, y) = ver_hor_newton_step(x, y, var_pack);
     }
-    return (
-      x - sb_state.balances[sb_state.i],
-      (sb_state.balances[sb_state.j] - y) - ((sb_state.balances[sb_state.j] - y) * epsFee) / epsFeeDenom
-    );
+    return x.sub(sb_state.balances[sb_state.i]);
+    // dy = (sb_state.balances[sb_state.j].sub(y)).sub(((sb_state.balances[sb_state.j].sub(y)).mul(epsFee)).div(epsFeeDenom));
   }
 
   function f_pos(
