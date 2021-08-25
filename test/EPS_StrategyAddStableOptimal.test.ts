@@ -482,7 +482,7 @@ describe("EPS - StrategyAddStableOptimal", () => {
       ethers.utils.defaultAbiCoder.encode(
         ['address', 'bytes'],
         [addStableStrat.address, ethers.utils.defaultAbiCoder.encode(
-          ['uint256','uint256'],
+          ['',''],
           [await USDT.balanceOf(aliceAddress), '0']
         )],
     ));
@@ -503,7 +503,7 @@ describe("EPS - StrategyAddStableOptimal", () => {
       ethers.utils.defaultAbiCoder.encode(
         ['address', 'bytes'],
         [addStratAsBob.address, ethers.utils.defaultAbiCoder.encode(
-          ["address", "address", "uint256", "uint256"],
+          ["address", "address", "", ""],
           [BUSD.address, USDC.address, await USDC.balanceOf(bobAddress), 0]
         )],
     ));
@@ -558,7 +558,7 @@ describe("EPS - StrategyAddStableOptimal", () => {
       ethers.utils.defaultAbiCoder.encode(
         ['address', 'bytes'],
         [addStableStrat.address, ethers.utils.defaultAbiCoder.encode(
-          ['uint256','uint256'],
+          ['',''],
           [await USDT.balanceOf(aliceAddress), '0']
         )],
     ));
@@ -579,7 +579,7 @@ describe("EPS - StrategyAddStableOptimal", () => {
       ethers.utils.defaultAbiCoder.encode(
         ['address', 'bytes'],
         [addStratAsBob.address, ethers.utils.defaultAbiCoder.encode(
-          ["address", "address", "uint256", "uint256"],
+          ["address", "address", "", ""],
           [BUSD.address, USDC.address, await USDC.balanceOf(bobAddress), 0]
         )],
     ));
@@ -592,5 +592,71 @@ describe("EPS - StrategyAddStableOptimal", () => {
     // assert no debris left (less than 10 * 10^-18 on both sides)
     expect(alice_strat_BUSD).to.be.lt(10);
     expect(alice_strat_USDT).to.be.lt(10);
+  });
+
+  it("should runs 1000s of test cases smoothly", async () => {
+    // TODO: Should we take in fees to test case combination?
+    // fees = [0, 5]
+    // declare test cases combination
+    const testCaseUserBalancesIn = [[ethers.utils.parseEther("1"), 0], 
+      [ethers.utils.parseEther("2"), 0], 
+      [ethers.utils.parseEther("2000"), ethers.utils.parseEther("1")], 
+      [ethers.utils.parseEther("3000"), ethers.utils.parseEther("900")], 
+      [ethers.utils.parseEther("1731"), ethers.utils.parseEther("158")], 
+      [ethers.utils.parseEther("10000000"), ethers.utils.parseEther("10000000")], 
+      [ethers.utils.parseEther("10000000"), ethers.utils.parseEther("10000000")], 
+      [ethers.utils.parseEther("50000000"), ethers.utils.parseEther("1")], 
+      [ethers.utils.parseEther("1"), ethers.utils.parseEther("50000000")], 
+      [ethers.utils.parseEther("897154802829"), ethers.utils.parseEther("897154802829")], 
+      [ethers.utils.parseEther("2"), ethers.utils.parseEther("897154802829")], 
+      [ethers.utils.parseEther("897154802829"), ethers.utils.parseEther("2")], 
+    ]
+
+    const testCaseStableSwapAmountInit = [[ethers.utils.parseEther("100000000"), ethers.utils.parseEther("100000000"), ethers.utils.parseEther("100000000")],
+      [ethers.utils.parseEther("200000000"), ethers.utils.parseEther("200000000"), ethers.utils.parseEther("200000000")],
+      [ethers.utils.parseEther("150000000"), ethers.utils.parseEther("200000000"), ethers.utils.parseEther("250000000")],
+      [ethers.utils.parseEther("300000000"), ethers.utils.parseEther("500000000"), ethers.utils.parseEther("700000000")],
+      [ethers.utils.parseEther("1000000000000000000000000"), ethers.utils.parseEther("1000000000000000000000000"), ethers.utils.parseEther("1000000000000000000000000")],
+    ]
+    const testCasePancakeSwapAmountInit = [[ethers.utils.parseEther("10000000"), ethers.utils.parseEther("11000000")],
+      [ethers.utils.parseEther("75000000"), ethers.utils.parseEther("79000000")],
+      [ethers.utils.parseEther("150000000"), ethers.utils.parseEther("141000000")],
+      [ethers.utils.parseEther("999999999"), ethers.utils.parseEther("999999999")]
+    ]
+
+    for(const userBalancesIn of testCaseUserBalancesIn) {
+      for(const stableSwapAmountInit of testCaseStableSwapAmountInit) {
+        for(const pancakeSwapAmountInit of testCasePancakeSwapAmountInit) {
+          // take out all liq PCS / EPS
+          const lptokenAddress = factoryV2.getPair(USDT.address, BUSD.address);
+          // routerV2.removeLiquidity(await USDT.address, await BUSD.address, )
+
+          await swapHelper.addLiquidities([
+            {
+              token0: USDT,
+              token1: BUSD,
+              amount0desired: pancakeSwapAmountInit[0],
+              amount1desired: pancakeSwapAmountInit[1],
+            }
+          ]);
+
+          // add liquidities to PancakeSwap
+          await swapHelper.addLiquidities([
+            {
+              token0: USDT,
+              token1: BUSD,
+              amount0desired: pancakeSwapAmountInit[0],
+              amount1desired: pancakeSwapAmountInit[1],
+            }
+          ]);
+
+          // user do stableopt
+          // ...
+
+          // assert
+          // ...
+        }
+      }
+    }
   });
 });
