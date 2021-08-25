@@ -86,7 +86,6 @@ describe("EPS - StrategyAddStableOptimal", () => {
   const idx_BUSD: BigNumberish = 0;
   const idx_USDC: BigNumberish = 1;
   const idx_USDT: BigNumberish = 2;
-  /// TODO: change stableSwapFee back to 4000000
   const stableSwapFee: BigNumberish = 4000000;
   const stableSwapA: BigNumberish = 1500;
 

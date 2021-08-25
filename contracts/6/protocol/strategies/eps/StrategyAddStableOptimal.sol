@@ -185,19 +185,7 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     farmingToken.safeApprove(address(router), uint256(-1));
 
     // swap on EPS
-    // `dy` is basically `min_dy`
-    // TODO: Tune for min_dy
-    console.log("");
-    console.log("Suggest to convert (i):", dx);
-    console.log("To (j)", dy);
-    console.log("");
-    console.log("Before EPS exchange");
-    console.log("baseToken:", baseToken.myBalance());
-    console.log("farmingToken:", farmingToken.myBalance());
-    if (dx > 0) epsPool.exchange(int128(sb_state.i), int128(sb_state.j), dx, dy.mul(99).div(100));
-    console.log("After EPS exchange, Before add PCS LP");
-    console.log("baseToken:", baseToken.myBalance());
-    console.log("farmingToken:", farmingToken.myBalance());
+    if (dx > 0) epsPool.exchange(int128(sb_state.i), int128(sb_state.j), dx, 0);
 
     // add LP
     uint256 moreLPAmount;
