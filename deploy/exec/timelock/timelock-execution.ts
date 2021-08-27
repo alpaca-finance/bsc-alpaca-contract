@@ -1,7 +1,7 @@
 import { TimelockEntity } from "../../entities";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import TimelockTransactions from "../../results/1628053689_pcs-single-asset-worker02-turn-on-new-partial-close-strats.json";
+import TimelockTransactions from "../../results/1629870497_mainnet_set_whitelisted_liquidators.json";
 import { FileService, TimelockService } from "../../services";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {

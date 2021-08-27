@@ -329,6 +329,8 @@ describe("CakeMaxiWorker", () => {
     ])) as SimpleVaultConfig;
     await simpleVaultConfig.deployed();
 
+    await simpleVaultConfig.setWhitelistedLiquidators([bobAddress], true);
+
     const DebtToken = (await ethers.getContractFactory("DebtToken", deployer)) as DebtToken__factory;
     debtToken = (await upgrades.deployProxy(DebtToken, [
       "debtibBTOKEN_V2",

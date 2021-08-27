@@ -9,7 +9,7 @@ import "hardhat-deploy";
 import "solidity-coverage";
 
 module.exports = {
-  defaultNetwork: 'hardhat',
+  defaultNetwork: "hardhat",
   networks: {
     hardhat: {
       chainId: 31337,
@@ -20,24 +20,24 @@ module.exports = {
       accounts: [
         {
           privateKey: process.env.LOCAL_PRIVATE_KEY_1,
-          balance: '10000000000000000000000',
+          balance: "10000000000000000000000",
         },
         {
           privateKey: process.env.LOCAL_PRIVATE_KEY_2,
-          balance: '10000000000000000000000',
+          balance: "10000000000000000000000",
         },
         {
           privateKey: process.env.LOCAL_PRIVATE_KEY_3,
-          balance: '10000000000000000000000',
+          balance: "10000000000000000000000",
         },
         {
           privateKey: process.env.LOCAL_PRIVATE_KEY_4,
-          balance: '10000000000000000000000',
+          balance: "10000000000000000000000",
         },
       ],
     },
     testnet: {
-      url: 'https://data-seed-prebsc-1-s3.binance.org:8545',
+      url: "https://data-seed-prebsc-1-s1.binance.org:8545/",
       accounts: [process.env.BSC_TESTNET_PRIVATE_KEY],
     },
     mainnet: {
@@ -51,7 +51,7 @@ module.exports = {
     },
   },
   solidity: {
-    version: '0.6.6',
+    version: "0.6.6",
     settings: {
       optimizer: {
         enabled: true,
@@ -60,32 +60,30 @@ module.exports = {
       evmVersion: "istanbul",
       outputSelection: {
         "*": {
-          "": [
-            "ast"
-          ],
+          "": ["ast"],
           "*": [
             "evm.bytecode.object",
             "evm.deployedBytecode.object",
             "abi",
             "evm.bytecode.sourceMap",
             "evm.deployedBytecode.sourceMap",
-            "metadata"
-          ]
-        }
+            "metadata",
+          ],
+        },
       },
     },
   },
   paths: {
-    sources: './contracts/6',
-    tests: './test',
-    cache: './cache',
-    artifacts: './artifacts',
+    sources: "./contracts/6",
+    tests: "./test",
+    cache: "./cache",
+    artifacts: "./artifacts",
   },
   typechain: {
-    outDir: './typechain',
-    target: process.env.TYPECHAIN_TARGET || 'ethers-v5',
+    outDir: "./typechain",
+    target: process.env.TYPECHAIN_TARGET || "ethers-v5",
   },
   mocha: {
-    timeout: 50000
-  }
+    timeout: 50000,
+  },
 };

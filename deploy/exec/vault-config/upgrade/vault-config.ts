@@ -16,7 +16,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
   const TARGETED_VAULT_CONFIG = ["ibWBNB", "ibBUSD", "ibETH", "ibALPACA", "ibUSDT", "ibBTCB", "ibTUSD"];
-  const EXACT_ETA = "1629549900";
+  const EXACT_ETA = "1629957600";
 
   /*
 

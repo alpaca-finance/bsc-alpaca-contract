@@ -104,6 +104,11 @@ describe("CakeMaxiWorker02", () => {
   let bob: Signer;
   let eve: Signer;
 
+  let deployerAddress: string;
+  let aliceAddress: string;
+  let bobAddress: string;
+  let eveAddress: string;
+
   // Vault
   let mockedVault: MockVaultForRestrictedCakeMaxiAddBaseWithFarm;
   let mockedBeneficialVault: MockBeneficialVault;
@@ -137,6 +142,12 @@ describe("CakeMaxiWorker02", () => {
 
   async function fixture(maybeWallets?: Wallet[], maybeProvider?: MockProvider) {
     [deployer, alice, bob, eve] = await ethers.getSigners();
+    [deployerAddress, aliceAddress, bobAddress, eveAddress] = await Promise.all([
+      deployer.getAddress(),
+      alice.getAddress(),
+      bob.getAddress(),
+      eve.getAddress(),
+    ]);
 
     // Setup Mocked Vault (for unit testing purposed)
     const MockVault = (await ethers.getContractFactory(
@@ -330,6 +341,8 @@ describe("CakeMaxiWorker02", () => {
       ethers.constants.AddressZero,
     ])) as SimpleVaultConfig;
     await simpleVaultConfig.deployed();
+
+    await simpleVaultConfig.setWhitelistedLiquidators([bobAddress], true);
 
     const DebtToken = (await ethers.getContractFactory("DebtToken", deployer)) as DebtToken__factory;
     debtToken = (await upgrades.deployProxy(DebtToken, [
