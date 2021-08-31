@@ -13,19 +13,19 @@ Alpaca Fin Corporation
 
 pragma solidity 0.6.6;
 
-import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 
-import "../../apis/mdex/IMdexFactory.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
 
-import "../../apis/mdex/IMdexRouter.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../../utils/SafeToken.sol";
 import "../../../utils/AlpacaMath.sol";
 import "../../interfaces/IWorker.sol";
+import "../../apis/mdex/IMdexRouter.sol";
+import "../../apis/mdex/IMdexFactory.sol";
+import "../../apis/mdex/SwapMining.sol";
 
 contract MdexRestrictedStrategyAddBaseTokenOnly is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeToken for address;
@@ -34,6 +34,7 @@ contract MdexRestrictedStrategyAddBaseTokenOnly is OwnableUpgradeSafe, Reentranc
   IMdexFactory public factory;
   IMdexRouter public router;
   mapping(address => bool) public okWorkers;
+  address public mdx;
 
   /// @notice require that only allowed workers are able to do the rest of the method call
   modifier onlyWhitelistedWorkers() {
@@ -43,11 +44,12 @@ contract MdexRestrictedStrategyAddBaseTokenOnly is OwnableUpgradeSafe, Reentranc
 
   /// @dev Create a new add Token only strategy instance.
   /// @param _router The WaultSwap Router smart contract.
-  function initialize(IMdexRouter _router) external initializer {
+  function initialize(IMdexRouter _router, address _mdx) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
     factory = IMdexFactory(_router.factory());
     router = _router;
+    mdx = _mdx;
   }
 
   /// @notice This function is written base on fee=988, feeDenom=1000
@@ -127,5 +129,12 @@ contract MdexRestrictedStrategyAddBaseTokenOnly is OwnableUpgradeSafe, Reentranc
     uint256 nominator =
       AlpacaMath.sqrt(rIn.mul(balance.mul(feeConstantB).add(rIn.mul(feeConstantC)))).sub(rIn.mul(feeConstantA));
     return nominator / feeConstantB.mul(2);
+  }
+
+  /// @dev Withdraw trading all reward.
+  /// @param to The address to transfer trading reward to.
+  function withdrawTradingRewards(address to) external onlyOwner {
+    SwapMining(router.swapMining()).takerWithdraw();
+    SafeToken.safeTransfer(mdx, to, SafeToken.myBalance(mdx));
   }
 }
