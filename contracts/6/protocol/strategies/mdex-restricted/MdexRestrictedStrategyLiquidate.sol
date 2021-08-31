@@ -15,13 +15,11 @@ pragma solidity 0.6.6;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/math/Math.sol";
 
 import "../../apis/mdex/IMdexRouter.sol";
-
 import "../../apis/mdex/IMdexFactory.sol";
-import "../../apis/mdex/IMdexPair.sol";
+import "../../apis/mdex/SwapMining.sol";
 
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IWorker.sol";
@@ -37,6 +35,8 @@ contract MdexRestrictedStrategyLiquidate is OwnableUpgradeSafe, ReentrancyGuardU
 
   mapping(address => bool) public okWorkers;
 
+  address public mdx;
+
   /// @notice require that only allowed workers are able to do the rest of the method call
   modifier onlyWhitelistedWorkers() {
     require(okWorkers[msg.sender], "MdexRestrictedStrategyLiquidate::onlyWhitelistedWorkers:: bad worker");
@@ -44,12 +44,13 @@ contract MdexRestrictedStrategyLiquidate is OwnableUpgradeSafe, ReentrancyGuardU
   }
 
   /// @dev Create a new liquidate strategy instance.
-  /// @param _router The IMdexRouter  smart contract.
-  function initialize(IMdexRouter _router) external initializer {
+  /// @param _router The IMdexRouter smart contract.
+  function initialize(IMdexRouter _router, address _mdx) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
     factory = IMdexFactory(_router.factory());
     router = _router;
+    mdx = _mdx;
   }
 
   /// @dev Execute worker strategy. Take LP token. Return  BaseToken.
@@ -65,8 +66,7 @@ contract MdexRestrictedStrategyLiquidate is OwnableUpgradeSafe, ReentrancyGuardU
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
 
-    //TODO double check
-    IMdexPair lpToken = IMdexPair(factory.getPair(farmingToken, baseToken));
+    IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
     // 2. Approve router to do their stuffs
     address(lpToken).safeApprove(address(router), uint256(-1));
     farmingToken.safeApprove(address(router), uint256(-1));
@@ -93,5 +93,10 @@ contract MdexRestrictedStrategyLiquidate is OwnableUpgradeSafe, ReentrancyGuardU
     for (uint256 idx = 0; idx < workers.length; idx++) {
       okWorkers[workers[idx]] = isOk;
     }
+  }
+
+  function withdrawTradingRewards(address to) external onlyOwner {
+    SwapMining(router.swapMining()).takerWithdraw();
+    SafeToken.safeTransfer(mdx, to, SafeToken.myBalance(mdx));
   }
 }
