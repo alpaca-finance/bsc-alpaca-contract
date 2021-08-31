@@ -52,7 +52,6 @@ contract MdexRestrictedStrategyAddBaseTokenOnly is OwnableUpgradeSafe, Reentranc
     mdx = _mdx;
   }
 
-  /// @notice This function is written base on fee=988, feeDenom=1000
   /// @dev Execute worker strategy. Take BaseToken. Return LP tokens.
   /// @param data Extra calldata information passed along to this strategy.
   function execute(
@@ -113,19 +112,16 @@ contract MdexRestrictedStrategyAddBaseTokenOnly is OwnableUpgradeSafe, Reentranc
     }
   }
 
+  /// @dev Formular for calculating optimal swap come from UniSwapV2
   function _calculateAIn(
     uint256 fee,
     uint256 rIn,
     uint256 balance
   ) internal pure returns (uint256) {
     uint256 feeDenom = 10000;
-    // 2-f = 2-0.0025 = 1.9975
     uint256 feeConstantA = feeDenom.mul(2).sub(fee);
-    // 4(1-f) = 4*9975*10000 = 399000000, where f = 0.0025 and 10,000 is a way to avoid floating point
     uint256 feeConstantB = feeDenom.mul(4).mul(feeDenom.sub(fee));
-    // 19975^2 = 399000625
     uint256 feeConstantC = feeConstantA**2;
-    // 9975*2 = 19950
     uint256 nominator =
       AlpacaMath.sqrt(rIn.mul(balance.mul(feeConstantB).add(rIn.mul(feeConstantC)))).sub(rIn.mul(feeConstantA));
     return nominator / feeConstantB.mul(2);
