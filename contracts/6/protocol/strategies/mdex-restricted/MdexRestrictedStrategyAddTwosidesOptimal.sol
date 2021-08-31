@@ -22,8 +22,6 @@ import "../../../utils/AlpacaMath.sol";
 import "../../interfaces/IWorker.sol";
 import "../../apis/mdex/SwapMining.sol";
 
-// import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/SafeERC20.sol";
-// import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
