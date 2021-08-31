@@ -31,10 +31,9 @@ contract MdexRestrictedStrategyPartialCloseLiquidate is OwnableUpgradeSafe, Reen
 
   IMdexFactory public factory;
   IMdexRouter public router;
+  address public mdx;
 
   mapping(address => bool) public okWorkers;
-
-  address public mdx;
 
   event MdexRestrictedStrategyPartialCloseLiquidateEvent(
     address indexed baseToken,
@@ -51,6 +50,7 @@ contract MdexRestrictedStrategyPartialCloseLiquidate is OwnableUpgradeSafe, Reen
 
   /// @dev Create a new liquidate strategy instance.
   /// @param _router The Mdex Router smart contract.
+  /// @param _mdx The address of mdex token.
   function initialize(IMdexRouter _router, address _mdx) public initializer {
     OwnableUpgradeSafe.__Ownable_init();
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
