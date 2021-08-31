@@ -1545,8 +1545,8 @@
         },
         {
           "name": "PHA-BUSD PancakeswapWorker",
-          "address": "",
-          "deployedBlock": 0,
+          "address": "0x1D0EDCA3F151dC9fafb5CE79547D153229985F42",
+          "deployedBlock": 10496217,
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 451,
           "stakingToken": "0x4ddd56e2f34338839BB5953515833950eA680aFb",
@@ -1562,11 +1562,11 @@
         },
         {
           "name": "WUSD-BUSD WaultswapWorker",
-          "address": "",
-          "deployedBlock": 0,
-          "config": "0x6102D8A7C963F78D46a35a6218B0DB4845d1612F",
+          "address": "0x0541C542e2039D13238B5AbC6d32A23ae3222B1D",
+          "deployedBlock": 10496255,
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 58,
-          "stakingToken": "0x61Ad21f79D1Bf96206Ad28d97B15D98a55944a2a",
+          "stakingToken": "0x6102D8A7C963F78D46a35a6218B0DB4845d1612F",
           "stakingTokenAt": "0x22fB2663C7ca71Adc2cc99481C77Aaf21E152e2D",
           "strategies": {
             "StrategyAddAllBaseToken": "0xeBb8BA21A3703ab30187D3EEC02A3Bc62894970D",

@@ -74,15 +74,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     {
       VAULT_SYMBOL: "ibBUSD",
       WORKER_NAME: "WUSD-BUSD WaultswapWorker",
-      REINVEST_BOT: "0xcf28b4da7d3ed29986831876b74af6e95211d3f9",
-      POOL_ID: 18,
+      REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
+      POOL_ID: 58,
       REINVEST_BOUNTY_BPS: "300",
       REINVEST_PATH: ["WEX", "WBNB", "BUSD"],
       REINVEST_THRESHOLD: "2000",
       WORK_FACTOR: "7800",
       KILL_FACTOR: "9000",
-      MAX_PRICE_DIFF: "105000000",
-      EXACT_ETA: "1630377947",
+      MAX_PRICE_DIFF: "10500",
+      EXACT_ETA: "1630467000",
     },
   ];
 
