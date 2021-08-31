@@ -34,10 +34,9 @@ contract MdexRestrictedStrategyAddTwosidesOptimal is OwnableUpgradeSafe, Reentra
   IMdexFactory public factory;
   IMdexRouter public router;
   IVault public vault;
+  address public mdx;
 
   mapping(address => bool) public okWorkers;
-
-  address public mdx;
 
   /// @notice require that only allowed workers are able to do the rest of the method call
   modifier onlyWhitelistedWorkers() {
@@ -47,6 +46,8 @@ contract MdexRestrictedStrategyAddTwosidesOptimal is OwnableUpgradeSafe, Reentra
 
   /// @dev Create a new add two-side optimal strategy instance.
   /// @param _router The Mdex Router smart contract.
+  /// @param _vault The vault contract to request fund.
+  /// @param _mdx The address of mdex token.
   function initialize(
     IMdexRouter _router,
     IVault _vault,
