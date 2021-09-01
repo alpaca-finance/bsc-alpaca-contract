@@ -26,6 +26,7 @@ import "../../interfaces/IWorker.sol";
 import "../../apis/mdex/IMdexRouter.sol";
 import "../../apis/mdex/IMdexFactory.sol";
 import "../../apis/mdex/SwapMining.sol";
+import "hardhat/console.sol";
 
 contract MdexRestrictedStrategyAddBaseTokenOnly is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeToken for address;
@@ -76,6 +77,12 @@ contract MdexRestrictedStrategyAddBaseTokenOnly is OwnableUpgradeSafe, Reentranc
     uint256 rIn = lpToken.token0() == baseToken ? r0 : r1;
     // find how many baseToken need to be converted to farmingToken
     uint256 aIn = _calculateAIn(fee, rIn, balance);
+    console.log("fee: ", fee);
+    console.log("rIn: ", rIn);
+    console.log("balance: ", balance);
+    console.log("aIn: ", aIn);
+    console.log("aIn2: ", _calculateAIn(fee, rIn, balance));
+
     // 4. Convert that portion of baseToken to farmingToken.
     address[] memory path = new address[](2);
     path[0] = baseToken;
@@ -117,14 +124,23 @@ contract MdexRestrictedStrategyAddBaseTokenOnly is OwnableUpgradeSafe, Reentranc
     uint256 fee,
     uint256 rIn,
     uint256 balance
-  ) internal pure returns (uint256) {
+  ) internal returns (uint256) {
     uint256 feeDenom = 10000;
-    uint256 feeConstantA = feeDenom.mul(2).sub(fee);
-    uint256 feeConstantB = feeDenom.mul(4).mul(feeDenom.sub(fee));
-    uint256 feeConstantC = feeConstantA**2;
+    uint256 feeConstantA = feeDenom.mul(2).sub(fee); // 2-f
+    uint256 feeConstantB = feeDenom.sub(fee).mul(4).mul(feeDenom); // 4(1-f)
+    uint256 feeConstantC = feeConstantA**2; // (2-f)^2
     uint256 nominator =
       AlpacaMath.sqrt(rIn.mul(balance.mul(feeConstantB).add(rIn.mul(feeConstantC)))).sub(rIn.mul(feeConstantA));
-    return nominator / feeConstantB.mul(2);
+    uint256 denominator = feeDenom.sub(fee).mul(2); // 1-f
+    console.log("feeConstantAH", 19975);
+    console.log("feeConstantA", feeConstantA);
+    console.log("feeConstantBH", 399000000);
+    console.log("feeConstantB", feeConstantB);
+    console.log("feeConstantCH", 399000625);
+    console.log("feeConstantC", feeConstantC);
+    console.log("denominatorH", 19950);
+    console.log("denominator", denominator.mul(2));
+    return nominator / denominator;
   }
 
   /// @dev Withdraw trading all reward.
