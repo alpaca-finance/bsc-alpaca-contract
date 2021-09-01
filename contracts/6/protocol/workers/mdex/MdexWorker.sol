@@ -146,7 +146,7 @@ contract MdexWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02
     maxReinvestBountyBps = 500;
 
     // 6. Set MDEX fees
-    fee = 9975;
+    fee = 10000 - factory.getPairFees(address(_lpToken));
     feeDenom = 10000;
 
     // 7. Check if critical parameters are config properly
