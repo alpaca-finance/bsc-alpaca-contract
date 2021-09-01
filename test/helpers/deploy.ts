@@ -9,8 +9,6 @@ import {
   DebtToken__factory,
   FairLaunch,
   FairLaunch__factory,
-  IERC20,
-  MasterChef,
   MockERC20,
   MockERC20__factory,
   MockWBNB,
@@ -21,8 +19,6 @@ import {
   PancakeMasterChef__factory,
   PancakeRouterV2,
   PancakeRouterV2__factory,
-  PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading,
-  PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading__factory,
   PancakeswapV2RestrictedStrategyAddBaseTokenOnly,
   PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory,
   PancakeswapV2RestrictedStrategyAddTwoSidesOptimal,
@@ -67,6 +63,29 @@ import {
   WexMaster__factory,
   WNativeRelayer,
   WNativeRelayer__factory,
+  MdexFactory__factory,
+  MdexRouter__factory,
+
+  BSCPool__factory,
+  BSCPool,
+  MdexRouter,
+  MdexFactory,
+  MdexWorker,
+  MdexWorker__factory,
+  MdxToken,
+  MdxToken__factory,
+  MdexRestrictedStrategyAddBaseTokenOnly,
+  MdexRestrictedStrategyAddTwosidesOptimal,
+  MdexRestrictedStrategyLiquidate,
+  MdexRestrictedStrategyPartialCloseLiquidate,
+  MdexRestrictedStrategyPartialCloseMinimizeTrading,
+  MdexRestrictedStrategyWithdrawMinimizeTrading,
+  MdexRestrictedStrategyAddBaseTokenOnly__factory,
+  MdexRestrictedStrategyLiquidate__factory,
+  MdexRestrictedStrategyPartialCloseLiquidate__factory,
+  MdexRestrictedStrategyPartialCloseMinimizeTrading__factory,
+  MdexRestrictedStrategyWithdrawMinimizeTrading__factory,
+  MdexRestrictedStrategyAddTwosidesOptimal__factory
 } from "../../typechain";
 
 export interface IBEP20 {
@@ -236,6 +255,193 @@ export class DeployHelper {
 
     return [addStrat, liqStrat, twoSidesStrat, minimizeTradeStrat, partialCloseStrat, partialCloseMinimizeStrat];
   }
+
+  public async deployMdex(
+    wbnb: MockWBNB,
+    mdxPerBlock: BigNumberish,
+    mdxHolders: Array<IHolder>
+  ): Promise<[MdexFactory, MdexRouter, MdxToken, BSCPool]> {
+    // Setup Pancakeswap
+    const MdexFactory = (await ethers.getContractFactory(
+      "MdexFactory",
+      this.deployer
+    )) as MdexFactory__factory;
+    const factoryV2 = await MdexFactory.deploy(await this.deployer.getAddress());
+    await factoryV2.deployed();
+
+    const MdexRouter = (await ethers.getContractFactory(
+      "MdexRouter",
+      this.deployer
+    )) as MdexRouter__factory;
+    const routerV2 = await MdexRouter.deploy(factoryV2.address, wbnb.address);
+    await routerV2.deployed();
+
+    // Deploy MdxToken
+    const MdxToken = (await ethers.getContractFactory("MdxToken", this.deployer)) as MdxToken__factory;
+    const mdx = await MdxToken.deploy();
+    await mdx.deployed();
+    if (mdxHolders !== undefined) {
+      mdxHolders.forEach(
+        async (mdxHolder) => {
+          await mdx["addMinter(address)"](mdxHolder.address)
+          await mdx["mint(address,uint256)"](mdxHolder.address, mdxHolder.amount)
+        }
+      );
+    }
+
+    /// Setup BSCPool
+    const BSCPool = (await ethers.getContractFactory(
+      "BSCPool",
+      this.deployer
+    )) as BSCPool__factory;
+    const masterChef = await BSCPool.deploy(
+      mdx.address,
+      mdxPerBlock,
+      0
+    );
+    await masterChef.deployed();
+
+    // Transfer ownership so masterChef can mint CAKE
+    await Promise.all([
+      await mdx.transferOwnership(masterChef.address),
+    ]);
+
+    return [factoryV2, routerV2, mdx, masterChef];
+  }
+
+  public async deployMdexStrategies(
+    router: MdexRouter,
+    vault: Vault,
+    wbnb: MockWBNB,
+    wNativeRelayer: WNativeRelayer,
+    mdx: string
+  ): Promise<
+    [
+      MdexRestrictedStrategyAddBaseTokenOnly,
+      MdexRestrictedStrategyLiquidate,
+      MdexRestrictedStrategyAddTwosidesOptimal,
+      MdexRestrictedStrategyWithdrawMinimizeTrading,
+      MdexRestrictedStrategyPartialCloseLiquidate,
+      MdexRestrictedStrategyPartialCloseMinimizeTrading
+    ]
+  > {
+    /// Setup strategy
+    const MdexRestrictedStrategyAddBaseTokenOnly = (await ethers.getContractFactory(
+      "MdexRestrictedStrategyAddBaseTokenOnly",
+      this.deployer
+    )) as MdexRestrictedStrategyAddBaseTokenOnly__factory;
+
+    const addStrat = (await upgrades.deployProxy(MdexRestrictedStrategyAddBaseTokenOnly, [
+      router.address,
+      mdx
+    ])) as MdexRestrictedStrategyAddBaseTokenOnly;
+    await addStrat.deployed();
+
+    const MdexRestrictedStrategyLiquidate = (await ethers.getContractFactory(
+      "MdexRestrictedStrategyLiquidate",
+      this.deployer
+    )) as MdexRestrictedStrategyLiquidate__factory;
+    const liqStrat = (await upgrades.deployProxy(MdexRestrictedStrategyLiquidate, [
+      router.address,
+    ])) as MdexRestrictedStrategyLiquidate;
+    await liqStrat.deployed();
+
+    const MdexRestrictedStrategyAddTwoSidesOptimal = (await ethers.getContractFactory(
+      "MdexRestrictedStrategyAddTwosidesOptimal",
+      this.deployer
+    )) as MdexRestrictedStrategyAddTwosidesOptimal__factory;
+    const twoSidesStrat = (await upgrades.deployProxy(MdexRestrictedStrategyAddTwoSidesOptimal, [
+      router.address,
+      vault.address,
+      mdx
+    ])) as MdexRestrictedStrategyAddTwosidesOptimal;
+
+    const MdexRestrictedStrategyWithdrawMinimizeTrading = (await ethers.getContractFactory(
+      "MdexRestrictedStrategyWithdrawMinimizeTrading",
+      this.deployer
+    )) as MdexRestrictedStrategyWithdrawMinimizeTrading__factory;
+    const minimizeTradeStrat = (await upgrades.deployProxy(MdexRestrictedStrategyWithdrawMinimizeTrading, [
+      router.address,
+      wbnb.address,
+      wNativeRelayer.address,
+      mdx
+    ])) as MdexRestrictedStrategyWithdrawMinimizeTrading;
+
+    const MdexRestrictedStrategyPartialCloseLiquidate = (await ethers.getContractFactory(
+      "MdexRestrictedStrategyPartialCloseLiquidate",
+      this.deployer
+    )) as MdexRestrictedStrategyPartialCloseLiquidate__factory;
+    const partialCloseStrat = (await upgrades.deployProxy(MdexRestrictedStrategyPartialCloseLiquidate, [
+      router.address,
+      mdx
+    ])) as MdexRestrictedStrategyPartialCloseLiquidate;
+    await partialCloseStrat.deployed();
+    await wNativeRelayer.setCallerOk([partialCloseStrat.address], true);
+
+    const MdexRestrictedStrategyPartialCloseMinimizeTrading = (await ethers.getContractFactory(
+      "MdexRestrictedStrategyPartialCloseMinimizeTrading",
+      this.deployer
+    )) as MdexRestrictedStrategyPartialCloseMinimizeTrading__factory;
+    const partialCloseMinimizeStrat = (await upgrades.deployProxy(
+      MdexRestrictedStrategyPartialCloseMinimizeTrading,
+      [router.address, wbnb.address, wNativeRelayer.address, mdx]
+    )) as MdexRestrictedStrategyPartialCloseMinimizeTrading;
+    await partialCloseMinimizeStrat.deployed();
+    await wNativeRelayer.setCallerOk([partialCloseMinimizeStrat.address], true);
+
+    return [addStrat, liqStrat, twoSidesStrat, minimizeTradeStrat, partialCloseStrat, partialCloseMinimizeStrat];
+  }
+
+  public async deployMdexWorker(
+    vault: Vault,
+    btoken: MockERC20,
+    masterChef: BSCPool,
+    routerV2: MdexRouter,
+    poolIndex: number,
+    workFactor: BigNumberish,
+    killFactor: BigNumberish,
+    addStrat: MdexRestrictedStrategyAddBaseTokenOnly,
+    liqStrat: MdexRestrictedStrategyLiquidate,
+    reinvestBountyBps: BigNumberish,
+    okReinvestor: string[],
+    treasuryAddress: string,
+    reinvestPath: Array<string>,
+    extraStrategies: string[],
+    simpleVaultConfig: SimpleVaultConfig
+  ): Promise<MdexWorker> {
+    const MdexWorker = (await ethers.getContractFactory(
+      "MdexWorker",
+      this.deployer
+    )) as MdexWorker__factory;
+    const worker = (await upgrades.deployProxy(MdexWorker, [
+      vault.address,
+      btoken.address,
+      masterChef.address,
+      routerV2.address,
+      poolIndex,
+      addStrat.address,
+      liqStrat.address,
+      reinvestBountyBps,
+      treasuryAddress,
+      reinvestPath,
+      0,
+    ])) as MdexWorker;
+    await worker.deployed();
+
+    await simpleVaultConfig.setWorker(worker.address, true, true, workFactor, killFactor, true, true);
+    await worker.setStrategyOk(extraStrategies, true);
+    await worker.setReinvestorOk(okReinvestor, true);
+    await worker.setTreasuryConfig(treasuryAddress, reinvestBountyBps);
+
+    extraStrategies.push(...[addStrat.address, liqStrat.address]);
+    extraStrategies.forEach(async (stratAddress) => {
+      const strat = MdexRestrictedStrategyLiquidate__factory.connect(stratAddress, this.deployer);
+      await strat.setWorkersOk([worker.address], true);
+    });
+
+    return worker;
+  }
+
 
   public async deployBEP20(bep20s: Array<IBEP20>): Promise<Array<MockERC20>> {
     const promises = [];

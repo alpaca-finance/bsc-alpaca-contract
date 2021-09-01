@@ -1,11 +1,13 @@
 import { BigNumber, BigNumberish, Signer } from "ethers";
 import {
   IERC20,
+  MdexRouter,
   PancakeFactory,
   PancakeFactory__factory,
   PancakePair__factory,
   PancakeRouterV2,
   PancakeRouterV2__factory,
+  MdexRouter__factory
 } from "../../typechain";
 import { sqrt } from "./math";
 
@@ -29,6 +31,7 @@ export class SwapHelper {
   private FOREVER = "2000000000";
   private factory: PancakeFactory;
   private router: PancakeRouterV2;
+  private mdexRouter: MdexRouter;
   private signer: Signer;
   private fee: BigNumber;
   private feeDenom: BigNumber;
@@ -42,10 +45,38 @@ export class SwapHelper {
     this.fee = _fee;
     this.feeDenom = _feeDenom;
     this.reserves = [];
+    this.mdexRouter = MdexRouter__factory.connect(_routerAddress, _signer)
   }
 
   public async addLiquidities(liquidities: Array<ILiquidity>) {
     const wbnbAddress = await this.router.WETH();
+
+    for (const liq of liquidities) {
+      if (liq.token0.address === wbnbAddress)
+        this.signer.sendTransaction({ to: wbnbAddress, value: liq.amount0desired });
+
+      if (liq.token1.address === wbnbAddress)
+        this.signer.sendTransaction({ to: wbnbAddress, value: liq.amount1desired });
+
+      await liq.token0.approve(this.router.address, liq.amount0desired);
+      await liq.token1.approve(this.router.address, liq.amount1desired);
+
+      await this.router.addLiquidity(
+        liq.token0.address,
+        liq.token1.address,
+        liq.amount0desired,
+        liq.amount1desired,
+        0,
+        0,
+        await this.signer.getAddress(),
+        this.FOREVER
+      );
+    }
+  }
+
+
+  public async addMdexLiquidities(liquidities: Array<ILiquidity>) {
+    const wbnbAddress = await this.mdexRouter.WBNB();
 
     for (const liq of liquidities) {
       if (liq.token0.address === wbnbAddress)
