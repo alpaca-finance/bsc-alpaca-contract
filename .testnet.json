@@ -45,7 +45,7 @@
     "pools": [
       {
         "id": 0,
-        "stakingToken": "debtibBNB",
+        "stakingToken": "debtibBNB (Legacy)",
         "address": "0x897E178C31D86Dbf00982c4F6dB1F5fd9A476964"
       },
       {
@@ -55,7 +55,7 @@
       },
       {
         "id": 2,
-        "stakingToken": "debtibBUSD",
+        "stakingToken": "debtibBUSD (Legacy)",
         "address": "0xe6A88866dfeaC58a7BD7fa721C2DfF49501fC791"
       },
       {
