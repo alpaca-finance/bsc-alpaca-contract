@@ -48,6 +48,7 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
   uint256 public epsA;
   uint256 public epsFee;
   uint256 public epsFeeDenom;
+  uint256 public PRECISION;
 
   IVault public vault;
 
@@ -59,9 +60,10 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     IVault _vault,
     address[] calldata _epsPoolTokens
   ) external initializer {
-    // 1. Initialized imported library
+    // 1. Initialized imported library and constants
     OwnableUpgradeSafe.__Ownable_init();
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
+    PRECISION = 10**18;
 
     // 2. Assign Pancakeswap dependency contracts
     router = IPancakeRouter02(_router);
@@ -265,8 +267,11 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
       (x, y) = find_intersection_of_l_with_tangent(var_pack, N_COINS);
       (x, y) = ver_hor_newton_step(x, y, var_pack);
     }
-    return x.sub(sb_state.balances[sb_state.i]);
-    // dy = (sb_state.balances[sb_state.j].sub(y)).sub(((sb_state.balances[sb_state.j].sub(y)).mul(epsFee)).div(epsFeeDenom));
+    if (x < sb_state.balances[sb_state.i]) {
+      return 0;
+    } else {
+      return x.sub(sb_state.balances[sb_state.i]);
+    }
   }
 
   function f_pos(
@@ -431,8 +436,6 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
       (x_, y_) = update_x_y_(x, y, var_pack);
 
       if (within_distance(y, y_, 1) || ((x_.mul(y_)).add(x.mul(y)) <= ((x_.mul(y)).add(x.mul(y_)).add(1)))) {
-        // TODO: REMOVE console.log
-        console.log("Terminated at iter", _i);
         break;
       }
 
@@ -444,10 +447,10 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
         vydx_pos = var_pack.Yfp.mul(x.sub(x_));
       }
 
-      if (vxdy_pos > pow(var_pack.D, 2)) {
+      if (vxdy_pos > pow(PRECISION, 2)) {
         // To prevent overflow
-        vxdy_pos = vxdy_pos.div(var_pack.D);
-        vydx_pos = vydx_pos.div(var_pack.D);
+        vxdy_pos = vxdy_pos.div(PRECISION);
+        vydx_pos = vydx_pos.div(PRECISION);
       }
 
       {
