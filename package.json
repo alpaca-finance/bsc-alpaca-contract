@@ -193,6 +193,7 @@
     "test:waultrestrictedpartialcloseminimize": "hardhat test --no-compile ./test/WaultSwap_Restricted_StrategyPartialCloseMinimizeTrading.test.ts",
     "test:vaultwaultswap": "hardhat test --no-compile ./test/Vault_WaultSwap.test.ts",
     "test:vaultwaultswap02": "hardhat test --no-compile ./test/Vault_WaultSwap02.test.ts",
+    "test:mdexrestrictedpartialliquidate": "hardhat test --no-compile ./test/Mdex_Restricted_StrategyPartialCloseLiquidate.test.ts",
     "test:router": "hardhat test --no-compile ./test/IbTokenRouter.test.ts",
     "test:timelock": "hardhat test --no-compile ./test/Timelock.test.ts",
     "test:tripleslope": "hardhat test --no-compile ./test/TripleSlopeModel.test.ts",
