@@ -22,7 +22,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const TOKEN1_SYMBOLS = ["BUSD", "BUSD"];
   const MAX_PRICE_DEVIATIONS = [DEFAULT_MAX_PRICE_DEVIATION, DEFAULT_MAX_PRICE_DEVIATION];
   const MAX_PRICE_STALES = [DEFAULT_MAX_PRICE_STALE, DEFAULT_MAX_PRICE_STALE];
-  const SOURCES = [[config.Oracle.SimpleOracle, config.Oracle.SimpleOracle]];
+  const SOURCES = [[config.Oracle.SimpleOracle], [config.Oracle.SimpleOracle]];
 
   const tokenList: any = config.Tokens;
   const token0Addrs: Array<string> = TOKEN0_SYMBOLS.map((t) => {
