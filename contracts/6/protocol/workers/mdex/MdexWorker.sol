@@ -28,8 +28,6 @@ import "../../../utils/AlpacaMath.sol";
 import "../../../utils/SafeToken.sol";
 import "../../interfaces/IVault.sol";
 
-import "hardhat/console.sol";
-
 contract MdexWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02 {
   /// @notice Libraries
   using SafeToken for address;
@@ -68,7 +66,6 @@ contract MdexWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02
   address public wNative;
   address public override baseToken;
   address public override farmingToken;
-  // TODO: should change to government coin
   address public mdx;
   address public operator;
   uint256 public pid;
@@ -84,7 +81,6 @@ contract MdexWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02
   mapping(address => bool) public okReinvestors;
 
   /// @notice Configuration varaibles for MdexWorker
-  uint256 public fee; // TODO: remove this field, we using fee from pair instead
   uint256 public feeDenom;
 
   /// @notice Upgraded State Variables for MdexWorker
@@ -146,7 +142,6 @@ contract MdexWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02
     maxReinvestBountyBps = 500;
 
     // 6. Set MDEX fees
-    fee = 10000 - factory.getPairFees(address(_lpToken));
     feeDenom = 10000;
 
     // 7. Check if critical parameters are config properly
@@ -292,7 +287,8 @@ contract MdexWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02
   function getMktSellAmount(
     uint256 aIn,
     uint256 rIn,
-    uint256 rOut
+    uint256 rOut,
+    uint256 fee
   ) public view returns (uint256) {
     if (aIn == 0) return 0;
     require(rIn > 0 && rOut > 0, "MdexWorker::getMktSellAmount:: bad reserve values");
@@ -315,8 +311,14 @@ contract MdexWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02
     uint256 userBaseToken = lpBalance.mul(totalBaseToken).div(lpSupply);
     uint256 userFarmingToken = lpBalance.mul(totalFarmingToken).div(lpSupply);
     // 4. Convert all FarmingToken to BaseToken and return total BaseToken.
+    uint256 fee = feeDenom - factory.getPairFees(address(lpToken));
     return
-      getMktSellAmount(userFarmingToken, totalFarmingToken.sub(userFarmingToken), totalBaseToken.sub(userBaseToken))
+      getMktSellAmount(
+        userFarmingToken,
+        totalFarmingToken.sub(userFarmingToken),
+        totalBaseToken.sub(userBaseToken),
+        fee
+      )
         .add(userBaseToken);
   }
 
