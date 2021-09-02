@@ -18,23 +18,33 @@ import {
     WETH__factory,
     MockMdexWorker,
     MockMdexWorker__factory,
+    MdxToken,
+    MdxToken__factory,
+    SwapMining,
+    SwapMining__factory,
+    Oracle,
+    Oracle__factory
   } from "../typechain";
 
 import { assertAlmostEqual } from "./helpers/assert";
 import { formatEther } from "ethers/lib/utils";
+import * as TimeHelpers from "./helpers/time";
 
 chai.use(solidity);
 const { expect } = chai;
 
 describe("MdexRestrictedStrategyAddBaseTokenOnly", () => {
     const FOREVER = "2000000000";
+    const mdxPerBlock = "51600000000000000000";
 
-    /// Pancakeswap-related instance(s)
+    /// Mdex-related instance(s)
     let factory: MdexFactory;
     let router: MdexRouter;
     let lp: MdexPair;
+    let oracle : Oracle;
+    let swapMining: SwapMining;
 
-    /// MockPancakeswapV2Worker-related instance(s)
+    /// MockMdexWorker-related instance(s)
     let mockMdexWorker: MockMdexWorker;
     let mockMdexEvilWorker: MockMdexWorker;
 
@@ -42,7 +52,7 @@ describe("MdexRestrictedStrategyAddBaseTokenOnly", () => {
     let wbnb: WETH;
     let baseToken: MockERC20;
     let farmingToken: MockERC20;
-    let mdexToken: MockERC20;
+    let mdxToken: MdxToken;
 
     /// Strategy instance(s)
     let strat: MdexRestrictedStrategyAddBaseTokenOnly;
@@ -68,7 +78,7 @@ describe("MdexRestrictedStrategyAddBaseTokenOnly", () => {
     async function fixture() {
         [deployer, alice, bob] = await ethers.getSigners();
     
-        // Setup Pancakeswap
+        // Setup Mdex
         const MdexFactory = (await ethers.getContractFactory(
           "MdexFactory",
           deployer
@@ -79,11 +89,21 @@ describe("MdexRestrictedStrategyAddBaseTokenOnly", () => {
         const WBNB = (await ethers.getContractFactory("WETH", deployer)) as WETH__factory;
         wbnb = await WBNB.deploy();
         await wbnb.deployed();
+
+        const MdxToken = (await ethers.getContractFactory("MdxToken", deployer)) as MdxToken__factory;
+        mdxToken = await MdxToken.deploy();
+        await mdxToken.deployed();
+        await mdxToken["addMinter(address)"](await  deployer.getAddress());
+        await mdxToken["mint(address,uint256)"](await deployer.getAddress(), ethers.utils.parseEther("100"));
     
         const MdexRouter = (await ethers.getContractFactory("MdexRouter", deployer)) as MdexRouter__factory;
         router = await MdexRouter.deploy(factory.address, wbnb.address);
         await router.deployed();
-    
+
+        const Oracle = (await ethers.getContractFactory("Oracle", deployer)) as Oracle__factory;
+        oracle = await Oracle.deploy(factory.address);
+        await oracle.deployed();
+        
         /// Setup token stuffs
         const MockERC20 = (await ethers.getContractFactory("MockERC20", deployer)) as MockERC20__factory;
         baseToken = (await upgrades.deployProxy(MockERC20, ["BTOKEN", "BTOKEN"])) as MockERC20;
@@ -94,17 +114,27 @@ describe("MdexRestrictedStrategyAddBaseTokenOnly", () => {
         await farmingToken.deployed();
         await farmingToken.mint(await alice.getAddress(), ethers.utils.parseEther("10"));
         await farmingToken.mint(await bob.getAddress(), ethers.utils.parseEther("10"));
-        mdexToken = (await upgrades.deployProxy(MockERC20, ["MTOKEN", "MTOKEN"])) as MockERC20;
-        await mdexToken.deployed();
     
         await factory.createPair(baseToken.address, farmingToken.address);
     
         lp = MdexPair__factory.connect(await factory.getPair(farmingToken.address, baseToken.address), deployer);
+        await factory.addPair(lp.address)
 
-        // await factory.addPair(lp.address)
-        // await factory.setPairFees(lp.address, 30)
+        // Mdex SwapMinig
+        const blockNumber = await TimeHelpers.latestBlockNumber();
+        const SwapMining = (await ethers.getContractFactory("SwapMining", deployer)) as SwapMining__factory;
+        swapMining = await SwapMining.deploy(mdxToken.address,factory.address,oracle.address, router.address, farmingToken.address, mdxPerBlock, blockNumber);
+        await swapMining.deployed();
+
+        // set swapMining to router
+        await router.setSwapMining(swapMining.address)
+     
+        await mdxToken.addMinter(swapMining.address);
+        await swapMining.addPair(100,lp.address,false);
+        await swapMining.addWhitelist(baseToken.address);
+        await swapMining.addWhitelist(farmingToken.address)
     
-        /// Setup MockPancakeswapV2Worker
+        /// Setup MockMdexWorker
         const MockMdexWorker = (await ethers.getContractFactory(
           "MockMdexWorker",
           deployer
@@ -128,7 +158,7 @@ describe("MdexRestrictedStrategyAddBaseTokenOnly", () => {
         )) as MdexRestrictedStrategyAddBaseTokenOnly__factory;
         strat = (await upgrades.deployProxy(MdexRestrictedStrategyAddBaseTokenOnly, [
           router.address,
-          mdexToken.address,
+          mdxToken.address,
         ])) as MdexRestrictedStrategyAddBaseTokenOnly;
         await strat.deployed();
         await strat.setWorkersOk([mockMdexWorker.address], true);
@@ -151,7 +181,7 @@ describe("MdexRestrictedStrategyAddBaseTokenOnly", () => {
         await farmingTokenAsAlice.approve(router.address, ethers.utils.parseEther("0.1"));
         await baseTokenAsAlice.approve(router.address, ethers.utils.parseEther("1"));
     
-        // // Add liquidity to the BTOKEN-FTOKEN pool on Pancakeswap
+        // // Add liquidity to the BTOKEN-FTOKEN pool on Mdex
         await routerAsAlice.addLiquidity(
           baseToken.address,
           farmingToken.address,
@@ -240,12 +270,16 @@ describe("MdexRestrictedStrategyAddBaseTokenOnly", () => {
             ).to.be.revertedWith("MdexRestrictedStrategyAddBaseTokenOnly::onlyWhitelistedWorkers:: bad worker");
         });
     });
+
+    context("When the withdrawTradingRewards caller is not an owner", async () => {
+        it("should be reverted", async () => {
+          await expect(stratAsBob.withdrawTradingRewards(await bob.getAddress())).to.reverted;
+        });
+    });
     
     it("should convert all BTOKEN to LP tokens at best rate (trading fee 25)", async () => {
-        await factory.addPair(lp.address)
         await factory.setPairFees(lp.address, 25)
         const fee = await factory.getPairFees(lp.address)
-        console.log('PairFee: ', formatEther(fee))
         // Bob transfer 0.1 BTOKEN to StrategyAddBaseTokenOnly first
         await baseTokenAsBob.transfer(mockMdexWorker.address, ethers.utils.parseEther("0.1"));
         // Bob uses AddBaseTokenOnly strategy to add 0.1 BTOKEN
@@ -287,7 +321,6 @@ describe("MdexRestrictedStrategyAddBaseTokenOnly", () => {
         expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
     });
     it("should convert all BTOKEN to LP tokens at best rate (trading fee 20)", async () => {
-        await factory.addPair(lp.address)
         await factory.setPairFees(lp.address, 20)
         // Bob transfer 0.1 BTOKEN to StrategyAddBaseTokenOnly first
         await baseTokenAsBob.transfer(mockMdexWorker.address, ethers.utils.parseEther("0.1"));
@@ -351,5 +384,29 @@ describe("MdexRestrictedStrategyAddBaseTokenOnly", () => {
         expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
         expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
         expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+      });
+
+      it("should be able to withdraw trading rewards", async () => {
+        // set lp pair fee
+        await factory.setPairFees(lp.address,25)
+        // Bob transfer 0.1 BTOKEN to StrategyAddBaseTokenOnly first
+        await baseTokenAsBob.transfer(mockMdexWorker.address, ethers.utils.parseEther("0.1"));
+        // Bob uses AddBaseTokenOnly strategy to add 0.1 BTOKEN
+        await mockMdexWorkerAsBob.work(
+            0,
+            await bob.getAddress(),
+            "0",
+            ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [strat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+            )
+        );
+  
+        const deployerAddress = await deployer.getAddress();
+        const mdxBefore = await mdxToken.balanceOf(deployerAddress);
+        // withdraw trading reward to deployer 
+        await strat.withdrawTradingRewards(deployerAddress);
+        const mdxAfter = await mdxToken.balanceOf(deployerAddress);
+        expect(mdxAfter.sub(mdxBefore)).to.above(0);
       });
 });
