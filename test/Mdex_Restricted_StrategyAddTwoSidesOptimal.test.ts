@@ -208,7 +208,6 @@ describe("MdexRestrictedStrategyAddTwoSideOptimal", () => {
       addRestrictedStrat.address,
       deployer
     );
-    // swapMiningAsAddStrat = SwapMining__factory.connect(swapMining.address,addRestrictedStrat);
 
     baseTokenAsBob = MockERC20__factory.connect(baseToken.address, bob);
 
