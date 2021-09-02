@@ -27,8 +27,6 @@ import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
 
-import "hardhat/console.sol";
-
 contract MdexRestrictedStrategyAddTwoSidesOptimal is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeToken for address;
   using SafeMath for uint256;
@@ -120,20 +118,17 @@ contract MdexRestrictedStrategyAddTwoSidesOptimal is OwnableUpgradeSafe, Reentra
     /* debt */
     bytes calldata data
   ) external override onlyWhitelistedWorkers nonReentrant {
-    console.log("MdexRestrictedStrategyAddTwoSidesOptimal:execute");
     // 1. Find out what farming token we are dealing with.
     (uint256 farmingTokenAmount, uint256 minLPAmount) = abi.decode(data, (uint256, uint256));
     IWorker worker = IWorker(msg.sender);
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
     IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
-
-    uint256 fee = factory.getPairFees(address(lpToken));
-    console.log("MdexRestrictedStrategyAddTwoSidesOptimal:execute:fee", fee);
     // 2. Approve router to do their stuffs
     baseToken.safeApprove(address(router), uint256(-1));
     farmingToken.safeApprove(address(router), uint256(-1));
     // 3. Compute the optimal amount of BaseToken and FarmingToken to be converted.
+    uint256 fee = factory.getPairFees(address(lpToken));
     vault.requestFunds(farmingToken, farmingTokenAmount);
     uint256 baseTokenBalance = baseToken.myBalance();
     uint256 swapAmt;
@@ -149,14 +144,11 @@ contract MdexRestrictedStrategyAddTwoSidesOptimal is OwnableUpgradeSafe, Reentra
         fee
       );
     }
-
-    console.log("MdexRestrictedStrategyAddTwoSidesOptimal:execute:Before step 4");
     // 4. Convert between BaseToken and farming tokens
     address[] memory path = new address[](2);
     (path[0], path[1]) = isReversed ? (farmingToken, baseToken) : (baseToken, farmingToken);
     // 5. Swap according to path
     if (swapAmt > 0) router.swapExactTokensForTokens(swapAmt, 0, path, address(this), now);
-    console.log("MdexRestrictedStrategyAddTwoSidesOptimal:execute: after swap");
     // 6. Mint more LP tokens and return all LP tokens to the sender.
     (, , uint256 moreLPAmount) =
       router.addLiquidity(
@@ -191,10 +183,7 @@ contract MdexRestrictedStrategyAddTwoSidesOptimal is OwnableUpgradeSafe, Reentra
   /// @dev Withdraw trading all reward.
   /// @param to The address to transfer trading reward to.
   function withdrawTradingRewards(address to) external onlyOwner {
-    console.log("MdexRestrictedStrategyAddTwoSidesOptimal:withdrawTradingRewards");
-    console.log("MdexRestrictedStrategyAddTwoSidesOptimal:router.swapMining()", router.swapMining());
     SwapMining(router.swapMining()).takerWithdraw();
-    console.log("MdexRestrictedStrategyAddTwoSidesOptimal:after takeReward");
     SafeToken.safeTransfer(mdx, to, SafeToken.myBalance(mdx));
   }
 }
