@@ -5,8 +5,6 @@ import { solidity } from "ethereum-waffle";
 import "@openzeppelin/test-helpers";
 import {
   AlpacaToken,
-  CakeToken,
-  DebtToken,
   FairLaunch,
   FairLaunch__factory,
   MockContractContext,
@@ -14,34 +12,31 @@ import {
   MockERC20,
   MockERC20__factory,
   MockWBNB,
-  PancakeFactory,
-  PancakeMasterChef,
-  PancakeMasterChef__factory,
   PancakePair,
   PancakePair__factory,
-  PancakeRouterV2,
-  PancakeswapV2RestrictedStrategyAddBaseTokenOnly,
-  PancakeswapV2RestrictedStrategyLiquidate,
-  PancakeswapV2RestrictedStrategyPartialCloseLiquidate,
-  PancakeswapV2Worker,
-  PancakeswapV2Worker__factory,
-  PancakeswapV2Worker02,
-  PancakeswapV2Worker02__factory,
+  MdexWorker__factory,
   SimpleVaultConfig,
-  SyrupBar,
   Vault,
   Vault__factory,
   WNativeRelayer,
   MockBeneficialVault__factory,
   MockBeneficialVault,
-  PancakeswapV2RestrictedStrategyAddTwoSidesOptimal,
-  PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading,
-  PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading,
-  MasterChef,
+  MdexWorker,
+  MdexFactory,
+  MdexRouter,
+  BSCPool,
+  MdxToken,
+  MdexRestrictedStrategyAddBaseTokenOnly,
+  MdexRestrictedStrategyAddTwoSidesOptimal,
+  MdexRestrictedStrategyWithdrawMinimizeTrading,
+  MdexRestrictedStrategyLiquidate,
+  MdexRestrictedStrategyPartialCloseLiquidate,
+  MdexRestrictedStrategyPartialCloseMinimizeTrading,
+  BSCPool__factory
 } from "../typechain";
-import * as AssertHelpers from "./helpers/assert";
 import * as TimeHelpers from "./helpers/time";
-import { parseEther } from "ethers/lib/utils";
+import { formatEther, parseEther } from "ethers/lib/utils";
+import * as AssertHelpers from "./helpers/assert";
 import { DeployHelper } from "./helpers/deploy";
 import { SwapHelper } from "./helpers/swap";
 import { Worker02Helper } from "./helpers/worker";
@@ -49,11 +44,11 @@ import { Worker02Helper } from "./helpers/worker";
 chai.use(solidity);
 const { expect } = chai;
 
-describe("Vault - PancakeswapV202", () => {
+describe("Vault - MdexWorker", () => {
   const FOREVER = "2000000000";
   const ALPACA_BONUS_LOCK_UP_BPS = 7000;
   const ALPACA_REWARD_PER_BLOCK = ethers.utils.parseEther("5000");
-  const CAKE_REWARD_PER_BLOCK = ethers.utils.parseEther("0.076");
+  const MDX_REWARD_PER_BLOCK = ethers.utils.parseEther("0.076");
   const REINVEST_BOUNTY_BPS = "100"; // 1% reinvest bounty
   const RESERVE_POOL_BPS = "1000"; // 10% reserve pool
   const KILL_PRIZE_BPS = "1000"; // 10% Kill prize
@@ -64,13 +59,13 @@ describe("Vault - PancakeswapV202", () => {
   const MAX_REINVEST_BOUNTY: string = "500";
   const DEPLOYER = "0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51";
   const BENEFICIALVAULT_BOUNTY_BPS = "1000";
-  const REINVEST_THRESHOLD = ethers.utils.parseEther("1"); // If pendingCake > 1 $CAKE, then reinvest
+  const REINVEST_THRESHOLD = ethers.utils.parseEther("1"); // If pendingCake > 1 $MDX, then reinvest
   const KILL_TREASURY_BPS = "100";
-  const POOL_ID = 1;
+  const POOL_IDX = 0;
 
-  /// Pancakeswap-related instance(s)
-  let factoryV2: PancakeFactory;
-  let routerV2: PancakeRouterV2;
+  /// Mdex-related instance(s)
+  let mdexFactory: MdexFactory;
+  let mdexRouter: MdexRouter;
 
   let wbnb: MockWBNB;
   let lp: PancakePair;
@@ -78,17 +73,15 @@ describe("Vault - PancakeswapV202", () => {
   /// Token-related instance(s)
   let baseToken: MockERC20;
   let farmToken: MockERC20;
-  let cake: CakeToken;
-  let syrup: SyrupBar;
-  let debtToken: DebtToken;
+  let mdx: MdxToken
 
   /// Strategy-ralted instance(s)
-  let addStrat: PancakeswapV2RestrictedStrategyAddBaseTokenOnly;
-  let twoSidesStrat: PancakeswapV2RestrictedStrategyAddTwoSidesOptimal;
-  let liqStrat: PancakeswapV2RestrictedStrategyLiquidate;
-  let minimizeStrat: PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading;
-  let partialCloseStrat: PancakeswapV2RestrictedStrategyPartialCloseLiquidate;
-  let partialCloseMinimizeStrat: PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading;
+  let addStrat: MdexRestrictedStrategyAddBaseTokenOnly;
+  let twoSidesStrat: MdexRestrictedStrategyAddTwoSidesOptimal;
+  let liqStrat: MdexRestrictedStrategyLiquidate;
+  let minimizeStrat: MdexRestrictedStrategyWithdrawMinimizeTrading;
+  let partialCloseStrat: MdexRestrictedStrategyPartialCloseLiquidate;
+  let partialCloseMinimizeStrat: MdexRestrictedStrategyPartialCloseMinimizeTrading;
 
   /// Vault-related instance(s)
   let simpleVaultConfig: SimpleVaultConfig;
@@ -99,10 +92,9 @@ describe("Vault - PancakeswapV202", () => {
   let fairLaunch: FairLaunch;
   let alpacaToken: AlpacaToken;
 
-  /// PancakeswapMasterChef-related instance(s)
-  let masterChef: PancakeMasterChef;
-  let pancakeswapV2Worker: PancakeswapV2Worker02;
-  let pancakeswapV2Worker01: PancakeswapV2Worker;
+  /// MdexBSCPool-related instance(s)
+  let bscPool: BSCPool;
+  let mdexWorker: MdexWorker;
 
   /// Timelock instance(s)
   let whitelistedContract: MockContractContext;
@@ -130,11 +122,10 @@ describe("Vault - PancakeswapV202", () => {
   let lpAsAlice: PancakePair;
   let lpAsBob: PancakePair;
 
-  let pancakeMasterChefAsAlice: PancakeMasterChef;
-  let pancakeMasterChefAsBob: PancakeMasterChef;
+  let bscPoolAsAlice: BSCPool;
+  let bscPoolAsBob: BSCPool;
 
-  let pancakeswapV2WorkerAsEve: PancakeswapV2Worker02;
-  let pancakeswapV2Worker01AsEve: PancakeswapV2Worker;
+  let mdexWorkerAsEve: MdexWorker;
 
   let vaultAsAlice: Vault;
   let vaultAsBob: Vault;
@@ -152,6 +143,7 @@ describe("Vault - PancakeswapV202", () => {
       bob.getAddress(),
       eve.getAddress(),
     ]);
+
     const deployHelper = new DeployHelper(deployer);
 
     // Setup MockContractContext
@@ -185,16 +177,20 @@ describe("Vault - PancakeswapV202", () => {
         ],
       },
     ]);
+
     wbnb = await deployHelper.deployWBNB();
-    [factoryV2, routerV2, cake, syrup, masterChef] = await deployHelper.deployPancakeV2(wbnb, CAKE_REWARD_PER_BLOCK, [
+
+    [mdexFactory, mdexRouter, mdx, bscPool] = await deployHelper.deployMdex(wbnb, MDX_REWARD_PER_BLOCK, [
       { address: deployerAddress, amount: ethers.utils.parseEther("100") },
     ]);
+
     [alpacaToken, fairLaunch] = await deployHelper.deployAlpacaFairLaunch(
       ALPACA_REWARD_PER_BLOCK,
       ALPACA_BONUS_LOCK_UP_BPS,
       132,
       137
     );
+
     [vault, simpleVaultConfig, wNativeRelayer] = await deployHelper.deployVault(
       wbnb,
       {
@@ -208,9 +204,10 @@ describe("Vault - PancakeswapV202", () => {
       fairLaunch,
       baseToken
     );
+
     // Setup strategies
     [addStrat, liqStrat, twoSidesStrat, minimizeStrat, partialCloseStrat, partialCloseMinimizeStrat] =
-      await deployHelper.deployPancakeV2Strategies(routerV2, vault, wbnb, wNativeRelayer);
+      await deployHelper.deployMdexStrategies(mdexRouter, vault, wbnb, wNativeRelayer, mdx.address);
 
     // whitelisted contract to be able to call work
     await simpleVaultConfig.setWhitelistedCallers([whitelistedContract.address], true);
@@ -222,18 +219,21 @@ describe("Vault - PancakeswapV202", () => {
     await simpleVaultConfig.setApprovedAddStrategy([addStrat.address, twoSidesStrat.address], true);
 
     // Setup BTOKEN-FTOKEN pair on Pancakeswap
-    // Add lp to masterChef's pool
-    await factoryV2.createPair(baseToken.address, farmToken.address);
-    lp = PancakePair__factory.connect(await factoryV2.getPair(farmToken.address, baseToken.address), deployer);
-    await masterChef.add(1, lp.address, true);
+    // Add lp to bscPool's pool
+    await mdexFactory.createPair(baseToken.address, farmToken.address);
+    lp = PancakePair__factory.connect(await mdexFactory.getPair(farmToken.address, baseToken.address), deployer);
+    await bscPool.add(1, lp.address, true);
 
-    /// Setup PancakeswapV2Worker02
-    pancakeswapV2Worker = await deployHelper.deployPancakeV2Worker02(
+    await mdexFactory.addPair(lp.address)
+    await mdexFactory.setPairFees(lp.address, 25)
+
+    /// Setup MdexWorker
+    mdexWorker = await deployHelper.deployMdexWorker(
       vault,
       baseToken,
-      masterChef,
-      routerV2,
-      POOL_ID,
+      bscPool,
+      mdexRouter,
+      POOL_IDX,
       WORK_FACTOR,
       KILL_FACTOR,
       addStrat,
@@ -241,35 +241,20 @@ describe("Vault - PancakeswapV202", () => {
       REINVEST_BOUNTY_BPS,
       [eveAddress],
       DEPLOYER,
-      [cake.address, wbnb.address, baseToken.address],
-      [twoSidesStrat.address, minimizeStrat.address, partialCloseStrat.address, partialCloseMinimizeStrat.address],
-      simpleVaultConfig
-    );
-
-    pancakeswapV2Worker01 = await deployHelper.deployPancakeV2Worker(
-      vault,
-      baseToken,
-      masterChef,
-      routerV2,
-      POOL_ID,
-      WORK_FACTOR,
-      KILL_FACTOR,
-      addStrat,
-      liqStrat,
-      REINVEST_BOUNTY_BPS,
-      [eveAddress],
+      [mdx.address, wbnb.address, baseToken.address],
       [twoSidesStrat.address, minimizeStrat.address, partialCloseStrat.address, partialCloseMinimizeStrat.address],
       simpleVaultConfig
     );
 
     swapHelper = new SwapHelper(
-      factoryV2.address,
-      routerV2.address,
+      mdexFactory.address,
+      mdexRouter.address,
       BigNumber.from(9975),
       BigNumber.from(10000),
       deployer
     );
-    await swapHelper.addLiquidities([
+
+    await swapHelper.addMdexLiquidities([
       {
         token0: baseToken,
         token1: farmToken,
@@ -277,7 +262,7 @@ describe("Vault - PancakeswapV202", () => {
         amount1desired: ethers.utils.parseEther("0.1"),
       },
       {
-        token0: cake,
+        token0: mdx,
         token1: wbnb,
         amount0desired: ethers.utils.parseEther("0.1"),
         amount1desired: ethers.utils.parseEther("1"),
@@ -307,32 +292,30 @@ describe("Vault - PancakeswapV202", () => {
 
     fairLaunchAsAlice = FairLaunch__factory.connect(fairLaunch.address, alice);
 
-    pancakeMasterChefAsAlice = PancakeMasterChef__factory.connect(masterChef.address, alice);
-    pancakeMasterChefAsBob = PancakeMasterChef__factory.connect(masterChef.address, bob);
+    bscPoolAsAlice = BSCPool__factory.connect(bscPool.address, alice);
+    bscPoolAsBob = BSCPool__factory.connect(bscPool.address, bob);
 
     vaultAsAlice = Vault__factory.connect(vault.address, alice);
     vaultAsBob = Vault__factory.connect(vault.address, bob);
     vaultAsEve = Vault__factory.connect(vault.address, eve);
 
-    pancakeswapV2WorkerAsEve = PancakeswapV2Worker02__factory.connect(pancakeswapV2Worker.address, eve);
-    pancakeswapV2Worker01AsEve = PancakeswapV2Worker__factory.connect(pancakeswapV2Worker01.address, eve);
+    mdexWorkerAsEve = MdexWorker__factory.connect(mdexWorker.address, eve);
   }
 
   beforeEach(async () => {
     await waffle.loadFixture(fixture);
 
     // reassign SwapHelper here due to provider will be different for each test-case
-    workerHelper = new Worker02Helper(pancakeswapV2Worker.address, masterChef.address);
+    workerHelper = new Worker02Helper(mdexWorker.address, bscPool.address);
   });
 
   context("when worker is initialized", async () => {
-    it("should has FTOKEN as a farmingToken in PancakeswapWorker", async () => {
-      expect(await pancakeswapV2Worker.farmingToken()).to.be.equal(farmToken.address);
+    it("should has FTOKEN as a farmingToken in MdexWorker", async () => {
+      expect(farmToken.address).to.be.equal(await mdexWorker.farmingToken());
     });
 
-    it("should initialized the correct fee and feeDenom", async () => {
-      expect(await pancakeswapV2Worker.fee()).to.be.bignumber.eq("9975");
-      expect(await pancakeswapV2Worker.feeDenom()).to.be.bignumber.eq("10000");
+    it("should initialized the correct feeDenom", async () => {
+      expect("10000").to.be.bignumber.eq(await mdexWorker.feeDenom());
     });
 
     it("should give rewards out when you stake LP tokens", async () => {
@@ -341,22 +324,23 @@ describe("Vault - PancakeswapV202", () => {
       await lp.transfer(bobAddress, ethers.utils.parseEther("0.05"));
 
       // Alice and Bob stake 0.01 LP tokens and waits for 1 day
-      await lpAsAlice.approve(masterChef.address, ethers.utils.parseEther("0.01"));
-      await lpAsBob.approve(masterChef.address, ethers.utils.parseEther("0.02"));
-      await pancakeMasterChefAsAlice.deposit(POOL_ID, ethers.utils.parseEther("0.01"));
-      await pancakeMasterChefAsBob.deposit(POOL_ID, ethers.utils.parseEther("0.02")); // alice +1 Reward
+      await lpAsAlice.approve(bscPool.address, ethers.utils.parseEther("0.01"));
+      await lpAsBob.approve(bscPool.address, ethers.utils.parseEther("0.02"));
+
+      await bscPoolAsAlice.deposit(POOL_IDX, ethers.utils.parseEther("0.01"));
+      await bscPoolAsBob.deposit(POOL_IDX, ethers.utils.parseEther("0.02")); // alice +1 Reward
 
       // Alice and Bob withdraw stake from the pool
-      await pancakeMasterChefAsBob.withdraw(POOL_ID, ethers.utils.parseEther("0.02")); // alice +1/3 Reward  Bob + 2/3 Reward
-      await pancakeMasterChefAsAlice.withdraw(POOL_ID, ethers.utils.parseEther("0.01")); // alice +1 Reward
+      await bscPoolAsBob.withdraw(POOL_IDX, ethers.utils.parseEther("0.02")); // alice +1/3 Reward  Bob + 2/3 Reward
+      await bscPoolAsAlice.withdraw(POOL_IDX, ethers.utils.parseEther("0.01")); // alice +1 Reward
 
       AssertHelpers.assertAlmostEqual(
-        (await cake.balanceOf(aliceAddress)).toString(),
-        CAKE_REWARD_PER_BLOCK.mul(BigNumber.from(7)).div(BigNumber.from(3)).toString()
+        (await mdx.balanceOf(aliceAddress)).toString(),
+        MDX_REWARD_PER_BLOCK.mul(BigNumber.from(7)).div(BigNumber.from(3)).toString()
       );
       AssertHelpers.assertAlmostEqual(
-        (await cake.balanceOf(bobAddress)).toString(),
-        CAKE_REWARD_PER_BLOCK.mul(2).div(3).toString()
+        (await mdx.balanceOf(bobAddress)).toString(),
+        MDX_REWARD_PER_BLOCK.mul(2).div(3).toString()
       );
     });
   });
@@ -365,73 +349,73 @@ describe("Vault - PancakeswapV202", () => {
     describe("#reinvestConfig", async () => {
       it("should set reinvest config correctly", async () => {
         await expect(
-          pancakeswapV2Worker.setReinvestConfig(250, ethers.utils.parseEther("1"), [cake.address, baseToken.address])
+          mdexWorker.setReinvestConfig(250, ethers.utils.parseEther("1"), [mdx.address, baseToken.address])
         )
-          .to.be.emit(pancakeswapV2Worker, "SetReinvestConfig")
-          .withArgs(deployerAddress, 250, ethers.utils.parseEther("1"), [cake.address, baseToken.address]);
-        expect(await pancakeswapV2Worker.reinvestBountyBps()).to.be.bignumber.eq(250);
-        expect(await pancakeswapV2Worker.reinvestThreshold()).to.be.bignumber.eq(ethers.utils.parseEther("1"));
-        expect(await pancakeswapV2Worker.getReinvestPath()).to.deep.eq([cake.address, baseToken.address]);
+          .to.be.emit(mdexWorker, "SetReinvestConfig")
+          .withArgs(deployerAddress, 250, ethers.utils.parseEther("1"), [mdx.address, baseToken.address]);
+        expect(await mdexWorker.reinvestBountyBps()).to.be.bignumber.eq(250);
+        expect(await mdexWorker.reinvestThreshold()).to.be.bignumber.eq(ethers.utils.parseEther("1"));
+        expect(await mdexWorker.getReinvestPath()).to.deep.eq([mdx.address, baseToken.address]);
       });
 
       it("should revert when owner set reinvestBountyBps > max", async () => {
         await expect(
-          pancakeswapV2Worker.setReinvestConfig(1000, "0", [cake.address, baseToken.address])
+          mdexWorker.setReinvestConfig(1000, "0", [mdx.address, baseToken.address])
         ).to.be.revertedWith(
-          "PancakeswapV2Worker02::setReinvestConfig:: _reinvestBountyBps exceeded maxReinvestBountyBps"
+          "MdexWorker::setReinvestConfig:: _reinvestBountyBps exceeded maxReinvestBountyBps"
         );
-        expect(await pancakeswapV2Worker.reinvestBountyBps()).to.be.bignumber.eq(100);
+        expect(await mdexWorker.reinvestBountyBps()).to.be.bignumber.eq(100);
       });
 
-      it("should revert when owner set reinvest path that doesn't start with $CAKE and end with $BTOKN", async () => {
+      it("should revert when owner set reinvest path that doesn't start with $MDX and end with $BTOKN", async () => {
         await expect(
-          pancakeswapV2Worker.setReinvestConfig(200, "0", [baseToken.address, cake.address])
+          mdexWorker.setReinvestConfig(200, "0", [baseToken.address, mdx.address])
         ).to.be.revertedWith(
-          "PancakeswapV2Worker02::setReinvestConfig:: _reinvestPath must start with CAKE, end with BTOKEN"
+          "MdexWorker::setReinvestConfig:: _reinvestPath must start with MDX, end with BTOKEN"
         );
       });
     });
 
     describe("#setMaxReinvestBountyBps", async () => {
       it("should set max reinvest bounty", async () => {
-        await pancakeswapV2Worker.setMaxReinvestBountyBps(200);
-        expect(await pancakeswapV2Worker.maxReinvestBountyBps()).to.be.eq(200);
+        await mdexWorker.setMaxReinvestBountyBps(200);
+        expect(await mdexWorker.maxReinvestBountyBps()).to.be.eq(200);
       });
 
       it("should revert when new max reinvest bounty over 30%", async () => {
-        await expect(pancakeswapV2Worker.setMaxReinvestBountyBps("3001")).to.be.revertedWith(
-          "PancakeswapV2Worker02::setMaxReinvestBountyBps:: _maxReinvestBountyBps exceeded 30%"
+        await expect(mdexWorker.setMaxReinvestBountyBps("3001")).to.be.revertedWith(
+          "MdexWorker::setMaxReinvestBountyBps:: _maxReinvestBountyBps exceeded 30%"
         );
-        expect(await pancakeswapV2Worker.maxReinvestBountyBps()).to.be.eq("500");
+        expect(await mdexWorker.maxReinvestBountyBps()).to.be.eq("500");
       });
     });
 
     describe("#setTreasuryConfig", async () => {
       it("should successfully set a treasury account", async () => {
         const aliceAddr = aliceAddress;
-        await pancakeswapV2Worker.setTreasuryConfig(aliceAddr, REINVEST_BOUNTY_BPS);
-        expect(await pancakeswapV2Worker.treasuryAccount()).to.eq(aliceAddr);
+        await mdexWorker.setTreasuryConfig(aliceAddr, REINVEST_BOUNTY_BPS);
+        expect(await mdexWorker.treasuryAccount()).to.eq(aliceAddr);
       });
 
       it("should successfully set a treasury bounty", async () => {
-        await pancakeswapV2Worker.setTreasuryConfig(DEPLOYER, 499);
-        expect(await pancakeswapV2Worker.treasuryBountyBps()).to.eq(499);
+        await mdexWorker.setTreasuryConfig(DEPLOYER, 499);
+        expect(await mdexWorker.treasuryBountyBps()).to.eq(499);
       });
 
       it("should revert when a new treasury bounty > max reinvest bounty bps", async () => {
         await expect(
-          pancakeswapV2Worker.setTreasuryConfig(DEPLOYER, parseInt(MAX_REINVEST_BOUNTY) + 1)
+          mdexWorker.setTreasuryConfig(DEPLOYER, parseInt(MAX_REINVEST_BOUNTY) + 1)
         ).to.revertedWith(
-          "PancakeswapV2Worker02::setTreasuryConfig:: _treasuryBountyBps exceeded maxReinvestBountyBps"
+          "MdexWorker::setTreasuryConfig:: _treasuryBountyBps exceeded maxReinvestBountyBps"
         );
-        expect(await pancakeswapV2Worker.treasuryBountyBps()).to.eq(REINVEST_BOUNTY_BPS);
+        expect(await mdexWorker.treasuryBountyBps()).to.eq(REINVEST_BOUNTY_BPS);
       });
     });
 
     describe("#setStrategyOk", async () => {
       it("should set strat ok", async () => {
-        await pancakeswapV2Worker.setStrategyOk([aliceAddress], true);
-        expect(await pancakeswapV2Worker.okStrats(aliceAddress)).to.be.eq(true);
+        await mdexWorker.setStrategyOk([aliceAddress], true);
+        expect(await mdexWorker.okStrats(aliceAddress)).to.be.eq(true);
       });
     });
   });
@@ -448,7 +432,7 @@ describe("Vault - PancakeswapV202", () => {
               ["uint256", "address", "uint256", "uint256", "uint256", "bytes"],
               [
                 0,
-                pancakeswapV2Worker.address,
+                mdexWorker.address,
                 ethers.utils.parseEther("0.3"),
                 "0",
                 "0",
@@ -490,7 +474,7 @@ describe("Vault - PancakeswapV202", () => {
             ["uint256", "address", "uint256", "uint256", "uint256", "bytes"],
             [
               0,
-              pancakeswapV2Worker.address,
+              mdexWorker.address,
               ethers.utils.parseEther("0.3"),
               "0",
               "0",
@@ -504,7 +488,7 @@ describe("Vault - PancakeswapV202", () => {
 
         const [worker, owner] = await vault.positions(1);
         expect(owner).to.be.eq(whitelistedContract.address);
-        expect(worker).to.be.eq(pancakeswapV2Worker.address);
+        expect(worker).to.be.eq(mdexWorker.address);
       });
 
       it('should revert if evil contract try to call onlyWhitelistedLiquidators function', async () => {           
@@ -530,7 +514,7 @@ describe("Vault - PancakeswapV202", () => {
           await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("0.3"));
           await vaultAsAlice.work(
             0,
-            pancakeswapV2Worker.address,
+            mdexWorker.address,
             ethers.utils.parseEther("0.3"),
             ethers.utils.parseEther("0"),
             "0",
@@ -551,7 +535,7 @@ describe("Vault - PancakeswapV202", () => {
           await expect(
             vaultAsAlice.work(
               0,
-              pancakeswapV2Worker.address,
+              mdexWorker.address,
               ethers.utils.parseEther("0.3"),
               ethers.utils.parseEther("0.3"),
               "0",
@@ -573,7 +557,7 @@ describe("Vault - PancakeswapV202", () => {
           await expect(
             vaultAsAlice.work(
               0,
-              pancakeswapV2Worker.address,
+              mdexWorker.address,
               ethers.utils.parseEther("0.3"),
               ethers.utils.parseEther("1"),
               "0",
@@ -591,7 +575,7 @@ describe("Vault - PancakeswapV202", () => {
           await expect(
             vaultAsAlice.work(
               0,
-              pancakeswapV2Worker.address,
+              mdexWorker.address,
               ethers.utils.parseEther("1"),
               ethers.utils.parseEther("1"),
               "0",
@@ -614,7 +598,7 @@ describe("Vault - PancakeswapV202", () => {
           await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
           await vaultAsAlice.work(
             0,
-            pancakeswapV2Worker.address,
+            mdexWorker.address,
             ethers.utils.parseEther("1"),
             loan,
             "0",
@@ -626,7 +610,7 @@ describe("Vault - PancakeswapV202", () => {
 
           // Her position should have ~2 BTOKEN health (minus some small trading fee)
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-          await pancakeswapV2WorkerAsEve.reinvest();
+          await mdexWorkerAsEve.reinvest();
           await vault.deposit(0); // Random action to trigger interest computation
 
           // You can't liquidate her position yet
@@ -646,7 +630,7 @@ describe("Vault - PancakeswapV202", () => {
           await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
           await vaultAsAlice.work(
             0,
-            pancakeswapV2Worker.address,
+            mdexWorker.address,
             ethers.utils.parseEther("1"),
             loan,
             "0",
@@ -657,16 +641,16 @@ describe("Vault - PancakeswapV202", () => {
           );
 
           // Her position should have ~2 NATIVE health (minus some small trading fee)
-          expect(await pancakeswapV2Worker.health(1)).to.be.bignumber.eq(
+          expect(await mdexWorker.health(1)).to.be.bignumber.eq(
             ethers.utils.parseEther("1.997883397660681282")
           );
 
           // Eve comes and trigger reinvest
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-          await pancakeswapV2WorkerAsEve.reinvest();
+          await mdexWorkerAsEve.reinvest();
           AssertHelpers.assertAlmostEqual(
-            CAKE_REWARD_PER_BLOCK.mul("2").mul(REINVEST_BOUNTY_BPS).div("10000").toString(),
-            (await cake.balanceOf(eveAddress)).toString()
+            MDX_REWARD_PER_BLOCK.mul("2").mul(REINVEST_BOUNTY_BPS).div("10000").toString(),
+            (await mdx.balanceOf(eveAddress)).toString()
           );
 
           await vault.deposit(0); // Random action to trigger interest computation
@@ -699,7 +683,7 @@ describe("Vault - PancakeswapV202", () => {
           await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
           await vaultAsAlice.work(
             0,
-            pancakeswapV2Worker.address,
+            mdexWorker.address,
             ethers.utils.parseEther("1"),
             loan,
             "0",
@@ -710,7 +694,7 @@ describe("Vault - PancakeswapV202", () => {
           );
 
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-          await pancakeswapV2WorkerAsEve.reinvest();
+          await mdexWorkerAsEve.reinvest();
           await vault.deposit(0); // Random action to trigger interest computation
 
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
@@ -732,7 +716,7 @@ describe("Vault - PancakeswapV202", () => {
         it("should close position correctly when user holds multiple positions", async () => {
           // Set interests to 0% per year for easy testing
           await simpleVaultConfig.setParams(
-            ethers.utils.parseEther("1"), // 1 BTOKEN min debt size,
+            ethers.utils.parseEther("1"), // 1 BTOKEN min debt size,close position correctly when user holds
             "0", // 0% per year
             "1000", // 10% reserve pool
             "1000", // 10% Kill prize
@@ -743,11 +727,11 @@ describe("Vault - PancakeswapV202", () => {
             ethers.constants.AddressZero
           );
           // Set Reinvest bounty to 10% of the reward
-          await pancakeswapV2Worker.setReinvestConfig("100", "0", [cake.address, wbnb.address, baseToken.address]);
+          await mdexWorker.setReinvestConfig("100", "0", [mdx.address, wbnb.address, baseToken.address]);
 
           const [path, reinvestPath] = await Promise.all([
-            pancakeswapV2Worker.getPath(),
-            pancakeswapV2Worker.getReinvestPath(),
+            mdexWorker.getPath(),
+            mdexWorker.getReinvestPath(),
           ]);
 
           // Bob deposits 10 BTOKEN
@@ -764,10 +748,11 @@ describe("Vault - PancakeswapV202", () => {
           let workerLpBefore = BigNumber.from(0);
           let totalShare = BigNumber.from(0);
           let shares: Array<BigNumber> = [];
+
           await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
           await vaultAsBob.work(
             0,
-            pancakeswapV2Worker.address,
+            mdexWorker.address,
             ethers.utils.parseEther("10"),
             ethers.utils.parseEther("10"),
             "0", // max return = 0, don't return NATIVE to the debt
@@ -788,15 +773,15 @@ describe("Vault - PancakeswapV202", () => {
           totalShare = totalShare.add(expectedShare);
 
           // Expect
-          let [workerLpAfter] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
-          expect(await pancakeswapV2Worker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(
+          let [workerLpAfter] = await bscPool.userInfo(POOL_IDX, mdexWorker.address);
+          expect(await mdexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(
             shares[0]
           );
           expect(
-            await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(1)),
+            await mdexWorker.shareToBalance(await mdexWorker.shares(1)),
             `expect Pos#1 LPs = ${expectedLp}`
           ).to.be.bignumber.eq(expectedLp);
-          expect(await pancakeswapV2Worker.totalShare(), `expect totalShare = ${totalShare}`).to.be.bignumber.eq(
+          expect(await mdexWorker.totalShare(), `expect totalShare = ${totalShare}`).to.be.bignumber.eq(
             totalShare
           );
           expect(
@@ -810,15 +795,15 @@ describe("Vault - PancakeswapV202", () => {
           expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.bignumber.eq(accumLp);
 
           // Position#2: Bob borrows another 2 BTOKEN
-          [workerLpBefore] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
-          let eveCakeBefore = await cake.balanceOf(eveAddress);
-          let deployerCakeBefore = await cake.balanceOf(DEPLOYER);
+          [workerLpBefore] = await bscPool.userInfo(POOL_IDX, mdexWorker.address);
+          let eveCakeBefore = await mdx.balanceOf(eveAddress);
+          let deployerCakeBefore = await mdx.balanceOf(DEPLOYER);
           await swapHelper.loadReserves(path);
           await swapHelper.loadReserves(reinvestPath);
           await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("1"));
           await vaultAsBob.work(
             0,
-            pancakeswapV2Worker.address,
+            mdexWorker.address,
             ethers.utils.parseEther("1"),
             ethers.utils.parseEther("2"),
             "0", // max return = 0, don't return BTOKEN to the debt
@@ -827,10 +812,10 @@ describe("Vault - PancakeswapV202", () => {
               [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
             )
           );
-          [workerLpAfter] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
-          let eveCakeAfter = await cake.balanceOf(eveAddress);
-          let deployerCakeAfter = await cake.balanceOf(DEPLOYER);
-          let totalRewards = swapHelper.computeTotalRewards(workerLpBefore, CAKE_REWARD_PER_BLOCK, BigNumber.from(2));
+          [workerLpAfter] = await bscPool.userInfo(POOL_IDX, mdexWorker.address);
+          let eveCakeAfter = await mdx.balanceOf(eveAddress);
+          let deployerCakeAfter = await mdx.balanceOf(DEPLOYER);
+          let totalRewards = swapHelper.computeTotalRewards(workerLpBefore, MDX_REWARD_PER_BLOCK, BigNumber.from(2));
           let reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
           let reinvestLeft = totalRewards.sub(reinvestFees);
 
@@ -850,27 +835,27 @@ describe("Vault - PancakeswapV202", () => {
           shares.push(expectedShare);
           totalShare = totalShare.add(expectedShare);
 
-          expect(await pancakeswapV2Worker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(
+          expect(await mdexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(
             shares[0]
           );
           expect(
-            await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(1)),
+            await mdexWorker.shareToBalance(await mdexWorker.shares(1)),
             `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
           ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
 
-          expect(await pancakeswapV2Worker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(
+          expect(await mdexWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(
             shares[1]
           );
           expect(
-            await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(2)),
+            await mdexWorker.shareToBalance(await mdexWorker.shares(2)),
             `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
           ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
 
           expect(
             deployerCakeAfter.sub(deployerCakeBefore),
-            `expect DEPLOYER to get ${reinvestFees} CAKE as treasury fees`
+            `expect DEPLOYER to get ${reinvestFees} MDX as treasury fees`
           ).to.be.bignumber.eq(reinvestFees);
-          expect(eveCakeAfter.sub(eveCakeBefore), `expect eve's CAKE to remain the same`).to.be.bignumber.eq("0");
+          expect(eveCakeAfter.sub(eveCakeBefore), `expect eve's MDX to remain the same`).to.be.bignumber.eq("0");
           expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.bignumber.eq(accumLp);
           expect(
             await baseToken.balanceOf(addStrat.address),
@@ -885,18 +870,18 @@ describe("Vault - PancakeswapV202", () => {
           // Wait for 1 day and someone calls reinvest
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
 
-          let [workerLPBefore] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
-          deployerCakeBefore = await cake.balanceOf(DEPLOYER);
-          eveCakeBefore = await cake.balanceOf(eveAddress);
+          let [workerLPBefore] = await bscPool.userInfo(POOL_IDX, mdexWorker.address);
+          deployerCakeBefore = await mdx.balanceOf(DEPLOYER);
+          eveCakeBefore = await mdx.balanceOf(eveAddress);
           await swapHelper.loadReserves(path);
           await swapHelper.loadReserves(reinvestPath);
 
-          await pancakeswapV2WorkerAsEve.reinvest();
+          await mdexWorkerAsEve.reinvest();
 
-          deployerCakeAfter = await cake.balanceOf(DEPLOYER);
-          eveCakeAfter = await cake.balanceOf(eveAddress);
-          [workerLpAfter] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
-          totalRewards = swapHelper.computeTotalRewards(workerLPBefore, CAKE_REWARD_PER_BLOCK, BigNumber.from(2));
+          deployerCakeAfter = await mdx.balanceOf(DEPLOYER);
+          eveCakeAfter = await mdx.balanceOf(eveAddress);
+          [workerLpAfter] = await bscPool.userInfo(POOL_IDX, mdexWorker.address);
+          totalRewards = swapHelper.computeTotalRewards(workerLPBefore, MDX_REWARD_PER_BLOCK, BigNumber.from(2));
           reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
           reinvestLeft = totalRewards.sub(reinvestFees);
 
@@ -905,25 +890,25 @@ describe("Vault - PancakeswapV202", () => {
           [reinvestLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
           accumLp = accumLp.add(reinvestLp);
 
-          expect(await pancakeswapV2Worker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(
+          expect(await mdexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(
             shares[0]
           );
           expect(
-            await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(1)),
+            await mdexWorker.shareToBalance(await mdexWorker.shares(1)),
             `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
           ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
 
-          expect(await pancakeswapV2Worker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(
+          expect(await mdexWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(
             shares[1]
           );
           expect(
-            await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(2)),
+            await mdexWorker.shareToBalance(await mdexWorker.shares(2)),
             `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
           ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
 
           expect(
             deployerCakeAfter.sub(deployerCakeBefore),
-            `expect DEPLOYER's CAKE to remain the same`
+            `expect DEPLOYER's MDX to remain the same`
           ).to.be.bignumber.eq("0");
           expect(eveCakeAfter.sub(eveCakeBefore), `expect eve to get ${reinvestFees}`).to.be.bignumber.eq(reinvestFees);
           expect(workerLpAfter).to.be.bignumber.eq(accumLp);
@@ -931,7 +916,7 @@ describe("Vault - PancakeswapV202", () => {
           // Check Position#1 info
           let [bob1Health, bob1DebtToShare] = await vault.positionInfo("1");
           const bob1ExpectedHealth = await swapHelper.computeLpHealth(
-            await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(1)),
+            await mdexWorker.shareToBalance(await mdexWorker.shares(1)),
             baseToken.address,
             farmToken.address
           );
@@ -942,7 +927,7 @@ describe("Vault - PancakeswapV202", () => {
           // Check Position#2 info
           let [bob2Health, bob2DebtToShare] = await vault.positionInfo("2");
           const bob2ExpectedHealth = await swapHelper.computeLpHealth(
-            await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(2)),
+            await mdexWorker.shareToBalance(await mdexWorker.shares(2)),
             baseToken.address,
             farmToken.address
           );
@@ -955,7 +940,7 @@ describe("Vault - PancakeswapV202", () => {
           // Bob close position#1
           await vaultAsBob.work(
             1,
-            pancakeswapV2Worker.address,
+            mdexWorker.address,
             "0",
             "0",
             "1000000000000000000000",
@@ -975,7 +960,7 @@ describe("Vault - PancakeswapV202", () => {
           await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
           await vaultAsBob.work(
             2,
-            pancakeswapV2Worker.address,
+            mdexWorker.address,
             ethers.utils.parseEther("10"),
             0,
             "0", // max return = 0, don't return NATIVE to the debt
@@ -990,7 +975,7 @@ describe("Vault - PancakeswapV202", () => {
           // Bob close position#2
           await vaultAsBob.work(
             2,
-            pancakeswapV2Worker.address,
+            mdexWorker.address,
             "0",
             "0",
             "1000000000000000000000000000000",
@@ -1022,12 +1007,11 @@ describe("Vault - PancakeswapV202", () => {
           );
 
           const [path, reinvestPath] = await Promise.all([
-            pancakeswapV2Worker.getPath(),
-            pancakeswapV2Worker.getReinvestPath(),
+            mdexWorker.getPath(),
+            mdexWorker.getReinvestPath(),
           ]);
-
           // Set Reinvest bounty to 10% of the reward
-          await pancakeswapV2Worker.setReinvestConfig("100", "0", [cake.address, wbnb.address, baseToken.address]);
+          await mdexWorker.setReinvestConfig("100", "0", [mdx.address, wbnb.address, baseToken.address]);
 
           // Bob deposits 10 BTOKEN
           await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
@@ -1046,7 +1030,7 @@ describe("Vault - PancakeswapV202", () => {
           await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
           await vaultAsBob.work(
             0,
-            pancakeswapV2Worker.address,
+            mdexWorker.address,
             ethers.utils.parseEther("10"),
             ethers.utils.parseEther("10"),
             "0", // max return = 0, don't return NATIVE to the debt
@@ -1067,15 +1051,15 @@ describe("Vault - PancakeswapV202", () => {
           totalShare = totalShare.add(expectedShare);
 
           // Expect
-          let [workerLpAfter] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
-          expect(await pancakeswapV2Worker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(
+          let [workerLpAfter] = await bscPool.userInfo(POOL_IDX, mdexWorker.address);
+          expect(await mdexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(
             shares[0]
           );
           expect(
-            await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(1)),
+            await mdexWorker.shareToBalance(await mdexWorker.shares(1)),
             `expect Pos#1 LPs = ${expectedLp}`
           ).to.be.bignumber.eq(expectedLp);
-          expect(await pancakeswapV2Worker.totalShare(), `expect totalShare = ${totalShare}`).to.be.bignumber.eq(
+          expect(await mdexWorker.totalShare(), `expect totalShare = ${totalShare}`).to.be.bignumber.eq(
             totalShare
           );
           expect(
@@ -1089,9 +1073,9 @@ describe("Vault - PancakeswapV202", () => {
           expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.bignumber.eq(accumLp);
 
           // Position#2: Bob borrows another 2 BTOKEN
-          [workerLpBefore] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
-          let eveCakeBefore = await cake.balanceOf(eveAddress);
-          let deployerCakeBefore = await cake.balanceOf(DEPLOYER);
+          [workerLpBefore] = await bscPool.userInfo(POOL_IDX, mdexWorker.address);
+          let eveCakeBefore = await mdx.balanceOf(eveAddress);
+          let deployerCakeBefore = await mdx.balanceOf(DEPLOYER);
 
           // Position#2: Bob open 1x position with 3 BTOKEN
           await swapHelper.loadReserves(path);
@@ -1099,7 +1083,7 @@ describe("Vault - PancakeswapV202", () => {
           await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("3"));
           await vaultAsBob.work(
             0,
-            pancakeswapV2Worker.address,
+            mdexWorker.address,
             ethers.utils.parseEther("3"),
             "0",
             "0", // max return = 0, don't return BTOKEN to the debt
@@ -1108,10 +1092,10 @@ describe("Vault - PancakeswapV202", () => {
               [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
             )
           );
-          [workerLpAfter] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
-          let eveCakeAfter = await cake.balanceOf(eveAddress);
-          let deployerCakeAfter = await cake.balanceOf(DEPLOYER);
-          let totalRewards = swapHelper.computeTotalRewards(workerLpBefore, CAKE_REWARD_PER_BLOCK, BigNumber.from(2));
+          [workerLpAfter] = await bscPool.userInfo(POOL_IDX, mdexWorker.address);
+          let eveCakeAfter = await mdx.balanceOf(eveAddress);
+          let deployerCakeAfter = await mdx.balanceOf(DEPLOYER);
+          let totalRewards = swapHelper.computeTotalRewards(workerLpBefore, MDX_REWARD_PER_BLOCK, BigNumber.from(2));
           let reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
           let reinvestLeft = totalRewards.sub(reinvestFees);
 
@@ -1131,27 +1115,27 @@ describe("Vault - PancakeswapV202", () => {
           shares.push(expectedShare);
           totalShare = totalShare.add(expectedShare);
 
-          expect(await pancakeswapV2Worker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(
+          expect(await mdexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(
             shares[0]
           );
           expect(
-            await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(1)),
+            await mdexWorker.shareToBalance(await mdexWorker.shares(1)),
             `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
           ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
 
-          expect(await pancakeswapV2Worker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(
+          expect(await mdexWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(
             shares[1]
           );
           expect(
-            await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(2)),
+            await mdexWorker.shareToBalance(await mdexWorker.shares(2)),
             `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
           ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
 
           expect(
             deployerCakeAfter.sub(deployerCakeBefore),
-            `expect DEPLOYER to get ${reinvestFees} CAKE as treasury fees`
+            `expect DEPLOYER to get ${reinvestFees} MDX as treasury fees`
           ).to.be.bignumber.eq(reinvestFees);
-          expect(eveCakeAfter.sub(eveCakeBefore), `expect eve's CAKE to remain the same`).to.be.bignumber.eq("0");
+          expect(eveCakeAfter.sub(eveCakeBefore), `expect eve's MDX to remain the same`).to.be.bignumber.eq("0");
           expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.bignumber.eq(accumLp);
           expect(
             await baseToken.balanceOf(addStrat.address),
@@ -1166,18 +1150,18 @@ describe("Vault - PancakeswapV202", () => {
           // Wait for 1 day and someone calls reinvest
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
 
-          let [workerLPBefore] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
-          deployerCakeBefore = await cake.balanceOf(DEPLOYER);
-          eveCakeBefore = await cake.balanceOf(eveAddress);
+          let [workerLPBefore] = await bscPool.userInfo(POOL_IDX, mdexWorker.address);
+          deployerCakeBefore = await mdx.balanceOf(DEPLOYER);
+          eveCakeBefore = await mdx.balanceOf(eveAddress);
           await swapHelper.loadReserves(path);
           await swapHelper.loadReserves(reinvestPath);
 
-          await pancakeswapV2WorkerAsEve.reinvest();
+          await mdexWorkerAsEve.reinvest();
 
-          deployerCakeAfter = await cake.balanceOf(DEPLOYER);
-          eveCakeAfter = await cake.balanceOf(eveAddress);
-          [workerLpAfter] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
-          totalRewards = swapHelper.computeTotalRewards(workerLPBefore, CAKE_REWARD_PER_BLOCK, BigNumber.from(2));
+          deployerCakeAfter = await mdx.balanceOf(DEPLOYER);
+          eveCakeAfter = await mdx.balanceOf(eveAddress);
+          [workerLpAfter] = await bscPool.userInfo(POOL_IDX, mdexWorker.address);
+          totalRewards = swapHelper.computeTotalRewards(workerLPBefore, MDX_REWARD_PER_BLOCK, BigNumber.from(2));
           reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
           reinvestLeft = totalRewards.sub(reinvestFees);
 
@@ -1186,25 +1170,25 @@ describe("Vault - PancakeswapV202", () => {
           [reinvestLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
           accumLp = accumLp.add(reinvestLp);
 
-          expect(await pancakeswapV2Worker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(
+          expect(await mdexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(
             shares[0]
           );
           expect(
-            await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(1)),
+            await mdexWorker.shareToBalance(await mdexWorker.shares(1)),
             `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
           ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
 
-          expect(await pancakeswapV2Worker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(
+          expect(await mdexWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(
             shares[1]
           );
           expect(
-            await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(2)),
+            await mdexWorker.shareToBalance(await mdexWorker.shares(2)),
             `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
           ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
 
           expect(
             deployerCakeAfter.sub(deployerCakeBefore),
-            `expect DEPLOYER's CAKE to remain the same`
+            `expect DEPLOYER's MDX to remain the same`
           ).to.be.bignumber.eq("0");
           expect(eveCakeAfter.sub(eveCakeBefore), `expect eve to get ${reinvestFees}`).to.be.bignumber.eq(reinvestFees);
           expect(workerLpAfter).to.be.bignumber.eq(accumLp);
@@ -1212,7 +1196,7 @@ describe("Vault - PancakeswapV202", () => {
           // Check Position#1 info
           let [bob1Health, bob1DebtToShare] = await vault.positionInfo("1");
           const bob1ExpectedHealth = await swapHelper.computeLpHealth(
-            await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(1)),
+            await mdexWorker.shareToBalance(await mdexWorker.shares(1)),
             baseToken.address,
             farmToken.address
           );
@@ -1223,7 +1207,7 @@ describe("Vault - PancakeswapV202", () => {
           // Check Position#2 info
           let [bob2Health, bob2DebtToShare] = await vault.positionInfo("2");
           const bob2ExpectedHealth = await swapHelper.computeLpHealth(
-            await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(2)),
+            await mdexWorker.shareToBalance(await mdexWorker.shares(2)),
             baseToken.address,
             farmToken.address
           );
@@ -1236,7 +1220,7 @@ describe("Vault - PancakeswapV202", () => {
           // Bob close position#1
           await vaultAsBob.work(
             1,
-            pancakeswapV2Worker.address,
+            mdexWorker.address,
             "0",
             "0",
             "1000000000000000000000",
@@ -1256,7 +1240,7 @@ describe("Vault - PancakeswapV202", () => {
           await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
           await vaultAsBob.work(
             2,
-            pancakeswapV2Worker.address,
+            mdexWorker.address,
             ethers.utils.parseEther("10"),
             0,
             "0", // max return = 0, don't return NATIVE to the debt
@@ -1271,7 +1255,7 @@ describe("Vault - PancakeswapV202", () => {
           // Bob close position#2
           await vaultAsBob.work(
             2,
-            pancakeswapV2Worker.address,
+            mdexWorker.address,
             "0",
             "0",
             "1000000000000000000000000000000",
@@ -1306,7 +1290,7 @@ describe("Vault - PancakeswapV202", () => {
           await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
           await vaultAsAlice.work(
             0,
-            pancakeswapV2Worker.address,
+            mdexWorker.address,
             ethers.utils.parseEther("1"),
             loan,
             "0",
@@ -1317,7 +1301,7 @@ describe("Vault - PancakeswapV202", () => {
           );
 
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-          await pancakeswapV2WorkerAsEve.reinvest();
+          await mdexWorkerAsEve.reinvest();
           await vault.deposit(0); // Random action to trigger interest computation
 
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
@@ -1348,7 +1332,7 @@ describe("Vault - PancakeswapV202", () => {
             KILL_TREASURY_BPS,
             deployerAddress
           );
-          const toBeLiquidatedValue = await pancakeswapV2Worker.health(1);
+          const toBeLiquidatedValue = await mdexWorker.health(1);
           const liquidationBounty = toBeLiquidatedValue.mul(KILL_PRIZE_BPS).div(10000);
           const treasuryKillFees = toBeLiquidatedValue.mul(KILL_TREASURY_BPS).div(10000);
           const totalLiquidationFees = liquidationBounty.add(treasuryKillFees);
@@ -1410,7 +1394,7 @@ describe("Vault - PancakeswapV202", () => {
           await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
           await vaultAsAlice.work(
             0,
-            pancakeswapV2Worker.address,
+            mdexWorker.address,
             ethers.utils.parseEther("1"),
             ethers.utils.parseEther("1"),
             "0",
@@ -1422,7 +1406,7 @@ describe("Vault - PancakeswapV202", () => {
           // She can close position
           await vaultAsAlice.work(
             2,
-            pancakeswapV2Worker.address,
+            mdexWorker.address,
             "0",
             "0",
             "115792089237316195423570985008687907853269984665640564039457584007913129639935",
@@ -1442,7 +1426,7 @@ describe("Vault - PancakeswapV202", () => {
           await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("10"));
           await vaultAsAlice.work(
             0,
-            pancakeswapV2Worker.address,
+            mdexWorker.address,
             ethers.utils.parseEther("10"),
             ethers.utils.parseEther("10"),
             "0", // max return = 0, don't return BTOKEN to the debt
@@ -1453,11 +1437,11 @@ describe("Vault - PancakeswapV202", () => {
           );
 
           await farmToken.mint(deployerAddress, ethers.utils.parseEther("100"));
-          await farmToken.approve(routerV2.address, ethers.utils.parseEther("100"));
+          await farmToken.approve(mdexRouter.address, ethers.utils.parseEther("100"));
 
           // Price swing 10%
           // Add more token to the pool equals to sqrt(10*((0.1)**2) / 9) - 0.1 = 0.005409255338945984, (0.1 is the balance of token in the pool)
-          await routerV2.swapExactTokensForTokens(
+          await mdexRouter.swapExactTokensForTokens(
             ethers.utils.parseEther("0.005409255338945984"),
             "0",
             [farmToken.address, baseToken.address],
@@ -1470,7 +1454,7 @@ describe("Vault - PancakeswapV202", () => {
           // Add more token to the pool equals to
           // sqrt(10*((0.10540925533894599)**2) / 8) - 0.10540925533894599 = 0.012441874858811944
           // (0.10540925533894599 is the balance of token in the pool)
-          await routerV2.swapExactTokensForTokens(
+          await mdexRouter.swapExactTokensForTokens(
             ethers.utils.parseEther("0.012441874858811944"),
             "0",
             [farmToken.address, baseToken.address],
@@ -1483,7 +1467,7 @@ describe("Vault - PancakeswapV202", () => {
           // Existing token on the pool = 0.10540925533894599 + 0.012441874858811944 = 0.11785113019775793
           // Add more token to the pool equals to
           // sqrt(10*((0.11785113019775793)**2) / 7.656999999999999) - 0.11785113019775793 = 0.016829279312591913
-          await routerV2.swapExactTokensForTokens(
+          await mdexRouter.swapExactTokensForTokens(
             ethers.utils.parseEther("0.016829279312591913"),
             "0",
             [farmToken.address, baseToken.address],
@@ -1496,7 +1480,7 @@ describe("Vault - PancakeswapV202", () => {
           // Existing token on the pool = 0.11785113019775793 + 0.016829279312591913 = 0.13468040951034985
           // Add more token to the pool equals to
           // sqrt(10*((0.13468040951034985)**2) / 7) - 0.13468040951034985 = 0.026293469053292218
-          await routerV2.swapExactTokensForTokens(
+          await mdexRouter.swapExactTokensForTokens(
             ethers.utils.parseEther("0.026293469053292218"),
             "0",
             [farmToken.address, baseToken.address],
@@ -1523,7 +1507,7 @@ describe("Vault - PancakeswapV202", () => {
           await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
           await vaultAsAlice.work(
             0,
-            pancakeswapV2Worker.address,
+            mdexWorker.address,
             ethers.utils.parseEther("1"),
             loan,
             "0",
@@ -1534,7 +1518,7 @@ describe("Vault - PancakeswapV202", () => {
           );
 
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-          await pancakeswapV2WorkerAsEve.reinvest();
+          await mdexWorkerAsEve.reinvest();
           await vault.deposit(0); // Random action to trigger interest computation
 
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
@@ -1583,7 +1567,7 @@ describe("Vault - PancakeswapV202", () => {
           await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
           await vaultAsAlice.work(
             0,
-            pancakeswapV2Worker.address,
+            mdexWorker.address,
             ethers.utils.parseEther("1"),
             ethers.utils.parseEther("1"),
             "0",
@@ -1596,7 +1580,7 @@ describe("Vault - PancakeswapV202", () => {
           // She can close position
           await vaultAsAlice.work(
             2,
-            pancakeswapV2Worker.address,
+            mdexWorker.address,
             "0",
             "0",
             "115792089237316195423570985008687907853269984665640564039457584007913129639935",
@@ -1622,7 +1606,7 @@ describe("Vault - PancakeswapV202", () => {
           await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("1"));
           await vaultAsBob.work(
             0,
-            pancakeswapV2Worker.address,
+            mdexWorker.address,
             ethers.utils.parseEther("1"),
             loan,
             "0", // max return = 0, don't return BTOKEN to the debt
@@ -1652,8 +1636,8 @@ describe("Vault - PancakeswapV202", () => {
 
           // Simulate BTOKEN price is very high by swap FTOKEN to BTOKEN (reduce BTOKEN supply)
           await farmToken.mint(deployerAddress, ethers.utils.parseEther("100"));
-          await farmToken.approve(routerV2.address, ethers.utils.parseEther("100"));
-          await routerV2.swapExactTokensForTokens(
+          await farmToken.approve(mdexRouter.address, ethers.utils.parseEther("100"));
+          await mdexRouter.swapExactTokensForTokens(
             ethers.utils.parseEther("100"),
             "0",
             [farmToken.address, baseToken.address],
@@ -1709,11 +1693,11 @@ describe("Vault - PancakeswapV202", () => {
           );
 
           // Set Reinvest bounty to 10% of the reward
-          await pancakeswapV2Worker.setReinvestConfig("100", "0", [cake.address, wbnb.address, baseToken.address]);
+          await mdexWorker.setReinvestConfig("100", "0", [mdx.address, wbnb.address, baseToken.address]);
 
           const [path, reinvestPath] = await Promise.all([
-            pancakeswapV2Worker.getPath(),
-            pancakeswapV2Worker.getReinvestPath(),
+            mdexWorker.getPath(),
+            mdexWorker.getReinvestPath(),
           ]);
 
           // Bob deposits 10 BTOKEN
@@ -1733,7 +1717,7 @@ describe("Vault - PancakeswapV202", () => {
           await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
           await vaultAsBob.work(
             0,
-            pancakeswapV2Worker.address,
+            mdexWorker.address,
             ethers.utils.parseEther("10"),
             ethers.utils.parseEther("10"),
             "0", // max return = 0, don't return NATIVE to the debt
@@ -1754,15 +1738,15 @@ describe("Vault - PancakeswapV202", () => {
           totalShare = totalShare.add(expectedShare);
 
           // Expect
-          let [workerLpAfter] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
-          expect(await pancakeswapV2Worker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(
+          let [workerLpAfter] = await bscPool.userInfo(POOL_IDX, mdexWorker.address);
+          expect(await mdexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(
             shares[0]
           );
           expect(
-            await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(1)),
+            await mdexWorker.shareToBalance(await mdexWorker.shares(1)),
             `expect Pos#1 LPs = ${expectedLp}`
           ).to.be.bignumber.eq(expectedLp);
-          expect(await pancakeswapV2Worker.totalShare(), `expect totalShare = ${totalShare}`).to.be.bignumber.eq(
+          expect(await mdexWorker.totalShare(), `expect totalShare = ${totalShare}`).to.be.bignumber.eq(
             totalShare
           );
           expect(
@@ -1776,15 +1760,15 @@ describe("Vault - PancakeswapV202", () => {
           expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.bignumber.eq(accumLp);
 
           // Position#2: Bob borrows another 2 BTOKEN
-          [workerLpBefore] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
-          let eveCakeBefore = await cake.balanceOf(eveAddress);
-          let deployerCakeBefore = await cake.balanceOf(DEPLOYER);
+          [workerLpBefore] = await bscPool.userInfo(POOL_IDX, mdexWorker.address);
+          let eveCakeBefore = await mdx.balanceOf(eveAddress);
+          let deployerCakeBefore = await mdx.balanceOf(DEPLOYER);
           await swapHelper.loadReserves(path);
           await swapHelper.loadReserves(reinvestPath);
           await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
           await vaultAsAlice.work(
             0,
-            pancakeswapV2Worker.address,
+            mdexWorker.address,
             ethers.utils.parseEther("1"),
             ethers.utils.parseEther("2"),
             "0", // max return = 0, don't return BTOKEN to the debt
@@ -1793,10 +1777,10 @@ describe("Vault - PancakeswapV202", () => {
               [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
             )
           );
-          [workerLpAfter] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
-          let eveCakeAfter = await cake.balanceOf(eveAddress);
-          let deployerCakeAfter = await cake.balanceOf(DEPLOYER);
-          let totalRewards = swapHelper.computeTotalRewards(workerLpBefore, CAKE_REWARD_PER_BLOCK, BigNumber.from(2));
+          [workerLpAfter] = await bscPool.userInfo(POOL_IDX, mdexWorker.address);
+          let eveCakeAfter = await mdx.balanceOf(eveAddress);
+          let deployerCakeAfter = await mdx.balanceOf(DEPLOYER);
+          let totalRewards = swapHelper.computeTotalRewards(workerLpBefore, MDX_REWARD_PER_BLOCK, BigNumber.from(2));
           let reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
           let reinvestLeft = totalRewards.sub(reinvestFees);
 
@@ -1816,27 +1800,27 @@ describe("Vault - PancakeswapV202", () => {
           shares.push(expectedShare);
           totalShare = totalShare.add(expectedShare);
 
-          expect(await pancakeswapV2Worker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(
+          expect(await mdexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(
             shares[0]
           );
           expect(
-            await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(1)),
+            await mdexWorker.shareToBalance(await mdexWorker.shares(1)),
             `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
           ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
 
-          expect(await pancakeswapV2Worker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(
+          expect(await mdexWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(
             shares[1]
           );
           expect(
-            await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(2)),
+            await mdexWorker.shareToBalance(await mdexWorker.shares(2)),
             `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
           ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
 
           expect(
             deployerCakeAfter.sub(deployerCakeBefore),
-            `expect DEPLOYER to get ${reinvestFees} CAKE as treasury fees`
+            `expect DEPLOYER to get ${reinvestFees} MDX as treasury fees`
           ).to.be.bignumber.eq(reinvestFees);
-          expect(eveCakeAfter.sub(eveCakeBefore), `expect eve's CAKE to remain the same`).to.be.bignumber.eq("0");
+          expect(eveCakeAfter.sub(eveCakeBefore), `expect eve's MDX to remain the same`).to.be.bignumber.eq("0");
           expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.bignumber.eq(accumLp);
           expect(
             await baseToken.balanceOf(addStrat.address),
@@ -1851,18 +1835,18 @@ describe("Vault - PancakeswapV202", () => {
           // Wait for 1 day and someone calls reinvest
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
 
-          let [workerLPBefore] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
-          deployerCakeBefore = await cake.balanceOf(DEPLOYER);
-          eveCakeBefore = await cake.balanceOf(eveAddress);
+          let [workerLPBefore] = await bscPool.userInfo(POOL_IDX, mdexWorker.address);
+          deployerCakeBefore = await mdx.balanceOf(DEPLOYER);
+          eveCakeBefore = await mdx.balanceOf(eveAddress);
           await swapHelper.loadReserves(path);
           await swapHelper.loadReserves(reinvestPath);
 
-          await pancakeswapV2WorkerAsEve.reinvest();
+          await mdexWorkerAsEve.reinvest();
 
-          deployerCakeAfter = await cake.balanceOf(DEPLOYER);
-          eveCakeAfter = await cake.balanceOf(eveAddress);
-          [workerLpAfter] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
-          totalRewards = swapHelper.computeTotalRewards(workerLPBefore, CAKE_REWARD_PER_BLOCK, BigNumber.from(2));
+          deployerCakeAfter = await mdx.balanceOf(DEPLOYER);
+          eveCakeAfter = await mdx.balanceOf(eveAddress);
+          [workerLpAfter] = await bscPool.userInfo(POOL_IDX, mdexWorker.address);
+          totalRewards = swapHelper.computeTotalRewards(workerLPBefore, MDX_REWARD_PER_BLOCK, BigNumber.from(2));
           reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
           reinvestLeft = totalRewards.sub(reinvestFees);
 
@@ -1871,25 +1855,25 @@ describe("Vault - PancakeswapV202", () => {
           [reinvestLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
           accumLp = accumLp.add(reinvestLp);
 
-          expect(await pancakeswapV2Worker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(
+          expect(await mdexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(
             shares[0]
           );
           expect(
-            await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(1)),
+            await mdexWorker.shareToBalance(await mdexWorker.shares(1)),
             `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
           ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
 
-          expect(await pancakeswapV2Worker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(
+          expect(await mdexWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(
             shares[1]
           );
           expect(
-            await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(2)),
+            await mdexWorker.shareToBalance(await mdexWorker.shares(2)),
             `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
           ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
 
           expect(
             deployerCakeAfter.sub(deployerCakeBefore),
-            `expect DEPLOYER's CAKE to remain the same`
+            `expect DEPLOYER's MDX to remain the same`
           ).to.be.bignumber.eq("0");
           expect(eveCakeAfter.sub(eveCakeBefore), `expect eve to get ${reinvestFees}`).to.be.bignumber.eq(reinvestFees);
           expect(workerLpAfter).to.be.bignumber.eq(accumLp);
@@ -1897,7 +1881,7 @@ describe("Vault - PancakeswapV202", () => {
           // Check Position#1 info
           let [bob1Health, bob1DebtToShare] = await vault.positionInfo("1");
           const bob1ExpectedHealth = await swapHelper.computeLpHealth(
-            await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(1)),
+            await mdexWorker.shareToBalance(await mdexWorker.shares(1)),
             baseToken.address,
             farmToken.address
           );
@@ -1908,7 +1892,7 @@ describe("Vault - PancakeswapV202", () => {
           // Check Position#2 info
           let [alice2Health, alice2DebtToShare] = await vault.positionInfo("2");
           const alice2ExpectedHealth = await swapHelper.computeLpHealth(
-            await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(2)),
+            await mdexWorker.shareToBalance(await mdexWorker.shares(2)),
             baseToken.address,
             farmToken.address
           );
@@ -1922,7 +1906,7 @@ describe("Vault - PancakeswapV202", () => {
           // Bob close position#1
           await vaultAsBob.work(
             1,
-            pancakeswapV2Worker.address,
+            mdexWorker.address,
             "0",
             "0",
             "1000000000000000000000",
@@ -1940,7 +1924,7 @@ describe("Vault - PancakeswapV202", () => {
           await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("10"));
           await vaultAsAlice.work(
             2,
-            pancakeswapV2Worker.address,
+            mdexWorker.address,
             ethers.utils.parseEther("10"),
             0,
             "0", // max return = 0, don't return NATIVE to the debt
@@ -1954,7 +1938,7 @@ describe("Vault - PancakeswapV202", () => {
           // Alice close position#2
           await vaultAsAlice.work(
             2,
-            pancakeswapV2Worker.address,
+            mdexWorker.address,
             "0",
             "0",
             "1000000000000000000000000000000",
@@ -1989,12 +1973,12 @@ describe("Vault - PancakeswapV202", () => {
               );
 
               const [path, reinvestPath] = await Promise.all([
-                pancakeswapV2Worker.getPath(),
-                pancakeswapV2Worker.getReinvestPath(),
+                mdexWorker.getPath(),
+                mdexWorker.getReinvestPath(),
               ]);
 
               // Set Reinvest bounty to 1% of the reward
-              await pancakeswapV2Worker.setReinvestConfig("100", "0", [cake.address, wbnb.address, baseToken.address]);
+              await mdexWorker.setReinvestConfig("100", "0", [mdx.address, wbnb.address, baseToken.address]);
 
               // Bob deposits 10 BTOKEN
               await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
@@ -2010,14 +1994,14 @@ describe("Vault - PancakeswapV202", () => {
               // lp amount from adding liquidity will be 1.131492691639043045 LP
               const borrowedAmount = ethers.utils.parseEther("10");
               const principalAmount = ethers.utils.parseEther("10");
-              let [workerLpBefore] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
+              let [workerLpBefore] = await bscPool.userInfo(POOL_IDX, mdexWorker.address);
               await swapHelper.loadReserves(path);
               await swapHelper.loadReserves(reinvestPath);
 
               await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
               await vaultAsBob.work(
                 0,
-                pancakeswapV2Worker.address,
+                mdexWorker.address,
                 principalAmount,
                 borrowedAmount,
                 "0", // max return = 0, don't return NATIVE to the debt
@@ -2027,7 +2011,7 @@ describe("Vault - PancakeswapV202", () => {
                 )
               );
 
-              let [workerLpAfter] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
+              let [workerLpAfter] = await bscPool.userInfo(POOL_IDX, mdexWorker.address);
 
               const [expectedLp, debrisBtoken] = await swapHelper.computeOneSidedOptimalLp(
                 borrowedAmount.add(principalAmount),
@@ -2036,13 +2020,13 @@ describe("Vault - PancakeswapV202", () => {
 
               expect(workerLpAfter.sub(workerLpBefore)).to.eq(expectedLp);
 
-              const deployerCakeBefore = await cake.balanceOf(DEPLOYER);
+              const deployerCakeBefore = await mdx.balanceOf(DEPLOYER);
               const bobBefore = await baseToken.balanceOf(bobAddress);
               const [bobHealthBefore] = await vault.positionInfo("1");
-              const lpUnderBobPosition = await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(1));
+              const lpUnderBobPosition = await mdexWorker.shareToBalance(await mdexWorker.shares(1));
               const liquidatedLp = lpUnderBobPosition.div(2);
               const returnDebt = ethers.utils.parseEther("6");
-              [workerLpBefore] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
+              [workerLpBefore] = await bscPool.userInfo(POOL_IDX, mdexWorker.address);
 
               // Pre-compute
               await swapHelper.loadReserves(path);
@@ -2052,7 +2036,7 @@ describe("Vault - PancakeswapV202", () => {
               const [reinvestFees, reinvestLp] = await swapHelper.computeReinvestLp(
                 workerLpBefore,
                 debrisBtoken,
-                CAKE_REWARD_PER_BLOCK,
+                MDX_REWARD_PER_BLOCK,
                 BigNumber.from(REINVEST_BOUNTY_BPS),
                 reinvestPath,
                 path,
@@ -2067,7 +2051,7 @@ describe("Vault - PancakeswapV202", () => {
               );
               const sellFtokenAmounts = await swapHelper.computeSwapExactTokensForTokens(
                 ftokenAmount,
-                await pancakeswapV2Worker.getReversedPath(),
+                await mdexWorker.getReversedPath(),
                 true
               );
               const liquidatedBtoken = sellFtokenAmounts[sellFtokenAmounts.length - 1]
@@ -2076,7 +2060,7 @@ describe("Vault - PancakeswapV202", () => {
 
               await vaultAsBob.work(
                 1,
-                pancakeswapV2Worker.address,
+                mdexWorker.address,
                 "0",
                 "0",
                 returnDebt,
@@ -2092,7 +2076,7 @@ describe("Vault - PancakeswapV202", () => {
                 )
               );
               const bobAfter = await baseToken.balanceOf(bobAddress);
-              const deployerCakeAfter = await cake.balanceOf(DEPLOYER);
+              const deployerCakeAfter = await mdx.balanceOf(DEPLOYER);
 
               expect(deployerCakeAfter.sub(deployerCakeBefore), `expect Deployer to get ${reinvestFees}`).to.be.eq(
                 reinvestFees
@@ -2106,7 +2090,7 @@ describe("Vault - PancakeswapV202", () => {
               // Bob's debt should be left only 4 BTOKEN due he said he wants to return at max 4 BTOKEN
               expect(bobDebtToShare).to.be.bignumber.eq(borrowedAmount.sub(returnDebt));
               // Check LP deposited by Worker on MasterChef
-              [workerLpAfter] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
+              [workerLpAfter] = await bscPool.userInfo(POOL_IDX, mdexWorker.address);
               // LP tokens + 0.000207570473714694 LP from reinvest of worker should be decreased by lpUnderBobPosition/2
               // due to Bob execute StrategyClosePartialLiquidate
               expect(workerLpAfter).to.be.bignumber.eq(workerLpBefore.add(reinvestLp).sub(lpUnderBobPosition.div(2)));
@@ -2141,11 +2125,11 @@ describe("Vault - PancakeswapV202", () => {
               // based on optimal swap formula, BTOKEN-FTOKEN to be added into the LP will be 16.412938284296807414 BTOKEN - 0.078156848972841940 FTOKEN
               // new reserve after adding liquidity 21.000000000000000000 BTOKEN - 0.100000000000000000 FTOKEN
               // lp amount from adding liquidity will be 1.131492691639043045 LP
-              let [workerLPBefore] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
+              let [workerLPBefore] = await bscPool.userInfo(POOL_IDX, mdexWorker.address);
               await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
               await vaultAsBob.work(
                 0,
-                pancakeswapV2Worker.address,
+                mdexWorker.address,
                 ethers.utils.parseEther("10"),
                 ethers.utils.parseEther("10"),
                 "0", // max return = 0, don't return BTOKEN to the debt
@@ -2155,21 +2139,21 @@ describe("Vault - PancakeswapV202", () => {
                 )
               );
 
-              let [workerLPAfter] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
+              let [workerLPAfter] = await bscPool.userInfo(POOL_IDX, mdexWorker.address);
               expect(workerLPAfter.sub(workerLPBefore)).to.eq(parseEther("1.131492691639043045"));
 
               // Bob think he made enough. He now wants to close position partially.
               // He close 50% of his position and return all debt
               const bobBefore = await baseToken.balanceOf(bobAddress);
               const [bobHealthBefore] = await vault.positionInfo("1");
-              const lpUnderBobPosition = await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(1));
-              [workerLPBefore] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
+              const lpUnderBobPosition = await mdexWorker.shareToBalance(await mdexWorker.shares(1));
+              [workerLPBefore] = await bscPool.userInfo(POOL_IDX, mdexWorker.address);
 
               // Bob think he made enough. He now wants to close position partially.
               // After calling `work()`, the `_reinvest()` is invoked
-              // since 1 blocks have passed since approve and work now reward will be 0.076 * 1 =~ 0.075999999998831803 ~   CAKE
-              // reward without bounty will be 0.075999999998831803 - 0.000759999999988318 =~ 0.0752399999988435 CAKE
-              // 0.0752399999988435 CAKE can be converted into:
+              // since 1 blocks have passed since approve and work now reward will be 0.076 * 1 =~ 0.075999999998831803 ~   MDX
+              // reward without bounty will be 0.075999999998831803 - 0.000759999999988318 =~ 0.0752399999988435 MDX
+              // 0.0752399999988435 MDX can be converted into:
               // (0.0752399999988435 * 0.9975 * 1) / (0.1 + 0.0752399999988435 * 0.9975) = 0.428740847712892766 WBNB
               // 0.428740847712892766 WBNB can be converted into (0.428740847712892766 * 0.9975 * 1) / (1 + 0.428740847712892766 * 0.9975) = 0.299557528330150526 BTOKEN
               // based on optimal swap formula, 0.299557528330150526 BTOKEN needs to swap 0.149435199790075736 BTOKEN
@@ -2185,7 +2169,7 @@ describe("Vault - PancakeswapV202", () => {
               // thus, Bob will receive 8.264866063854500749 + 5.050104921127982573 = 13.314970984982483322 BTOKEN
               await vaultAsBob.work(
                 1,
-                pancakeswapV2Worker.address,
+                mdexWorker.address,
                 "0",
                 "0",
                 ethers.utils.parseEther("5000000000"),
@@ -2224,7 +2208,7 @@ describe("Vault - PancakeswapV202", () => {
               // Bob's debt should be 0 BTOKEN due he said he wants to return at max 5,000,000,000 BTOKEN (> debt, return all debt)
               expect(bobDebtVal).to.be.bignumber.eq("0");
               // Check LP deposited by Worker on MasterChef
-              [workerLPAfter] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
+              [workerLPAfter] = await bscPool.userInfo(POOL_IDX, mdexWorker.address);
               // LP tokens + LP tokens from reinvest of worker should be decreased by lpUnderBobPosition/2
               // due to Bob execute StrategyClosePartialLiquidate
               expect(workerLPAfter).to.be.bignumber.eq(
@@ -2256,7 +2240,7 @@ describe("Vault - PancakeswapV202", () => {
               await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
               await vaultAsBob.work(
                 0,
-                pancakeswapV2Worker.address,
+                mdexWorker.address,
                 ethers.utils.parseEther("10"),
                 ethers.utils.parseEther("10"),
                 "0", // max return = 0, don't return BTOKEN to the debt
@@ -2268,14 +2252,14 @@ describe("Vault - PancakeswapV202", () => {
 
               // Bob think he made enough. He now wants to close position partially.
               // He liquidate all of his position but not payback the debt.
-              const lpUnderBobPosition = await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(1));
+              const lpUnderBobPosition = await mdexWorker.shareToBalance(await mdexWorker.shares(1));
               // Bob closes position with maxReturn 0 and liquidate all of his position
               // Expect that Bob will not be able to close his position as he liquidate all underlying assets but not paydebt
               // which made his position debt ratio higher than allow work factor
               await expect(
                 vaultAsBob.work(
                   1,
-                  pancakeswapV2Worker.address,
+                  mdexWorker.address,
                   "0",
                   "0",
                   "0",
@@ -2298,7 +2282,7 @@ describe("Vault - PancakeswapV202", () => {
 
       context("When the treasury Account and treasury bounty bps haven't been set", async () => {
         it("should not auto reinvest", async () => {
-          await pancakeswapV2Worker.setTreasuryConfig(constants.AddressZero, 0);
+          await mdexWorker.setTreasuryConfig(constants.AddressZero, 0);
           // Deployer deposits 3 BTOKEN to the bank
           const deposit = ethers.utils.parseEther("3");
           await baseToken.approve(vault.address, deposit);
@@ -2309,7 +2293,7 @@ describe("Vault - PancakeswapV202", () => {
           await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
           await vaultAsAlice.work(
             0,
-            pancakeswapV2Worker.address,
+            mdexWorker.address,
             ethers.utils.parseEther("1"),
             loan,
             "0",
@@ -2320,8 +2304,8 @@ describe("Vault - PancakeswapV202", () => {
           );
 
           // Her position should have ~2 NATIVE health (minus some small trading fee)
-          expect(await pancakeswapV2Worker.shares(1)).to.eq(ethers.utils.parseEther("0.231205137369691323"));
-          expect(await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(1))).to.eq(
+          expect(await mdexWorker.shares(1)).to.eq(ethers.utils.parseEther("0.231205137369691323"));
+          expect(await mdexWorker.shareToBalance(await mdexWorker.shares(1))).to.eq(
             ethers.utils.parseEther("0.231205137369691323")
           );
 
@@ -2329,7 +2313,7 @@ describe("Vault - PancakeswapV202", () => {
           await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
           await vaultAsAlice.work(
             0,
-            pancakeswapV2Worker.address,
+            mdexWorker.address,
             ethers.utils.parseEther("1"),
             loan,
             "0",
@@ -2340,538 +2324,10 @@ describe("Vault - PancakeswapV202", () => {
           );
 
           // Her LP under that 1st position must still remain the same
-          expect(await pancakeswapV2Worker.shares(1)).to.eq(ethers.utils.parseEther("0.231205137369691323"));
-          expect(await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(1))).to.eq(
+          expect(await mdexWorker.shares(1)).to.eq(ethers.utils.parseEther("0.231205137369691323"));
+          expect(await mdexWorker.shareToBalance(await mdexWorker.shares(1))).to.eq(
             ethers.utils.parseEther("0.231205137369691323")
           );
-        });
-      });
-
-      context("when the worker is an older version", async () => {
-        context("when upgrade is during the tx flow", async () => {
-          context("when beneficialVault == operator", async () => {
-            it("should work with the new upgraded worker", async () => {
-              // Deployer deposits 3 BTOKEN to the bank
-              const deposit = ethers.utils.parseEther("3");
-              await baseToken.approve(vault.address, deposit);
-              await vault.deposit(deposit);
-
-              // Now Alice can take 1 BTOKEN loan + 1 BTOKEN of her to create a new position
-              const loan = ethers.utils.parseEther("1");
-              await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
-              // Position#1: Bob borrows 1 BTOKEN loan and supply another 1 BToken
-              // Thus, Bob's position value will be worth 20 BTOKEN
-              // After calling `work()`
-              // 2 BTOKEN needs to swap 0.0732967258967755614 BTOKEN to 0.042234424701074812 FTOKEN
-              // new reserve after swap will be 1.732967258967755614 ฺBTOKEN 0.057765575298925188 FTOKEN
-              // based on optimal swap formula, BTOKEN-FTOKEN to be added into the LP will be 1.267032741032244386 BTOKEN - 0.042234424701074812 FTOKEN
-              // lp amount from adding liquidity will be (0.042234424701074812 / 0.057765575298925188) * 0.316227766016837933(first total supply) = 0.231205137369691323 LP
-              // new reserve after adding liquidity 2.999999999999999954 BTOKEN - 0.100000000000000000 FTOKEN
-              await vaultAsAlice.work(
-                0,
-                pancakeswapV2Worker01.address,
-                ethers.utils.parseEther("1"),
-                loan,
-                "0",
-                ethers.utils.defaultAbiCoder.encode(
-                  ["address", "bytes"],
-                  [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-                )
-              );
-
-              // Her position should have ~2 NATIVE health (minus some small trading fee)
-              expect(await pancakeswapV2Worker01.health(1)).to.be.bignumber.eq(
-                ethers.utils.parseEther("1.997883397660681282")
-              );
-              expect(await pancakeswapV2Worker01.shares(1)).to.eq(ethers.utils.parseEther("0.231205137369691323"));
-              expect(await pancakeswapV2Worker01.shareToBalance(await pancakeswapV2Worker01.shares(1))).to.eq(
-                ethers.utils.parseEther("0.231205137369691323")
-              );
-
-              // PancakeswapV2Worker needs to be updated to PancakeswapV2Worker02
-              const PancakeswapV2Worker02 = (await ethers.getContractFactory(
-                "PancakeswapV2Worker02",
-                deployer
-              )) as PancakeswapV2Worker02__factory;
-              const pancakeswapV2Worker02 = (await upgrades.upgradeProxy(
-                pancakeswapV2Worker01.address,
-                PancakeswapV2Worker02
-              )) as PancakeswapV2Worker02;
-              await pancakeswapV2Worker02.deployed();
-
-              // except that important states must be the same.
-              // - health(1) should return the same value as before upgrade
-              // - shares(1) should return the same value as before upgrade
-              // - shareToBalance(shares(1)) should return the same value as before upgrade
-              // - reinvestPath[0] should be reverted as reinvestPath.lenth == 0
-              // - reinvestPath should return default reinvest path ($CAKE->$WBNB->$BTOKEN)
-              expect(await pancakeswapV2Worker02.health(1)).to.be.bignumber.eq(
-                ethers.utils.parseEther("1.997883397660681282")
-              );
-              expect(await pancakeswapV2Worker02.shares(1)).to.eq(ethers.utils.parseEther("0.231205137369691323"));
-              expect(await pancakeswapV2Worker02.shareToBalance(await pancakeswapV2Worker01.shares(1))).to.eq(
-                ethers.utils.parseEther("0.231205137369691323")
-              );
-              expect(pancakeswapV2Worker02.address).to.eq(pancakeswapV2Worker01.address);
-              await expect(pancakeswapV2Worker02.reinvestPath(0)).to.be.reverted;
-              expect(await pancakeswapV2Worker02.getReinvestPath()).to.be.deep.eq([
-                cake.address,
-                wbnb.address,
-                baseToken.address,
-              ]);
-
-              const pancakeswapV2Worker02AsEve = PancakeswapV2Worker02__factory.connect(
-                pancakeswapV2Worker02.address,
-                eve
-              );
-
-              // set beneficialVaultConfig
-              await pancakeswapV2Worker02.setBeneficialVaultConfig(BENEFICIALVAULT_BOUNTY_BPS, vault.address, [
-                cake.address,
-                wbnb.address,
-                baseToken.address,
-              ]);
-
-              expect(
-                await pancakeswapV2Worker02.beneficialVault(),
-                "expect beneficialVault to be equal to input vault"
-              ).to.eq(vault.address);
-              expect(
-                await pancakeswapV2Worker02.beneficialVaultBountyBps(),
-                "expect beneficialVaultBountyBps to be equal to BENEFICIALVAULT_BOUNTY_BPS"
-              ).to.eq(BENEFICIALVAULT_BOUNTY_BPS);
-              expect(
-                await pancakeswapV2Worker02.getRewardPath(),
-                "expect CAKE->WBNB->BTOKEN as reward path"
-              ).to.be.deep.eq([cake.address, wbnb.address, baseToken.address]);
-
-              // Eve comes and trigger reinvest
-              await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-              // Eve calls reinvest to increase the LP size and receive portion of rewards
-              // it's 4 blocks apart since the first tx, thus 0.0076 * 4 = 0.303999999999841411 CAKE
-              // 1% of 0.303999999999841411 will become a bounty, thus eve shall get 90% of 0.003039999999998414 CAKE
-              // 10% of 0.003039999999998414 will increase a beneficial vault's totalToken, this beneficial vault will get 0.0003039999999998414 CAKE
-              // thus, 0.002735999999998573 will be returned to eve
-
-              // 0.000303999999999841 CAKE is converted to (0.000303999999999841 * 0.9975 * 1) / (0.1 + 0.000303999999999841 * 0.9975) = 0.003023232350219612 WBNB
-              // 0.003023232350219612 WBNB is converted to (0.003023232350219612 * 0.9975 * 1) / (1 + 0.003023232350219612 * 0.9975) = 0.003006607321008077 FTOKEN
-              // 0.003006607321008077 will be returned to beneficial vault
-
-              // total reward left to be added to lp is~ 0.300959999999842997 CAKE
-              // 0.300959999999842997 CAKE is converted to (0.300959999999842997 * 0.9975 * 0.996976767649780388) / (0.100303999999999841 + 0.300959999999842997 * 0.9975) = 0.747294217375624642 WBNB
-              // 0.747294217375624642 WBNB is converted to (0.747294217375624642 * 0.9975 * 0.996993392678991923) / (1.003023232350219612 + 0.747294217375624642 * 0.9975) = 0.425053683338158027 BTOKEN
-              // 0.425053683338158027 BTOKEN will be added to add strat to increase an lp size
-              // after optimal swap, 0.425053683338158027 needs to swap 0.205746399352533711 BTOKEN to get the pair
-              // thus (0.205746399352533711 * 0.9975 * 0.1) / (2.999999999999999954 + 0.205746399352533711 * 0.9975) = 0.006403032018227551
-              // 0.205746399352533711 BTOKEN + 0.006403032018227551 FTOKEN to be added to  the pool
-              // LP from adding the pool will be (0.006403032018227551 / 0.09359696798177246) * 0.547432903386529256 = 0.037450255962328211 LP
-              // Accumulated LP will be 0.231205137369691323 + 0.037450255962328211 = 0.268655393332019534
-              // now her balance based on share will be equal to (2.31205137369691323 / 2.31205137369691323) * 0.268655393332019534 = 0.268655393332019534 LP
-              let vaultBalanceBefore = await baseToken.balanceOf(vault.address);
-              await pancakeswapV2Worker02AsEve.reinvest();
-              let vaultBalanceAfter = await baseToken.balanceOf(vault.address);
-              AssertHelpers.assertAlmostEqual(
-                vaultBalanceAfter.sub(vaultBalanceBefore).toString(),
-                ethers.utils.parseEther("0.003006607321008077").toString()
-              );
-              AssertHelpers.assertAlmostEqual(
-                CAKE_REWARD_PER_BLOCK.mul("4")
-                  .mul(REINVEST_BOUNTY_BPS)
-                  .div("10000")
-                  .sub(
-                    CAKE_REWARD_PER_BLOCK.mul("4")
-                      .mul(REINVEST_BOUNTY_BPS)
-                      .mul(BENEFICIALVAULT_BOUNTY_BPS)
-                      .div("10000")
-                      .div("10000")
-                  )
-                  .toString(),
-                (await cake.balanceOf(eveAddress)).toString()
-              );
-              await vault.deposit(0); // Random action to trigger interest computation
-              const healthDebt = await vault.positionInfo("1");
-              expect(healthDebt[0]).to.be.bignumber.above(ethers.utils.parseEther("2"));
-              const interest = ethers.utils.parseEther("0.3"); // 30% interest rate
-              AssertHelpers.assertAlmostEqual(healthDebt[1].toString(), interest.add(loan).toString());
-              AssertHelpers.assertAlmostEqual(
-                (await baseToken.balanceOf(vault.address)).toString(),
-                deposit.sub(loan).add(ethers.utils.parseEther("0.003006607321008077")).toString()
-              );
-              AssertHelpers.assertAlmostEqual((await vault.vaultDebtVal()).toString(), interest.add(loan).toString());
-              const reservePool = interest.mul(RESERVE_POOL_BPS).div("10000");
-              AssertHelpers.assertAlmostEqual(reservePool.toString(), (await vault.reservePool()).toString());
-              AssertHelpers.assertAlmostEqual(
-                deposit.add(ethers.utils.parseEther("0.003006607321008077")).add(interest).sub(reservePool).toString(),
-                (await vault.totalToken()).toString()
-              );
-              expect(await pancakeswapV2Worker01.shares(1)).to.eq(ethers.utils.parseEther("0.231205137369691323"));
-              expect(await pancakeswapV2Worker01.shareToBalance(await pancakeswapV2Worker01.shares(1))).to.eq(
-                ethers.utils.parseEther("0.268655393332019534")
-              );
-
-              // Tresuary config has been set.
-              await pancakeswapV2Worker02.setTreasuryConfig(DEPLOYER, REINVEST_BOUNTY_BPS);
-
-              // Alice closes position. This will trigger _reinvest in work function. Hence, positions get reinvested.
-              // Reinvest fees should be transferred to DEPLOYER account.
-              // it's 3 blocks apart since the last tx, thus 0.076 * 3 = 0.227999999999845997 CAKE
-              // --------
-              // ***** Total fees: 0.227999999999845997 * 1% = 0.002279999999998459 CAKE
-              // ***** Beneficial Vault gets: 0.002279999999998459 * 10% = 0.000227999999999845 CAKE
-              // ***** thus DEPLOYER will receive 0.002279999999998459 - 0.000227999999999845 = 0.002051999999998614 CAKE as a bounty *****
-              // ***** Eve's CAKE should still be the same. *****
-              // --------
-
-              // 0.000227999999999845 CAKE is converted to (0.000227999999999845 * 0.9975 * 0.249682550274155746) / (0.401263999999842838 + 0.000227999999999845 * 0.9975) = 0.000141435901655073 WBNB
-              // 0.000141435901655073 WBNB is converted to (0.000141435901655073 * 0.9975 * 0.571939709340833896) / (1.750317449725844254 + 0.000141435901655073 * 0.9975) = 0.000046096822623852 BTOKEN
-              // --------
-              // ***** CAKE-WBNB reserve: 0.401491999999842683 CAKE + 0.249541114372500673 WBNB
-              // ***** BTOKEN-WBNB reserve: 0.571893612518210044 BTOKEN + 1.750458885627499327 WBNB
-              // ***** 0.000046096822623852 BTOKEN will be returned to beneficial vault *****
-              // ***** However, beneficialVault is operator. Hence, this amount will be hold with in contract first. *****
-              // --------
-
-              // total bounty left to be added to lp is ~0.225719999999847538 CAKE
-              // 0.225719999999847538 CAKE is converted to (0.225719999999847538 * 0.9975 * 0.249541114372500673) / (0.401491999999842683 + 0.225719999999847538 * 0.9975) = 0.089660592842374176 WBNB
-              // 0.089660592842374176 WBNB is converted to (0.089660592842374176 * 0.9975 * 0.571893612518210044) / (1.750458885627499327 + 0.089660592842374176 * 0.9975) = 0.027799477932277456 BTOKEN
-              // 0.027799477932277456 BTOKEN will be added to add strat to increase an lp size
-              // after optimal swap, 0.027799477932277456 needs to swap 0.013889009817279503 BTOKEN to get the pair
-              // thus (0.013889009817279503 * 0.9975 * 0.1) / (3.425053683338158027 + 0.013889009817279503 * 0.9975) = 0.000402868800533636
-              // 0.013910468114997953 BTOKEN + 0.000402868800533636 FTOKEN to be added to  the pool
-              // --------
-              // LP from adding the pool will be (0.000402868800533636 / 0.099597131199466364) * 0.584883159348857467 = 0.002365843011956756 LP
-              // BTOKEN-FTOKEN reserve: 3.452853161270435483 BTOKEN 0.100000000000000000 FTOKEN
-              // BTOKEN-FTOKEN's LP total supply: 0.584883159348857467 + 0.002365843011956756 = 0.587249002360814223 LPs
-              // Accumulated LP: 0.26865539333201954 + 0.002365843011956756 = 0.271021236343976296 LPs
-              // now her balance based on share will be equal to (2.31205137369691323 / 2.31205137369691323) * 0.271021236343976296 = 0.271021236343976296 LPs
-              // --------
-
-              // now she removes 0.271021236343976296 of her lp to BTOKEN-FTOKEN pair
-              // (0.271021236343976296 / 0.587249002360814223) * 0.1 = 0.046150991360468409 FTOKEN
-              // (0.271021236343976296 / 0.587249002360814223) * 3.452853161270435483 = 1.593525964147579025 BTOKEN
-              // 0.046150991360468409 FTOKEN will be converted to
-              // (0.046150991360468409 * 0.9975 * 1.859327197122856458) / (0.053849008639531591 + 0.046150991360468409 * 0.9975) = 0.856941406658119048 BTOKEN
-              // --------
-              // ***** BTOKEN-FTOKEN reserve: 1.00238579046473741 BTOKEN 0.100000000000000000 FTOKEN
-              // ***** thus, alice will receive 1.593525964147579025 + 0.856941406658119048 - 1.3 (debt + interest) = 1.150467370805698073 BTOKEN *****
-              // --------
-              vaultBalanceBefore = await baseToken.balanceOf(vault.address);
-              const aliceBaseTokenBefore = await baseToken.balanceOf(aliceAddress);
-              const aliceFarmingTokenBefore = await farmToken.balanceOf(aliceAddress);
-              const eveCakeBefore = await cake.balanceOf(eveAddress);
-              await vaultAsAlice.work(
-                1,
-                pancakeswapV2Worker02.address,
-                "0",
-                "0",
-                "115792089237316195423570985008687907853269984665640564039457584007913129639935",
-                ethers.utils.defaultAbiCoder.encode(
-                  ["address", "bytes"],
-                  [liqStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-                )
-              );
-              vaultBalanceAfter = await baseToken.balanceOf(vault.address);
-              const aliceBaseTokenAfter = await baseToken.balanceOf(aliceAddress);
-              const aliceFarmingTokenAfter = await farmToken.balanceOf(aliceAddress);
-
-              expect(await cake.balanceOf(eveAddress), "Eve's CAKE must stay the same").to.be.eq(eveCakeBefore);
-              expect(await cake.balanceOf(DEPLOYER), "Deployer should get 0.002051999999998614 CAKE").to.be.eq(
-                ethers.utils.parseEther("0.002051999999998614")
-              );
-              expect(
-                await pancakeswapV2Worker02.buybackAmount(),
-                "worker.buybackAmount should be 0.000046096822623852"
-              ).to.be.eq(ethers.utils.parseEther("0.000046096822623852"));
-              expect(
-                await baseToken.balanceOf(pancakeswapV2Worker02.address),
-                "worker should has 0.000046096822623852 BTOKEN"
-              ).to.be.eq(ethers.utils.parseEther("0.000046096822623852"));
-              expect(await pancakeswapV2Worker02.shares(1), "expect shares(1) = 0").to.eq(ethers.utils.parseEther("0"));
-              expect(
-                await pancakeswapV2Worker02.shareToBalance(await pancakeswapV2Worker02.shares(1)),
-                "expect balance of shares(1) = 0"
-              ).to.eq(ethers.utils.parseEther("0"));
-              AssertHelpers.assertAlmostEqual(
-                aliceBaseTokenAfter.sub(aliceBaseTokenBefore).toString(),
-                ethers.utils
-                  .parseEther("1.593525964147579025")
-                  .add(ethers.utils.parseEther("0.856941406658119048"))
-                  .sub(interest.add(loan))
-                  .toString()
-              );
-              expect(
-                aliceFarmingTokenAfter.sub(aliceFarmingTokenBefore),
-                "expect Alice's FTOKEN remain the same"
-              ).to.eq("0");
-            });
-          });
-
-          context("when beneficialVault != operator", async () => {
-            it("should work with the new upgraded worker", async () => {
-              // Deploy MockBeneficialVault
-              const MockBeneficialVault = (await ethers.getContractFactory(
-                "MockBeneficialVault",
-                deployer
-              )) as MockBeneficialVault__factory;
-              const mockFtokenVault = (await upgrades.deployProxy(MockBeneficialVault, [
-                farmToken.address,
-              ])) as MockBeneficialVault;
-
-              // Deployer deposits 3 BTOKEN to the bank
-              const deposit = ethers.utils.parseEther("3");
-              await baseToken.approve(vault.address, deposit);
-              await vault.deposit(deposit);
-
-              // Now Alice can take 1 BTOKEN loan + 1 BTOKEN of her to create a new position
-              const loan = ethers.utils.parseEther("1");
-              await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
-              // Position#1: Bob borrows 1 BTOKEN loan and supply another 1 BToken
-              // Thus, Bob's position value will be worth 20 BTOKEN
-              // After calling `work()`
-              // 2 BTOKEN needs to swap 0.0732967258967755614 BTOKEN to 0.042234424701074812 FTOKEN
-              // new reserve after swap will be 1.732967258967755614 ฺBTOKEN 0.057765575298925188 FTOKEN
-              // based on optimal swap formula, BTOKEN-FTOKEN to be added into the LP will be 1.267032741032244386 BTOKEN - 0.042234424701074812 FTOKEN
-              // lp amount from adding liquidity will be (0.042234424701074812 / 0.057765575298925188) * 0.316227766016837933(first total supply) = 0.231205137369691323 LP
-              // new reserve after adding liquidity 2.999999999999999954 BTOKEN - 0.100000000000000000 FTOKEN
-              await vaultAsAlice.work(
-                0,
-                pancakeswapV2Worker01.address,
-                ethers.utils.parseEther("1"),
-                loan,
-                "0",
-                ethers.utils.defaultAbiCoder.encode(
-                  ["address", "bytes"],
-                  [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-                )
-              );
-
-              // Her position should have ~2 NATIVE health (minus some small trading fee)
-              expect(await pancakeswapV2Worker01.health(1)).to.be.bignumber.eq(
-                ethers.utils.parseEther("1.997883397660681282")
-              );
-              expect(await pancakeswapV2Worker01.shares(1)).to.eq(ethers.utils.parseEther("0.231205137369691323"));
-              expect(await pancakeswapV2Worker01.shareToBalance(await pancakeswapV2Worker01.shares(1))).to.eq(
-                ethers.utils.parseEther("0.231205137369691323")
-              );
-
-              // PancakeswapV2Worker needs to be updated to PancakeswapV2Worker02
-              const PancakeswapV2Worker02 = (await ethers.getContractFactory(
-                "PancakeswapV2Worker02",
-                deployer
-              )) as PancakeswapV2Worker02__factory;
-              const pancakeswapV2Worker02 = (await upgrades.upgradeProxy(
-                pancakeswapV2Worker01.address,
-                PancakeswapV2Worker02
-              )) as PancakeswapV2Worker02;
-              await pancakeswapV2Worker02.deployed();
-
-              // except that important states must be the same.
-              // - health(1) should return the same value as before upgrade
-              // - shares(1) should return the same value as before upgrade
-              // - shareToBalance(shares(1)) should return the same value as before upgrade
-              // - reinvestPath[0] should be reverted as reinvestPath.lenth == 0
-              // - reinvestPath should return default reinvest path ($CAKE->$WBNB->$BTOKEN)
-              expect(await pancakeswapV2Worker02.health(1)).to.be.bignumber.eq(
-                ethers.utils.parseEther("1.997883397660681282")
-              );
-              expect(await pancakeswapV2Worker02.shares(1)).to.eq(ethers.utils.parseEther("0.231205137369691323"));
-              expect(await pancakeswapV2Worker02.shareToBalance(await pancakeswapV2Worker01.shares(1))).to.eq(
-                ethers.utils.parseEther("0.231205137369691323")
-              );
-              expect(pancakeswapV2Worker02.address).to.eq(pancakeswapV2Worker01.address);
-              await expect(pancakeswapV2Worker02.reinvestPath(0)).to.be.reverted;
-              expect(await pancakeswapV2Worker02.getReinvestPath()).to.be.deep.eq([
-                cake.address,
-                wbnb.address,
-                baseToken.address,
-              ]);
-
-              const pancakeswapV2Worker02AsEve = PancakeswapV2Worker02__factory.connect(
-                pancakeswapV2Worker02.address,
-                eve
-              );
-
-              // set beneficialVaultConfig
-              await pancakeswapV2Worker02.setBeneficialVaultConfig(
-                BENEFICIALVAULT_BOUNTY_BPS,
-                mockFtokenVault.address,
-                [cake.address, wbnb.address, farmToken.address]
-              );
-
-              expect(
-                await pancakeswapV2Worker02.beneficialVault(),
-                "expect beneficialVault to be equal to input vault"
-              ).to.eq(mockFtokenVault.address);
-              expect(
-                await pancakeswapV2Worker02.beneficialVaultBountyBps(),
-                "expect beneficialVaultBountyBps to be equal to BENEFICIALVAULT_BOUNTY_BPS"
-              ).to.eq(BENEFICIALVAULT_BOUNTY_BPS);
-              expect(await pancakeswapV2Worker02.getRewardPath(), "expect CAKE->WBNB->FTOKEN path").to.be.deep.eq([
-                cake.address,
-                wbnb.address,
-                farmToken.address,
-              ]);
-
-              // Eve comes and trigger reinvest
-              await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-              // Eve calls reinvest to increase the LP size and receive portion of rewards
-              // it's 4 blocks apart since the first tx, thus 0.0076 * 4 = 0.303999999999841411 CAKE
-              // 1% of 0.303999999999841411 will become a bounty, thus eve shall get 90% of 0.003039999999998414 CAKE
-              // 10% of 0.003039999999998414 will increase a beneficial vault's totalToken, this beneficial vault will get 0.0003039999999998414 CAKE
-              // --------
-              // ******* thus, 0.002735999999998573 will be returned to eve *******
-              // --------
-
-              // 0.000303999999999841 CAKE is converted to (0.000303999999999841 * 0.9975 * 1) / (0.1 + 0.000303999999999841 * 0.9975) = 0.003023232350219612 WBNB
-              // 0.003023232350219612 WBNB is converted to (0.003023232350219612 * 0.9975 * 1) / (1 + 0.003023232350219612 * 0.9975) = 0.003006607321008077 FTOKEN
-              // --------
-              // ******* 0.003006607321008077 FTOKEN will be returned to beneficial vault *******
-              // --------
-
-              // total reward left to be added to lp is~ 0.300959999999842997 CAKE
-              // 0.300959999999842997 CAKE is converted to (0.300959999999842997 * 0.9975 * 0.996976767649780388) / (1.00303999999999841 * 0.9975) = 0.747294217375624642 WBNB
-              // 0.747294217375624642 WBNB is converted to (0.747294217375624642 * 0.9975 * 1) / (1 + 0.747294217375624642 * 0.9975) = 0.427073957641965907 BTOKEN
-              // 0.427073957641965907 BTOKEN will be added to add strat to increase an lp size
-              // after optimal swap, 0.427073957641965907 needs to swap 0.206692825002604811 BTOKEN to get the pair
-              // thus (0.206692825002604811 * 0.9975 * 0.1) / (2.999999999999999954 + 0.206692825002604811 * 0.9975) = 0.006430591675675324
-              // 0.220381132639361117 BTOKEN + 0.006430591675675324 FTOKEN to be added to  the pool
-              // LP from adding the pool will be (0.006430591675675324 / 0.093569408324324676) * 0.547432903386529256 = 0.037622525722362969 LP
-              // --------
-              // ******* LP total supply = 0.547432903386529256 + 0.037622525722362969 = 0.585055429108892225 LPs
-              // ******* Accumulated LP will be 0.231205137369691323 + 0.037622525722362969 = 0.268827663092054292 LPs *******
-              // ******* now her balance based on share will be equal to (0.231205137369691323 / 0.231205137369691323) * 0.268827663092054292 = 0.268827663092054292 LP *******
-              // --------
-              await pancakeswapV2Worker02AsEve.reinvest();
-              expect(await farmToken.balanceOf(mockFtokenVault.address)).to.be.eq(
-                ethers.utils.parseEther("0.003006607321008077")
-              );
-              AssertHelpers.assertAlmostEqual(
-                CAKE_REWARD_PER_BLOCK.mul("4")
-                  .mul(REINVEST_BOUNTY_BPS)
-                  .div("10000")
-                  .sub(
-                    CAKE_REWARD_PER_BLOCK.mul("4")
-                      .mul(REINVEST_BOUNTY_BPS)
-                      .mul(BENEFICIALVAULT_BOUNTY_BPS)
-                      .div("10000")
-                      .div("10000")
-                  )
-                  .toString(),
-                (await cake.balanceOf(eveAddress)).toString()
-              );
-              await vault.deposit(0); // Random action to trigger interest computation
-              const healthDebt = await vault.positionInfo("1");
-              expect(healthDebt[0]).to.be.bignumber.above(ethers.utils.parseEther("2"));
-              const interest = ethers.utils.parseEther("0.300001"); // 30% interest rate + 0.000001 for margin
-              AssertHelpers.assertAlmostEqual(healthDebt[1].toString(), interest.add(loan).toString());
-              AssertHelpers.assertAlmostEqual((await vault.vaultDebtVal()).toString(), interest.add(loan).toString());
-              // add 0.000001 for error-margin
-              const reservePool = interest.mul(RESERVE_POOL_BPS).div("10000");
-              AssertHelpers.assertAlmostEqual(reservePool.toString(), (await vault.reservePool()).toString());
-              expect(await pancakeswapV2Worker02.shares(1)).to.eq(ethers.utils.parseEther("0.231205137369691323"));
-              expect(await pancakeswapV2Worker02.shareToBalance(await pancakeswapV2Worker02.shares(1))).to.eq(
-                ethers.utils.parseEther("0.268827663092054292")
-              );
-
-              // Treasury config set.
-              await pancakeswapV2Worker02.setTreasuryConfig(DEPLOYER, REINVEST_BOUNTY_BPS);
-
-              // Alice closes position. This will trigger _reinvest in work function. Hence, positions get reinvested.
-              // Reinvest fees should be transferred to DEPLOYER account.
-              // it's 3 blocks apart since the first tx, thus 0.076 * 3 = 0.227999999999974897 CAKE
-              // --------
-              // ***** Total fees: 0.227999999999974897 * 1% = 0.002279999999999748 CAKE
-              // ***** Beneficial Vault gets: 0.002279999999999748 * 10% = 0.000227999999999974 CAKE
-              // ***** thus DEPLOYER will receive 0.002279999999999748 - 0.000227999999999974 = 0.002051999999999774 CAKE as a bounty *****
-              // ***** Eve's CAKE should still be the same. *****
-              // --------
-
-              // 0.000227999999999974 CAKE is converted to (0.000227999999999974 * 0.9975 * 0.249682550274155746) / (0.401263999999842838 + 0.000227999999999974 * 0.9975) = 0.000141435901655153 WBNB
-              // 0.000141435901655153 WBNB is converted to (0.000141435901655153 * 0.9975 * 0.996993392678991923) / (1.003023232350219612 + 0.000141435901655153 * 0.9975) = 0.000140214450148741 FTOKEN
-              // --------
-              // ***** CAKE-WBNB reserve: 0.401491999999842812 CAKE + 0.249541114372500593 WBNB
-              // ***** FTOKEN-WBNB reserve: 0.997133607129140664 FTOKEN + 1.003164668251874765 WBNB
-              // ***** 0.000140214450148741 FTOKEN will be returned to beneficial vault *****
-              // ***** Combined FTOKEN before = 0.003006607321008077 + 0.000140214450148741 = 0.003146821771156818 FTOKEN
-              // --------
-
-              // total bounty left to be added to lp is ~0.225719999999975149 CAKE
-              // 0.225719999999975149 CAKE is converted to (0.225719999999975149 * 0.9975 * 0.249541114372500593) / (0.401491999999842812 + 0.225719999999975149 * 0.9975) = 0.089660592842406605 WBNB
-              // 0.089660592842406605 WBNB is converted to (0.089660592842406605 * 0.9975 * 0.572926042358034093) / (1.747294217375624642 + 0.089660592842406605 * 0.9975) = 0.027897648546035661 BTOKEN
-              // 0.027897648546035661 BTOKEN will be added to add strat to increase an lp size
-              // after optimal swap, 0.027897648546035661 needs to swap 0.013937974595638415 BTOKEN to get the pair
-              // thus (0.013937974595638415 * 0.9975 * 0.1) / (3.427073957641965907 + 0.013937974595638415 * 0.9975) = 0.000404045981894464 FTOKEN
-              // 0.013959673950397246 BTOKEN + 0.000404045981894464 FTOKEN to be added to the pool
-              // --------
-              // ***** LP from adding the pool will be (0.000404045981894464 / 0.099595954018105536) * 0.585055429108892225 = 0.002373482915521007 LP
-              // ***** latest balance of BTOKEN-FTOKEN pair will be 3.454971606188001568 BTOKEN 0.100000000000000000 FTOKEN
-              // ***** latest BTOKEN-FTOKEN's LP total supply will be 0.585055429108892225 + 0.002373482915521007 = 0.587428912024413232 LPs
-              // ***** Accumulated LP will be 0.268827663092054292 + 0.002373482915521007 = 0.271201146007575299 LPs
-              // ***** now her balance based on share will be equal to (2.31205137369691323 / 2.31205137369691323) * 0.271201146007575299 = 0.271201146007575299 LPs
-              // --------
-
-              // now she removes 0.271201146007575299 of her lp to BTOKEN-FTOKEN pair
-              // (0.271201146007575299 / 0.587428912024413232) * 0.1 = 0.046167483495654760 FTOKEN
-              // (0.271201146007575299 / 0.587428912024413232) * 3.454971606188001568 = 1.595073446066403795 BTOKEN
-              // 0.046167483495654760 FTOKEN will be converted to (0.046167483495654760 * 0.9975 * 1.859898160121597773) / (0.05383251650434524 + 0.046167483495654760 * 0.9975) = 0.857511234063499008 BTOKEN
-              // --------
-              // ***** latest balance of BTOKEN-FTOKEN pair will be 1.002386926058098765 BTOKEN 0.100000000000000000 FTOKEN
-              // ***** thus, alice will receive 1.595073446066403795 + 0.857511234063499008 - 1.3 (interest + debt) = 1.152584680129902803 BTOKEN *****
-              // --------
-              const aliceBaseTokenBefore = await baseToken.balanceOf(aliceAddress);
-              const aliceFarmingTokenBefore = await farmToken.balanceOf(aliceAddress);
-              const eveCakeBefore = await cake.balanceOf(eveAddress);
-              await vaultAsAlice.work(
-                1,
-                pancakeswapV2Worker02.address,
-                "0",
-                "0",
-                "115792089237316195423570985008687907853269984665640564039457584007913129639935",
-                ethers.utils.defaultAbiCoder.encode(
-                  ["address", "bytes"],
-                  [liqStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-                )
-              );
-              const aliceBaseTokenAfter = await baseToken.balanceOf(aliceAddress);
-              const aliceFarmingTokenAfter = await farmToken.balanceOf(aliceAddress);
-
-              expect(await cake.balanceOf(eveAddress), "expect Eve's CAKE stay the same").to.be.eq(eveCakeBefore);
-              expect(await cake.balanceOf(DEPLOYER), "expect deployer get 0.002051999999999774 CAKE").to.be.eq(
-                ethers.utils.parseEther("0.002051999999999774")
-              );
-              expect(
-                await farmToken.balanceOf(mockFtokenVault.address),
-                "expect mockFtokenVault get 0.003146821771156818 FTOKEN from buyback & redistribute"
-              ).to.be.eq(ethers.utils.parseEther("0.003146821771156818"));
-              expect(
-                await baseToken.balanceOf(pancakeswapV2Worker02.address),
-                "expect worker shouldn't has any BTOKEN due to operator != beneficialVault"
-              ).to.be.eq(ethers.utils.parseEther("0"));
-              expect(
-                await farmToken.balanceOf(pancakeswapV2Worker02.address),
-                "expect worker shouldn't has any FTOKEN due to it is automatically redistribute to ibFTOKEN holder"
-              ).to.be.eq(ethers.utils.parseEther("0"));
-              expect(await pancakeswapV2Worker02.shares(1), "expect shares(1) is 0 as Alice closed position").to.eq(
-                ethers.utils.parseEther("0")
-              );
-              expect(
-                await pancakeswapV2Worker02.shareToBalance(await pancakeswapV2Worker02.shares(1)),
-                "expect shareToBalance(shares(1) is 0 as Alice closed position"
-              ).to.eq(ethers.utils.parseEther("0"));
-              AssertHelpers.assertAlmostEqual(
-                aliceBaseTokenAfter.sub(aliceBaseTokenBefore).toString(),
-                ethers.utils
-                  .parseEther("1.595073446066403795")
-                  .add(ethers.utils.parseEther("0.857511234063499008"))
-                  .sub(interest.add(loan))
-                  .toString()
-              );
-              expect(
-                aliceFarmingTokenAfter.sub(aliceFarmingTokenBefore),
-                "expect Alice's FTOKEN remain the same"
-              ).to.eq("0");
-            });
-          });
         });
       });
 
@@ -2897,10 +2353,10 @@ describe("Vault - PancakeswapV202", () => {
           // BTOKEN-FTOKEN reserve = 2.999999999999999954 BTOKEN + 0.100000000000000000 FTOKEN
           // BTOKEN-FTOKEN total supply = 0.547432903386529256 BTOKEN-FTOKEN LP
           // ----------------
-          await swapHelper.loadReserves(await pancakeswapV2Worker.getPath());
+          await swapHelper.loadReserves(await mdexWorker.getPath());
           await vaultAsAlice.work(
             0,
-            pancakeswapV2Worker.address,
+            mdexWorker.address,
             ethers.utils.parseEther("1"),
             borrowedAmount,
             "0",
@@ -2912,24 +2368,24 @@ describe("Vault - PancakeswapV202", () => {
 
           const [expectedLp] = await swapHelper.computeOneSidedOptimalLp(
             ethers.utils.parseEther("1").add(borrowedAmount),
-            await pancakeswapV2Worker.getPath()
+            await mdexWorker.getPath()
           );
           const expectedHealth = await swapHelper.computeLpHealth(expectedLp, baseToken.address, farmToken.address);
 
-          expect(await pancakeswapV2Worker.health(1)).to.be.bignumber.eq(expectedHealth);
-          expect(await pancakeswapV2Worker.shares(1)).to.eq(expectedLp);
-          expect(await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(1))).to.eq(expectedLp);
+          expect(await mdexWorker.health(1)).to.be.bignumber.eq(expectedHealth);
+          expect(await mdexWorker.shares(1)).to.eq(expectedLp);
+          expect(await mdexWorker.shareToBalance(await mdexWorker.shares(1))).to.eq(expectedLp);
         });
 
         async function successBtokenOnly(lastWorkBlock: BigNumber, goRouge: boolean) {
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
 
-          let accumLp = await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(1));
-          const [workerLpBefore] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
+          let accumLp = await mdexWorker.shareToBalance(await mdexWorker.shares(1));
+          const [workerLpBefore] = await bscPool.userInfo(POOL_IDX, mdexWorker.address);
           const debris = await baseToken.balanceOf(addStrat.address);
 
-          const reinvestPath = await pancakeswapV2Worker.getReinvestPath();
-          const path = await pancakeswapV2Worker.getPath();
+          const reinvestPath = await mdexWorker.getReinvestPath();
+          const path = await mdexWorker.getPath();
 
           let reserves = await swapHelper.loadReserves(reinvestPath);
           reserves.push(...(await swapHelper.loadReserves(path)));
@@ -2947,7 +2403,7 @@ describe("Vault - PancakeswapV202", () => {
           const blockAfter = await TimeHelpers.latestBlockNumber();
           const blockDiff = blockAfter.sub(lastWorkBlock);
           const totalRewards = workerLpBefore
-            .mul(CAKE_REWARD_PER_BLOCK.mul(blockDiff).mul(1e12).div(workerLpBefore))
+            .mul(MDX_REWARD_PER_BLOCK.mul(blockDiff).mul(1e12).div(workerLpBefore))
             .div(1e12);
           const totalReinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
 
@@ -2964,10 +2420,12 @@ describe("Vault - PancakeswapV202", () => {
 
           const [health, debt] = await vault.positionInfo("1");
           expect(health).to.be.bignumber.above(ethers.utils.parseEther("3"));
+
           const interest = ethers.utils.parseEther("0.3"); // 30% interest rate
           AssertHelpers.assertAlmostEqual(debt.toString(), interest.add(borrowedAmount).toString());
+          const baseAmount = (await baseToken.balanceOf(vault.address)).toString()
           AssertHelpers.assertAlmostEqual(
-            (await baseToken.balanceOf(vault.address)).toString(),
+            baseAmount,
             deposit.sub(borrowedAmount).toString()
           );
           AssertHelpers.assertAlmostEqual(
@@ -2975,19 +2433,20 @@ describe("Vault - PancakeswapV202", () => {
             interest.add(borrowedAmount).toString()
           );
           const reservePool = interest.mul(RESERVE_POOL_BPS).div("10000");
-          AssertHelpers.assertAlmostEqual(reservePool.toString(), (await vault.reservePool()).toString());
+          const vaultReservePool = (await vault.reservePool()).toString();
+          AssertHelpers.assertAlmostEqual(reservePool.toString(), vaultReservePool);
           AssertHelpers.assertAlmostEqual(
             deposit.add(interest).sub(reservePool).toString(),
             (await vault.totalToken()).toString()
           );
-          expect(await pancakeswapV2Worker.shares(1), `expect Alice's shares = ${accumLp}`).to.be.bignumber.eq(accumLp);
+          expect(await mdexWorker.shares(1), `expect Alice's shares = ${accumLp}`).to.be.bignumber.eq(accumLp);
           expect(
-            await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(1)),
+            await mdexWorker.shareToBalance(await mdexWorker.shares(1)),
             `expect Alice's staked LPs = ${accumLp}`
           ).to.be.bignumber.eq(accumLp);
           expect(
-            await cake.balanceOf(DEPLOYER),
-            `expect Deployer gets ${ethers.utils.formatEther(totalReinvestFees)} CAKE`
+            await mdx.balanceOf(DEPLOYER),
+            `expect Deployer gets ${ethers.utils.formatEther(totalReinvestFees)} MDX`
           ).to.be.bignumber.eq(totalReinvestFees);
         }
 
@@ -3010,12 +2469,12 @@ describe("Vault - PancakeswapV202", () => {
             deployerAddress
           );
 
-          let accumLp = await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(1));
-          const [workerLpBefore] = await masterChef.userInfo(POOL_ID, pancakeswapV2Worker.address);
+          let accumLp = await mdexWorker.shareToBalance(await mdexWorker.shares(1));
+          const [workerLpBefore] = await bscPool.userInfo(POOL_IDX, mdexWorker.address);
           const debris = await baseToken.balanceOf(addStrat.address);
 
-          const reinvestPath = await pancakeswapV2Worker.getReinvestPath();
-          const path = await pancakeswapV2Worker.getPath();
+          const reinvestPath = await mdexWorker.getReinvestPath();
+          const path = await mdexWorker.getPath();
 
           let reserves = await swapHelper.loadReserves(reinvestPath);
           reserves.push(...(await swapHelper.loadReserves(path)));
@@ -3037,7 +2496,7 @@ describe("Vault - PancakeswapV202", () => {
           const blockAfter = await TimeHelpers.latestBlockNumber();
           const blockDiff = blockAfter.sub(lastWorkBlock);
           const totalRewards = workerLpBefore
-            .mul(CAKE_REWARD_PER_BLOCK.mul(blockDiff).mul(1e12).div(workerLpBefore))
+            .mul(MDX_REWARD_PER_BLOCK.mul(blockDiff).mul(1e12).div(workerLpBefore))
             .div(1e12);
           const totalReinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
           const reinvestLeft = totalRewards.sub(totalReinvestFees);
@@ -3075,12 +2534,12 @@ describe("Vault - PancakeswapV202", () => {
             deposit.add(interest).sub(reservePool).toString(),
             (await vault.totalToken()).toString()
           );
-          expect(await pancakeswapV2Worker.shares(1), `expect Alice's shares = ${accumLp}`).to.be.bignumber.eq(accumLp);
+          expect(await mdexWorker.shares(1), `expect Alice's shares = ${accumLp}`).to.be.bignumber.eq(accumLp);
           expect(
-            await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(1)),
+            await mdexWorker.shareToBalance(await mdexWorker.shares(1)),
             `expect Alice's staked LPs = ${accumLp}`
           ).to.be.bignumber.eq(accumLp);
-          expect(await cake.balanceOf(DEPLOYER), `expect Deployer gets ${totalReinvestFees} CAKE`).to.be.bignumber.eq(
+          expect(await mdx.balanceOf(DEPLOYER), `expect Deployer gets ${totalReinvestFees} MDX`).to.be.bignumber.eq(
             totalReinvestFees
           );
           expect(
@@ -3095,8 +2554,8 @@ describe("Vault - PancakeswapV202", () => {
 
         async function revertNotEnoughCollateral(goRouge: boolean, stratAddress: string) {
           // Simulate price swing to make position under water
-          await farmToken.approve(routerV2.address, ethers.utils.parseEther("888"));
-          await routerV2.swapExactTokensForTokens(
+          await farmToken.approve(mdexRouter.address, ethers.utils.parseEther("888"));
+          await mdexRouter.swapExactTokensForTokens(
             ethers.utils.parseEther("888"),
             "0",
             [farmToken.address, baseToken.address],
@@ -3183,7 +2642,7 @@ describe("Vault - PancakeswapV202", () => {
             it("should revert", async () => {
               // Set worker to unstable
               simpleVaultConfig.setWorker(
-                pancakeswapV2Worker.address,
+                mdexWorker.address,
                 true,
                 true,
                 WORK_FACTOR,
@@ -3213,7 +2672,7 @@ describe("Vault - PancakeswapV202", () => {
             beforeEach(async () => {
               // Set worker to unstable
               await simpleVaultConfig.setWorker(
-                pancakeswapV2Worker.address,
+                mdexWorker.address,
                 true,
                 true,
                 WORK_FACTOR,
@@ -3256,7 +2715,7 @@ describe("Vault - PancakeswapV202", () => {
             beforeEach(async () => {
               // Set worker to unstable
               await simpleVaultConfig.setWorker(
-                pancakeswapV2Worker.address,
+                mdexWorker.address,
                 true,
                 true,
                 WORK_FACTOR,
