@@ -9,6 +9,7 @@ import { deploy } from "@openzeppelin/hardhat-upgrades/dist/utils";
 chai.use(solidity);
 const { expect } = chai;
 
+const FOREVER = "2000000000";
 
 describe("MdexRestricted_StrategyLiquidate",()=>{
 
@@ -32,21 +33,24 @@ describe("MdexRestricted_StrategyLiquidate",()=>{
     let alice: Signer
     let bob: Signer
 
-    let baseTokenAsAlice : MockERC20
-    let baseTokenAsBob : MockERC20
+    let baseTokenAsAlice : MockERC20;
+    let baseTokenAsBob : MockERC20;
 
-    let farmingTokenAsAlice: MockERC20
-    let farmingTokenAsBob: MockERC20
+    let farmingTokenAsAlice: MockERC20;
+    let farmingTokenAsBob: MockERC20;
 
-    let wbnbTokenAsAlice: WETH
+    let wbnbTokenAsAlice: WETH;
 
-    let routerAsAlice: MdexRouter
-    let routerAsBob: MdexRouter
+    let routerAsAlice: MdexRouter;
+    let routerAsBob: MdexRouter;
 
-    let stratAsAlice : MdexRestrictedStrategyLiquidate
-    let stratAsBob : MdexRestrictedStrategyLiquidate
+    let stratAsAlice : MdexRestrictedStrategyLiquidate;
+    let stratAsBob : MdexRestrictedStrategyLiquidate;
 
-    
+
+    let mockMdexWorkerAsBob : MockMdexWorker;
+    let mockMdexEvilWorkerAsBob : MockMdexWorker;
+
 
     async function fixture(){
     //FIXME do initial stuff
@@ -67,7 +71,7 @@ describe("MdexRestricted_StrategyLiquidate",()=>{
     const MockERC20 = (await ethers.getContractFactory("MockERC20",deployer)) as MockERC20__factory;
     baseToken = (await upgrades.deployProxy(MockERC20, ["BTOKEN", "BTOKEN"])) as MockERC20;
     await baseToken.deployed();
-    
+
     farmingToken = (await upgrades.deployProxy(MockERC20,["FTOKEN","FTOKEN"])) as MockERC20;
     await farmingToken.deployed();
 
@@ -112,8 +116,17 @@ describe("MdexRestricted_StrategyLiquidate",()=>{
     await strat.deployed();
     await strat.setWorkersOk([mockMdexWorker.address],true);
 
+    stratAsAlice = MdexRestrictedStrategyLiquidate__factory.connect(strat.address,alice);
     stratAsBob = MdexRestrictedStrategyLiquidate__factory.connect(strat.address,bob);
 
+    baseTokenAsAlice = MockERC20__factory.connect(baseToken.address,alice)
+    baseTokenAsBob = MockERC20__factory.connect(baseToken.address,bob)
+
+    farmingTokenAsAlice = MockERC20__factory.connect(farmingToken.address,alice)
+    farmingTokenAsBob = MockERC20__factory.connect(farmingToken.address,bob)
+
+    mockMdexWorkerAsBob = MockMdexWorker__factory.connect(mockMdexEvilWorker.address,bob);
+    mockMdexEvilWorkerAsBob = MockMdexWorker__factory.connect(mockMdexEvilWorker.address,bob);
 
     }
 
@@ -126,4 +139,88 @@ describe("MdexRestricted_StrategyLiquidate",()=>{
         await expect(stratAsBob.execute(await bob.getAddress(),"0","0x1234")).to.be.reverted;
      });
     });
+
+    context("When the setOkWorkers caller is not an owner", async () => {
+      it("should be reverted", async () => {
+        await expect(stratAsBob.setWorkersOk([mockMdexEvilWorkerAsBob.address], true)).to.reverted;
+      });
+    });
+
+    context("When non-workers call strat", async ()=> {
+      it("should revert", async ()=> {
+        await expect(stratAsBob.execute(await bob.getAddress(),"0",ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"]))).to.be.reverted;
+      })
+    })
+
+    context("When caller worker hasn't been whitelisted", async () => {
+      it("should revert as bad worker", async () => {
+        // transfer to evil contract and use evilContract to work
+        await baseTokenAsBob.transfer(mockMdexEvilWorkerAsBob.address, ethers.utils.parseEther("0.05"));
+
+        await expect(
+      mockMdexEvilWorkerAsBob.work(0, await bob.getAddress(), "0", ethers.utils.defaultAbiCoder.encode(
+        ["address","bytes"],[strat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], [ethers.utils.parseEther("0.05")])]
+      ))).to.be.revertedWith("MdexRestrictedStrategyLiquidate::onlyWhitelistedWorkers:: bad worker");
+      
+      });
+    });
+
+    context("When revode whitelist worker", async () => {
+      it("should revertas bad worker", async() => {
+        await strat.setWorkersOk([mockMdexWorker.address],false);
+        await expect(
+          mockMdexWorkerAsBob.work(
+            0,
+            await bob.getAddress(),
+            "0",
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "bytes"],
+              [strat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], [ethers.utils.parseEther("0.05")])]
+            )
+          )
+        ).to.be.revertedWith("MdexRestrictedStrategyLiquidate::onlyWhitelistedWorkers:: bad worker")
+
+      }) 
+    })
+
+    context("When apply liquite strategy", async ()=> {
+        it("should convert all LP token back to ", async() => {
+          await baseTokenAsAlice.approve(router.address,ethers.utils.parseEther("1"));
+          await farmingTokenAsAlice.approve(router.address,ethers.utils.parseEther("0.1"))
+          await router.addLiquidity(
+            baseToken.address,
+            farmingToken.address,
+            ethers.utils.parseEther("1"),
+            ethers.utils.parseEther("0.1"),
+            "0",
+            "0",
+            await alice.getAddress(),
+            FOREVER
+          )
+
+          // await baseTokenAsBob.approve(router.address,ethers.utils.parseEther("1"));
+          // await baseTokenAsBob.approve(router.address,ethers.utils.parseEther("0.1"))
+          // await router.addLiquidity(
+          //   baseToken.address,
+          //   farmingToken.address,
+          //   ethers.utils.parseEther("1"),
+          //   ethers.utils.parseEther("0.1"),
+          //   "0",
+          //   "0",
+          //   await bob.getAddress(),
+          //   FOREVER
+          // )
+
+          // expect(await baseToken.balanceOf(await alice.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("99"))
+
+
+
+
+        })
+    })
+    
+
+
+
+
 })
