@@ -616,7 +616,7 @@ describe("MdexRestrictedStrategyPartialCloseLiquidate", () => {
           )
         )
       )
-        .to.emit(strat, "MdexRestrictedStrategyPartialCloseLiquidate")
+        .to.emit(strat, "MdexRestrictedStrategyPartialCloseLiquidateEvent")
         .withArgs(
           baseToken.address,
           farmingToken.address,
@@ -628,7 +628,7 @@ describe("MdexRestrictedStrategyPartialCloseLiquidate", () => {
         ethers.utils.parseEther("0")
       );
       expect(
-        await lp.balanceOf(mockMdexWorkerAsBob.address),
+        await lp.balanceOf(mockMdexWorker.address),
         "Worker should has 0 LP as all LP is liquidated"
       ).to.be.bignumber.eq("0");
       expect(
@@ -645,6 +645,7 @@ describe("MdexRestrictedStrategyPartialCloseLiquidate", () => {
         ethers.utils.parseEther("0.2")
       );
     });
+
     it("should compare slippage by taking convertingPostionValue - debt (fee 25)", async () => {
       // set lp pair fee
       await factory.setPairFees(lp.address,25)
@@ -743,7 +744,102 @@ describe("MdexRestrictedStrategyPartialCloseLiquidate", () => {
   });
 
   context("when maxDebtRepayment < debt", async () => {
-    it("should compare slippage by taking convertingPostionValue - maxDebtRepayment", async () => {
+    it("should compare slippage by taking convertingPostionValue - maxDebtRepayment (fee 20)", async () => {
+      // set lp pair fee
+      await factory.setPairFees(lp.address,20)
+      // Bob transfer LP to strategy first
+      const bobBTokenBefore = await baseToken.balanceOf(bobAddress);
+      await lpAsBob.transfer(strat.address, ethers.utils.parseEther("0.316227766016837933"));
+
+      // Bob's position: 0.316227766016837933 LP
+      // Debt: 1 BTOKEN
+      // lpToLiquidate: Math.min(888, 0.316227766016837933) = 0.316227766016837933 LP (0.1 FTOKEN + 1 FTOKEN)
+      // maxDebtRepayment: Math.min(888, 0.1) = 0.1 BTOKEN
+      // The following conditions are expected:
+      // - LPs in Strategy contract must be 0
+      // - Worker should have 0 LP left as all LP is liquidated
+      // - Bob should have:
+      // bobBtokenBefore + 1 BTOKEN + [((0.1*998)*1)/(0.1*10000+(0.1*998))] = 0.499499499499499499 BTOKEN] (from swap 0.1 FTOKEN to BTOKEN) in his account
+      // - BTOKEN in reserve should be 1-0.499499499499499499 = 0.500500500500500501 BTOKEN
+      // - FTOKEN in reserve should be 0.1+0.1 = 0.2 FTOKEN
+      // - minBaseToken <= 1.499499499499499499 - 0.1 (debt) = 1.399499499499499499 BTOKEN must pass slippage check
+
+      // Expect to be reverted if slippage is set at 1.399499499499499499 + 1 wei BTOKEN
+      await expect(
+        mockMdexWorkerAsBob.work(
+          0,
+          bobAddress,
+          ethers.utils.parseEther("1"),
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [
+              strat.address,
+              ethers.utils.defaultAbiCoder.encode(
+                ["uint256", "uint256", "uint256"],
+                [
+                  ethers.utils.parseEther("8888"),
+                  ethers.utils.parseEther("0.1"),
+                  ethers.utils.parseEther("1.399499499499499499").add(1),
+                ]
+              ),
+            ]
+          )
+        )
+      ).to.be.revertedWith(
+        "MdexRestrictedStrategyPartialCloseLiquidate::execute:: insufficient baseToken received"
+      );
+
+      await expect(
+        mockMdexWorkerAsBob.work(
+          0,
+          bobAddress,
+          ethers.utils.parseEther("1"),
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [
+              strat.address,
+              ethers.utils.defaultAbiCoder.encode(
+                ["uint256", "uint256", "uint256"],
+                [
+                  ethers.utils.parseEther("8888"),
+                  ethers.utils.parseEther("0.1"),
+                  ethers.utils.parseEther("1.399499499499499499"),
+                ]
+              ),
+            ]
+          )
+        )
+      )
+        .to.emit(strat, "MdexRestrictedStrategyPartialCloseLiquidateEvent")
+        .withArgs(
+          baseToken.address,
+          farmingToken.address,
+          ethers.utils.parseEther("0.316227766016837933"),
+          ethers.utils.parseEther("0.1")
+        );
+
+      expect(await lp.balanceOf(strat.address), "Strategy should has 0 LP").to.be.bignumber.eq(
+        ethers.utils.parseEther("0")
+      );
+      expect(
+        await lp.balanceOf(mockMdexWorkerAsBob.address),
+        "Worker should has 0 LP as all LP is liquidated"
+      ).to.be.bignumber.eq("0");
+      expect(
+        await baseToken.balanceOf(bobAddress),
+        "Bob's BTOKEN should increase by 1.499499499499499499 BTOKEN"
+      ).to.be.bignumber.eq(
+        bobBTokenBefore.add(ethers.utils.parseEther("1")).add(ethers.utils.parseEther("0.499499499499499499"))
+      );
+      expect(
+        await baseToken.balanceOf(lp.address),
+        "FTOKEN-BTOKEN LP should has 0.500500500500500501 BTOKEN"
+      ).to.be.bignumber.eq(ethers.utils.parseEther("0.500500500500500501"));
+      expect(await farmingToken.balanceOf(lp.address), "FTOKEN-BTOKEN LP should as 0.2 FTOKEN").to.be.bignumber.eq(
+        ethers.utils.parseEther("0.2")
+      );
+    });
+    it("should compare slippage by taking convertingPostionValue - maxDebtRepayment (fee 25)", async () => {
       // set lp pair fee
       await factory.setPairFees(lp.address,25)
       // Bob transfer LP to strategy first
