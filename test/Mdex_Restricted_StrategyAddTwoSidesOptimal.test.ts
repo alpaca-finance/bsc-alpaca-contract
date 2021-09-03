@@ -43,10 +43,10 @@ describe("MdexRestrictedStrategyAddTwoSideOptimal", () => {
   let factory: MdexFactory;
   let router: MdexRouter;
   let swapMining: SwapMining;
-  let oracle : Oracle;
+  let oracle: Oracle;
 
   /// Token-related instance(s)
-  let mdxToken: MdxToken
+  let mdxToken: MdxToken;
   let wbnb: WETH;
   let baseToken: MockERC20;
   let farmingToken: MockERC20;
@@ -75,7 +75,7 @@ describe("MdexRestrictedStrategyAddTwoSideOptimal", () => {
 
   let lp: MdexPair;
 
-  const setupFullFlowTest  = async () => {
+  const setupFullFlowTest = async () => {
     /// Setup token stuffs
     const MockERC20 = (await ethers.getContractFactory("MockERC20", deployer)) as MockERC20__factory;
     baseToken = (await upgrades.deployProxy(MockERC20, ["BTOKEN", "BTOKEN"])) as MockERC20;
@@ -96,7 +96,7 @@ describe("MdexRestrictedStrategyAddTwoSideOptimal", () => {
     const MdxToken = (await ethers.getContractFactory("MdxToken", deployer)) as MdxToken__factory;
     mdxToken = await MdxToken.deploy();
     await mdxToken.deployed();
-    await mdxToken["addMinter(address)"](await  deployer.getAddress());
+    await mdxToken["addMinter(address)"](await deployer.getAddress());
     await mdxToken["mint(address,uint256)"](await deployer.getAddress(), ethers.utils.parseEther("100"));
 
     // Setup Mdex
@@ -115,11 +115,19 @@ describe("MdexRestrictedStrategyAddTwoSideOptimal", () => {
     // Mdex SwapMinig
     const blockNumber = await TimeHelpers.latestBlockNumber();
     const SwapMining = (await ethers.getContractFactory("SwapMining", deployer)) as SwapMining__factory;
-    swapMining = await SwapMining.deploy(mdxToken.address,factory.address,oracle.address, router.address, farmingToken.address, mdxPerBlock, blockNumber);
+    swapMining = await SwapMining.deploy(
+      mdxToken.address,
+      factory.address,
+      oracle.address,
+      router.address,
+      farmingToken.address,
+      mdxPerBlock,
+      blockNumber
+    );
     await swapMining.deployed();
 
     // set swapMining to router
-    await router.setSwapMining(swapMining.address)
+    await router.setSwapMining(swapMining.address);
 
     /// Setup BTOKEN-FTOKEN pair on Mdex
     await factory.createPair(farmingToken.address, baseToken.address);
@@ -127,10 +135,10 @@ describe("MdexRestrictedStrategyAddTwoSideOptimal", () => {
     await lp.deployed();
     await factory.addPair(lp.address);
     await mdxToken.addMinter(swapMining.address);
-    await swapMining.addPair(100,lp.address,false);
+    await swapMining.addPair(100, lp.address, false);
     await swapMining.addWhitelist(baseToken.address);
     await swapMining.addWhitelist(farmingToken.address);
-    
+
     // Deployer adds 0.1 FTOKEN + 1 BTOKEN
     await baseToken.approve(router.address, ethers.utils.parseEther("1"));
     await farmingToken.approve(router.address, ethers.utils.parseEther("0.1"));
@@ -180,10 +188,7 @@ describe("MdexRestrictedStrategyAddTwoSideOptimal", () => {
     await addRestrictedStrat.deployed();
 
     // / Setup MockMdexWorker
-    const MockMdexWorker = (await ethers.getContractFactory(
-      "MockMdexWorker",
-      deployer
-    )) as MockMdexWorker__factory;
+    const MockMdexWorker = (await ethers.getContractFactory("MockMdexWorker", deployer)) as MockMdexWorker__factory;
     mockMdexWorker = (await MockMdexWorker.deploy(
       lp.address,
       baseToken.address,
@@ -215,10 +220,7 @@ describe("MdexRestrictedStrategyAddTwoSideOptimal", () => {
 
     mockMdexWorkerAsBob = MockMdexWorker__factory.connect(mockMdexWorker.address, bob);
     mockMdexWorkerAsAlice = MockMdexWorker__factory.connect(mockMdexWorker.address, alice);
-    mockMdexEvilWorkerAsBob = MockMdexWorker__factory.connect(
-      mockMdexEvilWorker.address,
-      bob
-    );
+    mockMdexEvilWorkerAsBob = MockMdexWorker__factory.connect(mockMdexEvilWorker.address, bob);
   };
 
   async function fixture() {
@@ -227,7 +229,6 @@ describe("MdexRestrictedStrategyAddTwoSideOptimal", () => {
     await setupRestrictedTest();
     await setupContractSigner();
     await addRestrictedStratAsDeployer.setWorkersOk([mockMdexWorker.address], true);
-
   }
 
   beforeEach(async () => {
@@ -267,7 +268,7 @@ describe("MdexRestrictedStrategyAddTwoSideOptimal", () => {
 
     it("should convert all BTOKEN to LP tokens at best rate", async () => {
       // set lp pair fee
-      await factory.setPairFees(lp.address,25)
+      await factory.setPairFees(lp.address, 25);
       // Now Alice leverage 2x on her 1 BTOKEN.
       // So totally Alice will take 1 BTOKEN from the pool and 1 BTOKEN from her pocket to
       // Provide liquidity in the BTOKEN-FTOKEN pool on Pancakeswap
@@ -328,7 +329,7 @@ describe("MdexRestrictedStrategyAddTwoSideOptimal", () => {
 
     it("should convert some BTOKEN and some FTOKEN to LP tokens at best rate (fee 20)", async () => {
       // set lp pair fee
-      await factory.setPairFees(lp.address,20)
+      await factory.setPairFees(lp.address, 20);
       // Now Alice leverage 2x on her 1 BTOKEN.
       // So totally Alice will take 1 BTOKEN from the pool and 1 BTOKEN from her pocket to
       // Provide liquidity in the BTOKEN-FTOKEN pool on Pancakeswap
@@ -398,7 +399,7 @@ describe("MdexRestrictedStrategyAddTwoSideOptimal", () => {
 
     it("should convert some BTOKEN and some FTOKEN to LP tokens at best rate (fee 25)", async () => {
       // set lp pair fee
-      await factory.setPairFees(lp.address,25)
+      await factory.setPairFees(lp.address, 25);
       // Now Alice leverage 2x on her 1 BTOKEN.
       // So totally Alice will take 1 BTOKEN from the pool and 1 BTOKEN from her pocket to
       // Provide liquidity in the BTOKEN-FTOKEN pool on Pancakeswap
@@ -465,10 +466,10 @@ describe("MdexRestrictedStrategyAddTwoSideOptimal", () => {
       expect(await lp.balanceOf(mockMdexWorker.address)).to.above(stratLPBalance);
       expect(await farmingToken.balanceOf(addRestrictedStrat.address)).to.be.bignumber.below(MAX_ROUNDING_ERROR);
     });
- 
+
     it("should be able to withdraw trading rewards", async () => {
       // set lp pair fee
-      await factory.setPairFees(lp.address,25)
+      await factory.setPairFees(lp.address, 25);
 
       // Now Alice leverage 2x on her 1 BTOKEN.
       // So totally Alice will take 1 BTOKEN from the pool and 1 BTOKEN from her pocket to
@@ -494,26 +495,23 @@ describe("MdexRestrictedStrategyAddTwoSideOptimal", () => {
 
       const deployerAddress = await deployer.getAddress();
       const mdxBefore = await mdxToken.balanceOf(deployerAddress);
-      // withdraw trading reward to deployer 
+      // withdraw trading reward to deployer
       await addRestrictedStrat.withdrawTradingRewards(deployerAddress);
       const mdxAfter = await mdxToken.balanceOf(deployerAddress);
       expect(mdxAfter.sub(mdxBefore)).to.above(0);
     });
-    
   });
 
   describe("restricted test", async () => {
     context("When the setOkWorkers caller is not an owner", async () => {
       it("should be reverted", async () => {
-        await expect(addRestrictedStratAsBob.setWorkersOk([mockMdexEvilWorkerAsBob.address], true)).to
-          .reverted;
+        await expect(addRestrictedStratAsBob.setWorkersOk([mockMdexEvilWorkerAsBob.address], true)).to.reverted;
       });
     });
 
     context("When the withdrawTradingRewards caller is not an owner", async () => {
       it("should be reverted", async () => {
-        await expect(addRestrictedStratAsBob.withdrawTradingRewards(await bob.getAddress())).to
-          .reverted;
+        await expect(addRestrictedStratAsBob.withdrawTradingRewards(await bob.getAddress())).to.reverted;
       });
     });
 
@@ -564,5 +562,4 @@ describe("MdexRestrictedStrategyAddTwoSideOptimal", () => {
       });
     });
   });
-
 });
