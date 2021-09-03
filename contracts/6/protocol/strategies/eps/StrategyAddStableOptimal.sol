@@ -33,8 +33,6 @@ import "../../../utils/SafeToken.sol";
 import "../../../utils/AlpacaMath.sol";
 import "../../../utils/SafeToken.sol";
 
-import "hardhat/console.sol";
-
 contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe {
   using SafeMath for uint256;
   using SafeToken for address;
