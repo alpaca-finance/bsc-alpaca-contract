@@ -42,8 +42,7 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
   let lp: MdexPair;
   let baseTokenWbnbLp: MdexPair;
   let swapMining: SwapMining;
-  let oracle : Oracle;
-
+  let oracle: Oracle;
 
   /// MockMdexWorker-related instance(s)
   let mockMdexWorker: MockMdexWorker;
@@ -117,7 +116,7 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
     // Setup Mdex
     const MdxToken = (await ethers.getContractFactory("MdxToken", deployer)) as MdxToken__factory;
     mdxToken = await MdxToken.deploy();
-    await mdxToken["addMinter(address)"](await  deployer.getAddress());
+    await mdxToken["addMinter(address)"](await deployer.getAddress());
     await mdxToken["mint(address,uint256)"](await deployer.getAddress(), ethers.utils.parseEther("100"));
 
     const MdexFactory = (await ethers.getContractFactory("MdexFactory", deployer)) as MdexFactory__factory;
@@ -133,34 +132,35 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
 
     const blockNumber = await TimeHelpers.latestBlockNumber();
     const SwapMining = (await ethers.getContractFactory("SwapMining", deployer)) as SwapMining__factory;
-    swapMining = await SwapMining.deploy(mdxToken.address,factory.address,oracle.address, router.address, baseToken.address, mdxPerBlock, blockNumber);
+    swapMining = await SwapMining.deploy(
+      mdxToken.address,
+      factory.address,
+      oracle.address,
+      router.address,
+      baseToken.address,
+      mdxPerBlock,
+      blockNumber
+    );
     await swapMining.deployed();
-    await router.setSwapMining(swapMining.address)
+    await router.setSwapMining(swapMining.address);
     await factory.createPair(baseToken.address, farmingToken.address);
     await factory.createPair(baseToken.address, wbnb.address);
     lp = MdexPair__factory.connect(await factory.getPair(farmingToken.address, baseToken.address), deployer);
-    baseTokenWbnbLp = MdexPair__factory.connect(
-      await factory.getPair(wbnb.address, baseToken.address),
-      deployer
-    );
-
+    baseTokenWbnbLp = MdexPair__factory.connect(await factory.getPair(wbnb.address, baseToken.address), deployer);
 
     await factory.addPair(lp.address);
     await factory.addPair(baseTokenWbnbLp.address);
-    await factory.setPairFees(lp.address,25);
-    await factory.setPairFees(baseTokenWbnbLp.address,25);
+    await factory.setPairFees(lp.address, 25);
+    await factory.setPairFees(baseTokenWbnbLp.address, 25);
     await mdxToken.addMinter(swapMining.address);
     await swapMining.addWhitelist(baseToken.address);
     await swapMining.addWhitelist(farmingToken.address);
     await swapMining.addWhitelist(wbnb.address);
-    await swapMining.addPair(100,lp.address,false);
-    await swapMining.addPair(100,baseTokenWbnbLp.address,false);
+    await swapMining.addPair(100, lp.address, false);
+    await swapMining.addPair(100, baseTokenWbnbLp.address, false);
 
     /// Setup MockMdexWorker
-    const MockMdexWorker = (await ethers.getContractFactory(
-      "MockMdexWorker",
-      deployer
-    )) as MockMdexWorker__factory;
+    const MockMdexWorker = (await ethers.getContractFactory("MockMdexWorker", deployer)) as MockMdexWorker__factory;
     mockMdexWorker = (await MockMdexWorker.deploy(
       lp.address,
       baseToken.address,
@@ -193,7 +193,7 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
       router.address,
       wbnb.address,
       wNativeRelayer.address,
-      mdxToken.address
+      mdxToken.address,
     ])) as MdexRestrictedStrategyPartialCloseMinimizeTrading;
     await strat.deployed();
     await strat.setWorkersOk([mockMdexWorker.address, mockMdexBaseTokenWbnbWorker.address], true);
@@ -217,14 +217,8 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
     stratAsBob = MdexRestrictedStrategyPartialCloseMinimizeTrading__factory.connect(strat.address, bob);
 
     mockMdexWorkerAsBob = MockMdexWorker__factory.connect(mockMdexWorker.address, bob);
-    mockMdexEvilWorkerAsBob = MockMdexWorker__factory.connect(
-      mockMdexEvilWorker.address,
-      bob
-    );
-    mockMdexBaseTokenWbnbWorkerAsBob = MockMdexWorker__factory.connect(
-      mockMdexBaseTokenWbnbWorker.address,
-      bob
-    );
+    mockMdexEvilWorkerAsBob = MockMdexWorker__factory.connect(mockMdexEvilWorker.address, bob);
+    mockMdexBaseTokenWbnbWorkerAsBob = MockMdexWorker__factory.connect(mockMdexBaseTokenWbnbWorker.address, bob);
 
     wbnbAsAlice = WETH__factory.connect(wbnb.address, alice);
     wbnbAsBob = WETH__factory.connect(wbnb.address, bob);
@@ -242,11 +236,9 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
     });
   });
 
-  context("when the withdrawTradingRewards caller is not an owner" , async () => {
+  context("when the withdrawTradingRewards caller is not an owner", async () => {
     it("should be reverted", async () => {
-      await expect(stratAsBob.withdrawTradingRewards(bobAddress)).to.revertedWith(
-        "Ownable: caller is not the owner"
-      );
+      await expect(stratAsBob.withdrawTradingRewards(bobAddress)).to.revertedWith("Ownable: caller is not the owner");
     });
   });
 
@@ -261,9 +253,7 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
             [ethers.utils.parseEther("0.5"), ethers.utils.parseEther("0.5"), ethers.utils.parseEther("0.5")]
           )
         )
-      ).to.revertedWith(
-        "MdexRestrictedStrategyPartialCloseMinimizeTrading::onlyWhitelistedWorkers:: bad worker"
-      );
+      ).to.revertedWith("MdexRestrictedStrategyPartialCloseMinimizeTrading::onlyWhitelistedWorkers:: bad worker");
     });
   });
 
@@ -285,9 +275,7 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
             ]
           )
         )
-      ).to.revertedWith(
-        "MdexRestrictedStrategyPartialCloseMinimizeTrading::onlyWhitelistedWorkers:: bad worker"
-      );
+      ).to.revertedWith("MdexRestrictedStrategyPartialCloseMinimizeTrading::onlyWhitelistedWorkers:: bad worker");
     });
   });
 
@@ -310,9 +298,7 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
             ]
           )
         )
-      ).to.revertedWith(
-        "MdexRestrictedStrategyPartialCloseMinimizeTrading::onlyWhitelistedWorkers:: bad worker"
-      );
+      ).to.revertedWith("MdexRestrictedStrategyPartialCloseMinimizeTrading::onlyWhitelistedWorkers:: bad worker");
     });
   });
 
@@ -400,7 +386,7 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
         expect(bobFTOKENAfter.sub(bobFTOKENBefore), "Bob should get 40 FTOKEN back").to.be.bignumber.eq(
           ethers.utils.parseEther("40")
         );
-        
+
         const mdxTokenBefore = await mdxToken.balanceOf(deployerAddress);
         // withdraw trading rewards, no trade since lessDebt < balance
         await strat.withdrawTradingRewards(deployerAddress);
@@ -554,7 +540,7 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
           // withdraw trading rewards
           await strat.withdrawTradingRewards(deployerAddress);
           const mdxTokenAfter = await mdxToken.balanceOf(deployerAddress);
-          expect( mdxTokenAfter.sub(mdxTokenBefore)).to.eq(0);
+          expect(mdxTokenAfter.sub(mdxTokenBefore)).to.eq(0);
         });
       });
     });
@@ -844,7 +830,6 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
         await strat.withdrawTradingRewards(deployerAddress);
         const mdxTokenAfter = await mdxToken.balanceOf(deployerAddress);
         expect(mdxTokenAfter.sub(mdxTokenBefore)).to.above(0);
-        
       });
     });
 
@@ -1065,7 +1050,7 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
           // withdraw trading rewards
           await strat.withdrawTradingRewards(deployerAddress);
           const mdxTokenAfter = await mdxToken.balanceOf(deployerAddress);
-          expect( mdxTokenAfter.sub(mdxTokenBefore)).to.above(0);
+          expect(mdxTokenAfter.sub(mdxTokenBefore)).to.above(0);
         });
       });
     });
