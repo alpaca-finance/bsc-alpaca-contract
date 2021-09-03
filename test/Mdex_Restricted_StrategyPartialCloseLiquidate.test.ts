@@ -39,7 +39,7 @@ describe("MdexRestrictedStrategyPartialCloseLiquidate", () => {
   let factory: MdexFactory;
   let router: MdexRouter;
   let swapMining: SwapMining;
-  let oracle : Oracle;
+  let oracle: Oracle;
 
   /// MockMdexWorker-related instance(s)
   let mockMdexWorker: MockMdexWorker;
@@ -84,7 +84,7 @@ describe("MdexRestrictedStrategyPartialCloseLiquidate", () => {
 
   let lp: MdexPair;
 
-  const setupFullFlowTest  = async () => {
+  const setupFullFlowTest = async () => {
     /// Setup token stuffs
     const MockERC20 = (await ethers.getContractFactory("MockERC20", deployer)) as MockERC20__factory;
     baseToken = (await upgrades.deployProxy(MockERC20, ["BTOKEN", "BTOKEN"])) as MockERC20;
@@ -103,7 +103,7 @@ describe("MdexRestrictedStrategyPartialCloseLiquidate", () => {
     const MdxToken = (await ethers.getContractFactory("MdxToken", deployer)) as MdxToken__factory;
     mdxToken = await MdxToken.deploy();
     await mdxToken.deployed();
-    await mdxToken["addMinter(address)"](await  deployer.getAddress());
+    await mdxToken["addMinter(address)"](await deployer.getAddress());
     await mdxToken["mint(address,uint256)"](await deployer.getAddress(), ethers.utils.parseEther("100"));
 
     // Setup Mdex
@@ -122,11 +122,19 @@ describe("MdexRestrictedStrategyPartialCloseLiquidate", () => {
     // Mdex SwapMinig
     const blockNumber = await TimeHelpers.latestBlockNumber();
     const SwapMining = (await ethers.getContractFactory("SwapMining", deployer)) as SwapMining__factory;
-    swapMining = await SwapMining.deploy(mdxToken.address,factory.address,oracle.address, router.address, farmingToken.address, mdxPerBlock, blockNumber);
+    swapMining = await SwapMining.deploy(
+      mdxToken.address,
+      factory.address,
+      oracle.address,
+      router.address,
+      farmingToken.address,
+      mdxPerBlock,
+      blockNumber
+    );
     await swapMining.deployed();
 
     // set swapMining to router
-    await router.setSwapMining(swapMining.address)
+    await router.setSwapMining(swapMining.address);
 
     /// Setup BTOKEN-FTOKEN pair on Mdex
     await factory.createPair(farmingToken.address, baseToken.address);
@@ -134,11 +142,9 @@ describe("MdexRestrictedStrategyPartialCloseLiquidate", () => {
     await lp.deployed();
     await factory.addPair(lp.address);
     await mdxToken.addMinter(swapMining.address);
-    await swapMining.addPair(100,lp.address,false);
+    await swapMining.addPair(100, lp.address, false);
     await swapMining.addWhitelist(baseToken.address);
     await swapMining.addWhitelist(farmingToken.address);
-    
-
   };
 
   async function fixture() {
@@ -151,10 +157,7 @@ describe("MdexRestrictedStrategyPartialCloseLiquidate", () => {
     await setupFullFlowTest();
 
     /// Setup MockMdexWorker
-    const MockMdexWorker = (await ethers.getContractFactory(
-      "MockMdexWorker",
-      deployer
-    )) as MockMdexWorker__factory;
+    const MockMdexWorker = (await ethers.getContractFactory("MockMdexWorker", deployer)) as MockMdexWorker__factory;
     mockMdexWorker = (await MockMdexWorker.deploy(
       lp.address,
       baseToken.address,
@@ -195,10 +198,7 @@ describe("MdexRestrictedStrategyPartialCloseLiquidate", () => {
     stratAsBob = MdexRestrictedStrategyPartialCloseLiquidate__factory.connect(strat.address, bob);
 
     mockMdexWorkerAsBob = MockMdexWorker__factory.connect(mockMdexWorker.address, bob);
-    mockMdexEvilWorkerAsBob = MockMdexWorker__factory.connect(
-      mockMdexEvilWorker.address,
-      bob
-    );
+    mockMdexEvilWorkerAsBob = MockMdexWorker__factory.connect(mockMdexEvilWorker.address, bob);
 
     // Setting up liquidity
     // Alice adds 0.1 FTOKEN + 1 BTOKEN
@@ -313,10 +313,9 @@ describe("MdexRestrictedStrategyPartialCloseLiquidate", () => {
   });
 
   context("when maxLpToLiquidate >= LPs from worker", async () => {
-
     it("should use all LP (fee 20)", async () => {
       // set lp pair fee
-      await factory.setPairFees(lp.address,20)
+      await factory.setPairFees(lp.address, 20);
       // Bob transfer LP to strategy first
       const bobBTokenBefore = await baseToken.balanceOf(bobAddress);
       await lpAsBob.transfer(strat.address, ethers.utils.parseEther("0.316227766016837933"));
@@ -377,7 +376,7 @@ describe("MdexRestrictedStrategyPartialCloseLiquidate", () => {
     });
     it("should use all LP (fee 25)", async () => {
       // set lp pair fee
-      await factory.setPairFees(lp.address,25)
+      await factory.setPairFees(lp.address, 25);
       // Bob transfer LP to strategy first
       const bobBTokenBefore = await baseToken.balanceOf(bobAddress);
       await lpAsBob.transfer(strat.address, ethers.utils.parseEther("0.316227766016837933"));
@@ -439,10 +438,9 @@ describe("MdexRestrictedStrategyPartialCloseLiquidate", () => {
   });
 
   context("when maxLpToLiquidate < LPs from worker", async () => {
-    
     it("should liquidate portion LPs back to BTOKEN (fee 20)", async () => {
       // set lp pair fee
-      await factory.setPairFees(lp.address,20)
+      await factory.setPairFees(lp.address, 20);
       // Bob transfer LP to strategy first
       const bobLpBefore = await lp.balanceOf(bobAddress);
       const bobBTokenBefore = await baseToken.balanceOf(bobAddress);
@@ -466,8 +464,9 @@ describe("MdexRestrictedStrategyPartialCloseLiquidate", () => {
             ]
           )
         )
-      ).to.emit(strat, "MdexRestrictedStrategyPartialCloseLiquidateEvent")
-      .withArgs(baseToken.address, farmingToken.address, returnLp, "0");
+      )
+        .to.emit(strat, "MdexRestrictedStrategyPartialCloseLiquidateEvent")
+        .withArgs(baseToken.address, farmingToken.address, returnLp, "0");
 
       // After execute strategy successfully. The following conditions must be satisfied
       // - LPs in Strategy contract must be 0
@@ -495,7 +494,7 @@ describe("MdexRestrictedStrategyPartialCloseLiquidate", () => {
     });
     it("should liquidate portion LPs back to BTOKEN (fee 25)", async () => {
       // set lp pair fee
-      await factory.setPairFees(lp.address,25)
+      await factory.setPairFees(lp.address, 25);
       // Bob transfer LP to strategy first
       const bobLpBefore = await lp.balanceOf(bobAddress);
       const bobBTokenBefore = await baseToken.balanceOf(bobAddress);
@@ -519,8 +518,9 @@ describe("MdexRestrictedStrategyPartialCloseLiquidate", () => {
             ]
           )
         )
-      ).to.emit(strat, "MdexRestrictedStrategyPartialCloseLiquidateEvent")
-      .withArgs(baseToken.address, farmingToken.address, returnLp, "0");
+      )
+        .to.emit(strat, "MdexRestrictedStrategyPartialCloseLiquidateEvent")
+        .withArgs(baseToken.address, farmingToken.address, returnLp, "0");
 
       // After execute strategy successfully. The following conditions must be satisfied
       // - LPs in Strategy contract must be 0
@@ -549,10 +549,9 @@ describe("MdexRestrictedStrategyPartialCloseLiquidate", () => {
   });
 
   context("when maxDebtRepayment >= debt", async () => {
-
     it("should compare slippage by taking convertingPostionValue - debt (fee 20)", async () => {
       // set lp pair fee
-      await factory.setPairFees(lp.address,20)
+      await factory.setPairFees(lp.address, 20);
       // Bob transfer LP to strategy first
       const bobBTokenBefore = await baseToken.balanceOf(bobAddress);
       await lpAsBob.transfer(strat.address, ethers.utils.parseEther("0.316227766016837933"));
@@ -591,9 +590,7 @@ describe("MdexRestrictedStrategyPartialCloseLiquidate", () => {
             ]
           )
         )
-      ).to.be.revertedWith(
-        "MdexRestrictedStrategyPartialCloseLiquidate::execute:: insufficient baseToken received"
-      );
+      ).to.be.revertedWith("MdexRestrictedStrategyPartialCloseLiquidate::execute:: insufficient baseToken received");
 
       await expect(
         mockMdexWorkerAsBob.work(
@@ -648,7 +645,7 @@ describe("MdexRestrictedStrategyPartialCloseLiquidate", () => {
 
     it("should compare slippage by taking convertingPostionValue - debt (fee 25)", async () => {
       // set lp pair fee
-      await factory.setPairFees(lp.address,25)
+      await factory.setPairFees(lp.address, 25);
       // Bob transfer LP to strategy first
       const bobBTokenBefore = await baseToken.balanceOf(bobAddress);
       await lpAsBob.transfer(strat.address, ethers.utils.parseEther("0.316227766016837933"));
@@ -687,9 +684,7 @@ describe("MdexRestrictedStrategyPartialCloseLiquidate", () => {
             ]
           )
         )
-      ).to.be.revertedWith(
-        "MdexRestrictedStrategyPartialCloseLiquidate::execute:: insufficient baseToken received"
-      );
+      ).to.be.revertedWith("MdexRestrictedStrategyPartialCloseLiquidate::execute:: insufficient baseToken received");
 
       await expect(
         mockMdexWorkerAsBob.work(
@@ -746,7 +741,7 @@ describe("MdexRestrictedStrategyPartialCloseLiquidate", () => {
   context("when maxDebtRepayment < debt", async () => {
     it("should compare slippage by taking convertingPostionValue - maxDebtRepayment (fee 20)", async () => {
       // set lp pair fee
-      await factory.setPairFees(lp.address,20)
+      await factory.setPairFees(lp.address, 20);
       // Bob transfer LP to strategy first
       const bobBTokenBefore = await baseToken.balanceOf(bobAddress);
       await lpAsBob.transfer(strat.address, ethers.utils.parseEther("0.316227766016837933"));
@@ -785,9 +780,7 @@ describe("MdexRestrictedStrategyPartialCloseLiquidate", () => {
             ]
           )
         )
-      ).to.be.revertedWith(
-        "MdexRestrictedStrategyPartialCloseLiquidate::execute:: insufficient baseToken received"
-      );
+      ).to.be.revertedWith("MdexRestrictedStrategyPartialCloseLiquidate::execute:: insufficient baseToken received");
 
       await expect(
         mockMdexWorkerAsBob.work(
@@ -841,7 +834,7 @@ describe("MdexRestrictedStrategyPartialCloseLiquidate", () => {
     });
     it("should compare slippage by taking convertingPostionValue - maxDebtRepayment (fee 25)", async () => {
       // set lp pair fee
-      await factory.setPairFees(lp.address,25)
+      await factory.setPairFees(lp.address, 25);
       // Bob transfer LP to strategy first
       const bobBTokenBefore = await baseToken.balanceOf(bobAddress);
       await lpAsBob.transfer(strat.address, ethers.utils.parseEther("0.316227766016837933"));
@@ -880,9 +873,7 @@ describe("MdexRestrictedStrategyPartialCloseLiquidate", () => {
             ]
           )
         )
-      ).to.be.revertedWith(
-        "MdexRestrictedStrategyPartialCloseLiquidate::execute:: insufficient baseToken received"
-      );
+      ).to.be.revertedWith("MdexRestrictedStrategyPartialCloseLiquidate::execute:: insufficient baseToken received");
 
       await expect(
         mockMdexWorkerAsBob.work(
@@ -938,15 +929,14 @@ describe("MdexRestrictedStrategyPartialCloseLiquidate", () => {
 
   context("When the withdrawTradingRewards caller is not an owner", async () => {
     it("should be reverted", async () => {
-      await expect(stratAsBob.withdrawTradingRewards(bobAddress)).to
-        .reverted;
+      await expect(stratAsBob.withdrawTradingRewards(bobAddress)).to.reverted;
     });
   });
 
   context("When withdrawTradingRewards caller is the owner", async () => {
     it("should be able to withdraw trading rewards", async () => {
       // set lp pair fee
-      await factory.setPairFees(lp.address,25)
+      await factory.setPairFees(lp.address, 25);
       // Bob transfer LP to strategy first
       const bobLpBefore = await lp.balanceOf(bobAddress);
 
@@ -955,28 +945,26 @@ describe("MdexRestrictedStrategyPartialCloseLiquidate", () => {
       // Bob uses partial close liquidate strategy to turn the 50% LPs back to BTOKEN with the same minimum value and the same maxReturn
       const returnLp = bobLpBefore.div(2);
       await mockMdexWorkerAsBob.work(
-          0,
-          bobAddress,
-          "0",
-          ethers.utils.defaultAbiCoder.encode(
-            ["address", "bytes"],
-            [
-              strat.address,
-              ethers.utils.defaultAbiCoder.encode(
-                ["uint256", "uint256", "uint256"],
-                [returnLp, ethers.utils.parseEther("0"), ethers.utils.parseEther("0.5")]
-              ),
-            ]
-          )
-        );
+        0,
+        bobAddress,
+        "0",
+        ethers.utils.defaultAbiCoder.encode(
+          ["address", "bytes"],
+          [
+            strat.address,
+            ethers.utils.defaultAbiCoder.encode(
+              ["uint256", "uint256", "uint256"],
+              [returnLp, ethers.utils.parseEther("0"), ethers.utils.parseEther("0.5")]
+            ),
+          ]
+        )
+      );
 
       const mdxBefore = await mdxToken.balanceOf(deployerAddress);
-      // withdraw trading reward to deployer 
+      // withdraw trading reward to deployer
       await strat.withdrawTradingRewards(deployerAddress);
       const mdxAfter = await mdxToken.balanceOf(deployerAddress);
       expect(mdxAfter.sub(mdxBefore)).to.above(0);
     });
   });
-
-  
 });
