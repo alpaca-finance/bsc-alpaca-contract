@@ -32,10 +32,9 @@ contract MdexRestrictedStrategyLiquidate is OwnableUpgradeSafe, ReentrancyGuardU
 
   IMdexFactory public factory;
   IMdexRouter public router;
+  address public mdx;
 
   mapping(address => bool) public okWorkers;
-
-  address public mdx;
 
   /// @notice require that only allowed workers are able to do the rest of the method call
   modifier onlyWhitelistedWorkers() {
@@ -45,6 +44,7 @@ contract MdexRestrictedStrategyLiquidate is OwnableUpgradeSafe, ReentrancyGuardU
 
   /// @dev Create a new liquidate strategy instance.
   /// @param _router The IMdexRouter smart contract.
+  /// @param _mdx The mdex address
   function initialize(IMdexRouter _router, address _mdx) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();

@@ -14,7 +14,6 @@ const MDX_PER_BLOCK ="51600000000000000000"
 
 describe("MdexRestricted_StrategyLiquidate",()=>{
 
-// FIXME do declare variable
     let factory: MdexFactory;
     let router: MdexRouter;
     let lp: MdexPair;
