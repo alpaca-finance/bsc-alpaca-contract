@@ -75,7 +75,7 @@ import {
   MdxToken,
   MdxToken__factory,
   MdexRestrictedStrategyAddBaseTokenOnly,
-  MdexRestrictedStrategyAddTwosidesOptimal,
+  MdexRestrictedStrategyAddTwoSidesOptimal,
   MdexRestrictedStrategyLiquidate,
   MdexRestrictedStrategyPartialCloseLiquidate,
   MdexRestrictedStrategyPartialCloseMinimizeTrading,
@@ -85,7 +85,7 @@ import {
   MdexRestrictedStrategyPartialCloseLiquidate__factory,
   MdexRestrictedStrategyPartialCloseMinimizeTrading__factory,
   MdexRestrictedStrategyWithdrawMinimizeTrading__factory,
-  MdexRestrictedStrategyAddTwosidesOptimal__factory
+  MdexRestrictedStrategyAddTwoSidesOptimal__factory
 } from "../../typechain";
 
 export interface IBEP20 {
@@ -266,14 +266,15 @@ export class DeployHelper {
       "MdexFactory",
       this.deployer
     )) as MdexFactory__factory;
-    const factoryV2 = await MdexFactory.deploy(await this.deployer.getAddress());
-    await factoryV2.deployed();
-
+    const factory = await MdexFactory.deploy(await this.deployer.getAddress());
+    await factory.deployed();
+    await factory.setFeeRateNumerator(25)
+    
     const MdexRouter = (await ethers.getContractFactory(
       "MdexRouter",
       this.deployer
     )) as MdexRouter__factory;
-    const routerV2 = await MdexRouter.deploy(factoryV2.address, wbnb.address);
+    const routerV2 = await MdexRouter.deploy(factory.address, wbnb.address);
     await routerV2.deployed();
 
     // Deploy MdxToken
@@ -301,12 +302,11 @@ export class DeployHelper {
     );
     await masterChef.deployed();
 
-    // Transfer ownership so masterChef can mint CAKE
-    await Promise.all([
-      await mdx.transferOwnership(masterChef.address),
-    ]);
+    // Transfer ownership so masterChef can mint Mdx
+    await mdx.addMinter(masterChef.address);
+    await mdx.transferOwnership(masterChef.address);
 
-    return [factoryV2, routerV2, mdx, masterChef];
+    return [factory, routerV2, mdx, masterChef];
   }
 
   public async deployMdexStrategies(
@@ -319,7 +319,7 @@ export class DeployHelper {
     [
       MdexRestrictedStrategyAddBaseTokenOnly,
       MdexRestrictedStrategyLiquidate,
-      MdexRestrictedStrategyAddTwosidesOptimal,
+      MdexRestrictedStrategyAddTwoSidesOptimal,
       MdexRestrictedStrategyWithdrawMinimizeTrading,
       MdexRestrictedStrategyPartialCloseLiquidate,
       MdexRestrictedStrategyPartialCloseMinimizeTrading
@@ -347,14 +347,14 @@ export class DeployHelper {
     await liqStrat.deployed();
 
     const MdexRestrictedStrategyAddTwoSidesOptimal = (await ethers.getContractFactory(
-      "MdexRestrictedStrategyAddTwosidesOptimal",
+      "MdexRestrictedStrategyAddTwoSidesOptimal",
       this.deployer
-    )) as MdexRestrictedStrategyAddTwosidesOptimal__factory;
+    )) as MdexRestrictedStrategyAddTwoSidesOptimal__factory;
     const twoSidesStrat = (await upgrades.deployProxy(MdexRestrictedStrategyAddTwoSidesOptimal, [
       router.address,
       vault.address,
       mdx
-    ])) as MdexRestrictedStrategyAddTwosidesOptimal;
+    ])) as MdexRestrictedStrategyAddTwoSidesOptimal;
 
     const MdexRestrictedStrategyWithdrawMinimizeTrading = (await ethers.getContractFactory(
       "MdexRestrictedStrategyWithdrawMinimizeTrading",
