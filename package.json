@@ -228,6 +228,7 @@
     "@openzeppelin/hardhat-upgrades": "^1.9.0",
     "@openzeppelin/test-helpers": "^0.5.10",
     "@pancakeswap-libs/pancake-swap-core": "^0.1.0",
+    "@scientix-finance/scientix-contract": "git+https://github.com/alpaca-finance/scientix-contract.git#278e8d2444d6bc751c6e25f2a2e7d1da4e7aec04",
     "@typechain/ethers-v5": "^5.0.0",
     "@types/chai": "^4.2.15",
     "@types/mocha": "^8.2.0",

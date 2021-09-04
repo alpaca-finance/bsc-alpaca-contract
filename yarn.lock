@@ -2038,6 +2038,10 @@
     path-browserify "^1.0.0"
     url "^0.11.0"
 
+"@scientix-finance/scientix-contract@git+https://github.com/alpaca-finance/scientix-contract.git#278e8d2444d6bc751c6e25f2a2e7d1da4e7aec04":
+  version "0.0.1"
+  resolved "git+https://github.com/alpaca-finance/scientix-contract.git#278e8d2444d6bc751c6e25f2a2e7d1da4e7aec04"
+
 "@sentry/core@5.30.0":
   version "5.30.0"
   resolved "https://registry.yarnpkg.com/@sentry/core/-/core-5.30.0.tgz#6b203664f69e75106ee8b5a2fe1d717379b331f3"
