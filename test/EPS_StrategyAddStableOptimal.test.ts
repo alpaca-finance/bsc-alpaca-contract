@@ -592,12 +592,16 @@ describe("EPS - StrategyAddStableOptimal", () => {
   });
 
   const testCaseUserBalancesIn = [
+    [ethers.utils.parseEther("1"), ethers.utils.parseEther("1")], 
     [ethers.utils.parseEther("0"), ethers.utils.parseEther("1")], 
     [ethers.utils.parseEther("2"), ethers.utils.parseEther("0")], 
     [ethers.utils.parseEther("450"), ethers.utils.parseEther("450")], 
     [ethers.utils.parseEther("1731"), ethers.utils.parseEther("158")], 
     [ethers.utils.parseEther("2000"), ethers.utils.parseEther("1")], 
     [ethers.utils.parseEther("3000"), ethers.utils.parseEther("900")], 
+    [ethers.utils.parseEther("4598"), ethers.utils.parseEther("0")], 
+    [ethers.utils.parseEther("9999"), ethers.utils.parseEther("9999")], 
+    [ethers.utils.parseEther("0"), ethers.utils.parseEther("9511")], 
     [ethers.utils.parseEther("39850"), ethers.utils.parseEther("7510")], 
     [ethers.utils.parseEther("1000000"), ethers.utils.parseEther("1000000")], 
     [ethers.utils.parseEther("1524652"), ethers.utils.parseEther("99")], 
@@ -612,36 +616,80 @@ describe("EPS - StrategyAddStableOptimal", () => {
     [ethers.utils.parseEther("1990000000"), ethers.utils.parseEther("1990000000"), ethers.utils.parseEther("1990000000")],
     [ethers.utils.parseEther("190000000"), ethers.utils.parseEther("200000000"), ethers.utils.parseEther("210000000")],
     [ethers.utils.parseEther("400000000"), ethers.utils.parseEther("500000000"), ethers.utils.parseEther("600000000")],
+    [ethers.utils.parseEther("273467835"), ethers.utils.parseEther("222959862"), ethers.utils.parseEther("155968065")],
     [ethers.utils.parseEther("1005060070"), ethers.utils.parseEther("1260005504"), ethers.utils.parseEther("2125000450")],
   ];
 
   const testCasePancakeSwapAmountInit = [
-    [ethers.utils.parseEther("10000000"), ethers.utils.parseEther("10000000")],
-    [ethers.utils.parseEther("75200900"), ethers.utils.parseEther("79800300")],
-    [ethers.utils.parseEther("150000000"), ethers.utils.parseEther("141000000")],
-    [ethers.utils.parseEther("200000000"), ethers.utils.parseEther("200000000")],
-    [ethers.utils.parseEther("9999999999"), ethers.utils.parseEther("9999999999")]
+    {
+      'USDT': ethers.utils.parseEther("9999999"),
+      'BUSD': ethers.utils.parseEther("9999999"),
+      'USDT_to_BUSD_swapAmount': ethers.utils.parseEther("0"),
+    },
+    {
+      'USDT': ethers.utils.parseEther("75000000"),
+      'BUSD': ethers.utils.parseEther("75000000"),
+      'USDT_to_BUSD_swapAmount': ethers.utils.parseEther("4200"),
+    },
+    {
+      'USDT': ethers.utils.parseEther("75000000"),
+      'BUSD': ethers.utils.parseEther("75000000"),
+      'USDT_to_BUSD_swapAmount': ethers.utils.parseEther("94000"),
+    },
+    {
+      'USDT': ethers.utils.parseEther("150000000"),
+      'BUSD': ethers.utils.parseEther("150000000"),
+      'USDT_to_BUSD_swapAmount': ethers.utils.parseEther("123456"),
+    },
+    {
+      'USDT': ethers.utils.parseEther("147400000"),
+      'BUSD': ethers.utils.parseEther("147400000"),
+      'USDT_to_BUSD_swapAmount': ethers.utils.parseEther("78921"),
+    },
+    {
+      'USDT': ethers.utils.parseEther("147400000"),
+      'BUSD': ethers.utils.parseEther("147400000"),
+      'USDT_to_BUSD_swapAmount': ethers.utils.parseEther("235104"),
+    },
+    {
+      'USDT': ethers.utils.parseEther("9999999999"),
+      'BUSD': ethers.utils.parseEther("9999999999"),
+      'USDT_to_BUSD_swapAmount': ethers.utils.parseEther("0"),
+    },
   ];
 
-  const header = ['user_x,user_y,eps_x,eps_y,eps_z,pcs_x,pcs_y,gas,obtained_LP,debris_x,debris_y\n'];
+  const outputCsvFile = './test/csv/EPSStrategyAddStableOptimal.csv';
+  const header = ['test_id,user_x,user_y,eps_x,eps_y,eps_z,pcs_x,pcs_y,gas,obtained_LP,debris_x,debris_y\n'];
   let csv = header.map((e) => {
       return e.replace(/;/g, ",");
   });
-  fs.writeFile("./test/csv/data.csv", csv.join("\r\n"), (err) => {});
+  fs.writeFile(outputCsvFile, csv.join("\r\n"), (err) => {});
 
+  let testCaseId = 1;
+  const allTestCases = testCaseUserBalancesIn.length * testCaseStableSwapAmountInit.length * testCasePancakeSwapAmountInit.length;
   for(let stableSwapAmountInit of testCaseStableSwapAmountInit) {
     for(let pancakeSwapAmountInit of testCasePancakeSwapAmountInit) {
       for(let userBalancesIn of testCaseUserBalancesIn) {
-        it(`should run test case PCS: ${pancakeSwapAmountInit[0]}/${pancakeSwapAmountInit[1]} | EPS: ${stableSwapAmountInit[0]}/${stableSwapAmountInit[1]}/${stableSwapAmountInit[2]} | user: ${userBalancesIn[0]}/${userBalancesIn[1]} smoothly`, async () => {
+        it(`should run test case PCS (${testCaseId}/${allTestCases}): ${pancakeSwapAmountInit.USDT}/${pancakeSwapAmountInit.BUSD}/${pancakeSwapAmountInit.USDT_to_BUSD_swapAmount} | EPS: ${stableSwapAmountInit[0]}/${stableSwapAmountInit[1]}/${stableSwapAmountInit[2]} | user: ${userBalancesIn[0]}/${userBalancesIn[1]} smoothly`, async () => {
           /// add liquidities to PancakeSwap
           await swapHelper.addLiquidities([
             {
               token0: USDT,
               token1: BUSD,
-              amount0desired: pancakeSwapAmountInit[0],
-              amount1desired: pancakeSwapAmountInit[1],
-            }
+              amount0desired: pancakeSwapAmountInit.USDT,
+              amount1desired: pancakeSwapAmountInit.BUSD,
+            },
           ]);
+
+          let reserved_ = await USDT_BUSD.getReserves();
+          /// swap to make PCS somewhat unbalanced in order to facilitate variety of test cases
+          if (pancakeSwapAmountInit.USDT_to_BUSD_swapAmount > ethers.utils.parseEther("0")) {
+            USDT.mint(bobAddress, pancakeSwapAmountInit.USDT_to_BUSD_swapAmount);
+            await routerV2AsBob.swapExactTokensForTokens(pancakeSwapAmountInit.USDT_to_BUSD_swapAmount, 0, [USDT.address, BUSD.address], bobAddress, FOREVER);
+          }
+          let reserved = await USDT_BUSD.getReserves();
+          let pancakeSwapAmountInit0 = (reserved['_reserve0'].toString());
+          let pancakeSwapAmountInit1 = (reserved['_reserve1'].toString());
 
           // add liquidities to StableSwap
           await stableSwapAsDeployer.add_liquidity(
@@ -675,22 +723,23 @@ describe("EPS - StrategyAddStableOptimal", () => {
 
           const gasUsed = (await aliceStratTx.wait()).gasUsed;
 
+          /// user_x | user_y | eps_x | eps_y | eps_z | pcs_x | pcs_y | gas | optained_LP | debris_x | debris_y
+          let data = [`${testCaseId},${userBalancesIn[1]},${userBalancesIn[0]},${stableSwapAmountInit[0]},${stableSwapAmountInit[2]},${stableSwapAmountInit[1]},${pancakeSwapAmountInit1},${pancakeSwapAmountInit0},${gasUsed},${alice_USDT_BUSD.toString()},${alice_strat_BUSD.toString()},${alice_strat_USDT.toString()}\n`];
+          let csv = data.map((e) => {
+              return e.replace(/;/g, ",");
+          });
+          fs.appendFile(outputCsvFile, csv.join("\r\n"), (err) => {
+            console.log(err || "csv appended");
+          });
+
           /// assert
           expect(alice_USDT_BUSD).to.be.gt(0);
           /// assert no debris left (less than 10 * 10^-18 on both sides)
           expect(alice_strat_BUSD).to.be.lt(10);
           expect(alice_strat_USDT).to.be.lt(10);
-          
-          /// column orders
-          /// user_x | user_y | eps_x | eps_y | eps_z | pcs_x | pcs_y | gas | optained_LP | debris_x | debris_y
-          let data = [`${userBalancesIn[1]},${userBalancesIn[0]},${stableSwapAmountInit[0]},${stableSwapAmountInit[2]},${stableSwapAmountInit[1]},${pancakeSwapAmountInit[1]},${pancakeSwapAmountInit[0]},${gasUsed},${alice_USDT_BUSD.toString()},${alice_strat_BUSD.toString()},${alice_strat_USDT.toString()}\n`];
-          let csv = data.map((e) => {
-              return e.replace(/;/g, ",");
-          });
-          fs.appendFile("./test/csv/data.csv", csv.join("\r\n"), (err) => {
-              console.log(err || "csv appended");
-          });
-        })
+          return
+        }).timeout(200000)
+        testCaseId += 1;
       }
     }
   }
