@@ -156,8 +156,8 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
     await swapMining.addWhitelist(baseToken.address);
     await swapMining.addWhitelist(farmingToken.address);
     await swapMining.addWhitelist(wbnb.address);
-    await swapMining.addPair(100, lp.address, false);
-    await swapMining.addPair(100, baseTokenWbnbLp.address, false);
+    await swapMining.addPair(100, lp.address, false); // pid = 0
+    await swapMining.addPair(0, baseTokenWbnbLp.address, false); // pid = 1 , no trading reward alloc point
 
     /// Setup MockMdexWorker
     const MockMdexWorker = (await ethers.getContractFactory("MockMdexWorker", deployer)) as MockMdexWorker__factory;
@@ -387,11 +387,15 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
           ethers.utils.parseEther("40")
         );
 
-        const mdxTokenBefore = await mdxToken.balanceOf(deployerAddress);
-        // withdraw trading rewards, no trade since lessDebt < balance
-        await strat.withdrawTradingRewards(deployerAddress);
-        const mdxTokenAfter = await mdxToken.balanceOf(deployerAddress);
-        expect(mdxTokenAfter.sub(mdxTokenBefore)).to.eq(0);
+        const mdxBefore = await mdxToken.balanceOf(deployerAddress);
+        // withdraw trading reward to deployer
+        const withDrawTx = await strat.withdrawTradingRewards(deployerAddress);
+        const mdxAfter = await mdxToken.balanceOf(deployerAddress);
+        // get trading reward of the previos block
+        const totalRewardPrev = await strat.getMiningRewards({ blockTag: Number(withDrawTx.blockNumber) - 1 });
+        const withDrawBlockReward = await swapMining["reward()"]({ blockTag: withDrawTx.blockNumber });
+        const totalReward = !totalRewardPrev.isZero() ? totalRewardPrev.add(withDrawBlockReward) : 0;
+        expect(mdxAfter.sub(mdxBefore)).to.eq(totalReward);
       });
     });
 
@@ -446,11 +450,15 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
           "Bob should get 20.000000000000000002 FTOKEN back"
         ).to.be.bignumber.eq(ethers.utils.parseEther("20.000000000000000002"));
 
-        const mdxTokenBefore = await mdxToken.balanceOf(deployerAddress);
-        // withdraw trading rewards
-        await strat.withdrawTradingRewards(deployerAddress);
-        const mdxTokenAfter = await mdxToken.balanceOf(deployerAddress);
-        expect(mdxTokenAfter.sub(mdxTokenBefore)).to.eq(0);
+        const mdxBefore = await mdxToken.balanceOf(deployerAddress);
+        // withdraw trading reward to deployer
+        const withDrawTx = await strat.withdrawTradingRewards(deployerAddress);
+        const mdxAfter = await mdxToken.balanceOf(deployerAddress);
+        // get trading reward of the previos block
+        const totalRewardPrev = await strat.getMiningRewards({ blockTag: Number(withDrawTx.blockNumber) - 1 });
+        const withDrawBlockReward = await swapMining["reward()"]({ blockTag: withDrawTx.blockNumber });
+        const totalReward = !totalRewardPrev.isZero() ? totalRewardPrev.add(withDrawBlockReward) : 0;
+        expect(mdxAfter.sub(mdxBefore)).to.eq(totalReward);
       });
     });
 
@@ -536,11 +544,15 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
             bobFTOKENAfter.sub(bobFTOKENBefore).toString()
           );
 
-          const mdxTokenBefore = await mdxToken.balanceOf(deployerAddress);
-          // withdraw trading rewards
-          await strat.withdrawTradingRewards(deployerAddress);
-          const mdxTokenAfter = await mdxToken.balanceOf(deployerAddress);
-          expect(mdxTokenAfter.sub(mdxTokenBefore)).to.eq(0);
+          const mdxBefore = await mdxToken.balanceOf(deployerAddress);
+          // withdraw trading reward to deployer
+          const withDrawTx = await strat.withdrawTradingRewards(deployerAddress);
+          const mdxAfter = await mdxToken.balanceOf(deployerAddress);
+          // get trading reward of the previos block
+          const totalRewardPrev = await strat.getMiningRewards({ blockTag: Number(withDrawTx.blockNumber) - 1 });
+          const withDrawBlockReward = await swapMining["reward()"]({ blockTag: withDrawTx.blockNumber });
+          const totalReward = !totalRewardPrev.isZero() ? totalRewardPrev.add(withDrawBlockReward) : 0;
+          expect(mdxAfter.sub(mdxBefore)).to.eq(totalReward);
         });
       });
     });
@@ -662,11 +674,15 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
             bobFTOKENAfter.sub(bobFTOKENBefore).toString()
           );
 
-          const mdxTokenBefore = await mdxToken.balanceOf(deployerAddress);
-          // withdraw trading rewards
-          await strat.withdrawTradingRewards(deployerAddress);
-          const mdxTokenAfter = await mdxToken.balanceOf(deployerAddress);
-          expect(mdxTokenAfter.sub(mdxTokenBefore)).to.above(0);
+          const mdxBefore = await mdxToken.balanceOf(deployerAddress);
+          // withdraw trading reward to deployer
+          const withDrawTx = await strat.withdrawTradingRewards(deployerAddress);
+          const mdxAfter = await mdxToken.balanceOf(deployerAddress);
+          // get trading reward of the previos block
+          const totalRewardPrev = await strat.getMiningRewards({ blockTag: Number(withDrawTx.blockNumber) - 1 });
+          const withDrawBlockReward = await swapMining["reward()"]({ blockTag: withDrawTx.blockNumber });
+          const totalReward = !totalRewardPrev.isZero() ? totalRewardPrev.add(withDrawBlockReward) : 0;
+          expect(mdxAfter.sub(mdxBefore)).to.eq(totalReward);
         });
       });
     });
@@ -764,12 +780,12 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
           ethers.utils.parseEther("0.1")
         );
 
-        const mdxTokenBefore = await mdxToken.balanceOf(deployerAddress);
-        // withdraw trading rewards
-        await strat.withdrawTradingRewards(deployerAddress);
-        const mdxTokenAfter = await mdxToken.balanceOf(deployerAddress);
-        // no trade occur so there should be no reward
-        expect(mdxTokenAfter.sub(mdxTokenBefore)).to.eq(0);
+        const mdxBefore = await mdxToken.balanceOf(deployerAddress);
+        // withdraw trading reward to deployer
+        const withDrawTx = await strat.withdrawTradingRewards(deployerAddress);
+        const mdxAfter = await mdxToken.balanceOf(deployerAddress);
+        // no alloc point for this pair
+        expect(mdxAfter.sub(mdxBefore)).to.eq(0);
       });
     });
 
@@ -825,11 +841,12 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
           ethers.utils.parseEther("0.049999999999999998")
         );
 
-        const mdxTokenBefore = await mdxToken.balanceOf(deployerAddress);
-        // withdraw trading rewards
-        await strat.withdrawTradingRewards(deployerAddress);
-        const mdxTokenAfter = await mdxToken.balanceOf(deployerAddress);
-        expect(mdxTokenAfter.sub(mdxTokenBefore)).to.above(0);
+        const mdxBefore = await mdxToken.balanceOf(deployerAddress);
+        // withdraw trading reward to deployer
+        const withDrawTx = await strat.withdrawTradingRewards(deployerAddress);
+        const mdxAfter = await mdxToken.balanceOf(deployerAddress);
+        // no alloc point for this pair
+        expect(mdxAfter.sub(mdxBefore)).to.eq(0);
       });
     });
 
@@ -916,12 +933,12 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
             bobBnbAfter.sub(bobBnbBefore).toString()
           );
 
-          const mdxTokenBefore = await mdxToken.balanceOf(deployerAddress);
-          // withdraw trading rewards
-          await strat.withdrawTradingRewards(deployerAddress);
-          const mdxTokenAfter = await mdxToken.balanceOf(deployerAddress);
-          // no trade occur so there should be no reward
-          expect(mdxTokenAfter.sub(mdxTokenBefore)).to.eq(0);
+          const mdxBefore = await mdxToken.balanceOf(deployerAddress);
+          // withdraw trading reward to deployer
+          const withDrawTx = await strat.withdrawTradingRewards(deployerAddress);
+          const mdxAfter = await mdxToken.balanceOf(deployerAddress);
+          // no alloc point for this pair
+          expect(mdxAfter.sub(mdxBefore)).to.eq(0);
         });
       });
     });
@@ -1046,11 +1063,12 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
             bobBnbAfter.sub(bobBnbBefore).toString()
           );
 
-          const mdxTokenBefore = await mdxToken.balanceOf(deployerAddress);
-          // withdraw trading rewards
-          await strat.withdrawTradingRewards(deployerAddress);
-          const mdxTokenAfter = await mdxToken.balanceOf(deployerAddress);
-          expect(mdxTokenAfter.sub(mdxTokenBefore)).to.above(0);
+          const mdxBefore = await mdxToken.balanceOf(deployerAddress);
+          // withdraw trading reward to deployer
+          const withDrawTx = await strat.withdrawTradingRewards(deployerAddress);
+          const mdxAfter = await mdxToken.balanceOf(deployerAddress);
+          // no alloc point for this pair
+          expect(mdxAfter.sub(mdxBefore)).to.eq(0);
         });
       });
     });
