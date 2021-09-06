@@ -22,13 +22,14 @@ import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.so
 import "../../apis/mdex/BSCPool.sol";
 import "../../apis/mdex/IMdexFactory.sol";
 import "../../apis/mdex/IMdexRouter.sol";
+import "../../apis/mdex/SwapMining.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IWorker02.sol";
 import "../../../utils/AlpacaMath.sol";
 import "../../../utils/SafeToken.sol";
 import "../../interfaces/IVault.sol";
 
-contract MdexWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02 {
+contract MdexWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02 {
   /// @notice Libraries
   using SafeToken for address;
   using SafeMath for uint256;
@@ -80,10 +81,10 @@ contract MdexWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02
   uint256 public maxReinvestBountyBps;
   mapping(address => bool) public okReinvestors;
 
-  /// @notice Configuration varaibles for MdexWorker
+  /// @notice Configuration varaibles for MdexWorker02
   uint256 public feeDenom;
 
-  /// @notice Upgraded State Variables for MdexWorker
+  /// @notice Upgraded State Variables for MdexWorker02
   uint256 public reinvestThreshold;
   address[] public reinvestPath;
   address public treasuryAccount;
@@ -145,37 +146,37 @@ contract MdexWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02
     feeDenom = 10000;
 
     // 7. Check if critical parameters are config properly
-    require(baseToken != mdx, "MdexWorker::initialize:: base token cannot be a reward token");
+    require(baseToken != mdx, "MdexWorker02::initialize:: base token cannot be a reward token");
     require(
       reinvestBountyBps <= maxReinvestBountyBps,
-      "MdexWorker::initialize:: reinvestBountyBps exceeded maxReinvestBountyBps"
+      "MdexWorker02::initialize:: reinvestBountyBps exceeded maxReinvestBountyBps"
     );
     require(
       (farmingToken == lpToken.token0() || farmingToken == lpToken.token1()) &&
         (baseToken == lpToken.token0() || baseToken == lpToken.token1()),
-      "MdexWorker::initialize:: LP underlying not match with farm & base token"
+      "MdexWorker02::initialize:: LP underlying not match with farm & base token"
     );
     require(
       reinvestPath[0] == mdx && reinvestPath[reinvestPath.length - 1] == baseToken,
-      "MdexWorker::initialize:: reinvestPath must start with MDX, end with BTOKEN"
+      "MdexWorker02::initialize:: reinvestPath must start with MDX, end with BTOKEN"
     );
   }
 
   /// @dev Require that the caller must be an EOA account to avoid flash loans.
   modifier onlyEOA() {
-    require(msg.sender == tx.origin, "MdexWorker::onlyEOA:: not eoa");
+    require(msg.sender == tx.origin, "MdexWorker02::onlyEOA:: not eoa");
     _;
   }
 
   /// @dev Require that the caller must be the operator.
   modifier onlyOperator() {
-    require(msg.sender == operator, "MdexWorker::onlyOperator:: not operator");
+    require(msg.sender == operator, "MdexWorker02::onlyOperator:: not operator");
     _;
   }
 
   //// @dev Require that the caller must be ok reinvestor.
   modifier onlyReinvestor() {
-    require(okReinvestors[msg.sender], "MdexWorker::onlyReinvestor:: not reinvestor");
+    require(okReinvestors[msg.sender], "MdexWorker02::onlyReinvestor:: not reinvestor");
     _;
   }
 
@@ -214,7 +215,7 @@ contract MdexWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02
     uint256 _callerBalance,
     uint256 _reinvestThreshold
   ) internal {
-    require(_treasuryAccount != address(0), "MdexWorker::_reinvest:: bad treasury account");
+    require(_treasuryAccount != address(0), "MdexWorker02::_reinvest:: bad treasury account");
     // 1. Withdraw all the rewards. Return if reward <= _reinvestThreshold.
     bscPool.withdraw(pid, 0);
     uint256 reward = mdx.balanceOf(address(this));
@@ -260,17 +261,16 @@ contract MdexWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02
     uint256 debt,
     bytes calldata data
   ) external override onlyOperator nonReentrant {
-    // 1. If a treasury configs are not ready. Not reinvest.
-    if (treasuryAccount != address(0) && treasuryBountyBps != 0)
-      _reinvest(treasuryAccount, treasuryBountyBps, actualBaseTokenBalance(), reinvestThreshold);
+    // 1. reinvest
+    _reinvest(treasuryAccount, treasuryBountyBps, actualBaseTokenBalance(), reinvestThreshold);
     // 2. Convert this position back to LP tokens.
     _removeShare(id);
     // 3. Perform the worker strategy; sending LP tokens + BaseToken; expecting LP tokens + BaseToken.
     (address strat, bytes memory ext) = abi.decode(data, (address, bytes));
-    require(okStrats[strat], "MdexWorker::work:: unapproved work strategy");
+    require(okStrats[strat], "MdexWorker02::work:: unapproved work strategy");
     require(
       lpToken.transfer(strat, lpToken.balanceOf(address(this))),
-      "MdexWorker::work:: unable to transfer lp to strat"
+      "MdexWorker02::work:: unable to transfer lp to strat"
     );
     baseToken.safeTransfer(strat, actualBaseTokenBalance());
     IStrategy(strat).execute(user, debt, ext);
@@ -291,7 +291,7 @@ contract MdexWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02
     uint256 fee
   ) public view returns (uint256) {
     if (aIn == 0) return 0;
-    require(rIn > 0 && rOut > 0, "MdexWorker::getMktSellAmount:: bad reserve values");
+    require(rIn > 0 && rOut > 0, "MdexWorker02::getMktSellAmount:: bad reserve values");
     uint256 aInWithFee = aIn.mul(fee);
     uint256 numerator = aInWithFee.mul(rOut);
     uint256 denominator = rIn.mul(feeDenom).add(aInWithFee);
@@ -310,8 +310,9 @@ contract MdexWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02
     // 3. Convert the position's LP tokens to the underlying assets.
     uint256 userBaseToken = lpBalance.mul(totalBaseToken).div(lpSupply);
     uint256 userFarmingToken = lpBalance.mul(totalFarmingToken).div(lpSupply);
-    // 4. Convert all FarmingToken to BaseToken and return total BaseToken.
-    uint256 fee = feeDenom - factory.getPairFees(address(lpToken));
+    // 4. Calculate fee by using pair fee
+    uint256 fee = feeDenom.sub(factory.getPairFees(address(lpToken)));
+    // 5. Convert all FarmingToken to BaseToken and return total BaseToken.
     return
       getMktSellAmount(
         userFarmingToken,
@@ -452,12 +453,12 @@ contract MdexWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02
   ) external onlyOwner {
     require(
       _reinvestBountyBps <= maxReinvestBountyBps,
-      "MdexWorker::setReinvestConfig:: _reinvestBountyBps exceeded maxReinvestBountyBps"
+      "MdexWorker02::setReinvestConfig:: _reinvestBountyBps exceeded maxReinvestBountyBps"
     );
-    require(_reinvestPath.length >= 2, "MdexWorker::setReinvestConfig:: _reinvestPath length must >= 2");
+    require(_reinvestPath.length >= 2, "MdexWorker02::setReinvestConfig:: _reinvestPath length must >= 2");
     require(
       _reinvestPath[0] == mdx && _reinvestPath[_reinvestPath.length - 1] == baseToken,
-      "MdexWorker::setReinvestConfig:: _reinvestPath must start with MDX, end with BTOKEN"
+      "MdexWorker02::setReinvestConfig:: _reinvestPath must start with MDX, end with BTOKEN"
     );
 
     reinvestBountyBps = _reinvestBountyBps;
@@ -472,9 +473,12 @@ contract MdexWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02
   function setMaxReinvestBountyBps(uint256 _maxReinvestBountyBps) external onlyOwner {
     require(
       _maxReinvestBountyBps >= reinvestBountyBps,
-      "MdexWorker::setMaxReinvestBountyBps:: _maxReinvestBountyBps lower than reinvestBountyBps"
+      "MdexWorker02::setMaxReinvestBountyBps:: _maxReinvestBountyBps lower than reinvestBountyBps"
     );
-    require(_maxReinvestBountyBps <= 3000, "MdexWorker::setMaxReinvestBountyBps:: _maxReinvestBountyBps exceeded 30%");
+    require(
+      _maxReinvestBountyBps <= 3000,
+      "MdexWorker02::setMaxReinvestBountyBps:: _maxReinvestBountyBps exceeded 30%"
+    );
 
     maxReinvestBountyBps = _maxReinvestBountyBps;
 
@@ -508,10 +512,10 @@ contract MdexWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02
   /// @dev Set a new reward path. In case that the liquidity of the reward path is changed.
   /// @param _rewardPath The new reward path.
   function setRewardPath(address[] calldata _rewardPath) external onlyOwner {
-    require(rewardPath.length >= 2, "MdexWorker::setRewardPath:: rewardPath length must be >= 2");
+    require(rewardPath.length >= 2, "MdexWorker02::setRewardPath:: rewardPath length must be >= 2");
     require(
       rewardPath[0] == mdx && rewardPath[rewardPath.length - 1] == beneficialVault.token(),
-      "MdexWorker::setRewardPath:: rewardPath must start with CAKE and end with beneficialVault token"
+      "MdexWorker02::setRewardPath:: rewardPath must start with CAKE and end with beneficialVault token"
     );
 
     rewardPath = _rewardPath;
@@ -535,7 +539,7 @@ contract MdexWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02
   function setTreasuryConfig(address _treasuryAccount, uint256 _treasuryBountyBps) external onlyOwner {
     require(
       _treasuryBountyBps <= maxReinvestBountyBps,
-      "MdexWorker::setTreasuryConfig:: _treasuryBountyBps exceeded maxReinvestBountyBps"
+      "MdexWorker02::setTreasuryConfig:: _treasuryBountyBps exceeded maxReinvestBountyBps"
     );
 
     treasuryAccount = _treasuryAccount;
@@ -555,12 +559,12 @@ contract MdexWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02
   ) external onlyOwner {
     require(
       _beneficialVaultBountyBps <= 10000,
-      "MdexWorker::setBeneficialVaultConfig:: _beneficialVaultBountyBps exceeds 100%"
+      "MdexWorker02::setBeneficialVaultConfig:: _beneficialVaultBountyBps exceeds 100%"
     );
-    require(_rewardPath.length >= 2, "MdexWorker::setBeneficialVaultConfig:: rewardPath length must >= 2");
+    require(_rewardPath.length >= 2, "MdexWorker02::setBeneficialVaultConfig:: rewardPath length must >= 2");
     require(
       _rewardPath[0] == mdx && _rewardPath[_rewardPath.length - 1] == _beneficialVault.token(),
-      "MdexWorker::setBeneficialVaultConfig:: rewardPath must start with MDX, end with beneficialVault token"
+      "MdexWorker02::setBeneficialVaultConfig:: rewardPath must start with MDX, end with beneficialVault token"
     );
 
     _buyback();
@@ -570,5 +574,24 @@ contract MdexWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02
     rewardPath = _rewardPath;
 
     emit SetBeneficialVaultConfig(msg.sender, _beneficialVaultBountyBps, _beneficialVault, _rewardPath);
+  }
+
+  /// @dev Withdraw trading all reward.
+  /// @param to The address to transfer trading reward to.
+  function withdrawTradingRewards(address to) external onlyOwner {
+    SwapMining(router.swapMining()).takerWithdraw();
+    mdx.safeTransfer(to, mdx.myBalance());
+  }
+
+  /// @dev Get all trading rewards.
+  function getMiningRewards() public view returns (uint256) {
+    address swapMiningAddress = router.swapMining();
+    uint256 poolLength = SwapMining(swapMiningAddress).poolLength();
+    uint256 totalReward;
+    for (uint256 pid = 0; pid < poolLength; ++pid) {
+      (uint256 reward, ) = SwapMining(swapMiningAddress).getUserReward(pid);
+      totalReward = totalReward.add(reward);
+    }
+    return totalReward;
   }
 }
