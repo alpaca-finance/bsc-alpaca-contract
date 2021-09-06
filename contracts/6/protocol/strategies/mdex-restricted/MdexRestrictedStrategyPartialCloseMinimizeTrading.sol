@@ -158,6 +158,7 @@ contract MdexRestrictedStrategyPartialCloseMinimizeTrading is
   }
 
   /// @dev Get all trading rewards.
+  /// @param pIds pool ids to retrieve reward amount.
   function getMiningRewards(uint256[] calldata pIds) external view returns (uint256) {
     address swapMiningAddress = router.swapMining();
     uint256 totalReward;
