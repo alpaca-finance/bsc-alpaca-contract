@@ -117,10 +117,7 @@ describe("MdexRestricted_StrategyLiquidate", () => {
     await farmingToken.mint(await alice.getAddress(), ethers.utils.parseEther("10"));
     await farmingToken.mint(await bob.getAddress(), ethers.utils.parseEther("10"));
 
-    // mint 100 mdexToken to deployer
     await mdxToken["addMinter(address)"](await deployer.getAddress());
-    // await mdxToken["mint(address,uint256)"](await deployer.getAddress(), ethers.utils.parseEther("100"));
-    // await mdxToken.mint(await deployer.getAddress(), ethers.utils.parseEther("100"));
 
     //create pair
     await factory.createPair(baseToken.address, farmingToken.address);
