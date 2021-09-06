@@ -27,6 +27,8 @@ import "../../../utils/SafeToken.sol";
 import "../../interfaces/IWorker.sol";
 import "../../apis/mdex/SwapMining.sol";
 
+import "hardhat/console.sol";
+
 contract MdexRestrictedStrategyWithdrawMinimizeTrading is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeToken for address;
   using SafeMath for uint256;
@@ -85,10 +87,7 @@ contract MdexRestrictedStrategyWithdrawMinimizeTrading is OwnableUpgradeSafe, Re
     address farmingToken = worker.farmingToken();
     IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
     // 2. Approve router to do their stuffs
-    require(
-      lpToken.approve(address(router), uint256(-1)),
-      "MdexRestrictedStrategyWithdrawMinimizeTrading::execute:: failed to approve LP token"
-    );
+    address(lpToken).safeApprove(address(router), uint256(-1));
     farmingToken.safeApprove(address(router), uint256(-1));
     // 3. Remove all liquidity back to BaseToken and farming tokens.
     router.removeLiquidity(baseToken, farmingToken, lpToken.balanceOf(address(this)), 0, 0, address(this), now);
@@ -113,18 +112,15 @@ contract MdexRestrictedStrategyWithdrawMinimizeTrading is OwnableUpgradeSafe, Re
     );
     if (remainingFarmingToken > 0) {
       if (farmingToken == address(wbnb)) {
-        SafeToken.safeTransfer(farmingToken, address(wNativeRelayer), remainingFarmingToken);
+        farmingToken.safeTransfer(address(wNativeRelayer), remainingFarmingToken);
         wNativeRelayer.withdraw(remainingFarmingToken);
         SafeToken.safeTransferETH(user, remainingFarmingToken);
       } else {
-        SafeToken.safeTransfer(farmingToken, user, remainingFarmingToken);
+        farmingToken.safeTransfer(user, remainingFarmingToken);
       }
     }
     // 7. Reset approval for safety reason
-    require(
-      lpToken.approve(address(router), 0),
-      "MdexRestrictedStrategyWithdrawMinimizeTrading::execute:: unable to reset lp token approval"
-    );
+    address(lpToken).safeApprove(address(router), 0);
     farmingToken.safeApprove(address(router), 0);
   }
 
@@ -134,11 +130,23 @@ contract MdexRestrictedStrategyWithdrawMinimizeTrading is OwnableUpgradeSafe, Re
     }
   }
 
-  /// @dev Withdraw trading all reward.
+  /// @dev Withdraw all trading rewards
   /// @param to The address to transfer trading reward to.
   function withdrawTradingRewards(address to) external onlyOwner {
     SwapMining(router.swapMining()).takerWithdraw();
-    SafeToken.safeTransfer(mdx, to, SafeToken.myBalance(mdx));
+    mdx.safeTransfer(to, mdx.myBalance());
+  }
+
+  /// @dev Get all trading rewards.
+  function getMiningRewards() public view returns (uint256) {
+    address swapMiningAddress = router.swapMining();
+    uint256 poolLength = SwapMining(swapMiningAddress).poolLength();
+    uint256 totalReward;
+    for (uint256 pid = 0; pid < poolLength; ++pid) {
+      (uint256 reward, ) = SwapMining(swapMiningAddress).getUserReward(pid);
+      totalReward = totalReward.add(reward);
+    }
+    return totalReward;
   }
 
   receive() external payable {}

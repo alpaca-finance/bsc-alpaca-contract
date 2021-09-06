@@ -338,6 +338,34 @@ describe("MdexRestrictedStrategyWithdrawMinimizeTrading", () => {
       );
     });
 
+    it("should convert all LP tokens back to BaseToken and FTOKEN, while debt == received BaseToken", async () => {
+      const bobBaseTokenBefore = await baseToken.balanceOf(await bob.getAddress());
+      const bobFTOKENBefore = await farmingToken.balanceOf(await bob.getAddress());
+
+      // Bob uses minimize trading strategy to turn LPs back to BaseToken and FTOKEN
+      await mockMdexWorkerAsBob.work(
+        0,
+        await bob.getAddress(),
+        ethers.utils.parseEther("1"),
+        ethers.utils.defaultAbiCoder.encode(
+          ["address", "bytes"],
+          [strat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], [ethers.utils.parseEther("0.001")])]
+        )
+      );
+      const bobBaseTokenAfter = await baseToken.balanceOf(await bob.getAddress());
+      const bobFTOKENAfter = await farmingToken.balanceOf(await bob.getAddress());
+
+      // After execute strategy successfully. The following conditions must be statified
+      // - LPs in Strategy contract must be 0
+      // - Bob should have 0 LP
+      // - Bob should have 1 BTOKEN from contract return debt to Bob (Bob is msg.sender)
+      // - Bob should have 0.1 FTOKEN as no swap is needed
+      expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+      expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+      expect(bobBaseTokenAfter.sub(bobBaseTokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther("1"));
+      expect(bobFTOKENAfter.sub(bobFTOKENBefore)).to.be.bignumber.eq(ethers.utils.parseEther("0.1"));
+    });
+
     it("should convert all LP tokens back to BaseToken and FTOKEN when debt < received BaseToken", async () => {
       const bobBtokenBefore = await baseToken.balanceOf(await bob.getAddress());
       const bobFtokenBefore = await farmingToken.balanceOf(await bob.getAddress());
@@ -359,8 +387,8 @@ describe("MdexRestrictedStrategyWithdrawMinimizeTrading", () => {
       // After execute strategy successfully. The following conditions must be statified
       // - LPs in Strategy contract must be 0
       // - Bob should have 0 LP
-      // - Bob should have 1 BTOKEN from contract return 0.5 BTOKEN debt to Bob (Bob is msg.sender) and another 0.5 leftover BTOKEN
-      // - Bob should have 0.1 - [(0.1*0.2*10000)/(1-0.2*9975)] = 0.074937343358395989
+      // - Bob should have 1 BTOKEN from contract return debt to Bob (Bob is msg.sender)
+      // - Bob should have 0.1 FTOKEN as no swap is needed
       expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
       expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("0"));
       expect(bobBtokenAfter.sub(bobBtokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther("1"));
@@ -441,6 +469,7 @@ describe("MdexRestrictedStrategyWithdrawMinimizeTrading", () => {
       ).to.be.revertedWith("subtraction overflow");
     });
   });
+
   context("It should handle properly when the farming token is WBNB", () => {
     beforeEach(async () => {
       // Alice wrap BNB
@@ -500,6 +529,7 @@ describe("MdexRestrictedStrategyWithdrawMinimizeTrading", () => {
         "MdexRestrictedStrategyWithdrawMinimizeTrading::execute:: insufficient farming tokens received"
       );
     });
+
     it("should convert all LP tokens back to BaseToken and BNB, while debt == received BaseToken", async () => {
       const bobBaseTokenBefore = await baseToken.balanceOf(await bob.getAddress());
       const bobBnbBefore = await ethers.provider.getBalance(await bob.getAddress());
@@ -559,10 +589,7 @@ describe("MdexRestrictedStrategyWithdrawMinimizeTrading", () => {
       expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
       expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("0"));
       expect(bobBtokenAfter.sub(bobBtokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther("1"));
-      TestHelpers.assertAlmostEqual(
-        ethers.utils.parseEther("0.1").toString(),
-        bobBnbAfter.sub(bobBnbBefore).toString()
-      );
+      expect(ethers.utils.parseEther("0.1").toString(), bobBnbAfter.sub(bobBnbBefore).toString());
     });
 
     it("should convert all LP tokens back to BaseToken and BNB (debt > received BaseToken, BNB is enough to cover debt, tradingFee = 25)", async () => {
@@ -645,65 +672,72 @@ describe("MdexRestrictedStrategyWithdrawMinimizeTrading", () => {
     });
   });
 
-  context("When withdrawTradingRewards is called", async () => {
-    it("should be reverted as caller is not an owner", async () => {
-      await expect(stratAsBob.withdrawTradingRewards(await bob.getAddress())).to.reverted;
+  describe("#withdrawTradingReward", async () => {
+    context("when caller is not an owner", async () => {
+      it("should revert", async () => {
+        await expect(stratAsBob.withdrawTradingRewards(await bob.getAddress())).to.reverted;
+      });
     });
+    context("When withdrawTradingRewards caller is the owner", async () => {
+      it("should be able to withdraw trading rewards", async () => {
+        // Alice adds 0.1 FTOKEN + 1 BaseToken
+        await baseTokenAsAlice.approve(router.address, ethers.utils.parseEther("1"));
+        await farmingTokenAsAlice.approve(router.address, ethers.utils.parseEther("0.1"));
+        await routerAsAlice.addLiquidity(
+          baseToken.address,
+          farmingToken.address,
+          ethers.utils.parseEther("1"),
+          ethers.utils.parseEther("0.1"),
+          "0",
+          "0",
+          await alice.getAddress(),
+          FOREVER
+        );
 
-    it("should be able to withdraw trading reward when caller is owner", async () => {
-      // Alice adds 0.1 FTOKEN + 1 BaseToken
-      await baseTokenAsAlice.approve(router.address, ethers.utils.parseEther("1"));
-      await farmingTokenAsAlice.approve(router.address, ethers.utils.parseEther("0.1"));
-      await routerAsAlice.addLiquidity(
-        baseToken.address,
-        farmingToken.address,
-        ethers.utils.parseEther("1"),
-        ethers.utils.parseEther("0.1"),
-        "0",
-        "0",
-        await alice.getAddress(),
-        FOREVER
-      );
+        // Bob tries to add 1 FTOKEN + 1 BaseToken (but obviously can only add 0.1 FTOKEN)
+        await baseTokenAsBob.approve(router.address, ethers.utils.parseEther("1"));
+        await farmingTokenAsBob.approve(router.address, ethers.utils.parseEther("1"));
+        await routerAsBob.addLiquidity(
+          baseToken.address,
+          farmingToken.address,
+          ethers.utils.parseEther("1"),
+          ethers.utils.parseEther("1"),
+          "0",
+          "0",
+          await bob.getAddress(),
+          FOREVER
+        );
+        expect(await farmingToken.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("0.9"));
+        expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(
+          ethers.utils.parseEther("0.316227766016837933")
+        );
 
-      // Bob tries to add 1 FTOKEN + 1 BaseToken (but obviously can only add 0.1 FTOKEN)
-      await baseTokenAsBob.approve(router.address, ethers.utils.parseEther("1"));
-      await farmingTokenAsBob.approve(router.address, ethers.utils.parseEther("1"));
-      await routerAsBob.addLiquidity(
-        baseToken.address,
-        farmingToken.address,
-        ethers.utils.parseEther("1"),
-        ethers.utils.parseEther("1"),
-        "0",
-        "0",
-        await bob.getAddress(),
-        FOREVER
-      );
-      expect(await farmingToken.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("0.9"));
-      expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("0.316227766016837933")
-      );
+        await lpAsBob.transfer(strat.address, ethers.utils.parseEther("0.316227766016837933"));
 
-      await lpAsBob.transfer(strat.address, ethers.utils.parseEther("0.316227766016837933"));
+        // set lp pair fee
+        await factory.setPairFees(lp.address, 20);
+        // Bob uses withdraw minimize trading strategy to turn LPs back to BaseToken and farming token
+        await mockMdexWorkerAsBob.work(
+          0,
+          await bob.getAddress(),
+          ethers.utils.parseEther("1.2"),
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [strat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], [ethers.utils.parseEther("0.001")])]
+          )
+        );
 
-      // set lp pair fee
-      await factory.setPairFees(lp.address, 20);
-      // Bob uses withdraw minimize trading strategy to turn LPs back to BaseToken and farming token
-      await mockMdexWorkerAsBob.work(
-        0,
-        await bob.getAddress(),
-        ethers.utils.parseEther("1.2"),
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [strat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], [ethers.utils.parseEther("0.001")])]
-        )
-      );
-
-      const deployerAddress = await deployer.getAddress();
-      const mdxBefore = await mdxToken.balanceOf(deployerAddress);
-      // withdraw trading reward to deployer
-      await strat.withdrawTradingRewards(deployerAddress);
-      const mdxAfter = await mdxToken.balanceOf(deployerAddress);
-      expect(mdxAfter.sub(mdxBefore)).to.above(0);
+        const deployerAddress = await deployer.getAddress();
+        const mdxBefore = await mdxToken.balanceOf(deployerAddress);
+        // withdraw trading reward to deployer
+        const withDrawTx = await strat.withdrawTradingRewards(deployerAddress);
+        const mdxAfter = await mdxToken.balanceOf(deployerAddress);
+        // get trading reward of the previos block
+        const totalRewardPrev = await strat.getMiningRewards({ blockTag: Number(withDrawTx.blockNumber) - 1 });
+        const withDrawBlockReward = await swapMining["reward()"]({ blockTag: withDrawTx.blockNumber });
+        const totalReward = totalRewardPrev.add(withDrawBlockReward);
+        expect(mdxAfter.sub(mdxBefore)).to.eq(totalReward);
+      });
     });
   });
 });
