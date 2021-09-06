@@ -35,9 +35,9 @@ contract MdexRestrictedStrategyWithdrawMinimizeTrading is OwnableUpgradeSafe, Re
 
   IMdexFactory public factory;
   IMdexRouter public router;
+  address public mdx;
   IWETH public wbnb;
   IWNativeRelayer public wNativeRelayer;
-  address public mdx;
 
   mapping(address => bool) public okWorkers;
 
@@ -138,11 +138,11 @@ contract MdexRestrictedStrategyWithdrawMinimizeTrading is OwnableUpgradeSafe, Re
   }
 
   /// @dev Get all trading rewards.
-  function getMiningRewards() public view returns (uint256) {
+  /// @param pIds pool ids to retrieve reward amount.
+  function getMiningRewards(uint256[] calldata pIds) external view returns (uint256) {
     address swapMiningAddress = router.swapMining();
-    uint256 poolLength = SwapMining(swapMiningAddress).poolLength();
     uint256 totalReward;
-    for (uint256 pid = 0; pid < poolLength; ++pid) {
+    for (uint256 pid = 0; pid < pIds.length; pid++) {
       (uint256 reward, ) = SwapMining(swapMiningAddress).getUserReward(pid);
       totalReward = totalReward.add(reward);
     }

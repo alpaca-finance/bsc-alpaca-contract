@@ -733,7 +733,8 @@ describe("MdexRestrictedStrategyWithdrawMinimizeTrading", () => {
         const withDrawTx = await strat.withdrawTradingRewards(deployerAddress);
         const mdxAfter = await mdxToken.balanceOf(deployerAddress);
         // get trading reward of the previos block
-        const totalRewardPrev = await strat.getMiningRewards({ blockTag: Number(withDrawTx.blockNumber) - 1 });
+        const pIds = [0];
+        const totalRewardPrev = await strat.getMiningRewards(pIds, { blockTag: Number(withDrawTx.blockNumber) - 1 });
         const withDrawBlockReward = await swapMining["reward()"]({ blockTag: withDrawTx.blockNumber });
         const totalReward = totalRewardPrev.add(withDrawBlockReward);
         expect(mdxAfter.sub(mdxBefore)).to.eq(totalReward);
