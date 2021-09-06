@@ -39,7 +39,6 @@ contract MdexRestrictedStrategyLiquidate is OwnableUpgradeSafe, ReentrancyGuardU
   /// @notice require that only allowed workers are able to do the rest of the method call
   modifier onlyWhitelistedWorkers() {
     require(okWorkers[msg.sender], "MdexRestrictedStrategyLiquidate::onlyWhitelistedWorkers:: bad worker");
-    _;
   }
 
   /// @dev Create a new liquidate strategy instance.
