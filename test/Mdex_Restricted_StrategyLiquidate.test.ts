@@ -344,7 +344,18 @@ describe("MdexRestricted_StrategyLiquidate", () => {
         )
       );
 
-      strat.withdrawTradingRewards(await deployer.getAddress());
+      const prevBlockRewardMining = await strat.getMiningRewards([0]);
+
+      const withdrawTx = await strat.withdrawTradingRewards(await deployer.getAddress());
+
+      const currentBlockRewardMining = await swapMining["reward()"]({ blockTag: withdrawTx.blockNumber });
+
+      const totalMiningRewards = prevBlockRewardMining.add(currentBlockRewardMining);
+
+      const before = await strat.getMiningRewards([0], {
+        blockTag: Number(withdrawTx.blockNumber) - 1,
+      });
+
       const mdexTokenAfter = await mdxToken.balanceOf(await deployer.getAddress());
 
       const bobBTokenAfter = await baseToken.balanceOf(await bob.getAddress());
@@ -356,8 +367,10 @@ describe("MdexRestricted_StrategyLiquidate", () => {
       expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("0"));
       expect(await baseToken.balanceOf(lp.address)).to.be.bignumber.eq(ethers.utils.parseEther("0.500625782227784731"));
       expect(await farmingToken.balanceOf(lp.address)).to.be.bignumber.eq(ethers.utils.parseEther("0.2"));
-      // formula is blockReward*poolAlloc/totalAlloc = 825600000000000000000 *100/100
-      expect(mdexTokenAfter.sub(mdexTokenBefore)).to.be.bignumber.eq("877200000000000000000");
+      // formula is blockReward*poolAlloc/totalAlloc = (825600000000000000000 *100/100 )+ (51600000000000000000 *100/100) = 877200000000000000000
+      expect(prevBlockRewardMining).to.be.eq("825600000000000000000");
+      expect(totalMiningRewards).to.be.eq("877200000000000000000");
+      expect(mdexTokenAfter.sub(mdexTokenBefore)).to.be.eq(totalMiningRewards);
     });
   });
 

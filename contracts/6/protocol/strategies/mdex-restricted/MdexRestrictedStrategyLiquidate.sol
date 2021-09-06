@@ -99,4 +99,16 @@ contract MdexRestrictedStrategyLiquidate is OwnableUpgradeSafe, ReentrancyGuardU
     SwapMining(router.swapMining()).takerWithdraw();
     SafeToken.safeTransfer(mdx, to, SafeToken.myBalance(mdx));
   }
+
+  /// @notice get Mining reward
+  /// @param pids pool IDs of all to be get rewards,
+  function getMiningRewards(uint256[] calldata pids) external view returns (uint256) {
+    address swapMiningAddress = router.swapMining();
+    uint256 totalReward;
+    for (uint256 pid = 0; pid < pids.length; pid++) {
+      (uint256 reward, ) = SwapMining(swapMiningAddress).getUserReward(pid);
+      totalReward = totalReward.add(reward);
+    }
+    return totalReward;
+  }
 }
