@@ -498,7 +498,8 @@ describe("MdexRestrictedStrategyAddTwoSideOptimal", () => {
       const withDrawTx = await addRestrictedStrat.withdrawTradingRewards(await deployer.getAddress());
       const mdxAfter = await mdxToken.balanceOf(await deployer.getAddress());
       // get trading reward of the previos block
-      const totalRewardPrev = await addRestrictedStrat.getMiningRewards({
+      const pIds = [0];
+      const totalRewardPrev = await addRestrictedStrat.getMiningRewards(pIds, {
         blockTag: Number(withDrawTx.blockNumber) - 1,
       });
       const withDrawBlockReward = await swapMining["reward()"]({ blockTag: withDrawTx.blockNumber });

@@ -33,8 +33,8 @@ contract MdexRestrictedStrategyAddTwoSidesOptimal is OwnableUpgradeSafe, Reentra
 
   IMdexFactory public factory;
   IMdexRouter public router;
-  IVault public vault;
   address public mdx;
+  IVault public vault;
 
   mapping(address => bool) public okWorkers;
 
@@ -185,11 +185,10 @@ contract MdexRestrictedStrategyAddTwoSidesOptimal is OwnableUpgradeSafe, Reentra
   }
 
   /// @dev Get all trading rewards.
-  function getMiningRewards() public view returns (uint256) {
+  function getMiningRewards(uint256[] calldata pIds) external view returns (uint256) {
     address swapMiningAddress = router.swapMining();
-    uint256 poolLength = SwapMining(swapMiningAddress).poolLength();
     uint256 totalReward;
-    for (uint256 pid = 0; pid < poolLength; ++pid) {
+    for (uint256 pid = 0; pid < pIds.length; pid++) {
       (uint256 reward, ) = SwapMining(swapMiningAddress).getUserReward(pid);
       totalReward = totalReward.add(reward);
     }
