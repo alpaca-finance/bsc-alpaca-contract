@@ -14,12 +14,12 @@ import {
   MockWBNB,
   PancakePair,
   PancakePair__factory,
-  MdexWorker__factory,
+  MdexWorker02__factory,
   SimpleVaultConfig,
   Vault,
   Vault__factory,
   WNativeRelayer,
-  MdexWorker,
+  MdexWorker02,
   MdexFactory,
   MdexRouter,
   BSCPool,
@@ -31,6 +31,8 @@ import {
   MdexRestrictedStrategyPartialCloseLiquidate,
   MdexRestrictedStrategyPartialCloseMinimizeTrading,
   BSCPool__factory,
+  SwapMining,
+  Oracle,
 } from "../typechain";
 import * as TimeHelpers from "./helpers/time";
 import * as AssertHelpers from "./helpers/assert";
@@ -41,7 +43,7 @@ import { Worker02Helper } from "./helpers/worker";
 chai.use(solidity);
 const { expect } = chai;
 
-describe("Vault - MdexWorker", () => {
+describe("Vault - MdexWorker02", () => {
   const FOREVER = "2000000000";
   const ALPACA_BONUS_LOCK_UP_BPS = 7000;
   const ALPACA_REWARD_PER_BLOCK = ethers.utils.parseEther("5000");
@@ -59,10 +61,13 @@ describe("Vault - MdexWorker", () => {
   const REINVEST_THRESHOLD = ethers.utils.parseEther("1"); // If pendingCake > 1 $MDX, then reinvest
   const KILL_TREASURY_BPS = "100";
   const POOL_IDX = 0;
+  const MDX_PER_BLOCK = "51600000000000000000";
 
   /// Mdex-related instance(s)
   let mdexFactory: MdexFactory;
   let mdexRouter: MdexRouter;
+  let swapMining: SwapMining;
+  let oracle: Oracle;
 
   let wbnb: MockWBNB;
   let lp: PancakePair;
@@ -91,7 +96,7 @@ describe("Vault - MdexWorker", () => {
 
   /// MdexBSCPool-related instance(s)
   let bscPool: BSCPool;
-  let mdexWorker: MdexWorker;
+  let mdexWorker: MdexWorker02;
 
   /// Timelock instance(s)
   let whitelistedContract: MockContractContext;
@@ -122,7 +127,7 @@ describe("Vault - MdexWorker", () => {
   let bscPoolAsAlice: BSCPool;
   let bscPoolAsBob: BSCPool;
 
-  let mdexWorkerAsEve: MdexWorker;
+  let mdexWorkerAsEve: MdexWorker02;
 
   let vaultAsAlice: Vault;
   let vaultAsBob: Vault;
@@ -177,9 +182,12 @@ describe("Vault - MdexWorker", () => {
 
     wbnb = await deployHelper.deployWBNB();
 
-    [mdexFactory, mdexRouter, mdx, bscPool] = await deployHelper.deployMdex(wbnb, MDX_REWARD_PER_BLOCK, [
-      { address: deployerAddress, amount: ethers.utils.parseEther("100") },
-    ]);
+    [mdexFactory, mdexRouter, mdx, bscPool, swapMining] = await deployHelper.deployMdex(
+      wbnb,
+      MDX_REWARD_PER_BLOCK,
+      [{ address: deployerAddress, amount: ethers.utils.parseEther("100") }],
+      farmToken.address
+    );
 
     [alpacaToken, fairLaunch] = await deployHelper.deployAlpacaFairLaunch(
       ALPACA_REWARD_PER_BLOCK,
@@ -221,11 +229,16 @@ describe("Vault - MdexWorker", () => {
     lp = PancakePair__factory.connect(await mdexFactory.getPair(farmToken.address, baseToken.address), deployer);
     await bscPool.add(1, lp.address, true);
 
-    await mdexFactory.addPair(lp.address);
-    await mdexFactory.setPairFees(lp.address, 25);
+    // set swapMining to router
+    await mdexRouter.setSwapMining(swapMining.address);
 
-    /// Setup MdexWorker
-    mdexWorker = await deployHelper.deployMdexWorker(
+    // Add lp to bscPool's pool
+    await swapMining.addPair(100, lp.address, false);
+    // await swapMining.addWhitelist(baseToken.address);
+    // await swapMining.addWhitelist(farmToken.address);
+
+    /// Setup MdexWorker02
+    mdexWorker = await deployHelper.deployMdexWorker02(
       vault,
       baseToken,
       bscPool,
@@ -296,7 +309,7 @@ describe("Vault - MdexWorker", () => {
     vaultAsBob = Vault__factory.connect(vault.address, bob);
     vaultAsEve = Vault__factory.connect(vault.address, eve);
 
-    mdexWorkerAsEve = MdexWorker__factory.connect(mdexWorker.address, eve);
+    mdexWorkerAsEve = MdexWorker02__factory.connect(mdexWorker.address, eve);
   }
 
   beforeEach(async () => {
@@ -307,7 +320,7 @@ describe("Vault - MdexWorker", () => {
   });
 
   context("when worker is initialized", async () => {
-    it("should has FTOKEN as a farmingToken in MdexWorker", async () => {
+    it("should has FTOKEN as a farmingToken in MdexWorker02", async () => {
       expect(farmToken.address).to.be.equal(await mdexWorker.farmingToken());
     });
 
@@ -355,14 +368,14 @@ describe("Vault - MdexWorker", () => {
 
       it("should revert when owner set reinvestBountyBps > max", async () => {
         await expect(mdexWorker.setReinvestConfig(1000, "0", [mdx.address, baseToken.address])).to.be.revertedWith(
-          "MdexWorker::setReinvestConfig:: _reinvestBountyBps exceeded maxReinvestBountyBps"
+          "MdexWorker02::setReinvestConfig:: _reinvestBountyBps exceeded maxReinvestBountyBps"
         );
         expect(await mdexWorker.reinvestBountyBps()).to.be.bignumber.eq(100);
       });
 
       it("should revert when owner set reinvest path that doesn't start with $MDX and end with $BTOKN", async () => {
         await expect(mdexWorker.setReinvestConfig(200, "0", [baseToken.address, mdx.address])).to.be.revertedWith(
-          "MdexWorker::setReinvestConfig:: _reinvestPath must start with MDX, end with BTOKEN"
+          "MdexWorker02::setReinvestConfig:: _reinvestPath must start with MDX, end with BTOKEN"
         );
       });
     });
@@ -375,7 +388,7 @@ describe("Vault - MdexWorker", () => {
 
       it("should revert when new max reinvest bounty over 30%", async () => {
         await expect(mdexWorker.setMaxReinvestBountyBps("3001")).to.be.revertedWith(
-          "MdexWorker::setMaxReinvestBountyBps:: _maxReinvestBountyBps exceeded 30%"
+          "MdexWorker02::setMaxReinvestBountyBps:: _maxReinvestBountyBps exceeded 30%"
         );
         expect(await mdexWorker.maxReinvestBountyBps()).to.be.eq("500");
       });
@@ -395,7 +408,7 @@ describe("Vault - MdexWorker", () => {
 
       it("should revert when a new treasury bounty > max reinvest bounty bps", async () => {
         await expect(mdexWorker.setTreasuryConfig(DEPLOYER, parseInt(MAX_REINVEST_BOUNTY) + 1)).to.revertedWith(
-          "MdexWorker::setTreasuryConfig:: _treasuryBountyBps exceeded maxReinvestBountyBps"
+          "MdexWorker02::setTreasuryConfig:: _treasuryBountyBps exceeded maxReinvestBountyBps"
         );
         expect(await mdexWorker.treasuryBountyBps()).to.eq(REINVEST_BOUNTY_BPS);
       });
@@ -631,6 +644,78 @@ describe("Vault - MdexWorker", () => {
 
           // Her position should have ~2 NATIVE health (minus some small trading fee)
           expect(await mdexWorker.health(1)).to.be.bignumber.eq(ethers.utils.parseEther("1.997883397660681282"));
+
+          // Eve comes and trigger reinvest
+          await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
+          await mdexWorkerAsEve.reinvest();
+          AssertHelpers.assertAlmostEqual(
+            MDX_REWARD_PER_BLOCK.mul("2").mul(REINVEST_BOUNTY_BPS).div("10000").toString(),
+            (await mdx.balanceOf(eveAddress)).toString()
+          );
+
+          await vault.deposit(0); // Random action to trigger interest computation
+          const healthDebt = await vault.positionInfo("1");
+          expect(healthDebt[0]).to.be.bignumber.above(ethers.utils.parseEther("2"));
+          const interest = ethers.utils.parseEther("0.3"); // 30% interest rate
+          AssertHelpers.assertAlmostEqual(healthDebt[1].toString(), interest.add(loan).toString());
+          AssertHelpers.assertAlmostEqual(
+            (await baseToken.balanceOf(vault.address)).toString(),
+            deposit.sub(loan).toString()
+          );
+          AssertHelpers.assertAlmostEqual((await vault.vaultDebtVal()).toString(), interest.add(loan).toString());
+
+          const reservePool = interest.mul(RESERVE_POOL_BPS).div("10000");
+          AssertHelpers.assertAlmostEqual(reservePool.toString(), (await vault.reservePool()).toString());
+          AssertHelpers.assertAlmostEqual(
+            deposit.add(interest).sub(reservePool).toString(),
+            (await vault.totalToken()).toString()
+          );
+        });
+
+        it("should work when worker fee has changed to 20", async () => {
+          // Deployer deposits 3 BTOKEN to the bank
+          await mdexFactory.setFeeRateNumerator(20);
+
+          const deposit = ethers.utils.parseEther("3");
+          await baseToken.approve(vault.address, deposit);
+          await vault.deposit(deposit);
+
+          // Now Alice can take 1 BTOKEN loan + 1 BTOKEN of her to create a new position
+          const loan = ethers.utils.parseEther("1");
+          await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
+          await vaultAsAlice.work(
+            0,
+            mdexWorker.address,
+            ethers.utils.parseEther("1"),
+            loan,
+            "0",
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "bytes"],
+              [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+            )
+          );
+
+          // Her position should have ~2 NATIVE health (minus some small trading fee)
+          // To find health of the position, derive following variables:
+          // totalBaseToken = 2.999999999999999958
+          // totalFarmingToken = 0.1
+          // userBaseToken = 1.267216253674334111
+          // userFarmingToken = 0.042240541789144470
+
+          // health = amount of underlying of lp after converted to BTOKEN
+          // = userBaseToken + userFarmingTokenAfterSellToBaseToken
+
+          // Find userFarmingTokenAfterSellToBaseToken from
+          // mktSellAMount
+          // = [(userFarmingToken * 9980) * (totalBaseToken - userBaseToken)] / [((totalFarmingToken - userFarmingToken) * 10000) + (userFarmingToken * 9980)]
+          // = [(0.042240541789144470 * 9980) * (2.999999999999999958 - 1.267216253674334111)] / [((0.1 - 0.042240541789144470) * 10000) + (0.042240541789144470 * 9980)]
+          // = 0.731091001597324380
+
+          // health = userBaseToken + userFarmingTokenAfterSellToBaseToken
+          // = 1.267216253674334111 + 0.731091001597324380
+          // = 1.998307255271658491
+
+          expect(await mdexWorker.health(1)).to.be.bignumber.eq(ethers.utils.parseEther("1.998307255271658491"));
 
           // Eve comes and trigger reinvest
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
