@@ -1,5 +1,5 @@
-import { ethers, upgrades, waffle } from "hardhat";
-import { Signer, constants, BigNumber } from "ethers";
+import { ethers, waffle } from "hardhat";
+import { Signer, BigNumber } from "ethers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import "@openzeppelin/test-helpers";
@@ -19,8 +19,6 @@ import {
   Vault,
   Vault__factory,
   WNativeRelayer,
-  MockBeneficialVault__factory,
-  MockBeneficialVault,
   MdexWorker,
   MdexFactory,
   MdexRouter,
@@ -35,7 +33,6 @@ import {
   BSCPool__factory,
 } from "../typechain";
 import * as TimeHelpers from "./helpers/time";
-import { formatEther, parseEther } from "ethers/lib/utils";
 import * as AssertHelpers from "./helpers/assert";
 import { DeployHelper } from "./helpers/deploy";
 import { SwapHelper } from "./helpers/swap";
@@ -2082,7 +2079,7 @@ describe("Vault - MdexWorker", () => {
               );
 
               let [workerLPAfter] = await bscPool.userInfo(POOL_IDX, mdexWorker.address);
-              expect(workerLPAfter.sub(workerLPBefore)).to.eq(parseEther("1.131492691639043045"));
+              expect(workerLPAfter.sub(workerLPBefore)).to.eq(ethers.utils.parseEther("1.131492691639043045"));
 
               // Bob think he made enough. He now wants to close position partially.
               // He close 50% of his position and return all debt
@@ -2154,7 +2151,7 @@ describe("Vault - MdexWorker", () => {
               // LP tokens + LP tokens from reinvest of worker should be decreased by lpUnderBobPosition/2
               // due to Bob execute StrategyClosePartialLiquidate
               expect(workerLPAfter).to.be.bignumber.eq(
-                workerLPBefore.add(parseEther("0.010276168801924356")).sub(lpUnderBobPosition.div(2))
+                workerLPBefore.add(ethers.utils.parseEther("0.010276168801924356")).sub(lpUnderBobPosition.div(2))
               );
             });
           });
@@ -2224,7 +2221,7 @@ describe("Vault - MdexWorker", () => {
 
       context("When the treasury Account and treasury bounty bps haven't been set", async () => {
         it("should not auto reinvest", async () => {
-          await mdexWorker.setTreasuryConfig(constants.AddressZero, 0);
+          await mdexWorker.setTreasuryConfig(ethers.constants.AddressZero, 0);
           // Deployer deposits 3 BTOKEN to the bank
           const deposit = ethers.utils.parseEther("3");
           await baseToken.approve(vault.address, deposit);
@@ -2276,6 +2273,7 @@ describe("Vault - MdexWorker", () => {
       context("#addCollateral", async () => {
         const deposit = ethers.utils.parseEther("3");
         const borrowedAmount = ethers.utils.parseEther("1");
+        let snapedTimestampAfterWork: BigNumber = ethers.constants.Zero;
 
         beforeEach(async () => {
           // Deployer deposits 3 BTOKEN to the bank
@@ -2307,7 +2305,7 @@ describe("Vault - MdexWorker", () => {
               [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
             )
           );
-
+          snapedTimestampAfterWork = await TimeHelpers.latest();
           const [expectedLp] = await swapHelper.computeOneSidedOptimalLp(
             ethers.utils.parseEther("1").add(borrowedAmount),
             await mdexWorker.getPath()
@@ -2320,8 +2318,6 @@ describe("Vault - MdexWorker", () => {
         });
 
         async function successBtokenOnly(lastWorkBlock: BigNumber, goRouge: boolean) {
-          await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-
           let accumLp = await mdexWorker.shareToBalance(await mdexWorker.shares(1));
           const [workerLpBefore] = await bscPool.userInfo(POOL_IDX, mdexWorker.address);
           const debris = await baseToken.balanceOf(addStrat.address);
@@ -2333,6 +2329,11 @@ describe("Vault - MdexWorker", () => {
           reserves.push(...(await swapHelper.loadReserves(path)));
 
           await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
+
+          const targetTestTimeStamp = snapedTimestampAfterWork.add(
+            TimeHelpers.duration.days(ethers.BigNumber.from("1"))
+          );
+          await TimeHelpers.set(targetTestTimeStamp);
           await vaultAsAlice.addCollateral(
             1,
             ethers.utils.parseEther("1"),
