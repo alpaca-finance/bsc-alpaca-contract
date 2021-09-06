@@ -116,6 +116,10 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
   ) external override nonReentrant {
     (uint256 farmingTokenAmount, uint256 minLPAmount) = abi.decode(data, (uint256, uint256));
 
+    // refresh EPS platform's constant A and fee
+    epsA = epsPool.A();
+    epsFee = epsPool.fee();
+
     IWorker worker = IWorker(msg.sender);
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
