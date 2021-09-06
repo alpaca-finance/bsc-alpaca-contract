@@ -1,5 +1,5 @@
 import { ethers, upgrades, waffle } from "hardhat";
-import { Signer } from "ethers";
+import { BigNumber, Signer } from "ethers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import "@openzeppelin/test-helpers";
@@ -927,44 +927,50 @@ describe("MdexRestrictedStrategyPartialCloseLiquidate", () => {
     });
   });
 
-  context("When the withdrawTradingRewards caller is not an owner", async () => {
-    it("should be reverted", async () => {
-      await expect(stratAsBob.withdrawTradingRewards(bobAddress)).to.reverted;
+  describe("#withdrawTradingRewards", async () => {
+    context("When the withdrawTradingRewards caller is not an owner", async () => {
+      it("should be reverted", async () => {
+        await expect(stratAsBob.withdrawTradingRewards(bobAddress)).to.reverted;
+      });
     });
-  });
 
-  context("When withdrawTradingRewards caller is the owner", async () => {
-    it("should be able to withdraw trading rewards", async () => {
-      // set lp pair fee
-      await factory.setPairFees(lp.address, 25);
-      // Bob transfer LP to strategy first
-      const bobLpBefore = await lp.balanceOf(bobAddress);
+    context("When withdrawTradingRewards caller is the owner", async () => {
+      it("should be able to withdraw trading rewards", async () => {
+        // set lp pair fee
+        await factory.setPairFees(lp.address, 25);
+        // Bob transfer LP to strategy first
+        const bobLpBefore = await lp.balanceOf(bobAddress);
 
-      await lpAsBob.transfer(strat.address, ethers.utils.parseEther("0.316227766016837933"));
+        await lpAsBob.transfer(strat.address, ethers.utils.parseEther("0.316227766016837933"));
 
-      // Bob uses partial close liquidate strategy to turn the 50% LPs back to BTOKEN with the same minimum value and the same maxReturn
-      const returnLp = bobLpBefore.div(2);
-      await mockMdexWorkerAsBob.work(
-        0,
-        bobAddress,
-        "0",
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [
-            strat.address,
-            ethers.utils.defaultAbiCoder.encode(
-              ["uint256", "uint256", "uint256"],
-              [returnLp, ethers.utils.parseEther("0"), ethers.utils.parseEther("0.5")]
-            ),
-          ]
-        )
-      );
+        // Bob uses partial close liquidate strategy to turn the 50% LPs back to BTOKEN with the same minimum value and the same maxReturn
+        const returnLp = bobLpBefore.div(2);
+        await mockMdexWorkerAsBob.work(
+          0,
+          bobAddress,
+          "0",
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [
+              strat.address,
+              ethers.utils.defaultAbiCoder.encode(
+                ["uint256", "uint256", "uint256"],
+                [returnLp, ethers.utils.parseEther("0"), ethers.utils.parseEther("0.5")]
+              ),
+            ]
+          )
+        );
 
-      const mdxBefore = await mdxToken.balanceOf(deployerAddress);
-      // withdraw trading reward to deployer
-      await strat.withdrawTradingRewards(deployerAddress);
-      const mdxAfter = await mdxToken.balanceOf(deployerAddress);
-      expect(mdxAfter.sub(mdxBefore)).to.above(0);
+        const mdxBefore = await mdxToken.balanceOf(deployerAddress);
+        // withdraw trading reward to deployer
+        const withDrawTx = await strat.withdrawTradingRewards(deployerAddress);
+        const mdxAfter = await mdxToken.balanceOf(deployerAddress);
+        // get trading reward of the previos block
+        const totalRewardPrev = await strat.getMiningRewards({ blockTag: Number(withDrawTx.blockNumber) - 1 });
+        const withDrawBlockReward = await swapMining["reward()"]({ blockTag: withDrawTx.blockNumber });
+        const totalReward = totalRewardPrev.add(withDrawBlockReward);
+        expect(mdxAfter.sub(mdxBefore)).to.eq(totalReward);
+      });
     });
   });
 });
