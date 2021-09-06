@@ -128,7 +128,6 @@ contract MdexRestrictedStrategyAddTwoSidesOptimal is OwnableUpgradeSafe, Reentra
     baseToken.safeApprove(address(router), uint256(-1));
     farmingToken.safeApprove(address(router), uint256(-1));
     // 3. Compute the optimal amount of BaseToken and FarmingToken to be converted.
-    uint256 fee = factory.getPairFees(address(lpToken));
     vault.requestFunds(farmingToken, farmingTokenAmount);
     uint256 baseTokenBalance = baseToken.myBalance();
     uint256 swapAmt;
@@ -136,6 +135,7 @@ contract MdexRestrictedStrategyAddTwoSidesOptimal is OwnableUpgradeSafe, Reentra
     {
       (uint256 r0, uint256 r1, ) = lpToken.getReserves();
       (uint256 baseTokenReserve, uint256 farmingTokenReserve) = lpToken.token0() == baseToken ? (r0, r1) : (r1, r0);
+      uint256 fee = factory.getPairFees(address(lpToken));
       (swapAmt, isReversed) = optimalDeposit(
         baseTokenBalance,
         farmingToken.myBalance(),
@@ -165,10 +165,7 @@ contract MdexRestrictedStrategyAddTwoSidesOptimal is OwnableUpgradeSafe, Reentra
       moreLPAmount >= minLPAmount,
       "MdexRestrictedStrategyAddTwoSidesOptimal::execute:: insufficient LP tokens received"
     );
-    require(
-      lpToken.transfer(msg.sender, lpToken.balanceOf(address(this))),
-      "MdexRestrictedStrategyAddTwoSidesOptimal::execute:: failed to transfer LP token to msg.sender"
-    );
+    address(lpToken).safeTransfer(msg.sender, lpToken.balanceOf(address(this)));
     // 7. Reset approve to 0 for safety reason
     farmingToken.safeApprove(address(router), 0);
     baseToken.safeApprove(address(router), 0);
@@ -184,6 +181,18 @@ contract MdexRestrictedStrategyAddTwoSidesOptimal is OwnableUpgradeSafe, Reentra
   /// @param to The address to transfer trading reward to.
   function withdrawTradingRewards(address to) external onlyOwner {
     SwapMining(router.swapMining()).takerWithdraw();
-    SafeToken.safeTransfer(mdx, to, SafeToken.myBalance(mdx));
+    mdx.safeTransfer(to, mdx.myBalance());
+  }
+
+  /// @dev Get all trading rewards.
+  function getMiningRewards() public view returns (uint256) {
+    address swapMiningAddress = router.swapMining();
+    uint256 poolLength = SwapMining(swapMiningAddress).poolLength();
+    uint256 totalReward;
+    for (uint256 pid = 0; pid < poolLength; ++pid) {
+      (uint256 reward, ) = SwapMining(swapMiningAddress).getUserReward(pid);
+      totalReward = totalReward.add(reward);
+    }
+    return totalReward;
   }
 }

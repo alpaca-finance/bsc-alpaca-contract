@@ -493,12 +493,17 @@ describe("MdexRestrictedStrategyAddTwoSideOptimal", () => {
         )
       );
 
-      const deployerAddress = await deployer.getAddress();
-      const mdxBefore = await mdxToken.balanceOf(deployerAddress);
+      const mdxBefore = await mdxToken.balanceOf(await deployer.getAddress());
       // withdraw trading reward to deployer
-      await addRestrictedStrat.withdrawTradingRewards(deployerAddress);
-      const mdxAfter = await mdxToken.balanceOf(deployerAddress);
-      expect(mdxAfter.sub(mdxBefore)).to.above(0);
+      const withDrawTx = await addRestrictedStrat.withdrawTradingRewards(await deployer.getAddress());
+      const mdxAfter = await mdxToken.balanceOf(await deployer.getAddress());
+      // get trading reward of the previos block
+      const totalRewardPrev = await addRestrictedStrat.getMiningRewards({
+        blockTag: Number(withDrawTx.blockNumber) - 1,
+      });
+      const withDrawBlockReward = await swapMining["reward()"]({ blockTag: withDrawTx.blockNumber });
+      const totalReward = totalRewardPrev.add(withDrawBlockReward);
+      expect(mdxAfter.sub(mdxBefore)).to.eq(totalReward);
     });
   });
 
