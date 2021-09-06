@@ -1,5 +1,5 @@
-import { ethers, upgrades, waffle } from "hardhat";
-import { Signer, constants, BigNumber } from "ethers";
+import { ethers, waffle } from "hardhat";
+import { Signer, BigNumber } from "ethers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import "@openzeppelin/test-helpers";
@@ -19,8 +19,6 @@ import {
   Vault,
   Vault__factory,
   WNativeRelayer,
-  MockBeneficialVault__factory,
-  MockBeneficialVault,
   MdexWorker,
   MdexFactory,
   MdexRouter,
@@ -32,10 +30,9 @@ import {
   MdexRestrictedStrategyLiquidate,
   MdexRestrictedStrategyPartialCloseLiquidate,
   MdexRestrictedStrategyPartialCloseMinimizeTrading,
-  BSCPool__factory
+  BSCPool__factory,
 } from "../typechain";
 import * as TimeHelpers from "./helpers/time";
-import { formatEther, parseEther } from "ethers/lib/utils";
 import * as AssertHelpers from "./helpers/assert";
 import { DeployHelper } from "./helpers/deploy";
 import { SwapHelper } from "./helpers/swap";
@@ -73,7 +70,7 @@ describe("Vault - MdexWorker", () => {
   /// Token-related instance(s)
   let baseToken: MockERC20;
   let farmToken: MockERC20;
-  let mdx: MdxToken
+  let mdx: MdxToken;
 
   /// Strategy-ralted instance(s)
   let addStrat: MdexRestrictedStrategyAddBaseTokenOnly;
@@ -213,7 +210,7 @@ describe("Vault - MdexWorker", () => {
     await simpleVaultConfig.setWhitelistedCallers([whitelistedContract.address], true);
 
     // whitelisted to be able to call kill
-    await simpleVaultConfig.setWhitelistedLiquidators([await alice.getAddress(), await eve.getAddress()], true)
+    await simpleVaultConfig.setWhitelistedLiquidators([await alice.getAddress(), await eve.getAddress()], true);
 
     // Set approved add strategies
     await simpleVaultConfig.setApprovedAddStrategy([addStrat.address, twoSidesStrat.address], true);
@@ -224,8 +221,8 @@ describe("Vault - MdexWorker", () => {
     lp = PancakePair__factory.connect(await mdexFactory.getPair(farmToken.address, baseToken.address), deployer);
     await bscPool.add(1, lp.address, true);
 
-    await mdexFactory.addPair(lp.address)
-    await mdexFactory.setPairFees(lp.address, 25)
+    await mdexFactory.addPair(lp.address);
+    await mdexFactory.setPairFees(lp.address, 25);
 
     /// Setup MdexWorker
     mdexWorker = await deployHelper.deployMdexWorker(
@@ -348,9 +345,7 @@ describe("Vault - MdexWorker", () => {
   context("when owner is setting worker", async () => {
     describe("#reinvestConfig", async () => {
       it("should set reinvest config correctly", async () => {
-        await expect(
-          mdexWorker.setReinvestConfig(250, ethers.utils.parseEther("1"), [mdx.address, baseToken.address])
-        )
+        await expect(mdexWorker.setReinvestConfig(250, ethers.utils.parseEther("1"), [mdx.address, baseToken.address]))
           .to.be.emit(mdexWorker, "SetReinvestConfig")
           .withArgs(deployerAddress, 250, ethers.utils.parseEther("1"), [mdx.address, baseToken.address]);
         expect(await mdexWorker.reinvestBountyBps()).to.be.bignumber.eq(250);
@@ -359,18 +354,14 @@ describe("Vault - MdexWorker", () => {
       });
 
       it("should revert when owner set reinvestBountyBps > max", async () => {
-        await expect(
-          mdexWorker.setReinvestConfig(1000, "0", [mdx.address, baseToken.address])
-        ).to.be.revertedWith(
+        await expect(mdexWorker.setReinvestConfig(1000, "0", [mdx.address, baseToken.address])).to.be.revertedWith(
           "MdexWorker::setReinvestConfig:: _reinvestBountyBps exceeded maxReinvestBountyBps"
         );
         expect(await mdexWorker.reinvestBountyBps()).to.be.bignumber.eq(100);
       });
 
       it("should revert when owner set reinvest path that doesn't start with $MDX and end with $BTOKN", async () => {
-        await expect(
-          mdexWorker.setReinvestConfig(200, "0", [baseToken.address, mdx.address])
-        ).to.be.revertedWith(
+        await expect(mdexWorker.setReinvestConfig(200, "0", [baseToken.address, mdx.address])).to.be.revertedWith(
           "MdexWorker::setReinvestConfig:: _reinvestPath must start with MDX, end with BTOKEN"
         );
       });
@@ -403,9 +394,7 @@ describe("Vault - MdexWorker", () => {
       });
 
       it("should revert when a new treasury bounty > max reinvest bounty bps", async () => {
-        await expect(
-          mdexWorker.setTreasuryConfig(DEPLOYER, parseInt(MAX_REINVEST_BOUNTY) + 1)
-        ).to.revertedWith(
+        await expect(mdexWorker.setTreasuryConfig(DEPLOYER, parseInt(MAX_REINVEST_BOUNTY) + 1)).to.revertedWith(
           "MdexWorker::setTreasuryConfig:: _treasuryBountyBps exceeded maxReinvestBountyBps"
         );
         expect(await mdexWorker.treasuryBountyBps()).to.eq(REINVEST_BOUNTY_BPS);
@@ -491,16 +480,16 @@ describe("Vault - MdexWorker", () => {
         expect(worker).to.be.eq(mdexWorker.address);
       });
 
-      it('should revert if evil contract try to call onlyWhitelistedLiquidators function', async () => {           
-        await expect(evilContract.executeTransaction(
-          vault.address, 0, 
-          "kill(uint256)", 
-          ethers.utils.defaultAbiCoder.encode(
-            ['uint256'],
-            [0]
+      it("should revert if evil contract try to call onlyWhitelistedLiquidators function", async () => {
+        await expect(
+          evilContract.executeTransaction(
+            vault.address,
+            0,
+            "kill(uint256)",
+            ethers.utils.defaultAbiCoder.encode(["uint256"], [0])
           )
-        )).to.be.revertedWith("!whitelisted liquidator")
-      })
+        ).to.be.revertedWith("!whitelisted liquidator");
+      });
     });
 
     context("when user is EOA", async () => {
@@ -641,9 +630,7 @@ describe("Vault - MdexWorker", () => {
           );
 
           // Her position should have ~2 NATIVE health (minus some small trading fee)
-          expect(await mdexWorker.health(1)).to.be.bignumber.eq(
-            ethers.utils.parseEther("1.997883397660681282")
-          );
+          expect(await mdexWorker.health(1)).to.be.bignumber.eq(ethers.utils.parseEther("1.997883397660681282"));
 
           // Eve comes and trigger reinvest
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
@@ -729,10 +716,7 @@ describe("Vault - MdexWorker", () => {
           // Set Reinvest bounty to 10% of the reward
           await mdexWorker.setReinvestConfig("100", "0", [mdx.address, wbnb.address, baseToken.address]);
 
-          const [path, reinvestPath] = await Promise.all([
-            mdexWorker.getPath(),
-            mdexWorker.getReinvestPath(),
-          ]);
+          const [path, reinvestPath] = await Promise.all([mdexWorker.getPath(), mdexWorker.getReinvestPath()]);
 
           // Bob deposits 10 BTOKEN
           await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
@@ -774,16 +758,12 @@ describe("Vault - MdexWorker", () => {
 
           // Expect
           let [workerLpAfter] = await bscPool.userInfo(POOL_IDX, mdexWorker.address);
-          expect(await mdexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(
-            shares[0]
-          );
+          expect(await mdexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(shares[0]);
           expect(
             await mdexWorker.shareToBalance(await mdexWorker.shares(1)),
             `expect Pos#1 LPs = ${expectedLp}`
           ).to.be.bignumber.eq(expectedLp);
-          expect(await mdexWorker.totalShare(), `expect totalShare = ${totalShare}`).to.be.bignumber.eq(
-            totalShare
-          );
+          expect(await mdexWorker.totalShare(), `expect totalShare = ${totalShare}`).to.be.bignumber.eq(totalShare);
           expect(
             await baseToken.balanceOf(addStrat.address),
             `expect add BTOKEN strat to have ${debrisBtoken} BTOKEN debris`
@@ -835,17 +815,13 @@ describe("Vault - MdexWorker", () => {
           shares.push(expectedShare);
           totalShare = totalShare.add(expectedShare);
 
-          expect(await mdexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(
-            shares[0]
-          );
+          expect(await mdexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(shares[0]);
           expect(
             await mdexWorker.shareToBalance(await mdexWorker.shares(1)),
             `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
           ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
 
-          expect(await mdexWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(
-            shares[1]
-          );
+          expect(await mdexWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(shares[1]);
           expect(
             await mdexWorker.shareToBalance(await mdexWorker.shares(2)),
             `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
@@ -890,17 +866,13 @@ describe("Vault - MdexWorker", () => {
           [reinvestLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
           accumLp = accumLp.add(reinvestLp);
 
-          expect(await mdexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(
-            shares[0]
-          );
+          expect(await mdexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(shares[0]);
           expect(
             await mdexWorker.shareToBalance(await mdexWorker.shares(1)),
             `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
           ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
 
-          expect(await mdexWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(
-            shares[1]
-          );
+          expect(await mdexWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(shares[1]);
           expect(
             await mdexWorker.shareToBalance(await mdexWorker.shares(2)),
             `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
@@ -1006,10 +978,7 @@ describe("Vault - MdexWorker", () => {
             ethers.constants.AddressZero
           );
 
-          const [path, reinvestPath] = await Promise.all([
-            mdexWorker.getPath(),
-            mdexWorker.getReinvestPath(),
-          ]);
+          const [path, reinvestPath] = await Promise.all([mdexWorker.getPath(), mdexWorker.getReinvestPath()]);
           // Set Reinvest bounty to 10% of the reward
           await mdexWorker.setReinvestConfig("100", "0", [mdx.address, wbnb.address, baseToken.address]);
 
@@ -1052,16 +1021,12 @@ describe("Vault - MdexWorker", () => {
 
           // Expect
           let [workerLpAfter] = await bscPool.userInfo(POOL_IDX, mdexWorker.address);
-          expect(await mdexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(
-            shares[0]
-          );
+          expect(await mdexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(shares[0]);
           expect(
             await mdexWorker.shareToBalance(await mdexWorker.shares(1)),
             `expect Pos#1 LPs = ${expectedLp}`
           ).to.be.bignumber.eq(expectedLp);
-          expect(await mdexWorker.totalShare(), `expect totalShare = ${totalShare}`).to.be.bignumber.eq(
-            totalShare
-          );
+          expect(await mdexWorker.totalShare(), `expect totalShare = ${totalShare}`).to.be.bignumber.eq(totalShare);
           expect(
             await baseToken.balanceOf(addStrat.address),
             `expect add BTOKEN strat to have ${debrisBtoken} BTOKEN debris`
@@ -1115,17 +1080,13 @@ describe("Vault - MdexWorker", () => {
           shares.push(expectedShare);
           totalShare = totalShare.add(expectedShare);
 
-          expect(await mdexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(
-            shares[0]
-          );
+          expect(await mdexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(shares[0]);
           expect(
             await mdexWorker.shareToBalance(await mdexWorker.shares(1)),
             `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
           ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
 
-          expect(await mdexWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(
-            shares[1]
-          );
+          expect(await mdexWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(shares[1]);
           expect(
             await mdexWorker.shareToBalance(await mdexWorker.shares(2)),
             `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
@@ -1170,17 +1131,13 @@ describe("Vault - MdexWorker", () => {
           [reinvestLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
           accumLp = accumLp.add(reinvestLp);
 
-          expect(await mdexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(
-            shares[0]
-          );
+          expect(await mdexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(shares[0]);
           expect(
             await mdexWorker.shareToBalance(await mdexWorker.shares(1)),
             `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
           ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
 
-          expect(await mdexWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(
-            shares[1]
-          );
+          expect(await mdexWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(shares[1]);
           expect(
             await mdexWorker.shareToBalance(await mdexWorker.shares(2)),
             `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
@@ -1275,10 +1232,10 @@ describe("Vault - MdexWorker", () => {
       });
 
       context("#kill", async () => {
-        it('should not allow user not whitelisted to liquidate', async () => {           
-          await expect(vaultAsBob.kill('1')).to.be.revertedWith("!whitelisted liquidator")
-        })
-        
+        it("should not allow user not whitelisted to liquidate", async () => {
+          await expect(vaultAsBob.kill("1")).to.be.revertedWith("!whitelisted liquidator");
+        });
+
         it("should be able to liquidate bad position", async () => {
           // Deployer deposits 3 BTOKEN to the bank
           const deposit = ethers.utils.parseEther("3");
@@ -1695,10 +1652,7 @@ describe("Vault - MdexWorker", () => {
           // Set Reinvest bounty to 10% of the reward
           await mdexWorker.setReinvestConfig("100", "0", [mdx.address, wbnb.address, baseToken.address]);
 
-          const [path, reinvestPath] = await Promise.all([
-            mdexWorker.getPath(),
-            mdexWorker.getReinvestPath(),
-          ]);
+          const [path, reinvestPath] = await Promise.all([mdexWorker.getPath(), mdexWorker.getReinvestPath()]);
 
           // Bob deposits 10 BTOKEN
           await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
@@ -1739,16 +1693,12 @@ describe("Vault - MdexWorker", () => {
 
           // Expect
           let [workerLpAfter] = await bscPool.userInfo(POOL_IDX, mdexWorker.address);
-          expect(await mdexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(
-            shares[0]
-          );
+          expect(await mdexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(shares[0]);
           expect(
             await mdexWorker.shareToBalance(await mdexWorker.shares(1)),
             `expect Pos#1 LPs = ${expectedLp}`
           ).to.be.bignumber.eq(expectedLp);
-          expect(await mdexWorker.totalShare(), `expect totalShare = ${totalShare}`).to.be.bignumber.eq(
-            totalShare
-          );
+          expect(await mdexWorker.totalShare(), `expect totalShare = ${totalShare}`).to.be.bignumber.eq(totalShare);
           expect(
             await baseToken.balanceOf(addStrat.address),
             `expect add BTOKEN strat to have ${debrisBtoken} BTOKEN debris`
@@ -1800,17 +1750,13 @@ describe("Vault - MdexWorker", () => {
           shares.push(expectedShare);
           totalShare = totalShare.add(expectedShare);
 
-          expect(await mdexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(
-            shares[0]
-          );
+          expect(await mdexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(shares[0]);
           expect(
             await mdexWorker.shareToBalance(await mdexWorker.shares(1)),
             `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
           ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
 
-          expect(await mdexWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(
-            shares[1]
-          );
+          expect(await mdexWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(shares[1]);
           expect(
             await mdexWorker.shareToBalance(await mdexWorker.shares(2)),
             `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
@@ -1855,17 +1801,13 @@ describe("Vault - MdexWorker", () => {
           [reinvestLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
           accumLp = accumLp.add(reinvestLp);
 
-          expect(await mdexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(
-            shares[0]
-          );
+          expect(await mdexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.bignumber.eq(shares[0]);
           expect(
             await mdexWorker.shareToBalance(await mdexWorker.shares(1)),
             `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
           ).to.be.bignumber.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
 
-          expect(await mdexWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(
-            shares[1]
-          );
+          expect(await mdexWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.bignumber.eq(shares[1]);
           expect(
             await mdexWorker.shareToBalance(await mdexWorker.shares(2)),
             `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
@@ -1972,10 +1914,7 @@ describe("Vault - MdexWorker", () => {
                 ethers.constants.AddressZero
               );
 
-              const [path, reinvestPath] = await Promise.all([
-                mdexWorker.getPath(),
-                mdexWorker.getReinvestPath(),
-              ]);
+              const [path, reinvestPath] = await Promise.all([mdexWorker.getPath(), mdexWorker.getReinvestPath()]);
 
               // Set Reinvest bounty to 1% of the reward
               await mdexWorker.setReinvestConfig("100", "0", [mdx.address, wbnb.address, baseToken.address]);
@@ -2140,7 +2079,7 @@ describe("Vault - MdexWorker", () => {
               );
 
               let [workerLPAfter] = await bscPool.userInfo(POOL_IDX, mdexWorker.address);
-              expect(workerLPAfter.sub(workerLPBefore)).to.eq(parseEther("1.131492691639043045"));
+              expect(workerLPAfter.sub(workerLPBefore)).to.eq(ethers.utils.parseEther("1.131492691639043045"));
 
               // Bob think he made enough. He now wants to close position partially.
               // He close 50% of his position and return all debt
@@ -2212,7 +2151,7 @@ describe("Vault - MdexWorker", () => {
               // LP tokens + LP tokens from reinvest of worker should be decreased by lpUnderBobPosition/2
               // due to Bob execute StrategyClosePartialLiquidate
               expect(workerLPAfter).to.be.bignumber.eq(
-                workerLPBefore.add(parseEther("0.010276168801924356")).sub(lpUnderBobPosition.div(2))
+                workerLPBefore.add(ethers.utils.parseEther("0.010276168801924356")).sub(lpUnderBobPosition.div(2))
               );
             });
           });
@@ -2282,7 +2221,7 @@ describe("Vault - MdexWorker", () => {
 
       context("When the treasury Account and treasury bounty bps haven't been set", async () => {
         it("should not auto reinvest", async () => {
-          await mdexWorker.setTreasuryConfig(constants.AddressZero, 0);
+          await mdexWorker.setTreasuryConfig(ethers.constants.AddressZero, 0);
           // Deployer deposits 3 BTOKEN to the bank
           const deposit = ethers.utils.parseEther("3");
           await baseToken.approve(vault.address, deposit);
@@ -2334,6 +2273,7 @@ describe("Vault - MdexWorker", () => {
       context("#addCollateral", async () => {
         const deposit = ethers.utils.parseEther("3");
         const borrowedAmount = ethers.utils.parseEther("1");
+        let snapedTimestampAfterWork: BigNumber = ethers.constants.Zero;
 
         beforeEach(async () => {
           // Deployer deposits 3 BTOKEN to the bank
@@ -2365,7 +2305,7 @@ describe("Vault - MdexWorker", () => {
               [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
             )
           );
-
+          snapedTimestampAfterWork = await TimeHelpers.latest();
           const [expectedLp] = await swapHelper.computeOneSidedOptimalLp(
             ethers.utils.parseEther("1").add(borrowedAmount),
             await mdexWorker.getPath()
@@ -2378,8 +2318,6 @@ describe("Vault - MdexWorker", () => {
         });
 
         async function successBtokenOnly(lastWorkBlock: BigNumber, goRouge: boolean) {
-          await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-
           let accumLp = await mdexWorker.shareToBalance(await mdexWorker.shares(1));
           const [workerLpBefore] = await bscPool.userInfo(POOL_IDX, mdexWorker.address);
           const debris = await baseToken.balanceOf(addStrat.address);
@@ -2391,6 +2329,11 @@ describe("Vault - MdexWorker", () => {
           reserves.push(...(await swapHelper.loadReserves(path)));
 
           await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
+
+          const targetTestTimeStamp = snapedTimestampAfterWork.add(
+            TimeHelpers.duration.days(ethers.BigNumber.from("1"))
+          );
+          await TimeHelpers.set(targetTestTimeStamp);
           await vaultAsAlice.addCollateral(
             1,
             ethers.utils.parseEther("1"),
@@ -2423,11 +2366,8 @@ describe("Vault - MdexWorker", () => {
 
           const interest = ethers.utils.parseEther("0.3"); // 30% interest rate
           AssertHelpers.assertAlmostEqual(debt.toString(), interest.add(borrowedAmount).toString());
-          const baseAmount = (await baseToken.balanceOf(vault.address)).toString()
-          AssertHelpers.assertAlmostEqual(
-            baseAmount,
-            deposit.sub(borrowedAmount).toString()
-          );
+          const baseAmount = (await baseToken.balanceOf(vault.address)).toString();
+          AssertHelpers.assertAlmostEqual(baseAmount, deposit.sub(borrowedAmount).toString());
           AssertHelpers.assertAlmostEqual(
             (await vault.vaultDebtVal()).toString(),
             interest.add(borrowedAmount).toString()
@@ -2641,15 +2581,7 @@ describe("Vault - MdexWorker", () => {
           context("when worker is unstable", async () => {
             it("should revert", async () => {
               // Set worker to unstable
-              simpleVaultConfig.setWorker(
-                mdexWorker.address,
-                true,
-                true,
-                WORK_FACTOR,
-                KILL_FACTOR,
-                false,
-                true
-              );
+              simpleVaultConfig.setWorker(mdexWorker.address, true, true, WORK_FACTOR, KILL_FACTOR, false, true);
 
               await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
               await expect(
@@ -2671,15 +2603,7 @@ describe("Vault - MdexWorker", () => {
           context("when worker is unstable", async () => {
             beforeEach(async () => {
               // Set worker to unstable
-              await simpleVaultConfig.setWorker(
-                mdexWorker.address,
-                true,
-                true,
-                WORK_FACTOR,
-                KILL_FACTOR,
-                false,
-                true
-              );
+              await simpleVaultConfig.setWorker(mdexWorker.address, true, true, WORK_FACTOR, KILL_FACTOR, false, true);
             });
 
             it("should increase health when add BTOKEN only strat is choosen", async () => {
@@ -2714,15 +2638,7 @@ describe("Vault - MdexWorker", () => {
           context("when reserve is inconsistent", async () => {
             beforeEach(async () => {
               // Set worker to unstable
-              await simpleVaultConfig.setWorker(
-                mdexWorker.address,
-                true,
-                true,
-                WORK_FACTOR,
-                KILL_FACTOR,
-                false,
-                false
-              );
+              await simpleVaultConfig.setWorker(mdexWorker.address, true, true, WORK_FACTOR, KILL_FACTOR, false, false);
             });
 
             it("should revert", async () => {
