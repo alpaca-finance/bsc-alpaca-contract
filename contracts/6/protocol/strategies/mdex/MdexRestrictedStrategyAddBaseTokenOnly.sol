@@ -33,8 +33,8 @@ contract MdexRestrictedStrategyAddBaseTokenOnly is OwnableUpgradeSafe, Reentranc
 
   IMdexFactory public factory;
   IMdexRouter public router;
-  mapping(address => bool) public okWorkers;
   address public mdx;
+  mapping(address => bool) public okWorkers;
 
   /// @notice require that only allowed workers are able to do the rest of the method call
   modifier onlyWhitelistedWorkers() {
@@ -44,6 +44,7 @@ contract MdexRestrictedStrategyAddBaseTokenOnly is OwnableUpgradeSafe, Reentranc
 
   /// @dev Create a new add Token only strategy instance.
   /// @param _router The WaultSwap Router smart contract.
+  /// @param _mdx The address of mdex token.
   function initialize(IMdexRouter _router, address _mdx) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
@@ -65,24 +66,24 @@ contract MdexRestrictedStrategyAddBaseTokenOnly is OwnableUpgradeSafe, Reentranc
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
     IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
-    // get trading fee of each pairs
+    // 2. Get trading fee of the pair from Mdex
     uint256 fee = factory.getPairFees(address(lpToken));
-    // 2. Approve router to do their stuffs
+    // 3. Approve router to do their stuffs
     baseToken.safeApprove(address(router), uint256(-1));
     farmingToken.safeApprove(address(router), uint256(-1));
-    // 3. Compute the optimal amount of baseToken to be converted to farmingToken.
+    // 4. Compute the optimal amount of baseToken to be converted to farmingToken.
     uint256 balance = baseToken.myBalance();
     (uint256 r0, uint256 r1, ) = lpToken.getReserves();
     uint256 rIn = lpToken.token0() == baseToken ? r0 : r1;
     // find how many baseToken need to be converted to farmingToken
     uint256 aIn = _calculateAIn(fee, rIn, balance);
 
-    // 4. Convert that portion of baseToken to farmingToken.
+    // 5. Convert that portion of baseToken to farmingToken.
     address[] memory path = new address[](2);
     path[0] = baseToken;
     path[1] = farmingToken;
     router.swapExactTokensForTokens(aIn, 0, path, address(this), now);
-    // 5. Mint more LP tokens and return all LP tokens to the sender.
+    // 6. Mint more LP tokens and return all LP tokens to the sender.
     (, , uint256 moreLPAmount) =
       router.addLiquidity(
         baseToken,
@@ -102,7 +103,7 @@ contract MdexRestrictedStrategyAddBaseTokenOnly is OwnableUpgradeSafe, Reentranc
       lpToken.transfer(msg.sender, lpToken.balanceOf(address(this))),
       "MdexRestrictedStrategyAddBaseTokenOnly::execute:: failed to transfer LP token to msg.sender"
     );
-    // 6. Reset approval for safety reason
+    // 7. Reset approval for safety reason
     baseToken.safeApprove(address(router), 0);
     farmingToken.safeApprove(address(router), 0);
   }
@@ -136,6 +137,18 @@ contract MdexRestrictedStrategyAddBaseTokenOnly is OwnableUpgradeSafe, Reentranc
   /// @param to The address to transfer trading reward to.
   function withdrawTradingRewards(address to) external onlyOwner {
     SwapMining(router.swapMining()).takerWithdraw();
-    SafeToken.safeTransfer(mdx, to, SafeToken.myBalance(mdx));
+    mdx.safeTransfer(to, mdx.myBalance());
+  }
+
+  /// @dev Get all trading rewards.
+  /// @param pIds pool ids to retrieve reward amount.
+  function getMiningRewards(uint256[] calldata pIds) external view returns (uint256) {
+    address swapMiningAddress = router.swapMining();
+    uint256 totalReward;
+    for (uint256 pid = 0; pid < pIds.length; pid++) {
+      (uint256 reward, ) = SwapMining(swapMiningAddress).getUserReward(pid);
+      totalReward = totalReward.add(reward);
+    }
+    return totalReward;
   }
 }
