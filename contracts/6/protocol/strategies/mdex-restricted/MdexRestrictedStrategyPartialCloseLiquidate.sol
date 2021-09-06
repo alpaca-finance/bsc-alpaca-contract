@@ -123,7 +123,7 @@ contract MdexRestrictedStrategyPartialCloseLiquidate is OwnableUpgradeSafe, Reen
     uint256 poolLength = SwapMining(swapMiningAddress).poolLength();
     uint256 totalReward;
     for (uint256 pid = 0; pid < poolLength; ++pid) {
-      (uint256 reward, uint256 quantitiy) = SwapMining(swapMiningAddress).getUserReward(pid);
+      (uint256 reward, ) = SwapMining(swapMiningAddress).getUserReward(pid);
       totalReward = totalReward.add(reward);
     }
     return totalReward;
