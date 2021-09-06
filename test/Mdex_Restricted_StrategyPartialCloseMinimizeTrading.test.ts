@@ -55,6 +55,9 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
   let baseToken: MockERC20;
   let farmingToken: MockERC20;
 
+  // available pool Ids
+  let pIds: number[];
+
   /// Strategy instance(s)
   let strat: MdexRestrictedStrategyPartialCloseMinimizeTrading;
 
@@ -158,7 +161,7 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
     await swapMining.addWhitelist(wbnb.address);
     await swapMining.addPair(100, lp.address, false); // pid = 0
     await swapMining.addPair(0, baseTokenWbnbLp.address, false); // pid = 1 , no trading reward alloc point
-
+    pIds = [0, 1];
     /// Setup MockMdexWorker
     const MockMdexWorker = (await ethers.getContractFactory("MockMdexWorker", deployer)) as MockMdexWorker__factory;
     mockMdexWorker = (await MockMdexWorker.deploy(
@@ -392,7 +395,7 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
         const withDrawTx = await strat.withdrawTradingRewards(deployerAddress);
         const mdxAfter = await mdxToken.balanceOf(deployerAddress);
         // get trading reward of the previos block
-        const totalRewardPrev = await strat.getMiningRewards({ blockTag: Number(withDrawTx.blockNumber) - 1 });
+        const totalRewardPrev = await strat.getMiningRewards(pIds, { blockTag: Number(withDrawTx.blockNumber) - 1 });
         const withDrawBlockReward = await swapMining["reward()"]({ blockTag: withDrawTx.blockNumber });
         const totalReward = !totalRewardPrev.isZero() ? totalRewardPrev.add(withDrawBlockReward) : 0;
         expect(mdxAfter.sub(mdxBefore)).to.eq(totalReward);
@@ -455,7 +458,7 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
         const withDrawTx = await strat.withdrawTradingRewards(deployerAddress);
         const mdxAfter = await mdxToken.balanceOf(deployerAddress);
         // get trading reward of the previos block
-        const totalRewardPrev = await strat.getMiningRewards({ blockTag: Number(withDrawTx.blockNumber) - 1 });
+        const totalRewardPrev = await strat.getMiningRewards(pIds, { blockTag: Number(withDrawTx.blockNumber) - 1 });
         const withDrawBlockReward = await swapMining["reward()"]({ blockTag: withDrawTx.blockNumber });
         const totalReward = !totalRewardPrev.isZero() ? totalRewardPrev.add(withDrawBlockReward) : 0;
         expect(mdxAfter.sub(mdxBefore)).to.eq(totalReward);
@@ -549,7 +552,7 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
           const withDrawTx = await strat.withdrawTradingRewards(deployerAddress);
           const mdxAfter = await mdxToken.balanceOf(deployerAddress);
           // get trading reward of the previos block
-          const totalRewardPrev = await strat.getMiningRewards({ blockTag: Number(withDrawTx.blockNumber) - 1 });
+          const totalRewardPrev = await strat.getMiningRewards(pIds, { blockTag: Number(withDrawTx.blockNumber) - 1 });
           const withDrawBlockReward = await swapMining["reward()"]({ blockTag: withDrawTx.blockNumber });
           const totalReward = !totalRewardPrev.isZero() ? totalRewardPrev.add(withDrawBlockReward) : 0;
           expect(mdxAfter.sub(mdxBefore)).to.eq(totalReward);
@@ -679,7 +682,7 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
           const withDrawTx = await strat.withdrawTradingRewards(deployerAddress);
           const mdxAfter = await mdxToken.balanceOf(deployerAddress);
           // get trading reward of the previos block
-          const totalRewardPrev = await strat.getMiningRewards({ blockTag: Number(withDrawTx.blockNumber) - 1 });
+          const totalRewardPrev = await strat.getMiningRewards(pIds, { blockTag: Number(withDrawTx.blockNumber) - 1 });
           const withDrawBlockReward = await swapMining["reward()"]({ blockTag: withDrawTx.blockNumber });
           const totalReward = !totalRewardPrev.isZero() ? totalRewardPrev.add(withDrawBlockReward) : 0;
           expect(mdxAfter.sub(mdxBefore)).to.eq(totalReward);
