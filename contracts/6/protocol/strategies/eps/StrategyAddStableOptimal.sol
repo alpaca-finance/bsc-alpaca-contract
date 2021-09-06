@@ -292,21 +292,6 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     return Xfp.mul(y).add((xi.add(X0)).mul(Yfp));
   }
 
-  function pow(uint256 n, uint256 e) private pure returns (uint256) {
-    if (e == 0) {
-      return 1;
-    } else if (e == 1) {
-      return n;
-    } else {
-      uint256 p = pow(n, e.div(2));
-      p = p.mul(p);
-      if (e.mod(2) == 1) {
-        p = p.mul(n);
-      }
-      return p;
-    }
-  }
-
   function get_D(uint256[3] memory xp, uint256 amp) private pure returns (uint256) {
     uint256 S = 0;
     uint256 N_COINS = 3;
@@ -378,8 +363,8 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
 
   function get_omega(VariablePack memory var_pack, uint256 N_COINS) internal view returns (uint256 omega) {
     uint256 tmp1 = var_pack.X0.mul(var_pack.Y0);
-    uint256 tmp2 = epsA.mul(pow(N_COINS, 3));
-    uint256 omega_num = tmp1.add((var_pack.U.mul(pow(var_pack.D, 2).div(var_pack.Y0))).div(tmp2));
+    uint256 tmp2 = epsA.mul(N_COINS.mul(N_COINS).mul(N_COINS));
+    uint256 omega_num = tmp1.add((var_pack.U.mul((var_pack.D).mul(var_pack.D).div(var_pack.Y0))).div(tmp2));
     uint256 omega_den = tmp1.div(var_pack.D).add(var_pack.U.mul(var_pack.D).div(var_pack.X0.mul(tmp2)));
     return omega_num.div(omega_den);
   }
@@ -401,9 +386,9 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     uint256 alpha_pos = xy_by_D.mul(x.add(y).add(S).add(D).sub(Ann));
     uint256 alpha_neg = xy.add(Pr_.mul(D));
     uint256 beta =
-      (((xy.mul(2).add(pow(y, 2)).add(y.mul(S))).div(D)).add(y.div(Ann)).sub(y))
+      (((xy.mul(2).add(y.mul(y)).add(y.mul(S))).div(D)).add(y.div(Ann)).sub(y))
         .mul(Xfp)
-        .add((xy.mul(2).add(pow(x, 2)).add(x.mul(S))).div(D).add(x.div(Ann)).sub(x))
+        .add((xy.mul(2).add(x.mul(x)).add(x.mul(S))).div(D).add(x.div(Ann)).sub(x))
         .mul(Yfp);
     x = x.add(alpha_neg.div((beta.div(Xfp))).sub(alpha_pos.div((beta.div(Xfp)))));
     y = y.add(alpha_neg.div(beta.div(Yfp))).sub(alpha_pos.div(beta.div(Yfp)));
@@ -445,7 +430,7 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
         vydx_pos = var_pack.Yfp.mul(x.sub(x_));
       }
 
-      if (vxdy_pos > pow(PRECISION, 2)) {
+      if (vxdy_pos > PRECISION.mul(PRECISION)) {
         // To prevent overflow
         vxdy_pos = vxdy_pos.div(PRECISION);
         vydx_pos = vydx_pos.div(PRECISION);
