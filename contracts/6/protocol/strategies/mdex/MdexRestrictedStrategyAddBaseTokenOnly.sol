@@ -99,10 +99,7 @@ contract MdexRestrictedStrategyAddBaseTokenOnly is OwnableUpgradeSafe, Reentranc
       moreLPAmount >= minLPAmount,
       "MdexRestrictedStrategyAddBaseTokenOnly::execute:: insufficient LP tokens received"
     );
-    require(
-      lpToken.transfer(msg.sender, lpToken.balanceOf(address(this))),
-      "MdexRestrictedStrategyAddBaseTokenOnly::execute:: failed to transfer LP token to msg.sender"
-    );
+    address(lpToken).safeTransfer(msg.sender, lpToken.balanceOf(address(this)));
     // 7. Reset approval for safety reason
     baseToken.safeApprove(address(router), 0);
     farmingToken.safeApprove(address(router), 0);

@@ -194,6 +194,9 @@ describe("MdexRestrictedStrategyAddBaseTokenOnly", () => {
       await alice.getAddress(),
       FOREVER
     );
+    // refer to MdexFactory line: 842
+    // totalSupply =  sqrt(amount0 * amount1) - 0.000000000000001000
+    // totalSupply =  sqrt(1 * 0.1) - 0.000000000000001000 = 0.316227766016836933
   }
 
   beforeEach(async () => {
@@ -338,19 +341,19 @@ describe("MdexRestrictedStrategyAddBaseTokenOnly", () => {
     // amountOut = (amountIn * fee * reserveOut) / ((reserveIn * feeDenom) + (amountIn * fee))
     // amountOut = (0.048857707015160316 * 998 * 0.1) / ((1 * 1000) + (0.048857707015160316 * 998 ))
     // amountOut = 0.004649299362258152... FTOKEN
+
     // after swap
     // reserveIn = 1 + 0.048857707015160316 = 1.048857707015160316 BTOKEN
     // reserveOut = 0.1 - 0.004649299362258152 = 0.095350700637741848 FTOKEN
-    // totalSupply = sqrt(reserveIn * reserveOut)
-    // totalSupply = sqrt(1.048857707015160316 * 0.095350700637741848)
-    // totalSupply = 0.316242497512891045... lpToken
+    // totalSupply = 0.316227766016836933 (from first adding liquidity in the setup)
 
     // so adding both BTOKEN and FTOKEN as liquidity will result in an amount of lp
     // amountBTOKEN = 0.1 - 0.048857707015160316 = 0.051142292984839684
     // amountFTOKEN = 0.004649299362258152
-    // lpAmount = totalSupply * (amountF / reserveF) or totalSupply * (amountB / reserveB)
-    // lpAmount = 0.316242497512891045 * (0.004649299362258152 / 0.095350700637741848) ~= 0.015419981522648937...
-    // lpAmount = 0.316242497512891045 * (0.051142292984839684 / 1.048857707015160316) ~= 0.015419981522648941...
+    // refer to MdexFactory line: 846
+    // lpAmount = min of [ totalSupply * (amountF / reserveF) or totalSupply * (amountB / reserveB) ]
+    // lpAmount = 0.316227766016837933 * (0.004649299362258152 / 0.095350700637741848) ~= 0.015419263215025115...
+    // lpAmount = 0.316227766016837933 * (0.051142292984839684 / 1.048857707015160316) ~= 0.015419263215025119...
 
     // actualLpAmount = 0.015419263215025115
     expect(await lp.balanceOf(mockMdexWorker.address)).to.be.bignumber.eq(
