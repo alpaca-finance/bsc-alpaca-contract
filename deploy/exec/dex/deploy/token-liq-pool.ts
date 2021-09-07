@@ -32,21 +32,21 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const config = ConfigEntity.getConfig();
 
   const FOREVER = 20000000000;
-  const PANCAKE_MASTERCHEF = config.Exchanges.Pancakeswap.MasterChef;
-  const PANCAKE_FACTORY = config.Exchanges.Pancakeswap.FactoryV2;
-  const PANCAKE_ROUTER = config.Exchanges.Pancakeswap.RouterV2;
+  const PANCAKE_MASTERCHEF = config.Exchanges.Waultswap.WexMaster;
+  const PANCAKE_FACTORY = config.Exchanges.Waultswap.WaultswapFactory;
+  const PANCAKE_ROUTER = config.Exchanges.Waultswap.WaultswapRouter;
   const WBNB = config.Tokens.WBNB;
   const TOKENS: Array<IToken> = [
     {
-      symbol: "PMON",
-      name: "PMON",
+      symbol: "WUSD",
+      name: "WUSD",
       mintAmount: ethers.utils.parseEther("88888888888").toString(),
       pairs: [
         {
           quoteToken: "BUSD",
           quoteTokenAddr: config.Tokens.BUSD,
-          reserveQuoteToken: ethers.utils.parseEther("132045.45"),
-          reserveBaseToken: ethers.utils.parseEther("2000000"),
+          reserveQuoteToken: ethers.utils.parseEther("3000000"),
+          reserveBaseToken: ethers.utils.parseEther("3000000"),
         },
       ],
     },

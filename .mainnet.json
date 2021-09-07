@@ -84,6 +84,12 @@
         "name": "ibALPACA-PMON",
         "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
         "rewardToken": "0x1796ae0b0fa4862485106a0de9b654efe301d0b2"
+      },
+      {
+        "id": 12,
+        "name": "ibALPACA-PHA",
+        "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
+        "rewardToken": "0x0112e557d400474717056c4e6d40edd846f38351"
       }
     ]
   },
@@ -505,6 +511,11 @@
           "pId": 379,
           "name": "PMON-BUSD LP",
           "address": "0xcdb0016d97FD0E7EC2C3B78aA4786Cbd8e19C14C"
+        },
+        {
+          "pId": 451,
+          "name": "PHA-BUSD LP",
+          "address": "0x4ddd56e2f34338839BB5953515833950eA680aFb"
         }
       ]
     },
@@ -587,6 +598,11 @@
           "pId": 55,
           "name": "TUSD-USDT LP",
           "address": "0xBE66b44015734D881ACcfBa478d957885612A902"
+        },
+        {
+          "pId": 58,
+          "name": "WUSD-BUSD LP",
+          "address": "0x6102D8A7C963F78D46a35a6218B0DB4845d1612F"
         }
       ]
     }
@@ -633,7 +649,9 @@
     "BTT": "0x8595f9da7b868b1822194faed312235e43007b49",
     "ORBS": "0xebd49b26169e1b52c04cfd19fcf289405df55f80",
     "AXS": "0x715D400F88C167884bbCc41C5FeA407ed4D2f8A0",
-    "PMON": "0x1796ae0b0fa4862485106a0de9b654efe301d0b2"
+    "PMON": "0x1796ae0b0fa4862485106a0de9b654efe301d0b2",
+    "PHA": "0x0112e557d400474717056c4e6d40edd846f38351",
+    "WUSD": "0x3fF997eAeA488A082fb7Efc8e6B9951990D0c3aB"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x1099C2E6Ed6ebA95099c205b599B409305783E43",
@@ -1523,6 +1541,40 @@
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
             "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
             "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
+          }
+        },
+        {
+          "name": "PHA-BUSD PancakeswapWorker",
+          "address": "0x1D0EDCA3F151dC9fafb5CE79547D153229985F42",
+          "deployedBlock": 10496217,
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 451,
+          "stakingToken": "0x4ddd56e2f34338839BB5953515833950eA680aFb",
+          "stakingTokenAt": "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+            "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+            "StrategyAddTwoSidesOptimal": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
+            "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
+          }
+        },
+        {
+          "name": "WUSD-BUSD WaultswapWorker",
+          "address": "0x0541C542e2039D13238B5AbC6d32A23ae3222B1D",
+          "deployedBlock": 10496255,
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 58,
+          "stakingToken": "0x6102D8A7C963F78D46a35a6218B0DB4845d1612F",
+          "stakingTokenAt": "0x22fB2663C7ca71Adc2cc99481C77Aaf21E152e2D",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0xeBb8BA21A3703ab30187D3EEC02A3Bc62894970D",
+            "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
+            "StrategyAddTwoSidesOptimal": "0x61e58dE669d842C2d77288Df629af031b3283c81",
+            "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3",
+            "StrategyPartialCloseLiquidate": "0xfE49AffC3fFa7bed8346F8f33f8250d3C6fDf073",
+            "StrategyPartialCloseMinimizeTrading": "0x3FFa4Cd446F8127db0ED316b1E952876Be2E61B0"
           }
         }
       ]

@@ -457,6 +457,11 @@
           "pId": 65,
           "name": "PMON-BUSD LP",
           "address": "0xECdD9c374D037418cC6840ffC8C2DB25D6b8Cf62"
+        },
+        {
+          "pId": 66,
+          "name": "PHA-BUSD LP",
+          "address": "0x36Ea0dbDF7bc4Ced9813700D3d0c280e0c3f1e79"
         }
       ]
     },
@@ -544,6 +549,11 @@
           "pId": 17,
           "name": "TUSD-USDT LP",
           "address": "0x43dC6eE9B1b5A2245B84cEF7BBbc08B818D96E87"
+        },
+        {
+          "pId": 18,
+          "name": "WUSD-BUSD LP",
+          "address": "0xa3F32667C922bED7AE76Ce9984F4061Eff6D2519"
         }
       ]
     }
@@ -590,7 +600,9 @@
     "BTT": "0x415baCAb125Be426d916bF0D67d952FCD1Cc922b",
     "ORBS": "0x6f01395Ae92776D98F509BBECE53160051F6a872",
     "AXS": "0x8Aa44e8bef88ba4dfB7520bc973E4F08AC109373",
-    "PMON": "0x19a70AA2b35f4FB1C24E59d7F679bf120b44B7cD"
+    "PMON": "0x19a70AA2b35f4FB1C24E59d7F679bf120b44B7cD",
+    "PHA": "0x6A8a9CAF4916846b8568d39B8dbc44C355EcA6ec",
+    "WUSD": "0xEC2aF9Ca74Ba42f5a25b0aff5Ed0761ee922a5df"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x7549b7d0edcd411e7e5013dc74727f8dab13ab0f",
@@ -1497,6 +1509,40 @@
             "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32",
             "StrategyPartialCloseLiquidate": "0x566aC15667Ae05c1F50Ed9944Aeef5A9dae4AB55",
             "StrategyPartialCloseMinimizeTrading": "0xBb79EB494Da88F115430D174D5372b51Fc37De50"
+          }
+        },
+        {
+          "name": "PHA-BUSD PancakeswapWorker",
+          "address": "0xB297ac2Ea53afCbC0dA52A30a117A9D36f843b06",
+          "deployedBlock": 11947118,
+          "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+          "pId": 66,
+          "stakingToken": "0x36Ea0dbDF7bc4Ced9813700D3d0c280e0c3f1e79",
+          "stakingTokenAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
+            "StrategyLiquidate": "0x58Bbb507248635413172Ed7A2eeC048402C6b39b",
+            "StrategyAddTwoSidesOptimal": "0x22fC6110d5d9b122f3C2d4715C24566342161a12",
+            "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32",
+            "StrategyPartialCloseLiquidate": "0x566aC15667Ae05c1F50Ed9944Aeef5A9dae4AB55",
+            "StrategyPartialCloseMinimizeTrading": "0xBb79EB494Da88F115430D174D5372b51Fc37De50"
+          }
+        },
+        {
+          "name": "WUSD-BUSD WaultswapWorker",
+          "address": "0xaD69bE6a07Bf041D96F496543214Bc9e4861b467",
+          "deployedBlock": 11947155,
+          "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+          "pId": 18,
+          "stakingToken": "0xa3F32667C922bED7AE76Ce9984F4061Eff6D2519",
+          "stakingTokenAt": "0x85F6A87A056313Fd1717937Cf3cC7BCe3e3445D1",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0xD15DBC544ad55d4877cAd426a6e6e16446a012b5",
+            "StrategyLiquidate": "0xdbcDcd7bE24d0dbf2b167F14435945EC7e0F454A",
+            "StrategyAddTwoSidesOptimal": "0xFfA12222e3ccEF58684Af20aaa4D5bf13c8faC10",
+            "StrategyWithdrawMinimizeTrading": "0xE5909854177a493BFeF616e2E142211413aC295d",
+            "StrategyPartialCloseLiquidate": "0x6035906cE177f68836DC29634D7649E5e3b073Eb",
+            "StrategyPartialCloseMinimizeTrading": "0xDB624719CdE2e06DAcD2FB121115Abd581A6A02D"
           }
         }
       ]

@@ -72,43 +72,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const shortWorkerInfos: IWorkerInput[] = [
     {
-      VAULT_SYMBOL: "ibUSDT",
-      WORKER_NAME: "TUSD-USDT WaultswapWorker",
+      VAULT_SYMBOL: "ibBUSD",
+      WORKER_NAME: "WUSD-BUSD WaultswapWorker",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 55,
+      POOL_ID: 58,
       REINVEST_BOUNTY_BPS: "300",
-      REINVEST_PATH: ["WEX", "USDT"],
+      REINVEST_PATH: ["WEX", "WBNB", "BUSD"],
       REINVEST_THRESHOLD: "2000",
       WORK_FACTOR: "7800",
       KILL_FACTOR: "9000",
       MAX_PRICE_DIFF: "10500",
-      EXACT_ETA: "1627465500",
-    },
-    {
-      VAULT_SYMBOL: "ibTUSD",
-      WORKER_NAME: "USDT-TUSD WaultswapWorker",
-      REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 55,
-      REINVEST_BOUNTY_BPS: "300",
-      REINVEST_PATH: ["WEX", "USDT", "TUSD"],
-      REINVEST_THRESHOLD: "2000",
-      WORK_FACTOR: "7800",
-      KILL_FACTOR: "9000",
-      MAX_PRICE_DIFF: "10500",
-      EXACT_ETA: "1627465500",
-    },
-    {
-      VAULT_SYMBOL: "ibWBNB",
-      WORKER_NAME: "AXS-WBNB WaultswapWorker",
-      REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 430,
-      REINVEST_BOUNTY_BPS: "300",
-      REINVEST_PATH: ["WEX", "WBNB"],
-      REINVEST_THRESHOLD: "2000",
-      WORK_FACTOR: "7000",
-      KILL_FACTOR: "8333",
-      MAX_PRICE_DIFF: "11000",
-      EXACT_ETA: "1627465500",
+      EXACT_ETA: "1630467000",
     },
   ];
 
@@ -189,8 +163,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       [
         workerInfos[i].TWO_SIDES_STRAT_ADDR,
         workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR,
-        // workerInfos[i].PARTIAL_CLOSE_LIQ_ADDR,
-        // workerInfos[i].PARTIAL_CLOSE_MINIMIZE_ADDR,
+        workerInfos[i].PARTIAL_CLOSE_LIQ_ADDR,
+        workerInfos[i].PARTIAL_CLOSE_MINIMIZE_ADDR,
       ],
       true
     );
