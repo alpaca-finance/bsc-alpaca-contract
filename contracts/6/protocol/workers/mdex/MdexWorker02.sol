@@ -215,7 +215,6 @@ contract MdexWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker
     uint256 _callerBalance,
     uint256 _reinvestThreshold
   ) internal {
-    require(_treasuryAccount != address(0), "MdexWorker02::_reinvest:: bad treasury account");
     // 1. Withdraw all the rewards. Return if reward <= _reinvestThreshold.
     bscPool.withdraw(pid, 0);
     uint256 reward = mdx.balanceOf(address(this));
@@ -584,11 +583,11 @@ contract MdexWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker
   }
 
   /// @dev Get all trading rewards.
-  function getMiningRewards() public view returns (uint256) {
+  /// @param pIds pool ids to retrieve reward amount.
+  function getMiningRewards(uint256[] calldata pIds) external view returns (uint256) {
     address swapMiningAddress = router.swapMining();
-    uint256 poolLength = SwapMining(swapMiningAddress).poolLength();
     uint256 totalReward;
-    for (uint256 pid = 0; pid < poolLength; ++pid) {
+    for (uint256 pid = 0; pid < pIds.length; pid++) {
       (uint256 reward, ) = SwapMining(swapMiningAddress).getUserReward(pid);
       totalReward = totalReward.add(reward);
     }

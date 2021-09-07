@@ -61,7 +61,6 @@ describe("Vault - MdexWorker02", () => {
   const REINVEST_THRESHOLD = ethers.utils.parseEther("1"); // If pendingCake > 1 $MDX, then reinvest
   const KILL_TREASURY_BPS = "100";
   const POOL_IDX = 0;
-  const MDX_PER_BLOCK = "51600000000000000000";
 
   /// Mdex-related instance(s)
   let mdexFactory: MdexFactory;
@@ -71,6 +70,7 @@ describe("Vault - MdexWorker02", () => {
 
   let wbnb: MockWBNB;
   let lp: PancakePair;
+  let mdxBnbLp: PancakePair;
 
   /// Token-related instance(s)
   let baseToken: MockERC20;
@@ -226,16 +226,21 @@ describe("Vault - MdexWorker02", () => {
     // Setup BTOKEN-FTOKEN pair on Pancakeswap
     // Add lp to bscPool's pool
     await mdexFactory.createPair(baseToken.address, farmToken.address);
+    await mdexFactory.createPair(mdx.address, wbnb.address);
     lp = PancakePair__factory.connect(await mdexFactory.getPair(farmToken.address, baseToken.address), deployer);
+    mdxBnbLp = PancakePair__factory.connect(await mdexFactory.getPair(mdx.address, wbnb.address), deployer);
     await bscPool.add(1, lp.address, true);
 
     // set swapMining to router
     await mdexRouter.setSwapMining(swapMining.address);
 
     // Add lp to bscPool's pool
-    await swapMining.addPair(100, lp.address, false);
-    // await swapMining.addWhitelist(baseToken.address);
-    // await swapMining.addWhitelist(farmToken.address);
+    await swapMining.addPair(0, lp.address, false);
+    await swapMining.addPair(100, mdxBnbLp.address, false);
+    await swapMining.addWhitelist(baseToken.address);
+    await swapMining.addWhitelist(farmToken.address);
+    await swapMining.addWhitelist(mdx.address);
+    await swapMining.addWhitelist(wbnb.address);
 
     /// Setup MdexWorker02
     mdexWorker = await deployHelper.deployMdexWorker02(
@@ -2304,57 +2309,6 @@ describe("Vault - MdexWorker02", () => {
         });
       });
 
-      context("When the treasury Account and treasury bounty bps haven't been set", async () => {
-        it("should not auto reinvest", async () => {
-          await mdexWorker.setTreasuryConfig(ethers.constants.AddressZero, 0);
-          // Deployer deposits 3 BTOKEN to the bank
-          const deposit = ethers.utils.parseEther("3");
-          await baseToken.approve(vault.address, deposit);
-          await vault.deposit(deposit);
-
-          // Now Alice can take 1 BTOKEN loan + 1 BTOKEN of her to create a new position
-          const loan = ethers.utils.parseEther("1");
-          await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
-          await vaultAsAlice.work(
-            0,
-            mdexWorker.address,
-            ethers.utils.parseEther("1"),
-            loan,
-            "0",
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "bytes"],
-              [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-            )
-          );
-
-          // Her position should have ~2 NATIVE health (minus some small trading fee)
-          expect(await mdexWorker.shares(1)).to.eq(ethers.utils.parseEther("0.231205137369691323"));
-          expect(await mdexWorker.shareToBalance(await mdexWorker.shares(1))).to.eq(
-            ethers.utils.parseEther("0.231205137369691323")
-          );
-
-          // Alice opens another position.
-          await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
-          await vaultAsAlice.work(
-            0,
-            mdexWorker.address,
-            ethers.utils.parseEther("1"),
-            loan,
-            "0",
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "bytes"],
-              [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-            )
-          );
-
-          // Her LP under that 1st position must still remain the same
-          expect(await mdexWorker.shares(1)).to.eq(ethers.utils.parseEther("0.231205137369691323"));
-          expect(await mdexWorker.shareToBalance(await mdexWorker.shares(1))).to.eq(
-            ethers.utils.parseEther("0.231205137369691323")
-          );
-        });
-      });
-
       context("#addCollateral", async () => {
         const deposit = ethers.utils.parseEther("3");
         const borrowedAmount = ethers.utils.parseEther("1");
@@ -2464,15 +2418,30 @@ describe("Vault - MdexWorker02", () => {
             deposit.add(interest).sub(reservePool).toString(),
             (await vault.totalToken()).toString()
           );
+          const deployerMdxBalance = await mdx.balanceOf(DEPLOYER);
           expect(await mdexWorker.shares(1), `expect Alice's shares = ${accumLp}`).to.be.bignumber.eq(accumLp);
           expect(
             await mdexWorker.shareToBalance(await mdexWorker.shares(1)),
             `expect Alice's staked LPs = ${accumLp}`
           ).to.be.bignumber.eq(accumLp);
           expect(
-            await mdx.balanceOf(DEPLOYER),
+            deployerMdxBalance,
             `expect Deployer gets ${ethers.utils.formatEther(totalReinvestFees)} MDX`
           ).to.be.bignumber.eq(totalReinvestFees);
+
+          // Check reward
+          // withdraw trading reward to deployer
+          const withDrawTx = await mdexWorker.withdrawTradingRewards(DEPLOYER);
+          const mdxAfter = await mdx.balanceOf(DEPLOYER);
+          // get trading reward of the previos block
+          const pIds = [0, 1];
+          const totalRewardPrev = await mdexWorker.getMiningRewards(pIds, {
+            blockTag: Number(withDrawTx.blockNumber) - 1,
+          });
+          const withDrawBlockReward = await swapMining["reward()"]({ blockTag: withDrawTx.blockNumber });
+
+          const totalReward = totalRewardPrev.add(withDrawBlockReward);
+          expect(mdxAfter.sub(deployerMdxBalance)).to.eq(totalReward);
         }
 
         async function successTwoSides(lastWorkBlock: BigNumber, goRouge: boolean) {
@@ -2731,6 +2700,14 @@ describe("Vault - MdexWorker02", () => {
             });
           });
         });
+      });
+    });
+  });
+
+  describe("restricted test", async () => {
+    context("When the withdrawTradingRewards caller is not an owner", async () => {
+      it("should be reverted", async () => {
+        await expect(mdexWorkerAsEve.withdrawTradingRewards(await eve.getAddress())).to.reverted;
       });
     });
   });

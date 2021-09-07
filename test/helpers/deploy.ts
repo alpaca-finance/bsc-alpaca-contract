@@ -65,13 +65,12 @@ import {
   WNativeRelayer__factory,
   MdexFactory__factory,
   MdexRouter__factory,
-
   BSCPool__factory,
   BSCPool,
   MdexRouter,
   MdexFactory,
-  MdexWorker,
-  MdexWorker__factory,
+  MdexWorker02,
+  MdexWorker02__factory,
   MdxToken,
   MdxToken__factory,
   MdexRestrictedStrategyAddBaseTokenOnly,
@@ -85,8 +84,13 @@ import {
   MdexRestrictedStrategyPartialCloseLiquidate__factory,
   MdexRestrictedStrategyPartialCloseMinimizeTrading__factory,
   MdexRestrictedStrategyWithdrawMinimizeTrading__factory,
-  MdexRestrictedStrategyAddTwoSidesOptimal__factory
+  MdexRestrictedStrategyAddTwoSidesOptimal__factory,
+  Oracle__factory,
+  SwapMining,
+  SwapMining__factory,
 } from "../../typechain";
+
+import * as TimeHelpers from "../helpers/time";
 
 export interface IBEP20 {
   name: string;
@@ -259,21 +263,16 @@ export class DeployHelper {
   public async deployMdex(
     wbnb: MockWBNB,
     mdxPerBlock: BigNumberish,
-    mdxHolders: Array<IHolder>
-  ): Promise<[MdexFactory, MdexRouter, MdxToken, BSCPool]> {
+    mdxHolders: Array<IHolder>,
+    farmTokenAddress: string
+  ): Promise<[MdexFactory, MdexRouter, MdxToken, BSCPool, SwapMining]> {
     // Setup Pancakeswap
-    const MdexFactory = (await ethers.getContractFactory(
-      "MdexFactory",
-      this.deployer
-    )) as MdexFactory__factory;
+    const MdexFactory = (await ethers.getContractFactory("MdexFactory", this.deployer)) as MdexFactory__factory;
     const factory = await MdexFactory.deploy(await this.deployer.getAddress());
     await factory.deployed();
-    await factory.setFeeRateNumerator(25)
-    
-    const MdexRouter = (await ethers.getContractFactory(
-      "MdexRouter",
-      this.deployer
-    )) as MdexRouter__factory;
+    await factory.setFeeRateNumerator(25);
+
+    const MdexRouter = (await ethers.getContractFactory("MdexRouter", this.deployer)) as MdexRouter__factory;
     const routerV2 = await MdexRouter.deploy(factory.address, wbnb.address);
     await routerV2.deployed();
 
@@ -282,31 +281,46 @@ export class DeployHelper {
     const mdx = await MdxToken.deploy();
     await mdx.deployed();
     if (mdxHolders !== undefined) {
-      mdxHolders.forEach(
-        async (mdxHolder) => {
-          await mdx["addMinter(address)"](mdxHolder.address)
-          await mdx["mint(address,uint256)"](mdxHolder.address, mdxHolder.amount)
-        }
-      );
+      mdxHolders.forEach(async (mdxHolder) => {
+        await mdx["addMinter(address)"](mdxHolder.address);
+        await mdx["mint(address,uint256)"](mdxHolder.address, mdxHolder.amount);
+      });
     }
 
     /// Setup BSCPool
-    const BSCPool = (await ethers.getContractFactory(
-      "BSCPool",
-      this.deployer
-    )) as BSCPool__factory;
-    const masterChef = await BSCPool.deploy(
-      mdx.address,
-      mdxPerBlock,
-      0
-    );
+    const BSCPool = (await ethers.getContractFactory("BSCPool", this.deployer)) as BSCPool__factory;
+    const masterChef = await BSCPool.deploy(mdx.address, mdxPerBlock, 0);
     await masterChef.deployed();
+
+    const Oracle = (await ethers.getContractFactory("Oracle", this.deployer)) as Oracle__factory;
+    const oracle = await Oracle.deploy(factory.address);
+    await oracle.deployed();
+
+    // Mdex SwapMinig
+    const blockNumber = await TimeHelpers.latestBlockNumber();
+    const SwapMining = (await ethers.getContractFactory("SwapMining", this.deployer)) as SwapMining__factory;
+    const swapMining = await SwapMining.deploy(
+      mdx.address,
+      factory.address,
+      oracle.address,
+      routerV2.address,
+      farmTokenAddress,
+      mdxPerBlock,
+      blockNumber
+    );
+    await swapMining.deployed();
+
+    // set swapMining to router
+    await routerV2.setSwapMining(swapMining.address);
+
+    /// Setup BTOKEN-FTOKEN pair on Mdex
+    await mdx.addMinter(swapMining.address);
 
     // Transfer ownership so masterChef can mint Mdx
     await mdx.addMinter(masterChef.address);
     await mdx.transferOwnership(masterChef.address);
 
-    return [factory, routerV2, mdx, masterChef];
+    return [factory, routerV2, mdx, masterChef, swapMining];
   }
 
   public async deployMdexStrategies(
@@ -333,7 +347,7 @@ export class DeployHelper {
 
     const addStrat = (await upgrades.deployProxy(MdexRestrictedStrategyAddBaseTokenOnly, [
       router.address,
-      mdx
+      mdx,
     ])) as MdexRestrictedStrategyAddBaseTokenOnly;
     await addStrat.deployed();
 
@@ -353,7 +367,7 @@ export class DeployHelper {
     const twoSidesStrat = (await upgrades.deployProxy(MdexRestrictedStrategyAddTwoSidesOptimal, [
       router.address,
       vault.address,
-      mdx
+      mdx,
     ])) as MdexRestrictedStrategyAddTwoSidesOptimal;
 
     const MdexRestrictedStrategyWithdrawMinimizeTrading = (await ethers.getContractFactory(
@@ -364,7 +378,7 @@ export class DeployHelper {
       router.address,
       wbnb.address,
       wNativeRelayer.address,
-      mdx
+      mdx,
     ])) as MdexRestrictedStrategyWithdrawMinimizeTrading;
 
     const MdexRestrictedStrategyPartialCloseLiquidate = (await ethers.getContractFactory(
@@ -373,7 +387,7 @@ export class DeployHelper {
     )) as MdexRestrictedStrategyPartialCloseLiquidate__factory;
     const partialCloseStrat = (await upgrades.deployProxy(MdexRestrictedStrategyPartialCloseLiquidate, [
       router.address,
-      mdx
+      mdx,
     ])) as MdexRestrictedStrategyPartialCloseLiquidate;
     await partialCloseStrat.deployed();
     await wNativeRelayer.setCallerOk([partialCloseStrat.address], true);
@@ -382,17 +396,19 @@ export class DeployHelper {
       "MdexRestrictedStrategyPartialCloseMinimizeTrading",
       this.deployer
     )) as MdexRestrictedStrategyPartialCloseMinimizeTrading__factory;
-    const partialCloseMinimizeStrat = (await upgrades.deployProxy(
-      MdexRestrictedStrategyPartialCloseMinimizeTrading,
-      [router.address, wbnb.address, wNativeRelayer.address, mdx]
-    )) as MdexRestrictedStrategyPartialCloseMinimizeTrading;
+    const partialCloseMinimizeStrat = (await upgrades.deployProxy(MdexRestrictedStrategyPartialCloseMinimizeTrading, [
+      router.address,
+      wbnb.address,
+      wNativeRelayer.address,
+      mdx,
+    ])) as MdexRestrictedStrategyPartialCloseMinimizeTrading;
     await partialCloseMinimizeStrat.deployed();
     await wNativeRelayer.setCallerOk([partialCloseMinimizeStrat.address], true);
 
     return [addStrat, liqStrat, twoSidesStrat, minimizeTradeStrat, partialCloseStrat, partialCloseMinimizeStrat];
   }
 
-  public async deployMdexWorker(
+  public async deployMdexWorker02(
     vault: Vault,
     btoken: MockERC20,
     masterChef: BSCPool,
@@ -408,12 +424,9 @@ export class DeployHelper {
     reinvestPath: Array<string>,
     extraStrategies: string[],
     simpleVaultConfig: SimpleVaultConfig
-  ): Promise<MdexWorker> {
-    const MdexWorker = (await ethers.getContractFactory(
-      "MdexWorker",
-      this.deployer
-    )) as MdexWorker__factory;
-    const worker = (await upgrades.deployProxy(MdexWorker, [
+  ): Promise<MdexWorker02> {
+    const MdexWorker02 = (await ethers.getContractFactory("MdexWorker02", this.deployer)) as MdexWorker02__factory;
+    const worker = (await upgrades.deployProxy(MdexWorker02, [
       vault.address,
       btoken.address,
       masterChef.address,
@@ -425,7 +438,7 @@ export class DeployHelper {
       treasuryAddress,
       reinvestPath,
       0,
-    ])) as MdexWorker;
+    ])) as MdexWorker02;
     await worker.deployed();
 
     await simpleVaultConfig.setWorker(worker.address, true, true, workFactor, killFactor, true, true);
@@ -441,7 +454,6 @@ export class DeployHelper {
 
     return worker;
   }
-
 
   public async deployBEP20(bep20s: Array<IBEP20>): Promise<Array<MockERC20>> {
     const promises = [];
