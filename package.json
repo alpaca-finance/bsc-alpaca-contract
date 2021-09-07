@@ -206,13 +206,14 @@
     "script:testnet:validate-config": "hardhat --network testnet run --no-compile ./scripts/validate-config.ts",
     "script:testnet:query-worker-config": "hardhat --network testnet run --no-compile ./scripts/query-worker-config.ts",
     "script:testnet:withdraw-reserve": "hardhat --network testnet run --no-compile ./scripts/withdraw-reserve.ts",
+    "script:e2e:add-stable-optimal": "hardhat --network mainnetfork run --no-compile ./scripts/e2e/EPS_StrategyAddStableOptimal.ts",
     "coverage": "hardhat coverage",
     "ganache": "ganache-cli",
     "solhint": "./node_modules/.bin/solhint -f table contracts/**/*.sol",
     "prettier:solidity": "./node_modules/.bin/prettier --write contracts/**/*.sol"
   },
   "devDependencies": {
-    "@nomiclabs/hardhat-ethers": "^2.0.1",
+    "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-etherscan": "^2.1.1",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
     "@pancakeswap-libs/pancake-swap-core": "^0.1.0",
