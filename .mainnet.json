@@ -90,6 +90,18 @@
         "name": "ibALPACA-PHA",
         "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
         "rewardToken": "0x0112e557d400474717056c4e6d40edd846f38351"
+      },
+      {
+        "id": 13,
+        "name": "ibALPACA-ALM",
+        "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
+        "rewardToken": "0x7c38870e93a1f959cb6c533eb10bbc3e438aac11"
+      },
+      {
+        "id": 14,
+        "name": "ibALPACA-KALA",
+        "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
+        "rewardToken": "0x32299c93960bb583a43c2220dc89152391a610c5"
       }
     ]
   },
@@ -651,7 +663,9 @@
     "AXS": "0x715D400F88C167884bbCc41C5FeA407ed4D2f8A0",
     "PMON": "0x1796ae0b0fa4862485106a0de9b654efe301d0b2",
     "PHA": "0x0112e557d400474717056c4e6d40edd846f38351",
-    "WUSD": "0x3fF997eAeA488A082fb7Efc8e6B9951990D0c3aB"
+    "WUSD": "0x3fF997eAeA488A082fb7Efc8e6B9951990D0c3aB",
+    "ALM": "0x7c38870e93a1f959cb6c533eb10bbc3e438aac11",
+    "KALA": "0x32299c93960bb583a43c2220dc89152391a610c5"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x1099C2E6Ed6ebA95099c205b599B409305783E43",
