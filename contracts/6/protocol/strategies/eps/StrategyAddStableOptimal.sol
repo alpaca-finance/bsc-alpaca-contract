@@ -127,25 +127,25 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
 
     vault.requestFunds(farmingToken, farmingTokenAmount);
     uint256 baseTokenAmount = baseToken.myBalance();
-    BalancePair memory user_balances = BalancePair(baseTokenAmount, farmingTokenAmount);
+    BalancePair memory userBalances = BalancePair(baseTokenAmount, farmingTokenAmount);
 
-    PoolState memory fp_state;
+    PoolState memory fpState;
     IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
     {
       (uint256 _reserve0, uint256 _reserve1, ) = lpToken.getReserves();
-      uint256[3] memory fp_balances = [_reserve0, _reserve1, 0];
+      uint256[3] memory fpBalances = [_reserve0, _reserve1, 0];
       uint128 i_fp = 0;
       uint128 j_fp = 1;
       if (lpToken.token0() != baseToken) {
         i_fp = 1;
         j_fp = 0;
       }
-      fp_state = PoolState(i_fp, j_fp, fp_balances);
+      fpState = PoolState(i_fp, j_fp, fpBalances);
     }
 
-    PoolState memory sb_state;
+    PoolState memory sbState;
     {
-      uint256[3] memory sb_balances = [epsPool.balances(0), epsPool.balances(1), epsPool.balances(2)];
+      uint256[3] memory sbBalances = [epsPool.balances(0), epsPool.balances(1), epsPool.balances(2)];
       uint128 i_sb;
       uint128 j_sb;
       if (epsPool.coins(0) == baseToken) {
@@ -167,19 +167,19 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
           j_sb = 1;
         }
       }
-      sb_state = PoolState(i_sb, j_sb, sb_balances);
+      sbState = PoolState(i_sb, j_sb, sbBalances);
     }
 
     // calc dx to swap on EPS
     uint256 dx;
     {
-      if ((fp_state.balances[fp_state.i]).mul(user_balances.y) >= (fp_state.balances[fp_state.j]).mul(user_balances.x)) {
-        (fp_state.i, fp_state.j) = (fp_state.j, fp_state.i);
-        (sb_state.i, sb_state.j) = (sb_state.j, sb_state.i);
-        (user_balances.x, user_balances.y) = (user_balances.y, user_balances.x);
+      if ((fpState.balances[fpState.i]).mul(userBalances.y) >= (fpState.balances[fpState.j]).mul(userBalances.x)) {
+        (fpState.i, fpState.j) = (fpState.j, fpState.i);
+        (sbState.i, sbState.j) = (sbState.j, sbState.i);
+        (userBalances.x, userBalances.y) = (userBalances.y, userBalances.x);
       }
-      user_balances.y = (user_balances.y.mul(epsFeeDenom)).div(epsFeeDenom.sub(epsFee));
-      dx = get_dx(fp_state, sb_state, user_balances);
+      userBalances.y = (userBalances.y.mul(epsFeeDenom)).div(epsFeeDenom.sub(epsFee));
+      dx = get_dx(fpState, sbState, userBalances);
     }
     // approve EPS pool
     baseToken.safeApprove(address(epsPool), uint256(-1));
@@ -189,7 +189,7 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     farmingToken.safeApprove(address(router), uint256(-1));
 
     // swap on EPS
-    if (dx > 0) epsPool.exchange(int128(sb_state.i), int128(sb_state.j), dx, 0);
+    if (dx > 0) epsPool.exchange(int128(sbState.i), int128(sbState.j), dx, 0);
 
     // add LP
     uint256 moreLPAmount;
@@ -217,29 +217,29 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
   }
 
   /// @dev Simplify both sides of FP balances to the factor of `D` for easing future computationas, as only the ratio between two that matters
-  /// @param fp_state the state of fixed-product pool
-  /// @param D constant D
-  function simplify_fp_state(PoolState memory fp_state, uint256 D) private pure returns (PoolState memory) {
+  /// @param fpState the state of fixed-product pool
+  /// @param D constant D (stable pool constant)
+  function simplifyFpState(PoolState memory fpState, uint256 D) private pure returns (PoolState memory) {
     // only ratio that matters (order of D but remain ratio)
-    // must compute fp_state.j then fp_state.i, never swap line
-    fp_state.balances[fp_state.j] = D.mul(fp_state.balances[fp_state.j]).div(fp_state.balances[fp_state.i]);
-    fp_state.balances[fp_state.i] = D;
-    return fp_state;
+    // must compute fpState.j then fpState.i, never swap line
+    fpState.balances[fpState.j] = D.mul(fpState.balances[fpState.j]).div(fpState.balances[fpState.i]);
+    fpState.balances[fpState.i] = D;
+    return fpState;
   }
 
-  /// @dev Calculate the amount of token x (dx) to be swapped to amount token y (dy) which will give user the largest LP position on PCS
-  /// @param fp_state the state of fixed-product pool
-  /// @param fp_state the state of fixed-product pool
-  /// @param user_balances user balances
+  /// @dev Calculate dx (the amount of token x to be swapped to token y) that gives user the optimal LP position on PCS
+  /// @param fpState the state of fixed-product pool
+  /// @param sbState the state of stable pool
+  /// @param userBalances user balances
   function get_dx(
-    PoolState memory fp_state,
-    PoolState memory sb_state,
-    BalancePair memory user_balances
+    PoolState memory fpState,
+    PoolState memory sbState,
+    BalancePair memory userBalances
   ) private view returns (uint256) {
-    uint256 N_COINS = sb_state.balances.length; 
+    uint256 N_COINS = sbState.balances.length; 
     uint256 Ann = epsA.mul(N_COINS);
-    uint256 D = get_D(sb_state.balances, epsA);
-    fp_state = simplify_fp_state(fp_state, D);
+    uint256 D = getD(sbState.balances, epsA);
+    fpState = simplifyFpState(fpState, D);
 
     // avoid stack too deep
     uint256 S = 0;
@@ -247,9 +247,9 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     
     {
       for (uint128 _i = 0; _i < N_COINS; _i++) {
-        if (_i != sb_state.i && _i != sb_state.j) {
-          S = S.add(sb_state.balances[_i]);
-          U = (U.mul(D)).div(sb_state.balances[_i].mul(N_COINS));
+        if (_i != sbState.i && _i != sbState.j) {
+          S = S.add(sbState.balances[_i]);
+          U = (U.mul(D)).div(sbState.balances[_i].mul(N_COINS));
         }
       }
     }
@@ -257,59 +257,67 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     uint256 y = 0;
     // avoid stack too deep
     {
-      VariablePack memory var_pack =
+      VariablePack memory varPack =
         VariablePack(
-          user_balances.x,
-          user_balances.y,
-          sb_state.balances[sb_state.i], 
-          sb_state.balances[sb_state.j],
+          userBalances.x,
+          userBalances.y,
+          sbState.balances[sbState.i], 
+          sbState.balances[sbState.j],
           D,
           S,
           U,
-          fp_state.balances[fp_state.i],
-          fp_state.balances[fp_state.j],
+          fpState.balances[fpState.i],
+          fpState.balances[fpState.j],
           N_COINS,
           Ann
         );
-      var_pack.Xfp = (var_pack.Xfp).sub((var_pack.Xfp).mul(epsFee).div(epsFeeDenom));
-      (x, y) = find_intersection_of_l_with_tangent(var_pack, N_COINS);
-      (x, y) = ver_hor_newton_step(x, y, var_pack);
+      varPack.Xfp = (varPack.Xfp).sub((varPack.Xfp).mul(epsFee).div(epsFeeDenom));
+      (x, y) = findLineIntersectionWithTangent(varPack, N_COINS);
+      (x, y) = verHorNewtonStep(x, y, varPack);
     }
-    if (x < sb_state.balances[sb_state.i]) {
+    if (x < sbState.balances[sbState.i]) {
       return 0;
     } else {
-      return x.sub(sb_state.balances[sb_state.i]);
+      return x.sub(sbState.balances[sbState.i]);
     }
   }
 
-  /// @dev Calculate the amount of token x (dx) to be swapped to amount token y (dy) which will give user the largest LP position on PCS
-  /// @param fp_state the state of fixed-product pool
-  /// @param fp_state the state of fixed-product pool
-  /// @param user_balances user balances
-  function f_pos(
+  /// @dev subfunction to compute fX0Y0Pos 
+  /// @param Yfp fixed-product pool balance y
+  /// @param yi_ adjusted user balance y
+  /// @param Y0 stable pool balance y
+  /// @param Xfp fixed-product pool balance x
+  /// @param X0 stable pool balance x
+  function fPos(
     uint256 Yfp,
     uint256 yi_,
     uint256 Y0,
     uint256 Xfp,
-    uint256 x
+    uint256 X0
   ) private pure returns (uint256) {
-    return Yfp.mul(x).add((yi_.add(Y0)).mul(Xfp));
+    return Yfp.mul(X0).add((yi_.add(Y0)).mul(Xfp));
   }
 
-  function f_neg(
+  /// @dev subfunction to compute fX0Y0Neg
+  /// @param Xfp fixed-product pool balance x
+  /// @param xi adjusted user balance x
+  /// @param X0 stable pool balance x
+  /// @param Yfp fixed-product pool balance y
+  /// @param Y0 stable pool balance y
+  function fNeg(
     uint256 Xfp,
     uint256 xi,
     uint256 X0,
     uint256 Yfp,
-    uint256 y
+    uint256 Y0
   ) private pure returns (uint256) {
-    return Xfp.mul(y).add((xi.add(X0)).mul(Yfp));
+    return Xfp.mul(Y0).add((xi.add(X0)).mul(Yfp));
   }
 
-  /// @dev ___
-  /// @param xp ___
-  /// @param amp ___
-  function get_D(uint256[3] memory xp, uint256 amp) private pure returns (uint256) {
+  /// @dev compute constant D (stable pool constant)
+  /// @param xp stable pool balances
+  /// @param amp amplification factor (stable pool constant)
+  function getD(uint256[3] memory xp, uint256 amp) private pure returns (uint256) {
     uint256 S = 0;
     uint256 N_COINS = 3;
     for (uint256 _x = 0; _x < xp.length; _x++) {
@@ -336,115 +344,137 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     return D;
   }
 
-  /// @dev Find the initialization corrdinate x, y before starting the newton method
-  /// @param var_pack pack of variables used for newton method computation
+  /// @dev initialize x, y before starting the newton method
+  /// @param varPack pack of variables used for newton method computation
   /// @param N_COINS number of tokens in stable pool
-  function find_intersection_of_l_with_tangent(VariablePack memory var_pack, uint256 N_COINS)
+  function findLineIntersectionWithTangent(VariablePack memory varPack, uint256 N_COINS)
     internal
     view
     returns (uint256 x, uint256 y)
   {
-    // X0 = sb_state.balances[sb_state.i];
-    // Y0 = sb_state.balances[sb_state.j];
-    uint256 step_x_pos = 0;
-    uint256 step_x_neg = 0;
-    uint256 step_y_pos = 0;
-    uint256 step_y_neg = 0;
+    // X0 = sbState.balances[sbState.i];
+    // Y0 = sbState.balances[sbState.j];
+    uint256 stepXPos = 0;
+    uint256 stepXNeg = 0;
+    uint256 stepYPos = 0;
+    uint256 stepYNeg = 0;
     {
-      uint256 omega = get_omega(var_pack, N_COINS);
-      uint256 fX0Y0_pos = f_pos(var_pack.Yfp, var_pack.Yinit, var_pack.Y0, var_pack.Xfp, var_pack.X0);
-      uint256 fX0Y0_neg = f_neg(var_pack.Xfp, var_pack.Xinit, var_pack.X0, var_pack.Yfp, var_pack.Y0);
-      (step_x_pos, step_x_neg) = get_step_x(var_pack, fX0Y0_pos, fX0Y0_neg, omega);
-      (step_y_pos, step_y_neg) = get_step_y(var_pack, fX0Y0_pos, fX0Y0_neg, omega);
+      uint256 omega = getOmega(varPack, N_COINS);
+      uint256 fX0Y0Pos = fPos(varPack.Yfp, varPack.Yinit, varPack.Y0, varPack.Xfp, varPack.X0);
+      uint256 fX0Y0Neg = fNeg(varPack.Xfp, varPack.Xinit, varPack.X0, varPack.Yfp, varPack.Y0);
+      (stepXPos, stepXNeg) = getStepX(varPack, fX0Y0Pos, fX0Y0Neg, omega);
+      (stepYPos, stepYNeg) = getStepY(varPack, fX0Y0Pos, fX0Y0Neg, omega);
     }
-    require(var_pack.Y0.add(step_y_pos) > step_y_neg, "Cannot trade, not enough money in CURVE pool");
-    return (var_pack.X0.add(step_x_pos).sub(step_x_neg), var_pack.Y0.add(step_y_pos).sub(step_y_neg));
+    require(varPack.Y0.add(stepYPos) > stepYNeg, "Cannot trade, not enough money in CURVE pool");
+    return (varPack.X0.add(stepXPos).sub(stepXNeg), varPack.Y0.add(stepYPos).sub(stepYNeg));
   }
 
-  function get_step_x(
-    VariablePack memory var_pack,
-    uint256 fX0Y0_pos,
-    uint256 fX0Y0_neg,
+  /// @dev compute x step size for initilization of the newton method
+  /// @param varPack pack of variables used for newton method computation
+  /// @param fX0Y0Pos fX0Y0Pos
+  /// @param fX0Y0Pos fX0Y0Pos
+  /// @param omega omega
+  function getStepX(
+    VariablePack memory varPack,
+    uint256 fX0Y0Pos,
+    uint256 fX0Y0Neg,
     uint256 omega
   ) private pure returns (uint256, uint256) {
-    uint256 step_x_den = var_pack.Yfp.add((var_pack.Xfp.mul(omega)).div(var_pack.D));
-    return (fX0Y0_neg.div(step_x_den), fX0Y0_pos.div(step_x_den));
+    uint256 step_x_den = varPack.Yfp.add((varPack.Xfp.mul(omega)).div(varPack.D));
+    return (fX0Y0Neg.div(step_x_den), fX0Y0Pos.div(step_x_den));
   }
 
-  /// @dev ___
-  /// @param xp ___
-  /// @param amp ___
-  function get_step_y(
-    VariablePack memory var_pack,
-    uint256 fX0Y0_pos,
-    uint256 fX0Y0_neg,
+  /// @dev compute y step size for initilization of ver hor newton method
+  /// @param varPack pack of variables used for newton method computation
+  /// @param fX0Y0Pos fX0Y0Pos
+  /// @param fX0Y0Pos fX0Y0Pos
+  /// @param omega omega
+  function getStepY(
+    VariablePack memory varPack,
+    uint256 fX0Y0Pos,
+    uint256 fX0Y0Neg,
     uint256 omega
   ) private pure returns (uint256, uint256) {
-    uint256 step_y_den = ((var_pack.Yfp.mul(var_pack.D)).div(omega)).add(var_pack.Xfp);
-    return (fX0Y0_pos.div(step_y_den), fX0Y0_neg.div(step_y_den));
+    uint256 stepYDen = ((varPack.Yfp.mul(varPack.D)).div(omega)).add(varPack.Xfp);
+    return (fX0Y0Pos.div(stepYDen), fX0Y0Neg.div(stepYDen));
   }
 
-  function get_omega(VariablePack memory var_pack, uint256 N_COINS) internal view returns (uint256 omega) {
-    uint256 tmp1 = var_pack.X0.mul(var_pack.Y0);
+  /// @dev compute omega to find x and y step size
+  /// @param varPack pack of variables used for newton method computation
+  /// @param N_COINS number of tokens in stable pool
+  function getOmega(VariablePack memory varPack, uint256 N_COINS) internal view returns (uint256 omega) {
+    uint256 tmp1 = varPack.X0.mul(varPack.Y0);
     uint256 tmp2 = epsA.mul(N_COINS.mul(N_COINS).mul(N_COINS));
-    uint256 omega_num = tmp1.add((var_pack.U.mul((var_pack.D).mul(var_pack.D).div(var_pack.Y0))).div(tmp2));
-    uint256 omega_den = tmp1.div(var_pack.D).add(var_pack.U.mul(var_pack.D).div(var_pack.X0.mul(tmp2)));
-    return omega_num.div(omega_den);
+    uint256 omegaNum = tmp1.add((varPack.U.mul((varPack.D).mul(varPack.D).div(varPack.Y0))).div(tmp2));
+    uint256 omegaDen = tmp1.div(varPack.D).add(varPack.U.mul(varPack.D).div(varPack.X0.mul(tmp2)));
+    return omegaNum.div(omegaDen);
   }
 
-  function update_x_y_(
+  /// @dev update x, y for newton method iterative convergence process
+  /// @param x iterative x
+  /// @param y iterative y
+  /// @param varPack pack of variables used for newton method computation
+  function updateXY(
     uint256 x,
     uint256 y,
-    VariablePack memory var_pack
+    VariablePack memory varPack
   ) internal pure returns (uint256 x_, uint256 y_) {
-    uint256 temp_1 = var_pack.D.div(var_pack.Ann.mul(var_pack.N_COINS));
-    uint256 temp_2 = var_pack.U.mul(var_pack.D);
-    uint256 temp_3 = var_pack.S.add(var_pack.D.div(var_pack.Ann)).add(x).add(y).sub(var_pack.D);
-    x_ = ((x.mul(x)).add((temp_2.div(y.mul(var_pack.N_COINS))).mul(temp_1))).div(x.add(temp_3));
-    y_ = ((y.mul(y)).add((temp_2.div(x.mul(var_pack.N_COINS))).mul(temp_1))).div(y.add(temp_3));
+    uint256 temp1 = varPack.D.div(varPack.Ann.mul(varPack.N_COINS));
+    uint256 temp2 = varPack.U.mul(varPack.D);
+    uint256 temp3 = varPack.S.add(varPack.D.div(varPack.Ann)).add(x).add(y).sub(varPack.D);
+    x_ = ((x.mul(x)).add((temp2.div(y.mul(varPack.N_COINS))).mul(temp1))).div(x.add(temp3));
+    y_ = ((y.mul(y)).add((temp2.div(x.mul(varPack.N_COINS))).mul(temp1))).div(y.add(temp3));
   }
 
-  function ver_hor_newton_step(
+  /// @dev compute x, y for each iteration of newton method
+  /// @param x initial x
+  /// @param y initial y
+  /// @param varPack pack of variables used for newton method computation
+  function verHorNewtonStep(
     uint256 x,
     uint256 y,
-    VariablePack memory var_pack
+    VariablePack memory varPack
   ) internal view returns (uint256, uint256) {
     uint256 x_ = 0;
     uint256 y_ = 0;
-    uint256 vxdy_pos = 0;
-    uint256 vydx_pos = 0;
+    uint256 vxdyPos = 0;
+    uint256 vydxPos = 0;
     for (uint128 _i = 0; _i < 255; _i++) {
-      (x_, y_) = update_x_y_(x, y, var_pack);
+      (x_, y_) = updateXY(x, y, varPack);
 
-      if (within_distance(y, y_, 1) || ((x_.mul(y_)).add(x.mul(y)) <= ((x_.mul(y)).add(x.mul(y_)).add(1)))) {
+      if (withinDistance(y, y_, 1) || ((x_.mul(y_)).add(x.mul(y)) <= ((x_.mul(y)).add(x.mul(y_)).add(1)))) {
         break;
       }
 
       if (y_ > y) {
-        vxdy_pos = var_pack.Xfp.mul(y_.sub(y));
-        vydx_pos = var_pack.Yfp.mul(x_.sub(x));
+        vxdyPos = varPack.Xfp.mul(y_.sub(y));
+        vydxPos = varPack.Yfp.mul(x_.sub(x));
       } else {
-        vxdy_pos = var_pack.Xfp.mul(y.sub(y_));
-        vydx_pos = var_pack.Yfp.mul(x.sub(x_));
+        vxdyPos = varPack.Xfp.mul(y.sub(y_));
+        vydxPos = varPack.Yfp.mul(x.sub(x_));
       }
 
-      if (vxdy_pos > PRECISION.mul(PRECISION)) {
+      if (vxdyPos > PRECISION.mul(PRECISION)) {
         // To prevent overflow
-        vxdy_pos = vxdy_pos.div(PRECISION);
-        vydx_pos = vydx_pos.div(PRECISION);
+        vxdyPos = vxdyPos.div(PRECISION);
+        vydxPos = vydxPos.div(PRECISION);
       }
 
       {
-        uint256 sum_of_weights = vxdy_pos.add(vydx_pos);
-        x = ((x_.mul(vxdy_pos)).add(x.mul(vydx_pos))).div(sum_of_weights);
-        y = ((y.mul(vxdy_pos)).add(y_.mul(vydx_pos))).div(sum_of_weights);
+        uint256 sum_of_weights = vxdyPos.add(vydxPos);
+        x = ((x_.mul(vxdyPos)).add(x.mul(vydxPos))).div(sum_of_weights);
+        y = ((y.mul(vxdyPos)).add(y_.mul(vydxPos))).div(sum_of_weights);
       }
     }
 
     return (x, y);
   }
 
-  function within_distance(
+  /// @dev decides whether variable pair is within the convergence threshold
+  /// @param x1 x1
+  /// @param x2 x2
+  /// @param d distance threshold
+  function withinDistance(
     uint256 x1,
     uint256 x2,
     uint256 d
