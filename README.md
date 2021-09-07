@@ -3,12 +3,14 @@
 **Leveraged yield farming on Binance Smart Chain**
 
 ## Local Development
-The following assumes the use of `node@>=10`.  
+The following assumes the use of `node@>=14`.  
 ### Install Dependencies
  1. Copy `.env.example` file and change its name to `.env` in the project folder
  2. Run `yarn` to install all dependencies
 ### Compile Contracts
 `yarn compile`
+
+Note: There will be a new folder called `typechain` generated in your project workspace. You will need to navigate to `typechain/index.ts` and delete duplicated lines inside this file in order to proceed.
 ### Run Tests
 `yarn test`
 ## Licensing
