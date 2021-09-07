@@ -267,10 +267,7 @@ contract MdexWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker
     // 3. Perform the worker strategy; sending LP tokens + BaseToken; expecting LP tokens + BaseToken.
     (address strat, bytes memory ext) = abi.decode(data, (address, bytes));
     require(okStrats[strat], "MdexWorker02::work:: unapproved work strategy");
-    require(
-      lpToken.transfer(strat, lpToken.balanceOf(address(this))),
-      "MdexWorker02::work:: unable to transfer lp to strat"
-    );
+    address(lpToken).safeTransfer(strat, lpToken.balanceOf(address(this)));
     baseToken.safeTransfer(strat, actualBaseTokenBalance());
     IStrategy(strat).execute(user, debt, ext);
     // 4. Add LP tokens back to the farming pool.
@@ -327,7 +324,7 @@ contract MdexWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker
   function liquidate(uint256 id) external override onlyOperator nonReentrant {
     // 1. Convert the position back to LP tokens and use liquidate strategy.
     _removeShare(id);
-    lpToken.transfer(address(liqStrat), lpToken.balanceOf(address(this)));
+    address(lpToken).safeTransfer(address(liqStrat), lpToken.balanceOf(address(this)));
     liqStrat.execute(address(0), 0, abi.encode(0));
     // 2. Return all available BaseToken back to the operator.
     uint256 liquidatedAmount = actualBaseTokenBalance();
