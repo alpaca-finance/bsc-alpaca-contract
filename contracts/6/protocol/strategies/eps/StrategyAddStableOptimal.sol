@@ -107,12 +107,18 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     uint256 Ann;
   }
 
+  /// @dev Execute EPS stable optimal strategy. (1) Take BaseToken + FarmingToken (2) Calculate the optimal swappable amount (3) Swap dx => dy on EPS (4) add LP on PCS, return LP token.
+  /// @param data Extra calldata information passed along to this strategy, composing `farmingTokenAmount` and `minLPAmount`
   function execute(
     address, /* user */
     uint256, /* debt */
     bytes calldata data
   ) external override nonReentrant {
     (uint256 farmingTokenAmount, uint256 minLPAmount) = abi.decode(data, (uint256, uint256));
+
+    // refresh EPS platform's constant A and fee
+    epsA = epsPool.A();
+    epsFee = epsPool.fee();
 
     IWorker worker = IWorker(msg.sender);
     address baseToken = worker.baseToken();
@@ -210,6 +216,9 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     baseToken.safeApprove(address(router), 0);
   }
 
+  /// @dev Simplify both sides of FP balances to the factor of `D` for easing future computationas, as only the ratio between two that matters
+  /// @param fp_state the state of fixed-product pool
+  /// @param D constant D
   function simplify_fp_state(PoolState memory fp_state, uint256 D) private pure returns (PoolState memory) {
     // only ratio that matters (order of D but remain ratio)
     // must compute fp_state.j then fp_state.i, never swap line
@@ -218,9 +227,10 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     return fp_state;
   }
 
-  // sb_state = constant from stable (crv, eps)
-  // fp_state = constant from fixed-product (pcs)
-  // user_balances = constant from user inputs
+  /// @dev Calculate the amount of token x (dx) to be swapped to amount token y (dy) which will give user the largest LP position on PCS
+  /// @param fp_state the state of fixed-product pool
+  /// @param fp_state the state of fixed-product pool
+  /// @param user_balances user balances
   function get_dx(
     PoolState memory fp_state,
     PoolState memory sb_state,
@@ -272,6 +282,10 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     }
   }
 
+  /// @dev Calculate the amount of token x (dx) to be swapped to amount token y (dy) which will give user the largest LP position on PCS
+  /// @param fp_state the state of fixed-product pool
+  /// @param fp_state the state of fixed-product pool
+  /// @param user_balances user balances
   function f_pos(
     uint256 Yfp,
     uint256 yi_,
@@ -292,21 +306,9 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     return Xfp.mul(y).add((xi.add(X0)).mul(Yfp));
   }
 
-  function pow(uint256 n, uint256 e) private pure returns (uint256) {
-    if (e == 0) {
-      return 1;
-    } else if (e == 1) {
-      return n;
-    } else {
-      uint256 p = pow(n, e.div(2));
-      p = p.mul(p);
-      if (e.mod(2) == 1) {
-        p = p.mul(n);
-      }
-      return p;
-    }
-  }
-
+  /// @dev ___
+  /// @param xp ___
+  /// @param amp ___
   function get_D(uint256[3] memory xp, uint256 amp) private pure returns (uint256) {
     uint256 S = 0;
     uint256 N_COINS = 3;
@@ -334,6 +336,9 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     return D;
   }
 
+  /// @dev Find the initialization corrdinate x, y before starting the newton method
+  /// @param var_pack pack of variables used for newton method computation
+  /// @param N_COINS number of tokens in stable pool
   function find_intersection_of_l_with_tangent(VariablePack memory var_pack, uint256 N_COINS)
     internal
     view
@@ -366,6 +371,9 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     return (fX0Y0_neg.div(step_x_den), fX0Y0_pos.div(step_x_den));
   }
 
+  /// @dev ___
+  /// @param xp ___
+  /// @param amp ___
   function get_step_y(
     VariablePack memory var_pack,
     uint256 fX0Y0_pos,
@@ -378,35 +386,10 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
 
   function get_omega(VariablePack memory var_pack, uint256 N_COINS) internal view returns (uint256 omega) {
     uint256 tmp1 = var_pack.X0.mul(var_pack.Y0);
-    uint256 tmp2 = epsA.mul(pow(N_COINS, 3));
-    uint256 omega_num = tmp1.add((var_pack.U.mul(pow(var_pack.D, 2).div(var_pack.Y0))).div(tmp2));
+    uint256 tmp2 = epsA.mul(N_COINS.mul(N_COINS).mul(N_COINS));
+    uint256 omega_num = tmp1.add((var_pack.U.mul((var_pack.D).mul(var_pack.D).div(var_pack.Y0))).div(tmp2));
     uint256 omega_den = tmp1.div(var_pack.D).add(var_pack.U.mul(var_pack.D).div(var_pack.X0.mul(tmp2)));
     return omega_num.div(omega_den);
-  }
-
-  function newton_step_along_line(
-    uint256 X0,
-    uint256 Y0,
-    uint256 Pr_,
-    uint256 D,
-    uint256 Yfp,
-    uint256 Xfp,
-    uint256 S,
-    uint256 Ann
-  ) private pure returns (uint256 x, uint256 y) {
-    x = X0;
-    y = Y0;
-    uint256 xy = x.mul(y);
-    uint256 xy_by_D = xy.div(D);
-    uint256 alpha_pos = xy_by_D.mul(x.add(y).add(S).add(D).sub(Ann));
-    uint256 alpha_neg = xy.add(Pr_.mul(D));
-    uint256 beta =
-      (((xy.mul(2).add(pow(y, 2)).add(y.mul(S))).div(D)).add(y.div(Ann)).sub(y))
-        .mul(Xfp)
-        .add((xy.mul(2).add(pow(x, 2)).add(x.mul(S))).div(D).add(x.div(Ann)).sub(x))
-        .mul(Yfp);
-    x = x.add(alpha_neg.div((beta.div(Xfp))).sub(alpha_pos.div((beta.div(Xfp)))));
-    y = y.add(alpha_neg.div(beta.div(Yfp))).sub(alpha_pos.div(beta.div(Yfp)));
   }
 
   function update_x_y_(
@@ -445,7 +428,7 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
         vydx_pos = var_pack.Yfp.mul(x.sub(x_));
       }
 
-      if (vxdy_pos > pow(PRECISION, 2)) {
+      if (vxdy_pos > PRECISION.mul(PRECISION)) {
         // To prevent overflow
         vxdy_pos = vxdy_pos.div(PRECISION);
         vydx_pos = vydx_pos.div(PRECISION);
