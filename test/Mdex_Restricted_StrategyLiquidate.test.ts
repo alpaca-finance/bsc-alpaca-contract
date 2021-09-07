@@ -349,10 +349,6 @@ describe("MdexRestricted_StrategyLiquidate", () => {
 
       const totalMiningRewards = prevBlockRewardMining.add(currentBlockRewardMining);
 
-      const before = await strat.getMiningRewards([0], {
-        blockTag: Number(withdrawTx.blockNumber) - 1,
-      });
-
       const mdexTokenAfter = await mdxToken.balanceOf(await deployer.getAddress());
 
       const bobBTokenAfter = await baseToken.balanceOf(await bob.getAddress());
