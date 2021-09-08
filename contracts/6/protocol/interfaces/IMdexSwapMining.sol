@@ -13,7 +13,7 @@ Alpaca Fin Corporation
 
 pragma solidity 0.6.6;
 
-interface ISwapMining {
+interface IMdexSwapMining {
   /// @dev Get rewards from users in the current pool;
   function getUserReward(uint256 pid) external view returns (uint256, uint256);
 
