@@ -21,12 +21,12 @@ import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "../../apis/mdex/IMdexFactory.sol";
 import "../../apis/mdex/IMdexRouter.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
+import "../../interfaces/ISwapMining.sol";
 
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IWETH.sol";
 import "../../interfaces/IWNativeRelayer.sol";
 import "../../interfaces/IWorker.sol";
-import "../../interfaces/ISwapMining.sol";
 
 import "../../../utils/SafeToken.sol";
 
