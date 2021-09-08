@@ -16,13 +16,14 @@ pragma solidity 0.6.6;
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/math/Math.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 
 import "../../apis/mdex/IMdexRouter.sol";
 import "../../apis/mdex/IMdexFactory.sol";
-import "../../apis/mdex/SwapMining.sol";
 
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IWorker.sol";
+import "../../interfaces/ISwapMining.sol";
 
 import "../../../utils/SafeToken.sol";
 
@@ -39,6 +40,7 @@ contract MdexRestrictedStrategyLiquidate is OwnableUpgradeSafe, ReentrancyGuardU
   /// @notice require that only allowed workers are able to do the rest of the method call
   modifier onlyWhitelistedWorkers() {
     require(okWorkers[msg.sender], "MdexRestrictedStrategyLiquidate::onlyWhitelistedWorkers:: bad worker");
+    _;
   }
 
   /// @dev Create a new liquidate strategy instance.
@@ -95,17 +97,17 @@ contract MdexRestrictedStrategyLiquidate is OwnableUpgradeSafe, ReentrancyGuardU
   }
 
   function withdrawTradingRewards(address to) external onlyOwner {
-    SwapMining(router.swapMining()).takerWithdraw();
+    ISwapMining(router.swapMining()).takerWithdraw();
     SafeToken.safeTransfer(mdx, to, SafeToken.myBalance(mdx));
   }
 
-  /// @notice get Mining reward
-  /// @param pids pool IDs of all to be get rewards.
+  /// @dev Get mining rewards by pIds
+  /// @param pids ids to retrieve reward amount.
   function getMiningRewards(uint256[] calldata pids) external view returns (uint256) {
     address swapMiningAddress = router.swapMining();
     uint256 totalReward;
     for (uint256 pid = 0; pid < pids.length; pid++) {
-      (uint256 reward, ) = SwapMining(swapMiningAddress).getUserReward(pid);
+      (uint256 reward, ) = ISwapMining(swapMiningAddress).getUserReward(pid);
       totalReward = totalReward.add(reward);
     }
     return totalReward;
