@@ -16,18 +16,19 @@ pragma solidity 0.6.6;
 import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
-import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 
 import "../../apis/mdex/IMdexFactory.sol";
 import "../../apis/mdex/IMdexRouter.sol";
+import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
+
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IWETH.sol";
 import "../../interfaces/IWNativeRelayer.sol";
-import "../../../utils/SafeToken.sol";
 import "../../interfaces/IWorker.sol";
-import "../../apis/mdex/SwapMining.sol";
+import "../../interfaces/ISwapMining.sol";
 
-import "hardhat/console.sol";
+import "../../../utils/SafeToken.sol";
 
 contract MdexRestrictedStrategyWithdrawMinimizeTrading is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeToken for address;
@@ -133,17 +134,17 @@ contract MdexRestrictedStrategyWithdrawMinimizeTrading is OwnableUpgradeSafe, Re
   /// @dev Withdraw all trading rewards
   /// @param to The address to transfer trading reward to.
   function withdrawTradingRewards(address to) external onlyOwner {
-    SwapMining(router.swapMining()).takerWithdraw();
+    ISwapMining(router.swapMining()).takerWithdraw();
     mdx.safeTransfer(to, mdx.myBalance());
   }
 
-  /// @dev Get all trading rewards.
+  /// @dev Get trading rewards by pIds.
   /// @param pIds pool ids to retrieve reward amount.
   function getMiningRewards(uint256[] calldata pIds) external view returns (uint256) {
     address swapMiningAddress = router.swapMining();
     uint256 totalReward;
     for (uint256 pid = 0; pid < pIds.length; pid++) {
-      (uint256 reward, ) = SwapMining(swapMiningAddress).getUserReward(pid);
+      (uint256 reward, ) = ISwapMining(swapMiningAddress).getUserReward(pid);
       totalReward = totalReward.add(reward);
     }
     return totalReward;
