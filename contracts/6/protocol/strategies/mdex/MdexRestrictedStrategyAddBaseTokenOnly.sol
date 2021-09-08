@@ -16,16 +16,18 @@ pragma solidity 0.6.6;
 import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 
+import "../../apis/mdex/IMdexFactory.sol";
+import "../../apis/mdex/IMdexRouter.sol";
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
 
 import "../../interfaces/IStrategy.sol";
+import "../../interfaces/IWorker.sol";
+import "../../interfaces/ISwapMining.sol";
+
 import "../../../utils/SafeToken.sol";
 import "../../../utils/AlpacaMath.sol";
-import "../../interfaces/IWorker.sol";
-import "../../apis/mdex/IMdexRouter.sol";
-import "../../apis/mdex/IMdexFactory.sol";
-import "../../apis/mdex/SwapMining.sol";
 
 contract MdexRestrictedStrategyAddBaseTokenOnly is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeToken for address;
@@ -111,10 +113,10 @@ contract MdexRestrictedStrategyAddBaseTokenOnly is OwnableUpgradeSafe, Reentranc
     }
   }
 
-  /// @dev Formular for calculating optimal swap come from UniSwapV2
-  /// @param fee trading fee of pair.
-  /// @param rIn reserve of baseToken in pair.
-  /// @param balance balance of baseToken in worker.
+  /// @dev Formula for calculating one-sided optimal swap. Return the amount that needs to be swapped.
+  /// @param fee trading fee of the pair.
+  /// @param rIn reserve of baseToken in the pair.
+  /// @param balance balance of baseToken from worker.
   function _calculateAIn(
     uint256 fee,
     uint256 rIn,
@@ -133,17 +135,17 @@ contract MdexRestrictedStrategyAddBaseTokenOnly is OwnableUpgradeSafe, Reentranc
   /// @dev Withdraw trading all reward.
   /// @param to The address to transfer trading reward to.
   function withdrawTradingRewards(address to) external onlyOwner {
-    SwapMining(router.swapMining()).takerWithdraw();
+    ISwapMining(router.swapMining()).takerWithdraw();
     mdx.safeTransfer(to, mdx.myBalance());
   }
 
-  /// @dev Get all trading rewards.
+  /// @dev Get trading rewards by pIds.
   /// @param pIds pool ids to retrieve reward amount.
   function getMiningRewards(uint256[] calldata pIds) external view returns (uint256) {
     address swapMiningAddress = router.swapMining();
     uint256 totalReward;
     for (uint256 pid = 0; pid < pIds.length; pid++) {
-      (uint256 reward, ) = SwapMining(swapMiningAddress).getUserReward(pid);
+      (uint256 reward, ) = ISwapMining(swapMiningAddress).getUserReward(pid);
       totalReward = totalReward.add(reward);
     }
     return totalReward;
