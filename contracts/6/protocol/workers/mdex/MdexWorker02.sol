@@ -16,13 +16,14 @@ pragma solidity 0.6.6;
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
 
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
 
-import "../../apis/mdex/BSCPool.sol";
 import "../../apis/mdex/IMdexFactory.sol";
 import "../../apis/mdex/IMdexRouter.sol";
-import "../../apis/mdex/SwapMining.sol";
+import "../../interfaces/IBSCPool.sol";
+import "../../interfaces/ISwapMining.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IWorker02.sol";
 import "../../../utils/AlpacaMath.sol";
@@ -60,7 +61,7 @@ contract MdexWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker
   );
 
   /// @notice Configuration variables
-  BSCPool public bscPool;
+  IBSCPool public bscPool;
   IMdexFactory public factory;
   IMdexRouter public router;
   IPancakePair public override lpToken;
@@ -97,7 +98,7 @@ contract MdexWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker
   function initialize(
     address _operator,
     address _baseToken,
-    BSCPool _bscPool,
+    IBSCPool _bscPool,
     IMdexRouter _router,
     uint256 _pid,
     IStrategy _addStrat,
@@ -575,7 +576,7 @@ contract MdexWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker
   /// @dev Withdraw trading all reward.
   /// @param to The address to transfer trading reward to.
   function withdrawTradingRewards(address to) external onlyOwner {
-    SwapMining(router.swapMining()).takerWithdraw();
+    ISwapMining(router.swapMining()).takerWithdraw();
     mdx.safeTransfer(to, mdx.myBalance());
   }
 
@@ -585,7 +586,7 @@ contract MdexWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker
     address swapMiningAddress = router.swapMining();
     uint256 totalReward;
     for (uint256 pid = 0; pid < pIds.length; pid++) {
-      (uint256 reward, ) = SwapMining(swapMiningAddress).getUserReward(pid);
+      (uint256 reward, ) = ISwapMining(swapMiningAddress).getUserReward(pid);
       totalReward = totalReward.add(reward);
     }
     return totalReward;
