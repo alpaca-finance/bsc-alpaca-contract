@@ -20,11 +20,11 @@ import "@openzeppelin/contracts-ethereum-package/contracts/math/Math.sol";
 
 import "../../apis/mdex/IMdexFactory.sol";
 import "../../apis/mdex/IMdexRouter.sol";
+import "../../interfaces/IMdexSwapMining.sol";
 
 import "../../interfaces/IWorker.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IVault.sol";
-import "../../interfaces/ISwapMining.sol";
 
 import "../../../utils/SafeToken.sol";
 
@@ -116,7 +116,7 @@ contract MdexRestrictedStrategyPartialCloseLiquidate is OwnableUpgradeSafe, Reen
   /// @dev Withdraw trading all reward.
   /// @param to The address to transfer trading reward to.
   function withdrawTradingRewards(address to) external onlyOwner {
-    ISwapMining(router.swapMining()).takerWithdraw();
+    IMdexSwapMining(router.swapMining()).takerWithdraw();
     mdx.safeTransfer(to, mdx.myBalance());
   }
 
@@ -126,7 +126,7 @@ contract MdexRestrictedStrategyPartialCloseLiquidate is OwnableUpgradeSafe, Reen
     address swapMiningAddress = router.swapMining();
     uint256 totalReward;
     for (uint256 pid = 0; pid < pIds.length; pid++) {
-      (uint256 reward, ) = ISwapMining(swapMiningAddress).getUserReward(pid);
+      (uint256 reward, ) = IMdexSwapMining(swapMiningAddress).getUserReward(pid);
       totalReward = totalReward.add(reward);
     }
     return totalReward;
