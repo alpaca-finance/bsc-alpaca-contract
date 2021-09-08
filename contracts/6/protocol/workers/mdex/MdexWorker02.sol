@@ -18,17 +18,18 @@ import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard
 import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
-import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
-
 import "../../apis/mdex/IMdexFactory.sol";
 import "../../apis/mdex/IMdexRouter.sol";
+import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
+
 import "../../interfaces/IBSCPool.sol";
-import "../../interfaces/ISwapMining.sol";
 import "../../interfaces/IStrategy.sol";
-import "../../interfaces/IWorker02.sol";
-import "../../../utils/AlpacaMath.sol";
-import "../../../utils/SafeToken.sol";
 import "../../interfaces/IVault.sol";
+import "../../interfaces/IWorker02.sol";
+import "../../interfaces/ISwapMining.sol";
+
+import "../../../utils/SafeToken.sol";
+import "../../../utils/AlpacaMath.sol";
 
 contract MdexWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02 {
   /// @notice Libraries
