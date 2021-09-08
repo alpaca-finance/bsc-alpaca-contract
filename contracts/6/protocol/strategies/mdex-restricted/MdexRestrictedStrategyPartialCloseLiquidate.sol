@@ -13,17 +13,20 @@ Alpaca Fin Corporation
 
 pragma solidity 0.6.6;
 
+import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/math/Math.sol";
 
 import "../../apis/mdex/IMdexFactory.sol";
 import "../../apis/mdex/IMdexRouter.sol";
+
 import "../../interfaces/IWorker.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IVault.sol";
+import "../../interfaces/ISwapMining.sol";
+
 import "../../../utils/SafeToken.sol";
-import "../../apis/mdex/SwapMining.sol";
 
 contract MdexRestrictedStrategyPartialCloseLiquidate is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeToken for address;
@@ -113,17 +116,17 @@ contract MdexRestrictedStrategyPartialCloseLiquidate is OwnableUpgradeSafe, Reen
   /// @dev Withdraw trading all reward.
   /// @param to The address to transfer trading reward to.
   function withdrawTradingRewards(address to) external onlyOwner {
-    SwapMining(router.swapMining()).takerWithdraw();
+    ISwapMining(router.swapMining()).takerWithdraw();
     mdx.safeTransfer(to, mdx.myBalance());
   }
 
-  /// @dev Get all trading rewards.
+  /// @dev Get trading rewards by pIds.
   /// @param pIds pool ids to retrieve reward amount.
   function getMiningRewards(uint256[] calldata pIds) external view returns (uint256) {
     address swapMiningAddress = router.swapMining();
     uint256 totalReward;
     for (uint256 pid = 0; pid < pIds.length; pid++) {
-      (uint256 reward, ) = SwapMining(swapMiningAddress).getUserReward(pid);
+      (uint256 reward, ) = ISwapMining(swapMiningAddress).getUserReward(pid);
       totalReward = totalReward.add(reward);
     }
     return totalReward;
