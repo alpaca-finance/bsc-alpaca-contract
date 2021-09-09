@@ -210,7 +210,7 @@ contract MdexWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker
   /// @param _treasuryAccount - The account to receive reinvest fees.
   /// @param _treasuryBountyBps - The fees in BPS that will be charged for reinvest.
   /// @param _callerBalance - The balance that is owned by the msg.sender within the execution scope.
-  /// @param _reinvestThreshold - The threshold to be reinvested if pendingCake pass over.
+  /// @param _reinvestThreshold - The threshold to be reinvested if reward pass over.
   function _reinvest(
     address _treasuryAccount,
     uint256 _treasuryBountyBps,
@@ -278,7 +278,7 @@ contract MdexWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker
     baseToken.safeTransfer(msg.sender, actualBaseTokenBalance());
   }
 
-  /// @dev Return maximum output given the input amount and the status of Uniswap reserves.
+  /// @dev Return maximum output given the input amount and the status of MDEX reserves.
   /// @param aIn The amount of asset to market sell.
   /// @param rIn the amount of asset in reserve for input.
   /// @param rOut The amount of asset in reserve for output.
@@ -513,7 +513,7 @@ contract MdexWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker
     require(rewardPath.length >= 2, "MdexWorker02::setRewardPath:: rewardPath length must be >= 2");
     require(
       rewardPath[0] == mdx && rewardPath[rewardPath.length - 1] == beneficialVault.token(),
-      "MdexWorker02::setRewardPath:: rewardPath must start with CAKE and end with beneficialVault token"
+      "MdexWorker02::setRewardPath:: rewardPath must start with MDX and end with beneficialVault token"
     );
 
     rewardPath = _rewardPath;
