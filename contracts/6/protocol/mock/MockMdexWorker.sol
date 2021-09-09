@@ -1,27 +1,31 @@
 // SPDX-License-Identifier: MIT
 /**
-  ∩~~~~∩
-  ξ ･×･ ξ
-  ξ　~　ξ
-  ξ　　 ξ
-  ξ　　 “~～~～〇
-  ξ　　　　　　 ξ
-  ξ ξ ξ~～~ξ ξ ξ
+  ∩~~~~∩ 
+  ξ ･×･ ξ 
+  ξ　~　ξ 
+  ξ　　 ξ 
+  ξ　　 “~～~～〇 
+  ξ　　　　　　 ξ 
+  ξ ξ ξ~～~ξ ξ ξ 
 　 ξ_ξξ_ξ　ξ_ξξ_ξ
 Alpaca Fin Corporation
 */
+
 pragma solidity 0.6.6;
+
 import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
 import "../apis/mdex/IMdexRouter.sol";
 import "../apis/mdex/IMasterChefBSC.sol";
 import "../interfaces/IStrategy.sol";
 import "../interfaces/IWorker.sol";
+
 import "../../utils/AlpacaMath.sol";
 import "../../utils/SafeToken.sol";
 
 /// @notice Simplified version of worker for testing purpose.
 contract MockMdexWorker {
   using SafeToken for address;
+
   IPancakePair public lpToken;
   address public baseToken;
   address public farmingToken;
