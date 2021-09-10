@@ -223,7 +223,10 @@ contract CakeMaxiWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWo
     // 2. withdraw all the rewards. Return if rewards smaller than the threshold.
     masterChef.leaveStaking(0);
     uint256 reward = farmingToken.myBalance();
-    if (reward <= _reinvestThreshold) return;
+    if (reward <= _reinvestThreshold) {
+      rewardBalance = reward;
+      return;
+    }
 
     // 3. approve tokens
     farmingToken.safeApprove(address(masterChef), uint256(-1));
