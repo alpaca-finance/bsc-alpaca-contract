@@ -476,6 +476,16 @@
           "pId": 66,
           "name": "PHA-BUSD LP",
           "address": "0x36Ea0dbDF7bc4Ced9813700D3d0c280e0c3f1e79"
+        },
+        {
+          "pId": 67,
+          "name": "NAOS-WBNB LP",
+          "address": "0xd3832c85c56087039bAB487adD6ab35930eE138d"
+        },
+        {
+          "pId": 68,
+          "name": "MBOX-WBNB LP",
+          "address": "0x8BE59f83977879A611cA77F957edAC902E3d91a5"
         }
       ]
     },
@@ -618,7 +628,9 @@
     "PHA": "0x6A8a9CAF4916846b8568d39B8dbc44C355EcA6ec",
     "WUSD": "0xEC2aF9Ca74Ba42f5a25b0aff5Ed0761ee922a5df",
     "ALM": "0x1E506ADED271005063B928952f9bDb34E284cbDD",
-    "KALA": "0xBB72480bd27B2822Cb3700d5B2E6BBdE6DDc9776"
+    "KALA": "0xBB72480bd27B2822Cb3700d5B2E6BBdE6DDc9776",
+    "NAOS": "0xD565ebf5c8E5e1b6f3d6FFD803965139F00D90f2",
+    "MBOX": "0x9a1B08f59b94137a9D25a98673487d6Ba2837d35"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x7549b7d0edcd411e7e5013dc74727f8dab13ab0f",
@@ -1160,6 +1172,40 @@
           "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
           "pId": 62,
           "stakingToken": "0xa51969919bccF97EE5d98563091Ad94E365489Cf",
+          "stakingTokenAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
+            "StrategyLiquidate": "0x58Bbb507248635413172Ed7A2eeC048402C6b39b",
+            "StrategyAddTwoSidesOptimal": "0x0A5515aEdc275b9fF19d11Cd74465e83067f6D40",
+            "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32",
+            "StrategyPartialCloseLiquidate": "0x566aC15667Ae05c1F50Ed9944Aeef5A9dae4AB55",
+            "StrategyPartialCloseMinimizeTrading": "0xBb79EB494Da88F115430D174D5372b51Fc37De50"
+          }
+        },
+        {
+          "name": "NAOS-WBNB PancakeswapWorker",
+          "address": "0xC8E32D88783d945D0e4b9e7a06E33A57c2893a3a",
+          "deployedBlock": 12322336,
+          "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+          "pId": 67,
+          "stakingToken": "0xd3832c85c56087039bAB487adD6ab35930eE138d",
+          "stakingTokenAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
+            "StrategyLiquidate": "0x58Bbb507248635413172Ed7A2eeC048402C6b39b",
+            "StrategyAddTwoSidesOptimal": "0x0A5515aEdc275b9fF19d11Cd74465e83067f6D40",
+            "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32",
+            "StrategyPartialCloseLiquidate": "0x566aC15667Ae05c1F50Ed9944Aeef5A9dae4AB55",
+            "StrategyPartialCloseMinimizeTrading": "0xBb79EB494Da88F115430D174D5372b51Fc37De50"
+          }
+        },
+        {
+          "name": "MBOX-WBNB PancakeswapWorker",
+          "address": "0xb0091A608624922524BceE393b86E341859DA798",
+          "deployedBlock": 12322350,
+          "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+          "pId": 68,
+          "stakingToken": "0x8BE59f83977879A611cA77F957edAC902E3d91a5",
           "stakingTokenAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
           "strategies": {
             "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",

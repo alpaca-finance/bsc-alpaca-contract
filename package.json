@@ -114,7 +114,7 @@
     "deploy:testnet:030": "hardhat --network testnet deploy --no-compile --reset --tags WaultSwapRestrictedVaultStrategies",
     "deploy:testnet:031": "hardhat --network testnet deploy --no-compile --reset --tags OracleMedianizer",
     "deploy:testnet:032": "hardhat --network testnet deploy --no-compile --reset --tags ChainLinkPriceOracle",
-    "deploy:testnet:workers:deploy:pancake": "hardhat --network testnet deploy --no-compile --reset --tags PancakeswapWorkers02",
+    "deploy:testnet:workers:deploy:pancakeswap-v2-workers02": "hardhat --network testnet deploy --no-compile --reset --tags PancakeswapWorkers02",
     "deploy:testnet:workers:deploy:wswap": "hardhat --network testnet deploy --no-compile --reset --tags WaultSwapWorkers02",
     "deploy:testnet:035": "hardhat --network testnet deploy --no-compile --reset --tags CakeMaxiWorkers02",
     "deploy:testnet:s001": "hardhat --network testnet deploy --no-compile --reset --tags TimelockAddWorkerStrategy",
