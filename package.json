@@ -1,9 +1,10 @@
 {
   "name": "@alpaca-finance/alpaca-contract",
-  "version": "0.0.0-cjs.2",
+  "version": "0.0.0-cjs.3",
   "scripts": {
-    "build": "yarn run build:cjs",
+    "build": "yarn run build:cjs && yarn run build:esm",
     "build:cjs": "rimraf ./typechain-cjs && tsc -p tsconfig.cjs.json",
+    "build:esm": "rimraf ./typechain-esm && tsc -p tsconfig.esm.json",
     "compile5": "hardhat typechain --config hardhat.config.5.ts",
     "compile6": "hardhat typechain --config hardhat.config.ts",
     "compile6.12": "hardhat typechain --config hardhat.config.6.12.ts",
