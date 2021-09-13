@@ -39,6 +39,20 @@
       }
     ]
   },
+  "Scientix": {
+    "StakingPools": {
+      "address": "0xEcF393A15eed9935B6bE7BE1EB9bAB9DC34366e3",
+      "deployedBlock": 11951180,
+      "pools": [
+        {
+          "id": 3,
+          "name": "ibALPACA-SCIX",
+          "stakingToken": "0x6ad3A0d891C59677fbbB22E071613253467C382A",
+          "rewardToken": "0x5486bE4Cf629C1eD843550be65e9AC10D63A3a75"
+        }
+      ]
+    }
+  },
   "FairLaunch": {
     "address": "0xac2fefDaF83285EA016BE3f5f1fb039eb800F43D",
     "deployedBlock": 7313308,
