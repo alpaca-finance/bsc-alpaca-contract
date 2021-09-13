@@ -1,6 +1,6 @@
 {
   "name": "@alpaca-finance/alpaca-contract",
-  "version": "0.0.0-cjs.3",
+  "version": "0.0.0-cjs.4",
   "scripts": {
     "build": "yarn run build:cjs && yarn run build:esm",
     "build:cjs": "rimraf ./typechain-cjs && tsc -p tsconfig.cjs.json",
@@ -268,6 +268,7 @@
   "files": [
     "typechain",
     "typechain-cjs",
+    "typechain-esm",
     "artifacts",
     "contracts",
     "merkle-distribution-info",
