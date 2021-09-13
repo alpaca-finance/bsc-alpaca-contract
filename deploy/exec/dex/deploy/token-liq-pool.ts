@@ -32,22 +32,35 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const config = ConfigEntity.getConfig();
 
   const FOREVER = 20000000000;
-  const PANCAKE_MASTERCHEF = config.Exchanges.Waultswap.WexMaster;
-  const PANCAKE_FACTORY = config.Exchanges.Waultswap.WaultswapFactory;
-  const PANCAKE_ROUTER = config.Exchanges.Waultswap.WaultswapRouter;
+  const PANCAKE_MASTERCHEF = config.Exchanges.Pancakeswap.MasterChef;
+  const PANCAKE_FACTORY = config.Exchanges.Pancakeswap.FactoryV2;
+  const PANCAKE_ROUTER = config.Exchanges.Pancakeswap.RouterV2;
   const WBNB = config.Tokens.WBNB;
   const TOKENS: Array<IToken> = [
     {
-      symbol: "WUSD",
-      name: "WUSD",
+      symbol: "ALM",
+      name: "ALM",
       mintAmount: ethers.utils.parseEther("88888888888").toString(),
       pairs: [
-        {
-          quoteToken: "BUSD",
-          quoteTokenAddr: config.Tokens.BUSD,
-          reserveQuoteToken: ethers.utils.parseEther("3000000"),
-          reserveBaseToken: ethers.utils.parseEther("3000000"),
-        },
+        // {
+        //   quoteToken: "BUSD",
+        //   quoteTokenAddr: config.Tokens.BUSD,
+        //   reserveQuoteToken: ethers.utils.parseEther("3000000"),
+        //   reserveBaseToken: ethers.utils.parseEther("3000000"),
+        // },
+      ],
+    },
+    {
+      symbol: "KALA",
+      name: "KALA",
+      mintAmount: ethers.utils.parseEther("88888888888").toString(),
+      pairs: [
+        // {
+        //   quoteToken: "BUSD",
+        //   quoteTokenAddr: config.Tokens.BUSD,
+        //   reserveQuoteToken: ethers.utils.parseEther("3000000"),
+        //   reserveBaseToken: ethers.utils.parseEther("3000000"),
+        // },
       ],
     },
   ];
