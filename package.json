@@ -1,7 +1,8 @@
 {
   "name": "@alpaca-finance/alpaca-contract",
-  "version": "0.0.0-cjs.4",
+  "version": "0.0.0-cjs.6",
   "scripts": {
+    "prepublish": "yarn build",
     "build": "yarn run build:cjs && yarn run build:esm",
     "build:cjs": "rimraf ./typechain-cjs && tsc -p tsconfig.cjs.json",
     "build:esm": "rimraf ./typechain-esm && tsc -p tsconfig.esm.json",
