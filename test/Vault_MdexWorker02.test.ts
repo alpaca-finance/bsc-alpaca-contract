@@ -212,7 +212,7 @@ describe("Vault - MdexWorker02", () => {
 
     // Setup strategies
     [addStrat, liqStrat, twoSidesStrat, minimizeStrat, partialCloseStrat, partialCloseMinimizeStrat] =
-      await deployHelper.deployMdexStrategies(mdexRouter, vault, wbnb, wNativeRelayer, mdx.address);
+      await deployHelper.deployMdexStrategies(mdexRouter, vault, wbnb, wNativeRelayer, mdx);
 
     // whitelisted contract to be able to call work
     await simpleVaultConfig.setWhitelistedCallers([whitelistedContract.address], true);
