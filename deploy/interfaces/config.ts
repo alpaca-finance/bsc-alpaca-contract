@@ -43,6 +43,7 @@ export interface PoolsEntity1 {
 export interface Exchanges {
   Pancakeswap: Pancakeswap;
   Waultswap: Waultswap;
+  Mdex: Mdex;
 }
 export interface Pancakeswap {
   UniswapV2Factory: string;
@@ -61,6 +62,13 @@ export interface Waultswap {
   WexMaster: string;
   WaultswapRouter: string;
   WaultswapFactory: string;
+  LpTokens: LpTokensEntity[];
+}
+export interface Mdex {
+  BSCPool: string;
+  MdexFactory: string;
+  MdexRouter: string;
+  SwapMining: string;
   LpTokens: LpTokensEntity[];
 }
 export interface Tokens {
@@ -105,6 +113,15 @@ export interface Tokens {
   BTT: string;
   ORBS: string;
   AXS: string;
+  PMON: string;
+  PHA: string;
+  WUSD: string;
+  ALM: string;
+  KALA: string;
+  SCIX: string;
+  NAOS: string;
+  MBOX: string;
+  MDX: string;
 }
 export interface LpTokens {
   "ALPACA-WBNB": string;
@@ -115,6 +132,7 @@ export interface SharedStrategies {
   Pancakeswap: PancakeswapOrWaultswapOrPancakeswapSingleAsset;
   Waultswap: PancakeswapOrWaultswapOrPancakeswapSingleAsset;
   PancakeswapSingleAsset: PancakeswapOrWaultswapOrPancakeswapSingleAsset;
+  Mdex: PancakeswapOrWaultswapOrPancakeswapSingleAsset;
 }
 export interface PancakeswapOrWaultswapOrPancakeswapSingleAsset {
   StrategyAddBaseTokenOnly: string;
@@ -152,6 +170,7 @@ export interface StrategyAddTwoSidesOptimal {
   Pancakeswap: string;
   Waultswap: string;
   PancakeswapSingleAsset: string;
+  Mdex: string;
 }
 export interface WorkersEntity {
   name: string;

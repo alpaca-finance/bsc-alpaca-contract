@@ -102,12 +102,12 @@ contract MdexRestrictedStrategyLiquidate is OwnableUpgradeSafe, ReentrancyGuardU
   }
 
   /// @dev Get mining rewards by pIds
-  /// @param pids ids to retrieve reward amount.
-  function getMiningRewards(uint256[] calldata pids) external view returns (uint256) {
+  /// @param pIds ids to retrieve reward amount.
+  function getMiningRewards(uint256[] calldata pIds) external view returns (uint256) {
     address swapMiningAddress = router.swapMining();
     uint256 totalReward;
-    for (uint256 pid = 0; pid < pids.length; pid++) {
-      (uint256 reward, ) = IMdexSwapMining(swapMiningAddress).getUserReward(pid);
+    for (uint256 index = 0; index < pIds.length; index++) {
+      (uint256 reward, ) = IMdexSwapMining(swapMiningAddress).getUserReward(pIds[index]);
       totalReward = totalReward.add(reward);
     }
     return totalReward;

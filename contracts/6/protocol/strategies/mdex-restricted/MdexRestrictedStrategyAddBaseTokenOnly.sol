@@ -140,12 +140,12 @@ contract MdexRestrictedStrategyAddBaseTokenOnly is OwnableUpgradeSafe, Reentranc
   }
 
   /// @dev Get trading rewards by pIds.
-  /// @param pIds pool ids to retrieve reward amount.
+  /// @param pIds pool ids to retrieve reward amount. [0, 1, 5, 4]
   function getMiningRewards(uint256[] calldata pIds) external view returns (uint256) {
     address swapMiningAddress = router.swapMining();
     uint256 totalReward;
-    for (uint256 pid = 0; pid < pIds.length; pid++) {
-      (uint256 reward, ) = IMdexSwapMining(swapMiningAddress).getUserReward(pid);
+    for (uint256 index = 0; index < pIds.length; index++) {
+      (uint256 reward, ) = IMdexSwapMining(swapMiningAddress).getUserReward(pIds[index]);
       totalReward = totalReward.add(reward);
     }
     return totalReward;
