@@ -1252,7 +1252,7 @@
         {
           "name": "NAOS-WBNB PancakeswapWorker",
           "address": "0x68f131fe93cFc18A6B3eC6312e18c089221a5C34",
-          "deployedBlock": 88,
+          "deployedBlock": 10870305,
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 452,
           "stakingToken": "0xCAA662aD41a662b81be2AEa5D59EC0697628665F",
@@ -1269,7 +1269,7 @@
         {
           "name": "MBOX-WBNB PancakeswapWorker",
           "address": "0x32951e060e6AD6D512fC3Eaa958f3A8F4F82ac6C",
-          "deployedBlock": 88,
+          "deployedBlock": 10870328,
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 405,
           "stakingToken": "0x8FA59693458289914dB0097F5F366d771B7a7C3F",
