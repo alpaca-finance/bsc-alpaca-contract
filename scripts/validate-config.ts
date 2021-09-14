@@ -3,6 +3,7 @@ import { expect } from "chai";
 import "@openzeppelin/test-helpers";
 import {
   CakeMaxiWorker__factory,
+  MdexWorker02__factory,
   PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory,
   PancakeswapV2RestrictedStrategyAddTwoSidesOptimal__factory,
   PancakeswapV2Worker__factory,
@@ -17,6 +18,7 @@ import { WorkersEntity } from "../deploy/interfaces/config";
 interface IDexRouter {
   pancakeswap: string;
   waultswap: string;
+  mdex: string;
 }
 
 async function validateTwoSidesStrategy(strategyAddress: string, expectedVault: string, expectedRouter: string) {
@@ -171,6 +173,50 @@ async function validateWorker(vault: Vault, workerInfo: WorkersEntity, routers: 
       console.log(`> ❌ some problem found in ${workerInfo.name}, please double check`);
       console.log(e);
     }
+  } else if (workerInfo.name.includes("MdexWorker")) {
+    const worker = MdexWorker02__factory.connect(workerInfo.address, ethers.provider);
+    try {
+      expect(await worker.operator()).to.be.eq(vault.address, "operator mis-config");
+      expect(workerInfo.stakingToken).to.be.eq(await worker.lpToken(), "lpToken mis-config");
+      expect(workerInfo.pId).to.be.eq(await worker.pid(), "pool id mis-config");
+      expect(workerInfo.stakingTokenAt).to.be.eq(await worker.bscPool(), "bscPool mis-config");
+      expect(await worker.router()).to.be.eq(routers.mdex, "router mis-config");
+      expect(await worker.baseToken()).to.be.eq(await vault.token(), "baseToken mis-config");
+      expect(await worker.feeDenom()).to.be.eq("10000");
+      expect(await worker.okStrats(workerInfo.strategies.StrategyAddAllBaseToken)).to.be.eq(
+        true,
+        "mis-config on add base token only strat"
+      );
+      expect(await worker.okStrats(workerInfo.strategies.StrategyLiquidate)).to.be.eq(
+        true,
+        "mis-config on liquidate strat"
+      );
+      expect(await worker.okStrats(workerInfo.strategies.StrategyAddTwoSidesOptimal)).to.be.eq(
+        true,
+        "mis-config on add two sides strat"
+      );
+      expect(await worker.okStrats(workerInfo.strategies.StrategyWithdrawMinimizeTrading)).to.be.eq(
+        true,
+        "mis-config on minimize trading strat"
+      );
+      if (workerInfo.strategies.StrategyPartialCloseLiquidate != "") {
+        expect(await worker.okStrats(workerInfo.strategies.StrategyPartialCloseLiquidate)).to.be.eq(
+          true,
+          "mis-config on partial close liquidate strat"
+        );
+      }
+      if (workerInfo.strategies.StrategyPartialCloseMinimizeTrading != "") {
+        expect(await worker.okStrats(workerInfo.strategies.StrategyPartialCloseMinimizeTrading)).to.be.eq(
+          true,
+          "mis-config on partial close minimize"
+        );
+      }
+
+      console.log(`> ✅ done validated ${workerInfo.name}, no problem found`);
+    } catch (e) {
+      console.log(`> ❌ some problem found in ${workerInfo.name}, please double check`);
+      console.log(e);
+    }
   }
 }
 
@@ -218,6 +264,14 @@ async function main() {
         config.SharedStrategies.Waultswap.StrategyPartialCloseMinimizeTrading,
         config.Exchanges.Waultswap.WaultswapRouter
       ),
+      validateStrategy(config.SharedStrategies.Mdex.StrategyAddBaseTokenOnly, config.Exchanges.Mdex.MdexRouter),
+      validateStrategy(config.SharedStrategies.Mdex.StrategyLiquidate, config.Exchanges.Mdex.MdexRouter),
+      validateStrategy(config.SharedStrategies.Mdex.StrategyPartialCloseLiquidate, config.Exchanges.Mdex.MdexRouter),
+      validateStrategy(
+        config.SharedStrategies.Mdex.StrategyPartialCloseMinimizeTrading,
+        config.Exchanges.Mdex.MdexRouter
+      ),
+      validateStrategy(config.SharedStrategies.Mdex.StrategyWithdrawMinimizeTrading, config.Exchanges.Mdex.MdexRouter),
     ]);
     console.log("> ✅ done");
   } catch (e) {
@@ -247,6 +301,11 @@ async function main() {
           vault.address,
           config.Exchanges.Pancakeswap.RouterV2
         ),
+        validateTwoSidesStrategy(
+          config.Vaults[i].StrategyAddTwoSidesOptimal.Mdex,
+          vault.address,
+          config.Exchanges.Mdex.MdexRouter
+        ),
       ]);
       console.log("> ✅ done, no problem found");
     } catch (e) {
@@ -260,6 +319,7 @@ async function main() {
         validateWorker(vault, worker, {
           pancakeswap: config.Exchanges.Pancakeswap.RouterV2,
           waultswap: config.Exchanges.Waultswap.WaultswapRouter,
+          mdex: config.Exchanges.Mdex.MdexRouter,
         })
       );
     }
