@@ -328,7 +328,7 @@ export class DeployHelper {
     vault: Vault,
     wbnb: MockWBNB,
     wNativeRelayer: WNativeRelayer,
-    mdx: string
+    mdx: MdxToken
   ): Promise<
     [
       MdexRestrictedStrategyAddBaseTokenOnly,
@@ -347,7 +347,7 @@ export class DeployHelper {
 
     const addStrat = (await upgrades.deployProxy(MdexRestrictedStrategyAddBaseTokenOnly, [
       router.address,
-      mdx,
+      mdx.address,
     ])) as MdexRestrictedStrategyAddBaseTokenOnly;
     await addStrat.deployed();
 
@@ -357,6 +357,7 @@ export class DeployHelper {
     )) as MdexRestrictedStrategyLiquidate__factory;
     const liqStrat = (await upgrades.deployProxy(MdexRestrictedStrategyLiquidate, [
       router.address,
+      mdx.address,
     ])) as MdexRestrictedStrategyLiquidate;
     await liqStrat.deployed();
 
@@ -367,7 +368,7 @@ export class DeployHelper {
     const twoSidesStrat = (await upgrades.deployProxy(MdexRestrictedStrategyAddTwoSidesOptimal, [
       router.address,
       vault.address,
-      mdx,
+      mdx.address,
     ])) as MdexRestrictedStrategyAddTwoSidesOptimal;
 
     const MdexRestrictedStrategyWithdrawMinimizeTrading = (await ethers.getContractFactory(
@@ -378,7 +379,7 @@ export class DeployHelper {
       router.address,
       wbnb.address,
       wNativeRelayer.address,
-      mdx,
+      mdx.address,
     ])) as MdexRestrictedStrategyWithdrawMinimizeTrading;
 
     const MdexRestrictedStrategyPartialCloseLiquidate = (await ethers.getContractFactory(
@@ -387,7 +388,7 @@ export class DeployHelper {
     )) as MdexRestrictedStrategyPartialCloseLiquidate__factory;
     const partialCloseStrat = (await upgrades.deployProxy(MdexRestrictedStrategyPartialCloseLiquidate, [
       router.address,
-      mdx,
+      mdx.address,
     ])) as MdexRestrictedStrategyPartialCloseLiquidate;
     await partialCloseStrat.deployed();
     await wNativeRelayer.setCallerOk([partialCloseStrat.address], true);
@@ -400,7 +401,7 @@ export class DeployHelper {
       router.address,
       wbnb.address,
       wNativeRelayer.address,
-      mdx,
+      mdx.address,
     ])) as MdexRestrictedStrategyPartialCloseMinimizeTrading;
     await partialCloseMinimizeStrat.deployed();
     await wNativeRelayer.setCallerOk([partialCloseMinimizeStrat.address], true);
