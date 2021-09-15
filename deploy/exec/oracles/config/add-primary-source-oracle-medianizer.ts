@@ -18,8 +18,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const DEFAULT_MAX_PRICE_STALE = "86400";
   const config = ConfigEntity.getConfig();
 
-  const TOKEN0_SYMBOLS = ["PHA", "WUSD"];
-  const TOKEN1_SYMBOLS = ["BUSD", "BUSD"];
+  const TOKEN0_SYMBOLS = ["NAOS", "MBOX"];
+  const TOKEN1_SYMBOLS = ["WBNB", "WBNB"];
   const MAX_PRICE_DEVIATIONS = [DEFAULT_MAX_PRICE_DEVIATION, DEFAULT_MAX_PRICE_DEVIATION];
   const MAX_PRICE_STALES = [DEFAULT_MAX_PRICE_STALE, DEFAULT_MAX_PRICE_STALE];
   const SOURCES = [[config.Oracle.SimpleOracle], [config.Oracle.SimpleOracle]];

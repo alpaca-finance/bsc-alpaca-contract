@@ -32,35 +32,35 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const config = ConfigEntity.getConfig();
 
   const FOREVER = 20000000000;
-  const PANCAKE_MASTERCHEF = config.Exchanges.Pancakeswap.MasterChef;
-  const PANCAKE_FACTORY = config.Exchanges.Pancakeswap.FactoryV2;
-  const PANCAKE_ROUTER = config.Exchanges.Pancakeswap.RouterV2;
+  const PANCAKE_MASTERCHEF = config.Exchanges.Mdex.BSCPool;
+  const PANCAKE_FACTORY = config.Exchanges.Mdex.MdexFactory;
+  const PANCAKE_ROUTER = config.Exchanges.Mdex.MdexRouter;
   const WBNB = config.Tokens.WBNB;
   const TOKENS: Array<IToken> = [
+    // {
+    //   symbol: "BTCB",
+    //   name: "BTCB",
+    //   address: config.Tokens.BTCB,
+    //   pairs: [
+    //     {
+    //       quoteToken: "USDT",
+    //       quoteTokenAddr: config.Tokens.USDT,
+    //       reserveQuoteToken: ethers.utils.parseEther("23023000"),
+    //       reserveBaseToken: ethers.utils.parseEther("500"),
+    //     },
+    //   ],
+    // },
     {
-      symbol: "ALM",
-      name: "ALM",
-      mintAmount: ethers.utils.parseEther("88888888888").toString(),
+      symbol: "ETH",
+      name: "ETH",
+      address: config.Tokens.ETH,
       pairs: [
-        // {
-        //   quoteToken: "BUSD",
-        //   quoteTokenAddr: config.Tokens.BUSD,
-        //   reserveQuoteToken: ethers.utils.parseEther("3000000"),
-        //   reserveBaseToken: ethers.utils.parseEther("3000000"),
-        // },
-      ],
-    },
-    {
-      symbol: "KALA",
-      name: "KALA",
-      mintAmount: ethers.utils.parseEther("88888888888").toString(),
-      pairs: [
-        // {
-        //   quoteToken: "BUSD",
-        //   quoteTokenAddr: config.Tokens.BUSD,
-        //   reserveQuoteToken: ethers.utils.parseEther("3000000"),
-        //   reserveBaseToken: ethers.utils.parseEther("3000000"),
-        // },
+        {
+          quoteToken: "USDT",
+          quoteTokenAddr: config.Tokens.USDT,
+          reserveQuoteToken: ethers.utils.parseEther("10000"),
+          reserveBaseToken: ethers.utils.parseEther("33350000"),
+        },
       ],
     },
   ];
@@ -106,11 +106,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     // mock liquidity
     for (let j = 0; j < TOKENS[i].pairs.length; j++) {
-      console.log(`>> Creating the ${TOKENS[i].symbol}-${TOKENS[i].pairs[j].quoteToken} Trading Pair`);
-      await factory.createPair(token.address, TOKENS[i].pairs[j].quoteTokenAddr, { gasLimit: 2000000 });
-      console.log(`✅ Done`);
-
       const quoteToken = MockERC20__factory.connect(TOKENS[i].pairs[j].quoteTokenAddr, (await ethers.getSigners())[0]);
+
+      let lp = await factory.getPair(token.address, quoteToken.address);
+
+      if (lp.toLowerCase() === ethers.constants.AddressZero.toLowerCase()) {
+        console.log(`>> Creating the ${TOKENS[i].symbol}-${TOKENS[i].pairs[j].quoteToken} Trading Pair`);
+        await factory.createPair(token.address, TOKENS[i].pairs[j].quoteTokenAddr, { gasLimit: 2000000 });
+        console.log(`✅ Done`);
+      }
 
       // if quoteToken is WBNB, wrap it before add Liquidity
       if (quoteToken.address.toLowerCase() == wbnb.address.toLowerCase()) {
@@ -136,10 +140,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         FOREVER,
         { gasLimit: 5000000 }
       );
+      await addLiqTx.wait();
       console.log(`✅ Done at ${addLiqTx.hash}`);
 
+      lp = await factory.getPair(token.address, quoteToken.address);
       console.log(`>> Adding the ${TOKENS[i].symbol}-${TOKENS[i].pairs[j].quoteToken} LP to MasterChef`);
-      const lp = await factory.getPair(token.address, quoteToken.address);
       console.log(`>> ${TOKENS[i].symbol}-${TOKENS[i].pairs[j].quoteToken} LP address: ${lp}`);
       const addPoolTx = await pancakeMasterchef.add(1000, lp, true);
       console.log(`✅ Done at ${addPoolTx.hash}`);

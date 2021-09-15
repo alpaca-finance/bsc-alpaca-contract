@@ -6,6 +6,7 @@ import {
   WaultSwapWorker02__factory,
   CakeMaxiWorker02__factory,
   PancakeswapV2Worker02__factory,
+  MdexWorker02__factory,
 } from "../../../../typechain";
 import { ContractFactory } from "ethers";
 import { ConfigEntity } from "../../../entities";
@@ -23,6 +24,7 @@ interface IFactory {
   PANCAKESWAP_V2_WORKER_02: PancakeswapV2Worker02__factory;
   WAULTSWAP_WORKER_02: WaultSwapWorker02__factory;
   CAKEMAXI_WORKER_02: CakeMaxiWorker02__factory;
+  MDEX_WORKER_02: MdexWorker02__factory;
 }
 /**
  *
@@ -42,6 +44,9 @@ const getFactory = (workerName: string, factory: IFactory): ContractFactory => {
   if (workerName.includes("WaultswapWorker")) {
     return factory.WAULTSWAP_WORKER_02;
   }
+  if (workerName.includes("MdexWorker")) {
+    return factory.MDEX_WORKER_02;
+  }
   throw new Error(`getFactory:: unable to return a factor regarding to the worker ${workerName}`);
 };
 
@@ -59,15 +64,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const workerInputs: IWorkerInputs = [
-    // "WBNB CakeMaxiWorker",
-    // "BUSD CakeMaxiWorker",
-    // "ETH CakeMaxiWorker",
-    // "USDT CakeMaxiWorker",
-    "BTCB CakeMaxiWorker",
-    "TUSD CakeMaxiWorker",
-  ];
-  const EXACT_ETA = "1631339400";
+  const workerInputs: IWorkerInputs = ["BTCB-USDT MdexWorker", "USDT-BTCB MdexWorker"];
+  const EXACT_ETA = "1631678100";
 
   const config = ConfigEntity.getConfig();
   const allWorkers: IWorkers = config.Vaults.reduce((accum, vault) => {
@@ -92,16 +90,19 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     throw new Error(`could not find ${workerInput}`);
   });
-  const [pancakeSwapV2Worker02Factory, waultSwapWorker02Factory, cakeMaxiWorker02Factory] = await Promise.all([
-    (await ethers.getContractFactory("PancakeswapV2Worker02")) as PancakeswapV2Worker02__factory,
-    (await ethers.getContractFactory("WaultSwapWorker02")) as WaultSwapWorker02__factory,
-    (await ethers.getContractFactory("CakeMaxiWorker02")) as CakeMaxiWorker02__factory,
-  ]);
+  const [pancakeSwapV2Worker02Factory, waultSwapWorker02Factory, cakeMaxiWorker02Factory, mdexWorker02Factory] =
+    await Promise.all([
+      (await ethers.getContractFactory("PancakeswapV2Worker02")) as PancakeswapV2Worker02__factory,
+      (await ethers.getContractFactory("WaultSwapWorker02")) as WaultSwapWorker02__factory,
+      (await ethers.getContractFactory("CakeMaxiWorker02")) as CakeMaxiWorker02__factory,
+      (await ethers.getContractFactory("MdexWorker02")) as MdexWorker02__factory,
+    ]);
 
   const FACTORY: IFactory = {
     PANCAKESWAP_V2_WORKER_02: pancakeSwapV2Worker02Factory,
     WAULTSWAP_WORKER_02: waultSwapWorker02Factory,
     CAKEMAXI_WORKER_02: cakeMaxiWorker02Factory,
+    MDEX_WORKER_02: mdexWorker02Factory,
   };
   const timelock = Timelock__factory.connect(config.Timelock, (await ethers.getSigners())[0]);
   const executionTxs: Array<string> = [];

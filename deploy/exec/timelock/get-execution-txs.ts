@@ -1,6 +1,6 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import TimelockTransactions from "../../results/mock.json";
+import TimelockTransactions from "../../results/1631513278_add-reward-info.json";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   for (const timelockTransaction of TimelockTransactions) {
