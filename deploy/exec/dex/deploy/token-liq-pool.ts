@@ -32,34 +32,21 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const config = ConfigEntity.getConfig();
 
   const FOREVER = 20000000000;
-  const PANCAKE_MASTERCHEF = config.Exchanges.Mdex.BSCPool;
-  const PANCAKE_FACTORY = config.Exchanges.Mdex.MdexFactory;
-  const PANCAKE_ROUTER = config.Exchanges.Mdex.MdexRouter;
+  const PANCAKE_MASTERCHEF = config.Exchanges.Pancakeswap.MasterChef;
+  const PANCAKE_FACTORY = config.Exchanges.Pancakeswap.FactoryV2;
+  const PANCAKE_ROUTER = config.Exchanges.Pancakeswap.RouterV2;
   const WBNB = config.Tokens.WBNB;
   const TOKENS: Array<IToken> = [
-    // {
-    //   symbol: "BTCB",
-    //   name: "BTCB",
-    //   address: config.Tokens.BTCB,
-    //   pairs: [
-    //     {
-    //       quoteToken: "USDT",
-    //       quoteTokenAddr: config.Tokens.USDT,
-    //       reserveQuoteToken: ethers.utils.parseEther("23023000"),
-    //       reserveBaseToken: ethers.utils.parseEther("500"),
-    //     },
-    //   ],
-    // },
     {
-      symbol: "ETH",
-      name: "ETH",
-      address: config.Tokens.ETH,
+      symbol: "DVI",
+      name: "DVI",
+      mintAmount: ethers.utils.parseEther("8888888888").toString(),
       pairs: [
         {
-          quoteToken: "USDT",
-          quoteTokenAddr: config.Tokens.USDT,
-          reserveQuoteToken: ethers.utils.parseEther("10000"),
-          reserveBaseToken: ethers.utils.parseEther("33350000"),
+          quoteToken: "WBNB",
+          quoteTokenAddr: config.Tokens.WBNB,
+          reserveQuoteToken: ethers.utils.parseEther("123"),
+          reserveBaseToken: ethers.utils.parseEther("100000"),
         },
       ],
     },
