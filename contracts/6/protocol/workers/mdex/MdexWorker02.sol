@@ -577,8 +577,9 @@ contract MdexWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker
   /// @dev Withdraw trading all reward.
   /// @param to The address to transfer trading reward to.
   function withdrawTradingRewards(address to) external onlyOwner {
+    uint256 mdxBalanceBefore = mdx.myBalance();
     IMdexSwapMining(router.swapMining()).takerWithdraw();
-    mdx.safeTransfer(to, mdx.myBalance());
+    mdx.safeTransfer(to, mdx.myBalance().sub(mdxBalanceBefore));
   }
 
   /// @dev Get all trading rewards.
