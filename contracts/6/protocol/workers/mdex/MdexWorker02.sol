@@ -510,9 +510,9 @@ contract MdexWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker
   /// @dev Set a new reward path. In case that the liquidity of the reward path is changed.
   /// @param _rewardPath The new reward path.
   function setRewardPath(address[] calldata _rewardPath) external onlyOwner {
-    require(rewardPath.length >= 2, "MdexWorker02::setRewardPath:: rewardPath length must be >= 2");
+    require(_rewardPath.length >= 2, "MdexWorker02::setRewardPath:: rewardPath length must be >= 2");
     require(
-      rewardPath[0] == mdx && rewardPath[rewardPath.length - 1] == beneficialVault.token(),
+      _rewardPath[0] == mdx && _rewardPath[_rewardPath.length - 1] == beneficialVault.token(),
       "MdexWorker02::setRewardPath:: rewardPath must start with MDX and end with beneficialVault token"
     );
 
@@ -577,8 +577,9 @@ contract MdexWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker
   /// @dev Withdraw trading all reward.
   /// @param to The address to transfer trading reward to.
   function withdrawTradingRewards(address to) external onlyOwner {
+    uint256 mdxBalanceBefore = mdx.myBalance();
     IMdexSwapMining(router.swapMining()).takerWithdraw();
-    mdx.safeTransfer(to, mdx.myBalance());
+    mdx.safeTransfer(to, mdx.myBalance().sub(mdxBalanceBefore));
   }
 
   /// @dev Get all trading rewards.
