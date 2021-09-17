@@ -41,7 +41,6 @@ import * as AssertHelpers from "./helpers/assert";
 import { DeployHelper } from "./helpers/deploy";
 import { SwapHelper } from "./helpers/swap";
 import { Worker02Helper } from "./helpers/worker";
-import { worker } from "cluster";
 
 chai.use(solidity);
 const { expect } = chai;
