@@ -33,12 +33,15 @@ import {
   BSCPool__factory,
   SwapMining,
   Oracle,
+  WaultSwapToken__factory,
+  MdxToken__factory,
 } from "../typechain";
 import * as TimeHelpers from "./helpers/time";
 import * as AssertHelpers from "./helpers/assert";
 import { DeployHelper } from "./helpers/deploy";
 import { SwapHelper } from "./helpers/swap";
 import { Worker02Helper } from "./helpers/worker";
+import { worker } from "cluster";
 
 chai.use(solidity);
 const { expect } = chai;
@@ -116,6 +119,7 @@ describe("Vault - MdexWorker02", () => {
   // Contract Signer
   let baseTokenAsAlice: MockERC20;
   let baseTokenAsBob: MockERC20;
+  let mdxTokenAsDeployer: MdxToken;
 
   let farmTokenAsAlice: MockERC20;
 
@@ -128,6 +132,7 @@ describe("Vault - MdexWorker02", () => {
   let bscPoolAsBob: BSCPool;
 
   let mdexWorkerAsEve: MdexWorker02;
+  let mdexWorkerAsDeployer: MdexWorker02;
 
   let vaultAsAlice: Vault;
   let vaultAsBob: Vault;
@@ -299,6 +304,7 @@ describe("Vault - MdexWorker02", () => {
     // Contract signer
     baseTokenAsAlice = MockERC20__factory.connect(baseToken.address, alice);
     baseTokenAsBob = MockERC20__factory.connect(baseToken.address, bob);
+    mdxTokenAsDeployer = MdxToken__factory.connect(mdx.address, deployer);
 
     farmTokenAsAlice = MockERC20__factory.connect(farmToken.address, alice);
 
@@ -315,6 +321,7 @@ describe("Vault - MdexWorker02", () => {
     vaultAsEve = Vault__factory.connect(vault.address, eve);
 
     mdexWorkerAsEve = MdexWorker02__factory.connect(mdexWorker.address, eve);
+    mdexWorkerAsDeployer = MdexWorker02__factory.connect(mdexWorker.address, deployer);
   }
 
   beforeEach(async () => {
@@ -2699,6 +2706,46 @@ describe("Vault - MdexWorker02", () => {
               await revertReserveNotConsistent(true, addStrat.address);
             });
           });
+        });
+      });
+
+      context("#setRewardPath", async () => {
+        beforeEach(async () => {
+          const rewardPath = [mdx.address, wbnb.address, baseToken.address];
+          // set beneficialVaultConfig
+          await mdexWorkerAsDeployer.setBeneficialVaultConfig(BENEFICIALVAULT_BOUNTY_BPS, vault.address, rewardPath);
+        });
+        it("should revert", async () => {
+          const rewardPath = [mdx.address, farmToken.address, farmToken.address];
+          await expect(mdexWorkerAsDeployer.setRewardPath(rewardPath)).to.revertedWith(
+            "MdexWorker02::setRewardPath:: rewardPath must start with MDX and end with beneficialVault token"
+          );
+        });
+
+        it("should be able to set new rewardpath", async () => {
+          const rewardPath = [mdx.address, farmToken.address, baseToken.address];
+          await expect(mdexWorkerAsDeployer.setRewardPath(rewardPath))
+            .to.emit(mdexWorker, "SetRewardPath")
+            .withArgs(deployerAddress, rewardPath);
+        });
+      });
+
+      context("#withdrawTradingRewards", async () => {
+        it("should only withdraw mdx tradingReward from swapMining", async () => {
+          // simulate there are some mdx tokens left in workers
+          await mdxTokenAsDeployer.transfer(mdexWorker.address, ethers.utils.parseEther("0.1"));
+
+          const deployerMdxBalanceBefore = await mdx.balanceOf(DEPLOYER);
+          const workerMdxBalanceBefore = await mdx.balanceOf(mdexWorker.address);
+          // withdraw mdx reward from swapMining and send to deployer
+          const withDrawTx = await mdexWorkerAsDeployer.withdrawTradingRewards(deployerAddress);
+
+          const deployerMdxBalanceAfter = await mdx.balanceOf(DEPLOYER);
+          const workerMdxBalanceAfter = await mdx.balanceOf(mdexWorker.address);
+
+          // there should be no change in worker's mdx amount
+          expect(workerMdxBalanceAfter).to.eq(workerMdxBalanceBefore);
+          expect(deployerMdxBalanceAfter.sub(deployerMdxBalanceBefore)).to.eq(0);
         });
       });
     });
