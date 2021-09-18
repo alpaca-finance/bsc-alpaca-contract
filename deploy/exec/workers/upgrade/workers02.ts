@@ -64,8 +64,94 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const workerInputs: IWorkerInputs = ["BTCB-USDT MdexWorker", "USDT-BTCB MdexWorker"];
-  const EXACT_ETA = "1631678100";
+  const workerInputs: IWorkerInputs = [
+    // "TUSD CakeMaxiWorker",
+    // "BTCB CakeMaxiWorker",
+    // "USDT CakeMaxiWorker",
+    // "ETH CakeMaxiWorker",
+    // "BUSD CakeMaxiWorker",
+    // "WBNB CakeMaxiWorker",
+    // "BUSD-TUSD PancakeswapWorker",
+    // "BUSD-BTCB PancakeswapWorker",
+    // "WBNB-BTCB PancakeswapWorker",
+    // "USDC-USDT PancakeswapWorker",
+    // "CAKE-USDT PancakeswapWorker",
+    // "WBNB-USDT PancakeswapWorker",
+    // "BUSD-USDT PancakeswapWorker",
+    // "BUSD-ALPACA PancakeswapWorker",
+    // "WBNB-ETH PancakeswapWorker",
+    // "SUSHI-ETH PancakeswapWorker",
+    // "COMP-ETH PancakeswapWorker",
+    // "PHA-BUSD PancakeswapWorker",
+    // "PMON-BUSD PancakeswapWorker",
+    // "BTT-BUSD PancakeswapWorker",
+    // "TRX-BUSD PancakeswapWorker",
+    // "ORBS-BUSD PancakeswapWorker",
+    // "TUSD-BUSD PancakeswapWorker",
+    // "FORM-BUSD PancakeswapWorker",
+    // "CAKE-BUSD PancakeswapWorker",
+    // "ALPACA-BUSD PancakeswapWorker",
+    // "BTCB-BUSD PancakeswapWorker",
+    // "UST-BUSD PancakeswapWorker",
+    // "DAI-BUSD PancakeswapWorker",
+    // "USDC-BUSD PancakeswapWorker",
+    // "VAI-BUSD PancakeswapWorker",
+    // "WBNB-BUSD PancakeswapWorker",
+    // "USDT-BUSD PancakeswapWorker",
+    // "DVI-WBNB PancakeswapWorker",
+    // "MBOX-WBNB PancakeswapWorker",
+    // "NAOS-WBNB PancakeswapWorker",
+    // "AXS-WBNB PancakeswapWorker",
+    // "BTT-WBNB PancakeswapWorker",
+    // "TRX-WBNB PancakeswapWorker",
+    // "ADA-WBNB PancakeswapWorker",
+    // "ODDZ-WBNB PancakeswapWorker",
+    // "USDT-WBNB PancakeswapWorker",
+    // "DODO-WBNB PancakeswapWorker",
+    // "SWINGBY-WBNB PancakeswapWorker",
+    // "pCWS-WBNB PancakeswapWorker",
+    // "BELT-WBNB PancakeswapWorker",
+    // "bMXX-WBNB PancakeswapWorker",
+    // "BUSD-WBNB PancakeswapWorker",
+    // "XVS-WBNB PancakeswapWorker",
+    // "LINK-WBNB PancakeswapWorker",
+    // "UNI-WBNB PancakeswapWorker",
+    // "DOT-WBNB PancakeswapWorker",
+    // "ETH-WBNB PancakeswapWorker",
+    // "BTCB-WBNB PancakeswapWorker",
+    // "CAKE-WBNB PancakeswapWorker",
+    // "USDT-TUSD WaultswapWorker",
+    // "BUSD-BTCB WaultswapWorker",
+    // "USDT-BTCB WaultswapWorker",
+    // "ETH-BTCB WaultswapWorker",
+    // "TUSD-USDT WaultswapWorker",
+    // "MATIC-USDT WaultswapWorker",
+    // "ETH-USDT WaultswapWorker",
+    // "BTCB-USDT WaultswapWorker",
+    // "BUSD-USDT WaultswapWorker",
+    // "WEX-USDT WaultswapWorker",
+    // "ALPACA-USDT WaultswapWorker",
+    // "WBNB-ALPACA WaultswapWorker",
+    // "USDT-ALPACA WaultswapWorker",
+    // "USDT-ETH WaultswapWorker",
+    // "BETH-ETH WaultswapWorker",
+    // "BTCB-ETH WaultswapWorker",
+    // "BUSD-ETH WaultswapWorker",
+    // "WUSD-BUSD WaultswapWorker",
+    // "BTCB-BUSD WaultswapWorker",
+    // "USDT-BUSD WaultswapWorker",
+    // "WBNB-BUSD WaultswapWorker",
+    // "ETH-BUSD WaultswapWorker",
+    // "WAULTx-WBNB WaultswapWorker",
+    // "ALPACA-WBNB WaultswapWorker",
+    // "BUSD-WBNB WaultswapWorker",
+    // "WEX-WBNB WaultswapWorker",
+    "BRY-WBNB PancakeswapWorker",
+    "BOR-WBNB PancakeswapWorker",
+    "ITAM-WBNB PancakeswapWorker",
+    "YFI-WBNB PancakeswapWorker",
+  ];
+  const EXACT_ETA = "1632023220";
 
   const config = ConfigEntity.getConfig();
   const allWorkers: IWorkers = config.Vaults.reduce((accum, vault) => {
@@ -109,9 +195,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   for (let i = 0; i < TO_BE_UPGRADE_WORKERS.length; i++) {
     console.log(`>> Preparing to upgrade ${TO_BE_UPGRADE_WORKERS[i].WORKER_NAME}`);
-    const NewPancakeswapWorker: ContractFactory = getFactory(TO_BE_UPGRADE_WORKERS[0].WORKER_NAME, FACTORY);
+    const NewPancakeswapWorker: ContractFactory = getFactory(TO_BE_UPGRADE_WORKERS[i].WORKER_NAME, FACTORY);
     const preparedNewWorker: string = await upgrades.prepareUpgrade(
-      TO_BE_UPGRADE_WORKERS[0].ADDRESS,
+      TO_BE_UPGRADE_WORKERS[i].ADDRESS,
       NewPancakeswapWorker
     );
     const newImpl = preparedNewWorker;
