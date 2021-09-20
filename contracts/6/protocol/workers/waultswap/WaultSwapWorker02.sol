@@ -510,7 +510,7 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
   function setRewardPath(address[] calldata _rewardPath) external onlyOwner {
     require(_rewardPath.length >= 2, "WaultSwapWorker02::setRewardPath:: _rewardPath length must be >= 2");
     require(
-      _rewardPath[0] == wex && _rewardPath[rewardPath.length - 1] == beneficialVault.token(),
+      _rewardPath[0] == wex && _rewardPath[_rewardPath.length - 1] == beneficialVault.token(),
       "WaultSwapWorker02::setRewardPath:: _rewardPath must start with WEX and end with beneficialVault token"
     );
 
