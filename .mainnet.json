@@ -108,6 +108,12 @@
         "name": "ibALPACA-NAOS",
         "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
         "rewardToken": "0x758d08864fb6cce3062667225ca10b8f00496cc2"
+      },
+      {
+        "id": 16,
+        "name": "ibALPACA-DVI",
+        "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
+        "rewardToken": "0x758fb037a375f17c7e195cc634d77da4f554255b"
       }
     ]
   },
@@ -558,6 +564,11 @@
           "pId": 405,
           "name": "MBOX-WBNB LP",
           "address": "0x8FA59693458289914dB0097F5F366d771B7a7C3F"
+        },
+        {
+          "pId": 425,
+          "name": "DVI-WBNB LP",
+          "address": "0x89EBF9cD99864f6E51bd7a578965922029cAB977"
         }
       ]
     },
@@ -706,7 +717,8 @@
     "SCIX": "0x2cfc48cdfea0678137854f010b5390c5144c0aa5",
     "NAOS": "0x758d08864fb6cce3062667225ca10b8f00496cc2",
     "MBOX": "0x3203c9e46ca618c8c1ce5dc67e7e9d75f5da2377",
-    "MDX": "0x9c65ab58d8d978db963e63f2bfb7121627e3a739"
+    "MDX": "0x9c65ab58d8d978db963e63f2bfb7121627e3a739",
+    "DVI": "0x758fb037a375f17c7e195cc634d77da4f554255b"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x1099C2E6Ed6ebA95099c205b599B409305783E43",
@@ -1273,6 +1285,23 @@
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 405,
           "stakingToken": "0x8FA59693458289914dB0097F5F366d771B7a7C3F",
+          "stakingTokenAt": "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+            "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+            "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
+            "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
+          }
+        },
+        {
+          "name": "DVI-WBNB PancakeswapWorker",
+          "address": "0x5C8035eB6f6E724eE6748D9844b6E9ffec0C5cB5",
+          "deployedBlock": 10928194,
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 425,
+          "stakingToken": "0x89EBF9cD99864f6E51bd7a578965922029cAB977",
           "stakingTokenAt": "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",

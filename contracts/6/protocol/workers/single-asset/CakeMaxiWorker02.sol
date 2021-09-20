@@ -514,9 +514,9 @@ contract CakeMaxiWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWo
   /// @dev Set a new reward path. In case that the liquidity of the reward path is changed.
   /// @param _rewardPath The new reward path.
   function setRewardPath(address[] calldata _rewardPath) external onlyOwner {
-    require(rewardPath.length >= 2, "CakeMaxiWorker02::setRewardPath:: rewardPath length must be >= 2");
+    require(_rewardPath.length >= 2, "CakeMaxiWorker02::setRewardPath:: rewardPath length must be >= 2");
     require(
-      rewardPath[0] == farmingToken && rewardPath[rewardPath.length - 1] == beneficialVault.token(),
+      _rewardPath[0] == farmingToken && _rewardPath[_rewardPath.length - 1] == beneficialVault.token(),
       "CakeMaxiWorker02::setRewardPath:: rewardPath must start with farming token and end with beneficialVault token"
     );
 

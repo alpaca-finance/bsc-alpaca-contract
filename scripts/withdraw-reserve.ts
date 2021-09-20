@@ -54,7 +54,7 @@ async function main() {
       reserves.push({
         vault: config.Vaults[i].symbol.replace("ib", ""),
         fullAmount: ethers.utils.formatEther(reserveAmt),
-        buybackAmount: ethers.utils.formatEther(reserveAmt.div(2)),
+        buybackAmount: ethers.utils.formatEther(reserveAmt.mul("5263").div("10000")),
       });
     }
   }
