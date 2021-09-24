@@ -34,6 +34,10 @@ contract MdexRestrictedStrategyWithdrawMinimizeTrading is OwnableUpgradeSafe, Re
   using SafeToken for address;
   using SafeMath for uint256;
 
+  /// @notice Events
+  event SetWorkerOk(address indexed caller, address worker, bool isOk);
+  event WithdrawTradingRewards(address indexed caller, address to, uint256 amount);
+
   IMdexFactory public factory;
   IMdexRouter public router;
   address public mdx;
@@ -128,14 +132,18 @@ contract MdexRestrictedStrategyWithdrawMinimizeTrading is OwnableUpgradeSafe, Re
   function setWorkersOk(address[] calldata workers, bool isOk) external onlyOwner {
     for (uint256 idx = 0; idx < workers.length; idx++) {
       okWorkers[workers[idx]] = isOk;
+      emit SetWorkerOk(msg.sender, workers[idx], isOk);
     }
   }
 
-  /// @dev Withdraw all trading rewards
+  /// @dev Withdraw trading all reward.
   /// @param to The address to transfer trading reward to.
   function withdrawTradingRewards(address to) external onlyOwner {
+    uint256 mdxBalanceBefore = mdx.myBalance();
     IMdexSwapMining(router.swapMining()).takerWithdraw();
-    mdx.safeTransfer(to, mdx.myBalance());
+    uint256 mdxBalanceAfter = mdx.myBalance().sub(mdxBalanceBefore);
+    mdx.safeTransfer(to, mdxBalanceAfter);
+    emit WithdrawTradingRewards(msg.sender, to, mdxBalanceAfter);
   }
 
   /// @dev Get trading rewards by pIds.

@@ -32,6 +32,10 @@ contract MdexRestrictedStrategyPartialCloseLiquidate is OwnableUpgradeSafe, Reen
   using SafeToken for address;
   using SafeMath for uint256;
 
+  /// @notice Events
+  event SetWorkerOk(address indexed caller, address worker, bool isOk);
+  event WithdrawTradingRewards(address indexed caller, address to, uint256 amount);
+
   IMdexFactory public factory;
   IMdexRouter public router;
   address public mdx;
@@ -54,7 +58,7 @@ contract MdexRestrictedStrategyPartialCloseLiquidate is OwnableUpgradeSafe, Reen
   /// @dev Create a new liquidate strategy instance.
   /// @param _router The Mdex Router smart contract.
   /// @param _mdx The address of mdex token.
-  function initialize(IMdexRouter _router, address _mdx) public initializer {
+  function initialize(IMdexRouter _router, address _mdx) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
     factory = IMdexFactory(_router.factory());
@@ -110,14 +114,18 @@ contract MdexRestrictedStrategyPartialCloseLiquidate is OwnableUpgradeSafe, Reen
   function setWorkersOk(address[] calldata workers, bool isOk) external onlyOwner {
     for (uint256 idx = 0; idx < workers.length; idx++) {
       okWorkers[workers[idx]] = isOk;
+      emit SetWorkerOk(msg.sender, workers[idx], isOk);
     }
   }
 
   /// @dev Withdraw trading all reward.
   /// @param to The address to transfer trading reward to.
   function withdrawTradingRewards(address to) external onlyOwner {
+    uint256 mdxBalanceBefore = mdx.myBalance();
     IMdexSwapMining(router.swapMining()).takerWithdraw();
-    mdx.safeTransfer(to, mdx.myBalance());
+    uint256 mdxBalanceAfter = mdx.myBalance().sub(mdxBalanceBefore);
+    mdx.safeTransfer(to, mdxBalanceAfter);
+    emit WithdrawTradingRewards(msg.sender, to, mdxBalanceAfter);
   }
 
   /// @dev Get trading rewards by pIds.
