@@ -60,6 +60,7 @@ contract MdexWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker
     uint256 reinvestThreshold,
     address[] reinvestPath
   );
+  event WithdrawTradingRewards(address indexed caller, address to, uint256 amount);
 
   /// @notice Configuration variables
   IBSCPool public bscPool;
@@ -579,7 +580,9 @@ contract MdexWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker
   function withdrawTradingRewards(address to) external onlyOwner {
     uint256 mdxBalanceBefore = mdx.myBalance();
     IMdexSwapMining(router.swapMining()).takerWithdraw();
-    mdx.safeTransfer(to, mdx.myBalance().sub(mdxBalanceBefore));
+    uint256 mdxBalanceAfter = mdx.myBalance().sub(mdxBalanceBefore);
+    mdx.safeTransfer(to, mdxBalanceAfter);
+    emit WithdrawTradingRewards(msg.sender, to, mdxBalanceAfter);
   }
 
   /// @dev Get all trading rewards.
