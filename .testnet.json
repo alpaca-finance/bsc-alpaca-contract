@@ -53,6 +53,17 @@
       ]
     }
   },
+  "LatteSwap": {
+    "MasterBarista": {
+      "address": "0x0000000000000000000000000000000000000000",
+      "deployedBlock": 0,
+      "pools": []
+    },
+    "Booster": {
+      "address": "0x0000000000000000000000000000000000000000",
+      "deployedBlock": 0
+    }
+  },
   "FairLaunch": {
     "address": "0xac2fefDaF83285EA016BE3f5f1fb039eb800F43D",
     "deployedBlock": 7313308,
@@ -491,6 +502,11 @@
           "pId": 69,
           "name": "DVI-WBNB LP",
           "address": "0x7B443b2Ca4F2b997D1A4A556A575562e7EE96d8c"
+        },
+        {
+          "pId": 70,
+          "name": "QBT-WBNB LP",
+          "address": "0xEB43Fbf74cCA64a6aD385F31637fE41A93586707"
         }
       ]
     },
@@ -666,7 +682,9 @@
     "NAOS": "0xD565ebf5c8E5e1b6f3d6FFD803965139F00D90f2",
     "MBOX": "0x9a1B08f59b94137a9D25a98673487d6Ba2837d35",
     "MDX": "0xa6f16C70bDc80e0C11a2C263B8F76F943464e309",
-    "DVI": "0x55615270b2E5F9aeB74F491E08D8d42799C0349F"
+    "DVI": "0x55615270b2E5F9aeB74F491E08D8d42799C0349F",
+    "QBT": "0x2EF1aDF527939304438154098942fDBc58f98e98",
+    "LATTE": "0x0000000000000000000000000000000000000000"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x7549b7d0edcd411e7e5013dc74727f8dab13ab0f",
@@ -1267,6 +1285,23 @@
           "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
           "pId": 69,
           "stakingToken": "0x7B443b2Ca4F2b997D1A4A556A575562e7EE96d8c",
+          "stakingTokenAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
+            "StrategyLiquidate": "0x58Bbb507248635413172Ed7A2eeC048402C6b39b",
+            "StrategyAddTwoSidesOptimal": "0x0A5515aEdc275b9fF19d11Cd74465e83067f6D40",
+            "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32",
+            "StrategyPartialCloseLiquidate": "0x566aC15667Ae05c1F50Ed9944Aeef5A9dae4AB55",
+            "StrategyPartialCloseMinimizeTrading": "0xBb79EB494Da88F115430D174D5372b51Fc37De50"
+          }
+        },
+        {
+          "name": "QBT-WBNB PancakeswapWorker",
+          "address": "0x9BE4D90308A97a0ADe57e156F376109928d11356",
+          "deployedBlock": 12525144,
+          "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+          "pId": 70,
+          "stakingToken": "0xEB43Fbf74cCA64a6aD385F31637fE41A93586707",
           "stakingTokenAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
           "strategies": {
             "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
