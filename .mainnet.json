@@ -693,7 +693,28 @@
       "MdexFactory": "0x3cd1c46068daea5ebb0d3f55f6915b10648062b8",
       "MdexRouter": "0x7DAe51BD3E3376B8c7c4900E9107f12Be3AF1bA8",
       "SwapMining": "0x782395303692aBeD877d2737Aa7982345eB44c11",
-      "LpTokens": []
+      "LpTokens": [
+        {
+          "pId": 40,
+          "name": "MDX-WBNB LP",
+          "address": "0xAf9Aa53146C5752BF6068A84B970E9fBB22a87bc"
+        },
+        {
+          "pId": 42,
+          "name": "MDX-BUSD LP",
+          "address": "0x223740a259E461aBeE12D84A9FFF5Da69Ff071dD"
+        },
+        {
+          "pId": 28,
+          "name": "BTCB-USDT LP",
+          "address": "0xda28Eb7ABa389C1Ea226A420bCE04Cb565Aafb85"
+        },
+        {
+          "pId": 29,
+          "name": "ETH-USDT LP",
+          "address": "0x0FB881c078434b1C0E4d0B64d8c64d12078b7Ce2"
+        }
+      ]
     }
   },
   "Tokens": {
