@@ -29,45 +29,45 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "testnet_set_approved_add_strategies";
+  const TITLE = "mainnet_mdex_set_approved_add_strategies";
   const TARGETED_VAULT_CONFIG: Array<IInput> = [
     {
       VAULT_SYMBOL: "ibWBNB",
-      ADD_STRATEGIES: ["0xC8C113e710dF52C3B30A5fAc06a8F7db6d1192B8", "0x6E0F5224Ae9F6fFD0Bf617676EE9Ffd783301893"],
+      ADD_STRATEGIES: ["0x632e03943Dd4c5c509486233b345FAE86cD5517a", "0xD8A128e5712D9b240811a0D55D3F9CA8E6599B7A"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibBUSD",
-      ADD_STRATEGIES: ["0xC8C113e710dF52C3B30A5fAc06a8F7db6d1192B8", "0xB3c1141b835799ea5f03D8c3E1d624b37A4aca6b"],
+      ADD_STRATEGIES: ["0x632e03943Dd4c5c509486233b345FAE86cD5517a", "0x632188A1b2f3a2636B59a1c400835e2C5EA40214"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibETH",
-      ADD_STRATEGIES: ["0xC8C113e710dF52C3B30A5fAc06a8F7db6d1192B8", "0x47cf4fb23B9D92B0BC96fF98a2689d6faFc461aA"],
+      ADD_STRATEGIES: ["0x632e03943Dd4c5c509486233b345FAE86cD5517a", "0xB16912cbb98C7ef7aAD30268bDC5602dBb5833f9"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibALPACA",
-      ADD_STRATEGIES: ["0xC8C113e710dF52C3B30A5fAc06a8F7db6d1192B8", "0x7eE92007B6D84f8BE2bD40e57042f82c00a1988c"],
+      ADD_STRATEGIES: ["0x632e03943Dd4c5c509486233b345FAE86cD5517a", "0x090ff57ffD64593111b0Aa7f2D664b1Aa3066137"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibUSDT",
-      ADD_STRATEGIES: ["0xC8C113e710dF52C3B30A5fAc06a8F7db6d1192B8", "0xcCBA4DD083A0c484CCba57507B9c8c35047ed45d"],
+      ADD_STRATEGIES: ["0x632e03943Dd4c5c509486233b345FAE86cD5517a", "0x0768EF9E891725C4c65f3E0fB671aBCD66FC6bee"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibBTCB",
-      ADD_STRATEGIES: ["0xC8C113e710dF52C3B30A5fAc06a8F7db6d1192B8", "0xd4643856dC5351196C208D991346bA602e0E70c7"],
+      ADD_STRATEGIES: ["0x632e03943Dd4c5c509486233b345FAE86cD5517a", "0x34Cce22a47C5f020A5cc4fCc63d231D46577415a"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibTUSD",
-      ADD_STRATEGIES: ["0xC8C113e710dF52C3B30A5fAc06a8F7db6d1192B8", "0xc7f35c9E084B95a8DAD83B2D4370D40115716375"],
+      ADD_STRATEGIES: ["0x632e03943Dd4c5c509486233b345FAE86cD5517a", "0xC9B12a6900c53A9d0eaEd911c1f46f6A1CC8E7Ad"],
       IS_ENABLE: true,
     },
   ];
-  const EXACT_ETA = "1631787180";
+  const EXACT_ETA = "1632903300";
 
   const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
