@@ -637,6 +637,16 @@
           "pId": 5,
           "name": "MDX-ETH LP",
           "address": "0xBF81dcF0e54831B39Ae2C21e02616B1dA123c8c8"
+        },
+        {
+          "pId": -1,
+          "name": "BUSD-USDT LP",
+          "address": ""
+        },
+        {
+            "pId": -1,
+            "name": "WBNB-BUSD LP",
+            "address": ""
         }
       ]
     }

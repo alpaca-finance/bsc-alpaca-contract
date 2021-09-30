@@ -723,6 +723,16 @@
           "pId": 29,
           "name": "ETH-USDT LP",
           "address": "0x0FB881c078434b1C0E4d0B64d8c64d12078b7Ce2"
+        },
+        {
+          "pId": 32,
+          "name": "BUSD-USDT LP",
+          "address": "0x62c1dEC1fF328DCdC157Ae0068Bb21aF3967aCd9"
+        },
+        {
+            "pId": 53,
+            "name": "WBNB-BUSD LP",
+            "address": "0x340192D37d95fB609874B1db6145ED26d1e47744"
         }
       ]
     }
