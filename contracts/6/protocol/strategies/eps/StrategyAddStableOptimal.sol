@@ -83,8 +83,8 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
   }
 
   struct PoolState {
-    uint128 i;
-    uint128 j;
+    uint128 xIndex;
+    uint128 yIndex;
     uint256[3] balances;
   }
 
@@ -129,7 +129,7 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     uint256 baseTokenAmount = baseToken.myBalance();
     BalancePair memory userBalances = BalancePair(baseTokenAmount, farmingTokenAmount);
 
-    PoolState memory fpState;
+    PoolState memory fixedProductState;
     IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
     {
       (uint256 _reserve0, uint256 _reserve1, ) = lpToken.getReserves();
@@ -140,10 +140,10 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
         i_fp = 1;
         j_fp = 0;
       }
-      fpState = PoolState(i_fp, j_fp, fpBalances);
+      fixedProductState = PoolState(i_fp, j_fp, fpBalances);
     }
 
-    PoolState memory sbState;
+    PoolState memory stableSwapState;
     {
       uint256[3] memory sbBalances = [epsPool.balances(0), epsPool.balances(1), epsPool.balances(2)];
       uint128 i_sb;
@@ -167,19 +167,19 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
           j_sb = 1;
         }
       }
-      sbState = PoolState(i_sb, j_sb, sbBalances);
+      stableSwapState = PoolState(i_sb, j_sb, sbBalances);
     }
 
     // calc dx to swap on EPS
     uint256 dx;
     {
-      if ((fpState.balances[fpState.i]).mul(userBalances.y) >= (fpState.balances[fpState.j]).mul(userBalances.x)) {
-        (fpState.i, fpState.j) = (fpState.j, fpState.i);
-        (sbState.i, sbState.j) = (sbState.j, sbState.i);
+      if ((fixedProductState.balances[fixedProductState.xIndex]).mul(userBalances.y) >= (fixedProductState.balances[fixedProductState.yIndex]).mul(userBalances.x)) {
+        (fixedProductState.xIndex, fixedProductState.yIndex) = (fixedProductState.yIndex, fixedProductState.xIndex);
+        (stableSwapState.xIndex, stableSwapState.yIndex) = (stableSwapState.yIndex, stableSwapState.xIndex);
         (userBalances.x, userBalances.y) = (userBalances.y, userBalances.x);
       }
       userBalances.y = (userBalances.y.mul(epsFeeDenom)).div(epsFeeDenom.sub(epsFee));
-      dx = get_dx(fpState, sbState, userBalances);
+      dx = get_dx(fixedProductState, stableSwapState, userBalances);
     }
     // approve EPS pool
     baseToken.safeApprove(address(epsPool), uint256(-1));
@@ -189,7 +189,7 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     farmingToken.safeApprove(address(router), uint256(-1));
 
     // swap on EPS
-    if (dx > 0) epsPool.exchange(int128(sbState.i), int128(sbState.j), dx, 0);
+    if (dx > 0) epsPool.exchange(int128(stableSwapState.xIndex), int128(stableSwapState.yIndex), dx, 0);
 
     // add LP
     uint256 moreLPAmount;
@@ -217,29 +217,29 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
   }
 
   /// @dev Simplify both sides of FP balances to the factor of `D` for easing future computationas, as only the ratio between two that matters
-  /// @param fpState the state of fixed-product pool
+  /// @param fixedProductState the state of fixed-product pool
   /// @param D constant D (stable pool constant)
-  function simplifyFpState(PoolState memory fpState, uint256 D) private pure returns (PoolState memory) {
+  function simplifyFpState(PoolState memory fixedProductState, uint256 D) private pure returns (PoolState memory) {
     // only ratio that matters (order of D but remain ratio)
-    // must compute fpState.j then fpState.i, never swap line
-    fpState.balances[fpState.j] = D.mul(fpState.balances[fpState.j]).div(fpState.balances[fpState.i]);
-    fpState.balances[fpState.i] = D;
-    return fpState;
+    // must compute fixedProductState.yIndex then fixedProductState.xIndex, never swap line
+    fixedProductState.balances[fixedProductState.yIndex] = D.mul(fixedProductState.balances[fixedProductState.yIndex]).div(fixedProductState.balances[fixedProductState.xIndex]);
+    fixedProductState.balances[fixedProductState.xIndex] = D;
+    return fixedProductState;
   }
 
   /// @dev Calculate dx (the amount of token x to be swapped to token y) that gives user the optimal LP position on PCS
-  /// @param fpState the state of fixed-product pool
-  /// @param sbState the state of stable pool
+  /// @param fixedProductState the state of fixed-product pool
+  /// @param stableSwapState the state of stable pool
   /// @param userBalances user balances
   function get_dx(
-    PoolState memory fpState,
-    PoolState memory sbState,
+    PoolState memory fixedProductState,
+    PoolState memory stableSwapState,
     BalancePair memory userBalances
   ) private view returns (uint256) {
-    uint256 N_COINS = sbState.balances.length; 
+    uint256 N_COINS = stableSwapState.balances.length; 
     uint256 Ann = epsA.mul(N_COINS);
-    uint256 D = getD(sbState.balances, epsA);
-    fpState = simplifyFpState(fpState, D);
+    uint256 D = getD(stableSwapState.balances, epsA);
+    fixedProductState = simplifyFpState(fixedProductState, D);
 
     // avoid stack too deep
     uint256 S = 0;
@@ -247,9 +247,9 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     
     {
       for (uint128 _i = 0; _i < N_COINS; _i++) {
-        if (_i != sbState.i && _i != sbState.j) {
-          S = S.add(sbState.balances[_i]);
-          U = (U.mul(D)).div(sbState.balances[_i].mul(N_COINS));
+        if (_i != stableSwapState.xIndex && _i != stableSwapState.yIndex) {
+          S = S.add(stableSwapState.balances[_i]);
+          U = (U.mul(D)).div(stableSwapState.balances[_i].mul(N_COINS));
         }
       }
     }
@@ -261,13 +261,13 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
         VariablePack(
           userBalances.x,
           userBalances.y,
-          sbState.balances[sbState.i], 
-          sbState.balances[sbState.j],
+          stableSwapState.balances[stableSwapState.xIndex], 
+          stableSwapState.balances[stableSwapState.yIndex],
           D,
           S,
           U,
-          fpState.balances[fpState.i],
-          fpState.balances[fpState.j],
+          fixedProductState.balances[fixedProductState.xIndex],
+          fixedProductState.balances[fixedProductState.yIndex],
           N_COINS,
           Ann
         );
@@ -275,10 +275,10 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
       (x, y) = findLineIntersectionWithTangent(varPack, N_COINS);
       (x, y) = verHorNewtonStep(x, y, varPack);
     }
-    if (x < sbState.balances[sbState.i]) {
+    if (x < stableSwapState.balances[stableSwapState.xIndex]) {
       return 0;
     } else {
-      return x.sub(sbState.balances[sbState.i]);
+      return x.sub(stableSwapState.balances[stableSwapState.xIndex]);
     }
   }
 
@@ -352,8 +352,8 @@ contract StrategyAddStableOptimal is IStrategy, OwnableUpgradeSafe, ReentrancyGu
     view
     returns (uint256 x, uint256 y)
   {
-    // X0 = sbState.balances[sbState.i];
-    // Y0 = sbState.balances[sbState.j];
+    // X0 = stableSwapState.balances[stableSwapState.xIndex];
+    // Y0 = stableSwapState.balances[stableSwapState.yIndex];
     uint256 stepXPos = 0;
     uint256 stepXNeg = 0;
     uint256 stepYPos = 0;

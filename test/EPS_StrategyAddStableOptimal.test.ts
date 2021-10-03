@@ -46,6 +46,11 @@ describe("EPS - StrategyAddStableOptimal", () => {
   const FOREVER = "2000000000";
   const CAKE_REWARD_PER_BLOCK = ethers.utils.parseEther("0.076");
 
+  /// @dev 
+  /// The ending test-cases will take hours generating running test cases and save output as CSV.
+  /// To enable, set CONFIG_RUN_CSV_TEST_FILE = `true`
+  const CONFIG_RUN_CSV_TEST_FILE: Boolean = false
+
   /// Pancakeswap-related instance(s)
   let factoryV2: PancakeFactory;
   let routerV2: PancakeRouterV2;
@@ -667,79 +672,81 @@ describe("EPS - StrategyAddStableOptimal", () => {
 
   let testCaseId = 1;
   const allTestCases = testCaseUserBalancesIn.length * testCaseStableSwapAmountInit.length * testCasePancakeSwapAmountInit.length;
-  for(let stableSwapAmountInit of testCaseStableSwapAmountInit) {
-    for(let pancakeSwapAmountInit of testCasePancakeSwapAmountInit) {
-      for(let userBalancesIn of testCaseUserBalancesIn) {
-        it(`should run test case PCS (${testCaseId}/${allTestCases}): ${pancakeSwapAmountInit.USDT}/${pancakeSwapAmountInit.BUSD}/${pancakeSwapAmountInit.USDT_to_BUSD_swapAmount} | EPS: ${stableSwapAmountInit[0]}/${stableSwapAmountInit[1]}/${stableSwapAmountInit[2]} | user: ${userBalancesIn[0]}/${userBalancesIn[1]} smoothly`, async () => {
-          /// add liquidities to PancakeSwap
-          await swapHelper.addLiquidities([
-            {
-              token0: USDT,
-              token1: BUSD,
-              amount0desired: pancakeSwapAmountInit.USDT,
-              amount1desired: pancakeSwapAmountInit.BUSD,
-            },
-          ]);
-
-          let reserved_ = await USDT_BUSD.getReserves();
-          /// swap to make PCS somewhat unbalanced in order to facilitate variety of test cases
-          if (pancakeSwapAmountInit.USDT_to_BUSD_swapAmount > ethers.utils.parseEther("0")) {
-            USDT.mint(bobAddress, pancakeSwapAmountInit.USDT_to_BUSD_swapAmount);
-            await routerV2AsBob.swapExactTokensForTokens(pancakeSwapAmountInit.USDT_to_BUSD_swapAmount, 0, [USDT.address, BUSD.address], bobAddress, FOREVER);
-          }
-          let reserved = await USDT_BUSD.getReserves();
-          let pancakeSwapAmountInit0 = (reserved['_reserve0'].toString());
-          let pancakeSwapAmountInit1 = (reserved['_reserve1'].toString());
-
-          // add liquidities to StableSwap
-          await stableSwapAsDeployer.add_liquidity(
-            [
-              stableSwapAmountInit[0],
-              stableSwapAmountInit[1], 
-              stableSwapAmountInit[2], 
-            ],
-            ethers.BigNumber.from("1")
-          );
-
-          /// Mint to Alice
-          await USDT.mint(aliceAddress, userBalancesIn[0]);
-          await BUSD.mint(aliceAddress, userBalancesIn[1]);
-
-          /// Alice use StrategyAddStableOptimal to find the largest LP amount through StableSwap
-          await mockedVault.setMockOwner(aliceAddress);
-          await BUSD_asAlice.transfer(mockPancakeswapV2Worker_USDT_BUSD_asAlice.address, await BUSD.balanceOf(aliceAddress))
-          const aliceStratTx = await mockPancakeswapV2Worker_USDT_BUSD_asAlice.work(0, aliceAddress, 0, 
-            ethers.utils.defaultAbiCoder.encode(
-              ['address', 'bytes'],
-              [addStableStrat.address, ethers.utils.defaultAbiCoder.encode(
-                ['uint256','uint256'],
-                [await USDT.balanceOf(aliceAddress), '0']
-              )],
-          ));
-          const alice_USDT_BUSD = await USDT_BUSD.balanceOf(mockPancakeswapV2Worker_USDT_BUSD.address);
-          /// alice's debris after strategy
-          const alice_strat_BUSD = await BUSD.balanceOf(addStableStrat.address);
-          const alice_strat_USDT = await USDT.balanceOf(addStableStrat.address);
-
-          const gasUsed = (await aliceStratTx.wait()).gasUsed;
-
-          /// user_x | user_y | eps_x | eps_y | eps_z | pcs_x | pcs_y | gas | optained_LP | debris_x | debris_y
-          let data = [`${testCaseId},${userBalancesIn[1]},${userBalancesIn[0]},${stableSwapAmountInit[0]},${stableSwapAmountInit[2]},${stableSwapAmountInit[1]},${pancakeSwapAmountInit1},${pancakeSwapAmountInit0},${gasUsed},${alice_USDT_BUSD.toString()},${alice_strat_BUSD.toString()},${alice_strat_USDT.toString()}\n`];
-          let csv = data.map((e) => {
-              return e.replace(/;/g, ",");
-          });
-          fs.appendFile(outputCsvFile, csv.join("\r\n"), (err) => {
-            console.log(err || "csv appended");
-          });
-
-          /// assert
-          expect(alice_USDT_BUSD).to.be.gt(0);
-          /// assert no debris left (less than 10 * 10^-18 on both sides)
-          expect(alice_strat_BUSD).to.be.lt(10);
-          expect(alice_strat_USDT).to.be.lt(10);
-          return
-        }).timeout(200000)
-        testCaseId += 1;
+  if (CONFIG_RUN_CSV_TEST_FILE) {
+    for(let stableSwapAmountInit of testCaseStableSwapAmountInit) {
+      for(let pancakeSwapAmountInit of testCasePancakeSwapAmountInit) {
+        for(let userBalancesIn of testCaseUserBalancesIn) {
+          it(`should run test case PCS (${testCaseId}/${allTestCases}): ${pancakeSwapAmountInit.USDT}/${pancakeSwapAmountInit.BUSD}/${pancakeSwapAmountInit.USDT_to_BUSD_swapAmount} | EPS: ${stableSwapAmountInit[0]}/${stableSwapAmountInit[1]}/${stableSwapAmountInit[2]} | user: ${userBalancesIn[0]}/${userBalancesIn[1]} smoothly`, async () => {
+            /// add liquidities to PancakeSwap
+            await swapHelper.addLiquidities([
+              {
+                token0: USDT,
+                token1: BUSD,
+                amount0desired: pancakeSwapAmountInit.USDT,
+                amount1desired: pancakeSwapAmountInit.BUSD,
+              },
+            ]);
+  
+            let reserved_ = await USDT_BUSD.getReserves();
+            /// swap to make PCS somewhat unbalanced in order to facilitate variety of test cases
+            if (pancakeSwapAmountInit.USDT_to_BUSD_swapAmount > ethers.utils.parseEther("0")) {
+              USDT.mint(bobAddress, pancakeSwapAmountInit.USDT_to_BUSD_swapAmount);
+              await routerV2AsBob.swapExactTokensForTokens(pancakeSwapAmountInit.USDT_to_BUSD_swapAmount, 0, [USDT.address, BUSD.address], bobAddress, FOREVER);
+            }
+            let reserved = await USDT_BUSD.getReserves();
+            let pancakeSwapAmountInit0 = (reserved['_reserve0'].toString());
+            let pancakeSwapAmountInit1 = (reserved['_reserve1'].toString());
+  
+            // add liquidities to StableSwap
+            await stableSwapAsDeployer.add_liquidity(
+              [
+                stableSwapAmountInit[0],
+                stableSwapAmountInit[1], 
+                stableSwapAmountInit[2], 
+              ],
+              ethers.BigNumber.from("1")
+            );
+  
+            /// Mint to Alice
+            await USDT.mint(aliceAddress, userBalancesIn[0]);
+            await BUSD.mint(aliceAddress, userBalancesIn[1]);
+  
+            /// Alice use StrategyAddStableOptimal to find the largest LP amount through StableSwap
+            await mockedVault.setMockOwner(aliceAddress);
+            await BUSD_asAlice.transfer(mockPancakeswapV2Worker_USDT_BUSD_asAlice.address, await BUSD.balanceOf(aliceAddress))
+            const aliceStratTx = await mockPancakeswapV2Worker_USDT_BUSD_asAlice.work(0, aliceAddress, 0, 
+              ethers.utils.defaultAbiCoder.encode(
+                ['address', 'bytes'],
+                [addStableStrat.address, ethers.utils.defaultAbiCoder.encode(
+                  ['uint256','uint256'],
+                  [await USDT.balanceOf(aliceAddress), '0']
+                )],
+            ));
+            const alice_USDT_BUSD = await USDT_BUSD.balanceOf(mockPancakeswapV2Worker_USDT_BUSD.address);
+            /// alice's debris after strategy
+            const alice_strat_BUSD = await BUSD.balanceOf(addStableStrat.address);
+            const alice_strat_USDT = await USDT.balanceOf(addStableStrat.address);
+  
+            const gasUsed = (await aliceStratTx.wait()).gasUsed;
+  
+            /// user_x | user_y | eps_x | eps_y | eps_z | pcs_x | pcs_y | gas | optained_LP | debris_x | debris_y
+            let data = [`${testCaseId},${userBalancesIn[1]},${userBalancesIn[0]},${stableSwapAmountInit[0]},${stableSwapAmountInit[2]},${stableSwapAmountInit[1]},${pancakeSwapAmountInit1},${pancakeSwapAmountInit0},${gasUsed},${alice_USDT_BUSD.toString()},${alice_strat_BUSD.toString()},${alice_strat_USDT.toString()}\n`];
+            let csv = data.map((e) => {
+                return e.replace(/;/g, ",");
+            });
+            fs.appendFile(outputCsvFile, csv.join("\r\n"), (err) => {
+              console.log(err || "csv appended");
+            });
+  
+            /// assert
+            expect(alice_USDT_BUSD).to.be.gt(0);
+            /// assert no debris left (less than 10 * 10^-18 on both sides)
+            expect(alice_strat_BUSD).to.be.lt(10);
+            expect(alice_strat_USDT).to.be.lt(10);
+            return
+          }).timeout(200000)
+          testCaseId += 1;
+        }
       }
     }
   }
