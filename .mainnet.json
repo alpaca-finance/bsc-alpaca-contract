@@ -730,9 +730,19 @@
           "address": "0x62c1dEC1fF328DCdC157Ae0068Bb21aF3967aCd9"
         },
         {
-            "pId": 53,
-            "name": "WBNB-BUSD LP",
-            "address": "0x340192D37d95fB609874B1db6145ED26d1e47744"
+          "pId": 53,
+          "name": "WBNB-BUSD LP",
+          "address": "0x340192D37d95fB609874B1db6145ED26d1e47744"
+        },
+        {
+          "pId": 31,
+          "name": "WBNB-USDT LP",
+          "address": "0x09CB618bf5eF305FadfD2C8fc0C26EeCf8c6D5fd"
+        },
+        {
+          "pId": 54,
+          "name": "WBNB-ETH LP",
+          "address": "0x82E8F9e7624fA038DfF4a39960F5197A43fa76aa"
         }
       ]
     }
@@ -857,6 +867,57 @@
         "Mdex": "0xD8A128e5712D9b240811a0D55D3F9CA8E6599B7A"
       },
       "workers": [
+        {
+          "name": "USDT-WBNB MdexWorker",
+          "address": "0xbEB7c0BF4cdc19853CC72281DeC5aF697531f6Cd",
+          "deployedBlock": 11469695,
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 31,
+          "stakingToken": "0x09CB618bf5eF305FadfD2C8fc0C26EeCf8c6D5fd",
+          "stakingTokenAt": "0xc48FE252Aa631017dF253578B1405ea399728A50",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x632e03943Dd4c5c509486233b345FAE86cD5517a",
+            "StrategyLiquidate": "0xBD2c6BEd2b89415FE2853941a222662f12166f1D",
+            "StrategyAddTwoSidesOptimal": "0xD8A128e5712D9b240811a0D55D3F9CA8E6599B7A",
+            "StrategyWithdrawMinimizeTrading": "0x47F1c5F505043DEe9604B98D99304f7Ad4239b72",
+            "StrategyPartialCloseLiquidate": "0xDAf7205a8Afc4d77171f5BFd24808946eCCF373e",
+            "StrategyPartialCloseMinimizeTrading": "0x665a8E4b88f6bfA984b1568505Cb4545f7816Ce2"
+          }
+        },
+        {
+          "name": "ETH-WBNB MdexWorker",
+          "address": "0x8a426aABF42AaE9E0f483cBe3C0DCc00b7659AEC",
+          "deployedBlock": 11469735,
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 54,
+          "stakingToken": "0x82E8F9e7624fA038DfF4a39960F5197A43fa76aa",
+          "stakingTokenAt": "0xc48FE252Aa631017dF253578B1405ea399728A50",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x632e03943Dd4c5c509486233b345FAE86cD5517a",
+            "StrategyLiquidate": "0xBD2c6BEd2b89415FE2853941a222662f12166f1D",
+            "StrategyAddTwoSidesOptimal": "0xD8A128e5712D9b240811a0D55D3F9CA8E6599B7A",
+            "StrategyWithdrawMinimizeTrading": "0x47F1c5F505043DEe9604B98D99304f7Ad4239b72",
+            "StrategyPartialCloseLiquidate": "0xDAf7205a8Afc4d77171f5BFd24808946eCCF373e",
+            "StrategyPartialCloseMinimizeTrading": "0x665a8E4b88f6bfA984b1568505Cb4545f7816Ce2"
+          }
+        },
+        {
+          "name": "BUSD-WBNB MdexWorker",
+          "address": "0x94bD7C206ce735213c2e9ECeF424af7eb71a425F",
+          "deployedBlock": 11469774,
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 53,
+          "stakingToken": "0x340192D37d95fB609874B1db6145ED26d1e47744",
+          "stakingTokenAt": "0xc48FE252Aa631017dF253578B1405ea399728A50",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x632e03943Dd4c5c509486233b345FAE86cD5517a",
+            "StrategyLiquidate": "0xBD2c6BEd2b89415FE2853941a222662f12166f1D",
+            "StrategyAddTwoSidesOptimal": "0xD8A128e5712D9b240811a0D55D3F9CA8E6599B7A",
+            "StrategyWithdrawMinimizeTrading": "0x47F1c5F505043DEe9604B98D99304f7Ad4239b72",
+            "StrategyPartialCloseLiquidate": "0xDAf7205a8Afc4d77171f5BFd24808946eCCF373e",
+            "StrategyPartialCloseMinimizeTrading": "0x665a8E4b88f6bfA984b1568505Cb4545f7816Ce2"
+          }
+        },
         {
           "name": "MDX-WBNB MdexWorker",
           "address": "0x0444201F61E06b35Cab85807c2dc4764703bE745",
@@ -1437,6 +1498,23 @@
       },
       "workers": [
         {
+          "name": "WBNB-BUSD MdexWorker",
+          "address": "0xA7837a1198fB33aE2fC9Ee1E1d679242B4785FFC",
+          "deployedBlock": 11469754,
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 53,
+          "stakingToken": "0x340192D37d95fB609874B1db6145ED26d1e47744",
+          "stakingTokenAt": "0xc48FE252Aa631017dF253578B1405ea399728A50",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x632e03943Dd4c5c509486233b345FAE86cD5517a",
+            "StrategyLiquidate": "0xBD2c6BEd2b89415FE2853941a222662f12166f1D",
+            "StrategyAddTwoSidesOptimal": "0x632188A1b2f3a2636B59a1c400835e2C5EA40214",
+            "StrategyWithdrawMinimizeTrading": "0x47F1c5F505043DEe9604B98D99304f7Ad4239b72",
+            "StrategyPartialCloseLiquidate": "0xDAf7205a8Afc4d77171f5BFd24808946eCCF373e",
+            "StrategyPartialCloseMinimizeTrading": "0x665a8E4b88f6bfA984b1568505Cb4545f7816Ce2"
+          }
+        },
+        {
           "name": "MDX-BUSD MdexWorker",
           "address": "0x0Ec1B4A034E7a4Dd746F2c5C7DC806293Db7D413",
           "deployedBlock": 11302348,
@@ -1846,6 +1924,23 @@
       },
       "workers": [
         {
+          "name": "WBNB-ETH MdexWorker",
+          "address": "0xC42023C518014e4f843BeE928b27D4E004926584",
+          "deployedBlock": 11469716,
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 54,
+          "stakingToken": "0x82E8F9e7624fA038DfF4a39960F5197A43fa76aa",
+          "stakingTokenAt": "0xc48FE252Aa631017dF253578B1405ea399728A50",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x632e03943Dd4c5c509486233b345FAE86cD5517a",
+            "StrategyLiquidate": "0xBD2c6BEd2b89415FE2853941a222662f12166f1D",
+            "StrategyAddTwoSidesOptimal": "0xB16912cbb98C7ef7aAD30268bDC5602dBb5833f9",
+            "StrategyWithdrawMinimizeTrading": "0x47F1c5F505043DEe9604B98D99304f7Ad4239b72",
+            "StrategyPartialCloseLiquidate": "0xDAf7205a8Afc4d77171f5BFd24808946eCCF373e",
+            "StrategyPartialCloseMinimizeTrading": "0x665a8E4b88f6bfA984b1568505Cb4545f7816Ce2"
+          }
+        },
+        {
           "name": "USDT-ETH MdexWorker",
           "address": "0xC25f74A4C4c5f814ce1B92aF573f18905BecCB54",
           "deployedBlock": 11302305,
@@ -2102,6 +2197,23 @@
         "Mdex": "0x0768EF9E891725C4c65f3E0fB671aBCD66FC6bee"
       },
       "workers": [
+        {
+          "name": "WBNB-USDT MdexWorker",
+          "address": "0x165102dd6ea72a4fB513fF78f30E835c8f099c25",
+          "deployedBlock": 11469675,
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 31,
+          "stakingToken": "0x09CB618bf5eF305FadfD2C8fc0C26EeCf8c6D5fd",
+          "stakingTokenAt": "0xc48FE252Aa631017dF253578B1405ea399728A50",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x632e03943Dd4c5c509486233b345FAE86cD5517a",
+            "StrategyLiquidate": "0xBD2c6BEd2b89415FE2853941a222662f12166f1D",
+            "StrategyAddTwoSidesOptimal": "0x0768EF9E891725C4c65f3E0fB671aBCD66FC6bee",
+            "StrategyWithdrawMinimizeTrading": "0x47F1c5F505043DEe9604B98D99304f7Ad4239b72",
+            "StrategyPartialCloseLiquidate": "0xDAf7205a8Afc4d77171f5BFd24808946eCCF373e",
+            "StrategyPartialCloseMinimizeTrading": "0x665a8E4b88f6bfA984b1568505Cb4545f7816Ce2"
+          }
+        },
         {
           "name": "ETH-USDT MdexWorker",
           "address": "0x5940760382CaEbf45463Cf8845E610820d3c51d5",
