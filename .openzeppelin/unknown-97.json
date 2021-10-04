@@ -374,6 +374,26 @@
       "address": "0x9BE4D90308A97a0ADe57e156F376109928d11356",
       "txHash": "0xd721b80fe44d24c04307e13a749445ecc1fdf6231be6b8d0ea9ec5cc42580eef",
       "kind": "transparent"
+    },
+    {
+      "address": "0x4c5D9d5980693557787A45046E434ad8325ae56b",
+      "txHash": "0x7c2bb8c5b6f55e5f0b01deb4c4e3a82b77c1264e193ba53f31dd3badb0a874da",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x7e8a5817D53C079584abfaEEfAbD07454b7157ab",
+      "txHash": "0xa2ebf4e5964d3e143398b377ba1659b528f0418746b234bf62ad41eec5df3d91",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x9D7a176978fE9dd01ed915127ba322536c4Ce977",
+      "txHash": "0xff49d6f2963c46084d51f82bf9de8c3c4a2250829b33e3eb316607a39abbb913",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x222e16e80dc7d1C9B5BdE5316f3Aa839a469cbef",
+      "txHash": "0xb6ba5aa088aa213e6fb5dec0ddb97999665650917218649288392831b5c23ae2",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -20797,6 +20817,268 @@
           },
           "t_contract(IPancakeRouter02)18144": {
             "label": "contract IPancakeRouter02"
+          },
+          "t_contract(IPancakePair)3510": {
+            "label": "contract IPancakePair"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_uint256,t_uint256)": {
+            "label": "mapping(uint256 => uint256)"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_contract(IStrategy)27090": {
+            "label": "contract IStrategy"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]"
+          },
+          "t_contract(IVault)27124": {
+            "label": "contract IVault"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "eaf0c077376c21fb18575d13a9c40758c95f6761e4d40326f9d8102ab2dac834": {
+      "address": "0x8c430EB2ec30A8c2051D0CF23048cBEea083214B",
+      "txHash": "0x88eeb685e91d3abb1027ea07d26dbce86eae752a1855aa9194eca8c6508fa3d9",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:26"
+          },
+          {
+            "contract": "Initializable",
+            "label": "______gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:61"
+          },
+          {
+            "contract": "ContextUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol:37"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:18"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:78"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "_notEntered",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:21"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:63"
+          },
+          {
+            "contract": "MdexWorker02",
+            "label": "bscPool",
+            "type": "t_contract(IBSCPool)26906",
+            "src": "contracts/6/protocol/workers/mdex/MdexWorker02.sol:68"
+          },
+          {
+            "contract": "MdexWorker02",
+            "label": "factory",
+            "type": "t_contract(IMdexFactory)11013",
+            "src": "contracts/6/protocol/workers/mdex/MdexWorker02.sol:69"
+          },
+          {
+            "contract": "MdexWorker02",
+            "label": "router",
+            "type": "t_contract(IMdexRouter)11658",
+            "src": "contracts/6/protocol/workers/mdex/MdexWorker02.sol:70"
+          },
+          {
+            "contract": "MdexWorker02",
+            "label": "lpToken",
+            "type": "t_contract(IPancakePair)3510",
+            "src": "contracts/6/protocol/workers/mdex/MdexWorker02.sol:71"
+          },
+          {
+            "contract": "MdexWorker02",
+            "label": "wNative",
+            "type": "t_address",
+            "src": "contracts/6/protocol/workers/mdex/MdexWorker02.sol:72"
+          },
+          {
+            "contract": "MdexWorker02",
+            "label": "baseToken",
+            "type": "t_address",
+            "src": "contracts/6/protocol/workers/mdex/MdexWorker02.sol:72"
+          },
+          {
+            "contract": "MdexWorker02",
+            "label": "farmingToken",
+            "type": "t_address",
+            "src": "contracts/6/protocol/workers/mdex/MdexWorker02.sol:74"
+          },
+          {
+            "contract": "MdexWorker02",
+            "label": "mdx",
+            "type": "t_address",
+            "src": "contracts/6/protocol/workers/mdex/MdexWorker02.sol:77"
+          },
+          {
+            "contract": "MdexWorker02",
+            "label": "operator",
+            "type": "t_address",
+            "src": "contracts/6/protocol/workers/mdex/MdexWorker02.sol:77"
+          },
+          {
+            "contract": "MdexWorker02",
+            "label": "pid",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/mdex/MdexWorker02.sol:78"
+          },
+          {
+            "contract": "MdexWorker02",
+            "label": "shares",
+            "type": "t_mapping(t_uint256,t_uint256)",
+            "src": "contracts/6/protocol/workers/mdex/MdexWorker02.sol:79"
+          },
+          {
+            "contract": "MdexWorker02",
+            "label": "okStrats",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/6/protocol/workers/mdex/MdexWorker02.sol:80"
+          },
+          {
+            "contract": "MdexWorker02",
+            "label": "totalShare",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/mdex/MdexWorker02.sol:82"
+          },
+          {
+            "contract": "MdexWorker02",
+            "label": "addStrat",
+            "type": "t_contract(IStrategy)27090",
+            "src": "contracts/6/protocol/workers/mdex/MdexWorker02.sol:83"
+          },
+          {
+            "contract": "MdexWorker02",
+            "label": "liqStrat",
+            "type": "t_contract(IStrategy)27090",
+            "src": "contracts/6/protocol/workers/mdex/MdexWorker02.sol:84"
+          },
+          {
+            "contract": "MdexWorker02",
+            "label": "reinvestBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/mdex/MdexWorker02.sol:84"
+          },
+          {
+            "contract": "MdexWorker02",
+            "label": "maxReinvestBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/mdex/MdexWorker02.sol:85"
+          },
+          {
+            "contract": "MdexWorker02",
+            "label": "okReinvestors",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/6/protocol/workers/mdex/MdexWorker02.sol:87"
+          },
+          {
+            "contract": "MdexWorker02",
+            "label": "feeDenom",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/mdex/MdexWorker02.sol:90"
+          },
+          {
+            "contract": "MdexWorker02",
+            "label": "reinvestThreshold",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/mdex/MdexWorker02.sol:93"
+          },
+          {
+            "contract": "MdexWorker02",
+            "label": "reinvestPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "contracts/6/protocol/workers/mdex/MdexWorker02.sol:94"
+          },
+          {
+            "contract": "MdexWorker02",
+            "label": "treasuryAccount",
+            "type": "t_address",
+            "src": "contracts/6/protocol/workers/mdex/MdexWorker02.sol:95"
+          },
+          {
+            "contract": "MdexWorker02",
+            "label": "treasuryBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/mdex/MdexWorker02.sol:96"
+          },
+          {
+            "contract": "MdexWorker02",
+            "label": "beneficialVault",
+            "type": "t_contract(IVault)27124",
+            "src": "contracts/6/protocol/workers/mdex/MdexWorker02.sol:96"
+          },
+          {
+            "contract": "MdexWorker02",
+            "label": "beneficialVaultBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/mdex/MdexWorker02.sol:97"
+          },
+          {
+            "contract": "MdexWorker02",
+            "label": "rewardPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "contracts/6/protocol/workers/mdex/MdexWorker02.sol:100"
+          },
+          {
+            "contract": "MdexWorker02",
+            "label": "buybackAmount",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/mdex/MdexWorker02.sol:101"
+          }
+        ],
+        "types": {
+          "t_contract(IBSCPool)26906": {
+            "label": "contract IBSCPool"
+          },
+          "t_contract(IMdexFactory)11013": {
+            "label": "contract IMdexFactory"
+          },
+          "t_contract(IMdexRouter)11658": {
+            "label": "contract IMdexRouter"
           },
           "t_contract(IPancakePair)3510": {
             "label": "contract IPancakePair"
