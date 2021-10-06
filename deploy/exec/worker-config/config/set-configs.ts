@@ -31,10 +31,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       ACCEPT_DEBT: true,
       WORK_FACTOR: "7000",
       KILL_FACTOR: "8333",
-      MAX_PRICE_DIFF: "10500000000000",
+      MAX_PRICE_DIFF: "10500",
     },
   ];
-  const EXACT_ETA = "1633494900";
+  const EXACT_ETA = "1633584600";
 
   const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
   const inputs: Array<IInput> = [];

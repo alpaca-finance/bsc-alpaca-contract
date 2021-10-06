@@ -902,8 +902,8 @@
       "workers": [
         {
           "name": "BTCB-WBNB MdexWorker",
-          "address": "",
-          "deployedBlock": 888888888,
+          "address": "0x5EffBF90F915B59cc967060740243037CE9E6a7E",
+          "deployedBlock": 11527791,
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 55,
           "stakingToken": "0x969f2556F786a576F32AeF6c1D6618f0221Ec70e",
@@ -1957,8 +1957,8 @@
         },
         {
           "name": "POTS-BUSD PancakeswapWorker",
-          "address": "",
-          "deployedBlock": 888888888888,
+          "address": "0x1dBDC3F67e56DaEdFfA6b2b59D2F4a18190BDded",
+          "deployedBlock": 11527530,
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 445,
           "stakingToken": "0xF90BAA331Cfd40F094476E752Bf272892170d399",
@@ -1992,8 +1992,8 @@
       "workers": [
         {
           "name": "BTCB-ETH MdexWorker",
-          "address": "",
-          "deployedBlock": 8888888888,
+          "address": "0x121752a8C3D4aFD5CC0B41c8807dB7887742a608",
+          "deployedBlock": 11527727,
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 30,
           "stakingToken": "0x577d005912C49B1679B4c21E334FdB650E92C077",
@@ -2283,8 +2283,8 @@
       "workers": [
         {
           "name": "DAI-USDT MdexWorker",
-          "address": "",
-          "deployedBlock": 8888888888888,
+          "address": "0xc836C32048F81a21827ada8bFc3005A420ae546A",
+          "deployedBlock": 11527814,
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 37,
           "stakingToken": "0x59B76b5D39370ba2Aa7e723c639861266e85BFEc",
@@ -2300,8 +2300,8 @@
         },
         {
           "name": "USDC-USDT MdexWorker",
-          "address": "",
-          "deployedBlock": 8888888888888,
+          "address": "0x5979cE98e993232f93C81fE4a878815983E71Df9",
+          "deployedBlock": 11527749,
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 33,
           "stakingToken": "0x9f4Da89774570E27170873BefD139a79CB1A3da2",
@@ -2590,8 +2590,8 @@
       "workers": [
         {
           "name": "WBNB-BTCB MdexWorker",
-          "address": "",
-          "deployedBlock": 8888888888888888,
+          "address": "0x4D228564cc6BeA08b7cF1bcD4A7074D4b9293851",
+          "deployedBlock": 11527771,
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 55,
           "stakingToken": "0x969f2556F786a576F32AeF6c1D6618f0221Ec70e",
@@ -2607,8 +2607,8 @@
         },
         {
           "name": "ETH-BTCB MdexWorker",
-          "address": "",
-          "deployedBlock": 8888888888888888,
+          "address": "0x2EF53BB6749D9C635ff1FE7580b36303ecA185a3",
+          "deployedBlock": 11527705,
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 30,
           "stakingToken": "0x577d005912C49B1679B4c21E334FdB650E92C077",
