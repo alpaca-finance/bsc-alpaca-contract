@@ -120,6 +120,12 @@
         "name": "ibALPACA-QBT",
         "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
         "rewardToken": "0x17B7163cf1Dbd286E262ddc68b553D899B93f526"
+      },
+      {
+        "id": 18,
+        "name": "ibALPACA-PEAR",
+        "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
+        "rewardToken": "0xdf7c18ed59ea738070e665ac3f5c258dcc2fbad8"
       }
     ]
   },

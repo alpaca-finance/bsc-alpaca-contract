@@ -28,33 +28,33 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     {
       // xxx QBT
       PHASE_NAME: "WEEK_1",
-      CAMPAIGN_ID: "17",
-      ENDBLOCK: "11308600",
-      REWARD_PER_BLOCK: ethers.utils.parseEther("2.09263").toString(),
+      CAMPAIGN_ID: "18",
+      ENDBLOCK: "11710600",
+      REWARD_PER_BLOCK: ethers.utils.parseEther("0.35470").toString(),
     },
     {
       // xxx QBT
       PHASE_NAME: "WEEK_2",
-      CAMPAIGN_ID: "17",
-      ENDBLOCK: "11510200",
-      REWARD_PER_BLOCK: ethers.utils.parseEther("1.16257").toString(),
+      CAMPAIGN_ID: "18",
+      ENDBLOCK: "11912200",
+      REWARD_PER_BLOCK: ethers.utils.parseEther("0.19706").toString(),
     },
     {
       // xxx QBT
       PHASE_NAME: "WEEK_3",
-      CAMPAIGN_ID: "17",
-      ENDBLOCK: "11711800",
-      REWARD_PER_BLOCK: ethers.utils.parseEther("0.88355").toString(),
+      CAMPAIGN_ID: "18",
+      ENDBLOCK: "12113800",
+      REWARD_PER_BLOCK: ethers.utils.parseEther("0.14976").toString(),
     },
     {
       // xxx QBT
       PHASE_NAME: "WEEK_4",
-      CAMPAIGN_ID: "17",
-      ENDBLOCK: "11913400",
-      REWARD_PER_BLOCK: ethers.utils.parseEther("0.51153").toString(),
+      CAMPAIGN_ID: "18",
+      ENDBLOCK: "12315400",
+      REWARD_PER_BLOCK: ethers.utils.parseEther("0.08670").toString(),
     },
   ];
-  const EXACT_ETA = "1632209400";
+  const EXACT_ETA = "1633447500";
 
   const config = ConfigEntity.getConfig();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
