@@ -38,15 +38,40 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const WBNB = config.Tokens.WBNB;
   const TOKENS: Array<IToken> = [
     {
-      symbol: "MDX",
-      name: "MDX",
-      address: config.Tokens.MDX,
+      symbol: "WBNB",
+      name: "WBNB",
+      address: config.Tokens.WBNB,
+      pairs: [
+        // {
+        //   quoteToken: "USDT",
+        //   quoteTokenAddr: config.Tokens.USDT,
+        //   reserveQuoteToken: ethers.utils.parseEther("41800"),
+        //   reserveBaseToken: ethers.utils.parseEther("100"),
+        // },
+        // {
+        //   quoteToken: "ETH",
+        //   quoteTokenAddr: config.Tokens.ETH,
+        //   reserveQuoteToken: ethers.utils.parseEther("12.4424537"),
+        //   reserveBaseToken: ethers.utils.parseEther("100"),
+        // },
+        {
+          quoteToken: "BUSD",
+          quoteTokenAddr: config.Tokens.BUSD,
+          reserveQuoteToken: ethers.utils.parseEther("41800"),
+          reserveBaseToken: ethers.utils.parseEther("100"),
+        },
+      ],
+    },
+    {
+      symbol: "BUSD",
+      name: "BUSD",
+      address: config.Tokens.BUSD,
       pairs: [
         {
-          quoteToken: "ETH",
-          quoteTokenAddr: config.Tokens.ETH,
-          reserveQuoteToken: ethers.utils.parseEther("260"),
-          reserveBaseToken: ethers.utils.parseEther("658550"),
+          quoteToken: "USDT",
+          quoteTokenAddr: config.Tokens.USDT,
+          reserveQuoteToken: ethers.utils.parseEther("15000000"),
+          reserveBaseToken: ethers.utils.parseEther("15000000"),
         },
       ],
     },
