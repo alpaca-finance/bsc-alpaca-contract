@@ -37,41 +37,55 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const PANCAKE_ROUTER = config.Exchanges.Mdex.MdexRouter;
   const WBNB = config.Tokens.WBNB;
   const TOKENS: Array<IToken> = [
+    // {
+    //   symbol: "ETH",
+    //   name: "ETH",
+    //   address: config.Tokens.ETH,
+    //   pairs: [
+    //     {
+    //       quoteToken: "BTCB",
+    //       quoteTokenAddr: config.Tokens.BTCB,
+    //       reserveQuoteToken: ethers.utils.parseEther("401"),
+    //       reserveBaseToken: ethers.utils.parseEther("5912"),
+    //     },
+    //   ],
+    // },
+    // {
+    //   symbol: "USDC",
+    //   name: "USDC",
+    //   address: config.Tokens.USDC,
+    //   pairs: [
+    //     {
+    //       quoteToken: "USDT",
+    //       quoteTokenAddr: config.Tokens.USDT,
+    //       reserveQuoteToken: ethers.utils.parseEther("100000000"),
+    //       reserveBaseToken: ethers.utils.parseEther("100000000"),
+    //     },
+    //   ],
+    // },
     {
       symbol: "WBNB",
       name: "WBNB",
       address: config.Tokens.WBNB,
       pairs: [
-        // {
-        //   quoteToken: "USDT",
-        //   quoteTokenAddr: config.Tokens.USDT,
-        //   reserveQuoteToken: ethers.utils.parseEther("41800"),
-        //   reserveBaseToken: ethers.utils.parseEther("100"),
-        // },
-        // {
-        //   quoteToken: "ETH",
-        //   quoteTokenAddr: config.Tokens.ETH,
-        //   reserveQuoteToken: ethers.utils.parseEther("12.4424537"),
-        //   reserveBaseToken: ethers.utils.parseEther("100"),
-        // },
         {
-          quoteToken: "BUSD",
-          quoteTokenAddr: config.Tokens.BUSD,
-          reserveQuoteToken: ethers.utils.parseEther("41800"),
+          quoteToken: "BTCB",
+          quoteTokenAddr: config.Tokens.BTCB,
+          reserveQuoteToken: ethers.utils.parseEther("0.845006"),
           reserveBaseToken: ethers.utils.parseEther("100"),
         },
       ],
     },
     {
-      symbol: "BUSD",
-      name: "BUSD",
-      address: config.Tokens.BUSD,
+      symbol: "DAI",
+      name: "DAI",
+      address: config.Tokens.DAI,
       pairs: [
         {
           quoteToken: "USDT",
           quoteTokenAddr: config.Tokens.USDT,
-          reserveQuoteToken: ethers.utils.parseEther("15000000"),
-          reserveBaseToken: ethers.utils.parseEther("15000000"),
+          reserveQuoteToken: ethers.utils.parseEther("100000000"),
+          reserveBaseToken: ethers.utils.parseEther("100000000"),
         },
       ],
     },
