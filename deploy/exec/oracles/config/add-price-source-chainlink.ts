@@ -15,9 +15,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TOKEN0_SYMBOLS = ["TRX"];
-  const TOKEN1_SYMBOLS = ["BUSD"];
-  const AGGREGATORV3S = ["0xF4C5e535756D11994fCBB12Ba8adD0192D9b88be"];
+  const TOKEN0_SYMBOLS = ["DAI"];
+  const TOKEN1_SYMBOLS = ["USDT"];
+  const AGGREGATORV3S = ["0x132d3C0B1D2cEa0BC552588063bdBb210FDeecfA"];
 
   const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
   const tokenList: any = config.Tokens;
