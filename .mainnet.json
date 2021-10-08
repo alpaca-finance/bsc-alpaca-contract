@@ -158,7 +158,7 @@
           "id": 1,
           "name": "ibALPACA-LATTE",
           "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
-          "rewardToken": "0x8D78C2ff1fB4FBA08c7691Dfeac7bB425a91c81A"
+          "rewardToken": "0xa269A9942086f5F87930499dC8317ccC9dF2b6CB"
         }
       ]
     },
@@ -837,7 +837,7 @@
     "MDX": "0x9c65ab58d8d978db963e63f2bfb7121627e3a739",
     "DVI": "0x758fb037a375f17c7e195cc634d77da4f554255b",
     "QBT": "0x17b7163cf1dbd286e262ddc68b553d899b93f526",
-    "LATTE": "0x8D78C2ff1fB4FBA08c7691Dfeac7bB425a91c81A",
+    "LATTE": "0xa269A9942086f5F87930499dC8317ccC9dF2b6CB",
     "PEAR": "0xdf7c18ed59ea738070e665ac3f5c258dcc2fbad8",
     "POTS": "0x3fcca8648651e5b974dd6d3e50f61567779772a8"
   },
