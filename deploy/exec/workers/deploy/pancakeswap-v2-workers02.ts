@@ -66,17 +66,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const shortWorkerInfos: IPancakeswapWorkerInput[] = [
     {
-      VAULT_SYMBOL: "ibWBNB",
-      WORKER_NAME: "QBT-WBNB PancakeswapWorker",
-      REINVEST_BOT: "0xcf28b4da7d3ed29986831876b74af6e95211d3f9",
-      POOL_ID: 70,
+      VAULT_SYMBOL: "ibBUSD",
+      WORKER_NAME: "POTS-BUSD PancakeswapWorker",
+      REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
+      POOL_ID: 445,
       REINVEST_BOUNTY_BPS: "300",
-      REINVEST_PATH: ["CAKE", "WBNB"],
+      REINVEST_PATH: ["CAKE", "BUSD"],
       REINVEST_THRESHOLD: "1",
       WORK_FACTOR: "5200",
       KILL_FACTOR: "7000",
       MAX_PRICE_DIFF: "11000",
-      EXACT_ETA: "1632127500",
+      EXACT_ETA: "1633584600",
     },
   ];
 
