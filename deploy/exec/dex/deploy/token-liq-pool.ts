@@ -149,7 +149,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         console.log(`✅ Done`);
       }
 
-      // add liqudity
+      // add liquidity
       console.log(`>> Adding liquidity for ${TOKENS[i].symbol}-${TOKENS[i].pairs[j].quoteToken}`);
       await token.approve(router.address, TOKENS[i].pairs[j].reserveBaseToken);
       await quoteToken.approve(router.address, TOKENS[i].pairs[j].reserveQuoteToken);
