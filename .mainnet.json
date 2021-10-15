@@ -132,6 +132,12 @@
         "name": "ibALPACA-POTS",
         "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
         "rewardToken": "0x3fcca8648651e5b974dd6d3e50f61567779772a8"
+      },
+      {
+        "id": 20,
+        "name": "ibALPACA-LUCKY",
+        "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
+        "rewardToken": "0xc3D912863152E1Afc935AD0D42d469e7C6B05B77"
       }
     ]
   },
