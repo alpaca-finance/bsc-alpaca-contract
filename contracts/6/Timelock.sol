@@ -15,28 +15,49 @@ import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 contract Timelock is ReentrancyGuard {
-  using SafeMath for uint;
+  using SafeMath for uint256;
 
   event NewAdmin(address indexed newAdmin);
   event NewPendingAdmin(address indexed newPendingAdmin);
-  event NewDelay(uint indexed newDelay);
-  event CancelTransaction(bytes32 indexed txHash, address indexed target, uint value, string signature,  bytes data, uint eta);
-  event ExecuteTransaction(bytes32 indexed txHash, address indexed target, uint value, string signature,  bytes data, uint eta);
-  event QueueTransaction(bytes32 indexed txHash, address indexed target, uint value, string signature, bytes data, uint eta);
+  event NewDelay(uint256 indexed newDelay);
+  event CancelTransaction(
+    bytes32 indexed txHash,
+    address indexed target,
+    uint256 value,
+    string signature,
+    bytes data,
+    uint256 eta
+  );
+  event ExecuteTransaction(
+    bytes32 indexed txHash,
+    address indexed target,
+    uint256 value,
+    string signature,
+    bytes data,
+    uint256 eta
+  );
+  event QueueTransaction(
+    bytes32 indexed txHash,
+    address indexed target,
+    uint256 value,
+    string signature,
+    bytes data,
+    uint256 eta
+  );
 
-  uint public constant GRACE_PERIOD = 14 days;
-  uint public constant MINIMUM_DELAY = 1 days;
-  uint public constant MAXIMUM_DELAY = 30 days;
+  uint256 public constant GRACE_PERIOD = 14 days;
+  uint256 public constant MINIMUM_DELAY = 1 days;
+  uint256 public constant MAXIMUM_DELAY = 30 days;
 
   address public admin;
   address public pendingAdmin;
-  uint public delay;
+  uint256 public delay;
   bool public admin_initialized;
 
-  mapping (bytes32 => bool) public queuedTransactions;
+  mapping(bytes32 => bool) public queuedTransactions;
 
   // delay_ in seconds
-  constructor(address admin_, uint delay_) public {
+  constructor(address admin_, uint256 delay_) public {
     require(delay_ >= MINIMUM_DELAY, "Timelock::constructor: Delay must exceed minimum delay.");
     require(delay_ <= MAXIMUM_DELAY, "Timelock::constructor: Delay must not exceed maximum delay.");
 
@@ -46,9 +67,9 @@ contract Timelock is ReentrancyGuard {
   }
 
   // XXX: function() external payable { }
-  receive() external payable { }
+  receive() external payable {}
 
-  function setDelay(uint delay_) external {
+  function setDelay(uint256 delay_) external {
     require(msg.sender == address(this), "Timelock::setDelay: Call must come from Timelock.");
     require(delay_ >= MINIMUM_DELAY, "Timelock::setDelay: Delay must exceed minimum delay.");
     require(delay_ <= MAXIMUM_DELAY, "Timelock::setDelay: Delay must not exceed maximum delay.");
@@ -80,13 +101,16 @@ contract Timelock is ReentrancyGuard {
 
   function queueTransaction(
     address target,
-    uint value,
+    uint256 value,
     string calldata signature,
     bytes calldata data,
-    uint eta
+    uint256 eta
   ) external returns (bytes32) {
     require(msg.sender == admin, "Timelock::queueTransaction: Call must come from admin.");
-    require(eta >= getBlockTimestamp().add(delay), "Timelock::queueTransaction: Estimated execution block must satisfy delay.");
+    require(
+      eta >= getBlockTimestamp().add(delay),
+      "Timelock::queueTransaction: Estimated execution block must satisfy delay."
+    );
 
     bytes32 txHash = keccak256(abi.encode(target, value, signature, data, eta));
     queuedTransactions[txHash] = true;
@@ -97,10 +121,10 @@ contract Timelock is ReentrancyGuard {
 
   function cancelTransaction(
     address target,
-    uint value,
+    uint256 value,
     string calldata signature,
     bytes calldata data,
-    uint eta
+    uint256 eta
   ) external {
     require(msg.sender == admin, "Timelock::cancelTransaction: Call must come from admin.");
 
@@ -110,23 +134,24 @@ contract Timelock is ReentrancyGuard {
     emit CancelTransaction(txHash, target, value, signature, data, eta);
   }
 
+  // XXX: add _getRevertMsg to get revert message from call stack
   function _getRevertMsg(bytes memory _returnData) internal pure returns (string memory) {
     // If the _res length is less than 68, then the transaction failed silently (without a revert message)
     if (_returnData.length < 68) return "Transaction reverted silently";
 
     assembly {
-        // Slice the sighash.
-        _returnData := add(_returnData, 0x04)
+      // Slice the sighash.
+      _returnData := add(_returnData, 0x04)
     }
     return abi.decode(_returnData, (string)); // All that remains is the revert string
   }
 
   function executeTransaction(
     address target,
-    uint value,
+    uint256 value,
     string calldata signature,
     bytes calldata data,
-    uint eta
+    uint256 eta
   ) external payable nonReentrant returns (bytes memory) {
     require(msg.sender == admin, "Timelock::executeTransaction: Call must come from admin.");
 
@@ -146,7 +171,7 @@ contract Timelock is ReentrancyGuard {
     }
 
     // solium-disable-next-line security/no-call-value
-    (bool success, bytes memory returnData) = target.call{value: value}(callData);
+    (bool success, bytes memory returnData) = target.call{ value: value }(callData);
     require(success, _getRevertMsg(returnData));
 
     emit ExecuteTransaction(txHash, target, value, signature, data, eta);
@@ -154,7 +179,7 @@ contract Timelock is ReentrancyGuard {
     return returnData;
   }
 
-  function getBlockTimestamp() internal view returns (uint) {
+  function getBlockTimestamp() internal view returns (uint256) {
     // solium-disable-next-line security/no-block-members
     return block.timestamp;
   }
