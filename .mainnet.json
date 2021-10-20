@@ -633,6 +633,11 @@
           "pId": 445,
           "name": "POTS-BUSD LP",
           "address": "0xF90BAA331Cfd40F094476E752Bf272892170d399"
+        },
+        {
+          "pId": 446,
+          "name": "BMON-BUSD LP",
+          "address": "0x00e53C169dA54a7E11172aEEDf8Eb87F060F479e"
         }
       ]
     },
@@ -857,7 +862,8 @@
     "QBT": "0x17b7163cf1dbd286e262ddc68b553d899b93f526",
     "LATTE": "0xa269A9942086f5F87930499dC8317ccC9dF2b6CB",
     "PEAR": "0xdf7c18ed59ea738070e665ac3f5c258dcc2fbad8",
-    "POTS": "0x3fcca8648651e5b974dd6d3e50f61567779772a8"
+    "POTS": "0x3fcca8648651e5b974dd6d3e50f61567779772a8",
+    "BMON": "0x08ba0619b1e7a582e0bce5bbe9843322c954c340"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x1099C2E6Ed6ebA95099c205b599B409305783E43",
@@ -1986,6 +1992,23 @@
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 445,
           "stakingToken": "0xF90BAA331Cfd40F094476E752Bf272892170d399",
+          "stakingTokenAt": "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+            "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+            "StrategyAddTwoSidesOptimal": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
+            "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
+          }
+        },
+        {
+          "name": "BMON-BUSD PancakeswapWorker",
+          "address": "",
+          "deployedBlock": 8888,
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 446,
+          "stakingToken": "0x00e53C169dA54a7E11172aEEDf8Eb87F060F479e",
           "stakingTokenAt": "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",

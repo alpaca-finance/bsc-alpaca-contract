@@ -32,60 +32,21 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const config = ConfigEntity.getConfig();
 
   const FOREVER = 20000000000;
-  const PANCAKE_MASTERCHEF = config.Exchanges.Mdex.BSCPool;
-  const PANCAKE_FACTORY = config.Exchanges.Mdex.MdexFactory;
-  const PANCAKE_ROUTER = config.Exchanges.Mdex.MdexRouter;
+  const PANCAKE_MASTERCHEF = config.Exchanges.Pancakeswap.MasterChef;
+  const PANCAKE_FACTORY = config.Exchanges.Pancakeswap.FactoryV2;
+  const PANCAKE_ROUTER = config.Exchanges.Pancakeswap.RouterV2;
   const WBNB = config.Tokens.WBNB;
   const TOKENS: Array<IToken> = [
-    // {
-    //   symbol: "ETH",
-    //   name: "ETH",
-    //   address: config.Tokens.ETH,
-    //   pairs: [
-    //     {
-    //       quoteToken: "BTCB",
-    //       quoteTokenAddr: config.Tokens.BTCB,
-    //       reserveQuoteToken: ethers.utils.parseEther("401"),
-    //       reserveBaseToken: ethers.utils.parseEther("5912"),
-    //     },
-    //   ],
-    // },
-    // {
-    //   symbol: "USDC",
-    //   name: "USDC",
-    //   address: config.Tokens.USDC,
-    //   pairs: [
-    //     {
-    //       quoteToken: "USDT",
-    //       quoteTokenAddr: config.Tokens.USDT,
-    //       reserveQuoteToken: ethers.utils.parseEther("100000000"),
-    //       reserveBaseToken: ethers.utils.parseEther("100000000"),
-    //     },
-    //   ],
-    // },
     {
-      symbol: "WBNB",
-      name: "WBNB",
-      address: config.Tokens.WBNB,
+      symbol: "BMON",
+      name: "BMON",
+      mintAmount: ethers.utils.parseEther("8888888888").toString(),
       pairs: [
         {
-          quoteToken: "BTCB",
-          quoteTokenAddr: config.Tokens.BTCB,
-          reserveQuoteToken: ethers.utils.parseEther("0.845006"),
-          reserveBaseToken: ethers.utils.parseEther("100"),
-        },
-      ],
-    },
-    {
-      symbol: "DAI",
-      name: "DAI",
-      address: config.Tokens.DAI,
-      pairs: [
-        {
-          quoteToken: "USDT",
-          quoteTokenAddr: config.Tokens.USDT,
-          reserveQuoteToken: ethers.utils.parseEther("100000000"),
-          reserveBaseToken: ethers.utils.parseEther("100000000"),
+          quoteToken: "BUSD",
+          quoteTokenAddr: config.Tokens.BUSD,
+          reserveQuoteToken: ethers.utils.parseEther("249109"),
+          reserveBaseToken: ethers.utils.parseEther("1265377"),
         },
       ],
     },

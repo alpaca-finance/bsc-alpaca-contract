@@ -512,6 +512,11 @@
           "pId": 71,
           "name": "POTS-BUSD LP",
           "address": "0x66CC2C656a8e8744a88eEF641415E1059F8632c2"
+        },
+        {
+          "pId": 72,
+          "name": "BMON-BUSD LP",
+          "address": "0x8DeBeEcc8d37BED5631341D5003f148717ebF721"
         }
       ]
     },
@@ -740,7 +745,8 @@
     "DVI": "0x55615270b2E5F9aeB74F491E08D8d42799C0349F",
     "QBT": "0x2EF1aDF527939304438154098942fDBc58f98e98",
     "LATTE": "0x0000000000000000000000000000000000000000",
-    "POTS": "0x92C34b395B8d8845b7355BcacB8b766BAbF95150"
+    "POTS": "0x92C34b395B8d8845b7355BcacB8b766BAbF95150",
+    "BMON": "0x228baf744dEFC6eC2F33870fE2dd1AB87AAe7EA8"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x7549b7d0edcd411e7e5013dc74727f8dab13ab0f",
@@ -1471,6 +1477,23 @@
         "Mdex": "0xB3c1141b835799ea5f03D8c3E1d624b37A4aca6b"
       },
       "workers": [
+        {
+          "name": "BMON-BUSD PancakeswapWorker",
+          "address": "0x048e3E408E7661e81E7bc70b0DC08fA138e807EE",
+          "deployedBlock": 13384095,
+          "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+          "pId": 72,
+          "stakingToken": "0x8DeBeEcc8d37BED5631341D5003f148717ebF721",
+          "stakingTokenAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
+            "StrategyLiquidate": "0x58Bbb507248635413172Ed7A2eeC048402C6b39b",
+            "StrategyAddTwoSidesOptimal": "0x22fC6110d5d9b122f3C2d4715C24566342161a12",
+            "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32",
+            "StrategyPartialCloseLiquidate": "0x566aC15667Ae05c1F50Ed9944Aeef5A9dae4AB55",
+            "StrategyPartialCloseMinimizeTrading": "0xBb79EB494Da88F115430D174D5372b51Fc37De50"
+          }
+        },
         {
           "name": "POTS-BUSD PancakeswapWorker",
           "address": "0x0D0a50fC296f9CaDf82927255E7fFd1E30aA2B84",
