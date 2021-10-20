@@ -138,6 +138,18 @@
         "name": "ibALPACA-LUCKY",
         "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
         "rewardToken": "0xc3D912863152E1Afc935AD0D42d469e7C6B05B77"
+      },
+      {
+        "id": 21,
+        "name": "ibALPACA-POLAR",
+        "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
+        "rewardToken": "0xC64c9B30C981fc2eE4e13d0CA3f08258e725fd24"
+      },
+      {
+        "id": 22,
+        "name": "ibALPACA-MONI",
+        "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
+        "rewardToken": "0x9573c88aE3e37508f87649f87c4dd5373C9F31e0"
       }
     ]
   },
