@@ -28,45 +28,66 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "testnet_set_whitelisted_liquidators";
+  const TITLE = "vincent_lando";
   const TARGETED_VAULT_CONFIG: Array<IInput> = [
     {
       VAULT_SYMBOL: "ibWBNB",
-      WHITELISTED_LIQUIDATORS: ["0x560348Fed52D9E9C621d2B1FDfCdA3EA0dc2B1C8"],
+      WHITELISTED_LIQUIDATORS: [
+        "0x39Ab396f78678A0133bC5c41Ee692A3F707F0D52",
+        "0xFf5E59c1f57afD16d75409A3B293C5CAf09D070c",
+      ],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibBUSD",
-      WHITELISTED_LIQUIDATORS: ["0x560348Fed52D9E9C621d2B1FDfCdA3EA0dc2B1C8"],
+      WHITELISTED_LIQUIDATORS: [
+        "0x39Ab396f78678A0133bC5c41Ee692A3F707F0D52",
+        "0xFf5E59c1f57afD16d75409A3B293C5CAf09D070c",
+      ],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibETH",
-      WHITELISTED_LIQUIDATORS: ["0x560348Fed52D9E9C621d2B1FDfCdA3EA0dc2B1C8"],
+      WHITELISTED_LIQUIDATORS: [
+        "0x39Ab396f78678A0133bC5c41Ee692A3F707F0D52",
+        "0xFf5E59c1f57afD16d75409A3B293C5CAf09D070c",
+      ],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibALPACA",
-      WHITELISTED_LIQUIDATORS: ["0x560348Fed52D9E9C621d2B1FDfCdA3EA0dc2B1C8"],
+      WHITELISTED_LIQUIDATORS: [
+        "0x39Ab396f78678A0133bC5c41Ee692A3F707F0D52",
+        "0xFf5E59c1f57afD16d75409A3B293C5CAf09D070c",
+      ],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibUSDT",
-      WHITELISTED_LIQUIDATORS: ["0x560348Fed52D9E9C621d2B1FDfCdA3EA0dc2B1C8"],
+      WHITELISTED_LIQUIDATORS: [
+        "0x39Ab396f78678A0133bC5c41Ee692A3F707F0D52",
+        "0xFf5E59c1f57afD16d75409A3B293C5CAf09D070c",
+      ],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibBTCB",
-      WHITELISTED_LIQUIDATORS: ["0x560348Fed52D9E9C621d2B1FDfCdA3EA0dc2B1C8"],
+      WHITELISTED_LIQUIDATORS: [
+        "0x39Ab396f78678A0133bC5c41Ee692A3F707F0D52",
+        "0xFf5E59c1f57afD16d75409A3B293C5CAf09D070c",
+      ],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibTUSD",
-      WHITELISTED_LIQUIDATORS: ["0x560348Fed52D9E9C621d2B1FDfCdA3EA0dc2B1C8"],
+      WHITELISTED_LIQUIDATORS: [
+        "0x39Ab396f78678A0133bC5c41Ee692A3F707F0D52",
+        "0xFf5E59c1f57afD16d75409A3B293C5CAf09D070c",
+      ],
       IS_ENABLE: true,
     },
   ];
-  const EXACT_ETA = "1634027400";
+  const EXACT_ETA = "1634803200";
 
   const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];

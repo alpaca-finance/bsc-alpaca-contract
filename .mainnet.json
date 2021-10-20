@@ -150,6 +150,12 @@
         "name": "ibALPACA-MONI",
         "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
         "rewardToken": "0x9573c88aE3e37508f87649f87c4dd5373C9F31e0"
+      },
+      {
+        "id": 23,
+        "name": "ibALPACA-BMON",
+        "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
+        "rewardToken": "0x08ba0619b1e7a582e0bce5bbe9843322c954c340"
       }
     ]
   },
@@ -2004,8 +2010,8 @@
         },
         {
           "name": "BMON-BUSD PancakeswapWorker",
-          "address": "",
-          "deployedBlock": 8888,
+          "address": "0xb8e0B422d54aa59552A8aeB2255e1aA8627A5eDA",
+          "deployedBlock": 11930657,
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 446,
           "stakingToken": "0x00e53C169dA54a7E11172aEEDf8Eb87F060F479e",
