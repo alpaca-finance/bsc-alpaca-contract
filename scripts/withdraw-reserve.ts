@@ -42,6 +42,7 @@ async function main() {
         ethers.utils.defaultAbiCoder.encode(["address", "uint256"], [deployer.address, reserveAmt]),
         eta
       );
+      await queueTx.wait();
 
       console.log(`> queued tx to withdraw reserve hash: ${queueTx.hash}`);
 
