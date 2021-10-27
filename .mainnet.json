@@ -156,6 +156,18 @@
         "name": "ibALPACA-BMON",
         "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
         "rewardToken": "0x08ba0619b1e7a582e0bce5bbe9843322c954c340"
+      },
+      {
+        "id": 24,
+        "name": "ibALPACA-SHEESHA",
+        "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
+        "rewardToken": "0x232FB065D9d24c34708eeDbF03724f2e95ABE768"
+      },
+      {
+        "id": 25,
+        "name": "ibALPACA-NFTY",
+        "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
+        "rewardToken": "0x5774b2fc3e91af89f89141eacf76545e74265982"
       }
     ]
   },
@@ -872,7 +884,9 @@
     "LUCKY": "0xc3D912863152E1Afc935AD0D42d469e7C6B05B77",
     "POLAR": "0xC64c9B30C981fc2eE4e13d0CA3f08258e725fd24",
     "MONI": "0x9573c88aE3e37508f87649f87c4dd5373C9F31e0",
-    "BMON": "0x08ba0619b1e7a582e0bce5bbe9843322c954c340"
+    "BMON": "0x08ba0619b1e7a582e0bce5bbe9843322c954c340",
+    "SHEESHA": "0x232FB065D9d24c34708eeDbF03724f2e95ABE768",
+    "NFTY": "0x5774b2fc3e91af89f89141eacf76545e74265982"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x1099C2E6Ed6ebA95099c205b599B409305783E43",
