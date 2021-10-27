@@ -26,31 +26,55 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const REWARDINFO: IAddGrazingRangeRewardInfoParamList = [
     {
-      PHASE_NAME: "WEEK_1",
-      CAMPAIGN_ID: "23",
-      ENDBLOCK: "12167600",
-      REWARD_PER_BLOCK: ethers.utils.parseEther("2.34598").toString(),
+      PHASE_NAME: "SHEESHA_WEEK_1",
+      CAMPAIGN_ID: "24",
+      ENDBLOCK: "12311600",
+      REWARD_PER_BLOCK: ethers.utils.parseEther("0.00145").toString(),
     },
     {
-      PHASE_NAME: "WEEK_2",
-      CAMPAIGN_ID: "23",
-      ENDBLOCK: "12369200",
-      REWARD_PER_BLOCK: ethers.utils.parseEther("1.30332").toString(),
+      PHASE_NAME: "SHEESHA_WEEK_2",
+      CAMPAIGN_ID: "24",
+      ENDBLOCK: "12513200",
+      REWARD_PER_BLOCK: ethers.utils.parseEther("0.00080").toString(),
     },
     {
-      PHASE_NAME: "WEEK_3",
-      CAMPAIGN_ID: "23",
-      ENDBLOCK: "12570800",
-      REWARD_PER_BLOCK: ethers.utils.parseEther("0.99052").toString(),
+      PHASE_NAME: "SHEESHA_WEEK_3",
+      CAMPAIGN_ID: "24",
+      ENDBLOCK: "12714800",
+      REWARD_PER_BLOCK: ethers.utils.parseEther("0.00061").toString(),
     },
     {
-      PHASE_NAME: "WEEK_4",
-      CAMPAIGN_ID: "23",
-      ENDBLOCK: "12772400",
-      REWARD_PER_BLOCK: ethers.utils.parseEther("0.57346").toString(),
+      PHASE_NAME: "SHEESHA_WEEK_4",
+      CAMPAIGN_ID: "24",
+      ENDBLOCK: "12916400",
+      REWARD_PER_BLOCK: ethers.utils.parseEther("0.00035").toString(),
+    },
+    {
+      PHASE_NAME: "NFTY_WEEK_1",
+      CAMPAIGN_ID: "25",
+      ENDBLOCK: "12311600",
+      REWARD_PER_BLOCK: ethers.utils.parseEther("12.47767").toString(),
+    },
+    {
+      PHASE_NAME: "NFTY_WEEK_2",
+      CAMPAIGN_ID: "25",
+      ENDBLOCK: "12513200",
+      REWARD_PER_BLOCK: ethers.utils.parseEther("6.93204").toString(),
+    },
+    {
+      PHASE_NAME: "NFTY_WEEK_3",
+      CAMPAIGN_ID: "25",
+      ENDBLOCK: "12714800",
+      REWARD_PER_BLOCK: ethers.utils.parseEther("5.26835").toString(),
+    },
+    {
+      PHASE_NAME: "NFTY_WEEK_4",
+      CAMPAIGN_ID: "25",
+      ENDBLOCK: "12916400",
+      REWARD_PER_BLOCK: ethers.utils.parseEther("3.05009").toString(),
     },
   ];
-  const EXACT_ETA = "1634803200";
+  const EXACT_ETA = "1635229800";
 
   const config = ConfigEntity.getConfig();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
@@ -70,7 +94,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     );
   }
 
-  await FileService.write("add-reward-info", timelockTransactions);
+  FileService.write("add-reward-info", timelockTransactions);
 };
 
 export default func;
