@@ -24,19 +24,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const CAMPAIGNS: IAddGrazingRangeCampaignParamList = [
     {
-      NAME: "ibALPACA-SHEESHA",
+      NAME: "ibALPACA-SKILL",
       STAKING_TOKEN: "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
-      REWARD_TOKEN: "0x232FB065D9d24c34708eeDbF03724f2e95ABE768",
-      START_BLOCK: "12110000",
-    },
-    {
-      NAME: "ibALPACA-NFTY",
-      STAKING_TOKEN: "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
-      REWARD_TOKEN: "0x5774b2fc3e91af89f89141eacf76545e74265982",
-      START_BLOCK: "12110000",
+      REWARD_TOKEN: "0x154a9f9cbd3449ad22fdae23044319d6ef2a1fab",
+      START_BLOCK: "12165200",
     },
   ];
-  const EXACT_ETA = "1635229800";
+  const EXACT_ETA = "1635396300";
 
   const config = ConfigEntity.getConfig();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
