@@ -105,11 +105,11 @@ describe("WaultSwapRestrictedStrategyPartialCloseMinimizeTrading", () => {
 
     /// Setup token stuffs
     const MockERC20 = (await ethers.getContractFactory("MockERC20", deployer)) as MockERC20__factory;
-    baseToken = (await upgrades.deployProxy(MockERC20, ["BTOKEN", "BTOKEN"])) as MockERC20;
+    baseToken = (await upgrades.deployProxy(MockERC20, ["BTOKEN", "BTOKEN", 18])) as MockERC20;
     await baseToken.deployed();
     await baseToken.mint(aliceAddress, ethers.utils.parseEther("2"));
     await baseToken.mint(bobAddress, ethers.utils.parseEther("2"));
-    farmingToken = (await upgrades.deployProxy(MockERC20, ["FTOKEN", "FTOKEN"])) as MockERC20;
+    farmingToken = (await upgrades.deployProxy(MockERC20, ["FTOKEN", "FTOKEN", 18])) as MockERC20;
     await farmingToken.deployed();
     await farmingToken.mint(aliceAddress, ethers.utils.parseEther("40"));
     await farmingToken.mint(bobAddress, ethers.utils.parseEther("40"));

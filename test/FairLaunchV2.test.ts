@@ -87,13 +87,13 @@ describe("FairLaunchV2", () => {
     stakingTokens = new Array();
     const MockERC20 = (await ethers.getContractFactory("MockERC20", deployer)) as MockERC20__factory;
     for (let i = 0; i < 4; i++) {
-      const mockERC20 = (await upgrades.deployProxy(MockERC20, [`STOKEN${i}`, `STOKEN${i}`])) as MockERC20;
+      const mockERC20 = (await upgrades.deployProxy(MockERC20, [`STOKEN${i}`, `STOKEN${i}`, 18])) as MockERC20;
       await mockERC20.deployed();
       stakingTokens.push(mockERC20);
     }
 
     // Create fairLaunchLink token
-    fairLaunchLink = (await upgrades.deployProxy(MockERC20, ["fairLaunchLink", "fairLaunchLink"])) as MockERC20;
+    fairLaunchLink = (await upgrades.deployProxy(MockERC20, ["fairLaunchLink", "fairLaunchLink", 18])) as MockERC20;
     await fairLaunchLink.deployed();
 
     // Deploy FairLaunchV2

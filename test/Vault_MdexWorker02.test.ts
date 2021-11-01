@@ -167,6 +167,7 @@ describe("Vault - MdexWorker02", () => {
       {
         name: "BTOKEN",
         symbol: "BTOKEN",
+        decimals: "18",
         holders: [
           { address: deployerAddress, amount: ethers.utils.parseEther("1000") },
           { address: aliceAddress, amount: ethers.utils.parseEther("1000") },
@@ -176,6 +177,7 @@ describe("Vault - MdexWorker02", () => {
       {
         name: "FTOKEN",
         symbol: "FTOKEN",
+        decimals: "18",
         holders: [
           { address: deployerAddress, amount: ethers.utils.parseEther("1000") },
           { address: aliceAddress, amount: ethers.utils.parseEther("1000") },

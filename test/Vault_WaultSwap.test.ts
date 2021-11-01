@@ -150,12 +150,12 @@ describe("Vault - WaultSwap", () => {
 
     /// Setup token stuffs
     const MockERC20 = (await ethers.getContractFactory("MockERC20", deployer)) as MockERC20__factory;
-    baseToken = (await upgrades.deployProxy(MockERC20, ["BTOKEN", "BTOKEN"])) as MockERC20;
+    baseToken = (await upgrades.deployProxy(MockERC20, ["BTOKEN", "BTOKEN", 18])) as MockERC20;
     await baseToken.deployed();
     await baseToken.mint(deployerAddress, ethers.utils.parseEther("1000"));
     await baseToken.mint(aliceAddress, ethers.utils.parseEther("1000"));
     await baseToken.mint(bobAddress, ethers.utils.parseEther("1000"));
-    farmToken = (await upgrades.deployProxy(MockERC20, ["FTOKEN", "FTOKEN"])) as MockERC20;
+    farmToken = (await upgrades.deployProxy(MockERC20, ["FTOKEN", "FTOKEN", 18])) as MockERC20;
     await farmToken.deployed();
     await farmToken.mint(deployerAddress, ethers.utils.parseEther("1000"));
     await farmToken.mint(aliceAddress, ethers.utils.parseEther("1000"));
@@ -313,7 +313,7 @@ describe("Vault - WaultSwap", () => {
     await liqStrat.setWorkersOk([waultSwapWorker.address], true);
     await partialCloseStrat.setWorkersOk([waultSwapWorker.address], true);
     await partialCloseMinimizeStrat.setWorkersOk([waultSwapWorker.address], true);
-    await simpleVaultConfig.setWhitelistedLiquidators([await alice.getAddress(), await eve.getAddress()], true)
+    await simpleVaultConfig.setWhitelistedLiquidators([await alice.getAddress(), await eve.getAddress()], true);
 
     // Deployer adds 0.1 FTOKEN + 1 BTOKEN
     await baseToken.approve(router.address, ethers.utils.parseEther("1"));
@@ -977,9 +977,9 @@ describe("Vault - WaultSwap", () => {
     });
 
     context("#kill", async () => {
-      it('should not allow user not whitelisted to liquidate', async () => {           
-        await expect(vaultAsBob.kill('1')).to.be.revertedWith("!whitelisted liquidator")
-      })
+      it("should not allow user not whitelisted to liquidate", async () => {
+        await expect(vaultAsBob.kill("1")).to.be.revertedWith("!whitelisted liquidator");
+      });
 
       it("should not able to liquidate healthy position", async () => {
         // Deployer deposits 3 BTOKEN to the bank

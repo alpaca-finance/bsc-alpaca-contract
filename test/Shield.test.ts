@@ -73,7 +73,7 @@ describe("Shield", () => {
     stakingTokens = new Array();
     for (let i = 0; i < 4; i++) {
       const MockERC20 = (await ethers.getContractFactory("MockERC20", deployer)) as MockERC20__factory;
-      const mockERC20 = (await upgrades.deployProxy(MockERC20, [`STOKEN${i}`, `STOKEN${i}`])) as MockERC20;
+      const mockERC20 = (await upgrades.deployProxy(MockERC20, [`STOKEN${i}`, `STOKEN${i}`, "18"])) as MockERC20;
       await mockERC20.deployed();
       stakingTokens.push(mockERC20);
     }

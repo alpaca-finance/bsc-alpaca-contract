@@ -38,13 +38,13 @@ describe("ChainLinkPriceOracle", () => {
     [deployer, alice] = await ethers.getSigners();
 
     const ERC20 = (await ethers.getContractFactory("MockERC20", deployer)) as MockERC20__factory;
-    token0 = (await upgrades.deployProxy(ERC20, ["token0", "token0"])) as MockERC20;
+    token0 = (await upgrades.deployProxy(ERC20, ["token0", "token0", "18"])) as MockERC20;
     await token0.deployed();
-    token1 = (await upgrades.deployProxy(ERC20, ["token1", "token1"])) as MockERC20;
+    token1 = (await upgrades.deployProxy(ERC20, ["token1", "token1", "18"])) as MockERC20;
     await token1.deployed();
-    token2 = (await upgrades.deployProxy(ERC20, ["token2", "token2"])) as MockERC20;
+    token2 = (await upgrades.deployProxy(ERC20, ["token2", "token2", "18"])) as MockERC20;
     await token2.deployed();
-    token3 = (await upgrades.deployProxy(ERC20, ["token3", "token3"])) as MockERC20;
+    token3 = (await upgrades.deployProxy(ERC20, ["token3", "token3", "18"])) as MockERC20;
     await token3.deployed();
 
     const MockAggregatorV3 = (await ethers.getContractFactory(

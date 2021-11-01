@@ -22,6 +22,7 @@ export async function queueTransaction(
     ethers.utils.defaultAbiCoder.encode(paramTypes, params),
     eta
   );
+  await queueTx.wait();
   const paramTypesStr = paramTypes.map((p) => `'${p}'`);
   const paramsStr = params.map((p) => {
     if (Array.isArray(p)) {

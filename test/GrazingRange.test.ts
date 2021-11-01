@@ -41,15 +41,15 @@ describe("GrazingRange", () => {
     [deployer, alice, bob, cat] = await ethers.getSigners();
 
     const mockERC20Staking = (await ethers.getContractFactory("MockERC20", deployer)) as MockERC20__factory;
-    stakingToken = (await upgrades.deployProxy(mockERC20Staking, [`StakingToken`, `StakingToken`])) as MockERC20;
+    stakingToken = (await upgrades.deployProxy(mockERC20Staking, [`StakingToken`, `StakingToken`, 18])) as MockERC20;
     await stakingToken.deployed();
 
     const mockERC20Reward2 = (await ethers.getContractFactory("MockERC20", deployer)) as MockERC20__factory;
-    rewardToken2 = (await upgrades.deployProxy(mockERC20Reward2, [`RewardToken2`, `RewardToken2`])) as MockERC20;
+    rewardToken2 = (await upgrades.deployProxy(mockERC20Reward2, [`RewardToken2`, `RewardToken2`, 18])) as MockERC20;
     await rewardToken2.deployed();
 
     const mockERC20Reward = (await ethers.getContractFactory("MockERC20", deployer)) as MockERC20__factory;
-    rewardToken = (await upgrades.deployProxy(mockERC20Reward, [`RewardToken`, `RewardToken`])) as MockERC20;
+    rewardToken = (await upgrades.deployProxy(mockERC20Reward, [`RewardToken`, `RewardToken`, 18])) as MockERC20;
     await rewardToken.deployed();
 
     const GrazingRange = (await ethers.getContractFactory("GrazingRange", deployer)) as GrazingRange__factory;
