@@ -168,6 +168,7 @@ describe("CakeMaxiWorker", () => {
       {
         name: "BTOKEN",
         symbol: "BTOKEN",
+        decimals: "18",
         holders: [
           { address: aliceAddress, amount: ethers.utils.parseEther("100") },
           { address: bobAddress, amount: ethers.utils.parseEther("100") },

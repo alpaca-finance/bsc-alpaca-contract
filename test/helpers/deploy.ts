@@ -95,6 +95,7 @@ import * as TimeHelpers from "../helpers/time";
 export interface IBEP20 {
   name: string;
   symbol: string;
+  decimals: BigNumberish;
   holders?: Array<IHolder>;
 }
 
@@ -464,7 +465,7 @@ export class DeployHelper {
 
   private async _deployBEP20(bep20: IBEP20): Promise<MockERC20> {
     const MockERC20 = (await ethers.getContractFactory("MockERC20", this.deployer)) as MockERC20__factory;
-    const mockBep20 = (await upgrades.deployProxy(MockERC20, [bep20.name, bep20.symbol])) as MockERC20;
+    const mockBep20 = (await upgrades.deployProxy(MockERC20, [bep20.name, bep20.symbol, bep20.decimals])) as MockERC20;
     await mockBep20.deployed();
 
     if (bep20.holders !== undefined) {

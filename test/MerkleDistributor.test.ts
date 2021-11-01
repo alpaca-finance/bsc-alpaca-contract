@@ -41,7 +41,7 @@ describe("MerkleDistributor", () => {
     [deployer, alice, bob, catherine] = await ethers.getSigners();
 
     const MockToken = (await ethers.getContractFactory("MockERC20", deployer)) as MockERC20__factory;
-    mockERC20 = (await upgrades.deployProxy(MockToken, [`STOKENA`, `STOKENB`])) as MockERC20;
+    mockERC20 = (await upgrades.deployProxy(MockToken, [`STOKENA`, `STOKENB`, "18"])) as MockERC20;
     await mockERC20.deployed();
 
     mockTokenAsDeployer = MockERC20__factory.connect(mockERC20.address, deployer);

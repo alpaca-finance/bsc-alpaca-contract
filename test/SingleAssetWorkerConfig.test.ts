@@ -127,7 +127,7 @@ describe("SingleAssetWorkerConfig", () => {
 
     /// Setup token stuffs
     const MockERC20 = (await ethers.getContractFactory("MockERC20", deployer)) as MockERC20__factory;
-    baseToken = (await upgrades.deployProxy(MockERC20, ["BTOKEN", "BTOKEN"])) as MockERC20;
+    baseToken = (await upgrades.deployProxy(MockERC20, ["BTOKEN", "BTOKEN", 18])) as MockERC20;
     await baseToken.deployed();
     await baseToken.mint(await deployer.getAddress(), ethers.utils.parseEther("1000"));
     await baseToken.mint(await alice.getAddress(), ethers.utils.parseEther("1000"));

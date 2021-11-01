@@ -22,9 +22,14 @@ contract MockERC20 is ERC20UpgradeSafe, OwnableUpgradeSafe {
     _mint(msg.sender, msg.value);
   }
 
-  function initialize(string memory _name, string memory _symbol) public initializer {
+  function initialize(
+    string memory _name,
+    string memory _symbol,
+    uint8 _decimals
+  ) public initializer {
     OwnableUpgradeSafe.__Ownable_init();
     ERC20UpgradeSafe.__ERC20_init(_name, _symbol);
+    _setupDecimals(_decimals);
   }
 
   function mint(address to, uint256 amount) public onlyOwner {

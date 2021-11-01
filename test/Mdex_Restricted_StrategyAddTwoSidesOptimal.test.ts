@@ -78,12 +78,12 @@ describe("MdexRestrictedStrategyAddTwoSideOptimal", () => {
   const setupFullFlowTest = async () => {
     /// Setup token stuffs
     const MockERC20 = (await ethers.getContractFactory("MockERC20", deployer)) as MockERC20__factory;
-    baseToken = (await upgrades.deployProxy(MockERC20, ["BTOKEN", "BTOKEN"])) as MockERC20;
+    baseToken = (await upgrades.deployProxy(MockERC20, ["BTOKEN", "BTOKEN", 18])) as MockERC20;
     await baseToken.deployed();
     await baseToken.mint(await deployer.getAddress(), ethers.utils.parseEther("100"));
     await baseToken.mint(await alice.getAddress(), ethers.utils.parseEther("100"));
     await baseToken.mint(await bob.getAddress(), ethers.utils.parseEther("100"));
-    farmingToken = (await upgrades.deployProxy(MockERC20, ["FTOKEN", "FTOKEN"])) as MockERC20;
+    farmingToken = (await upgrades.deployProxy(MockERC20, ["FTOKEN", "FTOKEN", 18])) as MockERC20;
     await farmingToken.deployed();
     await farmingToken.mint(await deployer.getAddress(), ethers.utils.parseEther("100"));
     await farmingToken.mint(await alice.getAddress(), ethers.utils.parseEther("100"));

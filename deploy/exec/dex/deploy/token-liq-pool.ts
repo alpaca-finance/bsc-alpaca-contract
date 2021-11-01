@@ -23,6 +23,7 @@ interface IPair {
 interface IToken {
   symbol: string;
   name: string;
+  decimals?: string;
   address?: string;
   mintAmount?: string;
   pairs: Array<IPair>;
@@ -41,6 +42,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       symbol: "BMON",
       name: "BMON",
       mintAmount: ethers.utils.parseEther("8888888888").toString(),
+      decimals: "18",
       pairs: [
         {
           quoteToken: "BUSD",
@@ -76,7 +78,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if (TOKENS[i].address === undefined) {
       // deploy token
       console.log(`>> Deploying ${TOKENS[i].symbol}`);
-      token = (await upgrades.deployProxy(MockERC20, [TOKENS[i].name, TOKENS[i].symbol])) as MockERC20;
+      token = (await upgrades.deployProxy(MockERC20, [
+        TOKENS[i].name,
+        TOKENS[i].symbol,
+        TOKENS[i].decimals,
+      ])) as MockERC20;
       await token.deployed();
       console.log(`>> ${TOKENS[i].symbol} deployed at: ${token.address}`);
     } else {
