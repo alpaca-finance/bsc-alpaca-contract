@@ -122,6 +122,7 @@ export interface Tokens {
   NAOS: string;
   MBOX: string;
   MDX: string;
+  BMON: string;
 }
 export interface LpTokens {
   "ALPACA-WBNB": string;

@@ -529,6 +529,11 @@
           "pId": 72,
           "name": "BMON-BUSD LP",
           "address": "0x8DeBeEcc8d37BED5631341D5003f148717ebF721"
+        },
+        {
+          "pId": 73,
+          "name": "BMON-WBNB LP",
+          "address": "0x5bB0ac2B9B2944F76FC098De40BC224E03b43fec"
         }
       ]
     },
@@ -1475,6 +1480,23 @@
             "StrategyWithdrawMinimizeTrading": "0xB4686c71A1bA35B9E537B5482848c676b5F40F72",
             "StrategyPartialCloseLiquidate": "0xb0B73e4f3cC53dE84E1f76448d959c79cFCbdAD4",
             "StrategyPartialCloseMinimizeTrading": "0xe238e880A7D3A0A7A9d099387B3Db78137E592De"
+          }
+        },
+        {
+          "name": "BMON-WBNB PancakeswapWorker",
+          "address": "0xbB7754E19c683f09Ec7a2026A9b78eb724068813",
+          "deployedBlock": 13783378,
+          "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+          "pId": 73,
+          "stakingToken": "0x5bB0ac2B9B2944F76FC098De40BC224E03b43fec",
+          "stakingTokenAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
+            "StrategyLiquidate": "0x58Bbb507248635413172Ed7A2eeC048402C6b39b",
+            "StrategyAddTwoSidesOptimal": "0x0A5515aEdc275b9fF19d11Cd74465e83067f6D40",
+            "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32",
+            "StrategyPartialCloseLiquidate": "0x566aC15667Ae05c1F50Ed9944Aeef5A9dae4AB55",
+            "StrategyPartialCloseMinimizeTrading": "0xBb79EB494Da88F115430D174D5372b51Fc37De50"
           }
         }
       ]
