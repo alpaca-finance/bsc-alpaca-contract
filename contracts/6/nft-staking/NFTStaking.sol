@@ -19,7 +19,9 @@ import "@openzeppelin/contracts/utils/EnumerableSet.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 
-contract NFTStaking is IERC721Receiver, OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe {
+import "../protocol/interfaces/INFTStaking.sol";
+
+contract NFTStaking is INFTStaking, IERC721Receiver, OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe {
   using EnumerableSet for EnumerableSet.Bytes32Set;
 
   event LogStakeNFT(address indexed staker, bytes32 indexed poolId, address nftAddress, uint256 nftTokenId);
@@ -142,6 +144,16 @@ contract NFTStaking is IERC721Receiver, OwnableUpgradeSafe, ReentrancyGuardUpgra
     IERC721(toBeSentBackNft.nftAddress).safeTransferFrom(address(this), _msgSender(), toBeSentBackNft.nftTokenId);
 
     emit LogUnstakeNFT(_msgSender(), _poolId, toBeSentBackNft.nftAddress, toBeSentBackNft.nftTokenId);
+  }
+
+  function hasPerk(
+    bytes32 _poolId,
+    address _user,
+    bytes32 _perk
+  ) external view override returns (bool) {
+    bool _hasPerk = poolInfo[_poolId].perks.contains(_perk);
+    bool _isStaked = userStakingNFT[_poolId][_user].nftAddress != address(0);
+    return _hasPerk && _isStaked;
   }
 
   /// @dev when doing a safeTransferFrom, the caller needs to implement this, for safety reason

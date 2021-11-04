@@ -204,6 +204,16 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     return workers[worker].workFactor(worker, debt);
   }
 
+  /// @dev Return the work factor for the worker + debt, using 1e4 as denom. Revert on non-worker.
+  /// Also check for boosted leverage from NFT staking
+  function workFactor(
+    address worker,
+    uint256 debt,
+    address positionOwner
+  ) external view override returns (uint256) {
+    return workers[worker].workFactor(worker, debt, positionOwner);
+  }
+
   /// @dev Return the kill factor for the worker + debt, using 1e4 as denom. Revert on non-worker.
   function killFactor(address worker, uint256 debt) external view override returns (uint256) {
     return workers[worker].killFactor(worker, debt);

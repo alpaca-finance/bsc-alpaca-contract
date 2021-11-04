@@ -21,6 +21,7 @@ import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 import "../interfaces/IWorker.sol";
 import "../interfaces/IWorkerConfig.sol";
 import "../interfaces/IPriceOracle.sol";
+import "../interfaces/INFTStaking.sol";
 import "../../utils/SafeToken.sol";
 
 contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
@@ -39,6 +40,12 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
     uint64 maxPriceDiff
   );
   event SetGovernor(address indexed caller, address indexed governor);
+  event SetBoostedLeverage(
+    address indexed caller,
+    address indexed worker,
+    uint256 allowBoost,
+    uint256 boostedWorkFactor
+  );
 
   /// @notice state variables
   struct Config {
@@ -48,9 +55,16 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
     uint64 maxPriceDiff;
   }
 
+  struct BoostedLeverage {
+    uint256 allowBoost;
+    uint256 boostedWorkFactor;
+  }
+
   PriceOracle public oracle;
   mapping(address => Config) public workers;
   address public governor;
+  address public nftStaking;
+  mapping(address => BoostedLeverage) public boostedLeverage;
 
   function initialize(PriceOracle _oracle) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
@@ -88,6 +102,23 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
         workers[addrs[idx]].killFactor,
         workers[addrs[idx]].maxPriceDiff
       );
+    }
+  }
+
+  function setBoostedLeverage(address[] calldata addrs, BoostedLeverage[] calldata configs) external onlyOwner {
+    uint256 len = addrs.length;
+    require(configs.length == len, "WorkConfig::setBoostedLeverage:: bad len");
+    for (uint256 idx = 0; idx < len; idx++) {
+      require(
+        uint256(workers[addrs[idx]].killFactor) > configs[idx].boostedWorkFactor,
+        "WorkConfig::setBoostedLeverage:: bad boostedWorkFactor"
+      );
+      boostedLeverage[addrs[idx]] = BoostedLeverage({
+        allowBoost: configs[idx].allowBoost,
+        boostedWorkFactor: configs[idx].boostedWorkFactor
+      });
+
+      emit SetBoostedLeverage(_msgSender(), addrs[idx], configs[idx].allowBoost, configs[idx].boostedWorkFactor);
     }
   }
 
@@ -146,6 +177,22 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
   ) external view override returns (uint256) {
     require(isStable(worker), "WorkerConfig::workFactor:: !stable");
     return uint256(workers[worker].workFactor);
+  }
+
+  /// @dev Return the work factor for the worker + BaseToken debt, using 1e4 as denom.
+  /// Also check for boosted leverage from NFT staking
+  function workFactor(
+    address worker,
+    uint256, /* debt */
+    address positionOwner
+  ) external view override returns (uint256) {
+    require(isStable(worker), "WorkerConfig::workFactor:: !stable");
+    bool _hasPerk = INFTStaking(nftStaking).hasPerk(keccak256("ALPIES"), positionOwner, keccak256("BOOST_LEVERAGE"));
+    if (boostedLeverage[worker].allowBoost == 1) {
+      return boostedLeverage[worker].boostedWorkFactor;
+    } else {
+      return uint256(workers[worker].workFactor);
+    }
   }
 
   /// @dev Return the kill factor for the worker + BaseToken debt, using 1e4 as denom.

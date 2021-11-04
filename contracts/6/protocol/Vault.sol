@@ -380,7 +380,7 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     if (debt > 0) {
       require(debt >= config.minDebtSize(), "too small debt size");
       uint256 health = IWorker(worker).health(id);
-      uint256 workFactor = config.workFactor(worker, debt);
+      uint256 workFactor = config.workFactor(worker, debt, msg.sender);
       require(health.mul(workFactor) >= debt.mul(10000), "bad work factor");
       _addDebt(id, debt);
       _fairLaunchDeposit(id, pos.debtShare);

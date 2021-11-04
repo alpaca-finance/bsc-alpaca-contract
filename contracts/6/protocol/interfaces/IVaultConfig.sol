@@ -53,6 +53,14 @@ interface IVaultConfig {
   /// @dev Return the work factor for the worker + BaseToken debt, using 1e4 as denom. Revert on non-worker.
   function workFactor(address worker, uint256 debt) external view returns (uint256);
 
+  /// @dev Return the work factor for the worker + debt, using 1e4 as denom. Revert on non-worker.
+  /// Also check for boosted leverage from NFT staking
+  function workFactor(
+    address worker,
+    uint256 debt,
+    address positionOwner
+  ) external view returns (uint256);
+
   /// @dev Return the kill factor for the worker + BaseToken debt, using 1e4 as denom. Revert on non-worker.
   function killFactor(address worker, uint256 debt) external view returns (uint256);
 
