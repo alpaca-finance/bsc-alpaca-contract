@@ -63,7 +63,6 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
   PriceOracle public oracle;
   mapping(address => Config) public workers;
   address public governor;
-  address public nftStaking;
   mapping(address => BoostedLeverage) public boostedLeverage;
 
   function initialize(PriceOracle _oracle) external initializer {
@@ -182,6 +181,7 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
   /// @dev Return the work factor for the worker + BaseToken debt, using 1e4 as denom.
   /// Also check for boosted leverage from NFT staking
   function workFactor(
+    address nftStaking,
     address worker,
     uint256, /* debt */
     address positionOwner

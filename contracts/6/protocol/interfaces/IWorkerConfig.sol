@@ -22,6 +22,7 @@ interface IWorkerConfig {
 
   /// @dev Return the work factor for the worker + debt, using 1e4 as denom.
   function workFactor(
+    address nftStaking,
     address worker,
     uint256 debt,
     address positionOwner
