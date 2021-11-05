@@ -19,7 +19,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const config = ConfigEntity.getConfig();
 
   const TOKEN0_SYMBOLS = ["BMON"];
-  const TOKEN1_SYMBOLS = ["BUSD"];
+  const TOKEN1_SYMBOLS = ["WBNB"];
   const MAX_PRICE_DEVIATIONS = [DEFAULT_MAX_PRICE_DEVIATION];
   const MAX_PRICE_STALES = [DEFAULT_MAX_PRICE_STALE];
   const SOURCES = [[config.Oracle.SimpleOracle]];
@@ -51,7 +51,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     MAX_PRICE_DEVIATIONS,
     MAX_PRICE_STALES,
     SOURCES,
-    { gasLimit: "10000000" }
+    { gasLimit: "10000000", gasPrice: "20000000000" }
   );
   console.log("✅ Done");
 };

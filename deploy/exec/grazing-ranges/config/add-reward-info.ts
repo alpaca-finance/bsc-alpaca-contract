@@ -26,55 +26,55 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const REWARDINFO: IAddGrazingRangeRewardInfoParamList = [
     {
-      PHASE_NAME: "8_DECIMALS_WEEK_1",
-      CAMPAIGN_ID: "4",
-      ENDBLOCK: "13587000",
-      REWARD_PER_BLOCK: ethers.utils.parseUnits("1", 8).toString(),
+      PHASE_NAME: "xWIN_WEEK_1",
+      CAMPAIGN_ID: "27",
+      ENDBLOCK: "12566100",
+      REWARD_PER_BLOCK: ethers.utils.parseUnits("0.06383", 18).toString(),
     },
     {
-      PHASE_NAME: "8_DECIMALS_WEEK_2",
-      CAMPAIGN_ID: "4",
-      ENDBLOCK: "13588000",
-      REWARD_PER_BLOCK: ethers.utils.parseUnits("2", 8).toString(),
+      PHASE_NAME: "xWIN_WEEK_2",
+      CAMPAIGN_ID: "27",
+      ENDBLOCK: "12767700",
+      REWARD_PER_BLOCK: ethers.utils.parseUnits("0.03546", 18).toString(),
     },
     {
-      PHASE_NAME: "8_DECIMALS_WEEK_3",
-      CAMPAIGN_ID: "4",
-      ENDBLOCK: "13589000",
-      REWARD_PER_BLOCK: ethers.utils.parseUnits("3", 8).toString(),
+      PHASE_NAME: "xWIN_WEEK_3",
+      CAMPAIGN_ID: "27",
+      ENDBLOCK: "12969300",
+      REWARD_PER_BLOCK: ethers.utils.parseUnits("0.02695", 18).toString(),
     },
     {
-      PHASE_NAME: "8_DECIMALS_WEEK_4",
-      CAMPAIGN_ID: "4",
-      ENDBLOCK: "13590000",
-      REWARD_PER_BLOCK: ethers.utils.parseUnits("4", 8).toString(),
+      PHASE_NAME: "xWIN_WEEK_4",
+      CAMPAIGN_ID: "27",
+      ENDBLOCK: "13170900",
+      REWARD_PER_BLOCK: ethers.utils.parseUnits("0.01560", 18).toString(),
     },
     {
-      PHASE_NAME: "20_DECIMALS_WEEK_1",
-      CAMPAIGN_ID: "5",
-      ENDBLOCK: "13587000",
-      REWARD_PER_BLOCK: ethers.utils.parseUnits("1", 20).toString(),
+      PHASE_NAME: "ARV_WEEK_1",
+      CAMPAIGN_ID: "28",
+      ENDBLOCK: "12566100",
+      REWARD_PER_BLOCK: ethers.utils.parseUnits("446.42857", 8).toString(),
     },
     {
-      PHASE_NAME: "20_DECIMALS_WEEK_2",
-      CAMPAIGN_ID: "5",
-      ENDBLOCK: "13588000",
-      REWARD_PER_BLOCK: ethers.utils.parseUnits("2", 20).toString(),
+      PHASE_NAME: "ARV_WEEK_2",
+      CAMPAIGN_ID: "28",
+      ENDBLOCK: "12767700",
+      REWARD_PER_BLOCK: ethers.utils.parseUnits("248.01587", 8).toString(),
     },
     {
-      PHASE_NAME: "20_DECIMALS_WEEK_3",
-      CAMPAIGN_ID: "5",
-      ENDBLOCK: "13589000",
-      REWARD_PER_BLOCK: ethers.utils.parseUnits("3", 20).toString(),
+      PHASE_NAME: "ARV_WEEK_3",
+      CAMPAIGN_ID: "28",
+      ENDBLOCK: "12969300",
+      REWARD_PER_BLOCK: ethers.utils.parseUnits("188.49206", 8).toString(),
     },
     {
-      PHASE_NAME: "20_DECIMALS_WEEK_4",
-      CAMPAIGN_ID: "5",
-      ENDBLOCK: "13590000",
-      REWARD_PER_BLOCK: ethers.utils.parseUnits("4", 20).toString(),
+      PHASE_NAME: "ARV_WEEK_4",
+      CAMPAIGN_ID: "28",
+      ENDBLOCK: "13170900",
+      REWARD_PER_BLOCK: ethers.utils.parseUnits("109.12698", 8).toString(),
     },
   ];
-  const EXACT_ETA = "1635315300";
+  const EXACT_ETA = "1636007400";
 
   const config = ConfigEntity.getConfig();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];

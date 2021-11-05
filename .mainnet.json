@@ -174,6 +174,18 @@
         "name": "ibALPACA-SKILL",
         "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
         "rewardToken": "0x154a9f9cbd3449ad22fdae23044319d6ef2a1fab"
+      },
+      {
+        "id": 27,
+        "name": "ibALPACA-xWIN",
+        "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
+        "rewardToken": "0xd88ca08d8eec1e9e09562213ae83a7853ebb5d28"
+      },
+      {
+        "id": 28,
+        "name": "ibALPACA-ARV",
+        "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
+        "rewardToken": "0x6679eb24f59dfe111864aec72b443d1da666b360"
       }
     ]
   },
@@ -662,6 +674,11 @@
           "pId": 446,
           "name": "BMON-BUSD LP",
           "address": "0x00e53C169dA54a7E11172aEEDf8Eb87F060F479e"
+        },
+        {
+          "pId": 437,
+          "name": "BMON-WBNB LP",
+          "address": "0x3C2b7B578Dd2175A1c3524Aa0D515106282Bf108"
         }
       ]
     },
@@ -893,7 +910,9 @@
     "BMON": "0x08ba0619b1e7a582e0bce5bbe9843322c954c340",
     "SHEESHA": "0x232FB065D9d24c34708eeDbF03724f2e95ABE768",
     "NFTY": "0x5774b2fc3e91af89f89141eacf76545e74265982",
-    "SKILL": "0x154a9f9cbd3449ad22fdae23044319d6ef2a1fab"
+    "SKILL": "0x154a9f9cbd3449ad22fdae23044319d6ef2a1fab",
+    "xWIN": "0xd88ca08d8eec1e9e09562213ae83a7853ebb5d28",
+    "ARV": "0x6679eb24f59dfe111864aec72b443d1da666b360"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x1099C2E6Ed6ebA95099c205b599B409305783E43",
@@ -1579,6 +1598,23 @@
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 453,
           "stakingToken": "0x67EFeF66A55c4562144B9AcfCFbc62F9E4269b3e",
+          "stakingTokenAt": "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+            "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+            "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
+            "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
+          }
+        },
+        {
+          "name": "BMON-WBNB PancakeswapWorker",
+          "address": "0xb800A87d8cC5D8d134635ed321bF7963aa3F5BcF",
+          "deployedBlock": 12325288,
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 437,
+          "stakingToken": "0x3C2b7B578Dd2175A1c3524Aa0D515106282Bf108",
           "stakingTokenAt": "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
