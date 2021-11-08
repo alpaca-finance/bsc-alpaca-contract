@@ -37,7 +37,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe {
     IERC20 rewardToken; // Address of Reward token contract
     uint256 startBlock; // start block of the campaign
     uint256 lastRewardBlock; // Last block number that Reward Token distribution occurs.
-    uint256 accRewardPerShare; // Accumulated Reward Token per share, times 1e27. See below.
+    uint256 accRewardPerShare; // Accumulated Reward Token per share, times 1e20. See below.
     uint256 totalStaked; // total staked amount each campaign's stake token, typically, each campaign has the same stake token, so need to track it separatedly
     uint256 totalRewards;
   }
@@ -83,7 +83,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe {
     require(msg.sender == 0x5379F32C8D5F663EACb61eeF63F722950294f452, "!proxy admin");
     uint256 length = campaignInfo.length;
     for (uint256 pid = 0; pid < length; ++pid) {
-      campaignInfo[pid].accRewardPerShare = campaignInfo[pid].accRewardPerShare * 1e15;
+      campaignInfo[pid].accRewardPerShare = campaignInfo[pid].accRewardPerShare.mul(1e8);
     }
   }
 
@@ -226,11 +226,11 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe {
         if (multiplier == 0) continue;
         cursor = rewardInfo[i].endBlock;
         accRewardPerShare = accRewardPerShare.add(
-          multiplier.mul(rewardInfo[i].rewardPerBlock).mul(1e27).div(campaign.totalStaked)
+          multiplier.mul(rewardInfo[i].rewardPerBlock).mul(1e20).div(campaign.totalStaked)
         );
       }
     }
-    return _amount.mul(accRewardPerShare).div(1e27).sub(_rewardDebt);
+    return _amount.mul(accRewardPerShare).div(1e20).sub(_rewardDebt);
   }
 
   function updateCampaign(uint256 _campaignID) external nonReentrant {
@@ -269,7 +269,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe {
         campaign.lastRewardBlock = block.number;
       }
       campaign.accRewardPerShare = campaign.accRewardPerShare.add(
-        multiplier.mul(rewardInfo[i].rewardPerBlock).mul(1e27).div(campaign.totalStaked)
+        multiplier.mul(rewardInfo[i].rewardPerBlock).mul(1e20).div(campaign.totalStaked)
       );
     }
   }
@@ -288,7 +288,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe {
     UserInfo storage user = userInfo[_campaignID][msg.sender];
     _updateCampaign(_campaignID);
     if (user.amount > 0) {
-      uint256 pending = user.amount.mul(campaign.accRewardPerShare).div(1e27).sub(user.rewardDebt);
+      uint256 pending = user.amount.mul(campaign.accRewardPerShare).div(1e20).sub(user.rewardDebt);
       if (pending > 0) {
         campaign.rewardToken.safeTransfer(address(msg.sender), pending);
       }
@@ -298,7 +298,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe {
       user.amount = user.amount.add(_amount);
       campaign.totalStaked = campaign.totalStaked.add(_amount);
     }
-    user.rewardDebt = user.amount.mul(campaign.accRewardPerShare).div(1e27);
+    user.rewardDebt = user.amount.mul(campaign.accRewardPerShare).div(1e20);
     emit Deposit(msg.sender, _amount, _campaignID);
   }
 
@@ -313,7 +313,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe {
     UserInfo storage user = userInfo[_campaignID][msg.sender];
     require(user.amount >= _amount, "GrazingRange::withdraw::bad withdraw amount");
     _updateCampaign(_campaignID);
-    uint256 pending = user.amount.mul(campaign.accRewardPerShare).div(1e27).sub(user.rewardDebt);
+    uint256 pending = user.amount.mul(campaign.accRewardPerShare).div(1e20).sub(user.rewardDebt);
     if (pending > 0) {
       campaign.rewardToken.safeTransfer(address(msg.sender), pending);
     }
@@ -322,7 +322,7 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe {
       campaign.stakingToken.safeTransfer(address(msg.sender), _amount);
       campaign.totalStaked = campaign.totalStaked.sub(_amount);
     }
-    user.rewardDebt = user.amount.mul(campaign.accRewardPerShare).div(1e27);
+    user.rewardDebt = user.amount.mul(campaign.accRewardPerShare).div(1e20);
 
     emit Withdraw(msg.sender, _amount, _campaignID);
   }

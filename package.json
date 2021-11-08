@@ -170,6 +170,7 @@
     "deploy:ethereum:timelock:deploy:timelock": "hardhat --network ethereum deploy --no-compile --reset --tags Timelock",
     "deploy:ethereum:debt-token:deploy:debt-token": "hardhat --network ethereum deploy --no-compile --reset --tags DebtTokenV2",
     "mainnet": "hardhat console --no-compile --network mainnet",
+    "ethereum": "hardhat console --no-compile --network ethereum",
     "test:case": "mocha --require hardhat/register --extension ts -g",
     "test:parallel": "mocha --require hardhat/register --recursive --parallel --extension ts --exit",
     "test:vaultconfig": "hardhat test --no-compile ./test/ConfigurableInterestVaultConfig.test.ts",

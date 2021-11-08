@@ -29,25 +29,25 @@ async function main() {
   const [deployer, qa] = await ethers.getSigners();
   const arv = MockERC20__factory.connect(config.Tokens.ARV, deployer);
   const timelock = Timelock__factory.connect(config.Timelock, deployer);
-  const eta = 1636153200;
+  const eta = 1636178400;
 
   console.log(await ethers.provider.getNetwork());
 
   // Prepare the upgrade GrazingRange contract
   const GrazingRange = (await ethers.getContractFactory("GrazingRange")) as GrazingRange__factory;
   const graze = GrazingRange__factory.connect(config.GrazingRange.address, deployer);
-  const preparedGrazingRangeV2: string = await upgrades.prepareUpgrade(config.GrazingRange.address, GrazingRange);
+  // const preparedGrazingRangeV2: string = await upgrades.prepareUpgrade(config.GrazingRange.address, GrazingRange);
 
-  await timelock.queueTransaction(
-    config.ProxyAdmin,
-    0,
-    "upgradeAndCall(address,address,bytes)",
-    ethers.utils.defaultAbiCoder.encode(
-      ["address", "address", "bytes"],
-      [config.GrazingRange.address, preparedGrazingRangeV2, graze.interface.encodeFunctionData("upgradePrecision")]
-    ),
-    eta
-  );
+  // await timelock.queueTransaction(
+  //   config.ProxyAdmin,
+  //   0,
+  //   "upgradeAndCall(address,address,bytes)",
+  //   ethers.utils.defaultAbiCoder.encode(
+  //     ["address", "address", "bytes"],
+  //     [config.GrazingRange.address, preparedGrazingRangeV2, graze.interface.encodeFunctionData("upgradePrecision")]
+  //   ),
+  //   eta
+  // );
 
   // Move timestamp to pass timelock
   await timeHelpers.set(ethers.BigNumber.from(eta));
@@ -61,14 +61,18 @@ async function main() {
   console.table(beforeUpgradePendingRewards);
 
   await timelock.executeTransaction(
-    config.ProxyAdmin,
+    "0x5379F32C8D5F663EACb61eeF63F722950294f452",
     0,
     "upgradeAndCall(address,address,bytes)",
     ethers.utils.defaultAbiCoder.encode(
       ["address", "address", "bytes"],
-      [config.GrazingRange.address, preparedGrazingRangeV2, graze.interface.encodeFunctionData("upgradePrecision")]
+      [
+        "0x6bf5b334409cC3FD336Da9A2D3e3F9c870fEb343",
+        "0x815C54F332Dd60eAcD839BB12fdc37105783B77F",
+        graze.interface.encodeFunctionData("upgradePrecision"),
+      ]
     ),
-    eta
+    1636178400
   );
 
   await expect(graze.upgradePrecision()).to.be.revertedWith("!proxy admin");
@@ -81,7 +85,7 @@ async function main() {
   console.table(afterUpgradePendingRewards);
 
   console.log("mining..");
-  await timeHelpers.advanceBlockTo(14170900);
+  for (let i = 0; i < 10; i++) await timeHelpers.advanceBlock();
   console.log("done");
 
   const qaGraze = GrazingRange__factory.connect(config.GrazingRange.address, qa);
