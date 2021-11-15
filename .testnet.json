@@ -548,6 +548,11 @@
           "pId": 73,
           "name": "BMON-WBNB LP",
           "address": "0x5bB0ac2B9B2944F76FC098De40BC224E03b43fec"
+        },
+        {
+          "pId": 74,
+          "name": "ETH-BTCB LP",
+          "address": "0xb92b6a5669cb7cc28522A186Efe3906fBc0571Ec"
         }
       ]
     },
@@ -2206,6 +2211,23 @@
             "StrategyPartialCloseLiquidate": "0xb0B73e4f3cC53dE84E1f76448d959c79cFCbdAD4",
             "StrategyPartialCloseMinimizeTrading": "0xe238e880A7D3A0A7A9d099387B3Db78137E592De"
           }
+        },
+        {
+          "name": "BTCB-ETH PancakeswapWorker",
+          "address": "0xa600af4fDc98EDB58e434496DCdB4820E056Ab3E",
+          "deployedBlock": 13930389,
+          "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+          "pId": 74,
+          "stakingToken": "0xb92b6a5669cb7cc28522A186Efe3906fBc0571Ec",
+          "stakingTokenAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
+            "StrategyLiquidate": "0x58Bbb507248635413172Ed7A2eeC048402C6b39b",
+            "StrategyAddTwoSidesOptimal": "0xD8916928Cd542016E319Ad0c816EF01310462BEa",
+            "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32",
+            "StrategyPartialCloseLiquidate": "0x566aC15667Ae05c1F50Ed9944Aeef5A9dae4AB55",
+            "StrategyPartialCloseMinimizeTrading": "0xBb79EB494Da88F115430D174D5372b51Fc37De50"
+          }
         }
       ]
     },
@@ -2625,6 +2647,23 @@
           "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
           "pId": 40,
           "stakingToken": "0x958BD4cF570D4de0E59db9926Ce138f6FE96464D",
+          "stakingTokenAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
+            "StrategyLiquidate": "0x58Bbb507248635413172Ed7A2eeC048402C6b39b",
+            "StrategyAddTwoSidesOptimal": "0x453a9A2500947d2F730068E77C5294D3feb5DA67",
+            "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32",
+            "StrategyPartialCloseLiquidate": "0x566aC15667Ae05c1F50Ed9944Aeef5A9dae4AB55",
+            "StrategyPartialCloseMinimizeTrading": "0xBb79EB494Da88F115430D174D5372b51Fc37De50"
+          }
+        },
+        {
+          "name": "ETH-BTCB PancakeswapWorker",
+          "address": "0xA5B6C6F69afd40eFaE7d82Ecc2688d03ba37B938",
+          "deployedBlock": 13930373,
+          "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+          "pId": 74,
+          "stakingToken": "0xb92b6a5669cb7cc28522A186Efe3906fBc0571Ec",
           "stakingTokenAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
           "strategies": {
             "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
