@@ -210,6 +210,12 @@
         "name": "ibALPACA-TEN",
         "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
         "rewardToken": "0xd15C444F1199Ae72795eba15E8C1db44E47abF62"
+      },
+      {
+        "id": 33,
+        "name": "ibALPACA-CAPS",
+        "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
+        "rewardToken": "0xffba7529ac181c2ee1844548e6d7061c9a597df4"
       }
     ]
   },
