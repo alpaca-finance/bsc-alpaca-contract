@@ -553,6 +553,11 @@
           "pId": 74,
           "name": "ETH-BTCB LP",
           "address": "0xb92b6a5669cb7cc28522A186Efe3906fBc0571Ec"
+        },
+        {
+          "pId": 75,
+          "name": "SPS-WBNB LP",
+          "address": "0x065884E7a5C7d100c4F5AB62d650Cbb50e5E5685"
         }
       ]
     },
@@ -800,7 +805,9 @@
     "ARV": "0x0000000000000000000000000000000000000000",
     "xWIN": "0x0000000000000000000000000000000000000000",
     "8_DECIMAL_PLACES": "0x0d126d63Eaf56647e6673EB204935557D21F6884",
-    "20_DECIMAL_PLACES": "0x84e41755532c355766E4BA31513550Af8E1dAD34"
+    "20_DECIMAL_PLACES": "0x84e41755532c355766E4BA31513550Af8E1dAD34",
+    "CAPS": "0x0000000000000000000000000000000000000000",
+    "SPS": "0xCB967Fe2cF0FFc06cfeDCa3CD2De931879257B15"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x7549b7d0edcd411e7e5013dc74727f8dab13ab0f",
@@ -1520,6 +1527,23 @@
           "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
           "pId": 73,
           "stakingToken": "0x5bB0ac2B9B2944F76FC098De40BC224E03b43fec",
+          "stakingTokenAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
+            "StrategyLiquidate": "0x58Bbb507248635413172Ed7A2eeC048402C6b39b",
+            "StrategyAddTwoSidesOptimal": "0x0A5515aEdc275b9fF19d11Cd74465e83067f6D40",
+            "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32",
+            "StrategyPartialCloseLiquidate": "0x566aC15667Ae05c1F50Ed9944Aeef5A9dae4AB55",
+            "StrategyPartialCloseMinimizeTrading": "0xBb79EB494Da88F115430D174D5372b51Fc37De50"
+          }
+        },
+        {
+          "name": "SPS-WBNB PancakeswapWorker",
+          "address": "0x650F3883697dcdAa244A98B01c72e2261dbcdC4A",
+          "deployedBlock": 14381819,
+          "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+          "pId": 75,
+          "stakingToken": "0x065884E7a5C7d100c4F5AB62d650Cbb50e5E5685",
           "stakingTokenAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
           "strategies": {
             "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",

@@ -216,6 +216,12 @@
         "name": "ibALPACA-CAPS",
         "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
         "rewardToken": "0xffba7529ac181c2ee1844548e6d7061c9a597df4"
+      },
+      {
+        "id": 34,
+        "name": "ibALPACA-SPS",
+        "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
+        "rewardToken": "0x1633b7157e7638C4d6593436111Bf125Ee74703F"
       }
     ]
   },
@@ -969,7 +975,9 @@
     "XMS": "0x7859B01BbF675d67Da8cD128a50D155cd881B576",
     "xWIN": "0xd88ca08d8eec1e9e09562213ae83a7853ebb5d28",
     "ARV": "0x6679eb24f59dfe111864aec72b443d1da666b360",
-    "LEON": "0x27e873bee690c8e161813de3566e9e18a64b0381"
+    "LEON": "0x27e873bee690c8e161813de3566e9e18a64b0381",
+    "CAPS": "0xffba7529ac181c2ee1844548e6d7061c9a597df4",
+    "SPS": "0x1633b7157e7638C4d6593436111Bf125Ee74703F"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x1099C2E6Ed6ebA95099c205b599B409305783E43",
