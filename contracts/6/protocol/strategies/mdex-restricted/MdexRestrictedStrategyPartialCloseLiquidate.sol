@@ -139,4 +139,10 @@ contract MdexRestrictedStrategyPartialCloseLiquidate is OwnableUpgradeSafe, Reen
     }
     return totalReward;
   }
+  
+  /// @dev Set new Mdex router
+  /// @param _newRouter the address of contract that implement IMDexRouter interface
+  function setNewRouter(IMdexRouter _newRouter) external onlyOwner {
+    router = _newRouter;
+  }
 }
