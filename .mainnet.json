@@ -734,6 +734,11 @@
           "pId": 408,
           "name": "ETH-BTCB LP",
           "address": "0xD171B26E4484402de70e3Ea256bE5A2630d7e88D"
+        },
+        {
+          "pId": 432,
+          "name": "SPS-WBNB LP",
+          "address": "0xfdfde3af740a22648b9dd66d05698e5095940850"
         }
       ]
     },
@@ -1680,6 +1685,23 @@
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 437,
           "stakingToken": "0x3C2b7B578Dd2175A1c3524Aa0D515106282Bf108",
+          "stakingTokenAt": "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+            "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+            "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
+            "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
+          }
+        },
+        {
+          "name": "SPS-WBNB PancakeswapWorker",
+          "address": "0xbBa4c941E577cfe921e3e88D705a46b22F3B1aDf",
+          "deployedBlock": 12906586,
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 432,
+          "stakingToken": "0xFdFde3aF740A22648B9dD66D05698e5095940850",
           "stakingTokenAt": "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
