@@ -36,7 +36,7 @@ async function _queueWithdrawReserve(
     "withdrawReserve(address,uint256)",
     ethers.utils.defaultAbiCoder.encode(["address", "uint256"], [deployer.address, reserveAmt]),
     eta,
-    { nonce, gasPrice: ethers.utils.parseUnits("10", "gwei") }
+    { nonce, gasPrice: ethers.utils.parseUnits("20", "gwei") }
   );
 
   console.log(`> queued tx to withdraw reserve hash: ${queueTx.hash}`);

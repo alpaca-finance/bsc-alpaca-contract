@@ -66,30 +66,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const shortWorkerInfos: IPancakeswapWorkerInput[] = [
     {
-      VAULT_SYMBOL: "ibBTCB",
-      WORKER_NAME: "ETH-BTCB PancakeswapWorker",
+      VAULT_SYMBOL: "ibWBNB",
+      WORKER_NAME: "SPS-WBNB PancakeswapWorker",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 408,
+      POOL_ID: 432,
       REINVEST_BOUNTY_BPS: "300",
-      REINVEST_PATH: ["CAKE", "WBNB", "BTCB"],
+      REINVEST_PATH: ["CAKE", "WBNB"],
       REINVEST_THRESHOLD: "1",
-      WORK_FACTOR: "7000",
-      KILL_FACTOR: "8333",
-      MAX_PRICE_DIFF: "10500",
-      EXACT_ETA: "1636455600",
-    },
-    {
-      VAULT_SYMBOL: "ibETH",
-      WORKER_NAME: "BTCB-ETH PancakeswapWorker",
-      REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 408,
-      REINVEST_BOUNTY_BPS: "300",
-      REINVEST_PATH: ["CAKE", "WBNB", "ETH"],
-      REINVEST_THRESHOLD: "1",
-      WORK_FACTOR: "7000",
-      KILL_FACTOR: "8333",
-      MAX_PRICE_DIFF: "10500",
-      EXACT_ETA: "1636455600",
+      WORK_FACTOR: "6240",
+      KILL_FACTOR: "8000",
+      MAX_PRICE_DIFF: "11000",
+      EXACT_ETA: "1637811000",
     },
   ];
 
