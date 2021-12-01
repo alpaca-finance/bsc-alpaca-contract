@@ -1,3 +1,4 @@
+import { CallOverrides } from "@ethersproject/contracts";
 import { ethers } from "hardhat";
 import { Timelock__factory } from "../../typechain";
 import { ConfigEntity, TimelockEntity } from "../entities";
@@ -9,7 +10,8 @@ export async function queueTransaction(
   signature: string,
   paramTypes: Array<string>,
   params: Array<any>,
-  eta: string
+  eta: string,
+  overrides?: CallOverrides
 ): Promise<TimelockEntity.Transaction> {
   console.log(`==========`);
   console.log(`>> Queue tx for: ${info}`);
@@ -20,7 +22,8 @@ export async function queueTransaction(
     value,
     signature,
     ethers.utils.defaultAbiCoder.encode(paramTypes, params),
-    eta
+    eta,
+    overrides
   );
   await queueTx.wait();
   const paramTypesStr = paramTypes.map((p) => `'${p}'`);

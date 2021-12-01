@@ -156,7 +156,7 @@
     "deploy:testnet:worker-config:upgrade:single-asset-worker-config": "hardhat --network testnet deploy --no-compile --reset --tags UpgradeSingleAssetWorkerConfig",
     "deploy:testnet:vault-config:upgrade:vault-config": "hardhat --network testnet deploy --no-compile --reset --tags UpgradeVaultConfig",
     "deploy:testnet:s023": "hardhat --network testnet deploy --no-compile --reset --tags SetMaxKillBps",
-    "deploy:testnet:s024": "hardhat --network testnet deploy --no-compile --reset --tags AddSourceChainLinkPriceOracle",
+    "deploy:testnet:oracles:config:add-price-source-chainlink": "hardhat --network testnet deploy --no-compile --reset --tags AddSourceChainLinkPriceOracle",
     "deploy:testnet:workers:upgrade:workers02": "hardhat --network testnet deploy --no-compile --reset --tags UpgradeWorkers02",
     "deploy:testnet:workers:config:set-treasury-config": "hardhat --network testnet deploy --no-compile --reset --tags TimelockAddTreasuryFieldsWorkers02",
     "deploy:testnet:s028": "hardhat --network testnet deploy --no-compile --reset --tags TimelockAddBeneficialBuybackFieldsWorkers02",
