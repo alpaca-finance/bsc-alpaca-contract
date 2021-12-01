@@ -15,20 +15,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const TO_BE_LOCKED = [
-    "0x1eaAf599b95d7cab0151B8384d15fe3F68Aa4ee3",
-    "0xF4B424DB20d8664cF559Fa3c095C54F4569A7f57",
-    "0xC979CaB6424Fb6138abf28689ed8EfAba1Ec49AC",
-    "0xC2f8CcAf5530d9148bb07A6947b2f0F317e59e23",
-    "0x50441d9c8E08E3Dcce8D517E2257a3882d43fee9",
-  ];
+  const TO_BE_LOCKED = ["0x8a426aABF42AaE9E0f483cBe3C0DCc00b7659AEC", "0x68f131fe93cFc18A6B3eC6312e18c089221a5C34"];
 
   const config = ConfigEntity.getConfig();
+  const deployer = (await ethers.getSigners())[0];
+  let nonce = await deployer.getTransactionCount();
 
   for (let i = 0; i < TO_BE_LOCKED.length; i++) {
     console.log(`>> Transferring ownership of ${TO_BE_LOCKED[i]} to TIMELOCK`);
-    const ownable = Ownable__factory.connect(TO_BE_LOCKED[i], (await ethers.getSigners())[0]);
-    await ownable.transferOwnership(config.Timelock);
+    const ownable = Ownable__factory.connect(TO_BE_LOCKED[i], deployer);
+    await ownable.transferOwnership(config.Timelock, { gasPrice: ethers.utils.parseUnits("20", "gwei"), nonce });
+    nonce++;
     console.log("✅ Done");
   }
 };
