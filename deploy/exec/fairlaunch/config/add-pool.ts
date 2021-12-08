@@ -1,9 +1,14 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, network } from "hardhat";
-import { ChainLinkPriceOracle__factory } from "../../../../typechain";
-import TestnetConfig from "../../../../.testnet.json";
+import { Timelock__factory } from "../../../../typechain";
 import MainnetConfig from "../../../../.mainnet.json";
+import TestnetConfig from "../../../../.testnet.json";
+
+interface IAddPool {
+  STAKING_TOKEN_ADDRESS: string;
+  ALLOC_POINT: number;
+}
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -15,35 +20,37 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TOKEN0_SYMBOLS = ["BUSD"];
-  const TOKEN1_SYMBOLS = ["USD"];
-  const AGGREGATORV3S = ["0xcBb98864Ef56E9042e7d2efef76141f15731B82f"];
+  const POOLS: Array<IAddPool> = [
+    {
+      STAKING_TOKEN_ADDRESS: "0xc414a333d8e53a98dbec2dde87032596385acc0c",
+      ALLOC_POINT: 150,
+    },
+  ];
+  const EXACT_ETA = "1638935100";
 
   const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
-  const tokenList: any = config.Tokens;
-  const token0Addrs: Array<string> = TOKEN0_SYMBOLS.map((t) => {
-    const addr = tokenList[t];
-    if (addr === undefined) {
-      throw `error: token: unable to find address of ${t}`;
-    }
-    return addr;
-  });
-  const token1Addrs: Array<string> = TOKEN1_SYMBOLS.map((t) => {
-    const addr = tokenList[t];
-    if (addr === undefined) {
-      throw `error: token: unable to find address of ${t}`;
-    }
-    return addr;
-  });
 
-  const chainLinkPriceOracle = ChainLinkPriceOracle__factory.connect(
-    config.Oracle.ChainLinkOracle,
-    (await ethers.getSigners())[0]
-  );
-  console.log(">> Adding price source to chain link price oracle");
-  await chainLinkPriceOracle.setPriceFeeds(token0Addrs, token1Addrs, AGGREGATORV3S, { gasLimit: "10000000" });
-  console.log("✅ Done");
+  const timelock = Timelock__factory.connect(config.Timelock, (await ethers.getSigners())[0]);
+
+  for (const pool of POOLS) {
+    console.log(`>> Timelock: Add ${pool.STAKING_TOKEN_ADDRESS} with ${pool.ALLOC_POINT} via Timelock`);
+    await timelock.queueTransaction(
+      config.Shield,
+      "0",
+      "addPool(uint256,address,bool)",
+      ethers.utils.defaultAbiCoder.encode(
+        ["uint256", "address", "bool"],
+        [pool.ALLOC_POINT, pool.STAKING_TOKEN_ADDRESS, true]
+      ),
+      EXACT_ETA
+    );
+    console.log("generate timelock.executeTransaction:");
+    console.log(
+      `await timelock.executeTransaction('${config.Shield}', '0', 'addPool(uint256,address,bool)', ethers.utils.defaultAbiCoder.encode(['uint256','address','bool'],[${pool.ALLOC_POINT}, '${pool.STAKING_TOKEN_ADDRESS}', true]), ${EXACT_ETA})`
+    );
+    console.log("✅ Done");
+  }
 };
 
 export default func;
-func.tags = ["AddSourceChainLinkPriceOracle"];
+func.tags = ["TimelockAddPool"];

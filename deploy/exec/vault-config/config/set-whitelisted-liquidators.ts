@@ -32,41 +32,41 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const TARGETED_VAULT_CONFIG: Array<IInput> = [
     {
       VAULT_SYMBOL: "ibWBNB",
-      WHITELISTED_LIQUIDATORS: ["0xb1D9836dd79Ad9d3Edc96c6e3B90ef82cd808d3a"],
+      WHITELISTED_LIQUIDATORS: ["0x9b75e85DAA209D25EbF205eAb89bf0B86f9f2D3e"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibBUSD",
-      WHITELISTED_LIQUIDATORS: ["0xb1D9836dd79Ad9d3Edc96c6e3B90ef82cd808d3a"],
+      WHITELISTED_LIQUIDATORS: ["0x9b75e85DAA209D25EbF205eAb89bf0B86f9f2D3e"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibETH",
-      WHITELISTED_LIQUIDATORS: ["0xb1D9836dd79Ad9d3Edc96c6e3B90ef82cd808d3a"],
+      WHITELISTED_LIQUIDATORS: ["0x9b75e85DAA209D25EbF205eAb89bf0B86f9f2D3e"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibALPACA",
-      WHITELISTED_LIQUIDATORS: ["0xb1D9836dd79Ad9d3Edc96c6e3B90ef82cd808d3a"],
+      WHITELISTED_LIQUIDATORS: ["0x9b75e85DAA209D25EbF205eAb89bf0B86f9f2D3e"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibUSDT",
-      WHITELISTED_LIQUIDATORS: ["0xb1D9836dd79Ad9d3Edc96c6e3B90ef82cd808d3a"],
+      WHITELISTED_LIQUIDATORS: ["0x9b75e85DAA209D25EbF205eAb89bf0B86f9f2D3e"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibBTCB",
-      WHITELISTED_LIQUIDATORS: ["0xb1D9836dd79Ad9d3Edc96c6e3B90ef82cd808d3a"],
+      WHITELISTED_LIQUIDATORS: ["0x9b75e85DAA209D25EbF205eAb89bf0B86f9f2D3e"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibTUSD",
-      WHITELISTED_LIQUIDATORS: ["0xb1D9836dd79Ad9d3Edc96c6e3B90ef82cd808d3a"],
+      WHITELISTED_LIQUIDATORS: ["0x9b75e85DAA209D25EbF205eAb89bf0B86f9f2D3e"],
       IS_ENABLE: true,
     },
   ];
-  const EXACT_ETA = "1638250200";
+  const EXACT_ETA = "1638935400";
 
   const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
