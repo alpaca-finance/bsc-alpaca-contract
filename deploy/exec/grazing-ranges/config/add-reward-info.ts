@@ -26,31 +26,31 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const REWARDINFO: IAddGrazingRangeRewardInfoParamList = [
     {
-      PHASE_NAME: "PLUT_WEEK_1",
-      CAMPAIGN_ID: "35",
-      ENDBLOCK: "13284200",
-      REWARD_PER_BLOCK: ethers.utils.parseEther("0.86160").toString(),
+      PHASE_NAME: "ETERNAL_WEEK_1",
+      CAMPAIGN_ID: "36",
+      ENDBLOCK: "13339900",
+      REWARD_PER_BLOCK: ethers.utils.parseEther("0.00105").toString(),
     },
     {
-      PHASE_NAME: "PLUT_WEEK_2",
-      CAMPAIGN_ID: "35",
-      ENDBLOCK: "13485800",
-      REWARD_PER_BLOCK: ethers.utils.parseEther("0.47867").toString(),
+      PHASE_NAME: "ETERNAL_WEEK_2",
+      CAMPAIGN_ID: "36",
+      ENDBLOCK: "13541500",
+      REWARD_PER_BLOCK: ethers.utils.parseEther("0.00058").toString(),
     },
     {
-      PHASE_NAME: "PLUT_WEEK_3",
-      CAMPAIGN_ID: "35",
-      ENDBLOCK: "13687400",
-      REWARD_PER_BLOCK: ethers.utils.parseEther("0.36378").toString(),
+      PHASE_NAME: "ETERNAL_WEEK_3",
+      CAMPAIGN_ID: "36",
+      ENDBLOCK: "13743100",
+      REWARD_PER_BLOCK: ethers.utils.parseEther("0.00044").toString(),
     },
     {
-      PHASE_NAME: "PLUT_WEEK_4",
-      CAMPAIGN_ID: "35",
-      ENDBLOCK: "13889000",
-      REWARD_PER_BLOCK: ethers.utils.parseEther("0.21061").toString(),
+      PHASE_NAME: "ETERNAL_WEEK_4",
+      CAMPAIGN_ID: "36",
+      ENDBLOCK: "13944700",
+      REWARD_PER_BLOCK: ethers.utils.parseEther("0.00025").toString(),
     },
   ];
-  const EXACT_ETA = "1638246600";
+  const EXACT_ETA = "1638426600";
 
   const config = ConfigEntity.getConfig();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
@@ -65,7 +65,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         "addRewardInfo(uint256,uint256,uint256)",
         ["uint256", "uint256", "uint256"],
         [rewardInfo.CAMPAIGN_ID, rewardInfo.ENDBLOCK, rewardInfo.REWARD_PER_BLOCK],
-        EXACT_ETA
+        EXACT_ETA,
+        { gasPrice: ethers.utils.parseUnits("10", "gwei") }
       )
     );
   }

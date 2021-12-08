@@ -2,6 +2,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ConfigEntity, TimelockEntity } from "../../../entities";
 import { FileService, TimelockService } from "../../../services";
+import { ethers } from "ethers";
 
 interface IAddGrazingRangeCampaignParam {
   NAME: string;
@@ -24,13 +25,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const CAMPAIGNS: IAddGrazingRangeCampaignParamList = [
     {
-      NAME: "ibALPACA-PLUT",
+      NAME: "ibALPACA-ETERNAL",
       STAKING_TOKEN: "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
-      REWARD_TOKEN: "0x2984f825bfe72e55e1725d5c020258e81ff97450",
-      START_BLOCK: "13082600",
+      REWARD_TOKEN: "0xD44FD09d74cd13838F137B590497595d6b3FEeA4",
+      START_BLOCK: "13138300",
     },
   ];
-  const EXACT_ETA = "1638246600";
+  const EXACT_ETA = "1638426600";
 
   const config = ConfigEntity.getConfig();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
@@ -45,7 +46,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         "addCampaignInfo(address,address,uint256)",
         ["address", "address", "uint256"],
         [campaign.STAKING_TOKEN, campaign.REWARD_TOKEN, campaign.START_BLOCK],
-        EXACT_ETA
+        EXACT_ETA,
+        { gasPrice: ethers.utils.parseUnits("10", "gwei") }
       )
     );
   }

@@ -228,6 +228,12 @@
         "name": "ibALPACA-PLUT",
         "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
         "rewardToken": "0x2984f825bfe72e55e1725d5c020258e81ff97450"
+      },
+      {
+        "id": 36,
+        "name": "ibALPACA-ETERNAL",
+        "stakingToken": "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
+        "rewardToken": "0xD44FD09d74cd13838F137B590497595d6b3FEeA4"
       }
     ]
   },
@@ -745,6 +751,11 @@
           "pId": 432,
           "name": "SPS-WBNB LP",
           "address": "0xfdfde3af740a22648b9dd66d05698e5095940850"
+        },
+        {
+          "pId": 473,
+          "name": "ETERNAL-WBNB LP",
+          "address": "0xbd26e08411483C4BEBba80939FA5a775beE22338"
         }
       ]
     },
@@ -992,7 +1003,9 @@
     "TENFI": "0xd15c444f1199ae72795eba15e8c1db44e47abf62",
     "CAPS": "0xffba7529ac181c2ee1844548e6d7061c9a597df4",
     "SPS": "0x1633b7157e7638C4d6593436111Bf125Ee74703F",
-    "PLUT": "0x2984f825bfe72e55e1725d5c020258e81ff97450"
+    "PLUT": "0x2984f825bfe72e55e1725d5c020258e81ff97450",
+    "ETERNAL": "0xD44FD09d74cd13838F137B590497595d6b3FEeA4",
+    "USD": "0x115dffFFfffffffffFFFffffFFffFfFfFFFFfFff"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x1099C2E6Ed6ebA95099c205b599B409305783E43",
@@ -1712,6 +1725,23 @@
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 432,
           "stakingToken": "0xFdFde3aF740A22648B9dD66D05698e5095940850",
+          "stakingTokenAt": "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+            "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+            "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
+            "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
+          }
+        },
+        {
+          "name": "ETERNAL-WBNB PancakeswapWorker",
+          "address": "0x7D306Dd73531C45F9847e547a0E8dEEAFe804939",
+          "deployedBlock": 13096716,
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 473,
+          "stakingToken": "0xbd26e08411483C4BEBba80939FA5a775beE22338",
           "stakingTokenAt": "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
