@@ -111,4 +111,4 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 };
 
 export default func;
-func.tags = ["TimelockAddBeneficialBuybackFieldsWorkers02"];
+func.tags = ["TimelockSetBeneficialBuybackFieldsWorkers02"];
