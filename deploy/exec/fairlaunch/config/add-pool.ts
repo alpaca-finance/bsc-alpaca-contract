@@ -22,11 +22,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const POOLS: Array<IAddPool> = [
     {
-      STAKING_TOKEN_ADDRESS: "0xc414a333d8e53a98dbec2dde87032596385acc0c",
-      ALLOC_POINT: 150,
+      STAKING_TOKEN_ADDRESS: "0x877264983807D568Cf0B61344cB03012c1F11B17",
+      ALLOC_POINT: 0,
     },
   ];
-  const EXACT_ETA = "1638935100";
+  const EXACT_ETA = "1639112400";
 
   const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
 
