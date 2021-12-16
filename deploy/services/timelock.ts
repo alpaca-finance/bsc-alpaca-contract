@@ -65,7 +65,8 @@ export async function executeTransaction(
   signature: string,
   paramTypes: Array<string>,
   params: Array<any>,
-  eta: string
+  eta: string,
+  overrides?: CallOverrides
 ): Promise<TimelockEntity.Transaction> {
   console.log(`==========`);
   console.log(`>> Execute tx for: ${info}`);

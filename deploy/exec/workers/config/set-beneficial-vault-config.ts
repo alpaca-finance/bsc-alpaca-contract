@@ -1,9 +1,10 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, network } from "hardhat";
-import { Timelock__factory } from "../../../../typechain";
 import MainnetConfig from "../../../../.mainnet.json";
 import TestnetConfig from "../../../../.testnet.json";
+import { TimelockEntity } from "../../../entities";
+import { FileService, TimelockService } from "../../../services";
 
 interface IWorker {
   WORKER_NAME: string;
@@ -26,11 +27,19 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const workerInputs: Array<string> = ["CAKE-WBNB PancakeswapWorker"];
+  const fileName = "xALPACA-testnet-set-beneficial-vault-config-cakemaxi";
+  const workerInputs = [
+    "TUSD CakeMaxiWorker",
+    "BTCB CakeMaxiWorker",
+    "USDT CakeMaxiWorker",
+    "ETH CakeMaxiWorker",
+    "BUSD CakeMaxiWorker",
+    "WBNB CakeMaxiWorker",
+  ];
   const rewardPathInput: Array<string> = ["CAKE", "BUSD", "ALPACA"];
-  const EXACT_ETA = "1620575100";
-  const BENEFICIAL_VAULT_BOUNTY_BPS = ""; // Address of treasury account
-  const BENEFICIAL_VAULT_ADDRESS = ""; // Treasury bounty bps
+  const EXACT_ETA = "1639481400";
+  const BENEFICIAL_VAULT_BOUNTY_BPS = "5263";
+  const BENEFICIAL_VAULT_ADDRESS = "0x5589FE5BEAe1C642A48eEFF5e80A761343D831a9";
 
   const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
   const allWorkers: IWorkers = config.Vaults.reduce((accum, vault) => {
@@ -63,32 +72,26 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     throw new Error(`could not find ${workerInput}`);
   });
-  const timelock = Timelock__factory.connect(config.Timelock, (await ethers.getSigners())[0]);
+  const deployer = (await ethers.getSigners())[0];
+  const timelockTransactions: Array<TimelockEntity.Transaction> = [];
+  let nonce = await deployer.getTransactionCount();
 
   for (let i = 0; i < TO_BE_UPGRADE_WORKERS.length; i++) {
-    console.log(
-      `>> Setting Beneficial Related Data to: ${TO_BE_UPGRADE_WORKERS[i].WORKER_NAME} at ${TO_BE_UPGRADE_WORKERS[i].ADDRESS} through Timelock + ProxyAdmin`
-    );
-    console.log(`>> Queue tx on Timelock to upgrade the implementation`);
-    await timelock.queueTransaction(
-      TO_BE_UPGRADE_WORKERS[i].ADDRESS,
-      "0",
-      "setBeneficialVaultConfig(uint256,address,address[])",
-      ethers.utils.defaultAbiCoder.encode(
+    timelockTransactions.push(
+      await TimelockService.queueTransaction(
+        `setting beneficial vault params for ${TO_BE_UPGRADE_WORKERS[i].WORKER_NAME}`,
+        TO_BE_UPGRADE_WORKERS[i].ADDRESS,
+        "0",
+        "setBeneficialVaultConfig(uint256,address,address[])",
         ["uint256", "address", "address[]"],
-        [BENEFICIAL_VAULT_BOUNTY_BPS, BENEFICIAL_VAULT_ADDRESS, REWARD_PATH]
-      ),
-      EXACT_ETA,
-      { gasPrice: 100000000000 }
+        [BENEFICIAL_VAULT_BOUNTY_BPS, BENEFICIAL_VAULT_ADDRESS, REWARD_PATH],
+        EXACT_ETA,
+        { nonce: nonce++, gasPrice: ethers.utils.parseUnits("10", "gwei") }
+      )
     );
-    console.log("✅ Done");
-
-    console.log(`>> Generate executeTransaction:`);
-    console.log(
-      `await timelock.executeTransaction('${TO_BE_UPGRADE_WORKERS[i].ADDRESS}', '0', 'setBeneficialVaultConfig(uint256,address,address[])', ethers.utils.defaultAbiCoder.encode(['uint256','address','address[]'], ['${BENEFICIAL_VAULT_BOUNTY_BPS}', '${BENEFICIAL_VAULT_ADDRESS}', [${REWARD_PATH_STRINGIFY}]), ${EXACT_ETA})`
-    );
-    console.log("✅ Done");
   }
+
+  FileService.write(fileName, timelockTransactions);
 };
 
 export default func;

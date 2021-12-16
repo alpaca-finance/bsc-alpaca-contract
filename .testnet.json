@@ -193,6 +193,11 @@
         "id": 20,
         "stakingToken": "AUSD-BUSD LP",
         "address": "0xc414a333d8e53a98dbec2dde87032596385acc0c"
+      },
+      {
+        "id": 21,
+        "stakingToken": "fdALPACA",
+        "address": "0xE0E9F41a9572105D1F391AcC03245aF7E30254eF"
       }
     ]
   },
@@ -824,7 +829,8 @@
     "SPS": "0xCB967Fe2cF0FFc06cfeDCa3CD2De931879257B15",
     "USD": "0x115dffFFfffffffffFFFffffFFffFfFfFFFFfFff",
     "PLUT": "0x0000000000000000000000000000000000000000",
-    "ETERNAL": "0xc6E98C6e4D93DB65efB6C0D82393B6FC9A782DFa"
+    "ETERNAL": "0xc6E98C6e4D93DB65efB6C0D82393B6FC9A782DFa",
+    "fdALPACA": "0xE0E9F41a9572105D1F391AcC03245aF7E30254eF"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x7549b7d0edcd411e7e5013dc74727f8dab13ab0f",
