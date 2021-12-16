@@ -386,6 +386,11 @@
         "id": 21,
         "stakingToken": "AUSD-BUSD LP",
         "address": "0x877264983807D568Cf0B61344cB03012c1F11B17"
+      },
+      {
+        "id": 22,
+        "stakingToken": "fdALPACA",
+        "address": "0x50E5748a2E9C5e05Ba8b95549Bf7B11dA91ddAB7"
       }
     ]
   },

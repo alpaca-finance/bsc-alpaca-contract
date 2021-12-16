@@ -36,7 +36,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       ALLOC_POINT: 0,
     },
   ];
-  const EXACT_ETA = "1639476000";
+  const EXACT_ETA = "1640242800";
 
   const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
   const inputs: Array<IInput> = [];
