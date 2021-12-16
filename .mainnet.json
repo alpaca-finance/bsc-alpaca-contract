@@ -381,6 +381,11 @@
         "id": 20,
         "stakingToken": "ibTUSD",
         "address": "0x3282d2a151ca00BfE7ed17Aa16E42880248CD3Cd"
+      },
+      {
+        "id": 21,
+        "stakingToken": "AUSD-BUSD LP",
+        "address": "0x877264983807D568Cf0B61344cB03012c1F11B17"
       }
     ]
   },

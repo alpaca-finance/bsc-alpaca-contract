@@ -1,22 +1,17 @@
-import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { DeployFunction } from 'hardhat-deploy/types';
-import { ethers, upgrades, network } from 'hardhat';
-import { Timelock__factory, PancakeswapV2Worker, PancakeswapV2Worker__factory, PancakeswapV2WorkerMigrate, PancakeswapV2WorkerMigrate__factory, WaultSwapWorker02__factory, CakeMaxiWorker02__factory, PancakeswapV2Worker02__factory } from '../../../../typechain'
-import MainnetConfig from '../../../../.mainnet.json'
-import TestnetConfig from '../../../../.testnet.json'
+import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { DeployFunction } from "hardhat-deploy/types";
+import { ethers, network } from "hardhat";
+import MainnetConfig from "../../../../.mainnet.json";
+import TestnetConfig from "../../../../.testnet.json";
+import { TimelockEntity } from "../../../entities";
+import { FileService, TimelockService } from "../../../services";
 
 interface IWorker {
-  WORKER_NAME: string,
-  ADDRESS: string
+  WORKER_NAME: string;
+  ADDRESS: string;
 }
 
-type IWorkers = Array<IWorker>
-
-interface IWorkerInput {
-  WORKER_NAME: string,
-}
-
-type IWorkerInputs = Array<IWorkerInput>
+type IWorkers = Array<IWorker>;
 
 /**
  * @description Deployment script for setting workers' beneficial vault related data
@@ -32,68 +27,72 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const workerInputs: IWorkerInputs = [
-    // {
-    //   WORKER_NAME: "CAKE-WBNB PancakeswapWorker",
-    // } // Example
-  ]
-  const rewardPathInput: Array<string> = ['CAKE', 'BUSD', 'ALPACA']
-  const EXACT_ETA = '1620575100';
-  const BENEFICIAL_VAULT_BOUNTY_BPS = ''; // Address of treasury account
-  const BENEFICIAL_VAULT_ADDRESS = ''; // Treasury bounty bps
-  
+  const fileName = "xALPACA-testnet-set-beneficial-vault-config-cakemaxi";
+  const workerInputs = [
+    "TUSD CakeMaxiWorker",
+    "BTCB CakeMaxiWorker",
+    "USDT CakeMaxiWorker",
+    "ETH CakeMaxiWorker",
+    "BUSD CakeMaxiWorker",
+    "WBNB CakeMaxiWorker",
+  ];
+  const rewardPathInput: Array<string> = ["CAKE", "BUSD", "ALPACA"];
+  const EXACT_ETA = "1639481400";
+  const BENEFICIAL_VAULT_BOUNTY_BPS = "5263";
+  const BENEFICIAL_VAULT_ADDRESS = "0x5589FE5BEAe1C642A48eEFF5e80A761343D831a9";
 
-
-
-
-
-
-
-
-
-  const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig
+  const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
   const allWorkers: IWorkers = config.Vaults.reduce((accum, vault) => {
-    return accum.concat(vault.workers.map(worker => {
-      return {
-        WORKER_NAME: worker.name,
-        ADDRESS: worker.address
-      }
-    }))
-  }, [] as IWorkers)
+    return accum.concat(
+      vault.workers.map((worker) => {
+        return {
+          WORKER_NAME: worker.name,
+          ADDRESS: worker.address,
+        };
+      })
+    );
+  }, [] as IWorkers);
 
   // get REWARD_PATH as a list of address based on a list of its symbol on config.Tokens
   const REWARD_PATH: Array<string> = rewardPathInput.map((tokenName) => {
-    const hit = ((config.Tokens as unknown) as Record<string, string | undefined>)[tokenName]
-    if (!!hit) return hit
-    throw new Error('could not find ${tokenName}')
-  })
-  const REWARD_PATH_STRINGIFY: string = REWARD_PATH.map((path) => `'${path}'`).join(',')
+    const hit = (config.Tokens as unknown as Record<string, string | undefined>)[tokenName];
+    if (!!hit) return hit;
+    throw new Error("could not find ${tokenName}");
+  });
+  const REWARD_PATH_STRINGIFY: string = REWARD_PATH.map((path) => `'${path}'`).join(",");
   const TO_BE_UPGRADE_WORKERS: IWorkers = workerInputs.map((workerInput) => {
     // 1. find each worker having an identical name as workerInput
     // 2. if hit return
     // 3. other wise throw error
     const hit = allWorkers.find((worker) => {
-      return worker.WORKER_NAME === workerInput.WORKER_NAME
-    })
+      return worker.WORKER_NAME === workerInput;
+    });
 
-    if(!!hit) return hit
+    if (!!hit) return hit;
 
-    throw new Error(`could not find ${workerInput.WORKER_NAME}`)
-  })
-  const timelock = Timelock__factory.connect(config.Timelock, (await ethers.getSigners())[0]);
+    throw new Error(`could not find ${workerInput}`);
+  });
+  const deployer = (await ethers.getSigners())[0];
+  const timelockTransactions: Array<TimelockEntity.Transaction> = [];
+  let nonce = await deployer.getTransactionCount();
 
-  for(let i = 0; i < TO_BE_UPGRADE_WORKERS.length; i++) {
-    console.log(`>> Setting Beneficial Related Data to: ${TO_BE_UPGRADE_WORKERS[i].WORKER_NAME} at ${TO_BE_UPGRADE_WORKERS[i].ADDRESS} through Timelock + ProxyAdmin`)
-    console.log(`>> Queue tx on Timelock to upgrade the implementation`);
-    await timelock.queueTransaction(TO_BE_UPGRADE_WORKERS[i].ADDRESS, '0', 'setBeneficialVaultRelatedData(uint256,address,address[])', ethers.utils.defaultAbiCoder.encode(['uint256','address','address[]'], [BENEFICIAL_VAULT_BOUNTY_BPS, BENEFICIAL_VAULT_ADDRESS, REWARD_PATH]), EXACT_ETA, { gasPrice: 100000000000 });
-    console.log("✅ Done");
-
-    console.log(`>> Generate executeTransaction:`);
-    console.log(`await timelock.executeTransaction('${TO_BE_UPGRADE_WORKERS[i].ADDRESS}', '0', 'setBeneficialVaultRelatedData(uint256,address,address[])', ethers.utils.defaultAbiCoder.encode('uint256','address','address[]'], ['${BENEFICIAL_VAULT_BOUNTY_BPS}', '${BENEFICIAL_VAULT_ADDRESS}', [${REWARD_PATH_STRINGIFY}]]), ${EXACT_ETA})`);
-    console.log("✅ Done");
+  for (let i = 0; i < TO_BE_UPGRADE_WORKERS.length; i++) {
+    timelockTransactions.push(
+      await TimelockService.queueTransaction(
+        `setting beneficial vault params for ${TO_BE_UPGRADE_WORKERS[i].WORKER_NAME}`,
+        TO_BE_UPGRADE_WORKERS[i].ADDRESS,
+        "0",
+        "setBeneficialVaultConfig(uint256,address,address[])",
+        ["uint256", "address", "address[]"],
+        [BENEFICIAL_VAULT_BOUNTY_BPS, BENEFICIAL_VAULT_ADDRESS, REWARD_PATH],
+        EXACT_ETA,
+        { nonce: nonce++, gasPrice: ethers.utils.parseUnits("10", "gwei") }
+      )
+    );
   }
 
+  FileService.write(fileName, timelockTransactions);
 };
 
 export default func;
-func.tags = ['TimelockAddBeneficialBuybackFieldsWorkers02'];
+func.tags = ["TimelockAddBeneficialBuybackFieldsWorkers02"];
