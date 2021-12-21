@@ -18,7 +18,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const fileName = "xALPACA-testnet-set-treasury-config-pcs";
+  const fileName = "mainnet-xALPACA-set-treasury-config-pcs";
   const workerInputs: Array<string> = [
     "USDT-BTCB MdexWorker",
     "ETH-BTCB MdexWorker",
@@ -69,7 +69,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "VAI-BUSD PancakeswapWorker",
     "WBNB-BUSD PancakeswapWorker",
     "USDT-BUSD PancakeswapWorker",
-    "ETERNAL-WBNB PancakeswapWorker",
     "SPS-WBNB PancakeswapWorker",
     "BMON-WBNB PancakeswapWorker",
     "QBT-WBNB PancakeswapWorker",
@@ -95,9 +94,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "BTCB-WBNB PancakeswapWorker",
     "CAKE-WBNB PancakeswapWorker",
   ];
-  const TREASURY_ACCOUNT = "0xcf28b4da7d3ed29986831876b74af6e95211d3f9";
+  const TREASURY_ACCOUNT = "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De";
   const TREASURY_BOUNTY_BPS = "900";
-  const EXACT_ETA = "1639494000";
+  const EXACT_ETA = "1640242800";
 
   const targetedWorkers = mapWorkers(workerInputs);
   const deployer = (await ethers.getSigners())[0];

@@ -47,114 +47,114 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const title = "testnet-xALPACA-set-reinvest-config";
+  const title = "mainnet-xALPACA-set-reinvest-config";
   const workerInputs: IWorkerReinvestConfigInputs = [
     {
       WORKER_NAME: "USDT-BTCB MdexWorker",
       REINVEST_BOUNTY_BPS: "900",
-      REINVEST_THRESHOLD: "1",
+      REINVEST_THRESHOLD: "33",
       REINVEST_PATH: ["MDX", "WBNB", "BTCB"],
     },
     {
       WORKER_NAME: "ETH-BTCB MdexWorker",
       REINVEST_BOUNTY_BPS: "900",
-      REINVEST_THRESHOLD: "1",
+      REINVEST_THRESHOLD: "33",
       REINVEST_PATH: ["MDX", "WBNB", "BTCB"],
     },
     {
       WORKER_NAME: "WBNB-BTCB MdexWorker",
       REINVEST_BOUNTY_BPS: "900",
-      REINVEST_THRESHOLD: "1",
+      REINVEST_THRESHOLD: "33",
       REINVEST_PATH: ["MDX", "WBNB", "BTCB"],
     },
     {
       WORKER_NAME: "BTCB-USDT MdexWorker",
       REINVEST_BOUNTY_BPS: "900",
-      REINVEST_THRESHOLD: "1",
+      REINVEST_THRESHOLD: "33",
       REINVEST_PATH: ["MDX", "USDT"],
     },
     {
       WORKER_NAME: "ETH-USDT MdexWorker",
       REINVEST_BOUNTY_BPS: "900",
-      REINVEST_THRESHOLD: "1",
+      REINVEST_THRESHOLD: "33",
       REINVEST_PATH: ["MDX", "USDT"],
     },
     {
       WORKER_NAME: "WBNB-USDT MdexWorker",
       REINVEST_BOUNTY_BPS: "900",
-      REINVEST_THRESHOLD: "1",
+      REINVEST_THRESHOLD: "33",
       REINVEST_PATH: ["MDX", "USDT"],
     },
     {
       WORKER_NAME: "USDC-USDT MdexWorker",
       REINVEST_BOUNTY_BPS: "900",
-      REINVEST_THRESHOLD: "1",
+      REINVEST_THRESHOLD: "33",
       REINVEST_PATH: ["MDX", "USDT"],
     },
     {
       WORKER_NAME: "DAI-USDT MdexWorker",
       REINVEST_BOUNTY_BPS: "900",
-      REINVEST_THRESHOLD: "1",
+      REINVEST_THRESHOLD: "33",
       REINVEST_PATH: ["MDX", "USDT"],
     },
     {
       WORKER_NAME: "USDT-ETH MdexWorker",
       REINVEST_BOUNTY_BPS: "900",
-      REINVEST_THRESHOLD: "1",
+      REINVEST_THRESHOLD: "33",
       REINVEST_PATH: ["MDX", "ETH"],
     },
     {
       WORKER_NAME: "WBNB-ETH MdexWorker",
       REINVEST_BOUNTY_BPS: "900",
-      REINVEST_THRESHOLD: "1",
+      REINVEST_THRESHOLD: "33",
       REINVEST_PATH: ["MDX", "ETH"],
     },
     {
       WORKER_NAME: "BTCB-ETH MdexWorker",
       REINVEST_BOUNTY_BPS: "900",
-      REINVEST_THRESHOLD: "1",
+      REINVEST_THRESHOLD: "33",
       REINVEST_PATH: ["MDX", "ETH"],
     },
     {
       WORKER_NAME: "MDX-BUSD MdexWorker",
       REINVEST_BOUNTY_BPS: "900",
-      REINVEST_THRESHOLD: "1",
+      REINVEST_THRESHOLD: "33",
       REINVEST_PATH: ["MDX", "BUSD"],
     },
     {
       WORKER_NAME: "WBNB-BUSD MdexWorker",
       REINVEST_BOUNTY_BPS: "900",
-      REINVEST_THRESHOLD: "1",
+      REINVEST_THRESHOLD: "33",
       REINVEST_PATH: ["MDX", "BUSD"],
     },
     {
       WORKER_NAME: "MDX-WBNB MdexWorker",
       REINVEST_BOUNTY_BPS: "900",
-      REINVEST_THRESHOLD: "1",
+      REINVEST_THRESHOLD: "33",
       REINVEST_PATH: ["MDX", "WBNB"],
     },
     {
       WORKER_NAME: "BUSD-WBNB MdexWorker",
       REINVEST_BOUNTY_BPS: "900",
-      REINVEST_THRESHOLD: "1",
+      REINVEST_THRESHOLD: "33",
       REINVEST_PATH: ["MDX", "WBNB"],
     },
     {
       WORKER_NAME: "ETH-WBNB MdexWorker",
       REINVEST_BOUNTY_BPS: "900",
-      REINVEST_THRESHOLD: "1",
+      REINVEST_THRESHOLD: "33",
       REINVEST_PATH: ["MDX", "WBNB"],
     },
     {
       WORKER_NAME: "USDT-WBNB MdexWorker",
       REINVEST_BOUNTY_BPS: "900",
-      REINVEST_THRESHOLD: "1",
+      REINVEST_THRESHOLD: "33",
       REINVEST_PATH: ["MDX", "WBNB"],
     },
     {
       WORKER_NAME: "BTCB-WBNB MdexWorker",
       REINVEST_BOUNTY_BPS: "900",
-      REINVEST_THRESHOLD: "1",
+      REINVEST_THRESHOLD: "33",
       REINVEST_PATH: ["MDX", "WBNB"],
     },
     {
@@ -344,12 +344,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       REINVEST_PATH: ["CAKE", "BUSD"],
     },
     {
-      WORKER_NAME: "ETERNAL-WBNB PancakeswapWorker",
-      REINVEST_BOUNTY_BPS: "900",
-      REINVEST_THRESHOLD: "1",
-      REINVEST_PATH: ["CAKE", "WBNB"],
-    },
-    {
       WORKER_NAME: "SPS-WBNB PancakeswapWorker",
       REINVEST_BOUNTY_BPS: "900",
       REINVEST_THRESHOLD: "1",
@@ -494,7 +488,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       REINVEST_PATH: ["CAKE", "WBNB"],
     },
   ];
-  const EXACT_ETA = "1639540800";
+  const EXACT_ETA = "1640242800";
 
   const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
   const allWorkers: IWorkers = config.Vaults.reduce((accum, vault) => {

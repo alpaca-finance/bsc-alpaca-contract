@@ -77,7 +77,8 @@ export async function executeTransaction(
     value,
     signature,
     ethers.utils.defaultAbiCoder.encode(paramTypes, params),
-    eta
+    eta,
+    overrides
   );
   console.log(`>> Done.`);
 

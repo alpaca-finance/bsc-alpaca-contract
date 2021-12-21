@@ -32,41 +32,41 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const TARGETED_VAULT_CONFIG: Array<IInput> = [
     {
       VAULT_SYMBOL: "ibWBNB",
-      WHITELISTED_CALLERS: ["0xd76CD6a1158BF2593dd3d952aCBf29A201332c66"],
+      WHITELISTED_CALLERS: ["0x30903486f9b438c4dd0Db38bf8C7dF9B193971F9"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibBUSD",
-      WHITELISTED_CALLERS: ["0xd76CD6a1158BF2593dd3d952aCBf29A201332c66"],
+      WHITELISTED_CALLERS: ["0x30903486f9b438c4dd0Db38bf8C7dF9B193971F9"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibETH",
-      WHITELISTED_CALLERS: ["0xd76CD6a1158BF2593dd3d952aCBf29A201332c66"],
+      WHITELISTED_CALLERS: ["0x30903486f9b438c4dd0Db38bf8C7dF9B193971F9"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibALPACA",
-      WHITELISTED_CALLERS: ["0xd76CD6a1158BF2593dd3d952aCBf29A201332c66"],
+      WHITELISTED_CALLERS: ["0x30903486f9b438c4dd0Db38bf8C7dF9B193971F9"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibUSDT",
-      WHITELISTED_CALLERS: ["0xd76CD6a1158BF2593dd3d952aCBf29A201332c66"],
+      WHITELISTED_CALLERS: ["0x30903486f9b438c4dd0Db38bf8C7dF9B193971F9"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibBTCB",
-      WHITELISTED_CALLERS: ["0xd76CD6a1158BF2593dd3d952aCBf29A201332c66"],
+      WHITELISTED_CALLERS: ["0x30903486f9b438c4dd0Db38bf8C7dF9B193971F9"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibTUSD",
-      WHITELISTED_CALLERS: ["0xd76CD6a1158BF2593dd3d952aCBf29A201332c66"],
+      WHITELISTED_CALLERS: ["0x30903486f9b438c4dd0Db38bf8C7dF9B193971F9"],
       IS_ENABLE: true,
     },
   ];
-  const EXACT_ETA = "1638248700";
+  const EXACT_ETA = "1639989000";
 
   const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
