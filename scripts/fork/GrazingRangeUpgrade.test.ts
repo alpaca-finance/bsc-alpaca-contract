@@ -3,7 +3,7 @@ import { BigNumber } from "ethers";
 import { ethers, network, upgrades } from "hardhat";
 import { getConfig } from "../../deploy/entities/config";
 import { GrazingRange, GrazingRange__factory, MockERC20, MockERC20__factory, Timelock__factory } from "../../typechain";
-import * as timeHelpers from "../helpers/time";
+import * as timeHelpers from "../../test/helpers/time";
 
 type IPendingRewards = {
   campaignId: number;

@@ -1,4 +1,4 @@
-import { ethers, upgrades, waffle } from "hardhat";
+import { ethers, network, upgrades, waffle } from "hardhat";
 import { Signer, BigNumberish, utils, Wallet } from "ethers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
@@ -103,6 +103,9 @@ describe("Pancakeswap - StrategyLiquidate", () => {
     routerAsBob = PancakeRouter__factory.connect(router.address, bob);
 
     lpAsBob = PancakePair__factory.connect(lp.address, bob);
+
+    // Set block base fee per gas to 0
+    await network.provider.send("hardhat_setNextBlockBaseFeePerGas", ["0x0"]);
   }
 
   beforeEach(async () => {

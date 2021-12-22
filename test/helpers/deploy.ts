@@ -283,8 +283,8 @@ export class DeployHelper {
     await mdx.deployed();
     if (mdxHolders !== undefined) {
       mdxHolders.forEach(async (mdxHolder) => {
-        await mdx["addMinter(address)"](mdxHolder.address);
-        await mdx["mint(address,uint256)"](mdxHolder.address, mdxHolder.amount);
+        await mdx.addMinter(mdxHolder.address);
+        await mdx.mint(mdxHolder.address, mdxHolder.amount);
       });
     }
 
