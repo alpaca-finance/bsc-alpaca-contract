@@ -27,7 +27,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const fileName = "xALPACA-testnet-set-beneficial-vault-config-cakemaxi";
+  const fileName = "mainnet-xALPACA-set-beneficial-vault-config-cakemaxi";
   const workerInputs = [
     "TUSD CakeMaxiWorker",
     "BTCB CakeMaxiWorker",
@@ -37,9 +37,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "WBNB CakeMaxiWorker",
   ];
   const rewardPathInput: Array<string> = ["CAKE", "BUSD", "ALPACA"];
-  const EXACT_ETA = "1639481400";
+  const EXACT_ETA = "1640242800";
   const BENEFICIAL_VAULT_BOUNTY_BPS = "5263";
-  const BENEFICIAL_VAULT_ADDRESS = "0x5589FE5BEAe1C642A48eEFF5e80A761343D831a9";
+  const BENEFICIAL_VAULT_ADDRESS = "0x44B3868cbba5fbd2c5D8d1445BDB14458806B3B4";
 
   const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
   const allWorkers: IWorkers = config.Vaults.reduce((accum, vault) => {
