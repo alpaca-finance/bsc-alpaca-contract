@@ -76,9 +76,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     {
       VAULT_SYMBOL: "ibWBNB",
       WORKER_NAME: "THG-WBNB PancakeswapWorker",
-      REINVEST_BOT: "0xcf28b4da7d3ed29986831876b74af6e95211d3f9",
-      POOL_ID: 77,
-      REINVEST_BOUNTY_BPS: "300",
+      REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
+      POOL_ID: 488,
+      REINVEST_BOUNTY_BPS: "900",
       REINVEST_PATH: ["CAKE", "WBNB"],
       REINVEST_THRESHOLD: "1",
       WORK_FACTOR: "5200",
@@ -86,10 +86,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       MAX_PRICE_DIFF: "11000",
       BENEFICIAL_VAULT: {
         BENEFICIAL_VAULT_BPS: "5555",
-        BENEFICIAL_VAULT_ADDRESS: "0x5589FE5BEAe1C642A48eEFF5e80A761343D831a9",
+        BENEFICIAL_VAULT_ADDRESS: "0x44B3868cbba5fbd2c5D8d1445BDB14458806B3B4",
         REWARD_PATH: ["CAKE", "BUSD", "ALPACA"],
       },
-      EXACT_ETA: "1640152800",
+      EXACT_ETA: "1640240100",
     },
   ];
 

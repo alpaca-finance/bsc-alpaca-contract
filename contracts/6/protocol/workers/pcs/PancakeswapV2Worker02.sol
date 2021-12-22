@@ -143,7 +143,7 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
     reinvestPath = _reinvestPath;
     treasuryAccount = _treasuryAccount;
     treasuryBountyBps = _reinvestBountyBps;
-    maxReinvestBountyBps = 500;
+    maxReinvestBountyBps = 900;
 
     // 6. Set PancakeswapV2 swap fees
     fee = 9975;

@@ -766,6 +766,11 @@
           "pId": 473,
           "name": "ETERNAL-WBNB LP",
           "address": "0xbd26e08411483C4BEBba80939FA5a775beE22338"
+        },
+        {
+          "pId": 488,
+          "name": "THG-WBNB LP",
+          "address": "0x486697ae24469cB1122F537924Aa46E705B142Aa"
         }
       ]
     },
@@ -1015,7 +1020,8 @@
     "SPS": "0x1633b7157e7638C4d6593436111Bf125Ee74703F",
     "PLUT": "0x2984f825bfe72e55e1725d5c020258e81ff97450",
     "ETERNAL": "0xD44FD09d74cd13838F137B590497595d6b3FEeA4",
-    "USD": "0x115dffFFfffffffffFFFffffFFffFfFfFFFFfFff"
+    "USD": "0x115dffFFfffffffffFFFffffFFffFfFfFFFFfFff",
+    "THG": "0x9fd87aefe02441b123c3c32466cd9db4c578618f"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x1099C2E6Ed6ebA95099c205b599B409305783E43",
@@ -1752,6 +1758,23 @@
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 473,
           "stakingToken": "0xbd26e08411483C4BEBba80939FA5a775beE22338",
+          "stakingTokenAt": "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+            "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+            "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
+            "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
+          }
+        },
+        {
+          "name": "THG-WBNB PancakeswapWorker",
+          "address": "0xA71381ff15862d0079c614b1E2B1F18485272880",
+          "deployedBlock": 13689485,
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 488,
+          "stakingToken": "0x486697ae24469cB1122F537924Aa46E705B142Aa",
           "stakingTokenAt": "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
