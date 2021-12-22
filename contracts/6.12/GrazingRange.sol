@@ -20,8 +20,6 @@ import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 
-import "hardhat/console.sol";
-
 /// @title Grazing Range allows users to stake ibALPACA to receive various rewards
 contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe {
   using SafeMath for uint256;
@@ -167,8 +165,6 @@ contract GrazingRange is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe {
       return 0;
     }
     for (uint256 i = 0; i < len; ++i) {
-      console.log("blockNumber: ", _blockNumber);
-      console.log("rewardInfo[i].endBlock: ", rewardInfo[i].endBlock);
       if (_blockNumber <= rewardInfo[i].endBlock) return rewardInfo[i].endBlock;
     }
     /// @dev when couldn't find any reward info, it means that _blockNumber exceed endblock
