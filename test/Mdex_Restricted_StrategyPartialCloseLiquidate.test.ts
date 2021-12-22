@@ -1,4 +1,4 @@
-import { ethers, upgrades, waffle } from "hardhat";
+import { ethers, network, upgrades, waffle } from "hardhat";
 import { BigNumber, Signer } from "ethers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
@@ -103,8 +103,8 @@ describe("MdexRestrictedStrategyPartialCloseLiquidate", () => {
     const MdxToken = (await ethers.getContractFactory("MdxToken", deployer)) as MdxToken__factory;
     mdxToken = await MdxToken.deploy();
     await mdxToken.deployed();
-    await mdxToken["addMinter(address)"](await deployer.getAddress());
-    await mdxToken["mint(address,uint256)"](await deployer.getAddress(), ethers.utils.parseEther("100"));
+    await mdxToken.addMinter(await deployer.getAddress());
+    await mdxToken.mint(await deployer.getAddress(), ethers.utils.parseEther("100"));
 
     // Setup Mdex
     const MdexFactory = (await ethers.getContractFactory("MdexFactory", deployer)) as MdexFactory__factory;
@@ -232,6 +232,9 @@ describe("MdexRestrictedStrategyPartialCloseLiquidate", () => {
     expect(await baseToken.balanceOf(bobAddress)).to.be.bignumber.eq(ethers.utils.parseEther("99"));
     expect(await farmingToken.balanceOf(bobAddress)).to.be.bignumber.eq(ethers.utils.parseEther("9.9"));
     expect(await lp.balanceOf(bobAddress)).to.be.bignumber.eq(ethers.utils.parseEther("0.316227766016837933"));
+
+    // Set block base fee per gas to 0
+    await network.provider.send("hardhat_setNextBlockBaseFeePerGas", ["0x0"]);
   }
 
   beforeEach(async () => {

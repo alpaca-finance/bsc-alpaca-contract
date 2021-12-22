@@ -1,4 +1,4 @@
-import { ethers, upgrades, waffle } from "hardhat";
+import { ethers, network, upgrades, waffle } from "hardhat";
 import { Signer } from "ethers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
@@ -145,6 +145,9 @@ describe("Pancakeswap - StrategyPartialLiquidate", () => {
     expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(
       ethers.utils.parseEther("0.316227766016837933")
     );
+
+    // Set block base fee per gas to 0
+    await network.provider.send("hardhat_setNextBlockBaseFeePerGas", ["0x0"]);
   }
 
   beforeEach(async () => {

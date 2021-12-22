@@ -1,4 +1,4 @@
-import { ethers, upgrades, waffle } from "hardhat";
+import { ethers, network, upgrades, waffle } from "hardhat";
 import { Signer, BigNumberish, utils, Wallet } from "ethers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
@@ -111,8 +111,8 @@ describe("MdexRestrictedStrategyWithdrawMinimizeTrading", () => {
     const MdxToken = (await ethers.getContractFactory("MdxToken", deployer)) as MdxToken__factory;
     mdxToken = await MdxToken.deploy();
     await mdxToken.deployed();
-    await mdxToken["addMinter(address)"](await deployer.getAddress());
-    await mdxToken["mint(address,uint256)"](await deployer.getAddress(), ethers.utils.parseEther("100"));
+    await mdxToken.addMinter(await deployer.getAddress());
+    await mdxToken.mint(await deployer.getAddress(), ethers.utils.parseEther("100"));
 
     const MockERC20 = (await ethers.getContractFactory("MockERC20", deployer)) as MockERC20__factory;
     baseToken = (await upgrades.deployProxy(MockERC20, ["BTOKEN", "BTOKEN", 18])) as MockERC20;
@@ -218,6 +218,9 @@ describe("MdexRestrictedStrategyWithdrawMinimizeTrading", () => {
 
     wbnbAsAlice = WETH__factory.connect(wbnb.address, alice);
     wbnbAsBob = WETH__factory.connect(wbnb.address, bob);
+
+    // Set block base fee per gas to 0
+    await network.provider.send("hardhat_setNextBlockBaseFeePerGas", ["0x0"]);
   }
 
   beforeEach(async () => {

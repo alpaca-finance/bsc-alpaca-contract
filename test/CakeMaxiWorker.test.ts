@@ -1,4 +1,4 @@
-import { ethers, upgrades, waffle } from "hardhat";
+import { ethers, network, upgrades, waffle } from "hardhat";
 import { Signer, BigNumberish, utils, Wallet, BigNumber, constants } from "ethers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
@@ -537,6 +537,9 @@ describe("CakeMaxiWorker", () => {
         FOREVER
       ),
     ]);
+
+    // Set block base fee per gas to 0
+    await network.provider.send("hardhat_setNextBlockBaseFeePerGas", ["0x0"]);
   }
 
   beforeEach(async () => {

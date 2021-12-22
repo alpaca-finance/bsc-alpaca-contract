@@ -1,4 +1,4 @@
-import { ethers, upgrades, waffle } from "hardhat";
+import { ethers, network, upgrades, waffle } from "hardhat";
 import { Signer, BigNumberish, utils, Wallet } from "ethers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
@@ -138,6 +138,9 @@ describe("Pancakeswap - StrategyWithdrawMinimizeTrading", () => {
 
     wbnbAsAlice = WETH__factory.connect(wbnb.address, alice);
     wbnbAsBob = WETH__factory.connect(wbnb.address, bob);
+
+    // Set block base fee per gas to 0
+    await network.provider.send("hardhat_setNextBlockBaseFeePerGas", ["0x0"]);
   }
 
   beforeEach(async () => {

@@ -1,4 +1,4 @@
-import { ethers, upgrades, waffle } from "hardhat";
+import { ethers, network, upgrades, waffle } from "hardhat";
 import { Signer } from "ethers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
@@ -119,8 +119,8 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
     // Setup Mdex
     const MdxToken = (await ethers.getContractFactory("MdxToken", deployer)) as MdxToken__factory;
     mdxToken = await MdxToken.deploy();
-    await mdxToken["addMinter(address)"](await deployer.getAddress());
-    await mdxToken["mint(address,uint256)"](await deployer.getAddress(), ethers.utils.parseEther("100"));
+    await mdxToken.addMinter(await deployer.getAddress());
+    await mdxToken.mint(await deployer.getAddress(), ethers.utils.parseEther("100"));
 
     const MdexFactory = (await ethers.getContractFactory("MdexFactory", deployer)) as MdexFactory__factory;
     factory = await MdexFactory.deploy(deployerAddress);
@@ -225,6 +225,9 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
 
     wbnbAsAlice = WETH__factory.connect(wbnb.address, alice);
     wbnbAsBob = WETH__factory.connect(wbnb.address, bob);
+
+    // Set block base fee per gas to 0
+    await network.provider.send("hardhat_setNextBlockBaseFeePerGas", ["0x0"]);
   }
 
   beforeEach(async () => {
