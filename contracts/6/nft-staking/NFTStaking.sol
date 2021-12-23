@@ -15,31 +15,25 @@ pragma solidity 0.6.6;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import "@openzeppelin/contracts/utils/EnumerableSet.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 
 import "../protocol/interfaces/INFTStaking.sol";
 
 contract NFTStaking is INFTStaking, IERC721Receiver, OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe {
-  using EnumerableSet for EnumerableSet.Bytes32Set;
-
   event LogStakeNFT(address indexed staker, bytes32 indexed poolId, address nftAddress, uint256 nftTokenId);
   event LogUnstakeNFT(address indexed staker, bytes32 indexed poolId, address nftAddress, uint256 nftTokenId);
-  event LogAddPool(address indexed caller, bytes32 indexed poolId, address[] stakeNFTToken, bytes32[] perks);
+  event LogAddPool(address indexed caller, bytes32 indexed poolId, address[] stakeNFTToken);
   event LogSetStakeNFTToken(
     address indexed caller,
     bytes32 indexed poolId,
     address[] stakeNFTToken,
     uint256[] allowance
   );
-  event LogAddPerk(address indexed caller, bytes32 indexed poolId, bytes32[] perks);
-  event LogRemovePerk(address indexed caller, bytes32 indexed poolId, bytes32[] perks);
 
   // Info of each pool.
   struct PoolInfo {
     mapping(address => uint256) stakeNFTToken; // Mapping of NFT token addresses that are allowed to stake in this pool
-    EnumerableSet.Bytes32Set perks; // Set of Perks that will be granted for stakers
     uint256 isInit; // Flag will be `1` if pool is already init
   }
 
@@ -61,11 +55,7 @@ contract NFTStaking is INFTStaking, IERC721Receiver, OwnableUpgradeSafe, Reentra
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
   }
 
-  function addPool(
-    bytes32 _poolId,
-    address[] calldata _stakeNFTToken,
-    bytes32[] calldata _perks
-  ) external onlyOwner {
+  function addPool(bytes32 _poolId, address[] calldata _stakeNFTToken) external onlyOwner {
     require(poolInfo[_poolId].isInit == 0, "pool already init");
 
     poolInfo[_poolId].isInit = 1;
@@ -74,11 +64,7 @@ contract NFTStaking is INFTStaking, IERC721Receiver, OwnableUpgradeSafe, Reentra
       poolInfo[_poolId].stakeNFTToken[_stakeNFTToken[_i]] = 1;
     }
 
-    for (uint256 _i; _i < _perks.length; _i++) {
-      poolInfo[_poolId].perks.add(_perks[_i]);
-    }
-
-    emit LogAddPool(_msgSender(), _poolId, _stakeNFTToken, _perks);
+    emit LogAddPool(_msgSender(), _poolId, _stakeNFTToken);
   }
 
   function setStakeNFTToken(
@@ -93,26 +79,6 @@ contract NFTStaking is INFTStaking, IERC721Receiver, OwnableUpgradeSafe, Reentra
     }
 
     emit LogSetStakeNFTToken(_msgSender(), _poolId, _stakeNFTToken, _allowance);
-  }
-
-  function addPerk(bytes32 _poolId, bytes32[] calldata _perks) external onlyOwner {
-    require(poolInfo[_poolId].isInit == 1, "pool not init");
-
-    for (uint256 _i; _i < _perks.length; _i++) {
-      poolInfo[_poolId].perks.add(_perks[_i]);
-    }
-
-    emit LogAddPerk(_msgSender(), _poolId, _perks);
-  }
-
-  function removePerk(bytes32 _poolId, bytes32[] calldata _perks) external onlyOwner {
-    require(poolInfo[_poolId].isInit == 1, "pool not init");
-
-    for (uint256 _i; _i < _perks.length; _i++) {
-      poolInfo[_poolId].perks.remove(_perks[_i]);
-    }
-
-    emit LogRemovePerk(_msgSender(), _poolId, _perks);
   }
 
   function stakeNFT(
@@ -146,14 +112,8 @@ contract NFTStaking is INFTStaking, IERC721Receiver, OwnableUpgradeSafe, Reentra
     emit LogUnstakeNFT(_msgSender(), _poolId, toBeSentBackNft.nftAddress, toBeSentBackNft.nftTokenId);
   }
 
-  function hasPerk(
-    bytes32 _poolId,
-    address _user,
-    bytes32 _perk
-  ) external view override returns (bool) {
-    bool _hasPerk = poolInfo[_poolId].perks.contains(_perk);
-    bool _isStaked = userStakingNFT[_poolId][_user].nftAddress != address(0);
-    return _hasPerk && _isStaked;
+  function isStaked(bytes32 _poolId, address _user) external view override returns (bool) {
+    return userStakingNFT[_poolId][_user].nftAddress != address(0);
   }
 
   /// @dev when doing a safeTransferFrom, the caller needs to implement this, for safety reason

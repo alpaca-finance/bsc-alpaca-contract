@@ -187,8 +187,8 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
     address positionOwner
   ) external view override returns (uint256) {
     require(isStable(worker), "WorkerConfig::workFactor:: !stable");
-    bool _hasPerk = INFTStaking(nftStaking).hasPerk(keccak256("ALPIES"), positionOwner, keccak256("BOOST_LEVERAGE"));
-    if (boostedLeverage[worker].allowBoost == 1) {
+    bool _isStaked = INFTStaking(nftStaking).isStaked(keccak256("ALPIES"), positionOwner);
+    if (_isStaked && boostedLeverage[worker].allowBoost == 1) {
       return boostedLeverage[worker].boostedWorkFactor;
     } else {
       return uint256(workers[worker].workFactor);

@@ -52,11 +52,11 @@ module.exports = {
       url: process.env.ETH_MAINNET_RPC,
       accounts: [process.env.ETH_MAINNET_PRIVATE_KEY],
     },
-    mainnetfork: {
-      url: "http://127.0.0.1:8545",
-      accounts: [process.env.BSC_MAINNET_PRIVATE_KEY, process.env.QA_PRIVATE_KEY],
-      timeout: 500000,
-    },
+    // mainnetfork: {
+    //   url: "http://127.0.0.1:8545",
+    //   accounts: [process.env.BSC_MAINNET_PRIVATE_KEY, process.env.QA_PRIVATE_KEY],
+    //   timeout: 500000,
+    // },
   },
   namedAccounts: {
     deployer: {

@@ -25,6 +25,7 @@ import "../apis/pancake/IPancakeRouter02.sol";
 import "../interfaces/IWorkerConfig.sol";
 import "../interfaces/IPriceOracle.sol";
 import "../../utils/SafeToken.sol";
+import "../interfaces/INFTStaking.sol";
 
 contract SingleAssetWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
   /// @notice Using libraries
@@ -200,13 +201,14 @@ contract SingleAssetWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
   /// @dev Return the work factor for the worker + BaseToken debt, using 1e4 as denom.
   /// Also check for boosted leverage from NFT staking
   function workFactor(
+    address nftStaking,
     address worker,
     uint256, /* debt */
     address positionOwner
   ) external view override returns (uint256) {
     require(isStable(worker), "WorkerConfig::workFactor:: !stable");
-    bool _hasPerk = INFTStaking(nftStaking).hasPerk(keccak256("ALPIES"), positionOwner, keccak256("BOOST_LEVERAGE"));
-    if (boostedLeverage[worker].allowBoost == 1) {
+    bool _isStaked = INFTStaking(nftStaking).isStaked(keccak256("ALPIES"), positionOwner);
+    if (_isStaked && boostedLeverage[worker].allowBoost == 1) {
       return boostedLeverage[worker].boostedWorkFactor;
     } else {
       return uint256(workers[worker].workFactor);
