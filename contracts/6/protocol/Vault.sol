@@ -251,10 +251,9 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     if (positions[id].debtShare > 0) {
       // Note: Do this way because we don't want to fail open, close, or kill position
       // if cannot withdraw from FairLaunch somehow. 0xb5c5f672 is a signature of withdraw(address,uint256,uint256)
-      (bool success, ) =
-        config.getFairLaunchAddr().call(
-          abi.encodeWithSelector(0xb5c5f672, positions[id].owner, fairLaunchPoolId, positions[id].debtShare)
-        );
+      (bool success, ) = config.getFairLaunchAddr().call(
+        abi.encodeWithSelector(0xb5c5f672, positions[id].owner, fairLaunchPoolId, positions[id].debtShare)
+      );
       if (success) IDebtToken(debtToken).burn(address(this), positions[id].debtShare);
     }
   }
@@ -317,7 +316,7 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     else require(config.isWorkerReserveConsistent(worker), "reserve !consistent");
     require(back == 0, "back !0");
     require(healthAfter > healthBefore, "health !increase");
-    uint256 killFactor = config.rawKillFactor(pos.worker, debt);
+    uint256 killFactor = config.rawKillFactor(pos.worker, debt, pos.owner);
     require(debt.mul(10000) <= healthAfter.mul(killFactor.sub(100)), "debtRatio > killFactor margin");
     // 7. Release execution scope
     POSITION_ID = _NO_ID;
@@ -405,7 +404,7 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     _fairLaunchWithdraw(id);
     uint256 debt = _removeDebt(id);
     uint256 health = IWorker(pos.worker).health(id);
-    uint256 killFactor = config.killFactor(pos.worker, debt);
+    uint256 killFactor = config.killFactor(pos.worker, debt, pos.owner);
     require(health.mul(killFactor) < debt.mul(10000), "can't liquidate");
     // 3. Perform liquidation and compute the amount of token received.
     uint256 beforeToken = SafeToken.myBalance(token);

@@ -31,8 +31,24 @@ interface IWorkerConfig {
   /// @dev Return the kill factor for the worker + debt, using 1e4 as denom.
   function killFactor(address worker, uint256 debt) external view returns (uint256);
 
+  /// @dev Return the kill factor for the worker + debt, using 1e4 as denom.
+  function killFactor(
+    address nftStaking,
+    address worker,
+    uint256 debt,
+    address positionOwner
+  ) external view returns (uint256);
+
   /// @dev Return the kill factor for the worker + debt without checking isStable, using 1e4 as denom.
   function rawKillFactor(address worker, uint256 debt) external view returns (uint256);
+
+  /// @dev Return the kill factor for the worker + debt without checking isStable, using 1e4 as denom.
+  function rawKillFactor(
+    address nftStaking,
+    address worker,
+    uint256 debt,
+    address positionOwner
+  ) external view returns (uint256);
 
   /// @dev Return if worker is stable.
   function isStable(address worker) external view returns (bool);

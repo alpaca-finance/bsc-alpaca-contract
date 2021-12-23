@@ -231,9 +231,33 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     return workers[worker].killFactor(worker, debt);
   }
 
+  function killFactor(
+    address worker,
+    uint256 debt,
+    address positionOwner
+  ) external view override returns (uint256) {
+    if (nftStaking != address(0)) {
+      return workers[worker].killFactor(nftStaking, worker, debt, positionOwner);
+    } else {
+      return workers[worker].killFactor(worker, debt);
+    }
+  }
+
   /// @dev Return the kill factor for the worker + BaseToken debt, using 1e4 as denom.
   function rawKillFactor(address worker, uint256 debt) external view override returns (uint256) {
     return workers[worker].rawKillFactor(worker, debt);
+  }
+
+  function rawKillFactor(
+    address worker,
+    uint256 debt,
+    address positionOwner
+  ) external view override returns (uint256) {
+    if (nftStaking != address(0)) {
+      return workers[worker].rawKillFactor(nftStaking, worker, debt, positionOwner);
+    } else {
+      return workers[worker].rawKillFactor(worker, debt);
+    }
   }
 
   /// @dev Return if worker is stable.

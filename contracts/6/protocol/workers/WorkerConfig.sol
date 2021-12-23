@@ -46,6 +46,12 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
     uint256 allowBoost,
     uint256 boostedWorkFactor
   );
+  event SetBoostedKillFactor(
+    address indexed caller,
+    address indexed worker,
+    uint256 allowBoost,
+    uint256 boostedKillFactor
+  );
 
   /// @notice state variables
   struct Config {
@@ -60,10 +66,16 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
     uint256 boostedWorkFactor;
   }
 
+  struct BoostedKillFactor {
+    uint256 allowBoost;
+    uint256 boostedKillFactor;
+  }
+
   PriceOracle public oracle;
   mapping(address => Config) public workers;
   address public governor;
   mapping(address => BoostedLeverage) public boostedLeverage;
+  mapping(address => BoostedKillFactor) public boostedKillFactor;
 
   function initialize(PriceOracle _oracle) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
@@ -118,6 +130,23 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
       });
 
       emit SetBoostedLeverage(_msgSender(), addrs[idx], configs[idx].allowBoost, configs[idx].boostedWorkFactor);
+    }
+  }
+
+  function setBoostedKillFactor(address[] calldata addrs, BoostedKillFactor[] calldata configs) external onlyOwner {
+    uint256 len = addrs.length;
+    require(configs.length == len, "WorkConfig::setBoostedKillFactor:: bad len");
+    for (uint256 idx = 0; idx < len; idx++) {
+      require(
+        uint256(workers[addrs[idx]].killFactor) > configs[idx].boostedKillFactor,
+        "WorkConfig::setBoostedKillFactor:: bad boostedKillFactor"
+      );
+      boostedKillFactor[addrs[idx]] = BoostedKillFactor({
+        allowBoost: configs[idx].allowBoost,
+        boostedKillFactor: configs[idx].boostedKillFactor
+      });
+
+      emit SetBoostedKillFactor(_msgSender(), addrs[idx], configs[idx].allowBoost, configs[idx].boostedKillFactor);
     }
   }
 
@@ -204,12 +233,41 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
     return uint256(workers[worker].killFactor);
   }
 
+  function killFactor(
+    address nftStaking,
+    address worker,
+    uint256, /* debt */
+    address positionOwner
+  ) external view override returns (uint256) {
+    require(isStable(worker), "WorkerConfig::killFactor:: !stable");
+    bool _isStaked = INFTStaking(nftStaking).isStaked(keccak256("ALPIES"), positionOwner);
+    if (_isStaked && boostedKillFactor[worker].allowBoost == 1) {
+      return boostedKillFactor[worker].boostedKillFactor;
+    } else {
+      return uint256(workers[worker].killFactor);
+    }
+  }
+
   /// @dev Return the kill factor for the worker + BaseToken debt, using 1e4 as denom.
   function rawKillFactor(
     address worker,
     uint256 /* debt */
   ) external view override returns (uint256) {
     return uint256(workers[worker].killFactor);
+  }
+
+  function rawKillFactor(
+    address nftStaking,
+    address worker,
+    uint256, /* debt */
+    address positionOwner
+  ) external view override returns (uint256) {
+    bool _isStaked = INFTStaking(nftStaking).isStaked(keccak256("ALPIES"), positionOwner);
+    if (_isStaked && boostedKillFactor[worker].allowBoost == 1) {
+      return boostedKillFactor[worker].boostedKillFactor;
+    } else {
+      return uint256(workers[worker].killFactor);
+    }
   }
 
   /// @dev Set governor address. OnlyOwner can set governor.
