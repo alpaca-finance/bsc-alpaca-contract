@@ -28,6 +28,7 @@ import {
   PancakeRouter__factory,
   PancakeswapV2RestrictedStrategyAddBaseTokenOnly,
   PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory,
+  PancakeswapV2RestrictedStrategyLiquidate,
   PancakeswapV2RestrictedStrategyLiquidate__factory,
   PancakeswapV2StrategyAddBaseTokenOnly,
   PancakeswapV2StrategyAddBaseTokenOnly__factory,
@@ -1853,7 +1854,7 @@ describe("Vault - Pancakeswap Migrate", () => {
         )) as PancakeswapV2RestrictedStrategyLiquidate__factory;
         const restrictedLiqStrat = (await upgrades.deployProxy(PancakeswapV2RestrictedStrategyLiquidate, [
           routerV2.address,
-        ])) as PancakeswapV2StrategyLiquidate;
+        ])) as PancakeswapV2RestrictedStrategyLiquidate;
         await restrictedLiqStrat.deployed();
         await restrictedLiqStrat.setWorkersOk([pancakeswapV2worker.address], true);
 

@@ -66,20 +66,21 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const shortWorkerInfos: IPancakeswapWorkerInput[] = [
     {
-      VAULT_SYMBOL: "ibBUSD",
-      WORKER_NAME: "BMON-BUSD PancakeswapWorker",
+      VAULT_SYMBOL: "ibWBNB",
+      WORKER_NAME: "ETERNAL-WBNB PancakeswapWorker",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 446,
+      POOL_ID: 473,
       REINVEST_BOUNTY_BPS: "300",
-      REINVEST_PATH: ["CAKE", "BUSD"],
+      REINVEST_PATH: ["CAKE", "WBNB"],
       REINVEST_THRESHOLD: "1",
       WORK_FACTOR: "5200",
       KILL_FACTOR: "7000",
       MAX_PRICE_DIFF: "11000",
-      EXACT_ETA: "1634803200",
+      EXACT_ETA: "1638426600",
     },
   ];
 
+  const [deployer] = await ethers.getSigners();
   const config = ConfigEntity.getConfig();
   const workerInfos: IPancakeswapWorkerInfo[] = shortWorkerInfos.map((n) => {
     const vault = config.Vaults.find((v) => v.symbol === n.VAULT_SYMBOL);
@@ -128,9 +129,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(`>> Deploying an upgradable PancakeswapV2Worker02 contract for ${workerInfos[i].WORKER_NAME}`);
     const PancakeswapV2Worker02 = (await ethers.getContractFactory(
       "PancakeswapV2Worker02",
-      (
-        await ethers.getSigners()
-      )[0]
+      deployer
     )) as PancakeswapV2Worker02__factory;
     const pancakeswapV2Worker02 = (await upgrades.deployProxy(PancakeswapV2Worker02, [
       workerInfos[i].VAULT_ADDR,
@@ -148,8 +147,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await pancakeswapV2Worker02.deployed();
     console.log(`>> Deployed at ${pancakeswapV2Worker02.address}`);
 
+    let nonce = await deployer.getTransactionCount();
+
     console.log(`>> Adding REINVEST_BOT`);
-    await pancakeswapV2Worker02.setReinvestorOk([workerInfos[i].REINVEST_BOT], true);
+    await pancakeswapV2Worker02.setReinvestorOk([workerInfos[i].REINVEST_BOT], true, { nonce: nonce++ });
     console.log("✅ Done");
 
     console.log(`>> Adding Strategies`);
@@ -160,47 +161,47 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if (workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR != "") {
       okStrats.push(workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR);
     }
-    await pancakeswapV2Worker02.setStrategyOk(okStrats, true);
+    await pancakeswapV2Worker02.setStrategyOk(okStrats, true, { nonce: nonce++ });
     console.log("✅ Done");
 
     console.log(`>> Whitelisting a worker on strats`);
     const addStrat = PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory.connect(
       workerInfos[i].ADD_STRAT_ADDR,
-      (await ethers.getSigners())[0]
+      deployer
     );
-    await addStrat.setWorkersOk([pancakeswapV2Worker02.address], true);
-    const liqStrat = PancakeswapV2RestrictedStrategyLiquidate__factory.connect(
-      workerInfos[i].LIQ_STRAT_ADDR,
-      (await ethers.getSigners())[0]
-    );
-    await liqStrat.setWorkersOk([pancakeswapV2Worker02.address], true);
+    await addStrat.setWorkersOk([pancakeswapV2Worker02.address], true, { nonce: nonce++ });
+
+    const liqStrat = PancakeswapV2RestrictedStrategyLiquidate__factory.connect(workerInfos[i].LIQ_STRAT_ADDR, deployer);
+    await liqStrat.setWorkersOk([pancakeswapV2Worker02.address], true, { nonce: nonce++ });
+
     const twoSidesStrat = PancakeswapV2RestrictedStrategyAddTwoSidesOptimal__factory.connect(
       workerInfos[i].TWO_SIDES_STRAT_ADDR,
-      (await ethers.getSigners())[0]
+      deployer
     );
-    await twoSidesStrat.setWorkersOk([pancakeswapV2Worker02.address], true);
+    await twoSidesStrat.setWorkersOk([pancakeswapV2Worker02.address], true, { nonce: nonce++ });
+
     const minimizeStrat = PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading__factory.connect(
       workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR,
-      (await ethers.getSigners())[0]
+      deployer
     );
-    await minimizeStrat.setWorkersOk([pancakeswapV2Worker02.address], true);
+    await minimizeStrat.setWorkersOk([pancakeswapV2Worker02.address], true, { nonce: nonce++ });
 
     if (workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR != "") {
       console.log(">> partial close liquidate is deployed");
       const partialCloseLiquidate = PancakeswapV2RestrictedStrategyPartialCloseLiquidate__factory.connect(
         workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR,
-        (await ethers.getSigners())[0]
+        deployer
       );
-      await partialCloseLiquidate.setWorkersOk([pancakeswapV2Worker02.address], true);
+      await partialCloseLiquidate.setWorkersOk([pancakeswapV2Worker02.address], true, { nonce: nonce++ });
     }
 
     if (workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR != "") {
       console.log(">> partial close minimize is deployed");
       const partialCloseMinimize = PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading__factory.connect(
         workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR,
-        (await ethers.getSigners())[0]
+        deployer
       );
-      await partialCloseMinimize.setWorkersOk([pancakeswapV2Worker02.address], true);
+      await partialCloseMinimize.setWorkersOk([pancakeswapV2Worker02.address], true, { nonce: nonce++ });
     }
     console.log("✅ Done");
 
@@ -225,7 +226,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
           ],
         ]
       ),
-      workerInfos[i].EXACT_ETA
+      workerInfos[i].EXACT_ETA,
+      { nonce: nonce++ }
     );
     console.log(`queue setConfigs at: ${setConfigsTx.hash}`);
     console.log("generate timelock.executeTransaction:");
@@ -243,7 +245,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         ["address[]", "address[]"],
         [[pancakeswapV2Worker02.address], [workerInfos[i].WORKER_CONFIG_ADDR]]
       ),
-      workerInfos[i].EXACT_ETA
+      workerInfos[i].EXACT_ETA,
+      { nonce: nonce++ }
     );
     console.log(`queue setWorkers at: ${setWorkersTx.hash}`);
     console.log("generate timelock.executeTransaction:");

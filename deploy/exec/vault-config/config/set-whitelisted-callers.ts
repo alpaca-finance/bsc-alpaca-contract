@@ -1,6 +1,6 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { network } from "hardhat";
+import { network, ethers } from "hardhat";
 import MainnetConfig from "../../../../.mainnet.json";
 import TestnetConfig from "../../../../.testnet.json";
 import { TimelockEntity } from "../../../entities";
@@ -32,41 +32,41 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const TARGETED_VAULT_CONFIG: Array<IInput> = [
     {
       VAULT_SYMBOL: "ibWBNB",
-      WHITELISTED_CALLERS: ["0xA37F97644644112b276B3A03EE39c82fFA40197E"],
+      WHITELISTED_CALLERS: ["0x30903486f9b438c4dd0Db38bf8C7dF9B193971F9"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibBUSD",
-      WHITELISTED_CALLERS: ["0xA37F97644644112b276B3A03EE39c82fFA40197E"],
+      WHITELISTED_CALLERS: ["0x30903486f9b438c4dd0Db38bf8C7dF9B193971F9"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibETH",
-      WHITELISTED_CALLERS: ["0xA37F97644644112b276B3A03EE39c82fFA40197E"],
+      WHITELISTED_CALLERS: ["0x30903486f9b438c4dd0Db38bf8C7dF9B193971F9"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibALPACA",
-      WHITELISTED_CALLERS: ["0xA37F97644644112b276B3A03EE39c82fFA40197E"],
+      WHITELISTED_CALLERS: ["0x30903486f9b438c4dd0Db38bf8C7dF9B193971F9"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibUSDT",
-      WHITELISTED_CALLERS: ["0xA37F97644644112b276B3A03EE39c82fFA40197E"],
+      WHITELISTED_CALLERS: ["0x30903486f9b438c4dd0Db38bf8C7dF9B193971F9"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibBTCB",
-      WHITELISTED_CALLERS: ["0xA37F97644644112b276B3A03EE39c82fFA40197E"],
+      WHITELISTED_CALLERS: ["0x30903486f9b438c4dd0Db38bf8C7dF9B193971F9"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibTUSD",
-      WHITELISTED_CALLERS: ["0xA37F97644644112b276B3A03EE39c82fFA40197E"],
+      WHITELISTED_CALLERS: ["0x30903486f9b438c4dd0Db38bf8C7dF9B193971F9"],
       IS_ENABLE: true,
     },
   ];
-  const EXACT_ETA = "1633586400";
+  const EXACT_ETA = "1639989000";
 
   const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
@@ -96,7 +96,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         "setWhitelistedCallers(address[],bool)",
         ["address[]", "bool"],
         [i.whitelistedCallers, i.isEnable],
-        EXACT_ETA
+        EXACT_ETA,
+        { gasPrice: ethers.utils.parseUnits("15", "gwei") }
       )
     );
   }

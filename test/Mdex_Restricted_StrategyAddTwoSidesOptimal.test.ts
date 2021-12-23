@@ -1,4 +1,4 @@
-import { ethers, upgrades, waffle } from "hardhat";
+import { ethers, network, upgrades, waffle } from "hardhat";
 import { Signer } from "ethers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
@@ -96,8 +96,8 @@ describe("MdexRestrictedStrategyAddTwoSideOptimal", () => {
     const MdxToken = (await ethers.getContractFactory("MdxToken", deployer)) as MdxToken__factory;
     mdxToken = await MdxToken.deploy();
     await mdxToken.deployed();
-    await mdxToken["addMinter(address)"](await deployer.getAddress());
-    await mdxToken["mint(address,uint256)"](await deployer.getAddress(), ethers.utils.parseEther("100"));
+    await mdxToken.addMinter(await deployer.getAddress());
+    await mdxToken.mint(await deployer.getAddress(), ethers.utils.parseEther("100"));
 
     // Setup Mdex
     const MdexFactory = (await ethers.getContractFactory("MdexFactory", deployer)) as MdexFactory__factory;
@@ -201,6 +201,9 @@ describe("MdexRestrictedStrategyAddTwoSideOptimal", () => {
       farmingToken.address
     )) as MockMdexWorker;
     await mockMdexEvilWorker.deployed();
+
+    // Set block base fee per gas to 0
+    await network.provider.send("hardhat_setNextBlockBaseFeePerGas", ["0x0"]);
   };
 
   const setupContractSigner = async () => {

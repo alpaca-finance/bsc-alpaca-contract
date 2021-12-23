@@ -2,9 +2,9 @@ import { config as dotEnvConfig } from "dotenv";
 dotEnvConfig();
 
 import "@openzeppelin/hardhat-upgrades";
-
 import "@nomiclabs/hardhat-waffle";
-import "hardhat-typechain";
+import "@typechain/hardhat";
+import "@nomiclabs/hardhat-ethers";
 import "hardhat-deploy";
 import "solidity-coverage";
 
@@ -37,7 +37,7 @@ module.exports = {
       ],
     },
     testnet: {
-      url: "https://data-seed-prebsc-1-s1.binance.org:8545/",
+      url: "https://data-seed-prebsc-2-s2.binance.org:8545/",
       accounts: [process.env.BSC_TESTNET_PRIVATE_KEY],
     },
     mainnet: {
@@ -51,6 +51,11 @@ module.exports = {
     ethereum: {
       url: process.env.ETH_MAINNET_RPC,
       accounts: [process.env.ETH_MAINNET_PRIVATE_KEY],
+    },
+    mainnetfork: {
+      url: "http://127.0.0.1:8545",
+      accounts: [process.env.BSC_MAINNET_PRIVATE_KEY, process.env.QA_PRIVATE_KEY],
+      timeout: 500000,
     },
   },
   namedAccounts: {

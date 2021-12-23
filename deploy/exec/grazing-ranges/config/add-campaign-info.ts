@@ -2,6 +2,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ConfigEntity, TimelockEntity } from "../../../entities";
 import { FileService, TimelockService } from "../../../services";
+import { ethers } from "ethers";
 
 interface IAddGrazingRangeCampaignParam {
   NAME: string;
@@ -24,19 +25,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const CAMPAIGNS: IAddGrazingRangeCampaignParamList = [
     {
-      NAME: "ibALPACA-8_DECIMAL_PLACES",
-      STAKING_TOKEN: "0x6ad3A0d891C59677fbbB22E071613253467C382A",
-      REWARD_TOKEN: "0x0d126d63Eaf56647e6673EB204935557D21F6884",
-      START_BLOCK: "13586000",
-    },
-    {
-      NAME: "ibALPACA-20_DECIMAL_PLACES",
-      STAKING_TOKEN: "0x6ad3A0d891C59677fbbB22E071613253467C382A",
-      REWARD_TOKEN: "0x84e41755532c355766E4BA31513550Af8E1dAD34",
-      START_BLOCK: "13586000",
+      NAME: "ibALPACA-ETERNAL",
+      STAKING_TOKEN: "0xf1bE8ecC990cBcb90e166b71E368299f0116d421",
+      REWARD_TOKEN: "0xD44FD09d74cd13838F137B590497595d6b3FEeA4",
+      START_BLOCK: "13138300",
     },
   ];
-  const EXACT_ETA = "1635315300";
+  const EXACT_ETA = "1638426600";
 
   const config = ConfigEntity.getConfig();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
@@ -51,7 +46,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         "addCampaignInfo(address,address,uint256)",
         ["address", "address", "uint256"],
         [campaign.STAKING_TOKEN, campaign.REWARD_TOKEN, campaign.START_BLOCK],
-        EXACT_ETA
+        EXACT_ETA,
+        { gasPrice: ethers.utils.parseUnits("10", "gwei") }
       )
     );
   }

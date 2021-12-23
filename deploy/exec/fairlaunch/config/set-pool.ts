@@ -28,15 +28,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const UPDATES: Array<IUpdate> = [
     {
-      STAKING_TOKEN: "ibALPACA",
+      STAKING_TOKEN: "fdALPACA",
       ALLOC_POINT: 300,
     },
     {
-      STAKING_TOKEN: "ibWBNB",
-      ALLOC_POINT: 175,
+      STAKING_TOKEN: "ibALPACA",
+      ALLOC_POINT: 0,
     },
   ];
-  const EXACT_ETA = "1634308200";
+  const EXACT_ETA = "1640242800";
 
   const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
   const inputs: Array<IInput> = [];

@@ -2,14 +2,14 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, upgrades } from "hardhat";
 import {
-  Timelock__factory,
   WaultSwapWorker02__factory,
   CakeMaxiWorker02__factory,
   PancakeswapV2Worker02__factory,
   MdexWorker02__factory,
 } from "../../../../typechain";
 import { ContractFactory } from "ethers";
-import { ConfigEntity } from "../../../entities";
+import { ConfigEntity, TimelockEntity } from "../../../entities";
+import { FileService, TimelockService } from "../../../services";
 
 interface IWorker {
   WORKER_NAME: string;
@@ -64,94 +64,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
+  const fileName = "upgrade-workers";
   const workerInputs: IWorkerInputs = [
-    "TUSD CakeMaxiWorker",
-    "BTCB CakeMaxiWorker",
-    "USDT CakeMaxiWorker",
-    "ETH CakeMaxiWorker",
-    "BUSD CakeMaxiWorker",
-    "WBNB CakeMaxiWorker",
-    // "BUSD-TUSD PancakeswapWorker",
-    // "BUSD-BTCB PancakeswapWorker",
-    // "WBNB-BTCB PancakeswapWorker",
-    // "USDC-USDT PancakeswapWorker",
-    // "CAKE-USDT PancakeswapWorker",
-    // "WBNB-USDT PancakeswapWorker",
-    // "BUSD-USDT PancakeswapWorker",
-    // "BUSD-ALPACA PancakeswapWorker",
-    // "WBNB-ETH PancakeswapWorker",
-    // "SUSHI-ETH PancakeswapWorker",
-    // "COMP-ETH PancakeswapWorker",
-    // "PHA-BUSD PancakeswapWorker",
-    // "PMON-BUSD PancakeswapWorker",
-    // "BTT-BUSD PancakeswapWorker",
-    // "TRX-BUSD PancakeswapWorker",
-    // "ORBS-BUSD PancakeswapWorker",
-    // "TUSD-BUSD PancakeswapWorker",
-    // "FORM-BUSD PancakeswapWorker",
-    // "CAKE-BUSD PancakeswapWorker",
-    // "ALPACA-BUSD PancakeswapWorker",
-    // "BTCB-BUSD PancakeswapWorker",
-    // "UST-BUSD PancakeswapWorker",
-    // "DAI-BUSD PancakeswapWorker",
-    // "USDC-BUSD PancakeswapWorker",
-    // "VAI-BUSD PancakeswapWorker",
-    // "WBNB-BUSD PancakeswapWorker",
-    // "USDT-BUSD PancakeswapWorker",
-    // "DVI-WBNB PancakeswapWorker",
-    // "MBOX-WBNB PancakeswapWorker",
-    // "NAOS-WBNB PancakeswapWorker",
-    // "AXS-WBNB PancakeswapWorker",
-    // "BTT-WBNB PancakeswapWorker",
-    // "TRX-WBNB PancakeswapWorker",
-    // "ADA-WBNB PancakeswapWorker",
-    // "ODDZ-WBNB PancakeswapWorker",
-    // "USDT-WBNB PancakeswapWorker",
-    // "DODO-WBNB PancakeswapWorker",
-    // "SWINGBY-WBNB PancakeswapWorker",
-    // "pCWS-WBNB PancakeswapWorker",
-    // "BELT-WBNB PancakeswapWorker",
-    // "bMXX-WBNB PancakeswapWorker",
-    // "BUSD-WBNB PancakeswapWorker",
-    // "XVS-WBNB PancakeswapWorker",
-    // "LINK-WBNB PancakeswapWorker",
-    // "UNI-WBNB PancakeswapWorker",
-    // "DOT-WBNB PancakeswapWorker",
-    // "ETH-WBNB PancakeswapWorker",
-    // "BTCB-WBNB PancakeswapWorker",
-    // "CAKE-WBNB PancakeswapWorker",
-    "USDT-TUSD WaultswapWorker",
-    "BUSD-BTCB WaultswapWorker",
-    "USDT-BTCB WaultswapWorker",
-    "ETH-BTCB WaultswapWorker",
-    "TUSD-USDT WaultswapWorker",
-    "MATIC-USDT WaultswapWorker",
-    "ETH-USDT WaultswapWorker",
-    "BTCB-USDT WaultswapWorker",
-    "BUSD-USDT WaultswapWorker",
-    "WEX-USDT WaultswapWorker",
-    "ALPACA-USDT WaultswapWorker",
-    "WBNB-ALPACA WaultswapWorker",
-    "USDT-ALPACA WaultswapWorker",
-    "USDT-ETH WaultswapWorker",
-    "BETH-ETH WaultswapWorker",
-    "BTCB-ETH WaultswapWorker",
-    "BUSD-ETH WaultswapWorker",
-    "WUSD-BUSD WaultswapWorker",
-    "BTCB-BUSD WaultswapWorker",
-    "USDT-BUSD WaultswapWorker",
-    "WBNB-BUSD WaultswapWorker",
-    "ETH-BUSD WaultswapWorker",
-    "WAULTx-WBNB WaultswapWorker",
-    "ALPACA-WBNB WaultswapWorker",
-    "BUSD-WBNB WaultswapWorker",
-    "WEX-WBNB WaultswapWorker",
-    // "BRY-WBNB PancakeswapWorker",
-    // "BOR-WBNB PancakeswapWorker",
-    // "ITAM-WBNB PancakeswapWorker",
-    // "YFI-WBNB PancakeswapWorker",
+    "ITAM-WBNB PancakeswapWorker",
+    "BOR-WBNB PancakeswapWorker",
+    "BRY-WBNB PancakeswapWorker",
+    "BORING-WBNB PancakeswapWorker",
+    "TRX-WBNB PancakeswapWorker",
+    "BTT-WBNB PancakeswapWorker",
   ];
-  const EXACT_ETA = "1632222000";
+  const EXACT_ETA = "1639489500";
 
   const config = ConfigEntity.getConfig();
   const allWorkers: IWorkers = config.Vaults.reduce((accum, vault) => {
@@ -190,8 +112,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     CAKEMAXI_WORKER_02: cakeMaxiWorker02Factory,
     MDEX_WORKER_02: mdexWorker02Factory,
   };
-  const timelock = Timelock__factory.connect(config.Timelock, (await ethers.getSigners())[0]);
-  const executionTxs: Array<string> = [];
+  const timelockTransactions: Array<TimelockEntity.Transaction> = [];
 
   for (let i = 0; i < TO_BE_UPGRADE_WORKERS.length; i++) {
     console.log(`>> Preparing to upgrade ${TO_BE_UPGRADE_WORKERS[i].WORKER_NAME}`);
@@ -200,34 +121,26 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       TO_BE_UPGRADE_WORKERS[i].ADDRESS,
       NewPancakeswapWorker
     );
+
     const newImpl = preparedNewWorker;
     console.log(`>> New implementation deployed at: ${preparedNewWorker}`);
     console.log("✅ Done");
 
-    console.log(
-      `>> Upgrading worker: ${TO_BE_UPGRADE_WORKERS[i].WORKER_NAME} at ${TO_BE_UPGRADE_WORKERS[i].ADDRESS} through Timelock + ProxyAdmin`
+    timelockTransactions.push(
+      await TimelockService.queueTransaction(
+        `upgrade ${TO_BE_UPGRADE_WORKERS[i].WORKER_NAME}`,
+        config.ProxyAdmin,
+        "0",
+        "upgrade(address,address)",
+        ["address", "address"],
+        [TO_BE_UPGRADE_WORKERS[i].ADDRESS, newImpl],
+        EXACT_ETA,
+        { gasPrice: ethers.utils.parseUnits("20", "gwei") }
+      )
     );
-    console.log(`>> Queue tx on Timelock to upgrade the implementation`);
-    await timelock.queueTransaction(
-      config.ProxyAdmin,
-      "0",
-      "upgrade(address,address)",
-      ethers.utils.defaultAbiCoder.encode(["address", "address"], [TO_BE_UPGRADE_WORKERS[i].ADDRESS, newImpl]),
-      EXACT_ETA,
-      { gasPrice: 100000000000 }
-    );
-    console.log("✅ Done");
-
-    console.log(`>> Generate executeTransaction:`);
-    const executionTx = `await timelock.executeTransaction('${config.ProxyAdmin}', '0', 'upgrade(address,address)', ethers.utils.defaultAbiCoder.encode(['address','address'], ['${TO_BE_UPGRADE_WORKERS[i].ADDRESS}','${newImpl}']), ${EXACT_ETA})`;
-    console.log(executionTx);
-    console.log("✅ Done");
-
-    executionTxs.push(`// Upgrade ${TO_BE_UPGRADE_WORKERS[i].WORKER_NAME} to Worker02\n${executionTx}\n`);
   }
 
-  console.log("\n\n\n");
-  for (const exTx of executionTxs) console.log(exTx);
+  FileService.write(fileName, timelockTransactions);
 };
 
 export default func;

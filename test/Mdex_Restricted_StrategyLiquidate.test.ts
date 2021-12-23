@@ -1,4 +1,4 @@
-import { ethers, upgrades, waffle } from "hardhat";
+import { ethers, network, upgrades, waffle } from "hardhat";
 import { Signer, BigNumberish, utils, Wallet } from "ethers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
@@ -117,7 +117,7 @@ describe("MdexRestricted_StrategyLiquidate", () => {
     await farmingToken.mint(await alice.getAddress(), ethers.utils.parseEther("10"));
     await farmingToken.mint(await bob.getAddress(), ethers.utils.parseEther("10"));
 
-    await mdxToken["addMinter(address)"](await deployer.getAddress());
+    await mdxToken.addMinter(await deployer.getAddress());
 
     //create pair
     await factory.createPair(baseToken.address, farmingToken.address);
@@ -193,6 +193,9 @@ describe("MdexRestricted_StrategyLiquidate", () => {
 
     mockMdexWorkerAsBob = MockMdexWorker__factory.connect(mockMdexWorker.address, bob);
     mockMdexEvilWorkerAsBob = MockMdexWorker__factory.connect(mockMdexEvilWorker.address, bob);
+
+    // Set block base fee per gas to 0
+    await network.provider.send("hardhat_setNextBlockBaseFeePerGas", ["0x0"]);
   }
 
   beforeEach(async () => {

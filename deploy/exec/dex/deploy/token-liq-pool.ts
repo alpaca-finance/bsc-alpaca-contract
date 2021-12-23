@@ -39,16 +39,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const WBNB = config.Tokens.WBNB;
   const TOKENS: Array<IToken> = [
     {
-      symbol: "BMON",
-      name: "BMON",
-      mintAmount: ethers.utils.parseEther("8888888888").toString(),
+      symbol: "ETERNAL",
+      name: "ETERNAL",
+      mintAmount: ethers.utils.parseEther("88888888888").toString(),
       decimals: "18",
       pairs: [
         {
-          quoteToken: "BUSD",
-          quoteTokenAddr: config.Tokens.BUSD,
-          reserveQuoteToken: ethers.utils.parseEther("249109"),
-          reserveBaseToken: ethers.utils.parseEther("1265377"),
+          quoteToken: "BNB",
+          quoteTokenAddr: config.Tokens.WBNB,
+          reserveQuoteToken: ethers.utils.parseEther("100"),
+          reserveBaseToken: ethers.utils.parseEther("381.452977"),
         },
       ],
     },
