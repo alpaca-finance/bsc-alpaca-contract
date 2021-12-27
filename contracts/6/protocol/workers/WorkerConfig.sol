@@ -121,7 +121,7 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
     require(configs.length == len, "WorkConfig::setBoostedLeverage:: bad len");
     for (uint256 idx = 0; idx < len; idx++) {
       require(
-        uint256(workers[addrs[idx]].killFactor) > configs[idx].boostedWorkFactor,
+        uint256(workers[addrs[idx]].killFactor) >= configs[idx].boostedWorkFactor,
         "WorkConfig::setBoostedLeverage:: bad boostedWorkFactor"
       );
       boostedLeverage[addrs[idx]] = BoostedLeverage({
@@ -138,7 +138,7 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
     require(configs.length == len, "WorkConfig::setBoostedKillFactor:: bad len");
     for (uint256 idx = 0; idx < len; idx++) {
       require(
-        uint256(workers[addrs[idx]].killFactor) > configs[idx].boostedKillFactor,
+        uint256(workers[addrs[idx]].killFactor) <= configs[idx].boostedKillFactor,
         "WorkConfig::setBoostedKillFactor:: bad boostedKillFactor"
       );
       boostedKillFactor[addrs[idx]] = BoostedKillFactor({
