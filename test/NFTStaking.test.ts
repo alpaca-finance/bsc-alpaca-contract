@@ -20,7 +20,6 @@ const MAX_SALE_ALPIES = 100;
 const MAX_RESERVE_AMOUNT = 5;
 const MAX_PREMINT_AMOUNT = 10;
 const ALPIES_PRICE = ethers.utils.parseEther("1");
-const birthCert = "RANDOM_HASH";
 
 describe("NFTStaking", () => {
   // Accounts
@@ -98,7 +97,7 @@ describe("NFTStaking", () => {
   describe("#addPool", async () => {
     context("when addPool with correct params", async () => {
       it("should success", async () => {
-        const poolId = ethers.utils.formatBytes32String("ALPIES");
+        const poolId = ethers.utils.solidityKeccak256(["string"], ["ALPIES"]);
         await nftStaking.addPool(poolId, [alpies.address]);
 
         const poolInfo = await nftStaking.poolInfo(poolId);
@@ -113,7 +112,7 @@ describe("NFTStaking", () => {
   describe("#setStakeNFTToken", async () => {
     context("when setStakeNFTToken with correct params", async () => {
       it("should success", async () => {
-        const poolId = ethers.utils.formatBytes32String("ALPIES");
+        const poolId = ethers.utils.solidityKeccak256(["string"], ["ALPIES"]);
         await nftStaking.addPool(poolId, [alpies.address]);
 
         await nftStaking.setStakeNFTToken(poolId, [alpies2.address], [1]);
@@ -126,7 +125,7 @@ describe("NFTStaking", () => {
   describe("#stakeNFT", async () => {
     context("when stake eligible NFT", async () => {
       it("should success", async () => {
-        const poolId = ethers.utils.formatBytes32String("ALPIES");
+        const poolId = ethers.utils.solidityKeccak256(["string"], ["ALPIES"]);
         await nftStaking.addPool(poolId, [alpies.address]);
         await alpies.mintReserve(1);
 
@@ -143,7 +142,7 @@ describe("NFTStaking", () => {
 
     context("when stake eligible NFT without approval", async () => {
       it("should revert", async () => {
-        const poolId = ethers.utils.formatBytes32String("ALPIES");
+        const poolId = ethers.utils.solidityKeccak256(["string"], ["ALPIES"]);
         await nftStaking.addPool(poolId, [alpies.address]);
         await alpies.mintReserve(1);
 
@@ -155,7 +154,7 @@ describe("NFTStaking", () => {
 
     context("when stake ineligible NFT", async () => {
       it("should revert", async () => {
-        const poolId = ethers.utils.formatBytes32String("ALPIES");
+        const poolId = ethers.utils.solidityKeccak256(["string"], ["ALPIES"]);
         await nftStaking.addPool(poolId, [alpies.address]);
         await alpies2.mintReserve(1);
 
@@ -168,7 +167,7 @@ describe("NFTStaking", () => {
 
     context("when stake eligible NFT again", async () => {
       it("should allow the second NFT to be staked and received first NFT back", async () => {
-        const poolId = ethers.utils.formatBytes32String("ALPIES");
+        const poolId = ethers.utils.solidityKeccak256(["string"], ["ALPIES"]);
         await nftStaking.addPool(poolId, [alpies.address]);
         await alpies.mintReserve(2);
 
@@ -202,7 +201,7 @@ describe("NFTStaking", () => {
   describe("#unstakeNFT", async () => {
     context("when unstake the already staked NFT", async () => {
       it("should success", async () => {
-        const poolId = ethers.utils.formatBytes32String("ALPIES");
+        const poolId = ethers.utils.solidityKeccak256(["string"], ["ALPIES"]);
         await nftStaking.addPool(poolId, [alpies.address]);
         await alpies.mintReserve(1);
 
@@ -227,7 +226,7 @@ describe("NFTStaking", () => {
 
     context("when unstake without staked NFT", async () => {
       it("should revert", async () => {
-        const poolId = ethers.utils.formatBytes32String("ALPIES");
+        const poolId = ethers.utils.solidityKeccak256(["string"], ["ALPIES"]);
         await nftStaking.addPool(poolId, [alpies.address]);
         await alpies.mintReserve(1);
 
@@ -244,7 +243,7 @@ describe("NFTStaking", () => {
 
     context("when unstake other user's NFT", async () => {
       it("should revert", async () => {
-        const poolId = ethers.utils.formatBytes32String("ALPIES");
+        const poolId = ethers.utils.solidityKeccak256(["string"], ["ALPIES"]);
         await nftStaking.addPool(poolId, [alpies.address]);
         await alpies.mintReserve(1);
 
