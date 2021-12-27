@@ -42,11 +42,11 @@ contract NFTStaking is INFTStaking, IERC721Receiver, OwnableUpgradeSafe, Reentra
     uint256 nftTokenId;
   }
 
-  mapping(bytes32 => PoolInfo) poolInfo;
+  mapping(bytes32 => PoolInfo) public poolInfo;
   mapping(bytes32 => mapping(address => NFTStakingInfo)) public userStakingNFT;
 
   modifier onlyEOA() {
-    require(msg.sender == tx.origin, "not eoa");
+    require(msg.sender == tx.origin, "NFTStaking::onlyEOA::not eoa");
     _;
   }
 
@@ -56,7 +56,7 @@ contract NFTStaking is INFTStaking, IERC721Receiver, OwnableUpgradeSafe, Reentra
   }
 
   function addPool(bytes32 _poolId, address[] calldata _stakeNFTToken) external onlyOwner {
-    require(poolInfo[_poolId].isInit == 0, "pool already init");
+    require(poolInfo[_poolId].isInit == 0, "NFTStaking::addPool::pool already init");
 
     poolInfo[_poolId].isInit = 1;
 
@@ -72,7 +72,8 @@ contract NFTStaking is INFTStaking, IERC721Receiver, OwnableUpgradeSafe, Reentra
     address[] calldata _stakeNFTToken,
     uint256[] calldata _allowance
   ) external onlyOwner {
-    require(poolInfo[_poolId].isInit == 1, "pool not init");
+    require(poolInfo[_poolId].isInit == 1, "NFTStaking::setStakeNFTToken::pool not init");
+    require(_stakeNFTToken.length == _allowance.length, "NFTStaking::setStakeNFTToken::bad params length");
 
     for (uint256 _i; _i < _stakeNFTToken.length; _i++) {
       poolInfo[_poolId].stakeNFTToken[_stakeNFTToken[_i]] = _allowance[_i];
@@ -86,10 +87,13 @@ contract NFTStaking is INFTStaking, IERC721Receiver, OwnableUpgradeSafe, Reentra
     address _nftAddress,
     uint256 _nftTokenId
   ) external nonReentrant onlyEOA {
-    require(poolInfo[_poolId].stakeNFTToken[_nftAddress] == 1, "nft address not allowed");
+    require(poolInfo[_poolId].stakeNFTToken[_nftAddress] == 1, "NFTStaking::stakeNFT::nft address not allowed");
 
     NFTStakingInfo memory _stakedNFT = userStakingNFT[_poolId][_msgSender()];
-    require(_stakedNFT.nftAddress != _nftAddress || _stakedNFT.nftTokenId != _nftTokenId, "nft already staked");
+    require(
+      _stakedNFT.nftAddress != _nftAddress || _stakedNFT.nftTokenId != _nftTokenId,
+      "NFTStaking::stakeNFT::nft already staked"
+    );
 
     userStakingNFT[_poolId][_msgSender()] = NFTStakingInfo({ nftAddress: _nftAddress, nftTokenId: _nftTokenId });
 
@@ -103,7 +107,7 @@ contract NFTStaking is INFTStaking, IERC721Receiver, OwnableUpgradeSafe, Reentra
 
   function unstakeNFT(bytes32 _poolId) external nonReentrant onlyEOA {
     NFTStakingInfo memory toBeSentBackNft = userStakingNFT[_poolId][_msgSender()];
-    require(toBeSentBackNft.nftAddress != address(0), "no nft staked");
+    require(toBeSentBackNft.nftAddress != address(0), "NFTStaking::unstakeNFT::no nft staked");
 
     userStakingNFT[_poolId][_msgSender()] = NFTStakingInfo({ nftAddress: address(0), nftTokenId: 0 });
 
@@ -113,7 +117,15 @@ contract NFTStaking is INFTStaking, IERC721Receiver, OwnableUpgradeSafe, Reentra
   }
 
   function isStaked(bytes32 _poolId, address _user) external view override returns (bool) {
-    return userStakingNFT[_poolId][_user].nftAddress != address(0);
+    address _stakedNFTAddress = userStakingNFT[_poolId][_user].nftAddress;
+    bool _isStaked = _stakedNFTAddress != address(0);
+    bool _isElibileNFT = isEligibleNFT(_poolId, _stakedNFTAddress);
+
+    return _isStaked && _isElibileNFT;
+  }
+
+  function isEligibleNFT(bytes32 _poolId, address _nftAddress) public view returns (bool) {
+    return poolInfo[_poolId].stakeNFTToken[_nftAddress] == 1;
   }
 
   /// @dev when doing a safeTransferFrom, the caller needs to implement this, for safety reason

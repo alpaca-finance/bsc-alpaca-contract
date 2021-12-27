@@ -11,6 +11,11 @@
     deep-eql "^0.1.3"
     keypather "^1.10.2"
 
+"@alpaca-finance/alpies-contract@1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@alpaca-finance/alpies-contract/-/alpies-contract-1.0.2.tgz#0a11b760e387c8871c7ff96614d06dad3c3191f2"
+  integrity sha512-EVfnWJWjUGpuyU3somhJILxpDvxWze4ckNVJUgz444jgX9xSO78mOY5Lq8L9KCCUtZ69Ym8X8mVg4k+kTF9JsA==
+
 "@apollo/client@^3.1.5":
   version "3.5.6"
   resolved "https://registry.yarnpkg.com/@apollo/client/-/client-3.5.6.tgz#911929df073280689efd98e5603047b79e0c39a2"
@@ -1601,6 +1606,11 @@
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/@openzeppelin/contracts-ethereum-package/-/contracts-ethereum-package-3.0.0.tgz#d5db971a177c3b37733db2ee4ebdb79c67575d64"
   integrity sha512-Xg33RtX7FGbSK/YnroLhcGNAvH30/C84NRW8KvbSdXXYiLA8YqM1bOA9sAeLjmQxXqYUn/YL4AUVTgDnG51NOw==
+
+"@openzeppelin/contracts-upgradeable@3.4":
+  version "3.4.2"
+  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts-upgradeable/-/contracts-upgradeable-3.4.2.tgz#2c2a1b0fa748235a1f495b6489349776365c51b3"
+  integrity sha512-mDlBS17ymb2wpaLcrqRYdnBAmP1EwqhOXMvqWk2c5Q1N1pm5TkiCtXM9Xzznh4bYsQBq0aIWEkFFE2+iLSN1Tw==
 
 "@openzeppelin/contracts@3.4.2":
   version "3.4.2"
