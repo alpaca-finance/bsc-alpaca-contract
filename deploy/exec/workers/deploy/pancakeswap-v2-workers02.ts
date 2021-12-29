@@ -14,6 +14,12 @@ import {
 } from "../../../../typechain";
 import { ConfigEntity } from "../../../entities";
 
+interface IBeneficialVaultInput {
+  BENEFICIAL_VAULT_BPS: string;
+  BENEFICIAL_VAULT_ADDRESS: string;
+  REWARD_PATH: Array<string>;
+}
+
 interface IPancakeswapWorkerInput {
   VAULT_SYMBOL: string;
   WORKER_NAME: string;
@@ -25,6 +31,7 @@ interface IPancakeswapWorkerInput {
   WORK_FACTOR: string;
   KILL_FACTOR: string;
   MAX_PRICE_DIFF: string;
+  BENEFICIAL_VAULT?: IBeneficialVaultInput;
   EXACT_ETA: string;
 }
 
@@ -50,6 +57,7 @@ interface IPancakeswapWorkerInfo {
   WORK_FACTOR: string;
   KILL_FACTOR: string;
   MAX_PRICE_DIFF: string;
+  BENEFICIAL_VAULT?: IBeneficialVaultInput;
   TIMELOCK: string;
   EXACT_ETA: string;
 }
@@ -67,16 +75,21 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const shortWorkerInfos: IPancakeswapWorkerInput[] = [
     {
       VAULT_SYMBOL: "ibWBNB",
-      WORKER_NAME: "ETERNAL-WBNB PancakeswapWorker",
+      WORKER_NAME: "THG-WBNB PancakeswapWorker",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 473,
-      REINVEST_BOUNTY_BPS: "300",
+      POOL_ID: 488,
+      REINVEST_BOUNTY_BPS: "900",
       REINVEST_PATH: ["CAKE", "WBNB"],
       REINVEST_THRESHOLD: "1",
       WORK_FACTOR: "5200",
       KILL_FACTOR: "7000",
       MAX_PRICE_DIFF: "11000",
-      EXACT_ETA: "1638426600",
+      BENEFICIAL_VAULT: {
+        BENEFICIAL_VAULT_BPS: "5555",
+        BENEFICIAL_VAULT_ADDRESS: "0x44B3868cbba5fbd2c5D8d1445BDB14458806B3B4",
+        REWARD_PATH: ["CAKE", "BUSD", "ALPACA"],
+      },
+      EXACT_ETA: "1640240100",
     },
   ];
 
@@ -96,6 +109,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       }
       return addr;
     });
+
+    const beneficialVault = n.BENEFICIAL_VAULT;
+    if (beneficialVault !== undefined) {
+      beneficialVault.REWARD_PATH = beneficialVault.REWARD_PATH.map((p) => {
+        const addr = tokenList[p];
+        if (addr === undefined) {
+          throw `error: path: unable to find address of ${p}`;
+        }
+        return addr;
+      });
+    }
 
     return {
       WORKER_NAME: n.WORKER_NAME,
@@ -119,6 +143,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       WORK_FACTOR: n.WORK_FACTOR,
       KILL_FACTOR: n.KILL_FACTOR,
       MAX_PRICE_DIFF: n.MAX_PRICE_DIFF,
+      BENEFICIAL_VAULT: beneficialVault,
       TIMELOCK: config.Timelock,
       EXACT_ETA: n.EXACT_ETA,
     };
@@ -204,6 +229,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       await partialCloseMinimize.setWorkersOk([pancakeswapV2Worker02.address], true, { nonce: nonce++ });
     }
     console.log("✅ Done");
+
+    if (workerInfos[i].BENEFICIAL_VAULT) {
+      console.log(">> config baneficial vault");
+      await pancakeswapV2Worker02.setBeneficialVaultConfig(
+        workerInfos[i].BENEFICIAL_VAULT!.BENEFICIAL_VAULT_BPS,
+        workerInfos[i].BENEFICIAL_VAULT!.BENEFICIAL_VAULT_ADDRESS,
+        workerInfos[i].BENEFICIAL_VAULT!.REWARD_PATH,
+        { nonce: nonce++ }
+      );
+      console.log("✅ Done");
+    }
 
     const timelock = Timelock__factory.connect(workerInfos[i].TIMELOCK, (await ethers.getSigners())[0]);
 

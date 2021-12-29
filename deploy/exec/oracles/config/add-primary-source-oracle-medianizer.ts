@@ -18,11 +18,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const DEFAULT_MAX_PRICE_STALE = "86400";
   const config = ConfigEntity.getConfig();
 
-  const TOKEN0_SYMBOLS = ["BTCB"];
-  const TOKEN1_SYMBOLS = ["USDT"];
+  const TOKEN0_SYMBOLS = ["THG"];
+  const TOKEN1_SYMBOLS = ["WBNB"];
   const MAX_PRICE_DEVIATIONS = [DEFAULT_MAX_PRICE_DEVIATION];
   const MAX_PRICE_STALES = [DEFAULT_MAX_PRICE_STALE];
-  const SOURCES = [[config.Oracle.ChainLinkOracle]];
+  const SOURCES = [[config.Oracle.SimpleOracle]];
 
   const tokenList: any = config.Tokens;
   const token0Addrs: Array<string> = TOKEN0_SYMBOLS.map((t) => {
