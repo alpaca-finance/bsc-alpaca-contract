@@ -61,7 +61,7 @@ describe("Vault - PancakeswapV202", () => {
   const MIN_DEBT_SIZE = ethers.utils.parseEther("1"); // 1 BTOKEN min debt size
   const WORK_FACTOR = "7000";
   const KILL_FACTOR = "8000";
-  const MAX_REINVEST_BOUNTY: string = "500";
+  const MAX_REINVEST_BOUNTY: string = "900";
   const DEPLOYER = "0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51";
   const BENEFICIALVAULT_BOUNTY_BPS = "1000";
   const REINVEST_THRESHOLD = ethers.utils.parseEther("1"); // If pendingCake > 1 $CAKE, then reinvest
@@ -404,7 +404,7 @@ describe("Vault - PancakeswapV202", () => {
         await expect(pancakeswapV2Worker.setMaxReinvestBountyBps("3001")).to.be.revertedWith(
           "PancakeswapV2Worker02::setMaxReinvestBountyBps:: _maxReinvestBountyBps exceeded 30%"
         );
-        expect(await pancakeswapV2Worker.maxReinvestBountyBps()).to.be.eq("500");
+        expect(await pancakeswapV2Worker.maxReinvestBountyBps()).to.be.eq("900");
       });
     });
 
@@ -589,7 +589,7 @@ describe("Vault - PancakeswapV202", () => {
 
         it("should not allow positions if Vault has less BaseToken than requested loan", async () => {
           // Alice cannot take 1 BTOKEN loan because the contract does not have it
-          baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
+          await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
           await expect(
             vaultAsAlice.work(
               0,

@@ -716,7 +716,7 @@ describe("Vault - Pancakeswap Migrate", () => {
 
         const bobBefore = await baseToken.balanceOf(await bob.getAddress());
         // Bob close position#1
-        vaultAsBob.work(
+        await vaultAsBob.work(
           1,
           pancakeswapWorker.address,
           "0",
@@ -736,7 +736,7 @@ describe("Vault - Pancakeswap Migrate", () => {
         const bobAfter = await baseToken.balanceOf(await bob.getAddress());
 
         // Check Bob account, Bob must be richer as he earn more from yield
-        expect(bobAfter).to.be.bignumber.gt(bobBefore);
+        expect(bobAfter).to.be.gt(bobBefore);
 
         // Alice add another 10 BTOKEN
         await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("10"));
@@ -1093,7 +1093,7 @@ describe("Vault - Pancakeswap Migrate", () => {
 
         const bobBefore = await baseToken.balanceOf(await bob.getAddress());
         // Bob close position#1
-        vaultAsBob.work(
+        await vaultAsBob.work(
           1,
           pancakeswapWorker.address,
           "0",
@@ -1113,7 +1113,7 @@ describe("Vault - Pancakeswap Migrate", () => {
         const bobAfter = await baseToken.balanceOf(await bob.getAddress());
 
         // Check Bob account, Bob must be richer as he earn more from yield
-        expect(bobAfter).to.be.bignumber.gt(bobBefore);
+        expect(bobAfter).to.be.gt(bobBefore);
 
         // Alice add another 10 BTOKEN
         await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("10"));
@@ -1472,7 +1472,7 @@ describe("Vault - Pancakeswap Migrate", () => {
 
         const bobBefore = await baseToken.balanceOf(await bob.getAddress());
         // Bob close position#1
-        vaultAsBob.work(
+        await vaultAsBob.work(
           1,
           pancakeswapWorker.address,
           "0",
@@ -1492,7 +1492,7 @@ describe("Vault - Pancakeswap Migrate", () => {
         const bobAfter = await baseToken.balanceOf(await bob.getAddress());
 
         // Check Bob account, Bob must be richer as he earn more from yield
-        expect(bobAfter).to.be.bignumber.gt(bobBefore);
+        expect(bobAfter).to.be.gt(bobBefore);
 
         // Alice add another 10 BTOKEN
         await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("10"));
@@ -1933,7 +1933,7 @@ describe("Vault - Pancakeswap Migrate", () => {
 
         const bobBefore = await baseToken.balanceOf(await bob.getAddress());
         // Bob close position#1
-        vaultAsBob.work(
+        await vaultAsBob.work(
           1,
           pancakeswapWorker.address,
           "0",
@@ -1953,7 +1953,7 @@ describe("Vault - Pancakeswap Migrate", () => {
         const bobAfter = await baseToken.balanceOf(await bob.getAddress());
 
         // Check Bob account, Bob must be richer as he earn more from yield
-        expect(bobAfter).to.be.bignumber.gt(bobBefore);
+        expect(bobAfter).to.be.gt(bobBefore);
 
         // Alice add another 10 BTOKEN
         await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("10"));

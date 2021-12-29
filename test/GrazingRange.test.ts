@@ -122,13 +122,11 @@ describe("GrazingRange", () => {
         console.log((await TimeHelpers.latestBlockNumber()).toString());
 
         await grazingRangeAsDeployer.addRewardInfo(0, mockedBlock.add(10).toString(), INITIAL_BONUS_REWARD_PER_BLOCK);
-        console.log(await grazingRange.campaignRewardInfo(0, 0));
-        console.log(await grazingRange.campaignRewardInfo(0, 1));
         currentEndBlock = await grazingRangeAsDeployer.currentEndBlock(0);
         expect(currentEndBlock).to.eq(mockedBlock.add(9));
 
         await TimeHelpers.advanceBlockTo(mockedBlock.add(20).toNumber());
-        console.log("Block number: ", (await TimeHelpers.latestBlockNumber()).toString());
+        currentEndBlock = await grazingRangeAsDeployer.currentEndBlock(0);
         expect(currentEndBlock).to.eq(mockedBlock.add(10));
       });
     });

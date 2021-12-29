@@ -609,7 +609,7 @@ describe("Vault - PancakeswapV2", () => {
 
         it("should not allow positions if Vault has less BaseToken than requested loan", async () => {
           // Alice cannot take 1 BTOKEN loan because the contract does not have it
-          baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
+          await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
           await expect(
             vaultAsAlice.work(
               0,
