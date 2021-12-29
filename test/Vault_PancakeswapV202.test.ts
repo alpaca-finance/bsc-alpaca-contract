@@ -404,7 +404,7 @@ describe("Vault - PancakeswapV202", () => {
         await expect(pancakeswapV2Worker.setMaxReinvestBountyBps("3001")).to.be.revertedWith(
           "PancakeswapV2Worker02::setMaxReinvestBountyBps:: _maxReinvestBountyBps exceeded 30%"
         );
-        expect(await pancakeswapV2Worker.maxReinvestBountyBps()).to.be.eq("900");
+        expect(await pancakeswapV2Worker.maxReinvestBountyBps()).to.be.eq(MAX_REINVEST_BOUNTY);
       });
     });
 
