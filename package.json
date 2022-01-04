@@ -85,6 +85,7 @@
     "deploy:mainnet:strategies:upgrade:share-strategies": "hardhat --network mainnet deploy --no-compile --reset --tags UpgradeShareStrategies",
     "deploy:mainnet:fairlaunch:config:add-pool": "hardhat --network mainnet deploy --no-compile --reset --tags TimelockAddPool",
     "deploy:mainnet:fairlaunch:config:set-pool": "hardhat --network mainnet deploy --no-compile --reset --tags TimelockSetPool",
+    "deploy:mainnet:fairlaunch:config:set-alpaca-per-block": "hardhat --network mainnet deploy --no-compile --reset --tags TimelockSetAlpacaPerBlock",
     "deploy:mainnet:strategies:deploy:mdex:share-strategies": "hardhat --network mainnet deploy --no-compile --reset --tags MdexShareRestrictedStrategies",
     "deploy:mainnet:strategies:deploy:mdex:vault-strategies": "hardhat --network mainnet deploy --no-compile --reset --tags MdexVaultRestrictedStrategies",
     "deploy:testnet:000": "hardhat --network testnet deploy --no-compile --reset --tags Testnet",
