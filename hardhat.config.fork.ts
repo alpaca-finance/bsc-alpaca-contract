@@ -35,27 +35,10 @@ module.exports = {
           balance: "10000000000000000000000",
         },
       ],
-    },
-    testnet: {
-      url: "https://data-seed-prebsc-2-s2.binance.org:8545/",
-      accounts: [process.env.BSC_TESTNET_PRIVATE_KEY],
-    },
-    mainnet: {
-      url: process.env.BSC_MAINNET_RPC,
-      accounts: [process.env.BSC_MAINNET_PRIVATE_KEY],
-    },
-    kovan: {
-      url: process.env.ETH_KOVAN_RPC,
-      accounts: [process.env.ETH_TESTNET_PRIVATE_KEY],
-    },
-    ethereum: {
-      url: process.env.ETH_MAINNET_RPC,
-      accounts: [process.env.ETH_MAINNET_PRIVATE_KEY],
-    },
-    mainnetfork: {
-      url: "http://127.0.0.1:8545",
-      accounts: [process.env.BSC_MAINNET_PRIVATE_KEY, process.env.QA_PRIVATE_KEY],
-      timeout: 500000,
+      forking: {
+        url: process.env.BSC_MAINNET_ARCHIVE_RPC,
+        blockNumber: 14061119,
+      },
     },
   },
   namedAccounts: {

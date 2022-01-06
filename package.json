@@ -178,6 +178,7 @@
     "ethereum": "hardhat console --no-compile --network ethereum",
     "test:case": "mocha --require hardhat/register --extension ts -g",
     "test:parallel": "mocha --require hardhat/register --recursive --parallel --extension ts --exit",
+    "test:forks:actions": "hardhat test --config hardhat.config.fork.ts --no-compile ./test/forks/Actions.test.ts",
     "test:vaultconfig": "hardhat test --no-compile ./test/ConfigurableInterestVaultConfig.test.ts",
     "test:fairlaunch": "hardhat test --no-compile ./test/FairLaunch.test.ts",
     "test:fairlaunchv2": "hardhat test --no-compile ./test/FairLaunchV2.test.ts",

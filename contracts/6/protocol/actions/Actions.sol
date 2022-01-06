@@ -15,8 +15,12 @@ pragma solidity 0.6.6;
 pragma experimental ABIEncoderV2;
 
 import "../Vault.sol";
+import "../../utils/SafeToken.sol";
 
 contract Actions {
+  using SafeToken for address;
+
+  address private wbnb;
   /// @dev The next position ID to be assigned.
   uint256 public nextPositionID;
   /// @dev Mapping of vault => vault's position ID => surrogate key
@@ -24,7 +28,8 @@ contract Actions {
   /// @dev Mapping of vault => vault's positionId => owner
   mapping(address => mapping(uint256 => address)) public ownerOf;
 
-  constructor() public {
+  constructor(address _wbnb) public {
+    wbnb = _wbnb;
     nextPositionID = 1;
   }
 
@@ -50,7 +55,13 @@ contract Actions {
       uint256 _maxReturn,
       bytes memory _workData
     ) = abi.decode(_data, (address, uint256, address, uint256, uint256, uint256, bytes));
-    // 2. Sanity check
+
+    // 2. Transfer token to here & approve vault
+    address _token = Vault(_vault).token();
+    if (_token != wbnb) _token.safeTransferFrom(msg.sender, address(this), _principalAmount);
+    _token.safeApprove(_vault, _principalAmount);
+
+    // 3. Sanity check
     // - If new position, then set ownerOf to be msg.sender
     // - else check that msg.sender is the one who altering the position
     if (_posId == 0) {
@@ -59,6 +70,7 @@ contract Actions {
       ownerOf[_vault][_nextPositionID] = msg.sender;
       surrogateOf[_vault][_nextPositionID] = _surrogateID;
     } else require(ownerOf[_vault][_posId] == msg.sender, "!owner");
+
     // 3. Call work to altering Vault position
     Vault(_vault).work{ value: _msgValue }(_posId, _worker, _principalAmount, _borrowAmount, _maxReturn, _workData);
   }
