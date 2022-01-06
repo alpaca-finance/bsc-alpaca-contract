@@ -274,6 +274,7 @@
     "ethereumjs-util": "^7.0.10",
     "ethers": "^5.5.1",
     "hardhat": "^2.8.0",
+    "hardhat-contract-sizer": "^2.3.0",
     "hardhat-deploy": "^0.7.0-beta.45",
     "prettier": "^2.3.0",
     "prettier-plugin-solidity": "^1.0.0-beta.10",

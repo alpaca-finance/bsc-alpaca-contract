@@ -7,6 +7,7 @@ import "@typechain/hardhat";
 import "@nomiclabs/hardhat-ethers";
 import "hardhat-deploy";
 import "solidity-coverage";
+import "hardhat-contract-sizer";
 
 module.exports = {
   defaultNetwork: "hardhat",
@@ -69,6 +70,9 @@ module.exports = {
       optimizer: {
         enabled: true,
         runs: 1,
+      },
+      metadata: {
+        bytecodeHash: "none",
       },
       evmVersion: "istanbul",
       outputSelection: {
