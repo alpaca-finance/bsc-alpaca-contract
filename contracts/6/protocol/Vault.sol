@@ -15,7 +15,6 @@ pragma solidity 0.6.6;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/math/Math.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
@@ -329,8 +328,10 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     emit AddCollateral(id, amount, healthBefore, healthAfter);
   }
 
-  /// @dev Borrow tokens from the Vault.
+  /// @notice Borrow tokens from the Vault.
+  /// @dev Not assign worker here. All risks params will be controlled by upstream contract.
   /// @param id The ID of the position to unlock the earning. Use ZERO for new position.
+  /// @param borrower The address of the borrower.
   /// @param borrowAmount The amount of Token to borrow from the pool.
   function borrow(
     uint256 id,
@@ -358,10 +359,16 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     _fairLaunchDeposit(borrower, pos.debtShare);
   }
 
+  /// @notice Repay debt.
+  /// @dev Only whitelistedProtocol can call
+  /// @param id The ID of the position to unlock the earning. Use ZERO for new position.
+  /// @param borrower The address of the borrower.
+  /// @param maxRepayAmount The amount of Token to repay to the pool.
   function repay(
     uint256 id,
     address borrower,
-    uint256 maxRepayAmount
+    uint256 maxRepayAmount,
+    bool isBadDebt
   ) external onlyWhitelistedProtocol accrue(0) nonReentrant {
     require(fairLaunchPoolId != uint256(-1), "R1");
     // 1. Sanity check the input position
@@ -376,7 +383,7 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     token.safeTransferFrom(msg.sender, address(this), lessDebt);
     // 3. Check and update position debt.
     debt = debt.sub(lessDebt);
-    if (debt > 0) {
+    if (debt > 0 && isBadDebt == false) {
       require(debt >= config.minDebtSize(), "R4");
       _addDebt(id, debt);
       _fairLaunchDeposit(borrower, pos.debtShare);
@@ -501,11 +508,11 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
   }
 
   /// @dev Internal function to clear the debt of the given position. Return the debt value.
-  function _removeDebt(uint256 id) internal returns (uint256) {
+  function _removeDebt(uint256 id) internal returns (uint256 debtVal) {
     Position storage pos = positions[id];
     uint256 debtShare = pos.debtShare;
     if (debtShare > 0) {
-      uint256 debtVal = debtShareToVal(debtShare);
+      debtVal = debtShareToVal(debtShare);
       pos.debtShare = 0;
       vaultDebtShare = vaultDebtShare.sub(debtShare);
       vaultDebtVal = vaultDebtVal.sub(debtVal);
