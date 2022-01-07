@@ -29,10 +29,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const VAULT_NAME = "USDC Vault";
   const NAME = "Interest Bearing USDC";
   const SYMBOL = "ibUSDC";
-  const DEBT_FAIR_LAUNCH_PID = "22";
-  const EXACT_ETA = "1641535200";
+  const DEBT_FAIR_LAUNCH_PID = "23";
+  const EXACT_ETA = "1641628800";
 
   const config = ConfigEntity.getConfig();
+  const deployer = (await ethers.getSigners())[0];
   const targetedVault = config.Vaults.find((v) => v.symbol === SYMBOL);
   if (targetedVault === undefined) {
     throw `error: not found any vault with ${SYMBOL} symbol`;
@@ -54,33 +55,37 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       await ethers.getSigners()
     )[0]
   )) as DebtToken__factory;
-  const debtToken = (await upgrades.deployProxy(DebtToken, [
-    `debt${SYMBOL}_V2`,
-    `debt${SYMBOL}_V2`,
-    config.Timelock,
-  ])) as DebtToken;
-  await debtToken.deployed();
+  // const debtToken = (await upgrades.deployProxy(DebtToken, [
+  //   `debt${SYMBOL}_V2`,
+  //   `debt${SYMBOL}_V2`,
+  //   config.Timelock,
+  // ])) as DebtToken;
+  // await debtToken.deployed();
+  const debtToken = DebtToken__factory.connect("0x426BdFE8cAB2c4720B36ABBdc3ff08144BC361f3", deployer);
   console.log(`>> Deployed at ${debtToken.address}`);
 
   console.log(`>> Deploying an upgradable Vault contract for ${VAULT_NAME}`);
   const Vault = (await ethers.getContractFactory("Vault", (await ethers.getSigners())[0])) as Vault__factory;
-  const vault = (await upgrades.deployProxy(Vault, [
-    targetedVault.config,
-    baseTokenAddr,
-    NAME,
-    SYMBOL,
-    18,
-    debtToken.address,
-  ])) as Vault;
-  await vault.deployed();
+  // const vault = (await upgrades.deployProxy(Vault, [
+  //   targetedVault.config,
+  //   baseTokenAddr,
+  //   NAME,
+  //   SYMBOL,
+  //   18,
+  //   debtToken.address,
+  // ])) as Vault;
+  // await vault.deployed();
+  const vault = Vault__factory.connect("0x800933D685E7Dc753758cEb77C8bd34aBF1E26d7", deployer);
   console.log(`>> Deployed at ${vault.address}`);
 
+  let nonce = await deployer.getTransactionCount();
+
   console.log(">> Set okHolders on DebtToken to be be Vault");
-  await debtToken.setOkHolders([vault.address, config.FairLaunch.address], true);
+  await debtToken.setOkHolders([vault.address, config.FairLaunch.address], true, { nonce: nonce++ });
   console.log("✅ Done");
 
   console.log(">> Transferring ownership of debtToken to Vault");
-  await debtToken.transferOwnership(vault.address);
+  await debtToken.transferOwnership(vault.address, { nonce: nonce++ });
   console.log("✅ Done");
 
   const timelock = Timelock__factory.connect(config.Timelock, (await ethers.getSigners())[0]) as Timelock;
@@ -94,7 +99,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       ["uint256", "address", "bool"],
       [ALLOC_POINT_FOR_OPEN_POSITION, debtToken.address, true]
     ),
-    EXACT_ETA
+    EXACT_ETA,
+    { nonce: nonce++ }
   );
   console.log("✅ Done");
 
@@ -109,7 +115,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log("✅ Done");
 
   console.log(">> link pool with vault");
-  await vault.setFairLaunchPoolId(DEBT_FAIR_LAUNCH_PID, { gasLimit: "2000000" });
+  await vault.setFairLaunchPoolId(DEBT_FAIR_LAUNCH_PID, { gasLimit: "2000000", nonce: nonce++ });
   console.log("✅ Done");
 
   console.log(`>> Queue Transaction to add a ${SYMBOL} pool through Timelock`);
@@ -118,7 +124,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "0",
     "addPool(uint256,address,bool)",
     ethers.utils.defaultAbiCoder.encode(["uint256", "address", "bool"], [ALLOC_POINT_FOR_DEPOSIT, vault.address, true]),
-    EXACT_ETA
+    EXACT_ETA,
+    { nonce: nonce++ }
   );
   console.log("✅ Done");
 
@@ -134,7 +141,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ) as WNativeRelayer;
 
   console.log(">> Whitelisting Vault on WNativeRelayer Contract");
-  await wNativeRelayer.setCallerOk([vault.address], true);
+  await wNativeRelayer.setCallerOk([vault.address], true, { nonce: nonce++ });
   console.log("✅ Done");
 };
 

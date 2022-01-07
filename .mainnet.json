@@ -395,12 +395,12 @@
       {
         "id": 23,
         "stakingToken": "debtIbUSDC V2",
-        "address": ""
+        "address": "0x426BdFE8cAB2c4720B36ABBdc3ff08144BC361f3"
       },
       {
         "id": 24,
         "stakingToken": "ibUSDC",
-        "address": ""
+        "address": "0x800933D685E7Dc753758cEb77C8bd34aBF1E26d7"
       }
     ]
   },
@@ -3126,6 +3126,41 @@
             "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3",
             "StrategyPartialCloseLiquidate": "0xfE49AffC3fFa7bed8346F8f33f8250d3C6fDf073",
             "StrategyPartialCloseMinimizeTrading": "0x3FFa4Cd446F8127db0ED316b1E952876Be2E61B0"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Interest Bearing USDC",
+      "symbol": "ibUSDC",
+      "address": "0x800933D685E7Dc753758cEb77C8bd34aBF1E26d7",
+      "deployedBlock": 14151376,
+      "baseToken": "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
+      "debtToken": "0x426BdFE8cAB2c4720B36ABBdc3ff08144BC361f3",
+      "config": "0x01cf56544A303025C77c76cA77982cbd8655fCBC",
+      "tripleSlopeModel": "0xADcfBf2e8470493060FbE0A0aFAC66d2cB028e9c",
+      "StrategyAddTwoSidesOptimal": {
+        "Pancakeswap": "0x66C7170d102dB819f50f9582973ab0d16d6f5242",
+        "Waultswap": "",
+        "PancakeswapSingleAsset": "0x9a0Beed083D3A45b6463c621b0CE489482459b21",
+        "Mdex": "0xf4c6b53bd2A1f0c06D8483e38Cd6e6ceC1860593"
+      },
+      "workers": [
+        {
+          "name": "",
+          "address": "",
+          "deployedBlock": 88888,
+          "config": "",
+          "pId": 888,
+          "stakingToken": "",
+          "stakingTokenAt": "",
+          "strategies": {
+            "StrategyAddAllBaseToken": "",
+            "StrategyLiquidate": "",
+            "StrategyAddTwoSidesOptimal": "",
+            "StrategyWithdrawMinimizeTrading": "",
+            "StrategyPartialCloseLiquidate": "",
+            "StrategyPartialCloseMinimizeTrading": ""
           }
         }
       ]
