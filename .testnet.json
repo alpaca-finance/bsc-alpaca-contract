@@ -198,6 +198,16 @@
         "id": 21,
         "stakingToken": "fdALPACA",
         "address": "0xE0E9F41a9572105D1F391AcC03245aF7E30254eF"
+      },
+      {
+        "id": 22,
+        "stakingToken": "debtIbUSDC V2",
+        "address": "0x290817DDE27d3b4Cf366186Ff371DBEC0a8b76a8"
+      },
+      {
+        "id": 23,
+        "stakingToken": "ibUSDC",
+        "address": "0x10c3d6330272Fee8bf9d3E42D0b790052ebc09DF"
       }
     ]
   },
@@ -2947,6 +2957,41 @@
             "StrategyWithdrawMinimizeTrading": "0xE5909854177a493BFeF616e2E142211413aC295d",
             "StrategyPartialCloseLiquidate": "0x6035906cE177f68836DC29634D7649E5e3b073Eb",
             "StrategyPartialCloseMinimizeTrading": "0xDB624719CdE2e06DAcD2FB121115Abd581A6A02D"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Interest Bearing USDC",
+      "symbol": "ibUSDC",
+      "address": "0x10c3d6330272Fee8bf9d3E42D0b790052ebc09DF",
+      "deployedBlock": 15646293,
+      "baseToken": "0x74E6d184A8cD7d43E9b2B46b66F6Eb92d36a768B",
+      "debtToken": "0x290817DDE27d3b4Cf366186Ff371DBEC0a8b76a8",
+      "config": "0xDBF13eB90b81014D192c7e9749d607d6DC533459",
+      "tripleSlopeModel": "0x111ae8da53D0998260DfdfA2172d4f88f969d386",
+      "StrategyAddTwoSidesOptimal": {
+        "Pancakeswap": "0x60CB025B3B97fEf74E3b3Ad80CDaB4F3F864B6eB",
+        "Waultswap": "",
+        "PancakeswapSingleAsset": "0xAbfb541BB209F7b106dD12C83Eb347B9eD2dd8f3",
+        "Mdex": "0xfF6a2fb9CDeA8788857DF29e10D5913CaE0F189F"
+      },
+      "workers": [
+        {
+          "name": "",
+          "address": "",
+          "deployedBlock": 8888,
+          "config": "",
+          "pId": 78,
+          "stakingToken": "",
+          "stakingTokenAt": "",
+          "strategies": {
+            "StrategyAddAllBaseToken": "",
+            "StrategyLiquidate": "",
+            "StrategyAddTwoSidesOptimal": "",
+            "StrategyWithdrawMinimizeTrading": "",
+            "StrategyPartialCloseLiquidate": "",
+            "StrategyPartialCloseMinimizeTrading": ""
           }
         }
       ]

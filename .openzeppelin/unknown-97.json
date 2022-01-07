@@ -554,6 +554,36 @@
       "address": "0xe11EBe69bB0eD0b221a3B1da481AA47b9B7BF13c",
       "txHash": "0xe43ec216d1a35609c69a8cfd2c91da90f5685a4b59af6d46bfe254a5f4ddfb8d",
       "kind": "transparent"
+    },
+    {
+      "address": "0xDBF13eB90b81014D192c7e9749d607d6DC533459",
+      "txHash": "0x6af071c45f694312c4fcc94a7b6e19c42603a7f002eac08130f9de7d2b72bb00",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x290817DDE27d3b4Cf366186Ff371DBEC0a8b76a8",
+      "txHash": "0xd3a0a0c89a8fa552327da0b921e23355dcc6caa404181ddeddeeb9606428ceee",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x10c3d6330272Fee8bf9d3E42D0b790052ebc09DF",
+      "txHash": "0xfdedfd80c9c3c3fc01e0d8d7482b9bceb5dac47602ef2b7e27c46e54522e4b2a",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x60CB025B3B97fEf74E3b3Ad80CDaB4F3F864B6eB",
+      "txHash": "0xb30e39778500c97236aa61718fee6bed6b9d89be0d3ad53b8f17dd9e0150c38e",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xfF6a2fb9CDeA8788857DF29e10D5913CaE0F189F",
+      "txHash": "0xd93342c4a9328123c547869f337c122241a50fb5f3e9f0350b36f6941c58d61b",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xAbfb541BB209F7b106dD12C83Eb347B9eD2dd8f3",
+      "txHash": "0x63dbb960af907fc6f1a1ddbea781ef69e0371ebf782563b81ebc40e0307842e0",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -21655,6 +21685,121 @@
           },
           "t_array(t_uint256)49_storage": {
             "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "bf9631b28c2f61c32f8a9533b3ebab3d14fe93c7118b408ef6a5f3c066eeb63a": {
+      "address": "0x8842270FA19c2A72A0Ce99E532ef05Db030766e6",
+      "txHash": "0xe0c89099c4433b8a6ca420eeb53f777e222e76fc18b8669d236050bb755566d4",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:26"
+          },
+          {
+            "contract": "Initializable",
+            "label": "______gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:61"
+          },
+          {
+            "contract": "ContextUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol:37"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:18"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:78"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "_notEntered",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:21"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:63"
+          },
+          {
+            "contract": "MdexRestrictedStrategyAddTwoSidesOptimal",
+            "label": "factory",
+            "type": "t_contract(IMdexFactory)11663",
+            "src": "contracts/6/protocol/strategies/mdex-restricted/MdexRestrictedStrategyAddTwosidesOptimal.sol:43"
+          },
+          {
+            "contract": "MdexRestrictedStrategyAddTwoSidesOptimal",
+            "label": "router",
+            "type": "t_contract(IMdexRouter)12308",
+            "src": "contracts/6/protocol/strategies/mdex-restricted/MdexRestrictedStrategyAddTwosidesOptimal.sol:44"
+          },
+          {
+            "contract": "MdexRestrictedStrategyAddTwoSidesOptimal",
+            "label": "mdx",
+            "type": "t_address",
+            "src": "contracts/6/protocol/strategies/mdex-restricted/MdexRestrictedStrategyAddTwosidesOptimal.sol:46"
+          },
+          {
+            "contract": "MdexRestrictedStrategyAddTwoSidesOptimal",
+            "label": "vault",
+            "type": "t_contract(IVault)28259",
+            "src": "contracts/6/protocol/strategies/mdex-restricted/MdexRestrictedStrategyAddTwosidesOptimal.sol:48"
+          },
+          {
+            "contract": "MdexRestrictedStrategyAddTwoSidesOptimal",
+            "label": "okWorkers",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/6/protocol/strategies/mdex-restricted/MdexRestrictedStrategyAddTwosidesOptimal.sol:48"
+          }
+        ],
+        "types": {
+          "t_contract(IMdexFactory)11663": {
+            "label": "contract IMdexFactory"
+          },
+          "t_contract(IMdexRouter)12308": {
+            "label": "contract IMdexRouter"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_contract(IVault)28259": {
+            "label": "contract IVault"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_uint256": {
+            "label": "uint256"
           },
           "t_array(t_uint256)50_storage": {
             "label": "uint256[50]"
