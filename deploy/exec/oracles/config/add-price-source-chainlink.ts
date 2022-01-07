@@ -15,9 +15,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TOKEN0_SYMBOLS = ["BTCB"];
-  const TOKEN1_SYMBOLS = ["USDT"];
-  const AGGREGATORV3S = ["0x264990fbd0A4796A3E3d8E37C4d5F87a3aCa5Ebf"];
+  const TOKEN0_SYMBOLS = ["WBNB"];
+  const TOKEN1_SYMBOLS = ["USD"];
+  const AGGREGATORV3S = ["0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526"]; // BNB/USD Chainlink's Aggregator
 
   const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
   const tokenList: any = config.Tokens;
