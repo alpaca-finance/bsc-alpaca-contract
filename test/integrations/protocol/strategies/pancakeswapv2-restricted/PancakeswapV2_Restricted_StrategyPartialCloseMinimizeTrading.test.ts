@@ -347,12 +347,12 @@ describe("PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading", () => {
         const bobBaseTokenAfter = await baseToken.balanceOf(bobAddress);
         const bobFTOKENAfter = await farmingToken.balanceOf(bobAddress);
 
-        expect(await lpV2.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(await lpV2.balanceOf(bobAddress)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(bobBaseTokenAfter.sub(bobBaseTokenBefore), "Bob (as Vault) should get 2 BTOKEN back").to.be.bignumber.eq(
+        expect(await lpV2.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await lpV2.balanceOf(bobAddress)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(bobBaseTokenAfter.sub(bobBaseTokenBefore), "Bob (as Vault) should get 2 BTOKEN back").to.be.eq(
           ethers.utils.parseEther("2")
         );
-        expect(bobFTOKENAfter.sub(bobFTOKENBefore), "Bob should get 40 FTOKEN back").to.be.bignumber.eq(
+        expect(bobFTOKENAfter.sub(bobFTOKENBefore), "Bob should get 40 FTOKEN back").to.be.eq(
           ethers.utils.parseEther("40")
         );
       });
@@ -399,15 +399,14 @@ describe("PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading", () => {
         // no trade
         const bobBaseTokenAfter = await baseToken.balanceOf(bobAddress);
         const bobFTOKENAfter = await farmingToken.balanceOf(bobAddress);
-        expect(await lpV2.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(await lpV2.balanceOf(bobAddress)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(bobBaseTokenAfter.sub(bobBaseTokenBefore), "Bob (as Vault) should get 1 BTOKEN back").to.be.bignumber.eq(
+        expect(await lpV2.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await lpV2.balanceOf(bobAddress)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(bobBaseTokenAfter.sub(bobBaseTokenBefore), "Bob (as Vault) should get 1 BTOKEN back").to.be.eq(
           ethers.utils.parseEther("1")
         );
-        expect(
-          bobFTOKENAfter.sub(bobFTOKENBefore),
-          "Bob should get 20.000000000000000002 FTOKEN back"
-        ).to.be.bignumber.eq(ethers.utils.parseEther("20.000000000000000002"));
+        expect(bobFTOKENAfter.sub(bobFTOKENBefore), "Bob should get 20.000000000000000002 FTOKEN back").to.be.eq(
+          ethers.utils.parseEther("20.000000000000000002")
+        );
       });
     });
 
@@ -482,8 +481,8 @@ describe("PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading", () => {
           // no trade
           const bobBaseTokenAfter = await baseToken.balanceOf(bobAddress);
           const bobFTOKENAfter = await farmingToken.balanceOf(bobAddress);
-          expect(await lpV2.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-          expect(await lpV2.balanceOf(bobAddress)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+          expect(await lpV2.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+          expect(await lpV2.balanceOf(bobAddress)).to.be.eq(ethers.utils.parseEther("0"));
           TestHelpers.assertAlmostEqual(
             ethers.utils.parseEther("1").toString(),
             bobBaseTokenAfter.sub(bobBaseTokenBefore).toString()
@@ -602,8 +601,8 @@ describe("PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading", () => {
           // remainingFarmingToken = 4 - 0.810536980749747 = 3.189463019250253
           const bobBaseTokenAfter = await baseToken.balanceOf(bobAddress);
           const bobFTOKENAfter = await farmingToken.balanceOf(bobAddress);
-          expect(await lpV2.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-          expect(await lpV2.balanceOf(bobAddress)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+          expect(await lpV2.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+          expect(await lpV2.balanceOf(bobAddress)).to.be.eq(ethers.utils.parseEther("0"));
           TestHelpers.assertAlmostEqual(
             ethers.utils.parseEther("0.24").toString(),
             bobBaseTokenAfter.sub(bobBaseTokenBefore).toString()
@@ -650,10 +649,8 @@ describe("PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading", () => {
         bobAddress,
         FOREVER
       );
-      expect(await wbnb.balanceOf(bobAddress)).to.be.bignumber.eq(ethers.utils.parseEther("0.9"));
-      expect(await baseTokenWbnbLpV2.balanceOf(bobAddress)).to.be.bignumber.eq(
-        ethers.utils.parseEther("0.316227766016837933")
-      );
+      expect(await wbnb.balanceOf(bobAddress)).to.be.eq(ethers.utils.parseEther("0.9"));
+      expect(await baseTokenWbnbLpV2.balanceOf(bobAddress)).to.be.eq(ethers.utils.parseEther("0.316227766016837933"));
       await baseTokenWbnbLpV2AsBob.transfer(
         mockPancakeswapBaseTokenWbnbV2Worker.address,
         ethers.utils.parseEther("0.316227766016837933")
@@ -699,15 +696,12 @@ describe("PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading", () => {
         const bobBaseTokenAfter = await baseToken.balanceOf(bobAddress);
         const bobBnbAfter = await bob.getBalance();
 
-        expect(await lpV2.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(await lpV2.balanceOf(bobAddress)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(
-          bobBaseTokenAfter.sub(bobBaseTokenBefore),
-          "Bob (as Vault) should get 1 BTOKEN back."
-        ).to.be.bignumber.eq(ethers.utils.parseEther("1"));
-        expect(bobBnbAfter.sub(bobBnbBefore), "Bob should get 0.1 BNB back.").to.be.bignumber.eq(
-          ethers.utils.parseEther("0.1")
+        expect(await lpV2.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await lpV2.balanceOf(bobAddress)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(bobBaseTokenAfter.sub(bobBaseTokenBefore), "Bob (as Vault) should get 1 BTOKEN back.").to.be.eq(
+          ethers.utils.parseEther("1")
         );
+        expect(bobBnbAfter.sub(bobBnbBefore), "Bob should get 0.1 BNB back.").to.be.eq(ethers.utils.parseEther("0.1"));
       });
     });
 
@@ -753,13 +747,12 @@ describe("PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading", () => {
         const bobBaseTokenAfter = await baseToken.balanceOf(bobAddress);
         const bobBnbAfter = await bob.getBalance();
 
-        expect(await lpV2.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(await lpV2.balanceOf(bobAddress)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(
-          bobBaseTokenAfter.sub(bobBaseTokenBefore),
-          "Bob (as Vault) should get 0.5 BTOKEN back."
-        ).to.be.bignumber.eq(ethers.utils.parseEther("0.5"));
-        expect(bobBnbAfter.sub(bobBnbBefore), "Bob should get 0.049999999999999998 BNB back.").to.be.bignumber.eq(
+        expect(await lpV2.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await lpV2.balanceOf(bobAddress)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(bobBaseTokenAfter.sub(bobBaseTokenBefore), "Bob (as Vault) should get 0.5 BTOKEN back.").to.be.eq(
+          ethers.utils.parseEther("0.5")
+        );
+        expect(bobBnbAfter.sub(bobBnbBefore), "Bob should get 0.049999999999999998 BNB back.").to.be.eq(
           ethers.utils.parseEther("0.049999999999999998")
         );
       });
@@ -837,8 +830,8 @@ describe("PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading", () => {
           // no trade
           const bobBaseTokenAfter = await baseToken.balanceOf(bobAddress);
           const bobBnbAfter = await ethers.provider.getBalance(bobAddress);
-          expect(await lpV2.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-          expect(await lpV2.balanceOf(bobAddress)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+          expect(await lpV2.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+          expect(await lpV2.balanceOf(bobAddress)).to.be.eq(ethers.utils.parseEther("0"));
           TestHelpers.assertAlmostEqual(
             ethers.utils.parseEther("0.5").toString(),
             bobBaseTokenAfter.sub(bobBaseTokenBefore).toString()
@@ -960,8 +953,8 @@ describe("PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading", () => {
           // remainingFarmingToken = 0.05 - 0.010741138560687433 = 0.03925886143931257
           const bobBaseTokenAfter = await baseToken.balanceOf(bobAddress);
           const bobBnbAfter = await ethers.provider.getBalance(bobAddress);
-          expect(await lpV2.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-          expect(await lpV2.balanceOf(bobAddress)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+          expect(await lpV2.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+          expect(await lpV2.balanceOf(bobAddress)).to.be.eq(ethers.utils.parseEther("0"));
           TestHelpers.assertAlmostEqual(
             ethers.utils.parseEther("0.6").toString(),
             bobBaseTokenAfter.sub(bobBaseTokenBefore).toString()

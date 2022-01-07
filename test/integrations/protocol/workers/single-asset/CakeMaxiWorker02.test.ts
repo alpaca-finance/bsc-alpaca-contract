@@ -1752,14 +1752,13 @@ describe("CakeMaxiWorker02", () => {
             expect(await integratedCakeMaxiWorker02.shares(1), "expect Alice's shares = 0.016630354291151718").to.eq(
               ethers.utils.parseEther("0.016630354291151718")
             );
-            expect(
-              await cake.balanceOf(DEPLOYER),
-              "expect DEPLOYER's CAKE remains 0 as no reinvest happened"
-            ).to.be.bignumber.eq(0);
+            expect(await cake.balanceOf(DEPLOYER), "expect DEPLOYER's CAKE remains 0 as no reinvest happened").to.be.eq(
+              0
+            );
             expect(
               await integratedCakeMaxiWorker02.rewardBalance(),
               "expect worker.rewardBalance is 0.199999999999998096"
-            ).to.be.bignumber.eq(ethers.utils.parseEther("0.199999999999998096"));
+            ).to.be.eq(ethers.utils.parseEther("0.199999999999998096"));
             expect(
               await integratedCakeMaxiWorker02.shareToBalance(await integratedCakeMaxiWorker02.shares(1)),
               "expect Alice's position#1 balance is 0.016630354291151718 CAKE"
@@ -1773,7 +1772,7 @@ describe("CakeMaxiWorker02", () => {
             expect(
               await integratedCakeMaxiWorker02.buybackAmount(),
               "expect buybackAmount is 0 as no reinvest happened"
-            ).to.be.bignumber.eq(0);
+            ).to.be.eq(0);
 
             // Eve calls `reinvest()`
             // since it's 1 block away from the last `work()`, there will be 0.099999999999985732 pending CAKE

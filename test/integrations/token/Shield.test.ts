@@ -186,7 +186,7 @@ describe("Shield", () => {
         eta
       );
 
-      expect((await fairLaunch.poolInfo(0)).allocPoint).to.be.bignumber.eq(100);
+      expect((await fairLaunch.poolInfo(0)).allocPoint).to.be.eq(100);
       expect((await fairLaunch.poolInfo(0)).stakeToken).to.be.eq(stakingTokens[0].address);
     });
 
@@ -210,7 +210,7 @@ describe("Shield", () => {
         eta
       );
 
-      expect((await fairLaunch.poolInfo(0)).allocPoint).to.be.bignumber.eq(100);
+      expect((await fairLaunch.poolInfo(0)).allocPoint).to.be.eq(100);
       expect((await fairLaunch.poolInfo(0)).stakeToken).to.be.eq(stakingTokens[0].address);
 
       eta = (await TimeHelpers.latest()).add(TimeHelpers.duration.days(ethers.BigNumber.from("4")));
@@ -232,7 +232,7 @@ describe("Shield", () => {
         eta
       );
 
-      expect((await fairLaunch.poolInfo(0)).allocPoint).to.be.bignumber.eq(200);
+      expect((await fairLaunch.poolInfo(0)).allocPoint).to.be.eq(200);
       expect((await fairLaunch.poolInfo(0)).stakeToken).to.be.eq(stakingTokens[0].address);
     });
 
@@ -256,9 +256,9 @@ describe("Shield", () => {
         eta
       );
 
-      expect(await fairLaunch.bonusMultiplier()).to.be.bignumber.eq(2);
-      expect(await fairLaunch.bonusEndBlock()).to.be.bignumber.eq(888888);
-      expect(await fairLaunch.bonusLockUpBps()).to.be.bignumber.eq(7000);
+      expect(await fairLaunch.bonusMultiplier()).to.be.eq(2);
+      expect(await fairLaunch.bonusEndBlock()).to.be.eq(888888);
+      expect(await fairLaunch.bonusLockUpBps()).to.be.eq(7000);
     });
 
     it("should set alpaca per block on FLV1 when Timelock is passed ETA", async () => {
@@ -281,7 +281,7 @@ describe("Shield", () => {
         eta
       );
 
-      expect(await fairLaunch.alpacaPerBlock()).to.be.bignumber.eq(88);
+      expect(await fairLaunch.alpacaPerBlock()).to.be.eq(88);
     });
 
     it("should allow to mint Alpaca if mintCount <= 8m", async () => {
@@ -310,10 +310,8 @@ describe("Shield", () => {
         eta
       );
 
-      expect(await shield.mintCount()).to.be.bignumber.eq(ethers.utils.parseEther("3000000"));
-      expect(await alpacaToken.balanceOf(await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("2750000")
-      );
+      expect(await shield.mintCount()).to.be.eq(ethers.utils.parseEther("3000000"));
+      expect(await alpacaToken.balanceOf(await alice.getAddress())).to.be.eq(ethers.utils.parseEther("2750000"));
 
       eta = (await TimeHelpers.latest()).add(TimeHelpers.duration.days(ethers.BigNumber.from("4")));
       await timelockAsDev.queueTransaction(
@@ -340,10 +338,8 @@ describe("Shield", () => {
         eta
       );
 
-      expect(await shield.mintCount()).to.be.bignumber.eq(ethers.utils.parseEther("8000000"));
-      expect(await alpacaToken.balanceOf(await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("7750000")
-      );
+      expect(await shield.mintCount()).to.be.eq(ethers.utils.parseEther("8000000"));
+      expect(await alpacaToken.balanceOf(await alice.getAddress())).to.be.eq(ethers.utils.parseEther("7750000"));
     });
 
     it("should revert when mintCount > 8m", async () => {
@@ -372,10 +368,8 @@ describe("Shield", () => {
         eta
       );
 
-      expect(await shield.mintCount()).to.be.bignumber.eq(ethers.utils.parseEther("3000000"));
-      expect(await alpacaToken.balanceOf(await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("2750000")
-      );
+      expect(await shield.mintCount()).to.be.eq(ethers.utils.parseEther("3000000"));
+      expect(await alpacaToken.balanceOf(await alice.getAddress())).to.be.eq(ethers.utils.parseEther("2750000"));
 
       eta = (await TimeHelpers.latest()).add(TimeHelpers.duration.days(ethers.BigNumber.from("4")));
       await timelockAsDev.queueTransaction(
@@ -403,10 +397,8 @@ describe("Shield", () => {
           eta
         )
       ).to.be.revertedWith("Shield::mintWarchest:: mint exceeded mintLimit");
-      expect(await shield.mintCount()).to.be.bignumber.eq(ethers.utils.parseEther("3000000"));
-      expect(await alpacaToken.balanceOf(await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("2750000")
-      );
+      expect(await shield.mintCount()).to.be.eq(ethers.utils.parseEther("3000000"));
+      expect(await alpacaToken.balanceOf(await alice.getAddress())).to.be.eq(ethers.utils.parseEther("2750000"));
     });
   });
 });

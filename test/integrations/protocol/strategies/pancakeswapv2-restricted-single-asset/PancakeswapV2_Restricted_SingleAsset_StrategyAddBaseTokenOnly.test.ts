@@ -295,14 +295,12 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly", () => {
         )
       );
 
-      expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(
+      expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.eq(
         ethers.utils.parseEther("0.00907024323709934")
       );
-      expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      expect(await wbnb.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      expect(await wbnb.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(
-        ethers.utils.parseEther("0")
-      );
+      expect(await farmingToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+      expect(await wbnb.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+      expect(await wbnb.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.eq(ethers.utils.parseEther("0"));
 
       // Alice uses AddBaseTokenOnly strategy to add another 0.1 WBNB
       // amountOut of 0.1 will be
@@ -321,14 +319,12 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly", () => {
         )
       );
 
-      expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(
+      expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.eq(
         ethers.utils.parseEther("0.016630354291151718")
       );
-      expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      expect(await wbnb.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(
-        ethers.utils.parseEther("0")
-      );
-      expect(await wbnb.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+      expect(await farmingToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+      expect(await wbnb.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.eq(ethers.utils.parseEther("0"));
+      expect(await wbnb.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
     });
   });
 
@@ -410,12 +406,12 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly", () => {
         )
       );
 
-      expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(
+      expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.eq(
         ethers.utils.parseEther("0.008296899991192416")
       );
-      expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      expect(await baseToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(
+      expect(await farmingToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+      expect(await baseToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+      expect(await baseToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.eq(
         ethers.utils.parseEther("0")
       );
 
@@ -437,11 +433,11 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly", () => {
         )
       );
 
-      expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(
+      expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.eq(
         ethers.utils.parseEther("0.014227298611701251")
       );
-      expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      expect(await baseToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(
+      expect(await farmingToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+      expect(await baseToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.eq(
         ethers.utils.parseEther("0")
       );
     });

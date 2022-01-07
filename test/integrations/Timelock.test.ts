@@ -43,8 +43,8 @@ import {
   PancakeFactory__factory,
   PancakeRouter__factory,
   PancakePair__factory,
-} from "../typechain";
-import * as TimeHelpers from "./helpers/time";
+} from "../../typechain";
+import * as TimeHelpers from "../helpers/time";
 
 chai.use(solidity);
 const { expect } = chai;
@@ -445,9 +445,9 @@ describe("Timelock", () => {
         eta
       );
 
-      expect(await fairLaunch.bonusMultiplier()).to.be.bignumber.eq("10");
-      expect(await fairLaunch.bonusEndBlock()).to.be.bignumber.eq("500000");
-      expect(await fairLaunch.bonusLockUpBps()).to.be.bignumber.eq("1");
+      expect(await fairLaunch.bonusMultiplier()).to.be.eq("10");
+      expect(await fairLaunch.bonusEndBlock()).to.be.eq("500000");
+      expect(await fairLaunch.bonusLockUpBps()).to.be.eq("1");
     });
 
     it("should set oracle in WorkerConfig", async () => {

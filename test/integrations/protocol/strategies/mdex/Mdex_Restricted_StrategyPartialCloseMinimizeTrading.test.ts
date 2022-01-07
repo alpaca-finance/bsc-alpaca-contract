@@ -384,12 +384,12 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
         const bobBaseTokenAfter = await baseToken.balanceOf(bobAddress);
         const bobFTOKENAfter = await farmingToken.balanceOf(bobAddress);
 
-        expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(await lp.balanceOf(bobAddress)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(bobBaseTokenAfter.sub(bobBaseTokenBefore), "Bob (as Vault) should get 2 BTOKEN back").to.be.bignumber.eq(
+        expect(await lp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await lp.balanceOf(bobAddress)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(bobBaseTokenAfter.sub(bobBaseTokenBefore), "Bob (as Vault) should get 2 BTOKEN back").to.be.eq(
           ethers.utils.parseEther("2")
         );
-        expect(bobFTOKENAfter.sub(bobFTOKENBefore), "Bob should get 40 FTOKEN back").to.be.bignumber.eq(
+        expect(bobFTOKENAfter.sub(bobFTOKENBefore), "Bob should get 40 FTOKEN back").to.be.eq(
           ethers.utils.parseEther("40")
         );
 
@@ -446,15 +446,14 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
         // no trade
         const bobBaseTokenAfter = await baseToken.balanceOf(bobAddress);
         const bobFTOKENAfter = await farmingToken.balanceOf(bobAddress);
-        expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(await lp.balanceOf(bobAddress)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(bobBaseTokenAfter.sub(bobBaseTokenBefore), "Bob (as Vault) should get 1 BTOKEN back").to.be.bignumber.eq(
+        expect(await lp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await lp.balanceOf(bobAddress)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(bobBaseTokenAfter.sub(bobBaseTokenBefore), "Bob (as Vault) should get 1 BTOKEN back").to.be.eq(
           ethers.utils.parseEther("1")
         );
-        expect(
-          bobFTOKENAfter.sub(bobFTOKENBefore),
-          "Bob should get 20.000000000000000002 FTOKEN back"
-        ).to.be.bignumber.eq(ethers.utils.parseEther("20.000000000000000002"));
+        expect(bobFTOKENAfter.sub(bobFTOKENBefore), "Bob should get 20.000000000000000002 FTOKEN back").to.be.eq(
+          ethers.utils.parseEther("20.000000000000000002")
+        );
 
         const mdxBefore = await mdxToken.balanceOf(deployerAddress);
         // withdraw trading reward to deployer
@@ -539,8 +538,8 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
           // no trade
           const bobBaseTokenAfter = await baseToken.balanceOf(bobAddress);
           const bobFTOKENAfter = await farmingToken.balanceOf(bobAddress);
-          expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-          expect(await lp.balanceOf(bobAddress)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+          expect(await lp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+          expect(await lp.balanceOf(bobAddress)).to.be.eq(ethers.utils.parseEther("0"));
           TestHelpers.assertAlmostEqual(
             ethers.utils.parseEther("1").toString(),
             bobBaseTokenAfter.sub(bobBaseTokenBefore).toString()
@@ -669,8 +668,8 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
           // remainingFarmingToken = 4 - 0.810536980749747 = 3.189463019250253
           const bobBaseTokenAfter = await baseToken.balanceOf(bobAddress);
           const bobFTOKENAfter = await farmingToken.balanceOf(bobAddress);
-          expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-          expect(await lp.balanceOf(bobAddress)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+          expect(await lp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+          expect(await lp.balanceOf(bobAddress)).to.be.eq(ethers.utils.parseEther("0"));
           TestHelpers.assertAlmostEqual(
             ethers.utils.parseEther("0.24").toString(),
             bobBaseTokenAfter.sub(bobBaseTokenBefore).toString()
@@ -727,10 +726,8 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
         bobAddress,
         FOREVER
       );
-      expect(await wbnb.balanceOf(bobAddress)).to.be.bignumber.eq(ethers.utils.parseEther("0.9"));
-      expect(await baseTokenWbnbLp.balanceOf(bobAddress)).to.be.bignumber.eq(
-        ethers.utils.parseEther("0.316227766016837933")
-      );
+      expect(await wbnb.balanceOf(bobAddress)).to.be.eq(ethers.utils.parseEther("0.9"));
+      expect(await baseTokenWbnbLp.balanceOf(bobAddress)).to.be.eq(ethers.utils.parseEther("0.316227766016837933"));
       await baseTokenWbnbLpAsBob.transfer(
         mockMdexBaseTokenWbnbWorker.address,
         ethers.utils.parseEther("0.316227766016837933")
@@ -776,15 +773,12 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
         const bobBaseTokenAfter = await baseToken.balanceOf(bobAddress);
         const bobBnbAfter = await bob.getBalance();
 
-        expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(await lp.balanceOf(bobAddress)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(
-          bobBaseTokenAfter.sub(bobBaseTokenBefore),
-          "Bob (as Vault) should get 1 BTOKEN back."
-        ).to.be.bignumber.eq(ethers.utils.parseEther("1"));
-        expect(bobBnbAfter.sub(bobBnbBefore), "Bob should get 0.1 BNB back.").to.be.bignumber.eq(
-          ethers.utils.parseEther("0.1")
+        expect(await lp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await lp.balanceOf(bobAddress)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(bobBaseTokenAfter.sub(bobBaseTokenBefore), "Bob (as Vault) should get 1 BTOKEN back.").to.be.eq(
+          ethers.utils.parseEther("1")
         );
+        expect(bobBnbAfter.sub(bobBnbBefore), "Bob should get 0.1 BNB back.").to.be.eq(ethers.utils.parseEther("0.1"));
 
         const mdxBefore = await mdxToken.balanceOf(deployerAddress);
         // withdraw trading reward to deployer
@@ -837,13 +831,12 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
         const bobBaseTokenAfter = await baseToken.balanceOf(bobAddress);
         const bobBnbAfter = await bob.getBalance();
 
-        expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(await lp.balanceOf(bobAddress)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(
-          bobBaseTokenAfter.sub(bobBaseTokenBefore),
-          "Bob (as Vault) should get 0.5 BTOKEN back."
-        ).to.be.bignumber.eq(ethers.utils.parseEther("0.5"));
-        expect(bobBnbAfter.sub(bobBnbBefore), "Bob should get 0.049999999999999998 BNB back.").to.be.bignumber.eq(
+        expect(await lp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await lp.balanceOf(bobAddress)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(bobBaseTokenAfter.sub(bobBaseTokenBefore), "Bob (as Vault) should get 0.5 BTOKEN back.").to.be.eq(
+          ethers.utils.parseEther("0.5")
+        );
+        expect(bobBnbAfter.sub(bobBnbBefore), "Bob should get 0.049999999999999998 BNB back.").to.be.eq(
           ethers.utils.parseEther("0.049999999999999998")
         );
 
@@ -928,8 +921,8 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
           // no trade
           const bobBaseTokenAfter = await baseToken.balanceOf(bobAddress);
           const bobBnbAfter = await ethers.provider.getBalance(bobAddress);
-          expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-          expect(await lp.balanceOf(bobAddress)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+          expect(await lp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+          expect(await lp.balanceOf(bobAddress)).to.be.eq(ethers.utils.parseEther("0"));
           TestHelpers.assertAlmostEqual(
             ethers.utils.parseEther("0.5").toString(),
             bobBaseTokenAfter.sub(bobBaseTokenBefore).toString()
@@ -1058,8 +1051,8 @@ describe("MdexRestrictedStrategyPartialCloseMinimizeTrading", () => {
           // remainingFarmingToken = 0.05 - 0.010741138560687433 = 0.03925886143931257
           const bobBaseTokenAfter = await baseToken.balanceOf(bobAddress);
           const bobBnbAfter = await ethers.provider.getBalance(bobAddress);
-          expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-          expect(await lp.balanceOf(bobAddress)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+          expect(await lp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+          expect(await lp.balanceOf(bobAddress)).to.be.eq(ethers.utils.parseEther("0"));
           TestHelpers.assertAlmostEqual(
             ethers.utils.parseEther("0.6").toString(),
             bobBaseTokenAfter.sub(bobBaseTokenBefore).toString()

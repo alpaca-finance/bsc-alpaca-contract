@@ -177,10 +177,8 @@ describe("Pancakeswap - StrategyWithdrawMinimizeTrading", () => {
         FOREVER
       );
 
-      expect(await farmingToken.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("0.9"));
-      expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("0.316227766016837933")
-      );
+      expect(await farmingToken.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("0.9"));
+      expect(await lp.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("0.316227766016837933"));
 
       await lpAsBob.transfer(strat.address, ethers.utils.parseEther("0.316227766016837933"));
     });
@@ -216,10 +214,10 @@ describe("Pancakeswap - StrategyWithdrawMinimizeTrading", () => {
       const bobBaseTokenAfter = await baseToken.balanceOf(await bob.getAddress());
       const bobFTOKENAfter = await farmingToken.balanceOf(await bob.getAddress());
 
-      expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      expect(bobBaseTokenAfter.sub(bobBaseTokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther("1"));
-      expect(bobFTOKENAfter.sub(bobFTOKENBefore)).to.be.bignumber.eq(ethers.utils.parseEther("0.1"));
+      expect(await lp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+      expect(await lp.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("0"));
+      expect(bobBaseTokenAfter.sub(bobBaseTokenBefore)).to.be.eq(ethers.utils.parseEther("1"));
+      expect(bobFTOKENAfter.sub(bobFTOKENBefore)).to.be.eq(ethers.utils.parseEther("0.1"));
     });
 
     it("should convert all LP tokens back to BaseToken and FTOKEN when debt < received BaseToken", async () => {
@@ -239,10 +237,10 @@ describe("Pancakeswap - StrategyWithdrawMinimizeTrading", () => {
       const bobBtokenAfter = await baseToken.balanceOf(await bob.getAddress());
       const bobFtokenAfter = await farmingToken.balanceOf(await bob.getAddress());
 
-      expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      expect(bobBtokenAfter.sub(bobBtokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther("1"));
-      expect(bobFtokenAfter.sub(bobFtokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther("0.1"));
+      expect(await lp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+      expect(await lp.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("0"));
+      expect(bobBtokenAfter.sub(bobBtokenBefore)).to.be.eq(ethers.utils.parseEther("1"));
+      expect(bobFtokenAfter.sub(bobFtokenBefore)).to.be.eq(ethers.utils.parseEther("0.1"));
     });
 
     it("should convert all LP tokens back to BaseToken and farming token (debt > received BaseToken, farming token is enough to cover debt)", async () => {
@@ -262,10 +260,10 @@ describe("Pancakeswap - StrategyWithdrawMinimizeTrading", () => {
       const bobBtokenAfter = await baseToken.balanceOf(await bob.getAddress());
       const bobFtokenAfter = await farmingToken.balanceOf(await bob.getAddress());
 
-      expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      expect(bobBtokenAfter.sub(bobBtokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther("1.2"));
-      expect(bobFtokenAfter.sub(bobFtokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther("0.074949899799599198")); // 0.1 - 0.025 = 0.075 farming token
+      expect(await lp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+      expect(await lp.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("0"));
+      expect(bobBtokenAfter.sub(bobBtokenBefore)).to.be.eq(ethers.utils.parseEther("1.2"));
+      expect(bobFtokenAfter.sub(bobFtokenBefore)).to.be.eq(ethers.utils.parseEther("0.074949899799599198")); // 0.1 - 0.025 = 0.075 farming token
     });
 
     it("should revert when debt > received BaseToken, farming token is not enough to cover the debt", async () => {
@@ -316,8 +314,8 @@ describe("Pancakeswap - StrategyWithdrawMinimizeTrading", () => {
         FOREVER
       );
 
-      expect(await wbnb.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("0.9"));
-      expect(await baseTokenWbnbLp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(
+      expect(await wbnb.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("0.9"));
+      expect(await baseTokenWbnbLp.balanceOf(await bob.getAddress())).to.be.eq(
         ethers.utils.parseEther("0.316227766016837933")
       );
 
@@ -357,10 +355,10 @@ describe("Pancakeswap - StrategyWithdrawMinimizeTrading", () => {
       const bobBaseTokenAfter = await baseToken.balanceOf(await bob.getAddress());
       const bobBnbAfter = await ethers.provider.getBalance(await bob.getAddress());
 
-      expect(await baseTokenWbnbLp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      expect(await baseTokenWbnbLp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+      expect(await baseTokenWbnbLp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+      expect(await baseTokenWbnbLp.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("0"));
       // Bob still get 1 BTOKEN back due to Bob is a msg.sender
-      expect(bobBaseTokenAfter.sub(bobBaseTokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther("1"));
+      expect(bobBaseTokenAfter.sub(bobBaseTokenBefore)).to.be.eq(ethers.utils.parseEther("1"));
       TestHelpers.assertAlmostEqual(
         ethers.utils.parseEther("0.1").toString(),
         bobBnbAfter.sub(bobBnbBefore).toString()
@@ -386,11 +384,11 @@ describe("Pancakeswap - StrategyWithdrawMinimizeTrading", () => {
       const bobBtokenAfter = await baseToken.balanceOf(await bob.getAddress());
       const bobBnbAfter = await ethers.provider.getBalance(await bob.getAddress());
 
-      expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+      expect(await lp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+      expect(await lp.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("0"));
       // Bob still get 1 BTOKEN back due to Bob is a msg.sender which get .5 debt
       // and StrategyWithdrawMinimizeTrading returns another .5 BTOKEN
-      expect(bobBtokenAfter.sub(bobBtokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther("1"));
+      expect(bobBtokenAfter.sub(bobBtokenBefore)).to.be.eq(ethers.utils.parseEther("1"));
       TestHelpers.assertAlmostEqual(
         ethers.utils.parseEther("0.1").toString(),
         bobBnbAfter.sub(bobBnbBefore).toString()
@@ -416,11 +414,11 @@ describe("Pancakeswap - StrategyWithdrawMinimizeTrading", () => {
       const bobBtokenAfter = await baseToken.balanceOf(await bob.getAddress());
       const bobBnbAfter = await ethers.provider.getBalance(await bob.getAddress());
 
-      expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+      expect(await lp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+      expect(await lp.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("0"));
       // Bob still get 1.2 BTOKEN back due to Bob is a msg.sender which get 1 BTOKEN from LP
       // and 0.2 BTOKEN from swap BNB to BTOKEN
-      expect(bobBtokenAfter.sub(bobBtokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther("1.2"));
+      expect(bobBtokenAfter.sub(bobBtokenBefore)).to.be.eq(ethers.utils.parseEther("1.2"));
       TestHelpers.assertAlmostEqual(
         ethers.utils.parseEther("0.074949899799599198").toString(),
         bobBnbAfter.sub(bobBnbBefore).toString()

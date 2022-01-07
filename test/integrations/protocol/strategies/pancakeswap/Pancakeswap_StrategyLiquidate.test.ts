@@ -141,11 +141,9 @@ describe("Pancakeswap - StrategyLiquidate", () => {
       FOREVER
     );
 
-    expect(await baseToken.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("99"));
-    expect(await farmingToken.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("9.9"));
-    expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(
-      ethers.utils.parseEther("0.316227766016837933")
-    );
+    expect(await baseToken.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("99"));
+    expect(await farmingToken.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("9.9"));
+    expect(await lp.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("0.316227766016837933"));
 
     // Bob uses liquidate strategy to turn all LPs back to BTOKEN but with an unreasonable expectation
     await lpAsBob.transfer(strat.address, ethers.utils.parseEther("0.316227766016837933"));
@@ -170,9 +168,9 @@ describe("Pancakeswap - StrategyLiquidate", () => {
       )
     );
 
-    expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-    expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-    expect(await baseToken.balanceOf(lp.address)).to.be.bignumber.eq(ethers.utils.parseEther("0.500500500500500501"));
-    expect(await farmingToken.balanceOf(lp.address)).to.be.bignumber.eq(ethers.utils.parseEther("0.2"));
+    expect(await lp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+    expect(await lp.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("0"));
+    expect(await baseToken.balanceOf(lp.address)).to.be.eq(ethers.utils.parseEther("0.500500500500500501"));
+    expect(await farmingToken.balanceOf(lp.address)).to.be.eq(ethers.utils.parseEther("0.2"));
   });
 });

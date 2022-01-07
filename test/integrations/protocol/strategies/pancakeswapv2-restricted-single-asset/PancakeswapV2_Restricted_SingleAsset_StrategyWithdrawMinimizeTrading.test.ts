@@ -346,13 +346,13 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading", ()
         // x = ~ 0.011138958507379568
         // thus, 0.1 - 0.011138958507379568 = 0.088861041492620439 FToken will be returned to ALICE
         // and the worker will return 0.1 WBNB to ALICE as a repaying debt
-        expect(aliceWbnbAfter.sub(aliceWbnbBefore)).to.be.bignumber.eq(ethers.utils.parseEther("0.1"));
-        expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(await wbnb.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(
+        expect(aliceWbnbAfter.sub(aliceWbnbBefore)).to.be.eq(ethers.utils.parseEther("0.1"));
+        expect(await farmingToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await wbnb.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.eq(
           ethers.utils.parseEther("0")
         );
-        expect(aliceFarmingTokenAfter.sub(aliceFarmingTokenBefore)).to.be.bignumber.eq(
+        expect(aliceFarmingTokenAfter.sub(aliceFarmingTokenBefore)).to.be.eq(
           ethers.utils.parseEther("0.088861041492620439")
         );
       });
@@ -377,14 +377,14 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading", ()
         const aliceWbnbAfter = await wbnb.balanceOf(await alice.getAddress());
         const aliceFarmingTokenAfter = await farmingToken.balanceOf(await alice.getAddress());
         // FToken, wbnb in a strategy contract MUST be 0
-        expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(await wbnb.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(
+        expect(await farmingToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await wbnb.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.eq(
           ethers.utils.parseEther("0")
         );
         // Alice will have all farming token of 0.1 FToken back since she got no debt
-        expect(aliceFarmingTokenAfter.sub(aliceFarmingTokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther("0.1"));
-        expect(aliceWbnbAfter.sub(aliceWbnbBefore)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+        expect(aliceFarmingTokenAfter.sub(aliceFarmingTokenBefore)).to.be.eq(ethers.utils.parseEther("0.1"));
+        expect(aliceWbnbAfter.sub(aliceWbnbBefore)).to.be.eq(ethers.utils.parseEther("0"));
       });
     });
   });
@@ -492,13 +492,13 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading", ()
         // x = 0.012566672086044004
         // thus 0.1 - 0.012566672086044 = 0.087433327913955996
         // Alice will have 0.087433327913955996 FTOKEN back and 0.1 BTOKEN as a repaying debt
-        expect(aliceBaseTokenAfter.sub(aliceBaseTokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther("0.1"));
-        expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(
+        expect(aliceBaseTokenAfter.sub(aliceBaseTokenBefore)).to.be.eq(ethers.utils.parseEther("0.1"));
+        expect(await farmingToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await baseToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.eq(
           ethers.utils.parseEther("0")
         );
-        expect(aliceFarmingTokenAfter.sub(aliceFarmingTokenBefore)).to.be.bignumber.eq(
+        expect(aliceFarmingTokenAfter.sub(aliceFarmingTokenBefore)).to.be.eq(
           ethers.utils.parseEther("0.087433327913955996")
         );
       });
@@ -524,14 +524,14 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading", ()
         const aliceBaseTokenAfter = await baseToken.balanceOf(await alice.getAddress());
         const aliceFarmingTokenAfter = await farmingToken.balanceOf(await alice.getAddress());
         // FToken, BToken in a strategy contract MUST be 0
-        expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(
+        expect(await farmingToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await baseToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.eq(
           ethers.utils.parseEther("0")
         );
         // Alice will have all farming token of 0.1 FToken back since she got no debt
-        expect(aliceBaseTokenAfter.sub(aliceBaseTokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(aliceFarmingTokenAfter.sub(aliceFarmingTokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther("0.1"));
+        expect(aliceBaseTokenAfter.sub(aliceBaseTokenBefore)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(aliceFarmingTokenAfter.sub(aliceFarmingTokenBefore)).to.be.eq(ethers.utils.parseEther("0.1"));
       });
     });
   });
@@ -632,11 +632,11 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading", ()
         expect(aliceNativeFarmingTokenAfter.sub(aliceNativeFarmingTokenBefore)).to.eq(
           ethers.utils.parseEther("0.888610414926204399")
         );
-        expect(await wbnb.balanceOf(mockPancakeswapV2WorkerBaseBNBTokenPair.address)).to.be.bignumber.eq(
+        expect(await wbnb.balanceOf(mockPancakeswapV2WorkerBaseBNBTokenPair.address)).to.be.eq(
           ethers.utils.parseEther("0")
         );
-        expect(await wbnb.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+        expect(await wbnb.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await baseToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
       });
     });
 
@@ -664,11 +664,11 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading", ()
         expect(aliceBaseTokenAfter.sub(aliceBaseTokenBefore)).to.eq(ethers.utils.parseEther("0"));
         expect(aliceNativeFarmingTokenAfter.sub(aliceNativeFarmingTokenBefore)).to.eq(ethers.utils.parseEther("1"));
         // wbnb, BToken in a strategy contract MUST be 0
-        expect(await wbnb.balanceOf(mockPancakeswapV2WorkerBaseBNBTokenPair.address)).to.be.bignumber.eq(
+        expect(await wbnb.balanceOf(mockPancakeswapV2WorkerBaseBNBTokenPair.address)).to.be.eq(
           ethers.utils.parseEther("0")
         );
-        expect(await wbnb.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+        expect(await wbnb.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await baseToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
       });
     });
   });

@@ -1782,7 +1782,7 @@ describe("CakeMaxiWorker", () => {
         expect(bobBalanceAfter.sub(bobBalanceBefore)).to.eq(liquidationBounty); // bob should get liquidation reward
         expect(aliceBalanceAfter.sub(aliceBalanceBefore)).to.eq(0); // alice before and after baseToken should be the same
         expect(vaultBalanceAfter.sub(vaultBalanceBefore)).to.not.equal(vaultDebtVal); // vault should get it's deposit value back
-        expect(vaultBalanceAfter).to.be.bignumber.lt(vaultBalanceBefore); // vaultBalance after must less than before cuz bad debt
+        expect(vaultBalanceAfter).to.be.lt(vaultBalanceBefore); // vaultBalance after must less than before cuz bad debt
         expect(deployerBalanceAfter.sub(deployerBalanceBefore)).to.eq(buyBackBounty); // deployer should get buyback bounty
         expect((await integratedVaultAsAlice.positions(1)).debtShare).to.eq(0);
       });

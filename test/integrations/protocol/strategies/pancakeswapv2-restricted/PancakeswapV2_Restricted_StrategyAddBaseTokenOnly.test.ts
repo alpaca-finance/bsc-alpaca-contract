@@ -261,11 +261,11 @@ describe("Pancakeswapv2RestrictedStrategyAddBaseTokenOnly", () => {
       )
     );
 
-    expect(await lpV2.balanceOf(mockPancakeswapV2Worker.address)).to.be.bignumber.eq(
+    expect(await lpV2.balanceOf(mockPancakeswapV2Worker.address)).to.be.eq(
       ethers.utils.parseEther("0.015415396042372718")
     );
-    expect(await lpV2.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-    expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+    expect(await lpV2.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+    expect(await farmingToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
 
     // Bob uses AddBaseTokenOnly strategy to add another 0.1 WBTC
     await baseTokenAsBob.transfer(mockPancakeswapV2Worker.address, ethers.utils.parseEther("0.1"));
@@ -279,11 +279,11 @@ describe("Pancakeswapv2RestrictedStrategyAddBaseTokenOnly", () => {
       )
     );
 
-    expect(await lpV2.balanceOf(mockPancakeswapV2Worker.address)).to.be.bignumber.eq(
+    expect(await lpV2.balanceOf(mockPancakeswapV2Worker.address)).to.be.eq(
       ethers.utils.parseEther("0.030143763464109982")
     );
-    expect(await lpV2.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-    expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-    expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+    expect(await lpV2.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+    expect(await farmingToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+    expect(await baseToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
   });
 });

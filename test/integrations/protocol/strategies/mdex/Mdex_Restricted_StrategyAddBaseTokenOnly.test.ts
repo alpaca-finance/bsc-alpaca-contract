@@ -294,12 +294,10 @@ describe("MdexRestrictedStrategyAddBaseTokenOnly", () => {
     );
 
     // // actualLpAmount = 0.015415396042372718
-    expect(await lp.balanceOf(mockMdexWorker.address)).to.be.bignumber.eq(
-      ethers.utils.parseEther("0.015415396042372718")
-    );
-    expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-    expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-    expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.BigNumber.from("0"));
+    expect(await lp.balanceOf(mockMdexWorker.address)).to.be.eq(ethers.utils.parseEther("0.015415396042372718"));
+    expect(await lp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+    expect(await farmingToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+    expect(await baseToken.balanceOf(strat.address)).to.be.eq(ethers.BigNumber.from("0"));
 
     // // Bob uses AddBaseTokenOnly strategy to add another 0.1 BTOKEN
     await baseTokenAsBob.transfer(mockMdexWorker.address, ethers.utils.parseEther("0.1"));
@@ -313,12 +311,10 @@ describe("MdexRestrictedStrategyAddBaseTokenOnly", () => {
       )
     );
 
-    expect(await lp.balanceOf(mockMdexWorker.address)).to.be.bignumber.eq(
-      ethers.utils.parseEther("0.030143763464109982")
-    );
-    expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-    expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-    expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+    expect(await lp.balanceOf(mockMdexWorker.address)).to.be.eq(ethers.utils.parseEther("0.030143763464109982"));
+    expect(await lp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+    expect(await farmingToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+    expect(await baseToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
   });
   it("should convert all BTOKEN to LP tokens at best rate (trading fee 20)", async () => {
     await factory.setPairFees(lp.address, 20);
@@ -358,13 +354,11 @@ describe("MdexRestrictedStrategyAddBaseTokenOnly", () => {
     // lpAmount = 0.316227766016837933 * (0.051142292984839684 / 1.048857707015160316) ~= 0.015419263215025119...
 
     // actualLpAmount = 0.015419263215025115
-    expect(await lp.balanceOf(mockMdexWorker.address)).to.be.bignumber.eq(
-      ethers.utils.parseEther("0.015419263215025115")
-    );
-    expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-    expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+    expect(await lp.balanceOf(mockMdexWorker.address)).to.be.eq(ethers.utils.parseEther("0.015419263215025115"));
+    expect(await lp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+    expect(await farmingToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
     // there is a very small remaining amount of base token left
-    expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.lte(ethers.BigNumber.from("13"));
+    expect(await baseToken.balanceOf(strat.address)).to.be.lte(ethers.BigNumber.from("13"));
 
     // Bob uses AddBaseTokenOnly strategy to add another 0.1 BTOKEN
     await baseTokenAsBob.transfer(mockMdexWorker.address, ethers.utils.parseEther("0.1"));
@@ -378,12 +372,10 @@ describe("MdexRestrictedStrategyAddBaseTokenOnly", () => {
       )
     );
 
-    expect(await lp.balanceOf(mockMdexWorker.address)).to.be.bignumber.eq(
-      ethers.utils.parseEther("0.030151497260262730")
-    );
-    expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-    expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-    expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+    expect(await lp.balanceOf(mockMdexWorker.address)).to.be.eq(ethers.utils.parseEther("0.030151497260262730"));
+    expect(await lp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+    expect(await farmingToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+    expect(await baseToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
   });
 
   describe("#withdrawTradingRewards", async () => {

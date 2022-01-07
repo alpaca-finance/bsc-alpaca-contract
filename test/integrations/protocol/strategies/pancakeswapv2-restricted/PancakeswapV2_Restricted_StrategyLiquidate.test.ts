@@ -238,11 +238,9 @@ describe("PancakeswapV2RestrictedStrategyLiquidate", () => {
       FOREVER
     );
 
-    expect(await baseToken.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("99"));
-    expect(await farmingToken.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("9.9"));
-    expect(await lpV2.balanceOf(await bob.getAddress())).to.be.bignumber.eq(
-      ethers.utils.parseEther("0.316227766016837933")
-    );
+    expect(await baseToken.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("99"));
+    expect(await farmingToken.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("9.9"));
+    expect(await lpV2.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("0.316227766016837933"));
 
     // Bob's position: 0.316227766016837933 LP
     // The following conditions must be satisfied if strategy executed successfully
@@ -291,10 +289,10 @@ describe("PancakeswapV2RestrictedStrategyLiquidate", () => {
     expect(
       bobBtokenAfter.sub(bobBtokenBefore),
       "Bob's balance should increase by 1.499374217772215269 BTOKEN"
-    ).to.be.bignumber.eq(ethers.utils.parseEther("1").add(ethers.utils.parseEther("0.499374217772215269")));
-    expect(await lpV2.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-    expect(await lpV2.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-    expect(await baseToken.balanceOf(lpV2.address)).to.be.bignumber.eq(ethers.utils.parseEther("0.500625782227784731"));
-    expect(await farmingToken.balanceOf(lpV2.address)).to.be.bignumber.eq(ethers.utils.parseEther("0.2"));
+    ).to.be.eq(ethers.utils.parseEther("1").add(ethers.utils.parseEther("0.499374217772215269")));
+    expect(await lpV2.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+    expect(await lpV2.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("0"));
+    expect(await baseToken.balanceOf(lpV2.address)).to.be.eq(ethers.utils.parseEther("0.500625782227784731"));
+    expect(await farmingToken.balanceOf(lpV2.address)).to.be.eq(ethers.utils.parseEther("0.2"));
   });
 });
