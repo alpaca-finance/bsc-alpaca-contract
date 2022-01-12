@@ -1830,8 +1830,8 @@
       "workers": [
         {
           "name": "HIGH-BUSD PancakeswapWorker",
-          "address": "",
-          "deployedBlock": 888888888,
+          "address": "0xFAC2898Ab87daa4909200ED7a99c5CBAb3bb9303",
+          "deployedBlock": 14292438,
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 491,
           "stakingToken": "0xe98ac95A1dB2fCaaa9c7D4ba7ecfCE4877ca2bEa",
@@ -2305,6 +2305,23 @@
         "Mdex": "0xB16912cbb98C7ef7aAD30268bDC5602dBb5833f9"
       },
       "workers": [
+        {
+          "name": "USDC-ETH PancakeswapWorker",
+          "address": "0x58a3AD7f263B75532B58a60Cbf5D78Ee73123C93",
+          "deployedBlock": 14292422,
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 409,
+          "stakingToken": "0xEa26B78255Df2bBC31C1eBf60010D78670185bD0",
+          "stakingTokenAt": "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+            "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+            "StrategyAddTwoSidesOptimal": "0xCB459b4504d10445760095C59c394EA45715d7a5",
+            "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
+          }
+        },
         {
           "name": "BTCB-ETH MdexWorker",
           "address": "0x121752a8C3D4aFD5CC0B41c8807dB7887742a608",
@@ -3179,8 +3196,8 @@
       "workers": [
         {
           "name": "ETH-USDC PancakeswapWorker",
-          "address": "",
-          "deployedBlock": 88888,
+          "address": "0xe93f5d253E5F367d3D5D6f5eCd8A409cEB8B510b",
+          "deployedBlock": 14292401,
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 409,
           "stakingToken": "0xEa26B78255Df2bBC31C1eBf60010D78670185bD0",

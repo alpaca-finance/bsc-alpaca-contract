@@ -23,7 +23,7 @@ interface IDexRouter {
 
 async function validateTwoSidesStrategy(strategyAddress: string, expectedVault: string, expectedRouter: string) {
   if (strategyAddress === "") {
-    console.log("> no two sides strategy address provided. Is this an expected case?");
+    console.log("> ⚠️ no two sides strategy address provided. Is this an expected case?");
     return;
   }
   const strat = PancakeswapV2RestrictedStrategyAddTwoSidesOptimal__factory.connect(strategyAddress, ethers.provider);
