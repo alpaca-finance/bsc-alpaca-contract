@@ -396,7 +396,7 @@ describe("Vault - Pancakeswap", () => {
   context("when owner is setting worker", async () => {
     it("should set reinvest bounty if < max", async () => {
       await pancakeswapWorker.setReinvestBountyBps(250);
-      expect(await pancakeswapWorker.reinvestBountyBps()).to.be.bignumber.eq(250);
+      expect(await pancakeswapWorker.reinvestBountyBps()).to.be.eq(250);
     });
 
     it("should set max reinvest bounty", async () => {
@@ -407,7 +407,7 @@ describe("Vault - Pancakeswap", () => {
       await expect(pancakeswapWorker.setReinvestBountyBps(1000)).to.be.revertedWith(
         "PancakeswapWorker::setReinvestBountyBps:: _reinvestBountyBps exceeded maxReinvestBountyBps"
       );
-      expect(await pancakeswapWorker.reinvestBountyBps()).to.be.bignumber.eq(100);
+      expect(await pancakeswapWorker.reinvestBountyBps()).to.be.eq(100);
     });
 
     it("should set strat ok", async () => {
@@ -589,7 +589,7 @@ describe("Vault - Pancakeswap", () => {
       );
 
       // Her position should have ~2 NATIVE health (minus some small trading fee)
-      expect(await pancakeswapWorker.health(1)).to.be.bignumber.eq(ethers.utils.parseEther("1.998307255271658491"));
+      expect(await pancakeswapWorker.health(1)).to.be.eq(ethers.utils.parseEther("1.998307255271658491"));
 
       // Eve comes and trigger reinvest
       await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
@@ -601,7 +601,7 @@ describe("Vault - Pancakeswap", () => {
 
       await vault.deposit(0); // Random action to trigger interest computation
       const healthDebt = await vault.positionInfo("1");
-      expect(healthDebt[0]).to.be.bignumber.above(ethers.utils.parseEther("2"));
+      expect(healthDebt[0]).to.be.above(ethers.utils.parseEther("2"));
       const interest = ethers.utils.parseEther("0.3"); //30% interest rate
       AssertHelpers.assertAlmostEqual(healthDebt[1].toString(), interest.add(loan).toString());
       AssertHelpers.assertAlmostEqual(
@@ -752,7 +752,7 @@ describe("Vault - Pancakeswap", () => {
         deposit.add(interest).add(interest.mul(13).div(10)).add(interest.mul(13).div(10)).toString(),
         (await baseToken.balanceOf(vault.address)).toString()
       );
-      expect(await vault.vaultDebtVal()).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+      expect(await vault.vaultDebtVal()).to.be.eq(ethers.utils.parseEther("0"));
       AssertHelpers.assertAlmostEqual(
         reservePool.add(reservePool.mul(13).div(10)).add(reservePool.mul(13).div(10)).toString(),
         (await vault.reservePool()).toString()
@@ -780,7 +780,7 @@ describe("Vault - Pancakeswap", () => {
       expect(
         await alpacaToken.balanceOf(await alice.getAddress()),
         "expect Alice to get some ALPACA from holding LYF position"
-      ).to.be.bignumber.gt(aliceAlpacaBefore);
+      ).to.be.gt(aliceAlpacaBefore);
 
       // Alice creates a new position again
       await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
@@ -876,12 +876,12 @@ describe("Vault - Pancakeswap", () => {
       // Now you can liquidate because of the insane interest rate
       await expect(vaultAsEve.kill("1")).to.emit(vaultAsEve, "Kill");
 
-      expect(await baseToken.balanceOf(await eve.getAddress())).to.be.bignumber.gt(eveBefore);
+      expect(await baseToken.balanceOf(await eve.getAddress())).to.be.gt(eveBefore);
       AssertHelpers.assertAlmostEqual(
         deposit.add(interest).add(interest.mul(13).div(10)).add(interest.mul(13).div(10)).toString(),
         (await baseToken.balanceOf(vault.address)).toString()
       );
-      expect(await vault.vaultDebtVal()).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+      expect(await vault.vaultDebtVal()).to.be.eq(ethers.utils.parseEther("0"));
       AssertHelpers.assertAlmostEqual(
         reservePool.add(reservePool.mul(13).div(10)).add(reservePool.mul(13).div(10)).toString(),
         (await vault.reservePool()).toString()
@@ -941,7 +941,7 @@ describe("Vault - Pancakeswap", () => {
       await baseToken.approve(vault.address, deposit);
       await vault.deposit(deposit);
 
-      expect(await vault.balanceOf(await deployer.getAddress())).to.be.bignumber.equal(deposit);
+      expect(await vault.balanceOf(await deployer.getAddress())).to.be.equal(deposit);
 
       // Bob borrows 2 BTOKEN loan
       const loan = ethers.utils.parseEther("2");
@@ -964,9 +964,9 @@ describe("Vault - Pancakeswap", () => {
         )
       );
 
-      expect(await baseToken.balanceOf(vault.address)).to.be.bignumber.equal(deposit.sub(loan));
-      expect(await vault.vaultDebtVal()).to.be.bignumber.equal(loan);
-      expect(await vault.totalToken()).to.be.bignumber.equal(deposit);
+      expect(await baseToken.balanceOf(vault.address)).to.be.equal(deposit.sub(loan));
+      expect(await vault.vaultDebtVal()).to.be.equal(loan);
+      expect(await vault.totalToken()).to.be.equal(deposit);
 
       // Alice deposits 2 BTOKEN
       const aliceDeposit = ethers.utils.parseEther("2");
@@ -1116,7 +1116,7 @@ describe("Vault - Pancakeswap", () => {
       const eveBefore = await baseToken.balanceOf(await eve.getAddress());
       await expect(vaultAsEve.kill("1")).to.emit(vaultAsEve, "Kill");
 
-      expect(await baseToken.balanceOf(await eve.getAddress())).to.be.bignumber.gt(eveBefore);
+      expect(await baseToken.balanceOf(await eve.getAddress())).to.be.gt(eveBefore);
     });
 
     it("should reinvest correctly", async () => {
@@ -1203,18 +1203,18 @@ describe("Vault - Pancakeswap", () => {
       let [workerLPAfter, workerDebtAfter] = await masterChef.userInfo(poolId, pancakeswapWorker.address);
 
       // LP tokens of worker should be inceased from reinvestment
-      expect(workerLPAfter).to.be.bignumber.gt(workerLPBefore);
+      expect(workerLPAfter).to.be.gt(workerLPBefore);
 
       // Check Bob position info
       await pancakeswapWorker.health("1");
       let [bobHealth, bobDebtToShare] = await vault.positionInfo("1");
-      expect(bobHealth).to.be.bignumber.gt(ethers.utils.parseEther("20")); // Get Reward and increase health
+      expect(bobHealth).to.be.gt(ethers.utils.parseEther("20")); // Get Reward and increase health
       AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("10").toString(), bobDebtToShare.toString());
 
       // Check Alice position info
       await pancakeswapWorker.health("2");
       let [aliceHealth, aliceDebtToShare] = await vault.positionInfo("2");
-      expect(aliceHealth).to.be.bignumber.gt(ethers.utils.parseEther("3")); // Get Reward and increase health
+      expect(aliceHealth).to.be.gt(ethers.utils.parseEther("3")); // Get Reward and increase health
       AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("2").toString(), aliceDebtToShare.toString());
 
       // ---------------- Reinvest#2 -------------------
@@ -1235,16 +1235,16 @@ describe("Vault - Pancakeswap", () => {
       // Convert NATIVE to 5001669421841640 LP token
       [workerLPAfter, workerDebtAfter] = await masterChef.userInfo(poolId, pancakeswapWorker.address);
       // LP tokens of worker should be inceased from reinvestment
-      expect(workerLPAfter).to.be.bignumber.gt(workerLPBefore);
+      expect(workerLPAfter).to.be.gt(workerLPBefore);
 
       // Check Bob position info
       [bobHealth, bobDebtToShare] = await vault.positionInfo("1");
-      expect(bobHealth).to.be.bignumber.gt(ethers.utils.parseEther("20")); // Get Reward and increase health
+      expect(bobHealth).to.be.gt(ethers.utils.parseEther("20")); // Get Reward and increase health
       AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("10").toString(), bobDebtToShare.toString());
 
       // Check Alice position info
       [aliceHealth, aliceDebtToShare] = await vault.positionInfo("2");
-      expect(aliceHealth).to.be.bignumber.gt(ethers.utils.parseEther("3")); // Get Reward and increase health
+      expect(aliceHealth).to.be.gt(ethers.utils.parseEther("3")); // Get Reward and increase health
       AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("2").toString(), aliceDebtToShare.toString());
 
       // ---------------- Reinvest#3 -------------------
@@ -1265,7 +1265,7 @@ describe("Vault - Pancakeswap", () => {
       // Convert NATIVE to 2350053120029788 LP token
       [workerLPAfter, workerDebtAfter] = await masterChef.userInfo(poolId, pancakeswapWorker.address);
       // LP tokens of worker should be inceased from reinvestment
-      expect(workerLPAfter).to.be.bignumber.gt(workerLPBefore);
+      expect(workerLPAfter).to.be.gt(workerLPBefore);
 
       const bobBefore = await baseToken.balanceOf(await bob.getAddress());
       // Bob close position#1
@@ -1289,7 +1289,7 @@ describe("Vault - Pancakeswap", () => {
       const bobAfter = await baseToken.balanceOf(await bob.getAddress());
 
       // Check Bob account, Bob must be richer as he earn more from yield
-      expect(bobAfter).to.be.bignumber.gt(bobBefore);
+      expect(bobAfter).to.be.gt(bobBefore);
 
       // Alice add another 10 BTOKEN
       await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("10"));
@@ -1333,7 +1333,7 @@ describe("Vault - Pancakeswap", () => {
       const aliceAfter = await baseToken.balanceOf(await alice.getAddress());
 
       // Check Alice account, Alice must be richer as she earned from leverage yield farm without getting liquidated
-      expect(aliceAfter).to.be.bignumber.gt(aliceBefore);
+      expect(aliceAfter).to.be.gt(aliceBefore);
     }).timeout(50000);
 
     it("should liquidate user position correctly", async () => {
@@ -1416,7 +1416,7 @@ describe("Vault - Pancakeswap", () => {
       // Now you can liquidate because of the price fluctuation
       const eveBefore = await baseToken.balanceOf(await eve.getAddress());
       await expect(vaultAsEve.kill("1")).to.emit(vaultAsEve, "Kill");
-      expect(await baseToken.balanceOf(await eve.getAddress())).to.be.bignumber.gt(eveBefore);
+      expect(await baseToken.balanceOf(await eve.getAddress())).to.be.gt(eveBefore);
     });
 
     it("should close position correctly when user holds multiple positions", async () => {
@@ -1503,18 +1503,18 @@ describe("Vault - Pancakeswap", () => {
       let [workerLPAfter, workerDebtAfter] = await masterChef.userInfo(poolId, pancakeswapWorker.address);
 
       // LP tokens of worker should be inceased from reinvestment
-      expect(workerLPAfter).to.be.bignumber.gt(workerLPBefore);
+      expect(workerLPAfter).to.be.gt(workerLPBefore);
 
       // Check Position#1 info
       await pancakeswapWorker.health("1");
       let [bob1Health, bob1DebtToShare] = await vault.positionInfo("1");
-      expect(bob1Health).to.be.bignumber.gt(ethers.utils.parseEther("20")); // Get Reward and increase health
+      expect(bob1Health).to.be.gt(ethers.utils.parseEther("20")); // Get Reward and increase health
       AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("10").toString(), bob1DebtToShare.toString());
 
       // Check Position#2 info
       await pancakeswapWorker.health("2");
       let [bob2Health, bob2DebtToShare] = await vault.positionInfo("2");
-      expect(bob2Health).to.be.bignumber.gt(ethers.utils.parseEther("3")); // Get Reward and increase health
+      expect(bob2Health).to.be.gt(ethers.utils.parseEther("3")); // Get Reward and increase health
       AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("2").toString(), bob2DebtToShare.toString());
 
       // ---------------- Reinvest#2 -------------------
@@ -1535,16 +1535,16 @@ describe("Vault - Pancakeswap", () => {
       // Convert NATIVE to 5001669421841640 LP token
       [workerLPAfter, workerDebtAfter] = await masterChef.userInfo(poolId, pancakeswapWorker.address);
       // LP tokens of worker should be inceased from reinvestment
-      expect(workerLPAfter).to.be.bignumber.gt(workerLPBefore);
+      expect(workerLPAfter).to.be.gt(workerLPBefore);
 
       // Check Position#1 position info
       [bob1Health, bob1DebtToShare] = await vault.positionInfo("1");
-      expect(bob1Health).to.be.bignumber.gt(ethers.utils.parseEther("20")); // Get Reward and increase health
+      expect(bob1Health).to.be.gt(ethers.utils.parseEther("20")); // Get Reward and increase health
       AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("10").toString(), bob1DebtToShare.toString());
 
       // Check Position#2 position info
       [bob2Health, bob2DebtToShare] = await vault.positionInfo("2");
-      expect(bob2Health).to.be.bignumber.gt(ethers.utils.parseEther("3")); // Get Reward and increase health
+      expect(bob2Health).to.be.gt(ethers.utils.parseEther("3")); // Get Reward and increase health
       AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("2").toString(), bob2DebtToShare.toString());
 
       let bobBefore = await baseToken.balanceOf(await bob.getAddress());
@@ -1571,8 +1571,8 @@ describe("Vault - Pancakeswap", () => {
       let bobAlpacaAfter = await alpacaToken.balanceOf(await bob.getAddress());
 
       // Check Bob account, Bob must be richer as he earn more from yield
-      expect(bobAlpacaAfter).to.be.bignumber.gt(bobAlpacaBefore);
-      expect(bobAfter).to.be.bignumber.gt(bobBefore);
+      expect(bobAlpacaAfter).to.be.gt(bobAlpacaBefore);
+      expect(bobAfter).to.be.gt(bobBefore);
 
       // Bob add another 10 BTOKEN
       await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
@@ -1618,8 +1618,8 @@ describe("Vault - Pancakeswap", () => {
       bobAlpacaAfter = await alpacaToken.balanceOf(await bob.getAddress());
 
       // Check Bob account, Bob must be richer as she earned from leverage yield farm without getting liquidated
-      expect(bobAfter).to.be.bignumber.gt(bobBefore);
-      expect(bobAlpacaAfter).to.be.bignumber.gt(bobAlpacaBefore);
+      expect(bobAfter).to.be.gt(bobBefore);
+      expect(bobAlpacaAfter).to.be.gt(bobAlpacaBefore);
     }).timeout(50000);
 
     it("should close position correctly when user holds mix positions of leveraged and non-leveraged", async () => {
@@ -1706,18 +1706,18 @@ describe("Vault - Pancakeswap", () => {
       let [workerLPAfter, workerDebtAfter] = await masterChef.userInfo(poolId, pancakeswapWorker.address);
 
       // LP tokens of worker should be inceased from reinvestment
-      expect(workerLPAfter).to.be.bignumber.gt(workerLPBefore);
+      expect(workerLPAfter).to.be.gt(workerLPBefore);
 
       // Check Position#1 info
       await pancakeswapWorker.health("1");
       let [bob1Health, bob1DebtToShare] = await vault.positionInfo("1");
-      expect(bob1Health).to.be.bignumber.gt(ethers.utils.parseEther("20")); // Get Reward and increase health
+      expect(bob1Health).to.be.gt(ethers.utils.parseEther("20")); // Get Reward and increase health
       AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("10").toString(), bob1DebtToShare.toString());
 
       // Check Position#2 info
       await pancakeswapWorker.health("2");
       let [bob2Health, bob2DebtToShare] = await vault.positionInfo("2");
-      expect(bob2Health).to.be.bignumber.gt(ethers.utils.parseEther("3")); // Get Reward and increase health
+      expect(bob2Health).to.be.gt(ethers.utils.parseEther("3")); // Get Reward and increase health
       AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("0").toString(), bob2DebtToShare.toString());
 
       // ---------------- Reinvest#2 -------------------
@@ -1738,16 +1738,16 @@ describe("Vault - Pancakeswap", () => {
       // Convert NATIVE to 5001669421841640 LP token
       [workerLPAfter, workerDebtAfter] = await masterChef.userInfo(poolId, pancakeswapWorker.address);
       // LP tokens of worker should be inceased from reinvestment
-      expect(workerLPAfter).to.be.bignumber.gt(workerLPBefore);
+      expect(workerLPAfter).to.be.gt(workerLPBefore);
 
       // Check Position#1 position info
       [bob1Health, bob1DebtToShare] = await vault.positionInfo("1");
-      expect(bob1Health).to.be.bignumber.gt(ethers.utils.parseEther("20")); // Get Reward and increase health
+      expect(bob1Health).to.be.gt(ethers.utils.parseEther("20")); // Get Reward and increase health
       AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("10").toString(), bob1DebtToShare.toString());
 
       // Check Position#2 position info
       [bob2Health, bob2DebtToShare] = await vault.positionInfo("2");
-      expect(bob2Health).to.be.bignumber.gt(ethers.utils.parseEther("3")); // Get Reward and increase health
+      expect(bob2Health).to.be.gt(ethers.utils.parseEther("3")); // Get Reward and increase health
       AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("0").toString(), bob2DebtToShare.toString());
 
       let bobBefore = await baseToken.balanceOf(await bob.getAddress());
@@ -1774,8 +1774,8 @@ describe("Vault - Pancakeswap", () => {
       let bobAlpacaAfter = await alpacaToken.balanceOf(await bob.getAddress());
 
       // Check Bob account, Bob must be richer as he earn more from yield
-      expect(bobAlpacaAfter).to.be.bignumber.gt(bobAlpacaBefore);
-      expect(bobAfter).to.be.bignumber.gt(bobBefore);
+      expect(bobAlpacaAfter).to.be.gt(bobAlpacaBefore);
+      expect(bobAfter).to.be.gt(bobBefore);
 
       // Bob add another 10 BTOKEN
       await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
@@ -1822,8 +1822,8 @@ describe("Vault - Pancakeswap", () => {
 
       // Check Bob account, Bob must be richer as she earned from leverage yield farm without getting liquidated
       // But bob shouldn't earn more ALPACAs from closing position#2
-      expect(bobAfter).to.be.bignumber.gt(bobBefore);
-      expect(bobAlpacaAfter).to.be.bignumber.eq(bobAlpacaBefore);
+      expect(bobAfter).to.be.gt(bobBefore);
+      expect(bobAlpacaAfter).to.be.eq(bobAlpacaBefore);
     }).timeout(50000);
 
     it("should partially close position successfully, when maxReturn < liquidated amount, payback part of the debt", async () => {
@@ -1910,18 +1910,18 @@ describe("Vault - Pancakeswap", () => {
       let [workerLPAfter, workerDebtAfter] = await masterChef.userInfo(poolId, pancakeswapWorker.address);
 
       // LP tokens of worker should be inceased from reinvestment
-      expect(workerLPAfter).to.be.bignumber.gt(workerLPBefore);
+      expect(workerLPAfter).to.be.gt(workerLPBefore);
 
       // Check Bob position info
       await pancakeswapWorker.health("1");
       let [bobHealth, bobDebtToShare] = await vault.positionInfo("1");
-      expect(bobHealth).to.be.bignumber.gt(ethers.utils.parseEther("20")); // Get Reward and increase health
+      expect(bobHealth).to.be.gt(ethers.utils.parseEther("20")); // Get Reward and increase health
       AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("10").toString(), bobDebtToShare.toString());
 
       // Check Alice position info
       await pancakeswapWorker.health("2");
       let [aliceHealth, aliceDebtToShare] = await vault.positionInfo("2");
-      expect(aliceHealth).to.be.bignumber.gt(ethers.utils.parseEther("3")); // Get Reward and increase health
+      expect(aliceHealth).to.be.gt(ethers.utils.parseEther("3")); // Get Reward and increase health
       AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("2").toString(), aliceDebtToShare.toString());
 
       // ---------------- Reinvest#2 -------------------
@@ -1942,16 +1942,16 @@ describe("Vault - Pancakeswap", () => {
       // Convert BTOKEN to 5001669421841640 LP token
       [workerLPAfter, workerDebtAfter] = await masterChef.userInfo(poolId, pancakeswapWorker.address);
       // LP tokens of worker should be inceased from reinvestment
-      expect(workerLPAfter).to.be.bignumber.gt(workerLPBefore);
+      expect(workerLPAfter).to.be.gt(workerLPBefore);
 
       // Check Bob position info
       [bobHealth, bobDebtToShare] = await vault.positionInfo("1");
-      expect(bobHealth).to.be.bignumber.gt(ethers.utils.parseEther("20")); // Get Reward and increase health
+      expect(bobHealth).to.be.gt(ethers.utils.parseEther("20")); // Get Reward and increase health
       AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("10").toString(), bobDebtToShare.toString());
 
       // Check Alice position info
       [aliceHealth, aliceDebtToShare] = await vault.positionInfo("2");
-      expect(aliceHealth).to.be.bignumber.gt(ethers.utils.parseEther("3")); // Get Reward and increase health
+      expect(aliceHealth).to.be.gt(ethers.utils.parseEther("3")); // Get Reward and increase health
       AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("2").toString(), aliceDebtToShare.toString());
 
       // Bob think he made enough. He now wants to close position partially.
@@ -1991,14 +1991,14 @@ describe("Vault - Pancakeswap", () => {
       [bobHealth, bobDebtToShare] = await vault.positionInfo("1");
       // Bob's health after partial close position must be 50% less than before
       // due to he exit half of lp under his position
-      expect(bobHealth).to.be.bignumber.lt(bobHealthBefore.div(2));
+      expect(bobHealth).to.be.lt(bobHealthBefore.div(2));
       // Bob's debt should be left only 5 BTOKEN due he said he wants to return at max 5 BTOKEN
-      expect(bobDebtToShare).to.be.bignumber.eq(ethers.utils.parseEther("5"));
+      expect(bobDebtToShare).to.be.eq(ethers.utils.parseEther("5"));
       // Check LP deposited by Worker on MasterChef
       [workerLPAfter, workerDebtAfter] = await masterChef.userInfo(poolId, pancakeswapWorker.address);
       // LP tokens of worker should be decreased by lpUnderBobPosition/2
       // due to Bob execute StrategyClosePartialLiquidate
-      expect(workerLPAfter).to.be.bignumber.eq(workerLPBefore.sub(lpUnderBobPosition.div(2)));
+      expect(workerLPAfter).to.be.eq(workerLPBefore.sub(lpUnderBobPosition.div(2)));
     }).timeout(50000);
 
     it("should partially close position successfully, when maxReturn > liquidated amount and liquidated amount > debt", async () => {
@@ -2075,19 +2075,19 @@ describe("Vault - Pancakeswap", () => {
       expect(
         bobBefore.add(ethers.utils.parseEther("3.200430549066301204")),
         "Expect BTOKEN in Bob's account after close position to increase by ~3.2 BTOKEN"
-      ).to.be.bignumber.eq(bobAfter);
+      ).to.be.eq(bobAfter);
       // Check Bob position info
       const [bobHealth, bobDebtVal] = await vault.positionInfo("1");
       // Bob's health after partial close position must be 50% less than before
       // due to he exit half of lp under his position
-      expect(bobHealth).to.be.bignumber.lt(bobHealthBefore.div(2));
+      expect(bobHealth).to.be.lt(bobHealthBefore.div(2));
       // Bob's debt should be 0 BTOKEN due he said he wants to return at max 5,000,000,000 BTOKEN (> debt, return all debt)
-      expect(bobDebtVal).to.be.bignumber.eq("0");
+      expect(bobDebtVal).to.be.eq("0");
       // Check LP deposited by Worker on MasterChef
       const [workerLPAfter] = await masterChef.userInfo(poolId, pancakeswapWorker.address);
       // LP tokens of worker should be decreased by lpUnderBobPosition/2
       // due to Bob execute StrategyClosePartialLiquidate
-      expect(workerLPAfter).to.be.bignumber.eq(workerLPBefore.sub(lpUnderBobPosition.div(2)));
+      expect(workerLPAfter).to.be.eq(workerLPBefore.sub(lpUnderBobPosition.div(2)));
     }).timeout(50000);
 
     it("should revert when partial close position made leverage higher than work factor", async () => {

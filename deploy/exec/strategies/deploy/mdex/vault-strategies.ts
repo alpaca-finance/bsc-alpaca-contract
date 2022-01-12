@@ -21,32 +21,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const NEW_PARAMS = [
     {
-      VAULT_SYMBOL: "ibWBNB",
-      WHITELIST_WORKER: [],
-    },
-    {
-      VAULT_SYMBOL: "ibBUSD",
-      WHITELIST_WORKER: [],
-    },
-    {
-      VAULT_SYMBOL: "ibETH",
-      WHITELIST_WORKER: [],
-    },
-    {
-      VAULT_SYMBOL: "ibALPACA",
-      WHITELIST_WORKER: [],
-    },
-    {
-      VAULT_SYMBOL: "ibUSDT",
-      WHITELIST_WORKER: [],
-    },
-    {
-      VAULT_SYMBOL: "ibBTCB",
-      WHITELIST_WORKER: [],
-    },
-    {
-      VAULT_SYMBOL: "ibTUSD",
-      WHITELIST_WORKER: [],
+      VAULT_SYMBOL: "ibUSDC",
+      WHITELIST_WORKERS: [],
     },
   ];
 
@@ -78,9 +54,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await strategyRestrictedAddTwoSidesOptimal.deployed();
     console.log(`>> Deployed at ${strategyRestrictedAddTwoSidesOptimal.address}`);
 
-    if (NEW_PARAMS[i].WHITELIST_WORKER.length > 0) {
+    if (NEW_PARAMS[i].WHITELIST_WORKERS.length > 0) {
       console.log(">> Whitelisting Workers");
-      const tx = await strategyRestrictedAddTwoSidesOptimal.setWorkersOk(NEW_PARAMS[i].WHITELIST_WORKER, true);
+      const tx = await strategyRestrictedAddTwoSidesOptimal.setWorkersOk(NEW_PARAMS[i].WHITELIST_WORKERS, true);
       console.log(">> Done at: ", tx.hash);
     }
   }

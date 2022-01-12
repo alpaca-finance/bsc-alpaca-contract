@@ -140,11 +140,9 @@ describe("Pancakeswap - StrategyPartialLiquidate", () => {
       FOREVER
     );
 
-    expect(await baseToken.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("99"));
-    expect(await farmingToken.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("9.9"));
-    expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(
-      ethers.utils.parseEther("0.316227766016837933")
-    );
+    expect(await baseToken.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("99"));
+    expect(await farmingToken.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("9.9"));
+    expect(await lp.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("0.316227766016837933"));
 
     // Set block base fee per gas to 0
     await network.provider.send("hardhat_setNextBlockBaseFeePerGas", ["0x0"]);
@@ -220,8 +218,8 @@ describe("Pancakeswap - StrategyPartialLiquidate", () => {
     // - Bob should have bobBtokenBefore + 0.5 BTOKEN + [((0.05*998)*1.5)/(0.15*1000+(0.05*998)) = ~0.374437218609304645 BTOKEN] (from swap 0.05 FTOKEN to BTOKEN) in his account
     // - BTOKEN in reserve should be 1.5-0.374437218609304645 = 1.12556278 BTOKEN
     // - FTOKEN in reserve should be 0.15+(0.05*0.998) = 0.2 FTOKEN
-    expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-    expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(bobLpBefore.sub(returnLp));
+    expect(await lp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+    expect(await lp.balanceOf(await bob.getAddress())).to.be.eq(bobLpBefore.sub(returnLp));
     assertAlmostEqual(
       bobBTokenBefore
         .add(ethers.utils.parseEther("0.5"))

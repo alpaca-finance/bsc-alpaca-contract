@@ -298,7 +298,7 @@ describe("MdexRestrictedStrategyAddTwoSideOptimal", () => {
       const stratLPBalance = await lp.balanceOf(mockMdexWorker.address);
       Assert.assertAlmostEqual(stratLPBalance.toString(), ethers.utils.parseEther("0.23120513736969137").toString());
       expect(stratLPBalance).to.above(ethers.utils.parseEther("0"));
-      expect(await farmingToken.balanceOf(addRestrictedStrat.address)).to.be.bignumber.below(MAX_ROUNDING_ERROR);
+      expect(await farmingToken.balanceOf(addRestrictedStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
 
       // Now Alice leverage 2x on her 0.1 BTOKEN.
       // So totally Alice will take 0.1 BTOKEN from the pool and 0.1 BTOKEN from her pocket to
@@ -327,7 +327,7 @@ describe("MdexRestrictedStrategyAddTwoSideOptimal", () => {
         ethers.utils.parseEther("0.240242902746503337").toString()
       );
       expect(await lp.balanceOf(mockMdexWorker.address)).to.above(stratLPBalance);
-      expect(await farmingToken.balanceOf(addRestrictedStrat.address)).to.be.bignumber.below(MAX_ROUNDING_ERROR);
+      expect(await farmingToken.balanceOf(addRestrictedStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
     });
 
     it("should convert some BTOKEN and some FTOKEN to LP tokens at best rate (fee 20)", async () => {
@@ -363,7 +363,7 @@ describe("MdexRestrictedStrategyAddTwoSideOptimal", () => {
       const stratLPBalance = await lp.balanceOf(mockMdexWorker.address);
       Assert.assertAlmostEqual(stratLPBalance.toString(), ethers.utils.parseEther("0.354395980615881993").toString());
       expect(stratLPBalance).to.above(ethers.utils.parseEther("0"));
-      expect(await farmingToken.balanceOf(addRestrictedStrat.address)).to.be.bignumber.below(MAX_ROUNDING_ERROR);
+      expect(await farmingToken.balanceOf(addRestrictedStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
 
       // Now Alice leverage 2x on her 0.1 BTOKEN.
       // So totally Alice will take 0.1 BTOKEN from the pool and 0.1 BTOKEN from her pocket to
@@ -397,7 +397,7 @@ describe("MdexRestrictedStrategyAddTwoSideOptimal", () => {
         ethers.utils.parseEther("1.826496459574643737").toString()
       );
       expect(await lp.balanceOf(mockMdexWorker.address)).to.above(stratLPBalance);
-      expect(await farmingToken.balanceOf(addRestrictedStrat.address)).to.be.bignumber.below(MAX_ROUNDING_ERROR);
+      expect(await farmingToken.balanceOf(addRestrictedStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
     });
 
     it("should convert some BTOKEN and some FTOKEN to LP tokens at best rate (fee 25)", async () => {
@@ -433,7 +433,7 @@ describe("MdexRestrictedStrategyAddTwoSideOptimal", () => {
       const stratLPBalance = await lp.balanceOf(mockMdexWorker.address);
       Assert.assertAlmostEqual(stratLPBalance.toString(), ethers.utils.parseEther("0.354346766435591663").toString());
       expect(stratLPBalance).to.above(ethers.utils.parseEther("0"));
-      expect(await farmingToken.balanceOf(addRestrictedStrat.address)).to.be.bignumber.below(MAX_ROUNDING_ERROR);
+      expect(await farmingToken.balanceOf(addRestrictedStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
 
       // Now Alice leverage 2x on her 0.1 BTOKEN.
       // So totally Alice will take 0.1 BTOKEN from the pool and 0.1 BTOKEN from her pocket to
@@ -467,7 +467,7 @@ describe("MdexRestrictedStrategyAddTwoSideOptimal", () => {
         ethers.utils.parseEther("1.8261834917016726").toString()
       );
       expect(await lp.balanceOf(mockMdexWorker.address)).to.above(stratLPBalance);
-      expect(await farmingToken.balanceOf(addRestrictedStrat.address)).to.be.bignumber.below(MAX_ROUNDING_ERROR);
+      expect(await farmingToken.balanceOf(addRestrictedStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
     });
 
     it("should be able to withdraw trading rewards", async () => {

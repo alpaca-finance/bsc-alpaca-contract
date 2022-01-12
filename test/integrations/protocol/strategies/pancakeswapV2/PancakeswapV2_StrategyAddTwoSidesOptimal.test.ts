@@ -405,9 +405,9 @@ describe("PancakeswapV2 - StrategyAddTwoSidesOptimal", () => {
     );
 
     const masterChefLPBalanceRound1 = await lp.balanceOf(masterChef.address);
-    expect(masterChefLPBalanceRound1).to.be.bignumber.above(ethers.utils.parseEther("0"));
-    expect(await lp.balanceOf(addStrat.address)).to.be.bignumber.eq("0");
-    expect(await farmingToken.balanceOf(addStrat.address)).to.be.bignumber.below(MAX_ROUNDING_ERROR);
+    expect(masterChefLPBalanceRound1).to.be.above(ethers.utils.parseEther("0"));
+    expect(await lp.balanceOf(addStrat.address)).to.be.eq("0");
+    expect(await farmingToken.balanceOf(addStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
 
     // Now Alice leverage 2x on her 0.1 BTOKEN.
     // So totally Alice will take 0.1 BTOKEN from the pool and 0.1 BTOKEN from her pocket to
@@ -431,9 +431,9 @@ describe("PancakeswapV2 - StrategyAddTwoSidesOptimal", () => {
       )
     );
 
-    expect(await lp.balanceOf(masterChef.address)).to.be.bignumber.above(masterChefLPBalanceRound1);
-    expect(await lp.balanceOf(addStrat.address)).to.be.bignumber.equal("0");
-    expect(await farmingToken.balanceOf(addStrat.address)).to.be.bignumber.below(MAX_ROUNDING_ERROR);
+    expect(await lp.balanceOf(masterChef.address)).to.be.above(masterChefLPBalanceRound1);
+    expect(await lp.balanceOf(addStrat.address)).to.be.equal("0");
+    expect(await farmingToken.balanceOf(addStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
   });
 
   it("should convert some BTOKEN and some FTOKEN to LP tokens at best rate", async () => {
@@ -466,9 +466,9 @@ describe("PancakeswapV2 - StrategyAddTwoSidesOptimal", () => {
     );
 
     const stakingLPBalanceRound1 = await lp.balanceOf(masterChef.address);
-    expect(stakingLPBalanceRound1).to.be.bignumber.above(ethers.utils.parseEther("0"));
-    expect(await lp.balanceOf(addStrat.address)).to.be.bignumber.eq("0");
-    expect(await farmingToken.balanceOf(addStrat.address)).to.be.bignumber.below(MAX_ROUNDING_ERROR);
+    expect(stakingLPBalanceRound1).to.be.above(ethers.utils.parseEther("0"));
+    expect(await lp.balanceOf(addStrat.address)).to.be.eq("0");
+    expect(await farmingToken.balanceOf(addStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
 
     // Now Alice leverage 2x on her 1 BTOKEN.
     // So totally Alice will take 1 BTOKEN from the pool and 1 BTOKEN from her pocket to
@@ -494,8 +494,8 @@ describe("PancakeswapV2 - StrategyAddTwoSidesOptimal", () => {
       )
     );
 
-    expect(await lp.balanceOf(masterChef.address)).to.be.bignumber.above(stakingLPBalanceRound1);
-    expect(await lp.balanceOf(addStrat.address)).to.be.bignumber.equal("0");
-    expect(await farmingToken.balanceOf(addStrat.address)).to.be.bignumber.below(MAX_ROUNDING_ERROR);
+    expect(await lp.balanceOf(masterChef.address)).to.be.above(stakingLPBalanceRound1);
+    expect(await lp.balanceOf(addStrat.address)).to.be.equal("0");
+    expect(await farmingToken.balanceOf(addStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
   });
 });

@@ -339,7 +339,7 @@ describe("FairLaunchV2", () => {
       await fairLaunchV2AsAlice.withdraw(await bob.getAddress(), 0, ethers.utils.parseEther("50"));
 
       // 5. Expect to Alice STOKEN0 will be 400-100+50=350
-      expect(await stoken0AsBob.balanceOf(await alice.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("350"));
+      expect(await stoken0AsBob.balanceOf(await alice.getAddress())).to.be.eq(ethers.utils.parseEther("350"));
     });
 
     it("should revert when non funder try to emergencyWithdraw from FLV2", async () => {
@@ -425,13 +425,13 @@ describe("FairLaunchV2", () => {
 
       // 4. Move 1 Block so there is some pending
       await fairLaunchV2AsDeployer.updatePool(0);
-      expect(await fairLaunchV2AsBob.pendingAlpaca(0, await bob.getAddress())).to.be.bignumber.eq(
+      expect(await fairLaunchV2AsBob.pendingAlpaca(0, await bob.getAddress())).to.be.eq(
         ethers.utils.parseEther("5000")
       );
 
       // 5. Harvest all yield
       await fairLaunchV2AsBob.harvest(0);
-      expect(await alpacaToken.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("10000"));
+      expect(await alpacaToken.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("10000"));
     });
 
     it("should distribute rewards according to the alloc point", async () => {
@@ -465,26 +465,18 @@ describe("FairLaunchV2", () => {
       // 5. Move 1 Block so there is some pending
       await fairLaunchV2AsDeployer.massUpdatePools([0, 1]);
 
-      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("7500")
-      );
-      expect(await fairLaunchV2.pendingAlpaca(1, await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("2500")
-      );
+      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.eq(ethers.utils.parseEther("7500"));
+      expect(await fairLaunchV2.pendingAlpaca(1, await alice.getAddress())).to.be.eq(ethers.utils.parseEther("2500"));
 
       // 6. Harvest all yield of pId 0
       // should get 7,500 + 2,500 = 10,000 ALPACAs from pId 0
       await fairLaunchV2AsAlice.harvest(0);
-      expect(await alpacaToken.balanceOf(await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("10000")
-      );
+      expect(await alpacaToken.balanceOf(await alice.getAddress())).to.be.eq(ethers.utils.parseEther("10000"));
 
       // 7. Harvest all yield of pId 1
       // should get 2,500 + 2,500 + 2,500 = 7,500 ALPACAs from pId 1
       await fairLaunchV2AsAlice.harvest(1);
-      expect(await alpacaToken.balanceOf(await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("17500")
-      );
+      expect(await alpacaToken.balanceOf(await alice.getAddress())).to.be.eq(ethers.utils.parseEther("17500"));
     });
 
     it("should work", async () => {
@@ -514,36 +506,28 @@ describe("FairLaunchV2", () => {
       await fairLaunchV2.massUpdatePools([0]);
 
       // 5. Check pendingAlpaca for Alice
-      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("5000")
-      );
+      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.eq(ethers.utils.parseEther("5000"));
 
       // 6. Trigger random update pool to make 1 more block mine
       await fairLaunchV2AsAlice.massUpdatePools([0]);
 
       // 7. Check pendingAlpaca for Alice
-      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("10000")
-      );
+      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.eq(ethers.utils.parseEther("10000"));
 
       // 8. Alice should get 15,000 ALPACAs when she harvest
       // also check that dev got his tax
       // PS. Dev get 4,000 as MASTER_POOL was added 8 blocks earlier
       await fairLaunchV2AsAlice.harvest(0);
-      expect(await alpacaToken.balanceOf(await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("15000")
-      );
-      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("4000"));
+      expect(await alpacaToken.balanceOf(await alice.getAddress())).to.be.eq(ethers.utils.parseEther("15000"));
+      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.eq(ethers.utils.parseEther("4000"));
 
       // 9. Bob come in and join the party
       // 2 blocks are mined here, hence Alice should get 10,000 ALPACAs more
       await stoken0AsBob.approve(fairLaunchV2.address, ethers.utils.parseEther("100"));
       await fairLaunchV2AsBob.deposit(await bob.getAddress(), 0, ethers.utils.parseEther("100"));
 
-      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("10000")
-      );
-      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("5000"));
+      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.eq(ethers.utils.parseEther("10000"));
+      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.eq(ethers.utils.parseEther("5000"));
 
       // 10. Trigger random update pool to make 1 more block mine
       await fairLaunchV2.massUpdatePools([0]);
@@ -553,13 +537,9 @@ describe("FairLaunchV2", () => {
       // Alice should has 12,500 ALPACAs (10,000 + 2,500)
       // Bob should has 2,500 ALPACAs
       // Dev get 10% tax per block (5,000*0.1 = 500/block)
-      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("12500")
-      );
-      expect(await fairLaunchV2.pendingAlpaca(0, await bob.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("2500")
-      );
-      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("5500"));
+      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.eq(ethers.utils.parseEther("12500"));
+      expect(await fairLaunchV2.pendingAlpaca(0, await bob.getAddress())).to.be.eq(ethers.utils.parseEther("2500"));
+      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.eq(ethers.utils.parseEther("5500"));
 
       // 12. Trigger random update pool to make 1 more block mine
       await fairLaunchV2AsAlice.massUpdatePools([0]);
@@ -569,13 +549,9 @@ describe("FairLaunchV2", () => {
       // Alice should has 15,000 ALPACAs (12,500 + 2,500)
       // Bob should has 5,000 ALPACAs (2,500 + 2,500)
       // Dev get 10% tax per block (5,000*0.1 = 500/block)
-      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("15000")
-      );
-      expect(await fairLaunchV2.pendingAlpaca(0, await bob.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("5000")
-      );
-      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("6000"));
+      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.eq(ethers.utils.parseEther("15000"));
+      expect(await fairLaunchV2.pendingAlpaca(0, await bob.getAddress())).to.be.eq(ethers.utils.parseEther("5000"));
+      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.eq(ethers.utils.parseEther("6000"));
 
       // 14. Bob harvest his yield
       // Reward per Block is till (50-50) as Bob is not leaving the pool yet
@@ -584,14 +560,10 @@ describe("FairLaunchV2", () => {
       // Dev get 10% tax per block (5,000*0.1 = 500/block)
       await fairLaunchV2AsBob.harvest(0);
 
-      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("17500")
-      );
-      expect(await fairLaunchV2.pendingAlpaca(0, await bob.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("0")
-      );
-      expect(await alpacaToken.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("7500"));
-      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("6500"));
+      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.eq(ethers.utils.parseEther("17500"));
+      expect(await fairLaunchV2.pendingAlpaca(0, await bob.getAddress())).to.be.eq(ethers.utils.parseEther("0"));
+      expect(await alpacaToken.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("7500"));
+      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.eq(ethers.utils.parseEther("6500"));
 
       // 15. Alice wants more ALPACAs so she deposit 300 STOKEN0 more
       await stoken0AsAlice.approve(fairLaunchV2.address, ethers.utils.parseEther("300"));
@@ -599,17 +571,11 @@ describe("FairLaunchV2", () => {
 
       // Alice should get 22,500 ALPACAs (17,500 + 2,500 [B1] + 2,500 [B2]) in pending Alpaca
       // Bob should has (2,500 [B1] + 2,500 [B2]) = 5,000 ALPACAs in pending
-      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("22500")
-      );
-      expect(await fairLaunchV2.pendingAlpaca(0, await bob.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("5000")
-      );
-      expect(await alpacaToken.balanceOf(await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("15000")
-      );
-      expect(await alpacaToken.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("7500"));
-      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("7500"));
+      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.eq(ethers.utils.parseEther("22500"));
+      expect(await fairLaunchV2.pendingAlpaca(0, await bob.getAddress())).to.be.eq(ethers.utils.parseEther("5000"));
+      expect(await alpacaToken.balanceOf(await alice.getAddress())).to.be.eq(ethers.utils.parseEther("15000"));
+      expect(await alpacaToken.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("7500"));
+      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.eq(ethers.utils.parseEther("7500"));
 
       // 16. Trigger random update pool to make 1 more block mine
       await fairLaunchV2AsAlice.massUpdatePools([0]);
@@ -618,17 +584,11 @@ describe("FairLaunchV2", () => {
       // How many STOKEN0 needed to make Alice get 80%: find n from 100n/(100n+100) = 0.8
       // Hence, Alice should get 22,500 + 4,000 = 26,5000 ALPACAs in pending
       // Bob should get 5,000 + 1,000 = 6,000 ALPACAs in pending
-      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("26500")
-      );
-      expect(await fairLaunchV2.pendingAlpaca(0, await bob.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("6000")
-      );
-      expect(await alpacaToken.balanceOf(await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("15000")
-      );
-      expect(await alpacaToken.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("7500"));
-      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("8000"));
+      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.eq(ethers.utils.parseEther("26500"));
+      expect(await fairLaunchV2.pendingAlpaca(0, await bob.getAddress())).to.be.eq(ethers.utils.parseEther("6000"));
+      expect(await alpacaToken.balanceOf(await alice.getAddress())).to.be.eq(ethers.utils.parseEther("15000"));
+      expect(await alpacaToken.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("7500"));
+      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.eq(ethers.utils.parseEther("8000"));
     });
 
     it("should work when there is a locker", async () => {
@@ -673,35 +633,29 @@ describe("FairLaunchV2", () => {
       await fairLaunchV2.massUpdatePools([0]);
 
       // 6. Check pendingAlpaca for Alice
-      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("5000")
-      );
+      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.eq(ethers.utils.parseEther("5000"));
 
       // 7. Trigger random update pool to make 1 more block mine
       await fairLaunchV2AsAlice.massUpdatePools([0]);
 
       // 8. Check pendingAlpaca for Alice
-      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("10000")
-      );
+      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.eq(ethers.utils.parseEther("10000"));
 
       // 9. Alice should get 15,000 * (1-0.7) = 4,500 ALPACAs when she harvest
       // also check that dev got his tax
       // PS. Dev get 4,500 as MASTER_POOL was added 9 blocks earlier
       await fairLaunchV2AsAlice.harvest(0);
-      expect(await alpacaToken.balanceOf(await alice.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("4500"));
-      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("4500"));
-      expect(await linearRelease.lockOf(await alice.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("10500"));
+      expect(await alpacaToken.balanceOf(await alice.getAddress())).to.be.eq(ethers.utils.parseEther("4500"));
+      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.eq(ethers.utils.parseEther("4500"));
+      expect(await linearRelease.lockOf(await alice.getAddress())).to.be.eq(ethers.utils.parseEther("10500"));
 
       // 9. Bob come in and join the party
       // 2 blocks are mined here, hence Alice should get 10,000 ALPACAs more
       await stoken0AsBob.approve(fairLaunchV2.address, ethers.utils.parseEther("100"));
       await fairLaunchV2AsBob.deposit(await bob.getAddress(), 0, ethers.utils.parseEther("100"));
 
-      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("10000")
-      );
-      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("5500"));
+      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.eq(ethers.utils.parseEther("10000"));
+      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.eq(ethers.utils.parseEther("5500"));
 
       // 10. Trigger random update pool to make 1 more block mine
       await fairLaunchV2.massUpdatePools([0]);
@@ -711,13 +665,9 @@ describe("FairLaunchV2", () => {
       // Alice should has 12,500 ALPACAs (10,000 + 2,500)
       // Bob should has 2,500 ALPACAs
       // Dev get 10% tax per block (5,000*0.1 = 500/block)
-      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("12500")
-      );
-      expect(await fairLaunchV2.pendingAlpaca(0, await bob.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("2500")
-      );
-      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("6000"));
+      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.eq(ethers.utils.parseEther("12500"));
+      expect(await fairLaunchV2.pendingAlpaca(0, await bob.getAddress())).to.be.eq(ethers.utils.parseEther("2500"));
+      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.eq(ethers.utils.parseEther("6000"));
 
       // 12. Trigger random update pool to make 1 more block mine
       await fairLaunchV2AsAlice.massUpdatePools([0]);
@@ -727,13 +677,9 @@ describe("FairLaunchV2", () => {
       // Alice should has 15,000 ALPACAs (12,500 + 2,500)
       // Bob should has 5,000 ALPACAs (2,500 + 2,500)
       // Dev get 10% tax per block (5,000*0.1 = 500/block)
-      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("15000")
-      );
-      expect(await fairLaunchV2.pendingAlpaca(0, await bob.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("5000")
-      );
-      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("6500"));
+      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.eq(ethers.utils.parseEther("15000"));
+      expect(await fairLaunchV2.pendingAlpaca(0, await bob.getAddress())).to.be.eq(ethers.utils.parseEther("5000"));
+      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.eq(ethers.utils.parseEther("6500"));
 
       // 14. Bob harvest his yield
       // Reward per Block is till (50-50) as Bob is not leaving the pool yet
@@ -742,52 +688,46 @@ describe("FairLaunchV2", () => {
       // Dev get 10% tax per block (5,000*0.1 = 500/block)
       await fairLaunchV2AsBob.harvest(0);
 
-      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("17500")
-      );
-      expect(await fairLaunchV2.pendingAlpaca(0, await bob.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("0")
-      );
-      expect(await alpacaToken.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("2250"));
-      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("7000"));
-      expect(await linearRelease.lockOf(await alice.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("10500"));
-      expect(await linearRelease.lockOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("5250"));
+      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.eq(ethers.utils.parseEther("17500"));
+      expect(await fairLaunchV2.pendingAlpaca(0, await bob.getAddress())).to.be.eq(ethers.utils.parseEther("0"));
+      expect(await alpacaToken.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("2250"));
+      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.eq(ethers.utils.parseEther("7000"));
+      expect(await linearRelease.lockOf(await alice.getAddress())).to.be.eq(ethers.utils.parseEther("10500"));
+      expect(await linearRelease.lockOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("5250"));
 
       // Make random event
       await fairLaunchV2.massUpdatePools([0]);
 
       const [, alicePendingRewardsT0] = await linearReleaseAsAlice.pendingTokens(await alice.getAddress());
       const [, bobPendingRewardsT0] = await linearReleaseAsBob.pendingTokens(await bob.getAddress());
-      expect(await alpacaToken.balanceOf(await alice.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("4500"));
-      expect(await alpacaToken.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("2250"));
-      expect(alicePendingRewardsT0[0]).to.be.bignumber.eq(ethers.utils.parseEther("2100"));
-      expect(bobPendingRewardsT0[0]).to.be.bignumber.eq(ethers.utils.parseEther("1050"));
+      expect(await alpacaToken.balanceOf(await alice.getAddress())).to.be.eq(ethers.utils.parseEther("4500"));
+      expect(await alpacaToken.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("2250"));
+      expect(alicePendingRewardsT0[0]).to.be.eq(ethers.utils.parseEther("2100"));
+      expect(bobPendingRewardsT0[0]).to.be.eq(ethers.utils.parseEther("1050"));
 
       await linearReleaseAsAlice.claim();
       const [, alicePendingRewardsT1] = await linearReleaseAsAlice.pendingTokens(await alice.getAddress());
       const [, bobPendingRewardsT1] = await linearReleaseAsBob.pendingTokens(await bob.getAddress());
-      expect(await alpacaToken.balanceOf(await alice.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("8700"));
-      expect(await alpacaToken.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("2250"));
-      expect(alicePendingRewardsT1[0]).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      expect(bobPendingRewardsT1[0]).to.be.bignumber.eq(ethers.utils.parseEther("2100"));
+      expect(await alpacaToken.balanceOf(await alice.getAddress())).to.be.eq(ethers.utils.parseEther("8700"));
+      expect(await alpacaToken.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("2250"));
+      expect(alicePendingRewardsT1[0]).to.be.eq(ethers.utils.parseEther("0"));
+      expect(bobPendingRewardsT1[0]).to.be.eq(ethers.utils.parseEther("2100"));
 
       await linearReleaseAsBob.claim();
       const [, alicePendingRewardsT2] = await linearReleaseAsAlice.pendingTokens(await alice.getAddress());
       const [, bobPendingRewardsT2] = await linearReleaseAsBob.pendingTokens(await bob.getAddress());
-      expect(await alpacaToken.balanceOf(await alice.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("8700"));
-      expect(await alpacaToken.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("5400"));
-      expect(alicePendingRewardsT2[0]).to.be.bignumber.eq(ethers.utils.parseEther("2100"));
-      expect(bobPendingRewardsT2[0]).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+      expect(await alpacaToken.balanceOf(await alice.getAddress())).to.be.eq(ethers.utils.parseEther("8700"));
+      expect(await alpacaToken.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("5400"));
+      expect(alicePendingRewardsT2[0]).to.be.eq(ethers.utils.parseEther("2100"));
+      expect(bobPendingRewardsT2[0]).to.be.eq(ethers.utils.parseEther("0"));
 
       await fairLaunchV2.massUpdatePools([0]);
       await fairLaunchV2.massUpdatePools([0]);
 
       await linearReleaseAsAlice.claim();
       await linearReleaseAsBob.claim();
-      expect(await alpacaToken.balanceOf(await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("15000")
-      );
-      expect(await alpacaToken.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("7500"));
+      expect(await alpacaToken.balanceOf(await alice.getAddress())).to.be.eq(ethers.utils.parseEther("15000"));
+      expect(await alpacaToken.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("7500"));
     });
   });
 
@@ -808,36 +748,28 @@ describe("FairLaunchV2", () => {
       await fairLaunch.massUpdatePools();
 
       // 5. Check pendingAlpaca for Alice
-      expect(await fairLaunch.pendingAlpaca(0, await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("5000")
-      );
+      expect(await fairLaunch.pendingAlpaca(0, await alice.getAddress())).to.be.eq(ethers.utils.parseEther("5000"));
 
       // 6. Trigger random update pool to make 1 more block mine
       await fairLaunch.massUpdatePools();
 
       // 7. Check pendingAlpaca for Alice
-      expect(await fairLaunch.pendingAlpaca(0, await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("10000")
-      );
+      expect(await fairLaunch.pendingAlpaca(0, await alice.getAddress())).to.be.eq(ethers.utils.parseEther("10000"));
 
       // 8. Alice should get 15,000 ALPACAs when she harvest
       // also check that dev got his tax
       // PS. Dev get 1,500 = as 10% as Alice
       await fairLaunchAsAlice.harvest(0);
-      expect(await alpacaToken.balanceOf(await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("15000")
-      );
-      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("1500"));
+      expect(await alpacaToken.balanceOf(await alice.getAddress())).to.be.eq(ethers.utils.parseEther("15000"));
+      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.eq(ethers.utils.parseEther("1500"));
 
       // 9. Bob come in and join the party
       // 2 blocks are mined here, hence Alice should get 10,000 ALPACAs more (2x5,000)
       await stoken0AsBob.approve(fairLaunch.address, ethers.utils.parseEther("100"));
       await fairLaunchAsBob.deposit(await bob.getAddress(), 0, ethers.utils.parseEther("100"));
 
-      expect(await fairLaunch.pendingAlpaca(0, await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("10000")
-      );
-      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("2500"));
+      expect(await fairLaunch.pendingAlpaca(0, await alice.getAddress())).to.be.eq(ethers.utils.parseEther("10000"));
+      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.eq(ethers.utils.parseEther("2500"));
 
       // 10. Trigger random update pool to make 1 more block mine
       await fairLaunch.massUpdatePools();
@@ -852,11 +784,9 @@ describe("FairLaunchV2", () => {
       // Bob +2,500+2,500
       await fairLaunchAsAlice.withdraw(await alice.getAddress(), 0, ethers.utils.parseEther("100"));
       await fairLaunchAsBob.withdraw(await bob.getAddress(), 0, ethers.utils.parseEther("100"));
-      expect(await alpacaToken.balanceOf(await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("30000")
-      );
-      expect(await alpacaToken.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("5000"));
-      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("3500"));
+      expect(await alpacaToken.balanceOf(await alice.getAddress())).to.be.eq(ethers.utils.parseEther("30000"));
+      expect(await alpacaToken.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("5000"));
+      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.eq(ethers.utils.parseEther("3500"));
 
       // 13. Initialized fairLaunchV2
       await fairLaunchLink.mint(await deployer.getAddress(), ethers.utils.parseEther("1"));
@@ -878,13 +808,9 @@ describe("FairLaunchV2", () => {
 
       // 17. Check pendingAlpaca for Alice & Bob. Expected to be 0 as pool has no allocPoint yet
       // expect dev token to be the same amount as no alpaca has been mint
-      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("0")
-      );
-      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("0")
-      );
-      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("3500"));
+      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.eq(ethers.utils.parseEther("0"));
+      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.eq(ethers.utils.parseEther("0"));
+      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.eq(ethers.utils.parseEther("3500"));
 
       await fairLaunchV2.init(fairLaunchLink.address);
 
@@ -897,22 +823,16 @@ describe("FairLaunchV2", () => {
 
       // 20. Now Alice and Bob should get some ALPACAs
       // Check pendingAlpaca for Alice & Bob
-      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("7500")
-      );
-      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("7500")
-      );
-      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("4500"));
+      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.eq(ethers.utils.parseEther("7500"));
+      expect(await fairLaunchV2.pendingAlpaca(0, await alice.getAddress())).to.be.eq(ethers.utils.parseEther("7500"));
+      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.eq(ethers.utils.parseEther("4500"));
 
       // 21. Alice should get 10,000 ALPACAs when she harvest
       // also check that dev got his tax
       // PS. Dev get 5,000 as mining continue 2 blocks earlier
       await fairLaunchV2AsAlice.harvest(0);
-      expect(await alpacaToken.balanceOf(await alice.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("40000")
-      );
-      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("5000"));
+      expect(await alpacaToken.balanceOf(await alice.getAddress())).to.be.eq(ethers.utils.parseEther("40000"));
+      expect(await alpacaToken.balanceOf(await dev.getAddress())).to.be.eq(ethers.utils.parseEther("5000"));
     });
   });
 });

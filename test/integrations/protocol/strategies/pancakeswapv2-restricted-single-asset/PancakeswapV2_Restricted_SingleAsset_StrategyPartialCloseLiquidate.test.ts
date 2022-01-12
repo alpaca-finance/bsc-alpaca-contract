@@ -299,19 +299,18 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate", () =
         expect(
           aliceBalanceAfter.sub(aliceBalanceBefore),
           "Alice's WBNB should increase by 0.499374217772215269"
-        ).to.be.bignumber.eq(ethers.utils.parseEther("0.499374217772215269"));
+        ).to.be.eq(ethers.utils.parseEther("0.499374217772215269"));
         expect(
           await farmingToken.balanceOf(strat.address),
           "There shouldn't be any FTOKEN left in strategy contract"
-        ).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(
-          await wbnb.balanceOf(strat.address),
-          "There shouldn't be any WBNB left in strategy contract"
-        ).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+        ).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await wbnb.balanceOf(strat.address), "There shouldn't be any WBNB left in strategy contract").to.be.eq(
+          ethers.utils.parseEther("0")
+        );
         expect(
           await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address),
           "Worker should has 0 FTOKEN left as all FTOKEN is liquidated"
-        ).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+        ).to.be.eq(ethers.utils.parseEther("0"));
       });
     });
 
@@ -388,19 +387,18 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate", () =
         expect(
           aliceBalanceAfter.sub(aliceBalanceBefore),
           "Alice's WBNB should increase by 0.499374217772215269"
-        ).to.be.bignumber.eq(ethers.utils.parseEther("0.499374217772215269"));
+        ).to.be.eq(ethers.utils.parseEther("0.499374217772215269"));
         expect(
           await farmingToken.balanceOf(strat.address),
           "There shouldn't be any FTOKEN left in strategy contract"
-        ).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(
-          await wbnb.balanceOf(strat.address),
-          "There shouldn't be any WBNB left in strategy contract"
-        ).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+        ).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await wbnb.balanceOf(strat.address), "There shouldn't be any WBNB left in strategy contract").to.be.eq(
+          ethers.utils.parseEther("0")
+        );
         expect(
           await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address),
           "Worker should has 0 FTOKEN left as all FTOKEN is liquidated"
-        ).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+        ).to.be.eq(ethers.utils.parseEther("0"));
       });
     });
 
@@ -493,19 +491,18 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate", () =
         expect(
           aliceBalanceAfter.sub(aliceBalanceBefore),
           "Alice's WBNB should increase by 0.499374217772215269"
-        ).to.be.bignumber.eq(ethers.utils.parseEther("0.499374217772215269"));
+        ).to.be.eq(ethers.utils.parseEther("0.499374217772215269"));
         expect(
           await farmingToken.balanceOf(strat.address),
           "There shouldn't be any FTOKEN left in strategy contract"
-        ).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(
-          await wbnb.balanceOf(strat.address),
-          "There shouldn't be any WBNB left in strategy contract"
-        ).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+        ).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await wbnb.balanceOf(strat.address), "There shouldn't be any WBNB left in strategy contract").to.be.eq(
+          ethers.utils.parseEther("0")
+        );
         expect(
           await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address),
           "Worker should has 0 FTOKEN left as all FTOKEN is liquidated"
-        ).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+        ).to.be.eq(ethers.utils.parseEther("0"));
       });
     });
 
@@ -543,14 +540,12 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate", () =
         const aliceBalanceAfter = await wbnb.balanceOf(aliceAddress);
 
         // the worker will send 0.285203716940671908 wbnb back to alice
-        expect(aliceBalanceAfter.sub(aliceBalanceBefore)).to.be.bignumber.eq(
-          ethers.utils.parseEther("0.285203716940671908")
-        );
+        expect(aliceBalanceAfter.sub(aliceBalanceBefore)).to.be.eq(ethers.utils.parseEther("0.285203716940671908"));
         // there should be no baseToken or farmingToken left in strategy
-        expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(await wbnb.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+        expect(await farmingToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await wbnb.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
         // the strategy should send 0.06 farmingToken back to worker
-        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(
+        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.eq(
           ethers.utils.parseEther("0.06")
         );
       });
@@ -793,19 +788,17 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate", () =
         expect(
           aliceBalanceAfter.sub(aliceBalanceBefore),
           "Alice's BTOKEN should increased by 0.332499305557005937"
-        ).to.be.bignumber.eq(ethers.utils.parseEther("0.332499305557005937"));
-        expect(
-          await farmingToken.balanceOf(strat.address),
-          "There shouldn't be any FTOKEN left in strategy"
-        ).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(
-          await baseToken.balanceOf(strat.address),
-          "There shouldn't be any BTOKEN left in strategy"
-        ).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+        ).to.be.eq(ethers.utils.parseEther("0.332499305557005937"));
+        expect(await farmingToken.balanceOf(strat.address), "There shouldn't be any FTOKEN left in strategy").to.be.eq(
+          ethers.utils.parseEther("0")
+        );
+        expect(await baseToken.balanceOf(strat.address), "There shouldn't be any BTOKEN left in strategy").to.be.eq(
+          ethers.utils.parseEther("0")
+        );
         expect(
           await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address),
           "Worker should has 0 FTOKEN left as all FTOKEN is liquidated"
-        ).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+        ).to.be.eq(ethers.utils.parseEther("0"));
       });
     });
 
@@ -845,14 +838,12 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate", () =
         const aliceBalanceAfter = await baseToken.balanceOf(aliceAddress);
 
         // the worker will send 0.221481327933600537 baseToken back to alice
-        expect(aliceBalanceAfter.sub(aliceBalanceBefore)).to.be.bignumber.eq(
-          ethers.utils.parseEther("0.221481327933600537")
-        );
+        expect(aliceBalanceAfter.sub(aliceBalanceBefore)).to.be.eq(ethers.utils.parseEther("0.221481327933600537"));
         // there should be no baseToken or farmingToken left in strategy
-        expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+        expect(await farmingToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await baseToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
         // the strategy should send 0.06 farmingToken back to worker
-        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(
+        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.eq(
           ethers.utils.parseEther("0.06")
         );
       });

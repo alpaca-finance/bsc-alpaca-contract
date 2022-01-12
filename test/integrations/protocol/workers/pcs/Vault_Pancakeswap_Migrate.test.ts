@@ -547,18 +547,18 @@ describe("Vault - Pancakeswap Migrate", () => {
         let [workerLPAfter, workerDebtAfter] = await masterChef.userInfo(poolId, pancakeswapWorker.address);
 
         // LP tokens of worker should be inceased from reinvestment
-        expect(workerLPAfter).to.be.bignumber.gt(workerLPBefore);
+        expect(workerLPAfter).to.be.gt(workerLPBefore);
 
         // Check Bob position info
         await pancakeswapWorker.health("1");
         let [bobHealth, bobDebt] = await vault.positionInfo("1");
-        expect(bobHealth).to.be.bignumber.gt(ethers.utils.parseEther("20")); // Get Reward and increase health
+        expect(bobHealth).to.be.gt(ethers.utils.parseEther("20")); // Get Reward and increase health
         AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("10").toString(), bobDebt.toString());
 
         // Check Alice position info
         await pancakeswapWorker.health("2");
         let [aliceHealth, aliceDebt] = await vault.positionInfo("2");
-        expect(aliceHealth).to.be.bignumber.gt(ethers.utils.parseEther("3")); // Get Reward and increase health
+        expect(aliceHealth).to.be.gt(ethers.utils.parseEther("3")); // Get Reward and increase health
         AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("2").toString(), aliceDebt.toString());
 
         // ---------------- Reinvest#2 -------------------
@@ -579,16 +579,16 @@ describe("Vault - Pancakeswap Migrate", () => {
         // Convert NATIVE to 5001669421841640 LP token
         [workerLPAfter, workerDebtAfter] = await masterChef.userInfo(poolId, pancakeswapWorker.address);
         // LP tokens of worker should be inceased from reinvestment
-        expect(workerLPAfter).to.be.bignumber.gt(workerLPBefore);
+        expect(workerLPAfter).to.be.gt(workerLPBefore);
 
         // Check Bob position info
         [bobHealth, bobDebt] = await vault.positionInfo("1");
-        expect(bobHealth).to.be.bignumber.gt(ethers.utils.parseEther("20")); // Get Reward and increase health
+        expect(bobHealth).to.be.gt(ethers.utils.parseEther("20")); // Get Reward and increase health
         AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("10").toString(), bobDebt.toString());
 
         // Check Alice position info
         [aliceHealth, aliceDebt] = await vault.positionInfo("2");
-        expect(aliceHealth).to.be.bignumber.gt(ethers.utils.parseEther("3")); // Get Reward and increase health
+        expect(aliceHealth).to.be.gt(ethers.utils.parseEther("3")); // Get Reward and increase health
         AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("2").toString(), aliceDebt.toString());
 
         // Pancakeswap annouce the upgrade to RouterV2 and FactoryV2
@@ -612,13 +612,13 @@ describe("Vault - Pancakeswap Migrate", () => {
 
         // Bob's health must be still the same until pancakeswapV2Worker migrate LP
         const [bobHealthAfterUpgrade, bobDebtAfterUpgrade] = await vault.positionInfo("1");
-        expect(bobHealthAfterUpgrade).to.be.bignumber.eq(bobHealth);
-        expect(bobDebtAfterUpgrade).to.be.bignumber.eq(bobDebt);
+        expect(bobHealthAfterUpgrade).to.be.eq(bobHealth);
+        expect(bobDebtAfterUpgrade).to.be.eq(bobDebt);
 
         // Alice's health must be still the same until pancakeswapV2Worker migrate LP
         const [aliceHealthAfterUpgrade, aliceDebtAfterUpgrade] = await vault.positionInfo("2");
-        expect(aliceHealthAfterUpgrade).to.be.bignumber.eq(aliceHealth);
-        expect(aliceDebtAfterUpgrade).to.be.bignumber.eq(aliceDebt);
+        expect(aliceHealthAfterUpgrade).to.be.eq(aliceHealth);
+        expect(aliceDebtAfterUpgrade).to.be.eq(aliceDebt);
 
         // Assuming CAKE on V2 is the same liquidity dept and price as V1
         const cakeBnbLpV1 = PancakePair__factory.connect(await factory.getPair(cake.address, wbnb.address), deployer);
@@ -671,7 +671,7 @@ describe("Vault - Pancakeswap Migrate", () => {
         const [stakedAmt] = await masterChef.userInfo(lpV2poolId, pancakeswapV2workerMigrate.address);
         const totalShare = await pancakeswapV2workerMigrate.totalShare();
         const workerBalance = await pancakeswapV2workerMigrate.shareToBalance(totalShare);
-        expect(stakedAmt).to.be.bignumber.eq(workerBalance);
+        expect(stakedAmt).to.be.eq(workerBalance);
 
         // ---------------- Reinvest#3 -------------------
         // Wait for 1 day and someone calls reinvest
@@ -691,7 +691,7 @@ describe("Vault - Pancakeswap Migrate", () => {
         // Convert NATIVE to 2350053120029788 LP token
         [workerLPAfter, workerDebtAfter] = await masterChef.userInfo(lpV2poolId, pancakeswapWorker.address);
         // LP tokens of worker should be inceased from reinvestment
-        expect(workerLPAfter).to.be.bignumber.gt(workerLPBefore);
+        expect(workerLPAfter).to.be.gt(workerLPBefore);
 
         // Bob try to close position#1 with disabled strategy
         await expect(
@@ -780,14 +780,14 @@ describe("Vault - Pancakeswap Migrate", () => {
         const aliceAfter = await baseToken.balanceOf(await alice.getAddress());
 
         // Check Alice account, Alice must be richer as she earned from leverage yield farm without getting liquidated
-        expect(aliceAfter).to.be.bignumber.gt(aliceBefore);
+        expect(aliceAfter).to.be.gt(aliceBefore);
 
         // there should be no LPv1 and LPv2 left in Worker, MasterChef as every exited the positions
         const [stakedLPv2] = await masterChef.userInfo(lpV2poolId, pancakeswapWorker.address);
         const [stakedLPv1] = await masterChef.userInfo(poolId, pancakeswapWorker.address);
 
-        expect(stakedLPv1).to.be.bignumber.eq(0);
-        expect(stakedLPv2).to.be.bignumber.eq(0);
+        expect(stakedLPv1).to.be.eq(0);
+        expect(stakedLPv2).to.be.eq(0);
       }).timeout(50000);
     });
 
@@ -876,18 +876,18 @@ describe("Vault - Pancakeswap Migrate", () => {
         let [workerLPAfter, workerDebtAfter] = await masterChef.userInfo(poolId, pancakeswapWorker.address);
 
         // LP tokens of worker should be inceased from reinvestment
-        expect(workerLPAfter).to.be.bignumber.gt(workerLPBefore);
+        expect(workerLPAfter).to.be.gt(workerLPBefore);
 
         // Check Bob position info
         await pancakeswapWorker.health("1");
         let [bobHealth, bobDebt] = await vault.positionInfo("1");
-        expect(bobHealth).to.be.bignumber.gt(ethers.utils.parseEther("20")); // Get Reward and increase health
+        expect(bobHealth).to.be.gt(ethers.utils.parseEther("20")); // Get Reward and increase health
         AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("10").toString(), bobDebt.toString());
 
         // Check Alice position info
         await pancakeswapWorker.health("2");
         let [aliceHealth, aliceDebt] = await vault.positionInfo("2");
-        expect(aliceHealth).to.be.bignumber.gt(ethers.utils.parseEther("3")); // Get Reward and increase health
+        expect(aliceHealth).to.be.gt(ethers.utils.parseEther("3")); // Get Reward and increase health
         AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("2").toString(), aliceDebt.toString());
 
         // ---------------- Reinvest#2 -------------------
@@ -908,16 +908,16 @@ describe("Vault - Pancakeswap Migrate", () => {
         // Convert NATIVE to 5001669421841640 LP token
         [workerLPAfter, workerDebtAfter] = await masterChef.userInfo(poolId, pancakeswapWorker.address);
         // LP tokens of worker should be inceased from reinvestment
-        expect(workerLPAfter).to.be.bignumber.gt(workerLPBefore);
+        expect(workerLPAfter).to.be.gt(workerLPBefore);
 
         // Check Bob position info
         [bobHealth, bobDebt] = await vault.positionInfo("1");
-        expect(bobHealth).to.be.bignumber.gt(ethers.utils.parseEther("20")); // Get Reward and increase health
+        expect(bobHealth).to.be.gt(ethers.utils.parseEther("20")); // Get Reward and increase health
         AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("10").toString(), bobDebt.toString());
 
         // Check Alice position info
         [aliceHealth, aliceDebt] = await vault.positionInfo("2");
-        expect(aliceHealth).to.be.bignumber.gt(ethers.utils.parseEther("3")); // Get Reward and increase health
+        expect(aliceHealth).to.be.gt(ethers.utils.parseEther("3")); // Get Reward and increase health
         AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("2").toString(), aliceDebt.toString());
 
         // Pancakeswap annouce the upgrade to RouterV2 and FactoryV2
@@ -941,13 +941,13 @@ describe("Vault - Pancakeswap Migrate", () => {
 
         // Bob's health must be still the same until pancakeswapV2Worker migrate LP
         const [bobHealthAfterUpgrade, bobDebtAfterUpgrade] = await vault.positionInfo("1");
-        expect(bobHealthAfterUpgrade).to.be.bignumber.eq(bobHealth);
-        expect(bobDebtAfterUpgrade).to.be.bignumber.eq(bobDebt);
+        expect(bobHealthAfterUpgrade).to.be.eq(bobHealth);
+        expect(bobDebtAfterUpgrade).to.be.eq(bobDebt);
 
         // Alice's health must be still the same until pancakeswapV2Worker migrate LP
         const [aliceHealthAfterUpgrade, aliceDebtAfterUpgrade] = await vault.positionInfo("2");
-        expect(aliceHealthAfterUpgrade).to.be.bignumber.eq(aliceHealth);
-        expect(aliceDebtAfterUpgrade).to.be.bignumber.eq(aliceDebt);
+        expect(aliceHealthAfterUpgrade).to.be.eq(aliceHealth);
+        expect(aliceDebtAfterUpgrade).to.be.eq(aliceDebt);
 
         // Assuming CAKE on V2 is the same liquidity dept and price as V1
         const cakeBnbLpV1 = PancakePair__factory.connect(await factory.getPair(cake.address, wbnb.address), deployer);
@@ -1028,7 +1028,7 @@ describe("Vault - Pancakeswap Migrate", () => {
         const [stakedAmt] = await masterChef.userInfo(lpV2poolId, pancakeswapV2workerMigrate.address);
         const totalShare = await pancakeswapV2workerMigrate.totalShare();
         const workerBalance = await pancakeswapV2workerMigrate.shareToBalance(totalShare);
-        expect(stakedAmt).to.be.bignumber.eq(workerBalance);
+        expect(stakedAmt).to.be.eq(workerBalance);
 
         // Check Bob position info
         // Bob health after migrate should be come more than before migrate
@@ -1037,8 +1037,8 @@ describe("Vault - Pancakeswap Migrate", () => {
         // hence the contract will sell some BTOKEN for FTOKEN
         // Bob's debt must still the same
         const [bobHealthAfterMigrate, bobDebtToShareMigrate] = await vault.positionInfo("1");
-        expect(bobHealthAfterMigrate).to.be.bignumber.gt(bobHealth);
-        expect(bobDebtToShareMigrate).to.be.bignumber.eq(bobDebt);
+        expect(bobHealthAfterMigrate).to.be.gt(bobHealth);
+        expect(bobDebtToShareMigrate).to.be.eq(bobDebt);
 
         // Check Alice position info
         // Same as Bob, Alice health after migrate should be come less than before migrate
@@ -1047,8 +1047,8 @@ describe("Vault - Pancakeswap Migrate", () => {
         // hence the contract will dump BTOKEN for FTOKEN
         // Alice's debt must still the same
         const [aliceHealthAfterMigrate, aliceDebtToShareMigrate] = await vault.positionInfo("2");
-        expect(aliceHealthAfterMigrate).to.be.bignumber.gt(aliceHealth);
-        expect(aliceDebtToShareMigrate).to.be.bignumber.eq(aliceDebt);
+        expect(aliceHealthAfterMigrate).to.be.gt(aliceHealth);
+        expect(aliceDebtToShareMigrate).to.be.eq(aliceDebt);
 
         // ---------------- Reinvest#3 -------------------
         // Wait for 1 day and someone calls reinvest
@@ -1068,7 +1068,7 @@ describe("Vault - Pancakeswap Migrate", () => {
         // Convert NATIVE to 2350053120029788 LP token
         [workerLPAfter, workerDebtAfter] = await masterChef.userInfo(lpV2poolId, pancakeswapWorker.address);
         // LP tokens of worker should be inceased from reinvestment
-        expect(workerLPAfter).to.be.bignumber.gt(workerLPBefore);
+        expect(workerLPAfter).to.be.gt(workerLPBefore);
 
         // Bob try to close position#1 with disabled strategy
         await expect(
@@ -1157,14 +1157,14 @@ describe("Vault - Pancakeswap Migrate", () => {
         const aliceAfter = await baseToken.balanceOf(await alice.getAddress());
 
         // Check Alice account, Alice must be richer as she earned from leverage yield farm without getting liquidated
-        expect(aliceAfter).to.be.bignumber.gt(aliceBefore);
+        expect(aliceAfter).to.be.gt(aliceBefore);
 
         // there should be no LPv1 and LPv2 left in Worker, MasterChef as every exited the positions
         const [stakedLPv2] = await masterChef.userInfo(lpV2poolId, pancakeswapWorker.address);
         const [stakedLPv1] = await masterChef.userInfo(poolId, pancakeswapWorker.address);
 
-        expect(stakedLPv1).to.be.bignumber.eq(0);
-        expect(stakedLPv2).to.be.bignumber.eq(0);
+        expect(stakedLPv1).to.be.eq(0);
+        expect(stakedLPv2).to.be.eq(0);
       }).timeout(50000);
     });
 
@@ -1253,18 +1253,18 @@ describe("Vault - Pancakeswap Migrate", () => {
         let [workerLPAfter, workerDebtAfter] = await masterChef.userInfo(poolId, pancakeswapWorker.address);
 
         // LP tokens of worker should be inceased from reinvestment
-        expect(workerLPAfter).to.be.bignumber.gt(workerLPBefore);
+        expect(workerLPAfter).to.be.gt(workerLPBefore);
 
         // Check Bob position info
         await pancakeswapWorker.health("1");
         let [bobHealth, bobDebt] = await vault.positionInfo("1");
-        expect(bobHealth).to.be.bignumber.gt(ethers.utils.parseEther("20")); // Get Reward and increase health
+        expect(bobHealth).to.be.gt(ethers.utils.parseEther("20")); // Get Reward and increase health
         AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("10").toString(), bobDebt.toString());
 
         // Check Alice position info
         await pancakeswapWorker.health("2");
         let [aliceHealth, aliceDebt] = await vault.positionInfo("2");
-        expect(aliceHealth).to.be.bignumber.gt(ethers.utils.parseEther("3")); // Get Reward and increase health
+        expect(aliceHealth).to.be.gt(ethers.utils.parseEther("3")); // Get Reward and increase health
         AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("2").toString(), aliceDebt.toString());
 
         // ---------------- Reinvest#2 -------------------
@@ -1285,16 +1285,16 @@ describe("Vault - Pancakeswap Migrate", () => {
         // Convert NATIVE to 5001669421841640 LP token
         [workerLPAfter, workerDebtAfter] = await masterChef.userInfo(poolId, pancakeswapWorker.address);
         // LP tokens of worker should be inceased from reinvestment
-        expect(workerLPAfter).to.be.bignumber.gt(workerLPBefore);
+        expect(workerLPAfter).to.be.gt(workerLPBefore);
 
         // Check Bob position info
         [bobHealth, bobDebt] = await vault.positionInfo("1");
-        expect(bobHealth).to.be.bignumber.gt(ethers.utils.parseEther("20")); // Get Reward and increase health
+        expect(bobHealth).to.be.gt(ethers.utils.parseEther("20")); // Get Reward and increase health
         AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("10").toString(), bobDebt.toString());
 
         // Check Alice position info
         [aliceHealth, aliceDebt] = await vault.positionInfo("2");
-        expect(aliceHealth).to.be.bignumber.gt(ethers.utils.parseEther("3")); // Get Reward and increase health
+        expect(aliceHealth).to.be.gt(ethers.utils.parseEther("3")); // Get Reward and increase health
         AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("2").toString(), aliceDebt.toString());
 
         // Pancakeswap annouce the upgrade to RouterV2 and FactoryV2
@@ -1318,13 +1318,13 @@ describe("Vault - Pancakeswap Migrate", () => {
 
         // Bob's health must be still the same until pancakeswapV2Worker migrate LP
         const [bobHealthAfterUpgrade, bobDebtAfterUpgrade] = await vault.positionInfo("1");
-        expect(bobHealthAfterUpgrade).to.be.bignumber.eq(bobHealth);
-        expect(bobDebtAfterUpgrade).to.be.bignumber.eq(bobDebt);
+        expect(bobHealthAfterUpgrade).to.be.eq(bobHealth);
+        expect(bobDebtAfterUpgrade).to.be.eq(bobDebt);
 
         // Alice's health must be still the same until pancakeswapV2Worker migrate LP
         const [aliceHealthAfterUpgrade, aliceDebtAfterUpgrade] = await vault.positionInfo("2");
-        expect(aliceHealthAfterUpgrade).to.be.bignumber.eq(aliceHealth);
-        expect(aliceDebtAfterUpgrade).to.be.bignumber.eq(aliceDebt);
+        expect(aliceHealthAfterUpgrade).to.be.eq(aliceHealth);
+        expect(aliceDebtAfterUpgrade).to.be.eq(aliceDebt);
 
         // Assuming CAKE on V2 is the same liquidity dept and price as V1
         const cakeBnbLpV1 = PancakePair__factory.connect(await factory.getPair(cake.address, wbnb.address), deployer);
@@ -1405,7 +1405,7 @@ describe("Vault - Pancakeswap Migrate", () => {
         const [stakedAmt] = await masterChef.userInfo(lpV2poolId, pancakeswapV2workerMigrate.address);
         const totalShare = await pancakeswapV2workerMigrate.totalShare();
         const workerBalance = await pancakeswapV2workerMigrate.shareToBalance(totalShare);
-        expect(stakedAmt).to.be.bignumber.eq(workerBalance);
+        expect(stakedAmt).to.be.eq(workerBalance);
 
         // Check Bob position info
         // Bob health after migrate should become less than before migrate
@@ -1415,8 +1415,8 @@ describe("Vault - Pancakeswap Migrate", () => {
         // Bob's debt must still the same
         // TODO: check here where it is greater than before
         let [bobHealthAfterMigrate, bobDebtToShareMigrate] = await vault.positionInfo("1");
-        expect(bobHealthAfterMigrate).to.be.bignumber.gt(bobHealth);
-        expect(bobDebtToShareMigrate).to.be.bignumber.eq(bobDebt);
+        expect(bobHealthAfterMigrate).to.be.gt(bobHealth);
+        expect(bobDebtToShareMigrate).to.be.eq(bobDebt);
 
         // Check Alice position info
         // Same as Bob, Alice health after migrate should be come less than before migrate
@@ -1426,8 +1426,8 @@ describe("Vault - Pancakeswap Migrate", () => {
         // Alice's debt must still the same
         // TODO: check here where it is greater than before
         let [aliceHealthAfterMigrate, aliceDebtToShareMigrate] = await vault.positionInfo("2");
-        expect(aliceHealthAfterMigrate).to.be.bignumber.gt(aliceHealth);
-        expect(aliceDebtToShareMigrate).to.be.bignumber.eq(aliceDebt);
+        expect(aliceHealthAfterMigrate).to.be.gt(aliceHealth);
+        expect(aliceDebtToShareMigrate).to.be.eq(aliceDebt);
 
         // ---------------- Reinvest#3 -------------------
         // Wait for 1 day and someone calls reinvest
@@ -1447,7 +1447,7 @@ describe("Vault - Pancakeswap Migrate", () => {
         // Convert NATIVE to 2350053120029788 LP token
         [workerLPAfter, workerDebtAfter] = await masterChef.userInfo(lpV2poolId, pancakeswapWorker.address);
         // LP tokens of worker should be inceased from reinvestment
-        expect(workerLPAfter).to.be.bignumber.gt(workerLPBefore);
+        expect(workerLPAfter).to.be.gt(workerLPBefore);
 
         // Bob try to close position#1 with disabled strategy
         await expect(
@@ -1536,14 +1536,14 @@ describe("Vault - Pancakeswap Migrate", () => {
         const aliceAfter = await baseToken.balanceOf(await alice.getAddress());
 
         // Check Alice account, Alice must be richer as she earned from leverage yield farm without getting liquidated
-        expect(aliceAfter).to.be.bignumber.gt(aliceBefore);
+        expect(aliceAfter).to.be.gt(aliceBefore);
 
         // there should be no LPv1 and LPv2 left in Worker, MasterChef as every exited the positions
         const [stakedLPv2] = await masterChef.userInfo(lpV2poolId, pancakeswapWorker.address);
         const [stakedLPv1] = await masterChef.userInfo(poolId, pancakeswapWorker.address);
 
-        expect(stakedLPv1).to.be.bignumber.eq(0);
-        expect(stakedLPv2).to.be.bignumber.eq(0);
+        expect(stakedLPv1).to.be.eq(0);
+        expect(stakedLPv2).to.be.eq(0);
       }).timeout(50000);
     });
 
@@ -1641,18 +1641,18 @@ describe("Vault - Pancakeswap Migrate", () => {
         let [workerLPAfter, workerDebtAfter] = await masterChef.userInfo(poolId, pancakeswapWorker.address);
 
         // LP tokens of worker should be inceased from reinvestment
-        expect(workerLPAfter).to.be.bignumber.gt(workerLPBefore);
+        expect(workerLPAfter).to.be.gt(workerLPBefore);
 
         // Check Bob position info
         await pancakeswapWorker.health("1");
         let [bobHealth, bobDebt] = await vault.positionInfo("1");
-        expect(bobHealth).to.be.bignumber.gt(ethers.utils.parseEther("20")); // Get Reward and increase health
+        expect(bobHealth).to.be.gt(ethers.utils.parseEther("20")); // Get Reward and increase health
         AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("10").toString(), bobDebt.toString());
 
         // Check Alice position info
         await pancakeswapWorker.health("2");
         let [aliceHealth, aliceDebt] = await vault.positionInfo("2");
-        expect(aliceHealth).to.be.bignumber.gt(ethers.utils.parseEther("3")); // Get Reward and increase health
+        expect(aliceHealth).to.be.gt(ethers.utils.parseEther("3")); // Get Reward and increase health
         AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("2").toString(), aliceDebt.toString());
 
         // ---------------- Reinvest#2 -------------------
@@ -1679,16 +1679,16 @@ describe("Vault - Pancakeswap Migrate", () => {
         // Convert NATIVE to 5001669421841640 LP token
         [workerLPAfter, workerDebtAfter] = await masterChef.userInfo(poolId, pancakeswapWorker.address);
         // LP tokens of worker should be inceased from reinvestment
-        expect(workerLPAfter).to.be.bignumber.gt(workerLPBefore);
+        expect(workerLPAfter).to.be.gt(workerLPBefore);
 
         // Check Bob position info
         [bobHealth, bobDebt] = await vault.positionInfo("1");
-        expect(bobHealth).to.be.bignumber.gt(ethers.utils.parseEther("20")); // Get Reward and increase health
+        expect(bobHealth).to.be.gt(ethers.utils.parseEther("20")); // Get Reward and increase health
         AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("10").toString(), bobDebt.toString());
 
         // Check Alice position info
         [aliceHealth, aliceDebt] = await vault.positionInfo("2");
-        expect(aliceHealth).to.be.bignumber.gt(ethers.utils.parseEther("3")); // Get Reward and increase health
+        expect(aliceHealth).to.be.gt(ethers.utils.parseEther("3")); // Get Reward and increase health
         AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("2").toString(), aliceDebt.toString());
 
         // Pancakeswap annouce the upgrade to RouterV2 and FactoryV2
@@ -1712,13 +1712,13 @@ describe("Vault - Pancakeswap Migrate", () => {
 
         // Bob's health must be still the same until pancakeswapV2Worker migrate LP
         const [bobHealthAfterUpgrade, bobDebtAfterUpgrade] = await vault.positionInfo("1");
-        expect(bobHealthAfterUpgrade).to.be.bignumber.eq(bobHealth);
-        expect(bobDebtAfterUpgrade).to.be.bignumber.eq(bobDebt);
+        expect(bobHealthAfterUpgrade).to.be.eq(bobHealth);
+        expect(bobDebtAfterUpgrade).to.be.eq(bobDebt);
 
         // Alice's health must be still the same until pancakeswapV2Worker migrate LP
         const [aliceHealthAfterUpgrade, aliceDebtAfterUpgrade] = await vault.positionInfo("2");
-        expect(aliceHealthAfterUpgrade).to.be.bignumber.eq(aliceHealth);
-        expect(aliceDebtAfterUpgrade).to.be.bignumber.eq(aliceDebt);
+        expect(aliceHealthAfterUpgrade).to.be.eq(aliceHealth);
+        expect(aliceDebtAfterUpgrade).to.be.eq(aliceDebt);
 
         // Assuming CAKE on V2 is the same liquidity dept and price as V1
         const cakeBnbLpV1 = PancakePair__factory.connect(await factory.getPair(cake.address, wbnb.address), deployer);
@@ -1802,7 +1802,7 @@ describe("Vault - Pancakeswap Migrate", () => {
         const [stakedAmt] = await masterChef.userInfo(lpV2poolId, pancakeswapV2workerMigrate.address);
         const totalShare = await pancakeswapV2workerMigrate.totalShare();
         const workerBalance = await pancakeswapV2workerMigrate.shareToBalance(totalShare);
-        expect(stakedAmt).to.be.bignumber.eq(workerBalance);
+        expect(stakedAmt).to.be.eq(workerBalance);
 
         // Check Bob position info
         // Bob health after migrate should become less than before migrate
@@ -1812,8 +1812,8 @@ describe("Vault - Pancakeswap Migrate", () => {
         // Bob's debt must still the same
         // TODO: check here where it is greater than before
         let [bobHealthAfterMigrate, bobDebtToShareMigrate] = await vault.positionInfo("1");
-        expect(bobHealthAfterMigrate).to.be.bignumber.gt(bobHealth);
-        expect(bobDebtToShareMigrate).to.be.bignumber.eq(bobDebt);
+        expect(bobHealthAfterMigrate).to.be.gt(bobHealth);
+        expect(bobDebtToShareMigrate).to.be.eq(bobDebt);
 
         // Check Alice position info
         // Same as Bob, Alice health after migrate should be come less than before migrate
@@ -1822,8 +1822,8 @@ describe("Vault - Pancakeswap Migrate", () => {
         // hence the contract will pump BTOKEN because it needs to sell FTOKEN for BTOKEN
         // Alice's debt must still the same
         let [aliceHealthAfterMigrate, aliceDebtToShareMigrate] = await vault.positionInfo("2");
-        expect(aliceHealthAfterMigrate).to.be.bignumber.gt(aliceHealth);
-        expect(aliceDebtToShareMigrate).to.be.bignumber.eq(aliceDebt);
+        expect(aliceHealthAfterMigrate).to.be.gt(aliceHealth);
+        expect(aliceDebtToShareMigrate).to.be.eq(aliceDebt);
 
         // Migratation is done; Now we want to remove migrateLP function from the worker
         const PancakeswapV2Worker = (await ethers.getContractFactory(
@@ -1877,15 +1877,15 @@ describe("Vault - Pancakeswap Migrate", () => {
         // Bob health after clean should eqaul to after migrate
         // Bob's debt must still the same
         let [bobHealthAfterClean, bobDebtClean] = await vault.positionInfo("1");
-        expect(bobHealthAfterClean).to.be.bignumber.eq(bobHealthAfterMigrate);
-        expect(bobDebtClean).to.be.bignumber.eq(bobDebt);
+        expect(bobHealthAfterClean).to.be.eq(bobHealthAfterMigrate);
+        expect(bobDebtClean).to.be.eq(bobDebt);
 
         // Check Alice position info
         // Alice health after clean should eqaul to after migrate
         // Alice's debt must still the same
         let [aliceHealthClean, aliceDebtClean] = await vault.positionInfo("2");
-        expect(aliceHealthClean).to.be.bignumber.eq(aliceHealthAfterMigrate);
-        expect(aliceDebtClean).to.be.bignumber.eq(aliceDebt);
+        expect(aliceHealthClean).to.be.eq(aliceHealthAfterMigrate);
+        expect(aliceDebtClean).to.be.eq(aliceDebt);
 
         // ---------------- Reinvest#3 -------------------
         // Wait for 1 day and someone calls reinvest
@@ -1908,7 +1908,7 @@ describe("Vault - Pancakeswap Migrate", () => {
 
         [workerLPAfter, workerDebtAfter] = await masterChef.userInfo(lpV2poolId, pancakeswapWorker.address);
         // LP tokens of worker should be inceased from reinvestment
-        expect(workerLPAfter).to.be.bignumber.gt(workerLPBefore);
+        expect(workerLPAfter).to.be.gt(workerLPBefore);
 
         // Bob try to close position#1 with disabled strategy
         await expect(
@@ -1997,14 +1997,14 @@ describe("Vault - Pancakeswap Migrate", () => {
         const aliceAfter = await baseToken.balanceOf(await alice.getAddress());
 
         // Check Alice account, Alice must be richer as she earned from leverage yield farm without getting liquidated
-        expect(aliceAfter).to.be.bignumber.gt(aliceBefore);
+        expect(aliceAfter).to.be.gt(aliceBefore);
 
         // there should be no LPv1 and LPv2 left in Worker, MasterChef as every exited the positions
         const [stakedLPv2] = await masterChef.userInfo(lpV2poolId, pancakeswapWorker.address);
         const [stakedLPv1] = await masterChef.userInfo(poolId, pancakeswapWorker.address);
 
-        expect(stakedLPv1).to.be.bignumber.eq(0);
-        expect(stakedLPv2).to.be.bignumber.eq(0);
+        expect(stakedLPv1).to.be.eq(0);
+        expect(stakedLPv2).to.be.eq(0);
       }).timeout(50000);
     });
   });

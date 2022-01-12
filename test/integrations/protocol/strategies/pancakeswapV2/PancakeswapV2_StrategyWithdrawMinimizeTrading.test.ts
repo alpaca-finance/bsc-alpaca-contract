@@ -174,10 +174,8 @@ describe("PancakeswapV2 - StrategyWithdrawMinimizeTrading", () => {
         FOREVER
       );
 
-      expect(await farmingToken.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("0.9"));
-      expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("0.316227766016837933")
-      );
+      expect(await farmingToken.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("0.9"));
+      expect(await lp.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("0.316227766016837933"));
 
       await lpAsBob.transfer(strat.address, ethers.utils.parseEther("0.316227766016837933"));
     });
@@ -218,10 +216,10 @@ describe("PancakeswapV2 - StrategyWithdrawMinimizeTrading", () => {
       // - Bob should have 0 LP
       // - Bob should have 1 BTOKEN from contract return debt to Bob (Bob is msg.sender)
       // - Bob should have 0.1 FTOKEN as no swap is needed
-      expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      expect(bobBaseTokenAfter.sub(bobBaseTokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther("1"));
-      expect(bobFTOKENAfter.sub(bobFTOKENBefore)).to.be.bignumber.eq(ethers.utils.parseEther("0.1"));
+      expect(await lp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+      expect(await lp.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("0"));
+      expect(bobBaseTokenAfter.sub(bobBaseTokenBefore)).to.be.eq(ethers.utils.parseEther("1"));
+      expect(bobFTOKENAfter.sub(bobFTOKENBefore)).to.be.eq(ethers.utils.parseEther("0.1"));
     });
 
     it("should convert all LP tokens back to BaseToken and FTOKEN when debt < received BaseToken", async () => {
@@ -246,10 +244,10 @@ describe("PancakeswapV2 - StrategyWithdrawMinimizeTrading", () => {
       // - Bob should have 0 LP
       // - Bob should have 1 BTOKEN from contract return 0.5 BTOKEN debt to Bob (Bob is msg.sender) and another 0.5 leftover BTOKEN
       // - Bob should have 0.1 - [(0.1*0.2*10000)/(1-0.2*9975)] = 0.074937343358395989
-      expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      expect(bobBtokenAfter.sub(bobBtokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther("1"));
-      expect(bobFtokenAfter.sub(bobFtokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther("0.1"));
+      expect(await lp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+      expect(await lp.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("0"));
+      expect(bobBtokenAfter.sub(bobBtokenBefore)).to.be.eq(ethers.utils.parseEther("1"));
+      expect(bobFtokenAfter.sub(bobFtokenBefore)).to.be.eq(ethers.utils.parseEther("0.1"));
     });
 
     it("should convert all LP tokens back to BaseToken and farming token (debt > received BaseToken, farming token is enough to cover debt)", async () => {
@@ -274,10 +272,10 @@ describe("PancakeswapV2 - StrategyWithdrawMinimizeTrading", () => {
       // - Bob should have 0 LP
       // - Bob should have 1.2 BTOKEN from contract return debt to Bob (Bob is msg.sender)
       // - Bob should have 0.1 - [(0.1*0.2*10000)/((1-0.2)*9975)] = 0.074937343358395989
-      expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      expect(bobBtokenAfter.sub(bobBtokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther("1.2"));
-      expect(bobFtokenAfter.sub(bobFtokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther("0.074937343358395989")); // 0.1 - 0.025 = 0.075 farming token
+      expect(await lp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+      expect(await lp.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("0"));
+      expect(bobBtokenAfter.sub(bobBtokenBefore)).to.be.eq(ethers.utils.parseEther("1.2"));
+      expect(bobFtokenAfter.sub(bobFtokenBefore)).to.be.eq(ethers.utils.parseEther("0.074937343358395989")); // 0.1 - 0.025 = 0.075 farming token
     });
 
     it("should revert when debt > received BaseToken, farming token is not enough to cover the debt", async () => {
@@ -328,8 +326,8 @@ describe("PancakeswapV2 - StrategyWithdrawMinimizeTrading", () => {
         FOREVER
       );
 
-      expect(await wbnb.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("0.9"));
-      expect(await baseTokenWbnbLp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(
+      expect(await wbnb.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("0.9"));
+      expect(await baseTokenWbnbLp.balanceOf(await bob.getAddress())).to.be.eq(
         ethers.utils.parseEther("0.316227766016837933")
       );
 
@@ -374,9 +372,9 @@ describe("PancakeswapV2 - StrategyWithdrawMinimizeTrading", () => {
       // - Bob should have 0 LP
       // - Bob should have 1 BTOKEN from contract return debt to Bob (Bob is msg.sender)
       // - Bob should have 0.1 FTOKEN
-      expect(await baseTokenWbnbLp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      expect(await baseTokenWbnbLp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      expect(bobBaseTokenAfter.sub(bobBaseTokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther("1"));
+      expect(await baseTokenWbnbLp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+      expect(await baseTokenWbnbLp.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("0"));
+      expect(bobBaseTokenAfter.sub(bobBaseTokenBefore)).to.be.eq(ethers.utils.parseEther("1"));
       expect(bobBnbAfter.sub(bobBnbBefore)).to.be.eq(ethers.utils.parseEther("0.1"));
     });
 
@@ -404,9 +402,9 @@ describe("PancakeswapV2 - StrategyWithdrawMinimizeTrading", () => {
       // - Bob should have 0 LP
       // - Bob should have 1 BTOKEN from contract return 0.5 BTOKEN debt to Bob (Bob is msg.sender) + 0.5 BTOKEN leftover
       // - Bob should have 0.1 FTOKEN as no swap needed
-      expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      expect(bobBtokenAfter.sub(bobBtokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther("1"));
+      expect(await lp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+      expect(await lp.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("0"));
+      expect(bobBtokenAfter.sub(bobBtokenBefore)).to.be.eq(ethers.utils.parseEther("1"));
       TestHelpers.assertAlmostEqual(
         ethers.utils.parseEther("0.1").toString(),
         bobBnbAfter.sub(bobBnbBefore).toString()
@@ -437,10 +435,10 @@ describe("PancakeswapV2 - StrategyWithdrawMinimizeTrading", () => {
       // - Bob should have 0 LP
       // - Bob should have 1.2 BTOKEN from contract return debt to Bob (Bob is msg.sender)
       // - Bob should have 0.1 - [(0.1*0.2*10000)/((1-0.2)*9975)] = 0.074937343358395989
-      expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      expect(bobBtokenAfter.sub(bobBtokenBefore)).to.be.bignumber.eq(ethers.utils.parseEther("1.2"));
-      expect(bobBnbAfter.sub(bobBnbBefore)).to.be.bignumber.eq(ethers.utils.parseEther("0.074937343358395989"));
+      expect(await lp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+      expect(await lp.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("0"));
+      expect(bobBtokenAfter.sub(bobBtokenBefore)).to.be.eq(ethers.utils.parseEther("1.2"));
+      expect(bobBnbAfter.sub(bobBnbBefore)).to.be.eq(ethers.utils.parseEther("0.074937343358395989"));
     });
 
     it("should revert when debt > received BaseToken, BNB is not enough to cover the debt", async () => {

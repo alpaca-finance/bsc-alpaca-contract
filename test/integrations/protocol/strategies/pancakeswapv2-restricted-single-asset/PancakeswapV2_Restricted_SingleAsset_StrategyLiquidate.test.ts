@@ -308,12 +308,10 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyLiquidate", () => {
 
       // the worker will send 0.499374217772215269 wbnb back to alice
       // so alice will get 50.499374217772215269 - 50 = 0.499374217772215269
-      expect(aliceBalanceAfter.sub(aliceBalanceBefore)).to.be.bignumber.eq(
-        ethers.utils.parseEther("0.499374217772215269")
-      );
-      expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      expect(await wbnb.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(
+      expect(aliceBalanceAfter.sub(aliceBalanceBefore)).to.be.eq(ethers.utils.parseEther("0.499374217772215269"));
+      expect(await farmingToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+      expect(await wbnb.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+      expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.eq(
         ethers.utils.parseEther("0")
       );
     });
@@ -412,12 +410,10 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyLiquidate", () => {
 
       // the worker will send 0.332499305557005937 baseToken back to alice
       // thus, alice will get 99.332499305557005937 - 99 = 0.332499305557005937
-      expect(aliceBalanceAfter.sub(aliceBalanceBefore)).to.be.bignumber.eq(
-        ethers.utils.parseEther("0.332499305557005937")
-      );
-      expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(
+      expect(aliceBalanceAfter.sub(aliceBalanceBefore)).to.be.eq(ethers.utils.parseEther("0.332499305557005937"));
+      expect(await farmingToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+      expect(await baseToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+      expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.eq(
         ethers.utils.parseEther("0")
       );
     });

@@ -291,14 +291,12 @@ describe("MdexRestricted_StrategyLiquidate", () => {
         FOREVER
       );
 
-      expect(await baseToken.balanceOf(await alice.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("99"));
-      expect(await baseToken.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("99"));
-      expect(await farmingToken.balanceOf(await alice.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("9.9"));
-      expect(await farmingToken.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("9.9"));
+      expect(await baseToken.balanceOf(await alice.getAddress())).to.be.eq(ethers.utils.parseEther("99"));
+      expect(await baseToken.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("99"));
+      expect(await farmingToken.balanceOf(await alice.getAddress())).to.be.eq(ethers.utils.parseEther("9.9"));
+      expect(await farmingToken.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("9.9"));
 
-      expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(
-        ethers.utils.parseEther("0.316227766016837933")
-      );
+      expect(await lp.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("0.316227766016837933"));
 
       // Bob's position: 0.316227766016837933 LP
       // The following conditions must be satisfied if strategy executed successfully
@@ -358,11 +356,11 @@ describe("MdexRestricted_StrategyLiquidate", () => {
       expect(
         bobBTokenAfter.sub(bobBTokenBefore),
         "Bob's balance should increase by 1.499374217772215269 BTOKEN"
-      ).to.be.bignumber.eq(ethers.utils.parseEther("1").add(ethers.utils.parseEther("0.499374217772215269")));
-      expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      expect(await baseToken.balanceOf(lp.address)).to.be.bignumber.eq(ethers.utils.parseEther("0.500625782227784731"));
-      expect(await farmingToken.balanceOf(lp.address)).to.be.bignumber.eq(ethers.utils.parseEther("0.2"));
+      ).to.be.eq(ethers.utils.parseEther("1").add(ethers.utils.parseEther("0.499374217772215269")));
+      expect(await lp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+      expect(await lp.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("0"));
+      expect(await baseToken.balanceOf(lp.address)).to.be.eq(ethers.utils.parseEther("0.500625782227784731"));
+      expect(await farmingToken.balanceOf(lp.address)).to.be.eq(ethers.utils.parseEther("0.2"));
       // formula is blockReward*poolAlloc/totalAlloc = (825600000000000000000 *100/100 )+ (51600000000000000000 *100/100) = 877200000000000000000
       expect(prevBlockRewardMining).to.be.eq("825600000000000000000");
       expect(totalMiningRewards).to.be.eq("877200000000000000000");

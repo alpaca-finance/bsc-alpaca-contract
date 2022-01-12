@@ -2,7 +2,7 @@ import { TimelockEntity } from "../../entities";
 import { ethers } from "hardhat";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import TimelockTransactions from "../../results/1640862310_testnet_set_whitelisted_callers.json";
+import TimelockTransactions from "../../results/1641894244_testnet_set_whitelisted_callers.json";
 import { FileService, TimelockService } from "../../services";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {

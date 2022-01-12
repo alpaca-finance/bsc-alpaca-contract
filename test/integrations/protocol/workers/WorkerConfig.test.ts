@@ -22,8 +22,8 @@ import {
   MockPancakeswapV2Worker__factory,
   PancakePair__factory,
   IERC20__factory,
-} from "../typechain";
-import * as TimeHelpers from "./helpers/time";
+} from "../../../../typechain";
+import * as TimeHelpers from "../../../helpers/time";
 
 chai.use(solidity);
 const { expect } = chai;

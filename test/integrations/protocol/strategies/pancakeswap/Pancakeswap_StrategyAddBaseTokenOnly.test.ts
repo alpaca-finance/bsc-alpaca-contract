@@ -154,11 +154,9 @@ describe("Pancakeswap - StrategyAddBaseTokenOnly", () => {
       )
     );
 
-    expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(
-      ethers.utils.parseEther("0.015419263215025115")
-    );
-    expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-    expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+    expect(await lp.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("0.015419263215025115"));
+    expect(await lp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+    expect(await farmingToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
 
     // Bob uses AddBaseTokenOnly strategy to add another 0.1 WBTC
     await baseTokenAsBob.transfer(strat.address, ethers.utils.parseEther("0.1"));
@@ -172,11 +170,9 @@ describe("Pancakeswap - StrategyAddBaseTokenOnly", () => {
       )
     );
 
-    expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(
-      ethers.utils.parseEther("0.030151497260262730")
-    );
-    expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-    expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+    expect(await lp.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("0.030151497260262730"));
+    expect(await lp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+    expect(await farmingToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
 
     // Bob uses AddBaseTokenOnly strategy yet again, but now with an unreasonable min LP request
     await baseTokenAsBob.transfer(strat.address, ethers.utils.parseEther("0.1"));

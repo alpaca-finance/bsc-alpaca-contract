@@ -396,12 +396,12 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm", () => {
         // if 1WBNB = 0.1 FToken
         // 0.1 WBNB will be (0.1 * 0.9975 * 0.1) / ( 1 + 0.1 * 0.9975) = 0.00907024323709934 FTOKEN
         // thus, the strategy will receive 0.00907024323709934 FTOKEN
-        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(
+        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.eq(
           ethers.utils.parseEther("0.00907024323709934")
         );
-        expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(await wbnb.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(await wbnb.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(
+        expect(await farmingToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await wbnb.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await wbnb.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.eq(
           ethers.utils.parseEther("0")
         );
 
@@ -426,14 +426,14 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm", () => {
         // if 1.1 WBNB = 0.09092975676290066 FToken
         // 0.1 WBNB will be (0.1 * 0.9975 * 0.09092975676290066) / (1.1 + 0.1 * 0.9975) = 0.0075601110540523785 FTOKEN
         // thus, the current amount of the strategy accumulated with the previous one will be 0.0075601110540523785 + 0.00907024323709934 + 0.04 = 0.05663035429115172 FTOKEN
-        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(
+        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.eq(
           ethers.utils.parseEther("0.056630354291151718")
         );
-        expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(await wbnb.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(
+        expect(await farmingToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await wbnb.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.eq(
           ethers.utils.parseEther("0")
         );
-        expect(await wbnb.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+        expect(await wbnb.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
       });
     });
 
@@ -450,12 +450,12 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm", () => {
         );
         // Alice uses AddBaseWithFarm strategy to add 0 WBNB
         // Thus no token from farming token and WBNB will be took into account.
-        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(
+        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.eq(
           ethers.utils.parseEther("0")
         );
-        expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(await wbnb.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(await wbnb.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(
+        expect(await farmingToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await wbnb.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await wbnb.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.eq(
           ethers.utils.parseEther("0")
         );
 
@@ -475,14 +475,14 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm", () => {
 
         // Alice uses AddBaseWithFarm strategy to add another 0 WBNB and 0.04 FToken
         // thus, the strategy will receive 0.04 FToken
-        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(
+        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.eq(
           ethers.utils.parseEther("0.04")
         );
-        expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(await wbnb.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.bignumber.eq(
+        expect(await farmingToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await wbnb.balanceOf(mockPancakeswapV2WorkerBNBFtokenPair.address)).to.be.eq(
           ethers.utils.parseEther("0")
         );
-        expect(await wbnb.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+        expect(await wbnb.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
       });
     });
   });
@@ -652,12 +652,12 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm", () => {
         // if 1 BNB = 0.1 FTOKEN
         // 0.09070243237099342 BNB = (0.09070243237099342 * 0.9975 * 0.1) / (1 + 0.09070243237099342 * 0.9975) = 0.008296899991192416 FTOKEN
         // Thus, the strategy will receive 0.008296899991192416 FTOKEN
-        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(
+        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.eq(
           ethers.utils.parseEther("0.008296899991192416")
         );
-        expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(await baseToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(
+        expect(await farmingToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await baseToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await baseToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.eq(
           ethers.utils.parseEther("0")
         );
 
@@ -683,11 +683,11 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm", () => {
         // if (1 + 0.09070243237099342) = (0.1 - 0.008296899991192416) FTOKEN
         // 0.07560111054052378 BNB = (0.07560111054052378 * 0.9975  * (0.1 - 0.008296899991192416)) / (1 + 0.09070243237099342) + 0.07560111054052378 * 0.9975)) = 0.005930398620508835 FTOKEN
         // total of farmingToken of strategy will be 0.005930398620508835 + 0.008296899991192416 + 0.04 = 0.05422729861170125 FToken
-        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(
+        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.eq(
           ethers.utils.parseEther("0.054227298611701251")
         );
-        expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(await baseToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(
+        expect(await farmingToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await baseToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.eq(
           ethers.utils.parseEther("0")
         );
       });
@@ -707,12 +707,12 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm", () => {
 
         // Alice uses AddBaseWithFarm strategy to add 0 BToken
         // Thus no token from farming token and BToken will be took into account.
-        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(
+        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.eq(
           ethers.utils.parseEther("0")
         );
-        expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(await baseToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(
+        expect(await farmingToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await baseToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await baseToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.eq(
           ethers.utils.parseEther("0")
         );
 
@@ -732,11 +732,11 @@ describe("PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm", () => {
 
         // Alice uses AddBaseWithFarm strategy to add another 0 BToken and 0.04 FTOKEN
         // thus, the current amount accumulated with the previous one will be 0.04 FTOKEN
-        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(
+        expect(await farmingToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.eq(
           ethers.utils.parseEther("0.04")
         );
-        expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-        expect(await baseToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.bignumber.eq(
+        expect(await farmingToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await baseToken.balanceOf(mockPancakeswapV2WorkerBaseFTokenPair.address)).to.be.eq(
           ethers.utils.parseEther("0")
         );
       });
