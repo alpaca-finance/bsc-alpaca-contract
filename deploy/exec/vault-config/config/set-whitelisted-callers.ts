@@ -32,44 +32,46 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const TARGETED_VAULT_CONFIG: Array<IInput> = [
     {
       VAULT_SYMBOL: "ibWBNB",
-      WHITELISTED_CALLERS: ["0x16Ba77a1398bA7f18e6ecaE82E2e170556b6822E"],
+      WHITELISTED_CALLERS: ["0xD378d37fA8040370fe42bc732e5B2A169096d3e1"],
       IS_ENABLE: true,
     },
-    {
-      VAULT_SYMBOL: "ibBUSD",
-      WHITELISTED_CALLERS: ["0x16Ba77a1398bA7f18e6ecaE82E2e170556b6822E"],
-      IS_ENABLE: true,
-    },
-    {
-      VAULT_SYMBOL: "ibETH",
-      WHITELISTED_CALLERS: ["0x16Ba77a1398bA7f18e6ecaE82E2e170556b6822E"],
-      IS_ENABLE: true,
-    },
-    {
-      VAULT_SYMBOL: "ibALPACA",
-      WHITELISTED_CALLERS: ["0x16Ba77a1398bA7f18e6ecaE82E2e170556b6822E"],
-      IS_ENABLE: true,
-    },
-    {
-      VAULT_SYMBOL: "ibUSDT",
-      WHITELISTED_CALLERS: ["0x16Ba77a1398bA7f18e6ecaE82E2e170556b6822E"],
-      IS_ENABLE: true,
-    },
-    {
-      VAULT_SYMBOL: "ibBTCB",
-      WHITELISTED_CALLERS: ["0x16Ba77a1398bA7f18e6ecaE82E2e170556b6822E"],
-      IS_ENABLE: true,
-    },
-    {
-      VAULT_SYMBOL: "ibTUSD",
-      WHITELISTED_CALLERS: ["0x16Ba77a1398bA7f18e6ecaE82E2e170556b6822E"],
-      IS_ENABLE: true,
-    },
+    // {
+    //   VAULT_SYMBOL: "ibBUSD",
+    //   WHITELISTED_CALLERS: ["0x36488cC6F2E0f96e8814F315BDF4229c9c82d60A"],
+    //   IS_ENABLE: true,
+    // },
+    // {
+    //   VAULT_SYMBOL: "ibETH",
+    //   WHITELISTED_CALLERS: ["0x36488cC6F2E0f96e8814F315BDF4229c9c82d60A"],
+    //   IS_ENABLE: true,
+    // },
+    // {
+    //   VAULT_SYMBOL: "ibALPACA",
+    //   WHITELISTED_CALLERS: ["0x36488cC6F2E0f96e8814F315BDF4229c9c82d60A"],
+    //   IS_ENABLE: true,
+    // },
+    // {
+    //   VAULT_SYMBOL: "ibUSDT",
+    //   WHITELISTED_CALLERS: ["0x36488cC6F2E0f96e8814F315BDF4229c9c82d60A"],
+    //   IS_ENABLE: true,
+    // },
+    // {
+    //   VAULT_SYMBOL: "ibBTCB",
+    //   WHITELISTED_CALLERS: ["0x36488cC6F2E0f96e8814F315BDF4229c9c82d60A"],
+    //   IS_ENABLE: true,
+    // },
+    // {
+    //   VAULT_SYMBOL: "ibTUSD",
+    //   WHITELISTED_CALLERS: ["0x36488cC6F2E0f96e8814F315BDF4229c9c82d60A"],
+    //   IS_ENABLE: true,
+    // },
   ];
-  const EXACT_ETA = "1641894300";
+  const EXACT_ETA = "1642237200";
 
   const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
+  const deployer = (await ethers.getSigners())[0];
+  let nonce = await deployer.getTransactionCount();
 
   const inputs: Array<IDerivedInput> = TARGETED_VAULT_CONFIG.map((tv) => {
     const vault = config.Vaults.find((v) => tv.VAULT_SYMBOL == v.symbol);
@@ -97,7 +99,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         ["address[]", "bool"],
         [i.whitelistedCallers, i.isEnable],
         EXACT_ETA,
-        { gasPrice: ethers.utils.parseUnits("15", "gwei") }
+        { gasPrice: ethers.utils.parseUnits("15", "gwei"), nonce: nonce++ }
       )
     );
   }
