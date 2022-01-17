@@ -270,11 +270,11 @@
     "chai": "^4.3.0",
     "chai-bn": "^0.2.1",
     "dotenv": "^8.2.0",
-    "ethereum-waffle": "^3.2.2",
+    "ethereum-waffle": "^3.4.0",
     "ethereumjs-util": "^7.0.10",
     "ethers": "^5.5.1",
     "hardhat": "^2.8.0",
-    "hardhat-deploy": "^0.7.0-beta.45",
+    "hardhat-deploy": "^0.9.24",
     "prettier": "^2.3.0",
     "prettier-plugin-solidity": "^1.0.0-beta.10",
     "solhint": "^3.3.4",
@@ -294,6 +294,9 @@
     ".staging.json",
     ".mainnet.json"
   ],
+  "resolutions": {
+    "lodash": ">=4.17.21"
+  },
   "engines": {
     "node": ">=12"
   }

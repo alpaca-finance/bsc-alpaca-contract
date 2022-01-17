@@ -74,12 +74,48 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const shortWorkerInfos: IPancakeswapWorkerInput[] = [
     {
-      VAULT_SYMBOL: "ibWBNB",
-      WORKER_NAME: "THG-WBNB PancakeswapWorker",
+      VAULT_SYMBOL: "ibUSDC",
+      WORKER_NAME: "ETH-USDC PancakeswapWorker",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 488,
+      POOL_ID: 409,
       REINVEST_BOUNTY_BPS: "900",
-      REINVEST_PATH: ["CAKE", "WBNB"],
+      REINVEST_PATH: ["CAKE", "BUSD", "USDC"],
+      REINVEST_THRESHOLD: "1",
+      WORK_FACTOR: "7000",
+      KILL_FACTOR: "8333",
+      MAX_PRICE_DIFF: "10500",
+      BENEFICIAL_VAULT: {
+        BENEFICIAL_VAULT_BPS: "5555",
+        BENEFICIAL_VAULT_ADDRESS: "0x44B3868cbba5fbd2c5D8d1445BDB14458806B3B4",
+        REWARD_PATH: ["CAKE", "BUSD", "ALPACA"],
+      },
+      EXACT_ETA: "1642053600",
+    },
+    {
+      VAULT_SYMBOL: "ibETH",
+      WORKER_NAME: "USDC-ETH PancakeswapWorker",
+      REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
+      POOL_ID: 409,
+      REINVEST_BOUNTY_BPS: "900",
+      REINVEST_PATH: ["CAKE", "WBNB", "ETH"],
+      REINVEST_THRESHOLD: "1",
+      WORK_FACTOR: "7000",
+      KILL_FACTOR: "8333",
+      MAX_PRICE_DIFF: "10500",
+      BENEFICIAL_VAULT: {
+        BENEFICIAL_VAULT_BPS: "5555",
+        BENEFICIAL_VAULT_ADDRESS: "0x44B3868cbba5fbd2c5D8d1445BDB14458806B3B4",
+        REWARD_PATH: ["CAKE", "BUSD", "ALPACA"],
+      },
+      EXACT_ETA: "1642053600",
+    },
+    {
+      VAULT_SYMBOL: "ibBUSD",
+      WORKER_NAME: "HIGH-BUSD PancakeswapWorker",
+      REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
+      POOL_ID: 491,
+      REINVEST_BOUNTY_BPS: "900",
+      REINVEST_PATH: ["CAKE", "BUSD"],
       REINVEST_THRESHOLD: "1",
       WORK_FACTOR: "5200",
       KILL_FACTOR: "7000",
@@ -89,7 +125,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         BENEFICIAL_VAULT_ADDRESS: "0x44B3868cbba5fbd2c5D8d1445BDB14458806B3B4",
         REWARD_PATH: ["CAKE", "BUSD", "ALPACA"],
       },
-      EXACT_ETA: "1640240100",
+      EXACT_ETA: "1642053600",
     },
   ];
 
@@ -169,8 +205,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       workerInfos[i].REINVEST_PATH,
       workerInfos[i].REINVEST_THRESHOLD,
     ])) as PancakeswapV2Worker02;
-    await pancakeswapV2Worker02.deployed();
+    const deployedTx = await pancakeswapV2Worker02.deployTransaction.wait(3);
     console.log(`>> Deployed at ${pancakeswapV2Worker02.address}`);
+    console.log(`>> Deployed block: ${deployedTx.blockNumber}`);
 
     let nonce = await deployer.getTransactionCount();
 
