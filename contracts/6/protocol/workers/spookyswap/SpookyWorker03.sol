@@ -509,6 +509,7 @@ contract SpookyWorker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   /// @param _treasuryAccount - The treasury address to update
   /// @param _treasuryBountyBps - The treasury bounty to update
   function setTreasuryConfig(address _treasuryAccount, uint256 _treasuryBountyBps) external onlyOwner {
+    require(_treasuryAccount != address(0), "bad _treasuryAccount");
     require(_treasuryBountyBps <= maxReinvestBountyBps, "exceeded maxReinvestBountyBps");
 
     treasuryAccount = _treasuryAccount;
