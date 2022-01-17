@@ -135,8 +135,7 @@ contract Vault2 is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, Ownable
     address _token,
     string calldata _name,
     string calldata _symbol,
-    uint8 _decimals,
-    address _debtToken
+    uint8 _decimals
   ) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
