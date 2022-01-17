@@ -27,7 +27,7 @@ import "../../interfaces/IWorker03.sol";
 
 import "../../../utils/SafeToken.sol";
 
-contract SpookySwapRestrictedStrategyLiquidate is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
+contract SpookySwapStrategyLiquidate is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeMath for uint256;
   using SafeToken for address;
 

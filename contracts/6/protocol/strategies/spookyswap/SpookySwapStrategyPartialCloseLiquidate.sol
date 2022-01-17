@@ -26,11 +26,7 @@ import "../../interfaces/IWorker.sol";
 
 import "../../../utils/SafeToken.sol";
 
-contract SpookySwapRestrictedStrategyPartialCloseLiquidate is
-  OwnableUpgradeSafe,
-  ReentrancyGuardUpgradeSafe,
-  IStrategy
-{
+contract SpookySwapStrategyPartialCloseLiquidate is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeMath for uint256;
   using SafeToken for address;
 
@@ -39,7 +35,7 @@ contract SpookySwapRestrictedStrategyPartialCloseLiquidate is
 
   mapping(address => bool) public okWorkers;
 
-  event LogSpookySwapRestrictedStrategyPartialCloseLiquidate(
+  event LogSpookySwapStrategyPartialCloseLiquidate(
     address indexed baseToken,
     address indexed farmToken,
     uint256 amountToLiquidate,
@@ -102,7 +98,7 @@ contract SpookySwapRestrictedStrategyPartialCloseLiquidate is
     address(lpToken).safeApprove(address(router), 0);
     farmingToken.safeApprove(address(router), 0);
 
-    emit LogSpookySwapRestrictedStrategyPartialCloseLiquidate(baseToken, farmingToken, lpTokenToLiquidate, lessDebt);
+    emit LogSpookySwapStrategyPartialCloseLiquidate(baseToken, farmingToken, lpTokenToLiquidate, lessDebt);
   }
 
   function setWorkersOk(address[] calldata workers, bool isOk) external onlyOwner {

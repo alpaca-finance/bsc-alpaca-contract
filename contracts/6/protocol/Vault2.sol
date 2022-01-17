@@ -65,9 +65,7 @@ contract Vault2 is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, Ownable
   /// name - name of the ibERC20
   /// symbol - symbol of ibERC20
   /// decimals - decimals of ibERC20, this depends on the decimal of the token
-  /// debtToken - just a simple ERC20 token for staking with FairLaunch
   address public override token;
-  address public debtToken;
 
   struct Position {
     address worker;
@@ -78,7 +76,6 @@ contract Vault2 is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, Ownable
   IVaultConfig public config;
   mapping(uint256 => Position) public positions;
   uint256 public nextPositionID;
-  uint256 public fairLaunchPoolId;
 
   uint256 public vaultDebtShare;
   uint256 public vaultDebtVal;
@@ -150,12 +147,6 @@ contract Vault2 is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, Ownable
     config = _config;
     lastAccrueTime = now;
     token = _token;
-
-    fairLaunchPoolId = uint256(-1);
-
-    debtToken = _debtToken;
-
-    SafeToken.safeApprove(debtToken, config.getFairLaunchAddr(), uint256(-1));
 
     // free-up execution scope
     _IN_EXEC_LOCK = _NOT_ENTERED;
@@ -258,7 +249,6 @@ contract Vault2 is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, Ownable
     bool goRogue,
     bytes calldata data
   ) external payable onlyEOAorWhitelisted transferTokenToVault(amount) accrue(amount) nonReentrant {
-    require(fairLaunchPoolId != uint256(-1), "poolId not set");
     require(id != 0, "no id 0");
 
     // 1. Load position from state & sanity check
@@ -316,7 +306,6 @@ contract Vault2 is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, Ownable
     uint256 maxReturn,
     bytes calldata data
   ) external payable onlyEOAorWhitelisted transferTokenToVault(principalAmount) accrue(principalAmount) nonReentrant {
-    require(fairLaunchPoolId != uint256(-1), "poolId not set");
     // 1. Sanity check the input position, or add a new position of ID is 0.
     Position storage pos;
     if (id == 0) {
@@ -370,7 +359,6 @@ contract Vault2 is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, Ownable
   /// @dev Kill the given to the position. Liquidate it immediately if killFactor condition is met.
   /// @param id The position ID to be killed.
   function kill(uint256 id) external onlyWhitelistedLiqudators accrue(0) nonReentrant {
-    require(fairLaunchPoolId != uint256(-1), "poolId not set");
     // 1. Verify that the position is eligible for liquidation.
     Position storage pos = positions[id];
     require(pos.debtShare > 0, "no debt");
@@ -435,11 +423,6 @@ contract Vault2 is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, Ownable
   /// @param _config The new configurator address.
   function updateConfig(IVaultConfig _config) external onlyOwner {
     config = _config;
-  }
-
-  function setFairLaunchPoolId(uint256 _poolId) external onlyOwner {
-    SafeToken.safeApprove(debtToken, config.getFairLaunchAddr(), uint256(-1));
-    fairLaunchPoolId = _poolId;
   }
 
   /// @dev Withdraw BaseToken reserve for underwater positions to the given address.

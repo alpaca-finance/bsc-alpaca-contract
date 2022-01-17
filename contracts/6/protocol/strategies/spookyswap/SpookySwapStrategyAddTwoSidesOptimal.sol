@@ -28,7 +28,7 @@ import "../../../utils/SafeToken.sol";
 import "../../../utils/AlpacaMath.sol";
 import "../../interfaces/IWorker03.sol";
 
-contract SpookySwapRestrictedStrategyAddTwoSidesOptimal is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
+contract SpookySwapStrategyAddTwoSidesOptimal is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeToken for address;
   using SafeMath for uint256;
 
