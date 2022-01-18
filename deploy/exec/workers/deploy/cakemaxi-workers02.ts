@@ -9,6 +9,8 @@ import {
   PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading__factory,
   CakeMaxiWorker02__factory,
   CakeMaxiWorker02,
+  PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate__factory,
+  PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading__factory,
 } from "../../../../typechain";
 import { ConfigEntity } from "../../../entities";
 
@@ -44,6 +46,8 @@ interface ICakeMaxiWorkerParams {
   LIQ_STRAT_ADDR: string;
   ADD_BASE_WITH_FARM_STRAT_ADDR: string;
   MINIMIZE_TRADE_STRAT_ADDR: string;
+  PARTIAL_CLOSE_LIQ_STRAT_ADDR: string;
+  PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR: string;
   REINVEST_BOUNTY_BPS: string;
   BENEFICIAL_VAULT_BOUNTY_BPS: string;
   PATH: Array<string>;
@@ -71,7 +75,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       VAULT_SYMBOL: "ibUSDC",
       WORKER_NAME: "USDC CakeMaxiWorker",
       POOL_ID: 0,
-      REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
+      REINVEST_BOT: "0xcf28b4da7d3ed29986831876b74af6e95211d3f9",
       BENEFICIAL_VAULT_SYMBOL: "AlpacaFeeder",
       REINVEST_BOUNTY_BPS: "1900",
       BENEFICIAL_VAULT_BOUNTY_BPS: "5263",
@@ -81,7 +85,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       PATH: ["USDC", "BUSD", "CAKE"],
       REWARD_PATH: ["CAKE", "BUSD", "ALPACA"],
       REINVEST_THRESHOLD: "1",
-      EXACT_ETA: "1642514700",
+      EXACT_ETA: "1642493700",
     },
   ];
 
@@ -95,7 +99,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     let beneficialVaultAddress = "";
     if (n.BENEFICIAL_VAULT_SYMBOL === "AlpacaFeeder") {
-      beneficialVaultAddress = "0x44B3868cbba5fbd2c5D8d1445BDB14458806B3B4";
+      beneficialVaultAddress =
+        network.name === "mainnet" || network.name === "mainnetfork"
+          ? "0x44B3868cbba5fbd2c5D8d1445BDB14458806B3B4"
+          : "0x5589FE5BEAe1C642A48eEFF5e80A761343D831a9";
     } else {
       beneficialVaultAddress = config.Vaults.find((v) => v.symbol === n.BENEFICIAL_VAULT_SYMBOL)!.address;
     }
@@ -136,6 +143,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       LIQ_STRAT_ADDR: config.SharedStrategies.PancakeswapSingleAsset.StrategyLiquidate,
       ADD_BASE_WITH_FARM_STRAT_ADDR: vault.StrategyAddTwoSidesOptimal.PancakeswapSingleAsset,
       MINIMIZE_TRADE_STRAT_ADDR: config.SharedStrategies.PancakeswapSingleAsset.StrategyWithdrawMinimizeTrading,
+      PARTIAL_CLOSE_LIQ_STRAT_ADDR: config.SharedStrategies.PancakeswapSingleAsset.StrategyPartialCloseLiquidate,
+      PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR:
+        config.SharedStrategies.PancakeswapSingleAsset.StrategyPartialCloseMinimizeTrading,
       REINVEST_BOUNTY_BPS: n.REINVEST_BOUNTY_BPS,
       BENEFICIAL_VAULT_BOUNTY_BPS: n.BENEFICIAL_VAULT_BOUNTY_BPS,
       WORK_FACTOR: n.WORK_FACTOR,
@@ -189,7 +199,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     console.log(`>> Adding Strategies`);
     await cakeMaxiWorker02.setStrategyOk(
-      [workerInfos[i].ADD_BASE_WITH_FARM_STRAT_ADDR, workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR],
+      [
+        workerInfos[i].ADD_BASE_WITH_FARM_STRAT_ADDR,
+        workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR,
+        workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR,
+        workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR,
+      ],
       true,
       { nonce: nonce++ }
     );
@@ -216,6 +231,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       deployer
     );
     await minimizeStrat.setWorkersOk([cakeMaxiWorker02.address], true, { nonce: nonce++ });
+    const partialCloseLiquidateStrat = PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate__factory.connect(
+      workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR,
+      deployer
+    );
+    await partialCloseLiquidateStrat.setWorkersOk([cakeMaxiWorker02.address], true, { nonce: nonce++ });
+    const partialCloseMinimizeStrat =
+      PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading__factory.connect(
+        workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR,
+        deployer
+      );
+    await partialCloseMinimizeStrat.setWorkersOk([cakeMaxiWorker02.address], true, { nonce: nonce++ });
     console.log("✅ Done");
 
     const timelock = Timelock__factory.connect(config.Timelock, deployer);
