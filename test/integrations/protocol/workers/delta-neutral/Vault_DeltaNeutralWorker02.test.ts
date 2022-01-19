@@ -23,8 +23,6 @@ import {
   PancakeswapV2RestrictedStrategyAddBaseTokenOnly,
   PancakeswapV2RestrictedStrategyLiquidate,
   PancakeswapV2RestrictedStrategyPartialCloseLiquidate,
-  PancakeswapV2Worker02,
-  PancakeswapV2Worker02__factory,
   DeltaNeutralWorker02,
   DeltaNeutralWorker02__factory,
   SimpleVaultConfig,

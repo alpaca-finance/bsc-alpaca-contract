@@ -18,7 +18,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 
 import "../utils/SafeToken.sol";
-import "./interfaces/ILPPriceCalculator.sol";
+import "./interfaces/IPriceHelper.sol";
 
 contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, OwnableUpgradeable {
   /// @notice Libraries
@@ -32,14 +32,14 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   address public stableToken;
   address public assetToken;
 
-  ILPPriceCalculator public lpCalculator;
+  IPriceHelper public priceHelper;
 
   function initialize(
     string calldata _name,
     string calldata _symbol,
     address _stableToken,
     address _assetToken,
-    ILPPriceCalculator _lpCalculator
+    IPriceHelper _priceHelper
   ) external initializer {
     OwnableUpgradeable.__Ownable_init();
     ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
@@ -47,7 +47,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
     stableToken = _stableToken;
     assetToken = _assetToken;
-    lpCalculator = _lpCalculator;
+    priceHelper = _priceHelper;
   }
 
   function deposit(

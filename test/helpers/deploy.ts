@@ -90,6 +90,7 @@ import {
   Oracle__factory,
   SwapMining,
   SwapMining__factory,
+  PriceHelper__factory,
 } from "../../typechain";
 
 import * as TimeHelpers from "../helpers/time";
@@ -635,6 +636,10 @@ export class DeployHelper {
     extraStrategies: string[],
     simpleVaultConfig: SimpleVaultConfig
   ): Promise<DeltaNeutralWorker02> {
+    const PriceHelper = (await ethers.getContractFactory("PriceHelper", this.deployer)) as PriceHelper__factory;
+    const mockPriceHelper = await PriceHelper.deploy();
+    await mockPriceHelper.deployed();
+
     const DeltaNeutralWorker02 = (await ethers.getContractFactory(
       "DeltaNeutralWorker02",
       this.deployer
@@ -645,12 +650,15 @@ export class DeployHelper {
       masterChef.address,
       routerV2.address,
       poolId,
-      addStrat.address,
-      liqStrat.address,
+      {
+        addStrat: addStrat.address,
+        liqStrat: liqStrat.address,
+      },
       reinvestBountyBps,
       treasuryAddress,
       reinvestPath,
       0,
+      mockPriceHelper,
     ])) as DeltaNeutralWorker02;
     await deltaNeutralWorker02.deployed();
 

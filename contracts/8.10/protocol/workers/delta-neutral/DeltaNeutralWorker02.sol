@@ -25,6 +25,7 @@ import "../../apis/pancake/IPancakeRouter02.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IWorker02.sol";
 import "../../interfaces/IPancakeMasterChef.sol";
+import "../../interfaces/IPriceHelper.sol";
 import "../../../utils/AlpacaMath.sol";
 import "../../../utils/SafeToken.sol";
 import "../../interfaces/IVault.sol";
@@ -36,9 +37,8 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
 
   /// @notice Events
   event Reinvest(address indexed caller, uint256 reward, uint256 bounty);
-  event AddShare(uint256 indexed id, uint256 share);
-  event RemoveShare(uint256 indexed id, uint256 share);
-  event Liquidate(uint256 indexed id, uint256 wad);
+  event MasterChefDeposit(uint256 lpAmount);
+  event MasterChefWithdraw(uint256 lpAmount);
   event SetTreasuryConfig(address indexed caller, address indexed account, uint256 bountyBps);
   event BeneficialVaultTokenBuyback(address indexed caller, IVault indexed beneficialVault, uint256 indexed buyback);
   event SetStrategyOK(address indexed caller, address indexed strategy, bool indexed isOk);
@@ -65,6 +65,7 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
   IPancakeFactory public factory;
   IPancakeRouter02 public router;
   IPancakePair public override lpToken;
+  IPriceHelper public priceHelper;
   address public wNative;
   address public override baseToken;
   address public override farmingToken;
@@ -73,11 +74,13 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
   uint256 public pid;
 
   /// @notice Mutable state variables
-  mapping(uint256 => uint256) public shares;
   mapping(address => bool) public okStrats;
-  uint256 public totalShare;
   IStrategy public addStrat;
   IStrategy public liqStrat;
+  struct Strategies {
+    IStrategy addStrat;
+    IStrategy liqStrat;
+  }
   uint256 public reinvestBountyBps;
   uint256 public maxReinvestBountyBps;
   mapping(address => bool) public okReinvestors;
@@ -96,6 +99,7 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
   uint256 public beneficialVaultBountyBps;
   address[] public rewardPath;
   uint256 public buybackAmount;
+  uint256 public totalLPBalance;
 
   function initialize(
     address _operator,
@@ -103,12 +107,12 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
     IPancakeMasterChef _masterChef,
     IPancakeRouter02 _router,
     uint256 _pid,
-    IStrategy _addStrat,
-    IStrategy _liqStrat,
+    Strategies calldata _strategies,
     uint256 _reinvestBountyBps,
     address _treasuryAccount,
     address[] calldata _reinvestPath,
-    uint256 _reinvestThreshold
+    uint256 _reinvestThreshold,
+    IPriceHelper _priceHelper
   ) external initializer {
     // 1. Initialized imported library
     OwnableUpgradeable.__Ownable_init();
@@ -130,10 +134,12 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
     address token1 = lpToken.token1();
     farmingToken = token0 == baseToken ? token1 : token0;
     cake = address(masterChef.cake());
+    priceHelper = _priceHelper;
+    totalLPBalance = 0;
 
     // 4. Assign critical strategy contracts
-    addStrat = _addStrat;
-    liqStrat = _liqStrat;
+    addStrat = _strategies.addStrat;
+    liqStrat = _strategies.liqStrat;
     okStrats[address(addStrat)] = true;
     okStrats[address(liqStrat)] = true;
 
@@ -188,22 +194,6 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
   modifier onlyWhitelistCaller(address user) {
     require(whitelistCallers[user], "DeltaNeutralWorker02::onlyWhitelistCaller:: not whitelist caller");
     _;
-  }
-
-  /// @dev Return the entitied LP token balance for the given shares.
-  /// @param share The number of shares to be converted to LP balance.
-  function shareToBalance(uint256 share) public view returns (uint256) {
-    if (totalShare == 0) return share; // When there's no share, 1 share = 1 balance.
-    (uint256 totalBalance, ) = masterChef.userInfo(pid, address(this));
-    return (share * totalBalance) / totalShare;
-  }
-
-  /// @dev Return the number of shares to receive if staking the given LP tokens.
-  /// @param balance the number of LP tokens to be converted to shares.
-  function balanceToShare(uint256 balance) public view returns (uint256) {
-    if (totalShare == 0) return balance; // When there's no share, 1 share = 1 balance.
-    (uint256 totalBalance, ) = masterChef.userInfo(pid, address(this));
-    return (balance * totalShare) / totalBalance;
   }
 
   /// @dev Re-invest whatever this worker has earned back to staked LP tokens.
@@ -275,7 +265,7 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
     if (treasuryAccount != address(0) && treasuryBountyBps != 0)
       _reinvest(treasuryAccount, treasuryBountyBps, actualBaseTokenBalance(), reinvestThreshold);
     // 2. Convert this position back to LP tokens.
-    _removeShare(id);
+    _masterChefWithdraw();
     // 3. Perform the worker strategy; sending LP tokens + BaseToken; expecting LP tokens + BaseToken.
     (address strat, bytes memory ext) = abi.decode(data, (address, bytes));
     require(okStrats[strat], "DeltaNeutralWorker02::work:: unapproved work strategy");
@@ -286,7 +276,7 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
     baseToken.safeTransfer(strat, actualBaseTokenBalance());
     IStrategy(strat).execute(user, debt, ext);
     // 4. Add LP tokens back to the farming pool.
-    _addShare(id);
+    _masterChefDeposit();
     // 5. Return any remaining BaseToken back to the operator.
     baseToken.safeTransfer(msg.sender, actualBaseTokenBalance());
   }
@@ -311,32 +301,14 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
   /// @dev Return the amount of BaseToken to receive if we are to liquidate the given position.
   /// @param id The position ID to perform health check.
   function health(uint256 id) external view override returns (uint256) {
-    // 1. Get the position's LP balance and LP total supply.
-    uint256 lpBalance = shareToBalance(shares[id]);
-    uint256 lpSupply = lpToken.totalSupply(); // Ignore pending mintFee as it is insignificant
-    // 2. Get the pool's total supply of BaseToken and FarmingToken.
-    (uint256 r0, uint256 r1, ) = lpToken.getReserves();
-    (uint256 totalBaseToken, uint256 totalFarmingToken) = lpToken.token0() == baseToken ? (r0, r1) : (r1, r0);
-    // 3. Convert the position's LP tokens to the underlying assets.
-    uint256 userBaseToken = (lpBalance * totalBaseToken) / lpSupply;
-    uint256 userFarmingToken = (lpBalance * totalFarmingToken) / lpSupply;
-    // 4. Convert all FarmingToken to BaseToken and return total BaseToken.
-    return
-      getMktSellAmount(userFarmingToken, totalFarmingToken - userFarmingToken, totalBaseToken - userBaseToken) +
-      userBaseToken;
+    uint256 _totalBalanceInUSD = priceHelper.lpToDollar(totalLPBalance, address(lpToken));
+    return _totalBalanceInUSD / priceHelper.getTokenPrice(address(baseToken));
   }
 
   /// @dev Liquidate the given position by converting it to BaseToken and return back to caller.
   /// @param id The position ID to perform liquidation
   function liquidate(uint256 id) external override onlyOperator nonReentrant {
-    // 1. Convert the position back to LP tokens and use liquidate strategy.
-    _removeShare(id);
-    lpToken.transfer(address(liqStrat), lpToken.balanceOf(address(this)));
-    liqStrat.execute(address(0), 0, abi.encode(0));
-    // 2. Return all available BaseToken back to the operator.
-    uint256 liquidatedAmount = actualBaseTokenBalance();
-    baseToken.safeTransfer(msg.sender, liquidatedAmount);
-    emit Liquidate(id, liquidatedAmount);
+    revert("DeltaNeutralWorker02::liquidate:: couldn't liquidate this worker");
   }
 
   /// @dev Some portion of a bounty from reinvest will be sent to beneficialVault to increase the size of totalToken.
@@ -382,34 +354,21 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
   }
 
   /// @dev Internal function to stake all outstanding LP tokens to the given position ID.
-  function _addShare(uint256 id) internal {
+  function _masterChefDeposit() internal {
     uint256 balance = lpToken.balanceOf(address(this));
     if (balance > 0) {
-      // 1. Approve token to be spend by masterChef
       address(lpToken).safeApprove(address(masterChef), type(uint256).max);
-      // 2. Convert balance to share
-      uint256 share = balanceToShare(balance);
-      // 3. Deposit balance to PancakeMasterChef
       masterChef.deposit(pid, balance);
-      // 4. Update shares
-      shares[id] = shares[id] + share;
-      totalShare = totalShare + share;
-      // 5. Reset approve token
-      address(lpToken).safeApprove(address(masterChef), 0);
-      emit AddShare(id, share);
+      totalLPBalance = totalLPBalance + balance;
+      emit MasterChefDeposit(balance);
     }
   }
 
-  /// @dev Internal function to remove shares of the ID and convert to outstanding LP tokens.
-  function _removeShare(uint256 id) internal {
-    uint256 share = shares[id];
-    if (share > 0) {
-      uint256 balance = shareToBalance(share);
-      masterChef.withdraw(pid, balance);
-      totalShare = totalShare - share;
-      shares[id] = 0;
-      emit RemoveShare(id, share);
-    }
+  /// @dev Internal function to withdraw all outstanding LP tokens.
+  function _masterChefWithdraw() internal {
+    masterChef.withdraw(pid, totalLPBalance);
+    totalLPBalance = 0;
+    emit MasterChefWithdraw(totalLPBalance);
   }
 
   /// @dev Return the path that the worker is working on.
