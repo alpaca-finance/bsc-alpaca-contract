@@ -43,6 +43,7 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
   event BeneficialVaultTokenBuyback(address indexed caller, IVault indexed beneficialVault, uint256 indexed buyback);
   event SetStrategyOK(address indexed caller, address indexed strategy, bool indexed isOk);
   event SetReinvestorOK(address indexed caller, address indexed reinvestor, bool indexed isOk);
+  event SetWhitelistCaller(address indexed caller, address indexed whitelistUser, bool indexed isOk);
   event SetCriticalStrategy(address indexed caller, IStrategy indexed addStrat, IStrategy indexed liqStrat);
   event SetMaxReinvestBountyBps(address indexed caller, uint256 indexed maxReinvestBountyBps);
   event SetRewardPath(address indexed caller, address[] newRewardPath);
@@ -80,6 +81,7 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
   uint256 public reinvestBountyBps;
   uint256 public maxReinvestBountyBps;
   mapping(address => bool) public okReinvestors;
+  mapping(address => bool) public whitelistCallers;
 
   /// @notice Configuration varaibles for PancakeswapV2
   uint256 public fee;
@@ -182,6 +184,12 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
     _;
   }
 
+  //// @dev Require that the caller must be whitelist callers.
+  modifier onlyWhitelistCaller(address user) {
+    require(whitelistCallers[user], "DeltaNeutralWorker02::onlyWhitelistCaller:: not whitelist caller");
+    _;
+  }
+
   /// @dev Return the entitied LP token balance for the given shares.
   /// @param share The number of shares to be converted to LP balance.
   function shareToBalance(uint256 share) public view returns (uint256) {
@@ -262,7 +270,7 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
     address user,
     uint256 debt,
     bytes calldata data
-  ) external override onlyOperator nonReentrant {
+  ) external override onlyWhitelistCaller(user) onlyOperator nonReentrant {
     // 1. If a treasury configs are not ready. Not reinvest.
     if (treasuryAccount != address(0) && treasuryBountyBps != 0)
       _reinvest(treasuryAccount, treasuryBountyBps, actualBaseTokenBalance(), reinvestThreshold);
@@ -506,6 +514,18 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
       okReinvestors[reinvestors[idx]] = isOk;
 
       emit SetReinvestorOK(msg.sender, reinvestors[idx], isOk);
+    }
+  }
+
+  /// @dev Set the given address's to be reinvestor.
+  /// @param callers - The whitelist caller addresses.
+  /// @param isOk - Whether to approve or unapprove the given strategies.
+  function setWhitelistCallers(address[] calldata callers, bool isOk) external onlyOwner {
+    uint256 len = callers.length;
+    for (uint256 idx = 0; idx < len; idx++) {
+      whitelistCallers[callers[idx]] = isOk;
+
+      emit SetWhitelistCaller(msg.sender, callers[idx], isOk);
     }
   }
 

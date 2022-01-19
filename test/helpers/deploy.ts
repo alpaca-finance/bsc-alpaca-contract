@@ -634,7 +634,7 @@ export class DeployHelper {
     reinvestPath: Array<string>,
     extraStrategies: string[],
     simpleVaultConfig: SimpleVaultConfig
-  ): Promise<PancakeswapV2Worker02> {
+  ): Promise<DeltaNeutralWorker02> {
     const DeltaNeutralWorker02 = (await ethers.getContractFactory(
       "DeltaNeutralWorker02",
       this.deployer
@@ -651,7 +651,7 @@ export class DeployHelper {
       treasuryAddress,
       reinvestPath,
       0,
-    ])) as PancakeswapV2Worker02;
+    ])) as DeltaNeutralWorker02;
     await deltaNeutralWorker02.deployed();
 
     await simpleVaultConfig.setWorker(deltaNeutralWorker02.address, true, true, workFactor, killFactor, true, true);

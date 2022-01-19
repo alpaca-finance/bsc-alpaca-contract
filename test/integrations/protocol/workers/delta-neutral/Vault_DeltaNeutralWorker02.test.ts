@@ -242,6 +242,10 @@ describe("Vault - PancakeswapV202", () => {
       [twoSidesStrat.address, minimizeStrat.address, partialCloseStrat.address, partialCloseMinimizeStrat.address],
       simpleVaultConfig
     );
+    await deltaNeutralWorker.setWhitelistCallers(
+      [vault.address, whitelistedContract.address, deltaNeutralWorker.address, aliceAddress, bobAddress, eveAddress],
+      true
+    );
 
     swapHelper = new SwapHelper(
       factoryV2.address,
