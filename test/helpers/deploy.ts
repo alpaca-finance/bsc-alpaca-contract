@@ -650,15 +650,12 @@ export class DeployHelper {
       masterChef.address,
       routerV2.address,
       poolId,
-      {
-        addStrat: addStrat.address,
-        liqStrat: liqStrat.address,
-      },
+      addStrat.address,
+      liqStrat.address,
       reinvestBountyBps,
       treasuryAddress,
       reinvestPath,
       0,
-      mockPriceHelper,
     ])) as DeltaNeutralWorker02;
     await deltaNeutralWorker02.deployed();
 

@@ -77,10 +77,6 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
   mapping(address => bool) public okStrats;
   IStrategy public addStrat;
   IStrategy public liqStrat;
-  struct Strategies {
-    IStrategy addStrat;
-    IStrategy liqStrat;
-  }
   uint256 public reinvestBountyBps;
   uint256 public maxReinvestBountyBps;
   mapping(address => bool) public okReinvestors;
@@ -107,12 +103,12 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
     IPancakeMasterChef _masterChef,
     IPancakeRouter02 _router,
     uint256 _pid,
-    Strategies calldata _strategies,
+    IStrategy _addStrat,
+    IStrategy _liqStrat,
     uint256 _reinvestBountyBps,
     address _treasuryAccount,
     address[] calldata _reinvestPath,
-    uint256 _reinvestThreshold,
-    IPriceHelper _priceHelper
+    uint256 _reinvestThreshold
   ) external initializer {
     // 1. Initialized imported library
     OwnableUpgradeable.__Ownable_init();
@@ -134,12 +130,11 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
     address token1 = lpToken.token1();
     farmingToken = token0 == baseToken ? token1 : token0;
     cake = address(masterChef.cake());
-    priceHelper = _priceHelper;
     totalLPBalance = 0;
 
     // 4. Assign critical strategy contracts
-    addStrat = _strategies.addStrat;
-    liqStrat = _strategies.liqStrat;
+    addStrat = _addStrat;
+    liqStrat = _liqStrat;
     okStrats[address(addStrat)] = true;
     okStrats[address(liqStrat)] = true;
 
@@ -433,6 +428,12 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
     reinvestPath = _reinvestPath;
 
     emit SetReinvestConfig(msg.sender, _reinvestBountyBps, _reinvestThreshold, _reinvestPath);
+  }
+
+  /// @dev Set PriceHelper contract.
+  /// @param _priceHelper - PriceHelper contract to update.
+  function setPriceHelper(IPriceHelper _priceHelper) external onlyOwner {
+    priceHelper = _priceHelper;
   }
 
   /// @dev Set Max reinvest reward for set upper limit reinvest bounty.
