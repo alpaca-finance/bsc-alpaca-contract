@@ -5,6 +5,8 @@ import {
   AlpacaToken__factory,
   CakeToken,
   CakeToken__factory,
+  DeltaNeutralWorker02,
+  DeltaNeutralWorker02__factory,
   DebtToken,
   DebtToken__factory,
   FairLaunch,
@@ -614,6 +616,56 @@ export class DeployHelper {
     });
 
     return pancakeswapV2Worker02;
+  }
+
+  public async deployDeltaNeutralWorker02(
+    vault: Vault,
+    btoken: MockERC20,
+    masterChef: PancakeMasterChef,
+    routerV2: PancakeRouterV2,
+    poolId: number,
+    workFactor: BigNumberish,
+    killFactor: BigNumberish,
+    addStrat: PancakeswapV2RestrictedStrategyAddBaseTokenOnly,
+    liqStrat: PancakeswapV2RestrictedStrategyLiquidate,
+    reinvestBountyBps: BigNumberish,
+    okReinvestor: string[],
+    treasuryAddress: string,
+    reinvestPath: Array<string>,
+    extraStrategies: string[],
+    simpleVaultConfig: SimpleVaultConfig
+  ): Promise<PancakeswapV2Worker02> {
+    const DeltaNeutralWorker02 = (await ethers.getContractFactory(
+      "DeltaNeutralWorker02",
+      this.deployer
+    )) as DeltaNeutralWorker02__factory;
+    const deltaNeutralWorker02 = (await upgrades.deployProxy(DeltaNeutralWorker02, [
+      vault.address,
+      btoken.address,
+      masterChef.address,
+      routerV2.address,
+      poolId,
+      addStrat.address,
+      liqStrat.address,
+      reinvestBountyBps,
+      treasuryAddress,
+      reinvestPath,
+      0,
+    ])) as PancakeswapV2Worker02;
+    await deltaNeutralWorker02.deployed();
+
+    await simpleVaultConfig.setWorker(deltaNeutralWorker02.address, true, true, workFactor, killFactor, true, true);
+    await deltaNeutralWorker02.setStrategyOk(extraStrategies, true);
+    await deltaNeutralWorker02.setReinvestorOk(okReinvestor, true);
+    await deltaNeutralWorker02.setTreasuryConfig(treasuryAddress, reinvestBountyBps);
+
+    extraStrategies.push(...[addStrat.address, liqStrat.address]);
+    extraStrategies.forEach(async (stratAddress) => {
+      const strat = PancakeswapV2RestrictedStrategyLiquidate__factory.connect(stratAddress, this.deployer);
+      await strat.setWorkersOk([deltaNeutralWorker02.address], true);
+    });
+
+    return deltaNeutralWorker02;
   }
 
   public async deployPancakeV2Worker(

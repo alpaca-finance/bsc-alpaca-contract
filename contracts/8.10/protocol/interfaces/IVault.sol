@@ -20,4 +20,6 @@ interface IVault {
     uint256 maxReturn,
     bytes calldata data
   ) external payable;
+
+  function token() external view returns (address);
 }
