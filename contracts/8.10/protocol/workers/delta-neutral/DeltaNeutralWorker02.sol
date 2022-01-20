@@ -44,7 +44,7 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
   event SetStrategyOK(address indexed caller, address indexed strategy, bool indexed isOk);
   event SetReinvestorOK(address indexed caller, address indexed reinvestor, bool indexed isOk);
   event SetWhitelistCaller(address indexed caller, address indexed whitelistUser, bool indexed isOk);
-  event SetCriticalStrategy(address indexed caller, IStrategy indexed addStrat, IStrategy indexed liqStrat);
+  event SetCriticalStrategy(address indexed caller, IStrategy indexed addStrat);
   event SetMaxReinvestBountyBps(address indexed caller, uint256 indexed maxReinvestBountyBps);
   event SetRewardPath(address indexed caller, address[] newRewardPath);
   event SetBeneficialVaultConfig(
@@ -76,15 +76,10 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
   /// @notice Mutable state variables
   mapping(address => bool) public okStrats;
   IStrategy public addStrat;
-  IStrategy public liqStrat;
   uint256 public reinvestBountyBps;
   uint256 public maxReinvestBountyBps;
   mapping(address => bool) public okReinvestors;
   mapping(address => bool) public whitelistCallers;
-
-  /// @notice Configuration varaibles for PancakeswapV2
-  uint256 public fee;
-  uint256 public feeDenom;
 
   /// @notice Upgraded State Variables for DeltaNeutralWorker02
   uint256 public reinvestThreshold;
@@ -95,7 +90,7 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
   uint256 public beneficialVaultBountyBps;
   address[] public rewardPath;
   uint256 public buybackAmount;
-  uint256 public totalLPBalance;
+  uint256 public totalLpBalance;
 
   function initialize(
     address _operator,
@@ -104,7 +99,6 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
     IPancakeRouter02 _router,
     uint256 _pid,
     IStrategy _addStrat,
-    IStrategy _liqStrat,
     uint256 _reinvestBountyBps,
     address _treasuryAccount,
     address[] calldata _reinvestPath,
@@ -130,13 +124,11 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
     address token1 = lpToken.token1();
     farmingToken = token0 == baseToken ? token1 : token0;
     cake = address(masterChef.cake());
-    totalLPBalance = 0;
+    totalLpBalance = 0;
 
     // 4. Assign critical strategy contracts
     addStrat = _addStrat;
-    liqStrat = _liqStrat;
     okStrats[address(addStrat)] = true;
-    okStrats[address(liqStrat)] = true;
 
     // 5. Assign Re-invest parameters
     reinvestBountyBps = _reinvestBountyBps;
@@ -146,11 +138,7 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
     treasuryBountyBps = _reinvestBountyBps;
     maxReinvestBountyBps = 900;
 
-    // 6. Set PancakeswapV2 swap fees
-    fee = 9975;
-    feeDenom = 10000;
-
-    // 7. Check if critical parameters are config properly
+    // 6. Check if critical parameters are config properly
     require(baseToken != cake, "DeltaNeutralWorker02::initialize:: base token cannot be a reward token");
     require(
       reinvestBountyBps <= maxReinvestBountyBps,
@@ -212,7 +200,7 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
   ) internal {
     require(_treasuryAccount != address(0), "DeltaNeutralWorker02::_reinvest:: bad treasury account");
     // 1. Withdraw all the rewards. Return if reward <= _reinvestThreshold.
-    masterChef.withdraw(pid, 0);
+    _masterChefWithdraw();
     uint256 reward = cake.myBalance();
     if (reward <= _reinvestThreshold) return;
 
@@ -236,7 +224,7 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
     addStrat.execute(address(0), 0, abi.encode(0));
 
     // 6. Stake LPs for more rewards
-    masterChef.deposit(pid, lpToken.balanceOf(address(this)));
+    _masterChefDeposit();
 
     // 7. Reset approval
     cake.safeApprove(address(router), 0);
@@ -259,7 +247,7 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
     // 1. If a treasury configs are not ready. Not reinvest.
     if (treasuryAccount != address(0) && treasuryBountyBps != 0)
       _reinvest(treasuryAccount, treasuryBountyBps, actualBaseTokenBalance(), reinvestThreshold);
-    // 2. Convert this position back to LP tokens.
+    // 2. Withdraw all LP tokens.
     _masterChefWithdraw();
     // 3. Perform the worker strategy; sending LP tokens + BaseToken; expecting LP tokens + BaseToken.
     (address strat, bytes memory ext) = abi.decode(data, (address, bytes));
@@ -276,33 +264,17 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
     baseToken.safeTransfer(msg.sender, actualBaseTokenBalance());
   }
 
-  /// @dev Return maximum output given the input amount and the status of Uniswap reserves.
-  /// @param aIn The amount of asset to market sell.
-  /// @param rIn the amount of asset in reserve for input.
-  /// @param rOut The amount of asset in reserve for output.
-  function getMktSellAmount(
-    uint256 aIn,
-    uint256 rIn,
-    uint256 rOut
-  ) public view returns (uint256) {
-    if (aIn == 0) return 0;
-    require(rIn > 0 && rOut > 0, "DeltaNeutralWorker02::getMktSellAmount:: bad reserve values");
-    uint256 aInWithFee = aIn * fee;
-    uint256 numerator = aInWithFee * rOut;
-    uint256 denominator = rIn * feeDenom + aInWithFee;
-    return numerator / denominator;
-  }
-
-  /// @dev Return the amount of BaseToken to receive if we are to liquidate the given position.
+  /// @dev Return the amount of BaseToken to receive.
   /// @param id The position ID to perform health check.
   function health(uint256 id) external view override returns (uint256) {
-    uint256 _totalBalanceInUSD = priceHelper.lpToDollar(totalLPBalance, address(lpToken));
+    uint256 _totalBalanceInUSD = priceHelper.lpToDollar(totalLpBalance, address(lpToken));
     return _totalBalanceInUSD / priceHelper.getTokenPrice(address(baseToken));
   }
 
   /// @dev Liquidate the given position by converting it to BaseToken and return back to caller.
   /// @param id The position ID to perform liquidation
   function liquidate(uint256 id) external override onlyOperator nonReentrant {
+    // NOTE: this worker not allow to liquidate position.
     revert("DeltaNeutralWorker02::liquidate:: couldn't liquidate this worker");
   }
 
@@ -354,16 +326,16 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
     if (balance > 0) {
       address(lpToken).safeApprove(address(masterChef), type(uint256).max);
       masterChef.deposit(pid, balance);
-      totalLPBalance = totalLPBalance + balance;
+      totalLpBalance = balance;
       emit MasterChefDeposit(balance);
     }
   }
 
   /// @dev Internal function to withdraw all outstanding LP tokens.
   function _masterChefWithdraw() internal {
-    masterChef.withdraw(pid, totalLPBalance);
-    totalLPBalance = 0;
-    emit MasterChefWithdraw(totalLPBalance);
+    masterChef.withdraw(pid, totalLpBalance);
+    totalLpBalance = 0;
+    emit MasterChefWithdraw(totalLpBalance);
   }
 
   /// @dev Return the path that the worker is working on.
@@ -505,12 +477,10 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
 
   /// @dev Update critical strategy smart contracts. EMERGENCY ONLY. Bad strategies can steal funds.
   /// @param _addStrat - The new add strategy contract.
-  /// @param _liqStrat - The new liquidate strategy contract.
-  function setCriticalStrategies(IStrategy _addStrat, IStrategy _liqStrat) external onlyOwner {
+  function setCriticalStrategies(IStrategy _addStrat) external onlyOwner {
     addStrat = _addStrat;
-    liqStrat = _liqStrat;
 
-    emit SetCriticalStrategy(msg.sender, addStrat, liqStrat);
+    emit SetCriticalStrategy(msg.sender, addStrat);
   }
 
   /// @dev Set treasury configurations.
