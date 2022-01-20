@@ -628,7 +628,6 @@ export class DeployHelper {
     workFactor: BigNumberish,
     killFactor: BigNumberish,
     addStrat: PancakeswapV2RestrictedStrategyAddBaseTokenOnly,
-    liqStrat: PancakeswapV2RestrictedStrategyLiquidate,
     reinvestBountyBps: BigNumberish,
     okReinvestor: string[],
     treasuryAddress: string,
@@ -651,7 +650,6 @@ export class DeployHelper {
       routerV2.address,
       poolId,
       addStrat.address,
-      liqStrat.address,
       reinvestBountyBps,
       treasuryAddress,
       reinvestPath,
@@ -664,7 +662,7 @@ export class DeployHelper {
     await deltaNeutralWorker02.setReinvestorOk(okReinvestor, true);
     await deltaNeutralWorker02.setTreasuryConfig(treasuryAddress, reinvestBountyBps);
 
-    extraStrategies.push(...[addStrat.address, liqStrat.address]);
+    extraStrategies.push(addStrat.address);
     extraStrategies.forEach(async (stratAddress) => {
       const strat = PancakeswapV2RestrictedStrategyLiquidate__factory.connect(stratAddress, this.deployer);
       await strat.setWorkersOk([deltaNeutralWorker02.address], true);
