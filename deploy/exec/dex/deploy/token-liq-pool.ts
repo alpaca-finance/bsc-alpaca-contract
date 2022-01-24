@@ -33,10 +33,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const config = ConfigEntity.getConfig();
 
   const FOREVER = 20000000000;
-  const PANCAKE_MASTERCHEF = config.Exchanges.Pancakeswap.MasterChef;
-  const PANCAKE_FACTORY = config.Exchanges.Pancakeswap.FactoryV2;
-  const PANCAKE_ROUTER = config.Exchanges.Pancakeswap.RouterV2;
-  const WBNB = config.Tokens.WBNB;
+  const PANCAKE_MASTERCHEF = config.Exchanges.Pancakeswap!.MasterChef;
+  const PANCAKE_FACTORY = config.Exchanges.Pancakeswap!.FactoryV2;
+  const PANCAKE_ROUTER = config.Exchanges.Pancakeswap!.RouterV2;
+  const WBNB = config.Tokens.WBNB!;
   const TOKENS: Array<IToken> = [
     {
       symbol: "THG",
@@ -46,7 +46,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       pairs: [
         {
           quoteToken: "BNB",
-          quoteTokenAddr: config.Tokens.WBNB,
+          quoteTokenAddr: config.Tokens.WBNB!,
           reserveQuoteToken: ethers.utils.parseEther("100"),
           reserveBaseToken: ethers.utils.parseEther("6500"),
         },

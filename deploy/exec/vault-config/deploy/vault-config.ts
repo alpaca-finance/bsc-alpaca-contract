@@ -36,7 +36,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     config.SharedConfig.TripleSlopeModel103,
     config.Tokens.WBNB,
     config.SharedConfig.WNativeRelayer,
-    config.FairLaunch.address,
+    config.FairLaunch!.address,
     TREASURY_KILL_BPS,
     TREASURY_ADDR,
   ]);

@@ -1,13 +1,13 @@
 export interface Config {
   ProxyAdmin: string;
   Timelock: string;
-  Shield: string;
-  MerkleDistributor: MerkleDistributor;
-  GrazingRange: GrazingRange;
-  FairLaunch: FairLaunch;
+  Shield?: string;
+  MerkleDistributor?: MerkleDistributor;
+  GrazingRange?: GrazingRange;
+  FairLaunch?: FairLaunch;
   Exchanges: Exchanges;
   Tokens: Tokens;
-  LpTokens: LpTokens;
+  LpTokens?: LpTokens;
   SharedStrategies: SharedStrategies;
   SharedConfig: SharedConfig;
   Oracle: Oracle;
@@ -41,9 +41,10 @@ export interface PoolsEntity1 {
   address: string;
 }
 export interface Exchanges {
-  Pancakeswap: Pancakeswap;
-  Waultswap: Waultswap;
-  Mdex: Mdex;
+  Pancakeswap?: Pancakeswap;
+  Waultswap?: Waultswap;
+  Mdex?: Mdex;
+  SpookySwap?: SpookySwap;
 }
 export interface Pancakeswap {
   UniswapV2Factory: string;
@@ -71,59 +72,67 @@ export interface Mdex {
   SwapMining: string;
   LpTokens: LpTokensEntity[];
 }
+export interface SpookySwap {
+  SpookyFactory: string;
+  SpookyRouter: string;
+  SpookyMasterChef: string;
+  LpTokens: LpTokensEntity[];
+}
 export interface Tokens {
-  WBNB: string;
-  ALPACA: string;
-  sALPACA: string;
-  BUSD: string;
-  CAKE: string;
-  SYRUP: string;
-  USDT: string;
-  BTCB: string;
-  ETH: string;
-  DOT: string;
-  UNI: string;
-  LINK: string;
-  XVS: string;
-  YFI: string;
-  VAI: string;
-  USDC: string;
-  DAI: string;
-  UST: string;
-  BETH: string;
-  COMP: string;
-  SUSHI: string;
-  ITAM: string;
-  bMXX: string;
-  BELT: string;
-  BOR: string;
-  BRY: string;
-  pCWS: string;
-  SWINGBY: string;
-  DODO: string;
-  WEX: string;
-  BORING: string;
-  WAULTx: string;
-  ODDZ: string;
-  ADA: string;
-  FORM: string;
-  MATIC: string;
-  TUSD: string;
-  TRX: string;
-  BTT: string;
-  ORBS: string;
-  AXS: string;
-  PMON: string;
-  PHA: string;
-  WUSD: string;
-  ALM: string;
-  KALA: string;
-  SCIX: string;
-  NAOS: string;
-  MBOX: string;
-  MDX: string;
-  BMON: string;
-  ARV: string;
+  WBNB?: string;
+  ALPACA?: string;
+  sALPACA?: string;
+  BUSD?: string;
+  CAKE?: string;
+  SYRUP?: string;
+  USDT?: string;
+  BTCB?: string;
+  ETH?: string;
+  DOT?: string;
+  UNI?: string;
+  LINK?: string;
+  XVS?: string;
+  YFI?: string;
+  VAI?: string;
+  USDC?: string;
+  DAI?: string;
+  UST?: string;
+  BETH?: string;
+  COMP?: string;
+  SUSHI?: string;
+  ITAM?: string;
+  bMXX?: string;
+  BELT?: string;
+  BOR?: string;
+  BRY?: string;
+  pCWS?: string;
+  SWINGBY?: string;
+  DODO?: string;
+  WEX?: string;
+  BORING?: string;
+  WAULTx?: string;
+  ODDZ?: string;
+  ADA?: string;
+  FORM?: string;
+  MATIC?: string;
+  TUSD?: string;
+  TRX?: string;
+  BTT?: string;
+  ORBS?: string;
+  AXS?: string;
+  PMON?: string;
+  PHA?: string;
+  WUSD?: string;
+  ALM?: string;
+  KALA?: string;
+  SCIX?: string;
+  NAOS?: string;
+  MBOX?: string;
+  MDX?: string;
+  BMON?: string;
+  ARV?: string;
+  WFTM?: string;
+  BOO?: string;
 }
 export interface LpTokens {
   "ALPACA-WBNB": string;
@@ -131,10 +140,11 @@ export interface LpTokens {
   "sALPACA-ALPACA": string;
 }
 export interface SharedStrategies {
-  Pancakeswap: PancakeswapOrWaultswapOrPancakeswapSingleAsset;
-  Waultswap: PancakeswapOrWaultswapOrPancakeswapSingleAsset;
-  PancakeswapSingleAsset: PancakeswapOrWaultswapOrPancakeswapSingleAsset;
-  Mdex: PancakeswapOrWaultswapOrPancakeswapSingleAsset;
+  Pancakeswap?: PancakeswapOrWaultswapOrPancakeswapSingleAsset;
+  Waultswap?: PancakeswapOrWaultswapOrPancakeswapSingleAsset;
+  PancakeswapSingleAsset?: PancakeswapOrWaultswapOrPancakeswapSingleAsset;
+  Mdex?: PancakeswapOrWaultswapOrPancakeswapSingleAsset;
+  SpookySwap?: PancakeswapOrWaultswapOrPancakeswapSingleAsset;
 }
 export interface PancakeswapOrWaultswapOrPancakeswapSingleAsset {
   StrategyAddBaseTokenOnly: string;
@@ -145,11 +155,11 @@ export interface PancakeswapOrWaultswapOrPancakeswapSingleAsset {
 }
 export interface SharedConfig {
   TripleSlopeModel: string;
-  TripleSlopeModelStable20Max150: string;
-  TripleSlopeModel103: string;
+  TripleSlopeModelStable20Max150?: string;
+  TripleSlopeModel103?: string;
   WNativeRelayer: string;
   WorkerConfig: string;
-  PancakeswapSingleAssetWorkerConfig: string;
+  PancakeswapSingleAssetWorkerConfig?: string;
 }
 export interface Oracle {
   OracleMedianizer: string;
@@ -169,10 +179,11 @@ export interface VaultsEntity {
   workers: WorkersEntity[];
 }
 export interface StrategyAddTwoSidesOptimal {
-  Pancakeswap: string;
-  Waultswap: string;
-  PancakeswapSingleAsset: string;
-  Mdex: string;
+  Pancakeswap?: string;
+  Waultswap?: string;
+  PancakeswapSingleAsset?: string;
+  Mdex?: string;
+  SpookySwap?: string;
 }
 export interface WorkersEntity {
   name: string;

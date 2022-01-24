@@ -1,0 +1,70 @@
+{
+  "ProxyAdmin": "",
+  "Timelock": "",
+  "Multicall": "",
+  "Exchanges": {
+    "SpookySwap": {
+      "SpookyFactory": "0x54eae3Cb4fB023648E571F4627E1A056fcEb67Da",
+      "SpookyRouter": "0x2329abE57D45c9798Dd267f83ec70aD8284ea8bE",
+      "SpookyMasterChef": "0xF9c40C68d4AE8234db6AbC38B7Efb91cF2232cF4",
+      "LpTokens": []
+    }
+  },
+  "Tokens": {
+    "WFTM": "0xE3fEd8069957C9BA105AD97D8C467B93f88fd8A3",
+    "BOO": "0x54454F06ac60d35b815AdBD81E222Cf8aa4AD4C5"
+  },
+  "SharedStrategies": {
+    "SpookySwap": {
+      "StrategyAddBaseTokenOnly": "",
+      "StrategyLiquidate": "",
+      "StrategyWithdrawMinimizeTrading": "",
+      "StrategyPartialCloseLiquidate": "",
+      "StrategyPartialCloseMinimizeTrading": ""
+    }
+  },
+  "SharedConfig": {
+    "TripleSlopeModel": "",
+    "WNativeRelayer": "",
+    "WorkerConfig": ""
+  },
+  "Oracle": {
+    "OracleMedianizer": "",
+    "ChainLinkOracle": "",
+    "SimpleOracle": ""
+  },
+  "Vaults": [
+    {
+      "name": "",
+      "symbol": "",
+      "address": "",
+      "deployedBlock": 888,
+      "baseToken": "",
+      "debtToken": "",
+      "config": "",
+      "tripleSlopeModel": "",
+      "StrategyAddTwoSidesOptimal": {
+        "SpookySwap": ""
+      },
+      "workers": [
+        {
+          "name": "Worker",
+          "address": "",
+          "deployedBlock": 8888,
+          "config": "",
+          "pId": 8,
+          "stakingToken": "",
+          "stakingTokenAt": "",
+          "strategies": {
+            "StrategyAddAllBaseToken": "",
+            "StrategyLiquidate": "",
+            "StrategyAddTwoSidesOptimal": "",
+            "StrategyWithdrawMinimizeTrading": "",
+            "StrategyPartialCloseLiquidate": "",
+            "StrategyPartialCloseMinimizeTrading": ""
+          }
+        }
+      ]
+    }
+  ]
+}

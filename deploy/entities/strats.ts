@@ -25,23 +25,23 @@ export function getShareStratsProxy(group: string): Array<IProxyStrat> {
   if (group === PANCAKESWAPv2_STRAT_ID) {
     return [
       {
-        proxy: config.SharedStrategies.Pancakeswap.StrategyAddBaseTokenOnly,
+        proxy: config.SharedStrategies.Pancakeswap!.StrategyAddBaseTokenOnly,
         strat: Strats.btokenOnly,
       },
       {
-        proxy: config.SharedStrategies.Pancakeswap.StrategyLiquidate,
+        proxy: config.SharedStrategies.Pancakeswap!.StrategyLiquidate,
         strat: Strats.liquidateAll,
       },
       {
-        proxy: config.SharedStrategies.Pancakeswap.StrategyPartialCloseLiquidate,
+        proxy: config.SharedStrategies.Pancakeswap!.StrategyPartialCloseLiquidate,
         strat: Strats.partialCloseLiquidate,
       },
       {
-        proxy: config.SharedStrategies.Pancakeswap.StrategyPartialCloseMinimizeTrading,
+        proxy: config.SharedStrategies.Pancakeswap!.StrategyPartialCloseMinimizeTrading,
         strat: Strats.partialCloseWithdrawMinizmie,
       },
       {
-        proxy: config.SharedStrategies.Pancakeswap.StrategyWithdrawMinimizeTrading,
+        proxy: config.SharedStrategies.Pancakeswap!.StrategyWithdrawMinimizeTrading,
         strat: Strats.withdrawMinimize,
       },
     ];
@@ -49,23 +49,23 @@ export function getShareStratsProxy(group: string): Array<IProxyStrat> {
   if (group === PANCAKESWAPv2_SINGLE_ASSET_STRAT_ID) {
     return [
       {
-        proxy: config.SharedStrategies.PancakeswapSingleAsset.StrategyAddBaseTokenOnly,
+        proxy: config.SharedStrategies.PancakeswapSingleAsset!.StrategyAddBaseTokenOnly,
         strat: Strats.btokenOnly,
       },
       {
-        proxy: config.SharedStrategies.PancakeswapSingleAsset.StrategyLiquidate,
+        proxy: config.SharedStrategies.PancakeswapSingleAsset!.StrategyLiquidate,
         strat: Strats.liquidateAll,
       },
       {
-        proxy: config.SharedStrategies.PancakeswapSingleAsset.StrategyPartialCloseLiquidate,
+        proxy: config.SharedStrategies.PancakeswapSingleAsset!.StrategyPartialCloseLiquidate,
         strat: Strats.partialCloseLiquidate,
       },
       {
-        proxy: config.SharedStrategies.PancakeswapSingleAsset.StrategyPartialCloseMinimizeTrading,
+        proxy: config.SharedStrategies.PancakeswapSingleAsset!.StrategyPartialCloseMinimizeTrading,
         strat: Strats.partialCloseWithdrawMinizmie,
       },
       {
-        proxy: config.SharedStrategies.PancakeswapSingleAsset.StrategyWithdrawMinimizeTrading,
+        proxy: config.SharedStrategies.PancakeswapSingleAsset!.StrategyWithdrawMinimizeTrading,
         strat: Strats.withdrawMinimize,
       },
     ];
@@ -73,23 +73,23 @@ export function getShareStratsProxy(group: string): Array<IProxyStrat> {
   if (group === WAULTSWAP_STRAT_ID) {
     return [
       {
-        proxy: config.SharedStrategies.Waultswap.StrategyAddBaseTokenOnly,
+        proxy: config.SharedStrategies.Waultswap!.StrategyAddBaseTokenOnly,
         strat: Strats.btokenOnly,
       },
       {
-        proxy: config.SharedStrategies.Waultswap.StrategyLiquidate,
+        proxy: config.SharedStrategies.Waultswap!.StrategyLiquidate,
         strat: Strats.liquidateAll,
       },
       {
-        proxy: config.SharedStrategies.Waultswap.StrategyPartialCloseLiquidate,
+        proxy: config.SharedStrategies.Waultswap!.StrategyPartialCloseLiquidate,
         strat: Strats.partialCloseLiquidate,
       },
       {
-        proxy: config.SharedStrategies.Waultswap.StrategyPartialCloseMinimizeTrading,
+        proxy: config.SharedStrategies.Waultswap!.StrategyPartialCloseMinimizeTrading,
         strat: Strats.partialCloseWithdrawMinizmie,
       },
       {
-        proxy: config.SharedStrategies.Waultswap.StrategyWithdrawMinimizeTrading,
+        proxy: config.SharedStrategies.Waultswap!.StrategyWithdrawMinimizeTrading,
         strat: Strats.withdrawMinimize,
       },
     ];
