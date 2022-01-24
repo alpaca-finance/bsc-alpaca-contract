@@ -6,16 +6,16 @@ import { ethers, upgrades, waffle } from "hardhat";
 import {
   ChainLinkPriceOracle,
   ChainLinkPriceOracle__factory,
+  MdexFactory,
+  MdexFactory__factory,
+  MdexPair,
+  MdexPair__factory,
+  MdexRouter,
+  MdexRouter__factory,
   MockAggregatorV3,
   MockAggregatorV3__factory,
   MockERC20,
   MockERC20__factory,
-  PancakeFactory,
-  PancakeFactory__factory,
-  PancakePair,
-  PancakePair__factory,
-  PancakeRouter,
-  PancakeRouterV2__factory,
   PriceHelper,
   PriceHelper__factory,
   WETH,
@@ -31,13 +31,13 @@ const FOREVER = "2000000000";
 // Accounts
 let deployer: Signer;
 
-/// Pancakeswap-related instance(s)
-let factoryV2: PancakeFactory;
-let routerV2: PancakeRouter;
-let lpV2Token0Stable0: PancakePair;
-let lpV2Stable0Stable1: PancakePair;
-let lpV2BtcbStable0: PancakePair;
-let lpV2BtcbToken0: PancakePair;
+/// Mdex-related instance(s)
+let factoryV2: MdexFactory;
+let routerV2: MdexRouter;
+let lpV2Token0Stable0: MdexPair;
+let lpV2Stable0Stable1: MdexPair;
+let lpV2BtcbStable0: MdexPair;
+let lpV2BtcbToken0: MdexPair;
 
 /// Token-related instance(s)
 let wbnb: WETH;
@@ -110,16 +110,16 @@ async function fixture() {
     ]
   );
 
-  // PREPARE PCS
-  const PancakeFactory = (await ethers.getContractFactory("PancakeFactory", deployer)) as PancakeFactory__factory;
-  factoryV2 = await PancakeFactory.deploy(await deployer.getAddress());
+  // PREPARE MDEX
+  const MdexFactory = (await ethers.getContractFactory("MdexFactory", deployer)) as MdexFactory__factory;
+  factoryV2 = await MdexFactory.deploy(await deployer.getAddress());
   await factoryV2.deployed();
 
   const WBNB = (await ethers.getContractFactory("WETH", deployer)) as WETH__factory;
   wbnb = await WBNB.deploy();
 
-  const PancakeRouterV2 = (await ethers.getContractFactory("PancakeRouterV2", deployer)) as PancakeRouterV2__factory;
-  routerV2 = await PancakeRouterV2.deploy(factoryV2.address, wbnb.address);
+  const MdexRouter = (await ethers.getContractFactory("MdexRouter", deployer)) as MdexRouter__factory;
+  routerV2 = await MdexRouter.deploy(factoryV2.address, wbnb.address);
   await routerV2.deployed();
 
   // CREATE PAIR
@@ -135,10 +135,10 @@ async function fixture() {
   await factoryV2.createPair(btcbToken.address, token0.address);
   const btcbToken0Address = await factoryV2.getPair(btcbToken.address, token0.address);
 
-  lpV2Token0Stable0 = PancakePair__factory.connect(lpAddress, deployer);
-  lpV2Stable0Stable1 = PancakePair__factory.connect(stableLPAddress, deployer);
-  lpV2BtcbStable0 = PancakePair__factory.connect(btcbStable0Address, deployer);
-  lpV2BtcbToken0 = PancakePair__factory.connect(btcbToken0Address, deployer);
+  lpV2Token0Stable0 = MdexPair__factory.connect(lpAddress, deployer);
+  lpV2Stable0Stable1 = MdexPair__factory.connect(stableLPAddress, deployer);
+  lpV2BtcbStable0 = MdexPair__factory.connect(btcbStable0Address, deployer);
+  lpV2BtcbToken0 = MdexPair__factory.connect(btcbToken0Address, deployer);
 
   //ADD LIQUIDITY TOKEN0 STABLE0
   await token0.mint(deployerAddress, BigNumber.from("466712574325720000000000"));

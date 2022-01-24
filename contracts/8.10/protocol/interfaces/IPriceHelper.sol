@@ -13,10 +13,10 @@ Alpaca Fin Corporation
 
 interface IPriceHelper {
   /// @dev Return value in USD for the given lpAmount.
-  function lpToDollar(uint256 lpAmount, address pancakeLPToken) external view returns (uint256);
+  function lpToDollar(uint256 lpAmount, address lpToken) external view returns (uint256);
 
   /// @dev Return amount of LP for the given USD.
-  function dollarToLP(uint256 dollarAmount, address pancakeLPToken) external view returns (uint256);
+  function dollarToLP(uint256 dollarAmount, address lpToken) external view returns (uint256);
 
   /// @dev Return value in USD for the given tokenAddress.
   function getTokenPrice(address tokenAddress) external view returns (uint256);
