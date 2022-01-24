@@ -21,7 +21,7 @@ import {
   WETH,
   WETH__factory,
 } from "../../../typechain";
-import { assertBigNumberClosePercent } from "../../helpers/assert";
+import { assertAlmostEqual, assertBigNumberClosePercent } from "../../helpers/assert";
 
 chai.use(solidity);
 const { expect } = chai;
@@ -284,23 +284,31 @@ beforeEach(async () => {
   await waffle.loadFixture(fixture);
 });
 
-/* context("chainlink get price should work properly", async () => {
+context("chainlink get price should work properly", async () => {
   it("chainlink get price should work properly", async () => {
     const [priceT0UsdToken] = await chainLinkOracleAsDeployer.getPrice(token0.address, usdToken.address);
-    // result should be (priceT0UsdToken * 1e18) / (10**decimals) = (468290000000000000000 * 1e18) / (10**18) = 468290000000000000000
-    expect(priceT0UsdToken).to.eq(BigNumber.from("468290000000000000000"));
+    // result should be (priceT0UsdToken * 1e18) / (10**decimals) = (427840000000000000000 * 1e18) / (10**18) = 427840000000000000000
+    expect(priceT0UsdToken).to.eq(BigNumber.from("427840000000000000000"));
 
-    // result should be (priceT0UsdToken * 1e18) / (10**decimals) = (10000000000000000000 * 1e18) / (10**18) = 468290000000000000000
-    const [priceT1UsdToken] = await chainLinkOracleAsDeployer.getPrice(token1.address, usdToken.address);
-    expect(priceT1UsdToken).to.eq(BigNumber.from("10000000000000000000"));
+    const [priceBtcbUsdToken] = await chainLinkOracleAsDeployer.getPrice(btcbToken.address, usdToken.address);
+    expect(priceBtcbUsdToken).to.eq(BigNumber.from("42300713817358000000000"));
 
-    const priceT0T1 = priceT0UsdToken.mul(ethers.utils.parseEther("1")).div(priceT1UsdToken);
-    expect(priceT0T1).to.eq(BigNumber.from("46829000000000000000"));
+    const priceT0Btcb = priceT0UsdToken.mul(ethers.constants.WeiPerEther).div(priceBtcbUsdToken);
+    expect(priceT0Btcb).to.eq(BigNumber.from("010114250124650067"));
 
-    const priceT1T0 = priceT1UsdToken.mul(ethers.utils.parseEther("1")).div(priceT0UsdToken);
-    expect(priceT1T0).to.eq(BigNumber.from("21354289008947447"));
+    const priceBtcbT0 = priceBtcbUsdToken.mul(ethers.constants.WeiPerEther).div(priceT0UsdToken);
+    expect(priceBtcbT0).to.eq(BigNumber.from("98870404397340127150"));
+
+    await expect(chainLinkOracleAsDeployer.getPrice(token0.address, btcbToken.address)).to.be.revertedWith(
+      "ChainLinkPriceOracle::getPrice:: no source"
+    );
+
+    const [priceStableCoin0] = await chainLinkOracleAsDeployer.getPrice(stableToken0.address, usdToken.address);
+    expect(priceStableCoin0).to.be.eq(ethers.constants.WeiPerEther);
+    const [priceStableCoin1] = await chainLinkOracleAsDeployer.getPrice(stableToken1.address, usdToken.address);
+    expect(priceStableCoin1).to.be.eq(ethers.constants.WeiPerEther);
   });
-}); */
+});
 
 context("when incorrect input", async () => {
   it("#lpToDollar", async () => {
@@ -327,7 +335,7 @@ context("convert LP to dollar", async () => {
   it("fairPrice", async () => {
     for (const _case of casesData) {
       const fairPrice = _case.fairPrice as BigNumber;
-      expect(await priceHelper.lpToDollar(ethers.utils.parseEther("1"), _case.lpAddress)).to.be.eq(fairPrice);
+      expect(await priceHelper.lpToDollar(ethers.constants.WeiPerEther, _case.lpAddress)).to.be.eq(fairPrice);
 
       expect(await priceHelper.lpToDollar(ethers.utils.parseEther("2.5"), _case.lpAddress)).to.be.eq(
         fairPrice.mul(ethers.utils.parseEther("2.5")).div(ethers.constants.WeiPerEther)
@@ -344,7 +352,6 @@ context("convert LP to dollar", async () => {
       const expectedValue = _case.hasUSD
         ? _case.totalUSD.mul(ethers.constants.WeiPerEther).div(_case.totalSupply)
         : _case.token0Reserve.mul(_case.p0).add(_case.token1Reserve.mul(_case.p1)).div(_case.totalSupply);
-      console.log("expectedValue", expectedValue);
 
       assertBigNumberClosePercent(
         expectedValue,
@@ -355,33 +362,19 @@ context("convert LP to dollar", async () => {
   });
 });
 
-/* context("dollarToLp-success", async () => {
-  it("token-to-stable", async () => {
-    expect(await priceHelper.dollarToLP(BigNumber.from("43280018484284407708"), lpV2Token0Stable0.address)).to.be.eq(
-      ethers.utils.parseEther("1")
-    );
+context("convert dollar to LP", async () => {
+  it("fairPrice", async () => {
+    for (const _case of casesData) {
+      const fairPrice = _case.fairPrice as BigNumber;
 
-    expect(await priceHelper.dollarToLP(BigNumber.from("108200046210711019270"), lpV2Token0Stable0.address)).to.be.eq(
-      BigNumber.from("2500000000000000000")
-    );
+      expect(await priceHelper.dollarToLP(fairPrice, _case.lpAddress)).to.be.eq(ethers.constants.WeiPerEther);
+      let dollarInput = ethers.utils.parseEther("2.5").mul(fairPrice).div(ethers.constants.WeiPerEther);
+      expect(await priceHelper.dollarToLP(dollarInput, _case.lpAddress)).to.be.eq(ethers.utils.parseEther("2.5"));
 
-    expect(
-      await priceHelper.dollarToLP(BigNumber.from("43280018484284407708000000000"), lpV2Token0Stable0.address)
-    ).to.be.eq(ethers.utils.parseEther("1000000000"));
-  });
-
-  it("stable-to-stable", async () => {
-    // totalSupply = 100
-    // r0 = 100
-    // r1 = 100
-    // p0 = 1000000000000000000
-    // p1 = 1000000000000000000
-    expect(await priceHelper.dollarToLP(ethers.utils.parseEther("1"), lpV2Stable0Stable1.address)).to.be.eq(
-      BigNumber.from("500000000000000000")
-    );
-    expect(await priceHelper.dollarToLP(ethers.utils.parseEther("5"), lpV2Stable0Stable1.address)).to.be.eq(
-      "2500000000000000000"
-    );
+      dollarInput = ethers.utils.parseEther("9999999.123123").mul(fairPrice).div(ethers.constants.WeiPerEther);
+      const lpPrice = await priceHelper.dollarToLP(dollarInput, _case.lpAddress);
+      // can't use to.be.eq because it's diff at decimal digits 6
+      assertAlmostEqual(lpPrice.toString(), ethers.utils.parseEther("9999999.123123").toString());
+    }
   });
 });
- */
