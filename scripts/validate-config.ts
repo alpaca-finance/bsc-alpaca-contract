@@ -7,6 +7,7 @@ import {
   PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory,
   PancakeswapV2RestrictedStrategyAddTwoSidesOptimal__factory,
   PancakeswapV2Worker__factory,
+  SpookyWorker03__factory,
   Vault,
   Vault__factory,
   WaultSwapWorker__factory,
@@ -14,11 +15,13 @@ import {
 import MainnetConfig from "../.mainnet.json";
 import TestnetConfig from "../.testnet.json";
 import { WorkersEntity } from "../deploy/interfaces/config";
+import { getConfig } from "../deploy/entities/config";
 
 interface IDexRouter {
   pancakeswap: string;
   waultswap: string;
   mdex: string;
+  spooky: string;
 }
 
 async function validateTwoSidesStrategy(strategyAddress: string, expectedVault: string, expectedRouter: string) {
@@ -221,6 +224,51 @@ async function validateWorker(vault: Vault, workerInfo: WorkersEntity, routers: 
       console.log(`> ❌ some problem found in ${workerInfo.name}, please double check`);
       console.log(e);
     }
+  } else if (workerInfo.name.includes("SpookyWorker")) {
+    const worker = SpookyWorker03__factory.connect(workerInfo.address, ethers.provider);
+    try {
+      expect(await worker.operator()).to.be.eq(vault.address, "operator mis-config");
+      expect(workerInfo.stakingToken).to.be.eq(await worker.lpToken(), "lpToken mis-config");
+      expect(workerInfo.pId).to.be.eq(await worker.pid(), "pool id mis-config");
+      expect(workerInfo.stakingTokenAt).to.be.eq(await worker.spookyMasterChef(), "spookyMasterChef mis-config");
+      expect(await worker.router()).to.be.eq(routers.spooky, "router mis-config");
+      expect(await worker.baseToken()).to.be.eq(await vault.token(), "baseToken mis-config");
+      expect(await worker.fee()).to.be.eq("998");
+      expect(await worker.feeDenom()).to.be.eq("1000");
+      expect(await worker.okStrats(workerInfo.strategies.StrategyAddAllBaseToken)).to.be.eq(
+        true,
+        "mis-config on add base token only strat"
+      );
+      expect(await worker.okStrats(workerInfo.strategies.StrategyLiquidate)).to.be.eq(
+        true,
+        "mis-config on liquidate strat"
+      );
+      expect(await worker.okStrats(workerInfo.strategies.StrategyAddTwoSidesOptimal)).to.be.eq(
+        true,
+        "mis-config on add two sides strat"
+      );
+      expect(await worker.okStrats(workerInfo.strategies.StrategyWithdrawMinimizeTrading)).to.be.eq(
+        true,
+        "mis-config on minimize trading strat"
+      );
+      if (workerInfo.strategies.StrategyPartialCloseLiquidate != "") {
+        expect(await worker.okStrats(workerInfo.strategies.StrategyPartialCloseLiquidate)).to.be.eq(
+          true,
+          "mis-config on partial close liquidate strat"
+        );
+      }
+      if (workerInfo.strategies.StrategyPartialCloseMinimizeTrading != "") {
+        expect(await worker.okStrats(workerInfo.strategies.StrategyPartialCloseMinimizeTrading)).to.be.eq(
+          true,
+          "mis-config on partial close minimize"
+        );
+      }
+
+      console.log(`> ✅ done validated ${workerInfo.name}, no problem found`);
+    } catch (e) {
+      console.log(`> ❌ some problem found in ${workerInfo.name}, please double check`);
+      console.log(e);
+    }
   }
 }
 
@@ -229,57 +277,103 @@ function delay(ms: number) {
 }
 
 async function main() {
-  const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
+  const config = getConfig();
+  const chainId = (await ethers.provider.getNetwork()).chainId;
 
   console.log("=== validate strats ===");
-  try {
-    await Promise.all([
-      validateStrategy(
-        config.SharedStrategies.Pancakeswap.StrategyAddBaseTokenOnly,
-        config.Exchanges.Pancakeswap.RouterV2
-      ),
-      validateStrategy(config.SharedStrategies.Pancakeswap.StrategyLiquidate, config.Exchanges.Pancakeswap.RouterV2),
-      validateStrategy(
-        config.SharedStrategies.Pancakeswap.StrategyWithdrawMinimizeTrading,
-        config.Exchanges.Pancakeswap.RouterV2
-      ),
-      validateStrategy(
-        config.SharedStrategies.Pancakeswap.StrategyPartialCloseLiquidate,
-        config.Exchanges.Pancakeswap.RouterV2
-      ),
-      validateStrategy(
-        config.SharedStrategies.Pancakeswap.StrategyPartialCloseMinimizeTrading,
-        config.Exchanges.Pancakeswap.RouterV2
-      ),
-      validateStrategy(
-        config.SharedStrategies.Waultswap.StrategyAddBaseTokenOnly,
-        config.Exchanges.Waultswap.WaultswapRouter
-      ),
-      validateStrategy(config.SharedStrategies.Waultswap.StrategyLiquidate, config.Exchanges.Waultswap.WaultswapRouter),
-      validateStrategy(
-        config.SharedStrategies.Waultswap.StrategyWithdrawMinimizeTrading,
-        config.Exchanges.Waultswap.WaultswapRouter
-      ),
-      validateStrategy(
-        config.SharedStrategies.Waultswap.StrategyPartialCloseLiquidate,
-        config.Exchanges.Waultswap.WaultswapRouter
-      ),
-      validateStrategy(
-        config.SharedStrategies.Waultswap.StrategyPartialCloseMinimizeTrading,
-        config.Exchanges.Waultswap.WaultswapRouter
-      ),
-      validateStrategy(config.SharedStrategies.Mdex.StrategyAddBaseTokenOnly, config.Exchanges.Mdex.MdexRouter),
-      validateStrategy(config.SharedStrategies.Mdex.StrategyLiquidate, config.Exchanges.Mdex.MdexRouter),
-      validateStrategy(config.SharedStrategies.Mdex.StrategyPartialCloseLiquidate, config.Exchanges.Mdex.MdexRouter),
-      validateStrategy(
-        config.SharedStrategies.Mdex.StrategyPartialCloseMinimizeTrading,
-        config.Exchanges.Mdex.MdexRouter
-      ),
-      validateStrategy(config.SharedStrategies.Mdex.StrategyWithdrawMinimizeTrading, config.Exchanges.Mdex.MdexRouter),
-    ]);
-    console.log("> ✅ done");
-  } catch (e) {
-    console.log(e);
+  if (chainId === 56 || chainId === 97) {
+    console.log(">> Validate in BSC context");
+    try {
+      await Promise.all([
+        validateStrategy(
+          config.SharedStrategies.Pancakeswap!.StrategyAddBaseTokenOnly,
+          config.Exchanges.Pancakeswap!.RouterV2
+        ),
+        validateStrategy(
+          config.SharedStrategies.Pancakeswap!.StrategyLiquidate,
+          config.Exchanges.Pancakeswap!.RouterV2
+        ),
+        validateStrategy(
+          config.SharedStrategies.Pancakeswap!.StrategyWithdrawMinimizeTrading,
+          config.Exchanges.Pancakeswap!.RouterV2
+        ),
+        validateStrategy(
+          config.SharedStrategies.Pancakeswap!.StrategyPartialCloseLiquidate,
+          config.Exchanges.Pancakeswap!.RouterV2
+        ),
+        validateStrategy(
+          config.SharedStrategies.Pancakeswap!.StrategyPartialCloseMinimizeTrading,
+          config.Exchanges.Pancakeswap!.RouterV2
+        ),
+        validateStrategy(
+          config.SharedStrategies.Waultswap!.StrategyAddBaseTokenOnly,
+          config.Exchanges.Waultswap!.WaultswapRouter
+        ),
+        validateStrategy(
+          config.SharedStrategies.Waultswap!.StrategyLiquidate,
+          config.Exchanges.Waultswap!.WaultswapRouter
+        ),
+        validateStrategy(
+          config.SharedStrategies.Waultswap!.StrategyWithdrawMinimizeTrading,
+          config.Exchanges.Waultswap!.WaultswapRouter
+        ),
+        validateStrategy(
+          config.SharedStrategies.Waultswap!.StrategyPartialCloseLiquidate,
+          config.Exchanges.Waultswap!.WaultswapRouter
+        ),
+        validateStrategy(
+          config.SharedStrategies.Waultswap!.StrategyPartialCloseMinimizeTrading,
+          config.Exchanges.Waultswap!.WaultswapRouter
+        ),
+        validateStrategy(config.SharedStrategies.Mdex!.StrategyAddBaseTokenOnly, config.Exchanges.Mdex!.MdexRouter),
+        validateStrategy(config.SharedStrategies.Mdex!.StrategyLiquidate, config.Exchanges.Mdex!.MdexRouter),
+        validateStrategy(
+          config.SharedStrategies.Mdex!.StrategyPartialCloseLiquidate,
+          config.Exchanges.Mdex!.MdexRouter
+        ),
+        validateStrategy(
+          config.SharedStrategies.Mdex!.StrategyPartialCloseMinimizeTrading,
+          config.Exchanges.Mdex!.MdexRouter
+        ),
+        validateStrategy(
+          config.SharedStrategies.Mdex!.StrategyWithdrawMinimizeTrading,
+          config.Exchanges.Mdex!.MdexRouter
+        ),
+      ]);
+      console.log("> ✅ done");
+    } catch (e) {
+      console.log(e);
+    }
+  }
+  if (chainId === 4002) {
+    console.log(">> Validate in Fantom context");
+    try {
+      await Promise.all([
+        validateStrategy(
+          config.SharedStrategies.SpookySwap!.StrategyAddBaseTokenOnly,
+          config.Exchanges.SpookySwap!.SpookyRouter
+        ),
+        validateStrategy(
+          config.SharedStrategies.SpookySwap!.StrategyLiquidate,
+          config.Exchanges.SpookySwap!.SpookyRouter
+        ),
+        validateStrategy(
+          config.SharedStrategies.SpookySwap!.StrategyWithdrawMinimizeTrading,
+          config.Exchanges.SpookySwap!.SpookyRouter
+        ),
+        validateStrategy(
+          config.SharedStrategies.SpookySwap!.StrategyPartialCloseLiquidate,
+          config.Exchanges.SpookySwap!.SpookyRouter
+        ),
+        validateStrategy(
+          config.SharedStrategies.SpookySwap!.StrategyPartialCloseMinimizeTrading,
+          config.Exchanges.SpookySwap!.SpookyRouter
+        ),
+      ]);
+      console.log("> ✅ done");
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   for (let i = 0; i < config.Vaults.length; i++) {
@@ -288,44 +382,69 @@ async function main() {
     console.log("=======================");
     console.log(`> validating ${config.Vaults[i].name}`);
     console.log(`> validate vault strategies`);
-    try {
-      await Promise.all([
-        validateTwoSidesStrategy(
-          config.Vaults[i].StrategyAddTwoSidesOptimal.Pancakeswap,
-          vault.address,
-          config.Exchanges.Pancakeswap.RouterV2
-        ),
-        validateTwoSidesStrategy(
-          config.Vaults[i].StrategyAddTwoSidesOptimal.Waultswap,
-          vault.address,
-          config.Exchanges.Waultswap.WaultswapRouter
-        ),
-        validateTwoSidesStrategy(
-          config.Vaults[i].StrategyAddTwoSidesOptimal.PancakeswapSingleAsset,
-          vault.address,
-          config.Exchanges.Pancakeswap.RouterV2
-        ),
-        validateTwoSidesStrategy(
-          config.Vaults[i].StrategyAddTwoSidesOptimal.Mdex,
-          vault.address,
-          config.Exchanges.Mdex.MdexRouter
-        ),
-      ]);
-      console.log("> ✅ done, no problem found");
-    } catch (e) {
-      console.log("> ❌ some problem found");
-      console.log(e);
+    if (chainId === 56 || chainId === 97) {
+      try {
+        await Promise.all([
+          validateTwoSidesStrategy(
+            config.Vaults[i].StrategyAddTwoSidesOptimal.Pancakeswap!,
+            vault.address,
+            config.Exchanges.Pancakeswap!.RouterV2
+          ),
+          validateTwoSidesStrategy(
+            config.Vaults[i].StrategyAddTwoSidesOptimal.Waultswap!,
+            vault.address,
+            config.Exchanges.Waultswap!.WaultswapRouter
+          ),
+          validateTwoSidesStrategy(
+            config.Vaults[i].StrategyAddTwoSidesOptimal.PancakeswapSingleAsset!,
+            vault.address,
+            config.Exchanges.Pancakeswap!.RouterV2
+          ),
+          validateTwoSidesStrategy(
+            config.Vaults[i].StrategyAddTwoSidesOptimal.Mdex!,
+            vault.address,
+            config.Exchanges.Mdex!.MdexRouter
+          ),
+        ]);
+        console.log("> ✅ done, no problem found");
+      } catch (e) {
+        console.log("> ❌ some problem found");
+        console.log(e);
+      }
+    }
+    if (chainId === 4002) {
+      try {
+        await Promise.all([
+          validateTwoSidesStrategy(
+            config.Vaults[i].StrategyAddTwoSidesOptimal.SpookySwap!,
+            vault.address,
+            config.Exchanges.SpookySwap!.SpookyRouter
+          ),
+        ]);
+        console.log("> ✅ done, no problem found");
+      } catch (e) {
+        console.log("> ❌ some problem found");
+        console.log(e);
+      }
     }
 
     const validateWorkers = [];
+    const dexRouters: IDexRouter = {
+      pancakeswap: ethers.constants.AddressZero,
+      waultswap: ethers.constants.AddressZero,
+      mdex: ethers.constants.AddressZero,
+      spooky: ethers.constants.AddressZero,
+    };
+    if (chainId === 56 || chainId === 97) {
+      dexRouters.pancakeswap = config.Exchanges.Pancakeswap!.RouterV2;
+      dexRouters.waultswap = config.Exchanges.Waultswap!.WaultswapRouter;
+      dexRouters.mdex = config.Exchanges.Mdex!.MdexRouter;
+    }
+    if (chainId === 4002) {
+      dexRouters.spooky = config.Exchanges.SpookySwap!.SpookyRouter;
+    }
     for (const worker of config.Vaults[i].workers) {
-      validateWorkers.push(
-        validateWorker(vault, worker, {
-          pancakeswap: config.Exchanges.Pancakeswap.RouterV2,
-          waultswap: config.Exchanges.Waultswap.WaultswapRouter,
-          mdex: config.Exchanges.Mdex.MdexRouter,
-        })
-      );
+      validateWorkers.push(validateWorker(vault, worker, dexRouters));
     }
     await Promise.all(validateWorkers);
     await delay(3000);

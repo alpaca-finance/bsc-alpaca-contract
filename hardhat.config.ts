@@ -52,7 +52,7 @@ module.exports = {
       url: process.env.ETH_MAINNET_RPC,
       accounts: [process.env.ETH_MAINNET_PRIVATE_KEY],
     },
-    fantomtestnet: {
+    fantom_testnet: {
       url: "https://rpc.testnet.fantom.network/",
       accounts: [process.env.FANTOM_TESTNET_PRIVATE_KEY],
     },

@@ -1,19 +1,15 @@
-import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { DeployFunction } from 'hardhat-deploy/types';
+import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { DeployFunction } from "hardhat-deploy/types";
+import { ethers } from "hardhat";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-  const { deployments, getNamedAccounts } = hre;
-  const { deploy } = deployments;
+  const deployer = (await ethers.getSigners())[0];
 
-  const { deployer } = await getNamedAccounts();
-
-  await deploy('TripleSlopeModel', {
-    from: deployer,
-    log: true,
-    deterministicDeployment: false,
-  });
-
+  console.log("> Deploying TripleSlopeModel");
+  const TripleSlopeModel = await ethers.getContractFactory("TripleSlopeModel", deployer);
+  const tripleSlopeModel = await TripleSlopeModel.deploy();
+  console.log("> TripleSlopeModel deployed at", tripleSlopeModel.address);
 };
 
 export default func;
-func.tags = ['TripleSlopeModel'];
+func.tags = ["TripleSlopeModel"];
