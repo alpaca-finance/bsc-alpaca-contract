@@ -355,7 +355,7 @@ context("convert LP to dollar", async () => {
 
       assertBigNumberClosePercent(
         expectedValue,
-        await priceHelper.lpToDollar(ethers.utils.parseEther("1"), _case.lpAddress),
+        await priceHelper.lpToDollar(ethers.constants.WeiPerEther, _case.lpAddress),
         "0.03"
       );
     }
@@ -375,6 +375,18 @@ context("convert dollar to LP", async () => {
       const lpPrice = await priceHelper.dollarToLP(dollarInput, _case.lpAddress);
       // can't use to.be.eq because it's diff at decimal digits 6
       assertAlmostEqual(lpPrice.toString(), ethers.utils.parseEther("9999999.123123").toString());
+    }
+  });
+
+  it("when compare fairPrice with normalLP formula", async () => {
+    for (const _case of casesData) {
+      const lpValue = _case.hasUSD
+        ? _case.totalUSD.mul(ethers.constants.WeiPerEther).div(_case.totalSupply)
+        : _case.token0Reserve.mul(_case.p0).add(_case.token1Reserve.mul(_case.p1)).div(_case.totalSupply);
+
+      const dollarInput = ethers.constants.WeiPerEther;
+      const expectedValue = dollarInput.mul(ethers.constants.WeiPerEther).div(lpValue);
+      assertBigNumberClosePercent(expectedValue, await priceHelper.dollarToLP(dollarInput, _case.lpAddress), "0.03");
     }
   });
 });
