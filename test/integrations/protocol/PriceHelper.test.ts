@@ -347,8 +347,6 @@ context("convert LP to dollar", async () => {
   });
   it("when compare fairPrice with normalLP formula", async () => {
     for (const _case of casesData) {
-      // case hasUSd -> totalusd * 2
-      // otherwise, ((r0*p0) + (r1*p1))/totalSupply
       const expectedValue = _case.hasUSD
         ? _case.totalUSD.mul(ethers.constants.WeiPerEther).div(_case.totalSupply)
         : _case.token0Reserve.mul(_case.p0).add(_case.token1Reserve.mul(_case.p1)).div(_case.totalSupply);
