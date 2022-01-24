@@ -54,4 +54,10 @@ library SafeToken {
     (bool success, bytes memory data) = token.call(abi.encodeWithSelector(0x095ea7b3, to, value));
     require(success && (data.length == 0 || abi.decode(data, (bool))), "!safeApprove");
   }
+
+  function safeTransferETH(address to, uint256 value) internal {
+    // solhint-disable-next-line no-call-value
+    (bool success, ) = to.call{ value: value }(new bytes(0));
+    require(success, "!safeTransferETH");
+  }
 }
