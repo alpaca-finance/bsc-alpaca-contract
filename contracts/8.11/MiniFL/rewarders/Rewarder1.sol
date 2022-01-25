@@ -81,10 +81,12 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
     PoolInfo memory pool = _updatePool(_pid);
     UserInfo storage user = userInfo[_pid][_user];
 
-    user.amount = _newAmount;
-    user.rewardDebt = user.rewardDebt + ((_newAmount * pool.accRewardPerShare) / ACC_REWARD_PRECISION).toInt256();
+    uint256 _amount = _newAmount - user.amount;
 
-    emit LogOnDeposit(_user, _pid, _newAmount);
+    user.amount = _newAmount;
+    user.rewardDebt = user.rewardDebt + ((_amount * pool.accRewardPerShare) / ACC_REWARD_PRECISION).toInt256();
+
+    emit LogOnDeposit(_user, _pid, _amount);
   }
 
   function onWithdraw(
