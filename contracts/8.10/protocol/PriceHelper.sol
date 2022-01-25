@@ -28,7 +28,9 @@ error InvalidDollarAmount();
 contract PriceHelper is IPriceHelper, Initializable, OwnableUpgradeable {
   using AlpacaMath for uint256;
 
+  /// @notice An address of chainlink usd token
   address public usd;
+  /// @notice a chainLink interface to perform get price
   IChainLinkPriceOracle public chainLinkPriceOracle;
 
   function initialize(address _chainLinkPriceOracle, address _usd) public initializer {
@@ -69,6 +71,9 @@ contract PriceHelper is IPriceHelper, Initializable, OwnableUpgradeable {
     return price;
   }
 
+  /// @notice get LP price using internal only, return value in 1e18 format
+  /// @dev getTokenPrice from address
+  /// @param tokenAddress tokenAddress
   function _getLPPrice(address lpToken) internal view returns (uint256) {
     if (lpToken == address(0)) {
       revert InvalidLPAddress();
