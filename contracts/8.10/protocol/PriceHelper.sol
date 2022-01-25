@@ -16,9 +16,9 @@ pragma solidity 0.8.10;
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./interfaces/ILiquidityPair.sol";
-import "../utils/AlpacaMath.sol";
 import "./interfaces/IPriceHelper.sol";
 import "./interfaces/IChainLinkPriceOracle.sol";
+import "../utils/AlpacaMath.sol";
 
 error InvalidLPAmount();
 error InvalidLPAddress();
@@ -28,8 +28,8 @@ error InvalidDollarAmount();
 contract PriceHelper is IPriceHelper, Initializable, OwnableUpgradeable {
   using AlpacaMath for uint256;
 
-  IChainLinkPriceOracle public chainLinkPriceOracle;
   address public usd;
+  IChainLinkPriceOracle public chainLinkPriceOracle;
 
   function initialize(address _chainLinkPriceOracle, address _usd) public initializer {
     OwnableUpgradeable.__Ownable_init();
@@ -37,7 +37,8 @@ contract PriceHelper is IPriceHelper, Initializable, OwnableUpgradeable {
     usd = _usd;
   }
 
-  /// @dev convert lpToDollar using oracle price
+  /// @notice Perform the conversion from LP to dollar
+  /// @dev convert lpToDollar using chainlink oracle price
   /// @param lpAmount in ether format
   /// @param lpToken address of LP token
   function lpToDollar(uint256 lpAmount, address lpToken) external view returns (uint256) {
@@ -48,7 +49,8 @@ contract PriceHelper is IPriceHelper, Initializable, OwnableUpgradeable {
     return (lpAmount * lpPrice) / (10**18);
   }
 
-  /// @dev convert dollartoLp using oracle price
+  /// @notice Perform the conversion from dollar to LP
+  /// @dev convert dollartoLp using chainlink oracle price
   /// @param dollarAmount in ether format
   /// @param lpToken address of LP token
   function dollarToLp(uint256 dollarAmount, address lpToken) external view returns (uint256) {
@@ -59,6 +61,9 @@ contract PriceHelper is IPriceHelper, Initializable, OwnableUpgradeable {
     return ((dollarAmount * (10**18)) / lpPrice);
   }
 
+  /// @notice Get token price in dollar
+  /// @dev getTokenPrice from address
+  /// @param tokenAddress tokenAddress
   function getTokenPrice(address tokenAddress) public view returns (uint256) {
     (uint256 price, uint256 lastTimestamp) = chainLinkPriceOracle.getPrice(tokenAddress, usd);
     return price;
