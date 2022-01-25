@@ -61,6 +61,7 @@ library AlpacaMath {
     return (r < r1 ? r : r1);
   }
 
+  /// @dev div by return in 2e112
   function fdiv(uint256 lhs, uint256 rhs) internal pure returns (uint256) {
     return (lhs * (2**112)) / rhs;
   }

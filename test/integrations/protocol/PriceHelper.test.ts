@@ -16,10 +16,10 @@ import {
   MockAggregatorV3__factory,
   MockERC20,
   MockERC20__factory,
-  PriceHelper,
-  PriceHelper__factory,
   WETH,
   WETH__factory,
+  PriceHelper,
+  PriceHelper__factory,
 } from "../../../typechain";
 import { assertAlmostEqual, assertBigNumberClosePercent } from "../../helpers/assert";
 
@@ -310,81 +310,91 @@ context("chainlink get price should work properly", async () => {
   });
 });
 
-context("when incorrect input", async () => {
-  it("#lpToDollar", async () => {
-    await expect(priceHelper.lpToDollar(ethers.constants.Zero, lpV2Token0Stable0.address)).to.be.revertedWith(
-      "InvalidLPAmount()"
-    );
+describe("#LPtoDollar", async () => {
+  context("when incorrect input", async () => {
+    it("should revert when no LP amount", async () => {
+      await expect(priceHelper.lpToDollar(ethers.constants.Zero, lpV2Token0Stable0.address)).to.be.revertedWith(
+        "InvalidLPAmount()"
+      );
+    });
 
-    await expect(priceHelper.lpToDollar(ethers.constants.One, ethers.constants.AddressZero)).to.be.revertedWith(
-      "InvalidLPAddress()"
-    );
+    it("should revert when no address", async () => {
+      await expect(priceHelper.lpToDollar(ethers.constants.One, ethers.constants.AddressZero)).to.be.revertedWith(
+        "InvalidLPAddress()"
+      );
+    });
   });
 
-  it("#dollarToLP", async () => {
-    await expect(priceHelper.dollarToLP(ethers.constants.Zero, lpV2Token0Stable0.address)).to.be.revertedWith(
-      "InvalidDollarAmount()"
-    );
-    await expect(priceHelper.dollarToLP(ethers.constants.One, ethers.constants.AddressZero)).to.be.revertedWith(
-      "InvalidLPAddress()"
-    );
+  context("when correct input", async () => {
+    it("should convert LPtoDollar with LP fairPrice correctly", async () => {
+      for (const _case of casesData) {
+        const fairPrice = _case.fairPrice as BigNumber;
+        expect(await priceHelper.lpToDollar(ethers.constants.WeiPerEther, _case.lpAddress)).to.be.eq(fairPrice);
+
+        expect(await priceHelper.lpToDollar(ethers.utils.parseEther("2.5"), _case.lpAddress)).to.be.eq(
+          fairPrice.mul(ethers.utils.parseEther("2.5")).div(ethers.constants.WeiPerEther)
+        );
+        expect(await priceHelper.lpToDollar(ethers.utils.parseEther("9999999.123123"), _case.lpAddress)).to.be.eq(
+          fairPrice.mul(ethers.utils.parseEther("9999999.123123")).div(ethers.constants.WeiPerEther)
+        );
+      }
+    });
+    it("should convert LPtoDollar with fairPrice LP and LP normal, value should not different over 0.03 percent", async () => {
+      for (const _case of casesData) {
+        const expectedValue = _case.hasUSD
+          ? _case.totalUSD.mul(ethers.constants.WeiPerEther).div(_case.totalSupply)
+          : _case.token0Reserve.mul(_case.p0).add(_case.token1Reserve.mul(_case.p1)).div(_case.totalSupply);
+
+        assertBigNumberClosePercent(
+          expectedValue,
+          await priceHelper.lpToDollar(ethers.constants.WeiPerEther, _case.lpAddress),
+          "0.03"
+        );
+      }
+    });
   });
 });
 
-context("convert LP to dollar", async () => {
-  it("fairPrice", async () => {
-    for (const _case of casesData) {
-      const fairPrice = _case.fairPrice as BigNumber;
-      expect(await priceHelper.lpToDollar(ethers.constants.WeiPerEther, _case.lpAddress)).to.be.eq(fairPrice);
-
-      expect(await priceHelper.lpToDollar(ethers.utils.parseEther("2.5"), _case.lpAddress)).to.be.eq(
-        fairPrice.mul(ethers.utils.parseEther("2.5")).div(ethers.constants.WeiPerEther)
+describe("#dollarToLp", async () => {
+  context("when incorrect input", async () => {
+    it("should revert when no LP amount", async () => {
+      await expect(priceHelper.dollarToLp(ethers.constants.Zero, lpV2Token0Stable0.address)).to.be.revertedWith(
+        "InvalidDollarAmount()"
       );
-      expect(await priceHelper.lpToDollar(ethers.utils.parseEther("9999999.123123"), _case.lpAddress)).to.be.eq(
-        fairPrice.mul(ethers.utils.parseEther("9999999.123123")).div(ethers.constants.WeiPerEther)
+    });
+
+    it("should revert when no address", async () => {
+      await expect(priceHelper.dollarToLp(ethers.constants.One, ethers.constants.AddressZero)).to.be.revertedWith(
+        "InvalidLPAddress()"
       );
-    }
+    });
   });
-  it("when compare fairPrice with normalLP formula", async () => {
-    for (const _case of casesData) {
-      const expectedValue = _case.hasUSD
-        ? _case.totalUSD.mul(ethers.constants.WeiPerEther).div(_case.totalSupply)
-        : _case.token0Reserve.mul(_case.p0).add(_case.token1Reserve.mul(_case.p1)).div(_case.totalSupply);
+  context("when correct input", async () => {
+    it("should convert dollarToLp with LP fairPrice correctly", async () => {
+      for (const _case of casesData) {
+        const fairPrice = _case.fairPrice as BigNumber;
 
-      assertBigNumberClosePercent(
-        expectedValue,
-        await priceHelper.lpToDollar(ethers.constants.WeiPerEther, _case.lpAddress),
-        "0.03"
-      );
-    }
-  });
-});
+        expect(await priceHelper.dollarToLp(fairPrice, _case.lpAddress)).to.be.eq(ethers.constants.WeiPerEther);
+        let dollarInput = ethers.utils.parseEther("2.5").mul(fairPrice).div(ethers.constants.WeiPerEther);
+        expect(await priceHelper.dollarToLp(dollarInput, _case.lpAddress)).to.be.eq(ethers.utils.parseEther("2.5"));
 
-context("convert dollar to LP", async () => {
-  it("fairPrice", async () => {
-    for (const _case of casesData) {
-      const fairPrice = _case.fairPrice as BigNumber;
+        dollarInput = ethers.utils.parseEther("9999999.123123").mul(fairPrice).div(ethers.constants.WeiPerEther);
+        const lpPrice = await priceHelper.dollarToLp(dollarInput, _case.lpAddress);
+        // can't use to.be.eq because it's diff at decimal digits 6
+        assertAlmostEqual(lpPrice.toString(), ethers.utils.parseEther("9999999.123123").toString());
+      }
+    });
 
-      expect(await priceHelper.dollarToLP(fairPrice, _case.lpAddress)).to.be.eq(ethers.constants.WeiPerEther);
-      let dollarInput = ethers.utils.parseEther("2.5").mul(fairPrice).div(ethers.constants.WeiPerEther);
-      expect(await priceHelper.dollarToLP(dollarInput, _case.lpAddress)).to.be.eq(ethers.utils.parseEther("2.5"));
+    it("should convert dollarToLp with LP fairPrice and LP normal, value should not different over 0.03 percent", async () => {
+      for (const _case of casesData) {
+        const lpValue = _case.hasUSD
+          ? _case.totalUSD.mul(ethers.constants.WeiPerEther).div(_case.totalSupply)
+          : _case.token0Reserve.mul(_case.p0).add(_case.token1Reserve.mul(_case.p1)).div(_case.totalSupply);
 
-      dollarInput = ethers.utils.parseEther("9999999.123123").mul(fairPrice).div(ethers.constants.WeiPerEther);
-      const lpPrice = await priceHelper.dollarToLP(dollarInput, _case.lpAddress);
-      // can't use to.be.eq because it's diff at decimal digits 6
-      assertAlmostEqual(lpPrice.toString(), ethers.utils.parseEther("9999999.123123").toString());
-    }
-  });
-
-  it("when compare fairPrice with normalLP formula", async () => {
-    for (const _case of casesData) {
-      const lpValue = _case.hasUSD
-        ? _case.totalUSD.mul(ethers.constants.WeiPerEther).div(_case.totalSupply)
-        : _case.token0Reserve.mul(_case.p0).add(_case.token1Reserve.mul(_case.p1)).div(_case.totalSupply);
-
-      const dollarInput = ethers.constants.WeiPerEther;
-      const expectedValue = dollarInput.mul(ethers.constants.WeiPerEther).div(lpValue);
-      assertBigNumberClosePercent(expectedValue, await priceHelper.dollarToLP(dollarInput, _case.lpAddress), "0.03");
-    }
+        const dollarInput = ethers.constants.WeiPerEther;
+        const expectedValue = dollarInput.mul(ethers.constants.WeiPerEther).div(lpValue);
+        assertBigNumberClosePercent(expectedValue, await priceHelper.dollarToLp(dollarInput, _case.lpAddress), "0.03");
+      }
+    });
   });
 });
