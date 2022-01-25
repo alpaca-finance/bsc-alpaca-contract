@@ -23,6 +23,8 @@ import "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 import "../interfaces/IMiniFL.sol";
 import "../interfaces/IRewarder.sol";
 
+import "hardhat/console.sol";
+
 contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable {
   using SafeCastUpgradeable for uint256;
   using SafeCastUpgradeable for uint128;
@@ -64,6 +66,9 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
   event LogRewardPerSecond(uint256 rewardPerSecond);
 
   function initialize(IERC20Upgradeable _rewardToken, address _miniFL) external initializer {
+    OwnableUpgradeable.__Ownable_init();
+    ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
+
     rewardToken = _rewardToken;
     miniFL = _miniFL;
   }
@@ -72,8 +77,8 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
     uint256 _pid,
     address _user,
     uint256 _newAmount
-  ) external override onlyFL {
-    PoolInfo memory pool = updatePool(_pid);
+  ) external override nonReentrant onlyFL {
+    PoolInfo memory pool = _updatePool(_pid);
     UserInfo storage user = userInfo[_pid][_user];
 
     user.amount = _newAmount;
@@ -86,8 +91,8 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
     uint256 _pid,
     address _user,
     uint256 _newAmount
-  ) external override onlyFL {
-    PoolInfo memory pool = updatePool(_pid);
+  ) external override nonReentrant onlyFL {
+    PoolInfo memory pool = _updatePool(_pid);
     UserInfo storage user = userInfo[_pid][_user];
 
     uint256 _amount = user.amount - _newAmount;
@@ -98,8 +103,8 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
     emit LogOnWithdraw(_user, _pid, _amount);
   }
 
-  function onHarvest(uint256 _pid, address _user) external override onlyFL {
-    PoolInfo memory pool = updatePool(_pid);
+  function onHarvest(uint256 _pid, address _user) external override nonReentrant onlyFL {
+    PoolInfo memory pool = _updatePool(_pid);
     UserInfo storage user = userInfo[_pid][_user];
 
     int256 _accumulatedAlpaca = ((user.amount * pool.accRewardPerShare) / ACC_REWARD_PRECISION).toInt256();
@@ -130,7 +135,7 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
   /// @dev Can only be called by the owner.
   /// @param _rewardPerSecond The amount of reward token to be distributed per second.
   function setRewardPerSecond(uint256 _rewardPerSecond) public onlyOwner {
-    massUpdatePools();
+    _massUpdatePools();
     rewardPerSecond = _rewardPerSecond;
     emit LogRewardPerSecond(_rewardPerSecond);
   }
@@ -151,7 +156,7 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
   function addPool(uint256 _allocPoint, uint256 _pid) public onlyOwner {
     if (poolInfo[_pid].lastRewardTime != 0) revert Reward1_PoolExisted();
 
-    massUpdatePools();
+    _massUpdatePools();
 
     uint256 _lastRewardTime = block.timestamp;
     totalAllocPoint = totalAllocPoint + _allocPoint;
@@ -170,7 +175,7 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
   /// @param _pid The index of the pool. See `poolInfo`.
   /// @param _allocPoint The allocation point of the pool.
   function setPool(uint256 _pid, uint256 _allocPoint) public onlyOwner {
-    massUpdatePools();
+    _massUpdatePools();
     totalAllocPoint = totalAllocPoint - poolInfo[_pid].allocPoint + _allocPoint;
     poolInfo[_pid].allocPoint = _allocPoint.toUint64();
     emit LogSetPool(_pid, _allocPoint);
@@ -194,18 +199,21 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
       (((_userInfo.amount * _accRewardPerShare) / ACC_REWARD_PRECISION).toInt256() - _userInfo.rewardDebt).toUint256();
   }
 
-  /// @notice Update reward variables for all pools. Be careful of gas spending!
-  function massUpdatePools() public {
+  function _massUpdatePools() internal {
     uint256 _len = poolLength();
     for (uint256 i = 0; i < _len; ++i) {
-      updatePool(i);
+      _updatePool(i);
     }
   }
 
-  /// @notice Update reward variables of the given pool.
+  /// @notice Update reward variables for all pools. Be careful of gas spending!
+  function massUpdatePools() external nonReentrant {
+    _massUpdatePools();
+  }
+
+  /// @notice Perform the actual updatePool
   /// @param _pid The index of the pool. See `poolInfo`.
-  /// @return pool Returns the pool that was updated.
-  function updatePool(uint256 _pid) public returns (PoolInfo memory) {
+  function _updatePool(uint256 _pid) internal returns (PoolInfo memory) {
     PoolInfo memory _poolInfo = poolInfo[_pid];
     if (block.timestamp > _poolInfo.lastRewardTime) {
       uint256 _stakedBalance = IMiniFL(miniFL).stakingToken(_pid).balanceOf(miniFL);
@@ -222,5 +230,12 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
       emit LogUpdatePool(_pid, _poolInfo.lastRewardTime, _stakedBalance, _poolInfo.accRewardPerShare);
     }
     return _poolInfo;
+  }
+
+  /// @notice Update reward variables of the given pool.
+  /// @param _pid The index of the pool. See `poolInfo`.
+  /// @return pool Returns the pool that was updated.
+  function updatePool(uint256 _pid) external nonReentrant returns (PoolInfo memory) {
+    return _updatePool(_pid);
   }
 }
