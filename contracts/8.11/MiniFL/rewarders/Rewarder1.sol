@@ -62,7 +62,7 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
   event LogHarvest(address indexed user, uint256 indexed pid, uint256 amount);
   event LogAddPool(uint256 indexed pid, uint256 allocPoint);
   event LogSetPool(uint256 indexed pid, uint256 allocPoint);
-  event LogUpdatePool(uint256 indexed pid, uint64 lastRewardTime, uint256 lpSupply, uint256 accRewardPerShare);
+  event LogUpdatePool(uint256 indexed pid, uint64 lastRewardTime, uint256 stakedBalance, uint256 accRewardPerShare);
   event LogRewardPerSecond(uint256 rewardPerSecond);
 
   function initialize(IERC20Upgradeable _rewardToken, address _miniFL) external initializer {
@@ -147,12 +147,12 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
     _;
   }
 
-  /// @notice Returns the number of MCV2 pools.
+  /// @notice Returns the number of pools.
   function poolLength() public view returns (uint256 pools) {
     pools = poolIds.length;
   }
 
-  /// @notice Add a new LP to the pool. Can only be called by the owner.
+  /// @notice Add a new pool. Can only be called by the owner.
   /// @param _allocPoint The new allocation point
   /// @param _pid The Pool ID on MiniFL
   function addPool(uint256 _allocPoint, uint256 _pid) public onlyOwner {
