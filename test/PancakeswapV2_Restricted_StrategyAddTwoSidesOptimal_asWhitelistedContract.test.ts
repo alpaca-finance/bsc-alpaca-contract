@@ -332,7 +332,7 @@ describe("PancakeswapV2 - StrategyAddTwoSidesOptimal", () => {
     );
 
     const MockWorkCaller = (await ethers.getContractFactory("MockWorkCaller", deployer)) as MockWorkCaller__factory;
-    const mockWorkCaller = (await upgrades.deployProxy(MockWorkCaller, [])) as MockWorkCaller;
+    const mockWorkCaller = (await upgrades.deployProxy(MockWorkCaller, [vault.address])) as MockWorkCaller;
     await mockWorkCaller.deployed();
 
     await baseToken.mint(await mockWorkCaller.address, ethers.utils.parseEther("100"));
@@ -369,7 +369,6 @@ describe("PancakeswapV2 - StrategyAddTwoSidesOptimal", () => {
 
     await config.setWhitelistedCallers([mockWorkCallerAsAlice.address], true);
     await mockWorkCallerAsAlice.executeWork(
-      vault.address,
       pancakeswapWorker.address,
       ethers.utils.parseEther("1"),
       ethers.utils.parseEther("1"),
