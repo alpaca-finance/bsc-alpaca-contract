@@ -1,14 +1,14 @@
 pragma solidity 0.6.6;
 
-import "../Vault.sol";
+import "../interfaces/IVault02.sol";
 import "../../utils/SafeToken.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 
 contract MockWorkCaller is Initializable {
   using SafeToken for address;
-  Vault public vault;
+  IVault02 public vault;
 
-  function initialize(Vault _vault) external initializer {
+  function initialize(IVault02 _vault) external initializer {
     vault = _vault;
     vault.token().safeApprove(address(vault), uint256(-1));
   }
