@@ -92,6 +92,8 @@ import {
   DeltaNeutralVault,
   DeltaNeutralWorker02,
   DeltaNeutralWorker02__factory,
+  DeltaNeutralVaultConfig,
+  DeltaNeutralVaultConfig__factory,
 } from "../../typechain";
 import * as TimeHelpers from "../helpers/time";
 
@@ -119,13 +121,20 @@ export interface IVaultConfig {
 export interface IDeltaNeutralVault {
   name: string;
   symbol: string;
-  wbnb: string;
   vaultStable: string;
   vaultAsset: string;
   stableVaultWorker: string;
   assetVaultWorker: string;
   lpToken: string;
   priceHelper: string;
+  deltaVaultConfig: string;
+}
+
+export interface IDeltaNeutralVaultConfig {
+  wNativeAddr: string;
+  wNativeRelayer: string;
+  rebalanceFactor: BigNumberish;
+  positionValueTolerance: BigNumberish;
 }
 
 export class DeployHelper {
@@ -841,6 +850,21 @@ export class DeployHelper {
     return deltaNeutralWorker02;
   }
 
+  public async deployDeltaNeutralVaultConfig(input: IDeltaNeutralVaultConfig): Promise<DeltaNeutralVaultConfig> {
+    const DeltaNeutralVaultConfig = (await ethers.getContractFactory(
+      "DeltaNeutralVaultConfig",
+      this.deployer
+    )) as DeltaNeutralVaultConfig__factory;
+
+    const deltaNeutralVaultConfig = (await upgrades.deployProxy(DeltaNeutralVaultConfig, [
+      input.wNativeAddr,
+      input.wNativeRelayer,
+      input.rebalanceFactor,
+      input.positionValueTolerance,
+    ])) as DeltaNeutralVaultConfig;
+    await deltaNeutralVaultConfig.deployed();
+    return deltaNeutralVaultConfig;
+  }
   public async deployDeltaNeutralVault(input: IDeltaNeutralVault): Promise<DeltaNeutralVault> {
     const DeltaNeutralVault = (await ethers.getContractFactory(
       "DeltaNeutralVault",
@@ -849,13 +873,13 @@ export class DeployHelper {
     const deltaNeutralVault = (await upgrades.deployProxy(DeltaNeutralVault, [
       input.name,
       input.symbol,
-      input.wbnb,
       input.vaultStable,
       input.vaultAsset,
       input.stableVaultWorker,
       input.assetVaultWorker,
       input.lpToken,
       input.priceHelper,
+      input.deltaVaultConfig,
     ])) as DeltaNeutralVault;
     await deltaNeutralVault.deployed();
     return deltaNeutralVault;
