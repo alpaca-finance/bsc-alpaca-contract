@@ -60,7 +60,7 @@ async function main() {
   let nonce = await deployer.getTransactionCount();
 
   /// @dev initialized all variables
-  const targetVault = ["ibWBNB", "ibBUSD", "ibETH", "ibALPACA", "ibUSDT", "ibBTCB", "ibTUSD"];
+  const targetVault = ["ibWBNB", "ibBUSD", "ibETH", "ibALPACA", "ibUSDT", "ibBTCB", "ibTUSD", "ibUSDC"];
   const reserves: Array<IReserve> = [];
   const eta = Math.floor(Date.now() / 1000) + 86400 + 1800;
 
