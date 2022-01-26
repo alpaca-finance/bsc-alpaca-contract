@@ -64,6 +64,13 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 nativeAmount;
   }
 
+  struct PositionInfo{
+    uint256 stablePositionEquity;
+    uint256 stablePositionDebtValue;
+    uint256 assetPositionEquity;
+    uint256 assetPositionDebtValue;
+  }
+
   /// @dev constants
   uint8 private constant ACTION_WORK = 1;
   uint8 private constant ACTION_WARP = 2;
@@ -177,6 +184,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
   /// @notice Deposit to delta neutral vault.
   /// @param _shareReceiver Addresses to be receive share.
+  /// @param _minimumShareReceive Minimum share that _shareReceiver must receive.
   /// @param _stableTokenAmount Amount of stable token transfer to vault.
   /// @param _assetTokenAmount Amount of asset token transfer to vault.
   /// @param _data The calldata to pass along to the proxy action for more working context.
