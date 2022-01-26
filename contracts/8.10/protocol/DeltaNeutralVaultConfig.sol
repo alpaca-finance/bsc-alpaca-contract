@@ -83,7 +83,7 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     emit LogSetParams(
       msg.sender,
       _getWrappedNativeAddr,
-      fairLaunchAddr,
+      _fairLaunchAddr,
       _getWNativeRelayer,
       _rebalanceFactor,
       _positionValueTolerance
