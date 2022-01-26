@@ -43,12 +43,11 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   /// list of whitelisted rebalancers.
   mapping(address => bool) public whitelistedRebalancers;
 
-
   function initialize(
     address _getWrappedNativeAddr,
     address _getWNativeRelayer,
     uint256 _rebalanceFactor,
-    uint256 _positionValueTolerance,
+    uint256 _positionValueTolerance
   ) external initializer {
     OwnableUpgradeable.__Ownable_init();
 
@@ -58,16 +57,13 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   function setParams(
     address _getWrappedNativeAddr,
     address _getWNativeRelayer,
-    address _getAlpacaFairLaunchAddr
     uint256 _rebalanceFactor,
     uint256 _positionValueTolerance
-    address getAlpacaFairLaunch
   ) public onlyOwner {
     getWrappedNativeAddr = _getWrappedNativeAddr;
     getWNativeRelayer = _getWNativeRelayer;
     rebalanceFactor = _rebalanceFactor;
     positionValueTolerance = _positionValueTolerance;
-
 
     emit LogSetParams(msg.sender, _getWrappedNativeAddr, _getWNativeRelayer, _rebalanceFactor, _positionValueTolerance);
   }

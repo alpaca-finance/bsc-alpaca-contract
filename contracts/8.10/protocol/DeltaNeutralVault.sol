@@ -330,6 +330,20 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     }
   }
 
+  function _outstandingCheck(uint256 _stableTokenBefore,uint256 _assetTokenBefore,uint256 _nativeTokenBefore) internal {
+    console.log("DeltaVault:_outstandingCheck");
+    (uint256 _stableTokenAfter,uint256 _assetTokenAfter,uint256 _nativeTokenAfter) = _outstanding();
+    console.log("DeltaVault:_outstandingCheck:_stableTokenAfter",_stableTokenAfter);
+    console.log("DeltaVault:_outstandingCheck:_stableTokenBefore",_stableTokenBefore);
+    console.log("DeltaVault:_outstandingCheck:_assetTokenAfter",_assetTokenAfter);
+    console.log("DeltaVault:_outstandingCheck:_assetTokenBefore",_assetTokenBefore);
+    console.log("DeltaVault:_outstandingCheck:_nativeTokenAfter",_nativeTokenAfter);
+    console.log("DeltaVault:_outstandingCheck:_nativeTokenBefore",_nativeTokenBefore);
+    if(_stableTokenAfter < _stableTokenBefore || _assetTokenAfter < _assetTokenBefore || _nativeTokenAfter < _nativeTokenBefore){
+      revert UnsafeOutStanding();
+    }
+  }
+
   function _outstanding() internal view returns(uint256,uint256,uint256){
     return (stableToken.myBalance(), assetToken.myBalance(), address(this).balance );
   }
