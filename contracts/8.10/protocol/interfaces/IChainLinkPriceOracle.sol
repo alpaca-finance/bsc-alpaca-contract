@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL
 /**
   ∩~~~~∩ 
   ξ ･×･ ξ 
@@ -11,6 +11,5 @@
 Alpaca Fin Corporation
 */
 interface IChainLinkPriceOracle {
-  // Info of each user.
   function getPrice(address token0, address token1) external view returns (uint256, uint256);
 }
