@@ -50,6 +50,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   error UnsafePositionValue();
   error UnsafeDebtValue();
   error UnsafeOutStanding();
+  error InvalidFairLaunchAddress();
 
   /// @dev constants
   uint8 private constant ACTION_WORK = 1;
@@ -64,13 +65,14 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
   address public stableToken;
   address public assetToken;
+  address public alpacaToken;
 
   uint256 public stableVaultPosId;
   uint256 public assetVaultPosId;
 
   IPriceHelper public priceHelper;
+
   IDeltaNeutralVaultConfig public config;
-  IFairLaunch public fairLaunch;
 
   /// @dev Require that the caller must be an EOA account if not whitelisted.
   modifier onlyEOAorWhitelisted() {
@@ -94,8 +96,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     address _stableVaultWorker,
     address _assetVaultWorker,
     address _lpToken,
+    address _alpacaToken,
     IPriceHelper _priceHelper,
-    IFairLaunch _fairLaunch,
     IDeltaNeutralVaultConfig _config
   ) external initializer {
     OwnableUpgradeable.__Ownable_init();
@@ -107,6 +109,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
     stableToken = IVault(_stableVault).token();
     assetToken = IVault(_assetVault).token();
+    alpacaToken = _alpacaToken;
 
     stableVaultWorker = _stableVaultWorker;
     assetVaultWorker = _assetVaultWorker;
@@ -114,8 +117,10 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     lpToken = _lpToken;
 
     priceHelper = _priceHelper;
-    fairLaunch = _fairLaunch;
     config = _config;
+    if (config.fairLaunchAddr() == address(0)) {
+      revert InvalidFairLaunchAddress();
+    }
   }
 
   function initPositions(
@@ -488,19 +493,18 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   }
 
   function claim() external {
-    _claim(config.getDebtStablePoolId());
-    _claim(config.getDebtAssetPoolId());
+    _claim(IVault(stableVault).fairLaunchPoolId());
+    _claim(IVault(assetVault).fairLaunchPoolId());
   }
 
   function _claim(uint256 _poolId) internal returns (uint256) {
-    uint256 alpacaBefore = config.getAlpacaTokenBalance();
-    fairLaunch.harvest(_poolId);
-    uint256 alpacaAfter = config.getAlpacaTokenBalance();
+    uint256 alpacaBefore = alpacaToken.myBalance();
+    IFairLaunch(config.fairLaunchAddr()).harvest(_poolId);
+    uint256 alpacaAfter = alpacaToken.myBalance();
     return alpacaAfter - alpacaBefore;
   }
 
-  function withdraw(address _to) internal onlyOwner {
-    fairLaunch.withdraw(_to, config.getDebtStablePoolId(), _claim(config.getDebtStablePoolId()));
-    fairLaunch.withdraw(_to, config.getDebtAssetPoolId(), _claim(config.getDebtAssetPoolId()));
+  function withdrawAlpaca(address _to, uint256 amount) external onlyOwner {
+    alpacaToken.safeTransfer(_to, amount);
   }
 }
