@@ -49,6 +49,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   error DuplicatedPositions();
   error PositionsNotInitialized();
   error InvalidPositions(address _vault, uint256 _positionId);
+  error UnsafePositionEquity();
   error UnsafePositionValue();
   error UnsafeDebtValue();
   error UnsafeDebtRatio();
@@ -332,24 +333,33 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     PositionInfo memory _positionInfoBefore,
     PositionInfo memory _positionInfoAfter
   ) internal {
+    console.log("Deltavault:_depositHealthCheck");
 
-    uint256 _tolerance = config.positionValueTolerance();
+    uint256 _toleranceBps = config.positionValueTolerance();
+    console.log("Deltavault:_depositHealthCheck:stable",!Math.almostEqual(_positionInfoAfter.stablePositionEquity - _positionInfoBefore.stablePositionEquity, (_depositValue * 3) / 4, _toleranceBps));
+    console.log("Deltavault:_depositHealthCheck:asset",!Math.almostEqual(_positionInfoAfter.assetPositionEquity - _positionInfoBefore.assetPositionEquity, (_depositValue * 9) / 4, _toleranceBps));
+    console.log("Deltavault:_depositHealthCheck:_positionInfoBefore._depositValue",_depositValue);
+    console.log("Deltavault:_depositHealthCheck:_positionInfoBefore.stablePositionEquity",_positionInfoBefore.stablePositionEquity);
+    console.log("Deltavault:_depositHealthCheck:_positionInfoAfter.stablePositionEquity",_positionInfoAfter.stablePositionEquity);
+    console.log("Deltavault:_depositHealthCheck:_positionInfoBefore.assetPositionEquity",_positionInfoBefore.assetPositionEquity);
+    console.log("Deltavault:_depositHealthCheck:_positionInfoAfter.assetPositionEquity",_positionInfoAfter.assetPositionEquity);
     // 1. check position value
     if (
-      !Math.almostEqual(_positionInfoAfter.stablePositionEquity - _positionInfoBefore.stablePositionEquity, (_depositValue * 3) / 4, _tolerance) ||
-      !Math.almostEqual(_positionInfoAfter.assetPositionEquity - _positionInfoBefore.assetPositionEquity, (_depositValue * 9) / 4, _tolerance)
+      !Math.almostEqual(_positionInfoAfter.stablePositionEquity - _positionInfoBefore.stablePositionEquity, (_depositValue * 3) / 4, _toleranceBps) ||
+      !Math.almostEqual(_positionInfoAfter.assetPositionEquity - _positionInfoBefore.assetPositionEquity, (_depositValue * 9) / 4, _toleranceBps)
     ) {
-      revert UnsafePositionValue();
+      revert UnsafePositionEquity();
     }
 
+    console.log("Deltavault:_depositHealthCheck:before check debt value");
     // 2. check Debt value
     if (
       !Math.almostEqual(
         _positionInfoAfter.stablePositionDebtValue - _positionInfoBefore.stablePositionDebtValue ,
         (_depositValue * 2) / 4,
-        _tolerance
+        _toleranceBps
       ) ||
-      !Math.almostEqual( _positionInfoAfter.assetPositionDebtValue - _positionInfoBefore.assetPositionDebtValue, (_depositValue * 6) / 4, _tolerance)
+      !Math.almostEqual( _positionInfoAfter.assetPositionDebtValue - _positionInfoBefore.assetPositionDebtValue, (_depositValue * 6) / 4, _toleranceBps)
     ) {
       revert UnsafeDebtValue();
     }

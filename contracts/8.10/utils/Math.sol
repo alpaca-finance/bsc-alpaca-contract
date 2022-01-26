@@ -20,7 +20,7 @@ library Math {
     uint256 toleranceBps
   ) internal pure returns (bool) {
     uint256 maxValue = max(value0, value1);
-    return (maxValue - min(value0, value1) * 10000) <= toleranceBps * maxValue;
+    return ((maxValue - min(value0, value1)) * 10000) <= toleranceBps * maxValue;
   }
 
   /**
