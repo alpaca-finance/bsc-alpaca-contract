@@ -76,15 +76,15 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   ) public onlyOwner {
     getWrappedNativeAddr = _getWrappedNativeAddr;
     getWNativeRelayer = _getWNativeRelayer;
+    fairLaunchAddr = _fairLaunchAddr;
     rebalanceFactor = _rebalanceFactor;
     positionValueTolerance = _positionValueTolerance;
-    fairLaunchAddr = _fairLaunchAddr;
 
     emit LogSetParams(
       msg.sender,
       _getWrappedNativeAddr,
-      _fairLaunchAddr,
       _getWNativeRelayer,
+      _fairLaunchAddr,
       _rebalanceFactor,
       _positionValueTolerance
     );
