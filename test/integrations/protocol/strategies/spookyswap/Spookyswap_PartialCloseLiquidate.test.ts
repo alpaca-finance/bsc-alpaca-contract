@@ -188,9 +188,9 @@ describe("SpookySwapStrategyPartialCloseLiquidate", () => {
       FOREVER
     );
 
-    expect(await baseToken.balanceOf(bobAddress)).to.be.bignumber.eq(ethers.utils.parseEther("99"));
-    expect(await farmingToken.balanceOf(bobAddress)).to.be.bignumber.eq(ethers.utils.parseEther("9.9"));
-    expect(await lp.balanceOf(bobAddress)).to.be.bignumber.eq(ethers.utils.parseEther("0.316227766016837933"));
+    expect(await baseToken.balanceOf(bobAddress)).to.be.eq(ethers.utils.parseEther("99"));
+    expect(await farmingToken.balanceOf(bobAddress)).to.be.eq(ethers.utils.parseEther("9.9"));
+    expect(await lp.balanceOf(bobAddress)).to.be.eq(ethers.utils.parseEther("0.316227766016837933"));
   }
 
   beforeEach(async () => {
@@ -310,24 +310,20 @@ describe("SpookySwapStrategyPartialCloseLiquidate", () => {
         .to.emit(strat, "LogSpookySwapStrategyPartialCloseLiquidate")
         .withArgs(baseToken.address, farmingToken.address, ethers.utils.parseEther("0.316227766016837933"), "0");
 
-      expect(await lp.balanceOf(strat.address), "Strategy should has 0 LP").to.be.bignumber.eq(
-        ethers.utils.parseEther("0")
+      expect(await lp.balanceOf(strat.address), "Strategy should has 0 LP").to.be.eq(ethers.utils.parseEther("0"));
+      expect(await lp.balanceOf(mockWorkerAsBob.address), "Worker should has 0 LP as all LP is liquidated").to.be.eq(
+        "0"
       );
-      expect(
-        await lp.balanceOf(mockWorkerAsBob.address),
-        "Worker should has 0 LP as all LP is liquidated"
-      ).to.be.bignumber.eq("0");
       expect(
         await baseToken.balanceOf(bobAddress),
         "Bob's BTOKEN should increase by 1.499499499499499499 BTOKEN"
-      ).to.be.bignumber.eq(
+      ).to.be.eq(
         bobBTokenBefore.add(ethers.utils.parseEther("1")).add(ethers.utils.parseEther("0.499499499499499499"))
       );
-      expect(
-        await baseToken.balanceOf(lp.address),
-        "FTOKEN-BTOKEN LP should has 0.500500500500500501 BTOKEN"
-      ).to.be.bignumber.eq(ethers.utils.parseEther("0.500500500500500501"));
-      expect(await farmingToken.balanceOf(lp.address), "FTOKEN-BTOKEN LP should as 0.2 FTOKEN").to.be.bignumber.eq(
+      expect(await baseToken.balanceOf(lp.address), "FTOKEN-BTOKEN LP should has 0.500500500500500501 BTOKEN").to.be.eq(
+        ethers.utils.parseEther("0.500500500500500501")
+      );
+      expect(await farmingToken.balanceOf(lp.address), "FTOKEN-BTOKEN LP should as 0.2 FTOKEN").to.be.eq(
         ethers.utils.parseEther("0.2")
       );
     });
@@ -368,8 +364,8 @@ describe("SpookySwapStrategyPartialCloseLiquidate", () => {
       // - Bob should have bobBtokenBefore + 0.5 BTOKEN + [((0.05*998)*1.5)/(0.15*1000+(0.05*998))] = 0.374437218609304652 BTOKEN] (from swap 0.05 FTOKEN to BTOKEN) in his account
       // - BTOKEN in reserve should be 1.5-0.374437218609304652 = 1.125562781390695348 BTOKEN
       // - FTOKEN in reserve should be 0.15+0.05 = 0.2 FTOKEN
-      expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-      expect(await lp.balanceOf(mockWorker.address)).to.be.bignumber.eq(bobLpBefore.sub(returnLp));
+      expect(await lp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+      expect(await lp.balanceOf(mockWorker.address)).to.be.eq(bobLpBefore.sub(returnLp));
       assertAlmostEqual(
         bobBTokenBefore
           .add(ethers.utils.parseEther("0.5"))
@@ -459,24 +455,18 @@ describe("SpookySwapStrategyPartialCloseLiquidate", () => {
           ethers.utils.parseEther("1")
         );
 
-      expect(await lp.balanceOf(strat.address), "Strategy should has 0 LP").to.be.bignumber.eq(
-        ethers.utils.parseEther("0")
-      );
-      expect(
-        await lp.balanceOf(mockWorker.address),
-        "Worker should has 0 LP as all LP is liquidated"
-      ).to.be.bignumber.eq("0");
+      expect(await lp.balanceOf(strat.address), "Strategy should has 0 LP").to.be.eq(ethers.utils.parseEther("0"));
+      expect(await lp.balanceOf(mockWorker.address), "Worker should has 0 LP as all LP is liquidated").to.be.eq("0");
       expect(
         await baseToken.balanceOf(bobAddress),
         "Bob's BTOKEN should increase by 1.499499499499499499 BTOKEN"
-      ).to.be.bignumber.eq(
+      ).to.be.eq(
         bobBTokenBefore.add(ethers.utils.parseEther("1")).add(ethers.utils.parseEther("0.499499499499499499"))
       );
-      expect(
-        await baseToken.balanceOf(lp.address),
-        "FTOKEN-BTOKEN LP should has 0.500500500500500501 BTOKEN"
-      ).to.be.bignumber.eq(ethers.utils.parseEther("0.500500500500500501"));
-      expect(await farmingToken.balanceOf(lp.address), "FTOKEN-BTOKEN LP should as 0.2 FTOKEN").to.be.bignumber.eq(
+      expect(await baseToken.balanceOf(lp.address), "FTOKEN-BTOKEN LP should has 0.500500500500500501 BTOKEN").to.be.eq(
+        ethers.utils.parseEther("0.500500500500500501")
+      );
+      expect(await farmingToken.balanceOf(lp.address), "FTOKEN-BTOKEN LP should as 0.2 FTOKEN").to.be.eq(
         ethers.utils.parseEther("0.2")
       );
     });
@@ -553,24 +543,18 @@ describe("SpookySwapStrategyPartialCloseLiquidate", () => {
           ethers.utils.parseEther("0.1")
         );
 
-      expect(await lp.balanceOf(strat.address), "Strategy should has 0 LP").to.be.bignumber.eq(
-        ethers.utils.parseEther("0")
-      );
-      expect(
-        await lp.balanceOf(mockWorker.address),
-        "Worker should has 0 LP as all LP is liquidated"
-      ).to.be.bignumber.eq("0");
+      expect(await lp.balanceOf(strat.address), "Strategy should has 0 LP").to.be.eq(ethers.utils.parseEther("0"));
+      expect(await lp.balanceOf(mockWorker.address), "Worker should has 0 LP as all LP is liquidated").to.be.eq("0");
       expect(
         await baseToken.balanceOf(bobAddress),
         "Bob's BTOKEN should increase by 1.499499499499499499 BTOKEN"
-      ).to.be.bignumber.eq(
+      ).to.be.eq(
         bobBTokenBefore.add(ethers.utils.parseEther("1")).add(ethers.utils.parseEther("0.499499499499499499"))
       );
-      expect(
-        await baseToken.balanceOf(lp.address),
-        "FTOKEN-BTOKEN LP should has 0.500500500500500501 BTOKEN"
-      ).to.be.bignumber.eq(ethers.utils.parseEther("0.500500500500500501"));
-      expect(await farmingToken.balanceOf(lp.address), "FTOKEN-BTOKEN LP should as 0.2 FTOKEN").to.be.bignumber.eq(
+      expect(await baseToken.balanceOf(lp.address), "FTOKEN-BTOKEN LP should has 0.500500500500500501 BTOKEN").to.be.eq(
+        ethers.utils.parseEther("0.500500500500500501")
+      );
+      expect(await farmingToken.balanceOf(lp.address), "FTOKEN-BTOKEN LP should as 0.2 FTOKEN").to.be.eq(
         ethers.utils.parseEther("0.2")
       );
     });

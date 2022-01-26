@@ -106,6 +106,11 @@ import {
   SpookySwapStrategyPartialCloseMinimizeTrading__factory,
   Vault2__factory,
   Vault2,
+  MiniFL,
+  MiniFL__factory,
+  Rewarder1,
+  Rewarder1__factory,
+  IVault,
 } from "../../typechain";
 
 import * as TimeHelpers from "../helpers/time";
@@ -493,6 +498,18 @@ export class DeployHelper {
     return mockBep20;
   }
 
+  public async deployMiniFL(rewardTokenAddress: string): Promise<MiniFL> {
+    const MiniFL = (await ethers.getContractFactory("MiniFL", this.deployer)) as MiniFL__factory;
+    const miniFL = (await upgrades.deployProxy(MiniFL, [rewardTokenAddress])) as MiniFL;
+    return miniFL;
+  }
+
+  public async deployRewarder1(miniFLaddress: string, extraRewardTokenAddress: string): Promise<Rewarder1> {
+    const Rewarder1 = (await ethers.getContractFactory("Rewarder1", this.deployer)) as Rewarder1__factory;
+    const rewarder1 = (await upgrades.deployProxy(Rewarder1, [miniFLaddress, extraRewardTokenAddress])) as Rewarder1;
+    return rewarder1;
+  }
+
   public async deployAlpacaFairLaunch(
     alpacaPerBlock: BigNumberish,
     alpacaBonusLockUpBps: BigNumberish,
@@ -519,10 +536,10 @@ export class DeployHelper {
     return [alpacaToken, fairLaunch];
   }
 
-  public async deployVault(
+  private async _deployVault(
     wbnb: MockWBNB,
     vaultConfig: IVaultConfig,
-    fairlaunch: FairLaunch,
+    fairlaunchAddress: string,
     btoken: MockERC20
   ): Promise<[Vault, SimpleVaultConfig, WNativeRelayer]> {
     const WNativeRelayer = (await ethers.getContractFactory(
@@ -543,7 +560,7 @@ export class DeployHelper {
       vaultConfig.killPrizeBps,
       wbnb.address,
       wNativeRelayer.address,
-      fairlaunch.address,
+      fairlaunchAddress,
       vaultConfig.killTreasuryBps,
       vaultConfig.killTreasuryAddress,
     ])) as SimpleVaultConfig;
@@ -572,13 +589,51 @@ export class DeployHelper {
     await wNativeRelayer.setCallerOk([vault.address], true);
 
     // Set holders of debtToken
-    await debtToken.setOkHolders([fairlaunch.address, vault.address], true);
+    await debtToken.setOkHolders([fairlaunchAddress, vault.address], true);
 
     // Transfer ownership to vault
     await debtToken.transferOwnership(vault.address);
 
+    return [vault, simpleVaultConfig, wNativeRelayer];
+  }
+
+  public async deployVault(
+    wbnb: MockWBNB,
+    vaultConfig: IVaultConfig,
+    fairlaunch: FairLaunch,
+    btoken: MockERC20
+  ): Promise<[Vault, SimpleVaultConfig, WNativeRelayer]> {
+    const [vault, simpleVaultConfig, wNativeRelayer] = await this._deployVault(
+      wbnb,
+      vaultConfig,
+      fairlaunch.address,
+      btoken
+    );
+
     // Set add FairLaunch poool and set fairLaunchPoolId for Vault
     await fairlaunch.addPool(1, await vault.debtToken(), false);
+    await vault.setFairLaunchPoolId(0);
+
+    return [vault, simpleVaultConfig, wNativeRelayer];
+  }
+
+  public async deployMiniFLVault(
+    wbnb: MockWBNB,
+    vaultConfig: IVaultConfig,
+    miniFL: MiniFL,
+    rewarderAddress: string,
+    btoken: MockERC20
+  ): Promise<[Vault, SimpleVaultConfig, WNativeRelayer]> {
+    const [vault, simpleVaultConfig, wNativeRelayer] = await this._deployVault(
+      wbnb,
+      vaultConfig,
+      miniFL.address,
+      btoken
+    );
+
+    // Set add FairLaunch poool and set fairLaunchPoolId for Vault
+    await miniFL.addPool(1, await vault.debtToken(), rewarderAddress, true);
+    await miniFL.approveStakeDebtToken([0], [vault.address], true);
     await vault.setFairLaunchPoolId(0);
 
     return [vault, simpleVaultConfig, wNativeRelayer];
@@ -877,7 +932,7 @@ export class DeployHelper {
 
   public async deploySpookySwapStrategies(
     router: WaultSwapRouter,
-    vault: Vault2,
+    vault: IVault,
     wbnb: MockWBNB,
     wNativeRelayer: WNativeRelayer
   ): Promise<

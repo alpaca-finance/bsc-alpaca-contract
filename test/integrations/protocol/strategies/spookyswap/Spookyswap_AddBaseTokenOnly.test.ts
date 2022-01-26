@@ -270,11 +270,11 @@ describe("SpookSwapStrategyAddBaseTokenOnly", () => {
     // lpAmount = 0.316242497512891045 * (0.051142292984839684 / 1.048857707015160316) ~= 0.015419981522648941...
 
     // actualLpAmount = 0.015419263215025115
-    expect(await lp.balanceOf(mockWorker.address)).to.be.bignumber.eq(ethers.utils.parseEther("0.015419263215025115"));
-    expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-    expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+    expect(await lp.balanceOf(mockWorker.address)).to.be.eq(ethers.utils.parseEther("0.015419263215025115"));
+    expect(await lp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+    expect(await farmingToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
     // there is a very small remaining amount of base token left
-    expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.lte(ethers.BigNumber.from("13"));
+    expect(await baseToken.balanceOf(strat.address)).to.be.lte(ethers.BigNumber.from("13"));
 
     // Bob uses AddBaseTokenOnly strategy to add another 0.1 BTOKEN
     await baseTokenAsBob.transfer(mockWorker.address, ethers.utils.parseEther("0.1"));
@@ -288,9 +288,9 @@ describe("SpookSwapStrategyAddBaseTokenOnly", () => {
       )
     );
 
-    expect(await lp.balanceOf(mockWorker.address)).to.be.bignumber.eq(ethers.utils.parseEther("0.030151497260262730"));
-    expect(await lp.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-    expect(await farmingToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-    expect(await baseToken.balanceOf(strat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
+    expect(await lp.balanceOf(mockWorker.address)).to.be.eq(ethers.utils.parseEther("0.030151497260262730"));
+    expect(await lp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+    expect(await farmingToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
+    expect(await baseToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
   });
 });

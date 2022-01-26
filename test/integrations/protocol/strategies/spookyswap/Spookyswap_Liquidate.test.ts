@@ -241,14 +241,12 @@ describe("SpookySwapStrategyLiquidate", () => {
       FOREVER
     );
 
-    expect(await baseToken.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("99"));
-    expect(await farmingToken.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("9.9"));
-    expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(
-      ethers.utils.parseEther("0.316227766016837933")
-    );
+    expect(await baseToken.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("99"));
+    expect(await farmingToken.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("9.9"));
+    expect(await lp.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("0.316227766016837933"));
 
-    expect(await baseToken.balanceOf(lp.address)).to.be.bignumber.eq(ethers.utils.parseEther("2"));
-    expect(await farmingToken.balanceOf(lp.address)).to.be.bignumber.eq(ethers.utils.parseEther("0.2"));
+    expect(await baseToken.balanceOf(lp.address)).to.be.eq(ethers.utils.parseEther("2"));
+    expect(await farmingToken.balanceOf(lp.address)).to.be.eq(ethers.utils.parseEther("0.2"));
 
     // Bob's position: 0.316227766016837933 LP
     // lpToLiquidate: Math.min(888, 0.316227766016837933) = 0.316227766016837933 LP (0.1 FTOKEN + 1 FTOKEN)
@@ -308,10 +306,10 @@ describe("SpookySwapStrategyLiquidate", () => {
     // baseTokenReserve = 1 - 0.499499499499499499 = 0.500500500500500501
     // farmingTokenReserve = 0.1 + 0.1 = 2
 
-    expect(await lp.balanceOf(liqStrat.address)).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-    expect(await lp.balanceOf(await bob.getAddress())).to.be.bignumber.eq(ethers.utils.parseEther("0"));
-    expect(await baseToken.balanceOf(lp.address)).to.be.bignumber.eq(ethers.utils.parseEther("0.500500500500500501"));
-    expect(await farmingToken.balanceOf(lp.address)).to.be.bignumber.eq(ethers.utils.parseEther("0.2"));
+    expect(await lp.balanceOf(liqStrat.address)).to.be.eq(ethers.utils.parseEther("0"));
+    expect(await lp.balanceOf(await bob.getAddress())).to.be.eq(ethers.utils.parseEther("0"));
+    expect(await baseToken.balanceOf(lp.address)).to.be.eq(ethers.utils.parseEther("0.500500500500500501"));
+    expect(await farmingToken.balanceOf(lp.address)).to.be.eq(ethers.utils.parseEther("0.2"));
     assertAlmostEqual(
       ethers.utils.parseEther("100.5").toString(),
       (await baseToken.balanceOf(await bob.getAddress())).toString()

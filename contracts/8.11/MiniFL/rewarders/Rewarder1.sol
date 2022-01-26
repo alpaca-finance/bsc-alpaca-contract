@@ -23,8 +23,6 @@ import "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 import "../interfaces/IMiniFL.sol";
 import "../interfaces/IRewarder.sol";
 
-import "hardhat/console.sol";
-
 contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable {
   using SafeCastUpgradeable for uint256;
   using SafeCastUpgradeable for uint128;
@@ -33,6 +31,7 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
 
   error Reward1_NotFL();
   error Reward1_PoolExisted();
+  error Reward1_PoolNotExisted();
 
   IERC20Upgradeable public rewardToken;
 
@@ -65,12 +64,12 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
   event LogUpdatePool(uint256 indexed pid, uint64 lastRewardTime, uint256 stakedBalance, uint256 accRewardPerShare);
   event LogRewardPerSecond(uint256 rewardPerSecond);
 
-  function initialize(IERC20Upgradeable _rewardToken, address _miniFL) external initializer {
+  function initialize(address _miniFL, IERC20Upgradeable _rewardToken) external initializer {
     OwnableUpgradeable.__Ownable_init();
     ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
 
-    rewardToken = _rewardToken;
     miniFL = _miniFL;
+    rewardToken = _rewardToken;
   }
 
   function onDeposit(
@@ -97,10 +96,19 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
     PoolInfo memory pool = _updatePool(_pid);
     UserInfo storage user = userInfo[_pid][_user];
 
-    uint256 _amount = user.amount - _newAmount;
+    uint256 _amount = 0;
+    if (user.amount >= _newAmount) {
+      // Handling normal case; When onDeposit call before onWithdraw
+      _amount = user.amount - _newAmount;
 
-    user.rewardDebt = user.rewardDebt - (int256((_amount * pool.accRewardPerShare) / ACC_REWARD_PRECISION));
-    user.amount = user.amount - _amount;
+      user.rewardDebt = user.rewardDebt - (((_amount * pool.accRewardPerShare) / ACC_REWARD_PRECISION)).toInt256();
+      user.amount = user.amount - _amount;
+    } else {
+      // Handling when rewarder1 getting set after the pool is live
+      // if user.amount < _newAmount, then it is first deposit.
+      user.amount = _newAmount;
+      user.rewardDebt = user.rewardDebt + ((_newAmount * pool.accRewardPerShare) / ACC_REWARD_PRECISION).toInt256();
+    }
 
     emit LogOnWithdraw(_user, _pid, _amount);
   }
@@ -109,10 +117,10 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
     PoolInfo memory pool = _updatePool(_pid);
     UserInfo storage user = userInfo[_pid][_user];
 
-    int256 _accumulatedAlpaca = ((user.amount * pool.accRewardPerShare) / ACC_REWARD_PRECISION).toInt256();
-    uint256 _pendingRewards = (_accumulatedAlpaca - user.rewardDebt).toUint256();
+    int256 _accumulatedRewards = ((user.amount * pool.accRewardPerShare) / ACC_REWARD_PRECISION).toInt256();
+    uint256 _pendingRewards = (_accumulatedRewards - user.rewardDebt).toUint256();
 
-    user.rewardDebt = _accumulatedAlpaca;
+    user.rewardDebt = _accumulatedRewards;
 
     if (_pendingRewards != 0) {
       rewardToken.safeTransfer(_user, _pendingRewards);
@@ -204,7 +212,7 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
   function _massUpdatePools() internal {
     uint256 _len = poolLength();
     for (uint256 i = 0; i < _len; ++i) {
-      _updatePool(i);
+      _updatePool(poolIds[i]);
     }
   }
 
@@ -217,9 +225,11 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
   /// @param _pid The index of the pool. See `poolInfo`.
   function _updatePool(uint256 _pid) internal returns (PoolInfo memory) {
     PoolInfo memory _poolInfo = poolInfo[_pid];
+
+    if (_poolInfo.lastRewardTime == 0) revert Reward1_PoolNotExisted();
+
     if (block.timestamp > _poolInfo.lastRewardTime) {
       uint256 _stakedBalance = IMiniFL(miniFL).stakingToken(_pid).balanceOf(miniFL);
-
       if (_stakedBalance > 0) {
         uint256 _timePast = block.timestamp - _poolInfo.lastRewardTime;
         uint256 _rewards = (_timePast * rewardPerSecond * _poolInfo.allocPoint) / totalAllocPoint;

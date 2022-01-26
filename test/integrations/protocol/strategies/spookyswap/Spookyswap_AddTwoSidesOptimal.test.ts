@@ -248,7 +248,7 @@ describe("SpookyswapStrategyAddTwoSideOptimal", () => {
       const stratLPBalance = await lpV2.balanceOf(mockWorker.address);
       Assert.assertAlmostEqual(stratLPBalance.toString(), ethers.utils.parseEther("0.231263113939866551").toString());
       expect(stratLPBalance).to.above(ethers.utils.parseEther("0"));
-      expect(await farmingToken.balanceOf(addTwoSides.address)).to.be.bignumber.below(MAX_ROUNDING_ERROR);
+      expect(await farmingToken.balanceOf(addTwoSides.address)).to.be.below(MAX_ROUNDING_ERROR);
 
       // Now Alice leverage 2x on her 0.1 BTOKEN.
       // So totally Alice will take 0.1 BTOKEN from the pool and 0.1 BTOKEN from her pocket to
@@ -278,7 +278,7 @@ describe("SpookyswapStrategyAddTwoSideOptimal", () => {
         ethers.utils.parseEther("0.240307929849670369").toString()
       );
       expect(await lpV2.balanceOf(mockWorker.address)).to.above(stratLPBalance);
-      expect(await farmingToken.balanceOf(addTwoSides.address)).to.be.bignumber.below(MAX_ROUNDING_ERROR);
+      expect(await farmingToken.balanceOf(addTwoSides.address)).to.be.below(MAX_ROUNDING_ERROR);
     });
 
     it("should convert some BTOKEN and some FTOKEN to LP tokens at best rate", async () => {
@@ -312,7 +312,7 @@ describe("SpookyswapStrategyAddTwoSideOptimal", () => {
       const stratLPBalance = await lpV2.balanceOf(mockWorker.address);
       Assert.assertAlmostEqual(stratLPBalance.toString(), ethers.utils.parseEther("0.354395980615881993").toString());
       expect(stratLPBalance).to.above(ethers.utils.parseEther("0"));
-      expect(await farmingToken.balanceOf(addTwoSides.address)).to.be.bignumber.below(MAX_ROUNDING_ERROR);
+      expect(await farmingToken.balanceOf(addTwoSides.address)).to.be.below(MAX_ROUNDING_ERROR);
 
       // Now Alice leverage 2x on her 0.1 BTOKEN.
       // So totally Alice will take 0.1 BTOKEN from the pool and 0.1 BTOKEN from her pocket to
@@ -346,7 +346,7 @@ describe("SpookyswapStrategyAddTwoSideOptimal", () => {
         ethers.utils.parseEther("1.826496459574643737").toString()
       );
       expect(await lpV2.balanceOf(mockWorker.address)).to.above(stratLPBalance);
-      expect(await farmingToken.balanceOf(addTwoSides.address)).to.be.bignumber.below(MAX_ROUNDING_ERROR);
+      expect(await farmingToken.balanceOf(addTwoSides.address)).to.be.below(MAX_ROUNDING_ERROR);
     });
   });
 

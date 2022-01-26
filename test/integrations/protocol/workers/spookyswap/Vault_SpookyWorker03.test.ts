@@ -28,6 +28,9 @@ import {
   SpookyWorker03__factory,
   SpookyMasterChef__factory,
   Vault2,
+  MiniFL,
+  Rewarder1,
+  MiniFL__factory,
 } from "../../../../../typechain";
 import * as AssertHelpers from "../../../../helpers/assert";
 import * as TimeHelpers from "../../../../helpers/time";
@@ -39,10 +42,9 @@ import { Worker02Helper } from "../../../../helpers/worker";
 chai.use(solidity);
 const { expect } = chai;
 
-describe("Vault2 - SpookyWorker03", () => {
+describe("Vault - SpookyWorker03", () => {
   const FOREVER = "2000000000";
-  const ALPACA_BONUS_LOCK_UP_BPS = 7000;
-  const ALPACA_REWARD_PER_BLOCK = ethers.utils.parseEther("5000");
+  const LM_REWARD_PER_SECOND = ethers.utils.parseEther("100");
   const BOO_PER_SEC = ethers.utils.parseEther("0.076");
   const REINVEST_BOUNTY_BPS = "100"; // 1% reinvest bounty
   const RESERVE_POOL_BPS = "1000"; // 10% reserve pool
@@ -66,9 +68,15 @@ describe("Vault2 - SpookyWorker03", () => {
   let lp: PancakePair;
 
   /// Token-related instance(s)
+  let alpacaToken: MockERC20;
+  let extraToken: MockERC20;
   let baseToken: MockERC20;
   let farmToken: MockERC20;
   let boo: SpookyToken;
+
+  /// MiniFL instance(s)
+  let miniFL: MiniFL;
+  let rewarder1: Rewarder1;
 
   /// Strategy-ralted instance(s)
   let addStrat: SpookySwapStrategyAddBaseTokenOnly;
@@ -81,7 +89,7 @@ describe("Vault2 - SpookyWorker03", () => {
   /// Vault-related instance(s)
   let simpleVaultConfig: SimpleVaultConfig;
   let wNativeRelayer: WNativeRelayer;
-  let vault: Vault2;
+  let vault: Vault;
 
   /// SpookyMasterChef-related instance(s)
   let masterChef: SpookyMasterChef;
@@ -116,6 +124,10 @@ describe("Vault2 - SpookyWorker03", () => {
   let vaultAsBob: Vault;
   let vaultAsEve: Vault;
 
+  let miniFLasAlice: MiniFL;
+  let miniFLasBob: MiniFL;
+  let miniFLasEve: MiniFL;
+
   // Test Helper
   let swapHelper: SwapHelper;
   let workerHelper: Worker02Helper;
@@ -132,7 +144,27 @@ describe("Vault2 - SpookyWorker03", () => {
 
     wbnb = await deployHelper.deployWBNB();
     [factory, router, boo, masterChef] = await deployHelper.deploySpookySwap(wbnb, BOO_PER_SEC);
-    [baseToken, farmToken] = await deployHelper.deployBEP20([
+    [alpacaToken, extraToken, baseToken, farmToken] = await deployHelper.deployBEP20([
+      {
+        name: "ALPACA",
+        symbol: "ALPACA",
+        decimals: "18",
+        holders: [
+          { address: deployerAddress, amount: ethers.utils.parseEther("88888888888888") },
+          { address: aliceAddress, amount: ethers.utils.parseEther("1000") },
+          { address: bobAddress, amount: ethers.utils.parseEther("1000") },
+        ],
+      },
+      {
+        name: "EXTRA",
+        symbol: "EXTRA",
+        decimals: "18",
+        holders: [
+          { address: deployerAddress, amount: ethers.utils.parseEther("88888888888888") },
+          { address: aliceAddress, amount: ethers.utils.parseEther("1000") },
+          { address: bobAddress, amount: ethers.utils.parseEther("1000") },
+        ],
+      },
       {
         name: "BTOKEN",
         symbol: "BTOKEN",
@@ -154,7 +186,9 @@ describe("Vault2 - SpookyWorker03", () => {
         ],
       },
     ]);
-    [vault, simpleVaultConfig, wNativeRelayer] = await deployHelper.deployVault2(
+    miniFL = await deployHelper.deployMiniFL(alpacaToken.address);
+    rewarder1 = await deployHelper.deployRewarder1(miniFL.address, extraToken.address);
+    [vault, simpleVaultConfig, wNativeRelayer] = await deployHelper.deployMiniFLVault(
       wbnb,
       {
         minDebtSize: MIN_DEBT_SIZE,
@@ -164,12 +198,19 @@ describe("Vault2 - SpookyWorker03", () => {
         killTreasuryBps: KILL_TREASURY_BPS,
         killTreasuryAddress: DEPLOYER,
       },
+      miniFL,
+      rewarder1.address,
       baseToken
     );
     [addStrat, liqStrat, twoSidesStrat, minimizeStrat, partialCloseStrat, partialCloseMinimizeStrat] =
       await deployHelper.deploySpookySwapStrategies(router, vault, wbnb, wNativeRelayer);
 
-    /// Setup BTOKEN-FTOKEN pair on WaultSwap
+    /// Set reward per second on both MiniFL and Rewarder
+    await miniFL.setAlpacaPerSecond(LM_REWARD_PER_SECOND);
+    await rewarder1.setRewardPerSecond(LM_REWARD_PER_SECOND);
+    await rewarder1.addPool(1, 0);
+
+    /// Setup BTOKEN-FTOKEN pair on SpookySwap
     await factory.createPair(baseToken.address, farmToken.address);
     lp = PancakePair__factory.connect(await factory.getPair(farmToken.address, baseToken.address), deployer);
     await lp.deployed();
@@ -257,6 +298,10 @@ describe("Vault2 - SpookyWorker03", () => {
     vaultAsBob = Vault__factory.connect(vault.address, bob);
     vaultAsEve = Vault__factory.connect(vault.address, eve);
 
+    miniFLasAlice = MiniFL__factory.connect(miniFL.address, alice);
+    miniFLasBob = MiniFL__factory.connect(miniFL.address, bob);
+    miniFLasEve = MiniFL__factory.connect(miniFL.address, eve);
+
     spookyWorkerAsEve = SpookyWorker03__factory.connect(spookyWorker.address, eve);
   }
 
@@ -265,7 +310,7 @@ describe("Vault2 - SpookyWorker03", () => {
   });
 
   context("when worker is initialized", async () => {
-    it("should has FTOKEN as a farmingToken in WaultSwapWorker02", async () => {
+    it("should has FTOKEN as a farmingToken in SpookyWorker03", async () => {
       expect(await spookyWorker.farmingToken()).to.be.equal(farmToken.address);
     });
 
@@ -595,7 +640,7 @@ describe("Vault2 - SpookyWorker03", () => {
           "1000", // 10% Kill prize
           wbnb.address,
           wNativeRelayer.address,
-          ethers.constants.AddressZero,
+          miniFL.address,
           "0",
           ethers.constants.AddressZero
         );
@@ -810,7 +855,7 @@ describe("Vault2 - SpookyWorker03", () => {
           spookyWorker.address,
           "0",
           "0",
-          "1000000000000000000000",
+          ethers.constants.MaxUint256,
           ethers.utils.defaultAbiCoder.encode(
             ["address", "bytes"],
             [liqStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
@@ -820,6 +865,12 @@ describe("Vault2 - SpookyWorker03", () => {
 
         // Check Bob account, Bob must be richer as he earn more from yield
         expect(bobAfter).to.be.gt(bobBefore);
+
+        // Assert MiniFL states
+        expect((await miniFL.userInfo(0, bobAddress)).amount).to.be.eq(ethers.utils.parseEther("2"));
+        expect((await rewarder1.userInfo(0, bobAddress)).amount).to.be.eq(ethers.utils.parseEther("2"));
+        expect(await miniFL.pendingAlpaca(0, bobAddress)).to.be.gt(0);
+        expect(await rewarder1.pendingToken(0, bobAddress)).to.be.gt(0);
 
         // Bob add another 10 BTOKEN
         await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
@@ -834,6 +885,12 @@ describe("Vault2 - SpookyWorker03", () => {
             [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
           )
         );
+
+        // Assert MiniFL states
+        expect((await miniFL.userInfo(0, bobAddress)).amount).to.be.eq(ethers.utils.parseEther("2"));
+        expect((await rewarder1.userInfo(0, bobAddress)).amount).to.be.eq(ethers.utils.parseEther("2"));
+        expect(await miniFL.pendingAlpaca(0, bobAddress)).to.be.gt(0);
+        expect(await rewarder1.pendingToken(0, bobAddress)).to.be.gt(0);
 
         bobBefore = await baseToken.balanceOf(bobAddress);
         // Bob close position#2
@@ -850,8 +907,31 @@ describe("Vault2 - SpookyWorker03", () => {
         );
         bobAfter = await baseToken.balanceOf(bobAddress);
 
+        // Assert MiniFL states
+        expect((await miniFL.userInfo(0, bobAddress)).amount).to.be.eq(0);
+        expect((await rewarder1.userInfo(0, bobAddress)).amount).to.be.eq(0);
+        expect(await miniFL.pendingAlpaca(0, bobAddress)).to.be.gt(0);
+        expect(await rewarder1.pendingToken(0, bobAddress)).to.be.gt(0);
+
         // Check Bob account, Bob must be richer as she earned from leverage yield farm without getting liquidated
         expect(bobAfter).to.be.gt(bobBefore);
+
+        // Expect to be reverted if bob try to claim pendingAlpaca & pendingToken now
+        await expect(miniFLasBob.harvest(0)).to.be.reverted;
+
+        // Seed reward liquidity
+        await alpacaToken.mint(miniFL.address, ethers.utils.parseEther("888888888888"));
+        await extraToken.mint(rewarder1.address, ethers.utils.parseEther("888888888888"));
+
+        // Now Bob can harvest rewards
+        const alpaceBefore = await alpacaToken.balanceOf(bobAddress);
+        const extraBefore = await extraToken.balanceOf(bobAddress);
+
+        await miniFLasBob.harvest(0);
+
+        // Bob should earn rewards
+        expect(await alpacaToken.balanceOf(bobAddress)).to.be.gt(alpaceBefore);
+        expect(await extraToken.balanceOf(bobAddress)).to.be.gt(extraBefore);
       });
 
       it("should close position correctly when user holds mix positions of leveraged and non-leveraged", async () => {
@@ -864,7 +944,7 @@ describe("Vault2 - SpookyWorker03", () => {
           "1000", // 10% Kill prize
           wbnb.address,
           wNativeRelayer.address,
-          ethers.constants.AddressZero,
+          miniFL.address,
           "0",
           ethers.constants.AddressZero
         );
@@ -1216,7 +1296,7 @@ describe("Vault2 - SpookyWorker03", () => {
           KILL_PRIZE_BPS,
           wbnb.address,
           wNativeRelayer.address,
-          ethers.constants.AddressZero,
+          miniFL.address,
           KILL_TREASURY_BPS,
           deployerAddress
         );
@@ -1478,7 +1558,7 @@ describe("Vault2 - SpookyWorker03", () => {
           "1000", // 10% Kill prize
           wbnb.address,
           wNativeRelayer.address,
-          ethers.constants.AddressZero,
+          miniFL.address,
           "0",
           ethers.constants.AddressZero
         );
@@ -1755,7 +1835,7 @@ describe("Vault2 - SpookyWorker03", () => {
               "1000", // 10% Kill prize
               wbnb.address,
               wNativeRelayer.address,
-              ethers.constants.AddressZero,
+              miniFL.address,
               "0",
               ethers.constants.AddressZero
             );
@@ -1882,7 +1962,7 @@ describe("Vault2 - SpookyWorker03", () => {
               "1000", // 10% Kill prize
               wbnb.address,
               wNativeRelayer.address,
-              ethers.constants.AddressZero,
+              miniFL.address,
               KILL_TREASURY_BPS,
               deployerAddress
             );
@@ -2009,7 +2089,7 @@ describe("Vault2 - SpookyWorker03", () => {
               "1000", // 10% Kill prize
               wbnb.address,
               wNativeRelayer.address,
-              ethers.constants.AddressZero,
+              miniFL.address,
               KILL_TREASURY_BPS,
               deployerAddress
             );
@@ -2179,7 +2259,7 @@ describe("Vault2 - SpookyWorker03", () => {
           KILL_PRIZE_BPS,
           wbnb.address,
           wNativeRelayer.address,
-          ethers.constants.AddressZero,
+          miniFL.address,
           KILL_TREASURY_BPS,
           deployerAddress
         );

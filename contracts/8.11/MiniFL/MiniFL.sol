@@ -283,7 +283,7 @@ contract MiniFL is IMiniFL, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     PoolInfo storage _pool = poolInfo[_pid];
     UserInfo storage _user = userInfo[_pid][msg.sender];
 
-    if (_pool.isDebtTokenPool == true && stakeDebtTokenAllowance[_pid][msg.sender] == false) revert MiniFL_Forbidden();
+    if (_pool.isDebtTokenPool == true) revert MiniFL_Forbidden();
 
     uint256 _amount = _user.amount;
     _user.amount = 0;
