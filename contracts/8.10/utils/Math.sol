@@ -17,9 +17,10 @@ library Math {
   function almostEqual(
     uint256 value0,
     uint256 value1,
-    uint256 tolerance
+    uint256 toleranceBps
   ) internal pure returns (bool) {
-    return (max(value0, value1) - min(value0, value1)) <= tolerance;
+    uint256 maxValue = max(value0, value1);
+    return (maxValue - min(value0, value1) * 10000) <= toleranceBps * maxValue;
   }
 
   /**

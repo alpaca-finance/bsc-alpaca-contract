@@ -42,14 +42,25 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _assetTokenAmount
   );
   event LogWithdraw(address indexed _shareOwner, uint256 _minStableTokenAmount, uint256 _minAssetTokenAmount);
+  // event LogRebalance(uint256 _equityBefore, uin256 _equityAfter);
 
   /// @dev Errors
   error Unauthorized(address _caller);
-  error DuplicatedPosition();
+  error DuplicatedPositions();
+  error PositionsNotInitialized();
   error InvalidPositions(address _vault, uint256 _positionId);
   error UnsafePositionValue();
   error UnsafeDebtValue();
-  error UnsafeOutStanding();
+  error UnsafeDebtRatio();
+  error UnsafeOutstanding(address _token, uint256 _amountBefore, uint256 _amountAfter);
+  error PositionsIsHealthy();
+  error InsufficientTokenReceived(address _token, uint256 _requiredAmount, uint256 _receivedAmount);
+
+  struct Outstanding{
+    uint256 stableAmount;
+    uint256 assetAmount;
+    uint256 nativeAmount;
+  }
 
   /// @dev constants
   uint8 private constant ACTION_WORK = 1;
@@ -122,7 +133,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     bytes calldata _data
   ) external payable onlyOwner {
     if(stableVaultPosId != 0 || assetVaultPosId != 0){
-      revert DuplicatedPosition();
+      revert DuplicatedPositions();
     }
     uint256 _stableVaultPosId = IVault(stableVault).nextPositionID();
     uint256 _assetVaultPosId = IVault(assetVault).nextPositionID();
@@ -159,14 +170,16 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   /// @param _data The calldata to pass along to the proxy action for more working context.
   function deposit(
     address _shareReceiver,
+    //  add minimumShareReceive
     uint256 _stableTokenAmount,
     uint256 _assetTokenAmount,
     bytes calldata _data
   ) public payable onlyEOAorWhitelisted nonReentrant returns (uint256 _shares) {
     console.log("=====================deposit=====================");
 
-    (uint256 _stableTokenBefore, uint256 _assetTokenBefore, uint256 _nativeTokenBefore) = _outstanding();
-    _nativeTokenBefore = _nativeTokenBefore - msg.value;
+    Outstanding memory _outstandingBefore = _outstanding();
+    _outstandingBefore.nativeAmount = _outstandingBefore.nativeAmount - msg.value;
+
     // 1. transfer tokens from user to vault
     _transferTokenToVault(stableToken, _stableTokenAmount);
     console.log("after stableToken");
@@ -175,18 +188,18 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
     // 2. mint share for shareReceiver
     uint256 _depositValue =
-      (_stableTokenAmount *
-        priceHelper.getTokenPrice(stableToken))/1e18 +
+      ((_stableTokenAmount *
+        priceHelper.getTokenPrice(stableToken)) +
         (_assetTokenAmount *
-        priceHelper.getTokenPrice(assetToken))/1e18;
+        priceHelper.getTokenPrice(assetToken)))/1e18;
     console.log("_depositValue", _depositValue);
 
     uint256 _shares = valueToShare(_depositValue);
     console.log("_shares", _shares);
     _mint(_shareReceiver, _shares);
     {
-      (uint256 _stablePositionValueBefore, uint256 _assetPositionValueBefore) = positionValues();
-      (uint256 _stablePositionDebtValueBefore, uint256 _assetPositionDebtValueBefore) = debtValues();
+      (uint256 _stablePositionValueBefore, uint256 _assetPositionValueBefore) = (_stablePositionValue(), _assetPositionValue());
+      (uint256 _stablePositionDebtValueBefore, uint256 _assetPositionDebtValueBefore) = (_stablePositionDebtValue(), _assetPositionDebtValue());
       
       // 3. call execute to do more work.
       // Perform the actual work, using a new scope to avoid stack-too-deep errors.
@@ -204,7 +217,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
         _stablePositionDebtValueBefore,
         _assetPositionDebtValueBefore
       );
-      _outstandingCheck(_stableTokenBefore, _assetTokenBefore, _nativeTokenBefore);
+      _outstandingCheck(_outstandingBefore, _outstanding());
     }
     emit LogDeposit(msg.sender, _shareReceiver, _stableTokenAmount, _assetTokenAmount);
     return _shares;
@@ -215,32 +228,71 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _minStableTokenAmount,
     uint256 _minAssetTokenAmount,
     bytes calldata _data
-  ) public onlyEOAorWhitelisted nonReentrant returns (uint256 _shares) {
+  ) public onlyEOAorWhitelisted nonReentrant returns (uint256 _withdrawValue){
     console.log("=====================withdraw=====================");
     address _shareOwner = msg.sender;
-    (uint256 _stableTokenBefore, uint256 _assetTokenBefore, uint256 _nativeBefore) = _outstanding();
+    Outstanding memory _outstandingBefore = _outstanding();
+
+    // Outstanding
+    uint256 _stablePositionEquityBefore = _stablePositionEquity();
+    uint256 _assetPositionEquityBefore = _assetPositionEquity();
     {
       (uint8[] memory actions, uint256[] memory values, bytes[] memory _datas) =
         abi.decode(_data, (uint8[], uint256[], bytes[]));
       _execute(actions, values, _datas);
-      console.log("afrer execute");
     }
+    uint256 _stablePositionEquityAfter = _stablePositionEquity();
+    uint256 _assetPositionEquityAfter = _assetPositionEquity();
 
-    uint256 _equityValue = shareToValue(_shareAmount);
+    uint256 _shareValue = shareToValue(_shareAmount);
     _burn(_shareOwner, _shareAmount);
 
-    (uint256 _stableTokenAfter, uint256 _assetTokenAfter, uint256 _nativeAfter) = _outstanding();
+    Outstanding memory _outstandingAfter = _outstanding();
+    
     // transfer funds back to shareOwner
-    // TODO: refactor here
-    uint256 _stableTokenBack = stableToken == config.getWrappedNativeAddr() ? _nativeAfter - _nativeBefore : _stableTokenAfter - _stableTokenBefore;
-    uint256 _assetTokenBack = assetToken == config.getWrappedNativeAddr() ? _nativeAfter - _nativeBefore : _assetTokenAfter - _assetTokenBefore;
+    uint256 _stableTokenBack = stableToken == config.getWrappedNativeAddr() ? _outstandingAfter.nativeAmount - _outstandingBefore.nativeAmount : _outstandingAfter.stableAmount - _outstandingBefore.stableAmount;
+    uint256 _assetTokenBack = assetToken == config.getWrappedNativeAddr() ? _outstandingAfter.nativeAmount  - _outstandingBefore.nativeAmount : _outstandingAfter.assetAmount - _outstandingBefore.assetAmount;
 
-    _transferTokenToShareOwner(_shareOwner, stableToken, _stableTokenBack);
+    if(_stableTokenBack < _minStableTokenAmount){
+      revert InsufficientTokenReceived(stableToken,_minStableTokenAmount, _stableTokenBack);
+    }
+    if(_assetTokenBack < _minAssetTokenAmount){
+      revert InsufficientTokenReceived(assetToken,_minAssetTokenAmount, _assetTokenBack);
+    }
+    
+    _transferTokenToShareOwner(_shareOwner, stableToken,  _stableTokenBack);
     _transferTokenToShareOwner(_shareOwner, assetToken, _assetTokenBack);
 
     // sanity check
+    uint256 _withdrawValue;
+    {
+    uint256 _stableWithdrawValue = _stableTokenBack * priceHelper.getTokenPrice(stableToken);
+    uint256 _assetWithdrawValue = _assetTokenBack * priceHelper.getTokenPrice(assetToken);
+    _withdrawValue = (_stableWithdrawValue + _assetWithdrawValue)/1e18;
+    }
+
+    if(_stablePositionEquityBefore - _stablePositionEquityAfter > _stablePositionEquityBefore/ ((_stablePositionEquityBefore+ _assetPositionEquityBefore) * _withdrawValue)){
+      revert UnsafePositionValue();
+    }
+    if(_assetPositionEquityBefore - _assetPositionEquityAfter > _assetPositionEquityBefore/ ((_stablePositionEquityBefore+ _assetPositionEquityAfter) * _withdrawValue)){
+      revert UnsafePositionValue();
+    }
+
+    uint256 _totalDebt = _stablePositionDebtValue() + _assetPositionDebtValue();
+    uint256 _totalPositionValue = _stablePositionValue() + _assetPositionValue();
+  
+    if(_totalDebt * 10000 > _totalPositionValue * 6670){ // put constant to config
+      revert UnsafeDebtRatio();
+    }
+    // uint256 _positionValue = 
+    // (stableEquitybefore - stableEquityafter) <= stableEquitybefore / totalEquityBefore * Withdraw Amount
+    // Delta Short <= Equity short / Total Eq * Withdraw Amount
+
+    //debt ratio check totaldebt / positionValue
+    _outstandingCheck(_outstandingBefore, _outstandingAfter);
+
     emit LogWithdraw(_shareOwner, _stableTokenBack, _assetTokenBack);
-    return _shares;
+    return _withdrawValue;
   }
 
   function rebalance(
@@ -250,22 +302,24 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   ) external onlyRebalancers {
     console.log("===========rebalance===========");
 
-    uint256 equityBefore = totalEquityValue();
-    (uint256 _stablePositionValue, uint256 _assetPositionValue) = positionValues();
-    (uint256 _stablePositionDebtValue, uint256 _assetPositionDebtValue) = debtValues();
+    uint256 _equityBefore = totalEquityValue();
+    (uint256 _stablePositionValue, uint256 _assetPositionValue) = (_stablePositionValue(), _assetPositionValue());
+    (uint256 _stablePositionDebtValue, uint256 _assetPositionDebtValue) = (_stablePositionDebtValue(), _assetPositionDebtValue());
     uint256 _rebalanceFactor = config.rebalanceFactor();
-    require(
-      _stablePositionValue * _rebalanceFactor < _stablePositionDebtValue * 10000 ||
-        _assetPositionValue * _rebalanceFactor < _assetPositionDebtValue * 10000,
-      "position is healthy"
-    );
+
+    if(_stablePositionValue * _rebalanceFactor >= _stablePositionDebtValue * 10000 &&  
+      _assetPositionValue * _rebalanceFactor >= _assetPositionDebtValue * 10000){
+      revert PositionsIsHealthy();
+    }
+
     // execute rebalance
     {
       _execute(_actions, _values, _datas);
     }
-    uint256 equityAfter = totalEquityValue();
-    // check  position in a healthy state after rebalance
-    if(!Math.almostEqual(equityAfter, equityBefore, 1000)){
+
+    uint256 _equityAfter = totalEquityValue();
+    // check if position in a healthy state after rebalancing
+    if(!Math.almostEqual(_equityAfter, _equityBefore, config.positionValueTolerance())){
       revert UnsafePositionValue();
     }
   }
@@ -277,24 +331,31 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _stablePositionDebtValueBefore,
     uint256 _assetPositionDebtValueBefore
   ) internal {
-    (uint256 _stablePositionValue, uint256 _assetPositionValue) = positionValues();
-    (uint256 _stablePositionDebtValue, uint256 _assetPositionDebtValue) = debtValues();
+    (uint256 _stablePositionValue, uint256 _assetPositionValue) = (_stablePositionValue(), _assetPositionValue());
+    (uint256 _stablePositionDebtValue, uint256 _assetPositionDebtValue) = (_stablePositionDebtValue(), _assetPositionDebtValue());
     uint256 _tolerance = config.positionValueTolerance();
-    console.log("_equityCheck");
-    console.log("_equityCheck:depositValue",depositValue );
-    console.log("_equityCheck:_stablePositionValue",_stablePositionValue );
-    console.log("_equityCheck:_stablePositionValueBefore",_stablePositionValueBefore );
-    console.log("_equityCheck:_assetPositionValue",_assetPositionValue );
-    console.log("_equityCheck",!Math.almostEqual(_stablePositionValue - _stablePositionValueBefore, (depositValue * 3) / 4, _tolerance) );
-    console.log("_equityCheck",!Math.almostEqual(_assetPositionValue - _assetPositionValueBefore, (depositValue * 9) / 4, _tolerance) );
+    console.log("_healthCheck");
+    console.log("_healthCheck:depositValue",depositValue );
+    console.log("_healthCheck:_stablePositionValue",_stablePositionValue );
+    console.log("_healthCheck:_stablePositionValueBefore",_stablePositionValueBefore );
+    console.log("_healthCheck:_assetPositionValue",_assetPositionValue );
+    console.log("_healthCheck",!Math.almostEqual(_stablePositionValue - _stablePositionValueBefore, (depositValue) / 4, _tolerance) );
+    console.log("_healthCheck",!Math.almostEqual(_assetPositionValue - _assetPositionValueBefore, (depositValue * 3) / 4, _tolerance) );
     // 1. check position value
     if(
-      !Math.almostEqual(_stablePositionValue - _stablePositionValueBefore, (depositValue * 3) / 4, _tolerance) ||
-      !Math.almostEqual(_assetPositionValue - _assetPositionValueBefore, (depositValue * 9) / 4, _tolerance)
+      !Math.almostEqual(_stablePositionValue - _stablePositionValueBefore, (depositValue) / 4, _tolerance) ||
+      !Math.almostEqual(_assetPositionValue - _assetPositionValueBefore, (depositValue * 3) / 4, _tolerance)
     ){
       revert UnsafePositionValue();
     }
 
+    console.log("_healthCheck:_stablePositionDebtValueBefore",_stablePositionDebtValueBefore );
+    console.log("_healthCheck:_stablePositionDebtValue",_stablePositionDebtValue );
+    console.log("_healthCheck:_assetPositionDebtValueBefore",_assetPositionDebtValueBefore );
+    console.log("_healthCheck:_assetPositionDebtValue",_assetPositionDebtValue );
+    console.log("_healthCheck:_assetPositionDebtValue",_assetPositionDebtValue );
+    console.log("_healthCheck",!Math.almostEqual(_stablePositionDebtValue - _stablePositionDebtValueBefore, (depositValue * 2) / 4, _tolerance));
+    console.log("_healthCheck",!Math.almostEqual(_assetPositionDebtValue - _assetPositionDebtValueBefore, (depositValue * 6) / 4, _tolerance));
     // 2. check Debt value
     if(
       !Math.almostEqual(_stablePositionDebtValue - _stablePositionDebtValueBefore, (depositValue * 2) / 4, _tolerance) ||
@@ -305,38 +366,40 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
   }
 
-  function _outstandingCheck(uint256 _stableTokenBefore,uint256 _assetTokenBefore,uint256 _nativeTokenBefore) internal {
-    console.log("DeltaVault:_outstandingCheck");
-    (uint256 _stableTokenAfter,uint256 _assetTokenAfter,uint256 _nativeTokenAfter) = _outstanding();
-    console.log("DeltaVault:_outstandingCheck:_stableTokenAfter",_stableTokenAfter);
-    console.log("DeltaVault:_outstandingCheck:_stableTokenBefore",_stableTokenBefore);
-    console.log("DeltaVault:_outstandingCheck:_assetTokenAfter",_assetTokenAfter);
-    console.log("DeltaVault:_outstandingCheck:_assetTokenBefore",_assetTokenBefore);
-    console.log("DeltaVault:_outstandingCheck:_nativeTokenAfter",_nativeTokenAfter);
-    console.log("DeltaVault:_outstandingCheck:_nativeTokenBefore",_nativeTokenBefore);
-    if(_stableTokenAfter < _stableTokenBefore || _assetTokenAfter < _assetTokenBefore || _nativeTokenAfter < _nativeTokenBefore){
-      revert UnsafeOutStanding();
+  function _outstandingCheck(Outstanding memory _outstandingBefore, Outstanding memory _outstandingAfter) internal {
+    if(_outstandingAfter.stableAmount < _outstandingBefore.stableAmount){
+      revert UnsafeOutstanding(stableToken, _outstandingBefore.stableAmount, _outstandingAfter.stableAmount);
+    }
+    if(_outstandingAfter.assetAmount < _outstandingBefore.assetAmount){
+      revert UnsafeOutstanding(assetToken, _outstandingBefore.assetAmount, _outstandingAfter.assetAmount);
+    }
+    if(_outstandingAfter.nativeAmount < _outstandingBefore.nativeAmount){
+      revert UnsafeOutstanding(address(0), _outstandingBefore.nativeAmount, _outstandingAfter.nativeAmount);
     }
   }
 
-  function _outstanding() internal view returns(uint256,uint256,uint256){
-    return (stableToken.myBalance(), assetToken.myBalance(), address(this).balance );
+  function _outstanding() internal view returns(Outstanding memory){
+    return Outstanding({
+      stableAmount : stableToken.myBalance(),
+      assetAmount : assetToken.myBalance(),
+      nativeAmount : address(this).balance
+    });
   }
 
-  function shareToValue(uint256 shareAmount) public view returns (uint256) {
-    uint256 shareSupply = totalSupply();
-    if (shareSupply == 0) return shareAmount;
-    return (shareAmount * totalEquityValue()) / shareSupply;
+  function shareToValue(uint256 _shareAmount) public view returns (uint256) {
+    uint256 _shareSupply = totalSupply();
+    if (_shareSupply == 0) return _shareAmount;
+    return (_shareAmount * totalEquityValue()) / _shareSupply;
   }
 
-  function valueToShare(uint256 value) public view returns (uint256) {
+  function valueToShare(uint256 _value) public view returns (uint256) {
     console.log("DeltaVault:valueToShare");
-    uint256 shareSupply = totalSupply();
-    console.log("DeltaVault:valueToShare:shareSupply",shareSupply);
-    if (shareSupply == 0) return value;
-    console.log("DeltaVault:valueToShare:value * shareSupply",value * shareSupply);
+    uint256 _shareSupply = totalSupply();
+    console.log("DeltaVault:valueToShare:shareSupply",_shareSupply);
+    if (_shareSupply == 0) return _value;
+    console.log("DeltaVault:valueToShare:value * shareSupply",_value * _shareSupply);
     console.log("DeltaVault:valueToShare:totalEquityValue()",totalEquityValue());
-    return (value * shareSupply) / totalEquityValue();
+    return (_value * _shareSupply) / totalEquityValue();
   }
 
   function totalEquityValue() public view returns (uint256) {
@@ -369,7 +432,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     (, , uint256 _assetPositionDebtShare) = IVault(assetVault).positions(assetVaultPosId);
     uint256 _assetVaultDebtShare = IVault(assetVault).vaultDebtShare();
     if (_assetVaultDebtShare == 0) {
-      return _assetVaultDebtShare;
+      return _assetPositionDebtShare;
     }
     uint256 _assetVaultDebtValue = IVault(assetVault).vaultDebtVal() + IVault(assetVault).pendingInterest(0);
     uint256 _assetPositionDebtValue = (_assetPositionDebtShare * _assetVaultDebtValue) / _assetVaultDebtShare;
@@ -392,6 +455,14 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     return (_stablePositionValue(), _assetPositionValue());
   }
 
+  function _stablePositionEquity() internal view returns (uint256){
+    return _stablePositionValue() - _stablePositionDebtValue();
+  }
+
+  function _assetPositionEquity() internal view returns (uint256){
+    return _assetPositionValue() - _assetPositionDebtValue();
+  }
+
   function _execute(
     uint8[] memory _actions,
     uint256[] memory _values,
@@ -400,15 +471,10 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
     for (uint256 i = 0; i < _actions.length; i++) {
       uint8 _action = _actions[i];
-      console.log("DeltaVault:_execute:_action",_action);
       if (_action == ACTION_WORK) {
         _doWork(_datas[i], _values[i]);
       }
       if (_action == ACTION_WARP) {
-        console.log("DeltaVault:_execute: config.getWrappedNativeAddr()", config.getWrappedNativeAddr());
-        console.log("DeltaVault:_execute: _values[i]", _values[i]);
-        console.log("DeltaVault:_execute: msg.value", msg.value);
-        console.log("DeltaVault:_execute: BnB balanceOf", address(this).balance );
         IWETH(config.getWrappedNativeAddr()).deposit{ value: _values[i]}();
       }
     }
@@ -416,6 +482,9 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
   function _doWork(bytes memory _data, uint256 _msgValue) internal {
     console.log("_doWork");
+    if((stableVaultPosId == 0 || assetVaultPosId == 0) && msg.sender != owner()){
+      revert PositionsNotInitialized();
+    }
     // 1. Decode data
     (
       address payable _vault,
@@ -452,4 +521,6 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     assetToken.safeApprove(_vault, 0);
   }
 
+  /// @dev Fallback function to accept BNB.
+  receive() external payable {}
 }
