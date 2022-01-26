@@ -26,6 +26,7 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     address indexed _caller,
     address _getWrappedNativeAddr,
     address _getWNativeRelayer,
+    address _fairLaunchAddr,
     uint256 _rebalanceFactor,
     uint256 _positionValueTolerance
   );
@@ -57,26 +58,36 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   function initialize(
     address _getWrappedNativeAddr,
     address _getWNativeRelayer,
+    address _fairLaunchAddr,
     uint256 _rebalanceFactor,
     uint256 _positionValueTolerance
   ) external initializer {
     OwnableUpgradeable.__Ownable_init();
 
-    setParams(_getWrappedNativeAddr, _getWNativeRelayer, _rebalanceFactor, _positionValueTolerance);
+    setParams(_getWrappedNativeAddr, _getWNativeRelayer, _fairLaunchAddr, _rebalanceFactor, _positionValueTolerance);
   }
 
   function setParams(
     address _getWrappedNativeAddr,
     address _getWNativeRelayer,
+    address _fairLaunchAddr,
     uint256 _rebalanceFactor,
     uint256 _positionValueTolerance
   ) public onlyOwner {
     getWrappedNativeAddr = _getWrappedNativeAddr;
     getWNativeRelayer = _getWNativeRelayer;
+    fairLaunchAddr = _fairLaunchAddr;
     rebalanceFactor = _rebalanceFactor;
     positionValueTolerance = _positionValueTolerance;
 
-    emit LogSetParams(msg.sender, _getWrappedNativeAddr, _getWNativeRelayer, _rebalanceFactor, _positionValueTolerance);
+    emit LogSetParams(
+      msg.sender,
+      _getWrappedNativeAddr,
+      _getWNativeRelayer,
+      _fairLaunchAddr,
+      _rebalanceFactor,
+      _positionValueTolerance
+    );
   }
 
   /// @notice Set whitelisted callers.
@@ -99,9 +110,5 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
       whitelistedRebalancers[_callers[_idx]] = _ok;
       emit LogSetWhitelistedRebalancers(msg.sender, _callers[_idx], _ok);
     }
-  }
-
-  function setFairLaunchAddr(address _newFairLaunchAddr) external {
-    fairLaunchAddr = _newFairLaunchAddr;
   }
 }
