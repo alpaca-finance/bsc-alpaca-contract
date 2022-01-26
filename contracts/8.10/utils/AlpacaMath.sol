@@ -60,4 +60,8 @@ library AlpacaMath {
     uint256 r1 = x / r;
     return (r < r1 ? r : r1);
   }
+
+  function fdiv(uint256 lhs, uint256 rhs) internal pure returns (uint256) {
+    return (lhs * (2**112)) / rhs;
+  }
 }

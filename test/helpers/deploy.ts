@@ -1,4 +1,4 @@
-import { BigNumberish, Signer } from "ethers";
+import { BigNumber, BigNumberish, Signer } from "ethers";
 import { ethers, upgrades } from "hardhat";
 import {
   AlpacaToken,
@@ -90,7 +90,11 @@ import {
   Oracle__factory,
   SwapMining,
   SwapMining__factory,
+  PriceHelper,
   PriceHelper__factory,
+  ChainLinkPriceOracle,
+  ChainLinkPriceOracle__factory,
+  MockAggregatorV3__factory,
 } from "../../typechain";
 
 import * as TimeHelpers from "../helpers/time";
@@ -128,6 +132,13 @@ export class DeployHelper {
     const wbnb = await WBNB.deploy();
     await wbnb.deployed();
     return wbnb;
+  }
+
+  public async deployERC20(): Promise<MockERC20> {
+    const ERC20 = (await ethers.getContractFactory("MockERC20", this.deployer)) as MockERC20__factory;
+    const erc20 = (await upgrades.deployProxy(ERC20, ["token0", "token0", "18"])) as MockERC20;
+    await erc20.deployed();
+    return erc20;
   }
 
   public async deployPancakeV2(
@@ -619,6 +630,44 @@ export class DeployHelper {
     return pancakeswapV2Worker02;
   }
 
+  public async deployPriceHelper(
+    tokens: string[],
+    tokenPrices: BigNumber[],
+    tokenDecimals: number[],
+    usdToken: string
+  ): Promise<[PriceHelper, ChainLinkPriceOracle]> {
+    const ChainLinkPriceOracle = (await ethers.getContractFactory(
+      "ChainLinkPriceOracle",
+      this.deployer
+    )) as ChainLinkPriceOracle__factory;
+    const chainLinkOracle = (await upgrades.deployProxy(ChainLinkPriceOracle)) as ChainLinkPriceOracle;
+    await chainLinkOracle.deployed();
+
+    const MockAggregatorV3 = (await ethers.getContractFactory(
+      "MockAggregatorV3",
+      this.deployer
+    )) as MockAggregatorV3__factory;
+
+    const aggregators = await Promise.all(
+      tokens.map(async (_, index) => {
+        const mockAggregatorV3 = await MockAggregatorV3.deploy(tokenPrices[index], tokenDecimals[index]);
+        await mockAggregatorV3.deployed();
+        return mockAggregatorV3.address;
+      })
+    );
+    const chainLinkOracleAsDeployer = ChainLinkPriceOracle__factory.connect(chainLinkOracle.address, this.deployer);
+    chainLinkOracleAsDeployer.setPriceFeeds(
+      tokens,
+      tokens.map((_) => usdToken),
+      aggregators
+    );
+
+    const PriceHelper = (await ethers.getContractFactory("PriceHelper", this.deployer)) as PriceHelper__factory;
+    const priceHelper = (await upgrades.deployProxy(PriceHelper, [chainLinkOracle.address, usdToken])) as PriceHelper;
+    await priceHelper.deployed();
+    return [priceHelper, chainLinkOracle];
+  }
+
   public async deployDeltaNeutralWorker02(
     vault: Vault,
     btoken: MockERC20,
@@ -633,12 +682,9 @@ export class DeployHelper {
     treasuryAddress: string,
     reinvestPath: Array<string>,
     extraStrategies: string[],
-    simpleVaultConfig: SimpleVaultConfig
+    simpleVaultConfig: SimpleVaultConfig,
+    priceHelper: PriceHelper
   ): Promise<DeltaNeutralWorker02> {
-    const PriceHelper = (await ethers.getContractFactory("PriceHelper", this.deployer)) as PriceHelper__factory;
-    const mockPriceHelper = await PriceHelper.deploy();
-    await mockPriceHelper.deployed();
-
     const DeltaNeutralWorker02 = (await ethers.getContractFactory(
       "DeltaNeutralWorker02",
       this.deployer
@@ -661,6 +707,7 @@ export class DeployHelper {
     await deltaNeutralWorker02.setStrategyOk(extraStrategies, true);
     await deltaNeutralWorker02.setReinvestorOk(okReinvestor, true);
     await deltaNeutralWorker02.setTreasuryConfig(treasuryAddress, reinvestBountyBps);
+    await deltaNeutralWorker02.setPriceHelper(priceHelper.address);
 
     extraStrategies.push(addStrat.address);
     extraStrategies.forEach(async (stratAddress) => {

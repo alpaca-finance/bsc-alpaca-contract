@@ -268,7 +268,8 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
   /// @param id The position ID to perform health check.
   function health(uint256 id) external view override returns (uint256) {
     uint256 _totalBalanceInUSD = priceHelper.lpToDollar(totalLpBalance, address(lpToken));
-    return _totalBalanceInUSD / priceHelper.getTokenPrice(address(baseToken));
+    uint256 _tokenPrice = priceHelper.getTokenPrice(address(baseToken));
+    return (_totalBalanceInUSD * 1e18) / _tokenPrice;
   }
 
   /// @dev Liquidate the given position by converting it to BaseToken and return back to caller.
@@ -334,8 +335,8 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
   /// @dev Internal function to withdraw all outstanding LP tokens.
   function _masterChefWithdraw() internal {
     masterChef.withdraw(pid, totalLpBalance);
-    totalLpBalance = 0;
     emit MasterChefWithdraw(totalLpBalance);
+    totalLpBalance = 0;
   }
 
   /// @dev Return the path that the worker is working on.

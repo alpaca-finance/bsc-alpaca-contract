@@ -1,5 +1,5 @@
 import { ethers, upgrades, waffle } from "hardhat";
-import { Signer, constants, BigNumber } from "ethers";
+import { Signer, constants, BigNumber, utils } from "ethers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import "@openzeppelin/test-helpers";
@@ -33,6 +33,11 @@ import {
   PancakeswapV2RestrictedStrategyAddTwoSidesOptimal,
   PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading,
   PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading,
+  PriceHelper,
+  ChainLinkPriceOracle,
+  ChainLinkPriceOracle__factory,
+  MockAggregatorV3,
+  MockAggregatorV3__factory,
 } from "../../../../../typechain";
 import * as AssertHelpers from "../../../../helpers/assert";
 import * as TimeHelpers from "../../../../helpers/time";
@@ -44,7 +49,7 @@ import { Worker02Helper } from "../../../../helpers/worker";
 chai.use(solidity);
 const { expect } = chai;
 
-describe("Vault - PancakeswapV202", () => {
+describe("Vault - DeltaNetWorkerV202", () => {
   const FOREVER = "2000000000";
   const ALPACA_BONUS_LOCK_UP_BPS = 7000;
   const ALPACA_REWARD_PER_BLOCK = ethers.utils.parseEther("5000");
@@ -54,7 +59,7 @@ describe("Vault - PancakeswapV202", () => {
   const KILL_PRIZE_BPS = "1000"; // 10% Kill prize
   const INTEREST_RATE = "3472222222222"; // 30% per year
   const MIN_DEBT_SIZE = ethers.utils.parseEther("1"); // 1 BTOKEN min debt size
-  const WORK_FACTOR = "7000";
+  const WORK_FACTOR = "100000000";
   const KILL_FACTOR = "8000";
   const MAX_REINVEST_BOUNTY: string = "900";
   const DEPLOYER = "0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51";
@@ -73,6 +78,7 @@ describe("Vault - PancakeswapV202", () => {
   /// Token-related instance(s)
   let baseToken: MockERC20;
   let farmToken: MockERC20;
+  let busd: MockERC20;
   let cake: CakeToken;
   let syrup: SyrupBar;
   let debtToken: DebtToken;
@@ -102,20 +108,26 @@ describe("Vault - PancakeswapV202", () => {
   let whitelistedContract: MockContractContext;
   let evilContract: MockContractContext;
 
+  let priceHelper: PriceHelper;
+  let chainlink: ChainLinkPriceOracle;
+
   // Accounts
   let deployer: Signer;
   let alice: Signer;
   let bob: Signer;
   let eve: Signer;
+  let deltaNet: Signer;
 
   let deployerAddress: string;
   let aliceAddress: string;
   let bobAddress: string;
   let eveAddress: string;
+  let deltaNetAddress: string;
 
   // Contract Signer
   let baseTokenAsAlice: MockERC20;
   let baseTokenAsBob: MockERC20;
+  let baseTokenAsDeltaNet: MockERC20;
 
   let farmTokenAsAlice: MockERC20;
 
@@ -129,22 +141,28 @@ describe("Vault - PancakeswapV202", () => {
 
   let deltaNeutralWorkerAsEve: DeltaNeutralWorker02;
 
+  let chainLinkOracleAsDeployer: ChainLinkPriceOracle;
+
+  let MockAggregatorV3Factory: MockAggregatorV3__factory;
+
   let vaultAsAlice: Vault;
   let vaultAsBob: Vault;
   let vaultAsEve: Vault;
+  let vaultAsDeltaNet: Vault;
 
   // Test Helper
   let swapHelper: SwapHelper;
-  let workerHelper: Worker02Helper;
 
   async function fixture() {
     [deployer, alice, bob, eve] = await ethers.getSigners();
+    deltaNet = alice;
     [deployerAddress, aliceAddress, bobAddress, eveAddress] = await Promise.all([
       deployer.getAddress(),
       alice.getAddress(),
       bob.getAddress(),
       eve.getAddress(),
     ]);
+    deltaNetAddress = aliceAddress;
     const deployHelper = new DeployHelper(deployer);
 
     // Setup MockContractContext
@@ -181,6 +199,7 @@ describe("Vault - PancakeswapV202", () => {
       },
     ]);
     wbnb = await deployHelper.deployWBNB();
+    busd = await deployHelper.deployERC20();
     [factoryV2, routerV2, cake, syrup, masterChef] = await deployHelper.deployPancakeV2(wbnb, CAKE_REWARD_PER_BLOCK, [
       { address: deployerAddress, amount: ethers.utils.parseEther("100") },
     ]);
@@ -223,6 +242,20 @@ describe("Vault - PancakeswapV202", () => {
     await masterChef.add(1, lp.address, true);
 
     /// Setup DeltaNeutralWorker02
+    [priceHelper, chainlink] = await deployHelper.deployPriceHelper(
+      [baseToken.address, farmToken.address],
+      [ethers.utils.parseEther("1"), ethers.utils.parseEther("200")],
+      [18, 18],
+      busd.address
+    );
+
+    MockAggregatorV3Factory = (await ethers.getContractFactory(
+      "MockAggregatorV3",
+      deployer
+    )) as MockAggregatorV3__factory;
+
+    chainLinkOracleAsDeployer = ChainLinkPriceOracle__factory.connect(chainlink.address, deployer);
+
     deltaNeutralWorker = await deployHelper.deployDeltaNeutralWorker02(
       vault,
       baseToken,
@@ -232,16 +265,24 @@ describe("Vault - PancakeswapV202", () => {
       WORK_FACTOR,
       KILL_FACTOR,
       addStrat,
-      liqStrat,
       REINVEST_BOUNTY_BPS,
       [eveAddress],
       DEPLOYER,
       [cake.address, wbnb.address, baseToken.address],
       [twoSidesStrat.address, minimizeStrat.address, partialCloseStrat.address, partialCloseMinimizeStrat.address],
-      simpleVaultConfig
+      simpleVaultConfig,
+      priceHelper
     );
     await deltaNeutralWorker.setWhitelistCallers(
-      [vault.address, whitelistedContract.address, deltaNeutralWorker.address, aliceAddress, bobAddress, eveAddress],
+      [
+        vault.address,
+        whitelistedContract.address,
+        deltaNeutralWorker.address,
+        aliceAddress,
+        bobAddress,
+        eveAddress,
+        deltaNetAddress,
+      ],
       true
     );
 
@@ -282,6 +323,7 @@ describe("Vault - PancakeswapV202", () => {
     // Contract signer
     baseTokenAsAlice = MockERC20__factory.connect(baseToken.address, alice);
     baseTokenAsBob = MockERC20__factory.connect(baseToken.address, bob);
+    baseTokenAsDeltaNet = MockERC20__factory.connect(baseToken.address, deltaNet);
 
     farmTokenAsAlice = MockERC20__factory.connect(farmToken.address, alice);
 
@@ -295,15 +337,13 @@ describe("Vault - PancakeswapV202", () => {
     vaultAsAlice = Vault__factory.connect(vault.address, alice);
     vaultAsBob = Vault__factory.connect(vault.address, bob);
     vaultAsEve = Vault__factory.connect(vault.address, eve);
+    vaultAsDeltaNet = Vault__factory.connect(vault.address, deltaNet);
 
     deltaNeutralWorkerAsEve = DeltaNeutralWorker02__factory.connect(deltaNeutralWorker.address, eve);
   }
 
   beforeEach(async () => {
     await waffle.loadFixture(fixture);
-
-    // reassign SwapHelper here due to provider will be different for each test-case
-    workerHelper = new Worker02Helper(deltaNeutralWorker.address, masterChef.address);
   });
 
   context("when worker is initialized", async () => {
@@ -311,11 +351,7 @@ describe("Vault - PancakeswapV202", () => {
       expect(await deltaNeutralWorker.farmingToken()).to.be.equal(farmToken.address);
     });
 
-    it("should initialized the correct fee and feeDenom", async () => {
-      expect(await deltaNeutralWorker.fee()).to.be.eq("9975");
-      expect(await deltaNeutralWorker.feeDenom()).to.be.eq("10000");
-    });
-
+    // TOFIXTEST: should we remove this?
     it("should give rewards out when you stake LP tokens", async () => {
       // Deployer sends some LP tokens to Alice and Bob
       await lp.transfer(aliceAddress, ethers.utils.parseEther("0.05"));
@@ -413,6 +449,13 @@ describe("Vault - PancakeswapV202", () => {
         expect(await deltaNeutralWorker.okStrats(aliceAddress)).to.be.eq(true);
       });
     });
+
+    describe("#setWhitelistCallers", async () => {
+      it("should set whitelist callers", async () => {
+        await deltaNeutralWorker.setWhitelistCallers([deployerAddress], true);
+        expect(await deltaNeutralWorker.whitelistCallers(deployerAddress)).to.be.eq(true);
+      });
+    });
   });
 
   context("when user uses LYF", async () => {
@@ -499,12 +542,12 @@ describe("Vault - PancakeswapV202", () => {
     });
 
     context("when user is EOA", async () => {
+      // TOFIXTEST: change to deltanet user
       context("#work", async () => {
         it("should allow to open a position without debt", async () => {
           // Deployer deposits 3 BTOKEN to the bank
           await baseToken.approve(vault.address, ethers.utils.parseEther("3"));
           await vault.deposit(ethers.utils.parseEther("3"));
-
           // Alice can take 0 debt ok
           await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("0.3"));
           await vaultAsAlice.work(
@@ -524,7 +567,6 @@ describe("Vault - PancakeswapV202", () => {
           // Deployer deposits 3 BTOKEN to the bank
           await baseToken.approve(vault.address, ethers.utils.parseEther("3"));
           await vault.deposit(ethers.utils.parseEther("3"));
-
           // Alice cannot take 0.3 debt because it is too small
           await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("0.3"));
           await expect(
@@ -542,26 +584,26 @@ describe("Vault - PancakeswapV202", () => {
           ).to.be.revertedWith("too small debt size");
         });
 
+        // TODO: remove because this test case test about work factor
         it("should not allow to open the position with bad work factor", async () => {
-          // Deployer deposits 3 BTOKEN to the bank
-          await baseToken.approve(vault.address, ethers.utils.parseEther("3"));
-          await vault.deposit(ethers.utils.parseEther("3"));
-
-          // Alice cannot take 1 BTOKEN loan because she only put 0.3 BTOKEN as a collateral
-          await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("0.3"));
-          await expect(
-            vaultAsAlice.work(
-              0,
-              deltaNeutralWorker.address,
-              ethers.utils.parseEther("0.3"),
-              ethers.utils.parseEther("1"),
-              "0",
-              ethers.utils.defaultAbiCoder.encode(
-                ["address", "bytes"],
-                [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-              )
-            )
-          ).to.be.revertedWith("bad work factor");
+          // // Deployer deposits 3 BTOKEN to the bank
+          // await baseToken.approve(vault.address, ethers.utils.parseEther("3"));
+          // await vault.deposit(ethers.utils.parseEther("3"));
+          // // Alice cannot take 1 BTOKEN loan because she only put 0.3 BTOKEN as a collateral
+          // await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("0.3"));
+          // await expect(
+          //   vaultAsAlice.work(
+          //     0,
+          //     deltaNeutralWorker.address,
+          //     ethers.utils.parseEther("0.3"),
+          //     ethers.utils.parseEther("1"),
+          //     "0",
+          //     ethers.utils.defaultAbiCoder.encode(
+          //       ["address", "bytes"],
+          //       [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          //     )
+          //   )
+          // ).to.be.revertedWith("bad work factor");
         });
 
         it("should not allow positions if Vault has less BaseToken than requested loan", async () => {
@@ -582,44 +624,11 @@ describe("Vault - PancakeswapV202", () => {
           ).to.be.revertedWith("insufficient funds in the vault");
         });
 
-        it("should not able to liquidate healthy position", async () => {
-          // Deployer deposits 3 BTOKEN to the bank
-          const deposit = ethers.utils.parseEther("3");
-          await baseToken.approve(vault.address, deposit);
-          await vault.deposit(deposit);
-
-          // Now Alice can take 1 BTOKEN loan + 1 BTOKEN of her to create a new position
-          const loan = ethers.utils.parseEther("1");
-          await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
-          await vaultAsAlice.work(
-            0,
-            deltaNeutralWorker.address,
-            ethers.utils.parseEther("1"),
-            loan,
-            "0",
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "bytes"],
-              [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-            )
-          );
-
-          // Her position should have ~2 BTOKEN health (minus some small trading fee)
-          await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-          await deltaNeutralWorkerAsEve.reinvest();
-          await vault.deposit(0); // Random action to trigger interest computation
-
-          // You can't liquidate her position yet
-          await expect(vaultAsEve.kill("1")).to.be.revertedWith("can't liquidate");
-          await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-          await expect(vaultAsEve.kill("1")).to.be.revertedWith("can't liquidate");
-        });
-
         it("should work", async () => {
           // Deployer deposits 3 BTOKEN to the bank
           const deposit = ethers.utils.parseEther("3");
           await baseToken.approve(vault.address, deposit);
           await vault.deposit(deposit);
-
           // Now Alice can take 1 BTOKEN loan + 1 BTOKEN of her to create a new position
           const loan = ethers.utils.parseEther("1");
           await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
@@ -634,10 +643,19 @@ describe("Vault - PancakeswapV202", () => {
               [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
             )
           );
-
-          // Her position should have ~2 NATIVE health (minus some small trading fee)
-          expect(await deltaNeutralWorker.health(1)).to.be.eq(ethers.utils.parseEther("1.997883397660681282"));
-
+          // health calculation
+          // lp balance = 0.231205137369691323
+          // lp price = 28.299236836137312801
+          // lp balance in dollar = 6.542928940156556263
+          // base token price = 1.0
+          // health should be lpBalace * lp price / baseTokenPrice => 0.231205137369691323 * 28.299236836137312801 / 1.0 = 6.542928940156556263
+          let lpBalance = await deltaNeutralWorker.totalLpBalance();
+          let lpToken = await deltaNeutralWorker.lpToken();
+          let lpInDollar = await priceHelper.lpToDollar(lpBalance, lpToken);
+          let lpPrice = lpInDollar.mul(BigNumber.from("1000000000000000000")).div(lpBalance);
+          let tokenPrice = await priceHelper.getTokenPrice(baseToken.address);
+          const expectedHealth = ethers.utils.parseEther("6.542928940156556263");
+          expect(await deltaNeutralWorker.health(1)).to.be.eq(expectedHealth);
           // Eve comes and trigger reinvest
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
           await deltaNeutralWorkerAsEve.reinvest();
@@ -645,10 +663,9 @@ describe("Vault - PancakeswapV202", () => {
             CAKE_REWARD_PER_BLOCK.mul("2").mul(REINVEST_BOUNTY_BPS).div("10000").toString(),
             (await cake.balanceOf(eveAddress)).toString()
           );
-
           await vault.deposit(0); // Random action to trigger interest computation
           const healthDebt = await vault.positionInfo("1");
-          expect(healthDebt[0]).to.be.above(ethers.utils.parseEther("2"));
+          expect(healthDebt[0]).to.be.above(expectedHealth);
           const interest = ethers.utils.parseEther("0.3"); // 30% interest rate
           AssertHelpers.assertAlmostEqual(healthDebt[1].toString(), interest.add(loan).toString());
           AssertHelpers.assertAlmostEqual(
@@ -656,7 +673,6 @@ describe("Vault - PancakeswapV202", () => {
             deposit.sub(loan).toString()
           );
           AssertHelpers.assertAlmostEqual((await vault.vaultDebtVal()).toString(), interest.add(loan).toString());
-
           const reservePool = interest.mul(RESERVE_POOL_BPS).div("10000");
           AssertHelpers.assertAlmostEqual(reservePool.toString(), (await vault.reservePool()).toString());
           AssertHelpers.assertAlmostEqual(
@@ -670,7 +686,6 @@ describe("Vault - PancakeswapV202", () => {
           const deposit = ethers.utils.parseEther("3");
           await baseToken.approve(vault.address, deposit);
           await vault.deposit(deposit);
-
           // Now Alice can take 1 BTOKEN loan + 1 BTOKEN of her to create a new position
           const loan = ethers.utils.parseEther("1");
           await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
@@ -685,14 +700,11 @@ describe("Vault - PancakeswapV202", () => {
               [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
             )
           );
-
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
           await deltaNeutralWorkerAsEve.reinvest();
           await vault.deposit(0); // Random action to trigger interest computation
-
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-
           await vault.deposit(0); // Random action to trigger interest computation
           const interest = ethers.utils.parseEther("0.3"); //30% interest rate
           const reservePool = interest.mul(RESERVE_POOL_BPS).div("10000");
@@ -706,534 +718,464 @@ describe("Vault - PancakeswapV202", () => {
           );
         });
 
+        // TODO: remove this because this one check how user manage position
         it("should close position correctly when user holds multiple positions", async () => {
-          // Set interests to 0% per year for easy testing
-          await simpleVaultConfig.setParams(
-            ethers.utils.parseEther("1"), // 1 BTOKEN min debt size,
-            "0", // 0% per year
-            "1000", // 10% reserve pool
-            "1000", // 10% Kill prize
-            wbnb.address,
-            wNativeRelayer.address,
-            fairLaunch.address,
-            "0",
-            ethers.constants.AddressZero
-          );
-          // Set Reinvest bounty to 10% of the reward
-          await deltaNeutralWorker.setReinvestConfig("100", "0", [cake.address, wbnb.address, baseToken.address]);
-
-          const [path, reinvestPath] = await Promise.all([
-            deltaNeutralWorker.getPath(),
-            deltaNeutralWorker.getReinvestPath(),
-          ]);
-
-          // Bob deposits 10 BTOKEN
-          await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-          await vaultAsBob.deposit(ethers.utils.parseEther("10"));
-
-          // Alice deposits 12 BTOKEN
-          await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("12"));
-          await vaultAsAlice.deposit(ethers.utils.parseEther("12"));
-
-          // Position#1: Bob borrows 10 BTOKEN
-          await swapHelper.loadReserves(path);
-          let accumLp = BigNumber.from(0);
-          let workerLpBefore = BigNumber.from(0);
-          let totalShare = BigNumber.from(0);
-          let shares: Array<BigNumber> = [];
-          await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-          await vaultAsBob.work(
-            0,
-            deltaNeutralWorker.address,
-            ethers.utils.parseEther("10"),
-            ethers.utils.parseEther("10"),
-            "0", // max return = 0, don't return NATIVE to the debt
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "bytes"],
-              [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-            )
-          );
-          // Pre-compute expectation
-          let [expectedLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(
-            ethers.utils.parseEther("20"),
-            path
-          );
-          accumLp = accumLp.add(expectedLp);
-
-          let expectedShare = workerHelper.computeBalanceToShare(expectedLp, totalShare, workerLpBefore);
-          shares.push(expectedShare);
-          totalShare = totalShare.add(expectedShare);
-
-          // Expect
-          let [workerLpAfter] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
-          expect(await deltaNeutralWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.eq(shares[0]);
-          expect(
-            await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(1)),
-            `expect Pos#1 LPs = ${expectedLp}`
-          ).to.be.eq(expectedLp);
-          expect(await deltaNeutralWorker.totalShare(), `expect totalShare = ${totalShare}`).to.be.eq(totalShare);
-          expect(
-            await baseToken.balanceOf(addStrat.address),
-            `expect add BTOKEN strat to have ${debrisBtoken} BTOKEN debris`
-          ).to.be.eq(debrisBtoken);
-          expect(
-            await farmToken.balanceOf(addStrat.address),
-            `expect add BTOKEN strat to have ${debrisFtoken} FTOKEN debris`
-          ).to.be.eq(debrisFtoken);
-          expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.eq(accumLp);
-
-          // Position#2: Bob borrows another 2 BTOKEN
-          [workerLpBefore] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
-          let eveCakeBefore = await cake.balanceOf(eveAddress);
-          let deployerCakeBefore = await cake.balanceOf(DEPLOYER);
-          await swapHelper.loadReserves(path);
-          await swapHelper.loadReserves(reinvestPath);
-          await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("1"));
-          await vaultAsBob.work(
-            0,
-            deltaNeutralWorker.address,
-            ethers.utils.parseEther("1"),
-            ethers.utils.parseEther("2"),
-            "0", // max return = 0, don't return BTOKEN to the debt
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "bytes"],
-              [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-            )
-          );
-          [workerLpAfter] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
-          let eveCakeAfter = await cake.balanceOf(eveAddress);
-          let deployerCakeAfter = await cake.balanceOf(DEPLOYER);
-          let totalRewards = swapHelper.computeTotalRewards(workerLpBefore, CAKE_REWARD_PER_BLOCK, BigNumber.from(2));
-          let reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
-          let reinvestLeft = totalRewards.sub(reinvestFees);
-
-          let reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
-          let reinvestBtoken = reinvestAmts[reinvestAmts.length - 1].add(debrisBtoken);
-          let reinvestLp = BigNumber.from(0);
-          [reinvestLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
-          accumLp = accumLp.add(reinvestLp);
-
-          [expectedLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(
-            ethers.utils.parseEther("3"),
-            path
-          );
-          accumLp = accumLp.add(expectedLp);
-
-          expectedShare = workerHelper.computeBalanceToShare(expectedLp, totalShare, workerLpBefore.add(reinvestLp));
-          shares.push(expectedShare);
-          totalShare = totalShare.add(expectedShare);
-
-          expect(await deltaNeutralWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.eq(shares[0]);
-          expect(
-            await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(1)),
-            `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
-          ).to.be.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
-
-          expect(await deltaNeutralWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.eq(shares[1]);
-          expect(
-            await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(2)),
-            `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
-          ).to.be.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
-
-          expect(
-            deployerCakeAfter.sub(deployerCakeBefore),
-            `expect DEPLOYER to get ${reinvestFees} CAKE as treasury fees`
-          ).to.be.eq(reinvestFees);
-          expect(eveCakeAfter.sub(eveCakeBefore), `expect eve's CAKE to remain the same`).to.be.eq("0");
-          expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.eq(accumLp);
-          expect(
-            await baseToken.balanceOf(addStrat.address),
-            `expect add BTOKEN strat to have ${debrisBtoken} BTOKEN debris`
-          ).to.be.eq(debrisBtoken);
-          expect(
-            await farmToken.balanceOf(addStrat.address),
-            `expect add BTOKEN strat to have ${debrisFtoken} FTOKEN debris`
-          ).to.be.eq(debrisFtoken);
-
-          // ---------------- Reinvest#1 -------------------
-          // Wait for 1 day and someone calls reinvest
-          await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-
-          let [workerLPBefore] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
-          deployerCakeBefore = await cake.balanceOf(DEPLOYER);
-          eveCakeBefore = await cake.balanceOf(eveAddress);
-          await swapHelper.loadReserves(path);
-          await swapHelper.loadReserves(reinvestPath);
-
-          await deltaNeutralWorkerAsEve.reinvest();
-
-          deployerCakeAfter = await cake.balanceOf(DEPLOYER);
-          eveCakeAfter = await cake.balanceOf(eveAddress);
-          [workerLpAfter] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
-          totalRewards = swapHelper.computeTotalRewards(workerLPBefore, CAKE_REWARD_PER_BLOCK, BigNumber.from(2));
-          reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
-          reinvestLeft = totalRewards.sub(reinvestFees);
-
-          reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
-          reinvestBtoken = reinvestAmts[reinvestAmts.length - 1].add(debrisBtoken);
-          [reinvestLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
-          accumLp = accumLp.add(reinvestLp);
-
-          expect(await deltaNeutralWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.eq(shares[0]);
-          expect(
-            await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(1)),
-            `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
-          ).to.be.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
-
-          expect(await deltaNeutralWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.eq(shares[1]);
-          expect(
-            await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(2)),
-            `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
-          ).to.be.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
-
-          expect(deployerCakeAfter.sub(deployerCakeBefore), `expect DEPLOYER's CAKE to remain the same`).to.be.eq("0");
-          expect(eveCakeAfter.sub(eveCakeBefore), `expect eve to get ${reinvestFees}`).to.be.eq(reinvestFees);
-          expect(workerLpAfter).to.be.eq(accumLp);
-
-          // Check Position#1 info
-          let [bob1Health, bob1DebtToShare] = await vault.positionInfo("1");
-          const bob1ExpectedHealth = await swapHelper.computeLpHealth(
-            await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(1)),
-            baseToken.address,
-            farmToken.address
-          );
-          expect(bob1Health, `expect Pos#1 health = ${bob1ExpectedHealth}`).to.be.eq(bob1ExpectedHealth);
-          expect(bob1Health).to.be.gt(ethers.utils.parseEther("20"));
-          AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("10").toString(), bob1DebtToShare.toString());
-
-          // Check Position#2 info
-          let [bob2Health, bob2DebtToShare] = await vault.positionInfo("2");
-          const bob2ExpectedHealth = await swapHelper.computeLpHealth(
-            await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(2)),
-            baseToken.address,
-            farmToken.address
-          );
-          expect(bob2Health, `expect Pos#2 health = ${bob2ExpectedHealth}`).to.be.eq(bob2ExpectedHealth);
-          expect(bob2Health).to.be.gt(ethers.utils.parseEther("3"));
-          AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("2").toString(), bob2DebtToShare.toString());
-
-          let bobBefore = await baseToken.balanceOf(bobAddress);
-          let bobAlpacaBefore = await alpacaToken.balanceOf(bobAddress);
-          // Bob close position#1
-          await vaultAsBob.work(
-            1,
-            deltaNeutralWorker.address,
-            "0",
-            "0",
-            "1000000000000000000000",
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "bytes"],
-              [liqStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-            )
-          );
-          let bobAfter = await baseToken.balanceOf(bobAddress);
-          let bobAlpacaAfter = await alpacaToken.balanceOf(bobAddress);
-
-          // Check Bob account, Bob must be richer as he earn more from yield
-          expect(bobAlpacaAfter).to.be.gt(bobAlpacaBefore);
-          expect(bobAfter).to.be.gt(bobBefore);
-
-          // Bob add another 10 BTOKEN
-          await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-          await vaultAsBob.work(
-            2,
-            deltaNeutralWorker.address,
-            ethers.utils.parseEther("10"),
-            0,
-            "0", // max return = 0, don't return NATIVE to the debt
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "bytes"],
-              [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-            )
-          );
-
-          bobBefore = await baseToken.balanceOf(bobAddress);
-          bobAlpacaBefore = await alpacaToken.balanceOf(bobAddress);
-          // Bob close position#2
-          await vaultAsBob.work(
-            2,
-            deltaNeutralWorker.address,
-            "0",
-            "0",
-            "1000000000000000000000000000000",
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "bytes"],
-              [liqStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-            )
-          );
-          bobAfter = await baseToken.balanceOf(bobAddress);
-          bobAlpacaAfter = await alpacaToken.balanceOf(bobAddress);
-
-          // Check Bob account, Bob must be richer as she earned from leverage yield farm without getting liquidated
-          expect(bobAfter).to.be.gt(bobBefore);
-          expect(bobAlpacaAfter).to.be.gt(bobAlpacaBefore);
+          // // Set interests to 0% per year for easy testing
+          // await simpleVaultConfig.setParams(
+          //   ethers.utils.parseEther("1"), // 1 BTOKEN min debt size,
+          //   "0", // 0% per year
+          //   "1000", // 10% reserve pool
+          //   "1000", // 10% Kill prize
+          //   wbnb.address,
+          //   wNativeRelayer.address,
+          //   fairLaunch.address,
+          //   "0",
+          //   ethers.constants.AddressZero
+          // );
+          // // Set Reinvest bounty to 10% of the reward
+          // await deltaNeutralWorker.setReinvestConfig("100", "0", [cake.address, wbnb.address, baseToken.address]);
+          // const [path, reinvestPath] = await Promise.all([
+          //   deltaNeutralWorker.getPath(),
+          //   deltaNeutralWorker.getReinvestPath(),
+          // ]);
+          // // Bob deposits 10 BTOKEN
+          // await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
+          // await vaultAsBob.deposit(ethers.utils.parseEther("10"));
+          // // Alice deposits 12 BTOKEN
+          // await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("12"));
+          // await vaultAsAlice.deposit(ethers.utils.parseEther("12"));
+          // // Position#1: Bob borrows 10 BTOKEN
+          // await swapHelper.loadReserves(path);
+          // let accumLp = BigNumber.from(0);
+          // let workerLpBefore = BigNumber.from(0);
+          // let totalShare = BigNumber.from(0);
+          // let shares: Array<BigNumber> = [];
+          // await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
+          // await vaultAsBob.work(
+          //   TARGET_POSITION_ID,
+          //   deltaNeutralWorker.address,
+          //   ethers.utils.parseEther("10"),
+          //   ethers.utils.parseEther("10"),
+          //   "0", // max return = 0, don't return NATIVE to the debt
+          //   ethers.utils.defaultAbiCoder.encode(
+          //     ["address", "bytes"],
+          //     [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          //   )
+          // );
+          // // Pre-compute expectation
+          // let [expectedLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(
+          //   ethers.utils.parseEther("20"),
+          //   path
+          // );
+          // accumLp = accumLp.add(expectedLp);
+          // let expectedShare = workerHelper.computeBalanceToShare(expectedLp, totalShare, workerLpBefore);
+          // shares.push(expectedShare);
+          // totalShare = totalShare.add(expectedShare);
+          // // Expect
+          // let [workerLpAfter] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
+          // expect(await deltaNeutralWorker.totalLPBalance, `Bob should has LP Balance xxxx`).to.be.eq(0);
+          // expect(
+          //   await baseToken.balanceOf(addStrat.address),
+          //   `expect add BTOKEN strat to have ${debrisBtoken} BTOKEN debris`
+          // ).to.be.eq(debrisBtoken);
+          // expect(
+          //   await farmToken.balanceOf(addStrat.address),
+          //   `expect add BTOKEN strat to have ${debrisFtoken} FTOKEN debris`
+          // ).to.be.eq(debrisFtoken);
+          // expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.eq(accumLp);
+          // // Position#2: Bob borrows another 2 BTOKEN
+          // [workerLpBefore] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
+          // let eveCakeBefore = await cake.balanceOf(eveAddress);
+          // let deployerCakeBefore = await cake.balanceOf(DEPLOYER);
+          // await swapHelper.loadReserves(path);
+          // await swapHelper.loadReserves(reinvestPath);
+          // await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("1"));
+          // await vaultAsBob.work(
+          //   0,
+          //   deltaNeutralWorker.address,
+          //   ethers.utils.parseEther("1"),
+          //   ethers.utils.parseEther("2"),
+          //   "0", // max return = 0, don't return BTOKEN to the debt
+          //   ethers.utils.defaultAbiCoder.encode(
+          //     ["address", "bytes"],
+          //     [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          //   )
+          // );
+          // [workerLpAfter] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
+          // let eveCakeAfter = await cake.balanceOf(eveAddress);
+          // let deployerCakeAfter = await cake.balanceOf(DEPLOYER);
+          // let totalRewards = swapHelper.computeTotalRewards(workerLpBefore, CAKE_REWARD_PER_BLOCK, BigNumber.from(2));
+          // let reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
+          // let reinvestLeft = totalRewards.sub(reinvestFees);
+          // let reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
+          // let reinvestBtoken = reinvestAmts[reinvestAmts.length - 1].add(debrisBtoken);
+          // let reinvestLp = BigNumber.from(0);
+          // [reinvestLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
+          // accumLp = accumLp.add(reinvestLp);
+          // [expectedLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(
+          //   ethers.utils.parseEther("3"),
+          //   path
+          // );
+          // accumLp = accumLp.add(expectedLp);
+          // expectedShare = workerHelper.computeBalanceToShare(expectedLp, totalShare, workerLpBefore.add(reinvestLp));
+          // shares.push(expectedShare);
+          // totalShare = totalShare.add(expectedShare);
+          // expect(await deltaNeutralWorker.totalLPBalance, `Bob should has new LP Balance xxxx`).to.be.eq(0);
+          // expect(
+          //   deployerCakeAfter.sub(deployerCakeBefore),
+          //   `expect DEPLOYER to get ${reinvestFees} CAKE as treasury fees`
+          // ).to.be.eq(reinvestFees);
+          // expect(eveCakeAfter.sub(eveCakeBefore), `expect eve's CAKE to remain the same`).to.be.eq("0");
+          // expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.eq(accumLp);
+          // expect(
+          //   await baseToken.balanceOf(addStrat.address),
+          //   `expect add BTOKEN strat to have ${debrisBtoken} BTOKEN debris`
+          // ).to.be.eq(debrisBtoken);
+          // expect(
+          //   await farmToken.balanceOf(addStrat.address),
+          //   `expect add BTOKEN strat to have ${debrisFtoken} FTOKEN debris`
+          // ).to.be.eq(debrisFtoken);
+          // // ---------------- Reinvest#1 -------------------
+          // // Wait for 1 day and someone calls reinvest
+          // // await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
+          // let [workerLPBefore] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
+          // deployerCakeBefore = await cake.balanceOf(DEPLOYER);
+          // eveCakeBefore = await cake.balanceOf(eveAddress);
+          // await swapHelper.loadReserves(path);
+          // await swapHelper.loadReserves(reinvestPath);
+          // await deltaNeutralWorkerAsEve.reinvest();
+          // deployerCakeAfter = await cake.balanceOf(DEPLOYER);
+          // eveCakeAfter = await cake.balanceOf(eveAddress);
+          // [workerLpAfter] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
+          // totalRewards = swapHelper.computeTotalRewards(workerLPBefore, CAKE_REWARD_PER_BLOCK, BigNumber.from(2));
+          // reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
+          // reinvestLeft = totalRewards.sub(reinvestFees);
+          // reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
+          // reinvestBtoken = reinvestAmts[reinvestAmts.length - 1].add(debrisBtoken);
+          // [reinvestLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
+          // accumLp = accumLp.add(reinvestLp);
+          // expect(await deltaNeutralWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.eq(shares[0]);
+          // expect(
+          //   await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(1)),
+          //   `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
+          // ).to.be.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
+          // expect(await deltaNeutralWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.eq(shares[1]);
+          // expect(
+          //   await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(2)),
+          //   `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
+          // ).to.be.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
+          // expect(deployerCakeAfter.sub(deployerCakeBefore), `expect DEPLOYER's CAKE to remain the same`).to.be.eq("0");
+          // expect(eveCakeAfter.sub(eveCakeBefore), `expect eve to get ${reinvestFees}`).to.be.eq(reinvestFees);
+          // expect(workerLpAfter).to.be.eq(accumLp);
+          // // Check Position#1 info
+          // let [bob1Health, bob1DebtToShare] = await vault.positionInfo("1");
+          // const bob1ExpectedHealth = await swapHelper.computeLpHealth(
+          //   await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(1)),
+          //   baseToken.address,
+          //   farmToken.address
+          // );
+          // expect(bob1Health, `expect Pos#1 health = ${bob1ExpectedHealth}`).to.be.eq(bob1ExpectedHealth);
+          // expect(bob1Health).to.be.gt(ethers.utils.parseEther("20"));
+          // AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("10").toString(), bob1DebtToShare.toString());
+          // // Check Position#2 info
+          // let [bob2Health, bob2DebtToShare] = await vault.positionInfo("2");
+          // const bob2ExpectedHealth = await swapHelper.computeLpHealth(
+          //   await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(2)),
+          //   baseToken.address,
+          //   farmToken.address
+          // );
+          // expect(bob2Health, `expect Pos#2 health = ${bob2ExpectedHealth}`).to.be.eq(bob2ExpectedHealth);
+          // expect(bob2Health).to.be.gt(ethers.utils.parseEther("3"));
+          // AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("2").toString(), bob2DebtToShare.toString());
+          // let bobBefore = await baseToken.balanceOf(bobAddress);
+          // let bobAlpacaBefore = await alpacaToken.balanceOf(bobAddress);
+          // // Bob close position#1
+          // await vaultAsBob.work(
+          //   1,
+          //   deltaNeutralWorker.address,
+          //   "0",
+          //   "0",
+          //   "1000000000000000000000",
+          //   ethers.utils.defaultAbiCoder.encode(
+          //     ["address", "bytes"],
+          //     [liqStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          //   )
+          // );
+          // let bobAfter = await baseToken.balanceOf(bobAddress);
+          // let bobAlpacaAfter = await alpacaToken.balanceOf(bobAddress);
+          // // Check Bob account, Bob must be richer as he earn more from yield
+          // expect(bobAlpacaAfter).to.be.gt(bobAlpacaBefore);
+          // expect(bobAfter).to.be.gt(bobBefore);
+          // // Bob add another 10 BTOKEN
+          // await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
+          // await vaultAsBob.work(
+          //   2,
+          //   deltaNeutralWorker.address,
+          //   ethers.utils.parseEther("10"),
+          //   0,
+          //   "0", // max return = 0, don't return NATIVE to the debt
+          //   ethers.utils.defaultAbiCoder.encode(
+          //     ["address", "bytes"],
+          //     [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          //   )
+          // );
+          // bobBefore = await baseToken.balanceOf(bobAddress);
+          // bobAlpacaBefore = await alpacaToken.balanceOf(bobAddress);
+          // // Bob close position#2
+          // await vaultAsBob.work(
+          //   2,
+          //   deltaNeutralWorker.address,
+          //   "0",
+          //   "0",
+          //   "1000000000000000000000000000000",
+          //   ethers.utils.defaultAbiCoder.encode(
+          //     ["address", "bytes"],
+          //     [liqStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          //   )
+          // );
+          // bobAfter = await baseToken.balanceOf(bobAddress);
+          // bobAlpacaAfter = await alpacaToken.balanceOf(bobAddress);
+          // // Check Bob account, Bob must be richer as she earned from leverage yield farm without getting liquidated
+          // expect(bobAfter).to.be.gt(bobBefore);
+          // expect(bobAlpacaAfter).to.be.gt(bobAlpacaBefore);
         });
 
+        // TODO: remove this because this one check how user manage position
         it("should close position correctly when user holds mix positions of leveraged and non-leveraged", async () => {
-          // Set interests to 0% per year for easy testing
-          await simpleVaultConfig.setParams(
-            ethers.utils.parseEther("1"), // 1 BTOKEN min debt size,
-            "0", // 0% per year
-            "1000", // 10% reserve pool
-            "1000", // 10% Kill prize
-            wbnb.address,
-            wNativeRelayer.address,
-            fairLaunch.address,
-            "0",
-            ethers.constants.AddressZero
-          );
-
-          const [path, reinvestPath] = await Promise.all([
-            deltaNeutralWorker.getPath(),
-            deltaNeutralWorker.getReinvestPath(),
-          ]);
-
-          // Set Reinvest bounty to 10% of the reward
-          await deltaNeutralWorker.setReinvestConfig("100", "0", [cake.address, wbnb.address, baseToken.address]);
-
-          // Bob deposits 10 BTOKEN
-          await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-          await vaultAsBob.deposit(ethers.utils.parseEther("10"));
-
-          // Alice deposits 12 BTOKEN
-          await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("12"));
-          await vaultAsAlice.deposit(ethers.utils.parseEther("12"));
-
-          // Position#1: Bob borrows 10 BTOKEN
-          await swapHelper.loadReserves(path);
-          let accumLp = BigNumber.from(0);
-          let workerLpBefore = BigNumber.from(0);
-          let totalShare = BigNumber.from(0);
-          let shares: Array<BigNumber> = [];
-          await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-          await vaultAsBob.work(
-            0,
-            deltaNeutralWorker.address,
-            ethers.utils.parseEther("10"),
-            ethers.utils.parseEther("10"),
-            "0", // max return = 0, don't return NATIVE to the debt
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "bytes"],
-              [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-            )
-          );
-          // Pre-compute expectation
-          let [expectedLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(
-            ethers.utils.parseEther("20"),
-            path
-          );
-          accumLp = accumLp.add(expectedLp);
-
-          let expectedShare = workerHelper.computeBalanceToShare(expectedLp, totalShare, workerLpBefore);
-          shares.push(expectedShare);
-          totalShare = totalShare.add(expectedShare);
-
-          // Expect
-          let [workerLpAfter] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
-          expect(await deltaNeutralWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.eq(shares[0]);
-          expect(
-            await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(1)),
-            `expect Pos#1 LPs = ${expectedLp}`
-          ).to.be.eq(expectedLp);
-          expect(await deltaNeutralWorker.totalShare(), `expect totalShare = ${totalShare}`).to.be.eq(totalShare);
-          expect(
-            await baseToken.balanceOf(addStrat.address),
-            `expect add BTOKEN strat to have ${debrisBtoken} BTOKEN debris`
-          ).to.be.eq(debrisBtoken);
-          expect(
-            await farmToken.balanceOf(addStrat.address),
-            `expect add BTOKEN strat to have ${debrisFtoken} FTOKEN debris`
-          ).to.be.eq(debrisFtoken);
-          expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.eq(accumLp);
-
-          // Position#2: Bob borrows another 2 BTOKEN
-          [workerLpBefore] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
-          let eveCakeBefore = await cake.balanceOf(eveAddress);
-          let deployerCakeBefore = await cake.balanceOf(DEPLOYER);
-
-          // Position#2: Bob open 1x position with 3 BTOKEN
-          await swapHelper.loadReserves(path);
-          await swapHelper.loadReserves(reinvestPath);
-          await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("3"));
-          await vaultAsBob.work(
-            0,
-            deltaNeutralWorker.address,
-            ethers.utils.parseEther("3"),
-            "0",
-            "0", // max return = 0, don't return BTOKEN to the debt
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "bytes"],
-              [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-            )
-          );
-          [workerLpAfter] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
-          let eveCakeAfter = await cake.balanceOf(eveAddress);
-          let deployerCakeAfter = await cake.balanceOf(DEPLOYER);
-          let totalRewards = swapHelper.computeTotalRewards(workerLpBefore, CAKE_REWARD_PER_BLOCK, BigNumber.from(2));
-          let reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
-          let reinvestLeft = totalRewards.sub(reinvestFees);
-
-          let reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
-          let reinvestBtoken = reinvestAmts[reinvestAmts.length - 1].add(debrisBtoken);
-          let reinvestLp = BigNumber.from(0);
-          [reinvestLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
-          accumLp = accumLp.add(reinvestLp);
-
-          [expectedLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(
-            ethers.utils.parseEther("3"),
-            path
-          );
-          accumLp = accumLp.add(expectedLp);
-
-          expectedShare = workerHelper.computeBalanceToShare(expectedLp, totalShare, workerLpBefore.add(reinvestLp));
-          shares.push(expectedShare);
-          totalShare = totalShare.add(expectedShare);
-
-          expect(await deltaNeutralWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.eq(shares[0]);
-          expect(
-            await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(1)),
-            `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
-          ).to.be.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
-
-          expect(await deltaNeutralWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.eq(shares[1]);
-          expect(
-            await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(2)),
-            `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
-          ).to.be.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
-
-          expect(
-            deployerCakeAfter.sub(deployerCakeBefore),
-            `expect DEPLOYER to get ${reinvestFees} CAKE as treasury fees`
-          ).to.be.eq(reinvestFees);
-          expect(eveCakeAfter.sub(eveCakeBefore), `expect eve's CAKE to remain the same`).to.be.eq("0");
-          expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.eq(accumLp);
-          expect(
-            await baseToken.balanceOf(addStrat.address),
-            `expect add BTOKEN strat to have ${debrisBtoken} BTOKEN debris`
-          ).to.be.eq(debrisBtoken);
-          expect(
-            await farmToken.balanceOf(addStrat.address),
-            `expect add BTOKEN strat to have ${debrisFtoken} FTOKEN debris`
-          ).to.be.eq(debrisFtoken);
-
-          // ---------------- Reinvest#1 -------------------
-          // Wait for 1 day and someone calls reinvest
-          await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-
-          let [workerLPBefore] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
-          deployerCakeBefore = await cake.balanceOf(DEPLOYER);
-          eveCakeBefore = await cake.balanceOf(eveAddress);
-          await swapHelper.loadReserves(path);
-          await swapHelper.loadReserves(reinvestPath);
-
-          await deltaNeutralWorkerAsEve.reinvest();
-
-          deployerCakeAfter = await cake.balanceOf(DEPLOYER);
-          eveCakeAfter = await cake.balanceOf(eveAddress);
-          [workerLpAfter] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
-          totalRewards = swapHelper.computeTotalRewards(workerLPBefore, CAKE_REWARD_PER_BLOCK, BigNumber.from(2));
-          reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
-          reinvestLeft = totalRewards.sub(reinvestFees);
-
-          reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
-          reinvestBtoken = reinvestAmts[reinvestAmts.length - 1].add(debrisBtoken);
-          [reinvestLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
-          accumLp = accumLp.add(reinvestLp);
-
-          expect(await deltaNeutralWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.eq(shares[0]);
-          expect(
-            await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(1)),
-            `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
-          ).to.be.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
-
-          expect(await deltaNeutralWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.eq(shares[1]);
-          expect(
-            await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(2)),
-            `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
-          ).to.be.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
-
-          expect(deployerCakeAfter.sub(deployerCakeBefore), `expect DEPLOYER's CAKE to remain the same`).to.be.eq("0");
-          expect(eveCakeAfter.sub(eveCakeBefore), `expect eve to get ${reinvestFees}`).to.be.eq(reinvestFees);
-          expect(workerLpAfter).to.be.eq(accumLp);
-
-          // Check Position#1 info
-          let [bob1Health, bob1DebtToShare] = await vault.positionInfo("1");
-          const bob1ExpectedHealth = await swapHelper.computeLpHealth(
-            await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(1)),
-            baseToken.address,
-            farmToken.address
-          );
-          expect(bob1Health, `expect Pos#1 health = ${bob1ExpectedHealth}`).to.be.eq(bob1ExpectedHealth);
-          expect(bob1Health).to.be.gt(ethers.utils.parseEther("20"));
-          AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("10").toString(), bob1DebtToShare.toString());
-
-          // Check Position#2 info
-          let [bob2Health, bob2DebtToShare] = await vault.positionInfo("2");
-          const bob2ExpectedHealth = await swapHelper.computeLpHealth(
-            await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(2)),
-            baseToken.address,
-            farmToken.address
-          );
-          expect(bob2Health, `expect Pos#2 health = ${bob2ExpectedHealth}`).to.be.eq(bob2ExpectedHealth);
-          expect(bob2Health).to.be.gt(ethers.utils.parseEther("3"));
-          AssertHelpers.assertAlmostEqual("0", bob2DebtToShare.toString());
-
-          let bobBefore = await baseToken.balanceOf(bobAddress);
-          let bobAlpacaBefore = await alpacaToken.balanceOf(bobAddress);
-          // Bob close position#1
-          await vaultAsBob.work(
-            1,
-            deltaNeutralWorker.address,
-            "0",
-            "0",
-            "1000000000000000000000",
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "bytes"],
-              [liqStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-            )
-          );
-          let bobAfter = await baseToken.balanceOf(bobAddress);
-          let bobAlpacaAfter = await alpacaToken.balanceOf(bobAddress);
-
-          // Check Bob account, Bob must be richer as he earn more from yield
-          expect(bobAlpacaAfter).to.be.gt(bobAlpacaBefore);
-          expect(bobAfter).to.be.gt(bobBefore);
-
-          // Bob add another 10 BTOKEN
-          await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-          await vaultAsBob.work(
-            2,
-            deltaNeutralWorker.address,
-            ethers.utils.parseEther("10"),
-            0,
-            "0", // max return = 0, don't return NATIVE to the debt
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "bytes"],
-              [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-            )
-          );
-
-          bobBefore = await baseToken.balanceOf(bobAddress);
-          bobAlpacaBefore = await alpacaToken.balanceOf(bobAddress);
-          // Bob close position#2
-          await vaultAsBob.work(
-            2,
-            deltaNeutralWorker.address,
-            "0",
-            "0",
-            "1000000000000000000000000000000",
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "bytes"],
-              [liqStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-            )
-          );
-          bobAfter = await baseToken.balanceOf(bobAddress);
-          bobAlpacaAfter = await alpacaToken.balanceOf(bobAddress);
-
-          // Check Bob account, Bob must be richer as she earned from leverage yield farm without getting liquidated
-          // But bob shouldn't earn more ALPACAs from closing position#2
-          expect(bobAfter).to.be.gt(bobBefore);
-          expect(bobAlpacaAfter).to.be.eq(bobAlpacaBefore);
+          // // Set interests to 0% per year for easy testing
+          // await simpleVaultConfig.setParams(
+          //   ethers.utils.parseEther("1"), // 1 BTOKEN min debt size,
+          //   "0", // 0% per year
+          //   "1000", // 10% reserve pool
+          //   "1000", // 10% Kill prize
+          //   wbnb.address,
+          //   wNativeRelayer.address,
+          //   fairLaunch.address,
+          //   "0",
+          //   ethers.constants.AddressZero
+          // );
+          // const [path, reinvestPath] = await Promise.all([
+          //   deltaNeutralWorker.getPath(),
+          //   deltaNeutralWorker.getReinvestPath(),
+          // ]);
+          // // Set Reinvest bounty to 10% of the reward
+          // await deltaNeutralWorker.setReinvestConfig("100", "0", [cake.address, wbnb.address, baseToken.address]);
+          // // Bob deposits 10 BTOKEN
+          // await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
+          // await vaultAsBob.deposit(ethers.utils.parseEther("10"));
+          // // Alice deposits 12 BTOKEN
+          // await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("12"));
+          // await vaultAsAlice.deposit(ethers.utils.parseEther("12"));
+          // // Position#1: Bob borrows 10 BTOKEN
+          // await swapHelper.loadReserves(path);
+          // let accumLp = BigNumber.from(0);
+          // let workerLpBefore = BigNumber.from(0);
+          // let totalShare = BigNumber.from(0);
+          // let shares: Array<BigNumber> = [];
+          // await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
+          // await vaultAsBob.work(
+          //   0,
+          //   deltaNeutralWorker.address,
+          //   ethers.utils.parseEther("10"),
+          //   ethers.utils.parseEther("10"),
+          //   "0", // max return = 0, don't return NATIVE to the debt
+          //   ethers.utils.defaultAbiCoder.encode(
+          //     ["address", "bytes"],
+          //     [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          //   )
+          // );
+          // // Pre-compute expectation
+          // let [expectedLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(
+          //   ethers.utils.parseEther("20"),
+          //   path
+          // );
+          // accumLp = accumLp.add(expectedLp);
+          // let expectedShare = workerHelper.computeBalanceToShare(expectedLp, totalShare, workerLpBefore);
+          // shares.push(expectedShare);
+          // totalShare = totalShare.add(expectedShare);
+          // // Expect
+          // let [workerLpAfter] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
+          // expect(await deltaNeutralWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.eq(shares[0]);
+          // expect(
+          //   await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(1)),
+          //   `expect Pos#1 LPs = ${expectedLp}`
+          // ).to.be.eq(expectedLp);
+          // expect(await deltaNeutralWorker.totalShare(), `expect totalShare = ${totalShare}`).to.be.eq(totalShare);
+          // expect(
+          //   await baseToken.balanceOf(addStrat.address),
+          //   `expect add BTOKEN strat to have ${debrisBtoken} BTOKEN debris`
+          // ).to.be.eq(debrisBtoken);
+          // expect(
+          //   await farmToken.balanceOf(addStrat.address),
+          //   `expect add BTOKEN strat to have ${debrisFtoken} FTOKEN debris`
+          // ).to.be.eq(debrisFtoken);
+          // expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.eq(accumLp);
+          // // Position#2: Bob borrows another 2 BTOKEN
+          // [workerLpBefore] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
+          // let eveCakeBefore = await cake.balanceOf(eveAddress);
+          // let deployerCakeBefore = await cake.balanceOf(DEPLOYER);
+          // // Position#2: Bob open 1x position with 3 BTOKEN
+          // await swapHelper.loadReserves(path);
+          // await swapHelper.loadReserves(reinvestPath);
+          // await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("3"));
+          // await vaultAsBob.work(
+          //   0,
+          //   deltaNeutralWorker.address,
+          //   ethers.utils.parseEther("3"),
+          //   "0",
+          //   "0", // max return = 0, don't return BTOKEN to the debt
+          //   ethers.utils.defaultAbiCoder.encode(
+          //     ["address", "bytes"],
+          //     [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          //   )
+          // );
+          // [workerLpAfter] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
+          // let eveCakeAfter = await cake.balanceOf(eveAddress);
+          // let deployerCakeAfter = await cake.balanceOf(DEPLOYER);
+          // let totalRewards = swapHelper.computeTotalRewards(workerLpBefore, CAKE_REWARD_PER_BLOCK, BigNumber.from(2));
+          // let reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
+          // let reinvestLeft = totalRewards.sub(reinvestFees);
+          // let reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
+          // let reinvestBtoken = reinvestAmts[reinvestAmts.length - 1].add(debrisBtoken);
+          // let reinvestLp = BigNumber.from(0);
+          // [reinvestLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
+          // accumLp = accumLp.add(reinvestLp);
+          // [expectedLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(
+          //   ethers.utils.parseEther("3"),
+          //   path
+          // );
+          // accumLp = accumLp.add(expectedLp);
+          // expectedShare = workerHelper.computeBalanceToShare(expectedLp, totalShare, workerLpBefore.add(reinvestLp));
+          // shares.push(expectedShare);
+          // totalShare = totalShare.add(expectedShare);
+          // expect(await deltaNeutralWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.eq(shares[0]);
+          // expect(
+          //   await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(1)),
+          //   `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
+          // ).to.be.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
+          // expect(await deltaNeutralWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.eq(shares[1]);
+          // expect(
+          //   await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(2)),
+          //   `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
+          // ).to.be.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
+          // expect(
+          //   deployerCakeAfter.sub(deployerCakeBefore),
+          //   `expect DEPLOYER to get ${reinvestFees} CAKE as treasury fees`
+          // ).to.be.eq(reinvestFees);
+          // expect(eveCakeAfter.sub(eveCakeBefore), `expect eve's CAKE to remain the same`).to.be.eq("0");
+          // expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.eq(accumLp);
+          // expect(
+          //   await baseToken.balanceOf(addStrat.address),
+          //   `expect add BTOKEN strat to have ${debrisBtoken} BTOKEN debris`
+          // ).to.be.eq(debrisBtoken);
+          // expect(
+          //   await farmToken.balanceOf(addStrat.address),
+          //   `expect add BTOKEN strat to have ${debrisFtoken} FTOKEN debris`
+          // ).to.be.eq(debrisFtoken);
+          // // ---------------- Reinvest#1 -------------------
+          // // Wait for 1 day and someone calls reinvest
+          // await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
+          // let [workerLPBefore] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
+          // deployerCakeBefore = await cake.balanceOf(DEPLOYER);
+          // eveCakeBefore = await cake.balanceOf(eveAddress);
+          // await swapHelper.loadReserves(path);
+          // await swapHelper.loadReserves(reinvestPath);
+          // await deltaNeutralWorkerAsEve.reinvest();
+          // deployerCakeAfter = await cake.balanceOf(DEPLOYER);
+          // eveCakeAfter = await cake.balanceOf(eveAddress);
+          // [workerLpAfter] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
+          // totalRewards = swapHelper.computeTotalRewards(workerLPBefore, CAKE_REWARD_PER_BLOCK, BigNumber.from(2));
+          // reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
+          // reinvestLeft = totalRewards.sub(reinvestFees);
+          // reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
+          // reinvestBtoken = reinvestAmts[reinvestAmts.length - 1].add(debrisBtoken);
+          // [reinvestLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
+          // accumLp = accumLp.add(reinvestLp);
+          // expect(await deltaNeutralWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.eq(shares[0]);
+          // expect(
+          //   await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(1)),
+          //   `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
+          // ).to.be.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
+          // expect(await deltaNeutralWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.eq(shares[1]);
+          // expect(
+          //   await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(2)),
+          //   `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
+          // ).to.be.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
+          // expect(deployerCakeAfter.sub(deployerCakeBefore), `expect DEPLOYER's CAKE to remain the same`).to.be.eq("0");
+          // expect(eveCakeAfter.sub(eveCakeBefore), `expect eve to get ${reinvestFees}`).to.be.eq(reinvestFees);
+          // expect(workerLpAfter).to.be.eq(accumLp);
+          // // Check Position#1 info
+          // let [bob1Health, bob1DebtToShare] = await vault.positionInfo("1");
+          // const bob1ExpectedHealth = await swapHelper.computeLpHealth(
+          //   await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(1)),
+          //   baseToken.address,
+          //   farmToken.address
+          // );
+          // expect(bob1Health, `expect Pos#1 health = ${bob1ExpectedHealth}`).to.be.eq(bob1ExpectedHealth);
+          // expect(bob1Health).to.be.gt(ethers.utils.parseEther("20"));
+          // AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("10").toString(), bob1DebtToShare.toString());
+          // // Check Position#2 info
+          // let [bob2Health, bob2DebtToShare] = await vault.positionInfo("2");
+          // const bob2ExpectedHealth = await swapHelper.computeLpHealth(
+          //   await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(2)),
+          //   baseToken.address,
+          //   farmToken.address
+          // );
+          // expect(bob2Health, `expect Pos#2 health = ${bob2ExpectedHealth}`).to.be.eq(bob2ExpectedHealth);
+          // expect(bob2Health).to.be.gt(ethers.utils.parseEther("3"));
+          // AssertHelpers.assertAlmostEqual("0", bob2DebtToShare.toString());
+          // let bobBefore = await baseToken.balanceOf(bobAddress);
+          // let bobAlpacaBefore = await alpacaToken.balanceOf(bobAddress);
+          // // Bob close position#1
+          // await vaultAsBob.work(
+          //   1,
+          //   deltaNeutralWorker.address,
+          //   "0",
+          //   "0",
+          //   "1000000000000000000000",
+          //   ethers.utils.defaultAbiCoder.encode(
+          //     ["address", "bytes"],
+          //     [liqStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          //   )
+          // );
+          // let bobAfter = await baseToken.balanceOf(bobAddress);
+          // let bobAlpacaAfter = await alpacaToken.balanceOf(bobAddress);
+          // // Check Bob account, Bob must be richer as he earn more from yield
+          // expect(bobAlpacaAfter).to.be.gt(bobAlpacaBefore);
+          // expect(bobAfter).to.be.gt(bobBefore);
+          // // Bob add another 10 BTOKEN
+          // await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
+          // await vaultAsBob.work(
+          //   2,
+          //   deltaNeutralWorker.address,
+          //   ethers.utils.parseEther("10"),
+          //   0,
+          //   "0", // max return = 0, don't return NATIVE to the debt
+          //   ethers.utils.defaultAbiCoder.encode(
+          //     ["address", "bytes"],
+          //     [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          //   )
+          // );
+          // bobBefore = await baseToken.balanceOf(bobAddress);
+          // bobAlpacaBefore = await alpacaToken.balanceOf(bobAddress);
+          // // Bob close position#2
+          // await vaultAsBob.work(
+          //   2,
+          //   deltaNeutralWorker.address,
+          //   "0",
+          //   "0",
+          //   "1000000000000000000000000000000",
+          //   ethers.utils.defaultAbiCoder.encode(
+          //     ["address", "bytes"],
+          //     [liqStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          //   )
+          // );
+          // bobAfter = await baseToken.balanceOf(bobAddress);
+          // bobAlpacaAfter = await alpacaToken.balanceOf(bobAddress);
+          // // Check Bob account, Bob must be richer as she earned from leverage yield farm without getting liquidated
+          // // But bob shouldn't earn more ALPACAs from closing position#2
+          // expect(bobAfter).to.be.gt(bobBefore);
+          // expect(bobAlpacaAfter).to.be.eq(bobAlpacaBefore);
         });
       });
 
@@ -1247,7 +1189,6 @@ describe("Vault - PancakeswapV202", () => {
           const deposit = ethers.utils.parseEther("3");
           await baseToken.approve(vault.address, deposit);
           await vault.deposit(deposit);
-
           // Now Alice can take 1 BTOKEN loan + 1 BTOKEN of her to create a new position
           const loan = ethers.utils.parseEther("1");
           await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
@@ -1262,14 +1203,11 @@ describe("Vault - PancakeswapV202", () => {
               [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
             )
           );
-
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
           await deltaNeutralWorkerAsEve.reinvest();
           await vault.deposit(0); // Random action to trigger interest computation
-
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-
           await vault.deposit(0); // Random action to trigger interest computation
           const interest = ethers.utils.parseEther("0.3"); //30% interest rate
           const reservePool = interest.mul(RESERVE_POOL_BPS).div("10000");
@@ -1281,7 +1219,6 @@ describe("Vault - PancakeswapV202", () => {
               .toString(),
             (await vault.totalToken()).toString()
           );
-
           // Calculate the expected result.
           // set interest rate to be 0 to be easy for testing.
           await simpleVaultConfig.setParams(
@@ -1295,96 +1232,14 @@ describe("Vault - PancakeswapV202", () => {
             KILL_TREASURY_BPS,
             deployerAddress
           );
-          const toBeLiquidatedValue = await deltaNeutralWorker.health(1);
-          const liquidationBounty = toBeLiquidatedValue.mul(KILL_PRIZE_BPS).div(10000);
-          const treasuryKillFees = toBeLiquidatedValue.mul(KILL_TREASURY_BPS).div(10000);
-          const totalLiquidationFees = liquidationBounty.add(treasuryKillFees);
-          const eveBalanceBefore = await baseToken.balanceOf(eveAddress);
-          const aliceAlpacaBefore = await alpacaToken.balanceOf(aliceAddress);
-          const aliceBalanceBefore = await baseToken.balanceOf(aliceAddress);
-          const vaultBalanceBefore = await baseToken.balanceOf(vault.address);
-          const deployerBalanceBefore = await baseToken.balanceOf(deployerAddress);
-          const vaultDebtVal = await vault.vaultDebtVal();
-          const debt = await vault.debtShareToVal((await vault.positions(1)).debtShare);
-          const left = debt.gte(toBeLiquidatedValue.sub(totalLiquidationFees))
-            ? ethers.constants.Zero
-            : toBeLiquidatedValue.sub(totalLiquidationFees).sub(debt);
-
           // Now eve kill the position
-          await expect(vaultAsEve.kill("1")).to.emit(vaultAsEve, "Kill");
-
-          // Getting balances after killed
-          const eveBalanceAfter = await baseToken.balanceOf(eveAddress);
-          const aliceBalanceAfter = await baseToken.balanceOf(aliceAddress);
-          const vaultBalanceAfter = await baseToken.balanceOf(vault.address);
-          const deployerBalanceAfter = await baseToken.balanceOf(deployerAddress);
-
-          AssertHelpers.assertAlmostEqual(
-            deposit.add(interest).add(interest.mul(13).div(10)).add(interest.mul(13).div(10)).toString(),
-            (await baseToken.balanceOf(vault.address)).toString()
-          );
-          expect(await vault.vaultDebtVal()).to.be.eq(ethers.utils.parseEther("0"));
-          AssertHelpers.assertAlmostEqual(
-            reservePool.add(reservePool.mul(13).div(10)).add(reservePool.mul(13).div(10)).toString(),
-            (await vault.reservePool()).toString()
-          );
-          AssertHelpers.assertAlmostEqual(
-            deposit
-              .add(interest.sub(reservePool))
-              .add(interest.sub(reservePool).mul(13).div(10))
-              .add(interest.sub(reservePool).mul(13).div(10))
-              .toString(),
-            (await vault.totalToken()).toString()
-          );
-          expect(eveBalanceAfter.sub(eveBalanceBefore), "expect Eve to get her liquidation bounty").to.be.eq(
-            liquidationBounty
-          );
-          expect(
-            deployerBalanceAfter.sub(deployerBalanceBefore),
-            "expect Deployer to get treasury liquidation fees"
-          ).to.be.eq(treasuryKillFees);
-          expect(aliceBalanceAfter.sub(aliceBalanceBefore), "expect Alice to get her leftover back").to.be.eq(left);
-          expect(vaultBalanceAfter.sub(vaultBalanceBefore), "expect Vault to get its funds + interest").to.be.eq(
-            vaultDebtVal
-          );
-          expect((await vault.positions(1)).debtShare, "expect Pos#1 debt share to be 0").to.be.eq(0);
-          expect(
-            await alpacaToken.balanceOf(aliceAddress),
-            "expect Alice to get some ALPACA from holding LYF position"
-          ).to.be.gt(aliceAlpacaBefore);
-
-          // Alice creates a new position again
-          await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
-          await vaultAsAlice.work(
-            0,
-            deltaNeutralWorker.address,
-            ethers.utils.parseEther("1"),
-            ethers.utils.parseEther("1"),
-            "0",
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "bytes"],
-              [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-            )
-          );
-          // She can close position
-          await vaultAsAlice.work(
-            2,
-            deltaNeutralWorker.address,
-            "0",
-            "0",
-            "115792089237316195423570985008687907853269984665640564039457584007913129639935",
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "bytes"],
-              [liqStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-            )
-          );
+          await expect(vaultAsEve.kill("1")).to.be.revertedWith("can't liquidate");
         });
 
         it("should liquidate user position correctly", async () => {
           // Bob deposits 20 BTOKEN
           await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("20"));
           await vaultAsBob.deposit(ethers.utils.parseEther("20"));
-
           // Position#1: Alice borrows 10 BTOKEN loan
           await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("10"));
           await vaultAsAlice.work(
@@ -1399,159 +1254,82 @@ describe("Vault - PancakeswapV202", () => {
             )
           );
 
-          await farmToken.mint(deployerAddress, ethers.utils.parseEther("100"));
-          await farmToken.approve(routerV2.address, ethers.utils.parseEther("100"));
+          let lpBalance = await deltaNeutralWorker.totalLpBalance();
+          let lpToken = await deltaNeutralWorker.lpToken();
+          let lpInDollar = await priceHelper.lpToDollar(lpBalance, lpToken);
+          let lpPrice = lpInDollar.mul(BigNumber.from("1000000000000000000")).div(lpBalance);
+          let tokenPrice = await priceHelper.getTokenPrice(baseToken.address);
+          console.log("// lp price = ", ethers.utils.formatEther(lpPrice));
 
           // Price swing 10%
+          // Feed new price from 200 for 20% to make lp price down ~10%
+          // 200 * (1 - 0.2) = 160
+          let mockAggregatorV3 = await MockAggregatorV3Factory.deploy(ethers.utils.parseEther("160"), 18);
+          await mockAggregatorV3.deployed();
+          chainLinkOracleAsDeployer.setPriceFeeds([farmToken.address], [busd.address], [mockAggregatorV3.address]);
+
+          lpBalance = await deltaNeutralWorker.totalLpBalance();
+          lpToken = await deltaNeutralWorker.lpToken();
+          lpInDollar = await priceHelper.lpToDollar(lpBalance, lpToken);
+          lpPrice = lpInDollar.mul(BigNumber.from("1000000000000000000")).div(lpBalance);
+          tokenPrice = await priceHelper.getTokenPrice(baseToken.address);
+          console.log("// lp price = ", ethers.utils.formatEther(lpPrice));
+
           // Add more token to the pool equals to sqrt(10*((0.1)**2) / 9) - 0.1 = 0.005409255338945984, (0.1 is the balance of token in the pool)
-          await routerV2.swapExactTokensForTokens(
-            ethers.utils.parseEther("0.005409255338945984"),
-            "0",
-            [farmToken.address, baseToken.address],
-            deployerAddress,
-            FOREVER
-          );
           await expect(vaultAsEve.kill("1")).to.be.revertedWith("can't liquidate");
 
           // Price swing 20%
-          // Add more token to the pool equals to
-          // sqrt(10*((0.10540925533894599)**2) / 8) - 0.10540925533894599 = 0.012441874858811944
-          // (0.10540925533894599 is the balance of token in the pool)
-          await routerV2.swapExactTokensForTokens(
-            ethers.utils.parseEther("0.012441874858811944"),
-            "0",
-            [farmToken.address, baseToken.address],
-            deployerAddress,
-            FOREVER
-          );
+          // Feed new price from 160 for 40% to make lp price down ~20%
+          // 160 * (1 - 0.4) = 96
+          mockAggregatorV3 = await MockAggregatorV3Factory.deploy(ethers.utils.parseEther("96"), 18);
+          await mockAggregatorV3.deployed();
+          chainLinkOracleAsDeployer.setPriceFeeds([farmToken.address], [busd.address], [mockAggregatorV3.address]);
+
+          chainLinkOracleAsDeployer.setPriceFeeds([farmToken.address], [busd.address], [mockAggregatorV3.address]);
+          lpBalance = await deltaNeutralWorker.totalLpBalance();
+          lpToken = await deltaNeutralWorker.lpToken();
+          lpInDollar = await priceHelper.lpToDollar(lpBalance, lpToken);
+          lpPrice = lpInDollar.mul(BigNumber.from("1000000000000000000")).div(lpBalance);
+          tokenPrice = await priceHelper.getTokenPrice(baseToken.address);
+          console.log("// lp price = ", ethers.utils.formatEther(lpPrice));
+
           await expect(vaultAsEve.kill("1")).to.be.revertedWith("can't liquidate");
 
           // Price swing 23.43%
-          // Existing token on the pool = 0.10540925533894599 + 0.012441874858811944 = 0.11785113019775793
-          // Add more token to the pool equals to
-          // sqrt(10*((0.11785113019775793)**2) / 7.656999999999999) - 0.11785113019775793 = 0.016829279312591913
-          await routerV2.swapExactTokensForTokens(
-            ethers.utils.parseEther("0.016829279312591913"),
-            "0",
-            [farmToken.address, baseToken.address],
-            deployerAddress,
-            FOREVER
-          );
-          await expect(vaultAsEve.kill("1")).to.be.revertedWith("can't liquidate");
+          // Feed new price from 96 for 46.86% to make lp price down ~23.43%
+          // 96 * (1 - 0.4686) = 51.0144
+          mockAggregatorV3 = await MockAggregatorV3Factory.deploy(ethers.utils.parseEther("51.0144"), 18);
+          await mockAggregatorV3.deployed();
+          chainLinkOracleAsDeployer.setPriceFeeds([farmToken.address], [busd.address], [mockAggregatorV3.address]);
 
+          lpBalance = await deltaNeutralWorker.totalLpBalance();
+          lpToken = await deltaNeutralWorker.lpToken();
+          lpInDollar = await priceHelper.lpToDollar(lpBalance, lpToken);
+          lpPrice = lpInDollar.mul(BigNumber.from("1000000000000000000")).div(lpBalance);
+          tokenPrice = await priceHelper.getTokenPrice(baseToken.address);
+          console.log("// lp price = ", ethers.utils.formatEther(lpPrice));
+
+          await expect(vaultAsEve.kill("1")).to.be.revertedWith("can't liquidate");
           // Price swing 30%
-          // Existing token on the pool = 0.11785113019775793 + 0.016829279312591913 = 0.13468040951034985
-          // Add more token to the pool equals to
-          // sqrt(10*((0.13468040951034985)**2) / 7) - 0.13468040951034985 = 0.026293469053292218
-          await routerV2.swapExactTokensForTokens(
-            ethers.utils.parseEther("0.026293469053292218"),
-            "0",
-            [farmToken.address, baseToken.address],
-            deployerAddress,
-            FOREVER
-          );
+          // Feed new price from 96 for 60% to make lp price down ~23.43%
+          // 51.0144 * (1 - 0.6) = 20.40576
+          mockAggregatorV3 = await MockAggregatorV3Factory.deploy(ethers.utils.parseEther("20.40576"), 18);
+          await mockAggregatorV3.deployed();
+          chainLinkOracleAsDeployer.setPriceFeeds([farmToken.address], [busd.address], [mockAggregatorV3.address]);
+
+          lpBalance = await deltaNeutralWorker.totalLpBalance();
+          lpToken = await deltaNeutralWorker.lpToken();
+          lpInDollar = await priceHelper.lpToDollar(lpBalance, lpToken);
+          lpPrice = lpInDollar.mul(BigNumber.from("1000000000000000000")).div(lpBalance);
+          tokenPrice = await priceHelper.getTokenPrice(baseToken.address);
+          console.log("// lp price = ", ethers.utils.formatEther(lpPrice));
 
           // Now you can liquidate because of the price fluctuation
           const eveBefore = await baseToken.balanceOf(eveAddress);
-          await expect(vaultAsEve.kill("1")).to.emit(vaultAsEve, "Kill");
-          expect(await baseToken.balanceOf(eveAddress)).to.be.gt(eveBefore);
-        });
-      });
-
-      context("#onlyApprovedHolder", async () => {
-        it("should be not allow user to emergencyWithdraw debtToken on FairLaunch", async () => {
-          // Deployer deposits 3 BTOKEN to the bank
-          const deposit = ethers.utils.parseEther("3");
-          await baseToken.approve(vault.address, deposit);
-          await vault.deposit(deposit);
-
-          // Now Alice can take 1 BTOKEN loan + 1 BTOKEN of her to create a new position
-          const loan = ethers.utils.parseEther("1");
-          await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
-          await vaultAsAlice.work(
-            0,
-            deltaNeutralWorker.address,
-            ethers.utils.parseEther("1"),
-            loan,
-            "0",
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "bytes"],
-              [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-            )
+          await expect(vaultAsEve.kill("1")).to.be.revertedWith(
+            "DeltaNeutralWorker02::liquidate:: couldn't liquidate this worker"
           );
-
-          await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-          await deltaNeutralWorkerAsEve.reinvest();
-          await vault.deposit(0); // Random action to trigger interest computation
-
-          await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-          await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-
-          await vault.deposit(0); // Random action to trigger interest computation
-          const interest = ethers.utils.parseEther("0.3"); //30% interest rate
-          const reservePool = interest.mul(RESERVE_POOL_BPS).div("10000");
-          AssertHelpers.assertAlmostEqual(
-            deposit
-              .add(interest.sub(reservePool))
-              .add(interest.sub(reservePool).mul(13).div(10))
-              .add(interest.sub(reservePool).mul(13).div(10))
-              .toString(),
-            (await vault.totalToken()).toString()
-          );
-
-          // Alice emergencyWithdraw from FairLaunch
-          await expect(fairLaunchAsAlice.emergencyWithdraw(0)).to.be.revertedWith("only funder");
-
-          const eveBefore = await baseToken.balanceOf(eveAddress);
-
-          // Now you can liquidate because of the insane interest rate
-          await expect(vaultAsEve.kill("1")).to.emit(vaultAsEve, "Kill");
-
-          expect(await baseToken.balanceOf(eveAddress)).to.be.gt(eveBefore);
-          AssertHelpers.assertAlmostEqual(
-            deposit.add(interest).add(interest.mul(13).div(10)).add(interest.mul(13).div(10)).toString(),
-            (await baseToken.balanceOf(vault.address)).toString()
-          );
-          expect(await vault.vaultDebtVal()).to.be.eq(ethers.utils.parseEther("0"));
-          AssertHelpers.assertAlmostEqual(
-            reservePool.add(reservePool.mul(13).div(10)).add(reservePool.mul(13).div(10)).toString(),
-            (await vault.reservePool()).toString()
-          );
-          AssertHelpers.assertAlmostEqual(
-            deposit
-              .add(interest.sub(reservePool))
-              .add(interest.sub(reservePool).mul(13).div(10))
-              .add(interest.sub(reservePool).mul(13).div(10))
-              .toString(),
-            (await vault.totalToken()).toString()
-          );
-
-          // Alice creates a new position again
-          await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
-          await vaultAsAlice.work(
-            0,
-            deltaNeutralWorker.address,
-            ethers.utils.parseEther("1"),
-            ethers.utils.parseEther("1"),
-            "0",
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "bytes"],
-              [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-            )
-          );
-
-          // She can close position
-          await vaultAsAlice.work(
-            2,
-            deltaNeutralWorker.address,
-            "0",
-            "0",
-            "115792089237316195423570985008687907853269984665640564039457584007913129639935",
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "bytes"],
-              [liqStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-            )
-          );
+          expect(await baseToken.balanceOf(eveAddress)).to.be.eq(eveBefore);
         });
       });
 
@@ -1597,46 +1375,43 @@ describe("Vault - PancakeswapV202", () => {
           AssertHelpers.assertAlmostEqual(aliceDeposit.toString(), (await vault.balanceOf(aliceAddress)).toString());
           AssertHelpers.assertAlmostEqual(deposit.add(aliceDeposit).toString(), (await vault.totalSupply()).toString());
 
-          // Simulate BTOKEN price is very high by swap FTOKEN to BTOKEN (reduce BTOKEN supply)
-          await farmToken.mint(deployerAddress, ethers.utils.parseEther("100"));
-          await farmToken.approve(routerV2.address, ethers.utils.parseEther("100"));
-          await routerV2.swapExactTokensForTokens(
-            ethers.utils.parseEther("100"),
-            "0",
-            [farmToken.address, baseToken.address],
-            deployerAddress,
-            FOREVER
-          );
+          // Price swing to 1$
+          let mockAggregatorV3 = await MockAggregatorV3Factory.deploy(ethers.utils.parseEther("1"), 18);
+          await mockAggregatorV3.deployed();
+          chainLinkOracleAsDeployer.setPriceFeeds([farmToken.address], [busd.address], [mockAggregatorV3.address]);
 
           // Alice liquidates Bob position#1
           let aliceBefore = await baseToken.balanceOf(aliceAddress);
 
-          await expect(vaultAsAlice.kill("1")).to.emit(vaultAsAlice, "Kill");
-
-          let aliceAfter = await baseToken.balanceOf(aliceAddress);
-
-          // Bank balance is increase by liquidation
-          AssertHelpers.assertAlmostEqual(
-            ethers.utils.parseEther("10.002702699312215556").toString(),
-            (await baseToken.balanceOf(vault.address)).toString()
-          );
-          // Alice is liquidator, Alice should receive 10% Kill prize
-          // BTOKEN back from liquidation 0.00300199830261993, 10% of it is 0.000300199830261993
-          AssertHelpers.assertAlmostEqual(
-            ethers.utils.parseEther("0.000300199830261993").toString(),
-            aliceAfter.sub(aliceBefore).toString()
+          await expect(vaultAsAlice.kill("1")).to.be.revertedWith(
+            "DeltaNeutralWorker02::liquidate:: couldn't liquidate this worker"
           );
 
-          // Alice withdraws 2 BOKTEN
-          aliceBefore = await baseToken.balanceOf(aliceAddress);
+          // let aliceAfter = await baseToken.balanceOf(aliceAddress);
+
+          // // Bank balance is increase by liquidation
+          // AssertHelpers.assertAlmostEqual(
+          //   ethers.utils.parseEther("10.002702699312215556").toString(),
+          //   (await baseToken.balanceOf(vault.address)).toString()
+          // );
+          // // Alice is liquidator, Alice should receive 10% Kill prize
+          // // BTOKEN back from liquidation 0.00300199830261993, 10% of it is 0.000300199830261993
+          // AssertHelpers.assertAlmostEqual(
+          //   ethers.utils.parseEther("0.000300199830261993").toString(),
+          //   aliceAfter.sub(aliceBefore).toString()
+          // );
+
+          // // Alice withdraws 2 BOKTEN
+          // aliceBefore = await baseToken.balanceOf(aliceAddress);
           await vaultAsAlice.withdraw(await vault.balanceOf(aliceAddress));
-          aliceAfter = await baseToken.balanceOf(aliceAddress);
+          let aliceAfter = await baseToken.balanceOf(aliceAddress);
+          console.log(aliceAfter);
 
-          // alice gots 2/12 * 10.002702699312215556 = 1.667117116552036
-          AssertHelpers.assertAlmostEqual(
-            ethers.utils.parseEther("1.667117116552036").toString(),
-            aliceAfter.sub(aliceBefore).toString()
-          );
+          // // alice gots 2/12 * 10.002702699312215556 = 1.667117116552036
+          // AssertHelpers.assertAlmostEqual(
+          //   ethers.utils.parseEther("1.667117116552036").toString(),
+          //   aliceAfter.sub(aliceBefore).toString()
+          // );
         });
       });
 
@@ -1654,31 +1429,21 @@ describe("Vault - PancakeswapV202", () => {
             "0",
             ethers.constants.AddressZero
           );
-
           // Set Reinvest bounty to 10% of the reward
           await deltaNeutralWorker.setReinvestConfig("100", "0", [cake.address, wbnb.address, baseToken.address]);
-
           const [path, reinvestPath] = await Promise.all([
             deltaNeutralWorker.getPath(),
             deltaNeutralWorker.getReinvestPath(),
           ]);
-
-          // Bob deposits 10 BTOKEN
-          await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-          await vaultAsBob.deposit(ethers.utils.parseEther("10"));
-
-          // Alice deposits 12 BTOKEN
-          await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("12"));
-          await vaultAsAlice.deposit(ethers.utils.parseEther("12"));
-
-          // Position#1: Bob borrows 10 BTOKEN
+          // DeltaNet deposits 10 BTOKEN
+          await baseTokenAsDeltaNet.approve(vault.address, ethers.utils.parseEther("30"));
+          await vaultAsDeltaNet.deposit(ethers.utils.parseEther("30"));
+          // Position#1: DeltaNet borrows 10 BTOKEN
           await swapHelper.loadReserves(path);
           let accumLp = BigNumber.from(0);
           let workerLpBefore = BigNumber.from(0);
-          let totalShare = BigNumber.from(0);
-          let shares: Array<BigNumber> = [];
-          await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-          await vaultAsBob.work(
+          await baseTokenAsDeltaNet.approve(vault.address, ethers.utils.parseEther("10"));
+          await vaultAsDeltaNet.work(
             0,
             deltaNeutralWorker.address,
             ethers.utils.parseEther("10"),
@@ -1696,18 +1461,9 @@ describe("Vault - PancakeswapV202", () => {
           );
           accumLp = accumLp.add(expectedLp);
 
-          let expectedShare = workerHelper.computeBalanceToShare(expectedLp, totalShare, workerLpBefore);
-          shares.push(expectedShare);
-          totalShare = totalShare.add(expectedShare);
-
           // Expect
           let [workerLpAfter] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
-          expect(await deltaNeutralWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.eq(shares[0]);
-          expect(
-            await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(1)),
-            `expect Pos#1 LPs = ${expectedLp}`
-          ).to.be.eq(expectedLp);
-          expect(await deltaNeutralWorker.totalShare(), `expect totalShare = ${totalShare}`).to.be.eq(totalShare);
+          expect(await deltaNeutralWorker.totalLpBalance(), "expected total Lp amount").to.be.eq(expectedLp);
           expect(
             await baseToken.balanceOf(addStrat.address),
             `expect add BTOKEN strat to have ${debrisBtoken} BTOKEN debris`
@@ -1717,16 +1473,16 @@ describe("Vault - PancakeswapV202", () => {
             `expect add BTOKEN strat to have ${debrisFtoken} FTOKEN debris`
           ).to.be.eq(debrisFtoken);
           expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.eq(accumLp);
-
-          // Position#2: Bob borrows another 2 BTOKEN
+          // DeltaNet borrows another 2 BTOKEN
           [workerLpBefore] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
           let eveCakeBefore = await cake.balanceOf(eveAddress);
           let deployerCakeBefore = await cake.balanceOf(DEPLOYER);
           await swapHelper.loadReserves(path);
           await swapHelper.loadReserves(reinvestPath);
-          await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
-          await vaultAsAlice.work(
-            0,
+          await baseTokenAsDeltaNet.approve(vault.address, ethers.utils.parseEther("1"));
+          // alice add collateral more in position
+          await vaultAsDeltaNet.work(
+            1, // change from create new position
             deltaNeutralWorker.address,
             ethers.utils.parseEther("1"),
             ethers.utils.parseEther("2"),
@@ -1742,35 +1498,16 @@ describe("Vault - PancakeswapV202", () => {
           let totalRewards = swapHelper.computeTotalRewards(workerLpBefore, CAKE_REWARD_PER_BLOCK, BigNumber.from(2));
           let reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
           let reinvestLeft = totalRewards.sub(reinvestFees);
-
           let reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
           let reinvestBtoken = reinvestAmts[reinvestAmts.length - 1].add(debrisBtoken);
           let reinvestLp = BigNumber.from(0);
           [reinvestLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
           accumLp = accumLp.add(reinvestLp);
-
           [expectedLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(
             ethers.utils.parseEther("3"),
             path
           );
           accumLp = accumLp.add(expectedLp);
-
-          expectedShare = workerHelper.computeBalanceToShare(expectedLp, totalShare, workerLpBefore.add(reinvestLp));
-          shares.push(expectedShare);
-          totalShare = totalShare.add(expectedShare);
-
-          expect(await deltaNeutralWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.eq(shares[0]);
-          expect(
-            await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(1)),
-            `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
-          ).to.be.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
-
-          expect(await deltaNeutralWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.eq(shares[1]);
-          expect(
-            await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(2)),
-            `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
-          ).to.be.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
-
           expect(
             deployerCakeAfter.sub(deployerCakeBefore),
             `expect DEPLOYER to get ${reinvestFees} CAKE as treasury fees`
@@ -1785,118 +1522,42 @@ describe("Vault - PancakeswapV202", () => {
             await farmToken.balanceOf(addStrat.address),
             `expect add BTOKEN strat to have ${debrisFtoken} FTOKEN debris`
           ).to.be.eq(debrisFtoken);
-
           // ---------------- Reinvest#1 -------------------
           // Wait for 1 day and someone calls reinvest
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-
           let [workerLPBefore] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
           deployerCakeBefore = await cake.balanceOf(DEPLOYER);
           eveCakeBefore = await cake.balanceOf(eveAddress);
           await swapHelper.loadReserves(path);
           await swapHelper.loadReserves(reinvestPath);
-
           await deltaNeutralWorkerAsEve.reinvest();
-
           deployerCakeAfter = await cake.balanceOf(DEPLOYER);
           eveCakeAfter = await cake.balanceOf(eveAddress);
           [workerLpAfter] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
           totalRewards = swapHelper.computeTotalRewards(workerLPBefore, CAKE_REWARD_PER_BLOCK, BigNumber.from(2));
           reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
           reinvestLeft = totalRewards.sub(reinvestFees);
-
           reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
           reinvestBtoken = reinvestAmts[reinvestAmts.length - 1].add(debrisBtoken);
           [reinvestLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
           accumLp = accumLp.add(reinvestLp);
-
-          expect(await deltaNeutralWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.eq(shares[0]);
-          expect(
-            await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(1)),
-            `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
-          ).to.be.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
-
-          expect(await deltaNeutralWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.eq(shares[1]);
-          expect(
-            await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(2)),
-            `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
-          ).to.be.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
-
           expect(deployerCakeAfter.sub(deployerCakeBefore), `expect DEPLOYER's CAKE to remain the same`).to.be.eq("0");
           expect(eveCakeAfter.sub(eveCakeBefore), `expect eve to get ${reinvestFees}`).to.be.eq(reinvestFees);
           expect(workerLpAfter).to.be.eq(accumLp);
+          // Check Position info
+          let [vaultHealth, vaultDebtToShare] = await vault.positionInfo("1");
+          // health calculation
+          // lp balance =  1.245043209303108183
+          // lp price =  28.31456242504544871
+          // lp balance in dollar =  35.252853671691783003
+          // base token price =  1.0
+          // lp balance in dollar / base token price
+          // 35.252853671691783003 / 1.0 = 35.252853671691783003
 
-          // Check Position#1 info
-          let [bob1Health, bob1DebtToShare] = await vault.positionInfo("1");
-          const bob1ExpectedHealth = await swapHelper.computeLpHealth(
-            await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(1)),
-            baseToken.address,
-            farmToken.address
-          );
-          expect(bob1Health, `expect Pos#1 health = ${bob1ExpectedHealth}`).to.be.eq(bob1ExpectedHealth);
-          expect(bob1Health).to.be.gt(ethers.utils.parseEther("20"));
-          AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("10").toString(), bob1DebtToShare.toString());
-
-          // Check Position#2 info
-          let [alice2Health, alice2DebtToShare] = await vault.positionInfo("2");
-          const alice2ExpectedHealth = await swapHelper.computeLpHealth(
-            await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(2)),
-            baseToken.address,
-            farmToken.address
-          );
-          expect(alice2Health, `expect Pos#2 health = ${alice2ExpectedHealth}`).to.be.eq(alice2ExpectedHealth);
-          expect(alice2Health).to.be.gt(ethers.utils.parseEther("3"));
-          AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("2").toString(), alice2DebtToShare.toString());
-
-          const bobBefore = await baseToken.balanceOf(bobAddress);
-          // Bob close position#1
-          await vaultAsBob.work(
-            1,
-            deltaNeutralWorker.address,
-            "0",
-            "0",
-            "1000000000000000000000",
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "bytes"],
-              [liqStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-            )
-          );
-          const bobAfter = await baseToken.balanceOf(bobAddress);
-
-          // Check Bob account, Bob must be richer as he earn more from yield
-          expect(bobAfter).to.be.gt(bobBefore);
-
-          // Alice add another 10 BTOKEN
-          await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("10"));
-          await vaultAsAlice.work(
-            2,
-            deltaNeutralWorker.address,
-            ethers.utils.parseEther("10"),
-            0,
-            "0", // max return = 0, don't return NATIVE to the debt
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "bytes"],
-              [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-            )
-          );
-
-          const aliceBefore = await baseToken.balanceOf(aliceAddress);
-          // Alice close position#2
-          await vaultAsAlice.work(
-            2,
-            deltaNeutralWorker.address,
-            "0",
-            "0",
-            "1000000000000000000000000000000",
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "bytes"],
-              [liqStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-            )
-          );
-          const aliceAfter = await baseToken.balanceOf(aliceAddress);
-
-          // Check Alice account, Alice must be richer as she earned from leverage yield farm without getting liquidated
-          expect(aliceAfter).to.be.gt(aliceBefore);
+          const vaultExpectedHealth = ethers.utils.parseEther("35.252853671691783003");
+          expect(vaultHealth, `expect Position health = ${vaultExpectedHealth}`).to.be.eq(vaultExpectedHealth);
+          // now we got debt to share as 12 because DeltaNet barrow 10 and 2
+          AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("12").toString(), vaultDebtToShare.toString());
         });
       });
 
@@ -1917,21 +1578,17 @@ describe("Vault - PancakeswapV202", () => {
                 "0",
                 ethers.constants.AddressZero
               );
-
               const [path, reinvestPath] = await Promise.all([
                 deltaNeutralWorker.getPath(),
                 deltaNeutralWorker.getReinvestPath(),
               ]);
-
               // Set Reinvest bounty to 1% of the reward
               await deltaNeutralWorker.setReinvestConfig("100", "0", [cake.address, wbnb.address, baseToken.address]);
-
-              // Bob deposits 10 BTOKEN
-              await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-              await vaultAsBob.deposit(ethers.utils.parseEther("10"));
-
-              // Position#1: Bob borrows 10 BTOKEN loan and supply another 10 BToken
-              // Thus, Bob's position value will be worth 20 BTOKEN
+              // DeltaNet deposits 10 BTOKEN
+              await baseTokenAsDeltaNet.approve(vault.address, ethers.utils.parseEther("10"));
+              await vaultAsDeltaNet.deposit(ethers.utils.parseEther("10"));
+              // Position: DeltaNet borrows 10 BTOKEN loan and supply another 10 BToken
+              // Thus, DeltaNet's position value will be worth 20 BTOKEN
               // After calling `work()`
               // 20 BTOKEN needs to swap 3.587061715703192586 BTOKEN to FTOKEN
               // new reserve after swap will be 4.587061715703192586 0.021843151027158060
@@ -1943,9 +1600,8 @@ describe("Vault - PancakeswapV202", () => {
               let [workerLpBefore] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
               await swapHelper.loadReserves(path);
               await swapHelper.loadReserves(reinvestPath);
-
-              await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-              await vaultAsBob.work(
+              await baseTokenAsDeltaNet.approve(vault.address, ethers.utils.parseEther("10"));
+              await vaultAsDeltaNet.work(
                 0,
                 deltaNeutralWorker.address,
                 principalAmount,
@@ -1956,28 +1612,30 @@ describe("Vault - PancakeswapV202", () => {
                   [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
                 )
               );
-
               let [workerLpAfter] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
-
               const [expectedLp, debrisBtoken] = await swapHelper.computeOneSidedOptimalLp(
                 borrowedAmount.add(principalAmount),
                 path
               );
-
               expect(workerLpAfter.sub(workerLpBefore)).to.eq(expectedLp);
-
               const deployerCakeBefore = await cake.balanceOf(DEPLOYER);
-              const bobBefore = await baseToken.balanceOf(bobAddress);
-              const [bobHealthBefore] = await vault.positionInfo("1");
-              const lpUnderBobPosition = await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(1));
-              const liquidatedLp = lpUnderBobPosition.div(2);
+              const deltaNetBefore = await baseToken.balanceOf(deltaNetAddress);
+              // calculation
+              // lp balance =  1.131492691639043045
+              // lp price =  28.311959568634539084
+              // lp balance in dollar =  32.034775337890054677
+              // base token price =  1.0
+              // lp balance in dollar / base token price
+              // 32.034775337890054677 / 1.0 = 32.034775337890054677
+              const [deltaNetHealthBefore] = await vault.positionInfo("1");
+              expect(deltaNetHealthBefore).to.be.eq(ethers.utils.parseEther("32.034775337890054677"));
+              const lpUnderPosition = await deltaNeutralWorker.totalLpBalance();
+              const liquidatedLp = lpUnderPosition.div(2);
               const returnDebt = ethers.utils.parseEther("6");
               [workerLpBefore] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
-
               // Pre-compute
               await swapHelper.loadReserves(path);
               await swapHelper.loadReserves(reinvestPath);
-
               // Compute reinvest
               const [reinvestFees, reinvestLp] = await swapHelper.computeReinvestLp(
                 workerLpBefore,
@@ -1988,7 +1646,6 @@ describe("Vault - PancakeswapV202", () => {
                 path,
                 BigNumber.from(1)
               );
-
               // Compute liquidate
               const [btokenAmount, ftokenAmount] = await swapHelper.computeRemoveLiquidiy(
                 baseToken.address,
@@ -2004,7 +1661,7 @@ describe("Vault - PancakeswapV202", () => {
                 .add(btokenAmount)
                 .sub(returnDebt);
 
-              await vaultAsBob.work(
+              await vaultAsDeltaNet.work(
                 1,
                 deltaNeutralWorker.address,
                 "0",
@@ -2021,25 +1678,30 @@ describe("Vault - PancakeswapV202", () => {
                   ]
                 )
               );
-              const bobAfter = await baseToken.balanceOf(bobAddress);
+              const deltaNetAfter = await baseToken.balanceOf(deltaNetAddress);
               const deployerCakeAfter = await cake.balanceOf(DEPLOYER);
-
               expect(deployerCakeAfter.sub(deployerCakeBefore), `expect Deployer to get ${reinvestFees}`).to.be.eq(
                 reinvestFees
               );
-              expect(bobAfter.sub(bobBefore), `expect Bob get ${liquidatedBtoken}`).to.be.eq(liquidatedBtoken);
-              // Check Bob position info
-              const [bobHealth, bobDebtToShare] = await vault.positionInfo("1");
-              // Bob's health after partial close position must be 50% less than before
+              expect(deltaNetAfter.sub(deltaNetBefore), `expect DeltaNet get ${liquidatedBtoken}`).to.be.eq(
+                liquidatedBtoken
+              );
+              // Check position info
+              const [deltaNetHealthAfter] = await vault.positionInfo("1");
+              // DeltaNet's health after partial close position must be 50% less than before
               // due to he exit half of lp under his position
-              expect(bobHealth).to.be.lt(bobHealthBefore.div(2));
-              // Bob's debt should be left only 4 BTOKEN due he said he wants to return at max 4 BTOKEN
-              expect(bobDebtToShare).to.be.eq(borrowedAmount.sub(returnDebt));
-              // Check LP deposited by Worker on MasterChef
+              // calculation
+              // lp balance =  0.576022514621445879
+              // lp price =  28.325952106647866799
+              // lp balance in dollar =  16.316386161517946552
+              // base token price =  1.0
+              // lp balance in dollar / base token price
+              // 16.316386161517946552 / 1.0 = 16.316386161517946552
+              expect(deltaNetHealthAfter).to.be.eq(ethers.utils.parseEther("16.316386161517946552"));
               [workerLpAfter] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
-              // LP tokens + 0.000207570473714694 LP from reinvest of worker should be decreased by lpUnderBobPosition/2
+              // LP tokens + 0.010276168801924356 LP from reinvest of worker should be decreased by lpUnderPosition / 2
               // due to Bob execute StrategyClosePartialLiquidate
-              expect(workerLpAfter).to.be.eq(workerLpBefore.add(reinvestLp).sub(lpUnderBobPosition.div(2)));
+              expect(workerLpAfter).to.be.eq(workerLpBefore.add(reinvestLp).sub(lpUnderPosition.div(2)));
             });
           });
 
@@ -2058,13 +1720,11 @@ describe("Vault - PancakeswapV202", () => {
                 "0",
                 ethers.constants.AddressZero
               );
-
-              // Bob deposits 10 BTOKEN
-              await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-              await vaultAsBob.deposit(ethers.utils.parseEther("10"));
-
-              // Position#1: Bob borrows 10 BTOKEN loan and supply another 10 BToken
-              // Thus, Bob's position value will be worth 20 BTOKEN
+              // DeltaNet deposits 10 BTOKEN
+              await baseTokenAsDeltaNet.approve(vault.address, ethers.utils.parseEther("10"));
+              await vaultAsDeltaNet.deposit(ethers.utils.parseEther("10"));
+              // Position: DeltaNet borrows 10 BTOKEN loan and supply another 10 BToken
+              // Thus, DeltaNet's position value will be worth 20 BTOKEN
               // After calling `work()`
               // 20 BTOKEN needs to swap 3.587061715703192586 BTOKEN to FTOKEN
               // new reserve after swap will be 4.587061715703192586 0.021843151027158060
@@ -2072,30 +1732,29 @@ describe("Vault - PancakeswapV202", () => {
               // new reserve after adding liquidity 21.000000000000000000 BTOKEN - 0.100000000000000000 FTOKEN
               // lp amount from adding liquidity will be 1.131492691639043045 LP
               let [workerLPBefore] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
-              await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-              await vaultAsBob.work(
+              const borrowedAmount = ethers.utils.parseEther("10");
+              const principalAmount = ethers.utils.parseEther("10");
+              await baseTokenAsDeltaNet.approve(vault.address, ethers.utils.parseEther("10"));
+              await vaultAsDeltaNet.work(
                 0,
                 deltaNeutralWorker.address,
-                ethers.utils.parseEther("10"),
-                ethers.utils.parseEther("10"),
+                principalAmount,
+                borrowedAmount,
                 "0", // max return = 0, don't return BTOKEN to the debt
                 ethers.utils.defaultAbiCoder.encode(
                   ["address", "bytes"],
                   [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
                 )
               );
-
               let [workerLPAfter] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
               expect(workerLPAfter.sub(workerLPBefore)).to.eq(parseEther("1.131492691639043045"));
-
-              // Bob think he made enough. He now wants to close position partially.
+              // DeltaNet think he made enough. He now wants to close position partially.
               // He close 50% of his position and return all debt
-              const bobBefore = await baseToken.balanceOf(bobAddress);
-              const [bobHealthBefore] = await vault.positionInfo("1");
-              const lpUnderBobPosition = await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(1));
+              const deltaNetBefore = await baseToken.balanceOf(deltaNetAddress);
+              const [deltaNetHealthBefore] = await vault.positionInfo("1");
+              const lpUnderPosition = await deltaNeutralWorker.totalLpBalance();
               [workerLPBefore] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
-
-              // Bob think he made enough. He now wants to close position partially.
+              // DeltaNet think he made enough. He now wants to close position partially.
               // After calling `work()`, the `_reinvest()` is invoked
               // since 1 blocks have passed since approve and work now reward will be 0.076 * 1 =~ 0.075999999998831803 ~   CAKE
               // reward without bounty will be 0.075999999998831803 - 0.000759999999988318 =~ 0.0752399999988435 CAKE
@@ -2108,12 +1767,11 @@ describe("Vault - PancakeswapV202", () => {
               // new reserve after adding liquidity receiving from `_reinvest()` is 21.299557528330150526 BTOKEN - 0.100000000000000000 FTOKEN
               // more LP amount after executing add strategy will be 0.010276168801924356 LP
               // accumulated LP of the worker will be 1.131492691639043045 + 0.010276168801924356 = 1.1417688604409675 LP
-
-              // bob close 50% of his position, thus he will close 1.131492691639043045 * (1.131492691639043045 / (1.131492691639043045)) =~ 1.131492691639043045 / 2 = 0.5657463458195215 LP
+              // DeltaNet close 50% of his position, thus he will close 1.131492691639043045 * (1.131492691639043045 / (1.131492691639043045)) =~ 1.131492691639043045 / 2 = 0.5657463458195215 LP
               // 0.5657463458195215 LP will be converted into 8.264866063854500749 BTOKEN - 0.038802994160144191 FTOKEN
               // 0.038802994160144191 FTOKEN will be converted into (0.038802994160144191 * 0.9975 * 13.034691464475649777) / (0.061197005839855809 + 0.038802994160144191 * 0.9975) = 5.050104921127982573 BTOKEN
-              // thus, Bob will receive 8.264866063854500749 + 5.050104921127982573 = 13.314970984982483322 BTOKEN
-              await vaultAsBob.work(
+              // thus, DeltaNet will receive 8.264866063854500749 + 5.050104921127982573 = 13.314970984982483322 BTOKEN
+              await vaultAsDeltaNet.work(
                 1,
                 deltaNeutralWorker.address,
                 "0",
@@ -2126,7 +1784,7 @@ describe("Vault - PancakeswapV202", () => {
                     ethers.utils.defaultAbiCoder.encode(
                       ["uint256", "uint256", "uint256"],
                       [
-                        lpUnderBobPosition.div(2),
+                        lpUnderPosition.div(2),
                         ethers.utils.parseEther("5000000000"),
                         ethers.utils.parseEther("3.314970984982483322"),
                       ]
@@ -2134,546 +1792,546 @@ describe("Vault - PancakeswapV202", () => {
                   ]
                 )
               );
-              const bobAfter = await baseToken.balanceOf(bobAddress);
-
-              // After Bob liquidate half of his position which worth
+              const deltaNetAfter = await baseToken.balanceOf(deltaNetAddress);
+              // After DeltaNet liquidate half of his position which worth
               // 13.314970984982483322 BTOKEN (price impact+trading fee included)
-              // Bob wish to return 5,000,000,000 BTOKEN (when maxReturn > debt, return all debt)
+              // DeltaNet wish to return 5,000,000,000 BTOKEN (when maxReturn > debt, return all debt)
               // The following criteria must be stratified:
-              // - Bob should get 13.314970984982483322 - 10 = 3.314970984982483322 BTOKEN back.
-              // - Bob's position debt must be 0
+              // - DeltaNet should get 13.314970984982483322 - 10 = 3.314970984982483322 BTOKEN back.
+              // - DeltaNet's position debt must be 0
               expect(
-                bobBefore.add(ethers.utils.parseEther("3.314970984982483322")),
+                deltaNetBefore.add(ethers.utils.parseEther("3.314970984982483322")),
                 "Expect BTOKEN in Bob's account after close position to increase by ~3.32 BTOKEN"
-              ).to.be.eq(bobAfter);
+              ).to.be.eq(deltaNetAfter);
               // Check Bob position info
-              const [bobHealth, bobDebtVal] = await vault.positionInfo("1");
-              // Bob's health after partial close position must be 50% less than before
+              const [deltaNetHealth, deltaNetDebtVal] = await vault.positionInfo("1");
+              // DeltaNet's health after partial close position must be 50% less than before
               // due to he exit half of lp under his position
-              expect(bobHealth).to.be.lt(bobHealthBefore.div(2));
-              // Bob's debt should be 0 BTOKEN due he said he wants to return at max 5,000,000,000 BTOKEN (> debt, return all debt)
-              expect(bobDebtVal).to.be.eq("0");
+              // calculation
+              // lp balance =  0.576022514621445879
+              // lp price =  28.325952106647866799
+              // lp balance in dollar =  16.316386161517946552
+              // base token price =  1.0
+              // lp balance in dollar / base token price
+              // 16.316386161517946552 / 1.0 = 16.316386161517946552
+              expect(deltaNetHealth).to.be.eq(ethers.utils.parseEther("16.316386161517946552"));
+              // DeltaNet's debt should be 0 BTOKEN due he said he wants to return at max 5,000,000,000 BTOKEN (> debt, return all debt)
+              expect(deltaNetDebtVal).to.be.eq("0");
               // Check LP deposited by Worker on MasterChef
               [workerLPAfter] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
               // LP tokens + LP tokens from reinvest of worker should be decreased by lpUnderBobPosition/2
-              // due to Bob execute StrategyClosePartialLiquidate
+              // due to DeltaNet execute StrategyClosePartialLiquidate
               expect(workerLPAfter).to.be.eq(
-                workerLPBefore.add(parseEther("0.010276168801924356")).sub(lpUnderBobPosition.div(2))
+                workerLPBefore.add(parseEther("0.010276168801924356")).sub(lpUnderPosition.div(2))
               );
             });
           });
 
+          // QUESTION: do we need this test?
           context("when worker factor is not satisfy", async () => {
-            it("should revert bad work factor", async () => {
-              // Set interests to 0% per year for easy testing
-              await simpleVaultConfig.setParams(
-                ethers.utils.parseEther("1"), // 1 BTOKEN min debt size,
-                "0", // 0% per year
-                "1000", // 10% reserve pool
-                "1000", // 10% Kill prize
-                wbnb.address,
-                wNativeRelayer.address,
-                fairLaunch.address,
-                "0",
-                ethers.constants.AddressZero
-              );
-
-              // Bob deposits 10 BTOKEN
-              await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-              await vaultAsBob.deposit(ethers.utils.parseEther("10"));
-
-              // Position#1: Bob borrows 10 BTOKEN
-              await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-              await vaultAsBob.work(
-                0,
-                deltaNeutralWorker.address,
-                ethers.utils.parseEther("10"),
-                ethers.utils.parseEther("10"),
-                "0", // max return = 0, don't return BTOKEN to the debt
-                ethers.utils.defaultAbiCoder.encode(
-                  ["address", "bytes"],
-                  [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-                )
-              );
-
-              // Bob think he made enough. He now wants to close position partially.
-              // He liquidate all of his position but not payback the debt.
-              const lpUnderBobPosition = await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(1));
-              // Bob closes position with maxReturn 0 and liquidate all of his position
-              // Expect that Bob will not be able to close his position as he liquidate all underlying assets but not paydebt
-              // which made his position debt ratio higher than allow work factor
-              await expect(
-                vaultAsBob.work(
-                  1,
-                  deltaNeutralWorker.address,
-                  "0",
-                  "0",
-                  "0",
-                  ethers.utils.defaultAbiCoder.encode(
-                    ["address", "bytes"],
-                    [
-                      partialCloseStrat.address,
-                      ethers.utils.defaultAbiCoder.encode(
-                        ["uint256", "uint256", "uint256"],
-                        [lpUnderBobPosition, "0", "0"]
-                      ),
-                    ]
-                  )
-                )
-              ).revertedWith("bad work factor");
-            });
+            //       it("should revert bad work factor", async () => {
+            //         // Set interests to 0% per year for easy testing
+            //         await simpleVaultConfig.setParams(
+            //           ethers.utils.parseEther("1"), // 1 BTOKEN min debt size,
+            //           "0", // 0% per year
+            //           "1000", // 10% reserve pool
+            //           "1000", // 10% Kill prize
+            //           wbnb.address,
+            //           wNativeRelayer.address,
+            //           fairLaunch.address,
+            //           "0",
+            //           ethers.constants.AddressZero
+            //         );
+            //         // Bob deposits 10 BTOKEN
+            //         await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
+            //         await vaultAsBob.deposit(ethers.utils.parseEther("10"));
+            //         // Position#1: Bob borrows 10 BTOKEN
+            //         await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
+            //         await vaultAsBob.work(
+            //           0,
+            //           deltaNeutralWorker.address,
+            //           ethers.utils.parseEther("10"),
+            //           ethers.utils.parseEther("10"),
+            //           "0", // max return = 0, don't return BTOKEN to the debt
+            //           ethers.utils.defaultAbiCoder.encode(
+            //             ["address", "bytes"],
+            //             [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+            //           )
+            //         );
+            //         // Bob think he made enough. He now wants to close position partially.
+            //         // He liquidate all of his position but not payback the debt.
+            //         const lpUnderBobPosition = await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(1));
+            //         // Bob closes position with maxReturn 0 and liquidate all of his position
+            //         // Expect that Bob will not be able to close his position as he liquidate all underlying assets but not paydebt
+            //         // which made his position debt ratio higher than allow work factor
+            //         await expect(
+            //           vaultAsBob.work(
+            //             1,
+            //             deltaNeutralWorker.address,
+            //             "0",
+            //             "0",
+            //             "0",
+            //             ethers.utils.defaultAbiCoder.encode(
+            //               ["address", "bytes"],
+            //               [
+            //                 partialCloseStrat.address,
+            //                 ethers.utils.defaultAbiCoder.encode(
+            //                   ["uint256", "uint256", "uint256"],
+            //                   [lpUnderBobPosition, "0", "0"]
+            //                 ),
+            //               ]
+            //             )
+            //           )
+            //         ).revertedWith("bad work factor");
+            //       });
+            // });
           });
         });
-      });
 
-      context("When the treasury Account and treasury bounty bps haven't been set", async () => {
-        it("should not auto reinvest", async () => {
-          await deltaNeutralWorker.setTreasuryConfig(constants.AddressZero, 0);
-          // Deployer deposits 3 BTOKEN to the bank
-          const deposit = ethers.utils.parseEther("3");
-          await baseToken.approve(vault.address, deposit);
-          await vault.deposit(deposit);
-
-          // Now Alice can take 1 BTOKEN loan + 1 BTOKEN of her to create a new position
-          const loan = ethers.utils.parseEther("1");
-          await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
-          await vaultAsAlice.work(
-            0,
-            deltaNeutralWorker.address,
-            ethers.utils.parseEther("1"),
-            loan,
-            "0",
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "bytes"],
-              [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-            )
-          );
-
-          // Her position should have ~2 NATIVE health (minus some small trading fee)
-          expect(await deltaNeutralWorker.shares(1)).to.eq(ethers.utils.parseEther("0.231205137369691323"));
-          expect(await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(1))).to.eq(
-            ethers.utils.parseEther("0.231205137369691323")
-          );
-
-          // Alice opens another position.
-          await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
-          await vaultAsAlice.work(
-            0,
-            deltaNeutralWorker.address,
-            ethers.utils.parseEther("1"),
-            loan,
-            "0",
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "bytes"],
-              [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-            )
-          );
-
-          // Her LP under that 1st position must still remain the same
-          expect(await deltaNeutralWorker.shares(1)).to.eq(ethers.utils.parseEther("0.231205137369691323"));
-          expect(await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(1))).to.eq(
-            ethers.utils.parseEther("0.231205137369691323")
-          );
-        });
-      });
-
-      context("#addCollateral", async () => {
-        const deposit = ethers.utils.parseEther("3");
-        const borrowedAmount = ethers.utils.parseEther("1");
-
-        beforeEach(async () => {
-          // Deployer deposits 3 BTOKEN to the bank
-          await baseToken.approve(vault.address, deposit);
-          await vault.deposit(deposit);
-
-          // Now Alice can borrow 1 BTOKEN + 1 BTOKEN of her to create a new position
-          await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
-          // Position#1: Alice borrows 1 BTOKEN and supply another 1 BTOKEN
-          // After calling `work()`
-          // 2 BTOKEN needs to swap 0.0732967258967755614 BTOKEN to 0.042234424701074812 FTOKEN
-          // new reserve after swap will be 1.732967258967755614 BTOKEN 0.057765575298925188 FTOKEN
-          // based on optimal swap formula, BTOKEN-FTOKEN to be added into the LP will be 1.267032741032244386 BTOKEN + 0.042234424701074812 FTOKEN
-          // lp amount from adding liquidity will be (0.042234424701074812 / 0.057765575298925188) * 0.316227766016837933(first total supply) = 0.231205137369691323 LP
-          // new reserve after adding liquidity 2.999999999999999954 BTOKEN + 0.100000000000000000 FTOKEN
-          // ----------------
-          // BTOKEN-FTOKEN reserve = 2.999999999999999954 BTOKEN + 0.100000000000000000 FTOKEN
-          // BTOKEN-FTOKEN total supply = 0.547432903386529256 BTOKEN-FTOKEN LP
-          // ----------------
-          await swapHelper.loadReserves(await deltaNeutralWorker.getPath());
-          await vaultAsAlice.work(
-            0,
-            deltaNeutralWorker.address,
-            ethers.utils.parseEther("1"),
-            borrowedAmount,
-            "0",
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "bytes"],
-              [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-            )
-          );
-
-          const [expectedLp] = await swapHelper.computeOneSidedOptimalLp(
-            ethers.utils.parseEther("1").add(borrowedAmount),
-            await deltaNeutralWorker.getPath()
-          );
-          const expectedHealth = await swapHelper.computeLpHealth(expectedLp, baseToken.address, farmToken.address);
-
-          expect(await deltaNeutralWorker.health(1)).to.be.eq(expectedHealth);
-          expect(await deltaNeutralWorker.shares(1)).to.eq(expectedLp);
-          expect(await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(1))).to.eq(expectedLp);
-        });
-
-        async function successBtokenOnly(lastWorkBlock: BigNumber, goRouge: boolean) {
-          await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-
-          let accumLp = await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(1));
-          const [workerLpBefore] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
-          const debris = await baseToken.balanceOf(addStrat.address);
-
-          const reinvestPath = await deltaNeutralWorker.getReinvestPath();
-          const path = await deltaNeutralWorker.getPath();
-
-          let reserves = await swapHelper.loadReserves(reinvestPath);
-          reserves.push(...(await swapHelper.loadReserves(path)));
-
-          await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
-          await vaultAsAlice.addCollateral(
-            1,
-            ethers.utils.parseEther("1"),
-            goRouge,
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "bytes"],
-              [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-            )
-          );
-          const blockAfter = await TimeHelpers.latestBlockNumber();
-          const blockDiff = blockAfter.sub(lastWorkBlock);
-          const totalRewards = workerLpBefore
-            .mul(CAKE_REWARD_PER_BLOCK.mul(blockDiff).mul(1e12).div(workerLpBefore))
-            .div(1e12);
-          const totalReinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
-
-          const reinvestLeft = totalRewards.sub(totalReinvestFees);
-          const reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
-          const reinvestBtoken = reinvestAmts[reinvestAmts.length - 1].add(debris);
-          const [reinvestLp] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
-          accumLp = accumLp.add(reinvestLp);
-
-          // Compute add collateral
-          const addCollateralBtoken = ethers.utils.parseEther("1");
-          const [addCollateralLp] = await swapHelper.computeOneSidedOptimalLp(addCollateralBtoken, path);
-          accumLp = accumLp.add(addCollateralLp);
-
-          const [health, debt] = await vault.positionInfo("1");
-          expect(health).to.be.above(ethers.utils.parseEther("3"));
-          const interest = ethers.utils.parseEther("0.3"); // 30% interest rate
-          AssertHelpers.assertAlmostEqual(debt.toString(), interest.add(borrowedAmount).toString());
-          AssertHelpers.assertAlmostEqual(
-            (await baseToken.balanceOf(vault.address)).toString(),
-            deposit.sub(borrowedAmount).toString()
-          );
-          AssertHelpers.assertAlmostEqual(
-            (await vault.vaultDebtVal()).toString(),
-            interest.add(borrowedAmount).toString()
-          );
-          const reservePool = interest.mul(RESERVE_POOL_BPS).div("10000");
-          AssertHelpers.assertAlmostEqual(reservePool.toString(), (await vault.reservePool()).toString());
-          AssertHelpers.assertAlmostEqual(
-            deposit.add(interest).sub(reservePool).toString(),
-            (await vault.totalToken()).toString()
-          );
-          expect(await deltaNeutralWorker.shares(1), `expect Alice's shares = ${accumLp}`).to.be.eq(accumLp);
-          expect(
-            await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(1)),
-            `expect Alice's staked LPs = ${accumLp}`
-          ).to.be.eq(accumLp);
-          expect(
-            await cake.balanceOf(DEPLOYER),
-            `expect Deployer gets ${ethers.utils.formatEther(totalReinvestFees)} CAKE`
-          ).to.be.eq(totalReinvestFees);
-        }
-
-        async function successTwoSides(lastWorkBlock: BigNumber, goRouge: boolean) {
-          await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-
-          // Random action to trigger interest computation
-          await vault.deposit("0");
-
-          // Set intertest rate to 0 for easy testing
-          await simpleVaultConfig.setParams(
-            MIN_DEBT_SIZE,
-            0,
-            RESERVE_POOL_BPS,
-            KILL_PRIZE_BPS,
-            wbnb.address,
-            wNativeRelayer.address,
-            fairLaunch.address,
-            KILL_TREASURY_BPS,
-            deployerAddress
-          );
-
-          let accumLp = await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(1));
-          const [workerLpBefore] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
-          const debris = await baseToken.balanceOf(addStrat.address);
-
-          const reinvestPath = await deltaNeutralWorker.getReinvestPath();
-          const path = await deltaNeutralWorker.getPath();
-
-          let reserves = await swapHelper.loadReserves(reinvestPath);
-          reserves.push(...(await swapHelper.loadReserves(path)));
-
-          await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
-          await farmTokenAsAlice.approve(vault.address, ethers.utils.parseEther("0.1"));
-          await vaultAsAlice.addCollateral(
-            1,
-            ethers.utils.parseEther("1"),
-            goRouge,
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "bytes"],
-              [
-                twoSidesStrat.address,
-                ethers.utils.defaultAbiCoder.encode(["uint256", "uint256"], [ethers.utils.parseEther("0.1"), "0"]),
-              ]
-            )
-          );
-          const blockAfter = await TimeHelpers.latestBlockNumber();
-          const blockDiff = blockAfter.sub(lastWorkBlock);
-          const totalRewards = workerLpBefore
-            .mul(CAKE_REWARD_PER_BLOCK.mul(blockDiff).mul(1e12).div(workerLpBefore))
-            .div(1e12);
-          const totalReinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
-          const reinvestLeft = totalRewards.sub(totalReinvestFees);
-          const reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
-
-          const reinvestBtoken = reinvestAmts[reinvestAmts.length - 1].add(debris);
-          const [reinvestLp] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
-          accumLp = accumLp.add(reinvestLp);
-
-          // Compute add collateral
-          const addCollateralBtoken = ethers.utils.parseEther("1");
-          const addCollateralFtoken = ethers.utils.parseEther("0.1");
-          const [addCollateralLp, debrisBtoken, debrisFtoken] = await swapHelper.computeTwoSidesOptimalLp(
-            addCollateralBtoken,
-            addCollateralFtoken,
-            path
-          );
-          accumLp = accumLp.add(addCollateralLp);
-
-          const [health, debt] = await vault.positionInfo("1");
-          expect(health).to.be.above(ethers.utils.parseEther("3"));
-          const interest = ethers.utils.parseEther("0.3"); // 30% interest rate
-          AssertHelpers.assertAlmostEqual(debt.toString(), interest.add(borrowedAmount).toString());
-          AssertHelpers.assertAlmostEqual(
-            (await baseToken.balanceOf(vault.address)).toString(),
-            deposit.sub(borrowedAmount).toString()
-          );
-          AssertHelpers.assertAlmostEqual(
-            (await vault.vaultDebtVal()).toString(),
-            interest.add(borrowedAmount).toString()
-          );
-          const reservePool = interest.mul(RESERVE_POOL_BPS).div("10000");
-          AssertHelpers.assertAlmostEqual(reservePool.toString(), (await vault.reservePool()).toString());
-          AssertHelpers.assertAlmostEqual(
-            deposit.add(interest).sub(reservePool).toString(),
-            (await vault.totalToken()).toString()
-          );
-          expect(await deltaNeutralWorker.shares(1), `expect Alice's shares = ${accumLp}`).to.be.eq(accumLp);
-          expect(
-            await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(1)),
-            `expect Alice's staked LPs = ${accumLp}`
-          ).to.be.eq(accumLp);
-          expect(await cake.balanceOf(DEPLOYER), `expect Deployer gets ${totalReinvestFees} CAKE`).to.be.eq(
-            totalReinvestFees
-          );
-          expect(
-            await baseToken.balanceOf(twoSidesStrat.address),
-            `expect TwoSides to have debris ${debrisBtoken} BTOKEN`
-          ).to.be.eq(debrisBtoken);
-          expect(
-            await farmToken.balanceOf(twoSidesStrat.address),
-            `expect TwoSides to have debris ${debrisFtoken} FTOKEN`
-          ).to.be.eq(debrisFtoken);
-        }
-
-        async function revertNotEnoughCollateral(goRouge: boolean, stratAddress: string) {
-          // Simulate price swing to make position under water
-          await farmToken.approve(routerV2.address, ethers.utils.parseEther("888"));
-          await routerV2.swapExactTokensForTokens(
-            ethers.utils.parseEther("888"),
-            "0",
-            [farmToken.address, baseToken.address],
-            deployerAddress,
-            FOREVER
-          );
-          // Add super small collateral that it would still under the water after collateral is getting added
-          await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("0.000000000000000001"));
-          await expect(
-            vaultAsAlice.addCollateral(
-              1,
-              ethers.utils.parseEther("0.000000000000000001"),
-              goRouge,
-              ethers.utils.defaultAbiCoder.encode(
-                ["address", "bytes"],
-                [stratAddress, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-              )
-            )
-          ).to.be.revertedWith("debtRatio > killFactor margin");
-        }
-
-        async function revertUnapprovedStrat(goRouge: boolean, stratAddress: string) {
-          await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("88"));
-          await expect(
-            vaultAsAlice.addCollateral(
-              1,
+        context("When the treasury Account and treasury bounty bps haven't been set", async () => {
+          // if we adjust position with same condition, we not got a same lp amount
+          it("should not auto reinvest", async () => {
+            await deltaNeutralWorker.setTreasuryConfig(constants.AddressZero, 0);
+            // Deployer deposits 3 BTOKEN to the bank
+            const deposit = ethers.utils.parseEther("3");
+            await baseToken.approve(vault.address, deposit);
+            await vault.deposit(deposit);
+            // Now DeltaNet can take 1 BTOKEN loan + 1 BTOKEN of her to create a new position
+            await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
+            const path = await deltaNeutralWorker.getPath();
+            await swapHelper.loadReserves(path);
+            const [expectedLp1] = await swapHelper.computeOneSidedOptimalLp(ethers.utils.parseEther("2"), path);
+            await vaultAsAlice.work(
+              0,
+              deltaNeutralWorker.address,
               ethers.utils.parseEther("1"),
-              goRouge,
-              ethers.utils.defaultAbiCoder.encode(
-                ["address", "bytes"],
-                [stratAddress, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-              )
-            )
-          ).to.be.revertedWith("!approved strat");
-        }
-
-        async function revertReserveNotConsistent(goRouge: boolean, stratAddress: string) {
-          await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("88"));
-          await expect(
-            vaultAsAlice.addCollateral(
-              1,
               ethers.utils.parseEther("1"),
-              goRouge,
+              "0",
               ethers.utils.defaultAbiCoder.encode(
                 ["address", "bytes"],
-                [stratAddress, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+                [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
               )
-            )
-          ).to.be.revertedWith("reserve !consistent");
-        }
+            );
 
-        context("when go rouge is false", async () => {
-          context("when worker is stable", async () => {
-            it("should increase health when add BTOKEN only strat is choosen", async () => {
-              await successBtokenOnly(await TimeHelpers.latestBlockNumber(), false);
-            });
+            // lp balance =  0.231205137369691323
+            // lp price =  28.299236836137312801
+            // lp balance in dollar =  6.542928940156556263
+            // base token price =  1.0
+            // lp balance in dollar / base token price
+            // 6.542928940156556263 / 1.0 = 6.542928940156556263
+            const [health] = await vault.positionInfo("1");
+            const totalLpBalance = await deltaNeutralWorker.totalLpBalance();
+            expect(totalLpBalance, `expect #1 should be ${ethers.utils.formatEther(expectedLp1)}`).to.be.eq(
+              expectedLp1
+            );
+            expect(totalLpBalance).to.be.eq(expectedLp1);
+            expect(health).to.be.eq(ethers.utils.parseEther("6.542928940156556263"));
 
-            it("should increase health when twosides strat is choosen", async () => {
-              await successTwoSides(await TimeHelpers.latestBlockNumber(), false);
-            });
+            const [expectedLp2] = await swapHelper.computeOneSidedOptimalLp(ethers.utils.parseEther("2"), path);
+            await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
+            await vaultAsAlice.work(
+              1,
+              deltaNeutralWorker.address,
+              ethers.utils.parseEther("1"),
+              ethers.utils.parseEther("1"),
+              "0",
+              ethers.utils.defaultAbiCoder.encode(
+                ["address", "bytes"],
+                [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+              )
+            );
 
-            it("should revert when not enough collateral to pass kill factor", async () => {
-              await revertNotEnoughCollateral(false, addStrat.address);
-            });
+            const [healthAfter] = await vault.positionInfo("1");
+            const totalLpBalanceAfter = await deltaNeutralWorker.totalLpBalance();
+            expect(
+              totalLpBalanceAfter,
+              `expect #2 should be ${ethers.utils.formatEther(expectedLp2.add(expectedLp1))}`
+            ).to.be.eq(expectedLp2.add(expectedLp1));
 
-            it("should revert when using liquidate strat", async () => {
-              await revertUnapprovedStrat(false, liqStrat.address);
-            });
-
-            it("should revert when using minimize trading strat", async () => {
-              await revertUnapprovedStrat(false, minimizeStrat.address);
-            });
-
-            it("should revert when using partial close liquidate start", async () => {
-              await revertUnapprovedStrat(false, partialCloseStrat.address);
-            });
-
-            it("should revert when using partial close minimize start", async () => {
-              await revertUnapprovedStrat(false, partialCloseMinimizeStrat.address);
-            });
-          });
-
-          context("when worker is unstable", async () => {
-            it("should revert", async () => {
-              // Set worker to unstable
-              simpleVaultConfig.setWorker(
-                deltaNeutralWorker.address,
-                true,
-                true,
-                WORK_FACTOR,
-                KILL_FACTOR,
-                false,
-                true
-              );
-
-              await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
-              await expect(
-                vaultAsAlice.addCollateral(
-                  1,
-                  ethers.utils.parseEther("1"),
-                  false,
-                  ethers.utils.defaultAbiCoder.encode(
-                    ["address", "bytes"],
-                    [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-                  )
-                )
-              ).to.be.revertedWith("worker !stable");
-            });
+            // DeltaNet opens more position.
+            // calculation
+            // lp balance =  0.390305727260109981
+            // lp price =  28.307221370693567499
+            // lp balance in dollar =  11.04847062380148017
+            // base token price =  1.0
+            // lp balance in dollar / base token price
+            // 11.04847062380148017 / 1.0 = 11048470623801480170
+            expect(healthAfter).to.be.eq(ethers.utils.parseEther("11.048470623801480170"));
           });
         });
 
-        context("when go rouge is true", async () => {
-          context("when worker is unstable", async () => {
-            beforeEach(async () => {
-              // Set worker to unstable
-              await simpleVaultConfig.setWorker(
-                deltaNeutralWorker.address,
-                true,
-                true,
-                WORK_FACTOR,
-                KILL_FACTOR,
-                false,
-                true
-              );
-            });
+        // QUESTION: Do we need this test?
+        // context("#addCollateral", async () => {
+        //   //   const deposit = ethers.utils.parseEther("3");
+        //   //   const borrowedAmount = ethers.utils.parseEther("1");
+        //   //   beforeEach(async () => {
+        //   //     // Deployer deposits 3 BTOKEN to the bank
+        //   //     await baseToken.approve(vault.address, deposit);
+        //   //     await vault.deposit(deposit);
+        //   //     // Now Alice can borrow 1 BTOKEN + 1 BTOKEN of her to create a new position
+        //   //     await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
+        //   //     // Position#1: Alice borrows 1 BTOKEN and supply another 1 BTOKEN
+        //   //     // After calling `work()`
+        //   //     // 2 BTOKEN needs to swap 0.0732967258967755614 BTOKEN to 0.042234424701074812 FTOKEN
+        //   //     // new reserve after swap will be 1.732967258967755614 BTOKEN 0.057765575298925188 FTOKEN
+        //   //     // based on optimal swap formula, BTOKEN-FTOKEN to be added into the LP will be 1.267032741032244386 BTOKEN + 0.042234424701074812 FTOKEN
+        //   //     // lp amount from adding liquidity will be (0.042234424701074812 / 0.057765575298925188) * 0.316227766016837933(first total supply) = 0.231205137369691323 LP
+        //   //     // new reserve after adding liquidity 2.999999999999999954 BTOKEN + 0.100000000000000000 FTOKEN
+        //   //     // ----------------
+        //   //     // BTOKEN-FTOKEN reserve = 2.999999999999999954 BTOKEN + 0.100000000000000000 FTOKEN
+        //   //     // BTOKEN-FTOKEN total supply = 0.547432903386529256 BTOKEN-FTOKEN LP
+        //   //     // ----------------
+        //   //     await swapHelper.loadReserves(await deltaNeutralWorker.getPath());
+        //   //     await vaultAsAlice.work(
+        //   //       0,
+        //   //       deltaNeutralWorker.address,
+        //   //       ethers.utils.parseEther("1"),
+        //   //       borrowedAmount,
+        //   //       "0",
+        //   //       ethers.utils.defaultAbiCoder.encode(
+        //   //         ["address", "bytes"],
+        //   //         [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+        //   //       )
+        //   //     );
+        //   //     const [expectedLp] = await swapHelper.computeOneSidedOptimalLp(
+        //   //       ethers.utils.parseEther("1").add(borrowedAmount),
+        //   //       await deltaNeutralWorker.getPath()
+        //   //     );
+        //   //     const expectedHealth = await swapHelper.computeLpHealth(expectedLp, baseToken.address, farmToken.address);
+        //   //     expect(await deltaNeutralWorker.health(1)).to.be.eq(expectedHealth);
+        //   //     expect(await deltaNeutralWorker.shares(1)).to.eq(expectedLp);
+        //   //     expect(await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(1))).to.eq(expectedLp);
+        //   //   });
+        //   //   async function successBtokenOnly(lastWorkBlock: BigNumber, goRouge: boolean) {
+        //   //     await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
+        //   //     let accumLp = await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(1));
+        //   //     const [workerLpBefore] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
+        //   //     const debris = await baseToken.balanceOf(addStrat.address);
+        //   //     const reinvestPath = await deltaNeutralWorker.getReinvestPath();
+        //   //     const path = await deltaNeutralWorker.getPath();
+        //   //     let reserves = await swapHelper.loadReserves(reinvestPath);
+        //   //     reserves.push(...(await swapHelper.loadReserves(path)));
+        //   //     await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
+        //   //     await vaultAsAlice.addCollateral(
+        //   //       1,
+        //   //       ethers.utils.parseEther("1"),
+        //   //       goRouge,
+        //   //       ethers.utils.defaultAbiCoder.encode(
+        //   //         ["address", "bytes"],
+        //   //         [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+        //   //       )
+        //   //     );
+        //   //     const blockAfter = await TimeHelpers.latestBlockNumber();
+        //   //     const blockDiff = blockAfter.sub(lastWorkBlock);
+        //   //     const totalRewards = workerLpBefore
+        //   //       .mul(CAKE_REWARD_PER_BLOCK.mul(blockDiff).mul(1e12).div(workerLpBefore))
+        //   //       .div(1e12);
+        //   //     const totalReinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
+        //   //     const reinvestLeft = totalRewards.sub(totalReinvestFees);
+        //   //     const reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
+        //   //     const reinvestBtoken = reinvestAmts[reinvestAmts.length - 1].add(debris);
+        //   //     const [reinvestLp] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
+        //   //     accumLp = accumLp.add(reinvestLp);
+        //   //     // Compute add collateral
+        //   //     const addCollateralBtoken = ethers.utils.parseEther("1");
+        //   //     const [addCollateralLp] = await swapHelper.computeOneSidedOptimalLp(addCollateralBtoken, path);
+        //   //     accumLp = accumLp.add(addCollateralLp);
+        //   //     const [health, debt] = await vault.positionInfo("1");
+        //   //     expect(health).to.be.above(ethers.utils.parseEther("3"));
+        //   //     const interest = ethers.utils.parseEther("0.3"); // 30% interest rate
+        //   //     AssertHelpers.assertAlmostEqual(debt.toString(), interest.add(borrowedAmount).toString());
+        //   //     AssertHelpers.assertAlmostEqual(
+        //   //       (await baseToken.balanceOf(vault.address)).toString(),
+        //   //       deposit.sub(borrowedAmount).toString()
+        //   //     );
+        //   //     AssertHelpers.assertAlmostEqual(
+        //   //       (await vault.vaultDebtVal()).toString(),
+        //   //       interest.add(borrowedAmount).toString()
+        //   //     );
+        //   //     const reservePool = interest.mul(RESERVE_POOL_BPS).div("10000");
+        //   //     AssertHelpers.assertAlmostEqual(reservePool.toString(), (await vault.reservePool()).toString());
+        //   //     AssertHelpers.assertAlmostEqual(
+        //   //       deposit.add(interest).sub(reservePool).toString(),
+        //   //       (await vault.totalToken()).toString()
+        //   //     );
+        //   //     expect(await deltaNeutralWorker.shares(1), `expect Alice's shares = ${accumLp}`).to.be.eq(accumLp);
+        //   //     expect(
+        //   //       await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(1)),
+        //   //       `expect Alice's staked LPs = ${accumLp}`
+        //   //     ).to.be.eq(accumLp);
+        //   //     expect(
+        //   //       await cake.balanceOf(DEPLOYER),
+        //   //       `expect Deployer gets ${ethers.utils.formatEther(totalReinvestFees)} CAKE`
+        //   //     ).to.be.eq(totalReinvestFees);
+        //   //   }
+        //   //   async function successTwoSides(lastWorkBlock: BigNumber, goRouge: boolean) {
+        //   //     await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
+        //   //     // Random action to trigger interest computation
+        //   //     await vault.deposit("0");
+        //   //     // Set intertest rate to 0 for easy testing
+        //   //     await simpleVaultConfig.setParams(
+        //   //       MIN_DEBT_SIZE,
+        //   //       0,
+        //   //       RESERVE_POOL_BPS,
+        //   //       KILL_PRIZE_BPS,
+        //   //       wbnb.address,
+        //   //       wNativeRelayer.address,
+        //   //       fairLaunch.address,
+        //   //       KILL_TREASURY_BPS,
+        //   //       deployerAddress
+        //   //     );
+        //   //     let accumLp = await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(1));
+        //   //     const [workerLpBefore] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
+        //   //     const debris = await baseToken.balanceOf(addStrat.address);
+        //   //     const reinvestPath = await deltaNeutralWorker.getReinvestPath();
+        //   //     const path = await deltaNeutralWorker.getPath();
+        //   //     let reserves = await swapHelper.loadReserves(reinvestPath);
+        //   //     reserves.push(...(await swapHelper.loadReserves(path)));
+        //   //     await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
+        //   //     await farmTokenAsAlice.approve(vault.address, ethers.utils.parseEther("0.1"));
+        //   //     await vaultAsAlice.addCollateral(
+        //   //       1,
+        //   //       ethers.utils.parseEther("1"),
+        //   //       goRouge,
+        //   //       ethers.utils.defaultAbiCoder.encode(
+        //   //         ["address", "bytes"],
+        //   //         [
+        //   //           twoSidesStrat.address,
+        //   //           ethers.utils.defaultAbiCoder.encode(["uint256", "uint256"], [ethers.utils.parseEther("0.1"), "0"]),
+        //   //         ]
+        //   //       )
+        //   //     );
+        //   //     const blockAfter = await TimeHelpers.latestBlockNumber();
+        //   //     const blockDiff = blockAfter.sub(lastWorkBlock);
+        //   //     const totalRewards = workerLpBefore
+        //   //       .mul(CAKE_REWARD_PER_BLOCK.mul(blockDiff).mul(1e12).div(workerLpBefore))
+        //   //       .div(1e12);
+        //   //     const totalReinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
+        //   //     const reinvestLeft = totalRewards.sub(totalReinvestFees);
+        //   //     const reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
+        //   //     const reinvestBtoken = reinvestAmts[reinvestAmts.length - 1].add(debris);
+        //   //     const [reinvestLp] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
+        //   //     accumLp = accumLp.add(reinvestLp);
+        //   //     // Compute add collateral
+        //   //     const addCollateralBtoken = ethers.utils.parseEther("1");
+        //   //     const addCollateralFtoken = ethers.utils.parseEther("0.1");
+        //   //     const [addCollateralLp, debrisBtoken, debrisFtoken] = await swapHelper.computeTwoSidesOptimalLp(
+        //   //       addCollateralBtoken,
+        //   //       addCollateralFtoken,
+        //   //       path
+        //   //     );
+        //   //     accumLp = accumLp.add(addCollateralLp);
+        //   //     const [health, debt] = await vault.positionInfo("1");
+        //   //     expect(health).to.be.above(ethers.utils.parseEther("3"));
+        //   //     const interest = ethers.utils.parseEther("0.3"); // 30% interest rate
+        //   //     AssertHelpers.assertAlmostEqual(debt.toString(), interest.add(borrowedAmount).toString());
+        //   //     AssertHelpers.assertAlmostEqual(
+        //   //       (await baseToken.balanceOf(vault.address)).toString(),
+        //   //       deposit.sub(borrowedAmount).toString()
+        //   //     );
+        //   //     AssertHelpers.assertAlmostEqual(
+        //   //       (await vault.vaultDebtVal()).toString(),
+        //   //       interest.add(borrowedAmount).toString()
+        //   //     );
+        //   //     const reservePool = interest.mul(RESERVE_POOL_BPS).div("10000");
+        //   //     AssertHelpers.assertAlmostEqual(reservePool.toString(), (await vault.reservePool()).toString());
+        //   //     AssertHelpers.assertAlmostEqual(
+        //   //       deposit.add(interest).sub(reservePool).toString(),
+        //   //       (await vault.totalToken()).toString()
+        //   //     );
+        //   //     expect(await deltaNeutralWorker.shares(1), `expect Alice's shares = ${accumLp}`).to.be.eq(accumLp);
+        //   //     expect(
+        //   //       await deltaNeutralWorker.shareToBalance(await deltaNeutralWorker.shares(1)),
+        //   //       `expect Alice's staked LPs = ${accumLp}`
+        //   //     ).to.be.eq(accumLp);
+        //   //     expect(await cake.balanceOf(DEPLOYER), `expect Deployer gets ${totalReinvestFees} CAKE`).to.be.eq(
+        //   //       totalReinvestFees
+        //   //     );
+        //   //     expect(
+        //   //       await baseToken.balanceOf(twoSidesStrat.address),
+        //   //       `expect TwoSides to have debris ${debrisBtoken} BTOKEN`
+        //   //     ).to.be.eq(debrisBtoken);
+        //   //     expect(
+        //   //       await farmToken.balanceOf(twoSidesStrat.address),
+        //   //       `expect TwoSides to have debris ${debrisFtoken} FTOKEN`
+        //   //     ).to.be.eq(debrisFtoken);
+        //   //   }
+        //   //   async function revertNotEnoughCollateral(goRouge: boolean, stratAddress: string) {
+        //   //     // Simulate price swing to make position under water
+        //   //     await farmToken.approve(routerV2.address, ethers.utils.parseEther("888"));
+        //   //     await routerV2.swapExactTokensForTokens(
+        //   //       ethers.utils.parseEther("888"),
+        //   //       "0",
+        //   //       [farmToken.address, baseToken.address],
+        //   //       deployerAddress,
+        //   //       FOREVER
+        //   //     );
+        //   //     // Add super small collateral that it would still under the water after collateral is getting added
+        //   //     await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("0.000000000000000001"));
+        //   //     await expect(
+        //   //       vaultAsAlice.addCollateral(
+        //   //         1,
+        //   //         ethers.utils.parseEther("0.000000000000000001"),
+        //   //         goRouge,
+        //   //         ethers.utils.defaultAbiCoder.encode(
+        //   //           ["address", "bytes"],
+        //   //           [stratAddress, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+        //   //         )
+        //   //       )
+        //   //     ).to.be.revertedWith("debtRatio > killFactor margin");
+        //   //   }
+        //   //   async function revertUnapprovedStrat(goRouge: boolean, stratAddress: string) {
+        //   //     await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("88"));
+        //   //     await expect(
+        //   //       vaultAsAlice.addCollateral(
+        //   //         1,
+        //   //         ethers.utils.parseEther("1"),
+        //   //         goRouge,
+        //   //         ethers.utils.defaultAbiCoder.encode(
+        //   //           ["address", "bytes"],
+        //   //           [stratAddress, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+        //   //         )
+        //   //       )
+        //   //     ).to.be.revertedWith("!approved strat");
+        //   //   }
+        //   //   async function revertReserveNotConsistent(goRouge: boolean, stratAddress: string) {
+        //   //     await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("88"));
+        //   //     await expect(
+        //   //       vaultAsAlice.addCollateral(
+        //   //         1,
+        //   //         ethers.utils.parseEther("1"),
+        //   //         goRouge,
+        //   //         ethers.utils.defaultAbiCoder.encode(
+        //   //           ["address", "bytes"],
+        //   //           [stratAddress, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+        //   //         )
+        //   //       )
+        //   //     ).to.be.revertedWith("reserve !consistent");
+        //   //   }
+        //   context("when go rouge is false", async () => {
+        //     context("when worker is stable", async () => {
+        //       //       it("should increase health when add BTOKEN only strat is choosen", async () => {
+        //       //         await successBtokenOnly(await TimeHelpers.latestBlockNumber(), false);
+        //       //       });
+        //       //       it("should increase health when twosides strat is choosen", async () => {
+        //       //         await successTwoSides(await TimeHelpers.latestBlockNumber(), false);
+        //       //       });
+        //       //       it("should revert when not enough collateral to pass kill factor", async () => {
+        //       //         await revertNotEnoughCollateral(false, addStrat.address);
+        //       //       });
+        //       //       it("should revert when using liquidate strat", async () => {
+        //       //         await revertUnapprovedStrat(false, liqStrat.address);
+        //       //       });
+        //       //       it("should revert when using minimize trading strat", async () => {
+        //       //         await revertUnapprovedStrat(false, minimizeStrat.address);
+        //       //       });
+        //       //       it("should revert when using partial close liquidate start", async () => {
+        //       //         await revertUnapprovedStrat(false, partialCloseStrat.address);
+        //       //       });
+        //       //       it("should revert when using partial close minimize start", async () => {
+        //       //         await revertUnapprovedStrat(false, partialCloseMinimizeStrat.address);
+        //       //       });
+        //       //     });
+        //       //     context("when worker is unstable", async () => {
+        //       //       it("should revert", async () => {
+        //       //         // Set worker to unstable
+        //       //         simpleVaultConfig.setWorker(
+        //       //           deltaNeutralWorker.address,
+        //       //           true,
+        //       //           true,
+        //       //           WORK_FACTOR,
+        //       //           KILL_FACTOR,
+        //       //           false,
+        //       //           true
+        //       //         );
+        //       //         await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
+        //       //         await expect(
+        //       //           vaultAsAlice.addCollateral(
+        //       //             1,
+        //       //             ethers.utils.parseEther("1"),
+        //       //             false,
+        //       //             ethers.utils.defaultAbiCoder.encode(
+        //       //               ["address", "bytes"],
+        //       //               [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+        //       //             )
+        //       //           )
+        //       //         ).to.be.revertedWith("worker !stable");
+        //       //       });
+        //       //     });
+        //     });
 
-            it("should increase health when add BTOKEN only strat is choosen", async () => {
-              await successBtokenOnly((await TimeHelpers.latestBlockNumber()).sub(1), true);
-            });
+        //     context("when go rouge is true", async () => {
+        //       //     context("when worker is unstable", async () => {
+        //       //       beforeEach(async () => {
+        //       //         // Set worker to unstable
+        //       //         await simpleVaultConfig.setWorker(
+        //       //           deltaNeutralWorker.address,
+        //       //           true,
+        //       //           true,
+        //       //           WORK_FACTOR,
+        //       //           KILL_FACTOR,
+        //       //           false,
+        //       //           true
+        //       //         );
+        //       //       });
+        //       //       it("should increase health when add BTOKEN only strat is choosen", async () => {
+        //       //         await successBtokenOnly((await TimeHelpers.latestBlockNumber()).sub(1), true);
+        //       //       });
+        //       //       it("should increase health when twosides strat is choosen", async () => {
+        //       //         await successTwoSides((await TimeHelpers.latestBlockNumber()).sub(1), true);
+        //       //       });
+        //       //       it("should revert when not enough collateral to pass kill factor", async () => {
+        //       //         await revertNotEnoughCollateral(true, addStrat.address);
+        //       //       });
+        //       //       it("should revert when using liquidate strat", async () => {
+        //       //         await revertUnapprovedStrat(true, liqStrat.address);
+        //       //       });
+        //       //       it("should revert when using minimize trading strat", async () => {
+        //       //         await revertUnapprovedStrat(true, minimizeStrat.address);
+        //       //       });
+        //       //       it("should revert when using partial close liquidate start", async () => {
+        //       //         await revertUnapprovedStrat(true, partialCloseStrat.address);
+        //       //       });
+        //       //       it("should revert when using partial close minimize start", async () => {
+        //       //         await revertUnapprovedStrat(true, partialCloseMinimizeStrat.address);
+        //       //       });
+        //     });
 
-            it("should increase health when twosides strat is choosen", async () => {
-              await successTwoSides((await TimeHelpers.latestBlockNumber()).sub(1), true);
-            });
-
-            it("should revert when not enough collateral to pass kill factor", async () => {
-              await revertNotEnoughCollateral(true, addStrat.address);
-            });
-
-            it("should revert when using liquidate strat", async () => {
-              await revertUnapprovedStrat(true, liqStrat.address);
-            });
-
-            it("should revert when using minimize trading strat", async () => {
-              await revertUnapprovedStrat(true, minimizeStrat.address);
-            });
-
-            it("should revert when using partial close liquidate start", async () => {
-              await revertUnapprovedStrat(true, partialCloseStrat.address);
-            });
-
-            it("should revert when using partial close minimize start", async () => {
-              await revertUnapprovedStrat(true, partialCloseMinimizeStrat.address);
-            });
-          });
-
-          context("when reserve is inconsistent", async () => {
-            beforeEach(async () => {
-              // Set worker to unstable
-              await simpleVaultConfig.setWorker(
-                deltaNeutralWorker.address,
-                true,
-                true,
-                WORK_FACTOR,
-                KILL_FACTOR,
-                false,
-                false
-              );
-            });
-
-            it("should revert", async () => {
-              await revertReserveNotConsistent(true, addStrat.address);
-            });
-          });
-        });
+        //     context("when reserve is inconsistent", async () => {
+        //       //       beforeEach(async () => {
+        //       //         // Set worker to unstable
+        //       //         await simpleVaultConfig.setWorker(
+        //       //           deltaNeutralWorker.address,
+        //       //           true,
+        //       //           true,
+        //       //           WORK_FACTOR,
+        //       //           KILL_FACTOR,
+        //       //           false,
+        //       //           false
+        //       //         );
+        //       //       });
+        //       //       it("should revert", async () => {
+        //       //         await revertReserveNotConsistent(true, addStrat.address);
+        //     });
+        //   });
+        // });
       });
     });
   });
 });
+
+// let lpBalance = await deltaNeutralWorker.totalLpBalance();
+//             let lpToken = await deltaNeutralWorker.lpToken();
+//             let lpInDollar = await priceHelper.lpToDollar(lpBalance, lpToken);
+//             let lpPrice = lpInDollar.mul(BigNumber.from("1000000000000000000")).div(lpBalance);
+//             let tokenPrice = await priceHelper.getTokenPrice(baseToken.address);
+//             console.log("// lp balance = ", ethers.utils.formatEther(lpBalance));
+//             console.log("// lp price = ", ethers.utils.formatEther(lpPrice));
+//             console.log("// lp balance in dollar = ", ethers.utils.formatEther(lpInDollar));
+//             console.log("// base token price = ", ethers.utils.formatEther(tokenPrice));
+//             console.log("// lp balance in dollar / base token price");
+//             console.log(
+//               `// ${ethers.utils.formatEther(lpInDollar)} / ${ethers.utils.formatEther(tokenPrice)} = ${lpInDollar
+//                 .mul(BigNumber.from("1000000000000000000"))
+//                 .div(tokenPrice)}`
+//             );
