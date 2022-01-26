@@ -1,4 +1,4 @@
-pragma solidity >=0.5.0;
+pragma solidity 0.8.10;
 
 interface IPancakeRouter02 {
   function factory() external pure returns (address);
@@ -148,15 +148,9 @@ interface IPancakeRouter02 {
     uint256 reserveOut
   ) external pure returns (uint256 amountIn);
 
-  function getAmountsOut(uint256 amountIn, address[] calldata path)
-    external
-    view
-    returns (uint256[] memory amounts);
+  function getAmountsOut(uint256 amountIn, address[] calldata path) external view returns (uint256[] memory amounts);
 
-  function getAmountsIn(uint256 amountOut, address[] calldata path)
-    external
-    view
-    returns (uint256[] memory amounts);
+  function getAmountsIn(uint256 amountOut, address[] calldata path) external view returns (uint256[] memory amounts);
 
   function removeLiquidityETHSupportingFeeOnTransferTokens(
     address token,
