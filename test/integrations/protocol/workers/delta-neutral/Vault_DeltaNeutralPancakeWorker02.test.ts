@@ -138,6 +138,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
   let pancakeMasterChefAsAlice: PancakeMasterChef;
   let pancakeMasterChefAsBob: PancakeMasterChef;
 
+  let deltaNeutralWorkerAsDeployer: DeltaNeutralPancakeWorker02;
   let deltaNeutralWorkerAsEve: DeltaNeutralPancakeWorker02;
 
   let chainLinkOracleAsDeployer: ChainLinkPriceOracle;
@@ -333,6 +334,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
     vaultAsEve = Vault__factory.connect(vault.address, eve);
     vaultAsDeltaNet = Vault__factory.connect(vault.address, deltaNet);
 
+    deltaNeutralWorkerAsDeployer = DeltaNeutralPancakeWorker02__factory.connect(deltaNeutralWorker.address, deployer);
     deltaNeutralWorkerAsEve = DeltaNeutralPancakeWorker02__factory.connect(deltaNeutralWorker.address, eve);
   }
 
@@ -445,6 +447,30 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
           "SetWhitelistedCallers"
         );
         expect(await deltaNeutralWorker.whitelistCallers(deployerAddress)).to.be.eq(true);
+      });
+    });
+
+    context("#setRewardPath", async () => {
+      beforeEach(async () => {
+        const rewardPath = [cake.address, wbnb.address, baseToken.address];
+        // set beneficialVaultConfig
+        await deltaNeutralWorkerAsDeployer.setBeneficialVaultConfig(
+          BENEFICIALVAULT_BOUNTY_BPS,
+          vault.address,
+          rewardPath
+        );
+      });
+
+      it("should revert", async () => {
+        const rewardPath = [cake.address, farmToken.address, farmToken.address];
+        await expect(deltaNeutralWorkerAsDeployer.setRewardPath(rewardPath)).to.revertedWith("InvalidReinvestPath()");
+      });
+
+      it("should be able to set new rewardpath", async () => {
+        const rewardPath = [cake.address, farmToken.address, baseToken.address];
+        await expect(deltaNeutralWorkerAsDeployer.setRewardPath(rewardPath))
+          .to.emit(deltaNeutralWorker, "SetRewardPath")
+          .withArgs(deployerAddress, rewardPath);
       });
     });
   });
@@ -2293,19 +2319,3 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
     });
   });
 });
-
-// let lpBalance = await deltaNeutralWorker.totalLpBalance();
-//             let lpToken = await deltaNeutralWorker.lpToken();
-//             let lpInDollar = await priceHelper.lpToDollar(lpBalance, lpToken);
-//             let lpPrice = lpInDollar.mul(BigNumber.from("1000000000000000000")).div(lpBalance);
-//             let tokenPrice = await priceHelper.getTokenPrice(baseToken.address);
-//             console.log("// lp balance = ", ethers.utils.formatEther(lpBalance));
-//             console.log("// lp price = ", ethers.utils.formatEther(lpPrice));
-//             console.log("// lp balance in dollar = ", ethers.utils.formatEther(lpInDollar));
-//             console.log("// base token price = ", ethers.utils.formatEther(tokenPrice));
-//             console.log("// lp balance in dollar / base token price");
-//             console.log(
-//               `// ${ethers.utils.formatEther(lpInDollar)} / ${ethers.utils.formatEther(tokenPrice)} = ${lpInDollar
-//                 .mul(BigNumber.from("1000000000000000000"))
-//                 .div(tokenPrice)}`
-//             );

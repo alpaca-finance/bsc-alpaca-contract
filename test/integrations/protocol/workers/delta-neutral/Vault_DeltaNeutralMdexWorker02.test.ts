@@ -479,6 +479,30 @@ describe("Vault - DeltaNetMdexWorker02", () => {
         expect(newPriceHelperAddress).to.be.eq(newPriceHelper.address);
       });
     });
+
+    context("#setRewardPath", async () => {
+      beforeEach(async () => {
+        const rewardPath = [mdx.address, wbnb.address, baseToken.address];
+        // set beneficialVaultConfig
+        await deltaNeutralWorkerAsDeployer.setBeneficialVaultConfig(
+          BENEFICIALVAULT_BOUNTY_BPS,
+          vault.address,
+          rewardPath
+        );
+      });
+
+      it("should revert", async () => {
+        const rewardPath = [mdx.address, farmToken.address, farmToken.address];
+        await expect(deltaNeutralWorkerAsDeployer.setRewardPath(rewardPath)).to.revertedWith("InvalidReinvestPath()");
+      });
+
+      it("should be able to set new rewardpath", async () => {
+        const rewardPath = [mdx.address, farmToken.address, baseToken.address];
+        await expect(deltaNeutralWorkerAsDeployer.setRewardPath(rewardPath))
+          .to.emit(deltaNeutralWorker, "SetRewardPath")
+          .withArgs(deployerAddress, rewardPath);
+      });
+    });
   });
 
   context("when user uses LYF", async () => {
@@ -2250,30 +2274,6 @@ describe("Vault - DeltaNetMdexWorker02", () => {
         //     });
         //   });
         // });
-        context("#setRewardPath", async () => {
-          beforeEach(async () => {
-            const rewardPath = [mdx.address, wbnb.address, baseToken.address];
-            // set beneficialVaultConfig
-            await deltaNeutralWorkerAsDeployer.setBeneficialVaultConfig(
-              BENEFICIALVAULT_BOUNTY_BPS,
-              vault.address,
-              rewardPath
-            );
-          });
-          it("should revert", async () => {
-            const rewardPath = [mdx.address, farmToken.address, farmToken.address];
-            await expect(deltaNeutralWorkerAsDeployer.setRewardPath(rewardPath)).to.revertedWith(
-              "InvalidReinvestPath()"
-            );
-          });
-
-          it("should be able to set new rewardpath", async () => {
-            const rewardPath = [mdx.address, farmToken.address, baseToken.address];
-            await expect(deltaNeutralWorkerAsDeployer.setRewardPath(rewardPath))
-              .to.emit(deltaNeutralWorker, "SetRewardPath")
-              .withArgs(deployerAddress, rewardPath);
-          });
-        });
 
         context("#withdrawTradingRewards", async () => {
           it("should only withdraw mdx tradingReward from swapMining", async () => {

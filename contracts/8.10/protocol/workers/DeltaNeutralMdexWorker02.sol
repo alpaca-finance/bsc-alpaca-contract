@@ -167,7 +167,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
         (baseToken == lpToken.token0() || baseToken == lpToken.token1()))
     ) revert InvalidTokens();
 
-    if (reinvestPath[0] != mdx && reinvestPath[reinvestPath.length - 1] != baseToken) revert InvalidReinvestPath();
+    if (reinvestPath[0] != mdx || reinvestPath[reinvestPath.length - 1] != baseToken) revert InvalidReinvestPath();
   }
 
   /// @dev Require that the caller must be an EOA account to avoid flash loans.
@@ -411,7 +411,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
 
     if (_reinvestPath.length < 2) revert InvalidReinvestPathLength();
 
-    if (_reinvestPath[0] != mdx && _reinvestPath[_reinvestPath.length - 1] != baseToken) revert InvalidReinvestPath();
+    if (_reinvestPath[0] != mdx || _reinvestPath[_reinvestPath.length - 1] != baseToken) revert InvalidReinvestPath();
 
     reinvestBountyBps = _reinvestBountyBps;
     reinvestThreshold = _reinvestThreshold;
@@ -479,7 +479,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
   function setRewardPath(address[] calldata _rewardPath) external onlyOwner {
     if (_rewardPath.length < 2) revert InvalidReinvestPathLength();
 
-    if (_rewardPath[0] != mdx && _rewardPath[_rewardPath.length - 1] != beneficialVault.token())
+    if (_rewardPath[0] != mdx || _rewardPath[_rewardPath.length - 1] != beneficialVault.token())
       revert InvalidReinvestPath();
 
     rewardPath = _rewardPath;
@@ -521,7 +521,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
 
     if (_rewardPath.length < 2) revert InvalidReinvestPathLength();
 
-    if (_rewardPath[0] != mdx && _rewardPath[_rewardPath.length - 1] != _beneficialVault.token())
+    if (_rewardPath[0] != mdx || _rewardPath[_rewardPath.length - 1] != _beneficialVault.token())
       revert InvalidReinvestPath();
 
     _buyback();

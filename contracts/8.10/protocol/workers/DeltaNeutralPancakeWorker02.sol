@@ -169,7 +169,7 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
         (baseToken == lpToken.token0() || baseToken == lpToken.token1()))
     ) revert InvalidTokens();
 
-    if (reinvestPath[0] != cake && reinvestPath[reinvestPath.length - 1] != baseToken) revert InvalidReinvestPath();
+    if (reinvestPath[0] != cake || reinvestPath[reinvestPath.length - 1] != baseToken) revert InvalidReinvestPath();
   }
 
   /// @dev Require that the caller must be an EOA account to avoid flash loans.
@@ -415,7 +415,7 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
 
     if (_reinvestPath.length < 2) revert InvalidReinvestPathLength();
 
-    if (_reinvestPath[0] != cake && _reinvestPath[_reinvestPath.length - 1] != baseToken) revert InvalidReinvestPath();
+    if (_reinvestPath[0] != cake || _reinvestPath[_reinvestPath.length - 1] != baseToken) revert InvalidReinvestPath();
 
     reinvestBountyBps = _reinvestBountyBps;
     reinvestThreshold = _reinvestThreshold;
@@ -481,7 +481,7 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
   function setRewardPath(address[] calldata _rewardPath) external onlyOwner {
     if (_rewardPath.length < 2) revert InvalidReinvestPathLength();
 
-    if (_rewardPath[0] != cake && _rewardPath[_rewardPath.length - 1] != beneficialVault.token())
+    if (_rewardPath[0] != cake || _rewardPath[_rewardPath.length - 1] != beneficialVault.token())
       revert InvalidReinvestPath();
 
     rewardPath = _rewardPath;
@@ -523,7 +523,7 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
 
     if (_rewardPath.length < 2) revert InvalidReinvestPathLength();
 
-    if (_rewardPath[0] != cake && _rewardPath[_rewardPath.length - 1] != _beneficialVault.token())
+    if (_rewardPath[0] != cake || _rewardPath[_rewardPath.length - 1] != _beneficialVault.token())
       revert InvalidReinvestPath();
 
     _buyback();
