@@ -73,7 +73,7 @@ contract PriceHelper is IPriceHelper, Initializable, OwnableUpgradeable {
 
   /// @notice get LP price using internal only, return value in 1e18 format
   /// @dev getTokenPrice from address
-  /// @param tokenAddress tokenAddress
+  /// @param lpToken lp token address
   function _getLPPrice(address lpToken) internal view returns (uint256) {
     if (lpToken == address(0)) {
       revert InvalidLPAddress();
