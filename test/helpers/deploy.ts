@@ -7,6 +7,8 @@ import {
   CakeToken__factory,
   DeltaNeutralPancakeWorker02,
   DeltaNeutralPancakeWorker02__factory,
+  DeltaNeutralMdexWorker02,
+  DeltaNeutralMdexWorker02__factory,
   DebtToken,
   DebtToken__factory,
   FairLaunch,
@@ -716,6 +718,56 @@ export class DeployHelper {
     });
 
     return deltaNeutralWorker02;
+  }
+
+  public async deployDeltaNeutralMdexWorker02(
+    vault: Vault,
+    btoken: MockERC20,
+    masterChef: BSCPool,
+    routerV2: MdexRouter,
+    poolIndex: number,
+    workFactor: BigNumberish,
+    killFactor: BigNumberish,
+    addStrat: MdexRestrictedStrategyAddBaseTokenOnly,
+    reinvestBountyBps: BigNumberish,
+    okReinvestor: string[],
+    treasuryAddress: string,
+    reinvestPath: Array<string>,
+    extraStrategies: string[],
+    simpleVaultConfig: SimpleVaultConfig,
+    priceHelper: PriceHelper
+  ): Promise<DeltaNeutralMdexWorker02> {
+    const DeltaNeutralMdexWorker02 = (await ethers.getContractFactory(
+      "DeltaNeutralMdexWorker02",
+      this.deployer
+    )) as DeltaNeutralMdexWorker02__factory;
+    const worker = (await upgrades.deployProxy(DeltaNeutralMdexWorker02, [
+      vault.address,
+      btoken.address,
+      masterChef.address,
+      routerV2.address,
+      poolIndex,
+      addStrat.address,
+      reinvestBountyBps,
+      treasuryAddress,
+      reinvestPath,
+      0,
+      priceHelper.address,
+    ])) as DeltaNeutralMdexWorker02;
+    await worker.deployed();
+
+    await simpleVaultConfig.setWorker(worker.address, true, true, workFactor, killFactor, true, true);
+    await worker.setStrategyOk(extraStrategies, true);
+    await worker.setReinvestorOk(okReinvestor, true);
+    await worker.setTreasuryConfig(treasuryAddress, reinvestBountyBps);
+
+    extraStrategies.push(addStrat.address);
+    extraStrategies.forEach(async (stratAddress) => {
+      const strat = MdexRestrictedStrategyLiquidate__factory.connect(stratAddress, this.deployer);
+      await strat.setWorkersOk([worker.address], true);
+    });
+
+    return worker;
   }
 
   public async deployPancakeV2Worker(
