@@ -32,14 +32,14 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   address public stableToken;
   address public assetToken;
 
-  IPriceHelper public priceHelper;
+  IPriceHelper public lpCalculator;
 
   function initialize(
     string calldata _name,
     string calldata _symbol,
     address _stableToken,
     address _assetToken,
-    IPriceHelper _priceHelper
+    IPriceHelper _lpCalculator
   ) external initializer {
     OwnableUpgradeable.__Ownable_init();
     ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
