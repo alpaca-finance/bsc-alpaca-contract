@@ -27,4 +27,13 @@ interface IDeltaNeutralVaultConfig {
 
   /// @dev Return if the caller is whitelisted.
   function whitelistedRebalancers(address _caller) external returns (bool);
+
+  /// @dev Return Fairlaunch debt stable pool Id
+  function getDebtStablePoolId() external returns (uint256);
+
+  /// @dev Return Fairlaunch asset pool Id
+  function getDebtAssetPoolId() external returns (uint256);
+
+  /// @dev Return alpacaToken address
+  function getAlpacaTokenBalance() external returns (uint256);
 }
