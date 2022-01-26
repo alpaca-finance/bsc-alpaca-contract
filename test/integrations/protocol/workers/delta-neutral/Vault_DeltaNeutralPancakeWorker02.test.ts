@@ -23,8 +23,8 @@ import {
   PancakeswapV2RestrictedStrategyAddBaseTokenOnly,
   PancakeswapV2RestrictedStrategyLiquidate,
   PancakeswapV2RestrictedStrategyPartialCloseLiquidate,
-  DeltaNeutralWorker02,
-  DeltaNeutralWorker02__factory,
+  DeltaNeutralPancakeWorker02,
+  DeltaNeutralPancakeWorker02__factory,
   SimpleVaultConfig,
   SyrupBar,
   Vault,
@@ -36,7 +36,6 @@ import {
   PriceHelper,
   ChainLinkPriceOracle,
   ChainLinkPriceOracle__factory,
-  MockAggregatorV3,
   MockAggregatorV3__factory,
 } from "../../../../../typechain";
 import * as AssertHelpers from "../../../../helpers/assert";
@@ -49,7 +48,7 @@ import { Worker02Helper } from "../../../../helpers/worker";
 chai.use(solidity);
 const { expect } = chai;
 
-describe("Vault - DeltaNetWorker02", () => {
+describe("Vault - DeltaNetPancakeWorker02", () => {
   const FOREVER = "2000000000";
   const ALPACA_BONUS_LOCK_UP_BPS = 7000;
   const ALPACA_REWARD_PER_BLOCK = ethers.utils.parseEther("5000");
@@ -102,7 +101,7 @@ describe("Vault - DeltaNetWorker02", () => {
 
   /// PancakeswapMasterChef-related instance(s)
   let masterChef: PancakeMasterChef;
-  let deltaNeutralWorker: DeltaNeutralWorker02;
+  let deltaNeutralWorker: DeltaNeutralPancakeWorker02;
 
   /// Timelock instance(s)
   let whitelistedContract: MockContractContext;
@@ -139,7 +138,7 @@ describe("Vault - DeltaNetWorker02", () => {
   let pancakeMasterChefAsAlice: PancakeMasterChef;
   let pancakeMasterChefAsBob: PancakeMasterChef;
 
-  let deltaNeutralWorkerAsEve: DeltaNeutralWorker02;
+  let deltaNeutralWorkerAsEve: DeltaNeutralPancakeWorker02;
 
   let chainLinkOracleAsDeployer: ChainLinkPriceOracle;
 
@@ -241,7 +240,7 @@ describe("Vault - DeltaNetWorker02", () => {
     lp = PancakePair__factory.connect(await factoryV2.getPair(farmToken.address, baseToken.address), deployer);
     await masterChef.add(1, lp.address, true);
 
-    /// Setup DeltaNeutralWorker02
+    /// Setup DeltaNeutralPancakeWorker02
     [priceHelper, chainlink] = await deployHelper.deployPriceHelper(
       [baseToken.address, farmToken.address],
       [ethers.utils.parseEther("1"), ethers.utils.parseEther("200")],
@@ -256,7 +255,7 @@ describe("Vault - DeltaNetWorker02", () => {
 
     chainLinkOracleAsDeployer = ChainLinkPriceOracle__factory.connect(chainlink.address, deployer);
 
-    deltaNeutralWorker = await deployHelper.deployDeltaNeutralWorker02(
+    deltaNeutralWorker = await deployHelper.deployDeltaNeutralPancakeWorker02(
       vault,
       baseToken,
       masterChef,
@@ -339,7 +338,7 @@ describe("Vault - DeltaNetWorker02", () => {
     vaultAsEve = Vault__factory.connect(vault.address, eve);
     vaultAsDeltaNet = Vault__factory.connect(vault.address, deltaNet);
 
-    deltaNeutralWorkerAsEve = DeltaNeutralWorker02__factory.connect(deltaNeutralWorker.address, eve);
+    deltaNeutralWorkerAsEve = DeltaNeutralPancakeWorker02__factory.connect(deltaNeutralWorker.address, eve);
   }
 
   beforeEach(async () => {
@@ -347,7 +346,7 @@ describe("Vault - DeltaNetWorker02", () => {
   });
 
   context("when worker is initialized", async () => {
-    it("should has FTOKEN as a farmingToken in PancakeswapWorker", async () => {
+    it("should has FTOKEN as a farmingToken in DeltaNeutralPancakeWorker", async () => {
       expect(await deltaNeutralWorker.farmingToken()).to.be.equal(farmToken.address);
     });
 
