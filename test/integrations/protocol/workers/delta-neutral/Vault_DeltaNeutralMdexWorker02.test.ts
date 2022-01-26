@@ -122,6 +122,7 @@ describe("Vault - DeltaNetMdexWorker02", () => {
   // Contract Signer
   let baseTokenAsAlice: MockERC20;
   let baseTokenAsBob: MockERC20;
+  let baseTokenAsEve: MockERC20;
   let baseTokenAsDeltaNet: MockERC20;
   let mdxTokenAsDeployer: MdxToken;
 
@@ -145,6 +146,7 @@ describe("Vault - DeltaNetMdexWorker02", () => {
 
   // Test Helper
   let swapHelper: SwapHelper;
+  let deployHelper: DeployHelper;
 
   async function fixture() {
     [deployer, alice, bob, eve] = await ethers.getSigners();
@@ -156,7 +158,7 @@ describe("Vault - DeltaNetMdexWorker02", () => {
       eve.getAddress(),
     ]);
     deltaNetAddress = aliceAddress;
-    const deployHelper = new DeployHelper(deployer);
+    deployHelper = new DeployHelper(deployer);
 
     // Setup MockContractContext
     const MockContractContext = (await ethers.getContractFactory(
@@ -178,6 +180,7 @@ describe("Vault - DeltaNetMdexWorker02", () => {
           { address: deployerAddress, amount: ethers.utils.parseEther("1000") },
           { address: aliceAddress, amount: ethers.utils.parseEther("1000") },
           { address: bobAddress, amount: ethers.utils.parseEther("1000") },
+          { address: eveAddress, amount: ethers.utils.parseEther("1000") },
         ],
       },
       {
@@ -188,6 +191,7 @@ describe("Vault - DeltaNetMdexWorker02", () => {
           { address: deployerAddress, amount: ethers.utils.parseEther("1000") },
           { address: aliceAddress, amount: ethers.utils.parseEther("1000") },
           { address: bobAddress, amount: ethers.utils.parseEther("1000") },
+          { address: eveAddress, amount: ethers.utils.parseEther("1000") },
         ],
       },
     ]);
@@ -285,16 +289,8 @@ describe("Vault - DeltaNetMdexWorker02", () => {
       priceHelper
     );
 
-    await deltaNeutralWorker.setWhitelistCallers(
-      [
-        vault.address,
-        whitelistedContract.address,
-        deltaNeutralWorker.address,
-        aliceAddress,
-        bobAddress,
-        eveAddress,
-        deltaNetAddress,
-      ],
+    await deltaNeutralWorker.setWhitelistedCallers(
+      [whitelistedContract.address, deltaNeutralWorker.address, aliceAddress, bobAddress],
       true
     );
 
@@ -336,6 +332,7 @@ describe("Vault - DeltaNetMdexWorker02", () => {
     // Contract signer
     baseTokenAsAlice = MockERC20__factory.connect(baseToken.address, alice);
     baseTokenAsBob = MockERC20__factory.connect(baseToken.address, bob);
+    baseTokenAsEve = MockERC20__factory.connect(baseToken.address, eve);
     baseTokenAsDeltaNet = MockERC20__factory.connect(baseToken.address, deltaNet);
     mdxTokenAsDeployer = MdxToken__factory.connect(mdx.address, deployer);
 
@@ -363,7 +360,7 @@ describe("Vault - DeltaNetMdexWorker02", () => {
       expect(farmToken.address).to.be.equal(await deltaNeutralWorker.farmingToken());
     });
 
-    // TOFIXTEST: should we remove this?
+    // TODO: should we remove this?
     it("should give rewards out when you stake LP tokens", async () => {
       // Deployer sends some LP tokens to Alice and Bob
       await lp.transfer(aliceAddress, ethers.utils.parseEther("0.05"));
@@ -458,9 +455,28 @@ describe("Vault - DeltaNetMdexWorker02", () => {
     });
 
     describe("#setWhitelistCallers", async () => {
-      it("should set whitelist callers", async () => {
-        await deltaNeutralWorker.setWhitelistCallers([deployerAddress], true);
+      it("should set whitelisted callers", async () => {
+        await expect(deltaNeutralWorker.setWhitelistedCallers([deployerAddress], true)).to.emit(
+          deltaNeutralWorker,
+          "SetWhitelistedCallers"
+        );
         expect(await deltaNeutralWorker.whitelistCallers(deployerAddress)).to.be.eq(true);
+      });
+    });
+
+    describe("#setPriceHelper", async () => {
+      it("should set price helper", async () => {
+        const oldPriceHelperAddress = await deltaNeutralWorker.lpCalculator();
+        const [newPriceHelper] = await deployHelper.deployPriceHelper(
+          [baseToken.address, farmToken.address],
+          [ethers.utils.parseEther("1"), ethers.utils.parseEther("200")],
+          [18, 18],
+          busd.address
+        );
+        await deltaNeutralWorker.setPriceHelper(newPriceHelper.address);
+        const newPriceHelperAddress = await deltaNeutralWorker.lpCalculator();
+        expect(newPriceHelperAddress).not.be.eq(oldPriceHelperAddress);
+        expect(newPriceHelperAddress).to.be.eq(newPriceHelper.address);
       });
     });
   });
@@ -545,6 +561,33 @@ describe("Vault - DeltaNetMdexWorker02", () => {
             ethers.utils.defaultAbiCoder.encode(["uint256"], [0])
           )
         ).to.be.revertedWith("!whitelisted liquidator");
+      });
+    });
+
+    context("when user is not in whitelisted callers", async () => {
+      context("#work", async () => {
+        it("should not allow to open a position", async () => {
+          // Deployer deposits 3 BTOKEN to the bank
+          const deposit = ethers.utils.parseEther("3");
+          await baseToken.approve(vault.address, deposit);
+          await vault.deposit(deposit);
+          // Now Alice can take 1 BTOKEN loan + 1 BTOKEN of her to create a new position
+          const loan = ethers.utils.parseEther("1");
+          await baseTokenAsEve.approve(vault.address, ethers.utils.parseEther("1"));
+          await expect(
+            vaultAsEve.work(
+              0,
+              deltaNeutralWorker.address,
+              ethers.utils.parseEther("1"),
+              loan,
+              "0",
+              ethers.utils.defaultAbiCoder.encode(
+                ["address", "bytes"],
+                [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+              )
+            )
+          ).to.be.revertedWith("NotWhitelistedCaller()");
+        });
       });
     });
 
@@ -1256,26 +1299,12 @@ describe("Vault - DeltaNetMdexWorker02", () => {
             )
           );
 
-          let lpBalance = await deltaNeutralWorker.totalLpBalance();
-          let lpToken = await deltaNeutralWorker.lpToken();
-          let lpInDollar = await priceHelper.lpToDollar(lpBalance, lpToken);
-          let lpPrice = lpInDollar.mul(BigNumber.from("1000000000000000000")).div(lpBalance);
-          let tokenPrice = await priceHelper.getTokenPrice(baseToken.address);
-          console.log("// lp price = ", ethers.utils.formatEther(lpPrice));
-
           // Price swing 10%
           // Feed new price from 200 for 20% to make lp price down ~10%
           // 200 * (1 - 0.2) = 160
           let mockAggregatorV3 = await MockAggregatorV3Factory.deploy(ethers.utils.parseEther("160"), 18);
           await mockAggregatorV3.deployed();
           chainLinkOracleAsDeployer.setPriceFeeds([farmToken.address], [busd.address], [mockAggregatorV3.address]);
-
-          lpBalance = await deltaNeutralWorker.totalLpBalance();
-          lpToken = await deltaNeutralWorker.lpToken();
-          lpInDollar = await priceHelper.lpToDollar(lpBalance, lpToken);
-          lpPrice = lpInDollar.mul(BigNumber.from("1000000000000000000")).div(lpBalance);
-          tokenPrice = await priceHelper.getTokenPrice(baseToken.address);
-          console.log("// lp price = ", ethers.utils.formatEther(lpPrice));
 
           // Add more token to the pool equals to sqrt(10*((0.1)**2) / 9) - 0.1 = 0.005409255338945984, (0.1 is the balance of token in the pool)
           await expect(vaultAsEve.kill("1")).to.be.revertedWith("can't liquidate");
@@ -1288,12 +1317,6 @@ describe("Vault - DeltaNetMdexWorker02", () => {
           chainLinkOracleAsDeployer.setPriceFeeds([farmToken.address], [busd.address], [mockAggregatorV3.address]);
 
           chainLinkOracleAsDeployer.setPriceFeeds([farmToken.address], [busd.address], [mockAggregatorV3.address]);
-          lpBalance = await deltaNeutralWorker.totalLpBalance();
-          lpToken = await deltaNeutralWorker.lpToken();
-          lpInDollar = await priceHelper.lpToDollar(lpBalance, lpToken);
-          lpPrice = lpInDollar.mul(BigNumber.from("1000000000000000000")).div(lpBalance);
-          tokenPrice = await priceHelper.getTokenPrice(baseToken.address);
-          console.log("// lp price = ", ethers.utils.formatEther(lpPrice));
 
           await expect(vaultAsEve.kill("1")).to.be.revertedWith("can't liquidate");
 
@@ -1304,13 +1327,6 @@ describe("Vault - DeltaNetMdexWorker02", () => {
           await mockAggregatorV3.deployed();
           chainLinkOracleAsDeployer.setPriceFeeds([farmToken.address], [busd.address], [mockAggregatorV3.address]);
 
-          lpBalance = await deltaNeutralWorker.totalLpBalance();
-          lpToken = await deltaNeutralWorker.lpToken();
-          lpInDollar = await priceHelper.lpToDollar(lpBalance, lpToken);
-          lpPrice = lpInDollar.mul(BigNumber.from("1000000000000000000")).div(lpBalance);
-          tokenPrice = await priceHelper.getTokenPrice(baseToken.address);
-          console.log("// lp price = ", ethers.utils.formatEther(lpPrice));
-
           await expect(vaultAsEve.kill("1")).to.be.revertedWith("can't liquidate");
           // Price swing 30%
           // Feed new price from 96 for 60% to make lp price down ~23.43%
@@ -1318,13 +1334,6 @@ describe("Vault - DeltaNetMdexWorker02", () => {
           mockAggregatorV3 = await MockAggregatorV3Factory.deploy(ethers.utils.parseEther("20.40576"), 18);
           await mockAggregatorV3.deployed();
           chainLinkOracleAsDeployer.setPriceFeeds([farmToken.address], [busd.address], [mockAggregatorV3.address]);
-
-          lpBalance = await deltaNeutralWorker.totalLpBalance();
-          lpToken = await deltaNeutralWorker.lpToken();
-          lpInDollar = await priceHelper.lpToDollar(lpBalance, lpToken);
-          lpPrice = lpInDollar.mul(BigNumber.from("1000000000000000000")).div(lpBalance);
-          tokenPrice = await priceHelper.getTokenPrice(baseToken.address);
-          console.log("// lp price = ", ethers.utils.formatEther(lpPrice));
 
           // Now you can liquidate because of the price fluctuation
           const eveBefore = await baseToken.balanceOf(eveAddress);
@@ -1401,9 +1410,9 @@ describe("Vault - DeltaNetMdexWorker02", () => {
 
           // // Alice withdraws 2 BOKTEN
           // aliceBefore = await baseToken.balanceOf(aliceAddress);
-          await vaultAsAlice.withdraw(await vault.balanceOf(aliceAddress));
-          let aliceAfter = await baseToken.balanceOf(aliceAddress);
-          console.log(aliceAfter);
+          // await vaultAsAlice.withdraw(await vault.balanceOf(aliceAddress));
+          // let aliceAfter = await baseToken.balanceOf(aliceAddress);
+          // console.log(aliceAfter);
 
           // // alice gots 2/12 * 10.002702699312215556 = 1.667117116552036
           // AssertHelpers.assertAlmostEqual(
@@ -2296,19 +2305,3 @@ describe("Vault - DeltaNetMdexWorker02", () => {
     });
   });
 });
-
-// let lpBalance = await deltaNeutralWorker.totalLpBalance();
-//             let lpToken = await deltaNeutralWorker.lpToken();
-//             let lpInDollar = await priceHelper.lpToDollar(lpBalance, lpToken);
-//             let lpPrice = lpInDollar.mul(BigNumber.from("1000000000000000000")).div(lpBalance);
-//             let tokenPrice = await priceHelper.getTokenPrice(baseToken.address);
-//             console.log("// lp balance = ", ethers.utils.formatEther(lpBalance));
-//             console.log("// lp price = ", ethers.utils.formatEther(lpPrice));
-//             console.log("// lp balance in dollar = ", ethers.utils.formatEther(lpInDollar));
-//             console.log("// base token price = ", ethers.utils.formatEther(tokenPrice));
-//             console.log("// lp balance in dollar / base token price");
-//             console.log(
-//               `// ${ethers.utils.formatEther(lpInDollar)} / ${ethers.utils.formatEther(tokenPrice)} = ${lpInDollar
-//                 .mul(BigNumber.from("1000000000000000000"))
-//                 .div(tokenPrice)}`
-//             );

@@ -80,7 +80,6 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
   let busd: MockERC20;
   let cake: CakeToken;
   let syrup: SyrupBar;
-  let debtToken: DebtToken;
 
   /// Strategy-ralted instance(s)
   let addStrat: PancakeswapV2RestrictedStrategyAddBaseTokenOnly;
@@ -126,6 +125,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
   // Contract Signer
   let baseTokenAsAlice: MockERC20;
   let baseTokenAsBob: MockERC20;
+  let baseTokenAsEve: MockERC20;
   let baseTokenAsDeltaNet: MockERC20;
 
   let farmTokenAsAlice: MockERC20;
@@ -272,16 +272,8 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
       simpleVaultConfig,
       priceHelper
     );
-    await deltaNeutralWorker.setWhitelistCallers(
-      [
-        vault.address,
-        whitelistedContract.address,
-        deltaNeutralWorker.address,
-        aliceAddress,
-        bobAddress,
-        eveAddress,
-        deltaNetAddress,
-      ],
+    await deltaNeutralWorker.setWhitelistedCallers(
+      [whitelistedContract.address, deltaNeutralWorker.address, aliceAddress, bobAddress],
       true
     );
 
@@ -322,6 +314,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
     // Contract signer
     baseTokenAsAlice = MockERC20__factory.connect(baseToken.address, alice);
     baseTokenAsBob = MockERC20__factory.connect(baseToken.address, bob);
+    baseTokenAsEve = MockERC20__factory.connect(baseToken.address, eve);
     baseTokenAsDeltaNet = MockERC20__factory.connect(baseToken.address, deltaNet);
 
     farmTokenAsAlice = MockERC20__factory.connect(farmToken.address, alice);
@@ -444,8 +437,11 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
     });
 
     describe("#setWhitelistCallers", async () => {
-      it("should set whitelist callers", async () => {
-        await deltaNeutralWorker.setWhitelistCallers([deployerAddress], true);
+      it("should set whitelisted callers", async () => {
+        await expect(deltaNeutralWorker.setWhitelistedCallers([deployerAddress], true)).to.emit(
+          deltaNeutralWorker,
+          "SetWhitelistedCallers"
+        );
         expect(await deltaNeutralWorker.whitelistCallers(deployerAddress)).to.be.eq(true);
       });
     });
@@ -531,6 +527,33 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
             ethers.utils.defaultAbiCoder.encode(["uint256"], [0])
           )
         ).to.be.revertedWith("!whitelisted liquidator");
+      });
+    });
+
+    context("when user is not in whitelisted callers", async () => {
+      context("#work", async () => {
+        it("should not allow to open a position", async () => {
+          // Deployer deposits 3 BTOKEN to the bank
+          const deposit = ethers.utils.parseEther("3");
+          await baseToken.approve(vault.address, deposit);
+          await vault.deposit(deposit);
+          // Now Alice can take 1 BTOKEN loan + 1 BTOKEN of her to create a new position
+          const loan = ethers.utils.parseEther("1");
+          await baseTokenAsEve.approve(vault.address, ethers.utils.parseEther("1"));
+          await expect(
+            vaultAsEve.work(
+              0,
+              deltaNeutralWorker.address,
+              ethers.utils.parseEther("1"),
+              loan,
+              "0",
+              ethers.utils.defaultAbiCoder.encode(
+                ["address", "bytes"],
+                [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+              )
+            )
+          ).to.be.revertedWith("NotWhitelistedCaller()");
+        });
       });
     });
 

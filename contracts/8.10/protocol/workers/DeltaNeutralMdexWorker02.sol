@@ -40,7 +40,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
   error NotEOA();
   error NotOperator();
   error NotReinvestor();
-  error NotWhitelistCaller();
+  error NotWhitelistedCaller();
 
   error UnApproveStrategy();
   error BadTreasuryAccount();
@@ -59,7 +59,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
   event BeneficialVaultTokenBuyback(address indexed caller, IVault indexed beneficialVault, uint256 indexed buyback);
   event SetStrategyOK(address indexed caller, address indexed strategy, bool indexed isOk);
   event SetReinvestorOK(address indexed caller, address indexed reinvestor, bool indexed isOk);
-  event SetWhitelistCaller(address indexed caller, address indexed whitelistUser, bool indexed isOk);
+  event SetWhitelistedCallers(address indexed caller, address indexed whitelistUser, bool indexed isOk);
   event SetCriticalStrategy(address indexed caller, IStrategy indexed addStrat);
   event SetMaxReinvestBountyBps(address indexed caller, uint256 indexed maxReinvestBountyBps);
   event SetRewardPath(address indexed caller, address[] newRewardPath);
@@ -196,9 +196,9 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
   }
 
   //// @dev Require that the caller must be whitelist callers.
-  modifier onlyWhitelistCaller(address user) {
-    // REVERT: "DeltaNeutralMdexWorker02::onlyWhitelistCaller:: not whitelist caller"
-    if (!whitelistCallers[user]) revert NotWhitelistCaller();
+  modifier onlyWhitelistedCaller(address user) {
+    // REVERT: "DeltaNeutralMdexWorker02::onlyWhitelistedCaller:: not whitelist caller"
+    if (!whitelistCallers[user]) revert NotWhitelistedCaller();
     _;
   }
 
@@ -266,7 +266,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
     address user,
     uint256 debt,
     bytes calldata data
-  ) external override onlyWhitelistCaller(user) onlyOperator nonReentrant {
+  ) external override onlyWhitelistedCaller(user) onlyOperator nonReentrant {
     // 1. reinvest
     _reinvest(treasuryAccount, treasuryBountyBps, actualBaseTokenBalance(), reinvestThreshold);
     // 2. Withdraw all LP tokens.
@@ -466,14 +466,14 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
   }
 
   /// @dev Set the given address's to be reinvestor.
-  /// @param callers - The whitelist caller addresses.
+  /// @param callers - The whitelisted caller's addresses.
   /// @param isOk - Whether to approve or unapprove the given strategies.
-  function setWhitelistCallers(address[] calldata callers, bool isOk) external onlyOwner {
+  function setWhitelistedCallers(address[] calldata callers, bool isOk) external onlyOwner {
     uint256 len = callers.length;
     for (uint256 idx = 0; idx < len; idx++) {
       whitelistCallers[callers[idx]] = isOk;
 
-      emit SetWhitelistCaller(msg.sender, callers[idx], isOk);
+      emit SetWhitelistedCallers(msg.sender, callers[idx], isOk);
     }
   }
 

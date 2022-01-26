@@ -184,7 +184,7 @@
     "test:fairlaunchv2": "hardhat test --no-compile ./test/FairLaunchV2.test.ts",
     "test:pancake": "hardhat test --no-compile ./test/Vault_Pancakeswap.test.ts",
     "test:pancakev2": "hardhat test --no-compile ./test/Vault_PancakeswapV2.test.ts",
-    "test:pancakev202": "hardhat test --no-compile ./test/integrations/protocol/workers//pcs/Vault_PancakeswapV202.test.ts",
+    "test:pancakev202": "hardhat test --no-compile ./test/integrations/protocol/workers/pcs/Vault_PancakeswapV202.test.ts",
     "test:deltaneutral:pancakeworker": "hardhat test --no-compile ./test/integrations/protocol/workers/delta-neutral/Vault_DeltaNeutralPancakeWorker02.test.ts",
     "test:deltaneutral:mdexworker": "hardhat test --no-compile ./test/integrations/protocol/workers/delta-neutral/Vault_DeltaNeutralMdexWorker02.test.ts",
     "test:pancakemigrate": "hardhat test --no-compile ./test/Vault_Pancakeswap_Migrate.test.ts",
