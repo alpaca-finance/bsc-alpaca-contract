@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL
 /**
   ∩~~~~∩ 
   ξ ･×･ ξ 
@@ -158,46 +158,38 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
     maxReinvestBountyBps = 500;
 
     // 6. Check if critical parameters are config properly
-
-    // REVERT: DeltaNeutralMdexWorker02::initialize:: base token cannot be a reward token
     if (baseToken == mdx) revert InvalidRewardToken();
-    // REVERT: "DeltaNeutralMdexWorker02::initialize:: reinvestBountyBps exceeded maxReinvestBountyBps"
+
     if (reinvestBountyBps > maxReinvestBountyBps) revert ExceedReinvestBounty();
 
-    // TODOREVERT: "DeltaNeutralMdexWorker02::initialize:: LP underlying not match with farm & base token"
     if (
       !((farmingToken == lpToken.token0() || farmingToken == lpToken.token1()) &&
         (baseToken == lpToken.token0() || baseToken == lpToken.token1()))
     ) revert InvalidTokens();
 
-    // REVERT: "DeltaNeutralMdexWorker02::initialize:: reinvestPath must start with MDX, end with BTOKEN"
-    if (reinvestPath[0] != mdx || reinvestPath[reinvestPath.length - 1] != baseToken) revert InvalidReinvestPath();
+    if (reinvestPath[0] != mdx && reinvestPath[reinvestPath.length - 1] != baseToken) revert InvalidReinvestPath();
   }
 
   /// @dev Require that the caller must be an EOA account to avoid flash loans.
   modifier onlyEOA() {
-    // REVERT: "DeltaNeutralMdexWorker02::onlyEOA:: not eoa"
     if (msg.sender != tx.origin) revert NotEOA();
     _;
   }
 
   /// @dev Require that the caller must be the operator.
   modifier onlyOperator() {
-    // REVERT: "DeltaNeutralMdexWorker02::onlyOperator:: not operator"
     if (msg.sender != operator) revert NotOperator();
     _;
   }
 
   //// @dev Require that the caller must be ok reinvestor.
   modifier onlyReinvestor() {
-    // REVERT: "DeltaNeutralMdexWorker02::onlyReinvestor:: not reinvestor"
     if (!okReinvestors[msg.sender]) revert NotReinvestor();
     _;
   }
 
   //// @dev Require that the caller must be whitelist callers.
   modifier onlyWhitelistedCaller(address user) {
-    // REVERT: "DeltaNeutralMdexWorker02::onlyWhitelistedCaller:: not whitelist caller"
     if (!whitelistCallers[user]) revert NotWhitelistedCaller();
     _;
   }
@@ -222,6 +214,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
     uint256 _reinvestThreshold
   ) internal {
     if (_treasuryAccount == address(0)) revert BadTreasuryAccount();
+
     // 1. Withdraw all the rewards. Return if reward <= _reinvestThreshold.
     _bscPoolWithdraw();
     uint256 reward = mdx.myBalance();
@@ -257,7 +250,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
   }
 
   /// @dev Work on the given position. Must be called by the operator.
-  /// @param id The position ID to work on.
+  /// @param id The position ID to work on. Note: This worker implementation ignore ID as the worker has only one position.
   /// @param user The original user that is interacting with the operator.
   /// @param debt The amount of user debt to help the strategy make decisions.
   /// @param data The encoded data, consisting of strategy address and calldata.
@@ -269,23 +262,28 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
   ) external override onlyWhitelistedCaller(user) onlyOperator nonReentrant {
     // 1. reinvest
     _reinvest(treasuryAccount, treasuryBountyBps, actualBaseTokenBalance(), reinvestThreshold);
+
     // 2. Withdraw all LP tokens.
     _bscPoolWithdraw();
+
     // 3. Perform the worker strategy; sending LP tokens + BaseToken; expecting LP tokens + BaseToken.
     (address strat, bytes memory ext) = abi.decode(data, (address, bytes));
-    // REVERT: "DeltaNeutralMdexWorker02::work:: unapproved work strategy"
+
     if (!okStrats[strat]) revert UnApproveStrategy();
+
     address(lpToken).safeTransfer(strat, lpToken.balanceOf(address(this)));
     baseToken.safeTransfer(strat, actualBaseTokenBalance());
     IStrategy(strat).execute(user, debt, ext);
+
     // 4. Add LP tokens back to the farming pool.
     _bscPoolDeposit();
+
     // 5. Return any remaining BaseToken back to the operator.
     baseToken.safeTransfer(msg.sender, actualBaseTokenBalance());
   }
 
   /// @dev Return the amount of BaseToken to receive.
-  /// @param id The position ID to perform health check.
+  /// @param id The position ID to perform health check. Note: This worker implementation ignore ID as the worker has only one position.
   function health(uint256 id) external view override returns (uint256) {
     uint256 _totalBalanceInUSD = lpCalculator.lpToDollar(totalLpBalance, address(lpToken));
     uint256 _tokenPrice = lpCalculator.getTokenPrice(address(baseToken));
@@ -295,8 +293,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
   /// @dev Liquidate the given position by converting it to BaseToken and return back to caller.
   /// @param id The position ID to perform liquidation
   function liquidate(uint256 id) external override onlyOperator nonReentrant {
-    // NOTE: this worker not allow to liquidate position.
-    // REVERT: "DeltaNeutralMdexWorker02::liquidate:: couldn't liquidate this worker"
+    // NOTE: this worker does not allow liquidation
     revert NotAllowToLiquidate();
   }
 
@@ -306,6 +303,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
   function _rewardToBeneficialVault(uint256 _beneficialVaultBounty, uint256 _callerBalance) internal {
     /// 1. read base token from beneficialVault
     address beneficialVaultToken = beneficialVault.token();
+
     /// 2. swap reward token to beneficialVaultToken
     uint256[] memory amounts = router.swapExactTokensForTokens(
       _beneficialVaultBounty,
@@ -356,9 +354,10 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
 
   /// @dev Internal function to withdraw all outstanding LP tokens.
   function _bscPoolWithdraw() internal {
-    bscPool.withdraw(pid, totalLpBalance);
-    emit BscPoolWithdraw(totalLpBalance);
+    uint256 _totalLpBalance = totalLpBalance;
+    bscPool.withdraw(pid, _totalLpBalance);
     totalLpBalance = 0;
+    emit BscPoolWithdraw(_totalLpBalance);
   }
 
   /// @dev Return the path that the worker is working on.
@@ -408,12 +407,11 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
     uint256 _reinvestThreshold,
     address[] calldata _reinvestPath
   ) external onlyOwner {
-    // REVERT: "DeltaNeutralMdexWorker02::setReinvestConfig:: _reinvestBountyBps exceeded maxReinvestBountyBps"
     if (_reinvestBountyBps > maxReinvestBountyBps) revert ExceedReinvestBounty();
-    // REVERT: "DeltaNeutralMdexWorker02::setReinvestConfig:: _reinvestPath length must >= 2"
+
     if (_reinvestPath.length < 2) revert InvalidReinvestPathLength();
-    // REVERT: "DeltaNeutralMdexWorker02::setReinvestConfig:: _reinvestPath must start with CAKE, end with BTOKEN"
-    if (_reinvestPath[0] != mdx || _reinvestPath[_reinvestPath.length - 1] != baseToken) revert InvalidReinvestPath();
+
+    if (_reinvestPath[0] != mdx && _reinvestPath[_reinvestPath.length - 1] != baseToken) revert InvalidReinvestPath();
 
     reinvestBountyBps = _reinvestBountyBps;
     reinvestThreshold = _reinvestThreshold;
@@ -431,9 +429,8 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
   /// @dev Set Max reinvest reward for set upper limit reinvest bounty.
   /// @param _maxReinvestBountyBps - The max reinvest bounty value to update.
   function setMaxReinvestBountyBps(uint256 _maxReinvestBountyBps) external onlyEOA {
-    // REVERT: "DeltaNeutralMdexWorker02::setMaxReinvestBountyBps:: _maxReinvestBountyBps lower than reinvestBountyBps"
     if (reinvestBountyBps > _maxReinvestBountyBps) revert ExceedReinvestBounty();
-    // REVERT:  "DeltaNeutralMdexWorker02::setMaxReinvestBountyBps:: _maxReinvestBountyBps exceeded 30%"
+
     if (_maxReinvestBountyBps > 3000) revert ExceedReinvestBps();
 
     maxReinvestBountyBps = _maxReinvestBountyBps;
@@ -480,10 +477,9 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
   /// @dev Set a new reward path. In case that the liquidity of the reward path is changed.
   /// @param _rewardPath The new reward path.
   function setRewardPath(address[] calldata _rewardPath) external onlyOwner {
-    // REVERT:  "DeltaNeutralMdexWorker02::setRewardPath:: rewardPath length must be >= 2"
     if (_rewardPath.length < 2) revert InvalidReinvestPathLength();
-    // REVERT: "DeltaNeutralMdexWorker02::setRewardPath:: rewardPath must start with CAKE and end with beneficialVault token"
-    if (_rewardPath[0] != mdx || _rewardPath[_rewardPath.length - 1] != beneficialVault.token())
+
+    if (_rewardPath[0] != mdx && _rewardPath[_rewardPath.length - 1] != beneficialVault.token())
       revert InvalidReinvestPath();
 
     rewardPath = _rewardPath;
@@ -503,7 +499,6 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
   /// @param _treasuryAccount - The treasury address to update
   /// @param _treasuryBountyBps - The treasury bounty to update
   function setTreasuryConfig(address _treasuryAccount, uint256 _treasuryBountyBps) external onlyOwner {
-    // REVERT: "DeltaNeutralMdexWorker02::setTreasuryConfig:: _treasuryBountyBps exceeded maxReinvestBountyBps"
     if (_treasuryBountyBps > maxReinvestBountyBps) revert ExceedReinvestBounty();
 
     treasuryAccount = _treasuryAccount;
@@ -521,12 +516,12 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
     IVault _beneficialVault,
     address[] calldata _rewardPath
   ) external onlyOwner {
-    // REVERT: "DeltaNeutralMdexWorker02::setBeneficialVaultConfig:: _beneficialVaultBountyBps exceeds 100%"
+    // beneficialVaultBountyBps should not exceeds 100%"
     if (_beneficialVaultBountyBps > 10000) revert ExceedReinvestBps();
-    // REVERT: "DeltaNeutralMdexWorker02::setBeneficialVaultConfig:: rewardPath length must >= 2"
+
     if (_rewardPath.length < 2) revert InvalidReinvestPathLength();
-    // REVERT: "DeltaNeutralMdexWorker02::setBeneficialVaultConfig:: rewardPath must start with CAKE, end with beneficialVault token"
-    if (_rewardPath[0] != mdx || _rewardPath[_rewardPath.length - 1] != _beneficialVault.token())
+
+    if (_rewardPath[0] != mdx && _rewardPath[_rewardPath.length - 1] != _beneficialVault.token())
       revert InvalidReinvestPath();
 
     _buyback();

@@ -184,6 +184,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
           { address: deployerAddress, amount: ethers.utils.parseEther("1000") },
           { address: aliceAddress, amount: ethers.utils.parseEther("1000") },
           { address: bobAddress, amount: ethers.utils.parseEther("1000") },
+          { address: eveAddress, amount: ethers.utils.parseEther("1000") },
         ],
       },
       {
@@ -194,6 +195,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
           { address: deployerAddress, amount: ethers.utils.parseEther("1000") },
           { address: aliceAddress, amount: ethers.utils.parseEther("1000") },
           { address: bobAddress, amount: ethers.utils.parseEther("1000") },
+          { address: eveAddress, amount: ethers.utils.parseEther("1000") },
         ],
       },
     ]);
