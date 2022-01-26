@@ -30,4 +30,7 @@ interface IDeltaNeutralVaultConfig {
 
   /// @notice get fairlaunch address
   function fairLaunchAddr() external returns (address);
+
+  /// @notice get router address
+  function routerAddr() external returns (address);
 }

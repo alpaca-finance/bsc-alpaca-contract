@@ -27,6 +27,7 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     address _getWrappedNativeAddr,
     address _getWNativeRelayer,
     address _fairLaunchAddr,
+    address _routerAddr,
     uint256 _rebalanceFactor,
     uint256 _positionValueTolerance
   );
@@ -39,6 +40,8 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   address public override getWNativeRelayer;
 
   address public fairLaunchAddr;
+
+  address public routerAddr;
 
   //
   uint256 public override rebalanceFactor;
@@ -59,24 +62,34 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     address _getWrappedNativeAddr,
     address _getWNativeRelayer,
     address _fairLaunchAddr,
+    address _routerAddr,
     uint256 _rebalanceFactor,
     uint256 _positionValueTolerance
   ) external initializer {
     OwnableUpgradeable.__Ownable_init();
 
-    setParams(_getWrappedNativeAddr, _getWNativeRelayer, _fairLaunchAddr, _rebalanceFactor, _positionValueTolerance);
+    setParams(
+      _getWrappedNativeAddr,
+      _getWNativeRelayer,
+      _fairLaunchAddr,
+      _routerAddr,
+      _rebalanceFactor,
+      _positionValueTolerance
+    );
   }
 
   function setParams(
     address _getWrappedNativeAddr,
     address _getWNativeRelayer,
     address _fairLaunchAddr,
+    address _routerAddr,
     uint256 _rebalanceFactor,
     uint256 _positionValueTolerance
   ) public onlyOwner {
     getWrappedNativeAddr = _getWrappedNativeAddr;
     getWNativeRelayer = _getWNativeRelayer;
     fairLaunchAddr = _fairLaunchAddr;
+    routerAddr = _routerAddr;
     rebalanceFactor = _rebalanceFactor;
     positionValueTolerance = _positionValueTolerance;
 
@@ -85,6 +98,7 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
       _getWrappedNativeAddr,
       _getWNativeRelayer,
       _fairLaunchAddr,
+      _routerAddr,
       _rebalanceFactor,
       _positionValueTolerance
     );

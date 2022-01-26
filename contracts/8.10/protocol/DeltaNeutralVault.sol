@@ -24,6 +24,7 @@ import "./interfaces/IWETH.sol";
 import "./interfaces/IWNativeRelayer.sol";
 import "./interfaces/IDeltaNeutralVaultConfig.sol";
 import "./interfaces/IFairLaunch.sol";
+import "./interfaces/IRouter.sol";
 import "../utils/SafeToken.sol";
 import "../utils/Math.sol";
 
@@ -73,6 +74,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   /// @dev constants
   uint8 private constant ACTION_WORK = 1;
   uint8 private constant ACTION_WARP = 2;
+  uint8 private constant ACTION_CONVERT_ASSET = 3;
+
 
   address private lpToken;
   address public stableVault;
@@ -501,6 +504,9 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       if (_action == ACTION_WARP) {
         IWETH(config.getWrappedNativeAddr()).deposit{ value: _values[i] }();
       }
+      if (_action == ACTION_CONVERT_ASSET) {
+        _convertAsset(_datas[i], _values[i]);
+      }
     }
   }
 
@@ -561,6 +567,28 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   /// @notice withdraw alpaca to receiver address
   function withdrawAlpaca(address _to, uint256 amount) external onlyOwner {
     alpacaToken.safeTransfer(_to, amount);
+  }
+
+  function _convertAsset(bytes memory _data, uint256 _msgValue) internal {
+    console.log("convertAsset");
+(
+      address payable _vault,
+      uint256 _posId,
+      address _worker,
+      uint256 _principalAmount,
+      uint256 _borrowAmount,
+      uint256 _maxReturn,
+      bytes memory _workData
+    ) = abi.decode(_data, (address, uint256, address, uint256, uint256, uint256, bytes));
+
+    // convert asset to BNB
+    if(_msgValue != 0 ){
+      IRouter(config.routerAddr()).swapExactETHForTokens()
+    }else {
+      
+
+    }
+    
   }
 
   /// @dev Fallback function to accept BNB.
