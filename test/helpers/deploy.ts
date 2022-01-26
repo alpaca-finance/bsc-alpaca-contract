@@ -5,8 +5,8 @@ import {
   AlpacaToken__factory,
   CakeToken,
   CakeToken__factory,
-  DeltaNeutralWorker02,
-  DeltaNeutralWorker02__factory,
+  DeltaNeutralPancakeWorker02,
+  DeltaNeutralPancakeWorker02__factory,
   DebtToken,
   DebtToken__factory,
   FairLaunch,
@@ -668,7 +668,7 @@ export class DeployHelper {
     return [priceHelper, chainLinkOracle];
   }
 
-  public async deployDeltaNeutralWorker02(
+  public async deployDeltaNeutralPancakeWorker02(
     vault: Vault,
     btoken: MockERC20,
     masterChef: PancakeMasterChef,
@@ -684,12 +684,12 @@ export class DeployHelper {
     extraStrategies: string[],
     simpleVaultConfig: SimpleVaultConfig,
     priceHelper: PriceHelper
-  ): Promise<DeltaNeutralWorker02> {
-    const DeltaNeutralWorker02 = (await ethers.getContractFactory(
-      "DeltaNeutralWorker02",
+  ): Promise<DeltaNeutralPancakeWorker02> {
+    const DeltaNeutralPancakeWorker02 = (await ethers.getContractFactory(
+      "DeltaNeutralPancakeWorker02",
       this.deployer
-    )) as DeltaNeutralWorker02__factory;
-    const deltaNeutralWorker02 = (await upgrades.deployProxy(DeltaNeutralWorker02, [
+    )) as DeltaNeutralPancakeWorker02__factory;
+    const deltaNeutralWorker02 = (await upgrades.deployProxy(DeltaNeutralPancakeWorker02, [
       vault.address,
       btoken.address,
       masterChef.address,
@@ -700,14 +700,14 @@ export class DeployHelper {
       treasuryAddress,
       reinvestPath,
       0,
-    ])) as DeltaNeutralWorker02;
+      priceHelper.address,
+    ])) as DeltaNeutralPancakeWorker02;
     await deltaNeutralWorker02.deployed();
 
     await simpleVaultConfig.setWorker(deltaNeutralWorker02.address, true, true, workFactor, killFactor, true, true);
     await deltaNeutralWorker02.setStrategyOk(extraStrategies, true);
     await deltaNeutralWorker02.setReinvestorOk(okReinvestor, true);
     await deltaNeutralWorker02.setTreasuryConfig(treasuryAddress, reinvestBountyBps);
-    await deltaNeutralWorker02.setPriceHelper(priceHelper.address);
 
     extraStrategies.push(addStrat.address);
     extraStrategies.forEach(async (stratAddress) => {

@@ -84,7 +84,7 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
   IPancakeFactory public factory;
   IPancakeRouter02 public router;
   IPancakePair public override lpToken;
-  IPriceHelper public priceHelper;
+  IPriceHelper public lpCalculator;
   address public wNative;
   address public override baseToken;
   address public override farmingToken;
@@ -121,7 +121,8 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
     uint256 _reinvestBountyBps,
     address _treasuryAccount,
     address[] calldata _reinvestPath,
-    uint256 _reinvestThreshold
+    uint256 _reinvestThreshold,
+    IPriceHelper _lpCalculator
   ) external initializer {
     // 1. Initialized imported library
     OwnableUpgradeable.__Ownable_init();
@@ -133,6 +134,7 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
     masterChef = _masterChef;
     router = _router;
     factory = IPancakeFactory(_router.factory());
+    lpCalculator = _lpCalculator;
 
     // 3. Assign tokens state variables
     baseToken = _baseToken;
@@ -289,8 +291,8 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
   /// @dev Return the amount of BaseToken to receive.
   /// @param id The position ID to perform health check.
   function health(uint256 id) external view override returns (uint256) {
-    uint256 _totalBalanceInUSD = priceHelper.lpToDollar(totalLpBalance, address(lpToken));
-    uint256 _tokenPrice = priceHelper.getTokenPrice(address(baseToken));
+    uint256 _totalBalanceInUSD = lpCalculator.lpToDollar(totalLpBalance, address(lpToken));
+    uint256 _tokenPrice = lpCalculator.getTokenPrice(address(baseToken));
     return (_totalBalanceInUSD * 1e18) / _tokenPrice;
   }
 
@@ -424,9 +426,9 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
   }
 
   /// @dev Set PriceHelper contract.
-  /// @param _priceHelper - PriceHelper contract to update.
-  function setPriceHelper(IPriceHelper _priceHelper) external onlyOwner {
-    priceHelper = _priceHelper;
+  /// @param _lpCalculator - PriceHelper contract to update.
+  function setPriceHelper(IPriceHelper _lpCalculator) external onlyOwner {
+    lpCalculator = _lpCalculator;
   }
 
   /// @dev Set Max reinvest reward for set upper limit reinvest bounty.
