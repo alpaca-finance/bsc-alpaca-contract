@@ -126,6 +126,7 @@ export interface IDeltaNeutralVault {
   stableVaultWorker: string;
   assetVaultWorker: string;
   lpToken: string;
+  alpacaToken: string;
   priceHelper: string;
   deltaVaultConfig: string;
 }
@@ -133,6 +134,7 @@ export interface IDeltaNeutralVault {
 export interface IDeltaNeutralVaultConfig {
   wNativeAddr: string;
   wNativeRelayer: string;
+  fairlaunchAddr: string;
   rebalanceFactor: BigNumberish;
   positionValueTolerance: BigNumberish;
 }
@@ -859,6 +861,7 @@ export class DeployHelper {
     const deltaNeutralVaultConfig = (await upgrades.deployProxy(DeltaNeutralVaultConfig, [
       input.wNativeAddr,
       input.wNativeRelayer,
+      input.fairlaunchAddr,
       input.rebalanceFactor,
       input.positionValueTolerance,
     ])) as DeltaNeutralVaultConfig;
@@ -878,6 +881,7 @@ export class DeployHelper {
       input.stableVaultWorker,
       input.assetVaultWorker,
       input.lpToken,
+      input.alpacaToken,
       input.priceHelper,
       input.deltaVaultConfig,
     ])) as DeltaNeutralVault;

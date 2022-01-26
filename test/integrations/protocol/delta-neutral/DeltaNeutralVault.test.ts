@@ -76,7 +76,7 @@ describe("DeltaNeutralVault", () => {
 
   // Delta Vault Config
   const REBALANCE_FACTOR = "6500";
-  const POSITION_VALUE_TOLERANCE = 5000;
+  const POSITION_VALUE_TOLERANCE_BPS = "1000";
 
   // Delta Vault
   const ACTION_WORK = 1;
@@ -372,8 +372,9 @@ describe("DeltaNeutralVault", () => {
     const deltaNeutralConfig = {
       wNativeAddr: wbnb.address,
       wNativeRelayer: wNativeRelayer.address,
+      fairlaunchAddr: fairLaunch.address,
       rebalanceFactor: REBALANCE_FACTOR,
-      positionValueTolerance: POSITION_VALUE_TOLERANCE,
+      positionValueTolerance: POSITION_VALUE_TOLERANCE_BPS,
     };
     deltaVaultConfig = await deployHelper.deployDeltaNeutralVaultConfig(deltaNeutralConfig);
 
@@ -386,6 +387,7 @@ describe("DeltaNeutralVault", () => {
       stableVaultWorker: stableVaultWorker.address,
       assetVaultWorker: assetVaultWorker.address,
       lpToken: lp.address,
+      alpacaToken: assetVault.address, // change this to alpaca token address
       priceHelper: mockPriceHelper.address,
       deltaVaultConfig: deltaVaultConfig.address,
     };
@@ -588,7 +590,7 @@ describe("DeltaNeutralVault", () => {
         // stable equity value should have 0.25 and position value = 0.25*3 = 0.75
         // asset equity value should have 0.75 and position value = 0.75*3 = 2.25
         let stableTokenAmount = ethers.utils.parseEther("0.5");
-        const assetTokenAmount = ethers.utils.parseEther("0.5");
+        let assetTokenAmount = ethers.utils.parseEther("0.5");
 
         await baseTokenAsDeployer.approve(deltaVault.address, stableTokenAmount);
 
@@ -665,7 +667,7 @@ describe("DeltaNeutralVault", () => {
         );
         console.log("twosizeLP", twosizeLP);
 
-        const initTx = await deltaVault.initPositions(stableTokenAmount, assetTokenAmount, data, {
+        const initTx = await deltaVault.initPositions(0, stableTokenAmount, assetTokenAmount, data, {
           value: assetTokenAmount,
         });
 
@@ -764,7 +766,7 @@ describe("DeltaNeutralVault", () => {
         // );
 
         console.log("before alice deposit");
-        const depositTx = await deltaVaultAsAlice.deposit(aliceAddress, stableTokenAmount, assetTokenAmount, data, {
+        const depositTx = await deltaVaultAsAlice.deposit(aliceAddress, 0, stableTokenAmount, assetTokenAmount, data, {
           value: assetTokenAmount,
         });
 
