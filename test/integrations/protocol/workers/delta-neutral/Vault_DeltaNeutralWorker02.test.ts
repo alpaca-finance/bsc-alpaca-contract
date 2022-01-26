@@ -49,7 +49,7 @@ import { Worker02Helper } from "../../../../helpers/worker";
 chai.use(solidity);
 const { expect } = chai;
 
-describe("Vault - DeltaNetWorkerV202", () => {
+describe("Vault - DeltaNetWorker02", () => {
   const FOREVER = "2000000000";
   const ALPACA_BONUS_LOCK_UP_BPS = 7000;
   const ALPACA_REWARD_PER_BLOCK = ethers.utils.parseEther("5000");
@@ -394,18 +394,14 @@ describe("Vault - DeltaNetWorkerV202", () => {
       it("should revert when owner set reinvestBountyBps > max", async () => {
         await expect(
           deltaNeutralWorker.setReinvestConfig(1000, "0", [cake.address, baseToken.address])
-        ).to.be.revertedWith(
-          "DeltaNeutralWorker02::setReinvestConfig:: _reinvestBountyBps exceeded maxReinvestBountyBps"
-        );
+        ).to.be.revertedWith("ExceedReinvestBounty()");
         expect(await deltaNeutralWorker.reinvestBountyBps()).to.be.eq(100);
       });
 
       it("should revert when owner set reinvest path that doesn't start with $CAKE and end with $BTOKN", async () => {
         await expect(
           deltaNeutralWorker.setReinvestConfig(200, "0", [baseToken.address, cake.address])
-        ).to.be.revertedWith(
-          "DeltaNeutralWorker02::setReinvestConfig:: _reinvestPath must start with CAKE, end with BTOKEN"
-        );
+        ).to.be.revertedWith("InvalidReinvestPath()");
       });
     });
 
@@ -416,9 +412,7 @@ describe("Vault - DeltaNetWorkerV202", () => {
       });
 
       it("should revert when new max reinvest bounty over 30%", async () => {
-        await expect(deltaNeutralWorker.setMaxReinvestBountyBps("3001")).to.be.revertedWith(
-          "DeltaNeutralWorker02::setMaxReinvestBountyBps:: _maxReinvestBountyBps exceeded 30%"
-        );
+        await expect(deltaNeutralWorker.setMaxReinvestBountyBps("3001")).to.be.revertedWith("ExceedReinvestBps()");
         expect(await deltaNeutralWorker.maxReinvestBountyBps()).to.be.eq(MAX_REINVEST_BOUNTY);
       });
     });
@@ -437,7 +431,7 @@ describe("Vault - DeltaNetWorkerV202", () => {
 
       it("should revert when a new treasury bounty > max reinvest bounty bps", async () => {
         await expect(deltaNeutralWorker.setTreasuryConfig(DEPLOYER, parseInt(MAX_REINVEST_BOUNTY) + 1)).to.revertedWith(
-          "DeltaNeutralWorker02::setTreasuryConfig:: _treasuryBountyBps exceeded maxReinvestBountyBps"
+          "ExceedReinvestBounty()"
         );
         expect(await deltaNeutralWorker.treasuryBountyBps()).to.eq(REINVEST_BOUNTY_BPS);
       });
@@ -1254,28 +1248,12 @@ describe("Vault - DeltaNetWorkerV202", () => {
             )
           );
 
-          let lpBalance = await deltaNeutralWorker.totalLpBalance();
-          let lpToken = await deltaNeutralWorker.lpToken();
-          let lpInDollar = await priceHelper.lpToDollar(lpBalance, lpToken);
-          let lpPrice = lpInDollar.mul(BigNumber.from("1000000000000000000")).div(lpBalance);
-          let tokenPrice = await priceHelper.getTokenPrice(baseToken.address);
-          console.log("// lp price = ", ethers.utils.formatEther(lpPrice));
-
           // Price swing 10%
           // Feed new price from 200 for 20% to make lp price down ~10%
           // 200 * (1 - 0.2) = 160
           let mockAggregatorV3 = await MockAggregatorV3Factory.deploy(ethers.utils.parseEther("160"), 18);
           await mockAggregatorV3.deployed();
           chainLinkOracleAsDeployer.setPriceFeeds([farmToken.address], [busd.address], [mockAggregatorV3.address]);
-
-          lpBalance = await deltaNeutralWorker.totalLpBalance();
-          lpToken = await deltaNeutralWorker.lpToken();
-          lpInDollar = await priceHelper.lpToDollar(lpBalance, lpToken);
-          lpPrice = lpInDollar.mul(BigNumber.from("1000000000000000000")).div(lpBalance);
-          tokenPrice = await priceHelper.getTokenPrice(baseToken.address);
-          console.log("// lp price = ", ethers.utils.formatEther(lpPrice));
-
-          // Add more token to the pool equals to sqrt(10*((0.1)**2) / 9) - 0.1 = 0.005409255338945984, (0.1 is the balance of token in the pool)
           await expect(vaultAsEve.kill("1")).to.be.revertedWith("can't liquidate");
 
           // Price swing 20%
@@ -1284,15 +1262,6 @@ describe("Vault - DeltaNetWorkerV202", () => {
           mockAggregatorV3 = await MockAggregatorV3Factory.deploy(ethers.utils.parseEther("96"), 18);
           await mockAggregatorV3.deployed();
           chainLinkOracleAsDeployer.setPriceFeeds([farmToken.address], [busd.address], [mockAggregatorV3.address]);
-
-          chainLinkOracleAsDeployer.setPriceFeeds([farmToken.address], [busd.address], [mockAggregatorV3.address]);
-          lpBalance = await deltaNeutralWorker.totalLpBalance();
-          lpToken = await deltaNeutralWorker.lpToken();
-          lpInDollar = await priceHelper.lpToDollar(lpBalance, lpToken);
-          lpPrice = lpInDollar.mul(BigNumber.from("1000000000000000000")).div(lpBalance);
-          tokenPrice = await priceHelper.getTokenPrice(baseToken.address);
-          console.log("// lp price = ", ethers.utils.formatEther(lpPrice));
-
           await expect(vaultAsEve.kill("1")).to.be.revertedWith("can't liquidate");
 
           // Price swing 23.43%
@@ -1301,14 +1270,6 @@ describe("Vault - DeltaNetWorkerV202", () => {
           mockAggregatorV3 = await MockAggregatorV3Factory.deploy(ethers.utils.parseEther("51.0144"), 18);
           await mockAggregatorV3.deployed();
           chainLinkOracleAsDeployer.setPriceFeeds([farmToken.address], [busd.address], [mockAggregatorV3.address]);
-
-          lpBalance = await deltaNeutralWorker.totalLpBalance();
-          lpToken = await deltaNeutralWorker.lpToken();
-          lpInDollar = await priceHelper.lpToDollar(lpBalance, lpToken);
-          lpPrice = lpInDollar.mul(BigNumber.from("1000000000000000000")).div(lpBalance);
-          tokenPrice = await priceHelper.getTokenPrice(baseToken.address);
-          console.log("// lp price = ", ethers.utils.formatEther(lpPrice));
-
           await expect(vaultAsEve.kill("1")).to.be.revertedWith("can't liquidate");
           // Price swing 30%
           // Feed new price from 96 for 60% to make lp price down ~23.43%
@@ -1317,18 +1278,9 @@ describe("Vault - DeltaNetWorkerV202", () => {
           await mockAggregatorV3.deployed();
           chainLinkOracleAsDeployer.setPriceFeeds([farmToken.address], [busd.address], [mockAggregatorV3.address]);
 
-          lpBalance = await deltaNeutralWorker.totalLpBalance();
-          lpToken = await deltaNeutralWorker.lpToken();
-          lpInDollar = await priceHelper.lpToDollar(lpBalance, lpToken);
-          lpPrice = lpInDollar.mul(BigNumber.from("1000000000000000000")).div(lpBalance);
-          tokenPrice = await priceHelper.getTokenPrice(baseToken.address);
-          console.log("// lp price = ", ethers.utils.formatEther(lpPrice));
-
           // Now you can liquidate because of the price fluctuation
           const eveBefore = await baseToken.balanceOf(eveAddress);
-          await expect(vaultAsEve.kill("1")).to.be.revertedWith(
-            "DeltaNeutralWorker02::liquidate:: couldn't liquidate this worker"
-          );
+          await expect(vaultAsEve.kill("1")).to.be.revertedWith("NotAllowToLiquidate()");
           expect(await baseToken.balanceOf(eveAddress)).to.be.eq(eveBefore);
         });
       });
@@ -1383,9 +1335,7 @@ describe("Vault - DeltaNetWorkerV202", () => {
           // Alice liquidates Bob position#1
           let aliceBefore = await baseToken.balanceOf(aliceAddress);
 
-          await expect(vaultAsAlice.kill("1")).to.be.revertedWith(
-            "DeltaNeutralWorker02::liquidate:: couldn't liquidate this worker"
-          );
+          await expect(vaultAsAlice.kill("1")).to.be.revertedWith("NotAllowToLiquidate()");
 
           // let aliceAfter = await baseToken.balanceOf(aliceAddress);
 
@@ -1403,9 +1353,9 @@ describe("Vault - DeltaNetWorkerV202", () => {
 
           // // Alice withdraws 2 BOKTEN
           // aliceBefore = await baseToken.balanceOf(aliceAddress);
-          await vaultAsAlice.withdraw(await vault.balanceOf(aliceAddress));
-          let aliceAfter = await baseToken.balanceOf(aliceAddress);
-          console.log(aliceAfter);
+          // await vaultAsAlice.withdraw(await vault.balanceOf(aliceAddress));
+          // let aliceAfter = await baseToken.balanceOf(aliceAddress);
+          // console.log(aliceAfter);
 
           // // alice gots 2/12 * 10.002702699312215556 = 1.667117116552036
           // AssertHelpers.assertAlmostEqual(

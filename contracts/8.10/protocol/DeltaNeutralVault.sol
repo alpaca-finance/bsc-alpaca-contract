@@ -47,7 +47,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
     stableToken = _stableToken;
     assetToken = _assetToken;
-    priceHelper = _priceHelper;
+    lpCalculator = _lpCalculator;
   }
 
   function deposit(

@@ -35,6 +35,25 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
   /// @notice Libraries
   using SafeToken for address;
 
+  /// @notice Errors
+  error InvalidRewardToken();
+  error InvalidTokens();
+
+  error NotEOA();
+  error NotOperator();
+  error NotReinvestor();
+  error NotWhitelistCaller();
+
+  error UnApproveStrategy();
+  error BadTreasuryAccount();
+  error UnableToTransfer();
+  error NotAllowToLiquidate();
+
+  error InvalidReinvestPath();
+  error InvalidReinvestPathLength();
+  error ExceedReinvestBounty();
+  error ExceedReinvestBps();
+
   /// @notice Events
   event Reinvest(address indexed caller, uint256 reward, uint256 bounty);
   event MasterChefDeposit(uint256 lpAmount);
@@ -139,43 +158,46 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
     maxReinvestBountyBps = 900;
 
     // 6. Check if critical parameters are config properly
-    require(baseToken != cake, "DeltaNeutralWorker02::initialize:: base token cannot be a reward token");
-    require(
-      reinvestBountyBps <= maxReinvestBountyBps,
-      "DeltaNeutralWorker02::initialize:: reinvestBountyBps exceeded maxReinvestBountyBps"
-    );
-    require(
-      (farmingToken == lpToken.token0() || farmingToken == lpToken.token1()) &&
-        (baseToken == lpToken.token0() || baseToken == lpToken.token1()),
-      "DeltaNeutralWorker02::initialize:: LP underlying not match with farm & base token"
-    );
-    require(
-      reinvestPath[0] == cake && reinvestPath[reinvestPath.length - 1] == baseToken,
-      "DeltaNeutralWorker02::initialize:: reinvestPath must start with CAKE, end with BTOKEN"
-    );
+    // REVERT: DeltaNeutralWorker02::initialize:: base token cannot be a reward token
+    if (baseToken == cake) revert InvalidRewardToken();
+    // REVERT: "DeltaNeutralWorker02::initialize:: reinvestBountyBps exceeded maxReinvestBountyBps"
+    if (reinvestBountyBps > maxReinvestBountyBps) revert ExceedReinvestBounty();
+
+    // REVERT: "DeltaNeutralWorker02::initialize:: LP underlying not match with farm & base token"
+    if (
+      !((farmingToken == lpToken.token0() || farmingToken == lpToken.token1()) &&
+        (baseToken == lpToken.token0() || baseToken == lpToken.token1()))
+    ) revert InvalidTokens();
+
+    // REVERT: "DeltaNeutralWorker02::initialize:: reinvestPath must start with Cake, end with BTOKEN"
+    if (reinvestPath[0] != cake && reinvestPath[reinvestPath.length - 1] != baseToken) revert InvalidReinvestPath();
   }
 
   /// @dev Require that the caller must be an EOA account to avoid flash loans.
   modifier onlyEOA() {
-    require(msg.sender == tx.origin, "DeltaNeutralWorker02::onlyEOA:: not eoa");
+    // REVERT: "DeltaNeutralWorker02::onlyEOA:: not eoa"
+    if (msg.sender != tx.origin) revert NotEOA();
     _;
   }
 
   /// @dev Require that the caller must be the operator.
   modifier onlyOperator() {
-    require(msg.sender == operator, "DeltaNeutralWorker02::onlyOperator:: not operator");
+    // REVERT: "DeltaNeutralWorker02::onlyOperator:: not operator"
+    if (msg.sender != operator) revert NotOperator();
     _;
   }
 
   //// @dev Require that the caller must be ok reinvestor.
   modifier onlyReinvestor() {
-    require(okReinvestors[msg.sender], "DeltaNeutralWorker02::onlyReinvestor:: not reinvestor");
+    // REVERT: "DeltaNeutralWorker02::onlyReinvestor:: not reinvestor"
+    if (!okReinvestors[msg.sender]) revert NotReinvestor();
     _;
   }
 
   //// @dev Require that the caller must be whitelist callers.
   modifier onlyWhitelistCaller(address user) {
-    require(whitelistCallers[user], "DeltaNeutralWorker02::onlyWhitelistCaller:: not whitelist caller");
+    // REVERT: "DeltaNeutralWorker02::onlyWhitelistCaller:: not whitelist caller"
+    if (!whitelistCallers[user]) revert NotWhitelistCaller();
     _;
   }
 
@@ -198,7 +220,8 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
     uint256 _callerBalance,
     uint256 _reinvestThreshold
   ) internal {
-    require(_treasuryAccount != address(0), "DeltaNeutralWorker02::_reinvest:: bad treasury account");
+    // REVERT: "DeltaNeutralWorker02::_reinvest:: bad treasury account"
+    if (_treasuryAccount == address(0)) revert BadTreasuryAccount();
     // 1. Withdraw all the rewards. Return if reward <= _reinvestThreshold.
     _masterChefWithdraw();
     uint256 reward = cake.myBalance();
@@ -251,11 +274,10 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
     _masterChefWithdraw();
     // 3. Perform the worker strategy; sending LP tokens + BaseToken; expecting LP tokens + BaseToken.
     (address strat, bytes memory ext) = abi.decode(data, (address, bytes));
-    require(okStrats[strat], "DeltaNeutralWorker02::work:: unapproved work strategy");
-    require(
-      lpToken.transfer(strat, lpToken.balanceOf(address(this))),
-      "DeltaNeutralWorker02::work:: unable to transfer lp to strat"
-    );
+    // REVERT: "DeltaNeutralWorker02::work:: unapproved work strategy"
+    if (!okStrats[strat]) revert UnApproveStrategy();
+    // REVERT "DeltaNeutralWorker02::work:: unable to transfer lp to strat"
+    if (!lpToken.transfer(strat, lpToken.balanceOf(address(this)))) revert UnableToTransfer();
     baseToken.safeTransfer(strat, actualBaseTokenBalance());
     IStrategy(strat).execute(user, debt, ext);
     // 4. Add LP tokens back to the farming pool.
@@ -276,7 +298,8 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
   /// @param id The position ID to perform liquidation
   function liquidate(uint256 id) external override onlyOperator nonReentrant {
     // NOTE: this worker not allow to liquidate position.
-    revert("DeltaNeutralWorker02::liquidate:: couldn't liquidate this worker");
+    // REVERT: "DeltaNeutralWorker02::liquidate:: couldn't liquidate this worker"
+    revert NotAllowToLiquidate();
   }
 
   /// @dev Some portion of a bounty from reinvest will be sent to beneficialVault to increase the size of totalToken.
@@ -386,15 +409,12 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
     uint256 _reinvestThreshold,
     address[] calldata _reinvestPath
   ) external onlyOwner {
-    require(
-      _reinvestBountyBps <= maxReinvestBountyBps,
-      "DeltaNeutralWorker02::setReinvestConfig:: _reinvestBountyBps exceeded maxReinvestBountyBps"
-    );
-    require(_reinvestPath.length >= 2, "DeltaNeutralWorker02::setReinvestConfig:: _reinvestPath length must >= 2");
-    require(
-      _reinvestPath[0] == cake && _reinvestPath[_reinvestPath.length - 1] == baseToken,
-      "DeltaNeutralWorker02::setReinvestConfig:: _reinvestPath must start with CAKE, end with BTOKEN"
-    );
+    // REVERT: "DeltaNeutralWorker02::setReinvestConfig:: _reinvestBountyBps exceeded maxReinvestBountyBps"
+    if (_reinvestBountyBps > maxReinvestBountyBps) revert ExceedReinvestBounty();
+    // REVERT: "DeltaNeutralWorker02::setReinvestConfig:: _reinvestPath length must >= 2"
+    if (_reinvestPath.length < 2) revert InvalidReinvestPathLength();
+    // REVERT: "DeltaNeutralWorker02::setReinvestConfig:: _reinvestPath must start with CAKE, end with BTOKEN"
+    if (_reinvestPath[0] != cake || _reinvestPath[_reinvestPath.length - 1] != baseToken) revert InvalidReinvestPath();
 
     reinvestBountyBps = _reinvestBountyBps;
     reinvestThreshold = _reinvestThreshold;
@@ -412,14 +432,10 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
   /// @dev Set Max reinvest reward for set upper limit reinvest bounty.
   /// @param _maxReinvestBountyBps - The max reinvest bounty value to update.
   function setMaxReinvestBountyBps(uint256 _maxReinvestBountyBps) external onlyOwner {
-    require(
-      _maxReinvestBountyBps >= reinvestBountyBps,
-      "DeltaNeutralWorker02::setMaxReinvestBountyBps:: _maxReinvestBountyBps lower than reinvestBountyBps"
-    );
-    require(
-      _maxReinvestBountyBps <= 3000,
-      "DeltaNeutralWorker02::setMaxReinvestBountyBps:: _maxReinvestBountyBps exceeded 30%"
-    );
+    // REVERT: "DeltaNeutralWorker02::setMaxReinvestBountyBps:: _maxReinvestBountyBps lower than reinvestBountyBps"
+    if (reinvestBountyBps > _maxReinvestBountyBps) revert ExceedReinvestBounty();
+    // REVERT:  "DeltaNeutralWorker02::setMaxReinvestBountyBps:: _maxReinvestBountyBps exceeded 30%"
+    if (_maxReinvestBountyBps > 3000) revert ExceedReinvestBps();
 
     maxReinvestBountyBps = _maxReinvestBountyBps;
 
@@ -465,11 +481,11 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
   /// @dev Set a new reward path. In case that the liquidity of the reward path is changed.
   /// @param _rewardPath The new reward path.
   function setRewardPath(address[] calldata _rewardPath) external onlyOwner {
-    require(_rewardPath.length >= 2, "DeltaNeutralWorker02::setRewardPath:: rewardPath length must be >= 2");
-    require(
-      _rewardPath[0] == cake && _rewardPath[_rewardPath.length - 1] == beneficialVault.token(),
-      "DeltaNeutralWorker02::setRewardPath:: rewardPath must start with CAKE and end with beneficialVault token"
-    );
+    // REVERT:  "DeltaNeutralWorker02::setRewardPath:: rewardPath length must be >= 2"
+    if (_rewardPath.length < 2) revert InvalidReinvestPathLength();
+    // REVERT: "DeltaNeutralWorker02::setRewardPath:: rewardPath must start with CAKE and end with beneficialVault token"
+    if (_rewardPath[0] != cake || _rewardPath[_rewardPath.length - 1] != beneficialVault.token())
+      revert InvalidReinvestPath();
 
     rewardPath = _rewardPath;
 
@@ -488,10 +504,8 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
   /// @param _treasuryAccount - The treasury address to update
   /// @param _treasuryBountyBps - The treasury bounty to update
   function setTreasuryConfig(address _treasuryAccount, uint256 _treasuryBountyBps) external onlyOwner {
-    require(
-      _treasuryBountyBps <= maxReinvestBountyBps,
-      "DeltaNeutralWorker02::setTreasuryConfig:: _treasuryBountyBps exceeded maxReinvestBountyBps"
-    );
+    // REVERT: "DeltaNeutralWorker02::setTreasuryConfig:: _treasuryBountyBps exceeded maxReinvestBountyBps"
+    if (_treasuryBountyBps > maxReinvestBountyBps) revert ExceedReinvestBounty();
 
     treasuryAccount = _treasuryAccount;
     treasuryBountyBps = _treasuryBountyBps;
@@ -508,15 +522,13 @@ contract DeltaNeutralWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable,
     IVault _beneficialVault,
     address[] calldata _rewardPath
   ) external onlyOwner {
-    require(
-      _beneficialVaultBountyBps <= 10000,
-      "DeltaNeutralWorker02::setBeneficialVaultConfig:: _beneficialVaultBountyBps exceeds 100%"
-    );
-    require(_rewardPath.length >= 2, "DeltaNeutralWorker02::setBeneficialVaultConfig:: rewardPath length must >= 2");
-    require(
-      _rewardPath[0] == cake && _rewardPath[_rewardPath.length - 1] == _beneficialVault.token(),
-      "DeltaNeutralWorker02::setBeneficialVaultConfig:: rewardPath must start with CAKE, end with beneficialVault token"
-    );
+    // REVERT: "DeltaNeutralWorker02::setBeneficialVaultConfig:: _beneficialVaultBountyBps exceeds 100%"
+    if (_beneficialVaultBountyBps > 10000) revert ExceedReinvestBps();
+    // REVERT: "DeltaNeutralWorker02::setBeneficialVaultConfig:: rewardPath length must >= 2"
+    if (_rewardPath.length < 2) revert InvalidReinvestPathLength();
+    // REVERT: "DeltaNeutralWorker02::setBeneficialVaultConfig:: rewardPath must start with CAKE, end with beneficialVault token"
+    if (_rewardPath[0] != cake || _rewardPath[_rewardPath.length - 1] != _beneficialVault.token())
+      revert InvalidReinvestPath();
 
     _buyback();
 
