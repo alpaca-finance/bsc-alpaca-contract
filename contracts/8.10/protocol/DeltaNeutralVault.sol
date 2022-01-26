@@ -55,6 +55,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   error UnsafeOutstanding(address _token, uint256 _amountBefore, uint256 _amountAfter);
   error PositionsIsHealthy();
   error InsufficientTokenReceived(address _token, uint256 _requiredAmount, uint256 _receivedAmount);
+  error InsufficientShareReceived(uint256 _requiredAmount, uint256 _receivedAmount);
   error InvalidFairLaunchAddress();
 
   struct Outstanding{
@@ -135,6 +136,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   }
 
   function initPositions(
+    uint256 _minimumShareReceive,
     uint256 _stableTokenAmount,
     uint256 _assetTokenAmount,
     bytes calldata _data
@@ -145,7 +147,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _stableVaultPosId = IVault(stableVault).nextPositionID();
     uint256 _assetVaultPosId = IVault(assetVault).nextPositionID();
 
-    deposit(msg.sender, _stableTokenAmount, _assetTokenAmount, _data);
+    deposit(msg.sender, _minimumShareReceive, _stableTokenAmount, _assetTokenAmount, _data);
 
     stableVaultPosId = _stableVaultPosId;
     assetVaultPosId = _assetVaultPosId;
@@ -180,7 +182,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   /// @param _data The calldata to pass along to the proxy action for more working context.
   function deposit(
     address _shareReceiver,
-    //  add minimumShareReceive
+    uint256 _minimumShareReceive,
     uint256 _stableTokenAmount,
     uint256 _assetTokenAmount,
     bytes calldata _data
@@ -206,9 +208,14 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
     uint256 _shares = valueToShare(_depositValue);
     console.log("_shares", _shares);
+    if(_shares < _minimumShareReceive){
+      revert InsufficientShareReceived(_minimumShareReceive, _shares);
+    }
+    
     _mint(_shareReceiver, _shares);
     {
-      (uint256 _stablePositionValueBefore, uint256 _assetPositionValueBefore) = (_stablePositionValue(), _assetPositionValue());
+
+      (uint256 _stablePositionEquityBefore, uint256 _assetPositionEquityBefore) = (_stablePositionEquity(), _assetPositionEquity());
       (uint256 _stablePositionDebtValueBefore, uint256 _assetPositionDebtValueBefore) = (_stablePositionDebtValue(), _assetPositionDebtValue());
       
       // 3. call execute to do more work.
@@ -224,8 +231,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       // 4. sanity check
       _healthCheck(
         _depositValue,
-        _stablePositionValueBefore,
-        _assetPositionValueBefore,
+        _stablePositionEquityBefore,
+        _assetPositionEquityBefore,
         _stablePositionDebtValueBefore,
         _assetPositionDebtValueBefore
       );
@@ -340,25 +347,25 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
   function _healthCheck(
     uint256 depositValue,
-    uint256 _stablePositionValueBefore,
-    uint256 _assetPositionValueBefore,
+    uint256 _stablePositionEquityBefore,
+    uint256 _assetPositionEquityBefore,
     uint256 _stablePositionDebtValueBefore,
     uint256 _assetPositionDebtValueBefore
   ) internal {
-    (uint256 _stablePositionValue, uint256 _assetPositionValue) = (_stablePositionValue(), _assetPositionValue());
+    (uint256 _stablePositionEquity, uint256 _assetPositionEquity) = (_stablePositionEquity(), _assetPositionEquity());
     (uint256 _stablePositionDebtValue, uint256 _assetPositionDebtValue) = (_stablePositionDebtValue(), _assetPositionDebtValue());
     uint256 _tolerance = config.positionValueTolerance();
     console.log("_healthCheck");
     console.log("_healthCheck:depositValue",depositValue );
-    console.log("_healthCheck:_stablePositionValue",_stablePositionValue );
-    console.log("_healthCheck:_stablePositionValueBefore",_stablePositionValueBefore );
-    console.log("_healthCheck:_assetPositionValue",_assetPositionValue );
-    console.log("_healthCheck",!Math.almostEqual(_stablePositionValue - _stablePositionValueBefore, (depositValue) / 4, _tolerance) );
-    console.log("_healthCheck",!Math.almostEqual(_assetPositionValue - _assetPositionValueBefore, (depositValue * 3) / 4, _tolerance) );
+    console.log("_healthCheck:_stablePositionEquity",_stablePositionEquity );
+    console.log("_healthCheck:_stablePositionEquityBefore",_stablePositionEquityBefore );
+    console.log("_healthCheck:_assetPositionEquity",_assetPositionEquity );
+    console.log("_healthCheck",!Math.almostEqual(_stablePositionEquity - _stablePositionEquityBefore, (depositValue * 3) / 4, _tolerance)  );
+    console.log("_healthCheck",!Math.almostEqual(_assetPositionEquity - _assetPositionEquityBefore, (depositValue * 9) / 4, _tolerance));
     // 1. check position value
     if(
-      !Math.almostEqual(_stablePositionValue - _stablePositionValueBefore, (depositValue) / 4, _tolerance) ||
-      !Math.almostEqual(_assetPositionValue - _assetPositionValueBefore, (depositValue * 3) / 4, _tolerance)
+      !Math.almostEqual(_stablePositionEquity - _stablePositionEquityBefore, (depositValue * 3) / 4, _tolerance) ||
+      !Math.almostEqual(_assetPositionEquity - _assetPositionEquityBefore, (depositValue * 9) / 4, _tolerance)
     ){
       revert UnsafePositionValue();
     }
