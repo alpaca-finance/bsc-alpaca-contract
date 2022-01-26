@@ -9,6 +9,8 @@ import {
   PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading__factory,
   CakeMaxiWorker02__factory,
   CakeMaxiWorker02,
+  PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate__factory,
+  PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading__factory,
 } from "../../../../typechain";
 import { ConfigEntity } from "../../../entities";
 
@@ -44,6 +46,8 @@ interface ICakeMaxiWorkerParams {
   LIQ_STRAT_ADDR: string;
   ADD_BASE_WITH_FARM_STRAT_ADDR: string;
   MINIMIZE_TRADE_STRAT_ADDR: string;
+  PARTIAL_CLOSE_LIQ_STRAT_ADDR: string;
+  PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR: string;
   REINVEST_BOUNTY_BPS: string;
   BENEFICIAL_VAULT_BOUNTY_BPS: string;
   PATH: Array<string>;
@@ -68,32 +72,42 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const shortCakeMaxiWorkerInfo: Array<ICakeMaxiWorkerInput> = [
     {
-      VAULT_SYMBOL: "ibTUSD",
-      WORKER_NAME: "TUSD CakeMaxiWorker",
+      VAULT_SYMBOL: "ibUSDC",
+      WORKER_NAME: "USDC CakeMaxiWorker",
       POOL_ID: 0,
       REINVEST_BOT: "0xcf28b4da7d3ed29986831876b74af6e95211d3f9",
-      BENEFICIAL_VAULT_SYMBOL: "ibALPACA",
+      BENEFICIAL_VAULT_SYMBOL: "AlpacaFeeder",
       REINVEST_BOUNTY_BPS: "1900",
       BENEFICIAL_VAULT_BOUNTY_BPS: "5263",
       WORK_FACTOR: "6240",
       KILL_FACTOR: "8000",
-      MAX_PRICE_DIFF: "11000",
-      PATH: ["TUSD", "BUSD", "CAKE"],
+      MAX_PRICE_DIFF: "10500",
+      PATH: ["USDC", "BUSD", "CAKE"],
       REWARD_PATH: ["CAKE", "BUSD", "ALPACA"],
       REINVEST_THRESHOLD: "1",
-      EXACT_ETA: "1626667200",
+      EXACT_ETA: "1642493700",
     },
   ];
 
   const config = ConfigEntity.getConfig();
+  const deployer = (await ethers.getSigners())[0];
   const workerInfos: ICakeMaxiWorkerParams[] = shortCakeMaxiWorkerInfo.map((n) => {
     const vault = config.Vaults.find((v) => v.symbol === n.VAULT_SYMBOL);
     if (vault === undefined) {
       throw "error: unable to find vault from the given VAULT_SYMBOL";
     }
 
-    const beneficialVault = config.Vaults.find((v) => v.symbol === n.BENEFICIAL_VAULT_SYMBOL);
-    if (beneficialVault === undefined) {
+    let beneficialVaultAddress = "";
+    if (n.BENEFICIAL_VAULT_SYMBOL === "AlpacaFeeder") {
+      beneficialVaultAddress =
+        network.name === "mainnet" || network.name === "mainnetfork"
+          ? "0x44B3868cbba5fbd2c5D8d1445BDB14458806B3B4"
+          : "0x5589FE5BEAe1C642A48eEFF5e80A761343D831a9";
+    } else {
+      beneficialVaultAddress = config.Vaults.find((v) => v.symbol === n.BENEFICIAL_VAULT_SYMBOL)!.address;
+    }
+
+    if (beneficialVaultAddress === "") {
       throw "error: unable to find beneficialVault from the given BENEFICIAL_VAULT_SYMBOL";
     }
 
@@ -124,11 +138,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       BASE_TOKEN_ADDR: vault.baseToken,
       MASTER_CHEF_ADDR: config.Exchanges.Pancakeswap!.MasterChef,
       PANCAKESWAP_ROUTER_ADDR: config.Exchanges.Pancakeswap!.RouterV2,
-      BENEFICIAL_VAULT: beneficialVault.address,
+      BENEFICIAL_VAULT: beneficialVaultAddress,
       ADD_STRAT_ADDR: config.SharedStrategies.PancakeswapSingleAsset!.StrategyAddBaseTokenOnly,
       LIQ_STRAT_ADDR: config.SharedStrategies.PancakeswapSingleAsset!.StrategyLiquidate,
       ADD_BASE_WITH_FARM_STRAT_ADDR: vault.StrategyAddTwoSidesOptimal.PancakeswapSingleAsset!,
       MINIMIZE_TRADE_STRAT_ADDR: config.SharedStrategies.PancakeswapSingleAsset!.StrategyWithdrawMinimizeTrading,
+      PARTIAL_CLOSE_LIQ_STRAT_ADDR: config.SharedStrategies.PancakeswapSingleAsset!.StrategyPartialCloseLiquidate,
+      PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR:
+        config.SharedStrategies.PancakeswapSingleAsset!.StrategyPartialCloseMinimizeTrading,
       REINVEST_BOUNTY_BPS: n.REINVEST_BOUNTY_BPS,
       BENEFICIAL_VAULT_BOUNTY_BPS: n.BENEFICIAL_VAULT_BOUNTY_BPS,
       WORK_FACTOR: n.WORK_FACTOR,
@@ -147,9 +164,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(`>> Deploying an upgradable CakeMaxiWorker02 contract for ${workerInfos[i].WORKER_NAME}`);
     const CakeMaxiWorker02 = (await ethers.getContractFactory(
       "CakeMaxiWorker02",
-      (
-        await ethers.getSigners()
-      )[0]
+      deployer
     )) as CakeMaxiWorker02__factory;
     const cakeMaxiWorker02 = (await upgrades.deployProxy(CakeMaxiWorker02, [
       workerInfos[i].VAULT_ADDR,
@@ -167,46 +182,69 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       workerInfos[i].REINVEST_THRESHOLD,
     ])) as CakeMaxiWorker02;
     await cakeMaxiWorker02.deployed();
+    const deployTxReceipt = await cakeMaxiWorker02.deployTransaction.wait(3);
     console.log(`>> Deployed at ${cakeMaxiWorker02.address}`);
+    console.log(`>> Deployed block: ${deployTxReceipt.blockNumber}`);
+
+    let nonce = await deployer.getTransactionCount();
 
     console.log(`>> Adding REINVEST_BOT`);
-    await cakeMaxiWorker02.setReinvestorOk([workerInfos[i].REINVEST_BOT], true);
+    await cakeMaxiWorker02.setReinvestorOk([workerInfos[i].REINVEST_BOT], true, { nonce: nonce++ });
     console.log("✅ Done");
 
     console.log(`>> Set Treasury Account`);
-    await cakeMaxiWorker02.setTreasuryConfig(workerInfos[i].REINVEST_BOT, workerInfos[i].REINVEST_BOUNTY_BPS);
+    await cakeMaxiWorker02.setTreasuryConfig(workerInfos[i].REINVEST_BOT, workerInfos[i].REINVEST_BOUNTY_BPS, {
+      nonce: nonce++,
+    });
 
     console.log(`>> Adding Strategies`);
     await cakeMaxiWorker02.setStrategyOk(
-      [workerInfos[i].ADD_BASE_WITH_FARM_STRAT_ADDR, workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR],
-      true
+      [
+        workerInfos[i].ADD_BASE_WITH_FARM_STRAT_ADDR,
+        workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR,
+        workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR,
+        workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR,
+      ],
+      true,
+      { nonce: nonce++ }
     );
     console.log("✅ Done");
 
     console.log(`>> Whitelisting a worker on strats`);
     const addStrat = PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly__factory.connect(
       workerInfos[i].ADD_STRAT_ADDR,
-      (await ethers.getSigners())[0]
+      deployer
     );
-    await addStrat.setWorkersOk([cakeMaxiWorker02.address], true);
+    await addStrat.setWorkersOk([cakeMaxiWorker02.address], true, { nonce: nonce++ });
     const liqStrat = PancakeswapV2RestrictedSingleAssetStrategyLiquidate__factory.connect(
       workerInfos[i].LIQ_STRAT_ADDR,
-      (await ethers.getSigners())[0]
+      deployer
     );
-    await liqStrat.setWorkersOk([cakeMaxiWorker02.address], true);
+    await liqStrat.setWorkersOk([cakeMaxiWorker02.address], true, { nonce: nonce++ });
     const twoSidesStrat = PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm__factory.connect(
       workerInfos[i].ADD_BASE_WITH_FARM_STRAT_ADDR,
-      (await ethers.getSigners())[0]
+      deployer
     );
-    await twoSidesStrat.setWorkersOk([cakeMaxiWorker02.address], true);
+    await twoSidesStrat.setWorkersOk([cakeMaxiWorker02.address], true, { nonce: nonce++ });
     const minimizeStrat = PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading__factory.connect(
       workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR,
-      (await ethers.getSigners())[0]
+      deployer
     );
-    await minimizeStrat.setWorkersOk([cakeMaxiWorker02.address], true);
+    await minimizeStrat.setWorkersOk([cakeMaxiWorker02.address], true, { nonce: nonce++ });
+    const partialCloseLiquidateStrat = PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate__factory.connect(
+      workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR,
+      deployer
+    );
+    await partialCloseLiquidateStrat.setWorkersOk([cakeMaxiWorker02.address], true, { nonce: nonce++ });
+    const partialCloseMinimizeStrat =
+      PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading__factory.connect(
+        workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR,
+        deployer
+      );
+    await partialCloseMinimizeStrat.setWorkersOk([cakeMaxiWorker02.address], true, { nonce: nonce++ });
     console.log("✅ Done");
 
-    const timelock = Timelock__factory.connect(config.Timelock, (await ethers.getSigners())[0]);
+    const timelock = Timelock__factory.connect(config.Timelock, deployer);
 
     console.log(">> Timelock: Setting WorkerConfig via Timelock");
     const setConfigsTx = await timelock.queueTransaction(
@@ -227,7 +265,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
           ],
         ]
       ),
-      workerInfos[i].EXACT_ETA
+      workerInfos[i].EXACT_ETA,
+      { nonce: nonce++ }
     );
     console.log(`queue setConfigs at: ${setConfigsTx.hash}`);
     console.log("generate timelock.executeTransaction:");
@@ -245,7 +284,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         ["address[]", "address[]"],
         [[cakeMaxiWorker02.address], [workerInfos[i].WORKER_CONFIG_ADDR]]
       ),
-      workerInfos[i].EXACT_ETA
+      workerInfos[i].EXACT_ETA,
+      { nonce: nonce++ }
     );
     console.log(`queue setWorkers at: ${setWorkersTx.hash}`);
     console.log("generate timelock.executeTransaction:");

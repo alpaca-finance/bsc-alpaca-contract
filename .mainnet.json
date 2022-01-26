@@ -3210,6 +3210,40 @@
             "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
             "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
+        },
+        {
+          "name": "USDT-USDC PancakeswapWorker",
+          "address": "0x8b452051666708A005F6C7170baADc3913b4C349",
+          "deployedBlock": 14445948,
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 423,
+          "stakingToken": "0xEc6557348085Aa57C72514D67070dC863C0a5A8c",
+          "stakingTokenAt": "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+            "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+            "StrategyAddTwoSidesOptimal": "0x66C7170d102dB819f50f9582973ab0d16d6f5242",
+            "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
+          }
+        },
+        {
+          "name": "USDC CakeMaxiWorker",
+          "address": "0x5342Fbb861C2Aea626F66521C512ac5Fa03B6a58",
+          "deployedBlock": 14446136,
+          "config": "0x6d203f081367Cfa2968bD62dC3122274f735378C",
+          "pId": 0,
+          "stakingToken": "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82",
+          "stakingTokenAt": "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x5cB454fc86068e710212FBECBC93070b90011F2B",
+            "StrategyLiquidate": "0x6C0105950B1fEE24eE4ADdd1DFF346cceF75D150",
+            "StrategyAddTwoSidesOptimal": "0x9a0Beed083D3A45b6463c621b0CE489482459b21",
+            "StrategyWithdrawMinimizeTrading": "0x94f5E884e11fC054Ca0b332e3a8773750BDBe242",
+            "StrategyPartialCloseLiquidate": "0xa6b2a3Fdd415Ca304a36909a35f974B670960843",
+            "StrategyPartialCloseMinimizeTrading": "0xDD8A4302299115226676F943E01306107DD98495"
+          }
         }
       ]
     }
