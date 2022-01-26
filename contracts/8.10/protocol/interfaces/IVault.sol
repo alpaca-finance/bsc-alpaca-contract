@@ -47,4 +47,6 @@ abstract contract IVault {
     uint256 maxReturn,
     bytes calldata data
   ) external payable virtual;
+
+  function fairLaunchPoolId() external view virtual returns (uint256);
 }

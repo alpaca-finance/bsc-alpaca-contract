@@ -14,10 +14,13 @@ Alpaca Fin Corporation
 pragma solidity 0.8.10;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "../utils/SafeToken.sol";
 
 import "./interfaces/IDeltaNeutralVaultConfig.sol";
 
 contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable {
+  using SafeToken for address;
+
   /// @dev Events
   event LogSetParams(
     address indexed _caller,
@@ -33,10 +36,18 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   address public override getWrappedNativeAddr;
   /// address for wNtive Relayer
   address public override getWNativeRelayer;
+
+  address public fairLaunchAddr;
+
   //
   uint256 public override rebalanceFactor;
   //
   uint256 public override positionValueTolerance;
+
+  /// @notice debt of delta neutral stable pool Id
+  uint256 public debtStablePoolId;
+  /// @notice debt of delta neutral asset pool Id
+  uint256 public debtAssetPoolId;
 
   /// list of whitelisted callers.
   mapping(address => bool) public whitelistedCallers;
@@ -88,5 +99,9 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
       whitelistedRebalancers[_callers[_idx]] = _ok;
       emit LogSetWhitelistedRebalancers(msg.sender, _callers[_idx], _ok);
     }
+  }
+
+  function setFairLaunchAddr(address _newFairLaunchAddr) external {
+    fairLaunchAddr = _newFairLaunchAddr;
   }
 }
