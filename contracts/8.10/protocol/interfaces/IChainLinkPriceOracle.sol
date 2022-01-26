@@ -10,14 +10,8 @@
 　 ξ_ξξ_ξ　ξ_ξξ_ξ
 Alpaca Fin Corporation
 */
+pragma solidity 0.8.10;
 
-interface IVault {
-  function work(
-    uint256 id,
-    address worker,
-    uint256 principalAmount,
-    uint256 borrowAmount,
-    uint256 maxReturn,
-    bytes calldata data
-  ) external payable;
+interface IChainLinkPriceOracle {
+  function getPrice(address token0, address token1) external view returns (uint256, uint256);
 }
