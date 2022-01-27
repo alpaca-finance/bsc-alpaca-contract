@@ -685,7 +685,7 @@ export class DeployHelper {
     reinvestPath: Array<string>,
     extraStrategies: string[],
     simpleVaultConfig: SimpleVaultConfig,
-    priceHelper: PriceHelper
+    priceHelperAddress: string
   ): Promise<DeltaNeutralPancakeWorker02> {
     const DeltaNeutralPancakeWorker02 = (await ethers.getContractFactory(
       "DeltaNeutralPancakeWorker02",
@@ -702,7 +702,7 @@ export class DeployHelper {
       treasuryAddress,
       reinvestPath,
       0,
-      priceHelper.address,
+      priceHelperAddress,
     ])) as DeltaNeutralPancakeWorker02;
     await deltaNeutralWorker02.deployed();
 
@@ -735,7 +735,7 @@ export class DeployHelper {
     reinvestPath: Array<string>,
     extraStrategies: string[],
     simpleVaultConfig: SimpleVaultConfig,
-    priceHelper: PriceHelper
+    priceHelperAddress: string
   ): Promise<DeltaNeutralMdexWorker02> {
     const DeltaNeutralMdexWorker02 = (await ethers.getContractFactory(
       "DeltaNeutralMdexWorker02",
@@ -752,7 +752,7 @@ export class DeployHelper {
       treasuryAddress,
       reinvestPath,
       0,
-      priceHelper.address,
+      priceHelperAddress,
     ])) as DeltaNeutralMdexWorker02;
     await worker.deployed();
 
