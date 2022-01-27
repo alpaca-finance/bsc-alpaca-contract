@@ -1,17 +1,9 @@
 import { ethers, upgrades, waffle } from "hardhat";
-import { Signer, constants, BigNumber } from "ethers";
+import { Signer } from "ethers";
 import { solidity } from "ethereum-waffle";
 import chai from "chai";
 import "@openzeppelin/test-helpers";
-import * as TimeHelpers from "../../../helpers/time";
-import {
-  DeltaNeutralVaultConfig,
-  DeltaNeutralVaultConfig__factory,
-  MockWBNB,
-  WNativeRelayer,
-  WNativeRelayer__factory,
-} from "../../../../typechain";
-import { DeployHelper } from "../../../helpers/deploy";
+import { DeltaNeutralVaultConfig, DeltaNeutralVaultConfig__factory } from "../../../../typechain";
 
 chai.use(solidity);
 const { expect } = chai;
