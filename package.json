@@ -237,6 +237,7 @@
     "test:oracleMedianizer": "hardhat test --no-compile ./test/OracleMedianizer.test.ts",
     "test:chainLinkPriceOracle": "hardhat test --no-compile ./test/ChainLinkPriceOracle.test.ts",
     "test:deltaneutral": "hardhat test --no-compile ./test/integrations/protocol/delta-neutral/DeltaNeutralVault.test.ts",
+    "test:deltaneutralConfig": "hardhat test --no-compile ./test/integrations/protocol/delta-neutral/DeltaNeutralVaultConfig.test.ts",
     "test:mainnetfork:grazingRangeV2": "hardhat --network mainnetfork run --no-compile ./test/fork/GrazingRangeUpgrade.test.ts",
     "test:priceHelper": "hardhat test --no-compile ./test/integrations/protocol/PriceHelper.test.ts",
     "test": "hardhat test --no-compile",
