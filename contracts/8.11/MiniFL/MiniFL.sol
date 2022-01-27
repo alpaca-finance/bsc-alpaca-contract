@@ -214,7 +214,7 @@ contract MiniFL is IMiniFL, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     // Interactions
     IRewarder _rewarder = rewarder[_pid];
     if (address(_rewarder) != address(0)) {
-      _rewarder.onDeposit(_pid, _for, user.amount);
+      _rewarder.onDeposit(_pid, _for, 0, user.amount);
     }
 
     stakingToken[_pid].safeTransferFrom(msg.sender, address(this), _amount);
@@ -244,7 +244,7 @@ contract MiniFL is IMiniFL, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     // Interactions
     IRewarder _rewarder = rewarder[_pid];
     if (address(_rewarder) != address(0)) {
-      _rewarder.onWithdraw(_pid, _for, user.amount);
+      _rewarder.onWithdraw(_pid, _for, 0, user.amount);
     }
 
     stakingToken[_pid].safeTransfer(msg.sender, _amount);
@@ -271,7 +271,7 @@ contract MiniFL is IMiniFL, OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     IRewarder _rewarder = rewarder[_pid];
     if (address(_rewarder) != address(0)) {
-      _rewarder.onHarvest(_pid, msg.sender);
+      _rewarder.onHarvest(_pid, msg.sender, 0);
     }
 
     emit LogHarvest(msg.sender, _pid, _pendingAlpaca);
@@ -291,7 +291,7 @@ contract MiniFL is IMiniFL, OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     IRewarder _rewarder = rewarder[_pid];
     if (address(_rewarder) != address(0)) {
-      _rewarder.onWithdraw(_pid, msg.sender, _amount);
+      _rewarder.onWithdraw(_pid, msg.sender, _amount, 0);
     }
 
     // Note: transfer can fail or succeed if `amount` is zero.

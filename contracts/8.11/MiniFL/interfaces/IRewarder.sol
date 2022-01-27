@@ -18,16 +18,22 @@ interface IRewarder {
   function onDeposit(
     uint256 pid,
     address user,
+    uint256 alpacaAmount,
     uint256 newStakeTokenAmount
   ) external;
 
   function onWithdraw(
     uint256 pid,
     address user,
+    uint256 alpacaAmount,
     uint256 newStakeTokenAmount
   ) external;
 
-  function onHarvest(uint256 pid, address user) external;
+  function onHarvest(
+    uint256 pid,
+    address user,
+    uint256 alpacaAmount
+  ) external;
 
   function pendingTokens(
     uint256 pid,

@@ -75,6 +75,7 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
   function onDeposit(
     uint256 _pid,
     address _user,
+    uint256, /* _alpacaAmount */
     uint256 _newAmount
   ) external override nonReentrant onlyFL {
     PoolInfo memory pool = _updatePool(_pid);
@@ -91,6 +92,7 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
   function onWithdraw(
     uint256 _pid,
     address _user,
+    uint256, /* _alpacaAmount */
     uint256 _newAmount
   ) external override nonReentrant onlyFL {
     PoolInfo memory pool = _updatePool(_pid);
@@ -113,7 +115,11 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
     emit LogOnWithdraw(_user, _pid, _amount);
   }
 
-  function onHarvest(uint256 _pid, address _user) external override nonReentrant onlyFL {
+  function onHarvest(
+    uint256 _pid,
+    address _user,
+    uint256 /* _alpacaAmount */
+  ) external override nonReentrant onlyFL {
     PoolInfo memory pool = _updatePool(_pid);
     UserInfo storage user = userInfo[_pid][_user];
 
