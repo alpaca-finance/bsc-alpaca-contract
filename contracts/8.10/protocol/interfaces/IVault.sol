@@ -11,6 +11,8 @@
 Alpaca Fin Corporation
 */
 
+pragma solidity 0.8.10;
+
 interface IVault {
   function work(
     uint256 id,

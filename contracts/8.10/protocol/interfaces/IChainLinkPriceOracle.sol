@@ -10,6 +10,7 @@
 　 ξ_ξξ_ξ　ξ_ξξ_ξ
 Alpaca Fin Corporation
 */
+
 pragma solidity 0.8.10;
 
 interface IChainLinkPriceOracle {
