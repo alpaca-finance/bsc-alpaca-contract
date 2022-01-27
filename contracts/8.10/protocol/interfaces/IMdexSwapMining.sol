@@ -13,15 +13,10 @@ Alpaca Fin Corporation
 
 pragma solidity 0.8.10;
 
-interface IVault {
-  function work(
-    uint256 id,
-    address worker,
-    uint256 principalAmount,
-    uint256 borrowAmount,
-    uint256 maxReturn,
-    bytes calldata data
-  ) external payable;
+interface IMdexSwapMining {
+  /// @dev Get rewards from users in the current pool;
+  function getUserReward(uint256 pid) external view returns (uint256, uint256);
 
-  function token() external view returns (address);
+  /// @dev Withdraws all the transaction rewards of the pool
+  function takerWithdraw() external;
 }
