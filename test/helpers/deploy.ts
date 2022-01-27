@@ -1,4 +1,4 @@
-import { BigNumberish, Signer } from "ethers";
+import { BigNumber, BigNumberish, Signer } from "ethers";
 import { ethers, upgrades } from "hardhat";
 import {
   AlpacaToken,
@@ -94,6 +94,13 @@ import {
   DeltaNeutralWorker02__factory,
   DeltaNeutralVaultConfig,
   DeltaNeutralVaultConfig__factory,
+  PriceHelper,
+  PriceHelper__factory,
+  ChainLinkPriceOracle,
+  ChainLinkPriceOracle__factory,
+  MockAggregatorV3__factory,
+  DeltaNeutralPancakeWorker02__factory,
+  DeltaNeutralPancakeWorker02,
 } from "../../typechain";
 import * as TimeHelpers from "../helpers/time";
 
@@ -151,6 +158,13 @@ export class DeployHelper {
     const wbnb = await WBNB.deploy();
     await wbnb.deployed();
     return wbnb;
+  }
+
+  public async deployERC20(): Promise<MockERC20> {
+    const ERC20 = (await ethers.getContractFactory("MockERC20", this.deployer)) as MockERC20__factory;
+    const erc20 = (await upgrades.deployProxy(ERC20, ["token0", "token0", "18"])) as MockERC20;
+    await erc20.deployed();
+    return erc20;
   }
 
   public async deployPancakeV2(
@@ -641,6 +655,144 @@ export class DeployHelper {
 
     return pancakeswapV2Worker02;
   }
+
+  public async deployPriceHelper(
+    tokens: string[],
+    tokenPrices: BigNumber[],
+    tokenDecimals: number[],
+    usdToken: string
+  ): Promise<[PriceHelper, ChainLinkPriceOracle]> {
+    const ChainLinkPriceOracle = (await ethers.getContractFactory(
+      "ChainLinkPriceOracle",
+      this.deployer
+    )) as ChainLinkPriceOracle__factory;
+    const chainLinkOracle = (await upgrades.deployProxy(ChainLinkPriceOracle)) as ChainLinkPriceOracle;
+    await chainLinkOracle.deployed();
+
+    const MockAggregatorV3 = (await ethers.getContractFactory(
+      "MockAggregatorV3",
+      this.deployer
+    )) as MockAggregatorV3__factory;
+
+    const aggregators = await Promise.all(
+      tokens.map(async (_, index) => {
+        const mockAggregatorV3 = await MockAggregatorV3.deploy(tokenPrices[index], tokenDecimals[index]);
+        await mockAggregatorV3.deployed();
+        return mockAggregatorV3.address;
+      })
+    );
+    const chainLinkOracleAsDeployer = ChainLinkPriceOracle__factory.connect(chainLinkOracle.address, this.deployer);
+    chainLinkOracleAsDeployer.setPriceFeeds(
+      tokens,
+      tokens.map((_) => usdToken),
+      aggregators
+    );
+
+    const PriceHelper = (await ethers.getContractFactory("PriceHelper", this.deployer)) as PriceHelper__factory;
+    const priceHelper = (await upgrades.deployProxy(PriceHelper, [chainLinkOracle.address, usdToken])) as PriceHelper;
+    await priceHelper.deployed();
+    return [priceHelper, chainLinkOracle];
+  }
+
+  public async deployDeltaNeutralPancakeWorker02(
+    vault: Vault,
+    btoken: MockERC20,
+    masterChef: PancakeMasterChef,
+    routerV2: PancakeRouterV2,
+    poolId: number,
+    workFactor: BigNumberish,
+    killFactor: BigNumberish,
+    addStrat: PancakeswapV2RestrictedStrategyAddBaseTokenOnly,
+    reinvestBountyBps: BigNumberish,
+    okReinvestor: string[],
+    treasuryAddress: string,
+    reinvestPath: Array<string>,
+    extraStrategies: string[],
+    simpleVaultConfig: SimpleVaultConfig,
+    priceHelper: PriceHelper
+  ): Promise<DeltaNeutralPancakeWorker02> {
+    const DeltaNeutralPancakeWorker02 = (await ethers.getContractFactory(
+      "DeltaNeutralPancakeWorker02",
+      this.deployer
+    )) as DeltaNeutralPancakeWorker02__factory;
+    const deltaNeutralWorker02 = (await upgrades.deployProxy(DeltaNeutralPancakeWorker02, [
+      vault.address,
+      btoken.address,
+      masterChef.address,
+      routerV2.address,
+      poolId,
+      addStrat.address,
+      reinvestBountyBps,
+      treasuryAddress,
+      reinvestPath,
+      0,
+      priceHelper.address,
+    ])) as DeltaNeutralPancakeWorker02;
+    await deltaNeutralWorker02.deployed();
+
+    await simpleVaultConfig.setWorker(deltaNeutralWorker02.address, true, true, workFactor, killFactor, true, true);
+    await deltaNeutralWorker02.setStrategyOk(extraStrategies, true);
+    await deltaNeutralWorker02.setReinvestorOk(okReinvestor, true);
+    await deltaNeutralWorker02.setTreasuryConfig(treasuryAddress, reinvestBountyBps);
+
+    extraStrategies.push(addStrat.address);
+    extraStrategies.forEach(async (stratAddress) => {
+      const strat = PancakeswapV2RestrictedStrategyLiquidate__factory.connect(stratAddress, this.deployer);
+      await strat.setWorkersOk([deltaNeutralWorker02.address], true);
+    });
+
+    return deltaNeutralWorker02;
+  }
+
+  // public async deployDeltaNeutralMdexWorker02(
+  //   vault: Vault,
+  //   btoken: MockERC20,
+  //   masterChef: BSCPool,
+  //   routerV2: MdexRouter,
+  //   poolIndex: number,
+  //   workFactor: BigNumberish,
+  //   killFactor: BigNumberish,
+  //   addStrat: MdexRestrictedStrategyAddBaseTokenOnly,
+  //   reinvestBountyBps: BigNumberish,
+  //   okReinvestor: string[],
+  //   treasuryAddress: string,
+  //   reinvestPath: Array<string>,
+  //   extraStrategies: string[],
+  //   simpleVaultConfig: SimpleVaultConfig,
+  //   priceHelper: PriceHelper
+  // ): Promise<DeltaNeutralMdexWorker02> {
+  //   const DeltaNeutralMdexWorker02 = (await ethers.getContractFactory(
+  //     "DeltaNeutralMdexWorker02",
+  //     this.deployer
+  //   )) as DeltaNeutralMdexWorker02__factory;
+  //   const worker = (await upgrades.deployProxy(DeltaNeutralMdexWorker02, [
+  //     vault.address,
+  //     btoken.address,
+  //     masterChef.address,
+  //     routerV2.address,
+  //     poolIndex,
+  //     addStrat.address,
+  //     reinvestBountyBps,
+  //     treasuryAddress,
+  //     reinvestPath,
+  //     0,
+  //     priceHelper.address,
+  //   ])) as DeltaNeutralMdexWorker02;
+  //   await worker.deployed();
+
+  //   await simpleVaultConfig.setWorker(worker.address, true, true, workFactor, killFactor, true, true);
+  //   await worker.setStrategyOk(extraStrategies, true);
+  //   await worker.setReinvestorOk(okReinvestor, true);
+  //   await worker.setTreasuryConfig(treasuryAddress, reinvestBountyBps);
+
+  //   extraStrategies.push(addStrat.address);
+  //   extraStrategies.forEach(async (stratAddress) => {
+  //     const strat = MdexRestrictedStrategyLiquidate__factory.connect(stratAddress, this.deployer);
+  //     await strat.setWorkersOk([worker.address], true);
+  //   });
+
+  //   return worker;
+  // }
 
   public async deployPancakeV2Worker(
     vault: Vault,
