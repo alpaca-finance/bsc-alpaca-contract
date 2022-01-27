@@ -1588,7 +1588,6 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
             await cake.balanceOf(DEPLOYER),
             `expect Deployer gets ${ethers.utils.formatEther(totalReinvestFees)} CAKE`
           ).to.be.eq(totalReinvestFees);
-          console.log("7");
         }
 
         async function successTwoSides(lastWorkBlock: BigNumber, goRouge: boolean) {
