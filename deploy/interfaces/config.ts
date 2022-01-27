@@ -5,6 +5,7 @@ export interface Config {
   MerkleDistributor?: MerkleDistributor;
   GrazingRange?: GrazingRange;
   FairLaunch?: FairLaunch;
+  MiniFL?: MiniFL;
   Exchanges: Exchanges;
   Tokens: Tokens;
   LpTokens?: LpTokens;
@@ -39,6 +40,17 @@ export interface PoolsEntity1 {
   id: number;
   stakingToken: string;
   address: string;
+}
+export interface MiniFL {
+  address: string;
+  deployedBlock: number;
+  pools: PoolsEntity2[];
+}
+export interface PoolsEntity2 {
+  id: number;
+  stakingToken: string;
+  address: string;
+  rewarder: string;
 }
 export interface Exchanges {
   Pancakeswap?: Pancakeswap;

@@ -82,8 +82,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       REINVEST_THRESHOLD: "0",
       WORK_FACTOR: "7000",
       KILL_FACTOR: "8333",
-      MAX_PRICE_DIFF: "11000",
-      EXACT_ETA: "1643019300",
+      MAX_PRICE_DIFF: "1100000000000",
+      EXACT_ETA: "1643259300",
     },
   ];
 

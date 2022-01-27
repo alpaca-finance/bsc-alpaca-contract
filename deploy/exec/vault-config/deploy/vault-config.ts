@@ -23,7 +23,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const TREASURY_ADDR = "0x0FfA891ab6f410bbd7403b709e7d38D7a812125B";
   const TRIPLE_SLOPE_MODEL = config.SharedConfig.TripleSlopeModel;
   const WNATIVE = config.Tokens.WFTM!;
-  const FAIR_LAUNCH = ethers.constants.AddressZero;
+  const FAIR_LAUNCH = config.MiniFL!.address;
 
   console.log(">> Deploying an upgradable configurableInterestVaultConfig contract");
   const ConfigurableInterestVaultConfig = (await ethers.getContractFactory(

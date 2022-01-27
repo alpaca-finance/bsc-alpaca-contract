@@ -2,15 +2,37 @@
   "ProxyAdmin": "0x25C8BF156cE1DcBC3f04E18621a0472aFe59d918",
   "Timelock": "0x42E8faf92f83E43A0C1E6A559e4bEdFa1e9B45f4",
   "Multicall": "",
+  "MiniFL": {
+    "address": "0x59CfFf374CF8cd5BDb2Be478E4f94aCBCF811f28",
+    "deployedBlock": 6949550,
+    "pools": [
+      {
+        "id": 0,
+        "stakingToken": "debtIbFTM_V2",
+        "address": "0xA835C1e13A6DB3958b68b811e83dB50D7249eF0A",
+        "rewarder": "0x763a687E631A907baDd620E20e9A0869E3Ec543D"
+      },
+      {
+        "id": 1,
+        "stakingToken": "ibFTM",
+        "address": "0x000FeF1D21bD911a68229e947b53134bBb35473b",
+        "rewarder": "0x763a687E631A907baDd620E20e9A0869E3Ec543D"
+      }
+    ]
+  },
   "Exchanges": {
     "SpookySwap": {
       "SpookyFactory": "0x54eae3Cb4fB023648E571F4627E1A056fcEb67Da",
       "SpookyRouter": "0x2329abE57D45c9798Dd267f83ec70aD8284ea8bE",
       "SpookyMasterChef": "0xF9c40C68d4AE8234db6AbC38B7Efb91cF2232cF4",
-      "LpTokens": [{ "pId": 0, "name": "BOO-WFTM LP", "address": "0x98ee4798926d6738f58D958b4AA418AACbFF2b7b" }]
+      "LpTokens": [
+        { "pId": 0, "name": "BOO-WFTM LP", "address": "0x98ee4798926d6738f58D958b4AA418AACbFF2b7b" },
+        { "pId": 1, "name": "ALPACA-WFTM LP", "address": "0xE19adba4168E68fE804479A741b809e45d0b26E4" }
+      ]
     }
   },
   "Tokens": {
+    "ALPACA": "0x17326e0677A4C89E22FBD6192F1fb1972200473a",
     "WFTM": "0xE3fEd8069957C9BA105AD97D8C467B93f88fd8A3",
     "BOO": "0x54454F06ac60d35b815AdBD81E222Cf8aa4AD4C5"
   },
@@ -37,20 +59,20 @@
     {
       "name": "Interest Bearing FTM",
       "symbol": "ibFTM",
-      "address": "0x6b8603F3C06364fd268a573e807eD4223d8dC155",
-      "deployedBlock": 6852546,
+      "address": "0x000FeF1D21bD911a68229e947b53134bBb35473b",
+      "deployedBlock": 6950003,
       "baseToken": "0xE3fEd8069957C9BA105AD97D8C467B93f88fd8A3",
-      "debtToken": "0x",
-      "config": "0xc54d39fE45FfF1a28D17dFc255fE65DB12aFa3B9",
+      "debtToken": "0xA835C1e13A6DB3958b68b811e83dB50D7249eF0A",
+      "config": "0x3916AF7Df8033c9E574D60BDd9171f104C2C4233",
       "tripleSlopeModel": "0x72a7AA7EAF23C31F4a1EdB0b3a66778EF6ca5077",
       "StrategyAddTwoSidesOptimal": {
-        "SpookySwap": "0x6Ed18e766679A68FE4f0969Dcef394C22efAFEbF"
+        "SpookySwap": "0x792eBD6e468593f4a68B01A11A491ed84D1db104"
       },
       "workers": [
         {
           "name": "BOO-WFTM SpookyWorker",
-          "address": "0x1fa957856fa8b4915f404d90050d847086FB25E3",
-          "deployedBlock": 6856013,
+          "address": "0x74D2465B2d5a0686A6fd5e84008BE3bcE8453529",
+          "deployedBlock": 6950219,
           "config": "0x972F1D78d1E7D7ab5c11b3346c966c2EC94a64e6",
           "pId": 0,
           "stakingToken": "0x98ee4798926d6738f58D958b4AA418AACbFF2b7b",
@@ -58,7 +80,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0x96b6FAfdC9C3D55ef4906A005B7525B8C06CE6f5",
             "StrategyLiquidate": "0x5f597510Af2562181F752217a3C4963c9baAC615",
-            "StrategyAddTwoSidesOptimal": "0x6Ed18e766679A68FE4f0969Dcef394C22efAFEbF",
+            "StrategyAddTwoSidesOptimal": "0x792eBD6e468593f4a68B01A11A491ed84D1db104",
             "StrategyWithdrawMinimizeTrading": "0x800343333540a2e600E66e7cD73ABc0dE3cC017A",
             "StrategyPartialCloseLiquidate": "0xC74846Bc38AF10d172293aC1D1C524e319156F0F",
             "StrategyPartialCloseMinimizeTrading": "0x0C52c7E0c27028428DcBCBA8791f30b082aD9A3a"
