@@ -76,7 +76,7 @@ describe("DeltaNeutralVault", () => {
 
   // Delta Vault Config
   const REBALANCE_FACTOR = "6500";
-  const POSITION_VALUE_TOLERANCE_BPS = "1000";
+  const POSITION_VALUE_TOLERANCE_BPS = "500";
 
   // Delta Vault
   const ACTION_WORK = 1;
@@ -200,9 +200,9 @@ describe("DeltaNeutralVault", () => {
         symbol: "BTOKEN",
         decimals: "18",
         holders: [
-          { address: deployerAddress, amount: ethers.utils.parseEther("1000") },
-          { address: aliceAddress, amount: ethers.utils.parseEther("1000") },
-          { address: bobAddress, amount: ethers.utils.parseEther("1000") },
+          { address: deployerAddress, amount: ethers.utils.parseEther("1000000") },
+          { address: aliceAddress, amount: ethers.utils.parseEther("1000000") },
+          { address: bobAddress, amount: ethers.utils.parseEther("1000000") },
         ],
       },
       {
@@ -210,17 +210,17 @@ describe("DeltaNeutralVault", () => {
         symbol: "FTOKEN",
         decimals: "18",
         holders: [
-          { address: deployerAddress, amount: ethers.utils.parseEther("1000") },
-          { address: aliceAddress, amount: ethers.utils.parseEther("1000") },
-          { address: bobAddress, amount: ethers.utils.parseEther("1000") },
+          { address: deployerAddress, amount: ethers.utils.parseEther("1000000") },
+          { address: aliceAddress, amount: ethers.utils.parseEther("1000000") },
+          { address: bobAddress, amount: ethers.utils.parseEther("1000000") },
         ],
       },
     ]);
     wbnb = await deployHelper.deployWBNB();
 
-    await wbnb.mint(deployerAddress, ethers.utils.parseEther("1000"));
-    await wbnb.mint(aliceAddress, ethers.utils.parseEther("1000"));
-    await wbnb.mint(bobAddress, ethers.utils.parseEther("1000"));
+    await wbnb.mint(deployerAddress, ethers.utils.parseEther("1000000"));
+    await wbnb.mint(aliceAddress, ethers.utils.parseEther("1000000"));
+    await wbnb.mint(bobAddress, ethers.utils.parseEther("1000000"));
 
     [factoryV2, routerV2, cake, syrup, masterChef] = await deployHelper.deployPancakeV2(wbnb, CAKE_REWARD_PER_BLOCK, [
       { address: deployerAddress, amount: ethers.utils.parseEther("100") },
@@ -338,26 +338,26 @@ describe("DeltaNeutralVault", () => {
       {
         token0: baseToken,
         token1: farmToken,
-        amount0desired: ethers.utils.parseEther("1"),
-        amount1desired: ethers.utils.parseEther("0.1"),
+        amount0desired: ethers.utils.parseEther("1000"),
+        amount1desired: ethers.utils.parseEther("100"),
       },
       {
         token0: cake,
         token1: wbnb,
-        amount0desired: ethers.utils.parseEther("0.1"),
-        amount1desired: ethers.utils.parseEther("1"),
+        amount0desired: ethers.utils.parseEther("100"),
+        amount1desired: ethers.utils.parseEther("1000"),
       },
       {
         token0: baseToken,
         token1: wbnb,
-        amount0desired: ethers.utils.parseEther("1"),
-        amount1desired: ethers.utils.parseEther("1"),
+        amount0desired: ethers.utils.parseEther("1000"),
+        amount1desired: ethers.utils.parseEther("1000"),
       },
       {
         token0: farmToken,
         token1: wbnb,
-        amount0desired: ethers.utils.parseEther("1"),
-        amount1desired: ethers.utils.parseEther("1"),
+        amount0desired: ethers.utils.parseEther("1000"),
+        amount1desired: ethers.utils.parseEther("1000"),
       },
     ]);
 
@@ -643,7 +643,7 @@ describe("DeltaNeutralVault", () => {
 
         let stableTokenPrice = ethers.utils.parseEther("1");
         let assetTokenPrice = ethers.utils.parseEther("1");
-        let lpPrice = ethers.utils.parseEther("1");
+        let lpPrice = ethers.utils.parseEther("2");
         mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
           if (token === baseToken.address) {
             return stableTokenPrice;
@@ -658,35 +658,23 @@ describe("DeltaNeutralVault", () => {
           return lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1"));
         });
 
-        const reserve = await swapHelper.loadReserves([baseToken.address, wbnb.address]);
-        console.log("reserve", reserve);
-        const twosizeLP = await swapHelper.computeTwoSidesOptimalLp(
-          ethers.utils.parseEther("0.625"),
-          ethers.utils.parseEther("0.125"),
-          [baseToken.address, wbnb.address]
-        );
-        console.log("twosizeLP", twosizeLP);
+        console.log("reserve before init", await lp.getReserves());
 
         const initTx = await deltaVault.initPositions(0, stableTokenAmount, assetTokenAmount, data, {
           value: assetTokenAmount,
         });
 
-        // stableLpBalance 0.351797550712153765
-
-        // assetLpBalance 1.096194802051878754
         const stableLpBalance = await stableVaultWorker.totalLpBalance();
         const assetLpBalance = await assetVaultWorker.totalLpBalance();
 
         console.log("stableLpBalance", stableLpBalance.toString());
         console.log("assetLpBalance", assetLpBalance.toString());
 
-        // const stableTokenAmount = ethers.utils.parseEther("0.3");
-        // const assetTokenAmount = ethers.utils.parseEther("0.3");
         console.log("after init tx");
         const stablePosId = await deltaVault.stableVaultPosId();
         const assetPosId = await deltaVault.assetVaultPosId();
 
-        stableTokenAmount = ethers.utils.parseEther("2");
+        // stableTokenAmount = ethers.utils.parseEther("2");
         await baseTokenAsAlice.approve(deltaVault.address, stableTokenAmount);
         // await wbnbTokenAsAlice.approve(deltaVault.address, assetTokenAmount);
 
@@ -697,7 +685,7 @@ describe("DeltaNeutralVault", () => {
             stablePosId,
             stableVaultWorker.address,
             stableTokenAmount.div(4),
-            stableTokenAmount.mul(3).div(4),
+            ethers.utils.parseEther("0.5"),
             "0",
             ethers.utils.defaultAbiCoder.encode(
               ["address", "bytes"],
@@ -737,22 +725,22 @@ describe("DeltaNeutralVault", () => {
           ]
         );
 
-        stableTokenPrice = ethers.utils.parseEther("1");
-        assetTokenPrice = ethers.utils.parseEther("20");
-        lpPrice = ethers.utils.parseEther("10");
-        mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
-          if (token === baseToken.address) {
-            return stableTokenPrice;
-          }
-          if (token === wbnb.address) {
-            return assetTokenPrice;
-          }
-          return 0;
-        });
+        // stableTokenPrice = ethers.utils.parseEther("1");
+        // assetTokenPrice = ethers.utils.parseEther("20");
+        // lpPrice = ethers.utils.parseEther("10");
+        // mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
+        //   if (token === baseToken.address) {
+        //     return stableTokenPrice;
+        //   }
+        //   if (token === wbnb.address) {
+        //     return assetTokenPrice;
+        //   }
+        //   return 0;
+        // });
 
-        mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
-          return lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1"));
-        });
+        // mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+        //   return lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1"));
+        // });
 
         console.log("before get alice shareAmount");
         // const shareAmount = await deltaVaultAsAlice.callStatic.deposit(
@@ -765,6 +753,13 @@ describe("DeltaNeutralVault", () => {
         //   }
         // );
 
+        // token0: baseToken,
+        // token1: wbnb,
+        // amount0desired: ethers.utils.parseEther("1000"),
+        // amount1desired: ethers.utils.parseEther("1000"),
+
+        const reserve = await lp.getReserves();
+        console.log("reserve before deposit", reserve);
         console.log("before alice deposit");
         const depositTx = await deltaVaultAsAlice.deposit(aliceAddress, 0, stableTokenAmount, assetTokenAmount, data, {
           value: assetTokenAmount,
