@@ -249,7 +249,9 @@
     "coverage": "hardhat coverage",
     "ganache": "ganache-cli",
     "solhint": "./node_modules/.bin/solhint -f table contracts/**/*.sol",
-    "prettier:solidity": "./node_modules/.bin/prettier --write contracts/**/*.sol"
+    "prettier:solidity": "./node_modules/.bin/prettier --write contracts/**/*.sol",
+    "mainnet-fork": "hardhat node --show-stack-traces --config hardhat.config.8.10.forking.ts",
+    "test:mainnet-fork:priceHelper": "hardhat --network mainnetfork run --no-compile ./scripts/fork/PriceHelper.test.ts"
   },
   "devDependencies": {
     "@chainlink/contracts": "^0.1.7",
