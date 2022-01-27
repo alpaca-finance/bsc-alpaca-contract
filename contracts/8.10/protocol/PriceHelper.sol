@@ -19,7 +19,6 @@ import "./interfaces/ILiquidityPair.sol";
 import "./interfaces/IPriceHelper.sol";
 import "./interfaces/IChainLinkPriceOracle.sol";
 import "../utils/AlpacaMath.sol";
-import "hardhat/console.sol";
 
 error InvalidLPAmount();
 error InvalidLPAddress();
@@ -69,7 +68,6 @@ contract PriceHelper is IPriceHelper, Initializable, OwnableUpgradeable {
   /// @param tokenAddress tokenAddress
   function getTokenPrice(address tokenAddress) public view returns (uint256) {
     (uint256 price, uint256 lastTimestamp) = chainLinkPriceOracle.getPrice(tokenAddress, usd);
-    console.log("getTokenPrice address ", tokenAddress, " price ", price);
     return price;
   }
 
@@ -82,14 +80,11 @@ contract PriceHelper is IPriceHelper, Initializable, OwnableUpgradeable {
     }
 
     uint256 _totalSupply = ILiquidityPair(lpToken).totalSupply();
-    console.log("_getLPPrice totalSupply", _totalSupply);
     if (_totalSupply == 0) {
       revert InvalidLPTotalSupply();
     }
 
     (uint256 _r0, uint256 _r1, ) = ILiquidityPair(lpToken).getReserves();
-    console.log("_getLPPrice _r0", _r0);
-    console.log("_getLPPrice _r1", _r1);
     uint256 _sqrtK = AlpacaMath.sqrt(_r0 * _r1).fdiv(_totalSupply); //fdiv return in 2**112
 
     address token0Address = ILiquidityPair(lpToken).token0();
