@@ -45,11 +45,6 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   //
   uint256 public override positionValueTolerance;
 
-  /// @notice debt of delta neutral stable pool Id
-  uint256 public debtStablePoolId;
-  /// @notice debt of delta neutral asset pool Id
-  uint256 public debtAssetPoolId;
-
   /// list of whitelisted callers.
   mapping(address => bool) public whitelistedCallers;
   /// list of whitelisted rebalancers.
