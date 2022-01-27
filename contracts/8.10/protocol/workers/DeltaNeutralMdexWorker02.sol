@@ -431,7 +431,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
 
   /// @dev Set Max reinvest reward for set upper limit reinvest bounty.
   /// @param _maxReinvestBountyBps - The max reinvest bounty value to update.
-  function setMaxReinvestBountyBps(uint256 _maxReinvestBountyBps) external onlyEOA {
+  function setMaxReinvestBountyBps(uint256 _maxReinvestBountyBps) external onlyOwner {
     if (reinvestBountyBps > _maxReinvestBountyBps) revert ExceedReinvestBounty();
 
     if (_maxReinvestBountyBps > 3000) revert ExceedReinvestBps();
