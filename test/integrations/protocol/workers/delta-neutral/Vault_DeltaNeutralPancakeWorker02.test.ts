@@ -830,7 +830,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
         // 200 * (1 - 0.2) = 160
         let mockAggregatorV3 = await MockAggregatorV3Factory.deploy(ethers.utils.parseEther("160"), 18);
         await mockAggregatorV3.deployed();
-        chainLinkOracleAsDeployer.setPriceFeeds([farmToken.address], [busd.address], [mockAggregatorV3.address]);
+        await chainLinkOracleAsDeployer.setPriceFeeds([farmToken.address], [busd.address], [mockAggregatorV3.address]);
         await expect(vaultAsBob.kill("1")).to.be.revertedWith("can't liquidate");
 
         // Price swing 20%
@@ -838,7 +838,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
         // 160 * (1 - 0.4) = 96
         mockAggregatorV3 = await MockAggregatorV3Factory.deploy(ethers.utils.parseEther("96"), 18);
         await mockAggregatorV3.deployed();
-        chainLinkOracleAsDeployer.setPriceFeeds([farmToken.address], [busd.address], [mockAggregatorV3.address]);
+        await chainLinkOracleAsDeployer.setPriceFeeds([farmToken.address], [busd.address], [mockAggregatorV3.address]);
         await expect(vaultAsBob.kill("1")).to.be.revertedWith("can't liquidate");
 
         // Price swing 23.43%
@@ -846,14 +846,15 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
         // 96 * (1 - 0.4686) = 51.0144
         mockAggregatorV3 = await MockAggregatorV3Factory.deploy(ethers.utils.parseEther("51.0144"), 18);
         await mockAggregatorV3.deployed();
-        chainLinkOracleAsDeployer.setPriceFeeds([farmToken.address], [busd.address], [mockAggregatorV3.address]);
+        await chainLinkOracleAsDeployer.setPriceFeeds([farmToken.address], [busd.address], [mockAggregatorV3.address]);
         await expect(vaultAsBob.kill("1")).to.be.revertedWith("can't liquidate");
+
         // Price swing 30%
         // Feed new price from 96 for 60% to make lp price down ~23.43%
         // 51.0144 * (1 - 0.6) = 20.40576
         mockAggregatorV3 = await MockAggregatorV3Factory.deploy(ethers.utils.parseEther("20.40576"), 18);
         await mockAggregatorV3.deployed();
-        chainLinkOracleAsDeployer.setPriceFeeds([farmToken.address], [busd.address], [mockAggregatorV3.address]);
+        await chainLinkOracleAsDeployer.setPriceFeeds([farmToken.address], [busd.address], [mockAggregatorV3.address]);
 
         // Now you can liquidate because of the price fluctuation
         const bobBefore = await baseToken.balanceOf(bobAddress);
