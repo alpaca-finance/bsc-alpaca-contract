@@ -454,7 +454,7 @@ describe("Vault - DeltaNetMdexWorker02", () => {
       });
     });
 
-    describe("#setWhitelistCallers", async () => {
+    describe("#setWhitelistedCallers", async () => {
       it("should set whitelisted callers", async () => {
         await expect(deltaNeutralWorker.setWhitelistedCallers([deployerAddress], true)).to.emit(
           deltaNeutralWorker,
@@ -466,7 +466,7 @@ describe("Vault - DeltaNetMdexWorker02", () => {
 
     describe("#setPriceHelper", async () => {
       it("should set price helper", async () => {
-        const oldPriceHelperAddress = await deltaNeutralWorker.lpCalculator();
+        const oldPriceHelperAddress = await deltaNeutralWorker.priceHelper();
         const [newPriceHelper] = await deployHelper.deployPriceHelper(
           [baseToken.address, farmToken.address],
           [ethers.utils.parseEther("1"), ethers.utils.parseEther("200")],
@@ -474,7 +474,7 @@ describe("Vault - DeltaNetMdexWorker02", () => {
           busd.address
         );
         await deltaNeutralWorker.setPriceHelper(newPriceHelper.address);
-        const newPriceHelperAddress = await deltaNeutralWorker.lpCalculator();
+        const newPriceHelperAddress = await deltaNeutralWorker.priceHelper();
         expect(newPriceHelperAddress).not.be.eq(oldPriceHelperAddress);
         expect(newPriceHelperAddress).to.be.eq(newPriceHelper.address);
       });

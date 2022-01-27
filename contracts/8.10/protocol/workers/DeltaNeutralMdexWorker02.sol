@@ -77,12 +77,15 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
   );
   event WithdrawTradingRewards(address indexed caller, address to, uint256 amount);
 
+  /// @dev constants
+  uint256 private constant BASIS_POINT = 10000;
+
   /// @notice Configuration variables
   IBSCPool public bscPool;
   IMdexFactory public factory;
   IMdexRouter public router;
   IPancakePair public override lpToken;
-  IPriceHelper public lpCalculator;
+  IPriceHelper public priceHelper;
   address public wNative;
   address public override baseToken;
   address public override farmingToken;
@@ -120,7 +123,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
     address _treasuryAccount,
     address[] calldata _reinvestPath,
     uint256 _reinvestThreshold,
-    IPriceHelper _lpCalculator
+    IPriceHelper _priceHelper
   ) external initializer {
     // 1. Initialized imported library
     OwnableUpgradeable.__Ownable_init();
@@ -132,7 +135,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
     bscPool = _bscPool;
     router = _router;
     factory = IMdexFactory(_router.factory());
-    lpCalculator = _lpCalculator;
+    priceHelper = _priceHelper;
 
     // 3. Assign tokens state variables
     baseToken = _baseToken;
@@ -224,10 +227,10 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
     mdx.safeApprove(address(router), type(uint256).max);
     address(lpToken).safeApprove(address(bscPool), type(uint256).max);
 
-    // 3. Send the reward bounty to the _treasuryAccount.
-    uint256 bounty = (reward * _treasuryBountyBps) / 10000;
+    // 3. Send the reward bounty to the _treasuryAccount
+    uint256 bounty = (reward * _treasuryBountyBps) / BASIS_POINT;
     if (bounty > 0) {
-      uint256 beneficialVaultBounty = (bounty * beneficialVaultBountyBps) / 10000;
+      uint256 beneficialVaultBounty = (bounty * beneficialVaultBountyBps) / BASIS_POINT;
       if (beneficialVaultBounty > 0) _rewardToBeneficialVault(beneficialVaultBounty, _callerBalance);
       mdx.safeTransfer(_treasuryAccount, bounty - beneficialVaultBounty);
     }
@@ -285,8 +288,8 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
   /// @dev Return the amount of BaseToken to receive.
   /// @param id The position ID to perform health check. Note: This worker implementation ignore ID as the worker has only one position.
   function health(uint256 id) external view override returns (uint256) {
-    uint256 _totalBalanceInUSD = lpCalculator.lpToDollar(totalLpBalance, address(lpToken));
-    uint256 _tokenPrice = lpCalculator.getTokenPrice(address(baseToken));
+    uint256 _totalBalanceInUSD = priceHelper.lpToDollar(totalLpBalance, address(lpToken));
+    uint256 _tokenPrice = priceHelper.getTokenPrice(address(baseToken));
     return (_totalBalanceInUSD * 1e18) / _tokenPrice;
   }
 
@@ -421,9 +424,9 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
   }
 
   /// @dev Set PriceHelper contract.
-  /// @param _lpCalculator - PriceHelper contract to update.
-  function setPriceHelper(IPriceHelper _lpCalculator) external onlyOwner {
-    lpCalculator = _lpCalculator;
+  /// @param _priceHelper - PriceHelper contract to update.
+  function setPriceHelper(IPriceHelper _priceHelper) external onlyOwner {
+    priceHelper = _priceHelper;
   }
 
   /// @dev Set Max reinvest reward for set upper limit reinvest bounty.

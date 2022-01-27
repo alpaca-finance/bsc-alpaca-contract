@@ -43,7 +43,6 @@ import * as TimeHelpers from "../../../../helpers/time";
 import { parseEther } from "ethers/lib/utils";
 import { DeployHelper } from "../../../../helpers/deploy";
 import { SwapHelper } from "../../../../helpers/swap";
-import { Worker02Helper } from "../../../../helpers/worker";
 
 chai.use(solidity);
 const { expect } = chai;
@@ -152,6 +151,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
 
   // Test Helper
   let swapHelper: SwapHelper;
+  let deployHelper: DeployHelper;
 
   async function fixture() {
     [deployer, alice, bob, eve] = await ethers.getSigners();
@@ -163,7 +163,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
       eve.getAddress(),
     ]);
     deltaNetAddress = aliceAddress;
-    const deployHelper = new DeployHelper(deployer);
+    deployHelper = new DeployHelper(deployer);
 
     // Setup MockContractContext
     const MockContractContext = (await ethers.getContractFactory(
@@ -440,13 +440,29 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
       });
     });
 
-    describe("#setWhitelistCallers", async () => {
+    describe("#setWhitelistedCallers", async () => {
       it("should set whitelisted callers", async () => {
         await expect(deltaNeutralWorker.setWhitelistedCallers([deployerAddress], true)).to.emit(
           deltaNeutralWorker,
           "SetWhitelistedCallers"
         );
         expect(await deltaNeutralWorker.whitelistCallers(deployerAddress)).to.be.eq(true);
+      });
+    });
+
+    describe("#setPriceHelper", async () => {
+      it("should set price helper", async () => {
+        const oldPriceHelperAddress = await deltaNeutralWorker.priceHelper();
+        const [newPriceHelper] = await deployHelper.deployPriceHelper(
+          [baseToken.address, farmToken.address],
+          [ethers.utils.parseEther("1"), ethers.utils.parseEther("200")],
+          [18, 18],
+          busd.address
+        );
+        await deltaNeutralWorker.setPriceHelper(newPriceHelper.address);
+        const newPriceHelperAddress = await deltaNeutralWorker.priceHelper();
+        expect(newPriceHelperAddress).not.be.eq(oldPriceHelperAddress);
+        expect(newPriceHelperAddress).to.be.eq(newPriceHelper.address);
       });
     });
 
