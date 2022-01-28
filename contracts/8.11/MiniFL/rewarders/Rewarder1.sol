@@ -105,14 +105,16 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
 
       user.rewardDebt = user.rewardDebt - (((_amount * pool.accRewardPerShare) / ACC_REWARD_PRECISION)).toInt256();
       user.amount = user.amount - _amount;
+
+      emit LogOnWithdraw(_user, _pid, _amount);
     } else {
       // Handling when rewarder1 getting set after the pool is live
       // if user.amount < _newAmount, then it is first deposit.
       user.amount = _newAmount;
       user.rewardDebt = user.rewardDebt + ((_newAmount * pool.accRewardPerShare) / ACC_REWARD_PRECISION).toInt256();
-    }
 
-    emit LogOnWithdraw(_user, _pid, _amount);
+      emit LogOnDeposit(_user, _pid, _newAmount);
+    }
   }
 
   function onHarvest(
