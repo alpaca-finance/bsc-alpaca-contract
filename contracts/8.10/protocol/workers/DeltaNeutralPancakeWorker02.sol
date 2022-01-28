@@ -30,7 +30,7 @@ import "../../utils/AlpacaMath.sol";
 import "../../utils/SafeToken.sol";
 import "../interfaces/IVault.sol";
 
-/// @title DeltaNeutralPancakeWorker02 is a PancakeswapV2Worker with with reinvest-optimized and beneficial vault buyback functionalities
+/// @title DeltaNeutralPancakeWorker02 is a PancakeswapV2Worker with reinvest-optimized and beneficial vault buyback functionalities
 contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable, IWorker02 {
   /// @notice Libraries
   using SafeToken for address;
