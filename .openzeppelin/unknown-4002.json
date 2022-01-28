@@ -2662,6 +2662,169 @@
           }
         }
       }
+    },
+    "2b9cfd7ee0a28eddaa32340b961d9c96330e3e0d426a03da4a296f731f39f142": {
+      "address": "0x52728ff969781d7F9a216E47E568c520283165dE",
+      "txHash": "0x34de8b46fa80f7464f4d2897d181674c9d7700a54a76c4152711feeb6794276e",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:26"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:30"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:21"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:77"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:37"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:67"
+          },
+          {
+            "contract": "Rewarder1",
+            "label": "rewardToken",
+            "type": "t_contract(IERC20Upgradeable)306",
+            "src": "contracts/8.11/MiniFL/rewarders/Rewarder1.sol:39"
+          },
+          {
+            "contract": "Rewarder1",
+            "label": "poolInfo",
+            "type": "t_mapping(t_uint256,t_struct(PoolInfo)2462_storage)",
+            "src": "contracts/8.11/MiniFL/rewarders/Rewarder1.sol:50"
+          },
+          {
+            "contract": "Rewarder1",
+            "label": "poolIds",
+            "type": "t_array(t_uint256)dyn_storage",
+            "src": "contracts/8.11/MiniFL/rewarders/Rewarder1.sol:52"
+          },
+          {
+            "contract": "Rewarder1",
+            "label": "userInfo",
+            "type": "t_mapping(t_uint256,t_mapping(t_address,t_struct(UserInfo)2455_storage))",
+            "src": "contracts/8.11/MiniFL/rewarders/Rewarder1.sol:53"
+          },
+          {
+            "contract": "Rewarder1",
+            "label": "totalAllocPoint",
+            "type": "t_uint256",
+            "src": "contracts/8.11/MiniFL/rewarders/Rewarder1.sol:55"
+          },
+          {
+            "contract": "Rewarder1",
+            "label": "rewardPerSecond",
+            "type": "t_uint256",
+            "src": "contracts/8.11/MiniFL/rewarders/Rewarder1.sol:55"
+          },
+          {
+            "contract": "Rewarder1",
+            "label": "miniFL",
+            "type": "t_address",
+            "src": "contracts/8.11/MiniFL/rewarders/Rewarder1.sol:59"
+          }
+        ],
+        "types": {
+          "t_contract(IERC20Upgradeable)306": {
+            "label": "contract IERC20Upgradeable"
+          },
+          "t_mapping(t_uint256,t_struct(PoolInfo)2462_storage)": {
+            "label": "mapping(uint256 => struct Rewarder1.PoolInfo)"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_struct(PoolInfo)2462_storage": {
+            "label": "struct Rewarder1.PoolInfo",
+            "members": [
+              {
+                "label": "accRewardPerShare",
+                "type": "t_uint128"
+              },
+              {
+                "label": "lastRewardTime",
+                "type": "t_uint64"
+              },
+              {
+                "label": "allocPoint",
+                "type": "t_uint64"
+              }
+            ]
+          },
+          "t_uint128": {
+            "label": "uint128"
+          },
+          "t_uint64": {
+            "label": "uint64"
+          },
+          "t_array(t_uint256)dyn_storage": {
+            "label": "uint256[]"
+          },
+          "t_mapping(t_uint256,t_mapping(t_address,t_struct(UserInfo)2455_storage))": {
+            "label": "mapping(uint256 => mapping(address => struct Rewarder1.UserInfo))"
+          },
+          "t_mapping(t_address,t_struct(UserInfo)2455_storage)": {
+            "label": "mapping(address => struct Rewarder1.UserInfo)"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_struct(UserInfo)2455_storage": {
+            "label": "struct Rewarder1.UserInfo",
+            "members": [
+              {
+                "label": "amount",
+                "type": "t_uint256"
+              },
+              {
+                "label": "rewardDebt",
+                "type": "t_int256"
+              }
+            ]
+          },
+          "t_int256": {
+            "label": "int256"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_bool": {
+            "label": "bool"
+          }
+        }
+      }
     }
   }
 }
