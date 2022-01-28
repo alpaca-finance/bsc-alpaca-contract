@@ -90,8 +90,6 @@ import {
   SwapMining__factory,
   DeltaNeutralVault__factory,
   DeltaNeutralVault,
-  DeltaNeutralWorker02,
-  DeltaNeutralWorker02__factory,
   DeltaNeutralVaultConfig,
   DeltaNeutralVaultConfig__factory,
   PriceHelper,
@@ -709,7 +707,7 @@ export class DeployHelper {
     reinvestPath: Array<string>,
     extraStrategies: string[],
     simpleVaultConfig: SimpleVaultConfig,
-    priceHelper: PriceHelper
+    priceHelperAdddress: string
   ): Promise<DeltaNeutralPancakeWorker02> {
     const DeltaNeutralPancakeWorker02 = (await ethers.getContractFactory(
       "DeltaNeutralPancakeWorker02",
@@ -726,7 +724,7 @@ export class DeployHelper {
       treasuryAddress,
       reinvestPath,
       0,
-      priceHelper.address,
+      priceHelperAdddress,
     ])) as DeltaNeutralPancakeWorker02;
     await deltaNeutralWorker02.deployed();
 
@@ -950,58 +948,6 @@ export class DeployHelper {
     await wNativeRelayer.setCallerOk([partialCloseMinimizeStrat.address], true);
 
     return [addStrat, liqStrat, twoSidesStrat, minimizeTradeStrat, partialCloseStrat, partialCloseMinimizeStrat];
-  }
-
-  public async deployDeltaNeutralWorker02(
-    vault: Vault,
-    btoken: MockERC20,
-    masterChef: PancakeMasterChef,
-    routerV2: PancakeRouterV2,
-    poolId: number,
-    workFactor: BigNumberish,
-    killFactor: BigNumberish,
-    addStrat: PancakeswapV2RestrictedStrategyAddBaseTokenOnly,
-    reinvestBountyBps: BigNumberish,
-    okReinvestor: string[],
-    treasuryAddress: string,
-    reinvestPath: Array<string>,
-    extraStrategies: string[],
-    simpleVaultConfig: SimpleVaultConfig
-  ): Promise<DeltaNeutralWorker02> {
-    // const PriceHelper = (await ethers.getContractFactory("PriceHelper", this.deployer)) as PriceHelper__factory;
-    // const mockPriceHelper = await PriceHelper.deploy();
-    // await mockPriceHelper.deployed();
-
-    const DeltaNeutralWorker02 = (await ethers.getContractFactory(
-      "DeltaNeutralWorker02",
-      this.deployer
-    )) as DeltaNeutralWorker02__factory;
-    const deltaNeutralWorker02 = (await upgrades.deployProxy(DeltaNeutralWorker02, [
-      vault.address,
-      btoken.address,
-      masterChef.address,
-      routerV2.address,
-      poolId,
-      addStrat.address,
-      reinvestBountyBps,
-      treasuryAddress,
-      reinvestPath,
-      0,
-    ])) as DeltaNeutralWorker02;
-    await deltaNeutralWorker02.deployed();
-
-    await simpleVaultConfig.setWorker(deltaNeutralWorker02.address, true, true, workFactor, killFactor, true, true);
-    await deltaNeutralWorker02.setStrategyOk(extraStrategies, true);
-    await deltaNeutralWorker02.setReinvestorOk(okReinvestor, true);
-    await deltaNeutralWorker02.setTreasuryConfig(treasuryAddress, reinvestBountyBps);
-
-    extraStrategies.push(addStrat.address);
-    extraStrategies.forEach(async (stratAddress) => {
-      const strat = PancakeswapV2RestrictedStrategyLiquidate__factory.connect(stratAddress, this.deployer);
-      await strat.setWorkersOk([deltaNeutralWorker02.address], true);
-    });
-
-    return deltaNeutralWorker02;
   }
 
   public async deployDeltaNeutralVaultConfig(input: IDeltaNeutralVaultConfig): Promise<DeltaNeutralVaultConfig> {
