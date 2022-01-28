@@ -29,7 +29,7 @@ library SafeToken {
   ) internal {
     // bytes4(keccak256(bytes('transfer(address,uint256)')));
     // solhint-disable-next-line avoid-low-level-calls
-    require(token.code.length > 0, "!not contract");
+    require(token.code.length > 0, "!contract");
     (bool success, bytes memory data) = token.call(abi.encodeWithSelector(0xa9059cbb, to, value));
     require(success && (data.length == 0 || abi.decode(data, (bool))), "!safeTransfer");
   }
