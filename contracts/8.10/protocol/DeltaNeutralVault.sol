@@ -95,7 +95,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   IDeltaNeutralVaultConfig public config;
 
   /// @dev mutable
-  bool private initialized;
+  bool private OPENING;
 
   /// @dev Require that the caller must be an EOA account if not whitelisted.
   modifier onlyEOAorWhitelisted() {
@@ -158,12 +158,13 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       revert PositionsAlreadyInitialized();
     }
 
+    OPENING = true;
     stableVaultPosId = IVault(stableVault).nextPositionID();
     assetVaultPosId = IVault(assetVault).nextPositionID();
 
     deposit(msg.sender, _minShareReceive, _stableTokenAmount, _assetTokenAmount, _data);
 
-    initialized = true;
+    OPENING = false;
 
     emit LogInitializePositions(msg.sender, stableVaultPosId, assetVaultPosId);
   }
@@ -359,19 +360,24 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
     
     uint256 _toleranceBps = config.positionValueTolerance();
-    // console.log("Deltavault:_depositHealthCheck:stable",!Math.almostEqual(_positionInfoAfter.stablePositionEquity - _positionInfoBefore.stablePositionEquity, (_depositValue ) / 4, _toleranceBps));
-    // console.log("Deltavault:_depositHealthCheck:asset",!Math.almostEqual(_positionInfoAfter.assetPositionEquity - _positionInfoBefore.assetPositionEquity, (_depositValue * 3) / 4, _toleranceBps));
-    // console.log("Deltavault:_depositHealthCheck:_positionInfoBefore._depositValue",_depositValue);
+    console.log("Deltavault:_depositHealthCheck:stable",!Math.almostEqual(_positionInfoAfter.stablePositionEquity - _positionInfoBefore.stablePositionEquity, (_depositValue ) / 4, _toleranceBps));
+    console.log("Deltavault:_depositHealthCheck:asset",!Math.almostEqual(_positionInfoAfter.assetPositionEquity - _positionInfoBefore.assetPositionEquity, (_depositValue * 3) / 4, _toleranceBps));
+    console.log("Deltavault:_depositHealthCheck:_positionInfoBefore._depositValue",_depositValue);
 
-    // console.log("Deltavault:_depositHealthCheck:_positionInfoBefore.stablePositionEquity",_positionInfoBefore.stablePositionEquity);
-    // console.log("Deltavault:_depositHealthCheck:_positionInfoAfter.stablePositionEquity",_positionInfoAfter.stablePositionEquity);
-    // console.log("Deltavault:_depositHealthCheck:_positionInfoAfter.stablePositionDebtValue",_positionInfoAfter.stablePositionDebtValue);
+    console.log("Deltavault:_depositHealthCheck:_positionInfoBefore.stablePositionEquity",_positionInfoBefore.stablePositionEquity);
+    console.log("Deltavault:_depositHealthCheck:_positionInfoAfter.stablePositionEquity",_positionInfoAfter.stablePositionEquity);
+    console.log("Deltavault:_depositHealthCheck:_positionInfoAfter.stablePositionDebtValue",_positionInfoAfter.stablePositionDebtValue);
+    console.log("Deltavault:_depositHealthCheck: left",_positionInfoAfter.stablePositionEquity - _positionInfoBefore.stablePositionEquity);
+    console.log("Deltavault:_depositHealthCheck: right", (_depositValue ) / 4);
 
-    // console.log("Deltavault:_depositHealthCheck:_positionInfoBefore.assetPositionEquity",_positionInfoBefore.assetPositionEquity);
-    // console.log("Deltavault:_depositHealthCheck:_positionInfoAfter.assetPositionEquity",_positionInfoAfter.assetPositionEquity);
-    // console.log("Deltavault:_depositHealthCheck:_positionInfoAfter.assetPositionDebtValue",_positionInfoAfter.assetPositionDebtValue);
-    // console.log("_stablePositionValue",_stablePositionValue());
-    // console.log("_stablePositionDebtValue",_stablePositionDebtValue());
+
+    console.log("Deltavault:_depositHealthCheck:_positionInfoBefore.assetPositionEquity",_positionInfoBefore.assetPositionEquity);
+    console.log("Deltavault:_depositHealthCheck:_positionInfoAfter.assetPositionEquity",_positionInfoAfter.assetPositionEquity);
+    console.log("Deltavault:_depositHealthCheck:_positionInfoAfter.assetPositionDebtValue",_positionInfoAfter.assetPositionDebtValue);
+    console.log("Deltavault:_depositHealthCheck: left",_positionInfoAfter.assetPositionEquity - _positionInfoBefore.assetPositionEquity);
+    console.log("Deltavault:_depositHealthCheck: right", (_depositValue * 3) / 4);
+    console.log("_stablePositionValue",_stablePositionValue());
+    console.log("_stablePositionDebtValue",_stablePositionDebtValue());
 
     // 1. check position value
     if (
@@ -590,7 +596,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     console.log("_principalAmount", _principalAmount);
     console.log("_borrowAmount", _borrowAmount);
     console.log("stable token balance", stableToken.myBalance());
-    if ( (!initialized && msg.sender != owner()) &&
+    if ( !OPENING  &&
       !((_vault == stableVault && _posId == stableVaultPosId) || (_vault == assetVault && _posId == assetVaultPosId))
     ) {
       revert InvalidPositions({ _vault: _vault, _positionId: _posId });
