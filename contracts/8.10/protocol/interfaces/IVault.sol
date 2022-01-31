@@ -32,11 +32,10 @@ abstract contract IVault {
   //@dev Return next position id of vault
   function nextPositionID() external view virtual returns (uint256);
 
-  // //@dev Return Token value and debt of the given position.
-  // function positionInfo(uint256 id) external view virtual returns (uint256, uint256);
-
   //@dev Return the pending interest that will be accrued in the next call.
   function pendingInterest(uint256 value) external view virtual returns (uint256);
+
+  function fairLaunchPoolId() external view virtual returns (uint256);
 
   /// @dev a function for interacting with position
   function work(
@@ -47,6 +46,4 @@ abstract contract IVault {
     uint256 maxReturn,
     bytes calldata data
   ) external payable virtual;
-
-  function fairLaunchPoolId() external view virtual returns (uint256);
 }
