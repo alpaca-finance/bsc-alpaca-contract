@@ -149,6 +149,16 @@
       "address": "0x74D2465B2d5a0686A6fd5e84008BE3bcE8453529",
       "txHash": "0x65c743b6af38f211619ace625c73bec1785534cf619421e7bc1cb0c04894b81f",
       "kind": "transparent"
+    },
+    {
+      "address": "0xd727E9E801bC0E79412be3c5381E5a7088744600",
+      "txHash": "0x4f0da97b858afb0bc70b93092cca0cadb41838e433f5480759da77748c8791dc",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x2C3DFA744215B89e5816274b1571d2eBcd02cB5D",
+      "txHash": "0xb7bb54427d97fb16a3bd8f0049b1b19d727d68543f0de4c20c9b6688cf4ce410",
+      "kind": "transparent"
     }
   ],
   "impls": {

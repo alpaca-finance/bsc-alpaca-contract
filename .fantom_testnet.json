@@ -27,14 +27,17 @@
       "SpookyMasterChef": "0xF9c40C68d4AE8234db6AbC38B7Efb91cF2232cF4",
       "LpTokens": [
         { "pId": 0, "name": "BOO-WFTM LP", "address": "0x98ee4798926d6738f58D958b4AA418AACbFF2b7b" },
-        { "pId": 1, "name": "ALPACA-WFTM LP", "address": "0xE19adba4168E68fE804479A741b809e45d0b26E4" }
+        { "pId": 1, "name": "ALPACA-WFTM LP", "address": "0xE19adba4168E68fE804479A741b809e45d0b26E4" },
+        { "pId": 2, "name": "USDT-USDC LP", "address": "0x843fAf74c9D5F5ae7E6dC13E2E30E74EBB93eB74" }
       ]
     }
   },
   "Tokens": {
     "ALPACA": "0x17326e0677A4C89E22FBD6192F1fb1972200473a",
     "WFTM": "0xE3fEd8069957C9BA105AD97D8C467B93f88fd8A3",
-    "BOO": "0x54454F06ac60d35b815AdBD81E222Cf8aa4AD4C5"
+    "BOO": "0x54454F06ac60d35b815AdBD81E222Cf8aa4AD4C5",
+    "USDC": "0xd727E9E801bC0E79412be3c5381E5a7088744600",
+    "USDT": "0x2C3DFA744215B89e5816274b1571d2eBcd02cB5D"
   },
   "SharedStrategies": {
     "SpookySwap": {
