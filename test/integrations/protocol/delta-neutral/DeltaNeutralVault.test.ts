@@ -1129,11 +1129,5 @@ describe("DeltaNeutralVault", () => {
         );
       });
     });
-
-    context("when alice claim it before init transaction", async () => {
-      it("should be reverted", async () => {
-        await expect(deltaVault.claim()).to.be.revertedWith("nothing to harvest");
-      });
-    });
   });
 });

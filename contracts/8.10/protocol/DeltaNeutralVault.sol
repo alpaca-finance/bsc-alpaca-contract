@@ -707,13 +707,11 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   /// @param _poolId fairLaunch poolId
   function _claim(uint256 _poolId) internal returns (uint256) {
     uint256 alpacaBefore = alpacaToken.myBalance();
-    IFairLaunch(config.fairLaunchAddr()).harvest(_poolId);
+    // Note: Do this way because we don't want to fail
+    // if cannot harvest from FairLaunch somehow.ddc63262 is a signature of harvest(uint256)
+    (bool success, ) = config.fairLaunchAddr().call(abi.encodeWithSelector(0xddc63262, _poolId));
     uint256 alpacaAfter = alpacaToken.myBalance();
-    uint256 alpacaReward = alpacaAfter - alpacaBefore;
-    if (alpacaReward < 0) {
-      revert InsufficientAlpacaTokenReceived();
-    }
-    return alpacaReward;
+    return alpacaAfter - alpacaBefore;
   }
 
   /// @dev Fallback function to accept BNB.
