@@ -250,11 +250,6 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
     }
   }
 
-  /// @notice Update reward variables for all pools. Be careful of gas spending!
-  function massUpdatePools() external nonReentrant {
-    _massUpdatePools();
-  }
-
   /// @notice Perform the actual updatePool
   /// @param _pid The index of the pool. See `poolInfo`.
   function _updatePool(uint256 _pid) internal returns (PoolInfo memory) {
@@ -283,6 +278,19 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
   /// @return pool Returns the pool that was updated.
   function updatePool(uint256 _pid) external nonReentrant returns (PoolInfo memory) {
     return _updatePool(_pid);
+  }
+
+  /// @notice Update reward variables for a given pools.
+  function updatePools(uint256[] calldata _pids) external nonReentrant {
+    uint256 len = _pids.length;
+    for (uint256 i = 0; i < len; i++) {
+      _updatePool(_pids[i]);
+    }
+  }
+
+  /// @notice Update reward variables for all pools. Be careful of gas spending!
+  function massUpdatePools() external nonReentrant {
+    _massUpdatePools();
   }
 
   /// @notice Change the name of the rewarder.

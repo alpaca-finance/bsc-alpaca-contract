@@ -185,14 +185,6 @@ contract MiniFL is IMiniFL, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     return (((user.amount * accAlpacaPerShare) / ACC_ALPACA_PRECISION).toInt256() - user.rewardDebt).toUint256();
   }
 
-  /// @notice Update reward variables for all pools.
-  function massUpdatePools() public nonReentrant {
-    uint256 len = poolLength();
-    for (uint256 i = 0; i < len; ++i) {
-      _updatePool(i);
-    }
-  }
-
   /// @notice Perform actual update pool.
   /// @param pid The index of the pool. See `poolInfo`.
   /// @return pool Returns the pool that was updated.
@@ -219,6 +211,22 @@ contract MiniFL is IMiniFL, OwnableUpgradeable, ReentrancyGuardUpgradeable {
   /// @return pool Returns the pool that was updated.
   function updatePool(uint256 _pid) external nonReentrant returns (PoolInfo memory) {
     return _updatePool(_pid);
+  }
+
+  /// @notice Update reward variables for a given pools.
+  function updatePools(uint256[] calldata _pids) external nonReentrant {
+    uint256 len = _pids.length;
+    for (uint256 i = 0; i < len; i++) {
+      _updatePool(_pids[i]);
+    }
+  }
+
+  /// @notice Update reward variables for all pools.
+  function massUpdatePools() public nonReentrant {
+    uint256 len = poolLength();
+    for (uint256 i = 0; i < len; ++i) {
+      _updatePool(i);
+    }
   }
 
   /// @notice Deposit tokens to MiniFL for ALPACA allocation.
