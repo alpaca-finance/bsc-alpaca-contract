@@ -56,6 +56,7 @@ contract MiniFL is IMiniFL, OwnableUpgradeable, ReentrancyGuardUpgradeable {
   uint256 public totalAllocPoint;
   uint256 public alpacaPerSecond;
   uint256 private constant ACC_ALPACA_PRECISION = 1e12;
+  uint256 public maxAlpacaPerSecond;
 
   event LogDeposit(address indexed caller, address indexed user, uint256 indexed pid, uint256 amount);
   event LogWithdraw(address indexed caller, address indexed user, uint256 indexed pid, uint256 amount);
@@ -71,13 +72,15 @@ contract MiniFL is IMiniFL, OwnableUpgradeable, ReentrancyGuardUpgradeable {
   event LogUpdatePool(uint256 indexed pid, uint64 lastRewardTime, uint256 stakedBalance, uint256 accAlpacaPerShare);
   event LogAlpacaPerSecond(uint256 alpacaPerSecond);
   event LogApproveStakeDebtToken(uint256 indexed _pid, address indexed _staker, bool allow);
+  event LogSetMaxAlpacaPerSecond(uint256 maxAlpacaPerSecond);
 
   /// @param _alpaca The ALPACA token contract address.
-  function initialize(address _alpaca) external initializer {
+  function initialize(address _alpaca, uint256 _maxAlpacaPerSecond) external initializer {
     OwnableUpgradeable.__Ownable_init();
     ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
 
     ALPACA = IERC20Upgradeable(_alpaca);
+    maxAlpacaPerSecond = _maxAlpacaPerSecond;
   }
 
   /// @notice Returns the number of pools.
@@ -157,6 +160,8 @@ contract MiniFL is IMiniFL, OwnableUpgradeable, ReentrancyGuardUpgradeable {
   /// @param _alpacaPerSecond The amount of ALPACA to be distributed per second.
   /// @param _withUpdate If true, do mass update pools
   function setAlpacaPerSecond(uint256 _alpacaPerSecond, bool _withUpdate) external onlyOwner {
+    if (_alpacaPerSecond > maxAlpacaPerSecond) revert MiniFL_InvalidArguments();
+
     if (_withUpdate) massUpdatePools();
     alpacaPerSecond = _alpacaPerSecond;
     emit LogAlpacaPerSecond(_alpacaPerSecond);
@@ -341,5 +346,13 @@ contract MiniFL is IMiniFL, OwnableUpgradeable, ReentrancyGuardUpgradeable {
       stakeDebtTokenAllowance[_pids[i]][_stakers[i]] = _allow;
       emit LogApproveStakeDebtToken(_pids[i], _stakers[i], _allow);
     }
+  }
+
+  /// @notice Set max reward per second
+  /// @param _maxAlpacaPerSecond The max reward per second
+  function setMaxAlpacaPerSecond(uint256 _maxAlpacaPerSecond) external onlyOwner {
+    if (_maxAlpacaPerSecond <= alpacaPerSecond) revert MiniFL_InvalidArguments();
+    maxAlpacaPerSecond = _maxAlpacaPerSecond;
+    emit LogSetMaxAlpacaPerSecond(_maxAlpacaPerSecond);
   }
 }

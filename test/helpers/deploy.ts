@@ -506,7 +506,12 @@ export class DeployHelper {
 
   public async deployRewarder1(miniFLaddress: string, extraRewardTokenAddress: string): Promise<Rewarder1> {
     const Rewarder1 = (await ethers.getContractFactory("Rewarder1", this.deployer)) as Rewarder1__factory;
-    const rewarder1 = (await upgrades.deployProxy(Rewarder1, [miniFLaddress, extraRewardTokenAddress])) as Rewarder1;
+    const rewarder1 = (await upgrades.deployProxy(Rewarder1, [
+      "MockRewarder1",
+      miniFLaddress,
+      extraRewardTokenAddress,
+      ethers.constants.MaxUint256,
+    ])) as Rewarder1;
     return rewarder1;
   }
 

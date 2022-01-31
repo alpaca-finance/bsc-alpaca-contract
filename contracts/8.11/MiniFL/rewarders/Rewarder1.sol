@@ -29,9 +29,10 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
   using SafeCastUpgradeable for int256;
   using SafeERC20Upgradeable for IERC20Upgradeable;
 
-  error Reward1_NotFL();
-  error Reward1_PoolExisted();
-  error Reward1_PoolNotExisted();
+  error Rewarder1_BadArguments();
+  error Rewarder1_NotFL();
+  error Rewarder1_PoolExisted();
+  error Rewarder1_PoolNotExisted();
 
   IERC20Upgradeable public rewardToken;
 
@@ -57,6 +58,8 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
   address public miniFL;
   string public name;
 
+  uint256 public maxRewardPerSecond;
+
   event LogOnDeposit(address indexed user, uint256 indexed pid, uint256 amount);
   event LogOnWithdraw(address indexed user, uint256 indexed pid, uint256 amount);
   event LogHarvest(address indexed user, uint256 indexed pid, uint256 amount);
@@ -64,12 +67,14 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
   event LogSetPool(uint256 indexed pid, uint256 allocPoint);
   event LogUpdatePool(uint256 indexed pid, uint64 lastRewardTime, uint256 stakedBalance, uint256 accRewardPerShare);
   event LogRewardPerSecond(uint256 rewardPerSecond);
-  event LogNameChanged(string name);
+  event LogSetName(string name);
+  event LogSetMaxRewardPerSecond(uint256 maxRewardPerSecond);
 
   function initialize(
     string calldata _name,
     address _miniFL,
-    IERC20Upgradeable _rewardToken
+    IERC20Upgradeable _rewardToken,
+    uint256 _maxRewardPerSecond
   ) external initializer {
     OwnableUpgradeable.__Ownable_init();
     ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
@@ -77,6 +82,7 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
     name = _name;
     miniFL = _miniFL;
     rewardToken = _rewardToken;
+    maxRewardPerSecond = _maxRewardPerSecond;
   }
 
   function onDeposit(
@@ -161,13 +167,15 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
   /// @param _rewardPerSecond The amount of reward token to be distributed per second.
   /// @param _withUpdate If true, do mass update pools
   function setRewardPerSecond(uint256 _rewardPerSecond, bool _withUpdate) external onlyOwner {
+    if (_rewardPerSecond > maxRewardPerSecond) revert Rewarder1_BadArguments();
+
     if (_withUpdate) _massUpdatePools();
     rewardPerSecond = _rewardPerSecond;
     emit LogRewardPerSecond(_rewardPerSecond);
   }
 
   modifier onlyFL() {
-    if (msg.sender != miniFL) revert Reward1_NotFL();
+    if (msg.sender != miniFL) revert Rewarder1_NotFL();
     _;
   }
 
@@ -185,7 +193,7 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
     uint256 _pid,
     bool _withUpdate
   ) external onlyOwner {
-    if (poolInfo[_pid].lastRewardTime != 0) revert Reward1_PoolExisted();
+    if (poolInfo[_pid].lastRewardTime != 0) revert Rewarder1_PoolExisted();
 
     if (_withUpdate) _massUpdatePools();
 
@@ -252,7 +260,7 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
   function _updatePool(uint256 _pid) internal returns (PoolInfo memory) {
     PoolInfo memory _poolInfo = poolInfo[_pid];
 
-    if (_poolInfo.lastRewardTime == 0) revert Reward1_PoolNotExisted();
+    if (_poolInfo.lastRewardTime == 0) revert Rewarder1_PoolNotExisted();
 
     if (block.timestamp > _poolInfo.lastRewardTime) {
       uint256 _stakedBalance = IMiniFL(miniFL).stakingToken(_pid).balanceOf(miniFL);
@@ -281,6 +289,15 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
   /// @param _newName The new name of the rewarder.
   function setName(string calldata _newName) external onlyOwner {
     name = _newName;
-    emit LogNameChanged(_newName);
+    emit LogSetName(_newName);
+  }
+
+  /// @notice Set max reward per second
+  /// @param _maxRewardPerSecond The max reward per second
+  function setMaxRewardPerSecond(uint256 _maxRewardPerSecond) external onlyOwner {
+    if (_maxRewardPerSecond <= rewardPerSecond) revert Rewarder1_BadArguments();
+
+    maxRewardPerSecond = _maxRewardPerSecond;
+    emit LogSetMaxRewardPerSecond(_maxRewardPerSecond);
   }
 }

@@ -66,7 +66,7 @@ describe("MiniFL", () => {
 
     // Deploy MiniFL
     const MiniFL = (await ethers.getContractFactory("MiniFL", deployer)) as MiniFL__factory;
-    miniFL = (await upgrades.deployProxy(MiniFL, [alpacaToken.address])) as MiniFL;
+    miniFL = (await upgrades.deployProxy(MiniFL, [alpacaToken.address, ALPACA_REWARD_PER_SEC])) as MiniFL;
 
     stakingTokens = new Array();
     for (let i = 0; i < 4; i++) {
@@ -233,6 +233,7 @@ describe("MiniFL", () => {
           "MockRewarder1",
           miniFL.address,
           extraRewardToken.address,
+          ALPACA_REWARD_PER_SEC,
         ])) as Rewarder1;
 
         await miniFL.addPool(1, stakingTokens[1].address, rewarder1.address, false, true);
@@ -395,6 +396,7 @@ describe("MiniFL", () => {
           "MockRewarder1",
           miniFL.address,
           extraRewardToken.address,
+          ALPACA_REWARD_PER_SEC,
         ])) as Rewarder1;
 
         // Set Reward Per Second here to make sure that even if no reward in Rewarder1, it still works
@@ -479,6 +481,7 @@ describe("MiniFL", () => {
         "MockRewarder1",
         miniFL.address,
         extraRewardToken.address,
+        ALPACA_REWARD_PER_SEC,
       ])) as Rewarder1;
 
       await alpacaToken.mint(deployer.address, ethers.utils.parseEther("1000000"));
@@ -665,6 +668,57 @@ describe("MiniFL", () => {
     });
   });
 
+  context("#setAlpacaPerSecond", async () => {
+    context("when Alice try to set ALPACA per second", async () => {
+      it("should revert", async () => {
+        await expect(miniFLasAlice.setAlpacaPerSecond(ALPACA_REWARD_PER_SEC, true)).to.be.revertedWith(
+          "Ownable: caller is not the owner"
+        );
+      });
+    });
+
+    context("when new ALPACA per second more than max ALPACA per second", async () => {
+      it("should revert", async () => {
+        await expect(miniFL.setAlpacaPerSecond(ALPACA_REWARD_PER_SEC.add(1), true)).to.be.revertedWith(
+          "MiniFL_InvalidArguments()"
+        );
+      });
+    });
+
+    context("when new ALPACA per second less than max ALPACA per second", async () => {
+      it("should work", async () => {
+        await miniFL.setAlpacaPerSecond(ethers.utils.parseEther("1"), true);
+        expect(await miniFL.alpacaPerSecond()).to.be.eq(ethers.utils.parseEther("1"));
+      });
+    });
+  });
+
+  context("#setMaxAlpacaPerSecond", async () => {
+    context("when Alice try to set max ALPACA per second", async () => {
+      it("should revert", async () => {
+        await expect(miniFLasAlice.setMaxAlpacaPerSecond(ALPACA_REWARD_PER_SEC)).to.be.revertedWith(
+          "Ownable: caller is not the owner"
+        );
+      });
+    });
+
+    context("when new max ALPACA per second less than alpaca per second", async () => {
+      it("should revert", async () => {
+        await miniFL.setAlpacaPerSecond(ALPACA_REWARD_PER_SEC, true);
+        await expect(miniFL.setMaxAlpacaPerSecond(ALPACA_REWARD_PER_SEC.sub(1))).to.be.revertedWith(
+          "MiniFL_InvalidArguments()"
+        );
+      });
+    });
+
+    context("when new max ALPACA per second more than ALPACA per second", async () => {
+      it("should work", async () => {
+        await miniFL.setMaxAlpacaPerSecond(ALPACA_REWARD_PER_SEC.add(1));
+        expect(await miniFL.maxAlpacaPerSecond()).to.be.eq(ALPACA_REWARD_PER_SEC.add(1));
+      });
+    });
+  });
+
   context("#emergencyWithdraw", async () => {
     let rewarder1: Rewarder1;
 
@@ -684,6 +738,7 @@ describe("MiniFL", () => {
         "MockRewarder1",
         miniFL.address,
         extraRewardToken.address,
+        ALPACA_REWARD_PER_SEC,
       ])) as Rewarder1;
       await rewarder1.setRewardPerSecond(ALPACA_REWARD_PER_SEC, true);
       await miniFL.addPool(1, stakingTokens[2].address, rewarder1.address, false, true);
@@ -758,6 +813,7 @@ describe("MiniFL", () => {
         "MockRewarder1",
         miniFL.address,
         extraRewardToken.address,
+        ALPACA_REWARD_PER_SEC,
       ])) as Rewarder1;
 
       await alpacaToken.mint(deployer.address, ethers.utils.parseEther("1000000"));
