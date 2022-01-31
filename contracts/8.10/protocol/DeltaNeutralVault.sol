@@ -698,14 +698,13 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
   /// @notice Claim Alpaca reward of stable vault and asset vault
   function claim() external returns (uint256, uint256) {
-    console.log("============CONTRACT :: claim=========");
     uint256 rewardStableVault = _claim(IVault(stableVault).fairLaunchPoolId());
     uint256 rewardAssetVault = _claim(IVault(assetVault).fairLaunchPoolId());
-    console.log("============END CONTRACT :: claim reward=========", rewardStableVault, rewardAssetVault);
     return (rewardStableVault, rewardAssetVault);
   }
 
   /// @dev Claim Alpaca reward for internal
+  /// @param _poolId fairLaunch poolId
   function _claim(uint256 _poolId) internal returns (uint256) {
     uint256 alpacaBefore = alpacaToken.myBalance();
     IFairLaunch(config.fairLaunchAddr()).harvest(_poolId);
@@ -715,11 +714,6 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       revert InsufficientAlpacaTokenReceived();
     }
     return alpacaReward;
-  }
-
-  /// @notice withdraw alpaca to receiver address
-  function withdrawAlpaca(address _to, uint256 amount) external onlyOwner {
-    alpacaToken.safeTransfer(_to, amount);
   }
 
   /// @dev Fallback function to accept BNB.
