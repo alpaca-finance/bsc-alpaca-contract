@@ -59,7 +59,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   error PositionsIsHealthy();
   error InsufficientTokenReceived(address _token, uint256 _requiredAmount, uint256 _receivedAmount);
   error InsufficientShareReceived(uint256 _requiredAmount, uint256 _receivedAmount);
-  error InvalidConvertData();
+  error InvalidConvertTokenData();
 
   struct Outstanding {
     uint256 stableAmount;
@@ -76,7 +76,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
   /// @dev constants
   uint8 private constant ACTION_WORK = 1;
-  uint8 private constant ACTION_WARP = 2;
+  uint8 private constant ACTION_WRAP = 2;
   uint8 private constant ACTION_CONVERT_ASSET = 3;
 
   /// @dev constant subAction of CONVERT_ASSET
@@ -501,7 +501,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       !Math.almostEqual(
         _positionInfoAfter.assetPositionDebtValue - _positionInfoBefore.assetPositionDebtValue,
         (_depositValue * 6) / 4,
-        _tolerance
+        _toleranceBps
       )
     ) {
       revert UnsafeDebtValue();
@@ -783,45 +783,51 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       uint256 _swapType,
       uint256 _amount,
       uint256 _amountOut,
-      address[] calldata _path,
+      address[] memory _path,
       address _to,
-      uint256 _deadline,
-
-    ) = abi.decode(_data, (address, uint256, uint256, address, address, uint256));
+      uint256 _deadline
+    ) = abi.decode(_data, (uint256, uint256, uint256, address[], address, uint256));
     console.log("_swapType", _swapType);
     console.log("_amount", _amount);
     console.log("_amountOut", _amountOut);
-    console.log("_path", _path);
     console.log("_to", _to);
     console.log("_deadline", _deadline);
     address routerAddress = config.routerAddr();
 
-    if (swapType == CONVERT_EXACT_TOKEN_TO_NATIVE) {
-      _validatePath(path);
-      IRouter(routerAddress).swapExactTokensForETH(amountIn, amountOut, path, to, deadline);
-    } else if (swapType == CONVERT_EXACT_TOKEN_TO_TOKEN) {
-      _validatePath(path);
-      IRouter(routerAddress).swapExactTokensForTokens(amountIn, amountOut, path, to, deadline);
-    } else if (swapType == CONVERT_TOKEN_TO_EXACT_TOKEN) {
-      _validatePath(path);
-      IRouter(routerAddress).swapTokensForExactTokens(amountIn, amountOut, path, to, deadline);
-    } else {
-      revert InvalidConvertData();
+    if (
+      _swapType != CONVERT_EXACT_TOKEN_TO_NATIVE &&
+      _swapType != CONVERT_EXACT_TOKEN_TO_TOKEN &&
+      _swapType != CONVERT_TOKEN_TO_EXACT_TOKEN
+    ) {
+      revert InvalidConvertTokenData();
+    }
+
+    _validatePath(_path);
+
+    if (_swapType == CONVERT_EXACT_TOKEN_TO_NATIVE) {
+      IRouter(routerAddress).swapExactTokensForETH(_amount, _amountOut, _path, _to, _deadline);
+    }
+    if (_swapType == CONVERT_EXACT_TOKEN_TO_TOKEN) {
+      IRouter(routerAddress).swapExactTokensForTokens(_amount, _amountOut, _path, _to, _deadline);
+    }
+    if (_swapType == CONVERT_TOKEN_TO_EXACT_TOKEN) {
+      IRouter(routerAddress).swapTokensForExactTokens(_amount, _amountOut, _path, _to, _deadline);
     }
   }
 
-  function _validatePath(address[] tokenAddresses) internal returns (bool) {
+  function _validatePath(address[] memory tokenAddresses) internal {
     for (uint256 _idx = 0; _idx < tokenAddresses.length; _idx++) {
+      address tokenAddress = tokenAddresses[_idx];
+      console.log("tokenAddress", tokenAddress);
       if (
         tokenAddress != stableToken ||
         tokenAddress != assetToken ||
         tokenAddress != alpacaToken ||
         tokenAddress != config.getWrappedNativeAddr()
       ) {
-        return false;
+        revert InvalidConvertTokenData();
       }
     }
-    return true;
   }
 
   /// @dev Fallback function to accept BNB.
