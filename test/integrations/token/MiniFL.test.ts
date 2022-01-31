@@ -868,8 +868,11 @@ describe("MiniFL", () => {
           .mul(bobDepositAmount)
           .div(totalAmount)
       );
-      expect(await miniFL.pendingAlpaca(0, alice.address)).to.be.eq(aliceExpectedAlpacaReward);
-      expect(await miniFL.pendingAlpaca(0, bob.address)).to.be.eq(bobExpectedAlpacaReward);
+      assertHelpers.assertBigNumberClosePercent(
+        await miniFL.pendingAlpaca(0, alice.address),
+        aliceExpectedAlpacaReward
+      );
+      assertHelpers.assertBigNumberClosePercent(await miniFL.pendingAlpaca(0, bob.address), bobExpectedAlpacaReward);
 
       // Enabling rewarder1
       await miniFL.setPool(0, 1, rewarder1.address, true, true);
