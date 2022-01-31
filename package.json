@@ -326,7 +326,8 @@
     ".mainnet.json"
   ],
   "resolutions": {
-    "lodash": ">=4.17.21"
+    "lodash": ">=4.17.21",
+    "lodash.template": ">=4.5.0"
   },
   "engines": {
     "node": ">=12"
