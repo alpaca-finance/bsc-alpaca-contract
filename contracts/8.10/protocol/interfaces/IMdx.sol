@@ -13,6 +13,8 @@ Alpaca Fin Corporation
 
 pragma solidity 0.8.10;
 
-interface IChainLinkPriceOracle {
-  function getPrice(address token0, address token1) external view returns (uint256, uint256);
+import "./IERC20.sol";
+
+interface IMdx is IERC20 {
+  function mint(address to, uint256 amount) external returns (bool);
 }
