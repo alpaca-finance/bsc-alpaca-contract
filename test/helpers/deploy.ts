@@ -500,7 +500,7 @@ export class DeployHelper {
 
   public async deployMiniFL(rewardTokenAddress: string): Promise<MiniFL> {
     const MiniFL = (await ethers.getContractFactory("MiniFL", this.deployer)) as MiniFL__factory;
-    const miniFL = (await upgrades.deployProxy(MiniFL, [rewardTokenAddress])) as MiniFL;
+    const miniFL = (await upgrades.deployProxy(MiniFL, [rewardTokenAddress, ethers.constants.MaxUint256])) as MiniFL;
     return miniFL;
   }
 
