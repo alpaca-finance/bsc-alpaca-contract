@@ -25,8 +25,9 @@ import "../../interfaces/ISwapRouter02Like.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IWorker03.sol";
 import "../../interfaces/ISpookyMasterChef.sol";
-import "../../../utils/SafeToken.sol";
 import "../../interfaces/IVault.sol";
+
+import "../../../utils/SafeToken.sol";
 
 /// @title SpookyWorker03 is a worker with reinvest-optimized and beneficial vault buyback functionalities
 contract SpookyWorker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker03 {
@@ -152,6 +153,7 @@ contract SpookyWorker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
         (baseToken == lpToken.token0() || baseToken == lpToken.token1()),
       "bad baseToken or farmingToken"
     );
+    require(reinvestPath.length >= 2, "_reinvestPath length must >= 2");
     require(reinvestPath[0] == boo && reinvestPath[reinvestPath.length - 1] == baseToken, "bad reinvest path");
   }
 
@@ -227,7 +229,6 @@ contract SpookyWorker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
 
     // 4. Convert all the remaining rewards to BTOKEN.
     router.swapExactTokensForTokens(reward.sub(bounty), 0, getReinvestPath(), address(this), now);
-    boo.safeApprove(address(router), 0);
 
     // 5. Use add Token strategy to convert all BaseToken without both caller balance and buyback amount to LP tokens.
     baseToken.safeTransfer(address(addStrat), actualBaseTokenBalance().sub(_callerBalance));
@@ -319,7 +320,7 @@ contract SpookyWorker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   }
 
   /// @dev Some portion of a bounty from reinvest will be sent to beneficialVault to increase the size of totalToken.
-  /// @param _beneficialVaultBounty - The amount of CAKE to be swapped to BTOKEN & send back to the Vault.
+  /// @param _beneficialVaultBounty - The amount of BOO to be swapped to BTOKEN & send back to the Vault.
   /// @param _callerBalance - The balance that is owned by the msg.sender within the execution scope.
   function _rewardToBeneficialVault(uint256 _beneficialVaultBounty, uint256 _callerBalance) internal {
     /// 1. read base token from beneficialVault
@@ -368,6 +369,7 @@ contract SpookyWorker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
       address(lpToken).safeApprove(address(spookyMasterChef), uint256(-1));
       // 2. Convert balance to share
       uint256 share = balanceToShare(balance);
+      require(share > 0, "no zero share");
       // 3. Deposit balance to Spooky's MasterChef
       // and also force reward claim, to mimic the behaviour of Spooky's MasterChef
       spookyMasterChef.deposit(pid, balance);

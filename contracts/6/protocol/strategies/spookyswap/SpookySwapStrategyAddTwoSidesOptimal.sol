@@ -24,9 +24,10 @@ import "../../interfaces/ISwapPairLike.sol";
 import "../../interfaces/ISwapRouter02Like.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IVault.sol";
+import "../../interfaces/IWorker03.sol";
+
 import "../../../utils/SafeToken.sol";
 import "../../../utils/AlpacaMath.sol";
-import "../../interfaces/IWorker03.sol";
 
 contract SpookySwapStrategyAddTwoSidesOptimal is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeToken for address;

@@ -24,8 +24,9 @@ import "../../interfaces/ISwapRouter02Like.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IWETH.sol";
 import "../../interfaces/IWNativeRelayer.sol";
-import "../../../utils/SafeToken.sol";
 import "../../interfaces/IWorker03.sol";
+
+import "../../../utils/SafeToken.sol";
 
 contract SpookySwapStrategyWithdrawMinimizeTrading is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeToken for address;
@@ -33,7 +34,7 @@ contract SpookySwapStrategyWithdrawMinimizeTrading is OwnableUpgradeSafe, Reentr
 
   ISwapFactoryLike public factory;
   ISwapRouter02Like public router;
-  IWETH public wbnb;
+  address public wftm;
   IWNativeRelayer public wNativeRelayer;
 
   mapping(address => bool) public okWorkers;
@@ -45,19 +46,14 @@ contract SpookySwapStrategyWithdrawMinimizeTrading is OwnableUpgradeSafe, Reentr
   }
 
   /// @dev Create a new withdraw minimize trading strategy instance.
-  /// @param _router The WaultSwap Router smart contract.
-  /// @param _wbnb The wrapped BNB token.
+  /// @param _router The SpookySwap Router smart contract.
   /// @param _wNativeRelayer The relayer to support native transfer
-  function initialize(
-    ISwapRouter02Like _router,
-    IWETH _wbnb,
-    IWNativeRelayer _wNativeRelayer
-  ) external initializer {
+  function initialize(ISwapRouter02Like _router, IWNativeRelayer _wNativeRelayer) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
     factory = ISwapFactoryLike(_router.factory());
     router = _router;
-    wbnb = _wbnb;
+    wftm = _router.WETH();
     wNativeRelayer = _wNativeRelayer;
   }
 
@@ -99,7 +95,7 @@ contract SpookySwapStrategyWithdrawMinimizeTrading is OwnableUpgradeSafe, Reentr
     uint256 remainingFarmingToken = farmingToken.myBalance();
     require(remainingFarmingToken >= minFarmingToken, "insufficient farming tokens received");
     if (remainingFarmingToken > 0) {
-      if (farmingToken == address(wbnb)) {
+      if (farmingToken == address(wftm)) {
         SafeToken.safeTransfer(farmingToken, address(wNativeRelayer), remainingFarmingToken);
         wNativeRelayer.withdraw(remainingFarmingToken);
         SafeToken.safeTransferETH(user, remainingFarmingToken);

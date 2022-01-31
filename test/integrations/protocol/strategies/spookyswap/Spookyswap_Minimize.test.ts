@@ -147,7 +147,6 @@ describe("SpookySwapStrategyWithdrawMinimizeTrading", () => {
     )) as SpookySwapStrategyWithdrawMinimizeTrading__factory;
     strat = (await upgrades.deployProxy(SpookySwapStrategyWithdrawMinimizeTrading, [
       router.address,
-      wbnb.address,
       wNativeRelayer.address,
     ])) as SpookySwapStrategyWithdrawMinimizeTrading;
     await strat.deployed();

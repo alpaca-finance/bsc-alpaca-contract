@@ -632,7 +632,7 @@ export class DeployHelper {
     );
 
     // Set add FairLaunch poool and set fairLaunchPoolId for Vault
-    await miniFL.addPool(1, await vault.debtToken(), rewarderAddress, true);
+    await miniFL.addPool(1, await vault.debtToken(), rewarderAddress, true, true);
     await miniFL.approveStakeDebtToken([0], [vault.address], true);
     await vault.setFairLaunchPoolId(0);
 
@@ -933,7 +933,6 @@ export class DeployHelper {
   public async deploySpookySwapStrategies(
     router: WaultSwapRouter,
     vault: IVault,
-    wbnb: MockWBNB,
     wNativeRelayer: WNativeRelayer
   ): Promise<
     [
@@ -979,7 +978,6 @@ export class DeployHelper {
     )) as SpookySwapStrategyWithdrawMinimizeTrading__factory;
     const minimizeTradeStrat = (await upgrades.deployProxy(SpookySwapStrategyWithdrawMinimizeTrading, [
       router.address,
-      wbnb.address,
       wNativeRelayer.address,
     ])) as SpookySwapStrategyWithdrawMinimizeTrading;
 
@@ -999,7 +997,6 @@ export class DeployHelper {
     )) as SpookySwapStrategyPartialCloseMinimizeTrading__factory;
     const partialCloseMinimizeStrat = (await upgrades.deployProxy(SpookySwapStrategyPartialCloseMinimizeTrading, [
       router.address,
-      wbnb.address,
       wNativeRelayer.address,
     ])) as SpookySwapStrategyPartialCloseMinimizeTrading;
     await partialCloseMinimizeStrat.deployed();

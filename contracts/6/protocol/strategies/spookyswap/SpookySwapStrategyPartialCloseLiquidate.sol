@@ -22,7 +22,7 @@ import "../../interfaces/ISwapFactoryLike.sol";
 import "../../interfaces/ISwapPairLike.sol";
 import "../../interfaces/ISwapRouter02Like.sol";
 import "../../interfaces/IStrategy.sol";
-import "../../interfaces/IWorker.sol";
+import "../../interfaces/IWorker03.sol";
 
 import "../../../utils/SafeToken.sol";
 
@@ -72,10 +72,10 @@ contract SpookySwapStrategyPartialCloseLiquidate is OwnableUpgradeSafe, Reentran
       data,
       (uint256, uint256, uint256)
     );
-    IWorker worker = IWorker(msg.sender);
+    IWorker03 worker = IWorker03(msg.sender);
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
-    IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
+    ISwapPairLike lpToken = ISwapPairLike(factory.getPair(farmingToken, baseToken));
     uint256 lpTokenToLiquidate = Math.min(address(lpToken).myBalance(), maxLpTokenToLiquidate);
     uint256 lessDebt = Math.min(debt, maxDebtRepayment);
     uint256 baseTokenBefore = baseToken.myBalance();

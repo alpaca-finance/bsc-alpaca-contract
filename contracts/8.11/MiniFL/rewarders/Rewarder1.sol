@@ -55,6 +55,7 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
   uint256 private constant ACC_REWARD_PRECISION = 1e12;
 
   address public miniFL;
+  string public name;
 
   event LogOnDeposit(address indexed user, uint256 indexed pid, uint256 amount);
   event LogOnWithdraw(address indexed user, uint256 indexed pid, uint256 amount);
@@ -63,11 +64,17 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
   event LogSetPool(uint256 indexed pid, uint256 allocPoint);
   event LogUpdatePool(uint256 indexed pid, uint64 lastRewardTime, uint256 stakedBalance, uint256 accRewardPerShare);
   event LogRewardPerSecond(uint256 rewardPerSecond);
+  event LogNameChanged(string name);
 
-  function initialize(address _miniFL, IERC20Upgradeable _rewardToken) external initializer {
+  function initialize(
+    string calldata _name,
+    address _miniFL,
+    IERC20Upgradeable _rewardToken
+  ) external initializer {
     OwnableUpgradeable.__Ownable_init();
     ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
 
+    name = _name;
     miniFL = _miniFL;
     rewardToken = _rewardToken;
   }
@@ -152,8 +159,9 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
   /// @notice Sets the reward per second to be distributed.
   /// @dev Can only be called by the owner.
   /// @param _rewardPerSecond The amount of reward token to be distributed per second.
-  function setRewardPerSecond(uint256 _rewardPerSecond) public onlyOwner {
-    _massUpdatePools();
+  /// @param _withUpdate If true, do mass update pools
+  function setRewardPerSecond(uint256 _rewardPerSecond, bool _withUpdate) external onlyOwner {
+    if (_withUpdate) _massUpdatePools();
     rewardPerSecond = _rewardPerSecond;
     emit LogRewardPerSecond(_rewardPerSecond);
   }
@@ -171,10 +179,15 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
   /// @notice Add a new pool. Can only be called by the owner.
   /// @param _allocPoint The new allocation point
   /// @param _pid The Pool ID on MiniFL
-  function addPool(uint256 _allocPoint, uint256 _pid) public onlyOwner {
+  /// @param _withUpdate If true, do mass update pools
+  function addPool(
+    uint256 _allocPoint,
+    uint256 _pid,
+    bool _withUpdate
+  ) external onlyOwner {
     if (poolInfo[_pid].lastRewardTime != 0) revert Reward1_PoolExisted();
 
-    _massUpdatePools();
+    if (_withUpdate) _massUpdatePools();
 
     uint256 _lastRewardTime = block.timestamp;
     totalAllocPoint = totalAllocPoint + _allocPoint;
@@ -192,8 +205,13 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
   /// @dev Can only be called by the owner.
   /// @param _pid The index of the pool. See `poolInfo`.
   /// @param _allocPoint The allocation point of the pool.
-  function setPool(uint256 _pid, uint256 _allocPoint) public onlyOwner {
-    _massUpdatePools();
+  /// @param _withUpdate If true, do mass update pools
+  function setPool(
+    uint256 _pid,
+    uint256 _allocPoint,
+    bool _withUpdate
+  ) external onlyOwner {
+    if (_withUpdate) _massUpdatePools();
     totalAllocPoint = totalAllocPoint - poolInfo[_pid].allocPoint + _allocPoint;
     poolInfo[_pid].allocPoint = _allocPoint.toUint64();
     emit LogSetPool(_pid, _allocPoint);
@@ -257,5 +275,12 @@ contract Rewarder1 is IRewarder, OwnableUpgradeable, ReentrancyGuardUpgradeable 
   /// @return pool Returns the pool that was updated.
   function updatePool(uint256 _pid) external nonReentrant returns (PoolInfo memory) {
     return _updatePool(_pid);
+  }
+
+  /// @notice Change the name of the rewarder.
+  /// @param _newName The new name of the rewarder.
+  function setName(string calldata _newName) external onlyOwner {
+    name = _newName;
+    emit LogNameChanged(_newName);
   }
 }

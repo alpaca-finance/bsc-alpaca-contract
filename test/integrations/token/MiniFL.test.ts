@@ -111,7 +111,7 @@ describe("MiniFL", () => {
   context("#addPool", async () => {
     it("should add new pool", async () => {
       for (let i = 0; i < stakingTokens.length; i++) {
-        await miniFL.addPool(1, stakingTokens[i].address, ethers.constants.AddressZero, false);
+        await miniFL.addPool(1, stakingTokens[i].address, ethers.constants.AddressZero, false, true);
       }
       expect(await miniFL.poolLength()).to.eq(stakingTokens.length);
       expect(await miniFL.totalAllocPoint()).to.be.eq(stakingTokens.length);
@@ -119,20 +119,20 @@ describe("MiniFL", () => {
 
     it("should revert when the stakeToken is already added to the pool", async () => {
       for (let i = 0; i < stakingTokens.length; i++) {
-        await miniFL.addPool(1, stakingTokens[i].address, ethers.constants.AddressZero, false);
+        await miniFL.addPool(1, stakingTokens[i].address, ethers.constants.AddressZero, false, true);
       }
       expect(await miniFL.poolLength()).to.eq(stakingTokens.length);
       expect(await miniFL.totalAllocPoint()).to.be.eq(stakingTokens.length);
 
-      await expect(miniFL.addPool(1, stakingTokens[0].address, ethers.constants.AddressZero, false)).to.be.revertedWith(
-        "MiniFL_DuplicatePool()"
-      );
+      await expect(
+        miniFL.addPool(1, stakingTokens[0].address, ethers.constants.AddressZero, false, true)
+      ).to.be.revertedWith("MiniFL_DuplicatePool()");
     });
   });
 
   context("#deposit", async () => {
     beforeEach(async () => {
-      await miniFL.addPool(1, stakingTokens[0].address, ethers.constants.AddressZero, false);
+      await miniFL.addPool(1, stakingTokens[0].address, ethers.constants.AddressZero, false, true);
     });
 
     context("when deposit to not existed pool", async () => {
@@ -143,7 +143,7 @@ describe("MiniFL", () => {
 
     context("when pool is debtToken", async () => {
       beforeEach(async () => {
-        await miniFL.addPool(1, stakingTokens[1].address, ethers.constants.AddressZero, true);
+        await miniFL.addPool(1, stakingTokens[1].address, ethers.constants.AddressZero, true, true);
       });
 
       context("when msg.sender is NOT allow to stake debtToken", async () => {
@@ -229,14 +229,18 @@ describe("MiniFL", () => {
 
       beforeEach(async () => {
         const Rewarder1 = (await ethers.getContractFactory("Rewarder1", deployer)) as Rewarder1__factory;
-        rewarder1 = (await upgrades.deployProxy(Rewarder1, [miniFL.address, extraRewardToken.address])) as Rewarder1;
+        rewarder1 = (await upgrades.deployProxy(Rewarder1, [
+          "MockRewarder1",
+          miniFL.address,
+          extraRewardToken.address,
+        ])) as Rewarder1;
 
-        await miniFL.addPool(1, stakingTokens[1].address, rewarder1.address, false);
-        await rewarder1.addPool(1, 1);
+        await miniFL.addPool(1, stakingTokens[1].address, rewarder1.address, false, true);
+        await rewarder1.addPool(1, 1, true);
 
-        await miniFL.addPool(1, stakingTokens[2].address, rewarder1.address, true);
+        await miniFL.addPool(1, stakingTokens[2].address, rewarder1.address, true, true);
         await miniFL.approveStakeDebtToken([2], [alice.address], true);
-        await rewarder1.addPool(1, 2);
+        await rewarder1.addPool(1, 2, true);
         expect(await miniFL.stakeDebtTokenAllowance(2, alice.address)).to.be.eq(true);
       });
 
@@ -295,8 +299,8 @@ describe("MiniFL", () => {
   context("#withdraw", async () => {
     beforeEach(async () => {
       // Set ALPACA per Second here to make sure that even if no ALPACA in MiniFL, it still works
-      await miniFL.setAlpacaPerSecond(ALPACA_REWARD_PER_SEC);
-      await miniFL.addPool(1, stakingTokens[0].address, ethers.constants.AddressZero, false);
+      await miniFL.setAlpacaPerSecond(ALPACA_REWARD_PER_SEC, true);
+      await miniFL.addPool(1, stakingTokens[0].address, ethers.constants.AddressZero, false, true);
 
       await stoken0AsAlice.approve(miniFL.address, ethers.utils.parseEther("100"));
       await miniFLasAlice.deposit(alice.address, 0, ethers.utils.parseEther("100"));
@@ -304,7 +308,7 @@ describe("MiniFL", () => {
 
     context("when pool is debtToken", async () => {
       beforeEach(async () => {
-        await miniFL.addPool(1, stakingTokens[1].address, ethers.constants.AddressZero, true);
+        await miniFL.addPool(1, stakingTokens[1].address, ethers.constants.AddressZero, true, true);
         await miniFL.approveStakeDebtToken([1], [alice.address], true);
 
         await stoken1AsAlice.approve(miniFL.address, ethers.utils.parseEther("200"));
@@ -387,19 +391,23 @@ describe("MiniFL", () => {
 
       beforeEach(async () => {
         const Rewarder1 = (await ethers.getContractFactory("Rewarder1", deployer)) as Rewarder1__factory;
-        rewarder1 = (await upgrades.deployProxy(Rewarder1, [miniFL.address, extraRewardToken.address])) as Rewarder1;
+        rewarder1 = (await upgrades.deployProxy(Rewarder1, [
+          "MockRewarder1",
+          miniFL.address,
+          extraRewardToken.address,
+        ])) as Rewarder1;
 
         // Set Reward Per Second here to make sure that even if no reward in Rewarder1, it still works
-        await rewarder1.setRewardPerSecond(ALPACA_REWARD_PER_SEC);
+        await rewarder1.setRewardPerSecond(ALPACA_REWARD_PER_SEC, true);
 
-        await miniFL.addPool(1, stakingTokens[1].address, rewarder1.address, false);
-        await rewarder1.addPool(1, 1);
+        await miniFL.addPool(1, stakingTokens[1].address, rewarder1.address, false, true);
+        await rewarder1.addPool(1, 1, true);
         await stoken1AsAlice.approve(miniFL.address, ethers.utils.parseEther("100"));
         await miniFLasAlice.deposit(alice.address, 1, ethers.utils.parseEther("100"));
 
-        await miniFL.addPool(1, stakingTokens[2].address, rewarder1.address, true);
+        await miniFL.addPool(1, stakingTokens[2].address, rewarder1.address, true, true);
         await miniFL.approveStakeDebtToken([2], [alice.address], true);
-        await rewarder1.addPool(1, 2);
+        await rewarder1.addPool(1, 2, true);
         expect(await miniFL.stakeDebtTokenAllowance(2, alice.address)).to.be.eq(true);
         await stoken2AsAlice.approve(miniFL.address, ethers.utils.parseEther("200"));
         await miniFLasAlice.deposit(alice.address, 2, ethers.utils.parseEther("100"));
@@ -467,7 +475,11 @@ describe("MiniFL", () => {
       stages = {};
 
       const Rewarder1 = await ethers.getContractFactory("Rewarder1");
-      rewarder1 = (await upgrades.deployProxy(Rewarder1, [miniFL.address, extraRewardToken.address])) as Rewarder1;
+      rewarder1 = (await upgrades.deployProxy(Rewarder1, [
+        "MockRewarder1",
+        miniFL.address,
+        extraRewardToken.address,
+      ])) as Rewarder1;
 
       await alpacaToken.mint(deployer.address, ethers.utils.parseEther("1000000"));
       await alpacaToken.transfer(miniFL.address, ethers.utils.parseEther("1000000"));
@@ -475,19 +487,19 @@ describe("MiniFL", () => {
       await extraRewardToken.mint(deployer.address, ethers.utils.parseEther("1000000"));
       await extraRewardToken.transfer(rewarder1.address, ethers.utils.parseEther("1000000"));
 
-      await rewarder1.setRewardPerSecond(ALPACA_REWARD_PER_SEC);
-      await miniFL.setAlpacaPerSecond(ALPACA_REWARD_PER_SEC);
+      await rewarder1.setRewardPerSecond(ALPACA_REWARD_PER_SEC, true);
+      await miniFL.setAlpacaPerSecond(ALPACA_REWARD_PER_SEC, true);
 
-      await miniFL.addPool(1, stakingTokens[0].address, ethers.constants.AddressZero, false);
+      await miniFL.addPool(1, stakingTokens[0].address, ethers.constants.AddressZero, false, true);
 
-      await miniFL.addPool(1, stakingTokens[1].address, ethers.constants.AddressZero, true);
+      await miniFL.addPool(1, stakingTokens[1].address, ethers.constants.AddressZero, true, true);
       await miniFL.approveStakeDebtToken([1], [alice.address], true);
 
-      await miniFL.addPool(1, stakingTokens[2].address, rewarder1.address, false);
-      await rewarder1.addPool(1, 2);
+      await miniFL.addPool(1, stakingTokens[2].address, rewarder1.address, false, true);
+      await rewarder1.addPool(1, 2, true);
 
-      await miniFL.addPool(1, stakingTokens[3].address, rewarder1.address, true);
-      await rewarder1.addPool(1, 3);
+      await miniFL.addPool(1, stakingTokens[3].address, rewarder1.address, true, true);
+      await rewarder1.addPool(1, 3, true);
       await miniFL.approveStakeDebtToken([3], [alice.address], true);
 
       await stoken0AsAlice.approve(miniFL.address, ethers.utils.parseEther("100"));
@@ -654,22 +666,36 @@ describe("MiniFL", () => {
   });
 
   context("#emergencyWithdraw", async () => {
+    let rewarder1: Rewarder1;
+
     beforeEach(async () => {
       await alpacaToken.mint(deployer.address, ethers.utils.parseEther("1000000"));
       await alpacaToken.transfer(miniFL.address, ethers.utils.parseEther("1000000"));
 
-      await miniFL.setAlpacaPerSecond(ALPACA_REWARD_PER_SEC);
+      await miniFL.setAlpacaPerSecond(ALPACA_REWARD_PER_SEC, true);
 
-      await miniFL.addPool(1, stakingTokens[0].address, ethers.constants.AddressZero, false);
+      await miniFL.addPool(1, stakingTokens[0].address, ethers.constants.AddressZero, false, true);
 
-      await miniFL.addPool(1, stakingTokens[1].address, ethers.constants.AddressZero, true);
+      await miniFL.addPool(1, stakingTokens[1].address, ethers.constants.AddressZero, true, true);
       await miniFL.approveStakeDebtToken([1], [alice.address], true);
+
+      const Rewarder1 = (await ethers.getContractFactory("Rewarder1", deployer)) as Rewarder1__factory;
+      rewarder1 = (await upgrades.deployProxy(Rewarder1, [
+        "MockRewarder1",
+        miniFL.address,
+        extraRewardToken.address,
+      ])) as Rewarder1;
+      await miniFL.addPool(1, stakingTokens[2].address, rewarder1.address, false, true);
+      await rewarder1.addPool(1, 2, true);
 
       await stoken0AsAlice.approve(miniFL.address, ethers.utils.parseEther("100"));
       await miniFLasAlice.deposit(alice.address, 0, ethers.utils.parseEther("100"));
 
       await stoken1AsAlice.approve(miniFL.address, ethers.utils.parseEther("100"));
       await miniFLasAlice.deposit(bob.address, 1, ethers.utils.parseEther("100"));
+
+      await stoken2AsAlice.approve(miniFL.address, ethers.utils.parseEther("100"));
+      await miniFLasAlice.deposit(alice.address, 2, ethers.utils.parseEther("100"));
     });
 
     context("when pool is ibToken", async () => {
@@ -684,6 +710,23 @@ describe("MiniFL", () => {
         expect(stoken0after).to.be.eq(stoken0before.add(ethers.utils.parseEther("100")));
         expect(aliceInfo.amount).to.be.eq(0);
         expect(aliceInfo.rewardDebt).to.be.eq(0);
+      });
+
+      context("when pool has rewarder", async () => {
+        it("should work", async () => {
+          const stoken2before = await stakingTokens[2].balanceOf(alice.address);
+          expect((await rewarder1.userInfo(2, alice.address)).amount).to.be.eq(ethers.utils.parseEther("100"));
+
+          await miniFLasAlice.emergencyWithdraw(2);
+
+          const stoken2after = await stakingTokens[2].balanceOf(alice.address);
+
+          const aliceInfo = await miniFL.userInfo(2, alice.address);
+          expect(stoken2after).to.be.eq(stoken2before.add(ethers.utils.parseEther("100")));
+          expect((await rewarder1.userInfo(2, alice.address)).amount).to.be.eq(0);
+          expect(aliceInfo.amount).to.be.eq(0);
+          expect(aliceInfo.rewardDebt).to.be.eq(0);
+        });
       });
     });
 
@@ -703,7 +746,11 @@ describe("MiniFL", () => {
       stages = {};
 
       const Rewarder1 = await ethers.getContractFactory("Rewarder1");
-      rewarder1 = (await upgrades.deployProxy(Rewarder1, [miniFL.address, extraRewardToken.address])) as Rewarder1;
+      rewarder1 = (await upgrades.deployProxy(Rewarder1, [
+        "MockRewarder1",
+        miniFL.address,
+        extraRewardToken.address,
+      ])) as Rewarder1;
 
       await alpacaToken.mint(deployer.address, ethers.utils.parseEther("1000000"));
       await alpacaToken.transfer(miniFL.address, ethers.utils.parseEther("1000000"));
@@ -711,11 +758,11 @@ describe("MiniFL", () => {
       await extraRewardToken.mint(deployer.address, ethers.utils.parseEther("1000000"));
       await extraRewardToken.transfer(rewarder1.address, ethers.utils.parseEther("1000000"));
 
-      await miniFL.setAlpacaPerSecond(ALPACA_REWARD_PER_SEC);
-      await rewarder1.setRewardPerSecond(ALPACA_REWARD_PER_SEC);
+      await miniFL.setAlpacaPerSecond(ALPACA_REWARD_PER_SEC, true);
+      await rewarder1.setRewardPerSecond(ALPACA_REWARD_PER_SEC, true);
 
-      await miniFL.addPool(1, stakingTokens[0].address, ethers.constants.AddressZero, false);
-      await rewarder1.addPool(1, 0);
+      await miniFL.addPool(1, stakingTokens[0].address, ethers.constants.AddressZero, false, true);
+      await rewarder1.addPool(1, 0, true);
     });
 
     it("should work", async () => {
@@ -817,7 +864,7 @@ describe("MiniFL", () => {
       expect(await miniFL.pendingAlpaca(0, bob.address)).to.be.eq(bobExpectedAlpacaReward);
 
       // Enabling rewarder1
-      await miniFL.setPool(0, 1, rewarder1.address, true);
+      await miniFL.setPool(0, 1, rewarder1.address, true, true);
       stages["enable_rewarder"] = await timeHelpers.latest();
 
       expect(await miniFL.rewarder(0)).to.be.eq(rewarder1.address);

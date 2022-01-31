@@ -203,12 +203,12 @@ describe("Vault - SpookyWorker03", () => {
       baseToken
     );
     [addStrat, liqStrat, twoSidesStrat, minimizeStrat, partialCloseStrat, partialCloseMinimizeStrat] =
-      await deployHelper.deploySpookySwapStrategies(router, vault, wbnb, wNativeRelayer);
+      await deployHelper.deploySpookySwapStrategies(router, vault, wNativeRelayer);
 
     /// Set reward per second on both MiniFL and Rewarder
-    await miniFL.setAlpacaPerSecond(LM_REWARD_PER_SECOND);
-    await rewarder1.setRewardPerSecond(LM_REWARD_PER_SECOND);
-    await rewarder1.addPool(1, 0);
+    await miniFL.setAlpacaPerSecond(LM_REWARD_PER_SECOND, true);
+    await rewarder1.setRewardPerSecond(LM_REWARD_PER_SECOND, true);
+    await rewarder1.addPool(1, 0, true);
 
     /// Setup BTOKEN-FTOKEN pair on SpookySwap
     await factory.createPair(baseToken.address, farmToken.address);
