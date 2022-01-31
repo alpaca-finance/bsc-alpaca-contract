@@ -47,5 +47,8 @@ export function assertBigNumberClosePercent(
   if (aBigNumber.eq(bBigNumber)) return;
 
   const diff = aBigNumber.sub(bBigNumber).abs().mul(ethers.constants.WeiPerEther).div(aBigNumber.add(bBigNumber));
-  assert.ok(diff.lte(varianceBigNumber), `${reason}: diff exceeded ${variance}`);
+  assert.ok(
+    diff.lte(varianceBigNumber),
+    `${reason}: diff exceeded ${variance}: ${aBigNumber.toString()} ${bBigNumber.toString()}`
+  );
 }

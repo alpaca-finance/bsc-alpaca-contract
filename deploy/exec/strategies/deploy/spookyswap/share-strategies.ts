@@ -100,7 +100,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     )) as SpookySwapStrategyWithdrawMinimizeTrading__factory;
     const strategyWithdrawMinimizeTrading = (await upgrades.deployProxy(SpookySwapStrategyWithdrawMinimizeTrading, [
       config.Exchanges.SpookySwap!.SpookyRouter,
-      config.Tokens.WFTM!,
       config.SharedConfig.WNativeRelayer,
     ])) as SpookySwapStrategyWithdrawMinimizeTrading;
     await strategyWithdrawMinimizeTrading.deployed();
@@ -151,7 +150,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     )) as SpookySwapStrategyPartialCloseMinimizeTrading__factory;
     const strategyPartialCloseMinimizeTrading = (await upgrades.deployProxy(
       SpookySwapStrategyPartialCloseMinimizeTrading,
-      [config.Exchanges.SpookySwap!.SpookyRouter, config.Tokens.WFTM!, config.SharedConfig.WNativeRelayer]
+      [config.Exchanges.SpookySwap!.SpookyRouter, config.SharedConfig.WNativeRelayer]
     )) as SpookySwapStrategyPartialCloseMinimizeTrading;
     await strategyPartialCloseMinimizeTrading.deployTransaction.wait(3);
     console.log(`>> Deployed at ${strategyPartialCloseMinimizeTrading.address}`);

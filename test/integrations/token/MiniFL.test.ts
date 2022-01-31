@@ -685,6 +685,7 @@ describe("MiniFL", () => {
         miniFL.address,
         extraRewardToken.address,
       ])) as Rewarder1;
+      await rewarder1.setRewardPerSecond(ALPACA_REWARD_PER_SEC, true);
       await miniFL.addPool(1, stakingTokens[2].address, rewarder1.address, false, true);
       await rewarder1.addPool(1, 2, true);
 
@@ -726,6 +727,13 @@ describe("MiniFL", () => {
           expect((await rewarder1.userInfo(2, alice.address)).amount).to.be.eq(0);
           expect(aliceInfo.amount).to.be.eq(0);
           expect(aliceInfo.rewardDebt).to.be.eq(0);
+
+          const pendingExtraReward = await rewarder1.pendingToken(2, alice.address);
+          expect(pendingExtraReward).to.be.gt(0);
+
+          await timeHelpers.increase(ethers.BigNumber.from("86400"));
+
+          expect(await rewarder1.pendingToken(2, alice.address)).to.be.eq(pendingExtraReward);
         });
       });
     });
@@ -1044,7 +1052,7 @@ describe("MiniFL", () => {
         aliceExpectedExtraReward
       );
       // Bob expect to get nothing from rewarder due to he has not interact with MiniFL
-      // After rewarder1 is added.
+      // after rewarder1 is added.
       expect(await rewarder1.pendingToken(0, bob.address)).to.be.eq(0);
 
       // Update deposit balance

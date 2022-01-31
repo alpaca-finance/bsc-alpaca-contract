@@ -181,17 +181,17 @@ contract MiniFL is IMiniFL, OwnableUpgradeable, ReentrancyGuardUpgradeable {
   }
 
   /// @notice Update reward variables for all pools.
-  function massUpdatePools() public {
+  function massUpdatePools() public nonReentrant {
     uint256 len = poolLength();
     for (uint256 i = 0; i < len; ++i) {
-      updatePool(i);
+      _updatePool(i);
     }
   }
 
-  /// @notice Update reward variables of the given pool.
+  /// @notice Perform actual update pool.
   /// @param pid The index of the pool. See `poolInfo`.
   /// @return pool Returns the pool that was updated.
-  function updatePool(uint256 pid) public returns (PoolInfo memory) {
+  function _updatePool(uint256 pid) internal returns (PoolInfo memory) {
     PoolInfo memory pool = poolInfo[pid];
     if (block.timestamp > pool.lastRewardTime) {
       uint256 stakedBalance = stakingToken[pid].balanceOf(address(this));
@@ -209,6 +209,13 @@ contract MiniFL is IMiniFL, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     return pool;
   }
 
+  /// @notice Update reward variables of the given pool.
+  /// @param _pid The index of the pool. See `poolInfo`.
+  /// @return pool Returns the pool that was updated.
+  function updatePool(uint256 _pid) external nonReentrant returns (PoolInfo memory) {
+    return _updatePool(_pid);
+  }
+
   /// @notice Deposit tokens to MiniFL for ALPACA allocation.
   /// @param _for The beneficary address of the deposit.
   /// @param _pid The index of the pool. See `poolInfo`.
@@ -217,24 +224,24 @@ contract MiniFL is IMiniFL, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     address _for,
     uint256 _pid,
     uint256 _amount
-  ) external {
-    PoolInfo memory pool = updatePool(_pid);
+  ) external nonReentrant {
+    PoolInfo memory pool = _updatePool(_pid);
     UserInfo storage user = userInfo[_pid][_for];
 
     if (pool.isDebtTokenPool && !stakeDebtTokenAllowance[_pid][msg.sender]) revert MiniFL_Forbidden();
     if (!pool.isDebtTokenPool && msg.sender != _for) revert MiniFL_Forbidden();
 
+    stakingToken[_pid].safeTransferFrom(msg.sender, address(this), _amount);
+
     // Effects
     user.amount = user.amount + _amount;
-    user.rewardDebt = user.rewardDebt + (((_amount * pool.accAlpacaPerShare) / ACC_ALPACA_PRECISION)).toInt256();
+    user.rewardDebt = user.rewardDebt + ((_amount * pool.accAlpacaPerShare) / ACC_ALPACA_PRECISION).toInt256();
 
     // Interactions
     IRewarder _rewarder = rewarder[_pid];
     if (address(_rewarder) != address(0)) {
       _rewarder.onDeposit(_pid, _for, 0, user.amount);
     }
-
-    stakingToken[_pid].safeTransferFrom(msg.sender, address(this), _amount);
 
     emit LogDeposit(msg.sender, _for, _pid, _amount);
   }
@@ -247,8 +254,8 @@ contract MiniFL is IMiniFL, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     address _for,
     uint256 _pid,
     uint256 _amount
-  ) external {
-    PoolInfo memory pool = updatePool(_pid);
+  ) external nonReentrant {
+    PoolInfo memory pool = _updatePool(_pid);
     UserInfo storage user = userInfo[_pid][_for];
 
     if (pool.isDebtTokenPool && !stakeDebtTokenAllowance[_pid][msg.sender]) revert MiniFL_Forbidden();
@@ -271,8 +278,8 @@ contract MiniFL is IMiniFL, OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
   /// @notice Harvest ALPACA rewards
   /// @param _pid The index of the pool. See `poolInfo`.
-  function harvest(uint256 _pid) external {
-    PoolInfo memory pool = updatePool(_pid);
+  function harvest(uint256 _pid) external nonReentrant {
+    PoolInfo memory pool = _updatePool(_pid);
     UserInfo storage user = userInfo[_pid][msg.sender];
 
     int256 accumulatedAlpaca = ((user.amount * pool.accAlpacaPerShare) / ACC_ALPACA_PRECISION).toInt256();
@@ -296,7 +303,7 @@ contract MiniFL is IMiniFL, OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
   /// @notice Withdraw without caring about rewards. EMERGENCY ONLY.
   /// @param _pid The index of the pool. See `poolInfo`.
-  function emergencyWithdraw(uint256 _pid) external {
+  function emergencyWithdraw(uint256 _pid) external nonReentrant {
     PoolInfo storage _pool = poolInfo[_pid];
     UserInfo storage _user = userInfo[_pid][msg.sender];
 

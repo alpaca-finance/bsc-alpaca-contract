@@ -167,7 +167,7 @@ describe("Vault2 - SpookyWorker03", () => {
       baseToken
     );
     [addStrat, liqStrat, twoSidesStrat, minimizeStrat, partialCloseStrat, partialCloseMinimizeStrat] =
-      await deployHelper.deploySpookySwapStrategies(router, vault, wbnb, wNativeRelayer);
+      await deployHelper.deploySpookySwapStrategies(router, vault, wNativeRelayer);
 
     /// Setup BTOKEN-FTOKEN pair on WaultSwap
     await factory.createPair(baseToken.address, farmToken.address);
