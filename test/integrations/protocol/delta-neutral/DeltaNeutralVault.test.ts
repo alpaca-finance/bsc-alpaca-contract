@@ -57,8 +57,8 @@ const { expect } = chai;
 
 describe("DeltaNeutralVault", () => {
   const FOREVER = "2000000000";
-  const ALPACA_BONUS_LOCK_UP_BPS = 7000;
-  const ALPACA_REWARD_PER_BLOCK = ethers.utils.parseEther("5000");
+  const ALPACA_BONUS_LOCK_UP_BPS = 10000;
+  const ALPACA_REWARD_PER_BLOCK = ethers.utils.parseEther("1");
   const CAKE_REWARD_PER_BLOCK = ethers.utils.parseEther("0.076");
   const REINVEST_BOUNTY_BPS = "100"; // 1% reinvest bounty
   const RESERVE_POOL_BPS = "1000"; // 10% reserve pool
@@ -77,6 +77,10 @@ describe("DeltaNeutralVault", () => {
   // Delta Vault Config
   const REBALANCE_FACTOR = "6500";
   const POSITION_VALUE_TOLERANCE_BPS = "500";
+
+  //
+  const ALPACA_REWARD_START_BLOCK = 132;
+  const ALPACA_REWARD_END_BLOCK = 137;
 
   // Delta Vault
   const ACTION_WORK = 1;
@@ -229,8 +233,8 @@ describe("DeltaNeutralVault", () => {
     [alpacaToken, fairLaunch] = await deployHelper.deployAlpacaFairLaunch(
       ALPACA_REWARD_PER_BLOCK,
       ALPACA_BONUS_LOCK_UP_BPS,
-      132,
-      137
+      ALPACA_REWARD_START_BLOCK,
+      ALPACA_REWARD_END_BLOCK
     );
 
     [stableVault, stableSimpleVaultConfig, wNativeRelayer] = await deployHelper.deployVault(
@@ -387,7 +391,7 @@ describe("DeltaNeutralVault", () => {
       stableVaultWorker: stableVaultWorker.address,
       assetVaultWorker: assetVaultWorker.address,
       lpToken: lp.address,
-      alpacaToken: assetVault.address, // change this to alpaca token address
+      alpacaToken: alpacaToken.address, // change this to alpaca token address
       priceHelper: mockPriceHelper.address,
       deltaVaultConfig: deltaVaultConfig.address,
     };
@@ -569,15 +573,113 @@ describe("DeltaNeutralVault", () => {
   //   });
   // });
 
-  describe("#withdraw", async () => {
-    context("when alice withdraw from delta neutral vault", async () => {
-      it("should be able to withdraw - deltaWithdraw", async () => {
-        console.log("deployer address", deployerAddress);
-        console.log("deltaVault.address", deltaVault.address);
-        console.log("stable.address", stableVault.address);
-        console.log("assetVault.address", assetVault.address);
-        console.log("wbnb.address", wbnb.address);
+  // describe("#withdraw", async () => {
+  //   context("when alice withdraw from delta neutral vault", async () => {
+  //     it("should be able to withdraw - deltaWithdraw", async () => {
+  //       console.log("deployer address", deployerAddress);
+  //       console.log("deltaVault.address", deltaVault.address);
+  //       console.log("stable.address", stableVault.address);
+  //       console.log("assetVault.address", assetVault.address);
+  //       console.log("wbnb.address", wbnb.address);
 
+  //       // depsit fund into vaults
+  //       await baseTokenAsDeployer.approve(stableVault.address, ethers.utils.parseEther("10"));
+  //       await stableVault.deposit(ethers.utils.parseEther("10"));
+
+  //       await wbnbTokenAsDeployer.approve(assetVault.address, ethers.utils.parseEther("10"));
+  //       await assetVault.deposit(ethers.utils.parseEther("10"));
+
+  //       // stable token reserve = 1, asset token reserve = 1
+  //       // deployer deposit 0.5 stable token, 0.5 asset token
+  //       // stable equity value should have 0.25 and position value = 0.25*3 = 0.75
+  //       // asset equity value should have 0.75 and position value = 0.75*3 = 2.25
+  //       let stableTokenAmount = ethers.utils.parseEther("0.5");
+  //       let assetTokenAmount = ethers.utils.parseEther("0.5");
+
+  //       await baseTokenAsDeployer.approve(deltaVault.address, stableTokenAmount);
+
+  //       let stableWorkByte = ethers.utils.defaultAbiCoder.encode(
+  //         ["address", "uint256", "address", "uint256", "uint256", "uint256", "bytes"],
+  //         [
+  //           stableVault.address,
+  //           0,
+  //           stableVaultWorker.address,
+  //           stableTokenAmount.div(4),
+  //           ethers.utils.parseEther("0.5"),
+  //           "0",
+  //           ethers.utils.defaultAbiCoder.encode(
+  //             ["address", "bytes"],
+  //             [
+  //               stableTwoSidesStrat.address,
+  //               ethers.utils.defaultAbiCoder.encode(["uint256", "uint256"], [assetTokenAmount.div(4), 0]),
+  //             ]
+  //           ),
+  //         ]
+  //       );
+
+  //       let assetWorkByte = ethers.utils.defaultAbiCoder.encode(
+  //         ["address", "uint256", "address", "uint256", "uint256", "uint256", "bytes"],
+  //         [
+  //           assetVault.address,
+  //           0,
+  //           assetVaultWorker.address,
+  //           assetTokenAmount.mul(3).div(4),
+  //           ethers.utils.parseEther("1.5"),
+  //           "0",
+  //           ethers.utils.defaultAbiCoder.encode(
+  //             ["address", "bytes"],
+  //             [
+  //               assetTwoSidesStrat.address,
+  //               ethers.utils.defaultAbiCoder.encode(["uint256", "uint256"], [stableTokenAmount.mul(3).div(4), 0]),
+  //             ]
+  //           ),
+  //         ]
+  //       );
+
+  //       let data = ethers.utils.defaultAbiCoder.encode(
+  //         ["uint8[]", "uint256[]", "bytes[]"],
+  //         [
+  //           [ACTION_WORK, ACTION_WORK],
+  //           [0, 0],
+  //           [stableWorkByte, assetWorkByte],
+  //         ]
+  //       );
+
+  //       let stableTokenPrice = ethers.utils.parseEther("1");
+  //       let assetTokenPrice = ethers.utils.parseEther("1");
+  //       let lpPrice = ethers.utils.parseEther("2");
+  //       mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
+  //         if (token === baseToken.address) {
+  //           return stableTokenPrice;
+  //         }
+  //         if (token === wbnb.address) {
+  //           return assetTokenPrice;
+  //         }
+  //         return 0;
+  //       });
+
+  //       mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+  //         return lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1"));
+  //       });
+
+  //       await swapHelper.loadReserves([baseToken.address, wbnb.address]);
+  //       console.log("reserve before init", await lp.getReserves());
+  //       const lphealth = await swapHelper.computeLpHealth(
+  //         ethers.utils.parseEther("1"),
+  //         baseToken.address,
+  //         wbnb.address
+  //       );
+  //       console.log("lphealth", lphealth);
+  //       const initTx = await deltaVault.initPositions(0, stableTokenAmount, assetTokenAmount, data, {
+  //         value: assetTokenAmount,
+  //       });
+  //     });
+  //   });
+  // });
+
+  describe("#claim", async () => {
+    context("when alice deposit and claim reward", async () => {
+      it("it should claim reward successfully", async () => {
         // depsit fund into vaults
         await baseTokenAsDeployer.approve(stableVault.address, ethers.utils.parseEther("10"));
         await stableVault.deposit(ethers.utils.parseEther("10"));
@@ -658,31 +760,80 @@ describe("DeltaNeutralVault", () => {
           return lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1"));
         });
 
-        console.log("reserve before init", await lp.getReserves());
+        await swapHelper.loadReserves([baseToken.address, wbnb.address]);
+        const lphealth = await swapHelper.computeLpHealth(
+          ethers.utils.parseEther("1"),
+          baseToken.address,
+          wbnb.address
+        );
+
+        let currentBlock = await TimeHelpers.latestBlockNumber();
 
         const initTx = await deltaVault.initPositions(0, stableTokenAmount, assetTokenAmount, data, {
           value: assetTokenAmount,
         });
 
-        const stableLpBalance = await stableVaultWorker.totalLpBalance();
-        const assetLpBalance = await assetVaultWorker.totalLpBalance();
+        currentBlock = await TimeHelpers.latestBlockNumber();
 
-        console.log("stableLpBalance", stableLpBalance.toString());
-        console.log("assetLpBalance", assetLpBalance.toString());
+        // claim because do not know how many block passed in deltaVault.initPositions and update accPerShare in fairlaunch too.
 
-        console.log("after init tx");
-        const stablePosId = await deltaVault.stableVaultPosId();
-        const assetPosId = await deltaVault.assetVaultPosId();
+        await deltaVault.claim();
+        const alpacaBalanceBefore = await alpacaToken.balanceOf(deltaVault.address);
 
-        // stableTokenAmount = ethers.utils.parseEther("2");
-        await baseTokenAsAlice.approve(deltaVault.address, stableTokenAmount);
-        // await wbnbTokenAsAlice.approve(deltaVault.address, assetTokenAmount);
+        // claim is using 1 block, so update block first
+        currentBlock = await TimeHelpers.latestBlockNumber();
+        const blockBefore = currentBlock;
 
-        stableWorkByte = ethers.utils.defaultAbiCoder.encode(
+        // ADVANCE TO NEXT 5 block
+        await TimeHelpers.advanceBlockTo(currentBlock.add(BigNumber.from("5")).toNumber());
+        currentBlock = await TimeHelpers.latestBlockNumber();
+
+        await deltaVault.claim();
+        currentBlock = await TimeHelpers.latestBlockNumber();
+
+        const alpacaBalanceAfter = await alpacaToken.balanceOf(deltaVault.address);
+
+        const realizedAlpacaReward = alpacaBalanceAfter.sub(alpacaBalanceBefore);
+
+        // cant assert using static call because block shifted
+        AssertHelpers.assertAlmostEqual(
+          currentBlock.sub(blockBefore).mul(ALPACA_REWARD_PER_BLOCK).toString(),
+          realizedAlpacaReward.toString()
+        );
+      });
+    });
+
+    context("when alice claim it before init transaction", async () => {
+      it("should be reverted", async () => {
+        await expect(deltaVault.claim()).to.be.revertedWith("nothing to harvest");
+      });
+    });
+  });
+
+  describe("#withdrawAlpaca", async () => {
+    context("when alice deposit, claim reward then withdraw", async () => {
+      it("it should withdraw reward successfully", async () => {
+        // depsit fund into vaults
+        await baseTokenAsDeployer.approve(stableVault.address, ethers.utils.parseEther("10"));
+        await stableVault.deposit(ethers.utils.parseEther("10"));
+
+        await wbnbTokenAsDeployer.approve(assetVault.address, ethers.utils.parseEther("10"));
+        await assetVault.deposit(ethers.utils.parseEther("10"));
+
+        // stable token reserve = 1, asset token reserve = 1
+        // deployer deposit 0.5 stable token, 0.5 asset token
+        // stable equity value should have 0.25 and position value = 0.25*3 = 0.75
+        // asset equity value should have 0.75 and position value = 0.75*3 = 2.25
+        let stableTokenAmount = ethers.utils.parseEther("0.5");
+        let assetTokenAmount = ethers.utils.parseEther("0.5");
+
+        await baseTokenAsDeployer.approve(deltaVault.address, stableTokenAmount);
+
+        let stableWorkByte = ethers.utils.defaultAbiCoder.encode(
           ["address", "uint256", "address", "uint256", "uint256", "uint256", "bytes"],
           [
             stableVault.address,
-            stablePosId,
+            0,
             stableVaultWorker.address,
             stableTokenAmount.div(4),
             ethers.utils.parseEther("0.5"),
@@ -697,11 +848,11 @@ describe("DeltaNeutralVault", () => {
           ]
         );
 
-        assetWorkByte = ethers.utils.defaultAbiCoder.encode(
+        let assetWorkByte = ethers.utils.defaultAbiCoder.encode(
           ["address", "uint256", "address", "uint256", "uint256", "uint256", "bytes"],
           [
             assetVault.address,
-            assetPosId,
+            0,
             assetVaultWorker.address,
             assetTokenAmount.mul(3).div(4),
             ethers.utils.parseEther("1.5"),
@@ -716,7 +867,7 @@ describe("DeltaNeutralVault", () => {
           ]
         );
 
-        data = ethers.utils.defaultAbiCoder.encode(
+        let data = ethers.utils.defaultAbiCoder.encode(
           ["uint8[]", "uint256[]", "bytes[]"],
           [
             [ACTION_WORK, ACTION_WORK],
@@ -725,94 +876,128 @@ describe("DeltaNeutralVault", () => {
           ]
         );
 
-        // stableTokenPrice = ethers.utils.parseEther("1");
-        // assetTokenPrice = ethers.utils.parseEther("20");
-        // lpPrice = ethers.utils.parseEther("10");
-        // mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
-        //   if (token === baseToken.address) {
-        //     return stableTokenPrice;
-        //   }
-        //   if (token === wbnb.address) {
-        //     return assetTokenPrice;
-        //   }
-        //   return 0;
-        // });
+        let stableTokenPrice = ethers.utils.parseEther("1");
+        let assetTokenPrice = ethers.utils.parseEther("1");
+        let lpPrice = ethers.utils.parseEther("2");
+        mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
+          if (token === baseToken.address) {
+            return stableTokenPrice;
+          }
+          if (token === wbnb.address) {
+            return assetTokenPrice;
+          }
+          return 0;
+        });
 
-        // mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
-        //   return lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1"));
-        // });
+        mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+          return lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1"));
+        });
 
-        console.log("before get alice shareAmount");
-        // const shareAmount = await deltaVaultAsAlice.callStatic.deposit(
-        //   aliceAddress,
-        //   stableTokenAmount,
-        //   assetTokenAmount,
-        //   data,
-        //   {
-        //     value: assetTokenAmount,
-        //   }
-        // );
+        await swapHelper.loadReserves([baseToken.address, wbnb.address]);
+        const lphealth = await swapHelper.computeLpHealth(
+          ethers.utils.parseEther("1"),
+          baseToken.address,
+          wbnb.address
+        );
 
-        // token0: baseToken,
-        // token1: wbnb,
-        // amount0desired: ethers.utils.parseEther("1000"),
-        // amount1desired: ethers.utils.parseEther("1000"),
+        let currentBlock = await TimeHelpers.latestBlockNumber();
 
-        const reserve = await lp.getReserves();
-        console.log("reserve before deposit", reserve);
-        console.log("before alice deposit");
-        const depositTx = await deltaVaultAsAlice.deposit(aliceAddress, 0, stableTokenAmount, assetTokenAmount, data, {
+        const initTx = await deltaVault.initPositions(0, stableTokenAmount, assetTokenAmount, data, {
           value: assetTokenAmount,
         });
 
-        /// alice should have share
-        const aliceShare = await deltaVault.balanceOf(aliceAddress);
-        expect(aliceShare).gt(0);
-        console.log("aliceShare", aliceShare.toString());
+        currentBlock = await TimeHelpers.latestBlockNumber();
 
-        // ************************* Start withdraw   *************************
-        const minstableTokenAmount = 0;
-        const minassetTokenAmount = 0;
+        // claim because do not know how many block passed in deltaVault.initPositions and update accPerShare in fairlaunch too.
 
-        stableWorkByte = ethers.utils.defaultAbiCoder.encode(
+        await deltaVault.claim();
+        const alpacaBalanceBefore = await alpacaToken.balanceOf(deltaVault.address);
+
+        // claim is using 1 block, so update block first
+        currentBlock = await TimeHelpers.latestBlockNumber();
+        const blockBefore = currentBlock;
+
+        // ADVANCE TO NEXT 5 block
+        await TimeHelpers.advanceBlockTo(currentBlock.add(BigNumber.from("5")).toNumber());
+        currentBlock = await TimeHelpers.latestBlockNumber();
+
+        await deltaVault.claim();
+        currentBlock = await TimeHelpers.latestBlockNumber();
+
+        const alpacaBalanceAfter = await alpacaToken.balanceOf(deltaVault.address);
+
+        const realizedAlpacaReward = alpacaBalanceAfter.sub(alpacaBalanceBefore);
+
+        // cant assert using static call because block shifted
+        AssertHelpers.assertAlmostEqual(
+          currentBlock.sub(blockBefore).mul(ALPACA_REWARD_PER_BLOCK).toString(),
+          realizedAlpacaReward.toString()
+        );
+
+        const alpacaTokenAsAliceBefore = await alpacaToken.balanceOf(aliceAddress);
+        await deltaVault.withdrawAlpaca(aliceAddress, realizedAlpacaReward);
+        const alpacaTokenAsAliceAfter = await alpacaToken.balanceOf(aliceAddress);
+        expect(alpacaTokenAsAliceAfter.sub(alpacaTokenAsAliceBefore)).to.be.eq(realizedAlpacaReward);
+      });
+    });
+
+    context("withdrawAlpaca to no address", async () => {
+      it("it should revert from safeTransfer", async () => {
+        // depsit fund into vaults
+        await baseTokenAsDeployer.approve(stableVault.address, ethers.utils.parseEther("10"));
+        await stableVault.deposit(ethers.utils.parseEther("10"));
+
+        await wbnbTokenAsDeployer.approve(assetVault.address, ethers.utils.parseEther("10"));
+        await assetVault.deposit(ethers.utils.parseEther("10"));
+
+        // stable token reserve = 1, asset token reserve = 1
+        // deployer deposit 0.5 stable token, 0.5 asset token
+        // stable equity value should have 0.25 and position value = 0.25*3 = 0.75
+        // asset equity value should have 0.75 and position value = 0.75*3 = 2.25
+        let stableTokenAmount = ethers.utils.parseEther("0.5");
+        let assetTokenAmount = ethers.utils.parseEther("0.5");
+
+        await baseTokenAsDeployer.approve(deltaVault.address, stableTokenAmount);
+
+        let stableWorkByte = ethers.utils.defaultAbiCoder.encode(
           ["address", "uint256", "address", "uint256", "uint256", "uint256", "bytes"],
           [
             stableVault.address,
-            stablePosId.toNumber(),
+            0,
             stableVaultWorker.address,
-            "0",
-            "0",
+            stableTokenAmount.div(4),
+            ethers.utils.parseEther("0.5"),
             "0",
             ethers.utils.defaultAbiCoder.encode(
               ["address", "bytes"],
               [
-                partialCloseStrat.address,
-                ethers.utils.defaultAbiCoder.encode(["uint256", "uint256", "uint256"], [100, 0, minstableTokenAmount]),
+                stableTwoSidesStrat.address,
+                ethers.utils.defaultAbiCoder.encode(["uint256", "uint256"], [assetTokenAmount.div(4), 0]),
               ]
             ),
           ]
         );
 
-        assetWorkByte = ethers.utils.defaultAbiCoder.encode(
+        let assetWorkByte = ethers.utils.defaultAbiCoder.encode(
           ["address", "uint256", "address", "uint256", "uint256", "uint256", "bytes"],
           [
             assetVault.address,
-            assetPosId.toNumber(),
+            0,
             assetVaultWorker.address,
-            "0",
-            "0",
+            assetTokenAmount.mul(3).div(4),
+            ethers.utils.parseEther("1.5"),
             "0",
             ethers.utils.defaultAbiCoder.encode(
               ["address", "bytes"],
               [
-                partialCloseStrat.address,
-                ethers.utils.defaultAbiCoder.encode(["uint256", "uint256", "uint256"], [100, 0, minassetTokenAmount]),
+                assetTwoSidesStrat.address,
+                ethers.utils.defaultAbiCoder.encode(["uint256", "uint256"], [stableTokenAmount.mul(3).div(4), 0]),
               ]
             ),
           ]
         );
 
-        data = ethers.utils.defaultAbiCoder.encode(
+        let data = ethers.utils.defaultAbiCoder.encode(
           ["uint8[]", "uint256[]", "bytes[]"],
           [
             [ACTION_WORK, ACTION_WORK],
@@ -821,13 +1006,72 @@ describe("DeltaNeutralVault", () => {
           ]
         );
 
-        const withdrawTx = await deltaVaultAsAlice.withdraw(
-          aliceShare,
-          minstableTokenAmount,
-          minassetTokenAmount,
-          data
+        let stableTokenPrice = ethers.utils.parseEther("1");
+        let assetTokenPrice = ethers.utils.parseEther("1");
+        let lpPrice = ethers.utils.parseEther("2");
+        mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
+          if (token === baseToken.address) {
+            return stableTokenPrice;
+          }
+          if (token === wbnb.address) {
+            return assetTokenPrice;
+          }
+          return 0;
+        });
+
+        mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+          return lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1"));
+        });
+
+        await swapHelper.loadReserves([baseToken.address, wbnb.address]);
+        const lphealth = await swapHelper.computeLpHealth(
+          ethers.utils.parseEther("1"),
+          baseToken.address,
+          wbnb.address
+        );
+
+        let currentBlock = await TimeHelpers.latestBlockNumber();
+
+        const initTx = await deltaVault.initPositions(0, stableTokenAmount, assetTokenAmount, data, {
+          value: assetTokenAmount,
+        });
+
+        currentBlock = await TimeHelpers.latestBlockNumber();
+
+        // claim because do not know how many block passed in deltaVault.initPositions and update accPerShare in fairlaunch too.
+
+        await deltaVault.claim();
+        const alpacaBalanceBefore = await alpacaToken.balanceOf(deltaVault.address);
+
+        // claim is using 1 block, so update block first
+        currentBlock = await TimeHelpers.latestBlockNumber();
+        const blockBefore = currentBlock;
+
+        // ADVANCE TO NEXT 5 block
+        await TimeHelpers.advanceBlockTo(currentBlock.add(BigNumber.from("5")).toNumber());
+        currentBlock = await TimeHelpers.latestBlockNumber();
+
+        await deltaVault.claim();
+        currentBlock = await TimeHelpers.latestBlockNumber();
+
+        const alpacaBalanceAfter = await alpacaToken.balanceOf(deltaVault.address);
+
+        const realizedAlpacaReward = alpacaBalanceAfter.sub(alpacaBalanceBefore);
+
+        // cant assert using static call because block shifted
+        AssertHelpers.assertAlmostEqual(
+          currentBlock.sub(blockBefore).mul(ALPACA_REWARD_PER_BLOCK).toString(),
+          realizedAlpacaReward.toString()
+        );
+
+        await expect(deltaVault.withdrawAlpaca(ethers.constants.AddressZero, realizedAlpacaReward)).to.be.revertedWith(
+          "!safeTransfer"
         );
       });
+    });
+
+    context("not owner", async () => {
+      it("it should revert", async () => {});
     });
   });
 });
