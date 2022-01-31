@@ -18,6 +18,10 @@ interface ERC20Interface {
 }
 
 library SafeToken {
+  function balanceOf(address token, address user) internal view returns (uint256) {
+    return ERC20Interface(token).balanceOf(user);
+  }
+
   function myBalance(address token) internal view returns (uint256) {
     return ERC20Interface(token).balanceOf(address(this));
   }
