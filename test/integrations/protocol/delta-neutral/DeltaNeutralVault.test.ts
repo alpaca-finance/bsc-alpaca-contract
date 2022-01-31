@@ -1535,7 +1535,7 @@ describe("DeltaNeutralVault", () => {
           return lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1"));
         });
         const initTx = await deltaVault.initPositions(
-          ethers.utils.parseEther("1"),
+          ethers.utils.parseEther("1000"),
           stableTokenAmount,
           assetTokenAmount,
           data,
