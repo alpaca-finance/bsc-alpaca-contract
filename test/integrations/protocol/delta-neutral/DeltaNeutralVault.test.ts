@@ -580,9 +580,9 @@ describe("DeltaNeutralVault", () => {
         });
 
         const initTx = await deltaVault.initPositions(
-          ethers.utils.parseEther("1000"),
           stableTokenAmount,
           assetTokenAmount,
+          ethers.utils.parseEther("1000"),
           data,
           {
             value: assetTokenAmount,
@@ -601,7 +601,7 @@ describe("DeltaNeutralVault", () => {
 
         // when deployer try to initialize positions again
         await expect(
-          deltaVault.initPositions(ethers.utils.parseEther("1"), stableTokenAmount, assetTokenAmount, data, {
+          deltaVault.initPositions(stableTokenAmount, assetTokenAmount, ethers.utils.parseEther("1"), data, {
             value: assetTokenAmount,
           })
         ).to.revertedWith("PositionsAlreadyInitialized()");
@@ -679,7 +679,7 @@ describe("DeltaNeutralVault", () => {
         });
 
         await expect(
-          deltaVaultAsAlice.deposit(aliceAddress, 0, stableTokenAmount, assetTokenAmount, data, {
+          deltaVaultAsAlice.deposit(stableTokenAmount, assetTokenAmount, aliceAddress, 0, data, {
             value: assetTokenAmount,
           })
         ).to.revertedWith("PositionsNotInitialized()");
@@ -753,7 +753,7 @@ describe("DeltaNeutralVault", () => {
         mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
           return lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1"));
         });
-        const initTx = await deltaVault.initPositions(0, stableTokenAmount, assetTokenAmount, data, {
+        const initTx = await deltaVault.initPositions(stableTokenAmount, assetTokenAmount, 0, data, {
           value: assetTokenAmount,
         });
       });
@@ -820,10 +820,10 @@ describe("DeltaNeutralVault", () => {
           });
 
           const depositTx = await deltaVaultAsAlice.deposit(
-            aliceAddress,
-            0,
             depositStableTokenAmount,
             depositAssetTokenAmount,
+            aliceAddress,
+            0,
             data,
             {
               value: depositAssetTokenAmount,
@@ -900,10 +900,10 @@ describe("DeltaNeutralVault", () => {
 
             await expect(
               deltaVaultAsAlice.deposit(
-                aliceAddress,
-                ethers.utils.parseEther("1000000000000"),
                 stableTokenAmount,
                 assetTokenAmount,
+                aliceAddress,
+                ethers.utils.parseEther("1000000000000"),
                 data,
                 {
                   value: assetTokenAmount,
@@ -975,7 +975,7 @@ describe("DeltaNeutralVault", () => {
               });
 
               await expect(
-                deltaVaultAsAlice.deposit(zeroAddress(), 0, stableTokenAmount, assetTokenAmount, data, {
+                deltaVaultAsAlice.deposit(stableTokenAmount, assetTokenAmount, zeroAddress(), 0, data, {
                   value: assetTokenAmount,
                 })
               ).to.be.revertedWith("ERC20: mint to the zero address");
@@ -1045,7 +1045,7 @@ describe("DeltaNeutralVault", () => {
               });
 
               await expect(
-                deltaVaultAsAlice.deposit(zeroAddress(), 0, stableTokenAmount, assetTokenAmount, data, {
+                deltaVaultAsAlice.deposit(stableTokenAmount, assetTokenAmount, zeroAddress(), 0, data, {
                   value: assetTokenAmount,
                 })
               ).to.be.revertedWith("ERC20: mint to the zero address");
@@ -1109,7 +1109,7 @@ describe("DeltaNeutralVault", () => {
                   return lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1"));
                 });
                 await expect(
-                  deltaVaultAsAlice.deposit(aliceAddress, 0, stableTokenAmount, assetTokenAmount, data, {
+                  deltaVaultAsAlice.deposit(stableTokenAmount, assetTokenAmount, aliceAddress, 0, data, {
                     value: assetTokenAmount,
                   })
                 ).to.be.revertedWith("UnsafePositionEquity()");
@@ -1170,7 +1170,7 @@ describe("DeltaNeutralVault", () => {
                 return lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1"));
               });
               await expect(
-                deltaVaultAsAlice.deposit(aliceAddress, 0, stableTokenAmount, assetTokenAmount, data, {
+                deltaVaultAsAlice.deposit(stableTokenAmount, assetTokenAmount, aliceAddress, 0, data, {
                   value: assetTokenAmount,
                 })
               ).to.be.revertedWith("UnsafePositionEquity()");
@@ -1230,7 +1230,7 @@ describe("DeltaNeutralVault", () => {
                 return lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1"));
               });
               await expect(
-                deltaVaultAsAlice.deposit(aliceAddress, 0, stableTokenAmount, assetTokenAmount, data, {
+                deltaVaultAsAlice.deposit(stableTokenAmount, assetTokenAmount, aliceAddress, 0, data, {
                   value: assetTokenAmount,
                 })
               ).to.be.revertedWith("UnsafeDebtValue()");
@@ -1290,7 +1290,7 @@ describe("DeltaNeutralVault", () => {
                 return lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1"));
               });
               await expect(
-                deltaVaultAsAlice.deposit(aliceAddress, 0, stableTokenAmount, assetTokenAmount, data, {
+                deltaVaultAsAlice.deposit(stableTokenAmount, assetTokenAmount, aliceAddress, 0, data, {
                   value: assetTokenAmount,
                 })
               ).to.be.revertedWith("UnsafeDebtValue()");
@@ -1366,7 +1366,7 @@ describe("DeltaNeutralVault", () => {
               const expected = beforeBaseTokenAmount.sub(reduceAmount);
 
               await expect(
-                deltaVaultAsAlice.deposit(aliceAddress, 0, stableTokenAmount, assetTokenAmount, data, {
+                deltaVaultAsAlice.deposit(stableTokenAmount, assetTokenAmount, aliceAddress, 0, data, {
                   value: assetTokenAmount,
                 })
               ).to.be.revertedWith(
@@ -1441,7 +1441,7 @@ describe("DeltaNeutralVault", () => {
                 const expected = beforeWBnbAmount.sub(reduceAmount);
 
                 await expect(
-                  deltaVaultAsAlice.deposit(aliceAddress, 0, stableTokenAmount, assetTokenAmount, data, {
+                  deltaVaultAsAlice.deposit(stableTokenAmount, assetTokenAmount, aliceAddress, 0, data, {
                     value: assetTokenAmount,
                   })
                 ).to.be.revertedWith(
@@ -1522,9 +1522,9 @@ describe("DeltaNeutralVault", () => {
           return lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1"));
         });
         const initTx = await deltaVault.initPositions(
-          ethers.utils.parseEther("1000"),
           stableTokenAmount,
           assetTokenAmount,
+          ethers.utils.parseEther("1000"),
           data,
           {
             value: assetTokenAmount,
@@ -1592,10 +1592,10 @@ describe("DeltaNeutralVault", () => {
           });
 
           const depositTx = await deltaVaultAsAlice.deposit(
-            aliceAddress,
-            0,
             depositStableTokenAmount,
             depositAssetTokenAmount,
+            aliceAddress,
+            0,
             data,
             {
               value: depositAssetTokenAmount,
@@ -1652,7 +1652,7 @@ describe("DeltaNeutralVault", () => {
             ]
           );
           const shareToWithdraw = await deltaVault.valueToShare(withdrawValue);
-          const withdrawTx = await deltaVaultAsAlice.withdraw(shareToWithdraw, 0, 0, withdrawData);
+          const withdrawTx = await deltaVaultAsAlice.withdraw(0, 0, shareToWithdraw, withdrawData);
         });
       });
     });
@@ -1740,7 +1740,7 @@ describe("DeltaNeutralVault", () => {
         // asset position equity = 1.5 * 500 = 750, debt = 3 * 500 = 1500, position value = 2250
         // Delta netural vault equity = 1000
 
-        const initTx = await deltaVault.initPositions(0, stableTokenAmount, assetTokenAmount, data, {
+        const initTx = await deltaVault.initPositions(stableTokenAmount, assetTokenAmount, 0, data, {
           value: assetTokenAmount,
         });
       });
