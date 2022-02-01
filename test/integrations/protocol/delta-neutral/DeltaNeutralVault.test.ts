@@ -28,8 +28,6 @@ import {
   Vault,
   Vault__factory,
   WNativeRelayer,
-  MockBeneficialVault__factory,
-  MockBeneficialVault,
   PancakeswapV2RestrictedStrategyAddTwoSidesOptimal,
   PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading,
   PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading,
@@ -42,7 +40,7 @@ import {
   DeltaNeutralPancakeWorker02,
   DeltaNeutralPancakeWorker02__factory,
 } from "../../../../typechain";
-import * as AssertHelpers from "../../../helpers/assert";
+import * as Assert from "../../../helpers/assert";
 import * as TimeHelpers from "../../../helpers/time";
 import { parseEther } from "ethers/lib/utils";
 import { DeployHelper } from "../../../helpers/deploy";
@@ -57,6 +55,7 @@ chai.use(solidity);
 const { expect } = chai;
 
 describe("DeltaNeutralVault", () => {
+  const FOREVER = "2000000000";
   const ALPACA_BONUS_LOCK_UP_BPS = 7000;
   const ALPACA_REWARD_PER_BLOCK = ethers.utils.parseEther("5000");
   // const CAKE_REWARD_PER_BLOCK = ethers.utils.parseEther("0.076");
@@ -74,10 +73,11 @@ describe("DeltaNeutralVault", () => {
   const REINVEST_THRESHOLD = ethers.utils.parseEther("1"); // If pendingCake > 1 $CAKE, then reinvest
   const KILL_TREASURY_BPS = "100";
   const POOL_ID = 1;
+  const EMPTY_BYTE = ethers.utils.defaultAbiCoder.encode(["uint256"], [0]);
 
   // Delta Vault Config
   const REBALANCE_FACTOR = "6500";
-  const POSITION_VALUE_TOLERANCE_BPS = "100";
+  const POSITION_VALUE_TOLERANCE_BPS = "200";
 
   // Delta Vault
   const ACTION_WORK = 1;
@@ -282,7 +282,7 @@ describe("DeltaNeutralVault", () => {
     lp = PancakePair__factory.connect(await factoryV2.getPair(wbnb.address, baseToken.address), deployer);
     await masterChef.add(1, lp.address, true);
 
-    /// Setup PancakeswapV2Worker02
+    /// Setup DeltaNeutralPancakeWorker02
     stableVaultWorker = await deployHelper.deployDeltaNeutralPancakeWorker02(
       stableVault,
       baseToken,
@@ -306,7 +306,7 @@ describe("DeltaNeutralVault", () => {
       mockPriceHelper.address
     );
 
-    /// Setup PancakeswapV2Worker02
+    /// Setup DeltaNeutralPancakeWorker02
     assetVaultWorker = await deployHelper.deployDeltaNeutralPancakeWorker02(
       assetVault,
       wbnb as unknown as MockERC20,
@@ -346,12 +346,12 @@ describe("DeltaNeutralVault", () => {
         amount0desired: ethers.utils.parseEther("100"),
         amount1desired: ethers.utils.parseEther("1000"),
       },
-      {
-        token0: baseToken,
-        token1: wbnb,
-        amount0desired: ethers.utils.parseEther("1000000"),
-        amount1desired: ethers.utils.parseEther("1000000"),
-      },
+      // {
+      //   token0: baseToken,
+      //   token1: wbnb,
+      //   amount0desired: ethers.utils.parseEther("100000"),
+      //   amount1desired: ethers.utils.parseEther("100000"),
+      // },
       {
         token0: farmToken,
         token1: wbnb,
@@ -369,6 +369,8 @@ describe("DeltaNeutralVault", () => {
       positionValueTolerance: POSITION_VALUE_TOLERANCE_BPS,
     };
     deltaVaultConfig = await deployHelper.deployDeltaNeutralVaultConfig(deltaNeutralConfig);
+    // allow deployer to call rebalance
+    deltaVaultConfig.setWhitelistedRebalancer([deployerAddress], true);
 
     // Setup Delta Neutral Vault
     const deltaNeutral = {
@@ -379,7 +381,7 @@ describe("DeltaNeutralVault", () => {
       stableVaultWorker: stableVaultWorker.address,
       assetVaultWorker: assetVaultWorker.address,
       lpToken: lp.address,
-      alpacaToken: assetVault.address, // change this to alpaca token address
+      alpacaToken: alpacaToken.address, // change this to alpaca token address
       priceHelper: mockPriceHelper.address,
       deltaVaultConfig: deltaVaultConfig.address,
     };
@@ -430,6 +432,7 @@ describe("DeltaNeutralVault", () => {
     twoSidesStrat: string;
     principalAmount: BigNumber;
     borrowAmount: BigNumber;
+    maxReturn: BigNumber;
     farmingTokenAmount: BigNumber;
     minLpReceive: BigNumber;
   }
@@ -454,7 +457,7 @@ describe("DeltaNeutralVault", () => {
         input.workerAddress,
         input.principalAmount,
         input.borrowAmount,
-        "0",
+        input.maxReturn,
         ethers.utils.defaultAbiCoder.encode(
           ["address", "bytes"],
           [
@@ -505,10 +508,18 @@ describe("DeltaNeutralVault", () => {
   describe("#initPositions", async () => {
     context("when owner call initPositions", async () => {
       it("should initilize positions", async () => {
-        // stable token reserve = 1000, asset token reserve = 10000
-        // deployer deposit 0.5 stable token, 0.5 asset token
-        // stable equity value should have 0.25 and position value = 0.25*3 = 0.75
-        // asset equity value should have 0.75 and position value = 0.75*3 = 2.25
+        // add liquidity
+        await swapHelper.addLiquidities([
+          {
+            token0: baseToken,
+            token1: wbnb,
+            amount0desired: ethers.utils.parseEther("100000"),
+            amount1desired: ethers.utils.parseEther("100000"),
+          },
+        ]);
+
+        // stable token reserve = 100000, asset token reserve = 100000
+        // deployer deposit 500 stable token, 500 asset token
         const stableTokenAmount = ethers.utils.parseEther("500");
         const assetTokenAmount = ethers.utils.parseEther("500");
 
@@ -522,6 +533,7 @@ describe("DeltaNeutralVault", () => {
           principalAmount: ethers.utils.parseEther("125"),
           borrowAmount: ethers.utils.parseEther("500"),
           farmingTokenAmount: ethers.utils.parseEther("125"),
+          maxReturn: BigNumber.from(0),
           minLpReceive: BigNumber.from(0),
         };
 
@@ -533,6 +545,7 @@ describe("DeltaNeutralVault", () => {
           principalAmount: ethers.utils.parseEther("375"),
           borrowAmount: ethers.utils.parseEther("1500"),
           farmingTokenAmount: ethers.utils.parseEther("375"),
+          maxReturn: BigNumber.from(0),
           minLpReceive: BigNumber.from(0),
         };
 
@@ -599,8 +612,17 @@ describe("DeltaNeutralVault", () => {
   describe("#deposit", async () => {
     context("when alice try deposit to delta neutral vault before positions initialized", async () => {
       it("should revert", async () => {
-        const stableTokenAmount = ethers.utils.parseEther("0.5");
-        const assetTokenAmount = ethers.utils.parseEther("0.5");
+        await swapHelper.addLiquidities([
+          {
+            token0: baseToken,
+            token1: wbnb,
+            amount0desired: ethers.utils.parseEther("100000"),
+            amount1desired: ethers.utils.parseEther("100000"),
+          },
+        ]);
+
+        const stableTokenAmount = ethers.utils.parseEther("500");
+        const assetTokenAmount = ethers.utils.parseEther("500");
 
         await baseTokenAsAlice.approve(deltaVault.address, stableTokenAmount);
 
@@ -609,9 +631,10 @@ describe("DeltaNeutralVault", () => {
           vaultAddress: stableVault.address,
           workerAddress: stableVaultWorker.address,
           twoSidesStrat: stableTwoSidesStrat.address,
-          principalAmount: ethers.utils.parseEther("0.125"),
-          borrowAmount: ethers.utils.parseEther("0.5"),
-          farmingTokenAmount: ethers.utils.parseEther("0.125"),
+          principalAmount: ethers.utils.parseEther("125"),
+          borrowAmount: ethers.utils.parseEther("500"),
+          farmingTokenAmount: ethers.utils.parseEther("125"),
+          maxReturn: BigNumber.from(0),
           minLpReceive: BigNumber.from(0),
         };
 
@@ -620,9 +643,10 @@ describe("DeltaNeutralVault", () => {
           vaultAddress: assetVault.address,
           workerAddress: assetVaultWorker.address,
           twoSidesStrat: assetTwoSidesStrat.address,
-          principalAmount: ethers.utils.parseEther("0.375"),
-          borrowAmount: ethers.utils.parseEther("1.5"),
-          farmingTokenAmount: ethers.utils.parseEther("0.375"),
+          principalAmount: ethers.utils.parseEther("375"),
+          borrowAmount: ethers.utils.parseEther("150"),
+          farmingTokenAmount: ethers.utils.parseEther("375"),
+          maxReturn: BigNumber.from(0),
           minLpReceive: BigNumber.from(0),
         };
 
@@ -664,6 +688,16 @@ describe("DeltaNeutralVault", () => {
 
     describe("when positions initialized", async () => {
       beforeEach(async () => {
+        // add liquidity
+        await swapHelper.addLiquidities([
+          {
+            token0: baseToken,
+            token1: wbnb,
+            amount0desired: ethers.utils.parseEther("100000"),
+            amount1desired: ethers.utils.parseEther("100000"),
+          },
+        ]);
+
         const stableTokenAmount = ethers.utils.parseEther("500");
         const assetTokenAmount = ethers.utils.parseEther("500");
 
@@ -677,6 +711,7 @@ describe("DeltaNeutralVault", () => {
           principalAmount: ethers.utils.parseEther("125"),
           borrowAmount: ethers.utils.parseEther("500"),
           farmingTokenAmount: ethers.utils.parseEther("125"),
+          maxReturn: BigNumber.from(0),
           minLpReceive: BigNumber.from(0),
         };
 
@@ -688,6 +723,7 @@ describe("DeltaNeutralVault", () => {
           principalAmount: ethers.utils.parseEther("375"),
           borrowAmount: ethers.utils.parseEther("1500"),
           farmingTokenAmount: ethers.utils.parseEther("375"),
+          maxReturn: BigNumber.from(0),
           minLpReceive: BigNumber.from(0),
         };
 
@@ -717,15 +753,9 @@ describe("DeltaNeutralVault", () => {
         mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
           return lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1"));
         });
-        const initTx = await deltaVault.initPositions(
-          ethers.utils.parseEther("1"),
-          stableTokenAmount,
-          assetTokenAmount,
-          data,
-          {
-            value: assetTokenAmount,
-          }
-        );
+        const initTx = await deltaVault.initPositions(0, stableTokenAmount, assetTokenAmount, data, {
+          value: assetTokenAmount,
+        });
       });
 
       context("when alice deposit to delta neutral vault", async () => {
@@ -743,6 +773,7 @@ describe("DeltaNeutralVault", () => {
             principalAmount: ethers.utils.parseEther("125"),
             borrowAmount: ethers.utils.parseEther("500"),
             farmingTokenAmount: ethers.utils.parseEther("125"),
+            maxReturn: BigNumber.from(0),
             minLpReceive: BigNumber.from(0),
           };
 
@@ -754,6 +785,7 @@ describe("DeltaNeutralVault", () => {
             principalAmount: ethers.utils.parseEther("375"),
             borrowAmount: ethers.utils.parseEther("1500"),
             farmingTokenAmount: ethers.utils.parseEther("375"),
+            maxReturn: BigNumber.from(0),
             minLpReceive: BigNumber.from(0),
           };
 
@@ -808,8 +840,8 @@ describe("DeltaNeutralVault", () => {
 
         context("when received shares greater than minimum shares should user receive", async () => {
           it("should revert", async () => {
-            const stableTokenAmount = ethers.utils.parseEther("0.5");
-            const assetTokenAmount = ethers.utils.parseEther("0.5");
+            const stableTokenAmount = ethers.utils.parseEther("500");
+            const assetTokenAmount = ethers.utils.parseEther("500");
 
             await baseTokenAsAlice.approve(deltaVault.address, stableTokenAmount);
 
@@ -818,9 +850,10 @@ describe("DeltaNeutralVault", () => {
               vaultAddress: stableVault.address,
               workerAddress: stableVaultWorker.address,
               twoSidesStrat: stableTwoSidesStrat.address,
-              principalAmount: ethers.utils.parseEther("0.125"),
-              borrowAmount: ethers.utils.parseEther("0.5"),
-              farmingTokenAmount: ethers.utils.parseEther("0.125"),
+              principalAmount: ethers.utils.parseEther("125"),
+              borrowAmount: ethers.utils.parseEther("500"),
+              farmingTokenAmount: ethers.utils.parseEther("125"),
+              maxReturn: BigNumber.from(0),
               minLpReceive: BigNumber.from(0),
             };
 
@@ -829,9 +862,10 @@ describe("DeltaNeutralVault", () => {
               vaultAddress: assetVault.address,
               workerAddress: assetVaultWorker.address,
               twoSidesStrat: assetTwoSidesStrat.address,
-              principalAmount: ethers.utils.parseEther("0.375"),
-              borrowAmount: ethers.utils.parseEther("1.5"),
-              farmingTokenAmount: ethers.utils.parseEther("0.375"),
+              principalAmount: ethers.utils.parseEther("375"),
+              borrowAmount: ethers.utils.parseEther("150"),
+              farmingTokenAmount: ethers.utils.parseEther("375"),
+              maxReturn: BigNumber.from(0),
               minLpReceive: BigNumber.from(0),
             };
 
@@ -882,8 +916,8 @@ describe("DeltaNeutralVault", () => {
         describe("_mint", async () => {
           context("when alice pass zero address as receiver", async () => {
             it("should revert", async () => {
-              const stableTokenAmount = ethers.utils.parseEther("0.5");
-              const assetTokenAmount = ethers.utils.parseEther("0.5");
+              const stableTokenAmount = ethers.utils.parseEther("500");
+              const assetTokenAmount = ethers.utils.parseEther("500");
 
               await baseTokenAsAlice.approve(deltaVault.address, stableTokenAmount);
 
@@ -892,9 +926,10 @@ describe("DeltaNeutralVault", () => {
                 vaultAddress: stableVault.address,
                 workerAddress: stableVaultWorker.address,
                 twoSidesStrat: stableTwoSidesStrat.address,
-                principalAmount: ethers.utils.parseEther("0.125"),
-                borrowAmount: ethers.utils.parseEther("0.5"),
-                farmingTokenAmount: ethers.utils.parseEther("0.125"),
+                principalAmount: ethers.utils.parseEther("125"),
+                borrowAmount: ethers.utils.parseEther("500"),
+                farmingTokenAmount: ethers.utils.parseEther("125"),
+                maxReturn: BigNumber.from(0),
                 minLpReceive: BigNumber.from(0),
               };
 
@@ -903,9 +938,10 @@ describe("DeltaNeutralVault", () => {
                 vaultAddress: assetVault.address,
                 workerAddress: assetVaultWorker.address,
                 twoSidesStrat: assetTwoSidesStrat.address,
-                principalAmount: ethers.utils.parseEther("0.375"),
-                borrowAmount: ethers.utils.parseEther("1.5"),
-                farmingTokenAmount: ethers.utils.parseEther("0.375"),
+                principalAmount: ethers.utils.parseEther("375"),
+                borrowAmount: ethers.utils.parseEther("150"),
+                farmingTokenAmount: ethers.utils.parseEther("375"),
+                maxReturn: BigNumber.from(0),
                 minLpReceive: BigNumber.from(0),
               };
 
@@ -950,8 +986,8 @@ describe("DeltaNeutralVault", () => {
         describe("_doWork", async () => {
           context("alice try open position with another position id", async () => {
             it("should revert", async () => {
-              const stableTokenAmount = ethers.utils.parseEther("0.5");
-              const assetTokenAmount = ethers.utils.parseEther("0.5");
+              const stableTokenAmount = ethers.utils.parseEther("500");
+              const assetTokenAmount = ethers.utils.parseEther("500");
 
               await baseTokenAsAlice.approve(deltaVault.address, stableTokenAmount);
 
@@ -960,9 +996,10 @@ describe("DeltaNeutralVault", () => {
                 vaultAddress: stableVault.address,
                 workerAddress: stableVaultWorker.address,
                 twoSidesStrat: stableTwoSidesStrat.address,
-                principalAmount: ethers.utils.parseEther("0.125"),
-                borrowAmount: ethers.utils.parseEther("0.5"),
-                farmingTokenAmount: ethers.utils.parseEther("0.125"),
+                principalAmount: ethers.utils.parseEther("125"),
+                borrowAmount: ethers.utils.parseEther("500"),
+                farmingTokenAmount: ethers.utils.parseEther("125"),
+                maxReturn: BigNumber.from(0),
                 minLpReceive: BigNumber.from(0),
               };
 
@@ -971,9 +1008,10 @@ describe("DeltaNeutralVault", () => {
                 vaultAddress: assetVault.address,
                 workerAddress: assetVaultWorker.address,
                 twoSidesStrat: assetTwoSidesStrat.address,
-                principalAmount: ethers.utils.parseEther("0.375"),
-                borrowAmount: ethers.utils.parseEther("1.5"),
-                farmingTokenAmount: ethers.utils.parseEther("0.375"),
+                principalAmount: ethers.utils.parseEther("375"),
+                borrowAmount: ethers.utils.parseEther("150"),
+                farmingTokenAmount: ethers.utils.parseEther("375"),
+                maxReturn: BigNumber.from(0),
                 minLpReceive: BigNumber.from(0),
               };
 
@@ -1018,8 +1056,8 @@ describe("DeltaNeutralVault", () => {
         describe("_depositHealthCheck", async () => {
           context("when alice deposit with unsafe position equity on stable side", async () => {
             it("should revert", async () => {
-              const stableTokenAmount = ethers.utils.parseEther("0.51");
-              const assetTokenAmount = ethers.utils.parseEther("0.5");
+              const stableTokenAmount = ethers.utils.parseEther("510");
+              const assetTokenAmount = ethers.utils.parseEther("500");
               await baseTokenAsAlice.approve(deltaVault.address, stableTokenAmount);
               const stableWorkbyteInput: IDepositWorkByte = {
                 posId: 1,
@@ -1027,8 +1065,9 @@ describe("DeltaNeutralVault", () => {
                 workerAddress: stableVaultWorker.address,
                 twoSidesStrat: stableTwoSidesStrat.address,
                 principalAmount: ethers.utils.parseEther("0.13"),
-                borrowAmount: ethers.utils.parseEther("0.5"),
-                farmingTokenAmount: ethers.utils.parseEther("0.125"),
+                borrowAmount: ethers.utils.parseEther("500"),
+                farmingTokenAmount: ethers.utils.parseEther("125"),
+                maxReturn: BigNumber.from(0),
                 minLpReceive: BigNumber.from(0),
               };
               const assetWorkbyteInput: IDepositWorkByte = {
@@ -1036,9 +1075,10 @@ describe("DeltaNeutralVault", () => {
                 vaultAddress: assetVault.address,
                 workerAddress: assetVaultWorker.address,
                 twoSidesStrat: assetTwoSidesStrat.address,
-                principalAmount: ethers.utils.parseEther("0.375"),
-                borrowAmount: ethers.utils.parseEther("1.5"),
-                farmingTokenAmount: ethers.utils.parseEther("0.375"),
+                principalAmount: ethers.utils.parseEther("375"),
+                borrowAmount: ethers.utils.parseEther("150"),
+                farmingTokenAmount: ethers.utils.parseEther("375"),
+                maxReturn: BigNumber.from(0),
                 minLpReceive: BigNumber.from(0),
               };
               const stableWorkByte = buildDepositWorkByte(stableWorkbyteInput);
@@ -1076,17 +1116,18 @@ describe("DeltaNeutralVault", () => {
 
           context("when alice deposit with unsafe position equity on asset side", async () => {
             it("should revert", async () => {
-              const stableTokenAmount = ethers.utils.parseEther("0.5");
-              const assetTokenAmount = ethers.utils.parseEther("0.51");
+              const stableTokenAmount = ethers.utils.parseEther("500");
+              const assetTokenAmount = ethers.utils.parseEther("510");
               await baseTokenAsAlice.approve(deltaVault.address, stableTokenAmount);
               const stableWorkbyteInput: IDepositWorkByte = {
                 posId: 1,
                 vaultAddress: stableVault.address,
                 workerAddress: stableVaultWorker.address,
                 twoSidesStrat: stableTwoSidesStrat.address,
-                principalAmount: ethers.utils.parseEther("0.125"),
-                borrowAmount: ethers.utils.parseEther("0.5"),
-                farmingTokenAmount: ethers.utils.parseEther("0.125"),
+                principalAmount: ethers.utils.parseEther("125"),
+                borrowAmount: ethers.utils.parseEther("500"),
+                farmingTokenAmount: ethers.utils.parseEther("125"),
+                maxReturn: BigNumber.from(0),
                 minLpReceive: BigNumber.from(0),
               };
               const assetWorkbyteInput: IDepositWorkByte = {
@@ -1094,9 +1135,10 @@ describe("DeltaNeutralVault", () => {
                 vaultAddress: assetVault.address,
                 workerAddress: assetVaultWorker.address,
                 twoSidesStrat: assetTwoSidesStrat.address,
-                principalAmount: ethers.utils.parseEther("0.385"),
-                borrowAmount: ethers.utils.parseEther("1.5"),
-                farmingTokenAmount: ethers.utils.parseEther("0.375"),
+                principalAmount: ethers.utils.parseEther("385"),
+                borrowAmount: ethers.utils.parseEther("150"),
+                farmingTokenAmount: ethers.utils.parseEther("375"),
+                maxReturn: BigNumber.from(0),
                 minLpReceive: BigNumber.from(0),
               };
               const stableWorkByte = buildDepositWorkByte(stableWorkbyteInput);
@@ -1134,17 +1176,18 @@ describe("DeltaNeutralVault", () => {
 
           context("when alice deposit with unsafe debt value on stable side", async () => {
             it("should revert", async () => {
-              const stableTokenAmount = ethers.utils.parseEther("0.5");
-              const assetTokenAmount = ethers.utils.parseEther("0.5");
+              const stableTokenAmount = ethers.utils.parseEther("500");
+              const assetTokenAmount = ethers.utils.parseEther("500");
               await baseTokenAsAlice.approve(deltaVault.address, stableTokenAmount);
               const stableWorkbyteInput: IDepositWorkByte = {
                 posId: 1,
                 vaultAddress: stableVault.address,
                 workerAddress: stableVaultWorker.address,
                 twoSidesStrat: stableTwoSidesStrat.address,
-                principalAmount: ethers.utils.parseEther("0.125"),
+                principalAmount: ethers.utils.parseEther("125"),
                 borrowAmount: ethers.utils.parseEther("1"),
-                farmingTokenAmount: ethers.utils.parseEther("0.125"),
+                farmingTokenAmount: ethers.utils.parseEther("125"),
+                maxReturn: BigNumber.from(0),
                 minLpReceive: BigNumber.from(0),
               };
               const assetWorkbyteInput: IDepositWorkByte = {
@@ -1152,9 +1195,10 @@ describe("DeltaNeutralVault", () => {
                 vaultAddress: assetVault.address,
                 workerAddress: assetVaultWorker.address,
                 twoSidesStrat: assetTwoSidesStrat.address,
-                principalAmount: ethers.utils.parseEther("0.375"),
-                borrowAmount: ethers.utils.parseEther("1.5"),
-                farmingTokenAmount: ethers.utils.parseEther("0.375"),
+                principalAmount: ethers.utils.parseEther("375"),
+                borrowAmount: ethers.utils.parseEther("150"),
+                farmingTokenAmount: ethers.utils.parseEther("375"),
+                maxReturn: BigNumber.from(0),
                 minLpReceive: BigNumber.from(0),
               };
               const stableWorkByte = buildDepositWorkByte(stableWorkbyteInput);
@@ -1192,17 +1236,18 @@ describe("DeltaNeutralVault", () => {
 
           context("when alice deposit with unsafe debt value on asset side", async () => {
             it("should revert", async () => {
-              const stableTokenAmount = ethers.utils.parseEther("0.5");
-              const assetTokenAmount = ethers.utils.parseEther("0.5");
+              const stableTokenAmount = ethers.utils.parseEther("500");
+              const assetTokenAmount = ethers.utils.parseEther("500");
               await baseTokenAsAlice.approve(deltaVault.address, stableTokenAmount);
               const stableWorkbyteInput: IDepositWorkByte = {
                 posId: 1,
                 vaultAddress: stableVault.address,
                 workerAddress: stableVaultWorker.address,
                 twoSidesStrat: stableTwoSidesStrat.address,
-                principalAmount: ethers.utils.parseEther("0.125"),
-                borrowAmount: ethers.utils.parseEther("0.5"),
-                farmingTokenAmount: ethers.utils.parseEther("0.125"),
+                principalAmount: ethers.utils.parseEther("125"),
+                borrowAmount: ethers.utils.parseEther("500"),
+                farmingTokenAmount: ethers.utils.parseEther("125"),
+                maxReturn: BigNumber.from(0),
                 minLpReceive: BigNumber.from(0),
               };
               const assetWorkbyteInput: IDepositWorkByte = {
@@ -1210,9 +1255,10 @@ describe("DeltaNeutralVault", () => {
                 vaultAddress: assetVault.address,
                 workerAddress: assetVaultWorker.address,
                 twoSidesStrat: assetTwoSidesStrat.address,
-                principalAmount: ethers.utils.parseEther("0.375"),
+                principalAmount: ethers.utils.parseEther("375"),
                 borrowAmount: ethers.utils.parseEther("2"),
-                farmingTokenAmount: ethers.utils.parseEther("0.375"),
+                farmingTokenAmount: ethers.utils.parseEther("375"),
+                maxReturn: BigNumber.from(0),
                 minLpReceive: BigNumber.from(0),
               };
               const stableWorkByte = buildDepositWorkByte(stableWorkbyteInput);
@@ -1252,10 +1298,10 @@ describe("DeltaNeutralVault", () => {
         describe("_outstandingCheck", () => {
           context("when stable token amount has descresed", async () => {
             it("should revert", async () => {
-              await baseTokenAsAlice.transfer(deltaVault.address, ethers.utils.parseEther("0.4"));
-              const reduceAmount = ethers.utils.parseEther("0.01");
-              const stableTokenAmount = ethers.utils.parseEther("0.5").sub(reduceAmount);
-              const assetTokenAmount = ethers.utils.parseEther("0.5");
+              await baseTokenAsAlice.transfer(deltaVault.address, ethers.utils.parseEther("400"));
+              const reduceAmount = ethers.utils.parseEther("10");
+              const stableTokenAmount = ethers.utils.parseEther("500").sub(reduceAmount);
+              const assetTokenAmount = ethers.utils.parseEther("500");
 
               await baseTokenAsAlice.approve(deltaVault.address, stableTokenAmount);
 
@@ -1264,9 +1310,10 @@ describe("DeltaNeutralVault", () => {
                 vaultAddress: stableVault.address,
                 workerAddress: stableVaultWorker.address,
                 twoSidesStrat: stableTwoSidesStrat.address,
-                principalAmount: ethers.utils.parseEther("0.125"),
-                borrowAmount: ethers.utils.parseEther("0.5"),
-                farmingTokenAmount: ethers.utils.parseEther("0.125"),
+                principalAmount: ethers.utils.parseEther("125"),
+                borrowAmount: ethers.utils.parseEther("500"),
+                farmingTokenAmount: ethers.utils.parseEther("125"),
+                maxReturn: BigNumber.from(0),
                 minLpReceive: BigNumber.from(0),
               };
 
@@ -1275,9 +1322,10 @@ describe("DeltaNeutralVault", () => {
                 vaultAddress: assetVault.address,
                 workerAddress: assetVaultWorker.address,
                 twoSidesStrat: assetTwoSidesStrat.address,
-                principalAmount: ethers.utils.parseEther("0.375"),
-                borrowAmount: ethers.utils.parseEther("1.5"),
-                farmingTokenAmount: ethers.utils.parseEther("0.375"),
+                principalAmount: ethers.utils.parseEther("375"),
+                borrowAmount: ethers.utils.parseEther("150"),
+                farmingTokenAmount: ethers.utils.parseEther("375"),
+                maxReturn: BigNumber.from(0),
                 minLpReceive: BigNumber.from(0),
               };
 
@@ -1325,10 +1373,10 @@ describe("DeltaNeutralVault", () => {
 
             context("when asset token amount has descresed", async () => {
               it("should revert", async () => {
-                await wbnbTokenAsAlice.transfer(deltaVault.address, ethers.utils.parseEther("0.4"));
-                const reduceAmount = ethers.utils.parseEther("0.01");
-                const stableTokenAmount = ethers.utils.parseEther("0.5");
-                const assetTokenAmount = ethers.utils.parseEther("0.5").sub(reduceAmount);
+                await wbnbTokenAsAlice.transfer(deltaVault.address, ethers.utils.parseEther("400"));
+                const reduceAmount = ethers.utils.parseEther("10");
+                const stableTokenAmount = ethers.utils.parseEther("500");
+                const assetTokenAmount = ethers.utils.parseEther("500").sub(reduceAmount);
 
                 await baseTokenAsAlice.approve(deltaVault.address, stableTokenAmount);
 
@@ -1337,9 +1385,10 @@ describe("DeltaNeutralVault", () => {
                   vaultAddress: stableVault.address,
                   workerAddress: stableVaultWorker.address,
                   twoSidesStrat: stableTwoSidesStrat.address,
-                  principalAmount: ethers.utils.parseEther("0.125"),
-                  borrowAmount: ethers.utils.parseEther("0.5"),
-                  farmingTokenAmount: ethers.utils.parseEther("0.125"),
+                  principalAmount: ethers.utils.parseEther("125"),
+                  borrowAmount: ethers.utils.parseEther("500"),
+                  farmingTokenAmount: ethers.utils.parseEther("125"),
+                  maxReturn: BigNumber.from(0),
                   minLpReceive: BigNumber.from(0),
                 };
 
@@ -1348,9 +1397,10 @@ describe("DeltaNeutralVault", () => {
                   vaultAddress: assetVault.address,
                   workerAddress: assetVaultWorker.address,
                   twoSidesStrat: assetTwoSidesStrat.address,
-                  principalAmount: ethers.utils.parseEther("0.375"),
-                  borrowAmount: ethers.utils.parseEther("1.5"),
-                  farmingTokenAmount: ethers.utils.parseEther("0.375"),
+                  principalAmount: ethers.utils.parseEther("375"),
+                  borrowAmount: ethers.utils.parseEther("150"),
+                  farmingTokenAmount: ethers.utils.parseEther("375"),
+                  maxReturn: BigNumber.from(0),
                   minLpReceive: BigNumber.from(0),
                 };
 
@@ -1405,6 +1455,15 @@ describe("DeltaNeutralVault", () => {
   describe("#withdraw", async () => {
     describe("when positions initialized", async () => {
       beforeEach(async () => {
+        // add liquidity
+        await swapHelper.addLiquidities([
+          {
+            token0: baseToken,
+            token1: wbnb,
+            amount0desired: ethers.utils.parseEther("100000"),
+            amount1desired: ethers.utils.parseEther("100000"),
+          },
+        ]);
         const stableTokenAmount = ethers.utils.parseEther("500");
         const assetTokenAmount = ethers.utils.parseEther("500");
         await baseTokenAsDeployer.approve(deltaVault.address, stableTokenAmount);
@@ -1417,6 +1476,7 @@ describe("DeltaNeutralVault", () => {
           principalAmount: ethers.utils.parseEther("125"),
           borrowAmount: ethers.utils.parseEther("500"),
           farmingTokenAmount: ethers.utils.parseEther("125"),
+          maxReturn: BigNumber.from(0),
           minLpReceive: BigNumber.from(0),
         };
 
@@ -1428,6 +1488,7 @@ describe("DeltaNeutralVault", () => {
           principalAmount: ethers.utils.parseEther("375"),
           borrowAmount: ethers.utils.parseEther("1500"),
           farmingTokenAmount: ethers.utils.parseEther("375"),
+          maxReturn: BigNumber.from(0),
           minLpReceive: BigNumber.from(0),
         };
 
@@ -1482,6 +1543,7 @@ describe("DeltaNeutralVault", () => {
             principalAmount: ethers.utils.parseEther("125"),
             borrowAmount: ethers.utils.parseEther("500"),
             farmingTokenAmount: ethers.utils.parseEther("125"),
+            maxReturn: BigNumber.from(0),
             minLpReceive: BigNumber.from(0),
           };
 
@@ -1493,6 +1555,7 @@ describe("DeltaNeutralVault", () => {
             principalAmount: ethers.utils.parseEther("375"),
             borrowAmount: ethers.utils.parseEther("1500"),
             farmingTokenAmount: ethers.utils.parseEther("375"),
+            maxReturn: BigNumber.from(0),
             minLpReceive: BigNumber.from(0),
           };
 
@@ -1587,6 +1650,281 @@ describe("DeltaNeutralVault", () => {
           );
           const shareToWithdraw = await deltaVault.valueToShare(withdrawValue);
           const withdrawTx = await deltaVaultAsAlice.withdraw(shareToWithdraw, 0, 0, withdrawData);
+        });
+      });
+    });
+  });
+
+  describe("#rebalance", async () => {
+    describe("when positions initialized", async () => {
+      beforeEach(async () => {
+        console.log("before add more liquidity");
+        const reserves = await lp.getReserves();
+        console.log("before add more liquidity:reserves", reserves);
+
+        // add liquidity to make price baseToken:wbnb = 1:500
+        await swapHelper.addLiquidities([
+          {
+            token0: baseToken,
+            token1: wbnb,
+            amount0desired: ethers.utils.parseEther("50000000"),
+            amount1desired: ethers.utils.parseEther("100000"),
+          },
+        ]);
+
+        console.log("after add more liquidity:reserves", await lp.getReserves());
+        await swapHelper.loadReserves([baseToken.address, wbnb.address]);
+        console.log("reserve before init", await lp.getReserves());
+        const lpPrice = await swapHelper.computeLpHealth(ethers.utils.parseEther("1"), baseToken.address, wbnb.address);
+        console.log("lp lpPrice", lpPrice);
+
+        const stableTokenPrice = ethers.utils.parseEther("1");
+        const assetTokenPrice = ethers.utils.parseEther("500");
+        mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
+          if (token === baseToken.address) {
+            return stableTokenPrice;
+          }
+          if (token === wbnb.address) {
+            return assetTokenPrice;
+          }
+          return 0;
+        });
+        mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+          return lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1"));
+        });
+
+        const stableTokenAmount = ethers.utils.parseEther("250");
+        const assetTokenAmount = ethers.utils.parseEther("150");
+
+        await baseTokenAsDeployer.approve(deltaVault.address, stableTokenAmount);
+
+        // the calculation is ratio between balance and reserve * total supply
+        // let total supply = sqrt(1 * 0.1) = 0.31622776601683794
+        // current reserve after swap is 1732967258967755614
+        // ths lp will be (1267032741032244386 (optimal swap amount) / 1732967258967755614 (reserve)) *  0.31622776601683794
+        // lp will be 0.23120513736969137
+
+        // provide 750 base token
+        // swapAmt = 375.467928673591501565
+        // lp = 16.749457647109601219
+        const stableWorkbyteInput: IDepositWorkByte = {
+          posId: 0,
+          vaultAddress: stableVault.address,
+          workerAddress: stableVaultWorker.address,
+          twoSidesStrat: stableTwoSidesStrat.address,
+          principalAmount: ethers.utils.parseEther("250"),
+          borrowAmount: ethers.utils.parseEther("500"),
+          maxReturn: BigNumber.from(0),
+          farmingTokenAmount: ethers.utils.parseEther("0"),
+          minLpReceive: BigNumber.from(0),
+        };
+
+        // lp = 50.248372475909067619
+        const assetWorkbyteInput: IDepositWorkByte = {
+          posId: 0,
+          vaultAddress: assetVault.address,
+          workerAddress: assetVaultWorker.address,
+          twoSidesStrat: assetTwoSidesStrat.address,
+          principalAmount: ethers.utils.parseEther("150"),
+          borrowAmount: ethers.utils.parseEther("3"),
+          maxReturn: BigNumber.from(0),
+          farmingTokenAmount: ethers.utils.parseEther("0"),
+          minLpReceive: BigNumber.from(0),
+        };
+
+        const stableWorkByte = buildDepositWorkByte(stableWorkbyteInput);
+        const assetWorkByte = buildDepositWorkByte(assetWorkbyteInput);
+
+        const data = ethers.utils.defaultAbiCoder.encode(
+          ["uint8[]", "uint256[]", "bytes[]"],
+          [
+            [ACTION_WORK, ACTION_WORK],
+            [0, 0],
+            [stableWorkByte, assetWorkByte],
+          ]
+        );
+
+        // stalbe position equity = 250, debt 500, position value = 750
+        // asset position equity = 150 * 500 = 750, debt = 3 * 500 = 1500, position value = 2250
+        // Delta netural vault equity = 1000
+
+        const initTx = await deltaVault.initPositions(0, stableTokenAmount, assetTokenAmount, data, {
+          value: assetTokenAmount,
+        });
+        console.log("stableworker lp balance", await stableVaultWorker.totalLpBalance());
+        console.log("assetworker lp balance", await assetVaultWorker.totalLpBalance());
+      });
+      context("when asset token price drop", async () => {
+        it("should be able to rebalance", async () => {
+          const reserves = await lp.getReserves();
+          console.log("reserves latest", reserves);
+          // _reserve0: BigNumber { value: "100004 499999999999999998" },
+          // _reserve1: BigNumber { value: "50000750 000000000000000000" },
+
+          // Price swing 20% wbnb price drop to 400
+          // Add more base token to the pool equals to
+          // sqrt(10*((100004)**2) / 8) - 100004 = 11803.8710
+          await wbnb.approve(routerV2.address, ethers.utils.parseEther("11803.8710"));
+          await routerV2.swapExactTokensForTokens(
+            ethers.utils.parseEther("11803.8710"),
+            "0",
+            [wbnb.address, baseToken.address],
+            deployerAddress,
+            FOREVER
+          );
+
+          await swapHelper.loadReserves([baseToken.address, wbnb.address]);
+          const lpPrice = await swapHelper.computeLpHealth(
+            ethers.utils.parseEther("1"),
+            baseToken.address,
+            wbnb.address
+          );
+
+          console.log("lpPriceaft", lpPrice);
+          const stableTokenPrice = ethers.utils.parseEther("1");
+          const assetTokenPrice = ethers.utils.parseEther("400");
+          mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
+            if (token === baseToken.address) {
+              return stableTokenPrice;
+            }
+            if (token === wbnb.address) {
+              return assetTokenPrice;
+            }
+            return 0;
+          });
+          mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+            return lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1"));
+          });
+
+          console.log("reserves after swa-", await lp.getReserves());
+          // rebalance
+
+          // lpPrice = 39.959961130207909910
+          // stable lp = 16.749457647109601219, asset lp = 50.248372475909067619
+
+          // Current
+          // Stable Position:
+          // Equity=169.3076765305633, PositionValue=669.3076765305633, Debt=500,  debtRatio=74.70405876588926%
+          // Asset Position:
+          // asset: Equity=807.9230109935352, PositionValue=2007.9230109935352, Debt=1200, , debtRatio=59.76324756626157%
+          // totalEquity=169.3076765305633 + 807.9230109935352= 977.2306875240985
+
+          // Target
+          // Stable Position:
+          // Equity=977.2306875240985/4=244.30767188102462, PositionValue=244.30767188102462*3=732.9230156430739, Debt=488.6153437620493
+          // deltaEquity = 244.30767188102462 - 169.3076765305633 = 74.99999535046132, deltaDebt = 488.6153437620493 - 500 = -11.384656237950708
+
+          // Asset Position:
+          // Equity=977.2306875240985*3/4=732.9230156430739, PositionValue=732.9230156430739*3=2198.7690469292215, Debt=1465.8460312861475
+          // deltaEquity = 732.9230156430739 - 807.9230109935352= -74.99999535046129, deltaDebt = 1465.8460312861475 - 1200 = 265.84603128614754
+          // totalEquity = 244.30767188102462 + 732.9230156430739 = 977.2306875240985
+
+          const expectedStableEquity = ethers.utils.parseEther("244.30767188102462");
+          const expectedStableDebt = ethers.utils.parseEther("488.6153437620493");
+          const expectedAssetEquity = ethers.utils.parseEther("732.9230156430739");
+          const expectedAssetDebt = ethers.utils.parseEther("1465.8460312861475");
+
+          // Step1: Partial Close Asset position by -74.99999535046129 since it has negative deltaEquity
+          const valueToLiquidate = ethers.utils.parseEther("74.99999535046129");
+          const lpToLiquidate = valueToLiquidate.mul(ethers.utils.parseEther("1")).div(lpPrice);
+
+          const action1 = ethers.utils.defaultAbiCoder.encode(
+            ["address", "uint256", "address", "uint256", "uint256", "uint256", "bytes"],
+            [
+              assetVault.address,
+              1,
+              assetVaultWorker.address,
+              "0",
+              "0",
+              "0",
+              ethers.utils.defaultAbiCoder.encode(
+                ["address", "bytes"],
+                [
+                  partialCloseMinimizeStrat.address,
+                  ethers.utils.defaultAbiCoder.encode(["uint256", "uint256", "uint256"], [lpToLiquidate, 0, 0]),
+                ]
+              ),
+            ]
+          );
+
+          // Step2: Borrow more 265.84603128614754 usd on asset position since it has positive delta debt
+          const borrowMoreAmount = ethers.utils
+            .parseEther("265.84603128614754")
+            .mul(ethers.utils.parseEther("1"))
+            .div(assetTokenPrice);
+
+          const action2WorkbyteInput: IDepositWorkByte = {
+            posId: 1,
+            vaultAddress: assetVault.address,
+            workerAddress: assetVaultWorker.address,
+            twoSidesStrat: assetTwoSidesStrat.address,
+            principalAmount: BigNumber.from(0),
+            borrowAmount: borrowMoreAmount,
+            maxReturn: BigNumber.from(0),
+            farmingTokenAmount: ethers.utils.parseEther("0"),
+            minLpReceive: BigNumber.from(0),
+          };
+          const action2 = buildDepositWorkByte(action2WorkbyteInput);
+
+          // Step3: Warp BNB since BNB vault return in native form
+          const farmingTokenAmount = ethers.utils.parseEther("0.093845290915972522");
+
+          // Step4: Add collateral on stable position by 74.99999535046132
+          // wbnb = 0.093845290915972522, baseToken = 37.546939703434325878
+          // sum = 0.093845290915972522 * 400 + 37.546939703434325878 = 75.08505606982334
+          const action4WorkbyteInput: IDepositWorkByte = {
+            posId: 1,
+            vaultAddress: stableVault.address,
+            workerAddress: stableVaultWorker.address,
+            twoSidesStrat: stableTwoSidesStrat.address,
+            principalAmount: ethers.utils.parseEther("37.546939703434325878"),
+            borrowAmount: BigNumber.from(0),
+            maxReturn: BigNumber.from(0),
+            farmingTokenAmount: farmingTokenAmount,
+            minLpReceive: BigNumber.from(0),
+          };
+          const action4 = buildDepositWorkByte(action4WorkbyteInput);
+
+          // Step5: Repay debt by 11.384656237950708
+          const repayAmt = ethers.utils.parseEther("11.384656237950708");
+          const valueToRepayWithSlippage = repayAmt.add(repayAmt.mul(25).div(10000));
+          const lpToRapy = valueToRepayWithSlippage.mul(ethers.utils.parseEther("1")).div(lpPrice);
+          const action5 = ethers.utils.defaultAbiCoder.encode(
+            ["address", "uint256", "address", "uint256", "uint256", "uint256", "bytes"],
+            [
+              stableVault.address,
+              1,
+              stableVaultWorker.address,
+              "0",
+              "0",
+              repayAmt,
+              ethers.utils.defaultAbiCoder.encode(
+                ["address", "bytes"],
+                [
+                  partialCloseStrat.address,
+                  ethers.utils.defaultAbiCoder.encode(["uint256", "uint256", "uint256"], [lpToRapy, repayAmt, 0]),
+                ]
+              ),
+            ]
+          );
+
+          const totalEquityBefore = await deltaVault.totalEquityValue();
+
+          const rebalanceTx = await deltaVault.rebalance(
+            [ACTION_WORK, ACTION_WORK, ACTION_WRAP, ACTION_WORK, ACTION_WORK],
+            [0, 0, farmingTokenAmount, 0],
+            [action1, action2, EMPTY_BYTE, action4, action5]
+          );
+
+          const totalEquityAfter = await deltaVault.totalEquityValue();
+          const positionInfo = await deltaVault.positionInfo();
+
+          Assert.assertBigNumberClosePercent(totalEquityBefore, totalEquityAfter, "0.1");
+          Assert.assertBigNumberClosePercent(positionInfo.stablePositionEquity, expectedStableEquity, "0.1");
+          Assert.assertBigNumberClosePercent(positionInfo.stablePositionDebtValue, expectedStableDebt, "0.1");
+          Assert.assertBigNumberClosePercent(positionInfo.assetPositionEquity, expectedAssetEquity, "0.1");
+          Assert.assertBigNumberClosePercent(positionInfo.assetPositionDebtValue, expectedAssetDebt, "0.1");
+          expect(rebalanceTx).to.emit(deltaVault, "LogRebalance");
         });
       });
     });
