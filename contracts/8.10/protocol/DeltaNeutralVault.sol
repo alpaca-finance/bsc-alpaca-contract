@@ -16,6 +16,8 @@ pragma solidity 0.8.10;
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
 import "./interfaces/IPriceHelper.sol";
 import "./interfaces/IVault.sol";
@@ -25,11 +27,12 @@ import "./interfaces/IWNativeRelayer.sol";
 import "./interfaces/IDeltaNeutralVaultConfig.sol";
 import "./interfaces/IFairLaunch.sol";
 import "../utils/SafeToken.sol";
+import "../utils/FixedPointMathLib.sol";
 import "../utils/Math.sol";
 
 contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, OwnableUpgradeable {
   /// @notice Libraries
-  using SafeToken for address;
+  using FixedPointMathLib for uint256;
 
   /// @dev Events
   event LogInitializePositions(address indexed _from, uint256 _stableVaultPosId, uint256 _assetVaultPosId);
@@ -153,14 +156,14 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   }
 
   /// @notice initialize delta neutral vault positions.
-  /// @param _minShareReceive Minimum share that _shareReceiver must receive.
   /// @param _stableTokenAmount Amount of stable token transfer to vault.
   /// @param _assetTokenAmount Amount of asset token transfer to vault.
+  /// @param _minShareReceive Minimum share that _shareReceiver must receive.
   /// @param _data The calldata to pass along to the proxy action for more working context.
   function initPositions(
-    uint256 _minShareReceive,
     uint256 _stableTokenAmount,
     uint256 _assetTokenAmount,
+    uint256 _minShareReceive,
     bytes calldata _data
   ) external payable onlyOwner {
     if (stableVaultPosId != 0 || assetVaultPosId != 0) {
@@ -171,7 +174,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     stableVaultPosId = IVault(stableVault).nextPositionID();
     assetVaultPosId = IVault(assetVault).nextPositionID();
 
-    deposit(msg.sender, _minShareReceive, _stableTokenAmount, _assetTokenAmount, _data);
+    deposit(_stableTokenAmount, _assetTokenAmount, msg.sender, _minShareReceive, _data);
 
     OPENING = false;
 
@@ -185,7 +188,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     if (_token == config.getWrappedNativeAddr()) {
       IWETH(config.getWrappedNativeAddr()).deposit{ value: _amount }();
     } else {
-      SafeToken.safeTransferFrom(_token, msg.sender, address(this), _amount);
+      SafeERC20Upgradeable.safeTransferFrom(IERC20Upgradeable(_token), msg.sender, address(this), _amount);
     }
   }
 
@@ -201,21 +204,21 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     if (_token == config.getWrappedNativeAddr()) {
       SafeToken.safeTransferETH(_to, _amount);
     } else {
-      SafeToken.safeTransfer(_token, _to, _amount);
+      SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(_token), _to, _amount);
     }
   }
 
   /// @notice Deposit to delta neutral vault.
-  /// @param _shareReceiver Addresses to be receive share.
-  /// @param _minShareReceive Minimum share that _shareReceiver must receive.
   /// @param _stableTokenAmount Amount of stable token transfer to vault.
   /// @param _assetTokenAmount Amount of asset token transfer to vault.
+  /// @param _shareReceiver Addresses to be receive share.
+  /// @param _minShareReceive Minimum share that _shareReceiver must receive.
   /// @param _data The calldata to pass along to the proxy action for more working context.
   function deposit(
-    address _shareReceiver,
-    uint256 _minShareReceive,
     uint256 _stableTokenAmount,
     uint256 _assetTokenAmount,
+    address _shareReceiver,
+    uint256 _minShareReceive,
     bytes calldata _data
   ) public payable onlyEOAorWhitelisted nonReentrant returns (uint256 _shares) {
 
@@ -228,8 +231,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     _transferTokenToVault(assetToken, _assetTokenAmount);
 
     // 2. mint share for shareReceiver
-    uint256 _depositValue = ((_stableTokenAmount * priceHelper.getTokenPrice(stableToken)) +
-      (_assetTokenAmount * priceHelper.getTokenPrice(assetToken))) / 1e18;
+    // TODO: discuss round up or down
+    uint256 _depositValue = _stableTokenAmount.mulWadDown(priceHelper.getTokenPrice(stableToken)) + _assetTokenAmount.mulWadDown(priceHelper.getTokenPrice(assetToken));
 
     uint256 _shares = valueToShare(_depositValue);
     if (_shares < _minShareReceive) {
@@ -261,14 +264,14 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   }
 
   /// @notice Withdraw from delta neutral vault.
-  /// @param _shareAmount Amount of share to withdraw from vault.
   /// @param _minStableTokenAmount Minimum stable token shareOwner expect to receive.
   /// @param _minAssetTokenAmount Minimum asset token shareOwner expect to receive.
+  /// @param _shareAmount Amount of share to withdraw from vault.
   /// @param _data The calldata to pass along to the proxy action for more working context.
   function withdraw(
-    uint256 _shareAmount,
     uint256 _minStableTokenAmount,
     uint256 _minAssetTokenAmount,
+    uint256 _shareAmount,
     bytes calldata _data
   ) public onlyEOAorWhitelisted nonReentrant returns (uint256 _withdrawValue) {
 
@@ -291,9 +294,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     Outstanding memory _outstandingAfter = _outstanding();
 
     // transfer funds back to shareOwner
-    uint256 _stableTokenBack = stableToken == config.getWrappedNativeAddr()
-      ? _outstandingAfter.nativeAmount - _outstandingBefore.nativeAmount
-      : _outstandingAfter.stableAmount - _outstandingBefore.stableAmount;
+    uint256 _stableTokenBack = _outstandingAfter.stableAmount - _outstandingBefore.stableAmount;
     uint256 _assetTokenBack = assetToken == config.getWrappedNativeAddr()
       ? _outstandingAfter.nativeAmount - _outstandingBefore.nativeAmount
       : _outstandingAfter.assetAmount - _outstandingBefore.assetAmount;
@@ -310,9 +311,10 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
     uint256 _withdrawValue;
     {
-      uint256 _stableWithdrawValue = _stableTokenBack * priceHelper.getTokenPrice(stableToken);
-      uint256 _assetWithdrawValue = _assetTokenBack * priceHelper.getTokenPrice(assetToken);
-      _withdrawValue = (_stableWithdrawValue + _assetWithdrawValue) / 1e18;
+      // TODO: round up or down
+      uint256 _stableWithdrawValue = _stableTokenBack.mulWadDown(priceHelper.getTokenPrice(stableToken));
+      uint256 _assetWithdrawValue = _assetTokenBack.mulWadDown(priceHelper.getTokenPrice(assetToken));
+      _withdrawValue = _stableWithdrawValue + _assetWithdrawValue ;
     }
 
     // sanity check
@@ -447,8 +449,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   function _outstanding() internal view returns (Outstanding memory) {
     return
       Outstanding({
-        stableAmount: stableToken.myBalance(),
-        assetAmount: assetToken.myBalance(),
+        stableAmount: IERC20Upgradeable(stableToken).balanceOf(address(this)),
+        assetAmount: IERC20Upgradeable(assetToken).balanceOf(address(this)),
         nativeAmount: address(this).balance
       });
   }
@@ -495,11 +497,13 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     address _token = IVault(_vault).token();
     uint256 _vaultDebtShare = IVault(_vault).vaultDebtShare();
     if (_vaultDebtShare == 0) {
-      return (_positionDebtShare * priceHelper.getTokenPrice(_token))/1e18;
+      // TODO: round up or down
+      return _positionDebtShare.mulWadDown(priceHelper.getTokenPrice(_token));
     }
     uint256 _vaultDebtValue = IVault(_vault).vaultDebtVal() + IVault(_vault).pendingInterest(0);
     uint256 _debtAmount = (_positionDebtShare * _vaultDebtValue) / _vaultDebtShare;
-    return (_debtAmount * priceHelper.getTokenPrice(_token))/1e18;
+    // TODO: round up or down
+    return _debtAmount.mulWadDown(priceHelper.getTokenPrice(_token));
   }
 
   function _positionValue(address _worker) internal view returns (uint256) {
@@ -558,15 +562,15 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     }
 
     // 2. approve vault
-    stableToken.safeApprove(_vault, type(uint256).max);
-    assetToken.safeApprove(_vault, type(uint256).max);
+    IERC20Upgradeable(stableToken).approve(_vault, type(uint256).max);
+    IERC20Upgradeable(assetToken).approve(_vault, type(uint256).max);
 
     // 3. Call work to altering Vault position
     IVault(_vault).work(_posId, _worker, _principalAmount, _borrowAmount, _maxReturn, _workData);
 
     // 4. Reset approve to 0
-    stableToken.safeApprove(_vault, 0);
-    assetToken.safeApprove(_vault, 0);
+    IERC20Upgradeable(stableToken).approve(_vault, 0);
+    IERC20Upgradeable(assetToken).approve(_vault, 0);
   }
 
   /// @notice Claim Alpaca reward of stable vault and asset vault
@@ -577,15 +581,15 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
   /// @dev Claim Alpaca reward for internal
   function _claim(uint256 _poolId) internal returns (uint256) {
-    uint256 alpacaBefore = alpacaToken.myBalance();
+    uint256 alpacaBefore = IERC20Upgradeable(alpacaToken).balanceOf(address(this));
     IFairLaunch(config.fairLaunchAddr()).harvest(_poolId);
-    uint256 alpacaAfter = alpacaToken.myBalance();
+    uint256 alpacaAfter = IERC20Upgradeable(alpacaToken).balanceOf(address(this));
     return alpacaAfter - alpacaBefore;
   }
 
   /// @notice withdraw alpaca to receiver address
-  function withdrawAlpaca(address _to, uint256 amount) external onlyOwner {
-    alpacaToken.safeTransfer(_to, amount);
+  function withdrawAlpaca(address _to, uint256 _amount) external onlyOwner {
+    SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(alpacaToken), _to, _amount);
   }
 
   /// @dev Fallback function to accept BNB.
