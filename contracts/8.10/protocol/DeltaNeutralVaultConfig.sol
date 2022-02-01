@@ -14,13 +14,9 @@ Alpaca Fin Corporation
 pragma solidity 0.8.10;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "../utils/SafeToken.sol";
 
 import "./interfaces/IDeltaNeutralVaultConfig.sol";
-
 contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable {
-  using SafeToken for address;
-
   /// @dev Events
   event LogSetParams(
     address indexed _caller,
@@ -33,16 +29,21 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   event LogSetWhitelistedCallers(address indexed _caller, address indexed _address, bool _ok);
   event LogSetWhitelistedRebalancers(address indexed _caller, address indexed _address, bool _ok);
 
+  error LeverageLevelTooLow();
+
+  /// @notice Constants
+  uint8 private constant MIN_LEVERAGE_LEVEL = 3;
+
   /// address for wrapped native eg WBNB, WETH
   address public override getWrappedNativeAddr;
   /// address for wNtive Relayer
   address public override getWNativeRelayer;
-
+  /// FairLaunch contract address
   address public fairLaunchAddr;
 
-  //
+  /// threshold that must be reached to allow rebalancing
   uint256 public override rebalanceFactor;
-  //
+  /// Tolerance bps that allow margin for misc calculation
   uint256 public override positionValueTolerance;
 
   /// @notice debt of delta neutral stable pool Id
@@ -55,6 +56,8 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   /// list of whitelisted rebalancers.
   mapping(address => bool) public whitelistedRebalancers;
 
+  uint8 public override leverageLevel;
+
   function initialize(
     address _getWrappedNativeAddr,
     address _getWNativeRelayer,
@@ -63,6 +66,8 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     uint256 _positionValueTolerance
   ) external initializer {
     OwnableUpgradeable.__Ownable_init();
+
+    leverageLevel = MIN_LEVERAGE_LEVEL;
 
     setParams(_getWrappedNativeAddr, _getWNativeRelayer, _fairLaunchAddr, _rebalanceFactor, _positionValueTolerance);
   }
@@ -110,5 +115,15 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
       whitelistedRebalancers[_callers[_idx]] = _ok;
       emit LogSetWhitelistedRebalancers(msg.sender, _callers[_idx], _ok);
     }
+  }
+
+  /// @notice Set leverage level
+  /// @dev Must only be called by owner.
+  /// @param _newLeverageLevel The new leverage level to be set. Must be >= 3
+  function setLeverageLevel(uint8 _newLeverageLevel) external onlyOwner {
+    if (_newLeverageLevel < MIN_LEVERAGE_LEVEL) {
+      revert LeverageLevelTooLow();
+    }
+    leverageLevel = _newLeverageLevel;
   }
 }
