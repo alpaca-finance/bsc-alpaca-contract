@@ -1045,8 +1045,6 @@ describe("DeltaNeutralVault", () => {
     describe("when positions initialized", async () => {
       beforeEach(async () => {
         console.log("before add more liquidity");
-        const reserves = await lp.getReserves();
-        console.log("before add more liquidity:reserves", reserves);
 
         // add liquidity to make price baseToken:wbnb = 1:500
         await swapHelper.addLiquidities([
@@ -1058,11 +1056,8 @@ describe("DeltaNeutralVault", () => {
           },
         ]);
 
-        console.log("after add more liquidity:reserves", await lp.getReserves());
         await swapHelper.loadReserves([baseToken.address, wbnb.address]);
-        console.log("reserve before init", await lp.getReserves());
         const lpPrice = await swapHelper.computeLpHealth(ethers.utils.parseEther("1"), baseToken.address, wbnb.address);
-        console.log("lp lpPrice", lpPrice);
 
         const stableTokenPrice = ethers.utils.parseEther("1");
         const assetTokenPrice = ethers.utils.parseEther("500");
@@ -1083,12 +1078,6 @@ describe("DeltaNeutralVault", () => {
         const assetTokenAmount = ethers.utils.parseEther("1.5");
 
         await baseTokenAsDeployer.approve(deltaVault.address, stableTokenAmount);
-
-        // the calculation is ratio between balance and reserve * total supply
-        // let total supply = sqrt(1 * 0.1) = 0.31622776601683794
-        // current reserve after swap is 1732967258967755614
-        // ths lp will be (1267032741032244386 (optimal swap amount) / 1732967258967755614 (reserve)) *  0.31622776601683794
-        // lp will be 0.23120513736969137
 
         // provide 750 base token
         // swapAmt = 375.467928673591501565
@@ -1137,8 +1126,6 @@ describe("DeltaNeutralVault", () => {
         const initTx = await deltaVault.initPositions(0, stableTokenAmount, assetTokenAmount, data, {
           value: assetTokenAmount,
         });
-        console.log("stableworker lp balance", await stableVaultWorker.totalLpBalance());
-        console.log("assetworker lp balance", await assetVaultWorker.totalLpBalance());
       });
       context("when asset token price drop", async () => {
         it("should be able to rebalance", async () => {
@@ -1166,7 +1153,6 @@ describe("DeltaNeutralVault", () => {
             wbnb.address
           );
 
-          console.log("lpPriceaft", lpPrice);
           const stableTokenPrice = ethers.utils.parseEther("1");
           const assetTokenPrice = ethers.utils.parseEther("400");
           mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
@@ -1182,7 +1168,6 @@ describe("DeltaNeutralVault", () => {
             return lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1"));
           });
 
-          console.log("reserves after swa-", await lp.getReserves());
           // rebalance
 
           // lpPrice = 39.959961130207909910
