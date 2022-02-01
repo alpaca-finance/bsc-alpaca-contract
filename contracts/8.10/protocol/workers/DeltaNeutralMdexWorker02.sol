@@ -219,7 +219,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
     if (_treasuryAccount == address(0)) revert BadTreasuryAccount();
 
     // 1. Withdraw all the rewards. Return if reward <= _reinvestThreshold.
-    _bscPoolWithdraw();
+    bscPool.withdraw(pid, 0);
     uint256 reward = mdx.myBalance();
     if (reward <= _reinvestThreshold) return;
 
@@ -350,7 +350,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
     if (balance > 0) {
       address(lpToken).safeApprove(address(bscPool), type(uint256).max);
       bscPool.deposit(pid, balance);
-      totalLpBalance = balance;
+      totalLpBalance = totalLpBalance + balance;
       emit BscPoolDeposit(balance);
     }
   }
