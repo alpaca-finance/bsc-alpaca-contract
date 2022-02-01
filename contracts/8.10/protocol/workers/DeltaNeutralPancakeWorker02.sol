@@ -221,7 +221,7 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
     if (_treasuryAccount == address(0)) revert BadTreasuryAccount();
 
     // 1. Withdraw all the rewards. Return if reward <= _reinvestThreshold.
-    _masterChefWithdraw();
+    masterChef.withdraw(pid, 0);
     uint256 reward = cake.myBalance();
     if (reward <= _reinvestThreshold) return;
 
@@ -354,7 +354,7 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
     if (balance > 0) {
       address(lpToken).safeApprove(address(masterChef), type(uint256).max);
       masterChef.deposit(pid, balance);
-      totalLpBalance = balance;
+      totalLpBalance = totalLpBalance + balance;
       emit MasterChefDeposit(balance);
     }
   }
