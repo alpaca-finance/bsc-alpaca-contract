@@ -180,7 +180,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     emit LogInitializePositions(msg.sender, stableVaultPosId, assetVaultPosId);
   }
 
-  /// @notice Get token from msg.sender
+  /// @notice Get token from msg.sender.
   /// @param _token token to transfer.
   /// @param _amount amount to transfer.
   function _transferTokenToVault(address _token, uint256 _amount) internal {
@@ -228,14 +228,11 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
     // 1. transfer tokens from user to vault
     _transferTokenToVault(stableToken, _stableTokenAmount);
-    console.log("after stableToken");
     _transferTokenToVault(assetToken, _assetTokenAmount);
-    console.log("after assetToken");
 
     // 2. mint share for shareReceiver
     uint256 _depositValue = ((_stableTokenAmount * priceHelper.getTokenPrice(stableToken)) +
       (_assetTokenAmount * priceHelper.getTokenPrice(assetToken))) / 1e18;
-    console.log("_depositValue", _depositValue);
 
     uint256 _shares = valueToShare(_depositValue);
     console.log("_shares", _shares);
@@ -458,8 +455,9 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     console.log("_withdrawHealthCheck:_positionInfoAfter.stablePositionEquity ",_positionInfoAfter.stablePositionEquity );
     console.log("_withdrawHealthCheck: left ",_positionInfoBefore.stablePositionEquity - _positionInfoAfter.stablePositionEquity );
     console.log("_withdrawHealthCheck: right ",(_withdrawValue *_positionInfoBefore.stablePositionEquity)/_totalEquityBefore);
-    
-    if(_positionInfoBefore.stablePositionEquity - _positionInfoAfter.stablePositionEquity > (_withdrawValue *_positionInfoBefore.stablePositionEquity)/_totalEquityBefore){
+    uint256 _stableExpectedWithdrawValue = (_withdrawValue *_positionInfoBefore.stablePositionEquity)/_totalEquityBefore;
+    uint256 _stableActualWithdrawValue = _positionInfoBefore.stablePositionEquity - _positionInfoAfter.stablePositionEquity;
+    if(!Math.almostEqual(_stableActualWithdrawValue, _stableExpectedWithdrawValue, 100)){
       revert UnsafePositionValue();
     }
     console.log("_withdrawHealthCheck");
@@ -467,7 +465,9 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     console.log("_withdrawHealthCheck:_positionInfoAfter.assetPositionEquity ",_positionInfoAfter.assetPositionEquity );
     console.log("_withdrawHealthCheck: left ",_positionInfoBefore.assetPositionEquity - _positionInfoAfter.assetPositionEquity);
     console.log("_withdrawHealthCheck: right ",(_withdrawValue *_positionInfoBefore.assetPositionEquity)/_totalEquityBefore);
-    if(_positionInfoBefore.assetPositionEquity - _positionInfoAfter.assetPositionEquity > (_withdrawValue *_positionInfoBefore.assetPositionEquity)/_totalEquityBefore){
+    uint256 _assetExpectedWithdrawValue = (_withdrawValue *_positionInfoBefore.assetPositionEquity)/_totalEquityBefore;
+    uint256 _assetActualWithdrawValue = _positionInfoBefore.assetPositionEquity - _positionInfoAfter.assetPositionEquity;
+    if(!Math.almostEqual(_assetActualWithdrawValue, _assetExpectedWithdrawValue, 100)){
       revert UnsafePositionValue();
     }
 
@@ -539,7 +539,6 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     return (_value * _shareSupply) / totalEquityValue();
   }
 
-  // should
   /// @notice Return equity value of delta neutral position.
   function totalEquityValue() public view returns (uint256) {
     uint256 _positionValue = _positionValue(stableVaultWorker) + _positionValue(assetVaultWorker);
