@@ -1463,8 +1463,8 @@ describe("DeltaNeutralVault", () => {
           {
             token0: baseToken,
             token1: wbnb,
-            amount0desired: ethers.utils.parseEther("100000"),
-            amount1desired: ethers.utils.parseEther("100000"),
+            amount0desired: ethers.utils.parseEther("1000000"),
+            amount1desired: ethers.utils.parseEther("1000000"),
           },
         ]);
         const stableTokenAmount = ethers.utils.parseEther("500");
@@ -1590,6 +1590,9 @@ describe("DeltaNeutralVault", () => {
           mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
             return lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1"));
           });
+          console.log("Deployer IUToken: ", await deltaVault.balanceOf(deployerAddress));
+          console.log("Total Supply IUToken: ", await deltaVault.totalSupply());
+          console.log("deltavault equity", await deltaVault.totalEquityValue());
 
           const depositTx = await deltaVaultAsAlice.deposit(
             aliceAddress,
@@ -1601,6 +1604,10 @@ describe("DeltaNeutralVault", () => {
               value: depositAssetTokenAmount,
             }
           );
+
+          console.log("Receive IUToken: ", await deltaVault.balanceOf(aliceAddress));
+          console.log("Total Supply IUToken: ", await deltaVault.totalSupply());
+          console.log("deltavault equity", await deltaVault.totalEquityValue());
 
           // ======== withdraw ======
           console.log("deltavault equity", await deltaVault.totalEquityValue());
