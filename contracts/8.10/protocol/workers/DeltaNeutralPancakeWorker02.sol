@@ -26,9 +26,9 @@ import "../interfaces/IStrategy.sol";
 import "../interfaces/IWorker02.sol";
 import "../interfaces/IPancakeMasterChef.sol";
 import "../interfaces/IPriceHelper.sol";
+import "../interfaces/IVault.sol";
 import "../../utils/AlpacaMath.sol";
 import "../../utils/SafeToken.sol";
-import "../interfaces/IVault.sol";
 
 /// @title DeltaNeutralPancakeWorker02 is a PancakeswapV2Worker with reinvest-optimized and beneficial vault buyback functionalities
 contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable, IWorker02 {
@@ -38,6 +38,7 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
   /// @notice Errors
   error InvalidRewardToken();
   error InvalidTokens();
+  error UnTrustedPrice();
 
   error NotEOA();
   error NotOperator();
@@ -46,7 +47,6 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
 
   error UnApproveStrategy();
   error BadTreasuryAccount();
-  error UnableToTransfer();
   error NotAllowToLiquidate();
 
   error InvalidReinvestPath();
@@ -81,6 +81,7 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
 
   /// @dev constants
   uint256 private constant BASIS_POINT = 10000;
+  uint256 private constant PRICE_AGE_SECOND = 1800; // 30 mins
 
   /// @notice Configuration variables
   IPancakeMasterChef public masterChef;
@@ -221,7 +222,7 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
     if (_treasuryAccount == address(0)) revert BadTreasuryAccount();
 
     // 1. Withdraw all the rewards. Return if reward <= _reinvestThreshold.
-    _masterChefWithdraw();
+    masterChef.withdraw(pid, 0);
     uint256 reward = cake.myBalance();
     if (reward <= _reinvestThreshold) return;
 
@@ -277,8 +278,7 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
 
     if (!okStrats[strat]) revert UnApproveStrategy();
 
-    if (!lpToken.transfer(strat, lpToken.balanceOf(address(this)))) revert UnableToTransfer();
-
+    address(lpToken).safeTransfer(strat, lpToken.balanceOf(address(this)));
     baseToken.safeTransfer(strat, actualBaseTokenBalance());
     IStrategy(strat).execute(user, debt, ext);
 
@@ -293,7 +293,9 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
   /// @param id The position ID to perform health check. Note: This worker implementation ignore ID as the worker has only one position.
   function health(uint256 id) external view override returns (uint256) {
     uint256 _totalBalanceInUSD = priceHelper.lpToDollar(totalLpBalance, address(lpToken));
-    uint256 _tokenPrice = priceHelper.getTokenPrice(address(baseToken));
+    (uint256 _tokenPrice, uint256 _lastUpdate) = priceHelper.getTokenPrice(address(baseToken));
+    // NOTE: last updated price should not be over 30 mins
+    if (block.timestamp - _lastUpdate > PRICE_AGE_SECOND) revert UnTrustedPrice();
     return (_totalBalanceInUSD * 1e18) / _tokenPrice;
   }
 
@@ -354,7 +356,7 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
     if (balance > 0) {
       address(lpToken).safeApprove(address(masterChef), type(uint256).max);
       masterChef.deposit(pid, balance);
-      totalLpBalance = balance;
+      totalLpBalance = totalLpBalance + balance;
       emit MasterChefDeposit(balance);
     }
   }

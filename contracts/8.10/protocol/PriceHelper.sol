@@ -66,9 +66,9 @@ contract PriceHelper is IPriceHelper, Initializable, OwnableUpgradeable {
   /// @notice Get token price in dollar
   /// @dev getTokenPrice from address
   /// @param tokenAddress tokenAddress
-  function getTokenPrice(address tokenAddress) public view returns (uint256) {
+  function getTokenPrice(address tokenAddress) public view returns (uint256, uint256) {
     (uint256 price, uint256 lastTimestamp) = chainLinkPriceOracle.getPrice(tokenAddress, usd);
-    return price;
+    return (price, lastTimestamp);
   }
 
   /// @notice get LP price using internal only, return value in 1e18 format
@@ -90,9 +90,10 @@ contract PriceHelper is IPriceHelper, Initializable, OwnableUpgradeable {
     address token0Address = ILiquidityPair(lpToken).token0();
     address token1Address = ILiquidityPair(lpToken).token1();
 
-    uint256 _px0 = (getTokenPrice(token0Address) * (2**112)); // in 2**112
-    uint256 _px1 = (getTokenPrice(token1Address) * (2**112)); // in 2**112
-
+    (uint256 _p0, ) = getTokenPrice(token0Address); // in 2**112
+    (uint256 _p1, ) = getTokenPrice(token1Address); // in 2**112
+    uint256 _px0 = _p0 * (2**112);
+    uint256 _px1 = _p1 * (2**112);
     // fair token0 amt: _sqrtK * sqrt(_px1/_px0)
     // fair token1 amt: _sqrtK * sqrt(_px0/_px1)
     // fair lp price = 2 * sqrt(_px0 * _px1)

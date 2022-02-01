@@ -346,6 +346,22 @@ describe("Vault - DeltaNetMdexWorker02", () => {
     deltaNeutralWorkerAsDeployer = DeltaNeutralMdexWorker02__factory.connect(deltaNeutralWorker.address, deployer);
   }
 
+  async function _updatePrice() {
+    let [[basePrice], [farmPrice]] = await Promise.all([
+      priceHelper.getTokenPrice(baseToken.address),
+      priceHelper.getTokenPrice(farmToken.address),
+    ]);
+    let mockBaseAggregatorV3 = await MockAggregatorV3Factory.deploy(basePrice, 18);
+    let mockFarmAggregatorV3 = await MockAggregatorV3Factory.deploy(farmPrice, 18);
+    await mockBaseAggregatorV3.deployed();
+    await mockFarmAggregatorV3.deployed();
+    await chainLinkOracleAsDeployer.setPriceFeeds(
+      [baseToken.address, farmToken.address],
+      [busd.address, busd.address],
+      [mockBaseAggregatorV3.address, mockFarmAggregatorV3.address]
+    );
+  }
+
   beforeEach(async () => {
     await waffle.loadFixture(fixture);
   });
@@ -717,10 +733,14 @@ describe("Vault - DeltaNetMdexWorker02", () => {
           // base token price = 1.0
           // health should be lpBalace * lp price / baseTokenPrice => 0.231205137369691323 * 28.299236836137312801 / 1.0 = 6.542928940156556263
           const expectedHealth = ethers.utils.parseEther("6.542928940156556263");
+
+          console.log("check");
           expect(await deltaNeutralWorker.health(1)).to.be.eq(expectedHealth);
           // Bob comes and trigger reinvest
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
+          await _updatePrice();
           await deltaNeutralWorkerAsBob.reinvest();
+          console.log("check");
           AssertHelpers.assertAlmostEqual(
             MDX_REWARD_PER_BLOCK.mul("2").mul(REINVEST_BOUNTY_BPS).div("10000").toString(),
             (await mdx.balanceOf(bobAddress)).toString()
@@ -729,14 +749,19 @@ describe("Vault - DeltaNetMdexWorker02", () => {
           const healthDebt = await vault.positionInfo("1");
           expect(healthDebt[0]).to.be.above(expectedHealth);
           const interest = ethers.utils.parseEther("0.3"); // 30% interest rate
+          console.log("check");
           AssertHelpers.assertAlmostEqual(healthDebt[1].toString(), interest.add(loan).toString());
+          console.log("check");
           AssertHelpers.assertAlmostEqual(
             (await baseToken.balanceOf(vault.address)).toString(),
             deposit.sub(loan).toString()
           );
+          console.log("check");
           AssertHelpers.assertAlmostEqual((await vault.vaultDebtVal()).toString(), interest.add(loan).toString());
           const reservePool = interest.mul(RESERVE_POOL_BPS).div("10000");
+          console.log("check");
           AssertHelpers.assertAlmostEqual(reservePool.toString(), (await vault.reservePool()).toString());
+          console.log("check");
           AssertHelpers.assertAlmostEqual(
             deposit.add(interest).sub(reservePool).toString(),
             (await vault.totalToken()).toString()
@@ -768,6 +793,7 @@ describe("Vault - DeltaNetMdexWorker02", () => {
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
           await vault.deposit(0); // Random action to trigger interest computation
+          await _updatePrice();
           const interest = ethers.utils.parseEther("0.3"); //30% interest rate
           const reservePool = interest.mul(RESERVE_POOL_BPS).div("10000");
           AssertHelpers.assertAlmostEqual(
@@ -811,6 +837,7 @@ describe("Vault - DeltaNetMdexWorker02", () => {
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
           await vault.deposit(0); // Random action to trigger interest computation
+          await _updatePrice();
           const interest = ethers.utils.parseEther("0.3"); //30% interest rate
           const reservePool = interest.mul(RESERVE_POOL_BPS).div("10000");
           AssertHelpers.assertAlmostEqual(

@@ -29,6 +29,8 @@ import "../interfaces/IVault.sol";
 import "../../utils/AlpacaMath.sol";
 import "../../utils/SafeToken.sol";
 
+import "hardhat/console.sol";
+
 contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable, IWorker02 {
   /// @notice Libraries
   using SafeToken for address;
@@ -36,6 +38,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
   /// @notice Errors
   error InvalidRewardToken();
   error InvalidTokens();
+  error UnTrustedPrice();
 
   error NotEOA();
   error NotOperator();
@@ -79,6 +82,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
 
   /// @dev constants
   uint256 private constant BASIS_POINT = 10000;
+  uint256 private constant PRICE_AGE_SECOND = 1800; // 30 mins
 
   /// @notice Configuration variables
   IBSCPool public bscPool;
@@ -219,7 +223,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
     if (_treasuryAccount == address(0)) revert BadTreasuryAccount();
 
     // 1. Withdraw all the rewards. Return if reward <= _reinvestThreshold.
-    _bscPoolWithdraw();
+    bscPool.withdraw(pid, 0);
     uint256 reward = mdx.myBalance();
     if (reward <= _reinvestThreshold) return;
 
@@ -289,7 +293,12 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
   /// @param id The position ID to perform health check. Note: This worker implementation ignore ID as the worker has only one position.
   function health(uint256 id) external view override returns (uint256) {
     uint256 _totalBalanceInUSD = priceHelper.lpToDollar(totalLpBalance, address(lpToken));
-    uint256 _tokenPrice = priceHelper.getTokenPrice(address(baseToken));
+    (uint256 _tokenPrice, uint256 _lastUpdate) = priceHelper.getTokenPrice(address(baseToken));
+    console.log("now", block.timestamp);
+    console.log("_lastUpdate", _lastUpdate);
+    console.log("diff", block.timestamp - _lastUpdate);
+    // NOTE: last updated price should not be over 30 mins
+    if (block.timestamp - _lastUpdate > PRICE_AGE_SECOND) revert UnTrustedPrice();
     return (_totalBalanceInUSD * 1e18) / _tokenPrice;
   }
 
@@ -350,7 +359,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
     if (balance > 0) {
       address(lpToken).safeApprove(address(bscPool), type(uint256).max);
       bscPool.deposit(pid, balance);
-      totalLpBalance = balance;
+      totalLpBalance = totalLpBalance + balance;
       emit BscPoolDeposit(balance);
     }
   }

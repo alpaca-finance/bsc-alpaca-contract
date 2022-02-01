@@ -56,6 +56,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   error PositionsIsHealthy();
   error InsufficientTokenReceived(address _token, uint256 _requiredAmount, uint256 _receivedAmount);
   error InsufficientShareReceived(uint256 _requiredAmount, uint256 _receivedAmount);
+  error UnTrustedPrice();
 
   struct Outstanding {
     uint256 stableAmount;
@@ -63,7 +64,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 nativeAmount;
   }
 
-  struct PositionInfo{
+  struct PositionInfo {
     uint256 stablePositionEquity;
     uint256 stablePositionDebtValue;
     uint256 assetPositionEquity;
@@ -73,6 +74,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   /// @dev constants
   uint8 private constant ACTION_WORK = 1;
   uint8 private constant ACTION_WRAP = 2;
+  uint256 private constant PRICE_AGE_SECOND = 1800; // 30 mins
 
   address private lpToken;
   address public stableVault;
@@ -218,7 +220,6 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _assetTokenAmount,
     bytes calldata _data
   ) public payable onlyEOAorWhitelisted nonReentrant returns (uint256 _shares) {
-
     PositionInfo memory _positionInfoBefore = positionInfo();
     Outstanding memory _outstandingBefore = _outstanding();
     _outstandingBefore.nativeAmount = _outstandingBefore.nativeAmount - msg.value;
@@ -228,8 +229,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     _transferTokenToVault(assetToken, _assetTokenAmount);
 
     // 2. mint share for shareReceiver
-    uint256 _depositValue = ((_stableTokenAmount * priceHelper.getTokenPrice(stableToken)) +
-      (_assetTokenAmount * priceHelper.getTokenPrice(assetToken))) / 1e18;
+    uint256 _depositValue = ((_stableTokenAmount * _getTokenPrice(stableToken)) +
+      (_assetTokenAmount * _getTokenPrice(assetToken))) / 1e18;
 
     uint256 _shares = valueToShare(_depositValue);
     if (_shares < _minShareReceive) {
@@ -237,7 +238,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     }
 
     _mint(_shareReceiver, _shares);
-    
+
     {
       // 3. call execute to do more work.
       // Perform the actual work, using a new scope to avoid stack-too-deep errors.
@@ -249,13 +250,9 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     }
 
     // 4. sanity check
-    _depositHealthCheck(
-      _depositValue,
-      _positionInfoBefore,
-      positionInfo()
-    );
+    _depositHealthCheck(_depositValue, _positionInfoBefore, positionInfo());
     _outstandingCheck(_outstandingBefore, _outstanding());
-    
+
     emit LogDeposit(msg.sender, _shareReceiver, _shares, _stableTokenAmount, _assetTokenAmount);
     return _shares;
   }
@@ -271,7 +268,6 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _minAssetTokenAmount,
     bytes calldata _data
   ) public onlyEOAorWhitelisted nonReentrant returns (uint256 _withdrawValue) {
-
     address _shareOwner = msg.sender;
     PositionInfo memory _positionInfoBefore = positionInfo();
     Outstanding memory _outstandingBefore = _outstanding();
@@ -310,8 +306,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
     uint256 _withdrawValue;
     {
-      uint256 _stableWithdrawValue = _stableTokenBack * priceHelper.getTokenPrice(stableToken);
-      uint256 _assetWithdrawValue = _assetTokenBack * priceHelper.getTokenPrice(assetToken);
+      uint256 _stableWithdrawValue = _stableTokenBack * _getTokenPrice(stableToken);
+      uint256 _assetWithdrawValue = _assetTokenBack * _getTokenPrice(assetToken);
       _withdrawValue = (_stableWithdrawValue + _assetWithdrawValue) / 1e18;
     }
 
@@ -323,16 +319,15 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     return _withdrawValue;
   }
 
-
   function rebalance(
     uint8[] memory _actions,
     uint256[] memory _values,
     bytes[] memory _datas
   ) external onlyRebalancers {
-
     PositionInfo memory _positionInfoBefore = positionInfo();
     Outstanding memory _outstandingBefore = _outstanding();
-    uint256 _stablePositionValue = _positionInfoBefore.stablePositionEquity + _positionInfoBefore.stablePositionDebtValue;
+    uint256 _stablePositionValue = _positionInfoBefore.stablePositionEquity +
+      _positionInfoBefore.stablePositionDebtValue;
     uint256 _assetPositionValue = _positionInfoBefore.assetPositionEquity + _positionInfoBefore.assetPositionDebtValue;
     uint256 _equityBefore = _positionInfoBefore.stablePositionEquity + _positionInfoBefore.assetPositionEquity;
     uint256 _rebalanceFactor = config.rebalanceFactor();
@@ -369,13 +364,20 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     PositionInfo memory _positionInfoBefore,
     PositionInfo memory _positionInfoAfter
   ) internal {
-
     uint256 _toleranceBps = config.positionValueTolerance();
 
     // 1. check position value
     if (
-      !Math.almostEqual(_positionInfoAfter.stablePositionEquity - _positionInfoBefore.stablePositionEquity, (_depositValue ) / 4, _toleranceBps) ||
-      !Math.almostEqual(_positionInfoAfter.assetPositionEquity - _positionInfoBefore.assetPositionEquity, (_depositValue * 3) / 4, _toleranceBps)
+      !Math.almostEqual(
+        _positionInfoAfter.stablePositionEquity - _positionInfoBefore.stablePositionEquity,
+        (_depositValue) / 4,
+        _toleranceBps
+      ) ||
+      !Math.almostEqual(
+        _positionInfoAfter.assetPositionEquity - _positionInfoBefore.assetPositionEquity,
+        (_depositValue * 3) / 4,
+        _toleranceBps
+      )
     ) {
       revert UnsafePositionEquity();
     }
@@ -383,11 +385,15 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     // 2. check Debt value
     if (
       !Math.almostEqual(
-        _positionInfoAfter.stablePositionDebtValue - _positionInfoBefore.stablePositionDebtValue ,
+        _positionInfoAfter.stablePositionDebtValue - _positionInfoBefore.stablePositionDebtValue,
         (_depositValue * 2) / 4,
         _toleranceBps
       ) ||
-      !Math.almostEqual( _positionInfoAfter.assetPositionDebtValue - _positionInfoBefore.assetPositionDebtValue, (_depositValue * 6) / 4, _toleranceBps)
+      !Math.almostEqual(
+        _positionInfoAfter.assetPositionDebtValue - _positionInfoBefore.assetPositionDebtValue,
+        (_depositValue * 6) / 4,
+        _toleranceBps
+      )
     ) {
       revert UnsafeDebtValue();
     }
@@ -405,27 +411,40 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _toleranceBps = config.positionValueTolerance();
     // 1. equity value check
     uint256 _totalEquityBefore = _positionInfoBefore.stablePositionEquity + _positionInfoBefore.assetPositionEquity;
-    uint256 _stableExpectedWithdrawValue = (_withdrawValue *_positionInfoBefore.stablePositionEquity)/_totalEquityBefore;
-    uint256 _stableActualWithdrawValue = _positionInfoBefore.stablePositionEquity - _positionInfoAfter.stablePositionEquity;
+    uint256 _stableExpectedWithdrawValue = (_withdrawValue * _positionInfoBefore.stablePositionEquity) /
+      _totalEquityBefore;
+    uint256 _stableActualWithdrawValue = _positionInfoBefore.stablePositionEquity -
+      _positionInfoAfter.stablePositionEquity;
 
-    if(!Math.almostEqual(_stableActualWithdrawValue, _stableExpectedWithdrawValue, _toleranceBps)){
+    if (!Math.almostEqual(_stableActualWithdrawValue, _stableExpectedWithdrawValue, _toleranceBps)) {
       revert UnsafePositionValue();
     }
-    uint256 _assetExpectedWithdrawValue = (_withdrawValue *_positionInfoBefore.assetPositionEquity)/_totalEquityBefore;
-    uint256 _assetActualWithdrawValue = _positionInfoBefore.assetPositionEquity - _positionInfoAfter.assetPositionEquity;
-    if(!Math.almostEqual(_assetActualWithdrawValue, _assetExpectedWithdrawValue, _toleranceBps)){
+    uint256 _assetExpectedWithdrawValue = (_withdrawValue * _positionInfoBefore.assetPositionEquity) /
+      _totalEquityBefore;
+    uint256 _assetActualWithdrawValue = _positionInfoBefore.assetPositionEquity -
+      _positionInfoAfter.assetPositionEquity;
+    if (!Math.almostEqual(_assetActualWithdrawValue, _assetExpectedWithdrawValue, _toleranceBps)) {
       revert UnsafePositionValue();
     }
 
     // 2. debt ratio check
     uint256 _totalDebtBefore = _positionInfoBefore.stablePositionDebtValue + _positionInfoBefore.assetPositionDebtValue;
-    uint256 _totalPositionValueBefore =  _positionInfoBefore.stablePositionEquity + _positionInfoBefore.assetPositionEquity + _totalDebtBefore;
+    uint256 _totalPositionValueBefore = _positionInfoBefore.stablePositionEquity +
+      _positionInfoBefore.assetPositionEquity +
+      _totalDebtBefore;
     uint256 _totalDebtAfter = _positionInfoAfter.stablePositionDebtValue + _positionInfoAfter.assetPositionDebtValue;
-    uint256 _totalPositionValueAfter = _positionInfoAfter.stablePositionEquity + _positionInfoAfter.assetPositionEquity + _totalDebtAfter;
-    if (!Math.almostEqual(_totalPositionValueBefore/_totalDebtBefore , _totalPositionValueAfter / _totalDebtAfter, _toleranceBps)) {
+    uint256 _totalPositionValueAfter = _positionInfoAfter.stablePositionEquity +
+      _positionInfoAfter.assetPositionEquity +
+      _totalDebtAfter;
+    if (
+      !Math.almostEqual(
+        _totalPositionValueBefore / _totalDebtBefore,
+        _totalPositionValueAfter / _totalDebtAfter,
+        _toleranceBps
+      )
+    ) {
       revert UnsafeDebtRatio();
     }
-
   }
 
   /// @notice Check tokens' balance.
@@ -483,7 +502,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   /// @notice Return equity value of delta neutral position.
   function totalEquityValue() public view returns (uint256) {
     uint256 _positionValue = _positionValue(stableVaultWorker) + _positionValue(assetVaultWorker);
-    uint256 _debtValue = _positionDebtValue(stableVault, stableVaultPosId) + _positionDebtValue(assetVault, assetVaultPosId);
+    uint256 _debtValue = _positionDebtValue(stableVault, stableVaultPosId) +
+      _positionDebtValue(assetVault, assetVaultPosId);
     if (_positionValue < _debtValue) {
       return 0;
     }
@@ -495,21 +515,25 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     address _token = IVault(_vault).token();
     uint256 _vaultDebtShare = IVault(_vault).vaultDebtShare();
     if (_vaultDebtShare == 0) {
-      return (_positionDebtShare * priceHelper.getTokenPrice(_token))/1e18;
+      return (_positionDebtShare * _getTokenPrice(_token)) / 1e18;
     }
     uint256 _vaultDebtValue = IVault(_vault).vaultDebtVal() + IVault(_vault).pendingInterest(0);
     uint256 _debtAmount = (_positionDebtShare * _vaultDebtValue) / _vaultDebtShare;
-    return (_debtAmount * priceHelper.getTokenPrice(_token))/1e18;
+    return (_debtAmount * _getTokenPrice(_token)) / 1e18;
   }
 
   function _positionValue(address _worker) internal view returns (uint256) {
     return priceHelper.lpToDollar(IWorker02(_worker).totalLpBalance(), lpToken);
   }
 
-  function _positionEquity(address _vault, address _worker, uint256 _posId) internal view returns (uint256) {
+  function _positionEquity(
+    address _vault,
+    address _worker,
+    uint256 _posId
+  ) internal view returns (uint256) {
     uint256 _positionValue = _positionValue(_worker);
     uint256 _positionDebtValue = _positionDebtValue(_vault, _posId);
-    if( _positionValue < _positionDebtValue){
+    if (_positionValue < _positionDebtValue) {
       return 0;
     }
     return _positionValue - _positionDebtValue;
@@ -535,7 +559,6 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   /// @notice interact with delta neutral position.
   /// @param _data The calldata to pass along to the vault for more working context.
   function _doWork(bytes memory _data) internal {
-
     if (stableVaultPosId == 0 || assetVaultPosId == 0) {
       revert PositionsNotInitialized();
     }
@@ -551,7 +574,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       bytes memory _workData
     ) = abi.decode(_data, (address, uint256, address, uint256, uint256, uint256, bytes));
 
-    if ( !OPENING  &&
+    if (
+      !OPENING &&
       !((_vault == stableVault && _posId == stableVaultPosId) || (_vault == assetVault && _posId == assetVaultPosId))
     ) {
       revert InvalidPositions({ _vault: _vault, _positionId: _posId });
@@ -590,4 +614,11 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
   /// @dev Fallback function to accept BNB.
   receive() external payable {}
+
+  /// @dev _getTokenPrice with validate last price updated
+  function _getTokenPrice(address token) internal view returns (uint256) {
+    (uint256 _price, uint256 _lastUpdated) = priceHelper.getTokenPrice(token);
+    if (block.timestamp - _lastUpdated > PRICE_AGE_SECOND) revert UnTrustedPrice();
+    return _price;
+  }
 }

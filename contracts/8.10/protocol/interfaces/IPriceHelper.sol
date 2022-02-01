@@ -21,5 +21,5 @@ interface IPriceHelper {
   function dollarToLp(uint256 dollarAmount, address lpToken) external view returns (uint256);
 
   /// @dev Return value of given token in USD.
-  function getTokenPrice(address token) external view returns (uint256);
+  function getTokenPrice(address token) external view returns (uint256, uint256);
 }
