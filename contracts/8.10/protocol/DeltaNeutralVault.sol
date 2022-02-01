@@ -59,6 +59,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   error PositionsIsHealthy();
   error InsufficientTokenReceived(address _token, uint256 _requiredAmount, uint256 _receivedAmount);
   error InsufficientShareReceived(uint256 _requiredAmount, uint256 _receivedAmount);
+  error InvalidConvertTokenSetting();
   error InvalidConvertTokenData();
 
   struct Outstanding {
@@ -779,20 +780,20 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   /// @dev convert asset by type
   function _convertAsset(bytes memory _data, uint256 _msgValue) internal {
     console.log("convertAsset");
-    (
-      uint256 _swapType,
-      uint256 _amount,
-      uint256 _amountOut,
-      address[] memory _path,
-      address _to,
-      uint256 _deadline
-    ) = abi.decode(_data, (uint256, uint256, uint256, address[], address, uint256));
+    (uint256 _swapType, uint256 _amount, address _sourceToken, address _destinationToken) = abi.decode(
+      _data,
+      (uint256, uint256, address, address)
+    );
     console.log("_swapType", _swapType);
     console.log("_amount", _amount);
-    console.log("_amountOut", _amountOut);
-    console.log("_to", _to);
-    console.log("_deadline", _deadline);
-    address routerAddress = config.routerAddr();
+    console.log("_sourceToken", _sourceToken);
+    console.log("_destinationToken", _destinationToken);
+
+    address routerAddr = config.getSwapRouteRouterAddr(_sourceToken, _destinationToken);
+    address[] memory paths = config.getSwapRoutePathsAddr(_sourceToken, _destinationToken);
+    if (routerAddr == address(0) || paths.length == 0) {
+      revert InvalidConvertTokenSetting();
+    }
 
     if (
       _swapType != CONVERT_EXACT_TOKEN_TO_NATIVE &&
@@ -802,32 +803,20 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       revert InvalidConvertTokenData();
     }
 
-    _validatePath(_path);
-
+    _sourceToken.safeApprove(routerAddr, type(uint256).max);
     if (_swapType == CONVERT_EXACT_TOKEN_TO_NATIVE) {
-      IRouter(routerAddress).swapExactTokensForETH(_amount, _amountOut, _path, _to, _deadline);
+      console.log("CONVERT_EXACT_TOKEN_TO_NATIVE");
+      IRouter(routerAddr).swapExactTokensForETH(_amount, 0, paths, address(this), block.timestamp);
     }
     if (_swapType == CONVERT_EXACT_TOKEN_TO_TOKEN) {
-      IRouter(routerAddress).swapExactTokensForTokens(_amount, _amountOut, _path, _to, _deadline);
+      console.log("CONVERT_EXACT_TOKEN_TO_TOKEN");
+      IRouter(routerAddr).swapExactTokensForTokens(_amount, 0, paths, address(this), block.timestamp);
     }
     if (_swapType == CONVERT_TOKEN_TO_EXACT_TOKEN) {
-      IRouter(routerAddress).swapTokensForExactTokens(_amount, _amountOut, _path, _to, _deadline);
+      console.log("CONVERT_TOKEN_TO_EXACT_TOKEN");
+      IRouter(routerAddr).swapTokensForExactTokens(0, _amount, paths, address(this), block.timestamp);
     }
-  }
-
-  function _validatePath(address[] memory tokenAddresses) internal {
-    for (uint256 _idx = 0; _idx < tokenAddresses.length; _idx++) {
-      address tokenAddress = tokenAddresses[_idx];
-      console.log("tokenAddress", tokenAddress);
-      if (
-        tokenAddress != stableToken ||
-        tokenAddress != assetToken ||
-        tokenAddress != alpacaToken ||
-        tokenAddress != config.getWrappedNativeAddr()
-      ) {
-        revert InvalidConvertTokenData();
-      }
-    }
+    _sourceToken.safeApprove(routerAddr, 0);
   }
 
   /// @dev Fallback function to accept BNB.

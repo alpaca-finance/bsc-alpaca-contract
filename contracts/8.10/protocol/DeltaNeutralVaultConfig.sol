@@ -144,16 +144,11 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     }
   }
 
-  function getSwapRouteRouterAddr(address _source, address _destination) external view onlyOwner returns (address) {
+  function getSwapRouteRouterAddr(address _source, address _destination) external view returns (address) {
     return (swapRoutes[_source][_destination].router);
   }
 
-  function getSwapRoutePathsAddr(address _source, address _destination)
-    external
-    view
-    onlyOwner
-    returns (address[] memory)
-  {
+  function getSwapRoutePathsAddr(address _source, address _destination) external view returns (address[] memory) {
     return (swapRoutes[_source][_destination].paths);
   }
 }
