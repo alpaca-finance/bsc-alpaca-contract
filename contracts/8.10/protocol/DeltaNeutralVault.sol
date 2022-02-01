@@ -27,9 +27,13 @@ import "./interfaces/IWNativeRelayer.sol";
 import "./interfaces/IDeltaNeutralVaultConfig.sol";
 import "./interfaces/IFairLaunch.sol";
 import "../utils/SafeToken.sol";
+import "../utils/FixedPointMathLib.sol";
 import "../utils/Math.sol";
 
 contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, OwnableUpgradeable {
+  /// @notice Libraries
+  using FixedPointMathLib for uint256;
+
   /// @dev Events
   event LogInitializePositions(address indexed _from, uint256 _stableVaultPosId, uint256 _assetVaultPosId);
   event LogDeposit(
@@ -227,8 +231,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     _transferTokenToVault(assetToken, _assetTokenAmount);
 
     // 2. mint share for shareReceiver
-    uint256 _depositValue = ((_stableTokenAmount * priceHelper.getTokenPrice(stableToken)) +
-      (_assetTokenAmount * priceHelper.getTokenPrice(assetToken))) / 1e18;
+    // TODO: discuss round up or down
+    uint256 _depositValue = _stableTokenAmount.mulWadDown(priceHelper.getTokenPrice(stableToken)) + _assetTokenAmount.mulWadDown(priceHelper.getTokenPrice(assetToken));
 
     uint256 _shares = valueToShare(_depositValue);
     if (_shares < _minShareReceive) {
@@ -307,9 +311,10 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
     uint256 _withdrawValue;
     {
-      uint256 _stableWithdrawValue = _stableTokenBack * priceHelper.getTokenPrice(stableToken);
-      uint256 _assetWithdrawValue = _assetTokenBack * priceHelper.getTokenPrice(assetToken);
-      _withdrawValue = (_stableWithdrawValue + _assetWithdrawValue) / 1e18;
+      // TODO: round up or down
+      uint256 _stableWithdrawValue = _stableTokenBack.mulWadDown(priceHelper.getTokenPrice(stableToken));
+      uint256 _assetWithdrawValue = _assetTokenBack.mulWadDown(priceHelper.getTokenPrice(assetToken));
+      _withdrawValue = _stableWithdrawValue + _assetWithdrawValue ;
     }
 
     // sanity check
@@ -493,11 +498,13 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     address _token = IVault(_vault).token();
     uint256 _vaultDebtShare = IVault(_vault).vaultDebtShare();
     if (_vaultDebtShare == 0) {
-      return (_positionDebtShare * priceHelper.getTokenPrice(_token))/1e18;
+      // TODO: round up or down
+      return _positionDebtShare.mulWadDown(priceHelper.getTokenPrice(_token));
     }
     uint256 _vaultDebtValue = IVault(_vault).vaultDebtVal() + IVault(_vault).pendingInterest(0);
     uint256 _debtAmount = (_positionDebtShare * _vaultDebtValue) / _vaultDebtShare;
-    return (_debtAmount * priceHelper.getTokenPrice(_token))/1e18;
+    // TODO: round up or down
+    return _debtAmount.mulWadDown(priceHelper.getTokenPrice(_token));
   }
 
   function _positionValue(address _worker) internal view returns (uint256) {
