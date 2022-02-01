@@ -24,4 +24,7 @@ interface IWorker02 is IWorker {
 
   /// @dev Return the trading path that the worker is using to convert reward token to beneficial vault token
   function getRewardPath() external view returns (address[] memory);
+
+  /// @dev Return the amount of lp that worker has
+  function totalLpBalance() external view returns (uint256);
 }

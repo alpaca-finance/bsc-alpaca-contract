@@ -5,10 +5,6 @@ import {
   AlpacaToken__factory,
   CakeToken,
   CakeToken__factory,
-  DeltaNeutralPancakeWorker02,
-  DeltaNeutralPancakeWorker02__factory,
-  DeltaNeutralMdexWorker02,
-  DeltaNeutralMdexWorker02__factory,
   DebtToken,
   DebtToken__factory,
   FairLaunch,
@@ -92,13 +88,20 @@ import {
   Oracle__factory,
   SwapMining,
   SwapMining__factory,
+  DeltaNeutralVault__factory,
+  DeltaNeutralVault,
+  DeltaNeutralVaultConfig,
+  DeltaNeutralVaultConfig__factory,
   PriceHelper,
   PriceHelper__factory,
   ChainLinkPriceOracle,
   ChainLinkPriceOracle__factory,
   MockAggregatorV3__factory,
+  DeltaNeutralPancakeWorker02__factory,
+  DeltaNeutralPancakeWorker02,
+  DeltaNeutralMdexWorker02,
+  DeltaNeutralMdexWorker02__factory,
 } from "../../typechain";
-
 import * as TimeHelpers from "../helpers/time";
 
 export interface IBEP20 {
@@ -120,6 +123,27 @@ export interface IVaultConfig {
   killPrizeBps: BigNumberish;
   killTreasuryBps: BigNumberish;
   killTreasuryAddress: string;
+}
+
+export interface IDeltaNeutralVault {
+  name: string;
+  symbol: string;
+  vaultStable: string;
+  vaultAsset: string;
+  stableVaultWorker: string;
+  assetVaultWorker: string;
+  lpToken: string;
+  alpacaToken: string;
+  priceHelper: string;
+  deltaVaultConfig: string;
+}
+
+export interface IDeltaNeutralVaultConfig {
+  wNativeAddr: string;
+  wNativeRelayer: string;
+  fairlaunchAddr: string;
+  rebalanceFactor: BigNumberish;
+  positionValueTolerance: BigNumberish;
 }
 
 export class DeployHelper {
@@ -926,5 +950,42 @@ export class DeployHelper {
     await wNativeRelayer.setCallerOk([partialCloseMinimizeStrat.address], true);
 
     return [addStrat, liqStrat, twoSidesStrat, minimizeTradeStrat, partialCloseStrat, partialCloseMinimizeStrat];
+  }
+
+  public async deployDeltaNeutralVaultConfig(input: IDeltaNeutralVaultConfig): Promise<DeltaNeutralVaultConfig> {
+    const DeltaNeutralVaultConfig = (await ethers.getContractFactory(
+      "DeltaNeutralVaultConfig",
+      this.deployer
+    )) as DeltaNeutralVaultConfig__factory;
+
+    const deltaNeutralVaultConfig = (await upgrades.deployProxy(DeltaNeutralVaultConfig, [
+      input.wNativeAddr,
+      input.wNativeRelayer,
+      input.fairlaunchAddr,
+      input.rebalanceFactor,
+      input.positionValueTolerance,
+    ])) as DeltaNeutralVaultConfig;
+    await deltaNeutralVaultConfig.deployed();
+    return deltaNeutralVaultConfig;
+  }
+  public async deployDeltaNeutralVault(input: IDeltaNeutralVault): Promise<DeltaNeutralVault> {
+    const DeltaNeutralVault = (await ethers.getContractFactory(
+      "DeltaNeutralVault",
+      this.deployer
+    )) as DeltaNeutralVault__factory;
+    const deltaNeutralVault = (await upgrades.deployProxy(DeltaNeutralVault, [
+      input.name,
+      input.symbol,
+      input.vaultStable,
+      input.vaultAsset,
+      input.stableVaultWorker,
+      input.assetVaultWorker,
+      input.lpToken,
+      input.alpacaToken,
+      input.priceHelper,
+      input.deltaVaultConfig,
+    ])) as DeltaNeutralVault;
+    await deltaNeutralVault.deployed();
+    return deltaNeutralVault;
   }
 }
