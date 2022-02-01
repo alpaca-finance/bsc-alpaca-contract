@@ -8,6 +8,11 @@ import { DeltaNeutralVaultConfig, DeltaNeutralVaultConfig__factory } from "../..
 chai.use(solidity);
 const { expect } = chai;
 
+interface SwapRoute {
+  router: string;
+  paths: string[];
+}
+
 describe("DeltaNeutralVaultConfig", () => {
   // Accounts
   let deployer: Signer;
@@ -28,6 +33,10 @@ describe("DeltaNeutralVaultConfig", () => {
   const FAIR_LAUNCH_ADDR = ethers.constants.AddressZero;
   const REBALANCE_FACTOR = "6500";
   const POSITION_VALUE_TOLERANCE_BPS = "1000";
+
+  const TOKEN_SOURCE_ADDR = "0x0000000000000000000000000000000000000001";
+  const TOKEN_DESTINATION_ADDR = "0x0000000000000000000000000000000000000002";
+  const ROUTER_ADDR = "0x0000000000000000000000000000000000000003";
 
   // DeltaNeutralVaultConfig instance
   let deltaNeutralVaultConfig: DeltaNeutralVaultConfig;
@@ -161,6 +170,75 @@ describe("DeltaNeutralVaultConfig", () => {
         await expect(deltaNeutralVaultConfigAsAlice.setWhitelistedRebalancer([bobAddress], true)).to.be.revertedWith(
           "Ownable: caller is not the owner"
         );
+      });
+    });
+  });
+
+  describe("#setRouteSwap", async () => {
+    context("when an owner set routeswap ", async () => {
+      it("should work", async () => {
+        let paths = [TOKEN_SOURCE_ADDR, TOKEN_DESTINATION_ADDR];
+        const routeSwap = {
+          router: ROUTER_ADDR,
+          paths: paths,
+        } as SwapRoute;
+
+        await deltaNeutralVaultConfigAsDeployer.setSwapRoutes(
+          [TOKEN_SOURCE_ADDR],
+          [TOKEN_DESTINATION_ADDR],
+          [routeSwap]
+        );
+
+        const routerResult = await deltaNeutralVaultConfigAsDeployer.getSwapRouteRouterAddr(
+          TOKEN_SOURCE_ADDR,
+          TOKEN_DESTINATION_ADDR
+        );
+        console.log("routerResult", routerResult);
+        expect(routerResult).to.be.eq(ROUTER_ADDR);
+
+        const pathResult = await deltaNeutralVaultConfigAsDeployer.getSwapRoutePathsAddr(
+          TOKEN_SOURCE_ADDR,
+          TOKEN_DESTINATION_ADDR
+        );
+        expect(pathResult.length).to.be.eq(2);
+
+        for (let idx = 0; idx < pathResult.length; idx++) {
+          expect(pathResult[idx]).to.be.eq(paths[idx]);
+        }
+      });
+
+      it("should return empty when not match pair", async () => {
+        const routeswapRouterAddress = await deltaNeutralVaultConfigAsDeployer.getSwapRouteRouterAddr(
+          TOKEN_DESTINATION_ADDR,
+          TOKEN_SOURCE_ADDR
+        );
+
+        expect(routeswapRouterAddress).to.be.eq(ethers.constants.AddressZero);
+      });
+    });
+
+    context("when non owner try to set setSwapRoutes", async () => {
+      it("should be reverted", async () => {
+        let paths = [TOKEN_SOURCE_ADDR, TOKEN_DESTINATION_ADDR];
+        const routeSwap = {
+          router: ROUTER_ADDR,
+          paths: paths,
+        } as SwapRoute;
+
+        await expect(
+          deltaNeutralVaultConfigAsAlice.setSwapRoutes([TOKEN_SOURCE_ADDR], [TOKEN_DESTINATION_ADDR], [routeSwap])
+        ).to.be.revertedWith("Ownable: caller is not the owner");
+      });
+    });
+
+    context("when an owner get routeswap router before init", async () => {
+      it("should return empty", async () => {
+        const routeswapRouterAddress = await deltaNeutralVaultConfigAsDeployer.getSwapRouteRouterAddr(
+          TOKEN_SOURCE_ADDR,
+          TOKEN_DESTINATION_ADDR
+        );
+
+        expect(routeswapRouterAddress).to.be.eq(ethers.constants.AddressZero);
       });
     });
   });

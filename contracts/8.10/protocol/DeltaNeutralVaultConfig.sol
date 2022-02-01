@@ -27,12 +27,21 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     address _getWrappedNativeAddr,
     address _getWNativeRelayer,
     address _fairLaunchAddr,
-    address _routerAddr,
     uint256 _rebalanceFactor,
     uint256 _positionValueTolerance
   );
   event LogSetWhitelistedCallers(address indexed _caller, address indexed _address, bool _ok);
   event LogSetWhitelistedRebalancers(address indexed _caller, address indexed _address, bool _ok);
+  event LogSetWhitelistedConvertAssetTokens(address indexed _caller, address indexed _address, bool _ok);
+
+  error InvalidSetSwapRoute();
+
+  struct SwapRoute {
+    address router;
+    address[] paths;
+  }
+
+  /// swap Route when user want to convert asset
 
   /// address for wrapped native eg WBNB, WETH
   address public override getWrappedNativeAddr;
@@ -40,8 +49,6 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   address public override getWNativeRelayer;
 
   address public fairLaunchAddr;
-
-  address public routerAddr;
 
   //
   uint256 public override rebalanceFactor;
@@ -58,38 +65,32 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   /// list of whitelisted rebalancers.
   mapping(address => bool) public whitelistedRebalancers;
 
+  mapping(address => bool) public whitelistedConvertAssetTokens;
+
+  mapping(address => mapping(address => SwapRoute)) public swapRoutes;
+
   function initialize(
     address _getWrappedNativeAddr,
     address _getWNativeRelayer,
     address _fairLaunchAddr,
-    address _routerAddr,
     uint256 _rebalanceFactor,
     uint256 _positionValueTolerance
   ) external initializer {
     OwnableUpgradeable.__Ownable_init();
 
-    setParams(
-      _getWrappedNativeAddr,
-      _getWNativeRelayer,
-      _fairLaunchAddr,
-      _routerAddr,
-      _rebalanceFactor,
-      _positionValueTolerance
-    );
+    setParams(_getWrappedNativeAddr, _getWNativeRelayer, _fairLaunchAddr, _rebalanceFactor, _positionValueTolerance);
   }
 
   function setParams(
     address _getWrappedNativeAddr,
     address _getWNativeRelayer,
     address _fairLaunchAddr,
-    address _routerAddr,
     uint256 _rebalanceFactor,
     uint256 _positionValueTolerance
   ) public onlyOwner {
     getWrappedNativeAddr = _getWrappedNativeAddr;
     getWNativeRelayer = _getWNativeRelayer;
     fairLaunchAddr = _fairLaunchAddr;
-    routerAddr = _routerAddr;
     rebalanceFactor = _rebalanceFactor;
     positionValueTolerance = _positionValueTolerance;
 
@@ -98,7 +99,6 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
       _getWrappedNativeAddr,
       _getWNativeRelayer,
       _fairLaunchAddr,
-      _routerAddr,
       _rebalanceFactor,
       _positionValueTolerance
     );
@@ -124,5 +124,36 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
       whitelistedRebalancers[_callers[_idx]] = _ok;
       emit LogSetWhitelistedRebalancers(msg.sender, _callers[_idx], _ok);
     }
+  }
+
+  /// @notice Set swapRoute.
+  /// @dev Must only be called by owner.
+  /// @param _from addresses from
+  /// @param _to addresses to
+  /// @param _swapRoutes swap route
+  function setSwapRoutes(
+    address[] calldata _from,
+    address[] calldata _to,
+    SwapRoute[] calldata _swapRoutes
+  ) external onlyOwner {
+    if (_from.length != _to.length || _from.length != _swapRoutes.length) {
+      revert InvalidSetSwapRoute();
+    }
+    for (uint256 _idx = 0; _idx < _from.length; _idx++) {
+      swapRoutes[_from[_idx]][_to[_idx]] = _swapRoutes[_idx];
+    }
+  }
+
+  function getSwapRouteRouterAddr(address _source, address _destination) external view onlyOwner returns (address) {
+    return (swapRoutes[_source][_destination].router);
+  }
+
+  function getSwapRoutePathsAddr(address _source, address _destination)
+    external
+    view
+    onlyOwner
+    returns (address[] memory)
+  {
+    return (swapRoutes[_source][_destination].paths);
   }
 }
