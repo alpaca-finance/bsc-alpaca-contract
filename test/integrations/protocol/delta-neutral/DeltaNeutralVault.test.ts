@@ -78,6 +78,7 @@ describe("DeltaNeutralVault", () => {
   // Delta Vault Config
   const REBALANCE_FACTOR = "6500";
   const POSITION_VALUE_TOLERANCE_BPS = "200";
+  const DEPOSIT_FEE_BPS = "0"; // 0%
 
   // Delta Vault
   const ACTION_WORK = 1;
@@ -367,10 +368,12 @@ describe("DeltaNeutralVault", () => {
       fairlaunchAddr: fairLaunch.address,
       rebalanceFactor: REBALANCE_FACTOR,
       positionValueTolerance: POSITION_VALUE_TOLERANCE_BPS,
+      treasuryAddr: eveAddress,
     };
     deltaVaultConfig = await deployHelper.deployDeltaNeutralVaultConfig(deltaNeutralConfig);
     // allow deployer to call rebalance
-    deltaVaultConfig.setWhitelistedRebalancer([deployerAddress], true);
+    await deltaVaultConfig.setWhitelistedRebalancer([deployerAddress], true);
+    await deltaVaultConfig.setLeverageLevel(3);
 
     // Setup Delta Neutral Vault
     const deltaNeutral = {
@@ -1563,6 +1566,105 @@ describe("DeltaNeutralVault", () => {
               });
             });
           });
+        });
+      });
+
+      context("when alice deposit to delta neutral vault with deposit fee", async () => {
+        it("should be able to deposit and deduct deposit fee", async () => {
+          const depositFee = 100; // 1%
+
+          await deltaVaultConfig.setFees(depositFee);
+
+          const depositStableTokenAmount = ethers.utils.parseEther("500");
+          const depositAssetTokenAmount = ethers.utils.parseEther("500");
+
+          await baseTokenAsAlice.approve(deltaVault.address, depositStableTokenAmount);
+
+          const stableWorkbyteInput: IDepositWorkByte = {
+            posId: 1,
+            vaultAddress: stableVault.address,
+            workerAddress: stableVaultWorker.address,
+            twoSidesStrat: stableTwoSidesStrat.address,
+            principalAmount: ethers.utils.parseEther("125"),
+            borrowAmount: ethers.utils.parseEther("500"),
+            farmingTokenAmount: ethers.utils.parseEther("125"),
+            maxReturn: BigNumber.from(0),
+            minLpReceive: BigNumber.from(0),
+          };
+
+          const assetWorkbyteInput: IDepositWorkByte = {
+            posId: 1,
+            vaultAddress: assetVault.address,
+            workerAddress: assetVaultWorker.address,
+            twoSidesStrat: assetTwoSidesStrat.address,
+            principalAmount: ethers.utils.parseEther("375"),
+            borrowAmount: ethers.utils.parseEther("1500"),
+            farmingTokenAmount: ethers.utils.parseEther("375"),
+            maxReturn: BigNumber.from(0),
+            minLpReceive: BigNumber.from(0),
+          };
+
+          const stableWorkByte = buildDepositWorkByte(stableWorkbyteInput);
+          const assetWorkByte = buildDepositWorkByte(assetWorkbyteInput);
+
+          const data = ethers.utils.defaultAbiCoder.encode(
+            ["uint8[]", "uint256[]", "bytes[]"],
+            [
+              [ACTION_WORK, ACTION_WORK],
+              [0, 0],
+              [stableWorkByte, assetWorkByte],
+            ]
+          );
+
+          const stableTokenPrice = ethers.utils.parseEther("1");
+          const assetTokenPrice = ethers.utils.parseEther("1");
+          const lpPrice = ethers.utils.parseEther("2");
+
+          mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
+            if (token === baseToken.address) {
+              return stableTokenPrice;
+            }
+            if (token === wbnb.address) {
+              return assetTokenPrice;
+            }
+            return 0;
+          });
+
+          mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+            return lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1"));
+          });
+
+          const shareSupplyBefore = await deltaVault.totalSupply();
+          const aliceShareBeofre = await deltaVault.balanceOf(aliceAddress);
+          const treasuryShareBefore = await deltaVault.balanceOf(eveAddress);
+
+          const depositTx = await deltaVaultAsAlice.deposit(
+            depositStableTokenAmount,
+            depositAssetTokenAmount,
+            aliceAddress,
+            0,
+            data,
+            {
+              value: depositAssetTokenAmount,
+            }
+          );
+
+          // alice should get 99% of minted shares
+          // treasury should get 1% of minted shares
+
+          const shareSupplyAfter = await deltaVault.totalSupply();
+          const totalMintShare = shareSupplyAfter.sub(shareSupplyBefore);
+          const aliceShareAfter = await deltaVault.balanceOf(aliceAddress);
+          const treasuryShareAfter = await deltaVault.balanceOf(eveAddress);
+
+          const expectedAliceShare = totalMintShare.mul(10000 - depositFee).div(10000);
+          const expectedDeltaVaultShare = totalMintShare.mul(depositFee).div(10000);
+
+          Assert.assertAlmostEqual(expectedAliceShare.toString(), aliceShareAfter.sub(aliceShareBeofre).toString());
+          Assert.assertAlmostEqual(
+            expectedDeltaVaultShare.toString(),
+            treasuryShareAfter.sub(treasuryShareBefore).toString()
+          );
         });
       });
     });
