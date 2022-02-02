@@ -16,6 +16,7 @@ pragma solidity 0.8.10;
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 import "./interfaces/IDeltaNeutralVaultConfig.sol";
+
 contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable {
   /// @dev Events
   event LogSetParams(
@@ -24,10 +25,13 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     address _getWNativeRelayer,
     address _fairLaunchAddr,
     uint256 _rebalanceFactor,
-    uint256 _positionValueTolerance
+    uint256 _positionValueTolerance,
+    address _treasury
   );
   event LogSetWhitelistedCallers(address indexed _caller, address indexed _address, bool _ok);
   event LogSetWhitelistedRebalancers(address indexed _caller, address indexed _address, bool _ok);
+  event LogSetLeverageLevel(address indexed _caller, uint8 _newLeverageLevel);
+  event LogSetFees(address indexed _caller, uint256 _depositFeeBps);
 
   error LeverageLevelTooLow();
 
@@ -36,8 +40,10 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
 
   /// address for wrapped native eg WBNB, WETH
   address public override getWrappedNativeAddr;
+
   /// address for wNtive Relayer
   address public override getWNativeRelayer;
+
   /// FairLaunch contract address
   address public fairLaunchAddr;
 
@@ -46,10 +52,11 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   /// Tolerance bps that allow margin for misc calculation
   uint256 public override positionValueTolerance;
 
-  /// @notice debt of delta neutral stable pool Id
-  uint256 public debtStablePoolId;
-  /// @notice debt of delta neutral asset pool Id
-  uint256 public debtAssetPoolId;
+  /// @notice Fee when user deposit to delta neutral vault
+  uint256 public override depositFeeBps;
+
+  /// @notice address of treasury account
+  address public treasury;
 
   /// list of whitelisted callers.
   mapping(address => bool) public whitelistedCallers;
@@ -63,13 +70,19 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     address _getWNativeRelayer,
     address _fairLaunchAddr,
     uint256 _rebalanceFactor,
-    uint256 _positionValueTolerance
+    uint256 _positionValueTolerance,
+    address _treasury
   ) external initializer {
     OwnableUpgradeable.__Ownable_init();
 
-    leverageLevel = MIN_LEVERAGE_LEVEL;
-
-    setParams(_getWrappedNativeAddr, _getWNativeRelayer, _fairLaunchAddr, _rebalanceFactor, _positionValueTolerance);
+    setParams(
+      _getWrappedNativeAddr,
+      _getWNativeRelayer,
+      _fairLaunchAddr,
+      _rebalanceFactor,
+      _positionValueTolerance,
+      _treasury
+    );
   }
 
   function setParams(
@@ -77,13 +90,15 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     address _getWNativeRelayer,
     address _fairLaunchAddr,
     uint256 _rebalanceFactor,
-    uint256 _positionValueTolerance
+    uint256 _positionValueTolerance,
+    address _treasury
   ) public onlyOwner {
     getWrappedNativeAddr = _getWrappedNativeAddr;
     getWNativeRelayer = _getWNativeRelayer;
     fairLaunchAddr = _fairLaunchAddr;
     rebalanceFactor = _rebalanceFactor;
     positionValueTolerance = _positionValueTolerance;
+    treasury = _treasury;
 
     emit LogSetParams(
       msg.sender,
@@ -91,7 +106,8 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
       _getWNativeRelayer,
       _fairLaunchAddr,
       _rebalanceFactor,
-      _positionValueTolerance
+      _positionValueTolerance,
+      _treasury
     );
   }
 
@@ -117,7 +133,7 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     }
   }
 
-  /// @notice Set leverage level
+  /// @notice Set leverage level.
   /// @dev Must only be called by owner.
   /// @param _newLeverageLevel The new leverage level to be set. Must be >= 3
   function setLeverageLevel(uint8 _newLeverageLevel) external onlyOwner {
@@ -125,5 +141,19 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
       revert LeverageLevelTooLow();
     }
     leverageLevel = _newLeverageLevel;
+    emit LogSetLeverageLevel(msg.sender, _newLeverageLevel);
+  }
+
+  /// @notice Set fees.
+  /// @dev Must only be called by owner.
+  /// @param _depositFeeBps Fee when user deposit to delta neutral vault.
+  function setFees(uint256 _depositFeeBps) external onlyOwner {
+    depositFeeBps = _depositFeeBps;
+    emit LogSetFees(msg.sender, _depositFeeBps);
+  }
+
+  /// @dev Return the treasuryAddr.
+  function getTreasuryAddr() external view override returns (address) {
+    return treasury == address(0) ? 0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51 : treasury;
   }
 }

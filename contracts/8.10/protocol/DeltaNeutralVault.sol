@@ -74,9 +74,10 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   }
 
   /// @dev constants
+  uint256 private constant MAX_BPS = 10000;
   uint8 private constant ACTION_WORK = 1;
   uint8 private constant ACTION_WRAP = 2;
-
+  
   address private lpToken;
   address public stableVault;
   address public assetVault;
@@ -220,7 +221,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     address _shareReceiver,
     uint256 _minShareReceive,
     bytes calldata _data
-  ) public payable onlyEOAorWhitelisted nonReentrant returns (uint256 _shares) {
+  ) public payable onlyEOAorWhitelisted nonReentrant returns (uint256 _sharesToUser) {
     PositionInfo memory _positionInfoBefore = positionInfo();
     Outstanding memory _outstandingBefore = _outstanding();
     _outstandingBefore.nativeAmount = _outstandingBefore.nativeAmount - msg.value;
@@ -234,12 +235,13 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _depositValue = _stableTokenAmount.mulWadDown(priceHelper.getTokenPrice(stableToken)) +
       _assetTokenAmount.mulWadDown(priceHelper.getTokenPrice(assetToken));
 
-    uint256 _shares = valueToShare(_depositValue);
-    if (_shares < _minShareReceive) {
-      revert InsufficientShareReceived(_minShareReceive, _shares);
+    uint256 _mintShares = valueToShare(_depositValue);
+    uint256 _sharesToUser = ((MAX_BPS - config.depositFeeBps()) * _mintShares) / MAX_BPS;
+    if (_sharesToUser < _minShareReceive) {
+      revert InsufficientShareReceived(_minShareReceive, _sharesToUser);
     }
-
-    _mint(_shareReceiver, _shares);
+    _mint(_shareReceiver, _sharesToUser);
+    _mint(config.getTreasuryAddr(), _mintShares - _sharesToUser);
 
     {
       // 3. call execute to do more work.
@@ -254,9 +256,9 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     // 4. sanity check
     _depositHealthCheck(_depositValue, _positionInfoBefore, positionInfo());
     _outstandingCheck(_outstandingBefore, _outstanding());
-
-    emit LogDeposit(msg.sender, _shareReceiver, _shares, _stableTokenAmount, _assetTokenAmount);
-    return _shares;
+    
+    emit LogDeposit(msg.sender, _shareReceiver, _sharesToUser, _stableTokenAmount, _assetTokenAmount);
+    return _sharesToUser;
   }
 
   /// @notice Withdraw from delta neutral vault.
@@ -334,8 +336,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _rebalanceFactor = config.rebalanceFactor(); // bps
 
     if (
-      _stablePositionValue * _rebalanceFactor >= _positionInfoBefore.stablePositionDebtValue * 10000 &&
-      _assetPositionValue * _rebalanceFactor >= _positionInfoBefore.assetPositionDebtValue * 10000
+      _stablePositionValue * _rebalanceFactor >= _positionInfoBefore.stablePositionDebtValue * MAX_BPS &&
+      _assetPositionValue * _rebalanceFactor >= _positionInfoBefore.assetPositionDebtValue * MAX_BPS
     ) {
       revert PositionsIsHealthy();
     }
