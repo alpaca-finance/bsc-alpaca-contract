@@ -31,8 +31,6 @@ import "../utils/SafeToken.sol";
 import "../utils/FixedPointMathLib.sol";
 import "../utils/Math.sol";
 
-import "hardhat/console.sol";
-
 contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, OwnableUpgradeable {
   /// @notice Libraries
   using FixedPointMathLib for uint256;
@@ -85,8 +83,9 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
   /// @dev constant subAction of CONVERT_ASSET
   uint8 private constant CONVERT_EXACT_TOKEN_TO_NATIVE = 1;
-  uint8 private constant CONVERT_EXACT_TOKEN_TO_TOKEN = 2;
-  uint8 private constant CONVERT_TOKEN_TO_EXACT_TOKEN = 3;
+  uint8 private constant CONVERT_EXACT_NATIVE_TO_TOKEN = 2;
+  uint8 private constant CONVERT_EXACT_TOKEN_TO_TOKEN = 3;
+  uint8 private constant CONVERT_TOKEN_TO_EXACT_TOKEN = 4;
 
   address private lpToken;
   address public stableVault;
@@ -568,7 +567,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
         IWETH(config.getWrappedNativeAddr()).deposit{ value: _values[i] }();
       }
       if (_action == ACTION_CONVERT_ASSET) {
-        _convertAsset(_datas[i], _values[i]);
+        _convertAsset(_values[i], _datas[i]);
       }
     }
   }
@@ -631,25 +630,23 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
   /// @notice convert Asset to asset
   /// @dev convert asset by type
-  function _convertAsset(bytes memory _data, uint256 _msgValue) internal {
-    console.log("convertAsset");
-    (uint256 _swapType, uint256 _amount, address _sourceToken, address _destinationToken) = abi.decode(
-      _data,
-      (uint256, uint256, address, address)
-    );
-    console.log("_swapType", _swapType);
-    console.log("_amount", _amount);
-    console.log("_sourceToken", _sourceToken);
-    console.log("_destinationToken", _destinationToken);
+  /// @param _value native value
+  /// @param _data abi_code data
+  function _convertAsset(uint256 _value, bytes memory _data) internal {
+    (uint256 _swapType, uint256 _amount, uint256 _amountOut, address _sourceToken, address _destinationToken) = abi
+      .decode(_data, (uint256, uint256, uint256, address, address));
 
     address routerAddr = config.getSwapRouteRouterAddr(_sourceToken, _destinationToken);
+
     address[] memory paths = config.getSwapRoutePathsAddr(_sourceToken, _destinationToken);
+
     if (routerAddr == address(0) || paths.length == 0) {
       revert InvalidConvertTokenSetting();
     }
 
     if (
       _swapType != CONVERT_EXACT_TOKEN_TO_NATIVE &&
+      _swapType != CONVERT_EXACT_NATIVE_TO_TOKEN &&
       _swapType != CONVERT_EXACT_TOKEN_TO_TOKEN &&
       _swapType != CONVERT_TOKEN_TO_EXACT_TOKEN
     ) {
@@ -657,16 +654,16 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     }
     SafeERC20Upgradeable.safeApprove(IERC20Upgradeable(_sourceToken), routerAddr, type(uint256).max);
     if (_swapType == CONVERT_EXACT_TOKEN_TO_NATIVE) {
-      console.log("CONVERT_EXACT_TOKEN_TO_NATIVE");
-      IRouter(routerAddr).swapExactTokensForETH(_amount, 0, paths, address(this), block.timestamp);
+      IRouter(routerAddr).swapExactTokensForETH(_amount, _amountOut, paths, address(this), block.timestamp);
+    }
+    if (_swapType == CONVERT_EXACT_NATIVE_TO_TOKEN) {
+      IRouter(routerAddr).swapExactETHForTokens{ value: _value }(_amountOut, paths, address(this), block.timestamp);
     }
     if (_swapType == CONVERT_EXACT_TOKEN_TO_TOKEN) {
-      console.log("CONVERT_EXACT_TOKEN_TO_TOKEN");
-      IRouter(routerAddr).swapExactTokensForTokens(_amount, 0, paths, address(this), block.timestamp);
+      IRouter(routerAddr).swapExactTokensForTokens(_amount, _amountOut, paths, address(this), block.timestamp);
     }
     if (_swapType == CONVERT_TOKEN_TO_EXACT_TOKEN) {
-      console.log("CONVERT_TOKEN_TO_EXACT_TOKEN");
-      IRouter(routerAddr).swapTokensForExactTokens(0, _amount, paths, address(this), block.timestamp);
+      IRouter(routerAddr).swapTokensForExactTokens(_amountOut, _amount, paths, address(this), block.timestamp);
     }
     SafeERC20Upgradeable.safeApprove(IERC20Upgradeable(_sourceToken), routerAddr, 0);
   }
