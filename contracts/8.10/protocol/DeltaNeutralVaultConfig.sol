@@ -28,7 +28,8 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     address _getWNativeRelayer,
     address _fairLaunchAddr,
     uint256 _rebalanceFactor,
-    uint256 _positionValueTolerance
+    uint256 _positionValueTolerance,
+    uint256 _depositFeeBps
   );
   event LogSetWhitelistedCallers(address indexed _caller, address indexed _address, bool _ok);
   event LogSetWhitelistedRebalancers(address indexed _caller, address indexed _address, bool _ok);
@@ -45,10 +46,8 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   //
   uint256 public override positionValueTolerance;
 
-  /// @notice debt of delta neutral stable pool Id
-  uint256 public debtStablePoolId;
-  /// @notice debt of delta neutral asset pool Id
-  uint256 public debtAssetPoolId;
+  /// @notice Fee when user deposit to delta neutral vault
+  uint256 public override depositFeeBps;
 
   /// list of whitelisted callers.
   mapping(address => bool) public whitelistedCallers;
@@ -60,11 +59,19 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     address _getWNativeRelayer,
     address _fairLaunchAddr,
     uint256 _rebalanceFactor,
-    uint256 _positionValueTolerance
+    uint256 _positionValueTolerance,
+    uint256 _depositFeeBps
   ) external initializer {
     OwnableUpgradeable.__Ownable_init();
 
-    setParams(_getWrappedNativeAddr, _getWNativeRelayer, _fairLaunchAddr, _rebalanceFactor, _positionValueTolerance);
+    setParams(
+      _getWrappedNativeAddr,
+      _getWNativeRelayer,
+      _fairLaunchAddr,
+      _rebalanceFactor,
+      _positionValueTolerance,
+      _depositFeeBps
+    );
   }
 
   function setParams(
@@ -72,13 +79,15 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     address _getWNativeRelayer,
     address _fairLaunchAddr,
     uint256 _rebalanceFactor,
-    uint256 _positionValueTolerance
+    uint256 _positionValueTolerance,
+    uint256 _depositFeeBps
   ) public onlyOwner {
     getWrappedNativeAddr = _getWrappedNativeAddr;
     getWNativeRelayer = _getWNativeRelayer;
     fairLaunchAddr = _fairLaunchAddr;
     rebalanceFactor = _rebalanceFactor;
     positionValueTolerance = _positionValueTolerance;
+    depositFeeBps = _depositFeeBps;
 
     emit LogSetParams(
       msg.sender,
@@ -86,7 +95,8 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
       _getWNativeRelayer,
       _fairLaunchAddr,
       _rebalanceFactor,
-      _positionValueTolerance
+      _positionValueTolerance,
+      _depositFeeBps
     );
   }
 

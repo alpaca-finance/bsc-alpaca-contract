@@ -235,11 +235,12 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _depositValue = _stableTokenAmount.mulWadDown(priceHelper.getTokenPrice(stableToken)) + _assetTokenAmount.mulWadDown(priceHelper.getTokenPrice(assetToken));
 
     uint256 _shares = valueToShare(_depositValue);
-    if (_shares < _minShareReceive) {
-      revert InsufficientShareReceived(_minShareReceive, _shares);
+    uint256 _sharesToUser = ((10000 - config.depositFeeBps()) * _shares) / 10000;
+    if (_sharesToUser < _minShareReceive) {
+      revert InsufficientShareReceived(_minShareReceive, _sharesToUser);
     }
-
-    _mint(_shareReceiver, _shares);
+    _mint(_shareReceiver, _sharesToUser);
+    _mint(address(this), _shares - _sharesToUser);
     
     {
       // 3. call execute to do more work.
@@ -259,8 +260,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     );
     _outstandingCheck(_outstandingBefore, _outstanding());
     
-    emit LogDeposit(msg.sender, _shareReceiver, _shares, _stableTokenAmount, _assetTokenAmount);
-    return _shares;
+    emit LogDeposit(msg.sender, _shareReceiver, _sharesToUser, _stableTokenAmount, _assetTokenAmount);
+    return _sharesToUser;
   }
 
   /// @notice Withdraw from delta neutral vault.
