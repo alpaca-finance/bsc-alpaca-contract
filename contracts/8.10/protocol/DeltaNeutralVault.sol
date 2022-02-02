@@ -369,22 +369,22 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint8 _leverageLevel = config.leverageLevel();
 
     // 1. check position value
-    // The equity allocation of long side should be equal to  EQUITY * (LEVERAGE_LEVEL -2) / ((2*LEVERAGE_LEVEL) - 2)
-    uint256 _expectStableEqChange = (_depositValue * (_leverageLevel - 2)) / ((2 * _leverageLevel) - 2);
+    // The equity allocation of long side should be equal to  EQUITY * (_leverageLevel - 2) / ((2*_leverageLevel) - 2)
+    uint256 _expectedStableEqChange = (_depositValue * (_leverageLevel - 2)) / ((2 * _leverageLevel) - 2);
     // The equity allocation of short side should be equal to EQUITY * _leverageLevel / ((2*_leverageLevel) - 2)
-    uint256 _expectAssetEqChange = (_depositValue * _leverageLevel) / ((2 * _leverageLevel) - 2);
+    uint256 _expectedAssetEqChange = (_depositValue * _leverageLevel) / ((2 * _leverageLevel) - 2);
 
     uint256 _actualStableEqChange = _positionInfoAfter.stablePositionEquity - _positionInfoBefore.stablePositionEquity;
     uint256 _actualAssetEqChange = _positionInfoAfter.assetPositionEquity - _positionInfoBefore.assetPositionEquity;
     if (
       !Math.almostEqual(
         _actualStableEqChange,
-        _expectStableEqChange,
+        _expectedStableEqChange,
         _toleranceBps
       ) ||
       !Math.almostEqual(
         _actualAssetEqChange,
-        _expectAssetEqChange,
+        _expectedAssetEqChange,
         _toleranceBps
       )
     ) {
@@ -392,25 +392,23 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     }
 
     // 2. check Debt value
-    // The debt allocation of long side should be equal to _expectStableEqChange * (_leverageLevel - 1)
-    uint256 _expectLongDebtChange = (_depositValue * (_leverageLevel - 2) * (_leverageLevel - 1)) /
-      ((2 * _leverageLevel) - 2);
-    // The debt allocation of short side should be equal to _expectAssetEqChange * (_leverageLevel - 1)
-    uint256 _expectShortDebtChange = (_depositValue * _leverageLevel * (_leverageLevel - 1)) /
-      ((2 * _leverageLevel) - 2);
+    // The debt allocation of long side should be equal to _expectedStableEqChange * (_leverageLevel - 1)
+    uint256 _expectedStableDebtChange = (_expectedStableEqChange * (_leverageLevel - 1));
+    // The debt allocation of short side should be equal to _expectedAssetEqChange * (_leverageLevel - 1)
+    uint256 _expectedAssetDebtChange = (_expectedAssetEqChange * (_leverageLevel - 1));
 
-    uint256 _actualLongDebtChange = _positionInfoAfter.stablePositionDebtValue - _positionInfoBefore.stablePositionDebtValue;
-    uint256 _actualShortDebtChange = _positionInfoAfter.assetPositionDebtValue - _positionInfoBefore.assetPositionDebtValue;
+    uint256 _actualStableDebtChange = _positionInfoAfter.stablePositionDebtValue - _positionInfoBefore.stablePositionDebtValue;
+    uint256 _actualAssetDebtChange = _positionInfoAfter.assetPositionDebtValue - _positionInfoBefore.assetPositionDebtValue;
     
     if (
       !Math.almostEqual(
-        _actualLongDebtChange,
-        _expectLongDebtChange,
+        _actualStableDebtChange,
+        _expectedStableDebtChange,
         _toleranceBps
       ) ||
       !Math.almostEqual(
-        _actualShortDebtChange,
-        _expectShortDebtChange,
+        _actualAssetDebtChange,
+        _expectedAssetDebtChange,
         _toleranceBps
       )
     ) {
