@@ -231,7 +231,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
     // 2. mint share for shareReceiver
     // TODO: discuss round up or down
-    uint256 _depositValue = _stableTokenAmount.mulWadDown(priceHelper.getTokenPrice(stableToken)) + _assetTokenAmount.mulWadDown(priceHelper.getTokenPrice(assetToken));
+    uint256 _depositValue = _stableTokenAmount.mulWadDown(priceHelper.getTokenPrice(stableToken)) +
+      _assetTokenAmount.mulWadDown(priceHelper.getTokenPrice(assetToken));
 
     uint256 _shares = valueToShare(_depositValue);
     if (_shares < _minShareReceive) {
@@ -308,7 +309,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       // TODO: round up or down
       uint256 _stableWithdrawValue = _stableTokenBack.mulWadDown(priceHelper.getTokenPrice(stableToken));
       uint256 _assetWithdrawValue = _assetTokenBack.mulWadDown(priceHelper.getTokenPrice(assetToken));
-      _withdrawValue = _stableWithdrawValue + _assetWithdrawValue ;
+      _withdrawValue = _stableWithdrawValue + _assetWithdrawValue;
     }
 
     // sanity check
