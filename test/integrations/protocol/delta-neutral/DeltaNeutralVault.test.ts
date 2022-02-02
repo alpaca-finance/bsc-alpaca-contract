@@ -1572,8 +1572,9 @@ describe("DeltaNeutralVault", () => {
       context("when alice deposit to delta neutral vault with deposit fee", async () => {
         it("should be able to deposit and deduct deposit fee", async () => {
           const depositFee = 100; // 1%
+          const manageFee = 0; // 0%
 
-          await deltaVaultConfig.setFees(depositFee);
+          await deltaVaultConfig.setFees(depositFee, manageFee);
 
           const depositStableTokenAmount = ethers.utils.parseEther("500");
           const depositAssetTokenAmount = ethers.utils.parseEther("500");

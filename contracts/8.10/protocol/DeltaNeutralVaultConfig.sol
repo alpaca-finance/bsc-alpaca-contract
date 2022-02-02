@@ -31,39 +31,43 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   event LogSetWhitelistedCallers(address indexed _caller, address indexed _address, bool _ok);
   event LogSetWhitelistedRebalancers(address indexed _caller, address indexed _address, bool _ok);
   event LogSetLeverageLevel(address indexed _caller, uint8 _newLeverageLevel);
-  event LogSetFees(address indexed _caller, uint256 _depositFeeBps);
+  event LogSetFees(address indexed _caller, uint256 _depositFeeBps, uint256 _mangementFeeBps);
 
   error LeverageLevelTooLow();
+  error TooMuchFee(uint256 _depositFeeBps, uint256 _mangementFeeBps);
 
-  /// @notice Constants
+  /// @dev constants
   uint8 private constant MIN_LEVERAGE_LEVEL = 3;
+  uint256 private constant MAX_DEPOSIT_FEE_BPS = 1000;
+  uint256 private constant MAX_MANGEMENT_FEE_BPS = 1000;
+  /// @dev Configuration for Delta Neutral Vault
+  /// getWrappedNativeAddr - address for wrapped native eg WBNB, WETH
+  /// getWNativeRelayer - address for wNtive Relayer
+  /// fairLaunchAddr - FairLaunch contract address
+  /// treasury - address of treasury account
+  /// rebalanceFactor - threshold that must be reached to allow rebalancing
+  /// positionValueTolerance- Tolerance bps that allow margin for misc calculation
+  /// depositFeeBps - Fee when user deposit to delta neutral vault
+  /// mangementFeeBps Fee collected as a manager of delta neutral vault
+  /// leverageLevel - Leverage level used for underlying positions
+  /// whitelistedCallers - mapping of whitelisted callers
+  /// whitelistedRebalancers - list of whitelisted rebalancers.
 
-  /// address for wrapped native eg WBNB, WETH
   address public override getWrappedNativeAddr;
-
-  /// address for wNtive Relayer
   address public override getWNativeRelayer;
-
-  /// FairLaunch contract address
   address public fairLaunchAddr;
-
-  /// threshold that must be reached to allow rebalancing
-  uint256 public override rebalanceFactor;
-  /// Tolerance bps that allow margin for misc calculation
-  uint256 public override positionValueTolerance;
-
-  /// @notice Fee when user deposit to delta neutral vault
-  uint256 public override depositFeeBps;
-
-  /// @notice address of treasury account
   address public treasury;
 
-  /// list of whitelisted callers.
-  mapping(address => bool) public whitelistedCallers;
-  /// list of whitelisted rebalancers.
-  mapping(address => bool) public whitelistedRebalancers;
+  uint256 public override rebalanceFactor;
+  uint256 public override positionValueTolerance;
+
+  uint256 public override depositFeeBps;
+  uint256 public override mangementFeeBps;
 
   uint8 public override leverageLevel;
+
+  mapping(address => bool) public whitelistedCallers;
+  mapping(address => bool) public whitelistedRebalancers;
 
   function initialize(
     address _getWrappedNativeAddr,
@@ -146,10 +150,15 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
 
   /// @notice Set fees.
   /// @dev Must only be called by owner.
-  /// @param _depositFeeBps Fee when user deposit to delta neutral vault.
-  function setFees(uint256 _depositFeeBps) external onlyOwner {
-    depositFeeBps = _depositFeeBps;
-    emit LogSetFees(msg.sender, _depositFeeBps);
+  /// @param _newDepositFeeBps Fee when user deposit to delta neutral vault.
+  /// @param _newMangementFeeBps Mangement Fee.
+  function setFees(uint256 _newDepositFeeBps, uint256 _newMangementFeeBps) external onlyOwner {
+    if (_newDepositFeeBps > MAX_DEPOSIT_FEE_BPS || _newMangementFeeBps > MAX_MANGEMENT_FEE_BPS) {
+      revert TooMuchFee(_newDepositFeeBps, MAX_MANGEMENT_FEE_BPS);
+    }
+    depositFeeBps = _newDepositFeeBps;
+    mangementFeeBps = _newMangementFeeBps;
+    emit LogSetFees(msg.sender, _newDepositFeeBps, _newMangementFeeBps);
   }
 
   /// @dev Return the treasuryAddr.
