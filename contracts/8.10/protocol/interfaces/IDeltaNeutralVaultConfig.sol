@@ -30,4 +30,6 @@ interface IDeltaNeutralVaultConfig {
 
   /// @notice get fairlaunch address
   function fairLaunchAddr() external returns (address);
+
+  function leverageLevel() external returns (uint8);
 }
