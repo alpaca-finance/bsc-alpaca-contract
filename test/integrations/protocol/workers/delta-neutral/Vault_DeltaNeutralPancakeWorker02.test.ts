@@ -317,6 +317,22 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
     deltaNeutralWorkerAsBob = DeltaNeutralPancakeWorker02__factory.connect(deltaNeutralWorker.address, bob);
   }
 
+  async function _updatePrice() {
+    let [[basePrice], [farmPrice]] = await Promise.all([
+      priceHelper.getTokenPrice(baseToken.address),
+      priceHelper.getTokenPrice(farmToken.address),
+    ]);
+    let mockBaseAggregatorV3 = await MockAggregatorV3Factory.deploy(basePrice, 18);
+    let mockFarmAggregatorV3 = await MockAggregatorV3Factory.deploy(farmPrice, 18);
+    await mockBaseAggregatorV3.deployed();
+    await mockFarmAggregatorV3.deployed();
+    await chainLinkOracleAsDeployer.setPriceFeeds(
+      [baseToken.address, farmToken.address],
+      [busd.address, busd.address],
+      [mockBaseAggregatorV3.address, mockFarmAggregatorV3.address]
+    );
+  }
+
   beforeEach(async () => {
     await waffle.loadFixture(fixture);
   });
@@ -695,6 +711,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
           (await cake.balanceOf(bobAddress)).toString()
         );
         await vault.deposit(0); // Random action to trigger interest computation
+        await _updatePrice();
         const healthDebt = await vault.positionInfo("1");
         expect(healthDebt[0]).to.be.above(expectedHealth);
         const interest = ethers.utils.parseEther("0.3"); // 30% interest rate
@@ -710,6 +727,30 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
           deposit.add(interest).sub(reservePool).toString(),
           (await vault.totalToken()).toString()
         );
+      });
+
+      it("should revert if price outdated", async () => {
+        // Deployer deposits 3 BTOKEN to the bank
+        const deposit = ethers.utils.parseEther("3");
+        await baseToken.approve(vault.address, deposit);
+        await vault.deposit(deposit);
+        // Now DeltaNet can take 1 BTOKEN loan + 1 BTOKEN of her to create a new position
+        const loan = ethers.utils.parseEther("1");
+        await baseTokenAsDeltaNet.approve(vault.address, ethers.utils.parseEther("1"));
+        await TimeHelpers.increase(TimeHelpers.duration.minutes(ethers.BigNumber.from("30")));
+        await expect(
+          vaultAsDeltaNet.work(
+            0,
+            deltaNeutralWorker.address,
+            ethers.utils.parseEther("1"),
+            loan,
+            "0",
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "bytes"],
+              [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+            )
+          )
+        ).to.be.revertedWith("UnTrustedPrice()");
       });
 
       it("should has correct interest rate growth", async () => {
@@ -775,6 +816,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
           )
         );
         await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
+        await _updatePrice();
         await deltaNeutralWorkerAsBob.reinvest();
         await vault.deposit(0); // Random action to trigger interest computation
         await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
@@ -804,6 +846,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
           deployerAddress
         );
         // Now bob try kill the position
+        await _updatePrice();
         await expect(vaultAsBob.kill("1")).to.be.revertedWith("can't liquidate");
       });
 
@@ -1045,6 +1088,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
         expect(bobCakeAfter.sub(bobCakeBefore), `expect bob to get ${reinvestFees}`).to.be.eq(reinvestFees);
         expect(workerLpAfter).to.be.eq(accumLp);
         // Check Position info
+        await _updatePrice();
         let [vaultHealth, vaultDebtToShare] = await vault.positionInfo("1");
         // health calculation
         // lp balance =  1.245043209303108183
@@ -1500,7 +1544,9 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
       });
 
       async function successBtokenOnly(lastWorkBlock: BigNumber, goRouge: boolean) {
-        await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
+        await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")).sub(3));
+        await _updatePrice();
+        // await TimeHelpers.increase(TimeHelpers.duration.minutes(ethers.BigNumber.from("30")));
         let accumLp = await deltaNeutralWorker.totalLpBalance();
         const [workerLpBefore] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
         const debris = await baseToken.balanceOf(addStrat.address);
@@ -1567,7 +1613,8 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
       }
 
       async function successTwoSides(lastWorkBlock: BigNumber, goRouge: boolean) {
-        await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
+        await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")).sub(3));
+        await _updatePrice();
         // Random action to trigger interest computation
         await vault.deposit("0");
         // Set intertest rate to 0 for easy testing

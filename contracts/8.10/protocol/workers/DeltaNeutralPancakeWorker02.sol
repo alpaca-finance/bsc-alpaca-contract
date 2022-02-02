@@ -26,18 +26,20 @@ import "../interfaces/IStrategy.sol";
 import "../interfaces/IWorker02.sol";
 import "../interfaces/IPancakeMasterChef.sol";
 import "../interfaces/IPriceHelper.sol";
-import "../../utils/AlpacaMath.sol";
-import "../../utils/SafeToken.sol";
 import "../interfaces/IVault.sol";
+import "../../utils/SafeToken.sol";
+import "../../utils/FixedPointMathLib.sol";
 
 /// @title DeltaNeutralPancakeWorker02 is a PancakeswapV2Worker with reinvest-optimized and beneficial vault buyback functionalities
 contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable, IWorker02 {
   /// @notice Libraries
   using SafeToken for address;
+  using FixedPointMathLib for uint256;
 
   /// @notice Errors
   error InvalidRewardToken();
   error InvalidTokens();
+  error UnTrustedPrice();
 
   error NotEOA();
   error NotOperator();
@@ -46,7 +48,6 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
 
   error UnApproveStrategy();
   error BadTreasuryAccount();
-  error UnableToTransfer();
   error NotAllowToLiquidate();
 
   error InvalidReinvestPath();
@@ -81,6 +82,7 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
 
   /// @dev constants
   uint256 private constant BASIS_POINT = 10000;
+  uint256 private constant PRICE_AGE_SECOND = 1800; // 30 mins
 
   /// @notice Configuration variables
   IPancakeMasterChef public masterChef;
@@ -277,8 +279,7 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
 
     if (!okStrats[strat]) revert UnApproveStrategy();
 
-    if (!lpToken.transfer(strat, lpToken.balanceOf(address(this)))) revert UnableToTransfer();
-
+    address(lpToken).safeTransfer(strat, lpToken.balanceOf(address(this)));
     baseToken.safeTransfer(strat, actualBaseTokenBalance());
     IStrategy(strat).execute(user, debt, ext);
 
@@ -293,8 +294,11 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
   /// @param id The position ID to perform health check. Note: This worker implementation ignore ID as the worker has only one position.
   function health(uint256 id) external view override returns (uint256) {
     uint256 _totalBalanceInUSD = priceHelper.lpToDollar(totalLpBalance, address(lpToken));
-    uint256 _tokenPrice = priceHelper.getTokenPrice(address(baseToken));
-    return (_totalBalanceInUSD * 1e18) / _tokenPrice;
+    (uint256 _tokenPrice, uint256 _lastUpdate) = priceHelper.getTokenPrice(address(baseToken));
+    // NOTE: last updated price should not be over 30 mins
+    if (block.timestamp - _lastUpdate > PRICE_AGE_SECOND) revert UnTrustedPrice();
+    // TODO: discuss round up or down
+    return _totalBalanceInUSD.divWadDown(_tokenPrice);
   }
 
   /// @dev Liquidate the given position by converting it to BaseToken and return back to caller.

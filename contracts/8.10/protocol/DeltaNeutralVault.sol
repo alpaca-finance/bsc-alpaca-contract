@@ -59,6 +59,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   error PositionsIsHealthy();
   error InsufficientTokenReceived(address _token, uint256 _requiredAmount, uint256 _receivedAmount);
   error InsufficientShareReceived(uint256 _requiredAmount, uint256 _receivedAmount);
+  error UnTrustedPrice();
 
   struct Outstanding {
     uint256 stableAmount;
@@ -77,7 +78,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   uint256 private constant MAX_BPS = 10000;
   uint8 private constant ACTION_WORK = 1;
   uint8 private constant ACTION_WRAP = 2;
-  
+  uint256 private constant PRICE_AGE_SECOND = 1800; // 30 mins
+
   address private lpToken;
   address public stableVault;
   address public assetVault;
@@ -232,8 +234,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
     // 2. mint share for shareReceiver
     // TODO: discuss round up or down
-    uint256 _depositValue = _stableTokenAmount.mulWadDown(priceHelper.getTokenPrice(stableToken)) +
-      _assetTokenAmount.mulWadDown(priceHelper.getTokenPrice(assetToken));
+    uint256 _depositValue = _stableTokenAmount.mulWadDown(_getTokenPrice(stableToken)) +
+      _assetTokenAmount.mulWadDown(_getTokenPrice(assetToken));
 
     uint256 _mintShares = valueToShare(_depositValue);
     uint256 _sharesToUser = ((MAX_BPS - config.depositFeeBps()) * _mintShares) / MAX_BPS;
@@ -309,8 +311,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _withdrawValue;
     {
       // TODO: round up or down
-      uint256 _stableWithdrawValue = _stableTokenBack.mulWadDown(priceHelper.getTokenPrice(stableToken));
-      uint256 _assetWithdrawValue = _assetTokenBack.mulWadDown(priceHelper.getTokenPrice(assetToken));
+      uint256 _stableWithdrawValue = _stableTokenBack.mulWadDown(_getTokenPrice(stableToken));
+      uint256 _assetWithdrawValue = _assetTokenBack.mulWadDown(_getTokenPrice(assetToken));
       _withdrawValue = _stableWithdrawValue + _assetWithdrawValue;
     }
 
@@ -379,16 +381,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _actualStableEqChange = _positionInfoAfter.stablePositionEquity - _positionInfoBefore.stablePositionEquity;
     uint256 _actualAssetEqChange = _positionInfoAfter.assetPositionEquity - _positionInfoBefore.assetPositionEquity;
     if (
-      !Math.almostEqual(
-        _actualStableEqChange,
-        _expectedStableEqChange,
-        _toleranceBps
-      ) ||
-      !Math.almostEqual(
-        _actualAssetEqChange,
-        _expectedAssetEqChange,
-        _toleranceBps
-      )
+      !Math.almostEqual(_actualStableEqChange, _expectedStableEqChange, _toleranceBps) ||
+      !Math.almostEqual(_actualAssetEqChange, _expectedAssetEqChange, _toleranceBps)
     ) {
       revert UnsafePositionEquity();
     }
@@ -399,20 +393,14 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     // The debt allocation of short side should be equal to _expectedAssetEqChange * (_leverageLevel - 1)
     uint256 _expectedAssetDebtChange = (_expectedAssetEqChange * (_leverageLevel - 1));
 
-    uint256 _actualStableDebtChange = _positionInfoAfter.stablePositionDebtValue - _positionInfoBefore.stablePositionDebtValue;
-    uint256 _actualAssetDebtChange = _positionInfoAfter.assetPositionDebtValue - _positionInfoBefore.assetPositionDebtValue;
-    
+    uint256 _actualStableDebtChange = _positionInfoAfter.stablePositionDebtValue -
+      _positionInfoBefore.stablePositionDebtValue;
+    uint256 _actualAssetDebtChange = _positionInfoAfter.assetPositionDebtValue -
+      _positionInfoBefore.assetPositionDebtValue;
+
     if (
-      !Math.almostEqual(
-        _actualStableDebtChange,
-        _expectedStableDebtChange,
-        _toleranceBps
-      ) ||
-      !Math.almostEqual(
-        _actualAssetDebtChange,
-        _expectedAssetDebtChange,
-        _toleranceBps
-      )
+      !Math.almostEqual(_actualStableDebtChange, _expectedStableDebtChange, _toleranceBps) ||
+      !Math.almostEqual(_actualAssetDebtChange, _expectedAssetDebtChange, _toleranceBps)
     ) {
       revert UnsafeDebtValue();
     }
@@ -535,12 +523,12 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _vaultDebtShare = IVault(_vault).vaultDebtShare();
     if (_vaultDebtShare == 0) {
       // TODO: round up or down
-      return _positionDebtShare.mulWadDown(priceHelper.getTokenPrice(_token));
+      return _positionDebtShare.mulWadDown(_getTokenPrice(_token));
     }
     uint256 _vaultDebtValue = IVault(_vault).vaultDebtVal() + IVault(_vault).pendingInterest(0);
     uint256 _debtAmount = (_positionDebtShare * _vaultDebtValue) / _vaultDebtShare;
     // TODO: round up or down
-    return _debtAmount.mulWadDown(priceHelper.getTokenPrice(_token));
+    return _debtAmount.mulWadDown(_getTokenPrice(_token));
   }
 
   function _positionValue(address _worker) internal view returns (uint256) {
@@ -635,4 +623,11 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
   /// @dev Fallback function to accept BNB.
   receive() external payable {}
+
+  /// @dev _getTokenPrice with validate last price updated
+  function _getTokenPrice(address token) internal view returns (uint256) {
+    (uint256 _price, uint256 _lastUpdated) = priceHelper.getTokenPrice(token);
+    if (block.timestamp - _lastUpdated > PRICE_AGE_SECOND) revert UnTrustedPrice();
+    return _price;
+  }
 }
