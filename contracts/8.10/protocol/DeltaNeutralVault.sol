@@ -220,7 +220,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     address _shareReceiver,
     uint256 _minShareReceive,
     bytes calldata _data
-  ) public payable onlyEOAorWhitelisted nonReentrant returns (uint256 _shares) {
+  ) public payable onlyEOAorWhitelisted nonReentrant returns (uint256 _sharesToUser) {
     PositionInfo memory _positionInfoBefore = positionInfo();
     Outstanding memory _outstandingBefore = _outstanding();
     _outstandingBefore.nativeAmount = _outstandingBefore.nativeAmount - msg.value;
@@ -234,13 +234,13 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _depositValue = _stableTokenAmount.mulWadDown(priceHelper.getTokenPrice(stableToken)) +
       _assetTokenAmount.mulWadDown(priceHelper.getTokenPrice(assetToken));
 
-    uint256 _shares = valueToShare(_depositValue);
-    uint256 _sharesToUser = ((10000 - config.depositFeeBps()) * _shares) / 10000;
+    uint256 _mintShares = valueToShare(_depositValue);
+    uint256 _sharesToUser = ((10000 - config.depositFeeBps()) * _mintShares) / 10000;
     if (_sharesToUser < _minShareReceive) {
       revert InsufficientShareReceived(_minShareReceive, _sharesToUser);
     }
     _mint(_shareReceiver, _sharesToUser);
-    _mint(address(this), _shares - _sharesToUser);
+    _mint(config.getTreasuryAddr(), _mintShares - _sharesToUser);
     
     {
       // 3. call execute to do more work.

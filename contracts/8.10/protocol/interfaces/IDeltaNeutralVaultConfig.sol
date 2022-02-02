@@ -28,12 +28,15 @@ interface IDeltaNeutralVaultConfig {
   /// @dev Return if the caller is whitelisted.
   function whitelistedRebalancers(address _caller) external returns (bool);
 
-  /// @notice Get fairlaunch address.
+  /// @dev Get fairlaunch address.
   function fairLaunchAddr() external returns (address);
 
-  /// @notice Get deposit fee.
+  /// @dev Get deposit fee.
   function depositFeeBps() external returns (uint256);
 
-  /// @notice Get leverage level.
+  /// @dev Get leverage level.
   function leverageLevel() external returns (uint8);
+
+  /// @dev Return the address of treasury account
+  function getTreasuryAddr() external view returns (address);
 }

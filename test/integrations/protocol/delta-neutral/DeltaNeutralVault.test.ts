@@ -368,11 +368,12 @@ describe("DeltaNeutralVault", () => {
       fairlaunchAddr: fairLaunch.address,
       rebalanceFactor: REBALANCE_FACTOR,
       positionValueTolerance: POSITION_VALUE_TOLERANCE_BPS,
-      depositFeeBps: DEPOSIT_FEE_BPS,
+      treasuryAddr: eveAddress,
     };
     deltaVaultConfig = await deployHelper.deployDeltaNeutralVaultConfig(deltaNeutralConfig);
     // allow deployer to call rebalance
-    deltaVaultConfig.setWhitelistedRebalancer([deployerAddress], true);
+    await deltaVaultConfig.setWhitelistedRebalancer([deployerAddress], true);
+    await deltaVaultConfig.setLeverageLevel(3);
 
     // Setup Delta Neutral Vault
     const deltaNeutral = {
@@ -631,7 +632,7 @@ describe("DeltaNeutralVault", () => {
         await baseTokenAsDeployer.approve(deltaVault.address, stableTokenAmount);
 
         // with 5x leverage, eq long side should be (lev - 2) / (2 lev - 2)
-        // = 5 - 2 / (2*5) - 2 
+        // = 5 - 2 / (2*5) - 2
         // = 3 / 8
         // borrow amount should be (lev - 1) * 3/8
         // = 4 * 3 / 8 = 3/2 of total eq supply
@@ -1564,14 +1565,7 @@ describe("DeltaNeutralVault", () => {
         it("should be able to deposit and deduct deposit fee", async () => {
           const depositFee = 100; // 1%
 
-          await deltaVaultConfig.setParams(
-            wbnb.address,
-            wNativeRelayer.address,
-            fairLaunch.address,
-            REBALANCE_FACTOR,
-            POSITION_VALUE_TOLERANCE_BPS,
-            depositFee
-          );
+          await deltaVaultConfig.setFees(depositFee);
 
           const depositStableTokenAmount = ethers.utils.parseEther("500");
           const depositAssetTokenAmount = ethers.utils.parseEther("500");
@@ -1634,7 +1628,7 @@ describe("DeltaNeutralVault", () => {
 
           const shareSupplyBefore = await deltaVault.totalSupply();
           const aliceShareBeofre = await deltaVault.balanceOf(aliceAddress);
-          const deltaVaultShareBefore = await deltaVault.balanceOf(deltaVault.address);
+          const treasuryShareBefore = await deltaVault.balanceOf(eveAddress);
 
           const depositTx = await deltaVaultAsAlice.deposit(
             depositStableTokenAmount,
@@ -1648,12 +1642,12 @@ describe("DeltaNeutralVault", () => {
           );
 
           // alice should get 99% of minted shares
-          // delta neutral vault should get 1% of minted shares
+          // treasury should get 1% of minted shares
 
           const shareSupplyAfter = await deltaVault.totalSupply();
           const totalMintShare = shareSupplyAfter.sub(shareSupplyBefore);
           const aliceShareAfter = await deltaVault.balanceOf(aliceAddress);
-          const deltaVaultShareAfter = await deltaVault.balanceOf(deltaVault.address);
+          const treasuryShareAfter = await deltaVault.balanceOf(eveAddress);
 
           const expectedAliceShare = totalMintShare.mul(10000 - depositFee).div(10000);
           const expectedDeltaVaultShare = totalMintShare.mul(depositFee).div(10000);
@@ -1661,7 +1655,7 @@ describe("DeltaNeutralVault", () => {
           Assert.assertAlmostEqual(expectedAliceShare.toString(), aliceShareAfter.sub(aliceShareBeofre).toString());
           Assert.assertAlmostEqual(
             expectedDeltaVaultShare.toString(),
-            deltaVaultShareAfter.sub(deltaVaultShareBefore).toString()
+            treasuryShareAfter.sub(treasuryShareBefore).toString()
           );
         });
       });
