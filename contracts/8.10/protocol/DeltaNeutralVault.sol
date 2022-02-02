@@ -369,9 +369,9 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint8 _leverageLevel = config.leverageLevel();
 
     // 1. check position value
-    // The equity allocation of long side should be equal to  EQUITY * (_leverageLevel - 2) / ((2*_leverageLevel) - 2)
+    // The equity allocation of long side should be equal to _depositValue * (_leverageLevel - 2) / ((2*_leverageLevel) - 2)
     uint256 _expectedStableEqChange = (_depositValue * (_leverageLevel - 2)) / ((2 * _leverageLevel) - 2);
-    // The equity allocation of short side should be equal to EQUITY * _leverageLevel / ((2*_leverageLevel) - 2)
+    // The equity allocation of short side should be equal to _depositValue * _leverageLevel / ((2*_leverageLevel) - 2)
     uint256 _expectedAssetEqChange = (_depositValue * _leverageLevel) / ((2 * _leverageLevel) - 2);
 
     uint256 _actualStableEqChange = _positionInfoAfter.stablePositionEquity - _positionInfoBefore.stablePositionEquity;
