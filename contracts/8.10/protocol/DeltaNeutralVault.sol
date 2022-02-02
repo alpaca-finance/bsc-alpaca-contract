@@ -31,6 +31,8 @@ import "../utils/SafeToken.sol";
 import "../utils/FixedPointMathLib.sol";
 import "../utils/Math.sol";
 
+import "hardhat/console.sol";
+
 contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, OwnableUpgradeable {
   /// @notice Libraries
   using FixedPointMathLib for uint256;
@@ -653,8 +655,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     ) {
       revert InvalidConvertTokenData();
     }
-
-    _sourceToken.safeApprove(routerAddr, type(uint256).max);
+    SafeERC20Upgradeable.safeApprove(IERC20Upgradeable(_sourceToken), routerAddr, type(uint256).max);
     if (_swapType == CONVERT_EXACT_TOKEN_TO_NATIVE) {
       console.log("CONVERT_EXACT_TOKEN_TO_NATIVE");
       IRouter(routerAddr).swapExactTokensForETH(_amount, 0, paths, address(this), block.timestamp);
@@ -667,7 +668,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       console.log("CONVERT_TOKEN_TO_EXACT_TOKEN");
       IRouter(routerAddr).swapTokensForExactTokens(0, _amount, paths, address(this), block.timestamp);
     }
-    _sourceToken.safeApprove(routerAddr, 0);
+    SafeERC20Upgradeable.safeApprove(IERC20Upgradeable(_sourceToken), routerAddr, 0);
   }
 
   /// @dev Fallback function to accept BNB.
