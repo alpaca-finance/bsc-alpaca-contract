@@ -294,9 +294,6 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
   function health(uint256 id) external view override returns (uint256) {
     uint256 _totalBalanceInUSD = priceHelper.lpToDollar(totalLpBalance, address(lpToken));
     (uint256 _tokenPrice, uint256 _lastUpdate) = priceHelper.getTokenPrice(address(baseToken));
-    console.log("now", block.timestamp);
-    console.log("_lastUpdate", _lastUpdate);
-    console.log("diff", block.timestamp - _lastUpdate);
     // NOTE: last updated price should not be over 30 mins
     if (block.timestamp - _lastUpdate > PRICE_AGE_SECOND) revert UnTrustedPrice();
     return (_totalBalanceInUSD * 1e18) / _tokenPrice;
