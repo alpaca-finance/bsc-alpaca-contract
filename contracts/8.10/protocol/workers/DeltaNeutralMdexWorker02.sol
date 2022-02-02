@@ -28,12 +28,12 @@ import "../interfaces/IPriceHelper.sol";
 import "../interfaces/IVault.sol";
 import "../../utils/AlpacaMath.sol";
 import "../../utils/SafeToken.sol";
-
-import "hardhat/console.sol";
+import "../../utils/FixedPointMathLib.sol";
 
 contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable, IWorker02 {
   /// @notice Libraries
   using SafeToken for address;
+  using FixedPointMathLib for uint256;
 
   /// @notice Errors
   error InvalidRewardToken();
@@ -296,7 +296,8 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
     (uint256 _tokenPrice, uint256 _lastUpdate) = priceHelper.getTokenPrice(address(baseToken));
     // NOTE: last updated price should not be over 30 mins
     if (block.timestamp - _lastUpdate > PRICE_AGE_SECOND) revert UnTrustedPrice();
-    return (_totalBalanceInUSD * 1e18) / _tokenPrice;
+    // TODO: discuss round up or down
+    return _totalBalanceInUSD.mulWadDown(1e18).divWadDown(_tokenPrice);
   }
 
   /// @dev Liquidate the given position by converting it to BaseToken and return back to caller.
