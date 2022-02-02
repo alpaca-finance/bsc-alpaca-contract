@@ -373,14 +373,17 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _expectLongEqChange = (_depositValue * (_leverageLevel - 2)) / ((2 * _leverageLevel) - 2);
     // The equity allocation of short side should be equal to EQUITY * _leverageLevel / ((2*_leverageLevel) - 2)
     uint256 _expectShortEqChange = (_depositValue * _leverageLevel) / ((2 * _leverageLevel) - 2);
+
+    uint256 _actualLongEqChange = _positionInfoAfter.stablePositionEquity - _positionInfoBefore.stablePositionEquity;
+    uint256 _actualShortEqChange = _positionInfoAfter.assetPositionEquity - _positionInfoBefore.assetPositionEquity;
     if (
       !Math.almostEqual(
-        _positionInfoAfter.stablePositionEquity - _positionInfoBefore.stablePositionEquity,
+        _actualLongEqChange,
         _expectLongEqChange,
         _toleranceBps
       ) ||
       !Math.almostEqual(
-        _positionInfoAfter.assetPositionEquity - _positionInfoBefore.assetPositionEquity,
+        _actualShortEqChange,
         _expectShortEqChange,
         _toleranceBps
       )
@@ -395,14 +398,18 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     // The debt allocation of short side should be equal to _expectShortEqChange * (_leverageLevel - 1)
     uint256 _expectShortDebtChange = (_depositValue * _leverageLevel * (_leverageLevel - 1)) /
       ((2 * _leverageLevel) - 2);
+
+    uint256 _actualLongDebtChange = _positionInfoAfter.stablePositionDebtValue - _positionInfoBefore.stablePositionDebtValue;
+    uint256 _actualShortDebtChange = _positionInfoAfter.assetPositionDebtValue - _positionInfoBefore.assetPositionDebtValue;
+    
     if (
       !Math.almostEqual(
-        _positionInfoAfter.stablePositionDebtValue - _positionInfoBefore.stablePositionDebtValue,
+        _actualLongDebtChange,
         _expectLongDebtChange,
         _toleranceBps
       ) ||
       !Math.almostEqual(
-        _positionInfoAfter.assetPositionDebtValue - _positionInfoBefore.assetPositionDebtValue,
+        _actualShortDebtChange,
         _expectShortDebtChange,
         _toleranceBps
       )
@@ -513,13 +520,13 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
   /// @notice Return equity value of delta neutral position.
   function totalEquityValue() public view returns (uint256) {
-    uint256 _positionValue = _positionValue(stableVaultWorker) + _positionValue(assetVaultWorker);
-    uint256 _debtValue = _positionDebtValue(stableVault, stableVaultPosId) +
+    uint256 _totalPositionValue = _positionValue(stableVaultWorker) + _positionValue(assetVaultWorker);
+    uint256 _totalDebtValue = _positionDebtValue(stableVault, stableVaultPosId) +
       _positionDebtValue(assetVault, assetVaultPosId);
-    if (_positionValue < _debtValue) {
+    if (_totalPositionValue < _totalDebtValue) {
       return 0;
     }
-    return _positionValue - _debtValue;
+    return _totalPositionValue - _totalDebtValue;
   }
 
   function _positionDebtValue(address _vault, uint256 _posId) internal view returns (uint256) {
