@@ -565,15 +565,16 @@ describe("DeltaNeutralVault", () => {
         const stableTokenPrice = ethers.utils.parseEther("1");
         const assetTokenPrice = ethers.utils.parseEther("1");
         const lpPrice = ethers.utils.parseEther("2");
+        const latest = await TimeHelpers.latest();
 
         mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
           if (token === baseToken.address) {
-            return stableTokenPrice;
+            return [stableTokenPrice, latest];
           }
           if (token === wbnb.address) {
-            return assetTokenPrice;
+            return [assetTokenPrice, latest];
           }
-          return 0;
+          return [0, latest];
         });
 
         mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
@@ -608,6 +609,7 @@ describe("DeltaNeutralVault", () => {
         ).to.revertedWith("PositionsAlreadyInitialized()");
       });
     });
+
     context("when leverage level is not 3x", async () => {
       it("should still work", async () => {
         await deltaVaultConfig.setLeverageLevel(5);
@@ -629,7 +631,7 @@ describe("DeltaNeutralVault", () => {
         await baseTokenAsDeployer.approve(deltaVault.address, stableTokenAmount);
 
         // with 5x leverage, eq long side should be (lev - 2) / (2 lev - 2)
-        // = 5 - 2 / (2*5) - 2 
+        // = 5 - 2 / (2*5) - 2
         // = 3 / 8
         // borrow amount should be (lev - 1) * 3/8
         // = 4 * 3 / 8 = 3/2 of total eq supply
@@ -677,15 +679,15 @@ describe("DeltaNeutralVault", () => {
         const stableTokenPrice = ethers.utils.parseEther("1");
         const assetTokenPrice = ethers.utils.parseEther("1");
         const lpPrice = ethers.utils.parseEther("2");
-
+        const latest = await TimeHelpers.latest();
         mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
           if (token === baseToken.address) {
-            return stableTokenPrice;
+            return [stableTokenPrice, latest];
           }
           if (token === wbnb.address) {
-            return assetTokenPrice;
+            return [assetTokenPrice, latest];
           }
-          return 0;
+          return [0, latest];
         });
 
         mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
@@ -770,14 +772,15 @@ describe("DeltaNeutralVault", () => {
         const stableTokenPrice = ethers.utils.parseEther("1");
         const assetTokenPrice = ethers.utils.parseEther("1");
         const lpPrice = ethers.utils.parseEther("2");
+        const latest = await TimeHelpers.latest();
         mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
           if (token === baseToken.address) {
-            return stableTokenPrice;
+            return [stableTokenPrice, latest];
           }
           if (token === wbnb.address) {
-            return assetTokenPrice;
+            return [assetTokenPrice, latest];
           }
-          return 0;
+          return [0, latest];
         });
 
         mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
@@ -847,14 +850,15 @@ describe("DeltaNeutralVault", () => {
         const stableTokenPrice = ethers.utils.parseEther("1");
         const assetTokenPrice = ethers.utils.parseEther("1");
         const lpPrice = ethers.utils.parseEther("2");
+        const latest = await TimeHelpers.latest();
         mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
           if (token === baseToken.address) {
-            return stableTokenPrice;
+            return [stableTokenPrice, latest];
           }
           if (token === wbnb.address) {
-            return assetTokenPrice;
+            return [assetTokenPrice, latest];
           }
-          return 0;
+          return [0, latest];
         });
         mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
           return lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1"));
@@ -910,15 +914,15 @@ describe("DeltaNeutralVault", () => {
           const stableTokenPrice = ethers.utils.parseEther("1");
           const assetTokenPrice = ethers.utils.parseEther("1");
           const lpPrice = ethers.utils.parseEther("2");
-
+          const latest = await TimeHelpers.latest();
           mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
             if (token === baseToken.address) {
-              return stableTokenPrice;
+              return [stableTokenPrice, latest];
             }
             if (token === wbnb.address) {
-              return assetTokenPrice;
+              return [assetTokenPrice, latest];
             }
-            return 0;
+            return [0, latest];
           });
 
           mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
@@ -988,15 +992,15 @@ describe("DeltaNeutralVault", () => {
             let stableTokenPrice = ethers.utils.parseEther("1");
             let assetTokenPrice = ethers.utils.parseEther("1");
             let lpPrice = ethers.utils.parseEther("2");
-
+            const latest = await TimeHelpers.latest();
             mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
               if (token === baseToken.address) {
-                return stableTokenPrice;
+                return [stableTokenPrice, latest];
               }
               if (token === wbnb.address) {
-                return assetTokenPrice;
+                return [assetTokenPrice, latest];
               }
-              return 0;
+              return [0, latest];
             });
 
             mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
@@ -1064,15 +1068,15 @@ describe("DeltaNeutralVault", () => {
               let stableTokenPrice = ethers.utils.parseEther("1");
               let assetTokenPrice = ethers.utils.parseEther("1");
               let lpPrice = ethers.utils.parseEther("2");
-
+              const latest = await TimeHelpers.latest();
               mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
                 if (token === baseToken.address) {
-                  return stableTokenPrice;
+                  return [stableTokenPrice, latest];
                 }
                 if (token === wbnb.address) {
-                  return assetTokenPrice;
+                  return [assetTokenPrice, latest];
                 }
-                return 0;
+                return [0, latest];
               });
 
               mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
@@ -1134,15 +1138,15 @@ describe("DeltaNeutralVault", () => {
               let stableTokenPrice = ethers.utils.parseEther("1");
               let assetTokenPrice = ethers.utils.parseEther("1");
               let lpPrice = ethers.utils.parseEther("2");
-
+              const latest = await TimeHelpers.latest();
               mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
                 if (token === baseToken.address) {
-                  return stableTokenPrice;
+                  return [stableTokenPrice, latest];
                 }
                 if (token === wbnb.address) {
-                  return assetTokenPrice;
+                  return [assetTokenPrice, latest];
                 }
-                return 0;
+                return [0, latest];
               });
 
               mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
@@ -1201,14 +1205,15 @@ describe("DeltaNeutralVault", () => {
                 let stableTokenPrice = ethers.utils.parseEther("1");
                 let assetTokenPrice = ethers.utils.parseEther("1");
                 let lpPrice = ethers.utils.parseEther("2");
+                const latest = await TimeHelpers.latest();
                 mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
                   if (token === baseToken.address) {
-                    return stableTokenPrice;
+                    return [stableTokenPrice, latest];
                   }
                   if (token === wbnb.address) {
-                    return assetTokenPrice;
+                    return [assetTokenPrice, latest];
                   }
-                  return 0;
+                  return [0, latest];
                 });
                 mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
                   return lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1"));
@@ -1262,14 +1267,15 @@ describe("DeltaNeutralVault", () => {
               let stableTokenPrice = ethers.utils.parseEther("1");
               let assetTokenPrice = ethers.utils.parseEther("1");
               let lpPrice = ethers.utils.parseEther("2");
+              const latest = await TimeHelpers.latest();
               mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
                 if (token === baseToken.address) {
-                  return stableTokenPrice;
+                  return [stableTokenPrice, latest];
                 }
                 if (token === wbnb.address) {
-                  return assetTokenPrice;
+                  return [assetTokenPrice, latest];
                 }
-                return 0;
+                return [0, latest];
               });
               mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
                 return lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1"));
@@ -1322,14 +1328,15 @@ describe("DeltaNeutralVault", () => {
               let stableTokenPrice = ethers.utils.parseEther("1");
               let assetTokenPrice = ethers.utils.parseEther("1");
               let lpPrice = ethers.utils.parseEther("2");
+              const latest = await TimeHelpers.latest();
               mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
                 if (token === baseToken.address) {
-                  return stableTokenPrice;
+                  return [stableTokenPrice, latest];
                 }
                 if (token === wbnb.address) {
-                  return assetTokenPrice;
+                  return [assetTokenPrice, latest];
                 }
-                return 0;
+                return [0, latest];
               });
               mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
                 return lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1"));
@@ -1382,14 +1389,15 @@ describe("DeltaNeutralVault", () => {
               let stableTokenPrice = ethers.utils.parseEther("1");
               let assetTokenPrice = ethers.utils.parseEther("1");
               let lpPrice = ethers.utils.parseEther("2");
+              const latest = await TimeHelpers.latest();
               mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
                 if (token === baseToken.address) {
-                  return stableTokenPrice;
+                  return [stableTokenPrice, latest];
                 }
                 if (token === wbnb.address) {
-                  return assetTokenPrice;
+                  return [assetTokenPrice, latest];
                 }
-                return 0;
+                return [0, latest];
               });
               mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
                 return lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1"));
@@ -1452,15 +1460,15 @@ describe("DeltaNeutralVault", () => {
               let stableTokenPrice = ethers.utils.parseEther("1");
               let assetTokenPrice = ethers.utils.parseEther("1");
               let lpPrice = ethers.utils.parseEther("2");
-
+              const latest = await TimeHelpers.latest();
               mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
                 if (token === baseToken.address) {
-                  return stableTokenPrice;
+                  return [stableTokenPrice, latest];
                 }
                 if (token === wbnb.address) {
-                  return assetTokenPrice;
+                  return [assetTokenPrice, latest];
                 }
-                return 0;
+                return [0, latest];
               });
 
               mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
@@ -1527,15 +1535,15 @@ describe("DeltaNeutralVault", () => {
                 let stableTokenPrice = ethers.utils.parseEther("1");
                 let assetTokenPrice = ethers.utils.parseEther("1");
                 let lpPrice = ethers.utils.parseEther("2");
-
+                const latest = await TimeHelpers.latest();
                 mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
                   if (token === baseToken.address) {
-                    return stableTokenPrice;
+                    return [stableTokenPrice, latest];
                   }
                   if (token === wbnb.address) {
-                    return assetTokenPrice;
+                    return [assetTokenPrice, latest];
                   }
-                  return 0;
+                  return [0, latest];
                 });
 
                 mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
@@ -1614,14 +1622,15 @@ describe("DeltaNeutralVault", () => {
         const stableTokenPrice = ethers.utils.parseEther("1");
         const assetTokenPrice = ethers.utils.parseEther("1");
         const lpPrice = ethers.utils.parseEther("2");
+        const latest = await TimeHelpers.latest();
         mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
           if (token === baseToken.address) {
-            return stableTokenPrice;
+            return [stableTokenPrice, latest];
           }
           if (token === wbnb.address) {
-            return assetTokenPrice;
+            return [assetTokenPrice, latest];
           }
-          return 0;
+          return [0, latest];
         });
         mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
           return lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1"));
@@ -1682,14 +1691,15 @@ describe("DeltaNeutralVault", () => {
           let stableTokenPrice = ethers.utils.parseEther("1");
           let assetTokenPrice = ethers.utils.parseEther("1");
           let lpPrice = ethers.utils.parseEther("2");
+          const latest = await TimeHelpers.latest();
           mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
             if (token === baseToken.address) {
-              return stableTokenPrice;
+              return [stableTokenPrice, latest];
             }
             if (token === wbnb.address) {
-              return assetTokenPrice;
+              return [assetTokenPrice, latest];
             }
-            return 0;
+            return [0, latest];
           });
 
           mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
@@ -1778,14 +1788,15 @@ describe("DeltaNeutralVault", () => {
 
         const stableTokenPrice = ethers.utils.parseEther("1");
         const assetTokenPrice = ethers.utils.parseEther("500");
+        const latest = await TimeHelpers.latest();
         mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
           if (token === baseToken.address) {
-            return stableTokenPrice;
+            return [stableTokenPrice, latest];
           }
           if (token === wbnb.address) {
-            return assetTokenPrice;
+            return [assetTokenPrice, latest];
           }
-          return 0;
+          return [0, latest];
         });
         mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
           return lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1"));
@@ -1871,14 +1882,15 @@ describe("DeltaNeutralVault", () => {
 
           const stableTokenPrice = ethers.utils.parseEther("1");
           const assetTokenPrice = ethers.utils.parseEther("400");
+          const latest = await TimeHelpers.latest();
           mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
             if (token === baseToken.address) {
-              return stableTokenPrice;
+              return [stableTokenPrice, latest];
             }
             if (token === wbnb.address) {
-              return assetTokenPrice;
+              return [assetTokenPrice, latest];
             }
-            return 0;
+            return [0, latest];
           });
           mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
             return lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1"));
