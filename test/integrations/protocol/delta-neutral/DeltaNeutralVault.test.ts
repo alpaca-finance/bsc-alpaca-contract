@@ -941,7 +941,6 @@ describe("DeltaNeutralVault", () => {
           // alice deposit another 1 to delta neutral
           // alice should get shares =
           const aliceShare = await deltaVault.balanceOf(aliceAddress);
-          console.log("aliceShare", aliceShare);
         });
 
         context("when received shares is lower than minimum shares should user receive", async () => {
@@ -1696,9 +1695,6 @@ describe("DeltaNeutralVault", () => {
           mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
             return lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1"));
           });
-          console.log("Deployer IUToken: ", await deltaVault.balanceOf(deployerAddress));
-          console.log("Total Supply IUToken: ", await deltaVault.totalSupply());
-          console.log("deltavault equity", await deltaVault.totalEquityValue());
 
           const depositTx = await deltaVaultAsAlice.deposit(
             depositStableTokenAmount,
@@ -1711,16 +1707,9 @@ describe("DeltaNeutralVault", () => {
             }
           );
 
-          console.log("Receive IUToken: ", await deltaVault.balanceOf(aliceAddress));
-          console.log("Total Supply IUToken: ", await deltaVault.totalSupply());
-          console.log("deltavault equity", await deltaVault.totalEquityValue());
-
           // ======== withdraw ======
-          console.log("deltavault equity", await deltaVault.totalEquityValue());
           await swapHelper.loadReserves([baseToken.address, wbnb.address]);
-          console.log("reserve before init", await lp.getReserves());
           lpPrice = await swapHelper.computeLpHealth(ethers.utils.parseEther("1"), baseToken.address, wbnb.address);
-          console.log("lp lpPrice", lpPrice);
 
           mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
             return lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1"));
@@ -1774,8 +1763,6 @@ describe("DeltaNeutralVault", () => {
   describe("#rebalance", async () => {
     describe("when positions initialized", async () => {
       beforeEach(async () => {
-        console.log("before add more liquidity");
-
         // add liquidity to make price baseToken:wbnb = 1:500
         await swapHelper.addLiquidities([
           {
@@ -1860,7 +1847,6 @@ describe("DeltaNeutralVault", () => {
       context("when asset token price drop", async () => {
         it("should be able to rebalance", async () => {
           const reserves = await lp.getReserves();
-          console.log("reserves latest", reserves);
           // _reserve0: BigNumber { value: "100004 499999999999999998" },
           // _reserve1: BigNumber { value: "50000750 000000000000000000" },
 
