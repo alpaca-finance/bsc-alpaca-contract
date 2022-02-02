@@ -30,9 +30,11 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   );
   event LogSetWhitelistedCallers(address indexed _caller, address indexed _address, bool _ok);
   event LogSetWhitelistedRebalancers(address indexed _caller, address indexed _address, bool _ok);
+  event LogSetFeeExemptedCallers(address indexed _caller, address indexed _address, bool _ok);
   event LogSetLeverageLevel(address indexed _caller, uint8 _newLeverageLevel);
-  event LogSetFees(address indexed _caller, uint256 _depositFeeBps);
+  event LogSetFees(address indexed _caller, uint256 _depositFeeBps, uint256 _withdrawalFeeBps);
 
+  /// @dev Erros
   error LeverageLevelTooLow();
 
   /// @notice Constants
@@ -52,8 +54,10 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   /// Tolerance bps that allow margin for misc calculation
   uint256 public override positionValueTolerance;
 
-  /// @notice Fee when user deposit to delta neutral vault
+  /// @notice Fee when user deposits to delta neutral vault
   uint256 public override depositFeeBps;
+  /// @notice Fee when user withdraws from delta neutral vault
+  uint256 public override withdrawalFeeBps;
 
   /// @notice address of treasury account
   address public treasury;
@@ -62,6 +66,8 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   mapping(address => bool) public whitelistedCallers;
   /// list of whitelisted rebalancers.
   mapping(address => bool) public whitelistedRebalancers;
+  // list of exempted callers.
+  mapping(address => bool) public feeExemptedCallers;
 
   uint8 public override leverageLevel;
 
@@ -144,16 +150,29 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     emit LogSetLeverageLevel(msg.sender, _newLeverageLevel);
   }
 
+  /// @notice Set exempted fee callers.
+  /// @dev Must only be called by owner.
+  /// @param _callers addresses to be exempted.
+  /// @param _ok The new ok flag for callers.
+  function setFeeExemptedCallers(address[] calldata _callers, bool _ok) external onlyOwner {
+    for (uint256 _idx = 0; _idx < _callers.length; _idx++) {
+      feeExemptedCallers[_callers[_idx]] = _ok;
+      emit LogSetFeeExemptedCallers(msg.sender, _callers[_idx], _ok);
+    }
+  }
+
   /// @notice Set fees.
   /// @dev Must only be called by owner.
   /// @param _depositFeeBps Fee when user deposit to delta neutral vault.
-  function setFees(uint256 _depositFeeBps) external onlyOwner {
+  function setFees(uint256 _depositFeeBps,uint256 _withdrawalFeeBps) external onlyOwner {
     depositFeeBps = _depositFeeBps;
-    emit LogSetFees(msg.sender, _depositFeeBps);
+    withdrawalFeeBps = _withdrawalFeeBps;
+    emit LogSetFees(msg.sender, _depositFeeBps, _withdrawalFeeBps);
   }
 
   /// @dev Return the treasuryAddr.
   function getTreasuryAddr() external view override returns (address) {
     return treasury == address(0) ? 0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51 : treasury;
   }
+  
 }
