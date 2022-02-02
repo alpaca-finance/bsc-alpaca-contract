@@ -733,39 +733,55 @@ describe("Vault - DeltaNetMdexWorker02", () => {
           // base token price = 1.0
           // health should be lpBalace * lp price / baseTokenPrice => 0.231205137369691323 * 28.299236836137312801 / 1.0 = 6.542928940156556263
           const expectedHealth = ethers.utils.parseEther("6.542928940156556263");
-
-          console.log("check");
           expect(await deltaNeutralWorker.health(1)).to.be.eq(expectedHealth);
           // Bob comes and trigger reinvest
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-          await _updatePrice();
           await deltaNeutralWorkerAsBob.reinvest();
-          console.log("check");
           AssertHelpers.assertAlmostEqual(
             MDX_REWARD_PER_BLOCK.mul("2").mul(REINVEST_BOUNTY_BPS).div("10000").toString(),
             (await mdx.balanceOf(bobAddress)).toString()
           );
           await vault.deposit(0); // Random action to trigger interest computation
+          await _updatePrice();
           const healthDebt = await vault.positionInfo("1");
           expect(healthDebt[0]).to.be.above(expectedHealth);
           const interest = ethers.utils.parseEther("0.3"); // 30% interest rate
-          console.log("check");
           AssertHelpers.assertAlmostEqual(healthDebt[1].toString(), interest.add(loan).toString());
-          console.log("check");
           AssertHelpers.assertAlmostEqual(
             (await baseToken.balanceOf(vault.address)).toString(),
             deposit.sub(loan).toString()
           );
-          console.log("check");
           AssertHelpers.assertAlmostEqual((await vault.vaultDebtVal()).toString(), interest.add(loan).toString());
           const reservePool = interest.mul(RESERVE_POOL_BPS).div("10000");
-          console.log("check");
           AssertHelpers.assertAlmostEqual(reservePool.toString(), (await vault.reservePool()).toString());
-          console.log("check");
           AssertHelpers.assertAlmostEqual(
             deposit.add(interest).sub(reservePool).toString(),
             (await vault.totalToken()).toString()
           );
+        });
+
+        it("should revert if price outdated", async () => {
+          // Deployer deposits 3 BTOKEN to the bank
+          const deposit = ethers.utils.parseEther("3");
+          await baseToken.approve(vault.address, deposit);
+          await vault.deposit(deposit);
+          // Now DeltaNet can take 1 BTOKEN loan + 1 BTOKEN of her to create a new position
+          const loan = ethers.utils.parseEther("1");
+          await baseTokenAsDeltaNet.approve(vault.address, ethers.utils.parseEther("1"));
+          await TimeHelpers.increase(TimeHelpers.duration.minutes(ethers.BigNumber.from("30")));
+          await expect(
+            vaultAsDeltaNet.work(
+              0,
+              deltaNeutralWorker.address,
+              ethers.utils.parseEther("1"),
+              loan,
+              "0",
+              ethers.utils.defaultAbiCoder.encode(
+                ["address", "bytes"],
+                [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+              )
+            )
+          ).to.be.revertedWith("UnTrustedPrice()");
         });
 
         it("should has correct interest rate growth", async () => {
@@ -1130,6 +1146,7 @@ describe("Vault - DeltaNetMdexWorker02", () => {
           expect(bobMdxAfter.sub(bobMdxBefore), `expect bob to get ${reinvestFees}`).to.be.eq(reinvestFees);
           expect(workerLpAfter).to.be.eq(accumLp);
           // Check Position info
+          await _updatePrice();
           let [vaultHealth, vaultDebtToShare] = await vault.positionInfo("1");
           // health calculation
           // lp balance =  1.245043209303108183
@@ -1528,7 +1545,8 @@ describe("Vault - DeltaNetMdexWorker02", () => {
         });
 
         async function successBtokenOnly(lastWorkBlock: BigNumber, goRouge: boolean) {
-          await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
+          await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")).sub(10));
+          await _updatePrice();
           let accumLp = await deltaNeutralWorker.totalLpBalance();
           const [workerLpBefore] = await bscPool.userInfo(POOL_IDX, deltaNeutralWorker.address);
           const debris = await baseToken.balanceOf(addStrat.address);
@@ -1592,8 +1610,10 @@ describe("Vault - DeltaNetMdexWorker02", () => {
             `expect Deployer gets ${ethers.utils.formatEther(totalReinvestFees)} CAKE`
           ).to.be.eq(totalReinvestFees);
         }
+
         async function successTwoSides(lastWorkBlock: BigNumber, goRouge: boolean) {
-          await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
+          await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")).sub(3));
+          await _updatePrice();
           // Random action to trigger interest computation
           await vault.deposit("0");
           // Set intertest rate to 0 for easy testing
@@ -1683,6 +1703,7 @@ describe("Vault - DeltaNetMdexWorker02", () => {
             `expect TwoSides to have debris ${debrisFtoken} FTOKEN`
           ).to.be.eq(debrisFtoken);
         }
+
         async function revertNotEnoughCollateral(goRouge: boolean, stratAddress: string) {
           // Simulate price swing to make position under water
           simpleVaultConfig.setWorker(deltaNeutralWorker.address, true, true, WORK_FACTOR, "100", true, true);
@@ -1708,6 +1729,7 @@ describe("Vault - DeltaNetMdexWorker02", () => {
             )
           ).to.be.revertedWith("debtRatio > killFactor margin");
         }
+
         async function revertUnapprovedStrat(goRouge: boolean, stratAddress: string) {
           await baseTokenAsDeltaNet.approve(vault.address, ethers.utils.parseEther("88"));
           await expect(
