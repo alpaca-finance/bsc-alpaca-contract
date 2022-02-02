@@ -298,7 +298,7 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
     // NOTE: last updated price should not be over 30 mins
     if (block.timestamp - _lastUpdate > PRICE_AGE_SECOND) revert UnTrustedPrice();
     // TODO: discuss round up or down
-    return _totalBalanceInUSD.mulWadDown(1e18).divWadDown(_tokenPrice);
+    return _totalBalanceInUSD.divWadDown(_tokenPrice);
   }
 
   /// @dev Liquidate the given position by converting it to BaseToken and return back to caller.
