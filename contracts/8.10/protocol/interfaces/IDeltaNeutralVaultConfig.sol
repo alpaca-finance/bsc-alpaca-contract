@@ -51,4 +51,10 @@ interface IDeltaNeutralVaultConfig {
 
   /// @dev Return the address of treasury account
   function getTreasuryAddr() external view returns (address);
+
+  /// @dev Return if the caller is whitelisted.
+  function whitelistedReinvestors(address _caller) external returns (bool);
+
+  /// @dev Return alpcaBountyBps
+  function alpacaBountyBps() external returns (uint256);
 }

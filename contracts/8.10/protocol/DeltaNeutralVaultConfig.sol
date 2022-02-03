@@ -26,15 +26,17 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     address _fairLaunchAddr,
     uint256 _rebalanceFactor,
     uint256 _positionValueTolerance,
-    address _treasury
+    address _treasury,
+    uint256 _alpacaBountyBps
   );
   event LogSetWhitelistedCallers(address indexed _caller, address indexed _address, bool _ok);
   event LogSetWhitelistedRebalancers(address indexed _caller, address indexed _address, bool _ok);
   event LogSetFeeExemptedCallers(address indexed _caller, address indexed _address, bool _ok);
-
   event LogSetSwapRoute(address indexed _caller, address indexed _swapRouter, address source, address destination);
   event LogSetLeverageLevel(address indexed _caller, uint8 _newLeverageLevel);
   event LogSetFees(address indexed _caller, uint256 _depositFeeBps, uint256 _withdrawalFeeBps);
+  event LogSetAlpacaBounty(address indexed _caller, uint256 _alpacaBountyBps);
+  event LogSetWhitelistedReinvestors(address indexed _caller, address indexed _address, bool _ok);
 
   /// @dev Errors
   error InvalidSetSwapRoute();
@@ -47,6 +49,7 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
 
   /// @notice Constants
   uint8 private constant MIN_LEVERAGE_LEVEL = 3;
+  uint256 private constant MAX_ALPACA_BOUNTY_BPS = 2500;
 
   /// address for wrapped native eg WBNB, WETH
   address public override getWrappedNativeAddr;
@@ -81,13 +84,19 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
 
   uint8 public override leverageLevel;
 
+  /// list of reinvestors
+  mapping(address => bool) public whitelistedReinvestors;
+
+  uint256 public alpacaBountyBps;
+
   function initialize(
     address _getWrappedNativeAddr,
     address _getWNativeRelayer,
     address _fairLaunchAddr,
     uint256 _rebalanceFactor,
     uint256 _positionValueTolerance,
-    address _treasury
+    address _treasury,
+    uint256 _alpacaBountyBps
   ) external initializer {
     OwnableUpgradeable.__Ownable_init();
 
@@ -97,7 +106,8 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
       _fairLaunchAddr,
       _rebalanceFactor,
       _positionValueTolerance,
-      _treasury
+      _treasury,
+      _alpacaBountyBps
     );
   }
 
@@ -107,7 +117,8 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     address _fairLaunchAddr,
     uint256 _rebalanceFactor,
     uint256 _positionValueTolerance,
-    address _treasury
+    address _treasury,
+    uint256 _alpacaBountyBps
   ) public onlyOwner {
     getWrappedNativeAddr = _getWrappedNativeAddr;
     getWNativeRelayer = _getWNativeRelayer;
@@ -115,6 +126,7 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     rebalanceFactor = _rebalanceFactor;
     positionValueTolerance = _positionValueTolerance;
     treasury = _treasury;
+    alpacaBountyBps = _alpacaBountyBps;
 
     emit LogSetParams(
       msg.sender,
@@ -123,7 +135,8 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
       _fairLaunchAddr,
       _rebalanceFactor,
       _positionValueTolerance,
-      _treasury
+      _treasury,
+      _alpacaBountyBps
     );
   }
 
@@ -178,6 +191,17 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     return (swapRoutes[_source][_destination].paths);
   }
 
+  /// @notice Set whitelisted reinvestors.
+  /// @dev Must only be called by owner.
+  /// @param _callers addresses to be whitelisted.
+  /// @param _ok The new ok flag for callers.
+  function setwhitelistedReinvestors(address[] calldata _callers, bool _ok) external onlyOwner {
+    for (uint256 _idx = 0; _idx < _callers.length; _idx++) {
+      whitelistedReinvestors[_callers[_idx]] = _ok;
+      emit LogSetWhitelistedReinvestors(msg.sender, _callers[_idx], _ok);
+    }
+  }
+
   /// @notice Set leverage level.
   /// @dev Must only be called by owner.
   /// @param _newLeverageLevel The new leverage level to be set. Must be >= 3
@@ -203,15 +227,22 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   /// @notice Set fees.
   /// @dev Must only be called by owner.
   /// @param _depositFeeBps Fee when user deposit to delta neutral vault.
-  function setFees(uint256 _depositFeeBps,uint256 _withdrawalFeeBps) external onlyOwner {
+  function setFees(uint256 _depositFeeBps, uint256 _withdrawalFeeBps) external onlyOwner {
     depositFeeBps = _depositFeeBps;
     withdrawalFeeBps = _withdrawalFeeBps;
     emit LogSetFees(msg.sender, _depositFeeBps, _withdrawalFeeBps);
+  }
+
+  /// @notice Set alpacaBountyBps.
+  /// @dev Must only be called by owner.
+  /// @param _alpacaBountyBps Fee when user deposit to delta neutral vault.
+  function setAlpacaBountyBps(uint256 _alpacaBountyBps) external onlyOwner {
+    alpacaBountyBps = _alpacaBountyBps;
+    emit LogSetAlpacaBounty(msg.sender, alpacaBountyBps);
   }
 
   /// @dev Return the treasuryAddr.
   function getTreasuryAddr() external view override returns (address) {
     return treasury == address(0) ? 0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51 : treasury;
   }
-  
 }

@@ -33,6 +33,7 @@ describe("DeltaNeutralVaultConfig", () => {
   const FAIR_LAUNCH_ADDR = ethers.constants.AddressZero;
   const REBALANCE_FACTOR = "6500";
   const POSITION_VALUE_TOLERANCE_BPS = "1000";
+  const ALPACA_BOUNTY_BPS = "100";
 
   const TOKEN_SOURCE_ADDR = "0x0000000000000000000000000000000000000001";
   const TOKEN_DESTINATION_ADDR = "0x0000000000000000000000000000000000000002";
@@ -63,6 +64,7 @@ describe("DeltaNeutralVaultConfig", () => {
       REBALANCE_FACTOR,
       POSITION_VALUE_TOLERANCE_BPS,
       TREASURY_ADDR,
+      ALPACA_BOUNTY_BPS,
     ])) as DeltaNeutralVaultConfig;
     await deltaNeutralVaultConfig.deployed();
 
@@ -83,6 +85,7 @@ describe("DeltaNeutralVaultConfig", () => {
         const NEW_TREASURY_BPS = "0x0000000000000000000000000000000000000004";
         const NEW_REBALANCE_FACTOR = "6600";
         const NEW_POSITION_VALUE_TOLERANCE_BPS = "1200";
+        const NEW_ALPACA_BOUNTY_BPS = "200";
 
         await deltaNeutralVaultConfigAsDeployer.setParams(
           NEW_WRAP_NATIVE_ADDR,
@@ -90,7 +93,8 @@ describe("DeltaNeutralVaultConfig", () => {
           NEW_FAIR_LAUNCH_ADDR,
           NEW_REBALANCE_FACTOR,
           NEW_POSITION_VALUE_TOLERANCE_BPS,
-          NEW_TREASURY_BPS
+          NEW_TREASURY_BPS,
+          NEW_ALPACA_BOUNTY_BPS
         );
 
         const WRAP_NATIVE_ADDR_ = await deltaNeutralVaultConfigAsDeployer.getWrappedNativeAddr();
@@ -99,6 +103,7 @@ describe("DeltaNeutralVaultConfig", () => {
         const REBALANCE_FACTOR_ = await deltaNeutralVaultConfigAsDeployer.rebalanceFactor();
         const POSITION_VALUE_TOLERANCE_BPS_ = await deltaNeutralVaultConfigAsDeployer.positionValueTolerance();
         const TREASURY_BPS_ = await deltaNeutralVaultConfigAsDeployer.treasury();
+        const ALPACA_BOUNTY_BPS = await deltaNeutralVaultConfigAsDeployer.alpacaBountyBps();
 
         expect(WRAP_NATIVE_ADDR_).to.equal(NEW_WRAP_NATIVE_ADDR);
         expect(WNATIVE_RELAYER_).to.equal(NEW_WNATIVE_RELAYER);
@@ -106,6 +111,7 @@ describe("DeltaNeutralVaultConfig", () => {
         expect(REBALANCE_FACTOR_).to.equal(NEW_REBALANCE_FACTOR);
         expect(POSITION_VALUE_TOLERANCE_BPS_).to.equal(NEW_POSITION_VALUE_TOLERANCE_BPS);
         expect(TREASURY_BPS_).to.equal(NEW_TREASURY_BPS);
+        expect(ALPACA_BOUNTY_BPS).to.equal(NEW_ALPACA_BOUNTY_BPS);
       });
     });
     context("when non owner try to set params", async () => {
@@ -118,6 +124,7 @@ describe("DeltaNeutralVaultConfig", () => {
             REBALANCE_FACTOR,
             POSITION_VALUE_TOLERANCE_BPS,
             TREASURY_ADDR,
+            ALPACA_BOUNTY_BPS,
             { from: aliceAddress }
           )
         ).to.be.revertedWith("Ownable: caller is not the owner");
@@ -244,6 +251,34 @@ describe("DeltaNeutralVaultConfig", () => {
         );
 
         expect(routeswapRouterAddress).to.be.eq(ethers.constants.AddressZero);
+      });
+    });
+  });
+
+  describe("#setwhitelistedReinvestors", async () => {
+    context("when an owner set whitelistedReinvestors", async () => {
+      it("should work", async () => {
+        await deltaNeutralVaultConfigAsDeployer.setwhitelistedReinvestors([bobAddress], true);
+        const bobWhitelistedReinvestor_true = await deltaNeutralVaultConfigAsDeployer.whitelistedReinvestors(
+          bobAddress
+        );
+
+        expect(bobWhitelistedReinvestor_true).to.equal(true);
+
+        await deltaNeutralVaultConfigAsDeployer.setwhitelistedReinvestors([bobAddress], false);
+
+        const bobWhitelistedReinvestor_false = await deltaNeutralVaultConfigAsDeployer.whitelistedReinvestors(
+          bobAddress
+        );
+        expect(bobWhitelistedReinvestor_false).to.equal(false);
+      });
+    });
+
+    context("when non owner try to set whitelistedReinvestors", async () => {
+      it("should be reverted", async () => {
+        await expect(deltaNeutralVaultConfigAsAlice.setwhitelistedReinvestors([bobAddress], true)).to.be.revertedWith(
+          "Ownable: caller is not the owner"
+        );
       });
     });
   });

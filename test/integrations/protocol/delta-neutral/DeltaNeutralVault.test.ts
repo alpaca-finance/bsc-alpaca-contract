@@ -43,7 +43,7 @@ import {
 import * as Assert from "../../../helpers/assert";
 import * as TimeHelpers from "../../../helpers/time";
 import { parseEther } from "ethers/lib/utils";
-import { DeployHelper } from "../../../helpers/deploy";
+import { DeployHelper, IDeltaNeutralVaultConfig } from "../../../helpers/deploy";
 import { SwapHelper } from "../../../helpers/swap";
 import { Worker02Helper } from "../../../helpers/worker";
 import { MockContract, smockit } from "@eth-optimism/smock";
@@ -343,7 +343,9 @@ describe("DeltaNeutralVault", () => {
       rebalanceFactor: REBALANCE_FACTOR,
       positionValueTolerance: POSITION_VALUE_TOLERANCE_BPS,
       treasuryAddr: eveAddress,
-    };
+      alpacaBountyBps: BigNumber.from("100"),
+    } as IDeltaNeutralVaultConfig;
+
     deltaVaultConfig = await deployHelper.deployDeltaNeutralVaultConfig(deltaNeutralConfig);
     // allow deployer to call rebalance
     await deltaVaultConfig.setWhitelistedRebalancer([deployerAddress], true);
