@@ -30,10 +30,19 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   );
   event LogSetWhitelistedCallers(address indexed _caller, address indexed _address, bool _ok);
   event LogSetWhitelistedRebalancers(address indexed _caller, address indexed _address, bool _ok);
+
+  event LogSetSwapRoute(address indexed _caller, address indexed _swapRouter, address source, address destination);
   event LogSetLeverageLevel(address indexed _caller, uint8 _newLeverageLevel);
   event LogSetFees(address indexed _caller, uint256 _depositFeeBps);
 
+  /// @dev Errors
+  error InvalidSetSwapRoute();
   error LeverageLevelTooLow();
+
+  struct SwapRoute {
+    address swapRouter;
+    address[] paths;
+  }
 
   /// @notice Constants
   uint8 private constant MIN_LEVERAGE_LEVEL = 3;
@@ -62,6 +71,8 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   mapping(address => bool) public whitelistedCallers;
   /// list of whitelisted rebalancers.
   mapping(address => bool) public whitelistedRebalancers;
+
+  mapping(address => mapping(address => SwapRoute)) public swapRoutes;
 
   uint8 public override leverageLevel;
 
@@ -131,6 +142,35 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
       whitelistedRebalancers[_callers[_idx]] = _ok;
       emit LogSetWhitelistedRebalancers(msg.sender, _callers[_idx], _ok);
     }
+  }
+
+  /// @notice Set swapRoute.
+  /// @dev Must only be called by owner.
+  /// @param _from addresses from
+  /// @param _to addresses to
+  /// @param _swapRoutes swap route
+  function setSwapRoutes(
+    address[] calldata _from,
+    address[] calldata _to,
+    SwapRoute[] calldata _swapRoutes
+  ) external onlyOwner {
+    if (_from.length != _to.length || _from.length != _swapRoutes.length) {
+      revert InvalidSetSwapRoute();
+    }
+    for (uint256 _idx = 0; _idx < _from.length; _idx++) {
+      swapRoutes[_from[_idx]][_to[_idx]] = _swapRoutes[_idx];
+      address source = _swapRoutes[_idx].paths[0];
+      address destination = _swapRoutes[_idx].paths[_swapRoutes[_idx].paths.length - 1];
+      emit LogSetSwapRoute(msg.sender, _swapRoutes[_idx].swapRouter, source, destination);
+    }
+  }
+
+  function getSwapRouteRouterAddr(address _source, address _destination) external view returns (address) {
+    return (swapRoutes[_source][_destination].swapRouter);
+  }
+
+  function getSwapRoutePathsAddr(address _source, address _destination) external view returns (address[] memory) {
+    return (swapRoutes[_source][_destination].paths);
   }
 
   /// @notice Set leverage level.
