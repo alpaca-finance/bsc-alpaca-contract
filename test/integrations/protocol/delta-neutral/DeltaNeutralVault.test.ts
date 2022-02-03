@@ -1149,7 +1149,7 @@ describe("DeltaNeutralVault", () => {
                 deltaVaultAsAlice.deposit(stableTokenAmount, assetTokenAmount, aliceAddress, 0, data, {
                   value: assetTokenAmount,
                 })
-              ).to.be.revertedWith(`InvalidPositions("0xdb69904482ca9fcEa5E46258989a953F65f9A911", 2)`);
+              ).to.be.revertedWith(`InvalidPositions("${stableVault.address}", 2)`);
             });
           });
         });
@@ -2094,7 +2094,7 @@ describe("DeltaNeutralVault", () => {
           await expect(
             deltaVaultAsAlice.withdraw(0, ethers.utils.parseEther("100"), shareToWithdraw, withdrawData)
           ).to.be.revertedWith(
-            `InsufficientTokenReceived("0x3e4376c2Ecbb1d2E2dE02869DED2c36b9Ca5C8aB", 100000000000000000000, 49886800906176105501)`
+            `InsufficientTokenReceived("${wbnb.address}", 100000000000000000000, 49886800906176105501)`
           );
         });
 
@@ -2211,7 +2211,7 @@ describe("DeltaNeutralVault", () => {
               );
               const shareToWithdraw = await deltaVault.valueToShare(withdrawValue);
               await expect(deltaVaultAsAlice.withdraw(0, 0, shareToWithdraw, withdrawData)).to.be.revertedWith(
-                `InvalidPositions("0xdb69904482ca9fcEa5E46258989a953F65f9A911", 2)`
+                `InvalidPositions("${stableVault.address}", 2)`
               );
             });
           });
