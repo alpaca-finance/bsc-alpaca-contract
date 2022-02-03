@@ -30,7 +30,8 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   );
   event LogSetWhitelistedCallers(address indexed _caller, address indexed _address, bool _ok);
   event LogSetWhitelistedRebalancers(address indexed _caller, address indexed _address, bool _ok);
-  event LogSetWhitelistedConvertAssetTokens(address indexed _caller, address indexed _address, bool _ok);
+
+  event LogSetSwapRoute(address indexed _caller, address indexed _swapRouter, address source, address destination);
   event LogSetLeverageLevel(address indexed _caller, uint8 _newLeverageLevel);
   event LogSetFees(address indexed _caller, uint256 _depositFeeBps);
 
@@ -158,6 +159,9 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     }
     for (uint256 _idx = 0; _idx < _from.length; _idx++) {
       swapRoutes[_from[_idx]][_to[_idx]] = _swapRoutes[_idx];
+      address source = _swapRoutes[_idx].paths[0];
+      address destination = _swapRoutes[_idx].paths[_swapRoutes[_idx].paths.length - 1];
+      emit LogSetSwapRoute(msg.sender, _swapRoutes[_idx].swapRouter, source, destination);
     }
   }
 

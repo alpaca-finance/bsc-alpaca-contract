@@ -190,11 +190,9 @@ describe("DeltaNeutralVaultConfig", () => {
           paths: paths,
         } as SwapRoute;
 
-        await deltaNeutralVaultConfigAsDeployer.setSwapRoutes(
-          [TOKEN_SOURCE_ADDR],
-          [TOKEN_DESTINATION_ADDR],
-          [routeSwap]
-        );
+        await expect(
+          deltaNeutralVaultConfigAsDeployer.setSwapRoutes([TOKEN_SOURCE_ADDR], [TOKEN_DESTINATION_ADDR], [routeSwap])
+        ).to.be.emit(deltaNeutralVaultConfigAsDeployer, "LogSetSwapRoute");
 
         const routerResult = await deltaNeutralVaultConfigAsDeployer.getSwapRouteRouterAddr(
           TOKEN_SOURCE_ADDR,
