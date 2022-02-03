@@ -26,6 +26,7 @@ import "./interfaces/IWETH.sol";
 import "./interfaces/IWNativeRelayer.sol";
 import "./interfaces/IDeltaNeutralVaultConfig.sol";
 import "./interfaces/IFairLaunch.sol";
+import "./interfaces/ISwapRouter.sol";
 import "../utils/SafeToken.sol";
 import "../utils/FixedPointMathLib.sol";
 import "../utils/Math.sol";
@@ -59,6 +60,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   error PositionsIsHealthy();
   error InsufficientTokenReceived(address _token, uint256 _requiredAmount, uint256 _receivedAmount);
   error InsufficientShareReceived(uint256 _requiredAmount, uint256 _receivedAmount);
+  error InvalidConvertTokenSetting();
   error UnTrustedPrice();
 
   struct Outstanding {
@@ -78,6 +80,14 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   uint256 private constant MAX_BPS = 10000;
   uint8 private constant ACTION_WORK = 1;
   uint8 private constant ACTION_WRAP = 2;
+  uint8 private constant ACTION_CONVERT_ASSET = 3;
+
+  /// @dev constant subAction of CONVERT_ASSET
+  uint8 private constant CONVERT_EXACT_TOKEN_TO_NATIVE = 1;
+  uint8 private constant CONVERT_EXACT_NATIVE_TO_TOKEN = 2;
+  uint8 private constant CONVERT_EXACT_TOKEN_TO_TOKEN = 3;
+  uint8 private constant CONVERT_TOKEN_TO_EXACT_TOKEN = 4;
+
   uint256 private constant PRICE_AGE_SECOND = 1800; // 30 mins
 
   address private lpToken;
@@ -258,7 +268,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     // 4. sanity check
     _depositHealthCheck(_depositValue, _positionInfoBefore, positionInfo());
     _outstandingCheck(_outstandingBefore, _outstanding());
-    
+
     emit LogDeposit(msg.sender, _shareReceiver, _sharesToUser, _stableTokenAmount, _assetTokenAmount);
     return _sharesToUser;
   }
@@ -565,6 +575,9 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       if (_action == ACTION_WRAP) {
         IWETH(config.getWrappedNativeAddr()).deposit{ value: _values[i] }();
       }
+      if (_action == ACTION_CONVERT_ASSET) {
+        _convertAsset(_values[i], _datas[i]);
+      }
     }
   }
 
@@ -622,6 +635,38 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   /// @notice withdraw alpaca to receiver address
   function withdrawAlpaca(address _to, uint256 _amount) external onlyOwner {
     SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(alpacaToken), _to, _amount);
+  }
+
+  /// @notice convert Asset to asset
+  /// @dev convert asset by type
+  /// @param _value native value
+  /// @param _data abi_code data
+  function _convertAsset(uint256 _value, bytes memory _data) internal {
+    (uint256 _swapType, uint256 _amountIn, uint256 _amountOut, address _sourceToken, address _destinationToken) = abi
+      .decode(_data, (uint256, uint256, uint256, address, address));
+
+    address routerAddr = config.getSwapRouteRouterAddr(_sourceToken, _destinationToken);
+
+    address[] memory paths = config.getSwapRoutePathsAddr(_sourceToken, _destinationToken);
+
+    if (routerAddr == address(0) || paths.length == 0) {
+      revert InvalidConvertTokenSetting();
+    }
+
+    SafeERC20Upgradeable.safeApprove(IERC20Upgradeable(_sourceToken), routerAddr, type(uint256).max);
+    if (_swapType == CONVERT_EXACT_TOKEN_TO_NATIVE) {
+      ISwapRouter(routerAddr).swapExactTokensForETH(_amountIn, _amountOut, paths, address(this), block.timestamp);
+    }
+    if (_swapType == CONVERT_EXACT_NATIVE_TO_TOKEN) {
+      ISwapRouter(routerAddr).swapExactETHForTokens{ value: _value }(_amountOut, paths, address(this), block.timestamp);
+    }
+    if (_swapType == CONVERT_EXACT_TOKEN_TO_TOKEN) {
+      ISwapRouter(routerAddr).swapExactTokensForTokens(_amountIn, _amountOut, paths, address(this), block.timestamp);
+    }
+    if (_swapType == CONVERT_TOKEN_TO_EXACT_TOKEN) {
+      ISwapRouter(routerAddr).swapTokensForExactTokens(_amountOut, _amountIn, paths, address(this), block.timestamp);
+    }
+    SafeERC20Upgradeable.safeApprove(IERC20Upgradeable(_sourceToken), routerAddr, 0);
   }
 
   /// @dev Fallback function to accept BNB.
