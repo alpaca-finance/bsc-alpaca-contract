@@ -32,8 +32,6 @@ import "../utils/SafeToken.sol";
 import "../utils/FixedPointMathLib.sol";
 import "../utils/Math.sol";
 
-import "hardhat/console.sol";
-
 contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, OwnableUpgradeable {
   /// @notice Libraries
   using FixedPointMathLib for uint256;
