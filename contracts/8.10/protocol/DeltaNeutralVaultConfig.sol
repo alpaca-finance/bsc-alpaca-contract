@@ -49,7 +49,6 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
 
   /// @notice Constants
   uint8 private constant MIN_LEVERAGE_LEVEL = 3;
-  uint256 private constant MAX_ALPACA_BOUNTY_BPS = 2500;
 
   /// address for wrapped native eg WBNB, WETH
   address public override getWrappedNativeAddr;

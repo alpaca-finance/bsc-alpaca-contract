@@ -55,6 +55,6 @@ interface IDeltaNeutralVaultConfig {
   /// @dev Return if the caller is whitelisted.
   function whitelistedReinvestors(address _caller) external returns (bool);
 
-  /// @dev Return alpcaBountyBps
+  /// @dev Return alpaca bounty bps.
   function alpacaBountyBps() external returns (uint256);
 }
