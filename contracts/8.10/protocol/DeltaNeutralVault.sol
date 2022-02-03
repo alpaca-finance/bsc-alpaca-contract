@@ -27,6 +27,7 @@ import "./interfaces/IWNativeRelayer.sol";
 import "./interfaces/IDeltaNeutralVaultConfig.sol";
 import "./interfaces/IFairLaunch.sol";
 import "./interfaces/ISwapRouter.sol";
+
 import "../utils/SafeToken.sol";
 import "../utils/FixedPointMathLib.sol";
 import "../utils/Math.sol";
@@ -196,6 +197,9 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     assetVaultPosId = IVault(assetVault).nextPositionID();
 
     deposit(_stableTokenAmount, _assetTokenAmount, msg.sender, _minShareReceive, _data);
+    
+    // This mark the beginning of fee collection
+    lastFeeCollected = block.timestamp;
 
     OPENING = false;
 
@@ -234,12 +238,13 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _shareToMint = _pendingManagementFee();
     if (_shareToMint > 0) {
       _mint(config.getTreasuryAddr(), _shareToMint);
+      lastFeeCollected = block.timestamp;
     }
   }
 
   /// @notice Return amount of share pending for minting as a form of management fee
   function _pendingManagementFee() internal view returns (uint256) {
-    if (lastFeeCollected != 0 && lastFeeCollected > block.timestamp) {
+    if (lastFeeCollected != 0 && block.timestamp > lastFeeCollected) {
       uint256 _secondsFromLastCollection = block.timestamp - lastFeeCollected;
       return (totalSupply() * config.mangementFeeBps() * _secondsFromLastCollection) / MAX_BPS;
     }
@@ -570,7 +575,9 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   }
 
   function _positionValue(address _worker) internal view returns (uint256) {
-    return priceHelper.lpToDollar(IWorker02(_worker).totalLpBalance(), lpToken);
+    (uint256 _lpValue, uint256 _lastUpdated) = priceHelper.lpToDollar(IWorker02(_worker).totalLpBalance(), lpToken);
+    if (block.timestamp - _lastUpdated > PRICE_AGE_SECOND) revert UnTrustedPrice();
+    return _lpValue;
   }
 
   function _positionEquity(

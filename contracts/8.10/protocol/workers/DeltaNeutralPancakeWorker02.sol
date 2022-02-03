@@ -293,10 +293,10 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
   /// @dev Return the amount of BaseToken to receive.
   /// @param id The position ID to perform health check. Note: This worker implementation ignore ID as the worker has only one position.
   function health(uint256 id) external view override returns (uint256) {
-    uint256 _totalBalanceInUSD = priceHelper.lpToDollar(totalLpBalance, address(lpToken));
-    (uint256 _tokenPrice, uint256 _lastUpdate) = priceHelper.getTokenPrice(address(baseToken));
+    (uint256 _totalBalanceInUSD, uint256 _lpPriceLastUpdate) = priceHelper.lpToDollar(totalLpBalance, address(lpToken));
+    (uint256 _tokenPrice, uint256 _tokenPricelastUpdate) = priceHelper.getTokenPrice(address(baseToken));
     // NOTE: last updated price should not be over 30 mins
-    if (block.timestamp - _lastUpdate > PRICE_AGE_SECOND) revert UnTrustedPrice();
+    if (block.timestamp - _lpPriceLastUpdate > PRICE_AGE_SECOND || block.timestamp - _tokenPricelastUpdate > PRICE_AGE_SECOND) revert UnTrustedPrice();
     // TODO: discuss round up or down
     return _totalBalanceInUSD.divWadDown(_tokenPrice);
   }
