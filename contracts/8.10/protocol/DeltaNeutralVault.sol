@@ -26,7 +26,7 @@ import "./interfaces/IWETH.sol";
 import "./interfaces/IWNativeRelayer.sol";
 import "./interfaces/IDeltaNeutralVaultConfig.sol";
 import "./interfaces/IFairLaunch.sol";
-import "./interfaces/IRouter.sol";
+import "./interfaces/ISwapRouter.sol";
 import "../utils/SafeToken.sol";
 import "../utils/FixedPointMathLib.sol";
 import "../utils/Math.sol";
@@ -61,7 +61,6 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   error InsufficientTokenReceived(address _token, uint256 _requiredAmount, uint256 _receivedAmount);
   error InsufficientShareReceived(uint256 _requiredAmount, uint256 _receivedAmount);
   error InvalidConvertTokenSetting();
-  error InvalidConvertTokenData();
   error UnTrustedPrice();
 
   struct Outstanding {
@@ -651,26 +650,18 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       revert InvalidConvertTokenSetting();
     }
 
-    if (
-      _swapType != CONVERT_EXACT_TOKEN_TO_NATIVE &&
-      _swapType != CONVERT_EXACT_NATIVE_TO_TOKEN &&
-      _swapType != CONVERT_EXACT_TOKEN_TO_TOKEN &&
-      _swapType != CONVERT_TOKEN_TO_EXACT_TOKEN
-    ) {
-      revert InvalidConvertTokenData();
-    }
     SafeERC20Upgradeable.safeApprove(IERC20Upgradeable(_sourceToken), routerAddr, type(uint256).max);
     if (_swapType == CONVERT_EXACT_TOKEN_TO_NATIVE) {
-      IRouter(routerAddr).swapExactTokensForETH(_amount, _amountOut, paths, address(this), block.timestamp);
+      ISwapRouter(routerAddr).swapExactTokensForETH(_amount, _amountOut, paths, address(this), block.timestamp);
     }
     if (_swapType == CONVERT_EXACT_NATIVE_TO_TOKEN) {
-      IRouter(routerAddr).swapExactETHForTokens{ value: _value }(_amountOut, paths, address(this), block.timestamp);
+      ISwapRouter(routerAddr).swapExactETHForTokens{ value: _value }(_amountOut, paths, address(this), block.timestamp);
     }
     if (_swapType == CONVERT_EXACT_TOKEN_TO_TOKEN) {
-      IRouter(routerAddr).swapExactTokensForTokens(_amount, _amountOut, paths, address(this), block.timestamp);
+      ISwapRouter(routerAddr).swapExactTokensForTokens(_amount, _amountOut, paths, address(this), block.timestamp);
     }
     if (_swapType == CONVERT_TOKEN_TO_EXACT_TOKEN) {
-      IRouter(routerAddr).swapTokensForExactTokens(_amountOut, _amount, paths, address(this), block.timestamp);
+      ISwapRouter(routerAddr).swapTokensForExactTokens(_amountOut, _amount, paths, address(this), block.timestamp);
     }
     SafeERC20Upgradeable.safeApprove(IERC20Upgradeable(_sourceToken), routerAddr, 0);
   }

@@ -39,7 +39,7 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   error LeverageLevelTooLow();
 
   struct SwapRoute {
-    address router;
+    address swapRouter;
     address[] paths;
   }
 
@@ -70,8 +70,6 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   mapping(address => bool) public whitelistedCallers;
   /// list of whitelisted rebalancers.
   mapping(address => bool) public whitelistedRebalancers;
-
-  mapping(address => bool) public whitelistedConvertAssetTokens;
 
   mapping(address => mapping(address => SwapRoute)) public swapRoutes;
 
@@ -164,7 +162,7 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   }
 
   function getSwapRouteRouterAddr(address _source, address _destination) external view returns (address) {
-    return (swapRoutes[_source][_destination].router);
+    return (swapRoutes[_source][_destination].swapRouter);
   }
 
   function getSwapRoutePathsAddr(address _source, address _destination) external view returns (address[] memory) {

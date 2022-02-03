@@ -1597,13 +1597,13 @@ describe("DeltaNeutralVault", () => {
               const baseWbnbPath = [baseToken.address, wbnb.address];
 
               const routeSwapBaseBnb = {
-                router: routerV2.address,
+                swapRouter: routerV2.address,
                 paths: baseWbnbPath,
               };
 
               const wbnbBasePath = [wbnb.address, baseToken.address];
               const routeSwapBnbBase = {
-                router: routerV2.address,
+                swapRouter: routerV2.address,
                 paths: wbnbBasePath,
               };
 
@@ -1990,13 +1990,13 @@ describe("DeltaNeutralVault", () => {
             const baseWbnbPath = [baseToken.address, wbnb.address];
 
             const routeSwapBaseBnb = {
-              router: routerV2.address,
+              swapRouter: routerV2.address,
               paths: baseWbnbPath,
             };
 
             const wbnbBasePath = [wbnb.address, baseToken.address];
             const routeSwapBnbBase = {
-              router: routerV2.address,
+              swapRouter: routerV2.address,
               paths: wbnbBasePath,
             };
 
@@ -2297,7 +2297,7 @@ describe("DeltaNeutralVault", () => {
               ]);
 
               const routeSwapBaseAlpaca = {
-                router: routerV2.address,
+                swapRouter: routerV2.address,
                 paths: [baseToken.address, alpacaToken.address],
               };
               deltaVaultConfig.setSwapRoutes([baseToken.address], [alpacaToken.address], [routeSwapBaseAlpaca]);

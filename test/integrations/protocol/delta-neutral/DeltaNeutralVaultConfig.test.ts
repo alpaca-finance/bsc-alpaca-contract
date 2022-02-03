@@ -9,7 +9,7 @@ chai.use(solidity);
 const { expect } = chai;
 
 interface SwapRoute {
-  router: string;
+  swapRouter: string;
   paths: string[];
 }
 
@@ -186,7 +186,7 @@ describe("DeltaNeutralVaultConfig", () => {
       it("should work", async () => {
         let paths = [TOKEN_SOURCE_ADDR, TOKEN_DESTINATION_ADDR];
         const routeSwap = {
-          router: ROUTER_ADDR,
+          swapRouter: ROUTER_ADDR,
           paths: paths,
         } as SwapRoute;
 
@@ -228,7 +228,7 @@ describe("DeltaNeutralVaultConfig", () => {
       it("should be reverted", async () => {
         let paths = [TOKEN_SOURCE_ADDR, TOKEN_DESTINATION_ADDR];
         const routeSwap = {
-          router: ROUTER_ADDR,
+          swapRouter: ROUTER_ADDR,
           paths: paths,
         } as SwapRoute;
 
