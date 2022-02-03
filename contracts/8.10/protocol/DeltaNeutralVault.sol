@@ -639,7 +639,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   /// @param _value native value
   /// @param _data abi_code data
   function _convertAsset(uint256 _value, bytes memory _data) internal {
-    (uint256 _swapType, uint256 _amount, uint256 _amountOut, address _sourceToken, address _destinationToken) = abi
+    (uint256 _swapType, uint256 _amountIn, uint256 _amountOut, address _sourceToken, address _destinationToken) = abi
       .decode(_data, (uint256, uint256, uint256, address, address));
 
     address routerAddr = config.getSwapRouteRouterAddr(_sourceToken, _destinationToken);
@@ -652,16 +652,16 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
     SafeERC20Upgradeable.safeApprove(IERC20Upgradeable(_sourceToken), routerAddr, type(uint256).max);
     if (_swapType == CONVERT_EXACT_TOKEN_TO_NATIVE) {
-      ISwapRouter(routerAddr).swapExactTokensForETH(_amount, _amountOut, paths, address(this), block.timestamp);
+      ISwapRouter(routerAddr).swapExactTokensForETH(_amountIn, _amountOut, paths, address(this), block.timestamp);
     }
     if (_swapType == CONVERT_EXACT_NATIVE_TO_TOKEN) {
       ISwapRouter(routerAddr).swapExactETHForTokens{ value: _value }(_amountOut, paths, address(this), block.timestamp);
     }
     if (_swapType == CONVERT_EXACT_TOKEN_TO_TOKEN) {
-      ISwapRouter(routerAddr).swapExactTokensForTokens(_amount, _amountOut, paths, address(this), block.timestamp);
+      ISwapRouter(routerAddr).swapExactTokensForTokens(_amountIn, _amountOut, paths, address(this), block.timestamp);
     }
     if (_swapType == CONVERT_TOKEN_TO_EXACT_TOKEN) {
-      ISwapRouter(routerAddr).swapTokensForExactTokens(_amountOut, _amount, paths, address(this), block.timestamp);
+      ISwapRouter(routerAddr).swapTokensForExactTokens(_amountOut, _amountIn, paths, address(this), block.timestamp);
     }
     SafeERC20Upgradeable.safeApprove(IERC20Upgradeable(_sourceToken), routerAddr, 0);
   }

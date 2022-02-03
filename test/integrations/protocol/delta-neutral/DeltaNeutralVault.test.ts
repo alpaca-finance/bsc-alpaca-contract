@@ -460,7 +460,7 @@ describe("DeltaNeutralVault", () => {
 
   interface IConvertAssetByte {
     swapType: number;
-    amount: BigNumber;
+    amountIn: BigNumber;
     amountOut: BigNumber;
     source: string;
     destination: string;
@@ -516,7 +516,7 @@ describe("DeltaNeutralVault", () => {
   function buildConvertAssetByte(input: IConvertAssetByte): string {
     const convertAssetByte = ethers.utils.defaultAbiCoder.encode(
       ["uint256", "uint256", "uint256", "address", "address"],
-      [input.swapType, input.amount, input.amountOut, input.source, input.destination]
+      [input.swapType, input.amountIn, input.amountOut, input.source, input.destination]
     );
 
     return convertAssetByte;
@@ -1665,7 +1665,7 @@ describe("DeltaNeutralVault", () => {
 
               const convertAssetByte = buildConvertAssetByte({
                 swapType: CONVERT_EXACT_TOKEN_TO_NATIVE,
-                amount: ethers.constants.WeiPerEther,
+                amountIn: ethers.constants.WeiPerEther,
                 amountOut: ethers.constants.Zero,
                 source: baseToken.address,
                 destination: wbnb.address,
@@ -2112,7 +2112,7 @@ describe("DeltaNeutralVault", () => {
 
               const convertAssetInput: IConvertAssetByte = {
                 swapType: CONVERT_EXACT_TOKEN_TO_NATIVE,
-                amount: BigNumber.from("149961473752156599529"),
+                amountIn: BigNumber.from("149961473752156599529"),
                 amountOut: ethers.constants.Zero,
                 source: baseToken.address,
                 destination: wbnb.address,
@@ -2252,7 +2252,7 @@ describe("DeltaNeutralVault", () => {
 
               const convertAssetInput: IConvertAssetByte = {
                 swapType: CONVERT_EXACT_NATIVE_TO_TOKEN,
-                amount: ethers.constants.Zero,
+                amountIn: ethers.constants.Zero,
                 amountOut: ethers.constants.Zero,
                 source: wbnb.address,
                 destination: baseToken.address,
@@ -2406,7 +2406,7 @@ describe("DeltaNeutralVault", () => {
 
               const convertAssetInput: IConvertAssetByte = {
                 swapType: CONVERT_EXACT_TOKEN_TO_TOKEN,
-                amount: BigNumber.from("149961473752156599529"),
+                amountIn: BigNumber.from("149961473752156599529"),
                 amountOut: ethers.constants.Zero,
                 source: baseToken.address,
                 destination: alpacaToken.address,
