@@ -28,11 +28,23 @@ interface IDeltaNeutralVaultConfig {
   /// @dev Return if the caller is whitelisted.
   function whitelistedRebalancers(address _caller) external returns (bool);
 
+  /// @dev Return if the caller is exempted from fee.
+  function feeExemptedCallers(address _caller) external returns (bool);
+
   /// @dev Get fairlaunch address.
   function fairLaunchAddr() external returns (address);
 
+  /// @dev Return get Router swap Router
+  function getSwapRouteRouterAddr(address _source, address _destination) external view returns (address);
+
+  /// @dev Return get RouterSwap Path
+  function getSwapRoutePathsAddr(address _source, address _destination) external view returns (address[] memory);
+
   /// @dev Get deposit fee.
   function depositFeeBps() external returns (uint256);
+
+  /// @dev Get withdrawal fee.
+  function withdrawalFeeBps() external returns (uint256);
 
   /// @dev Get leverage level.
   function leverageLevel() external returns (uint8);

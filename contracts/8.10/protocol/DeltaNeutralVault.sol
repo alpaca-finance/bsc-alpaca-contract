@@ -26,6 +26,7 @@ import "./interfaces/IWETH.sol";
 import "./interfaces/IWNativeRelayer.sol";
 import "./interfaces/IDeltaNeutralVaultConfig.sol";
 import "./interfaces/IFairLaunch.sol";
+import "./interfaces/ISwapRouter.sol";
 import "../utils/SafeToken.sol";
 import "../utils/FixedPointMathLib.sol";
 import "../utils/Math.sol";
@@ -59,6 +60,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   error PositionsIsHealthy();
   error InsufficientTokenReceived(address _token, uint256 _requiredAmount, uint256 _receivedAmount);
   error InsufficientShareReceived(uint256 _requiredAmount, uint256 _receivedAmount);
+  error InvalidConvertTokenSetting();
   error UnTrustedPrice();
 
   struct Outstanding {
@@ -78,6 +80,14 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   uint256 private constant MAX_BPS = 10000;
   uint8 private constant ACTION_WORK = 1;
   uint8 private constant ACTION_WRAP = 2;
+  uint8 private constant ACTION_CONVERT_ASSET = 3;
+
+  /// @dev constant subAction of CONVERT_ASSET
+  uint8 private constant CONVERT_EXACT_TOKEN_TO_NATIVE = 1;
+  uint8 private constant CONVERT_EXACT_NATIVE_TO_TOKEN = 2;
+  uint8 private constant CONVERT_EXACT_TOKEN_TO_TOKEN = 3;
+  uint8 private constant CONVERT_TOKEN_TO_EXACT_TOKEN = 4;
+
   uint256 private constant PRICE_AGE_SECOND = 1800; // 30 mins
 
   address private lpToken;
@@ -258,7 +268,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     // 4. sanity check
     _depositHealthCheck(_depositValue, _positionInfoBefore, positionInfo());
     _outstandingCheck(_outstandingBefore, _outstanding());
-    
+
     emit LogDeposit(msg.sender, _shareReceiver, _sharesToUser, _stableTokenAmount, _assetTokenAmount);
     return _sharesToUser;
   }
@@ -274,12 +284,15 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _shareAmount,
     bytes calldata _data
   ) public onlyEOAorWhitelisted nonReentrant returns (uint256 _withdrawValue) {
-    address _shareOwner = msg.sender;
     PositionInfo memory _positionInfoBefore = positionInfo();
     Outstanding memory _outstandingBefore = _outstanding();
 
-    uint256 _shareValue = shareToValue(_shareAmount);
-    _burn(_shareOwner, _shareAmount);
+    uint256 _withdrawalFeeBps = config.feeExemptedCallers(msg.sender) ? 0 : config.withdrawalFeeBps();
+    uint256 _shareToWithdraw = ((MAX_BPS - _withdrawalFeeBps) * _shareAmount) / MAX_BPS;
+    // burn shares from share owner
+    _burn(msg.sender, _shareAmount);
+    // mint shares equal to withdrawal fee to treasury.
+    _mint(config.getTreasuryAddr(), _shareAmount - _shareToWithdraw);
 
     {
       (uint8[] memory actions, uint256[] memory values, bytes[] memory _datas) = abi.decode(
@@ -305,8 +318,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       revert InsufficientTokenReceived(assetToken, _minAssetTokenAmount, _assetTokenBack);
     }
 
-    _transferTokenToShareOwner(_shareOwner, stableToken, _stableTokenBack);
-    _transferTokenToShareOwner(_shareOwner, assetToken, _assetTokenBack);
+    _transferTokenToShareOwner(msg.sender, stableToken, _stableTokenBack);
+    _transferTokenToShareOwner(msg.sender, assetToken, _assetTokenBack);
 
     uint256 _withdrawValue;
     {
@@ -320,7 +333,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     _withdrawHealthCheck(_withdrawValue, _positionInfoBefore, _positionInfoAfter);
     _outstandingCheck(_outstandingBefore, _outstandingAfter);
 
-    emit LogWithdraw(_shareOwner, _stableTokenBack, _assetTokenBack);
+    emit LogWithdraw(msg.sender, _stableTokenBack, _assetTokenBack);
     return _withdrawValue;
   }
 
@@ -562,6 +575,9 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       if (_action == ACTION_WRAP) {
         IWETH(config.getWrappedNativeAddr()).deposit{ value: _values[i] }();
       }
+      if (_action == ACTION_CONVERT_ASSET) {
+        _convertAsset(_values[i], _datas[i]);
+      }
     }
   }
 
@@ -619,6 +635,38 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   /// @notice withdraw alpaca to receiver address
   function withdrawAlpaca(address _to, uint256 _amount) external onlyOwner {
     SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(alpacaToken), _to, _amount);
+  }
+
+  /// @notice convert Asset to asset
+  /// @dev convert asset by type
+  /// @param _value native value
+  /// @param _data abi_code data
+  function _convertAsset(uint256 _value, bytes memory _data) internal {
+    (uint256 _swapType, uint256 _amountIn, uint256 _amountOut, address _sourceToken, address _destinationToken) = abi
+      .decode(_data, (uint256, uint256, uint256, address, address));
+
+    address routerAddr = config.getSwapRouteRouterAddr(_sourceToken, _destinationToken);
+
+    address[] memory paths = config.getSwapRoutePathsAddr(_sourceToken, _destinationToken);
+
+    if (routerAddr == address(0) || paths.length == 0) {
+      revert InvalidConvertTokenSetting();
+    }
+
+    SafeERC20Upgradeable.safeApprove(IERC20Upgradeable(_sourceToken), routerAddr, type(uint256).max);
+    if (_swapType == CONVERT_EXACT_TOKEN_TO_NATIVE) {
+      ISwapRouter(routerAddr).swapExactTokensForETH(_amountIn, _amountOut, paths, address(this), block.timestamp);
+    }
+    if (_swapType == CONVERT_EXACT_NATIVE_TO_TOKEN) {
+      ISwapRouter(routerAddr).swapExactETHForTokens{ value: _value }(_amountOut, paths, address(this), block.timestamp);
+    }
+    if (_swapType == CONVERT_EXACT_TOKEN_TO_TOKEN) {
+      ISwapRouter(routerAddr).swapExactTokensForTokens(_amountIn, _amountOut, paths, address(this), block.timestamp);
+    }
+    if (_swapType == CONVERT_TOKEN_TO_EXACT_TOKEN) {
+      ISwapRouter(routerAddr).swapTokensForExactTokens(_amountOut, _amountIn, paths, address(this), block.timestamp);
+    }
+    SafeERC20Upgradeable.safeApprove(IERC20Upgradeable(_sourceToken), routerAddr, 0);
   }
 
   /// @dev Fallback function to accept BNB.
