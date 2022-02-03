@@ -51,4 +51,7 @@ interface IDeltaNeutralVaultConfig {
 
   /// @dev Return the address of treasury account
   function getTreasuryAddr() external view returns (address);
+
+  /// @dev Return if delta neutral vault accept incoming equity.
+  function isAcceptMoreEquity(uint256 _currentEquity, uint256 _newEquity) external view returns (bool);
 }

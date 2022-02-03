@@ -76,6 +76,8 @@ describe("DeltaNeutralVault", () => {
   // Delta Vault Config
   const REBALANCE_FACTOR = "6500";
   const POSITION_VALUE_TOLERANCE_BPS = "200";
+  const MAX_VAULT_EQUITY = ethers.utils.parseEther("100000");
+  const MAX_NEW_EQUITY = ethers.utils.parseEther("10000");
   const DEPOSIT_FEE_BPS = "0"; // 0%
 
   // Delta Vault
@@ -346,6 +348,7 @@ describe("DeltaNeutralVault", () => {
     };
     deltaVaultConfig = await deployHelper.deployDeltaNeutralVaultConfig(deltaNeutralConfig);
     // allow deployer to call rebalance
+    await deltaVaultConfig.setEquityLimit(MAX_VAULT_EQUITY, MAX_NEW_EQUITY);
     await deltaVaultConfig.setWhitelistedRebalancer([deployerAddress], true);
     await deltaVaultConfig.setLeverageLevel(3);
 
@@ -1747,6 +1750,85 @@ describe("DeltaNeutralVault", () => {
             expectedDeltaVaultShare.toString(),
             treasuryShareAfter.sub(treasuryShareBefore).toString()
           );
+        });
+      });
+
+      context("when alice deposit exceed equity limit", async () => {
+        it("should be revert", async () => {
+          const depositStableTokenAmount = ethers.utils.parseEther("500");
+          const depositAssetTokenAmount = ethers.utils.parseEther("500");
+
+          await baseTokenAsAlice.approve(deltaVault.address, depositStableTokenAmount);
+
+          const stableWorkbyteInput: IDepositWorkByte = {
+            posId: 1,
+            vaultAddress: stableVault.address,
+            workerAddress: stableVaultWorker.address,
+            twoSidesStrat: stableTwoSidesStrat.address,
+            principalAmount: ethers.utils.parseEther("125"),
+            borrowAmount: ethers.utils.parseEther("500"),
+            farmingTokenAmount: ethers.utils.parseEther("125"),
+            maxReturn: BigNumber.from(0),
+            minLpReceive: BigNumber.from(0),
+          };
+
+          const assetWorkbyteInput: IDepositWorkByte = {
+            posId: 1,
+            vaultAddress: assetVault.address,
+            workerAddress: assetVaultWorker.address,
+            twoSidesStrat: assetTwoSidesStrat.address,
+            principalAmount: ethers.utils.parseEther("375"),
+            borrowAmount: ethers.utils.parseEther("1500"),
+            farmingTokenAmount: ethers.utils.parseEther("375"),
+            maxReturn: BigNumber.from(0),
+            minLpReceive: BigNumber.from(0),
+          };
+
+          const stableWorkByte = buildDepositWorkByte(stableWorkbyteInput);
+          const assetWorkByte = buildDepositWorkByte(assetWorkbyteInput);
+
+          const data = ethers.utils.defaultAbiCoder.encode(
+            ["uint8[]", "uint256[]", "bytes[]"],
+            [
+              [ACTION_WORK, ACTION_WORK],
+              [0, 0],
+              [stableWorkByte, assetWorkByte],
+            ]
+          );
+
+          const stableTokenPrice = ethers.utils.parseEther("1");
+          const assetTokenPrice = ethers.utils.parseEther("1");
+          const lpPrice = ethers.utils.parseEther("2");
+          const latest = await TimeHelpers.latest();
+          mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
+            if (token === baseToken.address) {
+              return [stableTokenPrice, latest];
+            }
+            if (token === wbnb.address) {
+              return [assetTokenPrice, latest];
+            }
+            return [0, latest];
+          });
+
+          mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+            return lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1"));
+          });
+
+          await deltaVaultConfig.setEquityLimit(ethers.utils.parseEther("1"), MAX_NEW_EQUITY);
+          // revert because max vault equity limit
+          await expect(
+            deltaVaultAsAlice.deposit(depositStableTokenAmount, depositAssetTokenAmount, aliceAddress, 0, data, {
+              value: depositAssetTokenAmount,
+            })
+          ).to.revertedWith("NewEquityExceedLimit()");
+
+          await deltaVaultConfig.setEquityLimit(MAX_VAULT_EQUITY, ethers.utils.parseEther("1"));
+          // revert because max new equity limit
+          await expect(
+            deltaVaultAsAlice.deposit(depositStableTokenAmount, depositAssetTokenAmount, aliceAddress, 0, data, {
+              value: depositAssetTokenAmount,
+            })
+          ).to.revertedWith("NewEquityExceedLimit()");
         });
       });
     });

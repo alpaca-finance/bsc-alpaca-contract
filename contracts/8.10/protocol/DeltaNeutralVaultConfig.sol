@@ -35,6 +35,7 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   event LogSetSwapRoute(address indexed _caller, address indexed _swapRouter, address source, address destination);
   event LogSetLeverageLevel(address indexed _caller, uint8 _newLeverageLevel);
   event LogSetFees(address indexed _caller, uint256 _depositFeeBps, uint256 _withdrawalFeeBps);
+  event LogSetEquityLimit(address indexed _caller, uint256 _maxVaultEquity,uint256 _maxNewEquity);
 
   /// @dev Errors
   error InvalidSetSwapRoute();
@@ -48,6 +49,12 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   /// @notice Constants
   uint8 private constant MIN_LEVERAGE_LEVEL = 3;
 
+  /// maximum total equity in vault (usd).
+  uint256 private maxVaultEquity;
+
+  /// maximum accaptable new equity (usd).
+  uint256 private maxNewEquity;
+
   /// address for wrapped native eg WBNB, WETH
   address public override getWrappedNativeAddr;
 
@@ -59,11 +66,13 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
 
   /// threshold that must be reached to allow rebalancing
   uint256 public override rebalanceFactor;
+
   /// Tolerance bps that allow margin for misc calculation
   uint256 public override positionValueTolerance;
 
   /// @notice Fee when user deposits to delta neutral vault
   uint256 public override depositFeeBps;
+
   /// @notice Fee when user withdraws from delta neutral vault
   uint256 public override withdrawalFeeBps;
 
@@ -212,6 +221,26 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   /// @dev Return the treasuryAddr.
   function getTreasuryAddr() external view override returns (address) {
     return treasury == address(0) ? 0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51 : treasury;
+  }
+
+  /// @notice Set equity limit.
+  /// @dev Must only be called by owner.
+  /// @param _maxVaultEquity Maximum vault equity in usd.
+  /// @param _maxNewEquity Maximum new equity in usd.
+  function setEquityLimit(uint256 _maxVaultEquity, uint256 _maxNewEquity) external onlyOwner {
+    maxVaultEquity = _maxVaultEquity;
+    maxNewEquity = _maxNewEquity;
+    emit LogSetEquityLimit(msg.sender, _maxVaultEquity, _maxNewEquity);
+  }
+
+  /// @notice Return if vault can accept new equity.
+  /// @param _currentEquity Current vault equity.
+  /// @param _newEquity New equity to deposit.
+  function isAcceptMoreEquity(uint256 _currentEquity, uint256 _newEquity) external view returns (bool) {
+    if(_newEquity > maxNewEquity || _currentEquity + _newEquity > maxVaultEquity){
+      return false;
+    }
+    return true;
   }
   
 }

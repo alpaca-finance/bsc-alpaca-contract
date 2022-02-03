@@ -62,6 +62,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   error InsufficientShareReceived(uint256 _requiredAmount, uint256 _receivedAmount);
   error InvalidConvertTokenSetting();
   error UnTrustedPrice();
+  error NewEquityExceedLimit();
 
   struct Outstanding {
     uint256 stableAmount;
@@ -234,6 +235,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _minShareReceive,
     bytes calldata _data
   ) public payable onlyEOAorWhitelisted nonReentrant returns (uint256 _sharesToUser) {
+    
     PositionInfo memory _positionInfoBefore = positionInfo();
     Outstanding memory _outstandingBefore = _outstanding();
     _outstandingBefore.nativeAmount = _outstandingBefore.nativeAmount - msg.value;
@@ -246,6 +248,10 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     // TODO: discuss round up or down
     uint256 _depositValue = _stableTokenAmount.mulWadDown(_getTokenPrice(stableToken)) +
       _assetTokenAmount.mulWadDown(_getTokenPrice(assetToken));
+
+    if(!config.isAcceptMoreEquity(_positionInfoBefore.stablePositionEquity + _positionInfoBefore.assetPositionEquity, _depositValue)){
+      revert NewEquityExceedLimit();
+    }
 
     uint256 _mintShares = valueToShare(_depositValue);
     uint256 _sharesToUser = ((MAX_BPS - config.depositFeeBps()) * _mintShares) / MAX_BPS;
