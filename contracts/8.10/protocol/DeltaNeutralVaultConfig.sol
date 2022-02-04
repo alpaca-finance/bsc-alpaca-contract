@@ -16,7 +16,6 @@ pragma solidity 0.8.10;
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 import "./interfaces/IDeltaNeutralVaultConfig.sol";
-import "./interfaces/ISwapRouter.sol";
 
 contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable {
   /// @dev Events

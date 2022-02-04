@@ -3325,9 +3325,6 @@ describe("DeltaNeutralVault", () => {
         let currentBlock = await TimeHelpers.latestBlockNumber();
         console.log("currentBlock before claim", currentBlock);
 
-        //TODO not sure need to accPerShare everytime?
-        await fairLaunch.massUpdatePools();
-
         const stableVaultPendingAlpaca = await fairLaunch.pendingAlpaca(
           stableVaultFairLaunchPoolId,
           deltaVault.address
