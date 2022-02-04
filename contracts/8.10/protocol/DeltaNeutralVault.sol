@@ -52,6 +52,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   event LogReinvest(uint256 _equityBefore, uint256 _equityAfter);
 
   /// @dev Errors
+  error BadReinvestPath();
   error Unauthorized(address _caller);
   error PositionsAlreadyInitialized();
   error PositionsNotInitialized();
@@ -422,8 +423,10 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _equityBefore = totalEquityValue();
     uint256 _alpacaBefore = IERC20Upgradeable(alpacaToken).balanceOf(address(this));
 
-    _claim(IVault(stableVault).fairLaunchPoolId());
-    _claim(IVault(assetVault).fairLaunchPoolId());
+    // ddc63262 is a signature of harvest(uint256)
+    // low-level call prevent revert when harvest fail
+    config.fairLaunchAddr().call(abi.encodeWithSelector(0xddc63262, IVault(stableVault).fairLaunchPoolId()));
+    config.fairLaunchAddr().call(abi.encodeWithSelector(0xddc63262, IVault(assetVault).fairLaunchPoolId()));
 
     uint256 _alpacaAfter = IERC20Upgradeable(alpacaToken).balanceOf(address(this));
 
@@ -432,6 +435,10 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     IERC20Upgradeable(alpacaToken).safeTransfer(config.getTreasuryAddr(), _bounty);
 
     // 3. swap alpaca
+    if (config.getReinvestPath().length == 0) {
+      revert BadReinvestPath();
+    }
+
     ISwapRouter(config.getSwapRouter()).swapTokensForExactTokens(
       0,
       _alpacaAfter - _bounty,
@@ -726,14 +733,6 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     // 4. Reset approve to 0
     IERC20Upgradeable(stableToken).safeApprove(_vault, 0);
     IERC20Upgradeable(assetToken).safeApprove(_vault, 0);
-  }
-
-  /// @dev Claim Alpaca reward for internal
-  function _claim(uint256 _poolId) internal returns (uint256) {
-    uint256 alpacaBefore = IERC20Upgradeable(alpacaToken).balanceOf(address(this));
-    IFairLaunch(config.fairLaunchAddr()).harvest(_poolId);
-    uint256 alpacaAfter = IERC20Upgradeable(alpacaToken).balanceOf(address(this));
-    return alpacaAfter - alpacaBefore;
   }
 
   /// @dev _getTokenPrice with validate last price updated
