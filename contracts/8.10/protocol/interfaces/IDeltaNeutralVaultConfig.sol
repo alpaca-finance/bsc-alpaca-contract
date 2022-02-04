@@ -23,16 +23,16 @@ interface IDeltaNeutralVaultConfig {
   function positionValueTolerance() external view returns (uint256);
 
   /// @dev Return if the caller is whitelisted.
-  function whitelistedCallers(address _caller) external returns (bool);
+  function whitelistedCallers(address _caller) external view returns (bool);
 
   /// @dev Return if the caller is whitelisted.
-  function whitelistedRebalancers(address _caller) external returns (bool);
+  function whitelistedRebalancers(address _caller) external view returns (bool);
 
   /// @dev Return if the caller is exempted from fee.
   function feeExemptedCallers(address _caller) external returns (bool);
 
   /// @dev Get fairlaunch address.
-  function fairLaunchAddr() external returns (address);
+  function fairLaunchAddr() external view returns (address);
 
   /// @dev Return get Router swap Router
   function getSwapRouteRouterAddr(address _source, address _destination) external view returns (address);
@@ -41,17 +41,20 @@ interface IDeltaNeutralVaultConfig {
   function getSwapRoutePathsAddr(address _source, address _destination) external view returns (address[] memory);
 
   /// @dev Get deposit fee.
-  function depositFeeBps() external returns (uint256);
+  function depositFeeBps() external view returns (uint256);
 
   /// @dev Get withdrawal fee.
   function withdrawalFeeBps() external returns (uint256);
 
   /// @dev Get leverage level.
-  function leverageLevel() external returns (uint8);
+  function leverageLevel() external view returns (uint8);
 
   /// @dev Return the address of treasury account
   function getTreasuryAddr() external view returns (address);
 
   /// @dev Return if delta neutral vault position value acceptable.
   function isVaultSizeAcceptable(uint256 _totalPositionValue) external view returns (bool);
+
+  /// @dev Return management fee bps per year.
+  function mangementFeeBps() external view returns (uint256);
 }

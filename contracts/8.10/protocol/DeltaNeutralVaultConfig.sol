@@ -34,12 +34,18 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
 
   event LogSetSwapRoute(address indexed _caller, address indexed _swapRouter, address source, address destination);
   event LogSetLeverageLevel(address indexed _caller, uint8 _newLeverageLevel);
-  event LogSetFees(address indexed _caller, uint256 _depositFeeBps, uint256 _withdrawalFeeBps);
   event LogSetValueLimit(address indexed _caller, uint256 _maxVaultPositionValue);
+  event LogSetFees(
+    address indexed _caller,
+    uint256 _depositFeeBps,
+    uint256 _withdrawalFeeBps,
+    uint256 _mangementFeeBps
+  );
 
   /// @dev Errors
   error InvalidSetSwapRoute();
   error LeverageLevelTooLow();
+  error TooMuchFee(uint256 _depositFeeBps, uint256 _mangementFeeBps);
 
   struct SwapRoute {
     address swapRouter;
@@ -48,44 +54,46 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
 
   /// @notice Constants
   uint8 private constant MIN_LEVERAGE_LEVEL = 3;
+  uint256 private constant MAX_DEPOSIT_FEE_BPS = 1000;
+  uint256 private constant MAX_WITHDRAWAL_FEE_BPS = 1000;
+  uint256 private constant MAX_MANGEMENT_FEE_BPS = 1000;
 
-  /// maximum total position value in vault.
-  uint256 private maxVaultPositionValue;
+  /// @dev Configuration for Delta Neutral Vault
+  /// getWrappedNativeAddr - address for wrapped native eg WBNB, WETH
+  /// getWNativeRelayer - address for wNtive Relayer
+  /// fairLaunchAddr - FairLaunch contract address
+  /// treasury - address of treasury account
+  /// maxVaultPositionValue - maximum total position value in vault.
+  /// rebalanceFactor - threshold that must be reached to allow rebalancing
+  /// positionValueTolerance- Tolerance bps that allow margin for misc calculation
+  /// depositFeeBps - Fee when user deposit to delta neutral vault
+  /// withdrawalFeeBps - Fee when user withdraw from delta neutral vault
+  /// mangementFeeBps Fee collected as a manager of delta neutral vault
+  /// leverageLevel - Leverage level used for underlying positions
+  /// whitelistedCallers - mapping of whitelisted callers
+  /// whitelistedRebalancers - list of whitelisted rebalancers.
 
-  /// address for wrapped native eg WBNB, WETH
   address public override getWrappedNativeAddr;
-
-  /// address for wNtive Relayer
   address public override getWNativeRelayer;
-
-  /// FairLaunch contract address
   address public fairLaunchAddr;
-
-  /// threshold that must be reached to allow rebalancing
-  uint256 public override rebalanceFactor;
-
-  /// Tolerance bps that allow margin for misc calculation
-  uint256 public override positionValueTolerance;
-
-  /// @notice Fee when user deposits to delta neutral vault
-  uint256 public override depositFeeBps;
-
-  /// @notice Fee when user withdraws from delta neutral vault
-  uint256 public override withdrawalFeeBps;
-
-  /// @notice address of treasury account
   address public treasury;
 
-  /// list of whitelisted callers.
+  uint256 private maxVaultPositionValue;
+  uint256 public override rebalanceFactor;
+  uint256 public override positionValueTolerance;
+
+  uint256 public override depositFeeBps;
+  uint256 public override withdrawalFeeBps;
+  uint256 public override mangementFeeBps;
+
+  uint8 public override leverageLevel;
+
   mapping(address => bool) public whitelistedCallers;
-  /// list of whitelisted rebalancers.
   mapping(address => bool) public whitelistedRebalancers;
   // list of exempted callers.
   mapping(address => bool) public feeExemptedCallers;
 
   mapping(address => mapping(address => SwapRoute)) public swapRoutes;
-
-  uint8 public override leverageLevel;
 
   function initialize(
     address _getWrappedNativeAddr,
@@ -208,11 +216,21 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
 
   /// @notice Set fees.
   /// @dev Must only be called by owner.
-  /// @param _depositFeeBps Fee when user deposit to delta neutral vault.
-  function setFees(uint256 _depositFeeBps, uint256 _withdrawalFeeBps) external onlyOwner {
-    depositFeeBps = _depositFeeBps;
-    withdrawalFeeBps = _withdrawalFeeBps;
-    emit LogSetFees(msg.sender, _depositFeeBps, _withdrawalFeeBps);
+  /// @param _newDepositFeeBps Fee when user deposit to delta neutral vault.
+  /// @param _newWithdrawalFeeBps Fee when user deposit to delta neutral vault.
+  /// @param _newMangementFeeBps Mangement Fee.
+  function setFees(
+    uint256 _newDepositFeeBps,
+    uint256 _newWithdrawalFeeBps,
+    uint256 _newMangementFeeBps
+  ) external onlyOwner {
+    if (_newDepositFeeBps > MAX_DEPOSIT_FEE_BPS || _newMangementFeeBps > MAX_MANGEMENT_FEE_BPS) {
+      revert TooMuchFee(_newDepositFeeBps, MAX_MANGEMENT_FEE_BPS);
+    }
+    depositFeeBps = _newDepositFeeBps;
+    withdrawalFeeBps = _newWithdrawalFeeBps;
+    mangementFeeBps = _newMangementFeeBps;
+    emit LogSetFees(msg.sender, _newDepositFeeBps, _newWithdrawalFeeBps, _newMangementFeeBps);
   }
 
   /// @dev Return the treasuryAddr.
