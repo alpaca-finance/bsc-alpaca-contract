@@ -114,6 +114,7 @@ describe("DeltaNeutralVaultConfig", () => {
         expect(ALPACA_BOUNTY_BPS).to.equal(NEW_ALPACA_BOUNTY_BPS);
       });
     });
+
     context("when non owner try to set params", async () => {
       it("should be reverted", async () => {
         await expect(
@@ -131,6 +132,7 @@ describe("DeltaNeutralVaultConfig", () => {
       });
     });
   });
+
   describe("#setWhitelistedCallers", async () => {
     context("when an owner set whitelistedCallers", async () => {
       it("should work", async () => {
@@ -159,6 +161,7 @@ describe("DeltaNeutralVaultConfig", () => {
       });
     });
   });
+
   describe("#setWhitelistedRebalancer", async () => {
     context("when an owner set whitelistedRebalancer", async () => {
       it("should work", async () => {
@@ -188,73 +191,6 @@ describe("DeltaNeutralVaultConfig", () => {
     });
   });
 
-  describe("#setRouteSwap", async () => {
-    context("when an owner set routeswap ", async () => {
-      it("should work", async () => {
-        let paths = [TOKEN_SOURCE_ADDR, TOKEN_DESTINATION_ADDR];
-        const routeSwap = {
-          swapRouter: ROUTER_ADDR,
-          paths: paths,
-        } as SwapRoute;
-
-        await expect(
-          deltaNeutralVaultConfigAsDeployer.setSwapRoutes([TOKEN_SOURCE_ADDR], [TOKEN_DESTINATION_ADDR], [routeSwap])
-        ).to.be.emit(deltaNeutralVaultConfigAsDeployer, "LogSetSwapRoute");
-
-        const routerResult = await deltaNeutralVaultConfigAsDeployer.getSwapRouteRouterAddr(
-          TOKEN_SOURCE_ADDR,
-          TOKEN_DESTINATION_ADDR
-        );
-
-        expect(routerResult).to.be.eq(ROUTER_ADDR);
-
-        const pathResult = await deltaNeutralVaultConfigAsDeployer.getSwapRoutePathsAddr(
-          TOKEN_SOURCE_ADDR,
-          TOKEN_DESTINATION_ADDR
-        );
-        expect(pathResult.length).to.be.eq(2);
-
-        for (let idx = 0; idx < pathResult.length; idx++) {
-          expect(pathResult[idx]).to.be.eq(paths[idx]);
-        }
-      });
-
-      it("should return empty when not match pair", async () => {
-        const routeswapRouterAddress = await deltaNeutralVaultConfigAsDeployer.getSwapRouteRouterAddr(
-          TOKEN_DESTINATION_ADDR,
-          TOKEN_SOURCE_ADDR
-        );
-
-        expect(routeswapRouterAddress).to.be.eq(ethers.constants.AddressZero);
-      });
-    });
-
-    context("when non owner try to set setSwapRoutes", async () => {
-      it("should be reverted", async () => {
-        let paths = [TOKEN_SOURCE_ADDR, TOKEN_DESTINATION_ADDR];
-        const routeSwap = {
-          swapRouter: ROUTER_ADDR,
-          paths: paths,
-        } as SwapRoute;
-
-        await expect(
-          deltaNeutralVaultConfigAsAlice.setSwapRoutes([TOKEN_SOURCE_ADDR], [TOKEN_DESTINATION_ADDR], [routeSwap])
-        ).to.be.revertedWith("Ownable: caller is not the owner");
-      });
-    });
-
-    context("when an owner get routeswap router before init", async () => {
-      it("should return empty", async () => {
-        const routeswapRouterAddress = await deltaNeutralVaultConfigAsDeployer.getSwapRouteRouterAddr(
-          TOKEN_SOURCE_ADDR,
-          TOKEN_DESTINATION_ADDR
-        );
-
-        expect(routeswapRouterAddress).to.be.eq(ethers.constants.AddressZero);
-      });
-    });
-  });
-
   describe("#setwhitelistedReinvestors", async () => {
     context("when an owner set whitelistedReinvestors", async () => {
       it("should work", async () => {
@@ -273,7 +209,6 @@ describe("DeltaNeutralVaultConfig", () => {
         expect(bobWhitelistedReinvestor_false).to.equal(false);
       });
     });
-    
 
     context("when non owner try to set whitelistedReinvestors", async () => {
       it("should be reverted", async () => {
@@ -283,36 +218,37 @@ describe("DeltaNeutralVaultConfig", () => {
       });
     });
 
-  describe("#setValueLimit", async () => {
-    context("when not an owner call setValueLimit ", async () => {
-      it("should revert", async () => {
-        await expect(deltaNeutralVaultConfigAsAlice.setValueLimit(ethers.utils.parseEther("2"))).to.reverted;
+    describe("#setValueLimit", async () => {
+      context("when not an owner call setValueLimit ", async () => {
+        it("should revert", async () => {
+          await expect(deltaNeutralVaultConfigAsAlice.setValueLimit(ethers.utils.parseEther("2"))).to.reverted;
+        });
+      });
+
+      context("when an owner call setValueLimit ", async () => {
+        it("should work", async () => {
+          const setValueLimitTx = await deltaNeutralVaultConfigAsDeployer.setValueLimit(ethers.utils.parseEther("2"));
+
+          expect(setValueLimitTx)
+            .to.emit(deltaNeutralVaultConfig, "LogSetValueLimit")
+            .withArgs(deployerAddress, ethers.utils.parseEther("2"));
+        });
       });
     });
 
-    context("when an owner call setValueLimit ", async () => {
-      it("should work", async () => {
-        const setValueLimitTx = await deltaNeutralVaultConfigAsDeployer.setValueLimit(ethers.utils.parseEther("2"));
-
-        expect(setValueLimitTx)
-          .to.emit(deltaNeutralVaultConfig, "LogSetValueLimit")
-          .withArgs(deployerAddress, ethers.utils.parseEther("2"));
+    describe("#isVaultSizeAcceptable", async () => {
+      const maxVaultPositionValue = ethers.utils.parseEther("2");
+      beforeEach(async () => {
+        await deltaNeutralVaultConfigAsDeployer.setValueLimit(maxVaultPositionValue);
       });
-    });
-  });
+      context("when isVaultSizeAcceptable is called", async () => {
+        it("should return true if new total position value <= maxVaultPositionValue", async () => {
+          expect(await deltaNeutralVaultConfig.isVaultSizeAcceptable(maxVaultPositionValue)).to.eq(true);
+        });
 
-  describe("#isVaultSizeAcceptable", async () => {
-    const maxVaultPositionValue = ethers.utils.parseEther("2");
-    beforeEach(async () => {
-      await deltaNeutralVaultConfigAsDeployer.setValueLimit(maxVaultPositionValue);
-    });
-    context("when isVaultSizeAcceptable is called", async () => {
-      it("should return true if new total position value <= maxVaultPositionValue", async () => {
-        expect(await deltaNeutralVaultConfig.isVaultSizeAcceptable(maxVaultPositionValue)).to.eq(true);
-      });
-
-      it("should return false if new total position value > maxVaultPositionValue", async () => {
-        expect(await deltaNeutralVaultConfig.isVaultSizeAcceptable(maxVaultPositionValue.add(1))).to.eq(false);
+        it("should return false if new total position value > maxVaultPositionValue", async () => {
+          expect(await deltaNeutralVaultConfig.isVaultSizeAcceptable(maxVaultPositionValue.add(1))).to.eq(false);
+        });
       });
     });
   });

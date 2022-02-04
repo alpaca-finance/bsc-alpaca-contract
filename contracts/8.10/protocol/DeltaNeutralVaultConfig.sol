@@ -16,6 +16,7 @@ pragma solidity 0.8.10;
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 import "./interfaces/IDeltaNeutralVaultConfig.sol";
+import "./interfaces/ISwapRouter.sol";
 
 contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable {
   /// @dev Events
@@ -43,11 +44,17 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     uint256 _withdrawalFeeBps,
     uint256 _mangementFeeBps
   );
+  event SetSwapRouter(address indexed _caller, address _swapRouter);
+  event SetReinvestPath(address indexed _caller, address[] _reinvestPath);
 
   /// @dev Errors
   error InvalidSetSwapRoute();
   error LeverageLevelTooLow();
   error TooMuchFee(uint256 _depositFeeBps, uint256 _mangementFeeBps);
+
+  error InvalidSwapRouter();
+  error InvalidReinvestPath();
+  error InvalidReinvestPathLength();
 
   struct SwapRoute {
     address swapRouter;
@@ -74,6 +81,7 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   /// leverageLevel - Leverage level used for underlying positions
   /// whitelistedCallers - mapping of whitelisted callers
   /// whitelistedRebalancers - list of whitelisted rebalancers.
+  /// router - Router address.
 
   address public override getWrappedNativeAddr;
   address public override getWNativeRelayer;
@@ -90,12 +98,15 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
 
   uint8 public override leverageLevel;
 
+  address alpacaToken;
+  address public swapRouter;
+  address[] public reinvestPath;
+
   mapping(address => bool) public whitelistedCallers;
   mapping(address => bool) public whitelistedRebalancers;
+
   // list of exempted callers.
   mapping(address => bool) public feeExemptedCallers;
-
-  mapping(address => mapping(address => SwapRoute)) public swapRoutes;
 
   /// list of reinvestors
   mapping(address => bool) public whitelistedReinvestors;
@@ -109,10 +120,12 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     uint256 _rebalanceFactor,
     uint256 _positionValueTolerance,
     address _treasury,
-    uint256 _alpacaBountyBps
+    uint256 _alpacaBountyBps,
+    address _alpacaToken
   ) external initializer {
     OwnableUpgradeable.__Ownable_init();
 
+    alpacaToken = _alpacaToken;
     setParams(
       _getWrappedNativeAddr,
       _getWNativeRelayer,
@@ -173,35 +186,6 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
       whitelistedRebalancers[_callers[_idx]] = _ok;
       emit LogSetWhitelistedRebalancers(msg.sender, _callers[_idx], _ok);
     }
-  }
-
-  /// @notice Set swapRoute.
-  /// @dev Must only be called by owner.
-  /// @param _from addresses from
-  /// @param _to addresses to
-  /// @param _swapRoutes swap route
-  function setSwapRoutes(
-    address[] calldata _from,
-    address[] calldata _to,
-    SwapRoute[] calldata _swapRoutes
-  ) external onlyOwner {
-    if (_from.length != _to.length || _from.length != _swapRoutes.length) {
-      revert InvalidSetSwapRoute();
-    }
-    for (uint256 _idx = 0; _idx < _from.length; _idx++) {
-      swapRoutes[_from[_idx]][_to[_idx]] = _swapRoutes[_idx];
-      address source = _swapRoutes[_idx].paths[0];
-      address destination = _swapRoutes[_idx].paths[_swapRoutes[_idx].paths.length - 1];
-      emit LogSetSwapRoute(msg.sender, _swapRoutes[_idx].swapRouter, source, destination);
-    }
-  }
-
-  function getSwapRouteRouterAddr(address _source, address _destination) external view returns (address) {
-    return (swapRoutes[_source][_destination].swapRouter);
-  }
-
-  function getSwapRoutePathsAddr(address _source, address _destination) external view returns (address[] memory) {
-    return (swapRoutes[_source][_destination].paths);
   }
 
   /// @notice Set whitelisted reinvestors.
@@ -284,5 +268,34 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
       return false;
     }
     return true;
+  }
+
+  /// @dev Get the swap router
+  function getSwapRouter() external view returns (address) {
+    return swapRouter;
+  }
+
+  /// @dev Set the reinvest configuration.
+  /// @param _swapRouter - The router address to update.
+  function setSwapRouter(address _swapRouter) external onlyOwner {
+    if (_swapRouter == address(0)) revert InvalidSwapRouter();
+    swapRouter = _swapRouter;
+    emit SetSwapRouter(msg.sender, _swapRouter);
+  }
+
+  /// @dev Set the reinvest path.
+  /// @param _reinvestPath - The reinvest path to update.
+  function setReinvestPath(address[] calldata _reinvestPath) external onlyOwner {
+    if (_reinvestPath.length < 2) revert InvalidReinvestPathLength();
+
+    if (_reinvestPath[0] != alpacaToken) revert InvalidReinvestPath();
+
+    reinvestPath = _reinvestPath;
+    emit SetReinvestPath(msg.sender, _reinvestPath);
+  }
+
+  /// @dev Get the reinvest path.
+  function getReinvestPath() external view returns (address[] memory) {
+    return reinvestPath;
   }
 }
