@@ -430,7 +430,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
     // 2. collect alpaca bounty
     uint256 _bounty = ((_alpacaBountyBps) * (_alpacaAfter - _alpacaBefore)) / MAX_BPS;
-    SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(alpacaToken), config.getTreasuryAddr(), _bounty);
+    IERC20Upgradeable(alpacaToken).safeTransfer(config.getTreasuryAddr(), _bounty);
 
     // 3. swap alpaca
     ISwapRouter(config.getSwapRouter()).swapTokensForExactTokens(
@@ -721,11 +721,6 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     // 4. Reset approve to 0
     IERC20Upgradeable(stableToken).safeApprove(_vault, 0);
     IERC20Upgradeable(assetToken).safeApprove(_vault, 0);
-  }
-
-  /// @notice withdraw alpaca to receiver address
-  function withdrawAlpaca(address _to, uint256 _amount) external onlyOwner {
-    IERC20Upgradeable(alpacaToken).safeTransfer(_to, _amount);
   }
 
   /// @dev Claim Alpaca reward for internal
