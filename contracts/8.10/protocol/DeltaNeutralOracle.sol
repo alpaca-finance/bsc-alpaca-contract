@@ -16,7 +16,7 @@ pragma solidity 0.8.10;
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./interfaces/ILiquidityPair.sol";
-import "./interfaces/IPriceHelper.sol";
+import "./interfaces/IDeltaNeutralOracle.sol";
 import "./interfaces/IChainLinkPriceOracle.sol";
 import "../utils/AlpacaMath.sol";
 
@@ -25,7 +25,7 @@ error InvalidLPAddress();
 error InvalidLPTotalSupply();
 error InvalidDollarAmount();
 
-contract PriceHelper is IPriceHelper, Initializable, OwnableUpgradeable {
+contract DeltaNeutralOracle is IDeltaNeutralOracle, Initializable, OwnableUpgradeable {
   using AlpacaMath for uint256;
 
   /// @notice An address of chainlink usd token
@@ -92,7 +92,7 @@ contract PriceHelper is IPriceHelper, Initializable, OwnableUpgradeable {
 
     (uint256 _p0, uint256 _p0LastUpdate) = getTokenPrice(_token0Address); // in 2**112
     (uint256 _p1, uint256 _p1LastUpdate) = getTokenPrice(_token1Address); // in 2**112
-    
+
     uint256 _olderLastUpdate = _p0LastUpdate > _p1LastUpdate ? _p1LastUpdate : _p0LastUpdate;
     uint256 _px0 = _p0 * (2**112);
     uint256 _px1 = _p1 * (2**112);
@@ -102,6 +102,6 @@ contract PriceHelper is IPriceHelper, Initializable, OwnableUpgradeable {
     // split into 2 sqrts multiplication to prevent uint overflow (note the 2**112)
 
     uint256 _totalValue = (((_sqrtK * 2 * (AlpacaMath.sqrt(_px0))) / (2**56)) * (AlpacaMath.sqrt(_px1))) / (2**56);
-    return (uint256(((_totalValue)) / (2**112 )) , _olderLastUpdate); // change from 2**112 to 2**18
+    return (uint256(((_totalValue)) / (2**112)), _olderLastUpdate); // change from 2**112 to 2**18
   }
 }

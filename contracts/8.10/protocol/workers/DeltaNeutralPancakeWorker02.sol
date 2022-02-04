@@ -25,7 +25,7 @@ import "../interfaces/IPancakeRouter02.sol";
 import "../interfaces/IStrategy.sol";
 import "../interfaces/IWorker02.sol";
 import "../interfaces/IPancakeMasterChef.sol";
-import "../interfaces/IPriceHelper.sol";
+import "../interfaces/IDeltaNeutralOracle.sol";
 import "../interfaces/IVault.sol";
 import "../../utils/SafeToken.sol";
 import "../../utils/FixedPointMathLib.sol";
@@ -88,7 +88,7 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
   IPancakeFactory public factory;
   IPancakeRouter02 public router;
   IPancakePair public override lpToken;
-  IPriceHelper public priceHelper;
+  IDeltaNeutralOracle public priceOracle;
   address public wNative;
   address public override baseToken;
   address public override farmingToken;
@@ -126,7 +126,7 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
     address _treasuryAccount,
     address[] calldata _reinvestPath,
     uint256 _reinvestThreshold,
-    IPriceHelper _priceHelper
+    IDeltaNeutralOracle _priceOracle
   ) external initializer {
     // 1. Initialized imported library
     OwnableUpgradeable.__Ownable_init();
@@ -138,7 +138,7 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
     masterChef = _masterChef;
     router = _router;
     factory = IPancakeFactory(_router.factory());
-    priceHelper = _priceHelper;
+    priceOracle = _priceOracle;
 
     // 3. Assign tokens state variables
     baseToken = _baseToken;
@@ -292,10 +292,11 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
   /// @dev Return the amount of BaseToken to receive.
   /// @param id The position ID to perform health check. Note: This worker implementation ignore ID as the worker has only one position.
   function health(uint256 id) external view override returns (uint256) {
-    (uint256 _totalBalanceInUSD, uint256 _lpPriceLastUpdate) = priceHelper.lpToDollar(totalLpBalance, address(lpToken));
-    (uint256 _tokenPrice, uint256 _tokenPricelastUpdate) = priceHelper.getTokenPrice(address(baseToken));
+    (uint256 _totalBalanceInUSD, uint256 _lpPriceLastUpdate) = priceOracle.lpToDollar(totalLpBalance, address(lpToken));
+    (uint256 _tokenPrice, uint256 _tokenPricelastUpdate) = priceOracle.getTokenPrice(address(baseToken));
     // NOTE: last updated price should not be over 30 mins
-    if (block.timestamp - _lpPriceLastUpdate > 1800 || block.timestamp - _tokenPricelastUpdate > 1800) revert UnTrustedPrice();
+    if (block.timestamp - _lpPriceLastUpdate > 1800 || block.timestamp - _tokenPricelastUpdate > 1800)
+      revert UnTrustedPrice();
     // TODO: discuss round up or down
     return _totalBalanceInUSD.divWadDown(_tokenPrice);
   }
@@ -429,10 +430,10 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
     emit SetReinvestConfig(msg.sender, _reinvestBountyBps, _reinvestThreshold, _reinvestPath);
   }
 
-  /// @dev Set PriceHelper contract.
-  /// @param _priceHelper - PriceHelper contract to update.
-  function setPriceHelper(IPriceHelper _priceHelper) external onlyOwner {
-    priceHelper = _priceHelper;
+  /// @dev Set DeltaNeutralOracle contract.
+  /// @param _priceOracle - DeltaNeutralOracle contract to update.
+  function setPriceOracle(IDeltaNeutralOracle _priceOracle) external onlyOwner {
+    priceOracle = _priceOracle;
   }
 
   /// @dev Set Max reinvest reward for set upper limit reinvest bounty.
