@@ -198,7 +198,7 @@ describe("DeltaNeutralVaultConfig", () => {
           TOKEN_SOURCE_ADDR,
           TOKEN_DESTINATION_ADDR
         );
-        console.log("routerResult", routerResult);
+
         expect(routerResult).to.be.eq(ROUTER_ADDR);
 
         const pathResult = await deltaNeutralVaultConfigAsDeployer.getSwapRoutePathsAddr(
@@ -244,6 +244,40 @@ describe("DeltaNeutralVaultConfig", () => {
         );
 
         expect(routeswapRouterAddress).to.be.eq(ethers.constants.AddressZero);
+      });
+    });
+  });
+
+  describe("#setValueLimit", async () => {
+    context("when not an owner call setValueLimit ", async () => {
+      it("should revert", async () => {
+        await expect(deltaNeutralVaultConfigAsAlice.setValueLimit(ethers.utils.parseEther("2"))).to.reverted;
+      });
+    });
+
+    context("when an owner call setValueLimit ", async () => {
+      it("should work", async () => {
+        const setValueLimitTx = await deltaNeutralVaultConfigAsDeployer.setValueLimit(ethers.utils.parseEther("2"));
+
+        expect(setValueLimitTx)
+          .to.emit(deltaNeutralVaultConfig, "LogSetValueLimit")
+          .withArgs(deployerAddress, ethers.utils.parseEther("2"));
+      });
+    });
+  });
+
+  describe("#isVaultSizeAcceptable", async () => {
+    const maxVaultPositionValue = ethers.utils.parseEther("2");
+    beforeEach(async () => {
+      await deltaNeutralVaultConfigAsDeployer.setValueLimit(maxVaultPositionValue);
+    });
+    context("when isVaultSizeAcceptable is called", async () => {
+      it("should return true if new total position value <= maxVaultPositionValue", async () => {
+        expect(await deltaNeutralVaultConfig.isVaultSizeAcceptable(maxVaultPositionValue)).to.eq(true);
+      });
+
+      it("should return false if new total position value > maxVaultPositionValue", async () => {
+        expect(await deltaNeutralVaultConfig.isVaultSizeAcceptable(maxVaultPositionValue.add(1))).to.eq(false);
       });
     });
   });

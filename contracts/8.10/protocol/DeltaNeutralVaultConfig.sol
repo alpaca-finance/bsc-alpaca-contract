@@ -34,7 +34,13 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
 
   event LogSetSwapRoute(address indexed _caller, address indexed _swapRouter, address source, address destination);
   event LogSetLeverageLevel(address indexed _caller, uint8 _newLeverageLevel);
-  event LogSetFees(address indexed _caller, uint256 _depositFeeBps, uint256 _withdrawalFeeBps, uint256 _mangementFeeBps);
+  event LogSetValueLimit(address indexed _caller, uint256 _maxVaultPositionValue);
+  event LogSetFees(
+    address indexed _caller,
+    uint256 _depositFeeBps,
+    uint256 _withdrawalFeeBps,
+    uint256 _mangementFeeBps
+  );
 
   /// @dev Errors
   error InvalidSetSwapRoute();
@@ -57,6 +63,7 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   /// getWNativeRelayer - address for wNtive Relayer
   /// fairLaunchAddr - FairLaunch contract address
   /// treasury - address of treasury account
+  /// maxVaultPositionValue - maximum total position value in vault.
   /// rebalanceFactor - threshold that must be reached to allow rebalancing
   /// positionValueTolerance- Tolerance bps that allow margin for misc calculation
   /// depositFeeBps - Fee when user deposit to delta neutral vault
@@ -71,6 +78,7 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   address public fairLaunchAddr;
   address public treasury;
 
+  uint256 private maxVaultPositionValue;
   uint256 public override rebalanceFactor;
   uint256 public override positionValueTolerance;
 
@@ -211,19 +219,39 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   /// @param _newDepositFeeBps Fee when user deposit to delta neutral vault.
   /// @param _newWithdrawalFeeBps Fee when user deposit to delta neutral vault.
   /// @param _newMangementFeeBps Mangement Fee.
-  function setFees(uint256 _newDepositFeeBps, uint256 _newWithdrawalFeeBps ,uint256 _newMangementFeeBps) external onlyOwner {
+  function setFees(
+    uint256 _newDepositFeeBps,
+    uint256 _newWithdrawalFeeBps,
+    uint256 _newMangementFeeBps
+  ) external onlyOwner {
     if (_newDepositFeeBps > MAX_DEPOSIT_FEE_BPS || _newMangementFeeBps > MAX_MANGEMENT_FEE_BPS) {
       revert TooMuchFee(_newDepositFeeBps, MAX_MANGEMENT_FEE_BPS);
     }
     depositFeeBps = _newDepositFeeBps;
     withdrawalFeeBps = _newWithdrawalFeeBps;
     mangementFeeBps = _newMangementFeeBps;
-    emit LogSetFees(msg.sender, _newDepositFeeBps, _newWithdrawalFeeBps ,_newMangementFeeBps);
+    emit LogSetFees(msg.sender, _newDepositFeeBps, _newWithdrawalFeeBps, _newMangementFeeBps);
   }
 
   /// @dev Return the treasuryAddr.
   function getTreasuryAddr() external view override returns (address) {
     return treasury == address(0) ? 0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51 : treasury;
   }
-  
+
+  /// @notice Set position value limit.
+  /// @dev Must only be called by owner.
+  /// @param _maxVaultPositionValue Maximum vault size position value.
+  function setValueLimit(uint256 _maxVaultPositionValue) external onlyOwner {
+    maxVaultPositionValue = _maxVaultPositionValue;
+    emit LogSetValueLimit(msg.sender, _maxVaultPositionValue);
+  }
+
+  /// @notice Return if vault can accept new position value.
+  /// @param _totalPositionValue new vault position value.
+  function isVaultSizeAcceptable(uint256 _totalPositionValue) external view returns (bool) {
+    if (_totalPositionValue > maxVaultPositionValue) {
+      return false;
+    }
+    return true;
+  }
 }
