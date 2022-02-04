@@ -97,8 +97,6 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
 
   mapping(address => mapping(address => SwapRoute)) public swapRoutes;
 
-  uint8 public override leverageLevel;
-
   /// list of reinvestors
   mapping(address => bool) public whitelistedReinvestors;
 

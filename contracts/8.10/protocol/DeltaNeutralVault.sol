@@ -135,6 +135,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   /// @dev Require that the caller must be a reinvestor account.
   modifier onlyReinvestors() {
     if (!config.whitelistedReinvestors(msg.sender)) revert Unauthorized(msg.sender);
+    _;
   }
 
   /// @dev Collect management fee before interactions
