@@ -145,6 +145,8 @@ export interface IDeltaNeutralVaultConfig {
   rebalanceFactor: BigNumberish;
   positionValueTolerance: BigNumberish;
   treasuryAddr: string;
+  alpacaBountyBps: BigNumberish;
+  alpacaTokenAddress: string;
 }
 
 export class DeployHelper {
@@ -972,6 +974,8 @@ export class DeployHelper {
       input.rebalanceFactor,
       input.positionValueTolerance,
       input.treasuryAddr,
+      input.alpacaBountyBps,
+      input.alpacaTokenAddress,
     ])) as DeltaNeutralVaultConfig;
     await deltaNeutralVaultConfig.deployed();
     return deltaNeutralVaultConfig;

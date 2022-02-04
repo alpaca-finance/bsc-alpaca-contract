@@ -49,6 +49,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   );
   event LogWithdraw(address indexed _shareOwner, uint256 _minStableTokenAmount, uint256 _minAssetTokenAmount);
   event LogRebalance(uint256 _equityBefore, uint256 _equityAfter);
+  event LogReinvest(uint256 _equityBefore, uint256 _equityAfter);
 
   /// @dev Errors
   error Unauthorized(address _caller);
@@ -65,6 +66,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   error InsufficientShareReceived(uint256 _requiredAmount, uint256 _receivedAmount);
   error InvalidConvertTokenSetting();
   error UnTrustedPrice();
+  error BountyExceedLimit();
   error PositionValueExceedLimit();
 
   struct Outstanding {
@@ -81,16 +83,11 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   }
 
   /// @dev constants
+  uint64 private constant MAX_BPS = 10000;
+  uint64 private constant MAX_ALPACA_BOUNTY_BPS = 2500; // 25%
+
   uint8 private constant ACTION_WORK = 1;
   uint8 private constant ACTION_WRAP = 2;
-  uint8 private constant ACTION_CONVERT_ASSET = 3;
-
-  /// @dev constant subAction of CONVERT_ASSET
-  uint8 private constant CONVERT_EXACT_TOKEN_TO_NATIVE = 1;
-  uint8 private constant CONVERT_EXACT_NATIVE_TO_TOKEN = 2;
-  uint8 private constant CONVERT_EXACT_TOKEN_TO_TOKEN = 3;
-  uint8 private constant CONVERT_TOKEN_TO_EXACT_TOKEN = 4;
-  uint64 private constant MAX_BPS = 10000;
 
   address private lpToken;
   address public stableVault;
@@ -126,6 +123,12 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   /// @dev Require that the caller must be a rebalancer account.
   modifier onlyRebalancers() {
     if (!config.whitelistedRebalancers(msg.sender)) revert Unauthorized(msg.sender);
+    _;
+  }
+
+  /// @dev Require that the caller must be a reinvestor account.
+  modifier onlyReinvestors() {
+    if (!config.whitelistedReinvestors(msg.sender)) revert Unauthorized(msg.sender);
     _;
   }
 
@@ -362,6 +365,10 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     return _withdrawValue;
   }
 
+  /// @notice Rebalance stable and asset positions.
+  /// @param _actions List of actions to execute.
+  /// @param _values Native token amount.
+  /// @param _datas The calldata to pass along for more working context.
   function rebalance(
     uint8[] memory _actions,
     uint256[] memory _values,
@@ -375,6 +382,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _equityBefore = _positionInfoBefore.stablePositionEquity + _positionInfoBefore.assetPositionEquity;
     uint256 _rebalanceFactor = config.rebalanceFactor(); // bps
 
+    // 1. check if positions need rebalance
     if (
       _stablePositionValue * _rebalanceFactor >= _positionInfoBefore.stablePositionDebtValue * MAX_BPS &&
       _assetPositionValue * _rebalanceFactor >= _positionInfoBefore.assetPositionDebtValue * MAX_BPS
@@ -396,6 +404,56 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     _outstandingCheck(_outstandingBefore, _outstanding());
 
     emit LogRebalance(_equityBefore, _equityAfter);
+  }
+
+  /// @notice Reinvest fund to stable and asset positions.
+  /// @param _actions List of actions to execute.
+  /// @param _values Native token amount.
+  /// @param _datas The calldata to pass along for more working context.
+  function reinvest(
+    uint8[] memory _actions,
+    uint256[] memory _values,
+    bytes[] memory _datas
+  ) external onlyReinvestors {
+    uint256 _alpacaBountyBps = config.alpacaBountyBps();
+    if (_alpacaBountyBps > MAX_ALPACA_BOUNTY_BPS) {
+      revert BountyExceedLimit();
+    }
+
+    // 1.  claim reward from fairlaunch
+    uint256 _equityBefore = totalEquityValue();
+    uint256 _alpacaBefore = IERC20Upgradeable(alpacaToken).balanceOf(address(this));
+
+    _claim(IVault(stableVault).fairLaunchPoolId());
+    _claim(IVault(assetVault).fairLaunchPoolId());
+
+    uint256 _alpacaAfter = IERC20Upgradeable(alpacaToken).balanceOf(address(this));
+
+    // 2. collect alpaca bounty
+    uint256 _bounty = ((_alpacaBountyBps) * (_alpacaAfter - _alpacaBefore)) / MAX_BPS;
+    IERC20Upgradeable(alpacaToken).safeTransfer(config.getTreasuryAddr(), _bounty);
+
+    // 3. swap alpaca
+    ISwapRouter(config.getSwapRouter()).swapTokensForExactTokens(
+      0,
+      _alpacaAfter - _bounty,
+      config.getReinvestPath(),
+      address(this),
+      block.timestamp
+    );
+
+    // 4. execute reinvest
+    {
+      _execute(_actions, _values, _datas);
+    }
+
+    // 5. sanity check
+    uint256 _equityAfter = totalEquityValue();
+    if (_equityAfter <= _equityBefore) {
+      revert UnsafePositionEquity();
+    }
+
+    emit LogReinvest(_equityBefore, _equityAfter);
   }
 
   /// @notice check if position equity and debt are healthy after deposit. LEVERAGE_LEVEL must be >= 3
@@ -508,7 +566,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     }
   }
 
-  /// @notice Check tokens' balance.
+  /// @notice Compare Delta neutral vault tokens' balance before and afrer.
   /// @param _outstandingBefore Tokens' balance before.
   /// @param _outstandingAfter Tokens' balance after.
   function _outstandingCheck(Outstanding memory _outstandingBefore, Outstanding memory _outstandingAfter)
@@ -577,6 +635,9 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     return _totalPositionValue - _totalDebtValue;
   }
 
+  /// @notice Return position debt + pending interest value.
+  /// @param _vault Vault addrss.
+  /// @param _posId Position id.
   function _positionDebtValue(address _vault, uint256 _posId) internal view returns (uint256) {
     (, , uint256 _positionDebtShare) = IVault(_vault).positions(_posId);
     address _token = IVault(_vault).token();
@@ -591,6 +652,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     return _debtAmount.mulWadDown(_getTokenPrice(_token));
   }
 
+  /// @notice Return position value of a worker.
+  /// @param _worker Worker address.
   function _positionValue(address _worker) internal view returns (uint256) {
     (uint256 _lpValue, uint256 _lastUpdated) = priceOracle.lpToDollar(IWorker02(_worker).totalLpBalance(), lpToken);
     if (block.timestamp - _lastUpdated > 1800) revert UnTrustedPrice();
@@ -611,6 +674,9 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   }
 
   /// @notice Proxy function for calling internal action.
+  /// @param _actions List of actions to execute.
+  /// @param _values Native token amount.
+  /// @param _datas The calldata to pass along for more working context.
   function _execute(
     uint8[] memory _actions,
     uint256[] memory _values,
@@ -623,9 +689,6 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       }
       if (_action == ACTION_WRAP) {
         IWETH(config.getWrappedNativeAddr()).deposit{ value: _values[i] }();
-      }
-      if (_action == ACTION_CONVERT_ASSET) {
-        _convertAsset(_values[i], _datas[i]);
       }
     }
   }
@@ -667,55 +730,12 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     IERC20Upgradeable(assetToken).safeApprove(_vault, 0);
   }
 
-  /// @notice Claim Alpaca reward of stable vault and asset vault
-  function claim() external returns (uint256, uint256) {
-    uint256 rewardStableVault = _claim(IVault(stableVault).fairLaunchPoolId());
-    uint256 rewardAssetVault = _claim(IVault(assetVault).fairLaunchPoolId());
-  }
-
   /// @dev Claim Alpaca reward for internal
   function _claim(uint256 _poolId) internal returns (uint256) {
     uint256 alpacaBefore = IERC20Upgradeable(alpacaToken).balanceOf(address(this));
     IFairLaunch(config.fairLaunchAddr()).harvest(_poolId);
     uint256 alpacaAfter = IERC20Upgradeable(alpacaToken).balanceOf(address(this));
     return alpacaAfter - alpacaBefore;
-  }
-
-  /// @notice withdraw alpaca to receiver address
-  function withdrawAlpaca(address _to, uint256 _amount) external onlyOwner {
-    IERC20Upgradeable(alpacaToken).safeTransfer(_to, _amount);
-  }
-
-  /// @notice convert Asset to asset
-  /// @dev convert asset by type
-  /// @param _value native value
-  /// @param _data abi_code data
-  function _convertAsset(uint256 _value, bytes memory _data) internal {
-    (uint256 _swapType, uint256 _amountIn, uint256 _amountOut, address _sourceToken, address _destinationToken) = abi
-      .decode(_data, (uint256, uint256, uint256, address, address));
-
-    address routerAddr = config.getSwapRouteRouterAddr(_sourceToken, _destinationToken);
-
-    address[] memory paths = config.getSwapRoutePathsAddr(_sourceToken, _destinationToken);
-
-    if (routerAddr == address(0) || paths.length == 0) {
-      revert InvalidConvertTokenSetting();
-    }
-
-    IERC20Upgradeable(_sourceToken).safeApprove(routerAddr, type(uint256).max);
-    if (_swapType == CONVERT_EXACT_TOKEN_TO_NATIVE) {
-      ISwapRouter(routerAddr).swapExactTokensForETH(_amountIn, _amountOut, paths, address(this), block.timestamp);
-    }
-    if (_swapType == CONVERT_EXACT_NATIVE_TO_TOKEN) {
-      ISwapRouter(routerAddr).swapExactETHForTokens{ value: _value }(_amountOut, paths, address(this), block.timestamp);
-    }
-    if (_swapType == CONVERT_EXACT_TOKEN_TO_TOKEN) {
-      ISwapRouter(routerAddr).swapExactTokensForTokens(_amountIn, _amountOut, paths, address(this), block.timestamp);
-    }
-    if (_swapType == CONVERT_TOKEN_TO_EXACT_TOKEN) {
-      ISwapRouter(routerAddr).swapTokensForExactTokens(_amountOut, _amountIn, paths, address(this), block.timestamp);
-    }
-    IERC20Upgradeable(_sourceToken).safeApprove(routerAddr, 0);
   }
 
   /// @dev _getTokenPrice with validate last price updated
