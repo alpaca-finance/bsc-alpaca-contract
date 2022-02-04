@@ -431,14 +431,6 @@ describe("DeltaNeutralVault", () => {
     minFarmingToken: BigNumber;
   }
 
-  interface IConvertAssetByte {
-    swapType: number;
-    amountIn: BigNumber;
-    amountOut: BigNumber;
-    source: string;
-    destination: string;
-  }
-
   function buildDepositWorkByte(input: IDepositWorkByte): string {
     const workByte = ethers.utils.defaultAbiCoder.encode(
       ["address", "uint256", "address", "uint256", "uint256", "uint256", "bytes"],
