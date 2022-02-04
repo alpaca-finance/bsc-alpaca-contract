@@ -2854,8 +2854,8 @@ describe("DeltaNeutralVault", () => {
             }
           );
           const lastCollectFeeAfterDeposit = await deltaVault.lastFeeCollected();
-          const expectedManagementFee = totalSupplyBeforeDeposit.mul(lastCollectFeeAfterDeposit.sub(lastCollectFeeBeforeDeposit)).mul(mngfeerate).div(315360000000);
-          const actualManagementFee = await deltaVault.balanceOf(treasuryAddress);
+          let expectedManagementFee = totalSupplyBeforeDeposit.mul(lastCollectFeeAfterDeposit.sub(lastCollectFeeBeforeDeposit)).mul(mngfeerate).div(315360000000);
+          let actualManagementFee = await deltaVault.balanceOf(treasuryAddress);
           Assert.assertAlmostEqual(actualManagementFee.toString(), expectedManagementFee.toString());
           // ======== withdraw ======
           await swapHelper.loadReserves([baseToken.address, wbnb.address]);
@@ -2906,10 +2906,16 @@ describe("DeltaNeutralVault", () => {
           await TimeHelpers.increase(BigNumber.from("3600"));
           latest = await TimeHelpers.latest();
           const shareToWithdraw = await deltaVault.valueToShare(withdrawValue);
-
+          const totalSupplyBeforeWithdraw = await deltaVault.totalSupply();
+          const lastCollectFeeBeforeWithdraw = await deltaVault.lastFeeCollected();
+          const manageFeeBalanceBeforeWithdraw = await deltaVault.balanceOf(treasuryAddress);
           const withdrawTx = await deltaVaultAsAlice.withdraw(0, 0, shareToWithdraw, withdrawData);
 
-          expect(await deltaVault.balanceOf(treasuryAddress)).to.not.be.eq(0);
+          const lastCollectFeeAfterWithdraw = await deltaVault.lastFeeCollected();
+          expectedManagementFee = totalSupplyBeforeWithdraw.mul(lastCollectFeeAfterWithdraw.sub(lastCollectFeeBeforeWithdraw)).mul(mngfeerate).div(315360000000);
+          const manageFeeBalanceAfterWithdraw = await deltaVault.balanceOf(treasuryAddress);
+          actualManagementFee = manageFeeBalanceAfterWithdraw.sub(manageFeeBalanceBeforeWithdraw);
+          Assert.assertAlmostEqual(actualManagementFee.toString(), expectedManagementFee.toString());
         });
       });
     });
