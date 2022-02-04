@@ -197,9 +197,6 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     assetVaultPosId = IVault(assetVault).nextPositionID();
 
     deposit(_stableTokenAmount, _assetTokenAmount, msg.sender, _minShareReceive, _data);
-    
-    // This mark the beginning of fee collection
-    lastFeeCollected = block.timestamp;
 
     OPENING = false;
 
@@ -236,17 +233,15 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   /// @notice minting shares as a form of management fee to teasury account
   function _mintFee() internal {
     uint256 _shareToMint = pendingManagementFee();
-    if (_shareToMint > 0) {
-      _mint(config.getTreasuryAddr(), _shareToMint);
-      lastFeeCollected = block.timestamp;
-    }
+    _mint(config.getTreasuryAddr(), _shareToMint);
+    lastFeeCollected = block.timestamp;
   }
 
   /// @notice Return amount of share pending for minting as a form of management fee
   function pendingManagementFee() public view returns (uint256) {
     if (lastFeeCollected != 0 && block.timestamp > lastFeeCollected) {
       uint256 _secondsFromLastCollection = block.timestamp - lastFeeCollected;
-      return (totalSupply() * config.mangementFeeBps() * _secondsFromLastCollection) / (MAX_BPS * 365 days) ;
+      return (totalSupply() * config.mangementFeeBps() * _secondsFromLastCollection) / (MAX_BPS * 365 days);
     }
     return 0;
   }
