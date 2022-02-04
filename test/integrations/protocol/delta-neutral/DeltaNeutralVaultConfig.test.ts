@@ -266,18 +266,18 @@ describe("DeltaNeutralVaultConfig", () => {
     });
   });
 
-  describe("#isAcceptMoreValue", async () => {
+  describe("#isVaultSizeAcceptable", async () => {
     const maxVaultPositionValue = ethers.utils.parseEther("2");
     beforeEach(async () => {
       await deltaNeutralVaultConfigAsDeployer.setValueLimit(maxVaultPositionValue);
     });
-    context("when isAcceptMoreValue is called", async () => {
+    context("when isVaultSizeAcceptable is called", async () => {
       it("should return true if new total position value <= maxVaultPositionValue", async () => {
-        expect(await deltaNeutralVaultConfig.isAcceptMoreValue(maxVaultPositionValue)).to.eq(true);
+        expect(await deltaNeutralVaultConfig.isVaultSizeAcceptable(maxVaultPositionValue)).to.eq(true);
       });
 
       it("should return false if new total position value > maxVaultPositionValue", async () => {
-        expect(await deltaNeutralVaultConfig.isAcceptMoreValue(maxVaultPositionValue.add(1))).to.eq(false);
+        expect(await deltaNeutralVaultConfig.isVaultSizeAcceptable(maxVaultPositionValue.add(1))).to.eq(false);
       });
     });
   });

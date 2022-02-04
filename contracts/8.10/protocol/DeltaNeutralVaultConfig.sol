@@ -230,7 +230,7 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
 
   /// @notice Return if vault can accept new position value.
   /// @param _totalPositionValue new vault position value.
-  function isAcceptMoreValue(uint256 _totalPositionValue) external view returns (bool) {
+  function isVaultSizeAcceptable(uint256 _totalPositionValue) external view returns (bool) {
     if (_totalPositionValue > maxVaultPositionValue) {
       return false;
     }

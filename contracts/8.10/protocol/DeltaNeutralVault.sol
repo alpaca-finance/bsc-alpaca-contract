@@ -390,7 +390,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       _positionInfoAfter.assetPositionDebtValue;
 
     // 1. check if vault accept new total position value
-    if (!config.isAcceptMoreValue(_positionValueAfter)) {
+    if (!config.isVaultSizeAcceptable(_positionValueAfter)) {
       revert PositionValueExceedLimit();
     }
 

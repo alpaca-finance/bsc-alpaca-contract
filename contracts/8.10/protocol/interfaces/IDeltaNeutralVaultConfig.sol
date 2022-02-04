@@ -53,5 +53,5 @@ interface IDeltaNeutralVaultConfig {
   function getTreasuryAddr() external view returns (address);
 
   /// @dev Return if delta neutral vault position value acceptable.
-  function isAcceptMoreValue(uint256 _totalPositionValue) external view returns (bool);
+  function isVaultSizeAcceptable(uint256 _totalPositionValue) external view returns (bool);
 }
