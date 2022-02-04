@@ -248,53 +248,36 @@ describe("DeltaNeutralVaultConfig", () => {
     });
   });
 
-  describe("#setEquityLimit", async () => {
-    context("when not an owner call setEquityLimit ", async () => {
+  describe("#setValueLimit", async () => {
+    context("when not an owner call setValueLimit ", async () => {
       it("should revert", async () => {
-        await expect(
-          deltaNeutralVaultConfigAsAlice.setEquityLimit(ethers.utils.parseEther("2"), ethers.utils.parseEther("1"))
-        ).to.reverted;
+        await expect(deltaNeutralVaultConfigAsAlice.setValueLimit(ethers.utils.parseEther("2"))).to.reverted;
       });
     });
 
-    context("when an owner call setEquityLimit ", async () => {
+    context("when an owner call setValueLimit ", async () => {
       it("should work", async () => {
-        const setEquityLimitTx = await deltaNeutralVaultConfigAsDeployer.setEquityLimit(
-          ethers.utils.parseEther("2"),
-          ethers.utils.parseEther("1")
-        );
+        const setValueLimitTx = await deltaNeutralVaultConfigAsDeployer.setValueLimit(ethers.utils.parseEther("2"));
 
-        expect(setEquityLimitTx)
-          .to.emit(deltaNeutralVaultConfig, "LogSetEquityLimit")
-          .withArgs(deployerAddress, ethers.utils.parseEther("2"), ethers.utils.parseEther("1"));
+        expect(setValueLimitTx)
+          .to.emit(deltaNeutralVaultConfig, "LogSetValueLimit")
+          .withArgs(deployerAddress, ethers.utils.parseEther("2"));
       });
     });
   });
 
-  describe("#isAcceptMoreEquity", async () => {
-    const maxVaultEquity = ethers.utils.parseEther("2");
-    const maxNewEquity = ethers.utils.parseEther("1");
+  describe("#isAcceptMoreValue", async () => {
+    const maxVaultPositionValue = ethers.utils.parseEther("2");
     beforeEach(async () => {
-      await deltaNeutralVaultConfigAsDeployer.setEquityLimit(maxVaultEquity, maxNewEquity);
+      await deltaNeutralVaultConfigAsDeployer.setValueLimit(maxVaultPositionValue);
     });
-    context("when isAcceptMoreEquity is called", async () => {
-      it("should return true if new equity <= maxNewEquity", async () => {
-        expect(await deltaNeutralVaultConfig.isAcceptMoreEquity(0, maxNewEquity)).to.eq(true);
+    context("when isAcceptMoreValue is called", async () => {
+      it("should return true if new total position value <= maxVaultPositionValue", async () => {
+        expect(await deltaNeutralVaultConfig.isAcceptMoreValue(maxVaultPositionValue)).to.eq(true);
       });
 
-      it("should return false if new equity > maxNewEquity", async () => {
-        expect(await deltaNeutralVaultConfig.isAcceptMoreEquity(0, maxNewEquity.add(1))).to.eq(false);
-      });
-      it("should return true if new equity + current equity <= maxVaultEquity", async () => {
-        expect(
-          await deltaNeutralVaultConfig.isAcceptMoreEquity(ethers.utils.parseEther("1"), ethers.utils.parseEther("1"))
-        ).to.eq(true);
-      });
-
-      it("should return false if new equity + current equity > maxVaultEquity", async () => {
-        expect(
-          await deltaNeutralVaultConfig.isAcceptMoreEquity(ethers.utils.parseEther("1"), ethers.utils.parseEther("1.1"))
-        ).to.eq(false);
+      it("should return false if new total position value > maxVaultPositionValue", async () => {
+        expect(await deltaNeutralVaultConfig.isAcceptMoreValue(maxVaultPositionValue.add(1))).to.eq(false);
       });
     });
   });

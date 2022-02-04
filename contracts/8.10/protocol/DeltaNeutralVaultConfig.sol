@@ -35,7 +35,7 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   event LogSetSwapRoute(address indexed _caller, address indexed _swapRouter, address source, address destination);
   event LogSetLeverageLevel(address indexed _caller, uint8 _newLeverageLevel);
   event LogSetFees(address indexed _caller, uint256 _depositFeeBps, uint256 _withdrawalFeeBps);
-  event LogSetEquityLimit(address indexed _caller, uint256 _maxVaultEquity,uint256 _maxNewEquity);
+  event LogSetValueLimit(address indexed _caller, uint256 _maxVaultPositionValue);
 
   /// @dev Errors
   error InvalidSetSwapRoute();
@@ -49,11 +49,8 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   /// @notice Constants
   uint8 private constant MIN_LEVERAGE_LEVEL = 3;
 
-  /// maximum total equity in vault (usd).
-  uint256 private maxVaultEquity;
-
-  /// maximum accaptable new equity (usd).
-  uint256 private maxNewEquity;
+  /// maximum total position value in vault.
+  uint256 private maxVaultPositionValue;
 
   /// address for wrapped native eg WBNB, WETH
   address public override getWrappedNativeAddr;
@@ -212,7 +209,7 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   /// @notice Set fees.
   /// @dev Must only be called by owner.
   /// @param _depositFeeBps Fee when user deposit to delta neutral vault.
-  function setFees(uint256 _depositFeeBps,uint256 _withdrawalFeeBps) external onlyOwner {
+  function setFees(uint256 _depositFeeBps, uint256 _withdrawalFeeBps) external onlyOwner {
     depositFeeBps = _depositFeeBps;
     withdrawalFeeBps = _withdrawalFeeBps;
     emit LogSetFees(msg.sender, _depositFeeBps, _withdrawalFeeBps);
@@ -223,24 +220,20 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     return treasury == address(0) ? 0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51 : treasury;
   }
 
-  /// @notice Set equity limit.
+  /// @notice Set position value limit.
   /// @dev Must only be called by owner.
-  /// @param _maxVaultEquity Maximum vault equity in usd.
-  /// @param _maxNewEquity Maximum new equity in usd.
-  function setEquityLimit(uint256 _maxVaultEquity, uint256 _maxNewEquity) external onlyOwner {
-    maxVaultEquity = _maxVaultEquity;
-    maxNewEquity = _maxNewEquity;
-    emit LogSetEquityLimit(msg.sender, _maxVaultEquity, _maxNewEquity);
+  /// @param _maxVaultPositionValue Maximum vault size position value.
+  function setValueLimit(uint256 _maxVaultPositionValue) external onlyOwner {
+    maxVaultPositionValue = _maxVaultPositionValue;
+    emit LogSetValueLimit(msg.sender, _maxVaultPositionValue);
   }
 
-  /// @notice Return if vault can accept new equity.
-  /// @param _currentEquity Current vault equity.
-  /// @param _newEquity New equity to deposit.
-  function isAcceptMoreEquity(uint256 _currentEquity, uint256 _newEquity) external view returns (bool) {
-    if(_newEquity > maxNewEquity || _currentEquity + _newEquity > maxVaultEquity){
+  /// @notice Return if vault can accept new position value.
+  /// @param _totalPositionValue new vault position value.
+  function isAcceptMoreValue(uint256 _totalPositionValue) external view returns (bool) {
+    if (_totalPositionValue > maxVaultPositionValue) {
       return false;
     }
     return true;
   }
-  
 }

@@ -76,8 +76,7 @@ describe("DeltaNeutralVault", () => {
   // Delta Vault Config
   const REBALANCE_FACTOR = "6500";
   const POSITION_VALUE_TOLERANCE_BPS = "200";
-  const MAX_VAULT_EQUITY = ethers.utils.parseEther("100000");
-  const MAX_NEW_EQUITY = ethers.utils.parseEther("10000");
+  const MAX_VAULT_POSITION_VALUE = ethers.utils.parseEther("100000");
   const DEPOSIT_FEE_BPS = "0"; // 0%
 
   // Delta Vault
@@ -348,7 +347,7 @@ describe("DeltaNeutralVault", () => {
     };
     deltaVaultConfig = await deployHelper.deployDeltaNeutralVaultConfig(deltaNeutralConfig);
     // allow deployer to call rebalance
-    await deltaVaultConfig.setEquityLimit(MAX_VAULT_EQUITY, MAX_NEW_EQUITY);
+    await deltaVaultConfig.setValueLimit(MAX_VAULT_POSITION_VALUE);
     await deltaVaultConfig.setWhitelistedRebalancer([deployerAddress], true);
     await deltaVaultConfig.setLeverageLevel(3);
 
@@ -1753,7 +1752,7 @@ describe("DeltaNeutralVault", () => {
         });
       });
 
-      context("when alice deposit exceed equity limit", async () => {
+      context("when alice deposit make total position value exceed limit", async () => {
         it("should be revert", async () => {
           const depositStableTokenAmount = ethers.utils.parseEther("500");
           const depositAssetTokenAmount = ethers.utils.parseEther("500");
@@ -1814,21 +1813,13 @@ describe("DeltaNeutralVault", () => {
             return lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1"));
           });
 
-          await deltaVaultConfig.setEquityLimit(ethers.utils.parseEther("1"), MAX_NEW_EQUITY);
-          // revert because max vault equity limit
+          await deltaVaultConfig.setValueLimit(ethers.utils.parseEther("1"));
+          // revert because hit max vault position value limit
           await expect(
             deltaVaultAsAlice.deposit(depositStableTokenAmount, depositAssetTokenAmount, aliceAddress, 0, data, {
               value: depositAssetTokenAmount,
             })
-          ).to.revertedWith("NewEquityExceedLimit()");
-
-          await deltaVaultConfig.setEquityLimit(MAX_VAULT_EQUITY, ethers.utils.parseEther("1"));
-          // revert because max new equity limit
-          await expect(
-            deltaVaultAsAlice.deposit(depositStableTokenAmount, depositAssetTokenAmount, aliceAddress, 0, data, {
-              value: depositAssetTokenAmount,
-            })
-          ).to.revertedWith("NewEquityExceedLimit()");
+          ).to.revertedWith("PositionValueExceedLimit()");
         });
       });
     });
