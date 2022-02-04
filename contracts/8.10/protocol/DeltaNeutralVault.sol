@@ -458,8 +458,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       _totalDebtAfter;
     if (
       !Math.almostEqual(
-        _totalPositionValueBefore / _totalDebtBefore,
-        _totalPositionValueAfter / _totalDebtAfter,
+        _totalPositionValueBefore * _totalDebtAfter,
+        _totalPositionValueAfter * _totalDebtBefore,
         _toleranceBps
       )
     ) {
