@@ -121,9 +121,8 @@ describe("DeltaNeutralVault", () => {
   let deltaVault: DeltaNeutralVault;
   let deltaVaultConfig: DeltaNeutralVaultConfig;
 
-  /// PriceHelper instance
-  // let priceHelper: MockPriceHelper;
-  let mockPriceHelper: MockContract;
+  /// DeltaNeutralOracle instance
+  let mockPriceOracle: MockContract;
 
   /// FairLaunch-related instance(s)
   let fairLaunch: FairLaunch;
@@ -195,8 +194,8 @@ describe("DeltaNeutralVault", () => {
     evilContract = await MockContractContext.deploy();
     await evilContract.deployed();
 
-    // Setup MockpriceHelper
-    mockPriceHelper = await smockit(await ethers.getContractFactory("PriceHelper", deployer));
+    // Setup IDeltaNeutralOracle
+    mockPriceOracle = await smockit(await ethers.getContractFactory("DeltaNeutralOracle", deployer));
 
     /// Setup token stuffs
     [baseToken] = await deployHelper.deployBEP20([
@@ -297,7 +296,7 @@ describe("DeltaNeutralVault", () => {
         partialCloseMinimizeStrat.address,
       ],
       stableSimpleVaultConfig,
-      mockPriceHelper.address
+      mockPriceOracle.address
     );
 
     /// Setup DeltaNeutralPancakeWorker02
@@ -316,7 +315,7 @@ describe("DeltaNeutralVault", () => {
       [cake.address, wbnb.address],
       [assetTwoSidesStrat.address, minimizeStrat.address, partialCloseStrat.address, partialCloseMinimizeStrat.address],
       assetSimpleVaultConfig,
-      mockPriceHelper.address
+      mockPriceOracle.address
     );
 
     swapHelper = new SwapHelper(
@@ -361,7 +360,7 @@ describe("DeltaNeutralVault", () => {
       assetVaultWorker: assetVaultWorker.address,
       lpToken: lp.address,
       alpacaToken: alpacaToken.address, // change this to alpaca token address
-      priceHelper: mockPriceHelper.address,
+      deltaNeutralOracle: mockPriceOracle.address,
       deltaVaultConfig: deltaVaultConfig.address,
     };
     deltaVault = await deployHelper.deployDeltaNeutralVault(deltaNeutral);
@@ -561,7 +560,7 @@ describe("DeltaNeutralVault", () => {
         const lpPrice = ethers.utils.parseEther("2");
         const latest = await TimeHelpers.latest();
 
-        mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
+        mockPriceOracle.smocked.getTokenPrice.will.return.with((token: string) => {
           if (token === baseToken.address) {
             return [stableTokenPrice, latest];
           }
@@ -571,7 +570,7 @@ describe("DeltaNeutralVault", () => {
           return [0, latest];
         });
 
-        mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+        mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
           return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
         });
 
@@ -674,7 +673,7 @@ describe("DeltaNeutralVault", () => {
         const assetTokenPrice = ethers.utils.parseEther("1");
         const lpPrice = ethers.utils.parseEther("2");
         const latest = await TimeHelpers.latest();
-        mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
+        mockPriceOracle.smocked.getTokenPrice.will.return.with((token: string) => {
           if (token === baseToken.address) {
             return [stableTokenPrice, latest];
           }
@@ -684,7 +683,7 @@ describe("DeltaNeutralVault", () => {
           return [0, latest];
         });
 
-        mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+        mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
           return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
         });
 
@@ -767,7 +766,7 @@ describe("DeltaNeutralVault", () => {
         const assetTokenPrice = ethers.utils.parseEther("1");
         const lpPrice = ethers.utils.parseEther("2");
         const latest = await TimeHelpers.latest();
-        mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
+        mockPriceOracle.smocked.getTokenPrice.will.return.with((token: string) => {
           if (token === baseToken.address) {
             return [stableTokenPrice, latest];
           }
@@ -777,7 +776,7 @@ describe("DeltaNeutralVault", () => {
           return [0, latest];
         });
 
-        mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+        mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
           return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
         });
 
@@ -845,7 +844,7 @@ describe("DeltaNeutralVault", () => {
         const assetTokenPrice = ethers.utils.parseEther("1");
         const lpPrice = ethers.utils.parseEther("2");
         const latest = await TimeHelpers.latest();
-        mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
+        mockPriceOracle.smocked.getTokenPrice.will.return.with((token: string) => {
           if (token === baseToken.address) {
             return [stableTokenPrice, latest];
           }
@@ -854,7 +853,7 @@ describe("DeltaNeutralVault", () => {
           }
           return [0, latest];
         });
-        mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+        mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
           return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
         });
         const initTx = await deltaVault.initPositions(stableTokenAmount, assetTokenAmount, 0, data, {
@@ -909,7 +908,7 @@ describe("DeltaNeutralVault", () => {
           const assetTokenPrice = ethers.utils.parseEther("1");
           const lpPrice = ethers.utils.parseEther("2");
           const latest = await TimeHelpers.latest();
-          mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
+          mockPriceOracle.smocked.getTokenPrice.will.return.with((token: string) => {
             if (token === baseToken.address) {
               return [stableTokenPrice, latest];
             }
@@ -919,7 +918,7 @@ describe("DeltaNeutralVault", () => {
             return [0, latest];
           });
 
-          mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+          mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
             return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
           });
 
@@ -987,7 +986,7 @@ describe("DeltaNeutralVault", () => {
             let assetTokenPrice = ethers.utils.parseEther("1");
             let lpPrice = ethers.utils.parseEther("2");
             const latest = await TimeHelpers.latest();
-            mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
+            mockPriceOracle.smocked.getTokenPrice.will.return.with((token: string) => {
               if (token === baseToken.address) {
                 return [stableTokenPrice, latest];
               }
@@ -997,7 +996,7 @@ describe("DeltaNeutralVault", () => {
               return [0, latest];
             });
 
-            mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+            mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
               return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
             });
 
@@ -1063,7 +1062,7 @@ describe("DeltaNeutralVault", () => {
               let assetTokenPrice = ethers.utils.parseEther("1");
               let lpPrice = ethers.utils.parseEther("2");
               const latest = await TimeHelpers.latest();
-              mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
+              mockPriceOracle.smocked.getTokenPrice.will.return.with((token: string) => {
                 if (token === baseToken.address) {
                   return [stableTokenPrice, latest];
                 }
@@ -1073,7 +1072,7 @@ describe("DeltaNeutralVault", () => {
                 return [0, latest];
               });
 
-              mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+              mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
                 return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
               });
 
@@ -1133,7 +1132,7 @@ describe("DeltaNeutralVault", () => {
               let assetTokenPrice = ethers.utils.parseEther("1");
               let lpPrice = ethers.utils.parseEther("2");
               const latest = await TimeHelpers.latest();
-              mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
+              mockPriceOracle.smocked.getTokenPrice.will.return.with((token: string) => {
                 if (token === baseToken.address) {
                   return [stableTokenPrice, latest];
                 }
@@ -1143,7 +1142,7 @@ describe("DeltaNeutralVault", () => {
                 return [0, latest];
               });
 
-              mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+              mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
                 return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
               });
 
@@ -1200,7 +1199,7 @@ describe("DeltaNeutralVault", () => {
                 let assetTokenPrice = ethers.utils.parseEther("1");
                 let lpPrice = ethers.utils.parseEther("2");
                 const latest = await TimeHelpers.latest();
-                mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
+                mockPriceOracle.smocked.getTokenPrice.will.return.with((token: string) => {
                   if (token === baseToken.address) {
                     return [stableTokenPrice, latest];
                   }
@@ -1209,7 +1208,7 @@ describe("DeltaNeutralVault", () => {
                   }
                   return [0, latest];
                 });
-                mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+                mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
                   return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
                 });
                 await expect(
@@ -1262,7 +1261,7 @@ describe("DeltaNeutralVault", () => {
               let assetTokenPrice = ethers.utils.parseEther("1");
               let lpPrice = ethers.utils.parseEther("2");
               const latest = await TimeHelpers.latest();
-              mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
+              mockPriceOracle.smocked.getTokenPrice.will.return.with((token: string) => {
                 if (token === baseToken.address) {
                   return [stableTokenPrice, latest];
                 }
@@ -1271,7 +1270,7 @@ describe("DeltaNeutralVault", () => {
                 }
                 return [0, latest];
               });
-              mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+              mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
                 return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
               });
               await expect(
@@ -1323,7 +1322,7 @@ describe("DeltaNeutralVault", () => {
               let assetTokenPrice = ethers.utils.parseEther("1");
               let lpPrice = ethers.utils.parseEther("2");
               const latest = await TimeHelpers.latest();
-              mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
+              mockPriceOracle.smocked.getTokenPrice.will.return.with((token: string) => {
                 if (token === baseToken.address) {
                   return [stableTokenPrice, latest];
                 }
@@ -1332,7 +1331,7 @@ describe("DeltaNeutralVault", () => {
                 }
                 return [0, latest];
               });
-              mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+              mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
                 return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
               });
               await expect(
@@ -1384,7 +1383,7 @@ describe("DeltaNeutralVault", () => {
               let assetTokenPrice = ethers.utils.parseEther("1");
               let lpPrice = ethers.utils.parseEther("2");
               const latest = await TimeHelpers.latest();
-              mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
+              mockPriceOracle.smocked.getTokenPrice.will.return.with((token: string) => {
                 if (token === baseToken.address) {
                   return [stableTokenPrice, latest];
                 }
@@ -1393,7 +1392,7 @@ describe("DeltaNeutralVault", () => {
                 }
                 return [0, latest];
               });
-              mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+              mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
                 return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
               });
               await expect(
@@ -1455,7 +1454,7 @@ describe("DeltaNeutralVault", () => {
               let assetTokenPrice = ethers.utils.parseEther("1");
               let lpPrice = ethers.utils.parseEther("2");
               const latest = await TimeHelpers.latest();
-              mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
+              mockPriceOracle.smocked.getTokenPrice.will.return.with((token: string) => {
                 if (token === baseToken.address) {
                   return [stableTokenPrice, latest];
                 }
@@ -1465,7 +1464,7 @@ describe("DeltaNeutralVault", () => {
                 return [0, latest];
               });
 
-              mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+              mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
                 return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
               });
 
@@ -1530,7 +1529,7 @@ describe("DeltaNeutralVault", () => {
                 let assetTokenPrice = ethers.utils.parseEther("1");
                 let lpPrice = ethers.utils.parseEther("2");
                 const latest = await TimeHelpers.latest();
-                mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
+                mockPriceOracle.smocked.getTokenPrice.will.return.with((token: string) => {
                   if (token === baseToken.address) {
                     return [stableTokenPrice, latest];
                   }
@@ -1540,7 +1539,7 @@ describe("DeltaNeutralVault", () => {
                   return [0, latest];
                 });
 
-                mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+                mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
                   return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
                 });
 
@@ -1616,7 +1615,7 @@ describe("DeltaNeutralVault", () => {
               let assetTokenPrice = ethers.utils.parseEther("1");
               let lpPrice = ethers.utils.parseEther("2");
               const latest = await TimeHelpers.latest();
-              mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
+              mockPriceOracle.smocked.getTokenPrice.will.return.with((token: string) => {
                 if (token === baseToken.address) {
                   return [stableTokenPrice, latest];
                 }
@@ -1626,7 +1625,7 @@ describe("DeltaNeutralVault", () => {
                 return [0, latest];
               });
 
-              mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+              mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
                 return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
               });
 
@@ -1704,7 +1703,7 @@ describe("DeltaNeutralVault", () => {
           const assetTokenPrice = ethers.utils.parseEther("1");
           const lpPrice = ethers.utils.parseEther("2");
           const latest = await TimeHelpers.latest();
-          mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
+          mockPriceOracle.smocked.getTokenPrice.will.return.with((token: string) => {
             if (token === baseToken.address) {
               return [stableTokenPrice, latest];
             }
@@ -1714,7 +1713,7 @@ describe("DeltaNeutralVault", () => {
             return [0, latest];
           });
 
-          mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+          mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
             return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
           });
 
@@ -1799,7 +1798,7 @@ describe("DeltaNeutralVault", () => {
           const assetTokenPrice = ethers.utils.parseEther("1");
           const lpPrice = ethers.utils.parseEther("2");
           const latest = await TimeHelpers.latest();
-          mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
+          mockPriceOracle.smocked.getTokenPrice.will.return.with((token: string) => {
             if (token === baseToken.address) {
               return [stableTokenPrice, latest];
             }
@@ -1809,7 +1808,7 @@ describe("DeltaNeutralVault", () => {
             return [0, latest];
           });
 
-          mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+          mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
             return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
           });
 
@@ -1880,7 +1879,7 @@ describe("DeltaNeutralVault", () => {
         const assetTokenPrice = ethers.utils.parseEther("1");
         const lpPrice = ethers.utils.parseEther("2");
         const latest = await TimeHelpers.latest();
-        mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
+        mockPriceOracle.smocked.getTokenPrice.will.return.with((token: string) => {
           if (token === baseToken.address) {
             return [stableTokenPrice, latest];
           }
@@ -1889,7 +1888,7 @@ describe("DeltaNeutralVault", () => {
           }
           return [0, latest];
         });
-        mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+        mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
           return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
         });
         const initTx = await deltaVault.initPositions(
@@ -1962,7 +1961,7 @@ describe("DeltaNeutralVault", () => {
           let lpPrice = await swapHelper.computeLpHealth(ethers.utils.parseEther("1"), baseToken.address, wbnb.address);
 
           let latest = await TimeHelpers.latest();
-          mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+          mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
             return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
           });
 
@@ -2005,7 +2004,7 @@ describe("DeltaNeutralVault", () => {
             ]
           );
           const shareToWithdraw = await deltaVault.valueToShare(withdrawValue);
-          const withdrawTx = await deltaVaultAsAlice.withdraw(0, 0, shareToWithdraw, withdrawData);
+          const withdrawTx = await deltaVaultAsAlice.withdraw(shareToWithdraw, 0, 0, withdrawData);
         });
 
         it("should not able to withdraw when chain price is outdated", async () => {
@@ -2014,7 +2013,7 @@ describe("DeltaNeutralVault", () => {
           let lpPrice = await swapHelper.computeLpHealth(ethers.utils.parseEther("1"), baseToken.address, wbnb.address);
 
           let latest = await TimeHelpers.latest();
-          mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+          mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
             return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
           });
 
@@ -2058,7 +2057,7 @@ describe("DeltaNeutralVault", () => {
           );
           const shareToWithdraw = await deltaVault.valueToShare(withdrawValue);
           await TimeHelpers.increase(TimeHelpers.duration.minutes(ethers.BigNumber.from("30")));
-          await expect(deltaVaultAsAlice.withdraw(0, 0, shareToWithdraw, withdrawData)).to.be.revertedWith(
+          await expect(deltaVaultAsAlice.withdraw(shareToWithdraw, 0, 0, withdrawData)).to.be.revertedWith(
             "UnTrustedPrice()"
           );
         });
@@ -2069,7 +2068,7 @@ describe("DeltaNeutralVault", () => {
           let lpPrice = await swapHelper.computeLpHealth(ethers.utils.parseEther("1"), baseToken.address, wbnb.address);
 
           let latest = await TimeHelpers.latest();
-          mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+          mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
             return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
           });
 
@@ -2113,7 +2112,7 @@ describe("DeltaNeutralVault", () => {
           );
           const shareToWithdraw = await deltaVault.valueToShare(withdrawValue);
           await expect(
-            deltaVaultAsAlice.withdraw(ethers.utils.parseEther("1000000"), 0, shareToWithdraw, withdrawData)
+            deltaVaultAsAlice.withdraw(shareToWithdraw, ethers.utils.parseEther("1000000"), 0, withdrawData)
           ).to.be.revertedWith(
             `InsufficientTokenReceived("${baseToken.address}", 1000000000000000000000000, 149961473752156599529)`
           );
@@ -2124,7 +2123,7 @@ describe("DeltaNeutralVault", () => {
           await swapHelper.loadReserves([baseToken.address, wbnb.address]);
           let lpPrice = await swapHelper.computeLpHealth(ethers.utils.parseEther("1"), baseToken.address, wbnb.address);
           const latest = await TimeHelpers.latest();
-          mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+          mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
             return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
           });
 
@@ -2168,7 +2167,7 @@ describe("DeltaNeutralVault", () => {
           );
           const shareToWithdraw = await deltaVault.valueToShare(withdrawValue);
           await expect(
-            deltaVaultAsAlice.withdraw(0, ethers.utils.parseEther("100"), shareToWithdraw, withdrawData)
+            deltaVaultAsAlice.withdraw(shareToWithdraw, 0, ethers.utils.parseEther("100"), withdrawData)
           ).to.be.revertedWith(
             `InsufficientTokenReceived("${wbnb.address}", 100000000000000000000, 49886800906176105501)`
           );
@@ -2185,7 +2184,7 @@ describe("DeltaNeutralVault", () => {
                 wbnb.address
               );
               const latest = await TimeHelpers.latest();
-              mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+              mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
                 return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
               });
 
@@ -2226,7 +2225,7 @@ describe("DeltaNeutralVault", () => {
                 ]
               );
               await expect(
-                deltaVaultAsAlice.withdraw(0, 0, ethers.utils.parseEther("10000"), withdrawData)
+                deltaVaultAsAlice.withdraw(ethers.utils.parseEther("10000"), 0, 0, withdrawData)
               ).to.be.revertedWith(`ERC20: burn amount exceeds balance`);
             });
           });
@@ -2243,7 +2242,7 @@ describe("DeltaNeutralVault", () => {
                 wbnb.address
               );
               let latest = await TimeHelpers.latest();
-              mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+              mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
                 return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
               });
 
@@ -2286,7 +2285,7 @@ describe("DeltaNeutralVault", () => {
                 ]
               );
               const shareToWithdraw = await deltaVault.valueToShare(withdrawValue);
-              await expect(deltaVaultAsAlice.withdraw(0, 0, shareToWithdraw, withdrawData)).to.be.revertedWith(
+              await expect(deltaVaultAsAlice.withdraw(shareToWithdraw, 0, 0, withdrawData)).to.be.revertedWith(
                 `InvalidPositions("${stableVault.address}", 2)`
               );
             });
@@ -2306,7 +2305,7 @@ describe("DeltaNeutralVault", () => {
                   wbnb.address
                 );
                 const latest = await TimeHelpers.latest();
-                mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+                mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
                   return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
                 });
                 const withdrawValue = ethers.utils.parseEther("200");
@@ -2339,7 +2338,7 @@ describe("DeltaNeutralVault", () => {
                   [[ACTION_WORK, ACTION_WORK], [0], [stableWithdrawWorkByte, assetWithdrawWorkByte]]
                 );
                 const shareToWithdraw = await deltaVault.valueToShare(withdrawValue);
-                await expect(deltaVaultAsAlice.withdraw(0, 0, shareToWithdraw, withdrawData)).to.be.revertedWith(
+                await expect(deltaVaultAsAlice.withdraw(shareToWithdraw, 0, 0, withdrawData)).to.be.revertedWith(
                   "UnsafePositionValue()"
                 );
               });
@@ -2357,7 +2356,7 @@ describe("DeltaNeutralVault", () => {
                   wbnb.address
                 );
                 const latest = await TimeHelpers.latest();
-                mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+                mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
                   return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
                 });
                 const withdrawValue = ethers.utils.parseEther("200");
@@ -2390,7 +2389,7 @@ describe("DeltaNeutralVault", () => {
                   [[ACTION_WORK, ACTION_WORK], [0], [stableWithdrawWorkByte, assetWithdrawWorkByte]]
                 );
                 const shareToWithdraw = await deltaVault.valueToShare(withdrawValue);
-                await expect(deltaVaultAsAlice.withdraw(0, 0, shareToWithdraw, withdrawData)).to.be.revertedWith(
+                await expect(deltaVaultAsAlice.withdraw(shareToWithdraw, 0, 0, withdrawData)).to.be.revertedWith(
                   "UnsafePositionValue()"
                 );
               });
@@ -2406,7 +2405,7 @@ describe("DeltaNeutralVault", () => {
                 wbnb.address
               );
               const latest = await TimeHelpers.latest();
-              mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+              mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
                 return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
               });
               const withdrawValue = ethers.utils.parseEther("200");
@@ -2439,7 +2438,7 @@ describe("DeltaNeutralVault", () => {
                 [[ACTION_WORK, ACTION_WORK], [0], [stableWithdrawWorkByte, assetWithdrawWorkByte]]
               );
               const shareToWithdraw = await deltaVault.valueToShare(withdrawValue);
-              await expect(deltaVaultAsAlice.withdraw(0, 0, shareToWithdraw, withdrawData)).to.be.revertedWith(
+              await expect(deltaVaultAsAlice.withdraw(shareToWithdraw, 0, 0, withdrawData)).to.be.revertedWith(
                 "UnsafeDebtRatio()"
               );
             });
@@ -2457,7 +2456,7 @@ describe("DeltaNeutralVault", () => {
         //         wbnb.address
         //       );
         //       const latest = await TimeHelpers.latest();
-        //       mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+        //       mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
         //         return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
         //       });
 
@@ -2520,7 +2519,7 @@ describe("DeltaNeutralVault", () => {
         //       const beforeBaseTokenAmount = await baseToken.balanceOf(deltaVault.address);
         //       const expected = beforeBaseTokenAmount.sub(ethers.utils.parseEther("100"));
 
-        //       await expect(deltaVaultAsAlice.withdraw(0, 0, shareToWithdraw, withdrawData)).to.be.revertedWith(
+        //       await expect(deltaVaultAsAlice.withdraw(shareToWithdraw, 0, 0, withdrawData)).to.be.revertedWith(
         //         `UnsafeOutstanding("${baseToken.address}", ${beforeBaseTokenAmount.toString()}, ${expected.toString()})`
         //       );
         //     });
@@ -2535,7 +2534,7 @@ describe("DeltaNeutralVault", () => {
         //           wbnb.address
         //         );
         //         const latest = await TimeHelpers.latest();
-        //         mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+        //         mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
         //           return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
         //         });
 
@@ -2597,7 +2596,7 @@ describe("DeltaNeutralVault", () => {
         //         const beforeWBnbAmount = await wbnb.balanceOf(deltaVault.address);
         //         const expected = beforeWBnbAmount.sub(ethers.utils.parseEther("0.1"));
 
-        //         await expect(deltaVaultAsAlice.withdraw(0, 0, shareToWithdraw, withdrawData)).to.be.revertedWith(
+        //         await expect(deltaVaultAsAlice.withdraw(shareToWithdraw, 0, 0, withdrawData)).to.be.revertedWith(
         //           `UnsafeOutstanding("${wbnb.address}", ${beforeWBnbAmount.toString()}, ${expected.toString()})`
         //         );
         //       });
@@ -2637,7 +2636,7 @@ describe("DeltaNeutralVault", () => {
                 wbnb.address
               );
               const latest = await TimeHelpers.latest();
-              mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+              mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
                 return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
               });
 
@@ -2690,7 +2689,7 @@ describe("DeltaNeutralVault", () => {
               const aliceBaseTokenBefore = await baseToken.balanceOf(aliceAddress);
               const aliceNativeTokenBefore = await alice.getBalance();
 
-              const withdrawTx = await deltaVaultAsAlice.withdraw(0, 0, shareToWithdraw, withdrawData);
+              const withdrawTx = await deltaVaultAsAlice.withdraw(shareToWithdraw, 0, 0, withdrawData);
 
               const aliceBaseTokenAfter = await baseToken.balanceOf(aliceAddress);
               const aliceNativeTokenAfter = await alice.getBalance();
@@ -2711,7 +2710,7 @@ describe("DeltaNeutralVault", () => {
                 wbnb.address
               );
               const latest = await TimeHelpers.latest();
-              mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+              mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
                 return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
               });
 
@@ -2764,7 +2763,7 @@ describe("DeltaNeutralVault", () => {
               const aliceBaseTokenBefore = await baseToken.balanceOf(aliceAddress);
               const aliceNativeTokenBefore = await alice.getBalance();
 
-              const withdrawTx = await deltaVaultAsAlice.withdraw(0, 0, shareToWithdraw, withdrawData);
+              const withdrawTx = await deltaVaultAsAlice.withdraw(shareToWithdraw, 0, 0, withdrawData);
 
               const aliceBaseTokenAfter = await baseToken.balanceOf(aliceAddress);
               const aliceNativeTokenAfter = await alice.getBalance();
@@ -2799,7 +2798,7 @@ describe("DeltaNeutralVault", () => {
                 wbnb.address
               );
               const latest = await TimeHelpers.latest();
-              mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+              mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
                 return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
               });
 
@@ -2849,7 +2848,7 @@ describe("DeltaNeutralVault", () => {
               );
               const shareToWithdraw = await deltaVault.valueToShare(withdrawValue);
 
-              await expect(deltaVaultAsAlice.withdraw(0, 0, shareToWithdraw, withdrawData)).to.be.revertedWith(
+              await expect(deltaVaultAsAlice.withdraw(shareToWithdraw, 0, 0, withdrawData)).to.be.revertedWith(
                 "UnsafePositionValue()"
               );
             });
@@ -2908,7 +2907,7 @@ describe("DeltaNeutralVault", () => {
           let assetTokenPrice = ethers.utils.parseEther("1");
           let lpPrice = ethers.utils.parseEther("2");
           let latest = await TimeHelpers.latest();
-          mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
+          mockPriceOracle.smocked.getTokenPrice.will.return.with((token: string) => {
             if (token === baseToken.address) {
               return [stableTokenPrice, latest];
             }
@@ -2917,7 +2916,7 @@ describe("DeltaNeutralVault", () => {
             }
             return [0, latest];
           });
-          mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+          mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
             return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
           });
 
@@ -2936,7 +2935,7 @@ describe("DeltaNeutralVault", () => {
           lpPrice = await swapHelper.computeLpHealth(ethers.utils.parseEther("1"), baseToken.address, wbnb.address);
 
           latest = await TimeHelpers.latest();
-          mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+          mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
             return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
           });
 
@@ -2981,7 +2980,7 @@ describe("DeltaNeutralVault", () => {
             const treasuryShareBefore = await deltaVault.balanceOf(eveAddress);
             const aliceShareBefore = await deltaVault.balanceOf(aliceAddress);
 
-            const withdrawTx = await deltaVaultAsAlice.withdraw(0, 0, shareToWithdraw, withdrawData);
+            const withdrawTx = await deltaVaultAsAlice.withdraw(shareToWithdraw, 0, 0, withdrawData);
 
             const treasuryShareAfter = await deltaVault.balanceOf(eveAddress);
             const aliceShareAfter = await deltaVault.balanceOf(aliceAddress);
@@ -3001,7 +3000,7 @@ describe("DeltaNeutralVault", () => {
             const treasuryShareBefore = await deltaVault.balanceOf(eveAddress);
             const aliceShareBefore = await deltaVault.balanceOf(aliceAddress);
 
-            const withdrawTx = await deltaVaultAsAlice.withdraw(0, 0, shareToWithdraw, withdrawData);
+            const withdrawTx = await deltaVaultAsAlice.withdraw(shareToWithdraw, 0, 0, withdrawData);
 
             const treasuryShareAfter = await deltaVault.balanceOf(eveAddress);
             const aliceShareAfter = await deltaVault.balanceOf(aliceAddress);
@@ -3033,7 +3032,7 @@ describe("DeltaNeutralVault", () => {
         const stableTokenPrice = ethers.utils.parseEther("1");
         const assetTokenPrice = ethers.utils.parseEther("500");
         const latest = await TimeHelpers.latest();
-        mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
+        mockPriceOracle.smocked.getTokenPrice.will.return.with((token: string) => {
           if (token === baseToken.address) {
             return [stableTokenPrice, latest];
           }
@@ -3042,7 +3041,7 @@ describe("DeltaNeutralVault", () => {
           }
           return [0, latest];
         });
-        mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+        mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
           return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
         });
 
@@ -3127,7 +3126,7 @@ describe("DeltaNeutralVault", () => {
           const stableTokenPrice = ethers.utils.parseEther("1");
           const assetTokenPrice = ethers.utils.parseEther("400");
           const latest = await TimeHelpers.latest();
-          mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
+          mockPriceOracle.smocked.getTokenPrice.will.return.with((token: string) => {
             if (token === baseToken.address) {
               return [stableTokenPrice, latest];
             }
@@ -3136,7 +3135,7 @@ describe("DeltaNeutralVault", () => {
             }
             return [0, latest];
           });
-          mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+          mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
             return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
           });
 
@@ -3329,7 +3328,7 @@ describe("DeltaNeutralVault", () => {
         const assetTokenPrice = ethers.utils.parseEther("1");
         const lpPrice = ethers.utils.parseEther("2");
         const latest = await TimeHelpers.latest();
-        mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
+        mockPriceOracle.smocked.getTokenPrice.will.return.with((token: string) => {
           if (token === baseToken.address) {
             return [stableTokenPrice, latest];
           }
@@ -3338,7 +3337,7 @@ describe("DeltaNeutralVault", () => {
           }
           return [0, latest];
         });
-        mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+        mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
           return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
         });
         const initTx = await deltaVault.initPositions(
@@ -3402,7 +3401,7 @@ describe("DeltaNeutralVault", () => {
           let assetTokenPrice = ethers.utils.parseEther("1");
           let lpPrice = ethers.utils.parseEther("2");
           let latest = await TimeHelpers.latest();
-          mockPriceHelper.smocked.getTokenPrice.will.return.with((token: string) => {
+          mockPriceOracle.smocked.getTokenPrice.will.return.with((token: string) => {
             if (token === baseToken.address) {
               return [stableTokenPrice, latest];
             }
@@ -3412,7 +3411,7 @@ describe("DeltaNeutralVault", () => {
             return [0, latest];
           });
 
-          mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+          mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
             return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
           });
           const totalSupplyBeforeDeposit = await deltaVault.totalSupply();
@@ -3439,7 +3438,7 @@ describe("DeltaNeutralVault", () => {
           await swapHelper.loadReserves([baseToken.address, wbnb.address]);
           lpPrice = await swapHelper.computeLpHealth(ethers.utils.parseEther("1"), baseToken.address, wbnb.address);
 
-          mockPriceHelper.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
+          mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber, lpToken: string) => {
             return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
           });
 
@@ -3487,7 +3486,7 @@ describe("DeltaNeutralVault", () => {
           const totalSupplyBeforeWithdraw = await deltaVault.totalSupply();
           const lastCollectFeeBeforeWithdraw = await deltaVault.lastFeeCollected();
           const manageFeeBalanceBeforeWithdraw = await deltaVault.balanceOf(treasuryAddress);
-          const withdrawTx = await deltaVaultAsAlice.withdraw(0, 0, shareToWithdraw, withdrawData);
+          const withdrawTx = await deltaVaultAsAlice.withdraw(shareToWithdraw, 0, 0, withdrawData);
 
           const lastCollectFeeAfterWithdraw = await deltaVault.lastFeeCollected();
           expectedManagementFee = totalSupplyBeforeWithdraw

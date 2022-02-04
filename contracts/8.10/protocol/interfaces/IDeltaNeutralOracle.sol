@@ -13,7 +13,7 @@ Alpaca Fin Corporation
 
 pragma solidity 0.8.10;
 
-interface IPriceHelper {
+interface IDeltaNeutralOracle {
   /// @dev Return value in USD for the given lpAmount.
   function lpToDollar(uint256 _lpAmount, address _pancakeLPToken) external view returns (uint256, uint256);
 

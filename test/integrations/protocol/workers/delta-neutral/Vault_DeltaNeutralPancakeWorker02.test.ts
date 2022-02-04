@@ -30,7 +30,7 @@ import {
   PancakeswapV2RestrictedStrategyAddTwoSidesOptimal,
   PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading,
   PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading,
-  PriceHelper,
+  DeltaNeutralOracle,
   ChainLinkPriceOracle,
   ChainLinkPriceOracle__factory,
   MockAggregatorV3__factory,
@@ -99,7 +99,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
   let whitelistedContract: MockContractContext;
   let evilContract: MockContractContext;
 
-  let priceHelper: PriceHelper;
+  let priceOracle: DeltaNeutralOracle;
   let chainlink: ChainLinkPriceOracle;
 
   // Accounts
@@ -227,7 +227,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
     await masterChef.add(1, lp.address, true);
 
     /// Setup DeltaNeutralPancakeWorker02
-    [priceHelper, chainlink] = await deployHelper.deployPriceHelper(
+    [priceOracle, chainlink] = await deployHelper.deployDeltaNeutralOracle(
       [baseToken.address, farmToken.address],
       [ethers.utils.parseEther("1"), ethers.utils.parseEther("200")],
       [18, 18],
@@ -256,7 +256,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
       [cake.address, wbnb.address, baseToken.address],
       [twoSidesStrat.address, minimizeStrat.address, partialCloseStrat.address, partialCloseMinimizeStrat.address],
       simpleVaultConfig,
-      priceHelper.address
+      priceOracle.address
     );
     await deltaNeutralWorker.setWhitelistedCallers(
       [whitelistedContract.address, deltaNeutralWorker.address, deltaNetAddress],
@@ -319,8 +319,8 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
 
   async function _updatePrice() {
     let [[basePrice], [farmPrice]] = await Promise.all([
-      priceHelper.getTokenPrice(baseToken.address),
-      priceHelper.getTokenPrice(farmToken.address),
+      priceOracle.getTokenPrice(baseToken.address),
+      priceOracle.getTokenPrice(farmToken.address),
     ]);
     let mockBaseAggregatorV3 = await MockAggregatorV3Factory.deploy(basePrice, 18);
     let mockFarmAggregatorV3 = await MockAggregatorV3Factory.deploy(farmPrice, 18);
@@ -443,19 +443,19 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
       });
     });
 
-    describe("#setPriceHelper", async () => {
-      it("should set price helper", async () => {
-        const oldPriceHelperAddress = await deltaNeutralWorker.priceHelper();
-        const [newPriceHelper] = await deployHelper.deployPriceHelper(
+    describe("#setPriceOracle", async () => {
+      it("should set price oracle", async () => {
+        const oldPriceOracleAddress = await deltaNeutralWorker.priceOracle();
+        const [newPriceOracle] = await deployHelper.deployDeltaNeutralOracle(
           [baseToken.address, farmToken.address],
           [ethers.utils.parseEther("1"), ethers.utils.parseEther("200")],
           [18, 18],
           busd.address
         );
-        await deltaNeutralWorker.setPriceHelper(newPriceHelper.address);
-        const newPriceHelperAddress = await deltaNeutralWorker.priceHelper();
-        expect(newPriceHelperAddress).not.be.eq(oldPriceHelperAddress);
-        expect(newPriceHelperAddress).to.be.eq(newPriceHelper.address);
+        await deltaNeutralWorker.setPriceOracle(newPriceOracle.address);
+        const newPriceOracleAddress = await deltaNeutralWorker.priceOracle();
+        expect(newPriceOracleAddress).not.be.eq(oldPriceOracleAddress);
+        expect(newPriceOracleAddress).to.be.eq(newPriceOracle.address);
       });
     });
 

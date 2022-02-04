@@ -19,7 +19,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
-import "./interfaces/IPriceHelper.sol";
+import "./interfaces/IDeltaNeutralOracle.sol";
 import "./interfaces/IVault.sol";
 import "./interfaces/IWorker02.sol";
 import "./interfaces/IWETH.sol";
@@ -107,7 +107,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
   uint256 public lastFeeCollected;
 
-  IPriceHelper public priceHelper;
+  IDeltaNeutralOracle public priceOracle;
 
   IDeltaNeutralVaultConfig public config;
 
@@ -143,7 +143,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   /// @param _stableVaultWorker Address of asset worker.
   /// @param _lpToken Address stable and asset token pair.
   /// @param _alpacaToken Alpaca token address.
-  /// @param _priceHelper Price helper address.
+  /// @param _priceOracle DeltaNeutralOracle address.
   /// @param _config The address of delta neutral vault config.
   function initialize(
     string calldata _name,
@@ -154,7 +154,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     address _assetVaultWorker,
     address _lpToken,
     address _alpacaToken,
-    IPriceHelper _priceHelper,
+    IDeltaNeutralOracle _priceOracle,
     IDeltaNeutralVaultConfig _config
   ) external initializer {
     OwnableUpgradeable.__Ownable_init();
@@ -173,7 +173,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
     lpToken = _lpToken;
 
-    priceHelper = _priceHelper;
+    priceOracle = _priceOracle;
     config = _config;
 
     lastFeeCollected = 0;
@@ -298,14 +298,14 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   }
 
   /// @notice Withdraw from delta neutral vault.
+  /// @param _shareAmount Amount of share to withdraw from vault.
   /// @param _minStableTokenAmount Minimum stable token shareOwner expect to receive.
   /// @param _minAssetTokenAmount Minimum asset token shareOwner expect to receive.
-  /// @param _shareAmount Amount of share to withdraw from vault.
   /// @param _data The calldata to pass along to the proxy action for more working context.
   function withdraw(
+    uint256 _shareAmount,
     uint256 _minStableTokenAmount,
     uint256 _minAssetTokenAmount,
-    uint256 _shareAmount,
     bytes calldata _data
   ) public onlyEOAorWhitelisted collectFee nonReentrant returns (uint256) {
     PositionInfo memory _positionInfoBefore = positionInfo();
@@ -585,7 +585,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   }
 
   function _positionValue(address _worker) internal view returns (uint256) {
-    (uint256 _lpValue, uint256 _lastUpdated) = priceHelper.lpToDollar(IWorker02(_worker).totalLpBalance(), lpToken);
+    (uint256 _lpValue, uint256 _lastUpdated) = priceOracle.lpToDollar(IWorker02(_worker).totalLpBalance(), lpToken);
     if (block.timestamp - _lastUpdated > 1800) revert UnTrustedPrice();
     return _lpValue;
   }
@@ -695,7 +695,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       revert InvalidConvertTokenSetting();
     }
 
-    SafeERC20Upgradeable.safeApprove(IERC20Upgradeable(_sourceToken), routerAddr, type(uint256).max);
+    IERC20Upgradeable(_sourceToken).safeApprove(routerAddr, type(uint256).max);
     if (_swapType == CONVERT_EXACT_TOKEN_TO_NATIVE) {
       ISwapRouter(routerAddr).swapExactTokensForETH(_amountIn, _amountOut, paths, address(this), block.timestamp);
     }
@@ -708,12 +708,12 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     if (_swapType == CONVERT_TOKEN_TO_EXACT_TOKEN) {
       ISwapRouter(routerAddr).swapTokensForExactTokens(_amountOut, _amountIn, paths, address(this), block.timestamp);
     }
-    SafeERC20Upgradeable.safeApprove(IERC20Upgradeable(_sourceToken), routerAddr, 0);
+    IERC20Upgradeable(_sourceToken).safeApprove(routerAddr, 0);
   }
 
   /// @dev _getTokenPrice with validate last price updated
   function _getTokenPrice(address token) internal view returns (uint256) {
-    (uint256 _price, uint256 _lastUpdated) = priceHelper.getTokenPrice(token);
+    (uint256 _price, uint256 _lastUpdated) = priceOracle.getTokenPrice(token);
     // _lastUpdated > 30 mins revert
     if (block.timestamp - _lastUpdated > 1800) revert UnTrustedPrice();
     return _price;
