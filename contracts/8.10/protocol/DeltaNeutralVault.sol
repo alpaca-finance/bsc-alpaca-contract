@@ -179,8 +179,6 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
     priceOracle = _priceOracle;
     config = _config;
-
-    lastFeeCollected = 0;
   }
 
   /// @notice initialize delta neutral vault positions.
