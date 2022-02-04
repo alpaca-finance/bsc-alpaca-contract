@@ -26,14 +26,16 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     address _fairLaunchAddr,
     uint256 _rebalanceFactor,
     uint256 _positionValueTolerance,
-    address _treasury
+    address _treasury,
+    uint256 _alpacaBountyBps
   );
   event LogSetWhitelistedCallers(address indexed _caller, address indexed _address, bool _ok);
   event LogSetWhitelistedRebalancers(address indexed _caller, address indexed _address, bool _ok);
   event LogSetFeeExemptedCallers(address indexed _caller, address indexed _address, bool _ok);
-
   event LogSetSwapRoute(address indexed _caller, address indexed _swapRouter, address source, address destination);
   event LogSetLeverageLevel(address indexed _caller, uint8 _newLeverageLevel);
+  event LogSetAlpacaBounty(address indexed _caller, uint256 _alpacaBountyBps);
+  event LogSetWhitelistedReinvestors(address indexed _caller, address indexed _address, bool _ok);
   event LogSetValueLimit(address indexed _caller, uint256 _maxVaultPositionValue);
   event LogSetFees(
     address indexed _caller,
@@ -41,16 +43,16 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     uint256 _withdrawalFeeBps,
     uint256 _mangementFeeBps
   );
+  event SetSwapRouter(address indexed _caller, address _swapRouter);
+  event SetReinvestPath(address indexed _caller, address[] _reinvestPath);
 
   /// @dev Errors
-  error InvalidSetSwapRoute();
   error LeverageLevelTooLow();
   error TooMuchFee(uint256 _depositFeeBps, uint256 _mangementFeeBps);
 
-  struct SwapRoute {
-    address swapRouter;
-    address[] paths;
-  }
+  error InvalidSwapRouter();
+  error InvalidReinvestPath();
+  error InvalidReinvestPathLength();
 
   /// @notice Constants
   uint8 private constant MIN_LEVERAGE_LEVEL = 3;
@@ -72,6 +74,7 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   /// leverageLevel - Leverage level used for underlying positions
   /// whitelistedCallers - mapping of whitelisted callers
   /// whitelistedRebalancers - list of whitelisted rebalancers.
+  /// router - Router address.
 
   address public override getWrappedNativeAddr;
   address public override getWNativeRelayer;
@@ -88,12 +91,20 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
 
   uint8 public override leverageLevel;
 
+  address alpacaToken;
+  address public swapRouter;
+  address[] public reinvestPath;
+
   mapping(address => bool) public whitelistedCallers;
   mapping(address => bool) public whitelistedRebalancers;
+
   // list of exempted callers.
   mapping(address => bool) public feeExemptedCallers;
 
-  mapping(address => mapping(address => SwapRoute)) public swapRoutes;
+  /// list of reinvestors
+  mapping(address => bool) public whitelistedReinvestors;
+
+  uint256 public alpacaBountyBps;
 
   function initialize(
     address _getWrappedNativeAddr,
@@ -101,17 +112,21 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     address _fairLaunchAddr,
     uint256 _rebalanceFactor,
     uint256 _positionValueTolerance,
-    address _treasury
+    address _treasury,
+    uint256 _alpacaBountyBps,
+    address _alpacaToken
   ) external initializer {
     OwnableUpgradeable.__Ownable_init();
 
+    alpacaToken = _alpacaToken;
     setParams(
       _getWrappedNativeAddr,
       _getWNativeRelayer,
       _fairLaunchAddr,
       _rebalanceFactor,
       _positionValueTolerance,
-      _treasury
+      _treasury,
+      _alpacaBountyBps
     );
   }
 
@@ -121,7 +136,8 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     address _fairLaunchAddr,
     uint256 _rebalanceFactor,
     uint256 _positionValueTolerance,
-    address _treasury
+    address _treasury,
+    uint256 _alpacaBountyBps
   ) public onlyOwner {
     getWrappedNativeAddr = _getWrappedNativeAddr;
     getWNativeRelayer = _getWNativeRelayer;
@@ -129,6 +145,7 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     rebalanceFactor = _rebalanceFactor;
     positionValueTolerance = _positionValueTolerance;
     treasury = _treasury;
+    alpacaBountyBps = _alpacaBountyBps;
 
     emit LogSetParams(
       msg.sender,
@@ -137,7 +154,8 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
       _fairLaunchAddr,
       _rebalanceFactor,
       _positionValueTolerance,
-      _treasury
+      _treasury,
+      _alpacaBountyBps
     );
   }
 
@@ -163,33 +181,15 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     }
   }
 
-  /// @notice Set swapRoute.
+  /// @notice Set whitelisted reinvestors.
   /// @dev Must only be called by owner.
-  /// @param _from addresses from
-  /// @param _to addresses to
-  /// @param _swapRoutes swap route
-  function setSwapRoutes(
-    address[] calldata _from,
-    address[] calldata _to,
-    SwapRoute[] calldata _swapRoutes
-  ) external onlyOwner {
-    if (_from.length != _to.length || _from.length != _swapRoutes.length) {
-      revert InvalidSetSwapRoute();
+  /// @param _callers addresses to be whitelisted.
+  /// @param _ok The new ok flag for callers.
+  function setwhitelistedReinvestors(address[] calldata _callers, bool _ok) external onlyOwner {
+    for (uint256 _idx = 0; _idx < _callers.length; _idx++) {
+      whitelistedReinvestors[_callers[_idx]] = _ok;
+      emit LogSetWhitelistedReinvestors(msg.sender, _callers[_idx], _ok);
     }
-    for (uint256 _idx = 0; _idx < _from.length; _idx++) {
-      swapRoutes[_from[_idx]][_to[_idx]] = _swapRoutes[_idx];
-      address source = _swapRoutes[_idx].paths[0];
-      address destination = _swapRoutes[_idx].paths[_swapRoutes[_idx].paths.length - 1];
-      emit LogSetSwapRoute(msg.sender, _swapRoutes[_idx].swapRouter, source, destination);
-    }
-  }
-
-  function getSwapRouteRouterAddr(address _source, address _destination) external view returns (address) {
-    return (swapRoutes[_source][_destination].swapRouter);
-  }
-
-  function getSwapRoutePathsAddr(address _source, address _destination) external view returns (address[] memory) {
-    return (swapRoutes[_source][_destination].paths);
   }
 
   /// @notice Set leverage level.
@@ -233,6 +233,14 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     emit LogSetFees(msg.sender, _newDepositFeeBps, _newWithdrawalFeeBps, _newMangementFeeBps);
   }
 
+  /// @notice Set alpacaBountyBps.
+  /// @dev Must only be called by owner.
+  /// @param _alpacaBountyBps Fee when user deposit to delta neutral vault.
+  function setAlpacaBountyBps(uint256 _alpacaBountyBps) external onlyOwner {
+    alpacaBountyBps = _alpacaBountyBps;
+    emit LogSetAlpacaBounty(msg.sender, alpacaBountyBps);
+  }
+
   /// @dev Return the treasuryAddr.
   function getTreasuryAddr() external view override returns (address) {
     return treasury == address(0) ? 0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51 : treasury;
@@ -253,5 +261,34 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
       return false;
     }
     return true;
+  }
+
+  /// @dev Get the swap router
+  function getSwapRouter() external view returns (address) {
+    return swapRouter;
+  }
+
+  /// @dev Set the reinvest configuration.
+  /// @param _swapRouter - The router address to update.
+  function setSwapRouter(address _swapRouter) external onlyOwner {
+    if (_swapRouter == address(0)) revert InvalidSwapRouter();
+    swapRouter = _swapRouter;
+    emit SetSwapRouter(msg.sender, _swapRouter);
+  }
+
+  /// @dev Set the reinvest path.
+  /// @param _reinvestPath - The reinvest path to update.
+  function setReinvestPath(address[] calldata _reinvestPath) external onlyOwner {
+    if (_reinvestPath.length < 2) revert InvalidReinvestPathLength();
+
+    if (_reinvestPath[0] != alpacaToken) revert InvalidReinvestPath();
+
+    reinvestPath = _reinvestPath;
+    emit SetReinvestPath(msg.sender, _reinvestPath);
+  }
+
+  /// @dev Get the reinvest path.
+  function getReinvestPath() external view returns (address[] memory) {
+    return reinvestPath;
   }
 }
