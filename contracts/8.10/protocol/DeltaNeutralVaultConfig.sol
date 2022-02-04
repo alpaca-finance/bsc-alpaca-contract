@@ -48,18 +48,12 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   event SetReinvestPath(address indexed _caller, address[] _reinvestPath);
 
   /// @dev Errors
-  error InvalidSetSwapRoute();
   error LeverageLevelTooLow();
   error TooMuchFee(uint256 _depositFeeBps, uint256 _mangementFeeBps);
 
   error InvalidSwapRouter();
   error InvalidReinvestPath();
   error InvalidReinvestPathLength();
-
-  struct SwapRoute {
-    address swapRouter;
-    address[] paths;
-  }
 
   /// @notice Constants
   uint8 private constant MIN_LEVERAGE_LEVEL = 3;
