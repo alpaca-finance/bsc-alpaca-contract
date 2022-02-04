@@ -232,8 +232,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
   /// @notice minting shares as a form of management fee to teasury account
   function _mintFee() internal {
-    uint256 _shareToMint = pendingManagementFee();
-    _mint(config.getTreasuryAddr(), _shareToMint);
+    _mint(config.getTreasuryAddr(), pendingManagementFee());
     lastFeeCollected = block.timestamp;
   }
 
