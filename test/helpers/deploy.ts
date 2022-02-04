@@ -92,8 +92,8 @@ import {
   DeltaNeutralVault,
   DeltaNeutralVaultConfig,
   DeltaNeutralVaultConfig__factory,
-  PriceHelper,
-  PriceHelper__factory,
+  DeltaNeutralOracle,
+  DeltaNeutralOracle__factory,
   ChainLinkPriceOracle,
   ChainLinkPriceOracle__factory,
   MockAggregatorV3__factory,
@@ -134,7 +134,7 @@ export interface IDeltaNeutralVault {
   assetVaultWorker: string;
   lpToken: string;
   alpacaToken: string;
-  priceHelper: string;
+  deltaNeutralOracle: string;
   deltaVaultConfig: string;
 }
 
@@ -659,12 +659,12 @@ export class DeployHelper {
     return pancakeswapV2Worker02;
   }
 
-  public async deployPriceHelper(
+  public async deployDeltaNeutralOracle(
     tokens: string[],
     tokenPrices: BigNumber[],
     tokenDecimals: number[],
     usdToken: string
-  ): Promise<[PriceHelper, ChainLinkPriceOracle]> {
+  ): Promise<[DeltaNeutralOracle, ChainLinkPriceOracle]> {
     const ChainLinkPriceOracle = (await ethers.getContractFactory(
       "ChainLinkPriceOracle",
       this.deployer
@@ -691,10 +691,16 @@ export class DeployHelper {
       aggregators
     );
 
-    const PriceHelper = (await ethers.getContractFactory("PriceHelper", this.deployer)) as PriceHelper__factory;
-    const priceHelper = (await upgrades.deployProxy(PriceHelper, [chainLinkOracle.address, usdToken])) as PriceHelper;
-    await priceHelper.deployed();
-    return [priceHelper, chainLinkOracle];
+    const DeltaNeutralOracle = (await ethers.getContractFactory(
+      "DeltaNeutralOracle",
+      this.deployer
+    )) as DeltaNeutralOracle__factory;
+    const deltaNeutralOracle = (await upgrades.deployProxy(DeltaNeutralOracle, [
+      chainLinkOracle.address,
+      usdToken,
+    ])) as DeltaNeutralOracle;
+    await deltaNeutralOracle.deployed();
+    return [deltaNeutralOracle, chainLinkOracle];
   }
 
   public async deployDeltaNeutralPancakeWorker02(
@@ -712,7 +718,7 @@ export class DeployHelper {
     reinvestPath: Array<string>,
     extraStrategies: string[],
     simpleVaultConfig: SimpleVaultConfig,
-    priceHelperAddress: string
+    priceOracleAddress: string
   ): Promise<DeltaNeutralPancakeWorker02> {
     const DeltaNeutralPancakeWorker02 = (await ethers.getContractFactory(
       "DeltaNeutralPancakeWorker02",
@@ -729,7 +735,7 @@ export class DeployHelper {
       treasuryAddress,
       reinvestPath,
       0,
-      priceHelperAddress,
+      priceOracleAddress,
     ])) as DeltaNeutralPancakeWorker02;
     await deltaNeutralWorker02.deployed();
 
@@ -762,7 +768,7 @@ export class DeployHelper {
     reinvestPath: Array<string>,
     extraStrategies: string[],
     simpleVaultConfig: SimpleVaultConfig,
-    priceHelperAddress: string
+    priceOracleAddress: string
   ): Promise<DeltaNeutralMdexWorker02> {
     const DeltaNeutralMdexWorker02 = (await ethers.getContractFactory(
       "DeltaNeutralMdexWorker02",
@@ -779,7 +785,7 @@ export class DeployHelper {
       treasuryAddress,
       reinvestPath,
       0,
-      priceHelperAddress,
+      priceOracleAddress,
     ])) as DeltaNeutralMdexWorker02;
     await worker.deployed();
 
@@ -988,7 +994,7 @@ export class DeployHelper {
       input.assetVaultWorker,
       input.lpToken,
       input.alpacaToken,
-      input.priceHelper,
+      input.deltaNeutralOracle,
       input.deltaVaultConfig,
     ])) as DeltaNeutralVault;
     await deltaNeutralVault.deployed();

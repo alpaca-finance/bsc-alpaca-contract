@@ -19,7 +19,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
-import "./interfaces/IPriceHelper.sol";
+import "./interfaces/IDeltaNeutralOracle.sol";
 import "./interfaces/IVault.sol";
 import "./interfaces/IWorker02.sol";
 import "./interfaces/IWETH.sol";
@@ -35,6 +35,7 @@ import "../utils/Math.sol";
 contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, OwnableUpgradeable {
   /// @notice Libraries
   using FixedPointMathLib for uint256;
+  using SafeERC20Upgradeable for IERC20Upgradeable;
 
   /// @dev Events
   event LogInitializePositions(address indexed _from, uint256 _stableVaultPosId, uint256 _assetVaultPosId);
@@ -104,12 +105,12 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
   uint256 public lastFeeCollected;
 
-  IPriceHelper public priceHelper;
+  IDeltaNeutralOracle public priceOracle;
 
   IDeltaNeutralVaultConfig public config;
 
   /// @dev mutable
-  bool private OPENING;
+  uint8 private OPENING;
 
   /// @dev Require that the caller must be an EOA account if not whitelisted.
   modifier onlyEOAorWhitelisted() {
@@ -146,7 +147,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   /// @param _stableVaultWorker Address of asset worker.
   /// @param _lpToken Address stable and asset token pair.
   /// @param _alpacaToken Alpaca token address.
-  /// @param _priceHelper Price helper address.
+  /// @param _priceOracle DeltaNeutralOracle address.
   /// @param _config The address of delta neutral vault config.
   function initialize(
     string calldata _name,
@@ -157,7 +158,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     address _assetVaultWorker,
     address _lpToken,
     address _alpacaToken,
-    IPriceHelper _priceHelper,
+    IDeltaNeutralOracle _priceOracle,
     IDeltaNeutralVaultConfig _config
   ) external initializer {
     OwnableUpgradeable.__Ownable_init();
@@ -176,7 +177,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
     lpToken = _lpToken;
 
-    priceHelper = _priceHelper;
+    priceOracle = _priceOracle;
     config = _config;
 
     lastFeeCollected = 0;
@@ -197,13 +198,13 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       revert PositionsAlreadyInitialized();
     }
 
-    OPENING = true;
+    OPENING = 1;
     stableVaultPosId = IVault(stableVault).nextPositionID();
     assetVaultPosId = IVault(assetVault).nextPositionID();
 
     deposit(_stableTokenAmount, _assetTokenAmount, msg.sender, _minShareReceive, _data);
 
-    OPENING = false;
+    OPENING = 0;
 
     emit LogInitializePositions(msg.sender, stableVaultPosId, assetVaultPosId);
   }
@@ -215,7 +216,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     if (_token == config.getWrappedNativeAddr()) {
       IWETH(config.getWrappedNativeAddr()).deposit{ value: _amount }();
     } else {
-      SafeERC20Upgradeable.safeTransferFrom(IERC20Upgradeable(_token), msg.sender, address(this), _amount);
+      IERC20Upgradeable(_token).safeTransferFrom(msg.sender, address(this), _amount);
     }
   }
 
@@ -231,7 +232,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     if (_token == config.getWrappedNativeAddr()) {
       SafeToken.safeTransferETH(_to, _amount);
     } else {
-      SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(_token), _to, _amount);
+      IERC20Upgradeable(_token).safeTransfer(_to, _amount);
     }
   }
 
@@ -275,6 +276,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
     uint256 _mintShares = valueToShare(_depositValue);
     uint256 _sharesToUser = ((MAX_BPS - config.depositFeeBps()) * _mintShares) / MAX_BPS;
+
     if (_sharesToUser < _minShareReceive) {
       revert InsufficientShareReceived(_minShareReceive, _sharesToUser);
     }
@@ -284,11 +286,11 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     {
       // 3. call execute to do more work.
       // Perform the actual work, using a new scope to avoid stack-too-deep errors.
-      (uint8[] memory actions, uint256[] memory values, bytes[] memory _datas) = abi.decode(
+      (uint8[] memory _actions, uint256[] memory _values, bytes[] memory _datas) = abi.decode(
         _data,
         (uint8[], uint256[], bytes[])
       );
-      _execute(actions, values, _datas);
+      _execute(_actions, _values, _datas);
     }
 
     // 4. sanity check
@@ -300,17 +302,16 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   }
 
   /// @notice Withdraw from delta neutral vault.
+  /// @param _shareAmount Amount of share to withdraw from vault.
   /// @param _minStableTokenAmount Minimum stable token shareOwner expect to receive.
   /// @param _minAssetTokenAmount Minimum asset token shareOwner expect to receive.
-  /// @param _shareAmount Amount of share to withdraw from vault.
   /// @param _data The calldata to pass along to the proxy action for more working context.
   function withdraw(
+    uint256 _shareAmount,
     uint256 _minStableTokenAmount,
     uint256 _minAssetTokenAmount,
-    uint256 _shareAmount,
     bytes calldata _data
-  ) public onlyEOAorWhitelisted collectFee nonReentrant returns (uint256 _withdrawValue) {
-    address _shareOwner = msg.sender;
+  ) public onlyEOAorWhitelisted collectFee nonReentrant returns (uint256) {
     PositionInfo memory _positionInfoBefore = positionInfo();
     Outstanding memory _outstandingBefore = _outstanding();
 
@@ -463,7 +464,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _depositValue,
     PositionInfo memory _positionInfoBefore,
     PositionInfo memory _positionInfoAfter
-  ) internal {
+  ) internal view {
     uint256 _toleranceBps = config.positionValueTolerance();
     uint8 _leverageLevel = config.leverageLevel();
 
@@ -648,7 +649,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   /// @notice Return position value of a worker.
   /// @param _worker Worker address.
   function _positionValue(address _worker) internal view returns (uint256) {
-    (uint256 _lpValue, uint256 _lastUpdated) = priceHelper.lpToDollar(IWorker02(_worker).totalLpBalance(), lpToken);
+    (uint256 _lpValue, uint256 _lastUpdated) = priceOracle.lpToDollar(IWorker02(_worker).totalLpBalance(), lpToken);
     if (block.timestamp - _lastUpdated > 1800) revert UnTrustedPrice();
     return _lpValue;
   }
@@ -705,34 +706,40 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     ) = abi.decode(_data, (address, uint256, address, uint256, uint256, uint256, bytes));
 
     if (
-      !OPENING &&
+      OPENING != 1 &&
       !((_vault == stableVault && _posId == stableVaultPosId) || (_vault == assetVault && _posId == assetVaultPosId))
     ) {
       revert InvalidPositions({ _vault: _vault, _positionId: _posId });
     }
 
     // 2. approve vault
-    IERC20Upgradeable(stableToken).approve(_vault, type(uint256).max);
-    IERC20Upgradeable(assetToken).approve(_vault, type(uint256).max);
+    IERC20Upgradeable(stableToken).safeApprove(_vault, type(uint256).max);
+    IERC20Upgradeable(assetToken).safeApprove(_vault, type(uint256).max);
 
     // 3. Call work to altering Vault position
     IVault(_vault).work(_posId, _worker, _principalAmount, _borrowAmount, _maxReturn, _workData);
 
     // 4. Reset approve to 0
-    IERC20Upgradeable(stableToken).approve(_vault, 0);
-    IERC20Upgradeable(assetToken).approve(_vault, 0);
+    IERC20Upgradeable(stableToken).safeApprove(_vault, 0);
+    IERC20Upgradeable(assetToken).safeApprove(_vault, 0);
+  }
+
+  /// @notice withdraw alpaca to receiver address
+  function withdrawAlpaca(address _to, uint256 _amount) external onlyOwner {
+    IERC20Upgradeable(alpacaToken).safeTransfer(_to, _amount);
   }
 
   /// @dev Claim Alpaca reward for internal
-  function _claim(uint256 _poolId) internal {
-    // ddc63262 is a signature of harvest(uint256)
-    (bool success, ) = config.fairLaunchAddr().call(abi.encodeWithSelector(0xddc63262, _poolId));
+  function _claim(uint256 _poolId) internal returns (uint256) {
+    uint256 alpacaBefore = IERC20Upgradeable(alpacaToken).balanceOf(address(this));
+    IFairLaunch(config.fairLaunchAddr()).harvest(_poolId);
+    uint256 alpacaAfter = IERC20Upgradeable(alpacaToken).balanceOf(address(this));
+    return alpacaAfter - alpacaBefore;
   }
 
   /// @dev _getTokenPrice with validate last price updated
-  /// @param _token token address
-  function _getTokenPrice(address _token) internal view returns (uint256) {
-    (uint256 _price, uint256 _lastUpdated) = priceHelper.getTokenPrice(_token);
+  function _getTokenPrice(address token) internal view returns (uint256) {
+    (uint256 _price, uint256 _lastUpdated) = priceOracle.getTokenPrice(token);
     // _lastUpdated > 30 mins revert
     if (block.timestamp - _lastUpdated > 1800) revert UnTrustedPrice();
     return _price;
