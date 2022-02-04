@@ -30,10 +30,11 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   );
   event LogSetWhitelistedCallers(address indexed _caller, address indexed _address, bool _ok);
   event LogSetWhitelistedRebalancers(address indexed _caller, address indexed _address, bool _ok);
+  event LogSetFeeExemptedCallers(address indexed _caller, address indexed _address, bool _ok);
 
   event LogSetSwapRoute(address indexed _caller, address indexed _swapRouter, address source, address destination);
   event LogSetLeverageLevel(address indexed _caller, uint8 _newLeverageLevel);
-  event LogSetFees(address indexed _caller, uint256 _depositFeeBps, uint256 _mangementFeeBps);
+  event LogSetFees(address indexed _caller, uint256 _depositFeeBps, uint256 _withdrawalFeeBps, uint256 _mangementFeeBps);
 
   /// @dev Errors
   error InvalidSetSwapRoute();
@@ -48,7 +49,9 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   /// @notice Constants
   uint8 private constant MIN_LEVERAGE_LEVEL = 3;
   uint256 private constant MAX_DEPOSIT_FEE_BPS = 1000;
+  uint256 private constant MAX_WITHDRAWAL_FEE_BPS = 1000;
   uint256 private constant MAX_MANGEMENT_FEE_BPS = 1000;
+
   /// @dev Configuration for Delta Neutral Vault
   /// getWrappedNativeAddr - address for wrapped native eg WBNB, WETH
   /// getWNativeRelayer - address for wNtive Relayer
@@ -57,6 +60,7 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   /// rebalanceFactor - threshold that must be reached to allow rebalancing
   /// positionValueTolerance- Tolerance bps that allow margin for misc calculation
   /// depositFeeBps - Fee when user deposit to delta neutral vault
+  /// withdrawalFeeBps - Fee when user withdraw from delta neutral vault
   /// mangementFeeBps Fee collected as a manager of delta neutral vault
   /// leverageLevel - Leverage level used for underlying positions
   /// whitelistedCallers - mapping of whitelisted callers
@@ -71,12 +75,15 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   uint256 public override positionValueTolerance;
 
   uint256 public override depositFeeBps;
+  uint256 public override withdrawalFeeBps;
   uint256 public override mangementFeeBps;
 
   uint8 public override leverageLevel;
 
   mapping(address => bool) public whitelistedCallers;
   mapping(address => bool) public whitelistedRebalancers;
+  // list of exempted callers.
+  mapping(address => bool) public feeExemptedCallers;
 
   mapping(address => mapping(address => SwapRoute)) public swapRoutes;
 
@@ -188,21 +195,35 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     emit LogSetLeverageLevel(msg.sender, _newLeverageLevel);
   }
 
+  /// @notice Set exempted fee callers.
+  /// @dev Must only be called by owner.
+  /// @param _callers addresses to be exempted.
+  /// @param _ok The new ok flag for callers.
+  function setFeeExemptedCallers(address[] calldata _callers, bool _ok) external onlyOwner {
+    for (uint256 _idx = 0; _idx < _callers.length; _idx++) {
+      feeExemptedCallers[_callers[_idx]] = _ok;
+      emit LogSetFeeExemptedCallers(msg.sender, _callers[_idx], _ok);
+    }
+  }
+
   /// @notice Set fees.
   /// @dev Must only be called by owner.
   /// @param _newDepositFeeBps Fee when user deposit to delta neutral vault.
+  /// @param _newWithdrawalFeeBps Fee when user deposit to delta neutral vault.
   /// @param _newMangementFeeBps Mangement Fee.
-  function setFees(uint256 _newDepositFeeBps, uint256 _newMangementFeeBps) external onlyOwner {
+  function setFees(uint256 _newDepositFeeBps, uint256 _newWithdrawalFeeBps ,uint256 _newMangementFeeBps) external onlyOwner {
     if (_newDepositFeeBps > MAX_DEPOSIT_FEE_BPS || _newMangementFeeBps > MAX_MANGEMENT_FEE_BPS) {
       revert TooMuchFee(_newDepositFeeBps, MAX_MANGEMENT_FEE_BPS);
     }
     depositFeeBps = _newDepositFeeBps;
+    withdrawalFeeBps = _newWithdrawalFeeBps;
     mangementFeeBps = _newMangementFeeBps;
-    emit LogSetFees(msg.sender, _newDepositFeeBps, _newMangementFeeBps);
+    emit LogSetFees(msg.sender, _newDepositFeeBps, _newWithdrawalFeeBps ,_newMangementFeeBps);
   }
 
   /// @dev Return the treasuryAddr.
   function getTreasuryAddr() external view override returns (address) {
     return treasury == address(0) ? 0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51 : treasury;
   }
+  
 }

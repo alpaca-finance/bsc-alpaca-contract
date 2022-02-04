@@ -311,8 +311,12 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     PositionInfo memory _positionInfoBefore = positionInfo();
     Outstanding memory _outstandingBefore = _outstanding();
 
-    uint256 _shareValue = shareToValue(_shareAmount);
-    _burn(_shareOwner, _shareAmount);
+    uint256 _withdrawalFeeBps = config.feeExemptedCallers(msg.sender) ? 0 : config.withdrawalFeeBps();
+    uint256 _shareToWithdraw = ((MAX_BPS - _withdrawalFeeBps) * _shareAmount) / MAX_BPS;
+    // burn shares from share owner
+    _burn(msg.sender, _shareAmount);
+    // mint shares equal to withdrawal fee to treasury.
+    _mint(config.getTreasuryAddr(), _shareAmount - _shareToWithdraw);
 
     {
       (uint8[] memory actions, uint256[] memory values, bytes[] memory _datas) = abi.decode(
@@ -338,8 +342,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       revert InsufficientTokenReceived(assetToken, _minAssetTokenAmount, _assetTokenBack);
     }
 
-    _transferTokenToShareOwner(_shareOwner, stableToken, _stableTokenBack);
-    _transferTokenToShareOwner(_shareOwner, assetToken, _assetTokenBack);
+    _transferTokenToShareOwner(msg.sender, stableToken, _stableTokenBack);
+    _transferTokenToShareOwner(msg.sender, assetToken, _assetTokenBack);
 
     uint256 _withdrawValue;
     {
@@ -353,7 +357,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     _withdrawHealthCheck(_withdrawValue, _positionInfoBefore, _positionInfoAfter);
     _outstandingCheck(_outstandingBefore, _outstandingAfter);
 
-    emit LogWithdraw(_shareOwner, _stableTokenBack, _assetTokenBack);
+    emit LogWithdraw(msg.sender, _stableTokenBack, _assetTokenBack);
     return _withdrawValue;
   }
 
@@ -478,8 +482,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       _totalDebtAfter;
     if (
       !Math.almostEqual(
-        _totalPositionValueBefore / _totalDebtBefore,
-        _totalPositionValueAfter / _totalDebtAfter,
+        _totalPositionValueBefore * _totalDebtAfter,
+        _totalPositionValueAfter * _totalDebtBefore,
         _toleranceBps
       )
     ) {
