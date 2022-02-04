@@ -82,7 +82,6 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
 
   /// @dev constants
   uint256 private constant BASIS_POINT = 10000;
-  uint256 private constant PRICE_AGE_SECOND = 1800; // 30 mins
 
   /// @notice Configuration variables
   IBSCPool public bscPool;
@@ -295,7 +294,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
     (uint256 _totalBalanceInUSD, uint256 _lpPriceLastUpdate) = priceHelper.lpToDollar(totalLpBalance, address(lpToken));
     (uint256 _tokenPrice, uint256 _tokenPricelastUpdate) = priceHelper.getTokenPrice(address(baseToken));
     // NOTE: last updated price should not be over 30 mins
-    if (block.timestamp - _lpPriceLastUpdate > PRICE_AGE_SECOND || block.timestamp - _tokenPricelastUpdate > PRICE_AGE_SECOND) revert UnTrustedPrice();
+    if (block.timestamp - _lpPriceLastUpdate > 1800 || block.timestamp - _tokenPricelastUpdate > 1800) revert UnTrustedPrice();
     // TODO: discuss round up or down
     return _totalBalanceInUSD.divWadDown(_tokenPrice);
   }
