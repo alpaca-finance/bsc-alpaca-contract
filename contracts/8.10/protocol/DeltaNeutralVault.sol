@@ -48,7 +48,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   );
   event LogWithdraw(address indexed _shareOwner, uint256 _minStableTokenAmount, uint256 _minAssetTokenAmount);
   event LogRebalance(uint256 _equityBefore, uint256 _equityAfter);
-  event LogReinvest();
+  event LogReinvest(uint256 _equityBefore, uint256 _equityAfter);
 
   /// @dev Errors
   error Unauthorized(address _caller);
@@ -82,9 +82,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   }
 
   /// @dev constants
-  uint256 private constant MAX_BPS = 10000;
-  uint256 private constant PRICE_AGE_SECOND = 1800; // 30 mins
-  uint256 private constant MAX_ALPACA_BOUNTY_BPS = 2500; // 25%
+  uint64 private constant MAX_BPS = 10000;
+  uint64 private constant MAX_ALPACA_BOUNTY_BPS = 2500; // 25%
 
   uint8 private constant ACTION_WORK = 1;
   uint8 private constant ACTION_WRAP = 2;
@@ -453,7 +452,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       revert UnsafePositionEquity();
     }
 
-    emit LogReinvest();
+    emit LogReinvest(_equityBefore, _equityAfter);
   }
 
   /// @notice check if position equity and debt are healthy after deposit. LEVERAGE_LEVEL must be >= 3
