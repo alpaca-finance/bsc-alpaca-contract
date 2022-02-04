@@ -88,6 +88,23 @@
             "StrategyPartialCloseLiquidate": "0xC74846Bc38AF10d172293aC1D1C524e319156F0F",
             "StrategyPartialCloseMinimizeTrading": "0x0C52c7E0c27028428DcBCBA8791f30b082aD9A3a"
           }
+        },
+        {
+          "name": "ALPACA-WFTM SpookyWorker",
+          "address": "0xFd379518dC16840FD4A98ad9E40546800936Fd2f",
+          "deployedBlock": 7217121,
+          "config": "0x972F1D78d1E7D7ab5c11b3346c966c2EC94a64e6",
+          "pId": 1,
+          "stakingToken": "0xE19adba4168E68fE804479A741b809e45d0b26E4",
+          "stakingTokenAt": "0xF9c40C68d4AE8234db6AbC38B7Efb91cF2232cF4",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x96b6FAfdC9C3D55ef4906A005B7525B8C06CE6f5",
+            "StrategyLiquidate": "0x5f597510Af2562181F752217a3C4963c9baAC615",
+            "StrategyAddTwoSidesOptimal": "0x792eBD6e468593f4a68B01A11A491ed84D1db104",
+            "StrategyWithdrawMinimizeTrading": "0x800343333540a2e600E66e7cD73ABc0dE3cC017A",
+            "StrategyPartialCloseLiquidate": "0xC74846Bc38AF10d172293aC1D1C524e319156F0F",
+            "StrategyPartialCloseMinimizeTrading": "0x0C52c7E0c27028428DcBCBA8791f30b082aD9A3a"
+          }
         }
       ]
     }

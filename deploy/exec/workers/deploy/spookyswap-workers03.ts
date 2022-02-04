@@ -74,16 +74,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const shortWorkerInfos: ISpookySwapWorkerInput[] = [
     {
       VAULT_SYMBOL: "ibFTM",
-      WORKER_NAME: "BOO-FTM PancakeswapWorker",
+      WORKER_NAME: "ALPACA-WFTM PancakeswapWorker",
       REINVEST_BOT: "0xcf28b4da7d3ed29986831876b74af6e95211d3f9",
-      POOL_ID: 0,
+      POOL_ID: 1,
       REINVEST_BOUNTY_BPS: "900",
       REINVEST_PATH: ["BOO", "WFTM"],
       REINVEST_THRESHOLD: "0",
       WORK_FACTOR: "7000",
       KILL_FACTOR: "8333",
       MAX_PRICE_DIFF: "1100000000000",
-      EXACT_ETA: "1643259300",
+      EXACT_ETA: "1643951700",
     },
   ];
 

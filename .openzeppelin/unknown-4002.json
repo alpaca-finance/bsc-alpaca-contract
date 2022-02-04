@@ -159,6 +159,11 @@
       "address": "0x2C3DFA744215B89e5816274b1571d2eBcd02cB5D",
       "txHash": "0xb7bb54427d97fb16a3bd8f0049b1b19d727d68543f0de4c20c9b6688cf4ce410",
       "kind": "transparent"
+    },
+    {
+      "address": "0xFd379518dC16840FD4A98ad9E40546800936Fd2f",
+      "txHash": "0xa9128916e4aad5998e9a2dcfb6535223d34ae919efaba8716e7d91a5beed0ae2",
+      "kind": "transparent"
     }
   ],
   "impls": {
