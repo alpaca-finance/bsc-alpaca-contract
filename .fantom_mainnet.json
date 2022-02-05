@@ -1,0 +1,137 @@
+{
+  "ProxyAdmin": "",
+  "Timelock": "",
+  "Multicall": "0x2D5408f2287BF9F9B05404794459a846651D0a59",
+  "MiniFL": {
+    "address": "",
+    "deployedBlock": 888888,
+    "pools": [
+      {
+        "id": 0,
+        "stakingToken": "debtIbFTM_V2",
+        "address": "",
+        "rewarder": ""
+      },
+      {
+        "id": 1,
+        "stakingToken": "ibFTM",
+        "address": "",
+        "rewarder": ""
+      }
+    ]
+  },
+  "Exchanges": {
+    "SpookySwap": {
+      "SpookyFactory": "0x152eE697f2E276fA89E96742e9bB9aB1F2E61bE3",
+      "SpookyRouter": "0xF491e7B69E4244ad4002BC14e878a34207E38c29",
+      "SpookyMasterChef": "0x2b2929E785374c651a81A63878Ab22742656DcDd",
+      "LpTokens": [
+        { "pId": 2, "name": "WFTM-USDC LP", "address": "0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c" },
+        { "pId": 0, "name": "BOO-WFTM LP", "address": "0xEc7178F4C41f346b2721907F5cF7628E388A7a58" },
+        { "pId": 5, "name": "FTM-wETH LP", "address": "0xf0702249F4D3A25cD3DED7859a165693685Ab577" },
+        { "pId": 4, "name": "WFTM-BTC LP", "address": "0xFdb9Ab8B9513Ad9E419Cf19530feE49d412C3Ee3" },
+        { "pId": 45, "name": "TUSD-USDC LP", "address": "0x12692B3bf8dd9Aa1d2E721d1a79efD0C244d7d96" },
+        { "pId": 1, "name": "FTM-fUSDT LP", "address": "0x5965E53aa80a0bcF1CD6dbDd72e6A9b2AA047410" },
+        { "pId": 3, "name": "WFTM-DAI LP", "address": "0xe120ffBDA0d14f3Bb6d6053E90E63c572A66a428" },
+        { "pId": 24, "name": "WFTM-MIM LP", "address": "0x6f86e65b255c9111109d2D2325ca2dFc82456efc" }
+      ]
+    }
+  },
+  "Tokens": {
+    "ALPACA": "0x17326e0677A4C89E22FBD6192F1fb1972200473a",
+    "WFTM": "0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83",
+    "USDC": "0x04068da6c83afcfa0e13ba15a6696662335d5b75",
+    "BOO": "0x841fad6eae12c286d1fd18d1d525dffa75c7effe",
+    "ETH": "0x74b23882a30290451A17c44f4F05243b6b58C76d",
+    "BTC": "0x321162Cd933E2Be498Cd2267a90534A804051b11",
+    "TUSD": "0x9879abdea01a879644185341f7af7d8343556b7a",
+    "fUSDT": "0x049d68029688eabf473097a2fc38ef61633a3c7a",
+    "DAI": "0x8d11ec38a3eb5e956b052f67da8bdc9bef8abf3e",
+    "MIM": "0x82f0b8b456c1a451378467398982d4834b6829c1"
+  },
+  "SharedStrategies": {
+    "SpookySwap": {
+      "StrategyAddBaseTokenOnly": "",
+      "StrategyLiquidate": "",
+      "StrategyWithdrawMinimizeTrading": "",
+      "StrategyPartialCloseLiquidate": "",
+      "StrategyPartialCloseMinimizeTrading": ""
+    }
+  },
+  "SharedConfig": {
+    "TripleSlopeModel": "",
+    "WNativeRelayer": "",
+    "WorkerConfig": ""
+  },
+  "Oracle": {
+    "OracleMedianizer": "",
+    "ChainLinkOracle": "",
+    "SimpleOracle": ""
+  },
+  "Vaults": [
+    {
+      "name": "Interest Bearing FTM",
+      "symbol": "ibFTM",
+      "address": "",
+      "deployedBlock": 8888,
+      "baseToken": "0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83",
+      "debtToken": "",
+      "config": "",
+      "tripleSlopeModel": "",
+      "StrategyAddTwoSidesOptimal": {
+        "SpookySwap": ""
+      },
+      "workers": [
+        {
+          "name": "",
+          "address": "",
+          "deployedBlock": 8888,
+          "config": "",
+          "pId": 0,
+          "stakingToken": "",
+          "stakingTokenAt": "",
+          "strategies": {
+            "StrategyAddAllBaseToken": "",
+            "StrategyLiquidate": "",
+            "StrategyAddTwoSidesOptimal": "",
+            "StrategyWithdrawMinimizeTrading": "",
+            "StrategyPartialCloseLiquidate": "",
+            "StrategyPartialCloseMinimizeTrading": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Interest Bearing USDC",
+      "symbol": "ibUSDC",
+      "address": "",
+      "deployedBlock": 8888,
+      "baseToken": "0x04068da6c83afcfa0e13ba15a6696662335d5b75",
+      "debtToken": "",
+      "config": "",
+      "tripleSlopeModel": "",
+      "StrategyAddTwoSidesOptimal": {
+        "SpookySwap": ""
+      },
+      "workers": [
+        {
+          "name": "",
+          "address": "",
+          "deployedBlock": 8888,
+          "config": "",
+          "pId": 0,
+          "stakingToken": "",
+          "stakingTokenAt": "",
+          "strategies": {
+            "StrategyAddAllBaseToken": "",
+            "StrategyLiquidate": "",
+            "StrategyAddTwoSidesOptimal": "",
+            "StrategyWithdrawMinimizeTrading": "",
+            "StrategyPartialCloseLiquidate": "",
+            "StrategyPartialCloseMinimizeTrading": ""
+          }
+        }
+      ]
+    }
+  ]
+}

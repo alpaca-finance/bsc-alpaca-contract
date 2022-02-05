@@ -40,16 +40,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const WBNB = config.Tokens.WFTM!;
   const TOKENS: Array<IToken> = [
     {
-      symbol: "USDT",
-      name: "USDT",
-      address: config.Tokens.USDT!,
+      symbol: "WFTM",
+      name: "WFTM",
+      address: config.Tokens.WFTM!,
       decimals: "18",
       pairs: [
         {
           quoteToken: "USDC",
           quoteTokenAddr: config.Tokens.USDC!,
-          reserveQuoteToken: ethers.utils.parseEther("100000000"),
-          reserveBaseToken: ethers.utils.parseEther("100000000"),
+          reserveQuoteToken: ethers.utils.parseEther("100000"),
+          reserveBaseToken: ethers.utils.parseEther("50000"),
         },
       ],
     },

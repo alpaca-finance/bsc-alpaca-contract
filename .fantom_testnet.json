@@ -1,7 +1,7 @@
 {
   "ProxyAdmin": "0x25C8BF156cE1DcBC3f04E18621a0472aFe59d918",
   "Timelock": "0x42E8faf92f83E43A0C1E6A559e4bEdFa1e9B45f4",
-  "Multicall": "0x6Cd4EBb05d4f099c30137Ed878fB138b615EE988",
+  "MultiCall": "0x6Cd4EBb05d4f099c30137Ed878fB138b615EE988",
   "MiniFL": {
     "address": "0x59CfFf374CF8cd5BDb2Be478E4f94aCBCF811f28",
     "deployedBlock": 6949550,
@@ -28,7 +28,8 @@
       "LpTokens": [
         { "pId": 0, "name": "BOO-WFTM LP", "address": "0x98ee4798926d6738f58D958b4AA418AACbFF2b7b" },
         { "pId": 1, "name": "ALPACA-WFTM LP", "address": "0xE19adba4168E68fE804479A741b809e45d0b26E4" },
-        { "pId": 2, "name": "USDT-USDC LP", "address": "0x843fAf74c9D5F5ae7E6dC13E2E30E74EBB93eB74" }
+        { "pId": 2, "name": "USDT-USDC LP", "address": "0x843fAf74c9D5F5ae7E6dC13E2E30E74EBB93eB74" },
+        { "pId": 3, "name": "WFTM-USDC LP", "address": "0xB340412b794EB47248d419C5e490B4d60Bd2b36d" }
       ]
     }
   },

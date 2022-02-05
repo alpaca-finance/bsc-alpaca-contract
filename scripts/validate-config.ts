@@ -3,6 +3,8 @@ import { expect } from "chai";
 import "@openzeppelin/test-helpers";
 import {
   CakeMaxiWorker__factory,
+  ConfigurableInterestVaultConfig,
+  ConfigurableInterestVaultConfig__factory,
   MdexWorker02__factory,
   PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory,
   PancakeswapV2RestrictedStrategyAddTwoSidesOptimal__factory,
@@ -272,6 +274,18 @@ async function validateWorker(vault: Vault, workerInfo: WorkersEntity, routers: 
   }
 }
 
+async function validateApproveAddStrategy(vaultConfig: ConfigurableInterestVaultConfig, addStrats: Array<string>) {
+  console.log(`> 🔎 validating approve add strategy`);
+  const promises = [];
+  for (let i = 0; i < addStrats.length; i++) promises.push(vaultConfig.approvedAddStrategies(addStrats[i]));
+  const isApproves = await Promise.all(promises);
+
+  const isReturnFalse = isApproves.find((isApprove) => isApprove === false);
+  if (isReturnFalse) {
+    console.log(`> ❌ some problem found in approve add strategy, please double check`);
+  }
+}
+
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -378,6 +392,7 @@ async function main() {
 
   for (let i = 0; i < config.Vaults.length; i++) {
     const vault = Vault__factory.connect(config.Vaults[i].address, ethers.provider);
+    const vaultConfig = ConfigurableInterestVaultConfig__factory.connect(config.Vaults[i].config, ethers.provider);
 
     console.log("=======================");
     console.log(`> validating ${config.Vaults[i].name}`);
@@ -406,6 +421,15 @@ async function main() {
             config.Exchanges.Mdex!.MdexRouter
           ),
         ]);
+
+        validateApproveAddStrategy(vaultConfig, [
+          config.SharedStrategies.Pancakeswap!.StrategyAddBaseTokenOnly,
+          config.Vaults[i].StrategyAddTwoSidesOptimal.Pancakeswap!,
+          config.SharedStrategies.PancakeswapSingleAsset!.StrategyAddBaseTokenOnly,
+          config.Vaults[i].StrategyAddTwoSidesOptimal.PancakeswapSingleAsset!,
+          config.SharedStrategies.Mdex!.StrategyAddBaseTokenOnly,
+          config.Vaults[i].StrategyAddTwoSidesOptimal.Mdex!,
+        ]);
         console.log("> ✅ done, no problem found");
       } catch (e) {
         console.log("> ❌ some problem found");
@@ -420,6 +444,11 @@ async function main() {
             vault.address,
             config.Exchanges.SpookySwap!.SpookyRouter
           ),
+        ]);
+
+        validateApproveAddStrategy(vaultConfig, [
+          config.SharedStrategies.SpookySwap!.StrategyAddBaseTokenOnly,
+          config.Vaults[i].StrategyAddTwoSidesOptimal.SpookySwap!,
         ]);
         console.log("> ✅ done, no problem found");
       } catch (e) {
@@ -440,7 +469,7 @@ async function main() {
       dexRouters.waultswap = config.Exchanges.Waultswap!.WaultswapRouter;
       dexRouters.mdex = config.Exchanges.Mdex!.MdexRouter;
     }
-    if (chainId === 4002) {
+    if (chainId === 4002 || chainId == 250) {
       dexRouters.spooky = config.Exchanges.SpookySwap!.SpookyRouter;
     }
     for (const worker of config.Vaults[i].workers) {
