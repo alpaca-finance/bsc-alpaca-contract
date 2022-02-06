@@ -285,7 +285,7 @@
     "test": "hardhat test --no-compile",
     "testnet": "hardhat console --no-compile --network testnet",
     "fantom_testnet": "hardhat console --no-compile --network fantom_testnet",
-    "fantom": "hardhat console --no-compile --network fantom",
+    "fantom_mainnet": "hardhat console --no-compile --network fantom_mainnet",
     "script:mainnet:validate-config": "hardhat --network mainnet run --no-compile ./scripts/validate-config.ts",
     "script:mainnet:query-worker-config": "hardhat --network mainnet run --no-compile ./scripts/query-worker-config.ts",
     "script:mainnet:withdraw-reserve": "hardhat --network mainnet run --no-compile ./scripts/withdraw-reserve.ts",

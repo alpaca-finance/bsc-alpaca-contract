@@ -13,9 +13,10 @@ Alpaca Fin Corporation
 
 pragma solidity 0.6.6;
 
-import "./interfaces/IWETH.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+
+import "./interfaces/IWETH.sol";
 
 contract WNativeRelayer is Ownable, ReentrancyGuard {
   address wnative;
@@ -39,7 +40,7 @@ contract WNativeRelayer is Ownable, ReentrancyGuard {
 
   function withdraw(uint256 _amount) external onlyWhitelistedCaller nonReentrant {
     IWETH(wnative).withdraw(_amount);
-    (bool success, ) = msg.sender.call{value: _amount}("");
+    (bool success, ) = msg.sender.call{ value: _amount }("");
     require(success, "WNativeRelayer::onlyWhitelistedCaller:: can't withdraw");
   }
 
