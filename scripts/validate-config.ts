@@ -14,8 +14,6 @@ import {
   Vault__factory,
   WaultSwapWorker__factory,
 } from "../typechain";
-import MainnetConfig from "../.mainnet.json";
-import TestnetConfig from "../.testnet.json";
 import { WorkersEntity } from "../deploy/interfaces/config";
 import { getConfig } from "../deploy/entities/config";
 

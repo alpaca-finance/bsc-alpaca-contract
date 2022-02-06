@@ -3,6 +3,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 import {
   DebtToken,
   DebtToken__factory,
+  MiniFL__factory,
   Rewarder1__factory,
   Timelock,
   Timelock__factory,
@@ -31,7 +32,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const NAME = "Interest Bearing FTM";
   const SYMBOL = "ibFTM";
   const DEBT_FAIR_LAUNCH_PID = "0";
-  let REWARDER1_ADDRESS = "0x763a687E631A907baDd620E20e9A0869E3Ec543D";
+  const REWARDER1_ADDRESS = "0x763a687E631A907baDd620E20e9A0869E3Ec543D";
   const EXACT_ETA = "1643259000";
 
   const config = ConfigEntity.getConfig();
@@ -85,65 +86,86 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   await debtToken.transferOwnership(vault.address, { nonce: nonce++ });
   console.log("✅ Done");
 
-  const timelock = Timelock__factory.connect(config.Timelock, (await ethers.getSigners())[0]) as Timelock;
+  const miniFL = MiniFL__factory.connect(config.MiniFL!.address, deployer);
 
-  console.log(">> Queue Transaction to add a debtToken pool through Timelock");
-  await timelock.queueTransaction(
-    config.MiniFL!.address,
-    "0",
-    "addPool(uint256,address,address,bool)",
-    ethers.utils.defaultAbiCoder.encode(
-      ["uint256", "address", "address", "bool"],
-      [ALLOC_POINT_FOR_OPEN_POSITION, debtToken.address, REWARDER1_ADDRESS, true]
-    ),
-    EXACT_ETA,
-    { nonce: nonce++ }
-  );
-  console.log("✅ Done");
+  // If Mini FL is Timelock then handle it
+  if ((await miniFL.owner()).toLowerCase() === config.Timelock.toLowerCase()) {
+    console.log("MiniFL's owner is Timelock, handle it");
 
-  console.log(">> Generate timelock executeTransaction");
-  console.log(
-    `await timelock.executeTransaction('${
-      config.MiniFL!.address
-    }', '0', 'addPool(uint256,address,address,bool)', ethers.utils.defaultAbiCoder.encode(['uint256','address','address','bool'], [${ALLOC_POINT_FOR_OPEN_POSITION}, '${
-      debtToken.address
-    }', '${REWARDER1_ADDRESS}', true]), ${EXACT_ETA})`
-  );
-  console.log("✅ Done");
-
-  console.log(">> link pool with vault");
-  await vault.setFairLaunchPoolId(DEBT_FAIR_LAUNCH_PID, { gasLimit: "2000000", nonce: nonce++ });
-  console.log("✅ Done");
-
-  console.log(`>> Queue Transaction to add a ${SYMBOL} pool through Timelock`);
-  await timelock.queueTransaction(
-    config.MiniFL!.address,
-    "0",
-    "addPool(uint256,address,address,bool)",
-    ethers.utils.defaultAbiCoder.encode(
-      ["uint256", "address", "address", "bool"],
-      [ALLOC_POINT_FOR_DEPOSIT, vault.address, REWARDER1_ADDRESS, false]
-    ),
-    EXACT_ETA,
-    { nonce: nonce++ }
-  );
-  console.log("✅ Done");
-
-  console.log(">> Generate timelock executeTransaction");
-  console.log(
-    `await timelock.executeTransaction('${
-      config.MiniFL!.address
-    }', '0', 'addPool(uint256,address,address,bool)', ethers.utils.defaultAbiCoder.encode(['uint256','address','address','bool'], [${ALLOC_POINT_FOR_DEPOSIT}, '${
-      vault.address
-    }', ${REWARDER1_ADDRESS}, false]), ${EXACT_ETA})`
-  );
-  console.log("✅ Done");
-
-  if (REWARDER1_ADDRESS !== ethers.constants.AddressZero) {
-    console.log(
-      `>> Add pool ${DEBT_FAIR_LAUNCH_PID} and pool ${DEBT_FAIR_LAUNCH_PID + 1} to rewarder once pool is live`
+    const timelock = Timelock__factory.connect(config.Timelock, deployer) as Timelock;
+    console.log(">> Queue Transaction to add a debtToken pool through Timelock");
+    await timelock.queueTransaction(
+      config.MiniFL!.address,
+      "0",
+      "addPool(uint256,address,address,bool,bool)",
+      ethers.utils.defaultAbiCoder.encode(
+        ["uint256", "address", "address", "bool", "bool"],
+        [ALLOC_POINT_FOR_OPEN_POSITION, debtToken.address, REWARDER1_ADDRESS, true, true]
+      ),
+      EXACT_ETA,
+      { nonce: nonce++ }
     );
+    console.log("✅ Done");
+
+    console.log(">> Generate timelock executeTransaction");
+    console.log(
+      `await timelock.executeTransaction('${
+        config.MiniFL!.address
+      }', '0', 'addPool(uint256,address,address,bool)', ethers.utils.defaultAbiCoder.encode(['uint256','address','address','bool','bool'], [${ALLOC_POINT_FOR_OPEN_POSITION}, '${
+        debtToken.address
+      }', '${REWARDER1_ADDRESS}', true, true]), ${EXACT_ETA})`
+    );
+    console.log("✅ Done");
+
+    console.log(`>> Queue Transaction to add a ${SYMBOL} pool through Timelock`);
+    await timelock.queueTransaction(
+      config.MiniFL!.address,
+      "0",
+      "addPool(uint256,address,address,bool,bool)",
+      ethers.utils.defaultAbiCoder.encode(
+        ["uint256", "address", "address", "bool", "bool"],
+        [ALLOC_POINT_FOR_DEPOSIT, vault.address, REWARDER1_ADDRESS, false, true]
+      ),
+      EXACT_ETA,
+      { nonce: nonce++ }
+    );
+    console.log("✅ Done");
+
+    console.log(">> Generate timelock executeTransaction");
+    console.log(
+      `await timelock.executeTransaction('${
+        config.MiniFL!.address
+      }', '0', 'addPool(uint256,address,address,bool)', ethers.utils.defaultAbiCoder.encode(['uint256','address','address','bool','bool'], [${ALLOC_POINT_FOR_DEPOSIT}, '${
+        vault.address
+      }', ${REWARDER1_ADDRESS}, false, true]), ${EXACT_ETA})`
+    );
+    console.log("✅ Done");
+  } else {
+    console.log(">> MiniFL's owner is not Timelock, add pool immediately");
+
+    console.log(">> Add a debt token to MiniFL");
+    const addDebtTokenPoolTx = await miniFL.addPool(
+      ALLOC_POINT_FOR_OPEN_POSITION,
+      debtToken.address,
+      REWARDER1_ADDRESS,
+      true,
+      true,
+      { nonce: nonce++ }
+    );
+    await addDebtTokenPoolTx.wait(3);
+    console.log("✅ Done");
+
+    console.log(`>> Add a ${SYMBOL} to MiniFL`);
+    const addIbPoolTx = await miniFL.addPool(ALLOC_POINT_FOR_DEPOSIT, vault.address, REWARDER1_ADDRESS, false, true, {
+      nonce: nonce++,
+    });
+    await addIbPoolTx.wait(3);
+    console.log("✅ Done");
   }
+
+  console.log(">> Set Debt Pool ID on Vault");
+  await vault.setFairLaunchPoolId(await miniFL.poolLength(), { nonce: nonce++ });
+  console.log("✅ Done");
 
   const wNativeRelayer = WNativeRelayer__factory.connect(
     config.SharedConfig.WNativeRelayer,

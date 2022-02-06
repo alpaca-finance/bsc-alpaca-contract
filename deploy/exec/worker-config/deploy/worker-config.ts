@@ -15,7 +15,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
   const config = getConfig();
-  const SIMPLE_ORACLE_ADDR = config.Oracle.SimpleOracle;
+  const ORACLE = config.Oracle.OracleMedianizer;
 
   console.log(">> Deploying an upgradable WorkerConfig contract");
   const WorkerConfig = (await ethers.getContractFactory(
@@ -24,7 +24,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       await ethers.getSigners()
     )[0]
   )) as WorkerConfig__factory;
-  const workerConfig = await upgrades.deployProxy(WorkerConfig, [SIMPLE_ORACLE_ADDR]);
+  const workerConfig = await upgrades.deployProxy(WorkerConfig, [ORACLE]);
   await workerConfig.deployed();
   console.log(`>> Deployed at ${workerConfig.address}`);
 };

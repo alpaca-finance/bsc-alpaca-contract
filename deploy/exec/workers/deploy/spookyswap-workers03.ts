@@ -2,6 +2,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, upgrades } from "hardhat";
 import {
+  ConfigurableInterestVaultConfig__factory,
   PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory,
   PancakeswapV2RestrictedStrategyAddTwoSidesOptimal__factory,
   PancakeswapV2RestrictedStrategyLiquidate__factory,
@@ -10,6 +11,7 @@ import {
   SpookyWorker03,
   SpookyWorker03__factory,
   Timelock__factory,
+  WorkerConfig__factory,
 } from "../../../../typechain";
 import { ConfigEntity } from "../../../entities";
 
@@ -234,16 +236,43 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       console.log("✅ Done");
     }
 
-    const timelock = Timelock__factory.connect(workerInfos[i].TIMELOCK, (await ethers.getSigners())[0]);
+    const workerConfig = WorkerConfig__factory.connect(workerInfos[i].WORKER_CONFIG_ADDR, deployer);
+    const vaultConfig = ConfigurableInterestVaultConfig__factory.connect(workerInfos[i].VAULT_CONFIG_ADDR, deployer);
+    const timelock = Timelock__factory.connect(workerInfos[i].TIMELOCK, deployer);
 
-    console.log(">> Timelock: Setting WorkerConfig via Timelock");
-    const setConfigsTx = await timelock.queueTransaction(
-      workerInfos[i].WORKER_CONFIG_ADDR,
-      "0",
-      "setConfigs(address[],(bool,uint64,uint64,uint64)[])",
-      ethers.utils.defaultAbiCoder.encode(
-        ["address[]", "(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]"],
-        [
+    if ((await workerConfig.owner()).toLowerCase() === timelock.address.toLowerCase()) {
+      console.log(">> Timelock: Setting WorkerConfig via Timelock");
+      const setConfigsTx = await timelock.queueTransaction(
+        workerInfos[i].WORKER_CONFIG_ADDR,
+        "0",
+        "setConfigs(address[],(bool,uint64,uint64,uint64)[])",
+        ethers.utils.defaultAbiCoder.encode(
+          ["address[]", "(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]"],
+          [
+            [spookyWorker03.address],
+            [
+              {
+                acceptDebt: true,
+                workFactor: workerInfos[i].WORK_FACTOR,
+                killFactor: workerInfos[i].KILL_FACTOR,
+                maxPriceDiff: workerInfos[i].MAX_PRICE_DIFF,
+              },
+            ],
+          ]
+        ),
+        workerInfos[i].EXACT_ETA,
+        { nonce: nonce++ }
+      );
+      console.log(`queue setConfigs at: ${setConfigsTx.hash}`);
+      console.log("generate timelock.executeTransaction:");
+      console.log(
+        `await timelock.executeTransaction('${workerInfos[i].WORKER_CONFIG_ADDR}', '0', 'setConfigs(address[],(bool,uint64,uint64,uint64)[])', ethers.utils.defaultAbiCoder.encode(['address[]','(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]'],[['${spookyWorker03.address}'], [{acceptDebt: true, workFactor: ${workerInfos[i].WORK_FACTOR}, killFactor: ${workerInfos[i].KILL_FACTOR}, maxPriceDiff: ${workerInfos[i].MAX_PRICE_DIFF}}]]), ${workerInfos[i].EXACT_ETA})`
+      );
+      console.log("✅ Done");
+    } else {
+      console.log(">> Setting WorkerConfig");
+      (
+        await workerConfig.setConfigs(
           [spookyWorker03.address],
           [
             {
@@ -253,36 +282,38 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
               maxPriceDiff: workerInfos[i].MAX_PRICE_DIFF,
             },
           ],
-        ]
-      ),
-      workerInfos[i].EXACT_ETA,
-      { nonce: nonce++ }
-    );
-    console.log(`queue setConfigs at: ${setConfigsTx.hash}`);
-    console.log("generate timelock.executeTransaction:");
-    console.log(
-      `await timelock.executeTransaction('${workerInfos[i].WORKER_CONFIG_ADDR}', '0', 'setConfigs(address[],(bool,uint64,uint64,uint64)[])', ethers.utils.defaultAbiCoder.encode(['address[]','(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]'],[['${spookyWorker03.address}'], [{acceptDebt: true, workFactor: ${workerInfos[i].WORK_FACTOR}, killFactor: ${workerInfos[i].KILL_FACTOR}, maxPriceDiff: ${workerInfos[i].MAX_PRICE_DIFF}}]]), ${workerInfos[i].EXACT_ETA})`
-    );
-    console.log("✅ Done");
+          { nonce: nonce++ }
+        )
+      ).wait(3);
+      console.log("✅ Done");
+    }
 
-    console.log(">> Timelock: Linking VaultConfig with WorkerConfig via Timelock");
-    const setWorkersTx = await timelock.queueTransaction(
-      workerInfos[i].VAULT_CONFIG_ADDR,
-      "0",
-      "setWorkers(address[],address[])",
-      ethers.utils.defaultAbiCoder.encode(
-        ["address[]", "address[]"],
-        [[spookyWorker03.address], [workerInfos[i].WORKER_CONFIG_ADDR]]
-      ),
-      workerInfos[i].EXACT_ETA,
-      { nonce: nonce++ }
-    );
-    console.log(`queue setWorkers at: ${setWorkersTx.hash}`);
-    console.log("generate timelock.executeTransaction:");
-    console.log(
-      `await timelock.executeTransaction('${workerInfos[i].VAULT_CONFIG_ADDR}', '0','setWorkers(address[],address[])', ethers.utils.defaultAbiCoder.encode(['address[]','address[]'],[['${spookyWorker03.address}'], ['${workerInfos[i].WORKER_CONFIG_ADDR}']]), ${workerInfos[i].EXACT_ETA})`
-    );
-    console.log("✅ Done");
+    if ((await vaultConfig.owner()).toLowerCase() === timelock.address.toLowerCase()) {
+      console.log(">> Timelock: Linking VaultConfig with WorkerConfig via Timelock");
+      const setWorkersTx = await timelock.queueTransaction(
+        workerInfos[i].VAULT_CONFIG_ADDR,
+        "0",
+        "setWorkers(address[],address[])",
+        ethers.utils.defaultAbiCoder.encode(
+          ["address[]", "address[]"],
+          [[spookyWorker03.address], [workerInfos[i].WORKER_CONFIG_ADDR]]
+        ),
+        workerInfos[i].EXACT_ETA,
+        { nonce: nonce++ }
+      );
+      console.log(`queue setWorkers at: ${setWorkersTx.hash}`);
+      console.log("generate timelock.executeTransaction:");
+      console.log(
+        `await timelock.executeTransaction('${workerInfos[i].VAULT_CONFIG_ADDR}', '0','setWorkers(address[],address[])', ethers.utils.defaultAbiCoder.encode(['address[]','address[]'],[['${spookyWorker03.address}'], ['${workerInfos[i].WORKER_CONFIG_ADDR}']]), ${workerInfos[i].EXACT_ETA})`
+      );
+      console.log("✅ Done");
+    } else {
+      console.log(">> Linking VaultConfig with WorkerConfig");
+      (
+        await vaultConfig.setWorkers([spookyWorker03.address], [workerInfos[i].WORKER_CONFIG_ADDR], { nonce: nonce++ })
+      ).wait(3);
+      console.log("✅ Done");
+    }
   }
 };
 
