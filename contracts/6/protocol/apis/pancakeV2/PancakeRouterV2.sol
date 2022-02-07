@@ -8,6 +8,7 @@ import "../../interfaces/IWETH.sol";
 import "./PancakeLibraryV2.sol";
 import "../pancake/IPancakeRouter02.sol";
 import "../../../utils/SafeToken.sol";
+import "hardhat/console.sol";
 
 contract PancakeRouterV2 is IPancakeRouter02 {
   using SafeMath for uint256;
@@ -259,6 +260,10 @@ contract PancakeRouterV2 is IPancakeRouter02 {
   ) external virtual override ensure(deadline) returns (uint256[] memory amounts) {
     amounts = PancakeLibraryV2.getAmountsOut(factory, amountIn, path);
     require(amounts[amounts.length - 1] >= amountOutMin, "PancakeRouter: INSUFFICIENT_OUTPUT_AMOUNT");
+
+    console.log("balanceOf path[0]", IERC20(path[0]).balanceOf(address(msg.sender)));
+    console.log("transfer balance", amounts[0]);
+
     SafeToken.safeTransferFrom(path[0], msg.sender, PancakeLibraryV2.pairFor(factory, path[0], path[1]), amounts[0]);
     _swap(amounts, path, to);
   }
@@ -316,7 +321,11 @@ contract PancakeRouterV2 is IPancakeRouter02 {
     require(path[path.length - 1] == WETH, "PancakeRouter: INVALID_PATH");
     amounts = PancakeLibraryV2.getAmountsOut(factory, amountIn, path);
     require(amounts[amounts.length - 1] >= amountOutMin, "PancakeRouter: INSUFFICIENT_OUTPUT_AMOUNT");
+
+    console.log("balanceOf path[0]", IERC20(path[0]).balanceOf(address(this)));
+    console.log("transfer balance", amounts[0]);
     SafeToken.safeTransferFrom(path[0], msg.sender, PancakeLibraryV2.pairFor(factory, path[0], path[1]), amounts[0]);
+
     _swap(amounts, path, address(this));
     IWETH(WETH).withdraw(amounts[amounts.length - 1]);
     SafeToken.safeTransferETH(to, amounts[amounts.length - 1]);
@@ -354,8 +363,9 @@ contract PancakeRouterV2 is IPancakeRouter02 {
         amountInput = IERC20(input).balanceOf(address(pair)).sub(reserveInput);
         amountOutput = PancakeLibraryV2.getAmountOut(amountInput, reserveInput, reserveOutput);
       }
-      (uint256 amount0Out, uint256 amount1Out) =
-        input == token0 ? (uint256(0), amountOutput) : (amountOutput, uint256(0));
+      (uint256 amount0Out, uint256 amount1Out) = input == token0
+        ? (uint256(0), amountOutput)
+        : (amountOutput, uint256(0));
       address to = i < path.length - 2 ? PancakeLibraryV2.pairFor(factory, output, path[i + 2]) : _to;
       pair.swap(amount0Out, amount1Out, to, new bytes(0));
     }
