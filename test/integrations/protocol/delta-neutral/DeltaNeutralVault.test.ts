@@ -2594,7 +2594,7 @@ describe("DeltaNeutralVault", () => {
         // assetReserve = 100002.252790676454731706 + 2.247209323545268294 = 100004.5
         // lp supply = sqrt(50000750 * 100004.5) = 2236135
 
-        // stalbe position equity = 250, debt 500, position value = 750
+        // stable position equity = 250, debt 500, position value = 750
         // asset position equity = 1.5 * 500 = 750, debt = 3 * 500 = 1500, position value = 2250
         // Delta netural vault equity = 1000
 
