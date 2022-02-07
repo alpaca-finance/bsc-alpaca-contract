@@ -124,6 +124,7 @@ export interface Tokens {
   MDX: string;
   BMON: string;
   ARV: string;
+  USD: string;
 }
 export interface LpTokens {
   "ALPACA-WBNB": string;

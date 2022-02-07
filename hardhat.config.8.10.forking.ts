@@ -18,11 +18,11 @@ module.exports = {
       accounts: { mnemonic: "test test test test test test test test test test test junk" },
       forking: {
         url: process.env.BSC_MAINNET_FORK_RPC,
-        blockNumber: 14600000,
+        blockNumber: 14871955,
       },
     },
     mainnetfork: {
-      url: process.env.MAINNET_FORK_URL,
+      url: process.env.BSC_MAINNET_FORK_RPC,
       accounts: [process.env.BSC_MAINNET_PRIVATE_KEY],
     },
   },
