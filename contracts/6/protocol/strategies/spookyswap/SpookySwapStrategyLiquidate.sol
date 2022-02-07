@@ -31,6 +31,8 @@ contract SpookySwapStrategyLiquidate is OwnableUpgradeSafe, ReentrancyGuardUpgra
   using SafeMath for uint256;
   using SafeToken for address;
 
+  event LogSetWorkerOk(address[] indexed workers, bool isOk);
+
   ISwapFactoryLike public factory;
   ISwapRouter02Like public router;
 
@@ -87,5 +89,6 @@ contract SpookySwapStrategyLiquidate is OwnableUpgradeSafe, ReentrancyGuardUpgra
     for (uint256 idx = 0; idx < workers.length; idx++) {
       okWorkers[workers[idx]] = isOk;
     }
+    emit LogSetWorkerOk(workers, isOk);
   }
 }

@@ -33,6 +33,8 @@ contract SpookySwapStrategyAddTwoSidesOptimal is OwnableUpgradeSafe, ReentrancyG
   using SafeToken for address;
   using SafeMath for uint256;
 
+  event LogSetWorkerOk(address[] indexed workers, bool isOk);
+
   ISwapFactoryLike public factory;
   ISwapRouter02Like public router;
   IVault public vault;
@@ -162,5 +164,6 @@ contract SpookySwapStrategyAddTwoSidesOptimal is OwnableUpgradeSafe, ReentrancyG
     for (uint256 idx = 0; idx < workers.length; idx++) {
       okWorkers[workers[idx]] = isOk;
     }
+    emit LogSetWorkerOk(workers, isOk);
   }
 }

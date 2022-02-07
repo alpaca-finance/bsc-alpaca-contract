@@ -32,6 +32,8 @@ contract SpookySwapStrategyWithdrawMinimizeTrading is OwnableUpgradeSafe, Reentr
   using SafeToken for address;
   using SafeMath for uint256;
 
+  event LogSetWorkerOk(address[] indexed workers, bool isOk);
+
   ISwapFactoryLike public factory;
   ISwapRouter02Like public router;
   address public wftm;
@@ -112,6 +114,7 @@ contract SpookySwapStrategyWithdrawMinimizeTrading is OwnableUpgradeSafe, Reentr
     for (uint256 idx = 0; idx < workers.length; idx++) {
       okWorkers[workers[idx]] = isOk;
     }
+    emit LogSetWorkerOk(workers, isOk);
   }
 
   receive() external payable {}

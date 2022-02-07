@@ -31,6 +31,8 @@ contract SpookySwapStrategyAddBaseTokenOnly is OwnableUpgradeSafe, ReentrancyGua
   using SafeToken for address;
   using SafeMath for uint256;
 
+  event LogSetWorkerOk(address[] indexed workers, bool isOk);
+
   ISwapFactoryLike public factory;
   ISwapRouter02Like public router;
   mapping(address => bool) public okWorkers;
@@ -105,5 +107,6 @@ contract SpookySwapStrategyAddBaseTokenOnly is OwnableUpgradeSafe, ReentrancyGua
     for (uint256 idx = 0; idx < workers.length; idx++) {
       okWorkers[workers[idx]] = isOk;
     }
+    emit LogSetWorkerOk(workers, isOk);
   }
 }
