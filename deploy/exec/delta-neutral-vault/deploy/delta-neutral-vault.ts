@@ -17,7 +17,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   interface IDeltaNeutralVaultInput {
     name: string;
     symbol: string;
-    deltaVaultConfig: string;
     stableVaultSymbol: string;
     assetVaultSymbol: string;
     stableDeltaWorker: string;
@@ -29,7 +28,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     {
       name: "DeltaNeutralVault ETH-USDT",
       symbol: "ETH-USDT",
-      deltaVaultConfig: "0xc24625D31ac5CEae3b5149970143b55941Bf31A2",
       stableVaultSymbol: "ibUSDT",
       assetVaultSymbol: "ibETH",
       stableDeltaWorker: "0x17f153C5576cF48Bd19dC50dDEcF30F4adCd97C9",
