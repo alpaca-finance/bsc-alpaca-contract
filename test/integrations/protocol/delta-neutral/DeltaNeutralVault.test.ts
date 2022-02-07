@@ -577,7 +577,7 @@ describe("DeltaNeutralVault", () => {
         // stableReserve = 100625 - 742.6322953782392 = 99882.36770462176
         // assetReserve = 100125 + 746.302038330887106153 = 100871.30203833089
         // lp supply = sqrt(99882.36770462176 * 100871.30203833089) = 100375.61696466194
-
+        // - Add liquidity
         // add liquidity stableToken = 375 + 742.6322953782392 = 1117.6117772394427, assetToken = 1875 - 746.302038330887106153 = 1128.6979616691128
         // 1117.6117772394427 * 100375.61696466194 / 99882.36770462176 = 1123.1308813096002
         // 1128.6979616691128 * 100375.61696466194 / 100871.30203833089 = 1123.151500773155
@@ -2603,7 +2603,7 @@ describe("DeltaNeutralVault", () => {
         });
       });
       context("when asset token price drop", async () => {
-        it.only("should be able to rebalance", async () => {
+        it("should be able to rebalance", async () => {
           // Price swing 20% wbnb price drop to 400
           // Add more base token to the pool equals to
           // sqrt(10*((100004.5)**2) / 8) - 100004.5 = 11803.930027938855
