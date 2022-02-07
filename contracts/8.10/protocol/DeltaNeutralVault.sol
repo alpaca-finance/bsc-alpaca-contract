@@ -65,7 +65,6 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   error PositionsIsHealthy();
   error InsufficientTokenReceived(address _token, uint256 _requiredAmount, uint256 _receivedAmount);
   error InsufficientShareReceived(uint256 _requiredAmount, uint256 _receivedAmount);
-  error InvalidConvertTokenSetting();
   error UnTrustedPrice();
   error BountyExceedLimit();
   error PositionValueExceedLimit();
@@ -269,7 +268,6 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     _transferTokenToVault(assetToken, _assetTokenAmount);
 
     // 2. mint share for shareReceiver
-    // TODO: discuss round up or down
     uint256 _depositValue = _stableTokenAmount.mulWadDown(_getTokenPrice(stableToken)) +
       _assetTokenAmount.mulWadDown(_getTokenPrice(assetToken));
 
@@ -350,7 +348,6 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
     uint256 _withdrawValue;
     {
-      // TODO: round up or down
       uint256 _stableWithdrawValue = _stableTokenBack.mulWadDown(_getTokenPrice(stableToken));
       uint256 _assetWithdrawValue = _assetTokenBack.mulWadDown(_getTokenPrice(assetToken));
       _withdrawValue = _stableWithdrawValue + _assetWithdrawValue;
@@ -648,12 +645,10 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     address _token = IVault(_vault).token();
     uint256 _vaultDebtShare = IVault(_vault).vaultDebtShare();
     if (_vaultDebtShare == 0) {
-      // TODO: round up or down
       return _positionDebtShare.mulWadDown(_getTokenPrice(_token));
     }
     uint256 _vaultDebtValue = IVault(_vault).vaultDebtVal() + IVault(_vault).pendingInterest(0);
     uint256 _debtAmount = FullMath.mulDiv(_positionDebtShare, _vaultDebtValue, _vaultDebtShare);
-    // TODO: round up or down
     return _debtAmount.mulWadDown(_getTokenPrice(_token));
   }
 
@@ -665,6 +660,10 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     return _lpValue;
   }
 
+  /// @notice Return position equity of a worker.
+  /// @param _vault Vault address.
+  /// @param _worker Worker address.
+  /// @param _posId Position id.
   function _positionEquity(
     address _vault,
     address _worker,
