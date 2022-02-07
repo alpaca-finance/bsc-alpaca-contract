@@ -8,7 +8,6 @@ import "../../interfaces/IWETH.sol";
 import "./PancakeLibraryV2.sol";
 import "../pancake/IPancakeRouter02.sol";
 import "../../../utils/SafeToken.sol";
-import "hardhat/console.sol";
 
 contract PancakeRouterV2 is IPancakeRouter02 {
   using SafeMath for uint256;
@@ -261,9 +260,6 @@ contract PancakeRouterV2 is IPancakeRouter02 {
     amounts = PancakeLibraryV2.getAmountsOut(factory, amountIn, path);
     require(amounts[amounts.length - 1] >= amountOutMin, "PancakeRouter: INSUFFICIENT_OUTPUT_AMOUNT");
 
-    console.log("balanceOf path[0]", IERC20(path[0]).balanceOf(address(msg.sender)));
-    console.log("transfer balance", amounts[0]);
-
     SafeToken.safeTransferFrom(path[0], msg.sender, PancakeLibraryV2.pairFor(factory, path[0], path[1]), amounts[0]);
     _swap(amounts, path, to);
   }
@@ -322,8 +318,6 @@ contract PancakeRouterV2 is IPancakeRouter02 {
     amounts = PancakeLibraryV2.getAmountsOut(factory, amountIn, path);
     require(amounts[amounts.length - 1] >= amountOutMin, "PancakeRouter: INSUFFICIENT_OUTPUT_AMOUNT");
 
-    console.log("balanceOf path[0]", IERC20(path[0]).balanceOf(address(this)));
-    console.log("transfer balance", amounts[0]);
     SafeToken.safeTransferFrom(path[0], msg.sender, PancakeLibraryV2.pairFor(factory, path[0], path[1]), amounts[0]);
 
     _swap(amounts, path, address(this));
