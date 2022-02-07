@@ -3,20 +3,32 @@
   "Timelock": "0xafD1eb025bf584a11112A3FC790bd715eD9A98b1",
   "Multicall": "0x2D5408f2287BF9F9B05404794459a846651D0a59",
   "MiniFL": {
-    "address": "",
-    "deployedBlock": 888888,
+    "address": "0xcE15B0B5B0b150a8364723bE03906a4029104e48",
+    "deployedBlock": 30266377,
     "pools": [
       {
         "id": 0,
         "stakingToken": "debtIbFTM_V2",
-        "address": "",
-        "rewarder": ""
+        "address": "0x291E6fd58bf69b4a0E69405cB093FC2D9ff8D747",
+        "rewarder": "0xc6829dC7Ee6Bd368F917A0EB53FC791790Ba028A"
       },
       {
         "id": 1,
         "stakingToken": "ibFTM",
-        "address": "",
-        "rewarder": ""
+        "address": "0x7F9B660Ef1731BCeE9233Ec4aAdE5631D06DAbd8",
+        "rewarder": "0xc6829dC7Ee6Bd368F917A0EB53FC791790Ba028A"
+      },
+      {
+        "id": 2,
+        "stakingToken": "debtIbUSDC_V2",
+        "address": "0x90AA2A43743347bDeED0a31B00B6d90400a19270",
+        "rewarder": "0xc6829dC7Ee6Bd368F917A0EB53FC791790Ba028A"
+      },
+      {
+        "id": 3,
+        "stakingToken": "ibUSDC",
+        "address": "0x040f79A294188eFd5D687e48C7146CF5564a3Bf1",
+        "rewarder": "0xc6829dC7Ee6Bd368F917A0EB53FC791790Ba028A"
       }
     ]
   },
@@ -51,11 +63,11 @@
   },
   "SharedStrategies": {
     "SpookySwap": {
-      "StrategyAddBaseTokenOnly": "",
-      "StrategyLiquidate": "",
-      "StrategyWithdrawMinimizeTrading": "",
-      "StrategyPartialCloseLiquidate": "",
-      "StrategyPartialCloseMinimizeTrading": ""
+      "StrategyAddBaseTokenOnly": "0xD50aAb6B210fe049B6c5262f5A7676204699AB8E",
+      "StrategyLiquidate": "0x65Cc57347bA3761358Eb175540E9e5D39CbceFd8",
+      "StrategyWithdrawMinimizeTrading": "0x07DE1F788Fa7E0C215AA772d4429f47902640ef5",
+      "StrategyPartialCloseLiquidate": "0x311a522e43C035244e72247895F5C17e46CAB000",
+      "StrategyPartialCloseMinimizeTrading": "0x540247c00645E85fA548064039493beD4a0c522C"
     }
   },
   "SharedConfig": {
@@ -72,66 +84,30 @@
     {
       "name": "Interest Bearing FTM",
       "symbol": "ibFTM",
-      "address": "",
-      "deployedBlock": 8888,
+      "address": "0x7F9B660Ef1731BCeE9233Ec4aAdE5631D06DAbd8",
+      "deployedBlock": 30267679,
       "baseToken": "0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83",
-      "debtToken": "",
-      "config": "",
-      "tripleSlopeModel": "",
+      "debtToken": "0x291E6fd58bf69b4a0E69405cB093FC2D9ff8D747",
+      "config": "0x39CCA7167d8A9FEEB610371d37785Ca78d5e7813",
+      "tripleSlopeModel": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
       "StrategyAddTwoSidesOptimal": {
-        "SpookySwap": ""
+        "SpookySwap": "0xe97028Cd0b45B33c004419C69Ca8728712D9980B"
       },
-      "workers": [
-        {
-          "name": "",
-          "address": "",
-          "deployedBlock": 8888,
-          "config": "",
-          "pId": 0,
-          "stakingToken": "",
-          "stakingTokenAt": "",
-          "strategies": {
-            "StrategyAddAllBaseToken": "",
-            "StrategyLiquidate": "",
-            "StrategyAddTwoSidesOptimal": "",
-            "StrategyWithdrawMinimizeTrading": "",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
-          }
-        }
-      ]
+      "workers": []
     },
     {
       "name": "Interest Bearing USDC",
       "symbol": "ibUSDC",
-      "address": "",
-      "deployedBlock": 8888,
+      "address": "0x040f79A294188eFd5D687e48C7146CF5564a3Bf1",
+      "deployedBlock": 30269143,
       "baseToken": "0x04068da6c83afcfa0e13ba15a6696662335d5b75",
-      "debtToken": "",
-      "config": "",
-      "tripleSlopeModel": "",
+      "debtToken": "0x90AA2A43743347bDeED0a31B00B6d90400a19270",
+      "config": "0x1Ee2521224288152614aEEDc50773A979e849f8e",
+      "tripleSlopeModel": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
       "StrategyAddTwoSidesOptimal": {
-        "SpookySwap": ""
+        "SpookySwap": "0xE1749f57881B68fDa9Be56a8d100f58be1fD174d"
       },
-      "workers": [
-        {
-          "name": "",
-          "address": "",
-          "deployedBlock": 8888,
-          "config": "",
-          "pId": 0,
-          "stakingToken": "",
-          "stakingTokenAt": "",
-          "strategies": {
-            "StrategyAddAllBaseToken": "",
-            "StrategyLiquidate": "",
-            "StrategyAddTwoSidesOptimal": "",
-            "StrategyWithdrawMinimizeTrading": "",
-            "StrategyPartialCloseLiquidate": "",
-            "StrategyPartialCloseMinimizeTrading": ""
-          }
-        }
-      ]
+      "workers": []
     }
   ]
 }

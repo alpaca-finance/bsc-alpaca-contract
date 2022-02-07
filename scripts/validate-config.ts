@@ -357,7 +357,7 @@ async function main() {
       console.log(e);
     }
   }
-  if (chainId === 4002) {
+  if (chainId === 4002 || chainId === 250) {
     console.log(">> Validate in Fantom context");
     try {
       await Promise.all([

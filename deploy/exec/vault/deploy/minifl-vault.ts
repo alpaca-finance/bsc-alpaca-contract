@@ -26,12 +26,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const ALLOC_POINT_FOR_DEPOSIT = 0;
+  const ALLOC_POINT_FOR_DEPOSIT = 75;
   const ALLOC_POINT_FOR_OPEN_POSITION = 0;
   const VAULT_NAME = "USDC Vault";
   const NAME = "Interest Bearing USDC";
   const SYMBOL = "ibUSDC";
-  const REWARDER1_ADDRESS = "0x763a687E631A907baDd620E20e9A0869E3Ec543D";
+  const REWARDER1_ADDRESS = "0xc6829dC7Ee6Bd368F917A0EB53FC791790Ba028A";
   const EXACT_ETA = "888888"; // no use due to no timelock
 
   const config = ConfigEntity.getConfig();
@@ -57,7 +57,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     `debt${SYMBOL}_V2`,
     config.Timelock,
   ])) as DebtToken;
-  const debtTokenDeployTx = await debtToken.deployTransaction.wait(3);
+  const debtTokenDeployTx = await debtToken.deployTransaction.wait(5);
   console.log(`>> Deployed block: ${debtTokenDeployTx.blockNumber}`);
   console.log(`>> Deployed at ${debtToken.address}`);
 
@@ -71,21 +71,25 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     18,
     debtToken.address,
   ])) as Vault;
-  const vaultDeployTx = await debtToken.deployTransaction.wait(3);
+  const vaultDeployTx = await debtToken.deployTransaction.wait(5);
   console.log(`>> Deployed block: ${vaultDeployTx.blockNumber}`);
   console.log(`>> Deployed at ${vault.address}`);
 
   let nonce = await deployer.getTransactionCount();
 
   console.log(">> Set okHolders on DebtToken to be be Vault");
-  await debtToken.setOkHolders([vault.address, config.MiniFL!.address], true, { nonce: nonce++ });
+  await (await debtToken.setOkHolders([vault.address, config.MiniFL!.address], true, { nonce: nonce++ })).wait(5);
   console.log("✅ Done");
 
   console.log(">> Transferring ownership of debtToken to Vault");
-  await debtToken.transferOwnership(vault.address, { nonce: nonce++ });
+  await (await debtToken.transferOwnership(vault.address, { nonce: nonce++ })).wait(5);
   console.log("✅ Done");
 
   const miniFL = MiniFL__factory.connect(config.MiniFL!.address, deployer);
+
+  console.log(">> Set Debt Pool ID on Vault");
+  await (await vault.setFairLaunchPoolId(await miniFL.poolLength(), { nonce: nonce++ })).wait(5);
+  console.log("✅ Done");
 
   // If Mini FL is Timelock then handle it
   if ((await miniFL.owner()).toLowerCase() === config.Timelock.toLowerCase()) {
@@ -140,7 +144,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     );
     console.log("✅ Done");
   } else {
-    console.log(">> MiniFL's owner is not Timelock, add pool immediately");
+    console.log(">> MiniFL's owner is NOT Timelock, add pool immediately");
 
     console.log(">> Add a debt token to MiniFL");
     const addDebtTokenPoolTx = await miniFL.addPool(
@@ -151,20 +155,25 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       true,
       { nonce: nonce++ }
     );
-    await addDebtTokenPoolTx.wait(3);
+    await addDebtTokenPoolTx.wait(5);
+    console.log("✅ Done");
+
+    console.log(">> Allow vault to stake debt token");
+    const approveVaultTx = await miniFL.approveStakeDebtToken(
+      [(await miniFL.poolLength()).sub(1)],
+      [vault.address],
+      true
+    );
+    await approveVaultTx.wait(3);
     console.log("✅ Done");
 
     console.log(`>> Add a ${SYMBOL} to MiniFL`);
     const addIbPoolTx = await miniFL.addPool(ALLOC_POINT_FOR_DEPOSIT, vault.address, REWARDER1_ADDRESS, false, true, {
       nonce: nonce++,
     });
-    await addIbPoolTx.wait(3);
+    await addIbPoolTx.wait(5);
     console.log("✅ Done");
   }
-
-  console.log(">> Set Debt Pool ID on Vault");
-  await vault.setFairLaunchPoolId(await miniFL.poolLength(), { nonce: nonce++ });
-  console.log("✅ Done");
 
   const wNativeRelayer = WNativeRelayer__factory.connect(
     config.SharedConfig.WNativeRelayer,
@@ -172,7 +181,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ) as WNativeRelayer;
 
   console.log(">> Whitelisting Vault on WNativeRelayer Contract");
-  await wNativeRelayer.setCallerOk([vault.address], true, { nonce: nonce++ });
+  await (await wNativeRelayer.setCallerOk([vault.address], true, { nonce: nonce++ })).wait(5);
   console.log("✅ Done");
 };
 

@@ -57,7 +57,7 @@ module.exports = {
       accounts: [process.env.FANTOM_TESTNET_PRIVATE_KEY],
     },
     fantom_mainnet: {
-      url: "https://rpc.ftm.tools/",
+      url: process.env.FTM_MAINNET_RPC,
       accounts: [process.env.FANTOM_MAINNET_PRIVATE_KEY],
     },
     mainnetfork: {

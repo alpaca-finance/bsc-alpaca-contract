@@ -293,6 +293,7 @@
     "script:testnet:query-worker-config": "hardhat --network testnet run --no-compile ./scripts/query-worker-config.ts",
     "script:testnet:withdraw-reserve": "hardhat --network testnet run --no-compile ./scripts/withdraw-reserve.ts",
     "script:fantom_testnet:validate-config": "hardhat --network fantom_testnet run --no-compile ./scripts/validate-config.ts",
+    "script:fantom_mainnet:validate-config": "hardhat --network fantom_mainnet run --no-compile ./scripts/validate-config.ts",
     "coverage": "hardhat coverage",
     "solhint": "./node_modules/.bin/solhint -f table contracts/**/*.sol",
     "prettier:solidity": "./node_modules/.bin/prettier --write contracts/**/*.sol"

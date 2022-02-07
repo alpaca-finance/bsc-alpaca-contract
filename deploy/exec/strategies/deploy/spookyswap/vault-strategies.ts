@@ -22,6 +22,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const NEW_PARAMS = [
     {
+      VAULT_SYMBOL: "ibFTM",
+      WHITELIST_WORKERS: [],
+    },
+    {
       VAULT_SYMBOL: "ibUSDC",
       WHITELIST_WORKERS: [],
     },
@@ -48,12 +52,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       config.Exchanges.SpookySwap!.SpookyRouter,
       targetedVault.address,
     ])) as SpookySwapStrategyAddTwoSidesOptimal;
-    await strategyAddTwoSidesOptimal.deployed();
+    await strategyAddTwoSidesOptimal.deployTransaction.wait(5);
     console.log(`>> Deployed at ${strategyAddTwoSidesOptimal.address}`);
 
     if (NEW_PARAMS[i].WHITELIST_WORKERS.length > 0) {
       console.log(">> Whitelisting Workers");
       const tx = await strategyAddTwoSidesOptimal.setWorkersOk(NEW_PARAMS[i].WHITELIST_WORKERS, true);
+      await tx.wait(5);
       console.log(">> Done at: ", tx.hash);
     }
   }
