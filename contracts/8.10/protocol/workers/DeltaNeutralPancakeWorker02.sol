@@ -256,12 +256,11 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
   }
 
   /// @dev Work on the given position. Must be called by the operator.
-  /// @param id The position ID to work on. Note: This worker implementation ignore ID as the worker has only one position.
   /// @param user The original user that is interacting with the operator.
   /// @param debt The amount of user debt to help the strategy make decisions.
   /// @param data The encoded data, consisting of strategy address and calldata.
   function work(
-    uint256 id,
+    uint256, /* id */
     address user,
     uint256 debt,
     bytes calldata data
@@ -290,8 +289,9 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
   }
 
   /// @dev Return the amount of BaseToken to receive.
-  /// @param id The position ID to perform health check. Note: This worker implementation ignore ID as the worker has only one position.
-  function health(uint256 id) external view override returns (uint256) {
+  function health(
+    uint256 /* id */
+  ) external view override returns (uint256) {
     (uint256 _totalBalanceInUSD, uint256 _lpPriceLastUpdate) = priceOracle.lpToDollar(totalLpBalance, address(lpToken));
     (uint256 _tokenPrice, uint256 _tokenPricelastUpdate) = priceOracle.getTokenPrice(address(baseToken));
     // NOTE: last updated price should not be over 30 mins
@@ -440,7 +440,7 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
   /// @param _maxReinvestBountyBps - The max reinvest bounty value to update.
   function setMaxReinvestBountyBps(uint256 _maxReinvestBountyBps) external onlyOwner {
     if (reinvestBountyBps > _maxReinvestBountyBps) revert ExceedReinvestBounty();
-    // maxReinvestBountyBps should not exceeded 30%"
+    // _maxReinvestBountyBps should not exceeds 30%
     if (_maxReinvestBountyBps > 3000) revert ExceedReinvestBps();
 
     maxReinvestBountyBps = _maxReinvestBountyBps;
