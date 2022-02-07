@@ -79,10 +79,9 @@ describe("DeltaNeutralVault", () => {
   const MAX_VAULT_POSITION_VALUE = ethers.utils.parseEther("100000");
   const DEPOSIT_FEE_BPS = "0"; // 0%
 
-  // Delta Vault
+  // Delta Vault Actions
   const ACTION_WORK = 1;
   const ACTION_WRAP = 2;
-  const ACTION_CONVERT_ASSET = 3;
 
   /// Pancakeswap-related instance(s)
   let factoryV2: PancakeFactory;
