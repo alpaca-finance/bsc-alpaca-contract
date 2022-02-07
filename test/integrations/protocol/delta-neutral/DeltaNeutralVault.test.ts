@@ -2442,6 +2442,7 @@ describe("DeltaNeutralVault", () => {
           value: assetTokenAmount,
         });
       });
+
       context("when asset token price drop", async () => {
         it("should be able to rebalance", async () => {
           // Price swing 20% wbnb price drop to 400
@@ -2603,6 +2604,177 @@ describe("DeltaNeutralVault", () => {
           expect(rebalanceTx).to.emit(deltaVault, "LogRebalance");
         });
       });
+
+      context("when user try rebalance but position is healthy", async () => {
+        it("should revert", async () => {
+          const lpPrice = await swapHelper.computeLpHealth(
+            ethers.utils.parseEther("1"),
+            baseToken.address,
+            wbnb.address
+          );
+
+          const stableTokenPrice = ethers.utils.parseEther("0.8");
+          const assetTokenPrice = ethers.utils.parseEther("400");
+
+          await setMockTokenPrice(stableTokenPrice, assetTokenPrice);
+          await setMockLpPrice(lpPrice);
+
+          await expect(deltaVault.rebalance([], [], [])).to.be.revertedWith("PositionsIsHealthy()");
+        });
+      });
+
+      context("when asset token price drop but try liquidate too much", async () => {
+        it("should revert", async () => {
+          // Price swing 20% wbnb price drop to 400
+          // Add more base token to the pool equals to
+          // sqrt(10*((100004.5)**2) / 8) - 100004.5 = 11803.930027938855
+          // swap assetToken to stableToken
+          // [((11803.930027938855*9975)*50000750)/(100004.5*10000+(11803.930027938855*9975))] = 5266912.937520859413813218 stableToken]
+          // stableReserve = 50000750 - 5266912.937520859413813218 = 44733837.062479140586186782
+          // assetReserve = 100004.5 + 11803.930027938855 = 111808.430027938855
+          // lpSupply = sqrt(44733837.062479140586186782 * 111808.430027938855) = 2236430.211538338346271616
+
+          await wbnb.approve(routerV2.address, ethers.utils.parseEther("11803.930027938855"));
+          await routerV2.swapExactTokensForTokens(
+            ethers.utils.parseEther("11803.930027938855"),
+            "0",
+            [wbnb.address, baseToken.address],
+            deployerAddress,
+            FOREVER
+          );
+
+          await swapHelper.loadReserves([baseToken.address, wbnb.address]);
+          const lpPrice = await swapHelper.computeLpHealth(
+            ethers.utils.parseEther("1"),
+            baseToken.address,
+            wbnb.address
+          );
+
+          const stableTokenPrice = ethers.utils.parseEther("1");
+          const assetTokenPrice = ethers.utils.parseEther("400");
+
+          await setMockTokenPrice(stableTokenPrice, assetTokenPrice);
+          await setMockLpPrice(lpPrice);
+
+          // rebalance
+          // lpPrice = 39.959940081004244081
+          // stableWorker lp = 16.749457647109601219, assetWorker lp = 50.248372475909067619
+
+          // Current
+          // Stable Position:
+          // Equity=169.303851745595771606, PositionValue=669.307323967817993606 Debt=500.003472222222222000,  debtRatio=74.7046168952819746%
+          // Asset Position:
+          // asset: Equity=807.913619971975883422, PositionValue=2007.921953305309216222, Debt=1200.008333333333332800, debtRatio=59.763694069779875893%
+          // totalEquity=169.303851745595771606 + 807.913619971975883422 = 977.217471717571655028
+
+          // Target
+          // Stable Position:
+          // Equity=977.217471717571655028/4= 244.304367929392913757, PositionValue=244.304367929392913757*3=732.913103788178741271, Debt=488.608735858785827514
+          // deltaEquity = 244.304367929392913757 - 169.303851745595771606 = 75.000516183797142151, deltaDebt = 488.608735858785827514 - 500.003472222222222000 = -11.394736363436394486
+          // Asset Position:
+          // Equity=977.217471717571655028*3/4=732.913103788178741271, PositionValue=732.913103788178741271*3=2198.739311364536223813, Debt=1465.826207576357482542
+          // deltaEquity = 732.913103788178741271 - 807.913619971975883422= -75.000516183797142151, deltaDebt = 1465.826207576357482542 - 1200.008333333333332800 = 265.817874243024149742
+          // totalEquity = 244.304367929392913757 + 732.913103788178741271 = 977.217471717571655028
+
+          // const expectedStableEquity = ethers.utils.parseEther("244.304367929392913757");
+          // const expectedStableDebt = ethers.utils.parseEther("488.608735858785827514");
+          // const expectedAssetEquity = ethers.utils.parseEther("732.913103788178741271");
+          // const expectedAssetDebt = ethers.utils.parseEther("1465.826207576357482542");
+
+          // Step1: Partial Close Asset position by -75.000516183797142151 since it has negative deltaEquity
+          // but user try liquidate 100
+          const valueToLiquidate = ethers.utils.parseEther("100");
+          const lpToLiquidate = valueToLiquidate.mul(ethers.utils.parseEther("1")).div(lpPrice);
+
+          const action1 = ethers.utils.defaultAbiCoder.encode(
+            ["address", "uint256", "address", "uint256", "uint256", "uint256", "bytes"],
+            [
+              assetVault.address,
+              1,
+              assetVaultWorker.address,
+              "0",
+              "0",
+              "0",
+              ethers.utils.defaultAbiCoder.encode(
+                ["address", "bytes"],
+                [
+                  partialCloseMinimizeStrat.address,
+                  ethers.utils.defaultAbiCoder.encode(["uint256", "uint256", "uint256"], [lpToLiquidate, 0, 0]),
+                ]
+              ),
+            ]
+          );
+
+          // Step2: Borrow more 265.817874243024149742 usd on asset position since it has positive delta debt
+          const borrowMoreAmount = ethers.utils
+            .parseEther("265.817874243024149742")
+            .mul(ethers.utils.parseEther("1"))
+            .div(assetTokenPrice);
+
+          const action2WorkbyteInput: IDepositWorkByte = {
+            posId: 1,
+            vaultAddress: assetVault.address,
+            workerAddress: assetVaultWorker.address,
+            twoSidesStrat: assetTwoSidesStrat.address,
+            principalAmount: BigNumber.from(0),
+            borrowAmount: borrowMoreAmount,
+            maxReturn: BigNumber.from(0),
+            farmingTokenAmount: ethers.utils.parseEther("0"),
+            minLpReceive: BigNumber.from(0),
+          };
+          const action2 = buildDepositWorkByte(action2WorkbyteInput);
+
+          // Step3: Warp BNB since BNB vault return in native form
+          const farmingTokenAmount = ethers.utils.parseEther("0.093845290915972522");
+
+          // Step4: Add collateral on stable position by 75.000516183797142151
+          // wbnb = 0.093845290915972522, baseToken = 37.546939703434325878
+          // sum = 0.093845290915972522 * 400 + 37.546939703434325878 = 75.08505606982334
+          const action4WorkbyteInput: IDepositWorkByte = {
+            posId: 1,
+            vaultAddress: stableVault.address,
+            workerAddress: stableVaultWorker.address,
+            twoSidesStrat: stableTwoSidesStrat.address,
+            principalAmount: ethers.utils.parseEther("37.546939703434325878"),
+            borrowAmount: BigNumber.from(0),
+            maxReturn: BigNumber.from(0),
+            farmingTokenAmount: farmingTokenAmount,
+            minLpReceive: BigNumber.from(0),
+          };
+          const action4 = buildDepositWorkByte(action4WorkbyteInput);
+
+          // Step5: Repay debt by 11.384656237950708
+          const repayAmt = ethers.utils.parseEther("11.384656237950708");
+          const valueToRepayWithSlippage = repayAmt.add(repayAmt.mul(25).div(10000));
+          const lpToRapy = valueToRepayWithSlippage.mul(ethers.utils.parseEther("1")).div(lpPrice);
+          const action5 = ethers.utils.defaultAbiCoder.encode(
+            ["address", "uint256", "address", "uint256", "uint256", "uint256", "bytes"],
+            [
+              stableVault.address,
+              1,
+              stableVaultWorker.address,
+              "0",
+              "0",
+              repayAmt,
+              ethers.utils.defaultAbiCoder.encode(
+                ["address", "bytes"],
+                [
+                  partialCloseStrat.address,
+                  ethers.utils.defaultAbiCoder.encode(["uint256", "uint256", "uint256"], [lpToRapy, repayAmt, 0]),
+                ]
+              ),
+            ]
+          );
+
+          await expect(
+            deltaVault.rebalance(
+              [ACTION_WORK, ACTION_WORK, ACTION_WRAP, ACTION_WORK, ACTION_WORK],
+              [0, 0, farmingTokenAmount, 0],
+              [action1, action2, EMPTY_BYTE, action4, action5]
+            )
+          ).to.be.revertedWith("UnsafePositionValue()");
+        });
+      });
     });
   });
 
@@ -2678,6 +2850,7 @@ describe("DeltaNeutralVault", () => {
         const treasuryAddress = await deltaVaultConfig.getTreasuryAddr();
         expect(await deltaVault.balanceOf(treasuryAddress)).to.be.eq(0);
       });
+
       context("when alice interact with delta neutral vault", async () => {
         it("there should be management fee in treasury", async () => {
           await TimeHelpers.increase(BigNumber.from("3600"));
