@@ -28,12 +28,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const ALLOC_POINT_FOR_DEPOSIT = 0;
   const ALLOC_POINT_FOR_OPEN_POSITION = 0;
-  const VAULT_NAME = "FTM Vault";
-  const NAME = "Interest Bearing FTM";
-  const SYMBOL = "ibFTM";
-  const DEBT_FAIR_LAUNCH_PID = "0";
+  const VAULT_NAME = "USDC Vault";
+  const NAME = "Interest Bearing USDC";
+  const SYMBOL = "ibUSDC";
   const REWARDER1_ADDRESS = "0x763a687E631A907baDd620E20e9A0869E3Ec543D";
-  const EXACT_ETA = "1643259000";
+  const EXACT_ETA = "888888"; // no use due to no timelock
 
   const config = ConfigEntity.getConfig();
   const deployer = (await ethers.getSigners())[0];
