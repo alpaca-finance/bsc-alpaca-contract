@@ -17,7 +17,7 @@ import {
   Vault,
   Vault__factory,
   WNativeRelayer,
-  PriceHelper,
+  DeltaNeutralOracle,
   ChainLinkPriceOracle,
   ChainLinkPriceOracle__factory,
   MockAggregatorV3__factory,
@@ -105,7 +105,7 @@ describe("Vault - DeltaNetMdexWorker02", () => {
   let whitelistedContract: MockContractContext;
   let evilContract: MockContractContext;
 
-  let priceHelper: PriceHelper;
+  let priceOracle: DeltaNeutralOracle;
   let chainlink: ChainLinkPriceOracle;
 
   // Accounts
@@ -252,7 +252,7 @@ describe("Vault - DeltaNetMdexWorker02", () => {
     await swapMining.addWhitelist(wbnb.address);
 
     /// Setup DeltaNeutralWorker02
-    [priceHelper, chainlink] = await deployHelper.deployPriceHelper(
+    [priceOracle, chainlink] = await deployHelper.deployDeltaNeutralOracle(
       [baseToken.address, farmToken.address],
       [ethers.utils.parseEther("1"), ethers.utils.parseEther("200")],
       [18, 18],
@@ -281,7 +281,7 @@ describe("Vault - DeltaNetMdexWorker02", () => {
       [mdx.address, wbnb.address, baseToken.address],
       [twoSidesStrat.address, minimizeStrat.address, partialCloseStrat.address, partialCloseMinimizeStrat.address],
       simpleVaultConfig,
-      priceHelper.address
+      priceOracle.address
     );
 
     await deltaNeutralWorker.setWhitelistedCallers(
@@ -344,6 +344,22 @@ describe("Vault - DeltaNetMdexWorker02", () => {
 
     deltaNeutralWorkerAsBob = DeltaNeutralMdexWorker02__factory.connect(deltaNeutralWorker.address, bob);
     deltaNeutralWorkerAsDeployer = DeltaNeutralMdexWorker02__factory.connect(deltaNeutralWorker.address, deployer);
+  }
+
+  async function _updatePrice() {
+    let [[basePrice], [farmPrice]] = await Promise.all([
+      priceOracle.getTokenPrice(baseToken.address),
+      priceOracle.getTokenPrice(farmToken.address),
+    ]);
+    let mockBaseAggregatorV3 = await MockAggregatorV3Factory.deploy(basePrice, 18);
+    let mockFarmAggregatorV3 = await MockAggregatorV3Factory.deploy(farmPrice, 18);
+    await mockBaseAggregatorV3.deployed();
+    await mockFarmAggregatorV3.deployed();
+    await chainLinkOracleAsDeployer.setPriceFeeds(
+      [baseToken.address, farmToken.address],
+      [busd.address, busd.address],
+      [mockBaseAggregatorV3.address, mockFarmAggregatorV3.address]
+    );
   }
 
   beforeEach(async () => {
@@ -457,19 +473,19 @@ describe("Vault - DeltaNetMdexWorker02", () => {
       });
     });
 
-    describe("#setPriceHelper", async () => {
-      it("should set price helper", async () => {
-        const oldPriceHelperAddress = await deltaNeutralWorker.priceHelper();
-        const [newPriceHelper] = await deployHelper.deployPriceHelper(
+    describe("#setPriceOracle", async () => {
+      it("should set price oracle", async () => {
+        const oldPriceOracleAddress = await deltaNeutralWorker.priceOracle();
+        const [newPriceOracle] = await deployHelper.deployDeltaNeutralOracle(
           [baseToken.address, farmToken.address],
           [ethers.utils.parseEther("1"), ethers.utils.parseEther("200")],
           [18, 18],
           busd.address
         );
-        await deltaNeutralWorker.setPriceHelper(newPriceHelper.address);
-        const newPriceHelperAddress = await deltaNeutralWorker.priceHelper();
-        expect(newPriceHelperAddress).not.be.eq(oldPriceHelperAddress);
-        expect(newPriceHelperAddress).to.be.eq(newPriceHelper.address);
+        await deltaNeutralWorker.setPriceOracle(newPriceOracle.address);
+        const newPriceOracleAddress = await deltaNeutralWorker.priceOracle();
+        expect(newPriceOracleAddress).not.be.eq(oldPriceOracleAddress);
+        expect(newPriceOracleAddress).to.be.eq(newPriceOracle.address);
       });
     });
 
@@ -726,6 +742,7 @@ describe("Vault - DeltaNetMdexWorker02", () => {
             (await mdx.balanceOf(bobAddress)).toString()
           );
           await vault.deposit(0); // Random action to trigger interest computation
+          await _updatePrice();
           const healthDebt = await vault.positionInfo("1");
           expect(healthDebt[0]).to.be.above(expectedHealth);
           const interest = ethers.utils.parseEther("0.3"); // 30% interest rate
@@ -741,6 +758,30 @@ describe("Vault - DeltaNetMdexWorker02", () => {
             deposit.add(interest).sub(reservePool).toString(),
             (await vault.totalToken()).toString()
           );
+        });
+
+        it("should revert if price outdated", async () => {
+          // Deployer deposits 3 BTOKEN to the bank
+          const deposit = ethers.utils.parseEther("3");
+          await baseToken.approve(vault.address, deposit);
+          await vault.deposit(deposit);
+          // Now DeltaNet can take 1 BTOKEN loan + 1 BTOKEN of her to create a new position
+          const loan = ethers.utils.parseEther("1");
+          await baseTokenAsDeltaNet.approve(vault.address, ethers.utils.parseEther("1"));
+          await TimeHelpers.increase(TimeHelpers.duration.minutes(ethers.BigNumber.from("30")));
+          await expect(
+            vaultAsDeltaNet.work(
+              0,
+              deltaNeutralWorker.address,
+              ethers.utils.parseEther("1"),
+              loan,
+              "0",
+              ethers.utils.defaultAbiCoder.encode(
+                ["address", "bytes"],
+                [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+              )
+            )
+          ).to.be.revertedWith("UnTrustedPrice()");
         });
 
         it("should has correct interest rate growth", async () => {
@@ -768,6 +809,7 @@ describe("Vault - DeltaNetMdexWorker02", () => {
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
           await vault.deposit(0); // Random action to trigger interest computation
+          await _updatePrice();
           const interest = ethers.utils.parseEther("0.3"); //30% interest rate
           const reservePool = interest.mul(RESERVE_POOL_BPS).div("10000");
           AssertHelpers.assertAlmostEqual(
@@ -811,6 +853,7 @@ describe("Vault - DeltaNetMdexWorker02", () => {
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
           await vault.deposit(0); // Random action to trigger interest computation
+          await _updatePrice();
           const interest = ethers.utils.parseEther("0.3"); //30% interest rate
           const reservePool = interest.mul(RESERVE_POOL_BPS).div("10000");
           AssertHelpers.assertAlmostEqual(
@@ -1103,6 +1146,7 @@ describe("Vault - DeltaNetMdexWorker02", () => {
           expect(bobMdxAfter.sub(bobMdxBefore), `expect bob to get ${reinvestFees}`).to.be.eq(reinvestFees);
           expect(workerLpAfter).to.be.eq(accumLp);
           // Check Position info
+          await _updatePrice();
           let [vaultHealth, vaultDebtToShare] = await vault.positionInfo("1");
           // health calculation
           // lp balance =  1.245043209303108183
@@ -1501,7 +1545,8 @@ describe("Vault - DeltaNetMdexWorker02", () => {
         });
 
         async function successBtokenOnly(lastWorkBlock: BigNumber, goRouge: boolean) {
-          await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
+          await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")).sub(10));
+          await _updatePrice();
           let accumLp = await deltaNeutralWorker.totalLpBalance();
           const [workerLpBefore] = await bscPool.userInfo(POOL_IDX, deltaNeutralWorker.address);
           const debris = await baseToken.balanceOf(addStrat.address);
@@ -1565,8 +1610,10 @@ describe("Vault - DeltaNetMdexWorker02", () => {
             `expect Deployer gets ${ethers.utils.formatEther(totalReinvestFees)} CAKE`
           ).to.be.eq(totalReinvestFees);
         }
+
         async function successTwoSides(lastWorkBlock: BigNumber, goRouge: boolean) {
-          await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
+          await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")).sub(3));
+          await _updatePrice();
           // Random action to trigger interest computation
           await vault.deposit("0");
           // Set intertest rate to 0 for easy testing
@@ -1656,6 +1703,7 @@ describe("Vault - DeltaNetMdexWorker02", () => {
             `expect TwoSides to have debris ${debrisFtoken} FTOKEN`
           ).to.be.eq(debrisFtoken);
         }
+
         async function revertNotEnoughCollateral(goRouge: boolean, stratAddress: string) {
           // Simulate price swing to make position under water
           simpleVaultConfig.setWorker(deltaNeutralWorker.address, true, true, WORK_FACTOR, "100", true, true);
@@ -1681,6 +1729,7 @@ describe("Vault - DeltaNetMdexWorker02", () => {
             )
           ).to.be.revertedWith("debtRatio > killFactor margin");
         }
+
         async function revertUnapprovedStrat(goRouge: boolean, stratAddress: string) {
           await baseTokenAsDeltaNet.approve(vault.address, ethers.utils.parseEther("88"));
           await expect(

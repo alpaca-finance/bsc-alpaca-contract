@@ -24,18 +24,21 @@ import "../interfaces/IBSCPool.sol";
 import "../interfaces/IMdexSwapMining.sol";
 import "../interfaces/IStrategy.sol";
 import "../interfaces/IWorker02.sol";
-import "../interfaces/IPriceHelper.sol";
+import "../interfaces/IDeltaNeutralOracle.sol";
 import "../interfaces/IVault.sol";
 import "../../utils/AlpacaMath.sol";
 import "../../utils/SafeToken.sol";
+import "../../utils/FixedPointMathLib.sol";
 
 contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable, IWorker02 {
   /// @notice Libraries
   using SafeToken for address;
+  using FixedPointMathLib for uint256;
 
   /// @notice Errors
   error InvalidRewardToken();
   error InvalidTokens();
+  error UnTrustedPrice();
 
   error NotEOA();
   error NotOperator();
@@ -85,7 +88,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
   IMdexFactory public factory;
   IMdexRouter public router;
   IPancakePair public override lpToken;
-  IPriceHelper public priceHelper;
+  IDeltaNeutralOracle public priceOracle;
   address public wNative;
   address public override baseToken;
   address public override farmingToken;
@@ -123,7 +126,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
     address _treasuryAccount,
     address[] calldata _reinvestPath,
     uint256 _reinvestThreshold,
-    IPriceHelper _priceHelper
+    IDeltaNeutralOracle _priceOracle
   ) external initializer {
     // 1. Initialized imported library
     OwnableUpgradeable.__Ownable_init();
@@ -135,7 +138,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
     bscPool = _bscPool;
     router = _router;
     factory = IMdexFactory(_router.factory());
-    priceHelper = _priceHelper;
+    priceOracle = _priceOracle;
 
     // 3. Assign tokens state variables
     baseToken = _baseToken;
@@ -219,7 +222,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
     if (_treasuryAccount == address(0)) revert BadTreasuryAccount();
 
     // 1. Withdraw all the rewards. Return if reward <= _reinvestThreshold.
-    _bscPoolWithdraw();
+    bscPool.withdraw(pid, 0);
     uint256 reward = mdx.myBalance();
     if (reward <= _reinvestThreshold) return;
 
@@ -253,12 +256,11 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
   }
 
   /// @dev Work on the given position. Must be called by the operator.
-  /// @param id The position ID to work on. Note: This worker implementation ignore ID as the worker has only one position.
   /// @param user The original user that is interacting with the operator.
   /// @param debt The amount of user debt to help the strategy make decisions.
   /// @param data The encoded data, consisting of strategy address and calldata.
   function work(
-    uint256 id,
+    uint256, /* id */
     address user,
     uint256 debt,
     bytes calldata data
@@ -286,11 +288,16 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
   }
 
   /// @dev Return the amount of BaseToken to receive.
-  /// @param id The position ID to perform health check. Note: This worker implementation ignore ID as the worker has only one position.
-  function health(uint256 id) external view override returns (uint256) {
-    uint256 _totalBalanceInUSD = priceHelper.lpToDollar(totalLpBalance, address(lpToken));
-    uint256 _tokenPrice = priceHelper.getTokenPrice(address(baseToken));
-    return (_totalBalanceInUSD * 1e18) / _tokenPrice;
+  function health(
+    uint256 /* id */
+  ) external view override returns (uint256) {
+    (uint256 _totalBalanceInUSD, uint256 _lpPriceLastUpdate) = priceOracle.lpToDollar(totalLpBalance, address(lpToken));
+    (uint256 _tokenPrice, uint256 _tokenPricelastUpdate) = priceOracle.getTokenPrice(address(baseToken));
+    // NOTE: last updated price should not be over 30 mins
+    if (block.timestamp - _lpPriceLastUpdate > 1800 || block.timestamp - _tokenPricelastUpdate > 1800)
+      revert UnTrustedPrice();
+    // TODO: discuss round up or down
+    return _totalBalanceInUSD.divWadDown(_tokenPrice);
   }
 
   /// @dev Liquidate the given position by converting it to BaseToken and return back to caller.
@@ -350,7 +357,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
     if (balance > 0) {
       address(lpToken).safeApprove(address(bscPool), type(uint256).max);
       bscPool.deposit(pid, balance);
-      totalLpBalance = balance;
+      totalLpBalance = totalLpBalance + balance;
       emit BscPoolDeposit(balance);
     }
   }
@@ -423,10 +430,10 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
     emit SetReinvestConfig(msg.sender, _reinvestBountyBps, _reinvestThreshold, _reinvestPath);
   }
 
-  /// @dev Set PriceHelper contract.
-  /// @param _priceHelper - PriceHelper contract to update.
-  function setPriceHelper(IPriceHelper _priceHelper) external onlyOwner {
-    priceHelper = _priceHelper;
+  /// @dev Set DeltaNeutralOracle contract.
+  /// @param _priceOracle - DeltaNeutralOracle contract to update.
+  function setPriceOracle(IDeltaNeutralOracle _priceOracle) external onlyOwner {
+    priceOracle = _priceOracle;
   }
 
   /// @dev Set Max reinvest reward for set upper limit reinvest bounty.
@@ -434,6 +441,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
   function setMaxReinvestBountyBps(uint256 _maxReinvestBountyBps) external onlyOwner {
     if (reinvestBountyBps > _maxReinvestBountyBps) revert ExceedReinvestBounty();
 
+    // _maxReinvestBountyBps should not exceeds 30%
     if (_maxReinvestBountyBps > 3000) revert ExceedReinvestBps();
 
     maxReinvestBountyBps = _maxReinvestBountyBps;
