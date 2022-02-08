@@ -6,9 +6,11 @@ import {
   DeltaNeutralVault,
   DeltaNeutralVaultConfig__factory,
   DeltaNeutralVault__factory,
+  DeltaNeutralOracle__factory,
 } from "../../../../typechain";
 import { ConfigEntity } from "../../../entities";
 import { BigNumber } from "ethers";
+import { formatEther } from "ethers/lib/utils";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -68,19 +70,19 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const deltaVaultInputs: IDeltaNeutralVaultInput[] = [
     {
-      name: "DeltaNeutralVault ETH-USDT",
-      symbol: "ETH-USDT",
-      stableVaultSymbol: "ibUSDT",
-      assetVaultSymbol: "ibETH",
-      stableSymbol: "USDT",
+      name: "DeltaNeutralVault WBNB-BUSD",
+      symbol: "WBNB-BUSD",
+      stableVaultSymbol: "ibBUSD",
+      assetVaultSymbol: "ibWBNB",
+      stableSymbol: "BUSD",
       assetSymbol: "WBNB",
-      stableDeltaWorker: "0x17f153C5576cF48Bd19dC50dDEcF30F4adCd97C9",
-      assetDeltaWorker: "0x50adF479Cf1A917326392e9192037Cb9570A92a9",
-      lpName: "ETH-USDT LP",
-      deltaNeutralVaultConfig: "",
+      stableDeltaWorker: "0x7eA2725CA438D9FE62f304EEA9183E1cF6402D5A",
+      assetDeltaWorker: "0x060d52772feFeD66d194496BAE7EEe3288F41Aa4",
+      lpName: "WBNB-BUSD LP",
+      deltaNeutralVaultConfig: "0xfd241a4a391Bc05e75775F69f4F0635C1AE80493",
     },
   ];
-  const PRICE_HELPER_ADDR = "";
+  const DELTA_NEUTRAL_ORACLE_ADDR = "0x8fb045216C5486A010b0b9B561904005de0b8DA4";
 
   const config = ConfigEntity.getConfig();
   const deployer = (await ethers.getSigners())[0];
@@ -118,7 +120,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       deltaVaultInputs[i].assetDeltaWorker,
       lpPair.address,
       alpacaTokenAddress,
-      PRICE_HELPER_ADDR,
+      DELTA_NEUTRAL_ORACLE_ADDR,
       deltaVaultInputs[i].deltaNeutralVaultConfig,
     ])) as DeltaNeutralVault;
     await deltaNeutralVault.deployed();
@@ -132,9 +134,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     );
     await deltaNeutralVaultConfig.setLeverageLevel(3);
 
-    const depositStableTokenAmt = ethers.utils.parseEther("500");
-    const depositAssetTokenAmt = ethers.utils.parseEther("500");
-
     const stableToken = tokenLists[deltaVaultInputs[i].stableSymbol];
     const assetToken = tokenLists[deltaVaultInputs[i].assetSymbol];
     const stableTokenAsDeployer = BEP20__factory.connect(stableToken, deployer);
@@ -143,14 +142,46 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await stableTokenAsDeployer.approve(deltaNeutralVault.address, ethers.constants.MaxUint256);
     await assetTokenAsDeployer.approve(deltaNeutralVault.address, ethers.constants.MaxUint256);
 
+    const deltaNeutralOracle = DeltaNeutralOracle__factory.connect(DELTA_NEUTRAL_ORACLE_ADDR, deployer);
+    const [stablePrice] = await deltaNeutralOracle.getTokenPrice(stableToken);
+    const [assetPrice] = await deltaNeutralOracle.getTokenPrice(assetToken);
+
+    console.log(`stablePrice: ${stablePrice}`);
+    console.log(`assetPrice: ${assetPrice}`);
+
+    // open position1
+
+    const assetAmount = ethers.utils.parseEther("4");
+    console.log(`>> assetAmount: ${assetAmount}`);
+    const principalStableAmount = assetAmount.mul(assetPrice).div(stablePrice);
+    console.log(`>> principalStableAmount: ${principalStableAmount}`);
+
+    const principalStablePosition = principalStableAmount.mul(BigNumber.from("1")).div(BigNumber.from("4"));
+    console.log(`>> principalStablePosition: ${principalStablePosition}`);
+
+    const farmingTokenStablePosition = ethers.utils.parseEther("1");
+    console.log(`>> farmingTokenStablePosition: ${farmingTokenStablePosition}`);
+
+    const borrowAmountStablePosition = principalStablePosition.mul(4);
+    console.log(`>> borrowAmountStablePosition: ${borrowAmountStablePosition}`);
+
+    //open position 2
+    const principalAssetPosition = ethers.utils.parseEther("3");
+    console.log(`>> principalAssetPosition: ${principalAssetPosition}`);
+    const farmingTokenAssetPosition = principalStablePosition.mul(BigNumber.from(3));
+    console.log(`>> farmingTokenAssetPosition: ${farmingTokenAssetPosition}`);
+
+    const borrowAmountAssetPosition = principalAssetPosition.mul(4);
+    console.log(`>> borrowAmountAssetPosition: ${borrowAmountAssetPosition}`);
+
     const stableWorkbyteInput: IDepositWorkByte = {
       posId: 0,
       vaultAddress: stableVault.address,
       workerAddress: deltaVaultInputs[i].stableDeltaWorker,
       twoSidesStrat: stableTwoSidesStrat,
-      principalAmount: ethers.utils.parseEther("125"),
-      borrowAmount: ethers.utils.parseEther("500"),
-      farmingTokenAmount: ethers.utils.parseEther("125"),
+      principalAmount: principalStablePosition,
+      borrowAmount: borrowAmountStablePosition,
+      farmingTokenAmount: farmingTokenStablePosition,
       maxReturn: BigNumber.from(0),
       minLpReceive: BigNumber.from(0),
     };
@@ -160,9 +191,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       vaultAddress: assetVault.address,
       workerAddress: deltaVaultInputs[i].assetDeltaWorker,
       twoSidesStrat: assetTwoSidesStrat,
-      principalAmount: ethers.utils.parseEther("375"),
-      borrowAmount: ethers.utils.parseEther("1500"),
-      farmingTokenAmount: ethers.utils.parseEther("375"),
+      principalAmount: principalAssetPosition,
+      borrowAmount: borrowAmountAssetPosition,
+      farmingTokenAmount: farmingTokenAssetPosition,
       maxReturn: BigNumber.from(0),
       minLpReceive: BigNumber.from(0),
     };
@@ -181,15 +212,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     // shareReceive  = depositValue * totalSupply / Equity
     // since totalSupply = 0, shareReceive = depositValue = (1*500 + 1*500) = 1000
     const minSharesReceive = ethers.utils.parseEther("1000");
-    const initTx = await deltaNeutralVault.initPositions(
-      depositStableTokenAmt,
-      depositAssetTokenAmt,
-      minSharesReceive,
-      data,
-      {
-        value: depositAssetTokenAmt,
-      }
-    );
+    const initTx = await deltaNeutralVault.initPositions(principalStableAmount, assetAmount, minSharesReceive, data, {
+      value: assetAmount,
+    });
 
     const stablePosId = await deltaNeutralVault.stableVaultPosId();
     const assetPostId = await deltaNeutralVault.assetVaultPosId();

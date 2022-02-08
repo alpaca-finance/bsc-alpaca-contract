@@ -68,13 +68,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const shortWorkerInfos: IDeltaNeutralMdexWorkerInput[] = [
     {
-      VAULT_SYMBOL: "ibUSDT",
-      WORKER_NAME: "ETH-USDT DeltaNeutralMdexWorker",
+      VAULT_SYMBOL: "ibBUSD",
+      WORKER_NAME: "WBNB-BUSD DeltaNeutralMdexWorker",
       TREASURY_ADDRESS: "0x2DD872C6f7275DAD633d7Deb1083EDA561E9B96b",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 1,
+      POOL_ID: 8,
       REINVEST_BOUNTY_BPS: "300",
-      REINVEST_PATH: ["MDX", "USDT"],
+      REINVEST_PATH: ["MDX", "BUSD"],
       REINVEST_THRESHOLD: "0",
       WORK_FACTOR: "7000",
       KILL_FACTOR: "8333",
@@ -82,13 +82,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       EXACT_ETA: "1633584600",
     },
     {
-      VAULT_SYMBOL: "ibETH",
-      WORKER_NAME: "USDT-ETH DeltaNeutralMdexWorker",
+      VAULT_SYMBOL: "ibWBNB",
+      WORKER_NAME: "BUSD-WBNB DeltaNeutralMdexWorker",
       TREASURY_ADDRESS: "0x2DD872C6f7275DAD633d7Deb1083EDA561E9B96b",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 1,
+      POOL_ID: 8,
       REINVEST_BOUNTY_BPS: "300",
-      REINVEST_PATH: ["MDX", "WBNB", "ETH"],
+      REINVEST_PATH: ["MDX", "WBNB"],
       REINVEST_THRESHOLD: "0",
       WORK_FACTOR: "7000",
       KILL_FACTOR: "8333",
@@ -97,7 +97,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     },
   ];
 
-  const PRICE_HELPER_ADDR = "0xf15C201c26f3E5A0491bd4B22d015828611fc1a1";
+  const DELTA_NEUTRAL_ORACLE_ADDR = "0x8fb045216C5486A010b0b9B561904005de0b8DA4";
 
   const config = ConfigEntity.getConfig();
   const deployer = (await ethers.getSigners())[0];
@@ -161,7 +161,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       deployer.address,
       workerInfos[i].REINVEST_PATH,
       workerInfos[i].REINVEST_THRESHOLD,
-      PRICE_HELPER_ADDR,
+      DELTA_NEUTRAL_ORACLE_ADDR,
     ])) as DeltaNeutralMdexWorker02;
     await deltaNeutralWorker.deployed();
     console.log(`>> Deployed at ${deltaNeutralWorker.address}`);
@@ -186,88 +186,88 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await deltaNeutralWorker.setStrategyOk(okStrats, true);
     console.log("✅ Done");
 
-    console.log(`>> Whitelisting a worker on strats`);
-    const addStrat = MdexRestrictedStrategyAddBaseTokenOnly__factory.connect(workerInfos[i].ADD_STRAT_ADDR, deployer);
-    await addStrat.setWorkersOk([deltaNeutralWorker.address], true);
-    const liqStrat = MdexRestrictedStrategyLiquidate__factory.connect(workerInfos[i].LIQ_STRAT_ADDR, deployer);
-    await liqStrat.setWorkersOk([deltaNeutralWorker.address], true);
-    const twoSidesStrat = MdexRestrictedStrategyAddTwoSidesOptimal__factory.connect(
-      workerInfos[i].TWO_SIDES_STRAT_ADDR,
-      deployer
-    );
-    await twoSidesStrat.setWorkersOk([deltaNeutralWorker.address], true);
-    const minimizeStrat = MdexRestrictedStrategyWithdrawMinimizeTrading__factory.connect(
-      workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR,
-      deployer
-    );
-    await minimizeStrat.setWorkersOk([deltaNeutralWorker.address], true);
+    // console.log(`>> Whitelisting a worker on strats`);
+    // const addStrat = MdexRestrictedStrategyAddBaseTokenOnly__factory.connect(workerInfos[i].ADD_STRAT_ADDR, deployer);
+    // await addStrat.setWorkersOk([deltaNeutralWorker.address], true);
+    // const liqStrat = MdexRestrictedStrategyLiquidate__factory.connect(workerInfos[i].LIQ_STRAT_ADDR, deployer);
+    // await liqStrat.setWorkersOk([deltaNeutralWorker.address], true);
+    // const twoSidesStrat = MdexRestrictedStrategyAddTwoSidesOptimal__factory.connect(
+    //   workerInfos[i].TWO_SIDES_STRAT_ADDR,
+    //   deployer
+    // );
+    // await twoSidesStrat.setWorkersOk([deltaNeutralWorker.address], true);
+    // const minimizeStrat = MdexRestrictedStrategyWithdrawMinimizeTrading__factory.connect(
+    //   workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR,
+    //   deployer
+    // );
+    // await minimizeStrat.setWorkersOk([deltaNeutralWorker.address], true);
 
-    if (workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR != "") {
-      console.log(">> partial close liquidate is deployed");
-      const partialCloseLiquidate = MdexRestrictedStrategyPartialCloseLiquidate__factory.connect(
-        workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR,
-        deployer
-      );
-      await partialCloseLiquidate.setWorkersOk([deltaNeutralWorker.address], true);
-    }
+    // if (workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR != "") {
+    //   console.log(">> partial close liquidate is deployed");
+    //   const partialCloseLiquidate = MdexRestrictedStrategyPartialCloseLiquidate__factory.connect(
+    //     workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR,
+    //     deployer
+    //   );
+    //   await partialCloseLiquidate.setWorkersOk([deltaNeutralWorker.address], true);
+    // }
 
-    if (workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR != "") {
-      console.log(">> partial close minimize is deployed");
-      const partialCloseMinimize = MdexRestrictedStrategyPartialCloseMinimizeTrading__factory.connect(
-        workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR,
-        deployer
-      );
-      await partialCloseMinimize.setWorkersOk([deltaNeutralWorker.address], true);
-    }
-    console.log("✅ Done");
+    // if (workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR != "") {
+    //   console.log(">> partial close minimize is deployed");
+    //   const partialCloseMinimize = MdexRestrictedStrategyPartialCloseMinimizeTrading__factory.connect(
+    //     workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR,
+    //     deployer
+    //   );
+    //   await partialCloseMinimize.setWorkersOk([deltaNeutralWorker.address], true);
+    // }
+    // console.log("✅ Done");
 
-    const timelock = Timelock__factory.connect(workerInfos[i].TIMELOCK, (await ethers.getSigners())[0]);
+    // const timelock = Timelock__factory.connect(workerInfos[i].TIMELOCK, (await ethers.getSigners())[0]);
 
-    console.log(">> Timelock: Setting WorkerConfig via Timelock");
-    const setConfigsTx = await timelock.queueTransaction(
-      workerInfos[i].WORKER_CONFIG_ADDR,
-      "0",
-      "setConfigs(address[],(bool,uint64,uint64,uint64)[])",
-      ethers.utils.defaultAbiCoder.encode(
-        ["address[]", "(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]"],
-        [
-          [deltaNeutralWorker.address],
-          [
-            {
-              acceptDebt: true,
-              workFactor: workerInfos[i].WORK_FACTOR,
-              killFactor: workerInfos[i].KILL_FACTOR,
-              maxPriceDiff: workerInfos[i].MAX_PRICE_DIFF,
-            },
-          ],
-        ]
-      ),
-      workerInfos[i].EXACT_ETA
-    );
-    console.log(`queue setConfigs at: ${setConfigsTx.hash}`);
-    console.log("generate timelock.executeTransaction:");
-    console.log(
-      `await timelock.executeTransaction('${workerInfos[i].WORKER_CONFIG_ADDR}', '0', 'setConfigs(address[],(bool,uint64,uint64,uint64)[])', ethers.utils.defaultAbiCoder.encode(['address[]','(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]'],[['${deltaNeutralWorker.address}'], [{acceptDebt: true, workFactor: ${workerInfos[i].WORK_FACTOR}, killFactor: ${workerInfos[i].KILL_FACTOR}, maxPriceDiff: ${workerInfos[i].MAX_PRICE_DIFF}}]]), ${workerInfos[i].EXACT_ETA})`
-    );
-    console.log("✅ Done");
+    // console.log(">> Timelock: Setting WorkerConfig via Timelock");
+    // const setConfigsTx = await timelock.queueTransaction(
+    //   workerInfos[i].WORKER_CONFIG_ADDR,
+    //   "0",
+    //   "setConfigs(address[],(bool,uint64,uint64,uint64)[])",
+    //   ethers.utils.defaultAbiCoder.encode(
+    //     ["address[]", "(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]"],
+    //     [
+    //       [deltaNeutralWorker.address],
+    //       [
+    //         {
+    //           acceptDebt: true,
+    //           workFactor: workerInfos[i].WORK_FACTOR,
+    //           killFactor: workerInfos[i].KILL_FACTOR,
+    //           maxPriceDiff: workerInfos[i].MAX_PRICE_DIFF,
+    //         },
+    //       ],
+    //     ]
+    //   ),
+    //   workerInfos[i].EXACT_ETA
+    // );
+    // console.log(`queue setConfigs at: ${setConfigsTx.hash}`);
+    // console.log("generate timelock.executeTransaction:");
+    // console.log(
+    //   `await timelock.executeTransaction('${workerInfos[i].WORKER_CONFIG_ADDR}', '0', 'setConfigs(address[],(bool,uint64,uint64,uint64)[])', ethers.utils.defaultAbiCoder.encode(['address[]','(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]'],[['${deltaNeutralWorker.address}'], [{acceptDebt: true, workFactor: ${workerInfos[i].WORK_FACTOR}, killFactor: ${workerInfos[i].KILL_FACTOR}, maxPriceDiff: ${workerInfos[i].MAX_PRICE_DIFF}}]]), ${workerInfos[i].EXACT_ETA})`
+    // );
+    // console.log("✅ Done");
 
-    console.log(">> Timelock: Linking VaultConfig with WorkerConfig via Timelock");
-    const setWorkersTx = await timelock.queueTransaction(
-      workerInfos[i].VAULT_CONFIG_ADDR,
-      "0",
-      "setWorkers(address[],address[])",
-      ethers.utils.defaultAbiCoder.encode(
-        ["address[]", "address[]"],
-        [[deltaNeutralWorker.address], [workerInfos[i].WORKER_CONFIG_ADDR]]
-      ),
-      workerInfos[i].EXACT_ETA
-    );
-    console.log(`queue setWorkers at: ${setWorkersTx.hash}`);
-    console.log("generate timelock.executeTransaction:");
-    console.log(
-      `await timelock.executeTransaction('${workerInfos[i].VAULT_CONFIG_ADDR}', '0','setWorkers(address[],address[])', ethers.utils.defaultAbiCoder.encode(['address[]','address[]'],[['${deltaNeutralWorker.address}'], ['${workerInfos[i].WORKER_CONFIG_ADDR}']]), ${workerInfos[i].EXACT_ETA})`
-    );
-    console.log("✅ Done");
+    // console.log(">> Timelock: Linking VaultConfig with WorkerConfig via Timelock");
+    // const setWorkersTx = await timelock.queueTransaction(
+    //   workerInfos[i].VAULT_CONFIG_ADDR,
+    //   "0",
+    //   "setWorkers(address[],address[])",
+    //   ethers.utils.defaultAbiCoder.encode(
+    //     ["address[]", "address[]"],
+    //     [[deltaNeutralWorker.address], [workerInfos[i].WORKER_CONFIG_ADDR]]
+    //   ),
+    //   workerInfos[i].EXACT_ETA
+    // );
+    // console.log(`queue setWorkers at: ${setWorkersTx.hash}`);
+    // console.log("generate timelock.executeTransaction:");
+    // console.log(
+    //   `await timelock.executeTransaction('${workerInfos[i].VAULT_CONFIG_ADDR}', '0','setWorkers(address[],address[])', ethers.utils.defaultAbiCoder.encode(['address[]','address[]'],[['${deltaNeutralWorker.address}'], ['${workerInfos[i].WORKER_CONFIG_ADDR}']]), ${workerInfos[i].EXACT_ETA})`
+    // );
+    // console.log("✅ Done");
   }
 };
 

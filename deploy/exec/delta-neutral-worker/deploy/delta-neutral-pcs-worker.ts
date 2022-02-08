@@ -83,7 +83,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     },
   ];
 
-  const PRICE_HELPER_ADDR = "";
+  const DELTA_NEUTRAL_ORACLE_ADDR = "";
 
   const config = ConfigEntity.getConfig();
   const deployer = (await ethers.getSigners())[0];
@@ -147,7 +147,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       deployer.address,
       workerInfos[i].REINVEST_PATH,
       workerInfos[i].REINVEST_THRESHOLD,
-      PRICE_HELPER_ADDR,
+      DELTA_NEUTRAL_ORACLE_ADDR,
     ])) as DeltaNeutralPancakeWorker02;
     await deltaNeutralWorker.deployed();
     console.log(`>> Deployed at ${deltaNeutralWorker.address}`);

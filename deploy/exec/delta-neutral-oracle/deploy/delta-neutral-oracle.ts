@@ -1,7 +1,7 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, upgrades } from "hardhat";
-import { PriceHelper, PriceHelper__factory } from "../../../../typechain";
+import { DeltaNeutralOracle, DeltaNeutralOracle__factory } from "../../../../typechain";
 import { ConfigEntity } from "../../../entities";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -20,13 +20,19 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const config = ConfigEntity.getConfig();
   const CHAINLINK_ADDRESS = config.Oracle.ChainLinkOracle;
   const USD = config.Tokens.USD;
-  console.log(">> Deploying an upgradable PriceHelper contract");
-  const PriceHelper = (await ethers.getContractFactory("PriceHelper", deployer)) as PriceHelper__factory;
-  const priceHelper = (await upgrades.deployProxy(PriceHelper, [CHAINLINK_ADDRESS, USD])) as PriceHelper;
-  await priceHelper.deployed();
-  console.log(`>> Deployed at ${priceHelper.address}`);
+  console.log(">> Deploying an upgradable DeltaNeutralOracle contract");
+  const DeltaNeutralOracle = (await ethers.getContractFactory(
+    "DeltaNeutralOracle",
+    deployer
+  )) as DeltaNeutralOracle__factory;
+  const deltaNeutralOracle = (await upgrades.deployProxy(DeltaNeutralOracle, [
+    CHAINLINK_ADDRESS,
+    USD,
+  ])) as DeltaNeutralOracle;
+  await deltaNeutralOracle.deployed();
+  console.log(`>> Deployed at ${deltaNeutralOracle.address}`);
   console.log("✅ Done");
 };
 
 export default func;
-func.tags = ["PriceHelper"];
+func.tags = ["DeltaNeutralOracle"];
