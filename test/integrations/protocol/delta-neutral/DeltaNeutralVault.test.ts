@@ -2791,11 +2791,6 @@ describe("DeltaNeutralVault", () => {
           // deltaEquity = 732.913103788178741271 - 807.913619971975883422= -75.000516183797142151, deltaDebt = 1465.826207576357482542 - 1200.008333333333332800 = 265.817874243024149742
           // totalEquity = 244.304367929392913757 + 732.913103788178741271 = 977.217471717571655028
 
-          // const expectedStableEquity = ethers.utils.parseEther("244.304367929392913757");
-          // const expectedStableDebt = ethers.utils.parseEther("488.608735858785827514");
-          // const expectedAssetEquity = ethers.utils.parseEther("732.913103788178741271");
-          // const expectedAssetDebt = ethers.utils.parseEther("1465.826207576357482542");
-
           // Step1: Partial Close Asset position by -75.000516183797142151 since it has negative deltaEquity
           // but user try liquidate 100
           const valueToLiquidate = ethers.utils.parseEther("100");
