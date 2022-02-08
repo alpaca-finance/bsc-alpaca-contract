@@ -171,7 +171,7 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
       uint256 timePast = now.sub(lastAccrueTime);
       uint256 balance = SafeToken.myBalance(token).sub(value);
       uint256 ratePerSec = config.getInterestRate(vaultDebtVal, balance);
-      return ratePerSec.mul(vaultDebtVal).mul(timePast).div(10**uint256(decimals()));
+      return ratePerSec.mul(vaultDebtVal).mul(timePast).div(1e18);
     } else {
       return 0;
     }

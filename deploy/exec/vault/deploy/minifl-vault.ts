@@ -4,6 +4,7 @@ import {
   DebtToken,
   DebtToken__factory,
   MiniFL__factory,
+  MockERC20__factory,
   Rewarder1__factory,
   Timelock,
   Timelock__factory,
@@ -26,12 +27,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const ALLOC_POINT_FOR_DEPOSIT = 75;
+  const ALLOC_POINT_FOR_DEPOSIT = 0;
   const ALLOC_POINT_FOR_OPEN_POSITION = 0;
   const VAULT_NAME = "USDC Vault";
   const NAME = "Interest Bearing USDC";
   const SYMBOL = "ibUSDC";
-  const REWARDER1_ADDRESS = "0xc6829dC7Ee6Bd368F917A0EB53FC791790Ba028A";
+  const REWARDER1_ADDRESS = "0x763a687E631A907baDd620E20e9A0869E3Ec543D";
   const EXACT_ETA = "888888"; // no use due to no timelock
 
   const config = ConfigEntity.getConfig();
@@ -50,11 +51,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     throw `error: not found ${SYMBOL.replace("ib", "")} in tokenList`;
   }
 
+  const baseToken = MockERC20__factory.connect(baseTokenAddr, deployer);
+  const baseTokenDecimal = await baseToken.decimals();
+
   console.log(`>> Deploying debt${SYMBOL}`);
   const DebtToken = (await ethers.getContractFactory("DebtToken", deployer)) as DebtToken__factory;
   const debtToken = (await upgrades.deployProxy(DebtToken, [
     `debt${SYMBOL}_V2`,
     `debt${SYMBOL}_V2`,
+    baseTokenDecimal,
     config.Timelock,
   ])) as DebtToken;
   const debtTokenDeployTx = await debtToken.deployTransaction.wait(5);
@@ -68,7 +73,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     baseTokenAddr,
     NAME,
     SYMBOL,
-    18,
+    baseTokenDecimal,
     debtToken.address,
   ])) as Vault;
   const vaultDeployTx = await debtToken.deployTransaction.wait(5);
@@ -162,7 +167,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const approveVaultTx = await miniFL.approveStakeDebtToken(
       [(await miniFL.poolLength()).sub(1)],
       [vault.address],
-      true
+      true,
+      { nonce: nonce++ }
     );
     await approveVaultTx.wait(3);
     console.log("✅ Done");
