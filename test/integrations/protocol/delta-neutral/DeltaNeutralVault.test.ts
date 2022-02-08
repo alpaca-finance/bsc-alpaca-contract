@@ -2861,7 +2861,7 @@ describe("DeltaNeutralVault", () => {
           // Step5: Repay debt by 11.384656237950708
           const repayAmt = ethers.utils.parseEther("11.384656237950708");
           const valueToRepayWithSlippage = repayAmt.add(repayAmt.mul(25).div(10000));
-          const lpToRapy = valueToRepayWithSlippage.mul(ethers.utils.parseEther("1")).div(lpPrice);
+          const lpToRepay = valueToRepayWithSlippage.mul(ethers.utils.parseEther("1")).div(lpPrice);
           const action5 = ethers.utils.defaultAbiCoder.encode(
             ["address", "uint256", "address", "uint256", "uint256", "uint256", "bytes"],
             [
@@ -2875,7 +2875,7 @@ describe("DeltaNeutralVault", () => {
                 ["address", "bytes"],
                 [
                   partialCloseStrat.address,
-                  ethers.utils.defaultAbiCoder.encode(["uint256", "uint256", "uint256"], [lpToRapy, repayAmt, 0]),
+                  ethers.utils.defaultAbiCoder.encode(["uint256", "uint256", "uint256"], [lpToRepay, repayAmt, 0]),
                 ]
               ),
             ]
