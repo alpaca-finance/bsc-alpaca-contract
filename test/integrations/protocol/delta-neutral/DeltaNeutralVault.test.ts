@@ -501,7 +501,7 @@ describe("DeltaNeutralVault", () => {
     await assetVault.deposit(ethers.utils.parseEther("10000"));
   });
 
-  /*  describe("#initPositions", async () => {
+  describe("#initPositions", async () => {
     context("when owner call initPositions", async () => {
       it("should initilize positions", async () => {
         await deltaVaultConfig.setLeverageLevel(3);
@@ -732,9 +732,9 @@ describe("DeltaNeutralVault", () => {
           .withArgs(deployerAddress, stablePosId, assetPostId);
       });
     });
-  }); */
+  });
 
-  /* describe("#deposit", async () => {
+  describe("#deposit", async () => {
     context("when alice try deposit to delta neutral vault before positions initialized", async () => {
       it("should revert", async () => {
         await swapHelper.addLiquidities([
@@ -1608,9 +1608,9 @@ describe("DeltaNeutralVault", () => {
         });
       });
     });
-  }); */
+  });
 
-  /* describe("#withdraw", async () => {
+  describe("#withdraw", async () => {
     describe("when positions initialized", async () => {
       beforeEach(async () => {
         // add liquidity
@@ -2484,9 +2484,9 @@ describe("DeltaNeutralVault", () => {
         });
       });
     });
-  }); */
+  });
 
-  /* describe("#rebalance", async () => {
+  describe("#rebalance", async () => {
     describe("when positions initialized", async () => {
       beforeEach(async () => {
         // add liquidity to make price baseToken:wbnb = 1:500
@@ -2764,9 +2764,8 @@ describe("DeltaNeutralVault", () => {
       });
     });
   });
- */
 
-  /* describe("#Managementfee", async () => {
+  describe("#Managementfee", async () => {
     describe("when positions initialized", async () => {
       beforeEach(async () => {
         // add liquidity
@@ -2975,7 +2974,7 @@ describe("DeltaNeutralVault", () => {
         });
       });
     });
-  }); */
+  });
 
   describe("#reinvest", async () => {
     beforeEach(async () => {
@@ -3159,7 +3158,7 @@ describe("DeltaNeutralVault", () => {
         const principalAmountStable = amountOutSwap.mul(leverage - 2).div(2 * leverage - 2);
         const farmingAmountAsset = amountOutSwap.mul(leverage).div(2 * leverage - 2);
         const dustBaseToken = amountOutSwap.sub(principalAmountStable).sub(farmingAmountAsset);
-        console.log("SWAP", amountInSwap, amountOutSwap);
+
         await baseTokenAsDeployer.approve(deltaVault.address, amountOutSwap);
 
         const stableDepositWorkByteInput: IDepositWorkByte = {
@@ -3192,7 +3191,7 @@ describe("DeltaNeutralVault", () => {
         const afterPositionVal = await deltaVault.shareToValue(aliceShares);
 
         expect(afterPositionVal).be.gt(beforePositionVal);
-        // expect(await baseToken.balanceOf(deltaVault.address)).to.be.eq(dustBaseToken);
+        expect(await baseToken.balanceOf(deltaVault.address)).to.be.eq(dustBaseToken);
       });
       describe("_unsafePositionEquity", async () => {
         context("when try to set withdraw execute in action", async () => {
