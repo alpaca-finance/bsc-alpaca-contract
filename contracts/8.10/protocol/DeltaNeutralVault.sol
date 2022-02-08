@@ -68,6 +68,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   error UnTrustedPrice();
   error BountyExceedLimit();
   error PositionValueExceedLimit();
+  error WithdrawValueExceedShareValue(uint256 _withdrawValue, uint256 _shareValue);
 
   struct Outstanding {
     uint256 stableAmount;
@@ -314,6 +315,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
     uint256 _withdrawalFeeBps = config.feeExemptedCallers(msg.sender) ? 0 : config.withdrawalFeeBps();
     uint256 _shareToWithdraw = ((MAX_BPS - _withdrawalFeeBps) * _shareAmount) / MAX_BPS;
+    uint256 _withdrawShareValue = shareToValue(_shareToWithdraw);
     // burn shares from share owner
     _burn(msg.sender, _shareAmount);
     // mint shares equal to withdrawal fee to treasury.
@@ -354,6 +356,9 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     }
 
     // sanity check
+    if (_withdrawShareValue < _withdrawValue) {
+      revert WithdrawValueExceedShareValue(_withdrawValue, _withdrawShareValue);
+    }
     _withdrawHealthCheck(_withdrawValue, _positionInfoBefore, _positionInfoAfter);
     _outstandingCheck(_outstandingBefore, _outstandingAfter);
 
