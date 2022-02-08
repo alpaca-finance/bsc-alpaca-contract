@@ -1772,7 +1772,7 @@ describe("DeltaNeutralVault", () => {
       });
 
       context("when alice withdraw from delta neutral vault", async () => {
-        it.only("should be able to withdraw", async () => {
+        it("should be able to withdraw", async () => {
           await swapHelper.loadReserves([baseToken.address, wbnb.address]);
           const lpPrice = await swapHelper.computeLpHealth(
             ethers.utils.parseEther("1"),
@@ -1781,7 +1781,6 @@ describe("DeltaNeutralVault", () => {
           );
 
           await setMockLpPrice(lpPrice);
-          const positionInfoBefore = await deltaVault.positionInfo();
 
           // Current Delta Neutral Position
           // Stable Position:
@@ -2005,7 +2004,7 @@ describe("DeltaNeutralVault", () => {
           await expect(
             deltaVaultAsAlice.withdraw(shareToWithdraw, ethers.utils.parseEther("1000000"), 0, withdrawData)
           ).to.be.revertedWith(
-            `InsufficientTokenReceived("${baseToken.address}", 1000000000000000000000000, 149842043056026209106)`
+            `InsufficientTokenReceived("${baseToken.address}", 1000000000000000000000000, 149813699100046854016)`
           );
         });
 
@@ -2055,7 +2054,7 @@ describe("DeltaNeutralVault", () => {
           await expect(
             deltaVaultAsAlice.withdraw(shareToWithdraw, 0, ethers.utils.parseEther("100"), withdrawData)
           ).to.be.revertedWith(
-            `InsufficientTokenReceived("${wbnb.address}", 100000000000000000000, 49927231428875515127)`
+            `InsufficientTokenReceived("${wbnb.address}", 100000000000000000000, 49936781539802944371)`
           );
         });
 
@@ -2425,7 +2424,7 @@ describe("DeltaNeutralVault", () => {
 
         context("should be able to withdraw and deduct withdrawal fee from alice's share", async () => {
           it("should work", async () => {
-            const shareToWithdraw = ethers.utils.parseEther("20");
+            const shareToWithdraw = ethers.utils.parseEther("205");
             const treasuryShareBefore = await deltaVault.balanceOf(eveAddress);
             const aliceShareBefore = await deltaVault.balanceOf(aliceAddress);
 
@@ -2445,7 +2444,7 @@ describe("DeltaNeutralVault", () => {
         context("when alice get exempted from fee", async () => {
           it("should work", async () => {
             await deltaVaultConfig.setFeeExemptedCallers([aliceAddress], true);
-            const shareToWithdraw = ethers.utils.parseEther("20");
+            const shareToWithdraw = ethers.utils.parseEther("205");
             const treasuryShareBefore = await deltaVault.balanceOf(eveAddress);
             const aliceShareBefore = await deltaVault.balanceOf(aliceAddress);
 
