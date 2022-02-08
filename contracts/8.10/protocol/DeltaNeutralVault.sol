@@ -442,8 +442,10 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       revert BadReinvestPath();
     }
 
+    uint256 _rewardAmount = _alpacaAfter - _bounty;
+    IERC20Upgradeable(alpacaToken).approve(config.getSwapRouter(), _rewardAmount);
     ISwapRouter(config.getSwapRouter()).swapExactTokensForTokens(
-      _alpacaAfter - _bounty,
+      _rewardAmount,
       0,
       config.getReinvestPath(),
       address(this),
