@@ -586,7 +586,7 @@ export class DeployHelper {
       btoken.address,
       `Interest Bearing ${btokenSymbol}}`,
       `ib${btokenSymbol}`,
-      6,
+      await btoken.decimals(),
       debtToken.address,
     ])) as Vault;
     await vault.deployed();
