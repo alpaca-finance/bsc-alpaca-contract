@@ -45,7 +45,8 @@
         { "pId": 45, "name": "TUSD-USDC LP", "address": "0x12692B3bf8dd9Aa1d2E721d1a79efD0C244d7d96" },
         { "pId": 1, "name": "FTM-fUSDT LP", "address": "0x5965E53aa80a0bcF1CD6dbDd72e6A9b2AA047410" },
         { "pId": 3, "name": "WFTM-DAI LP", "address": "0xe120ffBDA0d14f3Bb6d6053E90E63c572A66a428" },
-        { "pId": 24, "name": "WFTM-MIM LP", "address": "0x6f86e65b255c9111109d2D2325ca2dFc82456efc" }
+        { "pId": 24, "name": "WFTM-MIM LP", "address": "0x6f86e65b255c9111109d2D2325ca2dFc82456efc" },
+        { "pId": 888, "name": "ALPACA-WFTM LP", "address": "0xF66D2bf736c05723b62E833A5DD747E24855ff99" }
       ]
     }
   },

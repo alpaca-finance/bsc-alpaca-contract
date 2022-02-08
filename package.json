@@ -244,7 +244,7 @@
     "test:pan2singleassetpartialcloseliquidate": "hardhat test --no-compile ./test/PancakeswapV2_Restricted_SingleAsset_StrategyPartialCloseLiquidate.test.ts",
     "test:pan2singleassetminimize": "hardhat test --no-compile ./test/PancakeswapV2_Restricted_SingleAsset_StrategyWithdrawMinimizeTrading.test.ts",
     "test:pan2singleassetpartialcloseminimize": "hardhat test --no-compile ./test/PancakeswapV2_Restricted_SingleAsset_StrategyPartialCloseWithdrawMinimizeTrading.test.ts",
-    "test:workerconf": "hardhat test --no-compile ./test/WorkerConfig.test.ts",
+    "test:workerconf": "hardhat test --no-compile ./test/integrations/protocol/workers/WorkerConfig.test.ts",
     "test:cakemaxiworker": "hardhat test --no-compile ./test/CakeMaxiWorker.test.ts",
     "test:cakemaxiworker02": "hardhat test --no-compile ./test/CakeMaxiWorker02.test.ts",
     "test:singleassetworkerconf": "hardhat test --no-compile ./test/SingleAssetWorkerConfig.test.ts",
