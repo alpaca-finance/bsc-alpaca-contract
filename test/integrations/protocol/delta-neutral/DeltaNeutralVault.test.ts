@@ -3242,21 +3242,22 @@ describe("DeltaNeutralVault", () => {
         // user.amount.mul(accAlpacaPerShare).div(1e12).sub(user.rewardDebt);
 
         // STABLE POSITION
-        // user.amount 1000017361111111110000
-        // accAlpacaPerShare 6999965277
-        // user.rewardDebt 5000086805555555550
-        // (7000086804174947908888927470000 / 1000000000000) - 5000086805555555550 => 1999999998619392358.88892747
+        //         user.amount 1000000000000000000000
+        // accAlpacaPerShare 7000000000
+        // user.rewardDebt 5000000000000000000
+
+        // (7000000000000000000000000000000 / 1000000000000) - 5000000000000000000 => 2000000000000000000
 
         // ASSET POSITION
-        // user.amount 3000052083333333330000
-        // accAlpacaPerShare 2333321758
-        // user.rewardDebt 5000086803555520827
-        //  (7000086801174895825555594140000 / 1000000000000) - 5000086803555520827 = > 1999999997619374998.55559414
+        // user.amount 3000000000000000000000
+        // accAlpacaPerShare 2333333332
+        // user.rewardDebt 4999999998000000000
+        //  (6999999996000000000000000000000 / 1000000000000) - 4999999998000000000 = > 1999999998000000000
 
-        // reward from both pool => (1999999998619392358 +1999999997619374998 )  => 3999999996238767356
+        // reward from both pool => (2000000000000000000 +1999999998000000000 )  => 3999999998000000000
 
-        const stableRewardAlpaca = BigNumber.from("1999999998619392358");
-        const assetRewardAlpaca = BigNumber.from("1999999997619374998");
+        const stableRewardAlpaca = BigNumber.from("2000000000000000000");
+        const assetRewardAlpaca = BigNumber.from("1999999998000000000");
         const alpacaBefore = await alpacaToken.balanceOf(deltaVault.address);
 
         latest = await TimeHelpers.latestBlockNumber();
