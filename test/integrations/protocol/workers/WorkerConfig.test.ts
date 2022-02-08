@@ -121,11 +121,11 @@ describe("WokerConfig", () => {
 
     decimal6 = (await upgrades.deployProxy(MockERC20, ["DEC6", "DEC6", 6])) as MockERC20;
     await decimal6.deployed();
-    await decimal6.mint(deployer.address, ethers.utils.parseUnits("100", 6));
+    await decimal6.mint(deployer.address, ethers.utils.parseUnits("88888888", 6));
 
     decimal8 = (await upgrades.deployProxy(MockERC20, ["DEC8", "DEC8", 8])) as MockERC20;
     await decimal8.deployed();
-    await decimal8.mint(deployer.address, ethers.utils.parseUnits("100", 8));
+    await decimal8.mint(deployer.address, ethers.utils.parseUnits("88888888", 8));
 
     await Promise.all([
       factoryV2.createPair(cake.address, wbnb.address),
@@ -134,37 +134,41 @@ describe("WokerConfig", () => {
       factoryV2.createPair(decimal6.address, decimal8.address),
     ]);
 
+    const [cakewbnbLp, dec6wbnbLp, dec8wbnbLp, dec8dec6Lp] = await Promise.all([
+      PancakePair__factory.connect(await factoryV2.getPair(wbnb.address, cake.address), deployer),
+      PancakePair__factory.connect(await factoryV2.getPair(wbnb.address, decimal6.address), deployer),
+      PancakePair__factory.connect(await factoryV2.getPair(wbnb.address, decimal8.address), deployer),
+      PancakePair__factory.connect(await factoryV2.getPair(decimal8.address, decimal6.address), deployer),
+    ]);
+
     /// Setup MockWorker
     const MockWorker = (await ethers.getContractFactory(
       "MockPancakeswapV2Worker",
       deployer
     )) as MockPancakeswapV2Worker__factory;
-    mockWorker1 = (await MockWorker.deploy(
-      await factoryV2.getPair(wbnb.address, cake.address),
-      wbnb.address,
-      cake.address
-    )) as MockPancakeswapV2Worker;
+    mockWorker1 = (await MockWorker.deploy(cakewbnbLp.address, wbnb.address, cake.address)) as MockPancakeswapV2Worker;
     await mockWorker1.deployed();
 
     mockWorker2 = (await MockWorker.deploy(
-      await factoryV2.getPair(decimal6.address, wbnb.address),
+      dec6wbnbLp.address,
       decimal6.address,
       wbnb.address
     )) as MockPancakeswapV2Worker;
     await mockWorker2.deployed();
 
     mockWorker3 = (await MockWorker.deploy(
-      await factoryV2.getPair(decimal8.address, wbnb.address),
+      dec8wbnbLp.address,
       decimal8.address,
       wbnb.address
     )) as MockPancakeswapV2Worker;
     await mockWorker3.deployed();
 
     mockWorker4 = (await MockWorker.deploy(
-      await factoryV2.getPair(decimal6.address, decimal8.address),
+      dec8dec6Lp.address,
       decimal6.address,
       decimal8.address
     )) as MockPancakeswapV2Worker;
+    await mockWorker4.deployed();
 
     // Assign contract signer
     baseTokenAsAlice = MockERC20__factory.connect(baseToken.address, alice);
@@ -179,14 +183,19 @@ describe("WokerConfig", () => {
     // Adding liquidity to the pool
     // Alice adds 0.1 FTOKEN + 1 WBTC + 1 WBNB
     await wbnbTokenAsAlice.deposit({
-      value: ethers.utils.parseEther("52"),
+      value: ethers.utils.parseEther("8888"),
     });
-    await wbnbTokenAsBob.deposit({
-      value: ethers.utils.parseEther("50"),
+    await wbnb.deposit({
+      value: ethers.utils.parseEther("8888"),
     });
-    await cakeAsAlice.approve(routerV2.address, ethers.utils.parseEther("0.1"));
-    await baseTokenAsAlice.approve(routerV2.address, ethers.utils.parseEther("1"));
-    await wbnbTokenAsAlice.approve(routerV2.address, ethers.utils.parseEther("11"));
+    await Promise.all([
+      cakeAsAlice.approve(routerV2.address, ethers.constants.MaxUint256),
+      baseTokenAsAlice.approve(routerV2.address, ethers.constants.MaxUint256),
+      wbnbTokenAsAlice.approve(routerV2.address, ethers.constants.MaxUint256),
+      wbnb.approve(routerV2.address, ethers.constants.MaxUint256),
+      decimal6.approve(routerV2.address, ethers.constants.MaxUint256),
+      decimal8.approve(routerV2.address, ethers.constants.MaxUint256),
+    ]);
     // Add liquidity to the WBNB-FTOKEN pool on Pancakeswap
     await routerV2AsAlice.addLiquidity(
       cake.address,
@@ -202,8 +211,8 @@ describe("WokerConfig", () => {
     await routerV2.addLiquidity(
       decimal6.address,
       wbnb.address,
-      ethers.utils.parseUnits("1", 6),
-      ethers.utils.parseUnits("10", 18),
+      ethers.utils.parseUnits("0.1", 6),
+      ethers.utils.parseUnits("1", 18),
       "0",
       "0",
       deployer.address,
@@ -213,8 +222,8 @@ describe("WokerConfig", () => {
     await routerV2.addLiquidity(
       decimal8.address,
       wbnb.address,
-      ethers.utils.parseUnits("1", 8),
-      ethers.utils.parseUnits("10", 18),
+      ethers.utils.parseUnits("0.1", 8),
+      ethers.utils.parseUnits("1", 18),
       "0",
       "0",
       deployer.address,
@@ -224,21 +233,22 @@ describe("WokerConfig", () => {
     await routerV2.addLiquidity(
       decimal6.address,
       decimal8.address,
-      ethers.utils.parseUnits("1", 6),
-      ethers.utils.parseUnits("10", 8),
+      ethers.utils.parseUnits("0.1", 6),
+      ethers.utils.parseUnits("1", 8),
       "0",
       "0",
       deployer.address,
       FOREVER
     );
 
-    const dec6to18ConversionFactor = 10 ** (18 - 6);
-    const dec8to18ConversionFactor = 10 ** (18 - 8);
     lpPriceFarmBNB = ethers.utils.parseEther("1").mul(ethers.utils.parseEther("1")).div(ethers.utils.parseEther("0.1"));
     lpPriceBNBFarm = ethers.utils.parseEther("0.1").mul(ethers.utils.parseEther("1")).div(ethers.utils.parseEther("1"));
+
     await workerConfig.setConfigs(
-      [mockWorker1.address, mockWorker2.address],
+      [mockWorker1.address, mockWorker2.address, mockWorker3.address, mockWorker4.address],
       [
+        { acceptDebt: true, workFactor: 1, killFactor: 1, maxPriceDiff: 11000 },
+        { acceptDebt: true, workFactor: 1, killFactor: 1, maxPriceDiff: 11000 },
         { acceptDebt: true, workFactor: 1, killFactor: 1, maxPriceDiff: 11000 },
         { acceptDebt: true, workFactor: 1, killFactor: 1, maxPriceDiff: 11000 },
       ]
@@ -291,7 +301,7 @@ describe("WokerConfig", () => {
   });
 
   describe("#isStable", async () => {
-    context("when the baseToken is a wrap native", async () => {
+    context("when both tokens are 18 decimals", async () => {
       context("when the oracle hasn't updated any prices", async () => {
         it("should be reverted", async () => {
           await simplePriceOracleAsAlice.setPrices([wbnb.address, cake.address], [cake.address, wbnb.address], [1, 1]);
@@ -301,6 +311,7 @@ describe("WokerConfig", () => {
           );
         });
       });
+
       context("when price is too high", async () => {
         it("should be reverted", async () => {
           // feed the price with price too low on the first hop
@@ -338,6 +349,179 @@ describe("WokerConfig", () => {
             [lpPriceBNBFarm, lpPriceFarmBNB]
           );
           const isStable = await workerConfigAsAlice.isStable(mockWorker1.address);
+          expect(isStable).to.true;
+        });
+      });
+    });
+
+    context("when 6 decimals and 18 decimals", async () => {
+      context("when the oracle hasn't updated any prices", async () => {
+        it("should be reverted", async () => {
+          await simplePriceOracleAsAlice.setPrices(
+            [decimal6.address, wbnb.address],
+            [wbnb.address, decimal6.address],
+            [1, 1]
+          );
+          await TimeHelpers.increase(BigNumber.from("86401")); // 1 day and 1 second have passed
+          await expect(workerConfigAsAlice.isStable(mockWorker2.address)).to.revertedWith(
+            "WorkerConfig::isStable:: price too stale"
+          );
+        });
+      });
+
+      context("when price is too high", async () => {
+        it("should be reverted", async () => {
+          // feed the price with price too low on the first hop
+          await simplePriceOracleAsAlice.setPrices(
+            [wbnb.address, decimal6.address],
+            [decimal6.address, wbnb.address],
+            [lpPriceBNBFarm.mul(10000).div(11001), lpPriceFarmBNB.mul(10000).div(11001)]
+          );
+          await expect(workerConfigAsAlice.isStable(mockWorker2.address)).to.revertedWith(
+            "WorkerConfig::isStable:: price too high"
+          );
+        });
+      });
+
+      context("when price is too low", async () => {
+        it("should be reverted", async () => {
+          // feed the price with price too low on the first hop
+          await simplePriceOracleAsAlice.setPrices(
+            [wbnb.address, decimal6.address],
+            [decimal6.address, wbnb.address],
+            [lpPriceBNBFarm.mul(11001).div(10000), lpPriceFarmBNB.mul(11001).div(10000)]
+          );
+          await expect(workerConfigAsAlice.isStable(mockWorker2.address)).to.revertedWith(
+            "WorkerConfig::isStable:: price too low"
+          );
+        });
+      });
+
+      context("when price is stable", async () => {
+        it("should return true", async () => {
+          // feed the price with price too low on the first hop
+          await simplePriceOracleAsAlice.setPrices(
+            [wbnb.address, decimal6.address],
+            [decimal6.address, wbnb.address],
+            [lpPriceBNBFarm, lpPriceFarmBNB]
+          );
+          const isStable = await workerConfigAsAlice.isStable(mockWorker2.address);
+          expect(isStable).to.true;
+        });
+      });
+    });
+
+    context("when 8 decimals and 18 decimals", async () => {
+      context("when the oracle hasn't updated any prices", async () => {
+        it("should be reverted", async () => {
+          await simplePriceOracleAsAlice.setPrices(
+            [decimal8.address, wbnb.address],
+            [wbnb.address, decimal8.address],
+            [1, 1]
+          );
+          await TimeHelpers.increase(BigNumber.from("86401")); // 1 day and 1 second have passed
+          await expect(workerConfigAsAlice.isStable(mockWorker3.address)).to.revertedWith(
+            "WorkerConfig::isStable:: price too stale"
+          );
+        });
+      });
+
+      context("when price is too high", async () => {
+        it("should be reverted", async () => {
+          // feed the price with price too low on the first hop
+          await simplePriceOracleAsAlice.setPrices(
+            [wbnb.address, decimal8.address],
+            [decimal8.address, wbnb.address],
+            [lpPriceBNBFarm.mul(10000).div(11001), lpPriceFarmBNB.mul(10000).div(11001)]
+          );
+          await expect(workerConfigAsAlice.isStable(mockWorker3.address)).to.revertedWith(
+            "WorkerConfig::isStable:: price too high"
+          );
+        });
+      });
+
+      context("when price is too low", async () => {
+        it("should be reverted", async () => {
+          // feed the price with price too low on the first hop
+          await simplePriceOracleAsAlice.setPrices(
+            [wbnb.address, decimal8.address],
+            [decimal8.address, wbnb.address],
+            [lpPriceBNBFarm.mul(11001).div(10000), lpPriceFarmBNB.mul(11001).div(10000)]
+          );
+          await expect(workerConfigAsAlice.isStable(mockWorker3.address)).to.revertedWith(
+            "WorkerConfig::isStable:: price too low"
+          );
+        });
+      });
+
+      context("when price is stable", async () => {
+        it("should return true", async () => {
+          // feed the price with price too low on the first hop
+          await simplePriceOracleAsAlice.setPrices(
+            [wbnb.address, decimal8.address],
+            [decimal8.address, wbnb.address],
+            [lpPriceBNBFarm, lpPriceFarmBNB]
+          );
+          const isStable = await workerConfigAsAlice.isStable(mockWorker3.address);
+          expect(isStable).to.true;
+        });
+      });
+    });
+
+    context("when 8 decimals and 6 decimals", async () => {
+      context("when the oracle hasn't updated any prices", async () => {
+        it("should be reverted", async () => {
+          // [decimal8.address, wbnb.address],
+          //   [wbnb.address, decimal8.address],
+          await simplePriceOracleAsAlice.setPrices(
+            [decimal8.address, decimal6.address],
+            [decimal6.address, decimal8.address],
+            [1, 1]
+          );
+          await TimeHelpers.increase(BigNumber.from("86401")); // 1 day and 1 second have passed
+          await expect(workerConfigAsAlice.isStable(mockWorker4.address)).to.revertedWith(
+            "WorkerConfig::isStable:: price too stale"
+          );
+        });
+      });
+
+      context("when price is too high", async () => {
+        it("should be reverted", async () => {
+          // feed the price with price too low on the first hop
+          await simplePriceOracleAsAlice.setPrices(
+            [decimal8.address, decimal6.address],
+            [decimal6.address, decimal8.address],
+            [lpPriceBNBFarm.mul(10000).div(11001), lpPriceFarmBNB.mul(10000).div(11001)]
+          );
+          await expect(workerConfigAsAlice.isStable(mockWorker4.address)).to.revertedWith(
+            "WorkerConfig::isStable:: price too high"
+          );
+        });
+      });
+
+      context("when price is too low", async () => {
+        it("should be reverted", async () => {
+          // feed the price with price too low on the first hop
+          await simplePriceOracleAsAlice.setPrices(
+            [decimal8.address, decimal6.address],
+            [decimal6.address, decimal8.address],
+            [lpPriceBNBFarm.mul(11001).div(10000), lpPriceFarmBNB.mul(11001).div(10000)]
+          );
+          await expect(workerConfigAsAlice.isStable(mockWorker4.address)).to.revertedWith(
+            "WorkerConfig::isStable:: price too low"
+          );
+        });
+      });
+
+      context("when price is stable", async () => {
+        it("should return true", async () => {
+          // feed the price with price too low on the first hop
+          await simplePriceOracleAsAlice.setPrices(
+            [decimal8.address, decimal6.address],
+            [decimal6.address, decimal8.address],
+            [lpPriceBNBFarm, lpPriceFarmBNB]
+          );
+          const isStable = await workerConfigAsAlice.isStable(mockWorker4.address);
           expect(isStable).to.true;
         });
       });
