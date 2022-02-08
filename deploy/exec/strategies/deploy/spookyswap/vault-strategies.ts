@@ -21,6 +21,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
 
   const NEW_PARAMS = [
+    // {
+    //   VAULT_SYMBOL: "ibFTM",
+    //   WHITELIST_WORKERS: [],
+    // },
     {
       VAULT_SYMBOL: "ibUSDC",
       WHITELIST_WORKERS: [],

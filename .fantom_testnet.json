@@ -53,7 +53,7 @@
         { "pId": 0, "name": "BOO-WFTM LP", "address": "0x98ee4798926d6738f58D958b4AA418AACbFF2b7b" },
         { "pId": 1, "name": "ALPACA-WFTM LP", "address": "0xE19adba4168E68fE804479A741b809e45d0b26E4" },
         { "pId": 4, "name": "WFTM-ETH LP", "address": "0x897f37e19b5aDBFF88315bC04a40d75075f428B6" },
-        { "pId": 6, "name": "WFTH-USDC LP", "address": "0xA623D2682887cD0fEe9cE4C29A3ebF2b5CAf9C9E" },
+        { "pId": 6, "name": "WFTM-USDC LP", "address": "0xA623D2682887cD0fEe9cE4C29A3ebF2b5CAf9C9E" },
         { "pId": 7, "name": "TUSD-USDC LP", "address": "0xe7Cbf8A6F1d0eBeF477022Ef62d6B5b74FF14D92" },
         { "pId": 8, "name": "USDT-USDC LP", "address": "0x6f7c79e2D90704Ae0c6877553C0cD17107586c14" }
       ]
@@ -146,7 +146,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0x96b6FAfdC9C3D55ef4906A005B7525B8C06CE6f5",
             "StrategyLiquidate": "0x5f597510Af2562181F752217a3C4963c9baAC615",
-            "StrategyAddTwoSidesOptimal": "",
+            "StrategyAddTwoSidesOptimal": "0x792eBD6e468593f4a68B01A11A491ed84D1db104",
             "StrategyWithdrawMinimizeTrading": "0x800343333540a2e600E66e7cD73ABc0dE3cC017A",
             "StrategyPartialCloseLiquidate": "0xC74846Bc38AF10d172293aC1D1C524e319156F0F",
             "StrategyPartialCloseMinimizeTrading": "0x0C52c7E0c27028428DcBCBA8791f30b082aD9A3a"
