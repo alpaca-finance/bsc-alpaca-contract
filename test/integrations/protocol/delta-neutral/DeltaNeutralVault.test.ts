@@ -3045,8 +3045,8 @@ describe("DeltaNeutralVault", () => {
       it("should be able to reinvest", async () => {
         await swapHelper.addLiquidities([
           {
-            token0: alpacaToken,
-            token1: baseToken,
+            token0: baseToken,
+            token1: alpacaToken,
             amount0desired: ethers.utils.parseEther("100000"),
             amount1desired: ethers.utils.parseEther("100000"),
           },
@@ -3107,62 +3107,60 @@ describe("DeltaNeutralVault", () => {
         // alice should get shares =
         const aliceShares = await deltaVault.balanceOf(aliceAddress);
         const beforePositionVal = await deltaVault.shareToValue(aliceShares);
-        console.log("before position share", beforePositionVal);
 
         // ------- REINVEST PART -------
         await fairLaunch.massUpdatePools();
 
-        const stableVaultFairLaunchPoolId = await stableVault.fairLaunchPoolId();
-        const assetVaultFairLaunchPoolId = await assetVault.fairLaunchPoolId();
-
         let latest = await TimeHelpers.latestBlockNumber();
+        // calculate reward per block
+        // user.amount.mul(accAlpacaPerShare).div(1e12).sub(user.rewardDebt);
 
-        console.log("latest b4 pending", latest);
-        // CONTRACT ALPACA CLAIM 3999999996238767356
-        // CONTRACT BOUNTY 39999999962387673
+        // STABLE POSITION
+        // user.amount 1000017361111111110000
+        // accAlpacaPerShare 6999965277
+        // user.rewardDebt 5000086805555555550
+        // (7000086804174947908888927470000 / 1000000000000) - 5000086805555555550 => 1999999998619392358.88892747
 
-        const stableVaultPendingAlpaca = await fairLaunch.pendingAlpaca(
-          stableVaultFairLaunchPoolId,
-          deltaVault.address
-        );
+        // ASSET POSITION
+        // user.amount 3000052083333333330000
+        // accAlpacaPerShare 2333321758
+        // user.rewardDebt 5000086803555520827
+        //  (7000086801174895825555594140000 / 1000000000000) - 5000086803555520827 = > 1999999997619374998.55559414
 
-        const assetVaultPendingAlpaca = await fairLaunch.pendingAlpaca(assetVaultFairLaunchPoolId, deltaVault.address);
+        // reward from both pool => (1999999998619392358 +1999999997619374998 )  => 3999999996238767356
+
+        const stableRewardAlpaca = BigNumber.from("1999999998619392358");
+        const assetRewardAlpaca = BigNumber.from("1999999997619374998");
+        const alpacaBefore = await alpacaToken.balanceOf(deltaVault.address);
 
         latest = await TimeHelpers.latestBlockNumber();
-        console.log("latest after pending", latest);
 
         const alpacaBountyBps = await deltaVaultConfig.alpacaBountyBps();
 
-        const netAlpacaReceived = assetVaultPendingAlpaca.add(stableVaultPendingAlpaca);
+        const netAlpacaReceived = stableRewardAlpaca.add(assetRewardAlpaca);
 
         const bounty = alpacaBountyBps.mul(netAlpacaReceived).div(BigNumber.from("10000"));
 
-        const swapAmount = netAlpacaReceived.sub(bounty);
-
-        console.log("ALPACABOUNTY BPS", alpacaBountyBps);
-        console.log("assetVaultPendingAlpaca", assetVaultPendingAlpaca);
-        console.log("stableVaultPendingAlpaca", stableVaultPendingAlpaca);
-        console.log("netAlpacaReceived", netAlpacaReceived);
-        console.log("BOUNTY", bounty);
-        console.log("swapAmount", swapAmount);
+        const swapAmount = alpacaBefore.add(netAlpacaReceived).sub(bounty);
 
         await alpacaToken.approve(routerV2.address, swapAmount);
 
-        const [amountInSwap, amountOutSwap] = await routerV2.callStatic.swapExactTokensForTokens(
-          swapAmount,
-          0,
-          await deltaVaultConfig.getReinvestPath(),
-          deltaVault.address,
-          await TimeHelpers.latest()
-        );
+        const reinvestPath = await deltaVaultConfig.getReinvestPath();
 
-        console.log("OUTPUTSWAP", amountInSwap, amountOutSwap);
+        await swapHelper.loadReserves(reinvestPath);
+
+        const [amountInSwap, amountOutSwap] = await swapHelper.computeSwapExactTokensForTokens(
+          swapAmount,
+          reinvestPath,
+          true
+        );
 
         const leverage = await deltaVaultConfig.leverageLevel();
         const principalAmountStable = amountOutSwap.mul(leverage - 2).div(2 * leverage - 2);
         const farmingAmountAsset = amountOutSwap.mul(leverage).div(2 * leverage - 2);
-
-        await baseTokenAsDeployer.approve(deltaVault.address, principalAmountStable);
+        const dustBaseToken = amountOutSwap.sub(principalAmountStable).sub(farmingAmountAsset);
+        console.log("SWAP", amountInSwap, amountOutSwap);
+        await baseTokenAsDeployer.approve(deltaVault.address, amountOutSwap);
 
         const stableDepositWorkByteInput: IDepositWorkByte = {
           posId: 1,
@@ -3190,10 +3188,12 @@ describe("DeltaNeutralVault", () => {
         const assetDepositWorkByte = buildDepositWorkByte(assetDepositWorkByteInput);
 
         await deltaVault.reinvest([ACTION_WORK, ACTION_WORK], [0, 0], [stableDepositWorkByte, assetDepositWorkByte]);
-        const afterPositionVal = await deltaVault.shareToValue(aliceShares);
-        expect(afterPositionVal).be.gt(beforePositionVal);
-      });
 
+        const afterPositionVal = await deltaVault.shareToValue(aliceShares);
+
+        expect(afterPositionVal).be.gt(beforePositionVal);
+        // expect(await baseToken.balanceOf(deltaVault.address)).to.be.eq(dustBaseToken);
+      });
       describe("_unsafePositionEquity", async () => {
         context("when try to set withdraw execute in action", async () => {
           it("should revert", async () => {
