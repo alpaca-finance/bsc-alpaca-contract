@@ -471,11 +471,9 @@ describe("WokerConfig", () => {
     context("when 8 decimals and 6 decimals", async () => {
       context("when the oracle hasn't updated any prices", async () => {
         it("should be reverted", async () => {
-          // [decimal8.address, wbnb.address],
-          //   [wbnb.address, decimal8.address],
           await simplePriceOracleAsAlice.setPrices(
-            [decimal8.address, decimal6.address],
             [decimal6.address, decimal8.address],
+            [decimal8.address, decimal6.address],
             [1, 1]
           );
           await TimeHelpers.increase(BigNumber.from("86401")); // 1 day and 1 second have passed
