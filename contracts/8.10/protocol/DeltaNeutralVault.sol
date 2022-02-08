@@ -316,7 +316,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
     uint256 _withdrawalFeeBps = config.feeExemptedCallers(msg.sender) ? 0 : config.withdrawalFeeBps();
     uint256 _shareToWithdraw = ((MAX_BPS - _withdrawalFeeBps) * _shareAmount) / MAX_BPS;
-    uint256 _withdrawShareValue = shareToValue(_shareAmount);
+    uint256 _withdrawShareValue = shareToValue(_shareToWithdraw);
     // burn shares from share owner
     _burn(msg.sender, _shareAmount);
     // mint shares equal to withdrawal fee to treasury.
