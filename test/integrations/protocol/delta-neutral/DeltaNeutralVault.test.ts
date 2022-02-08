@@ -620,7 +620,7 @@ describe("DeltaNeutralVault", () => {
         );
 
         const stablePosId = await deltaVault.stableVaultPosId();
-        const assetPostId = await deltaVault.stableVaultPosId();
+        const assetPostId = await deltaVault.assetVaultPosId();
         const deployerShare = await deltaVault.balanceOf(deployerAddress);
         expect(stablePosId).to.not.eq(0);
         expect(assetPostId).to.not.eq(0);
