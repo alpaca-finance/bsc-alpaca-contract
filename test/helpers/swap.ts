@@ -7,7 +7,7 @@ import {
   PancakePair__factory,
   PancakeRouterV2,
   PancakeRouterV2__factory,
-  MdexRouter__factory
+  MdexRouter__factory,
 } from "../../typechain";
 import { sqrt } from "./math";
 
@@ -45,7 +45,7 @@ export class SwapHelper {
     this.fee = _fee;
     this.feeDenom = _feeDenom;
     this.reserves = [];
-    this.mdexRouter = MdexRouter__factory.connect(_routerAddress, _signer)
+    this.mdexRouter = MdexRouter__factory.connect(_routerAddress, _signer);
   }
 
   public async addLiquidities(liquidities: Array<ILiquidity>) {
@@ -73,7 +73,6 @@ export class SwapHelper {
       );
     }
   }
-
 
   public async addMdexLiquidities(liquidities: Array<ILiquidity>) {
     const wbnbAddress = await this.mdexRouter.WBNB();
