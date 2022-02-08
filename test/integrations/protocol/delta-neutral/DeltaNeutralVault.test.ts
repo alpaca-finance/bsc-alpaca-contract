@@ -3242,16 +3242,16 @@ describe("DeltaNeutralVault", () => {
         // user.amount.mul(accAlpacaPerShare).div(1e12).sub(user.rewardDebt);
 
         // STABLE POSITION
-        //         user.amount 1000000000000000000000
+        // user.amount 1000000000000000000000
         // accAlpacaPerShare 7000000000
         // user.rewardDebt 5000000000000000000
-
+        // ((1000000000000000000000 * 7000000000)/ 1000000000000) - 5000000000000000000
         // (7000000000000000000000000000000 / 1000000000000) - 5000000000000000000 => 2000000000000000000
-
         // ASSET POSITION
         // user.amount 3000000000000000000000
         // accAlpacaPerShare 2333333332
         // user.rewardDebt 4999999998000000000
+        //  ((3000000000000000000000*2333333332) / 1000000000000) - 4999999998000000000
         //  (6999999996000000000000000000000 / 1000000000000) - 4999999998000000000 = > 1999999998000000000
 
         // reward from both pool => (2000000000000000000 +1999999998000000000 )  => 3999999998000000000
@@ -3287,7 +3287,7 @@ describe("DeltaNeutralVault", () => {
         const farmingAmountAsset = amountOutSwap.mul(leverage).div(2 * leverage - 2);
         const dustBaseToken = amountOutSwap.sub(principalAmountStable).sub(farmingAmountAsset);
 
-        await baseTokenAsDeployer.approve(deltaVault.address, amountOutSwap);
+        await baseTokenAsDeployer.approve(deltaVault.address, amountOutSwap.sub(dustBaseToken));
 
         const stableDepositWorkByteInput: IDepositWorkByte = {
           posId: 1,
