@@ -1995,7 +1995,7 @@ describe("DeltaNeutralVault", () => {
           await expect(
             deltaVaultAsAlice.withdraw(shareToWithdraw, ethers.utils.parseEther("1000000"), 0, withdrawData)
           ).to.be.revertedWith(
-            `InsufficientTokenReceived("${baseToken.address}", 1000000000000000000000000, 149961473752156599529)`
+            `InsufficientTokenReceived("${baseToken.address}", 1000000000000000000000000, 149842043056026209106)`
           );
         });
 
@@ -2045,7 +2045,7 @@ describe("DeltaNeutralVault", () => {
           await expect(
             deltaVaultAsAlice.withdraw(shareToWithdraw, 0, ethers.utils.parseEther("100"), withdrawData)
           ).to.be.revertedWith(
-            `InsufficientTokenReceived("${wbnb.address}", 100000000000000000000, 49886800906176105501)`
+            `InsufficientTokenReceived("${wbnb.address}", 100000000000000000000, 49927231428875515127)`
           );
         });
 
@@ -2209,6 +2209,7 @@ describe("DeltaNeutralVault", () => {
               });
             }
           );
+
           context(
             "when alice withdraw with actions that resulted in unsafe position equity on asset side",
             async () => {
@@ -2257,6 +2258,7 @@ describe("DeltaNeutralVault", () => {
               });
             }
           );
+
           context("when alice withdraw with actions that resulted in unsafe debt ratio", async () => {
             it("should revert", async () => {
               // ======== withdraw ======
@@ -2276,17 +2278,18 @@ describe("DeltaNeutralVault", () => {
                 workerAddress: stableVaultWorker.address,
                 partialCloseMinimizeStrat: partialCloseMinimizeStrat.address,
                 debt: ethers.utils.parseEther("0"),
-                maxLpTokenToLiquidate: ethers.utils.parseEther("100"), // lp amount to withdraw consists of both equity and debt
+                maxLpTokenToLiquidate: ethers.utils.parseEther("20"), // lp amount to withdraw consists of both equity and debt
                 maxDebtRepayment: ethers.utils.parseEther("0"),
                 minFarmingToken: BigNumber.from(0),
               };
+
               const assetWithdrawInput: IWithdrawWorkByte = {
                 posId: 1,
                 vaultAddress: assetVault.address,
                 workerAddress: assetVaultWorker.address,
                 partialCloseMinimizeStrat: partialCloseMinimizeStrat.address,
                 debt: ethers.utils.parseEther("0"),
-                maxLpTokenToLiquidate: ethers.utils.parseEther("300"),
+                maxLpTokenToLiquidate: ethers.utils.parseEther("60"),
                 maxDebtRepayment: ethers.utils.parseEther("0"),
                 minFarmingToken: BigNumber.from(0),
               };
