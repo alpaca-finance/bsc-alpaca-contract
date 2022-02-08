@@ -74,7 +74,7 @@ describe("DeltaNeutralVault", () => {
   const EMPTY_BYTE = ethers.utils.defaultAbiCoder.encode(["uint256"], [0]);
 
   // Delta Vault Config
-  const REBALANCE_FACTOR = "6500";
+  const REBALANCE_FACTOR = "6800";
   const POSITION_VALUE_TOLERANCE_BPS = "200";
   const MAX_VAULT_POSITION_VALUE = ethers.utils.parseEther("100000");
   const DEPOSIT_FEE_BPS = "0"; // 0%
@@ -2607,18 +2607,6 @@ describe("DeltaNeutralVault", () => {
 
       context("when user try rebalance but position is healthy", async () => {
         it("should revert", async () => {
-          const lpPrice = await swapHelper.computeLpHealth(
-            ethers.utils.parseEther("1"),
-            baseToken.address,
-            wbnb.address
-          );
-
-          const stableTokenPrice = ethers.utils.parseEther("0.8");
-          const assetTokenPrice = ethers.utils.parseEther("400");
-
-          await setMockTokenPrice(stableTokenPrice, assetTokenPrice);
-          await setMockLpPrice(lpPrice);
-
           await expect(deltaVault.rebalance([], [], [])).to.be.revertedWith("PositionsIsHealthy()");
         });
       });
