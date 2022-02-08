@@ -3261,8 +3261,8 @@ describe("DeltaNeutralVault", () => {
 
         // reward from both pool => (2.000000000000000000 +1.999999998000000000 )  => 3.999999998000000000
 
-        const stableRewardAlpaca = BigNumber.from("2000000000000000000");
-        const assetRewardAlpaca = BigNumber.from("1999999998000000000");
+        const stableRewardAlpaca = ethers.utils.parseEther("2");
+        const assetRewardAlpaca = ethers.utils.parseEther("1.999999998");
         const alpacaBefore = await alpacaToken.balanceOf(deltaVault.address);
 
         latest = await TimeHelpers.latestBlockNumber();
@@ -3270,7 +3270,7 @@ describe("DeltaNeutralVault", () => {
         // calculate swap amount
         const alpacaBountyBps = await deltaVaultConfig.alpacaBountyBps();
         const netAlpacaReceived = stableRewardAlpaca.add(assetRewardAlpaca);
-        expect(netAlpacaReceived).to.be.eq(BigNumber.from("3999999998000000000"));
+        expect(netAlpacaReceived).to.be.eq(ethers.utils.parseEther("3.999999998"));
         const bounty = alpacaBountyBps.mul(netAlpacaReceived).div(BigNumber.from("10000"));
         const swapAmount = alpacaBefore.add(netAlpacaReceived).sub(bounty);
 
