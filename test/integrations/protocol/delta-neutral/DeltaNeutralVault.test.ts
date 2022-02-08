@@ -1658,8 +1658,8 @@ describe("DeltaNeutralVault", () => {
           {
             token0: baseToken,
             token1: wbnb,
-            amount0desired: ethers.utils.parseEther("1000000"),
-            amount1desired: ethers.utils.parseEther("1000000"),
+            amount0desired: ethers.utils.parseEther("90000000"),
+            amount1desired: ethers.utils.parseEther("90000000"),
           },
         ]);
         const stableTokenAmount = ethers.utils.parseEther("500");
@@ -1772,7 +1772,7 @@ describe("DeltaNeutralVault", () => {
       });
 
       context("when alice withdraw from delta neutral vault", async () => {
-        it("should be able to withdraw", async () => {
+        it.only("should be able to withdraw", async () => {
           await swapHelper.loadReserves([baseToken.address, wbnb.address]);
           const lpPrice = await swapHelper.computeLpHealth(
             ethers.utils.parseEther("1"),
@@ -1781,54 +1781,58 @@ describe("DeltaNeutralVault", () => {
           );
 
           await setMockLpPrice(lpPrice);
+          const positionInfoBefore = await deltaVault.positionInfo();
 
-          // lp supply = 1002996.996337533041393816, lp price = 19.95513459453321425
-
-          // Current
+          // Current Delta Neutral Position
           // Stable Position:
-          // Equity=495.509577540066839983, PositionValue=1495.509577540066839983 Debt=1000.00,  debtRatio=66.86684024082812%
+          // Equity=496.859775279132755434, PositionValue=1496.859775279132755434 Debt=1000.00
           // Asset Position:
-          // Equity=1485.036951939426769030, PositionValue=4485.036951939426769030, Debt=3000.00, debtRatio=66.88908100752069%
-          // totalEquity=495.509577540066839983 + 1485.036951939426769030 = 1980.546529479493609013
+          // Equity=1490.562691116413626439, PositionValue=4490.562691116413626439, Debt=3000.00
+          // totalEquity=496.859775279132755434 + 1490.562691116413626439 = 1987.422466395546381873
 
-          // ***** Target: Withdraw 200 Equity *****
-          // totalEquity = 1980.546529479493609013 - 200 = 1780.546529479493609013
+          // ***** Target: Delta Neutral Position After Withdraw 200 Equity *****
+          // totalEquity = 1987.422466395546381873 - 200 = 1787.422466395546381873
           // - % equity to withdraw
-          // % stableEquity = 495.509577540066839983/1980.546529479493609013 = 0.250188304169905794
-          // % assetEquity = 1485.036951939426769030//1980.546529479493609013 = 0.749811695830094205
+          // % stableEquity = 496.859775279132755434/1987.422466395546381873 = 0.250002092499363611
+          // % assetEquity = 1490.562691116413626439/1987.422466395546381873 = 0.749997907500636388
 
-          // Stable Position:
-          // Equity = 1780.546529479493609013*0.250188304169905794 = 445.471916706085680662
-          // PositionValue = 445.471916706085680662 * Lerverage = 445.471916706085680662*3 = 1336.415750118257041986
-          // Debt = 1336.415750118257041986 - 445.471916706085680662 = 890.943833412171361324
-          // deltaEquity = 445.471916706085680662 - 495.509577540066839983 = -50.037660833981159321, debtRatio =66.66666666666666%
-          // debtaDebt = 890.943833412171361324 - 1000.00 = -109.056166587828638676
+          // Target Stable Position:
+          // Equity = 1787.422466395546381873*0.250002092499363611 = 446.859356779260032153
+          // PositionValue = 446.859356779260032153 * Lerverage = 446.859356779260032153*3 = 1340.578070337780096459
+          // Debt = 1340.578070337780096459 - 446.859356779260032153 = 893.718713558520064306
+          // deltaEquity = 446.859356779260032153 - 496.859775279132755434 = -50.000418499872723281
+          // debtaDebt = 893.718713558520064306 - 1000.00 = -106.281286441479935694
 
-          // Asset Position:
-          // Equity = 1780.546529479493609013 * 0.749811695830094205 = 1335.074612773407926569
-          // PositionValue = 1335.074612773407926569 * 3 = 4005.223838320223779707
-          // Debt = 4005.223838320223779707 - 1335.074612773407926569 = 2670.149225546815853138, debtRatio = 66.66666666666666%
-          // deltaEquity = 1335.074612773407926569 - 1485.036951939426769030 = -149.962339166018842461,
-          // debtaDebt = 2670.149225546815853138 - 3000  = -329.850774453184146862
+          // deltaEquityWithSlippage = -50.000418499872723281 * 9970/10000 = -49.850417244373105111
+          // deltaDebtWithSlippage = -106.281286441479935694 * 9970/10000 = -105.962442582155495886
 
-          const expectStableEquity = ethers.utils.parseEther("445.471916706085680662");
-          const expectStableDebt = ethers.utils.parseEther("890.943833412171361324");
-          const expectAssetEquity = ethers.utils.parseEther("1335.074612773407926569");
-          const expectAssetDebt = ethers.utils.parseEther("2670.149225546815853138");
+          // expectStableEquity = 446.859356779260032153 + (50.000418499872723281 - 49.850417244373105111) = 447.009358034759650323
+          // expectStableDebt = 893.718713558520064306 + (106.281286441479935694 - 105.962442582155495886) = 894.037557417844504114
 
-          // Action1: partialCloseMinimize lp = 79.725760138643295816
-          // return stableToken = 109.056166587828638676, repay debt -109.056166587828638676, remaining = 0
-          // return assetToken = 50.262406572102797134
+          // Target Asset Position:
+          // Equity = 1787.422466395546381873 * 0.749997907500636388 = 1340.563109616286347932
+          // PositionValue = 1340.563109616286347932 * 3 = 4021.689328848859043796
+          // Debt = 4021.689328848859043796 - 1340.563109616286347932 = 2681.126219232572695864
+          // deltaEquity = 1340.563109616286347932 - 1490.562691116413626439 = -149.999581500127278507
+          // debtaDebt = 2681.126219232572695864 - 3000  = -318.873780767427304136
 
-          // Action2: partialCloseMinimize lp = 240.445942043733262658
-          // return stableToken = 150.994498517986384770
-          // return assetToken = 329.850774453184146862, repay debt -329.850774453184146862, remaining = 0
+          // deltaEquityWithSlippage = -149.999581500127278507 * 9970/10000 = -149.549582755626896671
+          // deltaDebtWithSlippage = -318.873780767427304136 * 9970/10000 = -317.917159425125022223
 
-          const minStableTokenReceive = ethers.utils.parseEther("150.994498517986384770");
-          const minAssetTokenReceive = ethers.utils.parseEther("50.262406572102797134");
+          // expectAssetEquity = 1340.563109616286347932 + (149.999581500127278507 - 149.549582755626896671) = 1341.013108360786729768
+          // expectAssetDebt = 2681.126219232572695864 + (318.873780767427304136 - 317.917159425125022223) = 2682.082840574874977777
 
-          const stableDebtToRepay = ethers.utils.parseEther("109.056166587828638676");
-          const stableValueToWithDraw = ethers.utils.parseEther("50.037660833981159321").add(stableDebtToRepay);
+          const expectStableEquity = ethers.utils.parseEther("447.009358034759650323");
+          const expectStableDebt = ethers.utils.parseEther("894.037557417844504114");
+          const expectAssetEquity = ethers.utils.parseEther("1341.013108360786729768");
+          const expectAssetDebt = ethers.utils.parseEther("2682.082840574874977777");
+
+          // Action1: partialCloseMinimize lp = 78.004799780378508254
+          // return stableToken = 105.962442582155495886, repay debt -105.962442582155495886, remaining = 0
+          // return assetToken = 49.976458329680142948
+
+          const stableDebtToRepay = ethers.utils.parseEther("105.962442582155495886");
+          const stableValueToWithDraw = ethers.utils.parseEther("49.850417244373105111").add(stableDebtToRepay);
           const lpStableToLiquidate = stableValueToWithDraw.mul(ethers.utils.parseEther("1")).div(lpPrice);
 
           const stableWithdrawInput: IWithdrawWorkByte = {
@@ -1842,8 +1846,12 @@ describe("DeltaNeutralVault", () => {
             minFarmingToken: BigNumber.from(0),
           };
 
-          const assetDebtToRepay = ethers.utils.parseEther("329.850774453184146862");
-          const assetValueToWithDraw = ethers.utils.parseEther("149.962339166018842461").add(assetDebtToRepay);
+          // Action2: partialCloseMinimize lp = 234.028498471773286624
+          // return stableToken = 149.931452849760353839
+          // return assetToken = 317.917159425125022223, repay debt -317.917159425125022223, remaining = 0
+
+          const assetDebtToRepay = ethers.utils.parseEther("317.917159425125022223");
+          const assetValueToWithDraw = ethers.utils.parseEther("149.549582755626896671").add(assetDebtToRepay);
           const lpAssetToLiquidate = assetValueToWithDraw.mul(ethers.utils.parseEther("1")).div(lpPrice);
 
           const assetWithdrawInput: IWithdrawWorkByte = {
@@ -1876,6 +1884,9 @@ describe("DeltaNeutralVault", () => {
           const aliceNativeBefore = await alice.getBalance();
 
           // ======== withdraw ======
+          const minStableTokenReceive = ethers.utils.parseEther("149.931452849760353839");
+          const minAssetTokenReceive = ethers.utils.parseEther("49.976458329680142948");
+
           const withdrawTx = await deltaVaultAsAlice.withdraw(
             shareToWithdraw,
             minStableTokenReceive,
@@ -1890,7 +1901,6 @@ describe("DeltaNeutralVault", () => {
           const positionInfoAfter = await deltaVault.positionInfo();
           const baseTokenDiff = alicebaseTokenAfter.sub(alicebaseTokenBefore);
           const nativeTokenDiff = aliceNativeAfter.sub(aliceNativeBefore);
-
           expect(aliceShareBefore.sub(aliceShareAfter)).to.eq(shareToWithdraw);
           Assert.assertAlmostEqual(positionInfoAfter.stablePositionEquity.toString(), expectStableEquity.toString());
           Assert.assertAlmostEqual(positionInfoAfter.stablePositionDebtValue.toString(), expectStableDebt.toString());
