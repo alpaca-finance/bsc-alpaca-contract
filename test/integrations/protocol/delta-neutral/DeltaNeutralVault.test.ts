@@ -3234,10 +3234,6 @@ describe("DeltaNeutralVault", () => {
           }
         );
 
-        // alice expect to get
-        // share supply before alice deposit = 1
-        // alice deposit another 1 to delta neutral
-        // alice should get shares =
         const aliceShares = await deltaVault.balanceOf(aliceAddress);
         const beforePositionVal = await deltaVault.shareToValue(aliceShares);
 
@@ -3250,20 +3246,20 @@ describe("DeltaNeutralVault", () => {
 
         // formula = user.amount.mul(accAlpacaPerShare).div(1e12).sub(user.rewardDebt);
         // STABLE POSITION
-        // user.amount 1000000000000000000000
+        // user.amount 1000.000000000000000000
         // accAlpacaPerShare 7000000000
-        // user.rewardDebt 5000000000000000000
-        // ((1000000000000000000000 * 7000000000)/ 1000000000000) - 5000000000000000000
-        // (7000000000000000000000000000000 / 1000000000000) - 5000000000000000000 => 2000000000000000000
+        // user.rewardDebt 5.000000000000000000
+        // ((1000.000000000000000000 * 7000000000)/ 1000000000000) - 5.000000000000000000
+        // (7000000000000.000000000000000000 / 1000000000000) - 5.000000000000000000 => 2.000000000000000000
 
         // ASSET POSITION
-        // user.amount 3000000000000000000000
+        // user.amount 3000.000000000000000000
         // accAlpacaPerShare 2333333332
-        // user.rewardDebt 4999999998000000000
-        //  ((3000000000000000000000*2333333332) / 1000000000000) - 4999999998000000000
-        //  (6999999996000000000000000000000 / 1000000000000) - 4999999998000000000 = > 1999999998000000000
+        // user.rewardDebt 4.999999998000000000
+        // ((3000.000000000000000000*2333333332) / 1000000000000) - 4.999999998000000000
+        // (6999999996000.000000000000000000 / 1000000000000) - 4.999999998000000000 = > 1.999999998000000000
 
-        // reward from both pool => (2000000000000000000 +1999999998000000000 )  => 3999999998000000000
+        // reward from both pool => (2.000000000000000000 +1.999999998000000000 )  => 3.999999998000000000
 
         const stableRewardAlpaca = BigNumber.from("2000000000000000000");
         const assetRewardAlpaca = BigNumber.from("1999999998000000000");
@@ -3500,10 +3496,6 @@ describe("DeltaNeutralVault", () => {
               }
             );
 
-            // alice expect to get
-            // share supply before alice deposit = 1
-            // alice deposit another 1 to delta neutral
-            // alice should get shares =
             const aliceShares = await deltaVault.balanceOf(aliceAddress);
             await expect(deltaVault.reinvest([], [0], [])).to.be.revertedWith("UnsafePositionEquity()");
           });
