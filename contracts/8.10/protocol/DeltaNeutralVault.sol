@@ -65,7 +65,6 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   error PositionsIsHealthy();
   error InsufficientTokenReceived(address _token, uint256 _requiredAmount, uint256 _receivedAmount);
   error InsufficientShareReceived(uint256 _requiredAmount, uint256 _receivedAmount);
-  error InsufficientShareWithdraw();
   error UnTrustedPrice();
   error BountyExceedLimit();
   error PositionValueExceedLimit();
