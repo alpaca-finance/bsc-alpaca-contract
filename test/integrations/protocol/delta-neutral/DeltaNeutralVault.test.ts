@@ -2670,7 +2670,7 @@ describe("DeltaNeutralVault", () => {
           };
           const action2 = buildDepositWorkByte(action2WorkbyteInput);
 
-          // Step3: Warp BNB since BNB vault return in native form
+          // Step3: Wrap BNB since BNB vault return in native form
           const farmingTokenAmount = ethers.utils.parseEther("0.093845389894263659");
 
           // Step4: Add collateral on stable position by 74.999995350463808851 = 74.999995350463808851/400 = 0.1874999883761595221275 lp
@@ -2834,7 +2834,7 @@ describe("DeltaNeutralVault", () => {
           };
           const action2 = buildDepositWorkByte(action2WorkbyteInput);
 
-          // Step3: Warp BNB since BNB vault return in native form
+          // Step3: Wrap BNB since BNB vault return in native form
           const farmingTokenAmount = ethers.utils.parseEther("0.093845290915972522");
 
           // Step4: Add collateral on stable position by 75.000516183797142151
