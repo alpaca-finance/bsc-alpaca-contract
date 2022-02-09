@@ -38,7 +38,7 @@ describe("DeltaNeutralVaultConfig", () => {
 
   const TOKEN_SOURCE_ADDR = "0x0000000000000000000000000000000000000001";
   const TOKEN_DESTINATION_ADDR = "0x0000000000000000000000000000000000000002";
-  const ROUTER_ADDR = "0x0000000000000000000000000000000000000003";
+  const SWAP_ROUTER_ADDR = "0x0000000000000000000000000000000000000003";
   const TREASURY_ADDR = "0x0000000000000000000000000000000000000004";
   const ALPACA_TOKEN_ADDR = "0x0000000000000000000000000000000000000005";
 
@@ -254,6 +254,57 @@ describe("DeltaNeutralVaultConfig", () => {
         it("should return false if new total position value > maxVaultPositionValue", async () => {
           expect(await deltaNeutralVaultConfig.isVaultSizeAcceptable(maxVaultPositionValue.add(1))).to.eq(false);
         });
+      });
+    });
+  });
+
+  describe("#setSwapRouter", async () => {
+    context("when as owner set swap router", async () => {
+      it("should work", async () => {
+        await expect(deltaNeutralVaultConfig.setSwapRouter(SWAP_ROUTER_ADDR))
+          .to.emit(deltaNeutralVaultConfig, "SetSwapRouter")
+          .withArgs(deployerAddress, SWAP_ROUTER_ADDR);
+      });
+    });
+
+    context("when as owner set swap router back to zero address", async () => {
+      it("should revert", async () => {
+        await deltaNeutralVaultConfig.setSwapRouter(SWAP_ROUTER_ADDR);
+        await expect(deltaNeutralVaultConfig.setSwapRouter(ethers.constants.AddressZero)).to.be.revertedWith(
+          "InvalidSwapRouter()"
+        );
+      });
+    });
+  });
+
+  describe("#setReinvestPath", async () => {
+    context("when as owner set reinvest paths and start with alpaca token", async () => {
+      it("should work", async () => {
+        await expect(deltaNeutralVaultConfig.setReinvestPath([ALPACA_TOKEN_ADDR, TOKEN_DESTINATION_ADDR]))
+          .to.emit(deltaNeutralVaultConfig, "SetReinvestPath")
+          .withArgs(deployerAddress, [ALPACA_TOKEN_ADDR, TOKEN_DESTINATION_ADDR]);
+
+        await expect(
+          deltaNeutralVaultConfig.setReinvestPath([ALPACA_TOKEN_ADDR, TOKEN_SOURCE_ADDR, TOKEN_DESTINATION_ADDR])
+        )
+          .to.emit(deltaNeutralVaultConfig, "SetReinvestPath")
+          .withArgs(deployerAddress, [ALPACA_TOKEN_ADDR, TOKEN_SOURCE_ADDR, TOKEN_DESTINATION_ADDR]);
+      });
+    });
+
+    context("when as owner set reinvest paths with length less than 2", async () => {
+      it("should revert", async () => {
+        await expect(deltaNeutralVaultConfig.setReinvestPath([ALPACA_TOKEN_ADDR])).to.be.revertedWith(
+          "InvalidReinvestPathLength()"
+        );
+      });
+    });
+
+    context("when as owner set reinvest paths but not start with alpaca token", async () => {
+      it("should revert", async () => {
+        await expect(
+          deltaNeutralVaultConfig.setReinvestPath([TOKEN_SOURCE_ADDR, TOKEN_DESTINATION_ADDR])
+        ).to.be.revertedWith("InvalidReinvestPath()");
       });
     });
   });
