@@ -21,7 +21,6 @@ import "./interfaces/IChainLinkPriceOracle.sol";
 import "../utils/AlpacaMath.sol";
 
 error InvalidLPAddress();
-error InvalidLPTotalSupply();
 
 contract DeltaNeutralOracle is IDeltaNeutralOracle, Initializable, OwnableUpgradeable {
   using AlpacaMath for uint256;
