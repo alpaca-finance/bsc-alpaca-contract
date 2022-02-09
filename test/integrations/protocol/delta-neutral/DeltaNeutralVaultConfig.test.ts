@@ -4,6 +4,7 @@ import { solidity } from "ethereum-waffle";
 import chai from "chai";
 import "@openzeppelin/test-helpers";
 import { DeltaNeutralVaultConfig, DeltaNeutralVaultConfig__factory } from "../../../../typechain";
+import { DeployHelper, IDeltaNeutralVaultConfig } from "../../../helpers/deploy";
 
 chai.use(solidity);
 const { expect } = chai;
@@ -39,6 +40,7 @@ describe("DeltaNeutralVaultConfig", () => {
   const TOKEN_DESTINATION_ADDR = "0x0000000000000000000000000000000000000002";
   const ROUTER_ADDR = "0x0000000000000000000000000000000000000003";
   const TREASURY_ADDR = "0x0000000000000000000000000000000000000004";
+  const ALPACA_TOKEN_ADDR = "0x0000000000000000000000000000000000000005";
 
   // DeltaNeutralVaultConfig instance
   let deltaNeutralVaultConfig: DeltaNeutralVaultConfig;
@@ -52,21 +54,24 @@ describe("DeltaNeutralVaultConfig", () => {
       eve.getAddress(),
     ]);
 
+    const deltaNeutralConfig = {
+      wNativeAddr: WRAP_NATIVE_ADDR,
+      wNativeRelayer: WNATIVE_RELAYER,
+      fairlaunchAddr: FAIR_LAUNCH_ADDR,
+      rebalanceFactor: REBALANCE_FACTOR,
+      positionValueTolerance: POSITION_VALUE_TOLERANCE_BPS,
+      treasuryAddr: TREASURY_ADDR,
+      alpacaBountyBps: ALPACA_BOUNTY_BPS,
+      alpacaTokenAddress: ALPACA_TOKEN_ADDR,
+    } as IDeltaNeutralVaultConfig;
+
     const DeltaNeutralVaultConfig = (await ethers.getContractFactory(
       "DeltaNeutralVaultConfig",
       deployer
     )) as DeltaNeutralVaultConfig__factory;
 
-    deltaNeutralVaultConfig = (await upgrades.deployProxy(DeltaNeutralVaultConfig, [
-      WRAP_NATIVE_ADDR,
-      WNATIVE_RELAYER,
-      FAIR_LAUNCH_ADDR,
-      REBALANCE_FACTOR,
-      POSITION_VALUE_TOLERANCE_BPS,
-      TREASURY_ADDR,
-      ALPACA_BOUNTY_BPS,
-    ])) as DeltaNeutralVaultConfig;
-    await deltaNeutralVaultConfig.deployed();
+    const deployHelper = new DeployHelper(deployer);
+    deltaNeutralVaultConfig = await deployHelper.deployDeltaNeutralVaultConfig(deltaNeutralConfig);
 
     // Assign contract signer
     deltaNeutralVaultConfigAsAlice = deltaNeutralVaultConfig.connect(alice);
