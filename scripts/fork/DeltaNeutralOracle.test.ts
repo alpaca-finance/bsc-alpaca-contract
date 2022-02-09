@@ -91,6 +91,11 @@ async function main() {
   const [dollarToLPResult] = await deltaNeutralOracle.dollarToLp(manualLpValue, lpWbnbBusdAddress);
   expect(dollarToLPResult).to.be.eq(ethers.constants.WeiPerEther);
 
+  const [lpAmount] = await deltaNeutralOracle.dollarToLp(ethers.constants.Zero, lpWbnbBusdAddress);
+  expect(lpAmount).to.be.eq(ethers.constants.Zero);
+  const [dollarAmount] = await deltaNeutralOracle.lpToDollar(ethers.constants.Zero, lpWbnbBusdAddress);
+  expect(dollarAmount).to.be.eq(ethers.constants.Zero);
+
   console.log("====== DONE ======");
 }
 

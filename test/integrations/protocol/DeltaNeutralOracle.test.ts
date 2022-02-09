@@ -318,10 +318,9 @@ context("chainlink get price should work properly", async () => {
 
 describe("#LPtoDollar", async () => {
   context("when invalid input", async () => {
-    it("should revert when no LP amount", async () => {
-      await expect(priceOracle.lpToDollar(ethers.constants.Zero, lpV2Token0Stable0.address)).to.be.revertedWith(
-        "InvalidLPAmount()"
-      );
+    it("should return 0 when no LP amount", async () => {
+      const [dollarAmount] = await priceOracle.lpToDollar(ethers.constants.Zero, lpV2Token0Stable0.address);
+      expect(dollarAmount).to.be.eq(ethers.constants.Zero);
     });
 
     it("should revert when no address", async () => {
@@ -367,10 +366,9 @@ describe("#LPtoDollar", async () => {
 
 describe("#dollarToLp", async () => {
   context("when incorrect input", async () => {
-    it("should revert when no LP amount", async () => {
-      await expect(priceOracle.dollarToLp(ethers.constants.Zero, lpV2Token0Stable0.address)).to.be.revertedWith(
-        "InvalidDollarAmount()"
-      );
+    it("should return 0 when no LP amount", async () => {
+      const [lpResult] = await priceOracle.dollarToLp(ethers.constants.Zero, lpV2Token0Stable0.address);
+      expect(lpResult).to.be.eq(ethers.constants.Zero);
     });
 
     it("should revert when no address", async () => {
