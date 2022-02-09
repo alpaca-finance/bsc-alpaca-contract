@@ -317,7 +317,7 @@ context("chainlink get price should work properly", async () => {
 });
 
 describe("#LPtoDollar", async () => {
-  context("when incorrect input", async () => {
+  context("when invalid input", async () => {
     it("should revert when no LP amount", async () => {
       await expect(priceOracle.lpToDollar(ethers.constants.Zero, lpV2Token0Stable0.address)).to.be.revertedWith(
         "InvalidLPAmount()"
@@ -335,12 +335,16 @@ describe("#LPtoDollar", async () => {
     it("should convert LPtoDollar with LP fairPrice correctly", async () => {
       for (const _case of casesData) {
         const fairPrice = _case.fairPrice as BigNumber;
-        expect(await priceOracle.lpToDollar(ethers.constants.WeiPerEther, _case.lpAddress)).to.be.eq(fairPrice);
+        let [lpToDollarResult] = await priceOracle.lpToDollar(ethers.constants.WeiPerEther, _case.lpAddress);
+        expect(lpToDollarResult).to.be.eq(fairPrice);
 
-        expect(await priceOracle.lpToDollar(ethers.utils.parseEther("2.5"), _case.lpAddress)).to.be.eq(
+        [lpToDollarResult] = await priceOracle.lpToDollar(ethers.utils.parseEther("2.5"), _case.lpAddress);
+        expect(lpToDollarResult).to.be.eq(
           fairPrice.mul(ethers.utils.parseEther("2.5")).div(ethers.constants.WeiPerEther)
         );
-        expect(await priceOracle.lpToDollar(ethers.utils.parseEther("9999999.123123"), _case.lpAddress)).to.be.eq(
+
+        [lpToDollarResult] = await priceOracle.lpToDollar(ethers.utils.parseEther("9999999.123123"), _case.lpAddress);
+        expect(lpToDollarResult).to.be.eq(
           fairPrice.mul(ethers.utils.parseEther("9999999.123123")).div(ethers.constants.WeiPerEther)
         );
       }
@@ -379,13 +383,15 @@ describe("#dollarToLp", async () => {
     it("should convert dollarToLp with LP fairPrice correctly", async () => {
       for (const _case of casesData) {
         const fairPrice = _case.fairPrice as BigNumber;
+        let [dollarToLPResult] = await priceOracle.dollarToLp(fairPrice, _case.lpAddress);
+        expect(dollarToLPResult).to.be.eq(ethers.constants.WeiPerEther);
 
-        expect(await priceOracle.dollarToLp(fairPrice, _case.lpAddress)).to.be.eq(ethers.constants.WeiPerEther);
         let dollarInput = ethers.utils.parseEther("2.5").mul(fairPrice).div(ethers.constants.WeiPerEther);
-        expect(await priceOracle.dollarToLp(dollarInput, _case.lpAddress)).to.be.eq(ethers.utils.parseEther("2.5"));
+        [dollarToLPResult] = await priceOracle.dollarToLp(dollarInput, _case.lpAddress);
+        expect(dollarToLPResult).to.be.eq(ethers.utils.parseEther("2.5"));
 
         dollarInput = ethers.utils.parseEther("9999999.123123").mul(fairPrice).div(ethers.constants.WeiPerEther);
-        const lpPrice = await priceOracle.dollarToLp(dollarInput, _case.lpAddress);
+        const [lpPrice] = await priceOracle.dollarToLp(dollarInput, _case.lpAddress);
         // can't use to.be.eq because it's diff at decimal digits 6
         assertAlmostEqual(lpPrice.toString(), ethers.utils.parseEther("9999999.123123").toString());
       }

@@ -79,9 +79,9 @@ async function main() {
   ])) as DeltaNeutralOracle;
   await deltaNeutralOracle.deployed();
 
-  console.log("====== PRICE HELPER CONTRACT  ======");
-  const bnbBusdDollar = await deltaNeutralOracle.lpToDollar(ethers.constants.WeiPerEther, lpWbnbBusdAddress);
-  console.log("PRICEHELPER BNBBUSD dollar", bnbBusdDollar.toString());
+  console.log("====== DELTANEUTRAL ORACLE CONTRACT  ======");
+  const [bnbBusdDollar] = await deltaNeutralOracle.lpToDollar(ethers.constants.WeiPerEther, lpWbnbBusdAddress);
+  console.log("DELTANEUTRAL ORACLE BNBBUSD dollar", bnbBusdDollar.toString());
 
   /* 2 *sqrt(r0*r1) *sqrt(p0*p1)/totalSupply
         2*(8923276963968911148448930.91470947808468310002) *  (18859091029951576115.27785427756611280172)/ 7235536073990741153904959
@@ -89,7 +89,8 @@ async function main() {
  */
   const manualLpValue = BigNumber.from("46516219621621630508");
   expect(bnbBusdDollar).to.be.eq(manualLpValue);
-  expect(await deltaNeutralOracle.dollarToLp(manualLpValue, lpWbnbBusdAddress)).to.be.eq(ethers.constants.WeiPerEther);
+  const [dollarToLPResult] = await deltaNeutralOracle.dollarToLp(manualLpValue, lpWbnbBusdAddress);
+  expect(dollarToLPResult).to.be.eq(ethers.constants.WeiPerEther);
 
   console.log("====== DONE ======");
 }
