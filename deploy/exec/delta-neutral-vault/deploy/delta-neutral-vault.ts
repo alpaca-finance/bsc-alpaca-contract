@@ -7,10 +7,12 @@ import {
   DeltaNeutralVaultConfig__factory,
   DeltaNeutralVault__factory,
   DeltaNeutralOracle__factory,
+  ChainLinkPriceOracle__factory,
 } from "../../../../typechain";
 import { ConfigEntity } from "../../../entities";
 import { BigNumber } from "ethers";
 import { formatEther } from "ethers/lib/utils";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -33,6 +35,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     assetDeltaWorker: string;
     lpName: string;
     deltaNeutralVaultConfig: string;
+    assetAmount: string;
   }
   interface IDepositWorkByte {
     posId: number;
@@ -70,19 +73,20 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const deltaVaultInputs: IDeltaNeutralVaultInput[] = [
     {
-      name: "DeltaNeutralVault WBNB-BUSD",
-      symbol: "WBNB-BUSD",
+      name: "Neutral3x WBNB-BUSD MDEX",
+      symbol: "N3-WBNB-BUSD-MDEX",
       stableVaultSymbol: "ibBUSD",
       assetVaultSymbol: "ibWBNB",
       stableSymbol: "BUSD",
       assetSymbol: "WBNB",
-      stableDeltaWorker: "0x7eA2725CA438D9FE62f304EEA9183E1cF6402D5A",
-      assetDeltaWorker: "0x060d52772feFeD66d194496BAE7EEe3288F41Aa4",
+      stableDeltaWorker: "0xD2c5e3A71c56fE07871573f8148dd8E23c839013",
+      assetDeltaWorker: "0xB3B97ce104a221d70dCb9116Af1dF73f242ACdd8",
       lpName: "WBNB-BUSD LP",
-      deltaNeutralVaultConfig: "0xfd241a4a391Bc05e75775F69f4F0635C1AE80493",
+      deltaNeutralVaultConfig: "0xf58e614C615bded1d22EdC9Dd8afD1fb7126c26d",
+      assetAmount: "4",
     },
   ];
-  const DELTA_NEUTRAL_ORACLE_ADDR = "0x8fb045216C5486A010b0b9B561904005de0b8DA4";
+  const DELTA_NEUTRAL_ORACLE_ADDR = "0x6F904F6c13EA3a80dD962f0150E49d943b7d1819";
 
   const config = ConfigEntity.getConfig();
   const deployer = (await ethers.getSigners())[0];
@@ -132,7 +136,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       deltaVaultInputs[i].deltaNeutralVaultConfig,
       deployer
     );
+
+    console.log(">> Setting leverage level at DeltaNeutralVaultConfig to be 3x");
     await deltaNeutralVaultConfig.setLeverageLevel(3);
+    console.log("✅ Done");
 
     const stableToken = tokenLists[deltaVaultInputs[i].stableSymbol];
     const assetToken = tokenLists[deltaVaultInputs[i].assetSymbol];
@@ -150,8 +157,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(`assetPrice: ${assetPrice}`);
 
     // open position1
-
-    const assetAmount = ethers.utils.parseEther("4");
+    console.log(">> Preparing input for position 1 (StableVaults)");
+    const assetAmount = ethers.utils.parseEther(deltaVaultInputs[i].assetAmount);
     console.log(`>> assetAmount: ${assetAmount}`);
     const principalStableAmount = assetAmount.mul(assetPrice).div(stablePrice);
     console.log(`>> principalStableAmount: ${principalStableAmount}`);
@@ -166,6 +173,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(`>> borrowAmountStablePosition: ${borrowAmountStablePosition}`);
 
     //open position 2
+    console.log(">> Preparing input for position 2 (AssetVaults)");
     const principalAssetPosition = ethers.utils.parseEther("3");
     console.log(`>> principalAssetPosition: ${principalAssetPosition}`);
     const farmingTokenAssetPosition = principalStablePosition.mul(BigNumber.from(3));
@@ -211,10 +219,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     );
     // shareReceive  = depositValue * totalSupply / Equity
     // since totalSupply = 0, shareReceive = depositValue = (1*500 + 1*500) = 1000
-    const minSharesReceive = ethers.utils.parseEther("1000");
+    console.log(">> Initializing positions");
+    const minSharesReceive = ethers.utils.parseEther("0");
     const initTx = await deltaNeutralVault.initPositions(principalStableAmount, assetAmount, minSharesReceive, data, {
       value: assetAmount,
     });
+    console.log(">> initTx: ", initTx.hash);
+    console.log("✅ Done");
 
     const stablePosId = await deltaNeutralVault.stableVaultPosId();
     const assetPostId = await deltaNeutralVault.assetVaultPosId();

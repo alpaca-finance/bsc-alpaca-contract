@@ -1,8 +1,10 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, upgrades } from "hardhat";
-import { DeltaNeutralOracle, DeltaNeutralOracle__factory } from "../../../../typechain";
+import { DeltaNeutralOracle, DeltaNeutralOracle__factory, Timelock__factory } from "../../../../typechain";
 import { ConfigEntity } from "../../../entities";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import * as timeHelpers from "../../../../test/helpers/time";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -16,7 +18,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
 
   const deployer = (await ethers.getSigners())[0];
-
   const config = ConfigEntity.getConfig();
   const CHAINLINK_ADDRESS = config.Oracle.ChainLinkOracle;
   const USD = config.Tokens.USD;

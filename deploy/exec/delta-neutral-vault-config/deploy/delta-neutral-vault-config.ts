@@ -3,6 +3,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, network, upgrades } from "hardhat";
 import { DeltaNeutralVaultConfig, DeltaNeutralVaultConfig__factory } from "../../../../typechain";
 import { ConfigEntity } from "../../../entities";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -16,7 +17,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     */
   const REBALANCE_FACTOR = "6600";
   const POSITION_VALUE_TOLERANCE_BPS = "100";
-  const TREASURY_ADDR = "";
+  const TREASURY_ADDR = "0x2DD872C6f7275DAD633d7Deb1083EDA561E9B96b";
   const ALPACA_BOUNTY_BPS = "100";
 
   const config = ConfigEntity.getConfig();
