@@ -14,9 +14,8 @@ import * as mainnetConfig from "../../.mainnet.json";
 import { BigNumber } from "@ethersproject/bignumber";
 
 async function main() {
-  //
+  //PRICE FROM BLOCK 14600000
   const PCS_FACTORY_ADDRESS = mainnetConfig.Exchanges.Pancakeswap.FactoryV2;
-
   const CHAINLINK_ADDRESS = mainnetConfig.Oracle.ChainLinkOracle;
   const DEPLOYER_ADDRESS = "0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51";
 
@@ -83,10 +82,10 @@ async function main() {
   const [bnbBusdDollar] = await deltaNeutralOracle.lpToDollar(ethers.constants.WeiPerEther, lpWbnbBusdAddress);
   console.log("DELTANEUTRAL ORACLE BNBBUSD dollar", bnbBusdDollar.toString());
 
-  /* 2 *sqrt(r0*r1) *sqrt(p0*p1)/totalSupply
-        2*(8923276963968911148448930.91470947808468310002) *  (18859091029951576115.27785427756611280172)/ 7235536073990741153904959
-        =46516219621621630508.847652493124686795
- */
+  /* fairPrice = 2 *sqrt(r0*r1) *sqrt(p0*p1)/totalSupply
+     fairPrice = 2*(8923276963968911148448930.91470947808468310002) *  (18859091029951576115.27785427756611280172)/ 7235536073990741153904959
+     fairPrice = 46516219621621630508.847652493124686795
+  */
   const manualLpValue = BigNumber.from("46516219621621630508");
   expect(bnbBusdDollar).to.be.eq(manualLpValue);
   const [dollarToLPResult] = await deltaNeutralOracle.dollarToLp(manualLpValue, lpWbnbBusdAddress);
