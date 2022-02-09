@@ -18,8 +18,8 @@ import {
   MockERC20__factory,
   WETH,
   WETH__factory,
-  PriceHelper,
-  PriceHelper__factory,
+  DeltaNeutralOracle,
+  DeltaNeutralOracle__factory,
 } from "../../../typechain";
 import { assertAlmostEqual, assertBigNumberClosePercent } from "../../helpers/assert";
 
@@ -54,7 +54,7 @@ let mockAggregatorV3T0UsdToken: MockAggregatorV3;
 let mockAggregatorV3BtcbUsdToken: MockAggregatorV3;
 let mockAggregatorV3StableToken: MockAggregatorV3;
 
-let priceHelper: PriceHelper;
+let priceOracle: DeltaNeutralOracle;
 
 let casesData: any[] = [];
 
@@ -213,9 +213,15 @@ async function fixture() {
   );
 
   // PREPARE TEST CLASS
-  const PriceHelper = (await ethers.getContractFactory("PriceHelper", deployer)) as PriceHelper__factory;
-  priceHelper = (await upgrades.deployProxy(PriceHelper, [chainLinkOracle.address, usdToken.address])) as PriceHelper;
-  await priceHelper.deployed();
+  const DeltaNeutralOracle = (await ethers.getContractFactory(
+    "DeltaNeutralOracle",
+    deployer
+  )) as DeltaNeutralOracle__factory;
+  priceOracle = (await upgrades.deployProxy(DeltaNeutralOracle, [
+    chainLinkOracle.address,
+    usdToken.address,
+  ])) as DeltaNeutralOracle;
+  await priceOracle.deployed();
 
   casesData = [
     //fairPrice= 2* sqrt(r0 * r1) * sqrt(p0 * p1) / totalSupply
@@ -311,15 +317,15 @@ context("chainlink get price should work properly", async () => {
 });
 
 describe("#LPtoDollar", async () => {
-  context("when incorrect input", async () => {
+  context("when invalid input", async () => {
     it("should revert when no LP amount", async () => {
-      await expect(priceHelper.lpToDollar(ethers.constants.Zero, lpV2Token0Stable0.address)).to.be.revertedWith(
+      await expect(priceOracle.lpToDollar(ethers.constants.Zero, lpV2Token0Stable0.address)).to.be.revertedWith(
         "InvalidLPAmount()"
       );
     });
 
     it("should revert when no address", async () => {
-      await expect(priceHelper.lpToDollar(ethers.constants.One, ethers.constants.AddressZero)).to.be.revertedWith(
+      await expect(priceOracle.lpToDollar(ethers.constants.One, ethers.constants.AddressZero)).to.be.revertedWith(
         "InvalidLPAddress()"
       );
     });
@@ -329,12 +335,16 @@ describe("#LPtoDollar", async () => {
     it("should convert LPtoDollar with LP fairPrice correctly", async () => {
       for (const _case of casesData) {
         const fairPrice = _case.fairPrice as BigNumber;
-        expect(await priceHelper.lpToDollar(ethers.constants.WeiPerEther, _case.lpAddress)).to.be.eq(fairPrice);
+        let [lpToDollarResult] = await priceOracle.lpToDollar(ethers.constants.WeiPerEther, _case.lpAddress);
+        expect(lpToDollarResult).to.be.eq(fairPrice);
 
-        expect(await priceHelper.lpToDollar(ethers.utils.parseEther("2.5"), _case.lpAddress)).to.be.eq(
+        [lpToDollarResult] = await priceOracle.lpToDollar(ethers.utils.parseEther("2.5"), _case.lpAddress);
+        expect(lpToDollarResult).to.be.eq(
           fairPrice.mul(ethers.utils.parseEther("2.5")).div(ethers.constants.WeiPerEther)
         );
-        expect(await priceHelper.lpToDollar(ethers.utils.parseEther("9999999.123123"), _case.lpAddress)).to.be.eq(
+
+        [lpToDollarResult] = await priceOracle.lpToDollar(ethers.utils.parseEther("9999999.123123"), _case.lpAddress);
+        expect(lpToDollarResult).to.be.eq(
           fairPrice.mul(ethers.utils.parseEther("9999999.123123")).div(ethers.constants.WeiPerEther)
         );
       }
@@ -347,7 +357,7 @@ describe("#LPtoDollar", async () => {
 
         assertBigNumberClosePercent(
           expectedValue,
-          await priceHelper.lpToDollar(ethers.constants.WeiPerEther, _case.lpAddress),
+          (await priceOracle.lpToDollar(ethers.constants.WeiPerEther, _case.lpAddress))[0],
           "0.03"
         );
       }
@@ -358,13 +368,13 @@ describe("#LPtoDollar", async () => {
 describe("#dollarToLp", async () => {
   context("when incorrect input", async () => {
     it("should revert when no LP amount", async () => {
-      await expect(priceHelper.dollarToLp(ethers.constants.Zero, lpV2Token0Stable0.address)).to.be.revertedWith(
+      await expect(priceOracle.dollarToLp(ethers.constants.Zero, lpV2Token0Stable0.address)).to.be.revertedWith(
         "InvalidDollarAmount()"
       );
     });
 
     it("should revert when no address", async () => {
-      await expect(priceHelper.dollarToLp(ethers.constants.One, ethers.constants.AddressZero)).to.be.revertedWith(
+      await expect(priceOracle.dollarToLp(ethers.constants.One, ethers.constants.AddressZero)).to.be.revertedWith(
         "InvalidLPAddress()"
       );
     });
@@ -373,13 +383,15 @@ describe("#dollarToLp", async () => {
     it("should convert dollarToLp with LP fairPrice correctly", async () => {
       for (const _case of casesData) {
         const fairPrice = _case.fairPrice as BigNumber;
+        let [dollarToLPResult] = await priceOracle.dollarToLp(fairPrice, _case.lpAddress);
+        expect(dollarToLPResult).to.be.eq(ethers.constants.WeiPerEther);
 
-        expect(await priceHelper.dollarToLp(fairPrice, _case.lpAddress)).to.be.eq(ethers.constants.WeiPerEther);
         let dollarInput = ethers.utils.parseEther("2.5").mul(fairPrice).div(ethers.constants.WeiPerEther);
-        expect(await priceHelper.dollarToLp(dollarInput, _case.lpAddress)).to.be.eq(ethers.utils.parseEther("2.5"));
+        [dollarToLPResult] = await priceOracle.dollarToLp(dollarInput, _case.lpAddress);
+        expect(dollarToLPResult).to.be.eq(ethers.utils.parseEther("2.5"));
 
         dollarInput = ethers.utils.parseEther("9999999.123123").mul(fairPrice).div(ethers.constants.WeiPerEther);
-        const lpPrice = await priceHelper.dollarToLp(dollarInput, _case.lpAddress);
+        const [lpPrice] = await priceOracle.dollarToLp(dollarInput, _case.lpAddress);
         // can't use to.be.eq because it's diff at decimal digits 6
         assertAlmostEqual(lpPrice.toString(), ethers.utils.parseEther("9999999.123123").toString());
       }
@@ -393,7 +405,11 @@ describe("#dollarToLp", async () => {
 
         const dollarInput = ethers.constants.WeiPerEther;
         const expectedValue = dollarInput.mul(ethers.constants.WeiPerEther).div(lpValue);
-        assertBigNumberClosePercent(expectedValue, await priceHelper.dollarToLp(dollarInput, _case.lpAddress), "0.03");
+        assertBigNumberClosePercent(
+          expectedValue,
+          (await priceOracle.dollarToLp(dollarInput, _case.lpAddress))[0],
+          "0.03"
+        );
       }
     });
   });
