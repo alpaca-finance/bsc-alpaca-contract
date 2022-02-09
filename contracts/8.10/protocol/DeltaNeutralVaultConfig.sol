@@ -72,6 +72,8 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   /// withdrawalFeeBps - Fee when user withdraw from delta neutral vault
   /// mangementFeeBps Fee collected as a manager of delta neutral vault
   /// leverageLevel - Leverage level used for underlying positions
+  /// alpacaToken - address of alpaca token
+  /// swapRouter - address of router for swap
   /// whitelistedCallers - mapping of whitelisted callers
   /// whitelistedRebalancers - list of whitelisted rebalancers.
   /// router - Router address.
@@ -91,7 +93,7 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
 
   uint8 public override leverageLevel;
 
-  address alpacaToken;
+  address public alpacaToken;
   address public swapRouter;
   address[] public reinvestPath;
 
