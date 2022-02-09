@@ -4,8 +4,8 @@ import { expect } from "chai";
 import { ethers, upgrades } from "hardhat";
 import {
   ChainLinkPriceOracle__factory,
-  PriceHelper,
-  PriceHelper__factory,
+  DeltaNeutralOracle,
+  DeltaNeutralOracle__factory,
   PancakeFactory__factory,
   PancakePair__factory,
 } from "../../typechain";
@@ -69,12 +69,18 @@ async function main() {
 
   console.log("PCS totalSupply", totalSupply.toString());
 
-  const PriceHelper = (await ethers.getContractFactory("PriceHelper", deployer)) as PriceHelper__factory;
-  const priceHelper = (await upgrades.deployProxy(PriceHelper, [CHAINLINK_ADDRESS, USD])) as PriceHelper;
-  await priceHelper.deployed();
+  const DeltaNeutralOracle = (await ethers.getContractFactory(
+    "DeltaNeutralOracle",
+    deployer
+  )) as DeltaNeutralOracle__factory;
+  const deltaNeutralOracle = (await upgrades.deployProxy(DeltaNeutralOracle, [
+    CHAINLINK_ADDRESS,
+    USD,
+  ])) as DeltaNeutralOracle;
+  await deltaNeutralOracle.deployed();
 
   console.log("====== PRICE HELPER CONTRACT  ======");
-  const bnbBusdDollar = await priceHelper.lpToDollar(ethers.constants.WeiPerEther, lpWbnbBusdAddress);
+  const bnbBusdDollar = await deltaNeutralOracle.lpToDollar(ethers.constants.WeiPerEther, lpWbnbBusdAddress);
   console.log("PRICEHELPER BNBBUSD dollar", bnbBusdDollar.toString());
 
   /* 2 *sqrt(r0*r1) *sqrt(p0*p1)/totalSupply
@@ -83,7 +89,7 @@ async function main() {
  */
   const manualLpValue = BigNumber.from("46516219621621630508");
   expect(bnbBusdDollar).to.be.eq(manualLpValue);
-  expect(await priceHelper.dollarToLp(manualLpValue, lpWbnbBusdAddress)).to.be.eq(ethers.constants.WeiPerEther);
+  expect(await deltaNeutralOracle.dollarToLp(manualLpValue, lpWbnbBusdAddress)).to.be.eq(ethers.constants.WeiPerEther);
 
   console.log("====== DONE ======");
 }
