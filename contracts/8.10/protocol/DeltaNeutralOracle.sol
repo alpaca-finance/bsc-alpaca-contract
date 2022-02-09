@@ -20,10 +20,7 @@ import "./interfaces/IDeltaNeutralOracle.sol";
 import "./interfaces/IChainLinkPriceOracle.sol";
 import "../utils/AlpacaMath.sol";
 
-error InvalidLPAmount();
 error InvalidLPAddress();
-error InvalidLPTotalSupply();
-error InvalidDollarAmount();
 
 contract DeltaNeutralOracle is IDeltaNeutralOracle, Initializable, OwnableUpgradeable {
   using AlpacaMath for uint256;
@@ -45,7 +42,7 @@ contract DeltaNeutralOracle is IDeltaNeutralOracle, Initializable, OwnableUpgrad
   /// @param _lpToken address of LP token
   function lpToDollar(uint256 _lpAmount, address _lpToken) external view returns (uint256, uint256) {
     if (_lpAmount == 0) {
-      revert InvalidLPAmount();
+      return (0, block.timestamp);
     }
     (uint256 _lpPrice, uint256 _lastUpdate) = _getLPPrice(_lpToken);
     return ((_lpAmount * _lpPrice) / (10**18), _lastUpdate);
@@ -57,7 +54,7 @@ contract DeltaNeutralOracle is IDeltaNeutralOracle, Initializable, OwnableUpgrad
   /// @param _lpToken address of LP token
   function dollarToLp(uint256 _dollarAmount, address _lpToken) external view returns (uint256, uint256) {
     if (_dollarAmount == 0) {
-      revert InvalidDollarAmount();
+      return (0, block.timestamp);
     }
     (uint256 _lpPrice, uint256 _lastUpdate) = _getLPPrice(_lpToken);
     return (((_dollarAmount * (10**18)) / _lpPrice), _lastUpdate);
@@ -81,7 +78,7 @@ contract DeltaNeutralOracle is IDeltaNeutralOracle, Initializable, OwnableUpgrad
 
     uint256 _totalSupply = ILiquidityPair(_lpToken).totalSupply();
     if (_totalSupply == 0) {
-      revert InvalidLPTotalSupply();
+      return (0, block.timestamp);
     }
 
     (uint256 _r0, uint256 _r1, ) = ILiquidityPair(_lpToken).getReserves();
