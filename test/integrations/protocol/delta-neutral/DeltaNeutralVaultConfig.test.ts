@@ -3,13 +3,8 @@ import { Signer } from "ethers";
 import { solidity } from "ethereum-waffle";
 import chai from "chai";
 import "@openzeppelin/test-helpers";
-import {
-  DeltaNeutralVaultConfig,
-  DeltaNeutralVaultConfig__factory,
-  PancakeRouterV2__factory,
-} from "../../../../typechain";
+import { DeltaNeutralVaultConfig, DeltaNeutralVaultConfig__factory } from "../../../../typechain";
 import { DeployHelper, IDeltaNeutralVaultConfig } from "../../../helpers/deploy";
-import { zeroAddress } from "ethereumjs-util";
 
 chai.use(solidity);
 const { expect } = chai;
@@ -275,20 +270,20 @@ describe("DeltaNeutralVaultConfig", () => {
     context("when as owner set swap router back to zero address", async () => {
       it("should revert", async () => {
         await deltaNeutralVaultConfig.setSwapRouter(SWAP_ROUTER_ADDR);
-        await expect(deltaNeutralVaultConfig.setSwapRouter(zeroAddress())).to.be.revertedWith("InvalidSwapRouter()");
+        await expect(deltaNeutralVaultConfig.setSwapRouter(ethers.constants.AddressZero)).to.be.revertedWith(
+          "InvalidSwapRouter()"
+        );
       });
     });
   });
 
   describe("#setReinvestPath", async () => {
     context("when as owner set reinvest paths and start with alpaca token", async () => {
-      it("should work with length 2", async () => {
+      it("should work", async () => {
         await expect(deltaNeutralVaultConfig.setReinvestPath([ALPACA_TOKEN_ADDR, TOKEN_DESTINATION_ADDR]))
           .to.emit(deltaNeutralVaultConfig, "SetReinvestPath")
           .withArgs(deployerAddress, [ALPACA_TOKEN_ADDR, TOKEN_DESTINATION_ADDR]);
-      });
 
-      it("should work length 3", async () => {
         await expect(
           deltaNeutralVaultConfig.setReinvestPath([ALPACA_TOKEN_ADDR, TOKEN_SOURCE_ADDR, TOKEN_DESTINATION_ADDR])
         )
