@@ -2,6 +2,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 import { DeltaNeutralMdexWorker02__factory, DeltaNeutralPancakeWorker02__factory } from "../../../../typechain";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -21,11 +22,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const DELTA_NEUTRAL_VAULT_ADDRESS = "";
   const workerInputs: IWorkerInput[] = [
     {
-      name: "ETH-USDT DeltaNeutralMdexWorker",
+      name: "WBNB-BUSD DeltaNeutralMdexWorker",
       address: "",
     },
     {
-      name: "USDT-ETH DeltaNeutralMdexWorker",
+      name: "BUSD-WBNB DeltaNeutralMdexWorker",
       address: "",
     },
   ];
