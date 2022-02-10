@@ -19,7 +19,7 @@ import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/math/Math.sol";
 
 import "../../apis/pancake/IPancakeRouter02.sol";
-import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakeFactory.sol";
+import "../../interfaces/IPancakeFactory.sol";
 
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IWorker02.sol";
@@ -79,8 +79,10 @@ contract PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading i
     // - maxFarmingTokenToLiquidate -> maximum farmingToken amount that user want to liquidate.
     // - maxDebtRepayment -> maximum BTOKEN amount that user want to repaid debt.
     // - minFarmingTokenAmount -> minimum farmingToken that user want to receive.
-    (uint256 maxFarmingTokenToLiquidate, uint256 maxDebtRepayment, uint256 minFarmingTokenAmount) =
-      abi.decode(data, (uint256, uint256, uint256));
+    (uint256 maxFarmingTokenToLiquidate, uint256 maxDebtRepayment, uint256 minFarmingTokenAmount) = abi.decode(
+      data,
+      (uint256, uint256, uint256)
+    );
     IWorker02 worker = IWorker02(msg.sender);
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();

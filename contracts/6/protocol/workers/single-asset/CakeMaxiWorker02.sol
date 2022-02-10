@@ -19,8 +19,8 @@ import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 
-import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakeFactory.sol";
-import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
+import "../../interfaces/IPancakeFactory.sol";
+import "../../interfaces/IPancakePair.sol";
 
 import "../../apis/pancake/IPancakeRouter02.sol";
 import "../../interfaces/IStrategy.sol";
@@ -257,8 +257,13 @@ contract CakeMaxiWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWo
     /// 2. read base token from beneficialVault
     address beneficialVaultToken = beneficialVault.token();
     /// 3. swap reward token to beneficialVaultToken
-    uint256[] memory amounts =
-      router.swapExactTokensForTokens(_beneficialVaultBounty, 0, rewardPath, address(this), now);
+    uint256[] memory amounts = router.swapExactTokensForTokens(
+      _beneficialVaultBounty,
+      0,
+      rewardPath,
+      address(this),
+      now
+    );
     // if beneficialvault token not equal to baseToken regardless of a caller balance, can directly transfer to beneficial vault
     // otherwise, need to keep it as a buybackAmount,
     // since beneficial vault is the same as the calling vault, it will think of this reward as a `back` amount to paydebt/ sending back to a position owner

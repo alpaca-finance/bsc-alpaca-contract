@@ -2,7 +2,7 @@ pragma solidity 0.6.6;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol";
 
-import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakeFactory.sol";
+import "../../interfaces/IPancakeFactory.sol";
 
 import "../../interfaces/IWETH.sol";
 import "./PancakeLibraryV2.sol";
@@ -354,8 +354,9 @@ contract PancakeRouterV2 is IPancakeRouter02 {
         amountInput = IERC20(input).balanceOf(address(pair)).sub(reserveInput);
         amountOutput = PancakeLibraryV2.getAmountOut(amountInput, reserveInput, reserveOutput);
       }
-      (uint256 amount0Out, uint256 amount1Out) =
-        input == token0 ? (uint256(0), amountOutput) : (amountOutput, uint256(0));
+      (uint256 amount0Out, uint256 amount1Out) = input == token0
+        ? (uint256(0), amountOutput)
+        : (amountOutput, uint256(0));
       address to = i < path.length - 2 ? PancakeLibraryV2.pairFor(factory, output, path[i + 2]) : _to;
       pair.swap(amount0Out, amount1Out, to, new bytes(0));
     }

@@ -19,8 +19,8 @@ import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 
-import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakeFactory.sol";
-import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
+import "../../interfaces/IPancakeFactory.sol";
+import "../../interfaces/IPancakePair.sol";
 
 import "../../apis/pancake/IPancakeRouter02.sol";
 import "../../interfaces/IStrategy.sol";
@@ -199,8 +199,13 @@ contract CakeMaxiWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     /// 2. read base token from beneficialVault
     address beneficialVaultToken = beneficialVault.token();
     /// 3. swap reward token to beneficialVaultToken
-    uint256[] memory amounts =
-      router.swapExactTokensForTokens(_beneficialVaultBounty, 0, rewardPath, address(this), now);
+    uint256[] memory amounts = router.swapExactTokensForTokens(
+      _beneficialVaultBounty,
+      0,
+      rewardPath,
+      address(this),
+      now
+    );
     beneficialVaultToken.safeTransfer(address(beneficialVault), beneficialVaultToken.myBalance());
     _rewardToken.safeApprove(address(router), 0);
 

@@ -18,8 +18,8 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract WNativeRelayer is Ownable, ReentrancyGuard {
-  address wnative;
-  mapping(address => bool) okCallers;
+  address private wnative;
+  mapping(address => bool) private okCallers;
 
   constructor(address _wnative) public {
     wnative = _wnative;
@@ -39,7 +39,7 @@ contract WNativeRelayer is Ownable, ReentrancyGuard {
 
   function withdraw(uint256 _amount) external onlyWhitelistedCaller nonReentrant {
     IWETH(wnative).withdraw(_amount);
-    (bool success, ) = msg.sender.call{value: _amount}("");
+    (bool success, ) = msg.sender.call{ value: _amount }("");
     require(success, "WNativeRelayer::onlyWhitelistedCaller:: can't withdraw");
   }
 

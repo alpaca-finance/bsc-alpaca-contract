@@ -20,7 +20,7 @@ import "@openzeppelin/contracts-ethereum-package/contracts/math/Math.sol";
 
 import "../../apis/mdex/IMdexFactory.sol";
 import "../../apis/mdex/IMdexRouter.sol";
-import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
+import "../../interfaces/IPancakePair.sol";
 import "../../interfaces/IMdexSwapMining.sol";
 
 import "../../interfaces/IStrategy.sol";
@@ -102,8 +102,10 @@ contract MdexRestrictedStrategyPartialCloseMinimizeTrading is
     // - maxLpTokenToLiquidate -> maximum lpToken amount that user want to liquidate.
     // - maxDebtRepayment -> maximum BTOKEN amount that user want to repaid debt.
     // - minFarmingTokenAmount -> minimum farmingToken amount that user want to receive.
-    (uint256 maxLpTokenToLiquidate, uint256 maxDebtRepayment, uint256 minFarmingToken) =
-      abi.decode(data, (uint256, uint256, uint256));
+    (uint256 maxLpTokenToLiquidate, uint256 maxDebtRepayment, uint256 minFarmingToken) = abi.decode(
+      data,
+      (uint256, uint256, uint256)
+    );
     IWorker worker = IWorker(msg.sender);
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
