@@ -225,7 +225,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(">> Timelock");
     timelockTransactions.push(
       await TimelockService.queueTransaction(
-        `>> Queue tx on Timelock Setting WorkerConfig via Timelock for ${workerInfos[i].WORKER_CONFIG_ADDR}`,
+        `>> Queue tx on Timelock Setting WorkerConfig via Timelock at ${workerInfos[i].WORKER_CONFIG_ADDR} for ${deltaNeutralWorker.address}`,
         workerInfos[i].WORKER_CONFIG_ADDR,
         "0",
         "setConfigs(address[],(bool,uint64,uint64,uint64)[])",
