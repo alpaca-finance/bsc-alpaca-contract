@@ -69,7 +69,10 @@ contract StronkAlpaca is IStronkAlpaca, ERC20("Stronk Alpaca", "sALPACA"), Reent
     require(_userRelayerMap[msg.sender] == address(0), "StronkAlpaca::prepareHodl: user has already prepared hodl");
     require(block.number >= hodlableStartBlock, "StronkAlpaca::prepareHodl: block.number not reach hodlableStartBlock");
     require(block.number < hodlableEndBlock, "StronkAlpaca::prepareHodl: block.number exceeds hodlableEndBlock");
-    require(IAlpacaToken(alpacaTokenAddress).lockOf(msg.sender) > 0, "StronkAlpaca::preparehodl: user's lockAlpaca must be greater than zero");
+    require(
+      IAlpacaToken(alpacaTokenAddress).lockOf(msg.sender) > 0,
+      "StronkAlpaca::preparehodl: user's lockAlpaca must be greater than zero"
+    );
 
     // create relayer contract
     StronkAlpacaRelayer relayer = new StronkAlpacaRelayer(alpacaTokenAddress, msg.sender);

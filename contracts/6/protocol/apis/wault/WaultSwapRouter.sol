@@ -374,8 +374,9 @@ contract WaultSwapRouter is IWaultSwapRouter02 {
         amountInput = IERC20(input).balanceOf(address(pair)).sub(reserveInput);
         amountOutput = WaultSwapLibrary.getAmountOut(amountInput, reserveInput, reserveOutput);
       }
-      (uint256 amount0Out, uint256 amount1Out) =
-        input == token0 ? (uint256(0), amountOutput) : (amountOutput, uint256(0));
+      (uint256 amount0Out, uint256 amount1Out) = input == token0
+        ? (uint256(0), amountOutput)
+        : (amountOutput, uint256(0));
       address to = i < path.length - 2 ? WaultSwapLibrary.pairFor(factory, output, path[i + 2]) : _to;
       pair.swap(amount0Out, amount1Out, to, new bytes(0));
     }

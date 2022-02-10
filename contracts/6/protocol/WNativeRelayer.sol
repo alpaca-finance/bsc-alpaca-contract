@@ -19,8 +19,8 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "./interfaces/IWETH.sol";
 
 contract WNativeRelayer is Ownable, ReentrancyGuard {
-  address wnative;
-  mapping(address => bool) okCallers;
+  address private wnative;
+  mapping(address => bool) private okCallers;
 
   constructor(address _wnative) public {
     wnative = _wnative;

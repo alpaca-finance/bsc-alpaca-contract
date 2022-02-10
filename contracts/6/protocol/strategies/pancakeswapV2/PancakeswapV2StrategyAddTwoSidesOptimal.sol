@@ -18,8 +18,8 @@ import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 
-import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakeFactory.sol";
-import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
+import "../../interfaces/IPancakeFactory.sol";
+import "../../interfaces/IPancakePair.sol";
 
 import "../../apis/pancake/IPancakeRouter02.sol";
 import "../../interfaces/IStrategy.sol";
@@ -101,8 +101,10 @@ contract PancakeswapV2StrategyAddTwoSidesOptimal is ReentrancyGuardUpgradeSafe, 
     bytes calldata data
   ) external override nonReentrant {
     // 1. Find out what farming token we are dealing with.
-    (address baseToken, address farmingToken, uint256 farmingTokenAmount, uint256 minLPAmount) =
-      abi.decode(data, (address, address, uint256, uint256));
+    (address baseToken, address farmingToken, uint256 farmingTokenAmount, uint256 minLPAmount) = abi.decode(
+      data,
+      (address, address, uint256, uint256)
+    );
     IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
     // 2. Approve router to do their stuffs
     baseToken.safeApprove(address(router), uint256(-1));
@@ -128,17 +130,16 @@ contract PancakeswapV2StrategyAddTwoSidesOptimal is ReentrancyGuardUpgradeSafe, 
     // 5. Swap according to path
     if (swapAmt > 0) router.swapExactTokensForTokens(swapAmt, 0, path, address(this), now);
     // 6. Mint more LP tokens and return all LP tokens to the sender.
-    (, , uint256 moreLPAmount) =
-      router.addLiquidity(
-        baseToken,
-        farmingToken,
-        baseToken.myBalance(),
-        farmingToken.myBalance(),
-        0,
-        0,
-        address(this),
-        now
-      );
+    (, , uint256 moreLPAmount) = router.addLiquidity(
+      baseToken,
+      farmingToken,
+      baseToken.myBalance(),
+      farmingToken.myBalance(),
+      0,
+      0,
+      address(this),
+      now
+    );
     require(
       moreLPAmount >= minLPAmount,
       "PancakeswapV2StrategyAddTwoSidesOptimal::execute:: insufficient LP tokens received"

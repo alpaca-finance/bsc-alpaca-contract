@@ -374,8 +374,9 @@ contract MdexRouter is IMdexRouter, Ownable {
       if (swapMining != address(0)) {
         ISwapMining(swapMining).swap(msg.sender, input, output, amountOutput);
       }
-      (uint256 amount0Out, uint256 amount1Out) =
-        input == token0 ? (uint256(0), amountOutput) : (amountOutput, uint256(0));
+      (uint256 amount0Out, uint256 amount1Out) = input == token0
+        ? (uint256(0), amountOutput)
+        : (amountOutput, uint256(0));
       address to = i < path.length - 2 ? pairFor(output, path[i + 2]) : _to;
       pair.swap(amount0Out, amount1Out, to, new bytes(0));
     }

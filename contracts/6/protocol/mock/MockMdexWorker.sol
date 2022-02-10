@@ -13,7 +13,7 @@ Alpaca Fin Corporation
 
 pragma solidity 0.6.6;
 
-import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
+import "../interfaces/IPancakePair.sol";
 import "../apis/mdex/IMdexRouter.sol";
 import "../apis/mdex/IMasterChefBSC.sol";
 import "../interfaces/IStrategy.sol";

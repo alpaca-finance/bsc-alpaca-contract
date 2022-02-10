@@ -19,7 +19,7 @@ import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 
 import "../../apis/wault/IWaultSwapFactory.sol";
-import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
+import "../../interfaces/IPancakePair.sol";
 
 import "../../apis/wault/IWaultSwapRouter02.sol";
 import "../../interfaces/IStrategy.sol";

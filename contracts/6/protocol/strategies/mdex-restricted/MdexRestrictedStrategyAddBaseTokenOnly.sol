@@ -20,7 +20,7 @@ import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 
 import "../../apis/mdex/IMdexFactory.sol";
 import "../../apis/mdex/IMdexRouter.sol";
-import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
+import "../../interfaces/IPancakePair.sol";
 import "../../interfaces/IMdexSwapMining.sol";
 
 import "../../interfaces/IStrategy.sol";
@@ -90,17 +90,16 @@ contract MdexRestrictedStrategyAddBaseTokenOnly is OwnableUpgradeSafe, Reentranc
     path[1] = farmingToken;
     router.swapExactTokensForTokens(aIn, 0, path, address(this), now);
     // 6. Mint more LP tokens and return all LP tokens to the sender.
-    (, , uint256 moreLPAmount) =
-      router.addLiquidity(
-        baseToken,
-        farmingToken,
-        baseToken.myBalance(),
-        farmingToken.myBalance(),
-        0,
-        0,
-        address(this),
-        now
-      );
+    (, , uint256 moreLPAmount) = router.addLiquidity(
+      baseToken,
+      farmingToken,
+      baseToken.myBalance(),
+      farmingToken.myBalance(),
+      0,
+      0,
+      address(this),
+      now
+    );
     require(
       moreLPAmount >= minLPAmount,
       "MdexRestrictedStrategyAddBaseTokenOnly::execute:: insufficient LP tokens received"
@@ -131,8 +130,9 @@ contract MdexRestrictedStrategyAddBaseTokenOnly is OwnableUpgradeSafe, Reentranc
     uint256 feeConstantA = feeDenom.mul(2).sub(fee); // 2-f
     uint256 feeConstantB = feeDenom.sub(fee).mul(4).mul(feeDenom); // 4(1-f)
     uint256 feeConstantC = feeConstantA**2; // (2-f)^2
-    uint256 nominator =
-      AlpacaMath.sqrt(rIn.mul(balance.mul(feeConstantB).add(rIn.mul(feeConstantC)))).sub(rIn.mul(feeConstantA));
+    uint256 nominator = AlpacaMath.sqrt(rIn.mul(balance.mul(feeConstantB).add(rIn.mul(feeConstantC)))).sub(
+      rIn.mul(feeConstantA)
+    );
     uint256 denominator = feeDenom.sub(fee).mul(2); // 1-f
     return nominator / denominator;
   }
