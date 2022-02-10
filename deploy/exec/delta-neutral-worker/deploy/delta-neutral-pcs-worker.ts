@@ -12,7 +12,8 @@ import {
   PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading__factory,
   Timelock__factory,
 } from "../../../../typechain";
-import { ConfigEntity } from "../../../entities";
+import { ConfigEntity, TimelockEntity } from "../../../entities";
+import { FileService, TimelockService } from "../../../services";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -37,7 +38,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     WORK_FACTOR: string;
     KILL_FACTOR: string;
     MAX_PRICE_DIFF: string;
-    EXACT_ETA: string;
   }
 
   interface IDeltaNeutralPCSWorkerInfo {
@@ -63,30 +63,45 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     KILL_FACTOR: string;
     MAX_PRICE_DIFF: string;
     TIMELOCK: string;
-    EXACT_ETA: string;
   }
 
   const shortWorkerInfos: IDeltaNeutralPCSWorkerInput[] = [
     {
-      VAULT_SYMBOL: "ibBTCB",
-      WORKER_NAME: "Delta ETH-BTCB PancakeswapWorker",
-      TREASURY_ADDRESS: "0x0",
+      VAULT_SYMBOL: "ibBUSD",
+      WORKER_NAME: "WBNB-BUSD DeltaNeutralPancakeswapWorker",
+      TREASURY_ADDRESS: "0x2DD872C6f7275DAD633d7Deb1083EDA561E9B96b",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 30,
+      POOL_ID: 53,
       REINVEST_BOUNTY_BPS: "300",
-      REINVEST_PATH: ["CAKE", "WBNB", "BTCB"],
+      REINVEST_PATH: ["CAKE", "BUSD"],
       REINVEST_THRESHOLD: "0",
       WORK_FACTOR: "7000",
       KILL_FACTOR: "8333",
       MAX_PRICE_DIFF: "11000",
-      EXACT_ETA: "1633584600",
+    },
+    {
+      VAULT_SYMBOL: "ibWBNB",
+      WORKER_NAME: "BUSD-WBNB DeltaNeutralPancakeswapWorker",
+      TREASURY_ADDRESS: "0x2DD872C6f7275DAD633d7Deb1083EDA561E9B96b",
+      REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
+      POOL_ID: 53,
+      REINVEST_BOUNTY_BPS: "300",
+      REINVEST_PATH: ["CAKE", "WBNB"],
+      REINVEST_THRESHOLD: "0",
+      WORK_FACTOR: "7000",
+      KILL_FACTOR: "8333",
+      MAX_PRICE_DIFF: "11000",
     },
   ];
 
-  const DELTA_NEUTRAL_ORACLE_ADDR = "";
+  const TITLE = "testnet_delta_neutral_pcs_worker";
+  const DELTA_NEUTRAL_ORACLE_ADDR = "0x6F904F6c13EA3a80dD962f0150E49d943b7d1819";
+  const EXACT_ETA = "";
 
   const config = ConfigEntity.getConfig();
   const deployer = (await ethers.getSigners())[0];
+  const timelockTransactions: Array<TimelockEntity.Transaction> = [];
+  let nonce = await deployer.getTransactionCount();
   const workerInfos: IDeltaNeutralPCSWorkerInfo[] = shortWorkerInfos.map((n) => {
     const vault = config.Vaults.find((v) => v.symbol === n.VAULT_SYMBOL);
     if (vault === undefined) {
@@ -125,7 +140,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       KILL_FACTOR: n.KILL_FACTOR,
       MAX_PRICE_DIFF: n.MAX_PRICE_DIFF,
       TIMELOCK: config.Timelock,
-      EXACT_ETA: n.EXACT_ETA,
     };
   });
   for (let i = 0; i < workerInfos.length; i++) {
@@ -210,14 +224,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     }
     console.log("✅ Done");
 
-    const timelock = Timelock__factory.connect(workerInfos[i].TIMELOCK, (await ethers.getSigners())[0]);
-
-    console.log(">> Timelock: Setting WorkerConfig via Timelock");
-    const setConfigsTx = await timelock.queueTransaction(
-      workerInfos[i].WORKER_CONFIG_ADDR,
-      "0",
-      "setConfigs(address[],(bool,uint64,uint64,uint64)[])",
-      ethers.utils.defaultAbiCoder.encode(
+    console.log(">> Timelock");
+    timelockTransactions.push(
+      await TimelockService.queueTransaction(
+        `>> Queue tx on Timelock Setting WorkerConfig via Timelock for ${workerInfos[i].WORKER_CONFIG_ADDR}`,
+        workerInfos[i].WORKER_CONFIG_ADDR,
+        "0",
+        "setConfigs(address[],(bool,uint64,uint64,uint64)[])",
         ["address[]", "(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]"],
         [
           [deltaNeutralWorker.address],
@@ -229,33 +242,28 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
               maxPriceDiff: workerInfos[i].MAX_PRICE_DIFF,
             },
           ],
-        ]
-      ),
-      workerInfos[i].EXACT_ETA
-    );
-    console.log(`queue setConfigs at: ${setConfigsTx.hash}`);
-    console.log("generate timelock.executeTransaction:");
-    console.log(
-      `await timelock.executeTransaction('${workerInfos[i].WORKER_CONFIG_ADDR}', '0', 'setConfigs(address[],(bool,uint64,uint64,uint64)[])', ethers.utils.defaultAbiCoder.encode(['address[]','(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]'],[['${deltaNeutralWorker.address}'], [{acceptDebt: true, workFactor: ${workerInfos[i].WORK_FACTOR}, killFactor: ${workerInfos[i].KILL_FACTOR}, maxPriceDiff: ${workerInfos[i].MAX_PRICE_DIFF}}]]), ${workerInfos[i].EXACT_ETA})`
+        ],
+        EXACT_ETA,
+        { gasPrice: ethers.utils.parseUnits("15", "gwei"), nonce: nonce++ }
+      )
     );
     console.log("✅ Done");
-    console.log(">> Timelock: Linking VaultConfig with WorkerConfig via Timelock");
-    const setWorkersTx = await timelock.queueTransaction(
-      workerInfos[i].VAULT_CONFIG_ADDR,
-      "0",
-      "setWorkers(address[],address[])",
-      ethers.utils.defaultAbiCoder.encode(
+
+    timelockTransactions.push(
+      await TimelockService.queueTransaction(
+        `>> Queue tx on Timelock Linking VaultConfig with WorkerConfig via Timelock for ${workerInfos[i].VAULT_CONFIG_ADDR}`,
+        workerInfos[i].VAULT_CONFIG_ADDR,
+        "0",
+        "setWorkers(address[],address[])",
         ["address[]", "address[]"],
-        [[deltaNeutralWorker.address], [workerInfos[i].WORKER_CONFIG_ADDR]]
-      ),
-      workerInfos[i].EXACT_ETA
-    );
-    console.log(`queue setWorkers at: ${setWorkersTx.hash}`);
-    console.log("generate timelock.executeTransaction:");
-    console.log(
-      `await timelock.executeTransaction('${workerInfos[i].VAULT_CONFIG_ADDR}', '0','setWorkers(address[],address[])', ethers.utils.defaultAbiCoder.encode(['address[]','address[]'],[['${deltaNeutralWorker.address}'], ['${workerInfos[i].WORKER_CONFIG_ADDR}']]), ${workerInfos[i].EXACT_ETA})`
+        [[deltaNeutralWorker.address], [workerInfos[i].WORKER_CONFIG_ADDR]],
+        EXACT_ETA,
+        { gasPrice: ethers.utils.parseUnits("15", "gwei"), nonce: nonce++ }
+      )
     );
     console.log("✅ Done");
+
+    FileService.write(TITLE, timelockTransactions);
   }
 };
 
