@@ -33,7 +33,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     stableDeltaWorker: string;
     assetDeltaWorker: string;
     deltaNeutralVaultConfig: string;
-    assetAmount: string;
+    stableAmount: string;
+    leverage: number;
   }
   interface IDepositWorkByte {
     posId: number;
@@ -80,7 +81,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       stableDeltaWorker: "0xb2B70dD85Cd919B59deaF09B8Dcd58553c4bb465",
       assetDeltaWorker: "0x251388f3cC98541F91B1E425010f453CBe939fcd",
       deltaNeutralVaultConfig: "0xf58e614C615bded1d22EdC9Dd8afD1fb7126c26d",
-      assetAmount: "4",
+      stableAmount: "50",
+      leverage: 3,
     },
   ];
   const DELTA_NEUTRAL_ORACLE_ADDR = "0x6F904F6c13EA3a80dD962f0150E49d943b7d1819";
@@ -92,6 +94,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const signer = provider.getSigner(DEPLOYER_ADDRESS);
   const deployer = await SignerWithAddress.create(signer);
   const tokenLists: any = config.Tokens;
+  let stableTwoSidesStrat: string;
+  let assetTwoSidesStrat: string;
 
   for (let i = 0; i < initPositionInputs.length; i++) {
     console.log("===================================================================================");
@@ -105,16 +109,21 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       throw `error: unable to find vault from ${initPositionInputs[i].assetVaultSymbol}`;
     }
 
-    const stableTwoSidesStrat = stableVault.StrategyAddTwoSidesOptimal.Mdex;
-    const assetTwoSidesStrat = assetVault.StrategyAddTwoSidesOptimal.Mdex;
+    if (initPositionInputs[i].symbol.includes("MDEX")) {
+      stableTwoSidesStrat = stableVault.StrategyAddTwoSidesOptimal.Mdex;
+      assetTwoSidesStrat = assetVault.StrategyAddTwoSidesOptimal.Mdex;
+    }
+
+    stableTwoSidesStrat = stableVault.StrategyAddTwoSidesOptimal.Pancakeswap;
+    assetTwoSidesStrat = assetVault.StrategyAddTwoSidesOptimal.Pancakeswap;
 
     const deltaNeutralVaultConfig = DeltaNeutralVaultConfig__factory.connect(
       initPositionInputs[i].deltaNeutralVaultConfig,
       deployer
     );
 
-    console.log(">> Setting leverage level at DeltaNeutralVaultConfig to be 3x");
-    await deltaNeutralVaultConfig.setLeverageLevel(3);
+    console.log(`>> Setting leverage level at DeltaNeutralVaultConfig to be ${initPositionInputs[i].leverage}x`);
+    await deltaNeutralVaultConfig.setLeverageLevel(initPositionInputs[i].leverage);
     console.log("✅ Done");
 
     const stableToken = tokenLists[initPositionInputs[i].stableSymbol];
@@ -134,28 +143,39 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     // open position1
     console.log(">> Preparing input for position 1 (StableVaults)");
-    const assetAmount = ethers.utils.parseEther(initPositionInputs[i].assetAmount);
+    const stableAmount = ethers.utils.parseEther(initPositionInputs[i].stableAmount);
+    console.log(`>> Stable amount: ${stableAmount}`);
+    const assetAmount = ethers.utils.parseEther("0");
     console.log(`>> assetAmount: ${assetAmount}`);
-    const principalStableAmount = assetAmount.mul(assetPrice).div(stablePrice);
-    console.log(`>> principalStableAmount: ${principalStableAmount}`);
 
-    const principalStablePosition = principalStableAmount.mul(BigNumber.from("1")).div(BigNumber.from("4"));
+    const leverage = BigNumber.from(initPositionInputs[i].leverage);
+
+    // (lev -2) / (2lev - 2) for long equity amount
+    const numeratorLongPosition = leverage.sub(2);
+    const denumeratorLongPosition = leverage.mul(2).sub(2);
+    const principalStablePosition = stableAmount.mul(numeratorLongPosition).div(denumeratorLongPosition);
     console.log(`>> principalStablePosition: ${principalStablePosition}`);
 
-    const farmingTokenStablePosition = ethers.utils.parseEther("1");
+    const farmingTokenStablePosition = ethers.utils.parseEther("0");
     console.log(`>> farmingTokenStablePosition: ${farmingTokenStablePosition}`);
 
-    const borrowAmountStablePosition = principalStablePosition.mul(4);
+    const borrowMultiplierPosition = leverage.sub(1);
+    const borrowAmountStablePosition = principalStablePosition.mul(borrowMultiplierPosition);
     console.log(`>> borrowAmountStablePosition: ${borrowAmountStablePosition}`);
 
     //open position 2
     console.log(">> Preparing input for position 2 (AssetVaults)");
-    const principalAssetPosition = ethers.utils.parseEther("3");
+    const principalAssetPosition = ethers.utils.parseEther("0");
     console.log(`>> principalAssetPosition: ${principalAssetPosition}`);
-    const farmingTokenAssetPosition = principalStablePosition.mul(BigNumber.from(3));
+
+    // (lev) / (2lev - 2) for short equity amount
+    const numeratorShortPosition = leverage;
+    const denumeratorShortPosition = leverage.mul(2).sub(2);
+    const farmingTokenAssetPosition = principalStablePosition.mul(numeratorShortPosition).div(denumeratorShortPosition);
     console.log(`>> farmingTokenAssetPosition: ${farmingTokenAssetPosition}`);
 
-    const borrowAmountAssetPosition = principalAssetPosition.mul(4);
+    //(farmingTokenAssetPosition / assetPrice) * (lev-1)
+    const borrowAmountAssetPosition = farmingTokenAssetPosition.div(assetPrice).mul(borrowMultiplierPosition);
     console.log(`>> borrowAmountAssetPosition: ${borrowAmountAssetPosition}`);
 
     const stableWorkbyteInput: IDepositWorkByte = {
@@ -200,7 +220,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     // since totalSupply = 0, shareReceive = depositValue = (1*500 + 1*500) = 1000
     console.log(">> Calling openPosition");
     const minSharesReceive = ethers.utils.parseEther("0");
-    const initTx = await deltaNeutralVault.initPositions(principalStableAmount, assetAmount, minSharesReceive, data, {
+    const initTx = await deltaNeutralVault.initPositions(stableAmount, assetAmount, minSharesReceive, data, {
       value: assetAmount,
     });
     console.log(">> initTx: ", initTx.hash);
