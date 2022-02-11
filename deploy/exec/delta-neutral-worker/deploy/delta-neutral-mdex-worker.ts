@@ -10,7 +10,6 @@ import {
   MdexRestrictedStrategyPartialCloseLiquidate__factory,
   MdexRestrictedStrategyPartialCloseMinimizeTrading__factory,
   MdexRestrictedStrategyWithdrawMinimizeTrading__factory,
-  Timelock__factory,
 } from "../../../../typechain";
 import { ConfigEntity, TimelockEntity } from "../../../entities";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
@@ -260,9 +259,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       )
     );
     console.log("✅ Done");
-
-    FileService.write(TITLE, timelockTransactions);
   }
+  FileService.write(TITLE, timelockTransactions);
 };
 
 export default func;
