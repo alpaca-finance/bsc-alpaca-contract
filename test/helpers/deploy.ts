@@ -575,6 +575,7 @@ export class DeployHelper {
     const debtToken = (await upgrades.deployProxy(DebtToken, [
       "debtibBTOKEN_V2",
       "debtibBTOKEN_V2",
+      18,
       await this.deployer.getAddress(),
     ])) as DebtToken;
     await debtToken.deployed();

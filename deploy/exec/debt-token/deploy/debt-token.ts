@@ -32,6 +32,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const debtToken = (await upgrades.deployProxy(DebtToken, [
     `debt${SYMBOL}_V2`,
     `debt${SYMBOL}_V2`,
+    18,
     TIMELOCK,
   ])) as DebtToken;
   await debtToken.deployed();
