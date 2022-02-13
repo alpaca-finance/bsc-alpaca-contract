@@ -596,17 +596,6 @@
     "@ethersproject/properties" "^5.5.0"
     "@ethersproject/strings" "^5.5.0"
 
-"@metamask/eth-sig-util@^4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/eth-sig-util/-/eth-sig-util-4.0.0.tgz#11553ba06de0d1352332c1bde28c8edd00e0dcf6"
-  integrity sha512-LczOjjxY4A7XYloxzyxJIHONELmUxVZncpOLoClpEcTiebiVdM46KRPYXGuULro9oNNR2xdVx3yoKiQjdfWmoA==
-  dependencies:
-    ethereumjs-abi "^0.6.8"
-    ethereumjs-util "^6.2.1"
-    ethjs-util "^0.1.6"
-    tweetnacl "^1.0.3"
-    tweetnacl-util "^0.15.1"
-
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"
   resolved "https://registry.yarnpkg.com/@nodelib/fs.scandir/-/fs.scandir-2.1.5.tgz#7619c2eb21b25483f6d167548b4cfd5a7488c3d5"
@@ -666,11 +655,6 @@
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/@openzeppelin/contracts-ethereum-package/-/contracts-ethereum-package-3.0.0.tgz#d5db971a177c3b37733db2ee4ebdb79c67575d64"
   integrity sha512-Xg33RtX7FGbSK/YnroLhcGNAvH30/C84NRW8KvbSdXXYiLA8YqM1bOA9sAeLjmQxXqYUn/YL4AUVTgDnG51NOw==
-
-"@openzeppelin/contracts-upgradeable@4.3.2":
-  version "4.3.2"
-  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts-upgradeable/-/contracts-upgradeable-4.3.2.tgz#92df481362e366c388fc02133cf793029c744cea"
-  integrity sha512-i/pOaOtcqDk4UqsrOv735uYyTbn6dvfiuVu5hstsgV6c4ZKUtu88/31zT2BzkCg+3JfcwOfgg2TtRKVKKZIGkQ==
 
 "@openzeppelin/contracts@3.4.2":
   version "3.4.2"
@@ -1072,10 +1056,10 @@
   dependencies:
     "@types/node" "*"
 
-"@types/mocha@^9.1.0":
-  version "9.1.0"
-  resolved "https://registry.yarnpkg.com/@types/mocha/-/mocha-9.1.0.tgz#baf17ab2cca3fcce2d322ebc30454bff487efad5"
-  integrity sha512-QCWHkbMv4Y5U9oW10Uxbr45qMMSzl4OzijsozynUAgx3kEHUdXB00udx2dWDQ7f2TU2a2uuiFaRZjCe3unPpeg==
+"@types/mocha@^8.2.0":
+  version "8.2.3"
+  resolved "https://registry.yarnpkg.com/@types/mocha/-/mocha-8.2.3.tgz#bbeb55fbc73f28ea6de601fbfa4613f58d785323"
+  integrity sha512-ekGvFhFgrc2zYQoX4JeZPmVzZxw6Dtllga7iGHzfbYIYkAMUx/sAFP2GdFpLff+vdHXu5fl7WX9AT+TtqYcsyw==
 
 "@types/node-fetch@^2.5.5":
   version "2.5.12"
@@ -3931,6 +3915,16 @@ eth-sig-util@^1.4.2:
     ethereumjs-abi "git+https://github.com/ethereumjs/ethereumjs-abi.git"
     ethereumjs-util "^5.1.1"
 
+eth-sig-util@^2.5.2:
+  version "2.5.4"
+  resolved "https://registry.yarnpkg.com/eth-sig-util/-/eth-sig-util-2.5.4.tgz#577b01fe491b6bf59b0464be09633e20c1677bc5"
+  integrity sha512-aCMBwp8q/4wrW4QLsF/HYBOSA7TpLKmkVwP3pYQNkEEseW2Rr8Z5Uxc9/h6HX+OG3tuHo+2bINVSihIeBfym6A==
+  dependencies:
+    ethereumjs-abi "0.6.8"
+    ethereumjs-util "^5.1.1"
+    tweetnacl "^1.0.3"
+    tweetnacl-util "^0.15.0"
+
 eth-tx-summary@^3.1.2:
   version "3.2.4"
   resolved "https://registry.yarnpkg.com/eth-tx-summary/-/eth-tx-summary-3.2.4.tgz#e10eb95eb57cdfe549bf29f97f1e4f1db679035c"
@@ -4118,7 +4112,7 @@ ethereumjs-tx@^1.1.1, ethereumjs-tx@^1.2.0, ethereumjs-tx@^1.2.2, ethereumjs-tx@
     ethereum-common "^0.0.18"
     ethereumjs-util "^5.0.0"
 
-ethereumjs-util@6.2.1, ethereumjs-util@^6.0.0, ethereumjs-util@^6.1.0, ethereumjs-util@^6.2.0, ethereumjs-util@^6.2.1:
+ethereumjs-util@6.2.1, ethereumjs-util@^6.0.0, ethereumjs-util@^6.1.0, ethereumjs-util@^6.2.0:
   version "6.2.1"
   resolved "https://registry.yarnpkg.com/ethereumjs-util/-/ethereumjs-util-6.2.1.tgz#fcb4e4dd5ceacb9d2305426ab1a5cd93e3163b69"
   integrity sha512-W2Ktez4L01Vexijrm5EB6w7dg4n/TgpoYU4avuT5T3Vmnw/eCRtiBrJfQYS/DCSvDIOLn2k57GcHdeBcgVxAqw==
@@ -4287,7 +4281,7 @@ ethjs-unit@0.1.6:
     bn.js "4.11.6"
     number-to-bn "1.7.0"
 
-ethjs-util@0.1.6, ethjs-util@^0.1.3, ethjs-util@^0.1.6:
+ethjs-util@0.1.6, ethjs-util@^0.1.3:
   version "0.1.6"
   resolved "https://registry.yarnpkg.com/ethjs-util/-/ethjs-util-0.1.6.tgz#f308b62f185f9fe6237132fb2a9818866a5cd536"
   integrity sha512-CUnVOQq7gSpDHZVVrQW8ExxUETWrnrvXYvYz55wOU8Uj4VCgw56XC2B/fVqQN+f7gmrnRHSLVnFAwsCuNwji8w==
@@ -5155,10 +5149,10 @@ hardhat-deploy@^0.9.24:
     murmur-128 "^0.2.1"
     qs "^6.9.4"
 
-hardhat@^2.8.4:
-  version "2.8.4"
-  resolved "https://registry.yarnpkg.com/hardhat/-/hardhat-2.8.4.tgz#b12cc8b8ea578fc6cefbcd9683d558adc302152d"
-  integrity sha512-lEwvQSbhABpKgBTJnRgdZ6nZZRmgKUF2G8aGNaBVIQnJeRZjELnZHLIWXAF1HW0Q1NFCyo9trxOrOuzmiS+r/w==
+hardhat@^2.8.0:
+  version "2.8.0"
+  resolved "https://registry.yarnpkg.com/hardhat/-/hardhat-2.8.0.tgz#4701fafe2de4fe88bed328561e554df85455385b"
+  integrity sha512-A2L5F+B7HgdvfcuEWBXyokzP3biSlu4UeIvNR/lgSC0Og/2kbP9cjMMkIH42V1W8nQEZk70VuryhVKX2uHwSYw==
   dependencies:
     "@ethereumjs/block" "^3.6.0"
     "@ethereumjs/blockchain" "^5.5.0"
@@ -5166,7 +5160,6 @@ hardhat@^2.8.4:
     "@ethereumjs/tx" "^3.4.0"
     "@ethereumjs/vm" "^5.6.0"
     "@ethersproject/abi" "^5.1.2"
-    "@metamask/eth-sig-util" "^4.0.0"
     "@sentry/node" "^5.18.1"
     "@solidity-parser/parser" "^0.14.0"
     "@types/bn.js" "^5.1.0"
@@ -5180,6 +5173,7 @@ hardhat@^2.8.4:
     debug "^4.1.1"
     enquirer "^2.3.0"
     env-paths "^2.2.0"
+    eth-sig-util "^2.5.2"
     ethereum-cryptography "^0.1.2"
     ethereumjs-abi "^0.6.8"
     ethereumjs-util "^7.1.3"
@@ -5191,9 +5185,9 @@ hardhat@^2.8.4:
     immutable "^4.0.0-rc.12"
     io-ts "1.10.4"
     lodash "^4.17.11"
-    merkle-patricia-tree "^4.2.2"
+    merkle-patricia-tree "^4.2.0"
     mnemonist "^0.38.0"
-    mocha "^7.2.0"
+    mocha "^7.1.2"
     node-fetch "^2.6.0"
     qs "^6.7.0"
     raw-body "^2.4.1"
@@ -6788,7 +6782,7 @@ merkle-patricia-tree@^2.1.2, merkle-patricia-tree@^2.3.2:
     rlp "^2.0.0"
     semaphore ">=1.0.1"
 
-merkle-patricia-tree@^4.2.2:
+merkle-patricia-tree@^4.2.0, merkle-patricia-tree@^4.2.2:
   version "4.2.2"
   resolved "https://registry.yarnpkg.com/merkle-patricia-tree/-/merkle-patricia-tree-4.2.2.tgz#6dec17855370172458244c2f42c989dd60b773a3"
   integrity sha512-eqZYNTshcYx9aESkSPr71EqwsR/QmpnObDEV4iLxkt/x/IoLYZYjJvKY72voP/27Vy61iMOrfOG6jrn7ttXD+Q==
@@ -6956,7 +6950,7 @@ mnemonist@^0.38.0:
   dependencies:
     obliterator "^2.0.0"
 
-mocha@^7.2.0:
+mocha@^7.1.2:
   version "7.2.0"
   resolved "https://registry.yarnpkg.com/mocha/-/mocha-7.2.0.tgz#01cc227b00d875ab1eed03a75106689cfed5a604"
   integrity sha512-O9CIypScywTVpNaRrCAgoUnJgozpIofjKUYmJhiCIJMiuYnLI6otcb1/kpW9/n/tJODHGZ7i8aLQoDVsMtOKQQ==
@@ -9505,7 +9499,7 @@ tunnel-agent@^0.6.0:
   dependencies:
     safe-buffer "^5.0.1"
 
-tweetnacl-util@^0.15.0, tweetnacl-util@^0.15.1:
+tweetnacl-util@^0.15.0:
   version "0.15.1"
   resolved "https://registry.yarnpkg.com/tweetnacl-util/-/tweetnacl-util-0.15.1.tgz#b80fcdb5c97bcc508be18c44a4be50f022eea00b"
   integrity sha512-RKJBIj8lySrShN4w6i/BonWp2Z/uxwC3h4y7xsRrpP59ZboCd0GpEVsOnMDYLMmKBpYhb5TgHzZXy7wTfYFBRw==
@@ -10396,9 +10390,9 @@ write@1.0.3:
     mkdirp "^0.5.1"
 
 ws@7.4.6, ws@^3.0.0, ws@^5.1.1, ws@^7.4.6:
-  version "7.5.7"
-  resolved "https://registry.yarnpkg.com/ws/-/ws-7.5.7.tgz#9e0ac77ee50af70d58326ecff7e85eb3fa375e67"
-  integrity sha512-KMvVuFzpKBuiIXW3E4u3mySRO2/mCHSyZDJQM5NQ9Q9KHWHWh0NHgfbRMLLrceUK5qAL4ytALJbpRMjixFZh8A==
+  version "7.5.6"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-7.5.6.tgz#e59fc509fb15ddfb65487ee9765c5a51dec5fe7b"
+  integrity sha512-6GLgCqo2cy2A2rjCNFlxQS6ZljG/coZfZXclldI8FB/1G3CCI36Zd8xy2HrFVACi8tfk5XrgLQEk+P0Tnz9UcA==
 
 xhr-request-promise@^0.1.2:
   version "0.1.3"
