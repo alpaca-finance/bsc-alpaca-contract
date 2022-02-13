@@ -168,7 +168,7 @@ describe("Vault - SpookyWorker03", () => {
       {
         name: "BTOKEN",
         symbol: "BTOKEN",
-        decimals: "18",
+        decimals: "6",
         holders: [
           { address: deployerAddress, amount: ethers.utils.parseEther("1000") },
           { address: aliceAddress, amount: ethers.utils.parseEther("1000") },
