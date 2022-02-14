@@ -15,7 +15,6 @@ pragma solidity 0.8.10;
 
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
@@ -25,7 +24,7 @@ import "./interfaces/IWETH.sol";
 import "../utils/SafeToken.sol";
 import "../utils/FixedPointMathLib.sol";
 
-contract DeltaNeutralVaultGateway is ERC20Upgradeable, ReentrancyGuardUpgradeable, OwnableUpgradeable {
+contract DeltaNeutralVaultGateway is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   /// @notice Libraries
   using FixedPointMathLib for uint256;
   using SafeERC20Upgradeable for IERC20Upgradeable;
@@ -42,14 +41,9 @@ contract DeltaNeutralVaultGateway is ERC20Upgradeable, ReentrancyGuardUpgradeabl
 
   IDeltaNeutralVault deltaNeutralVault;
 
-  function initialize(
-    string calldata _name,
-    string calldata _symbol,
-    address _deltaNeutralVault
-  ) external initializer {
+  function initialize(address _deltaNeutralVault) external initializer {
     OwnableUpgradeable.__Ownable_init();
     ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
-    ERC20Upgradeable.__ERC20_init(_name, _symbol);
 
     deltaNeutralVault = IDeltaNeutralVault(_deltaNeutralVault);
   }
@@ -83,23 +77,21 @@ contract DeltaNeutralVaultGateway is ERC20Upgradeable, ReentrancyGuardUpgradeabl
       _data
     );
 
+    // adjust token amount depends on stable retuen bps
+    _adjustTokenAmount(_stableReturnBps);
+
     address _stableToken = deltaNeutralVault.stableToken();
     address _assetToken = deltaNeutralVault.assetToken();
 
-    uint256 _stableTokenBalance = _getBalance(_stableToken);
-    uint256 _assetTokenBalance = _getBalance(_assetToken);
-
-    _adjustTokenAmount(_stableToken, _assetToken, _stableTokenBalance, _assetTokenBalance, _stableReturnBps);
-
-    // get balance again
-    _stableTokenBalance = _getBalance(_stableToken);
-    _assetTokenBalance = _getBalance(_assetToken);
+    // get all token amount
+    uint256 _stableTokenBack = _getBalance(_stableToken);
+    uint256 _assetTokenBack = _getBalance(_assetToken);
 
     // transfer token back to user
-    _transferTokenToShareOwner(msg.sender, _stableToken, _stableTokenBalance);
-    _transferTokenToShareOwner(msg.sender, _assetToken, _assetTokenBalance);
+    _transferTokenToShareOwner(msg.sender, _stableToken, _stableTokenBack);
+    _transferTokenToShareOwner(msg.sender, _assetToken, _assetTokenBack);
 
-    emit LogWithdraw(msg.sender, _stableTokenBalance, _assetTokenBalance);
+    emit LogWithdraw(msg.sender, _stableTokenBack, _assetTokenBack);
     return _withdrawValue;
   }
 
@@ -134,26 +126,20 @@ contract DeltaNeutralVaultGateway is ERC20Upgradeable, ReentrancyGuardUpgradeabl
   }
 
   /// @notice calculate swap amount.
-  /// @param _stableToken stable token.
-  /// @param _assetToken asset token.
-  /// @param _stableTokenBalance stable token balance.
-  /// @param _assetTokenBalance asset token balance.
   /// @param _stableReturnBps Percentage stable token shareOwner expect to receive.
-  function _adjustTokenAmount(
-    address _stableToken,
-    address _assetToken,
-    uint256 _stableTokenBalance,
-    uint256 _assetTokenBalance,
-    uint64 _stableReturnBps
-  ) internal {
+  function _adjustTokenAmount(uint64 _stableReturnBps) internal {
+    address _stableToken = deltaNeutralVault.stableToken();
+    address _assetToken = deltaNeutralVault.assetToken();
+
+    uint256 _stableTokenBalance = _getBalance(_stableToken);
+    uint256 _assetTokenBalance = _getBalance(_assetToken);
+
     uint256 _stableTokenPrice = _getTokenPrice(_stableToken);
     uint256 _assetTokenPrice = _getTokenPrice(_assetToken);
 
     uint256 _stableTokenBalanceInUSD = _stableTokenBalance.mulWadDown(_stableTokenPrice);
     uint256 _assetTokenBalanceInUSD = _assetTokenBalance.mulWadDown(_assetTokenPrice);
     uint256 _total = _stableTokenBalanceInUSD + _assetTokenBalanceInUSD;
-
-    uint256 assetBefore = _getBalance(_assetToken);
 
     uint256 _expectedStableInUSD = (_stableReturnBps * _total) / BASIS_POINT;
     if (_stableTokenBalanceInUSD > _expectedStableInUSD) {

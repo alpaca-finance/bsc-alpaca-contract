@@ -141,8 +141,6 @@ export interface IDeltaNeutralVault {
 }
 
 export interface IDeltaNeutralVaultGatewayDeployParams {
-  name: string;
-  symbol: string;
   deltaVault: string;
 }
 
@@ -1018,8 +1016,6 @@ export class DeployHelper {
       this.deployer
     )) as DeltaNeutralVaultGateway__factory;
     const deltaNeutralVaultGateway = (await upgrades.deployProxy(DeltaNeutralVaultGateway, [
-      params.name,
-      params.symbol,
       params.deltaVault,
     ])) as DeltaNeutralVaultGateway;
     await deltaNeutralVaultGateway.deployed();
