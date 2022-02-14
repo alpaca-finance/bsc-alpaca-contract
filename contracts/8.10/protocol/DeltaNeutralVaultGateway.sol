@@ -109,7 +109,7 @@ contract DeltaNeutralVaultGateway is ERC20Upgradeable, ReentrancyGuardUpgradeabl
     IERC20Upgradeable(address(deltaNeutralVault)).safeTransferFrom(msg.sender, address(this), _amount);
   }
 
-  /// @notice return token to share owenr.
+  /// @notice return token to share owner.
   /// @param _to receiver address.
   /// @param _token token to transfer.
   /// @param _amount amount to transfer.
