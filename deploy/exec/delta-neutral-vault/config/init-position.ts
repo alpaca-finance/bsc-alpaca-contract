@@ -87,12 +87,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ];
   const DELTA_NEUTRAL_ORACLE_ADDR = "0x6F904F6c13EA3a80dD962f0150E49d943b7d1819";
   const config = ConfigEntity.getConfig();
-  // const deployer = (await ethers.getSigners())[0];
-  const DEPLOYER_ADDRESS = "0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51";
-  const provider = new ethers.providers.JsonRpcProvider(process.env.MAINNET_FORK_URL);
-  await provider.send("hardhat_impersonateAccount", [DEPLOYER_ADDRESS]);
-  const signer = provider.getSigner(DEPLOYER_ADDRESS);
-  const deployer = await SignerWithAddress.create(signer);
+  const deployer = (await ethers.getSigners())[0];
   const tokenLists: any = config.Tokens;
   let stableTwoSidesStrat: string;
   let assetTwoSidesStrat: string;
