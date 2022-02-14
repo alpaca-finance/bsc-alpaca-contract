@@ -101,6 +101,8 @@ import {
   DeltaNeutralPancakeWorker02,
   DeltaNeutralMdexWorker02,
   DeltaNeutralMdexWorker02__factory,
+  DeltaNeutralVaultGateway__factory,
+  DeltaNeutralVaultGateway,
 } from "../../typechain";
 import * as TimeHelpers from "../helpers/time";
 
@@ -136,6 +138,12 @@ export interface IDeltaNeutralVault {
   alpacaToken: string;
   deltaNeutralOracle: string;
   deltaVaultConfig: string;
+}
+
+export interface IDeltaNeutralVaultGatewayDeployParams {
+  name: string;
+  symbol: string;
+  deltaVault: string;
 }
 
 export interface IDeltaNeutralVaultConfig {
@@ -980,6 +988,7 @@ export class DeployHelper {
     await deltaNeutralVaultConfig.deployed();
     return deltaNeutralVaultConfig;
   }
+
   public async deployDeltaNeutralVault(input: IDeltaNeutralVault): Promise<DeltaNeutralVault> {
     const DeltaNeutralVault = (await ethers.getContractFactory(
       "DeltaNeutralVault",
@@ -999,5 +1008,21 @@ export class DeployHelper {
     ])) as DeltaNeutralVault;
     await deltaNeutralVault.deployed();
     return deltaNeutralVault;
+  }
+
+  public async deployDeltaNeutralGateway(
+    params: IDeltaNeutralVaultGatewayDeployParams
+  ): Promise<DeltaNeutralVaultGateway> {
+    const DeltaNeutralVaultGateway = (await ethers.getContractFactory(
+      "DeltaNeutralVaultGateway",
+      this.deployer
+    )) as DeltaNeutralVaultGateway__factory;
+    const deltaNeutralVaultGateway = (await upgrades.deployProxy(DeltaNeutralVaultGateway, [
+      params.name,
+      params.symbol,
+      params.deltaVault,
+    ])) as DeltaNeutralVaultGateway;
+    await deltaNeutralVaultGateway.deployed();
+    return deltaNeutralVaultGateway;
   }
 }
