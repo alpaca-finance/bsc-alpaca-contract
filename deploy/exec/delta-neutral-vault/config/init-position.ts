@@ -73,7 +73,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const initPositionInputs: IInitPositionInputs[] = [
     {
       deltaVaultAddress: "0xEB08e2f314B8E0E5c4B265d564d1D899a39ef2a1",
-      symbol: "N3-WBNB-BUSD-MDEX",
+      symbol: "N3-WBNB-BUSD-PCS",
       stableVaultSymbol: "ibBUSD",
       assetVaultSymbol: "ibWBNB",
       stableSymbol: "BUSD",
@@ -85,7 +85,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       leverage: 3,
     },
   ];
-  const DELTA_NEUTRAL_ORACLE_ADDR = "0x6F904F6c13EA3a80dD962f0150E49d943b7d1819";
+  const DELTA_NEUTRAL_ORACLE_ADDR = "";
   const config = ConfigEntity.getConfig();
   const deployer = (await ethers.getSigners())[0];
   const tokenLists: any = config.Tokens;
@@ -166,11 +166,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     // (lev) / (2lev - 2) for short equity amount
     const numeratorShortPosition = leverage;
     const denumeratorShortPosition = leverage.mul(2).sub(2);
-    const farmingTokenAssetPosition = principalStablePosition.mul(numeratorShortPosition).div(denumeratorShortPosition);
+    const farmingTokenAssetPosition = stableAmount.mul(numeratorShortPosition).div(denumeratorShortPosition);
     console.log(`>> farmingTokenAssetPosition: ${farmingTokenAssetPosition}`);
 
     //(farmingTokenAssetPosition / assetPrice) * (lev-1)
-    const borrowAmountAssetPosition = farmingTokenAssetPosition.div(assetPrice).mul(borrowMultiplierPosition);
+    const borrowAmountAssetPosition = farmingTokenAssetPosition
+      .mul(ethers.constants.WeiPerEther)
+      .div(assetPrice)
+      .mul(borrowMultiplierPosition);
     console.log(`>> borrowAmountAssetPosition: ${borrowAmountAssetPosition}`);
 
     const stableWorkbyteInput: IDepositWorkByte = {

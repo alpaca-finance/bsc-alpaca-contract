@@ -689,6 +689,11 @@
       "address": "0x060d52772feFeD66d194496BAE7EEe3288F41Aa4",
       "txHash": "0xaeab90fae2d1960a304c4b2c749180e83b59c4b9de1ec2debb8babc88b9af535",
       "kind": "transparent"
+    },
+    {
+      "address": "0x7cD34E0f98B6DDD8Eb32981ffb8F3D86f44FF14E",
+      "txHash": "0x38e04f4332c7e9f0a60ce9f9118ca725db7d4a70c3613347ac4b9242e877ef22",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -23483,6 +23488,76 @@
           },
           "t_array(t_uint256)50_storage": {
             "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "8456977a2df59ee5ce7e229e53603781c982fb1955987b110e83a64a26b76390": {
+      "address": "0xfb88020c9D078b119046F4352355b60F472BcD65",
+      "txHash": "0x2b1d3356155adf3eccf77f0e09ef7801dcd3125caa72f876e8b3c60e7eae48e3",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:26"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:30"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:21"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:77"
+          },
+          {
+            "contract": "DeltaNeutralOracle",
+            "label": "usd",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/DeltaNeutralOracle.sol:30"
+          },
+          {
+            "contract": "DeltaNeutralOracle",
+            "label": "chainLinkPriceOracle",
+            "type": "t_contract(IChainLinkPriceOracle)4983",
+            "src": "contracts/8.10/protocol/DeltaNeutralOracle.sol:33"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address"
+          },
+          "t_contract(IChainLinkPriceOracle)4983": {
+            "label": "contract IChainLinkPriceOracle"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_bool": {
+            "label": "bool"
           }
         }
       }
