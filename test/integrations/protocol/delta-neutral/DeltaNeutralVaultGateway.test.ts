@@ -1086,19 +1086,21 @@ describe("DeltaNeutralVaultGateway", () => {
             );
         });
 
-        it("should be able to withdraw and expected returns stable amount 50% and native amount 50%", async () => {
-          const withdrawData = ethers.utils.defaultAbiCoder.encode(["uint8[]", "uint256[]", "bytes[]"], [[], [], []]);
+        context("when user expected stable return bps more than 10000 (100%)", async () => {
+          it("should not be able to withdraw", async () => {
+            const withdrawData = ethers.utils.defaultAbiCoder.encode(["uint8[]", "uint256[]", "bytes[]"], [[], [], []]);
 
-          await expect(
-            deltaVaultGatewayAsAlice.withdraw(
-              ethers.utils.parseEther("0"),
-              ethers.utils.parseEther("0"),
-              ethers.utils.parseEther("0"),
-              withdrawData,
-              1000000,
-              { gasPrice: 0 }
-            )
-          ).to.be.revertedWith("ReturnBpsExceed(1000000)");
+            await expect(
+              deltaVaultGatewayAsAlice.withdraw(
+                ethers.utils.parseEther("0"),
+                ethers.utils.parseEther("0"),
+                ethers.utils.parseEther("0"),
+                withdrawData,
+                1000000,
+                { gasPrice: 0 }
+              )
+            ).to.be.revertedWith("ReturnBpsExceed(1000000)");
+          });
         });
       });
     });
