@@ -536,6 +536,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _stableActualWithdrawValue = _positionInfoBefore.stablePositionEquity -
       _positionInfoAfter.stablePositionEquity;
 
+    // _stableExpectedWithdrawValue = _withdrawValue * _positionInfoBefore.stablePositionEquity / _totalEquityBefore
+    // _stableActualWithdrawValue should be almost equal to _stableExpectedWithdrawValue
     if (
       !Math.almostEqual(
         _stableActualWithdrawValue * _totalEquityBefore,
@@ -548,6 +550,9 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
     uint256 _assetActualWithdrawValue = _positionInfoBefore.assetPositionEquity -
       _positionInfoAfter.assetPositionEquity;
+
+    // _assetExpectedWithdrawValue = _withdrawValue * _positionInfoBefore.assetPositionEquity / _totalEquityBefore
+    // _assetActualWithdrawValue should be almost equal to _assetExpectedWithdrawValue
     if (
       !Math.almostEqual(
         _assetActualWithdrawValue * _totalEquityBefore,
