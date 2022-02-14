@@ -155,6 +155,8 @@ contract DeltaNeutralVaultGateway is ERC20Upgradeable, ReentrancyGuardUpgradeabl
   ) internal {
     uint256 _stableTokenPrice = _getTokenPrice(_stableToken);
     uint256 _assetTokenPrice = _getTokenPrice(_assetToken);
+    console.log("_stableTokenPrice", _stableTokenPrice);
+    console.log("_assetTokenPrice", _assetTokenPrice);
 
     uint256 _stableTokenBalanceInUSD = _stableTokenBalance.mulWadDown(_stableTokenPrice);
     uint256 _assetTokenBalanceInUSD = _assetTokenBalance.mulWadDown(_assetTokenPrice);
@@ -242,7 +244,7 @@ contract DeltaNeutralVaultGateway is ERC20Upgradeable, ReentrancyGuardUpgradeabl
     if (_token0 == _nativeToken || _token1 == _nativeToken) {
       if (_token0 == _nativeToken) {
         console.log("swap swapExactETHForTokens amount", _swapAmount);
-        _router.swapExactETHForTokens{ value: _swapAmount }(_swapAmount, _path, address(this), block.timestamp);
+        _router.swapExactETHForTokens{ value: _swapAmount }(0, _path, address(this), block.timestamp);
       } else {
         IERC20Upgradeable(_token).approve(address(_router), _swapAmount);
         console.log("swap swapExactTokensForETH amount", _swapAmount);
