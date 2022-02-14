@@ -767,6 +767,8 @@ describe("DeltaNeutralVaultGateway", () => {
           );
           const gatewayShare = await deltaVault.balanceOf(deltaVaultGatewayAsAlice.address);
           expect(gatewayShare).to.be.eq(BigNumber.from(0));
+          expect(await baseToken.balanceOf(deltaVaultGateway.address)).to.be.eq(BigNumber.from(0));
+          expect(await wbnb.balanceOf(deltaVaultGateway.address)).to.be.eq(BigNumber.from(0));
 
           const aliceShareAfter = await deltaVault.balanceOf(aliceAddress);
           const alicebaseTokenAfter = await baseToken.balanceOf(aliceAddress);
@@ -907,6 +909,8 @@ describe("DeltaNeutralVaultGateway", () => {
           );
           const gatewayShare = await deltaVault.balanceOf(deltaVaultGatewayAsAlice.address);
           expect(gatewayShare).to.be.eq(BigNumber.from(0));
+          expect(await baseToken.balanceOf(deltaVaultGateway.address)).to.be.eq(BigNumber.from(0));
+          expect(await wbnb.balanceOf(deltaVaultGateway.address)).to.be.eq(BigNumber.from(0));
 
           const aliceShareAfter = await deltaVault.balanceOf(aliceAddress);
           const aliceNativeAfter = await alice.getBalance();
@@ -1032,8 +1036,6 @@ describe("DeltaNeutralVaultGateway", () => {
           const withdrawValue = ethers.utils.parseEther("200");
           const shareToWithdraw = await deltaVault.valueToShare(withdrawValue);
           const aliceShareBefore = await deltaVault.balanceOf(aliceAddress);
-          const aliceBaseTokenBefore = await baseToken.balanceOf(aliceAddress);
-          const aliceNativeBefore = await alice.getBalance();
 
           // ======== withdraw ======
           const minStableTokenReceive = ethers.utils.parseEther("149.931452849760353839");
@@ -1049,13 +1051,11 @@ describe("DeltaNeutralVaultGateway", () => {
           );
           const gatewayShare = await deltaVault.balanceOf(deltaVaultGatewayAsAlice.address);
           expect(gatewayShare).to.be.eq(BigNumber.from(0));
+          expect(await baseToken.balanceOf(deltaVaultGateway.address)).to.be.eq(BigNumber.from(0));
+          expect(await wbnb.balanceOf(deltaVaultGateway.address)).to.be.eq(BigNumber.from(0));
 
           const aliceShareAfter = await deltaVault.balanceOf(aliceAddress);
-          const aliceBaseTokenAfter = await baseToken.balanceOf(aliceAddress);
-          const aliceNativeAfter = await alice.getBalance();
           const positionInfoAfter = await deltaVault.positionInfo();
-          const baseTokenDiff = aliceBaseTokenAfter.sub(aliceBaseTokenBefore);
-          const nativeTokenDiff = aliceNativeAfter.sub(aliceNativeBefore);
           expect(aliceShareBefore.sub(aliceShareAfter)).to.eq(shareToWithdraw);
 
           Assert.assertAlmostEqual(positionInfoAfter.stablePositionEquity.toString(), expectStableEquity.toString());
@@ -1063,12 +1063,29 @@ describe("DeltaNeutralVaultGateway", () => {
           Assert.assertAlmostEqual(positionInfoAfter.assetPositionEquity.toString(), expectAssetEquity.toString());
           Assert.assertAlmostEqual(positionInfoAfter.assetPositionDebtValue.toString(), expectAssetDebt.toString());
 
-          console.log(baseTokenDiff.toString(), nativeTokenDiff.toString());
-          Assert.assertAlmostEqual(baseTokenDiff.toString(), nativeTokenDiff.toString());
+          // in normal case user will receive stable: 149.931452849760353839 asset: 49.976458329680142948
+          // but user provide return bsp of stable token as 50% and asset token 50%
+          // stable price = 1, asset price = 1
+          // stable value = 149.931452849760353839 * 1 = 149.931452849760353839
+          // asset value = 49.976458329680142948 * 1 = 49.976458329680142948
+          // total value = 149.931452849760353839 + 49.976458329680142948 = 199.907911179440496787
+          // expected stable bps is 5000 = 0.5
+          // expected stable value = 199.907911179440496787 * 0.5 = 99.953955589720248393
+          // bps calculation
+          // current stable value 149.931452849760353839 that grater then expected value
+          // have to swap out (149.931452849760353839 - 99.953955589720248393) / 1 = 49.977497260040105446
+          // after swap will got asset amount 49.853571678348350553 // get from log in contract
+          // expected
+          // stable amount = 149.931452849760353839 - 49.977497260040105446 = 99.953955589720248393
+          // asset amount = 49.976458329680142948 + 49.853571678348350553 = 99.830092042300144243
 
           expect(withdrawTx)
             .to.emit(deltaVaultGateway, "LogWithdraw")
-            .withArgs(aliceAddress, baseTokenDiff, nativeTokenDiff);
+            .withArgs(
+              aliceAddress,
+              ethers.utils.parseEther("99.953955589720248393"),
+              ethers.utils.parseEther("99.830030008028493501")
+            );
         });
       });
     });

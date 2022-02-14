@@ -25,8 +25,6 @@ import "./interfaces/IWETH.sol";
 import "../utils/SafeToken.sol";
 import "../utils/FixedPointMathLib.sol";
 
-import "hardhat/console.sol";
-
 contract DeltaNeutralVaultGateway is ERC20Upgradeable, ReentrancyGuardUpgradeable, OwnableUpgradeable {
   /// @notice Libraries
   using FixedPointMathLib for uint256;
@@ -91,16 +89,12 @@ contract DeltaNeutralVaultGateway is ERC20Upgradeable, ReentrancyGuardUpgradeabl
 
     uint256 _stableTokenBalance = _getBalance(_stableToken);
     uint256 _assetTokenBalance = _getBalance(_assetToken);
-    console.log("_stableTokenBack before", _stableTokenBalance);
-    console.log("_assetTokenBack before", _assetTokenBalance);
 
     _adjustTokenAmount(_stableToken, _assetToken, _stableTokenBalance, _assetTokenBalance, _stableReturnBps);
 
     // get balance again
     _stableTokenBalance = _getBalance(_stableToken);
     _assetTokenBalance = _getBalance(_assetToken);
-    console.log("_stableTokenBack after", _stableTokenBalance);
-    console.log("_assetTokenBack after", _assetTokenBalance);
 
     // transfer token back to user
     _transferTokenToShareOwner(msg.sender, _stableToken, _stableTokenBalance);
@@ -155,63 +149,27 @@ contract DeltaNeutralVaultGateway is ERC20Upgradeable, ReentrancyGuardUpgradeabl
   ) internal {
     uint256 _stableTokenPrice = _getTokenPrice(_stableToken);
     uint256 _assetTokenPrice = _getTokenPrice(_assetToken);
-    console.log("_stableTokenPrice", _stableTokenPrice);
-    console.log("_assetTokenPrice", _assetTokenPrice);
 
     uint256 _stableTokenBalanceInUSD = _stableTokenBalance.mulWadDown(_stableTokenPrice);
     uint256 _assetTokenBalanceInUSD = _assetTokenBalance.mulWadDown(_assetTokenPrice);
     uint256 _total = _stableTokenBalanceInUSD + _assetTokenBalanceInUSD;
 
-    // stable
-    uint256 _stableSwapBps = _calculateSwapBps(_stableTokenBalanceInUSD, _total, _stableReturnBps);
-    console.log("_stableSwapBps", _stableSwapBps);
-    if (_stableSwapBps > 0) {
-      uint256 _swapStableAmount = _calculateSwapAmount(_stableTokenBalanceInUSD, _stableTokenPrice, _stableSwapBps);
-      console.log("_swapStableAmount", _swapStableAmount);
+    uint256 assetBefore = _getBalance(_assetToken);
+
+    uint256 _expectedStableInUSD = (_stableReturnBps * _total) / BASIS_POINT;
+    if (_stableTokenBalanceInUSD > _expectedStableInUSD) {
+      uint256 _swapStableAmount = (_stableTokenBalanceInUSD - _expectedStableInUSD).divWadDown(_stableTokenPrice);
       _swap(_stableToken, _swapStableAmount);
       return;
     }
 
-    // asset
-    uint64 _assetReturnBps = 10000 - _stableReturnBps;
-    uint256 _assetSwapBps = _calculateSwapBps(_assetTokenBalanceInUSD, _total, _assetReturnBps);
-    console.log("_assetSwapBps", _assetSwapBps);
-    if (_assetSwapBps > 0) {
-      uint256 _swapAssetAmount = _calculateSwapAmount(_assetTokenBalanceInUSD, _assetTokenPrice, _assetSwapBps);
-      console.log("_assetableAmount", _swapAssetAmount);
+    uint64 _assetReturnBps = BASIS_POINT - _stableReturnBps;
+    uint256 _expectedAssetInUSD = (_assetReturnBps * _total) / BASIS_POINT;
+    if (_assetTokenBalanceInUSD > _expectedAssetInUSD) {
+      uint256 _swapAssetAmount = (_assetTokenBalanceInUSD - _expectedAssetInUSD).divWadDown(_assetTokenPrice);
       _swap(_assetToken, _swapAssetAmount);
       return;
     }
-  }
-
-  /// @notice calculate swap bps.
-  /// @param _amountInUSD Value of token.
-  /// @param _totalAmountInUSD Value of total supply.
-  /// @param _returnBps Percentage token shareOwner expect to receive
-  function _calculateSwapBps(
-    uint256 _amountInUSD,
-    uint256 _totalAmountInUSD,
-    uint256 _returnBps
-  ) internal returns (uint256) {
-    uint256 _tokenBps = (_amountInUSD * BASIS_POINT) / _totalAmountInUSD;
-    console.log("bps", _tokenBps, _returnBps);
-    if (_tokenBps < _returnBps) return 0;
-    uint256 _toSwapBps = ((_tokenBps - _returnBps) * BASIS_POINT) / _tokenBps;
-    console.log("_toSwapBps", _toSwapBps);
-    return _toSwapBps;
-  }
-
-  /// @notice calculate swap amount.
-  /// @param _amountInUSD Value of token.
-  /// @param _tokenPrice Token price.
-  /// @param _swapBps Percentage to swap out.
-  function _calculateSwapAmount(
-    uint256 _amountInUSD,
-    uint256 _tokenPrice,
-    uint256 _swapBps
-  ) internal returns (uint256) {
-    uint256 _toSwapUSD = (_amountInUSD * _swapBps) / BASIS_POINT;
-    return _toSwapUSD.divWadDown(_tokenPrice);
   }
 
   /// @notice get token balance.
@@ -243,16 +201,15 @@ contract DeltaNeutralVaultGateway is ERC20Upgradeable, ReentrancyGuardUpgradeabl
 
     if (_token0 == _nativeToken || _token1 == _nativeToken) {
       if (_token0 == _nativeToken) {
-        console.log("swap swapExactETHForTokens amount", _swapAmount);
         _router.swapExactETHForTokens{ value: _swapAmount }(0, _path, address(this), block.timestamp);
       } else {
         IERC20Upgradeable(_token).approve(address(_router), _swapAmount);
-        console.log("swap swapExactTokensForETH amount", _swapAmount);
+
         _router.swapExactTokensForETH(_swapAmount, 0, _path, address(this), block.timestamp);
       }
     } else {
       IERC20Upgradeable(_token).approve(address(_router), _swapAmount);
-      console.log("swap swapExactTokensForTokens amount", _swapAmount);
+
       _router.swapExactTokensForTokens(_swapAmount, 0, _path, address(this), block.timestamp);
     }
   }
