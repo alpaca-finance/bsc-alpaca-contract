@@ -533,25 +533,33 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _toleranceBps = config.positionValueTolerance();
     // 1. equity value check
     uint256 _totalEquityBefore = _positionInfoBefore.stablePositionEquity + _positionInfoBefore.assetPositionEquity;
-    uint256 _stableExpectedWithdrawValue = FullMath.mulDiv(
-      _withdrawValue,
-      _positionInfoBefore.stablePositionEquity,
-      _totalEquityBefore
-    );
     uint256 _stableActualWithdrawValue = _positionInfoBefore.stablePositionEquity -
       _positionInfoAfter.stablePositionEquity;
 
-    if (!Math.almostEqual(_stableActualWithdrawValue, _stableExpectedWithdrawValue, _toleranceBps)) {
+    // _stableExpectedWithdrawValue = _withdrawValue * _positionInfoBefore.stablePositionEquity / _totalEquityBefore
+    // _stableActualWithdrawValue should be almost equal to _stableExpectedWithdrawValue
+    if (
+      !Math.almostEqual(
+        _stableActualWithdrawValue * _totalEquityBefore,
+        _withdrawValue * _positionInfoBefore.stablePositionEquity,
+        _toleranceBps
+      )
+    ) {
       revert UnsafePositionValue();
     }
-    uint256 _assetExpectedWithdrawValue = FullMath.mulDiv(
-      _withdrawValue,
-      _positionInfoBefore.assetPositionEquity,
-      _totalEquityBefore
-    );
+
     uint256 _assetActualWithdrawValue = _positionInfoBefore.assetPositionEquity -
       _positionInfoAfter.assetPositionEquity;
-    if (!Math.almostEqual(_assetActualWithdrawValue, _assetExpectedWithdrawValue, _toleranceBps)) {
+
+    // _assetExpectedWithdrawValue = _withdrawValue * _positionInfoBefore.assetPositionEquity / _totalEquityBefore
+    // _assetActualWithdrawValue should be almost equal to _assetExpectedWithdrawValue
+    if (
+      !Math.almostEqual(
+        _assetActualWithdrawValue * _totalEquityBefore,
+        _withdrawValue * _positionInfoBefore.assetPositionEquity,
+        _toleranceBps
+      )
+    ) {
       revert UnsafePositionValue();
     }
 
