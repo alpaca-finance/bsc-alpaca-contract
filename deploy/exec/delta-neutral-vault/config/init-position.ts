@@ -211,8 +211,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     const deltaNeutralVault = DeltaNeutralVault__factory.connect(initPositionInputs[i].deltaVaultAddress, deployer);
 
-    // shareReceive  = depositValue * totalSupply / Equity
-    // since totalSupply = 0, shareReceive = depositValue = (1*500 + 1*500) = 1000
     console.log(">> Calling openPosition");
     const minSharesReceive = ethers.utils.parseEther("0");
     const initTx = await deltaNeutralVault.initPositions(stableAmount, assetAmount, minSharesReceive, data, {
