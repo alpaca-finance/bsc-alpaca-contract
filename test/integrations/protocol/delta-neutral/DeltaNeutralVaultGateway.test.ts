@@ -1100,7 +1100,7 @@ describe("DeltaNeutralVaultGateway", () => {
               1000000,
               { gasPrice: 0 }
             )
-          ).to.be.revertedWith("ReturnBspExceed(1000000)");
+          ).to.be.revertedWith("ReturnBpsExceed(1000000)");
         });
       });
     });

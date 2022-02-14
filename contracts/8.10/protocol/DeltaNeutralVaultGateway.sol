@@ -34,9 +34,8 @@ contract DeltaNeutralVaultGateway is ERC20Upgradeable, ReentrancyGuardUpgradeabl
   event LogWithdraw(address indexed _shareOwner, uint256 _minStableTokenAmount, uint256 _minAssetTokenAmount);
 
   /// @dev Errors
-  error ReturnBspExceed(uint64 _stableReturnBps);
+  error ReturnBpsExceed(uint64 _stableReturnBps);
   error UnTrustedPrice();
-  error SwapCalculationError();
 
   /// @dev constants
   uint64 private constant BASIS_POINT = 10000;
@@ -70,7 +69,7 @@ contract DeltaNeutralVaultGateway is ERC20Upgradeable, ReentrancyGuardUpgradeabl
   ) public nonReentrant returns (uint256) {
     // _stableReturnBps should not be greater than 100%
     if (_stableReturnBps > 10000) {
-      revert ReturnBspExceed(_stableReturnBps);
+      revert ReturnBpsExceed(_stableReturnBps);
     }
 
     // transfer share from user
