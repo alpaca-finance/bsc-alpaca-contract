@@ -68,6 +68,11 @@ contract DeltaNeutralVaultGateway is ERC20Upgradeable, ReentrancyGuardUpgradeabl
     bytes calldata _data,
     uint64 _stableReturnBps
   ) public nonReentrant returns (uint256) {
+    // _stableReturnBps should not be greater than 100%
+    if (_stableReturnBps > 10000) {
+      revert ReturnBspExceed(_stableReturnBps);
+    }
+
     // transfer share from user
     _transferShareToVaultGateway(_shareAmount);
 
@@ -78,11 +83,6 @@ contract DeltaNeutralVaultGateway is ERC20Upgradeable, ReentrancyGuardUpgradeabl
       _minAssetTokenAmount,
       _data
     );
-
-    // _stableReturnBps should not be greater than 100%
-    if (_stableReturnBps > 10000) {
-      revert ReturnBspExceed(_stableReturnBps);
-    }
 
     address _stableToken = deltaNeutralVault.stableToken();
     address _assetToken = deltaNeutralVault.assetToken();
