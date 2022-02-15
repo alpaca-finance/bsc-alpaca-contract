@@ -214,7 +214,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   /// @param _amount amount to transfer.
   function _transferTokenToVault(address _token, uint256 _amount) internal {
     if (_token == config.getWrappedNativeAddr()) {
-      IWETH(config.getWrappedNativeAddr()).deposit{ value: _amount }();
+      IWETH(_token).deposit{ value: _amount }();
     } else {
       IERC20Upgradeable(_token).safeTransferFrom(msg.sender, address(this), _amount);
     }
