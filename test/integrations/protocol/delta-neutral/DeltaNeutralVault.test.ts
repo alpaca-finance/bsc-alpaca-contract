@@ -504,6 +504,27 @@ describe("DeltaNeutralVault", () => {
     await assetVault.deposit(ethers.utils.parseEther("10000"));
   });
 
+  describe("#deploy", async () => {
+    context("when deploy with wrong config", async () => {
+      it("should revert", async () => {
+        const deployHelper = new DeployHelper(deployer);
+        // Setup Delta Neutral Vault
+        const deltaNeutral = {
+          name: "DELTA_NEUTRAL_VAULT",
+          symbol: "DELTA_NEUTRAL_VAULT",
+          vaultStable: stableVault.address,
+          vaultAsset: assetVault.address,
+          stableVaultWorker: stableVaultWorker.address,
+          assetVaultWorker: assetVaultWorker.address,
+          lpToken: aliceAddress,
+          alpacaToken: alpacaToken.address,
+          deltaNeutralOracle: mockPriceOracle.address,
+          deltaVaultConfig: deltaVaultConfig.address,
+        };
+        await expect(deployHelper.deployDeltaNeutralVault(deltaNeutral)).to.revertedWith("InvalidLpToken()");
+      });
+    });
+  });
   describe("#initPositions", async () => {
     context("when owner call initPositions", async () => {
       it("should initilize positions", async () => {
@@ -1496,6 +1517,59 @@ describe("DeltaNeutralVault", () => {
                 );
               });
             });
+          });
+        });
+
+        context("when native amount and _assetTokenAmount mismatch", async () => {
+          it("should revert", async () => {
+            await baseTokenAsAlice.transfer(deltaVault.address, ethers.utils.parseEther("400"));
+            const reduceAmount = ethers.utils.parseEther("10");
+            const stableTokenAmount = ethers.utils.parseEther("500").sub(reduceAmount);
+            const assetTokenAmount = ethers.utils.parseEther("500");
+
+            await baseTokenAsAlice.approve(deltaVault.address, stableTokenAmount);
+
+            const stableWorkbyteInput: IDepositWorkByte = {
+              posId: 1,
+              vaultAddress: stableVault.address,
+              workerAddress: stableVaultWorker.address,
+              twoSidesStrat: stableTwoSidesStrat.address,
+              principalAmount: ethers.utils.parseEther("125"),
+              borrowAmount: ethers.utils.parseEther("500"),
+              farmingTokenAmount: ethers.utils.parseEther("125"),
+              maxReturn: BigNumber.from(0),
+              minLpReceive: BigNumber.from(0),
+            };
+
+            const assetWorkbyteInput: IDepositWorkByte = {
+              posId: 1,
+              vaultAddress: assetVault.address,
+              workerAddress: assetVaultWorker.address,
+              twoSidesStrat: assetTwoSidesStrat.address,
+              principalAmount: ethers.utils.parseEther("375"),
+              borrowAmount: ethers.utils.parseEther("1500"),
+              farmingTokenAmount: ethers.utils.parseEther("375"),
+              maxReturn: BigNumber.from(0),
+              minLpReceive: BigNumber.from(0),
+            };
+
+            const stableWorkByte = buildDepositWorkByte(stableWorkbyteInput);
+            const assetWorkByte = buildDepositWorkByte(assetWorkbyteInput);
+
+            const data = ethers.utils.defaultAbiCoder.encode(
+              ["uint8[]", "uint256[]", "bytes[]"],
+              [
+                [ACTION_WORK, ACTION_WORK],
+                [0, 0],
+                [stableWorkByte, assetWorkByte],
+              ]
+            );
+
+            await expect(
+              deltaVaultAsAlice.deposit(stableTokenAmount, assetTokenAmount, aliceAddress, 0, data, {
+                value: 0,
+              })
+            ).to.be.revertedWith("IncorrectNativeAmountDeposit()");
           });
         });
       });
@@ -3547,7 +3621,7 @@ describe("DeltaNeutralVault", () => {
           stableVaultWorker: stableVaultWorker.address,
           assetVaultWorker: assetVaultWorker.address,
           lpToken: lp.address,
-          alpacaToken: alpacaToken.address, // change this to alpaca token address
+          alpacaToken: alpacaToken.address,
           deltaNeutralOracle: mockPriceOracle.address,
           deltaVaultConfig: deltaVaultConfig.address,
         };
@@ -3590,7 +3664,7 @@ describe("DeltaNeutralVault", () => {
           stableVaultWorker: stableVaultWorker.address,
           assetVaultWorker: assetVaultWorker.address,
           lpToken: lp.address,
-          alpacaToken: alpacaToken.address, // change this to alpaca token address
+          alpacaToken: alpacaToken.address,
           deltaNeutralOracle: mockPriceOracle.address,
           deltaVaultConfig: deltaVaultConfig.address,
         };

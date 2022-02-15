@@ -69,6 +69,9 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   error BountyExceedLimit();
   error PositionValueExceedLimit();
   error WithdrawValueExceedShareValue(uint256 _withdrawValue, uint256 _shareValue);
+  error IncorrectNativeAmountDeposit();
+  error InvalidLpToken();
+  error InvalidInitializedAddress();
 
   struct Outstanding {
     uint256 stableAmount;
@@ -180,6 +183,17 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
     priceOracle = _priceOracle;
     config = _config;
+
+    // check if parameters config properly
+    if (
+      lpToken != address(IWorker(assetVaultWorker).lpToken()) ||
+      lpToken != address(IWorker(stableVaultWorker).lpToken())
+    ) {
+      revert InvalidLpToken();
+    }
+    if (address(alpacaToken) == address(0)) revert InvalidInitializedAddress();
+    if (address(priceOracle) == address(0)) revert InvalidInitializedAddress();
+    if (address(config) == address(0)) revert InvalidInitializedAddress();
   }
 
   /// @notice initialize delta neutral vault positions.
@@ -213,6 +227,9 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   /// @param _amount amount to transfer.
   function _transferTokenToVault(address _token, uint256 _amount) internal {
     if (_token == config.getWrappedNativeAddr()) {
+      if (msg.value != _amount) {
+        revert IncorrectNativeAmountDeposit();
+      }
       IWETH(config.getWrappedNativeAddr()).deposit{ value: _amount }();
     } else {
       IERC20Upgradeable(_token).safeTransferFrom(msg.sender, address(this), _amount);
@@ -269,8 +286,9 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     _transferTokenToVault(assetToken, _assetTokenAmount);
 
     // 2. mint share for shareReceiver
-    uint256 _depositValue = _stableTokenAmount.mulWadDown(_getTokenPrice(stableToken)) +
-      _assetTokenAmount.mulWadDown(_getTokenPrice(assetToken));
+    uint256 _depositValue = Math.roundingWei(
+      (_stableTokenAmount * _getTokenPrice(stableToken)) + (_assetTokenAmount * _getTokenPrice(assetToken))
+    );
 
     uint256 _mintShares = valueToShare(_depositValue);
     uint256 _sharesToUser = ((MAX_BPS - config.depositFeeBps()) * _mintShares) / MAX_BPS;
@@ -613,12 +631,16 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
   /// @notice Return equity and debt value in usd of stable and asset positions.
   function positionInfo() public view returns (PositionInfo memory) {
+    uint256 _stablePositionValue = _positionValue(stableVaultWorker);
+    uint256 _assetPositionValue = _positionValue(assetVaultWorker);
+    uint256 _stableDebtValue = _positionDebtValue(stableVault, stableVaultPosId);
+    uint256 _assetDebtValue = _positionDebtValue(assetVault, assetVaultPosId);
     return
       PositionInfo({
-        stablePositionEquity: _positionEquity(stableVault, stableVaultWorker, stableVaultPosId),
-        stablePositionDebtValue: _positionDebtValue(stableVault, stableVaultPosId),
-        assetPositionEquity: _positionEquity(assetVault, assetVaultWorker, assetVaultPosId),
-        assetPositionDebtValue: _positionDebtValue(assetVault, assetVaultPosId)
+        stablePositionEquity: _stablePositionValue > _stableDebtValue ? _stablePositionValue - _stableDebtValue : 0,
+        stablePositionDebtValue: _stableDebtValue,
+        assetPositionEquity: _assetPositionValue > _assetDebtValue ? _assetPositionValue - _assetDebtValue : 0,
+        assetPositionDebtValue: _assetDebtValue
       });
   }
 
@@ -750,8 +772,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   }
 
   /// @dev _getTokenPrice with validate last price updated
-  function _getTokenPrice(address token) internal view returns (uint256) {
-    (uint256 _price, uint256 _lastUpdated) = priceOracle.getTokenPrice(token);
+  function _getTokenPrice(address _token) internal view returns (uint256) {
+    (uint256 _price, uint256 _lastUpdated) = priceOracle.getTokenPrice(_token);
     // _lastUpdated > 30 mins revert
     if (block.timestamp - _lastUpdated > 1800) revert UnTrustedPrice();
     return _price;
