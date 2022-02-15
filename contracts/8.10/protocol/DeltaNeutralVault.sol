@@ -89,7 +89,6 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
   /// @dev constants
   uint64 private constant MAX_BPS = 10000;
-  uint64 private constant MAX_ALPACA_BOUNTY_BPS = 2500; // 25%
 
   uint8 private constant ACTION_WORK = 1;
   uint8 private constant ACTION_WRAP = 2;
@@ -436,9 +435,6 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     bytes[] memory _datas
   ) external onlyReinvestors {
     uint256 _alpacaBountyBps = config.alpacaBountyBps();
-    if (_alpacaBountyBps > MAX_ALPACA_BOUNTY_BPS) {
-      revert BountyExceedLimit();
-    }
 
     // 1.  claim reward from fairlaunch
     uint256 _equityBefore = totalEquityValue();

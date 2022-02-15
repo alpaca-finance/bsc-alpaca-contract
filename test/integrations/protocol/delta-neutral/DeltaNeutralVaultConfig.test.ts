@@ -332,4 +332,24 @@ describe("DeltaNeutralVaultConfig", () => {
       });
     });
   });
+
+  describe("#setAlpacaBountyBps", async () => {
+    context("when not owner call setAlpacaBountyBps", async () => {
+      it("should revert", async () => {
+        await expect(deltaNeutralVaultConfigAsAlice.setAlpacaBountyBps(0)).to.be.reverted;
+      });
+    });
+    context("when set too much AlpacaBountyBps", async () => {
+      it("should revert", async () => {
+        await expect(deltaNeutralVaultConfig.setAlpacaBountyBps(2501)).to.be.revertedWith("TooMuchBounty(2501)");
+      });
+    });
+    context("when owner call setAlpacaBountyBps", async () => {
+      it("should be able to setAlpacaBountyBps", async () => {
+        const setAlpacaBountyTx = await deltaNeutralVaultConfig.setAlpacaBountyBps(500);
+        expect(await deltaNeutralVaultConfig.alpacaBountyBps()).to.eq(500);
+        expect(setAlpacaBountyTx).to.emit(deltaNeutralVaultConfig, "LogSetAlpacaBounty").withArgs(deployerAddress, 500);
+      });
+    });
+  });
 });
