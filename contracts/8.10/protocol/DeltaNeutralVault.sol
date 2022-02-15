@@ -286,8 +286,9 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     _transferTokenToVault(assetToken, _assetTokenAmount);
 
     // 2. mint share for shareReceiver
-    uint256 _depositValue = _stableTokenAmount.mulWadDown(_getTokenPrice(stableToken)) +
-      _assetTokenAmount.mulWadDown(_getTokenPrice(assetToken));
+    uint256 _depositValue = Math.roundingWei(
+      (_stableTokenAmount * _getTokenPrice(stableToken)) + (_assetTokenAmount * _getTokenPrice(assetToken))
+    );
 
     uint256 _mintShares = valueToShare(_depositValue);
     uint256 _sharesToUser = ((MAX_BPS - config.depositFeeBps()) * _mintShares) / MAX_BPS;
