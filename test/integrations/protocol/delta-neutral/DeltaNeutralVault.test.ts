@@ -2264,7 +2264,11 @@ describe("DeltaNeutralVault", () => {
                 const assetWithdrawWorkByte = buildWithdrawWorkByte(assetWithdrawInput);
                 const withdrawData = ethers.utils.defaultAbiCoder.encode(
                   ["uint8[]", "uint256[]", "bytes[]"],
-                  [[ACTION_WORK, ACTION_WORK], [0], [stableWithdrawWorkByte, assetWithdrawWorkByte]]
+                  [
+                    [ACTION_WORK, ACTION_WORK],
+                    [0, 0],
+                    [stableWithdrawWorkByte, assetWithdrawWorkByte],
+                  ]
                 );
                 const shareToWithdraw = await deltaVault.valueToShare(withdrawValue);
                 await expect(deltaVaultAsAlice.withdraw(shareToWithdraw, 0, 0, withdrawData)).to.be.revertedWith(
@@ -2313,7 +2317,11 @@ describe("DeltaNeutralVault", () => {
                 const assetWithdrawWorkByte = buildWithdrawWorkByte(assetWithdrawInput);
                 const withdrawData = ethers.utils.defaultAbiCoder.encode(
                   ["uint8[]", "uint256[]", "bytes[]"],
-                  [[ACTION_WORK, ACTION_WORK], [0], [stableWithdrawWorkByte, assetWithdrawWorkByte]]
+                  [
+                    [ACTION_WORK, ACTION_WORK],
+                    [0, 0],
+                    [stableWithdrawWorkByte, assetWithdrawWorkByte],
+                  ]
                 );
                 const shareToWithdraw = await deltaVault.valueToShare(withdrawValue);
                 await expect(deltaVaultAsAlice.withdraw(shareToWithdraw, 0, 0, withdrawData)).to.be.revertedWith(
@@ -2361,7 +2369,11 @@ describe("DeltaNeutralVault", () => {
               const assetWithdrawWorkByte = buildWithdrawWorkByte(assetWithdrawInput);
               const withdrawData = ethers.utils.defaultAbiCoder.encode(
                 ["uint8[]", "uint256[]", "bytes[]"],
-                [[ACTION_WORK, ACTION_WORK], [0], [stableWithdrawWorkByte, assetWithdrawWorkByte]]
+                [
+                  [ACTION_WORK, ACTION_WORK],
+                  [0, 0],
+                  [stableWithdrawWorkByte, assetWithdrawWorkByte],
+                ]
               );
               const shareToWithdraw = await deltaVault.valueToShare(withdrawValue);
               await expect(deltaVaultAsAlice.withdraw(shareToWithdraw, 0, 0, withdrawData)).to.be.revertedWith(
@@ -2783,7 +2795,7 @@ describe("DeltaNeutralVault", () => {
 
           const rebalanceTx = await deltaVault.rebalance(
             [ACTION_WORK, ACTION_WORK, ACTION_WRAP, ACTION_WORK, ACTION_WORK],
-            [0, 0, farmingTokenAmount, 0],
+            [0, 0, farmingTokenAmount, 0, 0],
             [action1, action2, EMPTY_BYTE, action4, action5]
           );
 
@@ -2946,7 +2958,7 @@ describe("DeltaNeutralVault", () => {
           await expect(
             deltaVault.rebalance(
               [ACTION_WORK, ACTION_WORK, ACTION_WRAP, ACTION_WORK, ACTION_WORK],
-              [0, 0, farmingTokenAmount, 0],
+              [0, 0, farmingTokenAmount, 0, 0],
               [action1, action2, EMPTY_BYTE, action4, action5]
             )
           ).to.be.revertedWith("UnsafePositionValue()");
@@ -3561,7 +3573,7 @@ describe("DeltaNeutralVault", () => {
             );
 
             const aliceShares = await deltaVault.balanceOf(aliceAddress);
-            await expect(deltaVault.reinvest([], [0], [])).to.be.revertedWith("UnsafePositionEquity()");
+            await expect(deltaVault.reinvest([], [], [])).to.be.revertedWith("UnsafePositionEquity()");
           });
         });
       });
