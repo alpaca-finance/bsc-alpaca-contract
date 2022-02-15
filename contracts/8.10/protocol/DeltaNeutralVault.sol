@@ -617,12 +617,16 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
   /// @notice Return equity and debt value in usd of stable and asset positions.
   function positionInfo() public view returns (PositionInfo memory) {
+    uint256 _stablePositionValue = _positionValue(stableVaultWorker);
+    uint256 _assetPositionValue = _positionValue(assetVaultWorker);
+    uint256 _stableDebtValue = _positionDebtValue(stableVault, stableVaultPosId);
+    uint256 _assetDebtValue = _positionDebtValue(assetVault, assetVaultPosId);
     return
       PositionInfo({
-        stablePositionEquity: _positionEquity(stableVault, stableVaultWorker, stableVaultPosId),
-        stablePositionDebtValue: _positionDebtValue(stableVault, stableVaultPosId),
-        assetPositionEquity: _positionEquity(assetVault, assetVaultWorker, assetVaultPosId),
-        assetPositionDebtValue: _positionDebtValue(assetVault, assetVaultPosId)
+        stablePositionEquity: _stablePositionValue > _stableDebtValue ? _stablePositionValue - _stableDebtValue : 0,
+        stablePositionDebtValue: _stableDebtValue,
+        assetPositionEquity: _assetPositionValue > _assetDebtValue ? _assetPositionValue - _assetDebtValue : 0,
+        assetPositionDebtValue: _assetDebtValue
       });
   }
 
