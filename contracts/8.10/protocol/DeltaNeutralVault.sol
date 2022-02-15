@@ -53,6 +53,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
   /// @dev Errors
   error BadReinvestPath();
+  error BadActionSize();
   error Unauthorized(address _caller);
   error PositionsAlreadyInitialized();
   error PositionsNotInitialized();
@@ -701,6 +702,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256[] memory _values,
     bytes[] memory _datas
   ) internal {
+    if (_actions.length != _values.length || _actions.length != _datas.length) revert BadActionSize();
+
     for (uint256 i = 0; i < _actions.length; i++) {
       uint8 _action = _actions[i];
       if (_action == ACTION_WORK) {
