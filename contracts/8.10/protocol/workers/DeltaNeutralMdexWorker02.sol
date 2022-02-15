@@ -228,7 +228,6 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
 
     // 2. Approve tokens
     mdx.safeApprove(address(router), type(uint256).max);
-    address(lpToken).safeApprove(address(bscPool), type(uint256).max);
 
     // 3. Send the reward bounty to the _treasuryAccount
     uint256 bounty = (reward * _treasuryBountyBps) / BASIS_POINT;
@@ -250,7 +249,6 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
 
     // 7. Reset approval
     mdx.safeApprove(address(router), 0);
-    address(lpToken).safeApprove(address(bscPool), 0);
 
     emit Reinvest(_treasuryAccount, reward, bounty);
   }
@@ -358,6 +356,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
       address(lpToken).safeApprove(address(bscPool), type(uint256).max);
       bscPool.deposit(pid, balance);
       totalLpBalance = totalLpBalance + balance;
+      address(lpToken).safeApprove(address(bscPool), 0);
       emit BscPoolDeposit(balance);
     }
   }

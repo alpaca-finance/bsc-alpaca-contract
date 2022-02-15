@@ -228,7 +228,6 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
 
     // 2. Approve tokens
     cake.safeApprove(address(router), type(uint256).max);
-    address(lpToken).safeApprove(address(masterChef), type(uint256).max);
 
     // 3. Send the reward bounty to the _treasuryAccount.
     uint256 bounty = (reward * _treasuryBountyBps) / BASIS_POINT;
@@ -250,7 +249,6 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
 
     // 7. Reset approval
     cake.safeApprove(address(router), 0);
-    address(lpToken).safeApprove(address(masterChef), 0);
 
     emit Reinvest(_treasuryAccount, reward, bounty);
   }
@@ -359,6 +357,7 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
       address(lpToken).safeApprove(address(masterChef), type(uint256).max);
       masterChef.deposit(pid, balance);
       totalLpBalance = totalLpBalance + balance;
+      address(lpToken).safeApprove(address(masterChef), 0);
       emit MasterChefDeposit(balance);
     }
   }
