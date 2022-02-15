@@ -504,6 +504,27 @@ describe("DeltaNeutralVault", () => {
     await assetVault.deposit(ethers.utils.parseEther("10000"));
   });
 
+  describe("#deploy", async () => {
+    context("when deploy with wrong config", async () => {
+      it("should revert", async () => {
+        const deployHelper = new DeployHelper(deployer);
+        // Setup Delta Neutral Vault
+        const deltaNeutral = {
+          name: "DELTA_NEUTRAL_VAULT",
+          symbol: "DELTA_NEUTRAL_VAULT",
+          vaultStable: stableVault.address,
+          vaultAsset: assetVault.address,
+          stableVaultWorker: stableVaultWorker.address,
+          assetVaultWorker: assetVaultWorker.address,
+          lpToken: aliceAddress,
+          alpacaToken: alpacaToken.address,
+          deltaNeutralOracle: mockPriceOracle.address,
+          deltaVaultConfig: deltaVaultConfig.address,
+        };
+        await expect(deployHelper.deployDeltaNeutralVault(deltaNeutral)).to.revertedWith("InvalidLpToken()");
+      });
+    });
+  });
   describe("#initPositions", async () => {
     context("when owner call initPositions", async () => {
       it("should initilize positions", async () => {
@@ -3600,7 +3621,7 @@ describe("DeltaNeutralVault", () => {
           stableVaultWorker: stableVaultWorker.address,
           assetVaultWorker: assetVaultWorker.address,
           lpToken: lp.address,
-          alpacaToken: alpacaToken.address, // change this to alpaca token address
+          alpacaToken: alpacaToken.address,
           deltaNeutralOracle: mockPriceOracle.address,
           deltaVaultConfig: deltaVaultConfig.address,
         };
@@ -3643,7 +3664,7 @@ describe("DeltaNeutralVault", () => {
           stableVaultWorker: stableVaultWorker.address,
           assetVaultWorker: assetVaultWorker.address,
           lpToken: lp.address,
-          alpacaToken: alpacaToken.address, // change this to alpaca token address
+          alpacaToken: alpacaToken.address,
           deltaNeutralOracle: mockPriceOracle.address,
           deltaVaultConfig: deltaVaultConfig.address,
         };

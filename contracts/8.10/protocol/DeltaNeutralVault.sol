@@ -70,6 +70,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   error PositionValueExceedLimit();
   error WithdrawValueExceedShareValue(uint256 _withdrawValue, uint256 _shareValue);
   error IncorrectNativeAmountDeposit();
+  error InvalidLpToken();
+  error InvalidInitializedAddress();
 
   struct Outstanding {
     uint256 stableAmount;
@@ -181,6 +183,17 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
     priceOracle = _priceOracle;
     config = _config;
+
+    // check if parameters config properly
+    if (
+      lpToken != address(IWorker(assetVaultWorker).lpToken()) ||
+      lpToken != address(IWorker(stableVaultWorker).lpToken())
+    ) {
+      revert InvalidLpToken();
+    }
+    if (address(alpacaToken) == address(0)) revert InvalidInitializedAddress();
+    if (address(priceOracle) == address(0)) revert InvalidInitializedAddress();
+    if (address(config) == address(0)) revert InvalidInitializedAddress();
   }
 
   /// @notice initialize delta neutral vault positions.
