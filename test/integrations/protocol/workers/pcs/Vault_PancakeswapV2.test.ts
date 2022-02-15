@@ -242,6 +242,7 @@ describe("Vault - PancakeswapV2", () => {
     debtToken = (await upgrades.deployProxy(DebtToken, [
       "debtibBTOKEN_V2",
       "debtibBTOKEN_V2",
+      18,
       deployerAddress,
     ])) as DebtToken;
     await debtToken.deployed();

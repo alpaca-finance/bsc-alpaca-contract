@@ -81,7 +81,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   let nonce = await deployer.getTransactionCount();
 
   console.log(">> Set okHolders on DebtToken to be be Vault");
-  await debtToken.setOkHolders([vault.address, config.FairLaunch.address], true, { nonce: nonce++ });
+  await debtToken.setOkHolders([vault.address, config.FairLaunch!.address], true, { nonce: nonce++ });
   console.log("✅ Done");
 
   console.log(">> Transferring ownership of debtToken to Vault");
@@ -92,7 +92,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   console.log(">> Queue Transaction to add a debtToken pool through Timelock");
   await timelock.queueTransaction(
-    config.Shield,
+    config.Shield!,
     "0",
     "addPool(uint256,address,bool)",
     ethers.utils.defaultAbiCoder.encode(
@@ -120,7 +120,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   console.log(`>> Queue Transaction to add a ${SYMBOL} pool through Timelock`);
   await timelock.queueTransaction(
-    config.Shield,
+    config.Shield!,
     "0",
     "addPool(uint256,address,bool)",
     ethers.utils.defaultAbiCoder.encode(["uint256", "address", "bool"], [ALLOC_POINT_FOR_DEPOSIT, vault.address, true]),

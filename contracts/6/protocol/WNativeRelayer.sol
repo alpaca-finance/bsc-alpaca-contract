@@ -13,9 +13,10 @@ Alpaca Fin Corporation
 
 pragma solidity 0.6.6;
 
-import "./interfaces/IWETH.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+
+import "./interfaces/IWETH.sol";
 
 contract WNativeRelayer is Ownable, ReentrancyGuard {
   address private wnative;

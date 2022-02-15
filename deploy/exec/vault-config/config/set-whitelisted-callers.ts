@@ -28,18 +28,18 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "testnet_set_whitelisted_callers";
+  const TITLE = "mainnet_zhang_set_whitelisted_callers";
   const TARGETED_VAULT_CONFIG: Array<IInput> = [
     {
       VAULT_SYMBOL: "ibWBNB",
-      WHITELISTED_CALLERS: ["0xD378d37fA8040370fe42bc732e5B2A169096d3e1"],
+      WHITELISTED_CALLERS: ["0x9B9f03773cAbA9dd74c837d16c4b00856e4Ed860"],
       IS_ENABLE: true,
     },
-    // {
-    //   VAULT_SYMBOL: "ibBUSD",
-    //   WHITELISTED_CALLERS: ["0x36488cC6F2E0f96e8814F315BDF4229c9c82d60A"],
-    //   IS_ENABLE: true,
-    // },
+    {
+      VAULT_SYMBOL: "ibBUSD",
+      WHITELISTED_CALLERS: ["0x9B9f03773cAbA9dd74c837d16c4b00856e4Ed860"],
+      IS_ENABLE: true,
+    },
     // {
     //   VAULT_SYMBOL: "ibETH",
     //   WHITELISTED_CALLERS: ["0x36488cC6F2E0f96e8814F315BDF4229c9c82d60A"],
@@ -66,7 +66,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     //   IS_ENABLE: true,
     // },
   ];
-  const EXACT_ETA = "1642237200";
+  const EXACT_ETA = "1644558300";
 
   const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];

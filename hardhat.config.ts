@@ -52,6 +52,14 @@ module.exports = {
       url: process.env.ETH_MAINNET_RPC,
       accounts: [process.env.ETH_MAINNET_PRIVATE_KEY],
     },
+    fantom_testnet: {
+      url: "https://rpc.testnet.fantom.network/",
+      accounts: [process.env.FANTOM_TESTNET_PRIVATE_KEY],
+    },
+    fantom_mainnet: {
+      url: process.env.FTM_MAINNET_RPC,
+      accounts: [process.env.FANTOM_MAINNET_PRIVATE_KEY],
+    },
     mainnetfork: {
       url: "http://127.0.0.1:8545",
       accounts: [process.env.BSC_MAINNET_PRIVATE_KEY, process.env.QA_PRIVATE_KEY],
@@ -97,6 +105,6 @@ module.exports = {
     target: process.env.TYPECHAIN_TARGET || "ethers-v5",
   },
   mocha: {
-    timeout: 50000,
+    timeout: 100000,
   },
 };

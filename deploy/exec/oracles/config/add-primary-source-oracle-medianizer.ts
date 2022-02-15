@@ -18,11 +18,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const DEFAULT_MAX_PRICE_STALE = "86400";
   const config = ConfigEntity.getConfig();
 
-  const TOKEN0_SYMBOLS = ["HIGH"];
-  const TOKEN1_SYMBOLS = ["BUSD"];
-  const MAX_PRICE_DEVIATIONS = [DEFAULT_MAX_PRICE_DEVIATION];
-  const MAX_PRICE_STALES = [DEFAULT_MAX_PRICE_STALE];
-  const SOURCES = [[config.Oracle.SimpleOracle]];
+  const TOKEN0_SYMBOLS = ["WFTM", "WFTM", "TUSD"];
+  const TOKEN1_SYMBOLS = ["ETH", "USDC", "USDC"];
+  const MAX_PRICE_DEVIATIONS = [DEFAULT_MAX_PRICE_DEVIATION, DEFAULT_MAX_PRICE_DEVIATION, DEFAULT_MAX_PRICE_DEVIATION];
+  const MAX_PRICE_STALES = [DEFAULT_MAX_PRICE_STALE, DEFAULT_MAX_PRICE_STALE, DEFAULT_MAX_PRICE_STALE];
+  const SOURCES = [[config.Oracle.ChainLinkOracle], [config.Oracle.ChainLinkOracle], [config.Oracle.ChainLinkOracle]];
 
   const tokenList: any = config.Tokens;
   const token0Addrs: Array<string> = TOKEN0_SYMBOLS.map((t) => {
@@ -50,8 +50,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     token1Addrs,
     MAX_PRICE_DEVIATIONS,
     MAX_PRICE_STALES,
-    SOURCES,
-    { gasLimit: "10000000", gasPrice: "20000000000" }
+    SOURCES
   );
   console.log("✅ Done");
 };
