@@ -299,8 +299,9 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
   }
 
   /// @dev Liquidate the given position by converting it to BaseToken and return back to caller.
-  /// @param id The position ID to perform liquidation
-  function liquidate(uint256 id) external override onlyOperator nonReentrant {
+  function liquidate(
+    uint256 /*id*/
+  ) external override onlyOperator nonReentrant {
     // NOTE: this worker does not allow liquidation
     revert NotAllowToLiquidate();
   }
