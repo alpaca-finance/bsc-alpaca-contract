@@ -1498,6 +1498,59 @@ describe("DeltaNeutralVault", () => {
             });
           });
         });
+
+        context("when native amount and _assetTokenAmount mismatch", async () => {
+          it("should revert", async () => {
+            await baseTokenAsAlice.transfer(deltaVault.address, ethers.utils.parseEther("400"));
+            const reduceAmount = ethers.utils.parseEther("10");
+            const stableTokenAmount = ethers.utils.parseEther("500").sub(reduceAmount);
+            const assetTokenAmount = ethers.utils.parseEther("500");
+
+            await baseTokenAsAlice.approve(deltaVault.address, stableTokenAmount);
+
+            const stableWorkbyteInput: IDepositWorkByte = {
+              posId: 1,
+              vaultAddress: stableVault.address,
+              workerAddress: stableVaultWorker.address,
+              twoSidesStrat: stableTwoSidesStrat.address,
+              principalAmount: ethers.utils.parseEther("125"),
+              borrowAmount: ethers.utils.parseEther("500"),
+              farmingTokenAmount: ethers.utils.parseEther("125"),
+              maxReturn: BigNumber.from(0),
+              minLpReceive: BigNumber.from(0),
+            };
+
+            const assetWorkbyteInput: IDepositWorkByte = {
+              posId: 1,
+              vaultAddress: assetVault.address,
+              workerAddress: assetVaultWorker.address,
+              twoSidesStrat: assetTwoSidesStrat.address,
+              principalAmount: ethers.utils.parseEther("375"),
+              borrowAmount: ethers.utils.parseEther("1500"),
+              farmingTokenAmount: ethers.utils.parseEther("375"),
+              maxReturn: BigNumber.from(0),
+              minLpReceive: BigNumber.from(0),
+            };
+
+            const stableWorkByte = buildDepositWorkByte(stableWorkbyteInput);
+            const assetWorkByte = buildDepositWorkByte(assetWorkbyteInput);
+
+            const data = ethers.utils.defaultAbiCoder.encode(
+              ["uint8[]", "uint256[]", "bytes[]"],
+              [
+                [ACTION_WORK, ACTION_WORK],
+                [0, 0],
+                [stableWorkByte, assetWorkByte],
+              ]
+            );
+
+            await expect(
+              deltaVaultAsAlice.deposit(stableTokenAmount, assetTokenAmount, aliceAddress, 0, data, {
+                value: 0,
+              })
+            ).to.be.revertedWith("IncorrectNativeAmountDeposit()");
+          });
+        });
       });
 
       context("when alice deposit to delta neutral vault with deposit fee", async () => {

@@ -69,6 +69,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   error BountyExceedLimit();
   error PositionValueExceedLimit();
   error WithdrawValueExceedShareValue(uint256 _withdrawValue, uint256 _shareValue);
+  error IncorrectNativeAmountDeposit();
 
   struct Outstanding {
     uint256 stableAmount;
@@ -213,6 +214,9 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   /// @param _amount amount to transfer.
   function _transferTokenToVault(address _token, uint256 _amount) internal {
     if (_token == config.getWrappedNativeAddr()) {
+      if (msg.value != _amount) {
+        revert IncorrectNativeAmountDeposit();
+      }
       IWETH(config.getWrappedNativeAddr()).deposit{ value: _amount }();
     } else {
       IERC20Upgradeable(_token).safeTransferFrom(msg.sender, address(this), _amount);
