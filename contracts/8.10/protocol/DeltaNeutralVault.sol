@@ -438,7 +438,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     IERC20Upgradeable(alpacaToken).safeTransfer(config.getTreasuryAddr(), _bounty);
 
     // 3. swap alpaca
-    if (config.getReinvestPath().length == 0) {
+    address[] memory reinvestPath = config.getReinvestPath();
+    if (reinvestPath.length == 0) {
       revert BadReinvestPath();
     }
 
@@ -447,7 +448,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     ISwapRouter(config.getSwapRouter()).swapExactTokensForTokens(
       _rewardAmount,
       0,
-      config.getReinvestPath(),
+      reinvestPath,
       address(this),
       block.timestamp
     );
