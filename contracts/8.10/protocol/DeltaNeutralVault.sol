@@ -771,8 +771,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   }
 
   /// @dev _getTokenPrice with validate last price updated
-  function _getTokenPrice(address token) internal view returns (uint256) {
-    (uint256 _price, uint256 _lastUpdated) = priceOracle.getTokenPrice(token);
+  function _getTokenPrice(address _token) internal view returns (uint256) {
+    (uint256 _price, uint256 _lastUpdated) = priceOracle.getTokenPrice(_token);
     // _lastUpdated > 30 mins revert
     if (block.timestamp - _lastUpdated > 1800) revert UnTrustedPrice();
     return _price;
