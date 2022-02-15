@@ -211,6 +211,9 @@
     "deploy:fantom_mainnet:minifl:deploy:minifl": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags MiniFL",
     "deploy:fantom_mainnet:rewarder1:deploy:rewarder1": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags Rewarder1",
     "deploy:fantom_mainnet:vault:deploy:minifl-vault": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags MiniFL_Vault",
+    "deploy:fantom_mainnet:oracles:deploy:chainlink-oracle2": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags ChainlinkPriceOracle2",
+    "deploy:fantom_mainnet:oracles:config:add-price-source-chainlink": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags AddSourceChainLinkPriceOracle",
+    "deploy:fantom_mainnet:oracles:config:add-primary-source-oracle-medianizer": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags AddSourceOracleMedianizer",
     "mainnet": "hardhat console --no-compile --network mainnet",
     "ethereum": "hardhat console --no-compile --network ethereum",
     "test:case": "mocha --require hardhat/register --file test/integrations/protocol/workers/spookyswap/Vault_SpookyWorker03.test.ts --extension ts -g",
@@ -280,6 +283,7 @@
     "test:merkle": "hardhat test --no-compile ./test/MerkleDistributor.test.ts",
     "test:oracleMedianizer": "hardhat test --no-compile ./test/OracleMedianizer.test.ts",
     "test:chainLinkPriceOracle": "hardhat test --no-compile ./test/ChainLinkPriceOracle.test.ts",
+    "test:chainlinkPriceOracle2": "hardhat test --no-compile ./test/integrations/protocol/price-oracle/ChainlinkPriceOracle2.test.ts",
     "test:mainnetfork:grazingRangeV2": "hardhat --network mainnetfork run --no-compile ./test/fork/GrazingRangeUpgrade.test.ts",
     "test:miniFL": "hardhat test --no-compile ./test/integrations/token/MiniFL.test.ts",
     "test": "hardhat test --no-compile",
@@ -368,5 +372,8 @@
   },
   "engines": {
     "node": ">=14"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts-upgradeable": "^4.5.1"
   }
 }

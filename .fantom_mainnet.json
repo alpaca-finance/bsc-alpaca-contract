@@ -78,7 +78,7 @@
   },
   "Oracle": {
     "OracleMedianizer": "0xE1D2CA01bc88F325fF7266DD2165944f3CAf0D3D",
-    "ChainLinkOracle": "0x5379F32C8D5F663EACb61eeF63F722950294f452",
+    "ChainLinkOracle": "0xD2D638aa6Ff4694a9147F2C8B09e86F569FA052B",
     "SimpleOracle": "0xCab46f1397fdf4b0F31CEF05345141E51F877EdB"
   },
   "Vaults": [

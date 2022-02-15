@@ -1,10 +1,7 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers, network } from "hardhat";
-import { ChainLinkPriceOracle__factory } from "../../../../typechain";
-import TestnetConfig from "../../../../.testnet.json";
-import MainnetConfig from "../../../../.mainnet.json";
-import { getConfig } from "../../../entities/config";
+import { ethers, upgrades } from "hardhat";
+import { ChainlinkPriceOracle2__factory } from "../../../../typechain";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -16,35 +13,18 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TOKEN0_SYMBOLS = ["TUSD"];
-  const TOKEN1_SYMBOLS = ["USDC"];
-  const AGGREGATORV3S = ["0x2553f4eeb82d5A26427b8d1106C51499CBa5D99c"]; // BNB/USD Chainlink's Aggregator
 
-  const config = getConfig();
-  const tokenList: any = config.Tokens;
-  const token0Addrs: Array<string> = TOKEN0_SYMBOLS.map((t) => {
-    const addr = tokenList[t];
-    if (addr === undefined) {
-      throw `error: token: unable to find address of ${t}`;
-    }
-    return addr;
-  });
-  const token1Addrs: Array<string> = TOKEN1_SYMBOLS.map((t) => {
-    const addr = tokenList[t];
-    if (addr === undefined) {
-      throw `error: token: unable to find address of ${t}`;
-    }
-    return addr;
-  });
-
-  const chainLinkPriceOracle = ChainLinkPriceOracle__factory.connect(
-    config.Oracle.ChainLinkOracle,
-    (await ethers.getSigners())[0]
-  );
-  console.log(">> Adding price source to chain link price oracle");
-  await chainLinkPriceOracle.setPriceFeeds(token0Addrs, token1Addrs, AGGREGATORV3S);
-  console.log("✅ Done");
+  console.log(">> Deploying an upgradable ChainLinkPriceOracle contract");
+  const ChainLinkPriceOracle2 = (await ethers.getContractFactory(
+    "ChainlinkPriceOracle2",
+    (
+      await ethers.getSigners()
+    )[0]
+  )) as ChainlinkPriceOracle2__factory;
+  const chainLinkPriceOracle2 = await upgrades.deployProxy(ChainLinkPriceOracle2);
+  await chainLinkPriceOracle2._deployed();
+  console.log(`>> Deployed at ${chainLinkPriceOracle2.address}`);
 };
 
 export default func;
-func.tags = ["AddSourceChainLinkPriceOracle"];
+func.tags = ["ChainlinkPriceOracle2"];
