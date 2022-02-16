@@ -16,7 +16,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const config = ConfigEntity.getConfig();
 
-  const MIN_DEBT_SIZE = ethers.utils.parseEther("100");
+  const MIN_DEBT_SIZE = ethers.utils.parseEther("250");
   const RESERVE_POOL_BPS = "1900";
   const KILL_PRIZE_BPS = "100";
   const TREASURY_KILL_BPS = "400";

@@ -41,6 +41,18 @@
         "stakingToken": "ibUSDC",
         "address": "0xfd0B2279B866E245cAf1F0F1AeC6E87DA96b8B65",
         "rewarder": "0x763a687E631A907baDd620E20e9A0869E3Ec543D"
+      },
+      {
+        "id": 6,
+        "stakingToken": "debtIbALPACA_V2",
+        "address": "0xe9C6FaF5F4C184FDAe9eA948dFC8Dd97897D7Fc5",
+        "rewarder": "0x763a687E631A907baDd620E20e9A0869E3Ec543D"
+      },
+      {
+        "id": 7,
+        "stakingToken": "ibALPACA",
+        "address": "0x19EC3914C98450d9DAFd3769Db33157e8600D060",
+        "rewarder": "0x763a687E631A907baDd620E20e9A0869E3Ec543D"
       }
     ]
   },
@@ -213,6 +225,38 @@
             "StrategyAddAllBaseToken": "0x96b6FAfdC9C3D55ef4906A005B7525B8C06CE6f5",
             "StrategyLiquidate": "0x5f597510Af2562181F752217a3C4963c9baAC615",
             "StrategyAddTwoSidesOptimal": "0xc582bFb2769D92fd0627AF2aE91E2F61beeEA38C",
+            "StrategyWithdrawMinimizeTrading": "0x800343333540a2e600E66e7cD73ABc0dE3cC017A",
+            "StrategyPartialCloseLiquidate": "0xC74846Bc38AF10d172293aC1D1C524e319156F0F",
+            "StrategyPartialCloseMinimizeTrading": "0x0C52c7E0c27028428DcBCBA8791f30b082aD9A3a"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Interest Bearing ALPACA",
+      "symbol": "ibALPACA",
+      "address": "0x19EC3914C98450d9DAFd3769Db33157e8600D060",
+      "deployedBlock": 7770010,
+      "baseToken": "0x17326e0677A4C89E22FBD6192F1fb1972200473a",
+      "debtToken": "0xe9C6FaF5F4C184FDAe9eA948dFC8Dd97897D7Fc5",
+      "config": "0xb3b9fb79e093830dbc466dfA7fc1259fb677b38a",
+      "tripleSlopeModel": "0x72a7AA7EAF23C31F4a1EdB0b3a66778EF6ca5077",
+      "StrategyAddTwoSidesOptimal": {
+        "SpookySwap": "0xE739A8d6AaDbD4fa44Ad7541f8a5a5D7dbfD25F4"
+      },
+      "workers": [
+        {
+          "name": "WFTM-ALPACA SpookyWorker",
+          "address": "0xD858050D16399ebdDDC5f61610004baFd6162551",
+          "deployedBlock": 7771461,
+          "config": "0x972F1D78d1E7D7ab5c11b3346c966c2EC94a64e6",
+          "pId": 1,
+          "stakingToken": "0xE19adba4168E68fE804479A741b809e45d0b26E4",
+          "stakingTokenAt": "0xF9c40C68d4AE8234db6AbC38B7Efb91cF2232cF4",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x96b6FAfdC9C3D55ef4906A005B7525B8C06CE6f5",
+            "StrategyLiquidate": "0x5f597510Af2562181F752217a3C4963c9baAC615",
+            "StrategyAddTwoSidesOptimal": "0xE739A8d6AaDbD4fa44Ad7541f8a5a5D7dbfD25F4",
             "StrategyWithdrawMinimizeTrading": "0x800343333540a2e600E66e7cD73ABc0dE3cC017A",
             "StrategyPartialCloseLiquidate": "0xC74846Bc38AF10d172293aC1D1C524e319156F0F",
             "StrategyPartialCloseMinimizeTrading": "0x0C52c7E0c27028428DcBCBA8791f30b082aD9A3a"
