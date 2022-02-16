@@ -77,8 +77,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     // {
     //   VAULT_SYMBOL: "ibFTM",
     //   WORKER_NAME: "ALPACA-FTM SpookyWorker",
-    //   REINVEST_BOT: "0xcf28b4da7d3ed29986831876b74af6e95211d3f9",
-    //   POOL_ID: 1,
+    //   REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
+    //   POOL_ID: 63,
     //   REINVEST_BOUNTY_BPS: "900",
     //   REINVEST_PATH: ["BOO", "WFTM"],
     //   REINVEST_THRESHOLD: "0",
@@ -90,8 +90,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     {
       VAULT_SYMBOL: "ibALPACA",
       WORKER_NAME: "FTM-ALPACA SpookyWorker",
-      REINVEST_BOT: "0xcf28b4da7d3ed29986831876b74af6e95211d3f9",
-      POOL_ID: 1,
+      REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
+      POOL_ID: 63,
       REINVEST_BOUNTY_BPS: "900",
       REINVEST_PATH: ["BOO", "WFTM", "ALPACA"],
       REINVEST_THRESHOLD: "0",
@@ -175,7 +175,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       workerInfos[i].REINVEST_PATH,
       workerInfos[i].REINVEST_THRESHOLD,
     ])) as SpookyWorker03;
-    const deployedTx = await spookyWorker03.deployTransaction.wait(15);
+    const deployedTx = await spookyWorker03.deployTransaction.wait(20);
     console.log(`>> Deployed at ${spookyWorker03.address}`);
     console.log(`>> Deployed block: ${deployedTx.blockNumber}`);
 

@@ -33,13 +33,13 @@
       {
         "id": 4,
         "stakingToken": "debtIbALPACA_V2",
-        "address": "",
+        "address": "0xcf8b56F16024Ef0feB3Ddcb85Ec5879bf593E372",
         "rewarder": "0x7EEAA96bf1aBaA206615046c0991E678a2b12Da1"
       },
       {
         "id": 5,
         "stakingToken": "ibALPACA",
-        "address": "",
+        "address": "0x2E7f32e38EA5a5fcb4494d9B626d2d393B176B1E",
         "rewarder": "0x7EEAA96bf1aBaA206615046c0991E678a2b12Da1"
       }
     ]
@@ -157,6 +157,23 @@
             "StrategyPartialCloseLiquidate": "0x311a522e43C035244e72247895F5C17e46CAB000",
             "StrategyPartialCloseMinimizeTrading": "0x540247c00645E85fA548064039493beD4a0c522C"
           }
+        },
+        {
+          "name": "ALPACA-WFTM SpookyWorker",
+          "address": "0xB82B93FcF1818513889c0E1F3628484Ce5017A14",
+          "deployedBlock": 31162745,
+          "config": "0xca1Cf7C64481B8C095828d380922505E5942C60D",
+          "pId": 63,
+          "stakingToken": "0xF66D2bf736c05723b62E833A5DD747E24855ff99",
+          "stakingTokenAt": "0x2b2929E785374c651a81A63878Ab22742656DcDd",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0xD50aAb6B210fe049B6c5262f5A7676204699AB8E",
+            "StrategyLiquidate": "0x65Cc57347bA3761358Eb175540E9e5D39CbceFd8",
+            "StrategyAddTwoSidesOptimal": "0x11288Ceee9C12C9d2b1A80a4Df10d5c18F0429e8",
+            "StrategyWithdrawMinimizeTrading": "0x07DE1F788Fa7E0C215AA772d4429f47902640ef5",
+            "StrategyPartialCloseLiquidate": "0x311a522e43C035244e72247895F5C17e46CAB000",
+            "StrategyPartialCloseMinimizeTrading": "0x540247c00645E85fA548064039493beD4a0c522C"
+          }
         }
       ]
     },
@@ -212,16 +229,34 @@
     {
       "name": "Interest Bearing ALPACA",
       "symbol": "ibALPACA",
-      "address": "",
-      "deployedBlock": 888888,
+      "address": "0x2E7f32e38EA5a5fcb4494d9B626d2d393B176B1E",
+      "deployedBlock": 31161333,
       "baseToken": "0xad996a45fd2373ed0b10efa4a8ecb9de445a4302",
-      "debtToken": "",
-      "config": "",
+      "debtToken": "0xcf8b56F16024Ef0feB3Ddcb85Ec5879bf593E372",
+      "config": "0x23ff13d43702cA95a6369736dBFf6Ea718b5F0b0",
       "tripleSlopeModel": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
       "StrategyAddTwoSidesOptimal": {
-        "SpookySwap": ""
+        "SpookySwap": "0x4b0e0D158e6a272295e404A4C06C937d4947093C"
       },
-      "workers": []
+      "workers": [
+        {
+          "name": "WFTM-ALPACA SpookyWorker",
+          "address": "0x66C293f55f06DC556B961240184902C07d25C1f2",
+          "deployedBlock": 31163065,
+          "config": "0xca1Cf7C64481B8C095828d380922505E5942C60D",
+          "pId": 63,
+          "stakingToken": "0xF66D2bf736c05723b62E833A5DD747E24855ff99",
+          "stakingTokenAt": "0x2b2929E785374c651a81A63878Ab22742656DcDd",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0xD50aAb6B210fe049B6c5262f5A7676204699AB8E",
+            "StrategyLiquidate": "0x65Cc57347bA3761358Eb175540E9e5D39CbceFd8",
+            "StrategyAddTwoSidesOptimal": "0x4b0e0D158e6a272295e404A4C06C937d4947093C",
+            "StrategyWithdrawMinimizeTrading": "0x07DE1F788Fa7E0C215AA772d4429f47902640ef5",
+            "StrategyPartialCloseLiquidate": "0x311a522e43C035244e72247895F5C17e46CAB000",
+            "StrategyPartialCloseMinimizeTrading": "0x540247c00645E85fA548064039493beD4a0c522C"
+          }
+        }
+      ]
     }
   ]
 }
