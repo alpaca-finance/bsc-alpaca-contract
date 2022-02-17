@@ -20,10 +20,11 @@ import "./interfaces/IDeltaNeutralOracle.sol";
 import "./interfaces/IChainLinkPriceOracle.sol";
 import "../utils/AlpacaMath.sol";
 
-error InvalidLPAddress();
-
 contract DeltaNeutralOracle is IDeltaNeutralOracle, Initializable, OwnableUpgradeable {
   using AlpacaMath for uint256;
+
+  /// @dev Errors
+  error DeltaNeutralOracle_InvalidLPAddress();
 
   /// @notice An address of chainlink usd token
   address public usd;
@@ -73,7 +74,7 @@ contract DeltaNeutralOracle is IDeltaNeutralOracle, Initializable, OwnableUpgrad
   /// @param _lpToken lp token address
   function _getLPPrice(address _lpToken) internal view returns (uint256, uint256) {
     if (_lpToken == address(0)) {
-      revert InvalidLPAddress();
+      revert DeltaNeutralOracle_InvalidLPAddress();
     }
 
     uint256 _totalSupply = ILiquidityPair(_lpToken).totalSupply();

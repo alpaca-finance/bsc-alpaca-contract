@@ -323,7 +323,7 @@ describe("DeltaNeutralOracle", () => {
     context("when invalid input", async () => {
       it("should revert when no address", async () => {
         await expect(priceOracle.lpToDollar(ethers.constants.One, ethers.constants.AddressZero)).to.be.revertedWith(
-          "InvalidLPAddress()"
+          "DeltaNeutralOracle_InvalidLPAddress()"
         );
       });
     });
@@ -370,7 +370,7 @@ describe("DeltaNeutralOracle", () => {
     context("when incorrect input", async () => {
       it("should revert when no address", async () => {
         await expect(priceOracle.dollarToLp(ethers.constants.One, ethers.constants.AddressZero)).to.be.revertedWith(
-          "InvalidLPAddress()"
+          "DeltaNeutralOracle_InvalidLPAddress()"
         );
       });
     });

@@ -374,7 +374,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
         await expect(
           deltaNeutralWorker.setReinvestConfig(250, ethers.utils.parseEther("1"), [cake.address, baseToken.address])
         )
-          .to.be.emit(deltaNeutralWorker, "SetReinvestConfig")
+          .to.be.emit(deltaNeutralWorker, "LogSetReinvestConfig")
           .withArgs(deployerAddress, 250, ethers.utils.parseEther("1"), [cake.address, baseToken.address]);
         expect(await deltaNeutralWorker.reinvestBountyBps()).to.be.eq(250);
         expect(await deltaNeutralWorker.reinvestThreshold()).to.be.eq(ethers.utils.parseEther("1"));
@@ -384,14 +384,14 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
       it("should revert when owner set reinvestBountyBps > max", async () => {
         await expect(
           deltaNeutralWorker.setReinvestConfig(1000, "0", [cake.address, baseToken.address])
-        ).to.be.revertedWith("ExceedReinvestBounty()");
+        ).to.be.revertedWith("DeltaNeutralPancakeWorker02_ExceedReinvestBounty()");
         expect(await deltaNeutralWorker.reinvestBountyBps()).to.be.eq(100);
       });
 
       it("should revert when owner set reinvest path that doesn't start with $CAKE and end with $BTOKN", async () => {
         await expect(
           deltaNeutralWorker.setReinvestConfig(200, "0", [baseToken.address, cake.address])
-        ).to.be.revertedWith("InvalidReinvestPath()");
+        ).to.be.revertedWith("DeltaNeutralPancakeWorker02_InvalidReinvestPath()");
       });
     });
 
@@ -402,7 +402,9 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
       });
 
       it("should revert when new max reinvest bounty over 30%", async () => {
-        await expect(deltaNeutralWorker.setMaxReinvestBountyBps("3001")).to.be.revertedWith("ExceedReinvestBps()");
+        await expect(deltaNeutralWorker.setMaxReinvestBountyBps("3001")).to.be.revertedWith(
+          "DeltaNeutralPancakeWorker02_ExceedReinvestBps()"
+        );
         expect(await deltaNeutralWorker.maxReinvestBountyBps()).to.be.eq(MAX_REINVEST_BOUNTY);
       });
     });
@@ -437,7 +439,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
       it("should set whitelisted callers", async () => {
         await expect(deltaNeutralWorker.setWhitelistedCallers([deployerAddress], true)).to.emit(
           deltaNeutralWorker,
-          "SetWhitelistedCallers"
+          "LogSetWhitelistedCallers"
         );
         expect(await deltaNeutralWorker.whitelistCallers(deployerAddress)).to.be.eq(true);
       });
@@ -472,13 +474,15 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
 
       it("should revert", async () => {
         const rewardPath = [cake.address, farmToken.address, farmToken.address];
-        await expect(deltaNeutralWorkerAsDeployer.setRewardPath(rewardPath)).to.revertedWith("InvalidReinvestPath()");
+        await expect(deltaNeutralWorkerAsDeployer.setRewardPath(rewardPath)).to.revertedWith(
+          "DeltaNeutralPancakeWorker02_InvalidReinvestPath()"
+        );
       });
 
       it("should be able to set new rewardpath", async () => {
         const rewardPath = [cake.address, farmToken.address, baseToken.address];
         await expect(deltaNeutralWorkerAsDeployer.setRewardPath(rewardPath))
-          .to.emit(deltaNeutralWorker, "SetRewardPath")
+          .to.emit(deltaNeutralWorker, "LogSetRewardPath")
           .withArgs(deployerAddress, rewardPath);
       });
     });
@@ -587,7 +591,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
               [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
             )
           )
-        ).to.be.revertedWith("NotWhitelistedCaller()");
+        ).to.be.revertedWith("DeltaNeutralPancakeWorker02_NotWhitelistedCaller()");
       });
     });
   });
@@ -750,7 +754,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
               [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
             )
           )
-        ).to.be.revertedWith("UnTrustedPrice()");
+        ).to.be.revertedWith("DeltaNeutralPancakeWorker02_UnTrustedPrice()");
       });
 
       it("should has correct interest rate growth", async () => {
@@ -901,7 +905,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
 
         // Now you can liquidate because of the price fluctuation
         const bobBefore = await baseToken.balanceOf(bobAddress);
-        await expect(vaultAsBob.kill("1")).to.be.revertedWith("NotAllowToLiquidate()");
+        await expect(vaultAsBob.kill("1")).to.be.revertedWith("DeltaNeutralPancakeWorker02_NotAllowToLiquidate()");
         expect(await baseToken.balanceOf(bobAddress)).to.be.eq(bobBefore);
       });
     });
@@ -954,7 +958,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
         await chainLinkOracleAsDeployer.setPriceFeeds([farmToken.address], [busd.address], [mockAggregatorV3.address]);
 
         // Bob try kill position
-        await expect(vaultAsBob.kill("1")).to.be.revertedWith("NotAllowToLiquidate()");
+        await expect(vaultAsBob.kill("1")).to.be.revertedWith("DeltaNeutralPancakeWorker02_NotAllowToLiquidate()");
       });
     });
 
