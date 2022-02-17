@@ -308,4 +308,48 @@ describe("DeltaNeutralVaultConfig", () => {
       });
     });
   });
+
+  describe("#setFees", async () => {
+    context("when not owner call setFees", async () => {
+      it("should revert", async () => {
+        await expect(deltaNeutralVaultConfigAsAlice.setFees(0, 0, 0)).to.be.reverted;
+      });
+    });
+    context("when set too much fee", async () => {
+      it("should revert", async () => {
+        await expect(deltaNeutralVaultConfig.setFees(1001, 1002, 1003)).to.be.revertedWith(
+          "TooMuchFee(1001, 1002, 1003)"
+        );
+      });
+    });
+    context("when owner call setFees", async () => {
+      it("should be able to set fee", async () => {
+        const setFeesTx = await deltaNeutralVaultConfig.setFees(500, 500, 500);
+        expect(await deltaNeutralVaultConfig.depositFeeBps()).to.eq(500);
+        expect(await deltaNeutralVaultConfig.withdrawalFeeBps()).to.eq(500);
+        expect(await deltaNeutralVaultConfig.mangementFeeBps()).to.eq(500);
+        expect(setFeesTx).to.emit(deltaNeutralVaultConfig, "LogSetFees").withArgs(deployerAddress, 500, 500, 500);
+      });
+    });
+  });
+
+  describe("#setAlpacaBountyBps", async () => {
+    context("when not owner call setAlpacaBountyBps", async () => {
+      it("should revert", async () => {
+        await expect(deltaNeutralVaultConfigAsAlice.setAlpacaBountyBps(0)).to.be.reverted;
+      });
+    });
+    context("when set too much AlpacaBountyBps", async () => {
+      it("should revert", async () => {
+        await expect(deltaNeutralVaultConfig.setAlpacaBountyBps(2501)).to.be.revertedWith("TooMuchBounty(2501)");
+      });
+    });
+    context("when owner call setAlpacaBountyBps", async () => {
+      it("should be able to setAlpacaBountyBps", async () => {
+        const setAlpacaBountyTx = await deltaNeutralVaultConfig.setAlpacaBountyBps(500);
+        expect(await deltaNeutralVaultConfig.alpacaBountyBps()).to.eq(500);
+        expect(setAlpacaBountyTx).to.emit(deltaNeutralVaultConfig, "LogSetAlpacaBounty").withArgs(deployerAddress, 500);
+      });
+    });
+  });
 });

@@ -53,6 +53,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
   /// @dev Errors
   error BadReinvestPath();
+  error BadActionSize();
   error Unauthorized(address _caller);
   error PositionsAlreadyInitialized();
   error PositionsNotInitialized();
@@ -88,7 +89,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
   /// @dev constants
   uint64 private constant MAX_BPS = 10000;
-  uint64 private constant MAX_ALPACA_BOUNTY_BPS = 2500; // 25%
+  uint64 private constant SECOND_IN_YEAR_BPS = MAX_BPS * 365 days;
 
   uint8 private constant ACTION_WORK = 1;
   uint8 private constant ACTION_WRAP = 2;
@@ -230,7 +231,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       if (msg.value != _amount) {
         revert IncorrectNativeAmountDeposit();
       }
-      IWETH(config.getWrappedNativeAddr()).deposit{ value: _amount }();
+      IWETH(_token).deposit{ value: _amount }();
     } else {
       IERC20Upgradeable(_token).safeTransferFrom(msg.sender, address(this), _amount);
     }
@@ -261,7 +262,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   /// @notice Return amount of share pending for minting as a form of management fee
   function pendingManagementFee() public view returns (uint256) {
     uint256 _secondsFromLastCollection = block.timestamp - lastFeeCollected;
-    return (totalSupply() * config.mangementFeeBps() * _secondsFromLastCollection) / (MAX_BPS * 365 days);
+    return (totalSupply() * config.mangementFeeBps() * _secondsFromLastCollection) / SECOND_IN_YEAR_BPS;
   }
 
   /// @notice Deposit to delta neutral vault.
@@ -435,9 +436,6 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     bytes[] memory _datas
   ) external onlyReinvestors {
     uint256 _alpacaBountyBps = config.alpacaBountyBps();
-    if (_alpacaBountyBps > MAX_ALPACA_BOUNTY_BPS) {
-      revert BountyExceedLimit();
-    }
 
     // 1.  claim reward from fairlaunch
     uint256 _equityBefore = totalEquityValue();
@@ -455,7 +453,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     IERC20Upgradeable(alpacaToken).safeTransfer(config.getTreasuryAddr(), _bounty);
 
     // 3. swap alpaca
-    if (config.getReinvestPath().length == 0) {
+    address[] memory reinvestPath = config.getReinvestPath();
+    if (reinvestPath.length == 0) {
       revert BadReinvestPath();
     }
 
@@ -464,7 +463,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     ISwapRouter(config.getSwapRouter()).swapExactTokensForTokens(
       _rewardAmount,
       0,
-      config.getReinvestPath(),
+      reinvestPath,
       address(this),
       block.timestamp
     );
@@ -723,6 +722,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256[] memory _values,
     bytes[] memory _datas
   ) internal {
+    if (_actions.length != _values.length || _actions.length != _datas.length) revert BadActionSize();
+
     for (uint256 i = 0; i < _actions.length; i++) {
       uint8 _action = _actions[i];
       if (_action == ACTION_WORK) {

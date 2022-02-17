@@ -48,8 +48,8 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
 
   /// @dev Errors
   error LeverageLevelTooLow();
-  error TooMuchFee(uint256 _depositFeeBps, uint256 _mangementFeeBps);
-
+  error TooMuchFee(uint256 _depositFeeBps, uint256 _withdrawalFeeBps, uint256 _mangementFeeBps);
+  error TooMuchBounty(uint256 _bounty);
   error InvalidSwapRouter();
   error InvalidReinvestPath();
   error InvalidReinvestPathLength();
@@ -59,6 +59,7 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   uint256 private constant MAX_DEPOSIT_FEE_BPS = 1000;
   uint256 private constant MAX_WITHDRAWAL_FEE_BPS = 1000;
   uint256 private constant MAX_MANGEMENT_FEE_BPS = 1000;
+  uint256 private constant MAX_ALPACA_BOUNTY_BPS = 2500;
 
   /// @dev Configuration for Delta Neutral Vault
   /// getWrappedNativeAddr - address for wrapped native eg WBNB, WETH
@@ -226,8 +227,12 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     uint256 _newWithdrawalFeeBps,
     uint256 _newMangementFeeBps
   ) external onlyOwner {
-    if (_newDepositFeeBps > MAX_DEPOSIT_FEE_BPS || _newMangementFeeBps > MAX_MANGEMENT_FEE_BPS) {
-      revert TooMuchFee(_newDepositFeeBps, MAX_MANGEMENT_FEE_BPS);
+    if (
+      _newDepositFeeBps > MAX_DEPOSIT_FEE_BPS ||
+      _newWithdrawalFeeBps > MAX_WITHDRAWAL_FEE_BPS ||
+      _newMangementFeeBps > MAX_MANGEMENT_FEE_BPS
+    ) {
+      revert TooMuchFee(_newDepositFeeBps, _newWithdrawalFeeBps, _newMangementFeeBps);
     }
     depositFeeBps = _newDepositFeeBps;
     withdrawalFeeBps = _newWithdrawalFeeBps;
@@ -237,8 +242,11 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
 
   /// @notice Set alpacaBountyBps.
   /// @dev Must only be called by owner.
-  /// @param _alpacaBountyBps Fee when user deposit to delta neutral vault.
+  /// @param _alpacaBountyBps Fee.
   function setAlpacaBountyBps(uint256 _alpacaBountyBps) external onlyOwner {
+    if (_alpacaBountyBps > MAX_ALPACA_BOUNTY_BPS) {
+      revert TooMuchBounty(_alpacaBountyBps);
+    }
     alpacaBountyBps = _alpacaBountyBps;
     emit LogSetAlpacaBounty(msg.sender, alpacaBountyBps);
   }
