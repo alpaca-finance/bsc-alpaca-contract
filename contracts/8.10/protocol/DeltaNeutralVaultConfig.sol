@@ -41,18 +41,18 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     address indexed _caller,
     uint256 _depositFeeBps,
     uint256 _withdrawalFeeBps,
-    uint256 _mangementFeeBps
+    uint256 _managementFeePerSec
   );
-  event SetSwapRouter(address indexed _caller, address _swapRouter);
-  event SetReinvestPath(address indexed _caller, address[] _reinvestPath);
+  event LogSetSwapRouter(address indexed _caller, address _swapRouter);
+  event LogSetReinvestPath(address indexed _caller, address[] _reinvestPath);
 
   /// @dev Errors
-  error LeverageLevelTooLow();
-  error TooMuchFee(uint256 _depositFeeBps, uint256 _withdrawalFeeBps, uint256 _mangementFeeBps);
-  error TooMuchBounty(uint256 _bounty);
-  error InvalidSwapRouter();
-  error InvalidReinvestPath();
-  error InvalidReinvestPathLength();
+  error DeltaNeutralVaultConfig_LeverageLevelTooLow();
+  error DeltaNeutralVaultConfig_TooMuchFee(uint256 _depositFeeBps, uint256 _withdrawalFeeBps, uint256 _mangementFeeBps);
+  error DeltaNeutralVaultConfig_TooMuchBounty(uint256 _bounty);
+  error DeltaNeutralVaultConfig_InvalidSwapRouter();
+  error DeltaNeutralVaultConfig_InvalidReinvestPath();
+  error DeltaNeutralVaultConfig_InvalidReinvestPathLength();
 
   /// @notice Constants
   uint8 private constant MIN_LEVERAGE_LEVEL = 3;
@@ -71,7 +71,7 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   /// positionValueTolerance- Tolerance bps that allow margin for misc calculation
   /// depositFeeBps - Fee when user deposit to delta neutral vault
   /// withdrawalFeeBps - Fee when user withdraw from delta neutral vault
-  /// mangementFeeBps Fee collected as a manager of delta neutral vault
+  /// managementFeePerSec Fee collected as a manager of delta neutral vault
   /// leverageLevel - Leverage level used for underlying positions
   /// alpacaToken - address of alpaca token
   /// swapRouter - address of router for swap
@@ -90,7 +90,7 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
 
   uint256 public override depositFeeBps;
   uint256 public override withdrawalFeeBps;
-  uint256 public override mangementFeeBps;
+  uint256 public override managementFeePerSec;
 
   uint8 public override leverageLevel;
 
@@ -200,7 +200,7 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   /// @param _newLeverageLevel The new leverage level to be set. Must be >= 3
   function setLeverageLevel(uint8 _newLeverageLevel) external onlyOwner {
     if (_newLeverageLevel < MIN_LEVERAGE_LEVEL) {
-      revert LeverageLevelTooLow();
+      revert DeltaNeutralVaultConfig_LeverageLevelTooLow();
     }
     leverageLevel = _newLeverageLevel;
     emit LogSetLeverageLevel(msg.sender, _newLeverageLevel);
@@ -221,23 +221,24 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   /// @dev Must only be called by owner.
   /// @param _newDepositFeeBps Fee when user deposit to delta neutral vault.
   /// @param _newWithdrawalFeeBps Fee when user deposit to delta neutral vault.
-  /// @param _newMangementFeeBps Mangement Fee.
+  /// @param _newManagementFeeBps Mangement Fee Bps per annum.
   function setFees(
     uint256 _newDepositFeeBps,
     uint256 _newWithdrawalFeeBps,
-    uint256 _newMangementFeeBps
+    uint256 _newManagementFeeBps
   ) external onlyOwner {
     if (
       _newDepositFeeBps > MAX_DEPOSIT_FEE_BPS ||
       _newWithdrawalFeeBps > MAX_WITHDRAWAL_FEE_BPS ||
-      _newMangementFeeBps > MAX_MANGEMENT_FEE_BPS
+      _newManagementFeeBps > MAX_MANGEMENT_FEE_BPS
     ) {
-      revert TooMuchFee(_newDepositFeeBps, _newWithdrawalFeeBps, _newMangementFeeBps);
+      revert DeltaNeutralVaultConfig_TooMuchFee(_newDepositFeeBps, _newWithdrawalFeeBps, _newManagementFeeBps);
     }
     depositFeeBps = _newDepositFeeBps;
     withdrawalFeeBps = _newWithdrawalFeeBps;
-    mangementFeeBps = _newMangementFeeBps;
-    emit LogSetFees(msg.sender, _newDepositFeeBps, _newWithdrawalFeeBps, _newMangementFeeBps);
+    // managementFeePerSec = (_newManagementFeeBps * 1e18) / (365 days * 10000);
+    managementFeePerSec = (_newManagementFeeBps * 1e14) / (365 days);
+    emit LogSetFees(msg.sender, _newDepositFeeBps, _newWithdrawalFeeBps, managementFeePerSec);
   }
 
   /// @notice Set alpacaBountyBps.
@@ -245,7 +246,7 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   /// @param _alpacaBountyBps Fee.
   function setAlpacaBountyBps(uint256 _alpacaBountyBps) external onlyOwner {
     if (_alpacaBountyBps > MAX_ALPACA_BOUNTY_BPS) {
-      revert TooMuchBounty(_alpacaBountyBps);
+      revert DeltaNeutralVaultConfig_TooMuchBounty(_alpacaBountyBps);
     }
     alpacaBountyBps = _alpacaBountyBps;
     emit LogSetAlpacaBounty(msg.sender, alpacaBountyBps);
@@ -281,20 +282,20 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   /// @dev Set the reinvest configuration.
   /// @param _swapRouter - The router address to update.
   function setSwapRouter(address _swapRouter) external onlyOwner {
-    if (_swapRouter == address(0)) revert InvalidSwapRouter();
+    if (_swapRouter == address(0)) revert DeltaNeutralVaultConfig_InvalidSwapRouter();
     swapRouter = _swapRouter;
-    emit SetSwapRouter(msg.sender, _swapRouter);
+    emit LogSetSwapRouter(msg.sender, _swapRouter);
   }
 
   /// @dev Set the reinvest path.
   /// @param _reinvestPath - The reinvest path to update.
   function setReinvestPath(address[] calldata _reinvestPath) external onlyOwner {
-    if (_reinvestPath.length < 2) revert InvalidReinvestPathLength();
+    if (_reinvestPath.length < 2) revert DeltaNeutralVaultConfig_InvalidReinvestPathLength();
 
-    if (_reinvestPath[0] != alpacaToken) revert InvalidReinvestPath();
+    if (_reinvestPath[0] != alpacaToken) revert DeltaNeutralVaultConfig_InvalidReinvestPath();
 
     reinvestPath = _reinvestPath;
-    emit SetReinvestPath(msg.sender, _reinvestPath);
+    emit LogSetReinvestPath(msg.sender, _reinvestPath);
   }
 
   /// @dev Get the reinvest path.
