@@ -374,7 +374,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
         await expect(
           deltaNeutralWorker.setReinvestConfig(250, ethers.utils.parseEther("1"), [cake.address, baseToken.address])
         )
-          .to.be.emit(deltaNeutralWorker, "LogSetReinvestConfig")
+          .to.be.emit(deltaNeutralWorker, "SetReinvestConfig")
           .withArgs(deployerAddress, 250, ethers.utils.parseEther("1"), [cake.address, baseToken.address]);
         expect(await deltaNeutralWorker.reinvestBountyBps()).to.be.eq(250);
         expect(await deltaNeutralWorker.reinvestThreshold()).to.be.eq(ethers.utils.parseEther("1"));
@@ -439,7 +439,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
       it("should set whitelisted callers", async () => {
         await expect(deltaNeutralWorker.setWhitelistedCallers([deployerAddress], true)).to.emit(
           deltaNeutralWorker,
-          "LogSetWhitelistedCallers"
+          "SetWhitelistedCallers"
         );
         expect(await deltaNeutralWorker.whitelistCallers(deployerAddress)).to.be.eq(true);
       });
@@ -482,7 +482,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
       it("should be able to set new rewardpath", async () => {
         const rewardPath = [cake.address, farmToken.address, baseToken.address];
         await expect(deltaNeutralWorkerAsDeployer.setRewardPath(rewardPath))
-          .to.emit(deltaNeutralWorker, "LogSetRewardPath")
+          .to.emit(deltaNeutralWorker, "SetRewardPath")
           .withArgs(deployerAddress, rewardPath);
       });
     });

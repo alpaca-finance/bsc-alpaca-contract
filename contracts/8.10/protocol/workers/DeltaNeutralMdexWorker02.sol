@@ -55,30 +55,30 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
   error DeltaNeutralMdexWorker02_ExceedReinvestBps();
 
   /// @notice Events
-  event LogReinvest(address indexed caller, uint256 reward, uint256 bounty);
-  event LogBscPoolDeposit(uint256 lpAmount);
-  event LogBscPoolWithdraw(uint256 lpAmount);
-  event LogSetTreasuryConfig(address indexed caller, address indexed account, uint256 bountyBps);
-  event LogBeneficialVaultTokenBuyback(address indexed caller, IVault indexed beneficialVault, uint256 indexed buyback);
-  event LogSetStrategyOK(address indexed caller, address indexed strategy, bool indexed isOk);
-  event LogSetReinvestorOK(address indexed caller, address indexed reinvestor, bool indexed isOk);
-  event LogSetWhitelistedCallers(address indexed caller, address indexed whitelistUser, bool indexed isOk);
-  event LogSetCriticalStrategy(address indexed caller, IStrategy indexed addStrat);
-  event LogSetMaxReinvestBountyBps(address indexed caller, uint256 indexed maxReinvestBountyBps);
-  event LogSetRewardPath(address indexed caller, address[] newRewardPath);
-  event LogSetBeneficialVaultConfig(
+  event Reinvest(address indexed caller, uint256 reward, uint256 bounty);
+  event BscPoolDeposit(uint256 lpAmount);
+  event BscPoolWithdraw(uint256 lpAmount);
+  event SetTreasuryConfig(address indexed caller, address indexed account, uint256 bountyBps);
+  event BeneficialVaultTokenBuyback(address indexed caller, IVault indexed beneficialVault, uint256 indexed buyback);
+  event SetStrategyOK(address indexed caller, address indexed strategy, bool indexed isOk);
+  event SetReinvestorOK(address indexed caller, address indexed reinvestor, bool indexed isOk);
+  event SetWhitelistedCallers(address indexed caller, address indexed whitelistUser, bool indexed isOk);
+  event SetCriticalStrategy(address indexed caller, IStrategy indexed addStrat);
+  event SetMaxReinvestBountyBps(address indexed caller, uint256 indexed maxReinvestBountyBps);
+  event SetRewardPath(address indexed caller, address[] newRewardPath);
+  event SetBeneficialVaultConfig(
     address indexed caller,
     uint256 indexed beneficialVaultBountyBps,
     IVault indexed beneficialVault,
     address[] rewardPath
   );
-  event LogSetReinvestConfig(
+  event SetReinvestConfig(
     address indexed caller,
     uint256 reinvestBountyBps,
     uint256 reinvestThreshold,
     address[] reinvestPath
   );
-  event LogWithdrawTradingRewards(address indexed caller, address to, uint256 amount);
+  event WithdrawTradingRewards(address indexed caller, address to, uint256 amount);
 
   /// @dev constants
   uint256 private constant BASIS_POINT = 10000;
@@ -251,7 +251,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
     // 7. Reset approval
     mdx.safeApprove(address(router), 0);
 
-    emit LogReinvest(_treasuryAccount, reward, bounty);
+    emit Reinvest(_treasuryAccount, reward, bounty);
   }
 
   /// @dev Work on the given position. Must be called by the operator.
@@ -329,7 +329,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
     if (beneficialVaultToken != baseToken) {
       buybackAmount = 0;
       beneficialVaultToken.safeTransfer(address(beneficialVault), beneficialVaultToken.myBalance());
-      emit LogBeneficialVaultTokenBuyback(msg.sender, beneficialVault, amounts[amounts.length - 1]);
+      emit BeneficialVaultTokenBuyback(msg.sender, beneficialVault, amounts[amounts.length - 1]);
     } else {
       buybackAmount = beneficialVaultToken.myBalance() - _callerBalance;
     }
@@ -342,7 +342,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
     uint256 _buybackAmount = buybackAmount;
     buybackAmount = 0;
     beneficialVault.token().safeTransfer(address(beneficialVault), _buybackAmount);
-    emit LogBeneficialVaultTokenBuyback(msg.sender, beneficialVault, _buybackAmount);
+    emit BeneficialVaultTokenBuyback(msg.sender, beneficialVault, _buybackAmount);
   }
 
   /// @dev since buybackAmount variable has been created to collect a buyback balance when during the reinvest within the work method,
@@ -359,7 +359,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
       bscPool.deposit(pid, balance);
       totalLpBalance = totalLpBalance + balance;
       address(lpToken).safeApprove(address(bscPool), 0);
-      emit LogBscPoolDeposit(balance);
+      emit BscPoolDeposit(balance);
     }
   }
 
@@ -368,7 +368,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
     uint256 _totalLpBalance = totalLpBalance;
     bscPool.withdraw(pid, _totalLpBalance);
     totalLpBalance = 0;
-    emit LogBscPoolWithdraw(_totalLpBalance);
+    emit BscPoolWithdraw(_totalLpBalance);
   }
 
   /// @dev Return the path that the worker is working on.
@@ -429,7 +429,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
     reinvestThreshold = _reinvestThreshold;
     reinvestPath = _reinvestPath;
 
-    emit LogSetReinvestConfig(msg.sender, _reinvestBountyBps, _reinvestThreshold, _reinvestPath);
+    emit SetReinvestConfig(msg.sender, _reinvestBountyBps, _reinvestThreshold, _reinvestPath);
   }
 
   /// @dev Set DeltaNeutralOracle contract.
@@ -448,7 +448,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
 
     maxReinvestBountyBps = _maxReinvestBountyBps;
 
-    emit LogSetMaxReinvestBountyBps(msg.sender, maxReinvestBountyBps);
+    emit SetMaxReinvestBountyBps(msg.sender, maxReinvestBountyBps);
   }
 
   /// @dev Set the given strategies' approval status.
@@ -459,7 +459,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
     for (uint256 idx = 0; idx < len; idx++) {
       okStrats[strats[idx]] = isOk;
 
-      emit LogSetStrategyOK(msg.sender, strats[idx], isOk);
+      emit SetStrategyOK(msg.sender, strats[idx], isOk);
     }
   }
 
@@ -471,7 +471,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
     for (uint256 idx = 0; idx < len; idx++) {
       okReinvestors[reinvestors[idx]] = isOk;
 
-      emit LogSetReinvestorOK(msg.sender, reinvestors[idx], isOk);
+      emit SetReinvestorOK(msg.sender, reinvestors[idx], isOk);
     }
   }
 
@@ -483,7 +483,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
     for (uint256 idx = 0; idx < len; idx++) {
       whitelistCallers[callers[idx]] = isOk;
 
-      emit LogSetWhitelistedCallers(msg.sender, callers[idx], isOk);
+      emit SetWhitelistedCallers(msg.sender, callers[idx], isOk);
     }
   }
 
@@ -497,7 +497,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
 
     rewardPath = _rewardPath;
 
-    emit LogSetRewardPath(msg.sender, _rewardPath);
+    emit SetRewardPath(msg.sender, _rewardPath);
   }
 
   /// @dev Update critical strategy smart contracts. EMERGENCY ONLY. Bad strategies can steal funds.
@@ -505,7 +505,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
   function setCriticalStrategies(IStrategy _addStrat) external onlyOwner {
     addStrat = _addStrat;
 
-    emit LogSetCriticalStrategy(msg.sender, addStrat);
+    emit SetCriticalStrategy(msg.sender, addStrat);
   }
 
   /// @dev Set treasury configurations.
@@ -517,7 +517,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
     treasuryAccount = _treasuryAccount;
     treasuryBountyBps = _treasuryBountyBps;
 
-    emit LogSetTreasuryConfig(msg.sender, treasuryAccount, treasuryBountyBps);
+    emit SetTreasuryConfig(msg.sender, treasuryAccount, treasuryBountyBps);
   }
 
   /// @dev Set beneficial vault related data including beneficialVaultBountyBps, beneficialVaultAddress, and rewardPath
@@ -543,7 +543,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
     beneficialVault = _beneficialVault;
     rewardPath = _rewardPath;
 
-    emit LogSetBeneficialVaultConfig(msg.sender, _beneficialVaultBountyBps, _beneficialVault, _rewardPath);
+    emit SetBeneficialVaultConfig(msg.sender, _beneficialVaultBountyBps, _beneficialVault, _rewardPath);
   }
 
   /// @dev Withdraw trading all reward.
@@ -553,7 +553,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
     IMdexSwapMining(router.swapMining()).takerWithdraw();
     uint256 mdxBalanceAfter = mdx.myBalance() - mdxBalanceBefore;
     mdx.safeTransfer(to, mdxBalanceAfter);
-    emit LogWithdrawTradingRewards(msg.sender, to, mdxBalanceAfter);
+    emit WithdrawTradingRewards(msg.sender, to, mdxBalanceAfter);
   }
 
   /// @dev Get all trading rewards.
