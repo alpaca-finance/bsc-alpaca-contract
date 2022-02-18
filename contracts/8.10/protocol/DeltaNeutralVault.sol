@@ -88,7 +88,6 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
   /// @dev constants
   uint64 private constant MAX_BPS = 10000;
-  uint64 private constant SECOND_IN_YEAR_BPS = MAX_BPS * 365 days;
 
   uint8 private constant ACTION_WORK = 1;
   uint8 private constant ACTION_WRAP = 2;
@@ -261,7 +260,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   /// @notice Return amount of share pending for minting as a form of management fee
   function pendingManagementFee() public view returns (uint256) {
     uint256 _secondsFromLastCollection = block.timestamp - lastFeeCollected;
-    return (totalSupply() * config.mangementFeeBps() * _secondsFromLastCollection) / SECOND_IN_YEAR_BPS;
+    return (totalSupply() * config.managementFeePerSec() * _secondsFromLastCollection) / 1e18;
   }
 
   /// @notice Deposit to delta neutral vault.

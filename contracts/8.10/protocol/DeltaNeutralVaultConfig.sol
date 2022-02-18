@@ -41,7 +41,7 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     address indexed _caller,
     uint256 _depositFeeBps,
     uint256 _withdrawalFeeBps,
-    uint256 _mangementFeeBps
+    uint256 _managementFeePerSec
   );
   event LogSetSwapRouter(address indexed _caller, address _swapRouter);
   event LogSetReinvestPath(address indexed _caller, address[] _reinvestPath);
@@ -71,7 +71,7 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   /// positionValueTolerance- Tolerance bps that allow margin for misc calculation
   /// depositFeeBps - Fee when user deposit to delta neutral vault
   /// withdrawalFeeBps - Fee when user withdraw from delta neutral vault
-  /// mangementFeeBps Fee collected as a manager of delta neutral vault
+  /// managementFeePerSec Fee collected as a manager of delta neutral vault
   /// leverageLevel - Leverage level used for underlying positions
   /// alpacaToken - address of alpaca token
   /// swapRouter - address of router for swap
@@ -90,7 +90,7 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
 
   uint256 public override depositFeeBps;
   uint256 public override withdrawalFeeBps;
-  uint256 public override mangementFeeBps;
+  uint256 public override managementFeePerSec;
 
   uint8 public override leverageLevel;
 
@@ -221,23 +221,24 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   /// @dev Must only be called by owner.
   /// @param _newDepositFeeBps Fee when user deposit to delta neutral vault.
   /// @param _newWithdrawalFeeBps Fee when user deposit to delta neutral vault.
-  /// @param _newMangementFeeBps Mangement Fee.
+  /// @param _newManagementFeeBps Mangement Fee Bps per annum.
   function setFees(
     uint256 _newDepositFeeBps,
     uint256 _newWithdrawalFeeBps,
-    uint256 _newMangementFeeBps
+    uint256 _newManagementFeeBps
   ) external onlyOwner {
     if (
       _newDepositFeeBps > MAX_DEPOSIT_FEE_BPS ||
       _newWithdrawalFeeBps > MAX_WITHDRAWAL_FEE_BPS ||
-      _newMangementFeeBps > MAX_MANGEMENT_FEE_BPS
+      _newManagementFeeBps > MAX_MANGEMENT_FEE_BPS
     ) {
-      revert DeltaNeutralVaultConfig_TooMuchFee(_newDepositFeeBps, _newWithdrawalFeeBps, _newMangementFeeBps);
+      revert DeltaNeutralVaultConfig_TooMuchFee(_newDepositFeeBps, _newWithdrawalFeeBps, _newManagementFeeBps);
     }
     depositFeeBps = _newDepositFeeBps;
     withdrawalFeeBps = _newWithdrawalFeeBps;
-    mangementFeeBps = _newMangementFeeBps;
-    emit LogSetFees(msg.sender, _newDepositFeeBps, _newWithdrawalFeeBps, _newMangementFeeBps);
+    // managementFeePerSec = (_newManagementFeeBps * 1e18) / (365 days * 10000);
+    managementFeePerSec = (_newManagementFeeBps * 1e14) / (365 days);
+    emit LogSetFees(msg.sender, _newDepositFeeBps, _newWithdrawalFeeBps, managementFeePerSec);
   }
 
   /// @notice Set alpacaBountyBps.
