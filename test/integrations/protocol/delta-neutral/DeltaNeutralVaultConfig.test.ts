@@ -327,8 +327,13 @@ describe("DeltaNeutralVaultConfig", () => {
         const setFeesTx = await deltaNeutralVaultConfig.setFees(500, 500, 500);
         expect(await deltaNeutralVaultConfig.depositFeeBps()).to.eq(500);
         expect(await deltaNeutralVaultConfig.withdrawalFeeBps()).to.eq(500);
-        expect(await deltaNeutralVaultConfig.mangementFeeBps()).to.eq(500);
-        expect(setFeesTx).to.emit(deltaNeutralVaultConfig, "LogSetFees").withArgs(deployerAddress, 500, 500, 500);
+        // managementFeePerSec calculation
+        // taxFeeBps 500 => 500 / 31536000 (SECOND IN YEAR) = 0.000015854895991882 (* 1e18 to made it BigNumber)
+        const expectedManagementFeePerSec = ethers.utils.parseEther("0.000015854895991882");
+        expect(await deltaNeutralVaultConfig.managementFeePerSec()).to.eq(expectedManagementFeePerSec);
+        expect(setFeesTx)
+          .to.emit(deltaNeutralVaultConfig, "LogSetFees")
+          .withArgs(deployerAddress, 500, 500, expectedManagementFeePerSec);
       });
     });
   });
