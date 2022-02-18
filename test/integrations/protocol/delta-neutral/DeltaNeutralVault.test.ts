@@ -521,7 +521,9 @@ describe("DeltaNeutralVault", () => {
           deltaNeutralOracle: mockPriceOracle.address,
           deltaVaultConfig: deltaVaultConfig.address,
         };
-        await expect(deployHelper.deployDeltaNeutralVault(deltaNeutral)).to.revertedWith("InvalidLpToken()");
+        await expect(deployHelper.deployDeltaNeutralVault(deltaNeutral)).to.revertedWith(
+          "DeltaNeutralVault_InvalidLpToken()"
+        );
       });
     });
   });
@@ -656,7 +658,7 @@ describe("DeltaNeutralVault", () => {
           deltaVault.initPositions(depositStableTokenAmt, depositAssetTokenAmt, ethers.utils.parseEther("1"), data, {
             value: depositAssetTokenAmt,
           })
-        ).to.revertedWith("PositionsAlreadyInitialized()");
+        ).to.revertedWith("DeltaNeutralVault_PositionsAlreadyInitialized()");
       });
     });
 
@@ -819,7 +821,7 @@ describe("DeltaNeutralVault", () => {
           deltaVaultAsAlice.deposit(stableTokenAmount, assetTokenAmount, aliceAddress, 0, data, {
             value: assetTokenAmount,
           })
-        ).to.revertedWith("PositionsNotInitialized()");
+        ).to.revertedWith("DeltaNeutralVault_PositionsNotInitialized()");
       });
     });
 
@@ -1053,7 +1055,9 @@ describe("DeltaNeutralVault", () => {
                   value: assetTokenAmount,
                 }
               )
-            ).to.be.revertedWith("InsufficientShareReceived(1000000000000000000000000000000, 1004997282831118214845)");
+            ).to.be.revertedWith(
+              "DeltaNeutralVault_InsufficientShareReceived(1000000000000000000000000000000, 1004997282831118214845)"
+            );
           });
         });
 
@@ -1167,7 +1171,7 @@ describe("DeltaNeutralVault", () => {
                 deltaVaultAsAlice.deposit(stableTokenAmount, assetTokenAmount, aliceAddress, 0, data, {
                   value: assetTokenAmount,
                 })
-              ).to.be.revertedWith("BadActionSize()");
+              ).to.be.revertedWith("DeltaNeutralVault_BadActionSize()");
             });
           });
         });
@@ -1281,7 +1285,7 @@ describe("DeltaNeutralVault", () => {
                   deltaVaultAsAlice.deposit(stableTokenAmount, assetTokenAmount, aliceAddress, 0, data, {
                     value: assetTokenAmount,
                   })
-                ).to.be.revertedWith("UnsafePositionEquity()");
+                ).to.be.revertedWith("DeltaNeutralVault_UnsafePositionEquity()");
               });
             }
           );
@@ -1334,7 +1338,7 @@ describe("DeltaNeutralVault", () => {
                 deltaVaultAsAlice.deposit(stableTokenAmount, assetTokenAmount, aliceAddress, 0, data, {
                   value: assetTokenAmount,
                 })
-              ).to.be.revertedWith("UnsafePositionEquity()");
+              ).to.be.revertedWith("DeltaNeutralVault_UnsafePositionEquity()");
             });
           });
 
@@ -1386,7 +1390,7 @@ describe("DeltaNeutralVault", () => {
                 deltaVaultAsAlice.deposit(stableTokenAmount, assetTokenAmount, aliceAddress, 0, data, {
                   value: assetTokenAmount,
                 })
-              ).to.be.revertedWith("UnsafeDebtValue()");
+              ).to.be.revertedWith("DeltaNeutralVault_UnsafeDebtValue()");
             });
           });
 
@@ -1438,7 +1442,7 @@ describe("DeltaNeutralVault", () => {
                 deltaVaultAsAlice.deposit(stableTokenAmount, assetTokenAmount, aliceAddress, 0, data, {
                   value: assetTokenAmount,
                 })
-              ).to.be.revertedWith("UnsafeDebtValue()");
+              ).to.be.revertedWith("DeltaNeutralVault_UnsafeDebtValue()");
             });
           });
         });
@@ -1624,7 +1628,7 @@ describe("DeltaNeutralVault", () => {
               deltaVaultAsAlice.deposit(stableTokenAmount, assetTokenAmount, aliceAddress, 0, data, {
                 value: 0,
               })
-            ).to.be.revertedWith("IncorrectNativeAmountDeposit()");
+            ).to.be.revertedWith("DeltaNeutralVault_IncorrectNativeAmountDeposit()");
           });
         });
       });
@@ -1773,7 +1777,7 @@ describe("DeltaNeutralVault", () => {
             deltaVaultAsAlice.deposit(depositStableTokenAmount, depositAssetTokenAmount, aliceAddress, 0, data, {
               value: depositAssetTokenAmount,
             })
-          ).to.revertedWith("PositionValueExceedLimit()");
+          ).to.revertedWith("DeltaNeutralVault_PositionValueExceedLimit()");
         });
       });
     });
@@ -2887,7 +2891,7 @@ describe("DeltaNeutralVault", () => {
 
       context("when user try rebalance but position is healthy", async () => {
         it("should revert", async () => {
-          await expect(deltaVault.rebalance([], [], [])).to.be.revertedWith("PositionsIsHealthy()");
+          await expect(deltaVault.rebalance([], [], [])).to.be.revertedWith("DeltaNeutralVault_PositionsIsHealthy()");
         });
       });
 
@@ -3035,7 +3039,7 @@ describe("DeltaNeutralVault", () => {
               [0, 0, farmingTokenAmount, 0, 0],
               [action1, action2, EMPTY_BYTE, action4, action5]
             )
-          ).to.be.revertedWith("UnsafePositionValue()");
+          ).to.be.revertedWith("DeltaNeutralVault_UnsafePositionValue()");
         });
       });
     });
@@ -3578,7 +3582,7 @@ describe("DeltaNeutralVault", () => {
 
             await expect(
               deltaVault.reinvest([ACTION_WORK, ACTION_WORK], [0, 0], [stableWithdrawWorkByte, assetWithdrawWorkByte])
-            ).to.be.revertedWith("UnsafePositionEquity()");
+            ).to.be.revertedWith("DeltaNeutralVault_UnsafePositionEquity()");
           });
         });
         context("when not set action", async () => {
@@ -3647,54 +3651,11 @@ describe("DeltaNeutralVault", () => {
             );
 
             const aliceShares = await deltaVault.balanceOf(aliceAddress);
-            await expect(deltaVault.reinvest([], [], [])).to.be.revertedWith("UnsafePositionEquity()");
+            await expect(deltaVault.reinvest([], [], [])).to.be.revertedWith(
+              "DeltaNeutralVault_UnsafePositionEquity()"
+            );
           });
         });
-      });
-    });
-
-    context("when set alpacaBountyBps exceeds limit", async () => {
-      it("should revert", async () => {
-        const deployHelper = new DeployHelper(deployer);
-
-        const deltaNeutralConfig = {
-          wNativeAddr: wbnb.address,
-          wNativeRelayer: wNativeRelayer.address,
-          fairlaunchAddr: fairLaunch.address,
-          rebalanceFactor: REBALANCE_FACTOR,
-          positionValueTolerance: POSITION_VALUE_TOLERANCE_BPS,
-          treasuryAddr: eveAddress,
-          alpacaBountyBps: BigNumber.from("10000"),
-          alpacaTokenAddress: alpacaToken.address,
-        } as IDeltaNeutralVaultConfig;
-
-        deltaVaultConfig = await deployHelper.deployDeltaNeutralVaultConfig(deltaNeutralConfig);
-
-        // allow deployer to call rebalance
-        await deltaVaultConfig.setValueLimit(MAX_VAULT_POSITION_VALUE);
-        await deltaVaultConfig.setWhitelistedRebalancer([deployerAddress], true);
-        await deltaVaultConfig.setLeverageLevel(3);
-        await deltaVaultConfig.setwhitelistedReinvestors([deployerAddress], true);
-        const reinvestStablePath = [alpacaToken.address, baseToken.address];
-        await deltaVaultConfig.setSwapRouter(routerV2.address);
-        await deltaVaultConfig.setReinvestPath(reinvestStablePath);
-
-        // Setup Delta Neutral Vault
-        const _deltaNeutral = {
-          name: "DELTA_NEUTRAL_VAULT",
-          symbol: "DELTA_NEUTRAL_VAULT",
-          vaultStable: stableVault.address,
-          vaultAsset: assetVault.address,
-          stableVaultWorker: stableVaultWorker.address,
-          assetVaultWorker: assetVaultWorker.address,
-          lpToken: lp.address,
-          alpacaToken: alpacaToken.address,
-          deltaNeutralOracle: mockPriceOracle.address,
-          deltaVaultConfig: deltaVaultConfig.address,
-        };
-        deltaVault = await deployHelper.deployDeltaNeutralVault(_deltaNeutral);
-
-        await expect(deltaVault.reinvest([], [], [])).to.be.revertedWith("BountyExceedLimit()");
       });
     });
 
@@ -3737,7 +3698,7 @@ describe("DeltaNeutralVault", () => {
         };
         deltaVault = await deployHelper.deployDeltaNeutralVault(_deltaNeutral);
 
-        await expect(deltaVault.reinvest([], [], [])).to.be.revertedWith("BadReinvestPath()");
+        await expect(deltaVault.reinvest([], [], [])).to.be.revertedWith("DeltaNeutralVault_BadReinvestPath()");
       });
     });
   });

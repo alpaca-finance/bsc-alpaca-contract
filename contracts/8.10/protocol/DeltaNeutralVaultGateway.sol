@@ -33,8 +33,8 @@ contract DeltaNeutralVaultGateway is ReentrancyGuardUpgradeable, OwnableUpgradea
   event LogWithdraw(address indexed _shareOwner, uint256 _minStableTokenAmount, uint256 _minAssetTokenAmount);
 
   /// @dev Errors
-  error ReturnBpsExceed(uint64 _stableReturnBps);
-  error UnTrustedPrice();
+  error DeltaNeutralVaultGateway_ReturnBpsExceed(uint64 _stableReturnBps);
+  error DeltaNeutralVaultGateway_UnTrustedPrice();
 
   /// @dev constants
   uint64 private constant BASIS_POINT = 10000;
@@ -63,7 +63,7 @@ contract DeltaNeutralVaultGateway is ReentrancyGuardUpgradeable, OwnableUpgradea
   ) public nonReentrant returns (uint256) {
     // _stableReturnBps should not be greater than 100%
     if (_stableReturnBps > 10000) {
-      revert ReturnBpsExceed(_stableReturnBps);
+      revert DeltaNeutralVaultGateway_ReturnBpsExceed(_stableReturnBps);
     }
 
     // transfer share from user
@@ -122,7 +122,7 @@ contract DeltaNeutralVaultGateway is ReentrancyGuardUpgradeable, OwnableUpgradea
   function _getTokenPrice(address _token) internal returns (uint256) {
     (uint256 _price, uint256 _lastUpdated) = deltaNeutralVault.priceOracle().getTokenPrice(_token);
     // _lastUpdated > 30 mins revert
-    if (block.timestamp - _lastUpdated > 1800) revert UnTrustedPrice();
+    if (block.timestamp - _lastUpdated > 1800) revert DeltaNeutralVaultGateway_UnTrustedPrice();
     return _price;
   }
 
