@@ -3167,7 +3167,7 @@ describe("DeltaNeutralVault", () => {
           await setMockLpPrice(lpPrice);
 
           const totalSupplyBeforeDeposit = await deltaVault.totalSupply();
-          const mngfeerate = await deltaVaultConfig.mangementFeeBps();
+          const managementFeePerSec = await deltaVaultConfig.managementFeePerSec();
           const lastCollectFeeBeforeDeposit = await deltaVault.lastFeeCollected();
           const depositTx = await deltaVaultAsAlice.deposit(
             depositStableTokenAmount,
@@ -3182,8 +3182,8 @@ describe("DeltaNeutralVault", () => {
           const lastCollectFeeAfterDeposit = await deltaVault.lastFeeCollected();
           let expectedManagementFee = totalSupplyBeforeDeposit
             .mul(lastCollectFeeAfterDeposit.sub(lastCollectFeeBeforeDeposit))
-            .mul(mngfeerate)
-            .div(315360000000);
+            .mul(managementFeePerSec)
+            .div(ethers.utils.parseEther("1"));
           let actualManagementFee = await deltaVault.balanceOf(treasuryAddress);
           Assert.assertAlmostEqual(actualManagementFee.toString(), expectedManagementFee.toString());
           // ======== withdraw ======
@@ -3243,8 +3243,8 @@ describe("DeltaNeutralVault", () => {
           const lastCollectFeeAfterWithdraw = await deltaVault.lastFeeCollected();
           expectedManagementFee = totalSupplyBeforeWithdraw
             .mul(lastCollectFeeAfterWithdraw.sub(lastCollectFeeBeforeWithdraw))
-            .mul(mngfeerate)
-            .div(315360000000);
+            .mul(managementFeePerSec)
+            .div(ethers.utils.parseEther("1"));
           const manageFeeBalanceAfterWithdraw = await deltaVault.balanceOf(treasuryAddress);
           actualManagementFee = manageFeeBalanceAfterWithdraw.sub(manageFeeBalanceBeforeWithdraw);
           Assert.assertAlmostEqual(actualManagementFee.toString(), expectedManagementFee.toString());
