@@ -221,7 +221,7 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   /// @dev Must only be called by owner.
   /// @param _newDepositFeeBps Fee when user deposit to delta neutral vault.
   /// @param _newWithdrawalFeeBps Fee when user deposit to delta neutral vault.
-  /// @param _newManagementFeeBps Mangement Fee.
+  /// @param _newManagementFeeBps Mangement Fee Bps per annum.
   function setFees(
     uint256 _newDepositFeeBps,
     uint256 _newWithdrawalFeeBps,
@@ -236,7 +236,8 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     }
     depositFeeBps = _newDepositFeeBps;
     withdrawalFeeBps = _newWithdrawalFeeBps;
-    managementFeePerSec = (_newManagementFeeBps * 1e18) / 365 days;
+    // managementFeePerSec = (_newManagementFeeBps * 1e18) / (365 days * 10000);
+    managementFeePerSec = (_newManagementFeeBps * 1e14) / (365 days);
     emit LogSetFees(msg.sender, _newDepositFeeBps, _newWithdrawalFeeBps, managementFeePerSec);
   }
 
