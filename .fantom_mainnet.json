@@ -52,10 +52,10 @@
       "LpTokens": [
         { "pId": 2, "name": "WFTM-USDC LP", "address": "0x2b4C76d0dc16BE1C31D4C1DC53bF9B45987Fc75c" },
         { "pId": 0, "name": "BOO-WFTM LP", "address": "0xEc7178F4C41f346b2721907F5cF7628E388A7a58" },
-        { "pId": 5, "name": "FTM-ETH LP", "address": "0xf0702249F4D3A25cD3DED7859a165693685Ab577" },
+        { "pId": 5, "name": "WFTM-ETH LP", "address": "0xf0702249F4D3A25cD3DED7859a165693685Ab577" },
         { "pId": 4, "name": "WFTM-BTC LP", "address": "0xFdb9Ab8B9513Ad9E419Cf19530feE49d412C3Ee3" },
         { "pId": 45, "name": "TUSD-USDC LP", "address": "0x12692B3bf8dd9Aa1d2E721d1a79efD0C244d7d96" },
-        { "pId": 1, "name": "FTM-fUSDT LP", "address": "0x5965E53aa80a0bcF1CD6dbDd72e6A9b2AA047410" },
+        { "pId": 1, "name": "WFTM-fUSDT LP", "address": "0x5965E53aa80a0bcF1CD6dbDd72e6A9b2AA047410" },
         { "pId": 3, "name": "WFTM-DAI LP", "address": "0xe120ffBDA0d14f3Bb6d6053E90E63c572A66a428" },
         { "pId": 24, "name": "WFTM-MIM LP", "address": "0x6f86e65b255c9111109d2D2325ca2dFc82456efc" },
         { "pId": 63, "name": "ALPACA-WFTM LP", "address": "0xF66D2bf736c05723b62E833A5DD747E24855ff99" }
