@@ -1,3 +1,4 @@
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { BigNumberish, Signer } from "ethers";
 import { ethers, upgrades } from "hardhat";
 import {
@@ -111,8 +112,11 @@ import {
   Rewarder1,
   Rewarder1__factory,
   IVault,
+  TShareRewardPool,
+  TShare__factory,
+  TShareRewardPool__factory,
+  TShare,
 } from "../../typechain";
-
 import * as TimeHelpers from "../helpers/time";
 
 export interface IBEP20 {
@@ -137,9 +141,9 @@ export interface IVaultConfig {
 }
 
 export class DeployHelper {
-  private deployer: Signer;
+  private deployer: SignerWithAddress;
 
-  constructor(_deployer: Signer) {
+  constructor(_deployer: SignerWithAddress) {
     this.deployer = _deployer;
   }
 
@@ -1009,5 +1013,24 @@ export class DeployHelper {
     await wNativeRelayer.setCallerOk([partialCloseMinimizeStrat.address], true);
 
     return [addStrat, liqStrat, twoSidesStrat, minimizeTradeStrat, partialCloseStrat, partialCloseMinimizeStrat];
+  }
+
+  public async deployTShareRewardPool(): Promise<[TShare, TShareRewardPool]> {
+    const TShare = (await ethers.getContractFactory("TShare", this.deployer)) as TShare__factory;
+    const tshare = await TShare.deploy(
+      (await TimeHelpers.latest()).add("10"),
+      this.deployer.address,
+      this.deployer.address
+    );
+
+    const TShareRewardPool = (await ethers.getContractFactory(
+      "TShareRewardPool",
+      this.deployer
+    )) as TShareRewardPool__factory;
+    const tshareRewardPool = await TShareRewardPool.deploy(tshare.address, (await TimeHelpers.latest()).add("10"));
+
+    await tshare.distributeReward(tshareRewardPool.address);
+
+    return [tshare, tshareRewardPool];
   }
 }
