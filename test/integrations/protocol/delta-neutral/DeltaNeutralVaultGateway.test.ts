@@ -529,7 +529,6 @@ describe("DeltaNeutralVaultGateway", () => {
   ): Promise<SimpleWithdrawReturns> {
     await swapHelper.loadReserves([baseToken.address, wbnb.address]);
     const lpPrice = await swapHelper.computeLpHealth(ethers.utils.parseEther("1"), baseToken.address, wbnb.address);
-
     await setMockLpPrice(lpPrice);
 
     // Current Delta Neutral Position
@@ -626,10 +625,9 @@ describe("DeltaNeutralVaultGateway", () => {
       ]
     );
 
-    await deltaVaultAsAlice.approve(deltaVaultGateway.address, await deltaVault.balanceOf(aliceAddress));
     const shareToWithdraw = await deltaVault.valueToShare(withdrawValue);
 
-    const tx = deltaVaultGatewayAsAlice.withdraw(
+    const tx = await deltaVaultGatewayAsAlice.withdraw(
       shareToWithdraw,
       minWithdrawStableAmount,
       minWithdrawAssetTokenAmount,
@@ -661,220 +659,296 @@ describe("DeltaNeutralVaultGateway", () => {
   });
 
   describe("#withdraw", async () => {
-    describe("when positions initialized", async () => {
-      beforeEach(async () => {
-        // add liquidity
-        await swapHelper.addLiquidities([
-          {
-            token0: baseToken,
-            token1: wbnb,
-            amount0desired: ethers.utils.parseEther("90000000"),
-            amount1desired: ethers.utils.parseEther("90000000"),
-          },
-        ]);
-        const stableTokenAmount = ethers.utils.parseEther("500");
-        const assetTokenAmount = ethers.utils.parseEther("500");
-        await baseTokenAsDeployer.approve(deltaVault.address, stableTokenAmount);
+    beforeEach(async () => {
+      // add liquidity
+      await swapHelper.addLiquidities([
+        {
+          token0: baseToken,
+          token1: wbnb,
+          amount0desired: ethers.utils.parseEther("90000000"),
+          amount1desired: ethers.utils.parseEther("90000000"),
+        },
+      ]);
+      const stableTokenAmount = ethers.utils.parseEther("500");
+      const assetTokenAmount = ethers.utils.parseEther("500");
+      await baseTokenAsDeployer.approve(deltaVault.address, stableTokenAmount);
 
-        const stableWorkbyteInput: IDepositWorkByte = {
-          posId: 0,
-          vaultAddress: stableVault.address,
-          workerAddress: stableVaultWorker.address,
-          twoSidesStrat: stableTwoSidesStrat.address,
-          principalAmount: ethers.utils.parseEther("125"),
-          borrowAmount: ethers.utils.parseEther("500"),
-          farmingTokenAmount: ethers.utils.parseEther("125"),
-          maxReturn: BigNumber.from(0),
-          minLpReceive: BigNumber.from(0),
-        };
+      const stableWorkbyteInput: IDepositWorkByte = {
+        posId: 0,
+        vaultAddress: stableVault.address,
+        workerAddress: stableVaultWorker.address,
+        twoSidesStrat: stableTwoSidesStrat.address,
+        principalAmount: ethers.utils.parseEther("125"),
+        borrowAmount: ethers.utils.parseEther("500"),
+        farmingTokenAmount: ethers.utils.parseEther("125"),
+        maxReturn: BigNumber.from(0),
+        minLpReceive: BigNumber.from(0),
+      };
 
-        const assetWorkbyteInput: IDepositWorkByte = {
-          posId: 0,
-          vaultAddress: assetVault.address,
-          workerAddress: assetVaultWorker.address,
-          twoSidesStrat: assetTwoSidesStrat.address,
-          principalAmount: ethers.utils.parseEther("375"),
-          borrowAmount: ethers.utils.parseEther("1500"),
-          farmingTokenAmount: ethers.utils.parseEther("375"),
-          maxReturn: BigNumber.from(0),
-          minLpReceive: BigNumber.from(0),
-        };
+      const assetWorkbyteInput: IDepositWorkByte = {
+        posId: 0,
+        vaultAddress: assetVault.address,
+        workerAddress: assetVaultWorker.address,
+        twoSidesStrat: assetTwoSidesStrat.address,
+        principalAmount: ethers.utils.parseEther("375"),
+        borrowAmount: ethers.utils.parseEther("1500"),
+        farmingTokenAmount: ethers.utils.parseEther("375"),
+        maxReturn: BigNumber.from(0),
+        minLpReceive: BigNumber.from(0),
+      };
 
-        const stableWorkByte = buildDepositWorkByte(stableWorkbyteInput);
-        const assetWorkByte = buildDepositWorkByte(assetWorkbyteInput);
+      const stableWorkByte = buildDepositWorkByte(stableWorkbyteInput);
+      const assetWorkByte = buildDepositWorkByte(assetWorkbyteInput);
 
-        const data = ethers.utils.defaultAbiCoder.encode(
-          ["uint8[]", "uint256[]", "bytes[]"],
-          [
-            [ACTION_WORK, ACTION_WORK],
-            [0, 0],
-            [stableWorkByte, assetWorkByte],
-          ]
-        );
-        const stableTokenPrice = ethers.utils.parseEther("1");
-        const assetTokenPrice = ethers.utils.parseEther("1");
-        const lpPrice = ethers.utils.parseEther("2");
+      const data = ethers.utils.defaultAbiCoder.encode(
+        ["uint8[]", "uint256[]", "bytes[]"],
+        [
+          [ACTION_WORK, ACTION_WORK],
+          [0, 0],
+          [stableWorkByte, assetWorkByte],
+        ]
+      );
+      const stableTokenPrice = ethers.utils.parseEther("1");
+      const assetTokenPrice = ethers.utils.parseEther("1");
+      let lpPrice = ethers.utils.parseEther("2");
 
-        await setMockTokenPrice(stableTokenPrice, assetTokenPrice);
-        await setMockLpPrice(lpPrice);
+      await setMockTokenPrice(stableTokenPrice, assetTokenPrice);
+      await setMockLpPrice(lpPrice);
 
-        const initTx = await deltaVault.initPositions(
-          stableTokenAmount,
-          assetTokenAmount,
-          ethers.utils.parseEther("1000"),
-          data,
-          {
-            value: assetTokenAmount,
-          }
-        );
+      const initTx = await deltaVault.initPositions(
+        stableTokenAmount,
+        assetTokenAmount,
+        ethers.utils.parseEther("1000"),
+        data,
+        {
+          value: assetTokenAmount,
+        }
+      );
 
-        const depositStableTokenAmount = ethers.utils.parseEther("500");
-        const depositAssetTokenAmount = ethers.utils.parseEther("500");
+      const depositStableTokenAmount = ethers.utils.parseEther("500");
+      const depositAssetTokenAmount = ethers.utils.parseEther("500");
 
-        await baseTokenAsAlice.approve(deltaVault.address, depositStableTokenAmount);
+      await baseTokenAsAlice.approve(deltaVault.address, depositStableTokenAmount);
 
-        const depositStableWorkbyteInput: IDepositWorkByte = {
-          posId: 1,
-          vaultAddress: stableVault.address,
-          workerAddress: stableVaultWorker.address,
-          twoSidesStrat: stableTwoSidesStrat.address,
-          principalAmount: ethers.utils.parseEther("125"),
-          borrowAmount: ethers.utils.parseEther("500"),
-          farmingTokenAmount: ethers.utils.parseEther("125"),
-          maxReturn: BigNumber.from(0),
-          minLpReceive: BigNumber.from(0),
-        };
+      const depositStableWorkbyteInput: IDepositWorkByte = {
+        posId: 1,
+        vaultAddress: stableVault.address,
+        workerAddress: stableVaultWorker.address,
+        twoSidesStrat: stableTwoSidesStrat.address,
+        principalAmount: ethers.utils.parseEther("125"),
+        borrowAmount: ethers.utils.parseEther("500"),
+        farmingTokenAmount: ethers.utils.parseEther("125"),
+        maxReturn: BigNumber.from(0),
+        minLpReceive: BigNumber.from(0),
+      };
 
-        const depositAssetWorkbyteInput: IDepositWorkByte = {
-          posId: 1,
-          vaultAddress: assetVault.address,
-          workerAddress: assetVaultWorker.address,
-          twoSidesStrat: assetTwoSidesStrat.address,
-          principalAmount: ethers.utils.parseEther("375"),
-          borrowAmount: ethers.utils.parseEther("1500"),
-          farmingTokenAmount: ethers.utils.parseEther("375"),
-          maxReturn: BigNumber.from(0),
-          minLpReceive: BigNumber.from(0),
-        };
+      const depositAssetWorkbyteInput: IDepositWorkByte = {
+        posId: 1,
+        vaultAddress: assetVault.address,
+        workerAddress: assetVaultWorker.address,
+        twoSidesStrat: assetTwoSidesStrat.address,
+        principalAmount: ethers.utils.parseEther("375"),
+        borrowAmount: ethers.utils.parseEther("1500"),
+        farmingTokenAmount: ethers.utils.parseEther("375"),
+        maxReturn: BigNumber.from(0),
+        minLpReceive: BigNumber.from(0),
+      };
 
-        const depositStableWorkByte = buildDepositWorkByte(depositStableWorkbyteInput);
-        const depositAssetWorkByte = buildDepositWorkByte(depositAssetWorkbyteInput);
+      const depositStableWorkByte = buildDepositWorkByte(depositStableWorkbyteInput);
+      const depositAssetWorkByte = buildDepositWorkByte(depositAssetWorkbyteInput);
 
-        const depositData = ethers.utils.defaultAbiCoder.encode(
-          ["uint8[]", "uint256[]", "bytes[]"],
-          [
-            [ACTION_WORK, ACTION_WORK],
-            [0, 0],
-            [depositStableWorkByte, depositAssetWorkByte],
-          ]
-        );
+      const depositData = ethers.utils.defaultAbiCoder.encode(
+        ["uint8[]", "uint256[]", "bytes[]"],
+        [
+          [ACTION_WORK, ACTION_WORK],
+          [0, 0],
+          [depositStableWorkByte, depositAssetWorkByte],
+        ]
+      );
 
-        const depositTx = await deltaVaultAsAlice.deposit(
-          depositStableTokenAmount,
-          depositAssetTokenAmount,
-          aliceAddress,
-          0,
-          depositData,
-          {
-            value: depositAssetTokenAmount,
-          }
-        );
+      const depositTx = await deltaVaultAsAlice.deposit(
+        depositStableTokenAmount,
+        depositAssetTokenAmount,
+        aliceAddress,
+        0,
+        depositData,
+        {
+          value: depositAssetTokenAmount,
+        }
+      );
+    });
+
+    context("when alice withdraw and expect returns stable amount 100%", async () => {
+      it("should work", async () => {
+        // ======== prepare for withdraw ======
+        const withdrawValue = ethers.utils.parseEther("200");
+
+        const minWithdrawStableAmount = ethers.utils.parseEther("149.931452849760353839");
+        const minWithdrawAssetTokenAmount = ethers.utils.parseEther("49.976458329680142948");
+
+        const minWithdrawStableAmountAfterSwap = ethers.utils.parseEther("0");
+        const minWithdrawAssetAfterSwap = ethers.utils.parseEther("0");
+
+        await deltaVaultAsAlice.approve(deltaVaultGateway.address, await deltaVault.balanceOf(aliceAddress));
+        const aliceBaseTokenBefore = await baseToken.balanceOf(aliceAddress);
+        const aliceShareBefore = await deltaVault.balanceOf(aliceAddress);
+
+        // ======== withdraw ======
+        const { tx, shareToWithdraw, expectStableEquity, expectStableDebt, expectAssetEquity, expectAssetDebt } =
+          await simpleWithdrawFromGateWay(
+            withdrawValue,
+            minWithdrawStableAmount,
+            minWithdrawAssetTokenAmount,
+            minWithdrawStableAmountAfterSwap,
+            minWithdrawAssetAfterSwap,
+            10000
+          );
+
+        const gatewayShare = await deltaVault.balanceOf(deltaVaultGatewayAsAlice.address);
+        expect(gatewayShare).to.be.eq(BigNumber.from(0));
+        expect(await baseToken.balanceOf(deltaVaultGateway.address)).to.be.eq(BigNumber.from(0));
+        expect(await wbnb.balanceOf(deltaVaultGateway.address)).to.be.eq(BigNumber.from(0));
+
+        const aliceShareAfter = await deltaVault.balanceOf(aliceAddress);
+        const aliceBaseTokenAfter = await baseToken.balanceOf(aliceAddress);
+        const positionInfoAfter = await deltaVault.positionInfo();
+        const baseTokenDiff = aliceBaseTokenAfter.sub(aliceBaseTokenBefore);
+        expect(aliceShareBefore.sub(aliceShareAfter)).to.eq(shareToWithdraw);
+
+        Assert.assertAlmostEqual(positionInfoAfter.stablePositionEquity.toString(), expectStableEquity.toString());
+        Assert.assertAlmostEqual(positionInfoAfter.stablePositionDebtValue.toString(), expectStableDebt.toString());
+        Assert.assertAlmostEqual(positionInfoAfter.assetPositionEquity.toString(), expectAssetEquity.toString());
+        Assert.assertAlmostEqual(positionInfoAfter.assetPositionDebtValue.toString(), expectAssetDebt.toString());
+
+        expect(tx).to.emit(deltaVaultGateway, "LogWithdraw").withArgs(aliceAddress, baseTokenDiff, 0);
+      });
+    });
+
+    context("when alice withdraw and expect returns native amount 100%", async () => {
+      it("should work", async () => {
+        // ======== prepare for withdraw ======
+        const withdrawValue = ethers.utils.parseEther("200");
+
+        const minWithdrawStableAmount = ethers.utils.parseEther("149.931452849760353839");
+        const minWithdrawAssetTokenAmount = ethers.utils.parseEther("49.976458329680142948");
+
+        const minWithdrawStableAmountAfterSwap = ethers.utils.parseEther("0");
+        const minWithdrawAssetAfterSwap = ethers.utils.parseEther("0");
+
+        await deltaVaultAsAlice.approve(deltaVaultGateway.address, await deltaVault.balanceOf(aliceAddress));
+        const aliceNativeBefore = await alice.getBalance();
+        const aliceShareBefore = await deltaVault.balanceOf(aliceAddress);
+
+        // ======== withdraw ======
+        const { tx, shareToWithdraw, expectStableEquity, expectStableDebt, expectAssetEquity, expectAssetDebt } =
+          await simpleWithdrawFromGateWay(
+            withdrawValue,
+            minWithdrawStableAmount,
+            minWithdrawAssetTokenAmount,
+            minWithdrawStableAmountAfterSwap,
+            minWithdrawAssetAfterSwap,
+            0
+          );
+
+        const aliceShareAfter = await deltaVault.balanceOf(aliceAddress);
+        const aliceNativeAfter = await alice.getBalance();
+        const positionInfoAfter = await deltaVault.positionInfo();
+
+        const nativeTokenDiff = aliceNativeAfter.sub(aliceNativeBefore);
+        const gatewayShare = await deltaVault.balanceOf(deltaVaultGatewayAsAlice.address);
+
+        // check event
+        console.log("event");
+        expect(tx).to.emit(deltaVaultGateway, "LogWithdraw").withArgs(aliceAddress, 0, nativeTokenDiff);
+
+        // check user
+        console.log("user");
+        expect(aliceShareBefore.sub(aliceShareAfter)).to.eq(shareToWithdraw);
+
+        // check gateway
+        console.log("gateway");
+        expect(gatewayShare).to.be.eq(BigNumber.from(0));
+        expect(await baseToken.balanceOf(deltaVaultGateway.address)).to.be.eq(BigNumber.from(0));
+        expect(await wbnb.balanceOf(deltaVaultGateway.address)).to.be.eq(BigNumber.from(0));
+
+        // check position info
+        console.log("position info");
+        Assert.assertAlmostEqual(positionInfoAfter.stablePositionEquity.toString(), expectStableEquity.toString());
+        Assert.assertAlmostEqual(positionInfoAfter.stablePositionDebtValue.toString(), expectStableDebt.toString());
+        Assert.assertAlmostEqual(positionInfoAfter.assetPositionEquity.toString(), expectAssetEquity.toString());
+        Assert.assertAlmostEqual(positionInfoAfter.assetPositionDebtValue.toString(), expectAssetDebt.toString());
+      });
+    });
+
+    context("when alice withdraw and expect returns stable amount 50% and native amount 50%", async () => {
+      it("should work", async () => {
+        // ======== prepare for withdraw ======
+        const withdrawValue = ethers.utils.parseEther("200");
+
+        const minWithdrawStableAmount = ethers.utils.parseEther("149.931452849760353839");
+        const minWithdrawAssetTokenAmount = ethers.utils.parseEther("49.976458329680142948");
+        // in normal case user will receive stable: 149.931452849760353839 asset: 49.976458329680142948
+        // but user provide return bsp of stable token as 50% and asset token 50%
+        // stable price = 1, asset price = 1
+        // stable value = 149.931452849760353839 * 1 = 149.931452849760353839
+        // asset value = 49.976458329680142948 * 1 = 49.976458329680142948
+        // total value = 149.931452849760353839 + 49.976458329680142948 = 199.907911179440496787
+        // expected stable bps is 5000 = 0.5
+        // expected stable value = 199.907911179440496787 * 0.5 = 99.953955589720248393
+        // bps calculation
+        // current stable value 149.931452849760353839 that grater then expected value
+        // have to swap out (149.931452849760353839 - 99.953955589720248393) / 1 = 49.977497260040105446
+        // after swap will got asset amount 49.853571678348350553 // get from log in contract
+        // expected
+        // stable amount = 149.931452849760353839 - 49.977497260040105446 = 99.953955589720248393
+        // asset amount = 49.976458329680142948 + 49.853571678348350553 = 99.830030008028493501
+
+        const minWithdrawStableAmountAfterSwap = ethers.utils.parseEther("99.953955589720248393");
+        const minWithdrawAssetAfterSwap = ethers.utils.parseEther("99.830030008028493501");
+
+        await deltaVaultAsAlice.approve(deltaVaultGateway.address, await deltaVault.balanceOf(aliceAddress));
+        const aliceShareBefore = await deltaVault.balanceOf(aliceAddress);
+
+        // ======== withdraw ======
+        const { tx, shareToWithdraw, expectStableEquity, expectStableDebt, expectAssetEquity, expectAssetDebt } =
+          await simpleWithdrawFromGateWay(
+            withdrawValue,
+            minWithdrawStableAmount,
+            minWithdrawAssetTokenAmount,
+            minWithdrawStableAmountAfterSwap,
+            minWithdrawAssetAfterSwap,
+            5000
+          );
+
+        const gatewayShare = await deltaVault.balanceOf(deltaVaultGatewayAsAlice.address);
+        expect(gatewayShare).to.be.eq(BigNumber.from(0));
+        expect(await baseToken.balanceOf(deltaVaultGateway.address)).to.be.eq(BigNumber.from(0));
+        expect(await wbnb.balanceOf(deltaVaultGateway.address)).to.be.eq(BigNumber.from(0));
+
+        const aliceShareAfter = await deltaVault.balanceOf(aliceAddress);
+        const positionInfoAfter = await deltaVault.positionInfo();
+        expect(aliceShareBefore.sub(aliceShareAfter)).to.eq(shareToWithdraw);
+
+        Assert.assertAlmostEqual(positionInfoAfter.stablePositionEquity.toString(), expectStableEquity.toString());
+        Assert.assertAlmostEqual(positionInfoAfter.stablePositionDebtValue.toString(), expectStableDebt.toString());
+        Assert.assertAlmostEqual(positionInfoAfter.assetPositionEquity.toString(), expectAssetEquity.toString());
+        Assert.assertAlmostEqual(positionInfoAfter.assetPositionDebtValue.toString(), expectAssetDebt.toString());
+
+        expect(tx)
+          .to.emit(deltaVaultGateway, "LogWithdraw")
+          .withArgs(aliceAddress, minWithdrawStableAmountAfterSwap, minWithdrawAssetAfterSwap);
       });
 
-      context("when alice withdraw and expect returns stable amount 100%", async () => {
-        it("should work", async () => {
-          // ======== prepare for withdraw ======
-          const withdrawValue = ethers.utils.parseEther("200");
+      context("someone transfer token in delta vault gateway", () => {
+        it("should still return correct amount", async () => {
+          // deployer transfer token in delta vault gateway
+          // 10 for stable token and 5 for asset token
+          const depositedStableAmount = ethers.utils.parseEther("10");
+          const depositedAssetAmount = ethers.utils.parseEther("5");
 
-          const minWithdrawStableAmount = ethers.utils.parseEther("149.931452849760353839");
-          const minWithdrawAssetTokenAmount = ethers.utils.parseEther("49.976458329680142948");
+          await baseTokenAsDeployer.transfer(deltaVaultGateway.address, depositedStableAmount);
+          await wbnbTokenAsDeployer.transfer(deltaVaultGateway.address, depositedAssetAmount);
 
-          const minWithdrawStableAmountAfterSwap = ethers.utils.parseEther("0");
-          const minWithdrawAssetAfterSwap = ethers.utils.parseEther("0");
-
-          const aliceBaseTokenBefore = await baseToken.balanceOf(aliceAddress);
-          const aliceShareBefore = await deltaVault.balanceOf(aliceAddress);
-
-          // ======== withdraw ======
-          const { tx, shareToWithdraw, expectStableEquity, expectStableDebt, expectAssetEquity, expectAssetDebt } =
-            await simpleWithdrawFromGateWay(
-              withdrawValue,
-              minWithdrawStableAmount,
-              minWithdrawAssetTokenAmount,
-              minWithdrawStableAmountAfterSwap,
-              minWithdrawAssetAfterSwap,
-              10000
-            );
-
-          const gatewayShare = await deltaVault.balanceOf(deltaVaultGatewayAsAlice.address);
-          expect(gatewayShare).to.be.eq(BigNumber.from(0));
-          expect(await baseToken.balanceOf(deltaVaultGateway.address)).to.be.eq(BigNumber.from(0));
-          expect(await wbnb.balanceOf(deltaVaultGateway.address)).to.be.eq(BigNumber.from(0));
-
-          const aliceShareAfter = await deltaVault.balanceOf(aliceAddress);
-          const aliceBaseTokenAfter = await baseToken.balanceOf(aliceAddress);
-          const positionInfoAfter = await deltaVault.positionInfo();
-          const baseTokenDiff = aliceBaseTokenAfter.sub(aliceBaseTokenBefore);
-          expect(aliceShareBefore.sub(aliceShareAfter)).to.eq(shareToWithdraw);
-
-          Assert.assertAlmostEqual(positionInfoAfter.stablePositionEquity.toString(), expectStableEquity.toString());
-          Assert.assertAlmostEqual(positionInfoAfter.stablePositionDebtValue.toString(), expectStableDebt.toString());
-          Assert.assertAlmostEqual(positionInfoAfter.assetPositionEquity.toString(), expectAssetEquity.toString());
-          Assert.assertAlmostEqual(positionInfoAfter.assetPositionDebtValue.toString(), expectAssetDebt.toString());
-
-          expect(tx).to.emit(deltaVaultGateway, "LogWithdraw").withArgs(aliceAddress, baseTokenDiff, 0);
-        });
-      });
-
-      //199535971328358617913 //199535917713358617913
-      context("when alice withdraw and expect returns native amount 100%", async () => {
-        it("should work", async () => {
-          // ======== prepare for withdraw ======
-          const withdrawValue = ethers.utils.parseEther("200");
-
-          const minWithdrawStableAmount = ethers.utils.parseEther("149.931452849760353839");
-          const minWithdrawAssetTokenAmount = ethers.utils.parseEther("49.976458329680142948");
-
-          const minWithdrawStableAmountAfterSwap = ethers.utils.parseEther("0");
-          const minWithdrawAssetAfterSwap = ethers.utils.parseEther("0");
-
-          const aliceNativeBefore = await alice.getBalance();
-          const aliceShareBefore = await deltaVault.balanceOf(aliceAddress);
-
-          // ======== withdraw ======
-          const { tx, shareToWithdraw, expectStableEquity, expectStableDebt, expectAssetEquity, expectAssetDebt } =
-            await simpleWithdrawFromGateWay(
-              withdrawValue,
-              minWithdrawStableAmount,
-              minWithdrawAssetTokenAmount,
-              minWithdrawStableAmountAfterSwap,
-              minWithdrawAssetAfterSwap,
-              0
-            );
-
-          const gatewayShare = await deltaVault.balanceOf(deltaVaultGatewayAsAlice.address);
-          expect(gatewayShare).to.be.eq(BigNumber.from(0));
-          expect(await baseToken.balanceOf(deltaVaultGateway.address)).to.be.eq(BigNumber.from(0));
-          expect(await wbnb.balanceOf(deltaVaultGateway.address)).to.be.eq(BigNumber.from(0));
-
-          const aliceShareAfter = await deltaVault.balanceOf(aliceAddress);
-          const aliceNativeAfter = await alice.getBalance();
-          const positionInfoAfter = await deltaVault.positionInfo();
-
-          const nativeTokenDiff = aliceNativeAfter.sub(aliceNativeBefore);
-          expect(aliceShareBefore.sub(aliceShareAfter)).to.eq(shareToWithdraw);
-
-          Assert.assertAlmostEqual(positionInfoAfter.stablePositionEquity.toString(), expectStableEquity.toString());
-          Assert.assertAlmostEqual(positionInfoAfter.stablePositionDebtValue.toString(), expectStableDebt.toString());
-          Assert.assertAlmostEqual(positionInfoAfter.assetPositionEquity.toString(), expectAssetEquity.toString());
-          Assert.assertAlmostEqual(positionInfoAfter.assetPositionDebtValue.toString(), expectAssetDebt.toString());
-
-          expect(tx).to.emit(deltaVaultGateway, "LogWithdraw").withArgs(aliceAddress, 0, nativeTokenDiff);
-        });
-      });
-
-      context("when alice withdraw and expect returns stable amount 50% and native amount 50%", async () => {
-        it("should work", async () => {
           // ======== prepare for withdraw ======
           const withdrawValue = ethers.utils.parseEther("200");
 
@@ -894,12 +968,14 @@ describe("DeltaNeutralVaultGateway", () => {
           // after swap will got asset amount 49.853571678348350553 // get from log in contract
           // expected
           // stable amount = 149.931452849760353839 - 49.977497260040105446 = 99.953955589720248393
-          // asset amount = 49.976458329680142948 + 49.853571678348350553 = 99.830092042300144243
+          // asset amount = 49.976458329680142948 + 49.853571678348350553 = 99.830030008028493501
 
           const minWithdrawStableAmountAfterSwap = ethers.utils.parseEther("99.953955589720248393");
           const minWithdrawAssetAfterSwap = ethers.utils.parseEther("99.830030008028493501");
 
+          await deltaVaultAsAlice.approve(deltaVaultGateway.address, await deltaVault.balanceOf(aliceAddress));
           const aliceShareBefore = await deltaVault.balanceOf(aliceAddress);
+
           // ======== withdraw ======
           const { tx, shareToWithdraw, expectStableEquity, expectStableDebt, expectAssetEquity, expectAssetDebt } =
             await simpleWithdrawFromGateWay(
@@ -913,8 +989,10 @@ describe("DeltaNeutralVaultGateway", () => {
 
           const gatewayShare = await deltaVault.balanceOf(deltaVaultGatewayAsAlice.address);
           expect(gatewayShare).to.be.eq(BigNumber.from(0));
-          expect(await baseToken.balanceOf(deltaVaultGateway.address)).to.be.eq(BigNumber.from(0));
-          expect(await wbnb.balanceOf(deltaVaultGateway.address)).to.be.eq(BigNumber.from(0));
+          // stable token amount should have 10 in delta vault gateway
+          // asset token amount should have 5 in delta vault gateway
+          expect(await baseToken.balanceOf(deltaVaultGateway.address)).to.be.eq(depositedStableAmount);
+          expect(await wbnb.balanceOf(deltaVaultGateway.address)).to.be.eq(depositedAssetAmount);
 
           const aliceShareAfter = await deltaVault.balanceOf(aliceAddress);
           const positionInfoAfter = await deltaVault.positionInfo();
@@ -929,175 +1007,115 @@ describe("DeltaNeutralVaultGateway", () => {
             .to.emit(deltaVaultGateway, "LogWithdraw")
             .withArgs(aliceAddress, minWithdrawStableAmountAfterSwap, minWithdrawAssetAfterSwap);
         });
+      });
 
-        context("someone transfer token in delta vault gateway", () => {
-          it.only("should still return correct amount", async () => {
-            // deployer transfer token in delta vault gateway
-            // 10 for stable token and 5 for asset token
-            const depositedStableAmount = ethers.utils.parseEther("10");
-            const depositedAssetAmount = ethers.utils.parseEther("5");
-            await baseTokenAsDeployer.transfer(deltaVaultGateway.address, depositedStableAmount);
-            await wbnbTokenAsDeployer.transfer(deltaVaultGateway.address, depositedAssetAmount);
-            // ======== prepare for withdraw ======
-            const withdrawValue = ethers.utils.parseEther("200");
+      context("but alice expect return amount too much on stable side", async () => {
+        it("should revert", async () => {
+          // ======== prepare for withdraw ======
+          const withdrawValue = ethers.utils.parseEther("200");
 
-            const minWithdrawStableAmount = ethers.utils.parseEther("149.931452849760353839");
-            const minWithdrawAssetTokenAmount = ethers.utils.parseEther("49.976458329680142948");
-            // in normal case user will receive stable: 149.931452849760353839 asset: 49.976458329680142948
-            // but user provide return bsp of stable token as 50% and asset token 50%
-            // stable price = 1, asset price = 1
-            // stable value = 149.931452849760353839 * 1 = 149.931452849760353839
-            // asset value = 49.976458329680142948 * 1 = 49.976458329680142948
-            // total value = 149.931452849760353839 + 49.976458329680142948 = 199.907911179440496787
-            // expected stable bps is 5000 = 0.5
-            // expected stable value = 199.907911179440496787 * 0.5 = 99.953955589720248393
-            // bps calculation
-            // current stable value 149.931452849760353839 that grater then expected value
-            // have to swap out (149.931452849760353839 - 99.953955589720248393) / 1 = 49.977497260040105446
-            // after swap will got asset amount 49.853571678348350553 // get from log in contract
-            // expected
-            // stable amount = 149.931452849760353839 - 49.977497260040105446 = 99.953955589720248393
-            // asset amount = 49.976458329680142948 + 49.853571678348350553 = 99.830092042300144243
+          const minWithdrawStableAmount = ethers.utils.parseEther("149.931452849760353839");
+          const minWithdrawAssetTokenAmount = ethers.utils.parseEther("49.976458329680142948");
+          // in normal case user will receive stable: 149.931452849760353839 asset: 49.976458329680142948
+          // but user provide return bsp of stable token as 50% and asset token 50%
+          // stable price = 1, asset price = 1
+          // stable value = 149.931452849760353839 * 1 = 149.931452849760353839
+          // asset value = 49.976458329680142948 * 1 = 49.976458329680142948
+          // total value = 149.931452849760353839 + 49.976458329680142948 = 199.907911179440496787
+          // expected stable bps is 5000 = 0.5
+          // expected stable value = 199.907911179440496787 * 0.5 = 99.953955589720248393
+          // bps calculation
+          // current stable value 149.931452849760353839 that grater then expected value
+          // have to swap out (149.931452849760353839 - 99.953955589720248393) / 1 = 49.977497260040105446
+          // after swap will got asset amount 49.853571678348350553 // get from log in contract
+          // expected
+          // stable amount = 149.931452849760353839 - 49.977497260040105446 = 99.953955589720248393
+          // asset amount = 49.976458329680142948 + 49.853571678348350553 = 99.830030008028493501
 
-            const minWithdrawStableAmountAfterSwap = ethers.utils.parseEther("99.953955589720248393");
-            const minWithdrawAssetAfterSwap = ethers.utils.parseEther("99.830030008028493501");
+          const minWithdrawStableAmountAfterSwap = ethers.utils.parseEther("99.953955589720248393");
+          const minWithdrawAssetAfterSwap = ethers.utils.parseEther("99.830030008028493501");
+          const expectedMinWithdrawStableAmountAfterSwap = ethers.utils.parseEther("100");
 
-            const aliceShareBefore = await deltaVault.balanceOf(aliceAddress);
-            // ======== withdraw ======
-            const { tx, shareToWithdraw, expectStableEquity, expectStableDebt, expectAssetEquity, expectAssetDebt } =
-              await simpleWithdrawFromGateWay(
-                withdrawValue,
-                minWithdrawStableAmount,
-                minWithdrawAssetTokenAmount,
-                minWithdrawStableAmountAfterSwap,
-                minWithdrawAssetAfterSwap,
-                5000
-              );
+          await deltaVaultAsAlice.approve(deltaVaultGateway.address, await deltaVault.balanceOf(aliceAddress));
 
-            const gatewayShare = await deltaVault.balanceOf(deltaVaultGatewayAsAlice.address);
-            expect(gatewayShare).to.be.eq(BigNumber.from(0));
-            // stable token amount should have 10 in delta vault gateway
-            // asset token amount should have 5 in delta vault gateway
-            expect(await baseToken.balanceOf(deltaVaultGateway.address)).to.be.eq(depositedStableAmount);
-            expect(await wbnb.balanceOf(deltaVaultGateway.address)).to.be.eq(depositedAssetAmount);
-
-            const aliceShareAfter = await deltaVault.balanceOf(aliceAddress);
-            const positionInfoAfter = await deltaVault.positionInfo();
-            expect(aliceShareBefore.sub(aliceShareAfter)).to.eq(shareToWithdraw);
-
-            Assert.assertAlmostEqual(positionInfoAfter.stablePositionEquity.toString(), expectStableEquity.toString());
-            Assert.assertAlmostEqual(positionInfoAfter.stablePositionDebtValue.toString(), expectStableDebt.toString());
-            Assert.assertAlmostEqual(positionInfoAfter.assetPositionEquity.toString(), expectAssetEquity.toString());
-            Assert.assertAlmostEqual(positionInfoAfter.assetPositionDebtValue.toString(), expectAssetDebt.toString());
-
-            expect(tx)
-              .to.emit(deltaVaultGateway, "LogWithdraw")
-              .withArgs(aliceAddress, minWithdrawStableAmountAfterSwap, minWithdrawAssetAfterSwap);
-          });
-        });
-
-        context("but alice expect return amount too much on stable side", async () => {
-          it.only("should revert", async () => {
-            // ======== prepare for withdraw ======
-            const withdrawValue = ethers.utils.parseEther("200");
-
-            const minWithdrawStableAmount = ethers.utils.parseEther("149.931452849760353839");
-            const minWithdrawAssetTokenAmount = ethers.utils.parseEther("49.976458329680142948");
-            // in normal case user will receive stable: 149.931452849760353839 asset: 49.976458329680142948
-            // but user provide return bsp of stable token as 50% and asset token 50%
-            // stable price = 1, asset price = 1
-            // stable value = 149.931452849760353839 * 1 = 149.931452849760353839
-            // asset value = 49.976458329680142948 * 1 = 49.976458329680142948
-            // total value = 149.931452849760353839 + 49.976458329680142948 = 199.907911179440496787
-            // expected stable bps is 5000 = 0.5
-            // expected stable value = 199.907911179440496787 * 0.5 = 99.953955589720248393
-            // bps calculation
-            // current stable value 149.931452849760353839 that grater then expected value
-            // have to swap out (149.931452849760353839 - 99.953955589720248393) / 1 = 49.977497260040105446
-            // after swap will got asset amount 49.853571678348350553 // get from log in contract
-            // expected
-            // stable amount = 149.931452849760353839 - 49.977497260040105446 = 99.953955589720248393
-            // asset amount = 49.976458329680142948 + 49.853571678348350553 = 99.830092042300144243
-
-            const minWithdrawStableAmountAfterSwap = ethers.utils.parseEther("99.953955589720248393");
-            const minWithdrawAssetAfterSwap = ethers.utils.parseEther("99.830030008028493501");
-            const expectMinWithdrawStableAmountAfterSwap = ethers.utils.parseEther("100");
-            // ======== withdraw ======
-            await expect(
-              simpleWithdrawFromGateWay(
-                withdrawValue,
-                minWithdrawStableAmount,
-                minWithdrawAssetTokenAmount,
-                expectMinWithdrawStableAmountAfterSwap,
-                minWithdrawAssetAfterSwap,
-                5000
-              )
-            ).to.be.revertedWith(
-              `DeltaNeutralVaultGateway_InsufficientReceive(${minWithdrawStableAmountAfterSwap}, ${minWithdrawAssetAfterSwap}, ${expectMinWithdrawStableAmountAfterSwap}, ${minWithdrawAssetAfterSwap})`
-            );
-          });
-        });
-
-        context("but alice expect return amount too much on asset side", async () => {
-          it.only("should revert", async () => {
-            // ======== prepare for withdraw ======
-            const withdrawValue = ethers.utils.parseEther("200");
-
-            const minWithdrawStableAmount = ethers.utils.parseEther("149.931452849760353839");
-            const minWithdrawAssetTokenAmount = ethers.utils.parseEther("49.976458329680142948");
-            // in normal case user will receive stable: 149.931452849760353839 asset: 49.976458329680142948
-            // but user provide return bsp of stable token as 50% and asset token 50%
-            // stable price = 1, asset price = 1
-            // stable value = 149.931452849760353839 * 1 = 149.931452849760353839
-            // asset value = 49.976458329680142948 * 1 = 49.976458329680142948
-            // total value = 149.931452849760353839 + 49.976458329680142948 = 199.907911179440496787
-            // expected stable bps is 5000 = 0.5
-            // expected stable value = 199.907911179440496787 * 0.5 = 99.953955589720248393
-            // bps calculation
-            // current stable value 149.931452849760353839 that grater then expected value
-            // have to swap out (149.931452849760353839 - 99.953955589720248393) / 1 = 49.977497260040105446
-            // after swap will got asset amount 49.853571678348350553 // get from log in contract
-            // expected
-            // stable amount = 149.931452849760353839 - 49.977497260040105446 = 99.953955589720248393
-            // asset amount = 49.976458329680142948 + 49.853571678348350553 = 99.830092042300144243
-
-            const minWithdrawStableAmountAfterSwap = ethers.utils.parseEther("99.953955589720248393");
-            const minWithdrawAssetAfterSwap = ethers.utils.parseEther("99.830092042300144243");
-            const expectMinWithdrawAssetAmountAfterSwap = ethers.utils.parseEther("100");
-            // ======== withdraw ======
-            await expect(
-              simpleWithdrawFromGateWay(
-                withdrawValue,
-                minWithdrawStableAmount,
-                minWithdrawAssetTokenAmount,
-                minWithdrawStableAmountAfterSwap,
-                expectMinWithdrawAssetAmountAfterSwap,
-                5000
-              )
-            ).to.be.revertedWith(
-              `DeltaNeutralVaultGateway_InsufficientReceive(${minWithdrawStableAmountAfterSwap}, ${minWithdrawAssetAfterSwap}, ${minWithdrawStableAmountAfterSwap}, ${expectMinWithdrawAssetAmountAfterSwap})`
-            );
-          });
+          // ======== withdraw ======
+          await expect(
+            simpleWithdrawFromGateWay(
+              withdrawValue,
+              minWithdrawStableAmount,
+              minWithdrawAssetTokenAmount,
+              expectedMinWithdrawStableAmountAfterSwap,
+              minWithdrawAssetAfterSwap,
+              5000
+            )
+          ).to.be.revertedWith(
+            `DeltaNeutralVaultGateway_InsufficientReceive(${minWithdrawStableAmountAfterSwap}, ${minWithdrawAssetAfterSwap}, ${expectedMinWithdrawStableAmountAfterSwap}, ${minWithdrawAssetAfterSwap})`
+          );
         });
       });
 
-      context("when alice withdraw and when user expected stable return bps more than 10000 (100%)", async () => {
-        it("should not be able to withdraw", async () => {
-          const withdrawData = ethers.utils.defaultAbiCoder.encode(["uint8[]", "uint256[]", "bytes[]"], [[], [], []]);
+      context("but alice expect return amount too much on asset side", async () => {
+        it("should revert", async () => {
+          // ======== prepare for withdraw ======
+          const withdrawValue = ethers.utils.parseEther("200");
 
+          const minWithdrawStableAmount = ethers.utils.parseEther("149.931452849760353839");
+          const minWithdrawAssetTokenAmount = ethers.utils.parseEther("49.976458329680142948");
+          // in normal case user will receive stable: 149.931452849760353839 asset: 49.976458329680142948
+          // but user provide return bsp of stable token as 50% and asset token 50%
+          // stable price = 1, asset price = 1
+          // stable value = 149.931452849760353839 * 1 = 149.931452849760353839
+          // asset value = 49.976458329680142948 * 1 = 49.976458329680142948
+          // total value = 149.931452849760353839 + 49.976458329680142948 = 199.907911179440496787
+          // expected stable bps is 5000 = 0.5
+          // expected stable value = 199.907911179440496787 * 0.5 = 99.953955589720248393
+          // bps calculation
+          // current stable value 149.931452849760353839 that grater then expected value
+          // have to swap out (149.931452849760353839 - 99.953955589720248393) / 1 = 49.977497260040105446
+          // after swap will got asset amount 49.853571678348350553 // get from log in contract
+          // expected
+          // stable amount = 149.931452849760353839 - 49.977497260040105446 = 99.953955589720248393
+          // asset amount = 49.976458329680142948 + 49.853571678348350553 = 99.830030008028493501
+
+          const minWithdrawStableAmountAfterSwap = ethers.utils.parseEther("99.953955589720248393");
+          const minWithdrawAssetAfterSwap = ethers.utils.parseEther("99.830030008028493501");
+          const expectMinWithdrawAssetAmountAfterSwap = ethers.utils.parseEther("100");
+
+          await deltaVaultAsAlice.approve(deltaVaultGateway.address, await deltaVault.balanceOf(aliceAddress));
+
+          // ======== withdraw ======
           await expect(
-            deltaVaultGatewayAsAlice.withdraw(
-              ethers.utils.parseEther("0"),
-              ethers.utils.parseEther("0"),
-              ethers.utils.parseEther("0"),
-              ethers.utils.parseEther("0"),
-              ethers.utils.parseEther("0"),
-              withdrawData,
-              1000000,
-              { gasPrice: 0 }
+            simpleWithdrawFromGateWay(
+              withdrawValue,
+              minWithdrawStableAmount,
+              minWithdrawAssetTokenAmount,
+              minWithdrawStableAmountAfterSwap,
+              expectMinWithdrawAssetAmountAfterSwap,
+              5000
             )
-          ).to.be.revertedWith("ReturnBpsExceed(1000000)");
+          ).to.be.revertedWith(
+            `DeltaNeutralVaultGateway_InsufficientReceive(${minWithdrawStableAmountAfterSwap}, ${minWithdrawAssetAfterSwap}, ${minWithdrawStableAmountAfterSwap}, ${expectMinWithdrawAssetAmountAfterSwap})`
+          );
         });
+      });
+    });
+
+    context("when alice withdraw and when user expected stable return bps more than 10000 (100%)", async () => {
+      it("should not be able to withdraw", async () => {
+        const withdrawData = ethers.utils.defaultAbiCoder.encode(["uint8[]", "uint256[]", "bytes[]"], [[], [], []]);
+
+        await expect(
+          deltaVaultGatewayAsAlice.withdraw(
+            ethers.utils.parseEther("0"),
+            ethers.utils.parseEther("0"),
+            ethers.utils.parseEther("0"),
+            ethers.utils.parseEther("0"),
+            ethers.utils.parseEther("0"),
+            withdrawData,
+            1000000,
+            { gasPrice: 0 }
+          )
+        ).to.be.revertedWith("ReturnBpsExceed(1000000)");
       });
     });
   });
@@ -1115,9 +1133,12 @@ describe("DeltaNeutralVaultGateway", () => {
 
       context("deployer call .transfer() back stable to alice", async () => {
         it("should work", async () => {
-          const aliceStableBefore = await baseToken.balanceOf(aliceAddress);
           const depositedAmount = ethers.utils.parseEther("1");
           await baseTokenAsAlice.transfer(deltaVaultGateway.address, depositedAmount);
+          const aliceStableBefore = await baseToken.balanceOf(aliceAddress);
+
+          expect(await baseToken.balanceOf(deltaVaultGateway.address)).to.be.eq(depositedAmount);
+
           await expect(deltaVaultGatewayAsDeployer.transfer(baseToken.address, aliceAddress, depositedAmount))
             .to.be.emit(deltaVaultGateway, "LogTransfer")
             .withArgs(baseToken.address, aliceAddress, depositedAmount);
@@ -1127,11 +1148,18 @@ describe("DeltaNeutralVaultGateway", () => {
         });
       });
 
-      context("deployer call .transfer() back to alice", async () => {
+      context("deployer call .transfer() native back to alice", async () => {
         it("should work", async () => {
-          const aliceNativeBefore = await alice.getBalance();
           const depositedAmount = ethers.utils.parseEther("1");
-          await wbnbTokenAsAlice.transfer(deltaVaultGateway.address, depositedAmount);
+          let tx = {
+            to: deltaVaultGateway.address,
+            // Convert currency unit from ether to wei
+            value: depositedAmount,
+          };
+          await alice.sendTransaction(tx);
+
+          const aliceNativeBefore = await alice.getBalance();
+
           await expect(deltaVaultGatewayAsDeployer.transfer(wbnb.address, aliceAddress, depositedAmount))
             .to.be.emit(deltaVaultGateway, "LogTransfer")
             .withArgs(wbnb.address, aliceAddress, depositedAmount);

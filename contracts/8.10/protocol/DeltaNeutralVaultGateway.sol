@@ -21,6 +21,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeab
 import "./interfaces/IDeltaNeutralVault.sol";
 import "./interfaces/ISwapRouter.sol";
 import "./interfaces/IWETH.sol";
+import "./interfaces/IBEP20.sol";
 import "../utils/SafeToken.sol";
 import "../utils/FixedPointMathLib.sol";
 
@@ -109,7 +110,6 @@ contract DeltaNeutralVaultGateway is ReentrancyGuardUpgradeable, OwnableUpgradea
     // get all token amount
     uint256 _stableTokenBack = _getBalance(_stableToken) - _stableTokenBalanceBefore;
     uint256 _assetTokenBack = _getBalance(_assetToken) - _assetTokenBalanceBefore;
-
     if (_stableTokenBack < _minSwapStableTokenAmount || _assetTokenBack < _minSwapAssetTokenAmount) {
       revert DeltaNeutralVaultGateway_InsufficientReceive(
         _stableTokenBack,
@@ -171,8 +171,15 @@ contract DeltaNeutralVaultGateway is ReentrancyGuardUpgradeable, OwnableUpgradea
     uint256 _stableTokenPrice = _getTokenPrice(_stableToken);
     uint256 _assetTokenPrice = _getTokenPrice(_assetToken);
 
-    uint256 _withdrawStableAmountInUSD = _withdrawStableAmount.mulWadDown(_stableTokenPrice);
-    uint256 _withdrawAssetAmountInUSD = _withdrawAssetAmount.mulWadDown(_assetTokenPrice);
+    uint256 _stableTokenDecimals = IBEP20(_stableToken).decimals();
+    uint256 _assetTokenDecimals = IBEP20(_assetToken).decimals();
+
+    uint256 _withdrawStableAmountInUSD = ((_withdrawStableAmount * (1e18)) / (10**_stableTokenDecimals)).mulWadDown(
+      _stableTokenPrice
+    );
+    uint256 _withdrawAssetAmountInUSD = ((_withdrawAssetAmount * (1e18)) / (10**_assetTokenDecimals)).mulWadDown(
+      _assetTokenPrice
+    );
     uint256 _total = _withdrawStableAmountInUSD + _withdrawAssetAmountInUSD;
 
     uint256 _expectedStableInUSD = (_stableReturnBps * _total) / BASIS_POINT;
