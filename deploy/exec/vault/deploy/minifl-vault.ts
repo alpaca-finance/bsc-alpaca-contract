@@ -27,11 +27,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const ALLOC_POINT_FOR_DEPOSIT = 75;
+  const ALLOC_POINT_FOR_DEPOSIT = 0;
   const ALLOC_POINT_FOR_OPEN_POSITION = 0;
-  const VAULT_NAME = "USDC Vault";
-  const NAME = "Interest Bearing USDC";
-  const SYMBOL = "ibUSDC";
+  const VAULT_NAME = "ALPACA Vault";
+  const NAME = "Interest Bearing ALPACA";
+  const SYMBOL = "ibALPACA";
   const REWARDER1_ADDRESS = "0x7EEAA96bf1aBaA206615046c0991E678a2b12Da1";
   const EXACT_ETA = "888888"; // no use due to no timelock
 
@@ -76,7 +76,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     baseTokenDecimal,
     debtToken.address,
   ])) as Vault;
-  const vaultDeployTx = await debtToken.deployTransaction.wait(3);
+  const vaultDeployTx = await vault.deployTransaction.wait(15);
   console.log(`>> Deployed block: ${vaultDeployTx.blockNumber}`);
   console.log(`>> Deployed at ${vault.address}`);
 
@@ -91,9 +91,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log("✅ Done");
 
   const miniFL = MiniFL__factory.connect(config.MiniFL!.address, deployer);
+  const expectedDebtTokenPoolId = await miniFL.poolLength();
 
   console.log(">> Set Debt Pool ID on Vault");
-  await (await vault.setFairLaunchPoolId(await miniFL.poolLength(), { nonce: nonce++ })).wait(3);
+  await (await vault.setFairLaunchPoolId(expectedDebtTokenPoolId, { nonce: nonce++ })).wait(3);
   console.log("✅ Done");
 
   // If Mini FL is Timelock then handle it
@@ -160,16 +161,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       true,
       { nonce: nonce++ }
     );
-    await addDebtTokenPoolTx.wait(3);
+    await addDebtTokenPoolTx.wait(20);
     console.log("✅ Done");
 
     console.log(">> Allow vault to stake debt token");
-    const approveVaultTx = await miniFL.approveStakeDebtToken(
-      [(await miniFL.poolLength()).sub(1)],
-      [vault.address],
-      true,
-      { nonce: nonce++ }
-    );
+    const approveVaultTx = await miniFL.approveStakeDebtToken([expectedDebtTokenPoolId], [vault.address], true, {
+      nonce: nonce++,
+    });
     await approveVaultTx.wait(3);
     console.log("✅ Done");
 
