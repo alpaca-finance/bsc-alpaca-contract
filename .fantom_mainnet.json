@@ -177,8 +177,8 @@
         },
         {
           "name": "BTC-WFTM SpookyWorker",
-          "address": "",
-          "deployedBlock": 88888,
+          "address": "0x871C7dBdE0a3dB46dAa552C83fD79f8Cf76D63FD",
+          "deployedBlock": 31584399,
           "config": "0xca1Cf7C64481B8C095828d380922505E5942C60D",
           "pId": 4,
           "stakingToken": "0xFdb9Ab8B9513Ad9E419Cf19530feE49d412C3Ee3",
@@ -194,10 +194,10 @@
         },
         {
           "name": "fUSDT-WFTM SpookyWorker",
-          "address": "",
-          "deployedBlock": 8888,
+          "address": "0xE30faE0cFD9E994179e3E63AAbCC239d32E9D6Ed",
+          "deployedBlock": 31584492,
           "config": "0xca1Cf7C64481B8C095828d380922505E5942C60D",
-          "pId": 63,
+          "pId": 1,
           "stakingToken": "0x5965E53aa80a0bcF1CD6dbDd72e6A9b2AA047410",
           "stakingTokenAt": "0x2b2929E785374c651a81A63878Ab22742656DcDd",
           "strategies": {
@@ -211,8 +211,8 @@
         },
         {
           "name": "DAI-WFTM SpookyWorker",
-          "address": "",
-          "deployedBlock": 8888888,
+          "address": "0x19f510971FD2c9d1cd6EaEACEC6DC04A3fBA51A6",
+          "deployedBlock": 31584790,
           "config": "0xca1Cf7C64481B8C095828d380922505E5942C60D",
           "pId": 3,
           "stakingToken": "0xe120ffBDA0d14f3Bb6d6053E90E63c572A66a428",
@@ -228,8 +228,8 @@
         },
         {
           "name": "MIM-WFTM SpookyWorker",
-          "address": "",
-          "deployedBlock": 88888,
+          "address": "0x20ACAA67a589e0947E11bA24EDA9D4eAc96f013C",
+          "deployedBlock": 31584853,
           "config": "0xca1Cf7C64481B8C095828d380922505E5942C60D",
           "pId": 24,
           "stakingToken": "0x6f86e65b255c9111109d2D2325ca2dFc82456efc",
