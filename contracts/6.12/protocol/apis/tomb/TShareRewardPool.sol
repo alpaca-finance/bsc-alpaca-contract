@@ -51,7 +51,8 @@ contract TShareRewardPool {
   uint256 public tSharePerSecond = 0.076 ether; // Put it as 0.076 for testing purpose.
 
   uint256 public runningTime = 370 days; // 370 days
-  uint256 public constant TOTAL_REWARDS = 59500 ether;
+  // uint256 public constant TOTAL_REWARDS = 59500 ether;
+  uint256 public constant TOTAL_REWARDS = 2_429_568 ether; // From 0.076 * 370 * 24 * 60 * 60 for testing
 
   event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
   event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);

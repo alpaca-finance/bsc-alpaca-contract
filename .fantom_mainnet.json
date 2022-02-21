@@ -37,6 +37,7 @@
       "SpookyFactory": "0x152eE697f2E276fA89E96742e9bB9aB1F2E61bE3",
       "SpookyRouter": "0xF491e7B69E4244ad4002BC14e878a34207E38c29",
       "SpookyMasterChef": "0x2b2929E785374c651a81A63878Ab22742656DcDd",
+      "TShareRewardPool": "0xcc0a87f7e7c693042a9cc703661f5060c80acb43",
       "LpTokens": [
         { "pId": 2, "name": "WFTM-USDC LP", "address": "0x2b4C76d0dc16BE1C31D4C1DC53bF9B45987Fc75c" },
         { "pId": 0, "name": "BOO-WFTM LP", "address": "0xEc7178F4C41f346b2721907F5cF7628E388A7a58" },
