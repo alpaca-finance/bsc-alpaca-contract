@@ -21,7 +21,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeab
 import "./interfaces/IDeltaNeutralVault.sol";
 import "./interfaces/ISwapRouter.sol";
 import "./interfaces/IWETH.sol";
-import "./interfaces/IBEP20.sol";
+import "./interfaces/IERC20.sol";
 import "../utils/SafeToken.sol";
 import "../utils/FixedPointMathLib.sol";
 
@@ -76,7 +76,7 @@ contract DeltaNeutralVaultGateway is ReentrancyGuardUpgradeable, OwnableUpgradea
     uint256 _minSwapAssetTokenAmount,
     bytes calldata _data,
     uint64 _stableReturnBps
-  ) public nonReentrant returns (uint256) {
+  ) external nonReentrant returns (uint256) {
     // _stableReturnBps should not be greater than 100%
     if (_stableReturnBps > BASIS_POINT) {
       revert DeltaNeutralVaultGateway_ReturnBpsExceed(_stableReturnBps);
@@ -171,8 +171,8 @@ contract DeltaNeutralVaultGateway is ReentrancyGuardUpgradeable, OwnableUpgradea
     uint256 _stableTokenPrice = _getTokenPrice(_stableToken);
     uint256 _assetTokenPrice = _getTokenPrice(_assetToken);
 
-    uint256 _stableTokenDecimals = IBEP20(_stableToken).decimals();
-    uint256 _assetTokenDecimals = IBEP20(_assetToken).decimals();
+    uint256 _stableTokenDecimals = IERC20(_stableToken).decimals();
+    uint256 _assetTokenDecimals = IERC20(_assetToken).decimals();
 
     uint256 _withdrawStableAmountInUSD = ((_withdrawStableAmount * (1e18)) / (10**_stableTokenDecimals)).mulWadDown(
       _stableTokenPrice
@@ -189,8 +189,7 @@ contract DeltaNeutralVaultGateway is ReentrancyGuardUpgradeable, OwnableUpgradea
       return;
     }
 
-    uint64 _assetReturnBps = BASIS_POINT - _stableReturnBps;
-    uint256 _expectedAssetInUSD = (_assetReturnBps * _total) / BASIS_POINT;
+    uint256 _expectedAssetInUSD = _total - _expectedStableInUSD;
     if (_withdrawAssetAmountInUSD > _expectedAssetInUSD) {
       uint256 _swapAssetAmount = (_withdrawAssetAmountInUSD - _expectedAssetInUSD).divWadDown(_assetTokenPrice);
       _swap(_assetToken, _swapAssetAmount);

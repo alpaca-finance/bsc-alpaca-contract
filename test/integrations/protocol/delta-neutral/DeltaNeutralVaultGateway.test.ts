@@ -41,6 +41,7 @@ import {
   DeltaNeutralPancakeWorker02__factory,
   DeltaNeutralVaultGateway,
   DeltaNeutralVaultGateway__factory,
+  IERC20,
 } from "../../../../typechain";
 import * as Assert from "../../../helpers/assert";
 import * as TimeHelpers from "../../../helpers/time";
@@ -336,8 +337,8 @@ describe("DeltaNeutralVaultGateway", () => {
 
     await swapHelper.addLiquidities([
       {
-        token0: cake,
-        token1: wbnb,
+        token0: cake as unknown as IERC20,
+        token1: wbnb as unknown as IERC20,
         amount0desired: ethers.utils.parseEther("100"),
         amount1desired: ethers.utils.parseEther("1000"),
       },
@@ -663,8 +664,8 @@ describe("DeltaNeutralVaultGateway", () => {
       // add liquidity
       await swapHelper.addLiquidities([
         {
-          token0: baseToken,
-          token1: wbnb,
+          token0: baseToken as unknown as IERC20,
+          token1: wbnb as unknown as IERC20,
           amount0desired: ethers.utils.parseEther("90000000"),
           amount1desired: ethers.utils.parseEther("90000000"),
         },
@@ -804,23 +805,29 @@ describe("DeltaNeutralVaultGateway", () => {
             10000
           );
 
+        const aliceShareAfter = await deltaVault.balanceOf(aliceAddress);
+        const aliceBaseTokenAfter = await baseToken.balanceOf(aliceAddress);
+        const positionInfoAfter = await deltaVault.positionInfo();
+
+        const baseTokenDiff = aliceBaseTokenAfter.sub(aliceBaseTokenBefore);
         const gatewayShare = await deltaVault.balanceOf(deltaVaultGatewayAsAlice.address);
+
+        // check event
+        expect(tx).to.emit(deltaVaultGateway, "LogWithdraw").withArgs(aliceAddress, baseTokenDiff, 0);
+
+        // check user
+        expect(aliceShareBefore.sub(aliceShareAfter)).to.eq(shareToWithdraw);
+
+        // check gateway
         expect(gatewayShare).to.be.eq(BigNumber.from(0));
         expect(await baseToken.balanceOf(deltaVaultGateway.address)).to.be.eq(BigNumber.from(0));
         expect(await wbnb.balanceOf(deltaVaultGateway.address)).to.be.eq(BigNumber.from(0));
 
-        const aliceShareAfter = await deltaVault.balanceOf(aliceAddress);
-        const aliceBaseTokenAfter = await baseToken.balanceOf(aliceAddress);
-        const positionInfoAfter = await deltaVault.positionInfo();
-        const baseTokenDiff = aliceBaseTokenAfter.sub(aliceBaseTokenBefore);
-        expect(aliceShareBefore.sub(aliceShareAfter)).to.eq(shareToWithdraw);
-
+        // check position info
         Assert.assertAlmostEqual(positionInfoAfter.stablePositionEquity.toString(), expectStableEquity.toString());
         Assert.assertAlmostEqual(positionInfoAfter.stablePositionDebtValue.toString(), expectStableDebt.toString());
         Assert.assertAlmostEqual(positionInfoAfter.assetPositionEquity.toString(), expectAssetEquity.toString());
         Assert.assertAlmostEqual(positionInfoAfter.assetPositionDebtValue.toString(), expectAssetDebt.toString());
-
-        expect(tx).to.emit(deltaVaultGateway, "LogWithdraw").withArgs(aliceAddress, baseTokenDiff, 0);
       });
     });
 
@@ -858,21 +865,17 @@ describe("DeltaNeutralVaultGateway", () => {
         const gatewayShare = await deltaVault.balanceOf(deltaVaultGatewayAsAlice.address);
 
         // check event
-        console.log("event");
         expect(tx).to.emit(deltaVaultGateway, "LogWithdraw").withArgs(aliceAddress, 0, nativeTokenDiff);
 
         // check user
-        console.log("user");
         expect(aliceShareBefore.sub(aliceShareAfter)).to.eq(shareToWithdraw);
 
         // check gateway
-        console.log("gateway");
         expect(gatewayShare).to.be.eq(BigNumber.from(0));
         expect(await baseToken.balanceOf(deltaVaultGateway.address)).to.be.eq(BigNumber.from(0));
         expect(await wbnb.balanceOf(deltaVaultGateway.address)).to.be.eq(BigNumber.from(0));
 
         // check position info
-        console.log("position info");
         Assert.assertAlmostEqual(positionInfoAfter.stablePositionEquity.toString(), expectStableEquity.toString());
         Assert.assertAlmostEqual(positionInfoAfter.stablePositionDebtValue.toString(), expectStableDebt.toString());
         Assert.assertAlmostEqual(positionInfoAfter.assetPositionEquity.toString(), expectAssetEquity.toString());
@@ -920,23 +923,29 @@ describe("DeltaNeutralVaultGateway", () => {
             5000
           );
 
+        const aliceShareAfter = await deltaVault.balanceOf(aliceAddress);
+        const positionInfoAfter = await deltaVault.positionInfo();
+
         const gatewayShare = await deltaVault.balanceOf(deltaVaultGatewayAsAlice.address);
+
+        // check event
+        expect(tx)
+          .to.emit(deltaVaultGateway, "LogWithdraw")
+          .withArgs(aliceAddress, minWithdrawStableAmountAfterSwap, minWithdrawAssetAfterSwap);
+
+        // check user
+        expect(aliceShareBefore.sub(aliceShareAfter)).to.eq(shareToWithdraw);
+
+        // check gateway
         expect(gatewayShare).to.be.eq(BigNumber.from(0));
         expect(await baseToken.balanceOf(deltaVaultGateway.address)).to.be.eq(BigNumber.from(0));
         expect(await wbnb.balanceOf(deltaVaultGateway.address)).to.be.eq(BigNumber.from(0));
 
-        const aliceShareAfter = await deltaVault.balanceOf(aliceAddress);
-        const positionInfoAfter = await deltaVault.positionInfo();
-        expect(aliceShareBefore.sub(aliceShareAfter)).to.eq(shareToWithdraw);
-
+        // check position info
         Assert.assertAlmostEqual(positionInfoAfter.stablePositionEquity.toString(), expectStableEquity.toString());
         Assert.assertAlmostEqual(positionInfoAfter.stablePositionDebtValue.toString(), expectStableDebt.toString());
         Assert.assertAlmostEqual(positionInfoAfter.assetPositionEquity.toString(), expectAssetEquity.toString());
         Assert.assertAlmostEqual(positionInfoAfter.assetPositionDebtValue.toString(), expectAssetDebt.toString());
-
-        expect(tx)
-          .to.emit(deltaVaultGateway, "LogWithdraw")
-          .withArgs(aliceAddress, minWithdrawStableAmountAfterSwap, minWithdrawAssetAfterSwap);
       });
 
       context("someone transfer token in delta vault gateway", () => {
@@ -987,25 +996,31 @@ describe("DeltaNeutralVaultGateway", () => {
               5000
             );
 
+          const aliceShareAfter = await deltaVault.balanceOf(aliceAddress);
+          const positionInfoAfter = await deltaVault.positionInfo();
+
           const gatewayShare = await deltaVault.balanceOf(deltaVaultGatewayAsAlice.address);
-          expect(gatewayShare).to.be.eq(BigNumber.from(0));
+
+          // check event
+          expect(tx)
+            .to.emit(deltaVaultGateway, "LogWithdraw")
+            .withArgs(aliceAddress, minWithdrawStableAmountAfterSwap, minWithdrawAssetAfterSwap);
+
+          // check user
+          expect(aliceShareBefore.sub(aliceShareAfter)).to.eq(shareToWithdraw);
+
+          // check gateway
           // stable token amount should have 10 in delta vault gateway
           // asset token amount should have 5 in delta vault gateway
+          expect(gatewayShare).to.be.eq(BigNumber.from(0));
           expect(await baseToken.balanceOf(deltaVaultGateway.address)).to.be.eq(depositedStableAmount);
           expect(await wbnb.balanceOf(deltaVaultGateway.address)).to.be.eq(depositedAssetAmount);
 
-          const aliceShareAfter = await deltaVault.balanceOf(aliceAddress);
-          const positionInfoAfter = await deltaVault.positionInfo();
-          expect(aliceShareBefore.sub(aliceShareAfter)).to.eq(shareToWithdraw);
-
+          // check position info
           Assert.assertAlmostEqual(positionInfoAfter.stablePositionEquity.toString(), expectStableEquity.toString());
           Assert.assertAlmostEqual(positionInfoAfter.stablePositionDebtValue.toString(), expectStableDebt.toString());
           Assert.assertAlmostEqual(positionInfoAfter.assetPositionEquity.toString(), expectAssetEquity.toString());
           Assert.assertAlmostEqual(positionInfoAfter.assetPositionDebtValue.toString(), expectAssetDebt.toString());
-
-          expect(tx)
-            .to.emit(deltaVaultGateway, "LogWithdraw")
-            .withArgs(aliceAddress, minWithdrawStableAmountAfterSwap, minWithdrawAssetAfterSwap);
         });
       });
 
