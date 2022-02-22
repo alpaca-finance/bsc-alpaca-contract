@@ -326,7 +326,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _minStableTokenAmount,
     uint256 _minAssetTokenAmount,
     bytes calldata _data
-  ) public onlyEOAorWhitelisted collectFee nonReentrant returns (uint256) {
+  ) external onlyEOAorWhitelisted collectFee nonReentrant returns (uint256) {
     PositionInfo memory _positionInfoBefore = positionInfo();
     Outstanding memory _outstandingBefore = _outstanding();
 
