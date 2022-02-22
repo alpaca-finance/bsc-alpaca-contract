@@ -2042,6 +2042,20 @@ describe("DeltaNeutralVault", () => {
           expect(withdrawTx).to.emit(deltaVault, "LogWithdraw").withArgs(aliceAddress, baseTokenDiff, nativeTokenDiff);
         });
 
+        it("should not able to when send share amount as 0", async () => {
+          // ======== withdraw ======
+          await swapHelper.loadReserves([baseToken.address, wbnb.address]);
+          let lpPrice = await swapHelper.computeLpHealth(ethers.utils.parseEther("1"), baseToken.address, wbnb.address);
+
+          await setMockLpPrice(lpPrice);
+
+          const withdrawData = ethers.utils.defaultAbiCoder.encode(["uint8[]", "uint256[]", "bytes[]"], [[], [], []]);
+          await TimeHelpers.increase(TimeHelpers.duration.minutes(ethers.BigNumber.from("30")));
+          await expect(deltaVaultAsAlice.withdraw(0, 0, 0, withdrawData)).to.be.revertedWith(
+            "DeltaNeutralVault_InvalidShareAmount()"
+          );
+        });
+
         it("should not able to withdraw when chain price is outdated", async () => {
           // ======== withdraw ======
           await swapHelper.loadReserves([baseToken.address, wbnb.address]);
@@ -2087,7 +2101,7 @@ describe("DeltaNeutralVault", () => {
           const shareToWithdraw = await deltaVault.valueToShare(withdrawValue);
           await TimeHelpers.increase(TimeHelpers.duration.minutes(ethers.BigNumber.from("30")));
           await expect(deltaVaultAsAlice.withdraw(shareToWithdraw, 0, 0, withdrawData)).to.be.revertedWith(
-            "UnTrustedPrice()"
+            "DeltaNeutralVault_UnTrustedPrice()"
           );
         });
 

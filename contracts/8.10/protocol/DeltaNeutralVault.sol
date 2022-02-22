@@ -73,6 +73,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   error DeltaNeutralVault_InvalidLpToken();
   error DeltaNeutralVault_InvalidInitializedAddress();
   error DeltaNeutralVault_UnsupportedDecimals(uint256 _decimals);
+  error DeltaNeutralVault_InvalidShareAmount();
 
   struct Outstanding {
     uint256 stableAmount;
@@ -334,15 +335,19 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _minStableTokenAmount,
     uint256 _minAssetTokenAmount,
     bytes calldata _data
-  ) public onlyEOAorWhitelisted collectFee nonReentrant returns (uint256) {
+  ) external onlyEOAorWhitelisted collectFee nonReentrant returns (uint256) {
+    if (_shareAmount == 0) revert DeltaNeutralVault_InvalidShareAmount();
+
     PositionInfo memory _positionInfoBefore = positionInfo();
     Outstanding memory _outstandingBefore = _outstanding();
 
     uint256 _withdrawalFeeBps = config.feeExemptedCallers(msg.sender) ? 0 : config.withdrawalFeeBps();
     uint256 _shareToWithdraw = ((MAX_BPS - _withdrawalFeeBps) * _shareAmount) / MAX_BPS;
     uint256 _withdrawShareValue = shareToValue(_shareToWithdraw);
+
     // burn shares from share owner
     _burn(msg.sender, _shareAmount);
+
     // mint shares equal to withdrawal fee to treasury.
     _mint(config.getTreasuryAddr(), _shareAmount - _shareToWithdraw);
 
@@ -370,9 +375,6 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       revert DeltaNeutralVault_InsufficientTokenReceived(assetToken, _minAssetTokenAmount, _assetTokenBack);
     }
 
-    _transferTokenToShareOwner(msg.sender, stableToken, _stableTokenBack);
-    _transferTokenToShareOwner(msg.sender, assetToken, _assetTokenBack);
-
     uint256 _withdrawValue;
     {
       uint256 _stableWithdrawValue = (_stableTokenBack * stableTo18ConversionFactor).mulWadDown(
@@ -388,8 +390,12 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     if (_withdrawShareValue < _withdrawValue) {
       revert DeltaNeutralVault_WithdrawValueExceedShareValue(_withdrawValue, _withdrawShareValue);
     }
+
     _withdrawHealthCheck(_withdrawValue, _positionInfoBefore, _positionInfoAfter);
     _outstandingCheck(_outstandingBefore, _outstandingAfter);
+
+    _transferTokenToShareOwner(msg.sender, stableToken, _stableTokenBack);
+    _transferTokenToShareOwner(msg.sender, assetToken, _assetTokenBack);
 
     emit LogWithdraw(msg.sender, _stableTokenBack, _assetTokenBack);
     return _withdrawValue;
