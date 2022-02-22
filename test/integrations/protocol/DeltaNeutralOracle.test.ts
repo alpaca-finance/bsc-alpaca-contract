@@ -38,6 +38,8 @@ let lpV2Token0Stable0: MdexPair;
 let lpV2Stable0Stable1: MdexPair;
 let lpV2BtcbStable0: MdexPair;
 let lpV2BtcbToken0: MdexPair;
+let lpV2Decimals8Stable0: MdexPair;
+let lpV2Decimals8Decimal9: MdexPair;
 
 /// Token-related instance(s)
 let wbnb: WETH;
@@ -46,6 +48,8 @@ let btcbToken: MockERC20;
 let usdToken: MockERC20;
 let stableToken0: MockERC20;
 let stableToken1: MockERC20;
+let decimals8Token: MockERC20;
+let decimals9Token: MockERC20;
 
 let chainLinkOracle: ChainLinkPriceOracle;
 let chainLinkOracleAsDeployer: ChainLinkPriceOracle;
@@ -53,6 +57,8 @@ let chainLinkOracleAsDeployer: ChainLinkPriceOracle;
 let mockAggregatorV3T0UsdToken: MockAggregatorV3;
 let mockAggregatorV3BtcbUsdToken: MockAggregatorV3;
 let mockAggregatorV3StableToken: MockAggregatorV3;
+let mockAggregatorV3Decimals8Token: MockAggregatorV3;
+let mockAggregatorV3Decimals9Token: MockAggregatorV3;
 
 let priceOracle: DeltaNeutralOracle;
 
@@ -78,6 +84,15 @@ describe("DeltaNeutralOracle", () => {
     stableToken1 = (await upgrades.deployProxy(ERC20, ["usdt", "usdt", "18"])) as MockERC20;
     await stableToken1.deployed();
 
+    stableToken1 = (await upgrades.deployProxy(ERC20, ["usdt", "usdt", "18"])) as MockERC20;
+    await stableToken1.deployed();
+
+    decimals8Token = (await upgrades.deployProxy(ERC20, ["decimals8Token", "decimals8", "8"])) as MockERC20;
+    await decimals8Token.deployed();
+
+    decimals9Token = (await upgrades.deployProxy(ERC20, ["decimals9Token", "decimals9", "9"])) as MockERC20;
+    await decimals9Token.deployed();
+
     const MockAggregatorV3 = (await ethers.getContractFactory(
       "MockAggregatorV3",
       deployer
@@ -92,6 +107,12 @@ describe("DeltaNeutralOracle", () => {
     mockAggregatorV3StableToken = await MockAggregatorV3.deploy(BigNumber.from("1000000000000000000"), 18);
     await mockAggregatorV3StableToken.deployed();
 
+    mockAggregatorV3Decimals8Token = await MockAggregatorV3.deploy(BigNumber.from("100000000"), 8);
+    await mockAggregatorV3Decimals8Token.deployed();
+
+    mockAggregatorV3Decimals9Token = await MockAggregatorV3.deploy(BigNumber.from("1000000000"), 9);
+    await mockAggregatorV3Decimals9Token.deployed();
+
     const ChainLinkPriceOracle = (await ethers.getContractFactory(
       "ChainLinkPriceOracle",
       deployer
@@ -103,13 +124,22 @@ describe("DeltaNeutralOracle", () => {
 
     // feed price on oracle
     await chainLinkOracleAsDeployer.setPriceFeeds(
-      [token0.address, btcbToken.address, stableToken0.address, stableToken1.address],
-      [usdToken.address, usdToken.address, usdToken.address, usdToken.address],
+      [
+        token0.address,
+        btcbToken.address,
+        stableToken0.address,
+        stableToken1.address,
+        decimals8Token.address,
+        decimals9Token.address,
+      ],
+      [usdToken.address, usdToken.address, usdToken.address, usdToken.address, usdToken.address, usdToken.address],
       [
         mockAggregatorV3T0UsdToken.address,
         mockAggregatorV3BtcbUsdToken.address,
         mockAggregatorV3StableToken.address,
         mockAggregatorV3StableToken.address,
+        mockAggregatorV3Decimals8Token.address,
+        mockAggregatorV3Decimals9Token.address,
       ]
     );
 
@@ -138,10 +168,18 @@ describe("DeltaNeutralOracle", () => {
     await factoryV2.createPair(btcbToken.address, token0.address);
     const btcbToken0Address = await factoryV2.getPair(btcbToken.address, token0.address);
 
+    await factoryV2.createPair(decimals8Token.address, stableToken0.address);
+    const decimal8Stable0Address = await factoryV2.getPair(decimals8Token.address, stableToken0.address);
+
+    await factoryV2.createPair(decimals8Token.address, decimals9Token.address);
+    const decimal8Decimal9Address = await factoryV2.getPair(decimals8Token.address, decimals9Token.address);
+
     lpV2Token0Stable0 = MdexPair__factory.connect(lpAddress, deployer);
     lpV2Stable0Stable1 = MdexPair__factory.connect(stableLPAddress, deployer);
     lpV2BtcbStable0 = MdexPair__factory.connect(btcbStable0Address, deployer);
     lpV2BtcbToken0 = MdexPair__factory.connect(btcbToken0Address, deployer);
+    lpV2Decimals8Stable0 = MdexPair__factory.connect(decimal8Stable0Address, deployer);
+    lpV2Decimals8Decimal9 = MdexPair__factory.connect(decimal8Decimal9Address, deployer);
 
     //ADD LIQUIDITY TOKEN0 STABLE0
     await token0.mint(deployerAddress, BigNumber.from("466712574325720000000000"));
@@ -215,6 +253,44 @@ describe("DeltaNeutralOracle", () => {
       FOREVER
     );
 
+    // ADD LIQUIDITY Decimals8 - STABLE0
+    const decimal8Liquidity = ethers.utils.parseEther("100").div(10 ** (18 - 8));
+    await decimals8Token.mint(deployerAddress, decimal8Liquidity);
+    await stableToken0.mint(deployerAddress, ethers.utils.parseEther("100"));
+
+    await decimals8Token.approve(routerV2.address, decimal8Liquidity);
+    await stableToken0.approve(routerV2.address, ethers.utils.parseEther("100"));
+
+    await routerV2.addLiquidity(
+      decimals8Token.address,
+      stableToken0.address,
+      decimal8Liquidity,
+      ethers.utils.parseEther("100"),
+      "0",
+      "0",
+      deployerAddress,
+      FOREVER
+    );
+
+    // ADD LIQUIDITY Decimals8 - Decimals9
+    const decimal9Liquidity = ethers.utils.parseEther("100").div(10 ** (18 - 9));
+    await decimals8Token.mint(deployerAddress, decimal8Liquidity);
+    await decimals9Token.mint(deployerAddress, decimal9Liquidity);
+
+    await decimals8Token.approve(routerV2.address, decimal8Liquidity);
+    await decimals9Token.approve(routerV2.address, decimal9Liquidity);
+
+    await routerV2.addLiquidity(
+      decimals8Token.address,
+      decimals9Token.address,
+      decimal8Liquidity,
+      decimal9Liquidity,
+      "0",
+      "0",
+      deployerAddress,
+      FOREVER
+    );
+
     // PREPARE TEST CLASS
     const DeltaNeutralOracle = (await ethers.getContractFactory(
       "DeltaNeutralOracle",
@@ -243,7 +319,7 @@ describe("DeltaNeutralOracle", () => {
         fairPrice: BigNumber.from("41368587116313266712"),
         hasUSD: true,
       },
-      //  (busd-usdt)
+      // //  (busd-usdt)
       {
         token0Reserve: BigNumber.from("100000000000000000000"),
         token1Reserve: BigNumber.from("100000000000000000000"),
@@ -256,7 +332,7 @@ describe("DeltaNeutralOracle", () => {
         fairPrice: BigNumber.from("2000000000000000000"),
         hasUSD: true,
       },
-      // btcb-busd
+      // // btcb-busd
       {
         // fairPrice= 2 * 186111977726651963954050.05901829180428826807 * 205671373354091259153.06497271109524120409 /186111977726651963954050
         // fairPrice= 411342746708182518306.13007586380178190719
@@ -271,7 +347,7 @@ describe("DeltaNeutralOracle", () => {
         fairPrice: BigNumber.from("411342746708182518306"),
         hasUSD: true,
       },
-      // btcb-bnb
+      // // btcb-bnb
       {
         //fairPrice= 2 * 9399783916843206492029.37500865629023998066 * 4254167062965257682100.43529399434936881258 /9399783916843206492029
         //fairPrice= 8508334125930515364200.87058798869873762516
@@ -285,6 +361,38 @@ describe("DeltaNeutralOracle", () => {
         lpAddress: lpV2BtcbToken0.address,
         fairPrice: BigNumber.from("8508334125930515364200"),
         hasUSD: false,
+      },
+      // decimal8 - busd
+      {
+        //fairPrice= 2 * Math.sqrt(10000000000 * 100000000000000000000) * Math.sqrt(100000000 * 1000000000000000000)/ 1000000000000000
+        //fairPrice= 20000000000000
+        //fair price per Ether = 200000000000000000000000
+        token0Reserve: BigNumber.from("10000000000"),
+        token1Reserve: BigNumber.from("100000000000000000000"),
+        timestamp: "1642761962",
+        totalSupply: BigNumber.from("1000000000000000"),
+        p0: BigNumber.from("1000000000000000000"),
+        p1: BigNumber.from("1000000000000000000"),
+        totalUSD: BigNumber.from("100000000000000000000").mul(2),
+        lpAddress: lpV2Decimals8Stable0.address,
+        fairPrice: BigNumber.from("200000000000000000000000"),
+        hasUSD: true,
+      },
+      // decimal8 - decimal9
+      {
+        //fairPrice= 2 * Math.sqrt(10000000000 * 100000000000) * Math.sqrt(100000000 * 1000000000)/ 31622776601
+        //fairPrice= 632455532.0473517
+        //fair price per Ether = 6324555320000000000000000000
+        token0Reserve: BigNumber.from("10000000000"),
+        token1Reserve: BigNumber.from("100000000000"),
+        timestamp: "1642761962",
+        totalSupply: BigNumber.from("31622776601"),
+        p0: BigNumber.from("1000000000000000000"),
+        p1: BigNumber.from("1000000000000000000"),
+        totalUSD: BigNumber.from("100000000000000000000").mul(2),
+        lpAddress: lpV2Decimals8Decimal9.address,
+        fairPrice: BigNumber.from("6324555320000000000000000000"),
+        hasUSD: true,
       },
     ];
   }

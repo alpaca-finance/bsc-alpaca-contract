@@ -39,6 +39,7 @@ import {
   DeltaNeutralVaultConfig,
   DeltaNeutralPancakeWorker02,
   DeltaNeutralPancakeWorker02__factory,
+  IERC20,
 } from "../../../../typechain";
 import * as Assert from "../../../helpers/assert";
 import * as TimeHelpers from "../../../helpers/time";
@@ -321,8 +322,8 @@ describe("DeltaNeutralVault", () => {
 
     await swapHelper.addLiquidities([
       {
-        token0: cake,
-        token1: wbnb,
+        token0: cake as unknown as IERC20,
+        token1: wbnb as unknown as IERC20,
         amount0desired: ethers.utils.parseEther("100"),
         amount1desired: ethers.utils.parseEther("1000"),
       },
@@ -529,18 +530,17 @@ describe("DeltaNeutralVault", () => {
   });
   describe("#initPositions", async () => {
     context("when owner call initPositions", async () => {
-      it("should initilize positions", async () => {
+      it.only("should initilize positions", async () => {
         await deltaVaultConfig.setLeverageLevel(3);
         // add liquidity
         await swapHelper.addLiquidities([
           {
-            token0: baseToken,
-            token1: wbnb,
+            token0: baseToken as unknown as IERC20,
+            token1: wbnb as unknown as IERC20,
             amount0desired: ethers.utils.parseEther("100000"),
             amount1desired: ethers.utils.parseEther("100000"),
           },
         ]);
-
         // stable token reserve = 100000, asset token reserve = 100000
         // deployer deposit 500 stable token, 500 asset token
         const depositStableTokenAmt = ethers.utils.parseEther("500");
@@ -668,8 +668,8 @@ describe("DeltaNeutralVault", () => {
         // add liquidity
         await swapHelper.addLiquidities([
           {
-            token0: baseToken,
-            token1: wbnb,
+            token0: baseToken as unknown as IERC20,
+            token1: wbnb as unknown as IERC20,
             amount0desired: ethers.utils.parseEther("1000000"),
             amount1desired: ethers.utils.parseEther("1000000"),
           },
@@ -763,8 +763,8 @@ describe("DeltaNeutralVault", () => {
       it("should revert", async () => {
         await swapHelper.addLiquidities([
           {
-            token0: baseToken,
-            token1: wbnb,
+            token0: baseToken as unknown as IERC20,
+            token1: wbnb as unknown as IERC20,
             amount0desired: ethers.utils.parseEther("100000"),
             amount1desired: ethers.utils.parseEther("100000"),
           },
@@ -830,8 +830,8 @@ describe("DeltaNeutralVault", () => {
         // add liquidity
         await swapHelper.addLiquidities([
           {
-            token0: baseToken,
-            token1: wbnb,
+            token0: baseToken as unknown as IERC20,
+            token1: wbnb as unknown as IERC20,
             amount0desired: ethers.utils.parseEther("100000"),
             amount1desired: ethers.utils.parseEther("100000"),
           },
@@ -1789,8 +1789,8 @@ describe("DeltaNeutralVault", () => {
         // add liquidity
         await swapHelper.addLiquidities([
           {
-            token0: baseToken,
-            token1: wbnb,
+            token0: baseToken as unknown as IERC20,
+            token1: wbnb as unknown as IERC20,
             amount0desired: ethers.utils.parseEther("90000000"),
             amount1desired: ethers.utils.parseEther("90000000"),
           },
@@ -2612,8 +2612,8 @@ describe("DeltaNeutralVault", () => {
         // add liquidity to make price baseToken:wbnb = 1:500
         await swapHelper.addLiquidities([
           {
-            token0: baseToken,
-            token1: wbnb,
+            token0: baseToken as unknown as IERC20,
+            token1: wbnb as unknown as IERC20,
             amount0desired: ethers.utils.parseEther("50000000"),
             amount1desired: ethers.utils.parseEther("100000"),
           },
@@ -3052,8 +3052,8 @@ describe("DeltaNeutralVault", () => {
         await deltaVaultConfig.setFees(0, 0, 100);
         await swapHelper.addLiquidities([
           {
-            token0: baseToken,
-            token1: wbnb,
+            token0: baseToken as unknown as IERC20,
+            token1: wbnb as unknown as IERC20,
             amount0desired: ethers.utils.parseEther("1000000"),
             amount1desired: ethers.utils.parseEther("1000000"),
           },
@@ -3262,8 +3262,8 @@ describe("DeltaNeutralVault", () => {
       // add liquidity
       await swapHelper.addLiquidities([
         {
-          token0: baseToken,
-          token1: wbnb,
+          token0: baseToken as unknown as IERC20,
+          token1: wbnb as unknown as IERC20,
           amount0desired: ethers.utils.parseEther("100000"),
           amount1desired: ethers.utils.parseEther("100000"),
         },
@@ -3325,8 +3325,8 @@ describe("DeltaNeutralVault", () => {
       it("should be able to reinvest", async () => {
         await swapHelper.addLiquidities([
           {
-            token0: baseToken,
-            token1: alpacaToken,
+            token0: baseToken as unknown as IERC20,
+            token1: alpacaToken as unknown as IERC20,
             amount0desired: ethers.utils.parseEther("100000"),
             amount1desired: ethers.utils.parseEther("100000"),
           },
@@ -3486,8 +3486,8 @@ describe("DeltaNeutralVault", () => {
           it("should revert", async () => {
             await swapHelper.addLiquidities([
               {
-                token0: alpacaToken,
-                token1: baseToken,
+                token0: alpacaToken as unknown as IERC20,
+                token1: baseToken as unknown as IERC20,
                 amount0desired: ethers.utils.parseEther("100000"),
                 amount1desired: ethers.utils.parseEther("100000"),
               },
@@ -3589,8 +3589,8 @@ describe("DeltaNeutralVault", () => {
           it("should revert", async () => {
             await swapHelper.addLiquidities([
               {
-                token0: alpacaToken,
-                token1: baseToken,
+                token0: alpacaToken as unknown as IERC20,
+                token1: baseToken as unknown as IERC20,
                 amount0desired: ethers.utils.parseEther("100000"),
                 amount1desired: ethers.utils.parseEther("100000"),
               },
