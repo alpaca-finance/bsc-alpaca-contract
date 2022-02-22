@@ -45,7 +45,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       deployer
     )) as SpookySwapStrategyAddTwoSidesOptimal__factory;
     const strategyAddTwoSidesOptimal = (await upgrades.deployProxy(SpookySwapStrategyAddTwoSidesOptimal, [
-      config.Exchanges.SpookySwap!.SpookyRouter,
+      config.YieldSources.SpookySwap!.SpookyRouter,
       targetedVault.address,
     ])) as SpookySwapStrategyAddTwoSidesOptimal;
     await strategyAddTwoSidesOptimal.deployTransaction.wait(5);

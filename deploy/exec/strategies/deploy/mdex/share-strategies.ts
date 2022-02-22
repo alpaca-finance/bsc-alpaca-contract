@@ -57,7 +57,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       )[0]
     )) as MdexRestrictedStrategyAddBaseTokenOnly__factory;
     const strategyRestrictedAddBaseTokenOnly = (await upgrades.deployProxy(MdexRestrictedStrategyAddBaseTokenOnly, [
-      config.Exchanges.Mdex.MdexRouter,
+      config.YieldSources.Mdex.MdexRouter,
       config.Tokens.MDX,
     ])) as MdexRestrictedStrategyAddBaseTokenOnly;
     await strategyRestrictedAddBaseTokenOnly.deployed();
@@ -83,7 +83,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       )[0]
     )) as MdexRestrictedStrategyLiquidate__factory;
     const strategyRestrictedLiquidate = (await upgrades.deployProxy(MdexRestrictedStrategyLiquidate, [
-      config.Exchanges.Mdex.MdexRouter,
+      config.YieldSources.Mdex.MdexRouter,
       config.Tokens.MDX,
     ])) as MdexRestrictedStrategyLiquidate;
     await strategyRestrictedLiquidate.deployed();
@@ -110,7 +110,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     )) as MdexRestrictedStrategyWithdrawMinimizeTrading__factory;
     const strategyRestrictedWithdrawMinimizeTrading = (await upgrades.deployProxy(
       MdexRestrictedStrategyWithdrawMinimizeTrading,
-      [config.Exchanges.Mdex.MdexRouter, config.Tokens.WBNB, config.SharedConfig.WNativeRelayer, config.Tokens.MDX]
+      [config.YieldSources.Mdex.MdexRouter, config.Tokens.WBNB, config.SharedConfig.WNativeRelayer, config.Tokens.MDX]
     )) as MdexRestrictedStrategyWithdrawMinimizeTrading;
     await strategyRestrictedWithdrawMinimizeTrading.deployed();
     console.log(`>> Deployed at ${strategyRestrictedWithdrawMinimizeTrading.address}`);
@@ -139,7 +139,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     )) as MdexRestrictedStrategyPartialCloseLiquidate__factory;
     const restrictedStrategyPartialCloseLiquidate = (await upgrades.deployProxy(
       MdexRestrictedStrategyPartialCloseLiquidate,
-      [config.Exchanges.Mdex.MdexRouter, config.Tokens.MDX]
+      [config.YieldSources.Mdex.MdexRouter, config.Tokens.MDX]
     )) as MdexRestrictedStrategyPartialCloseLiquidate;
     await restrictedStrategyPartialCloseLiquidate.deployed();
     console.log(`>> Deployed at ${restrictedStrategyPartialCloseLiquidate.address}`);
@@ -165,7 +165,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     )) as MdexRestrictedStrategyPartialCloseMinimizeTrading__factory;
     const strategyRestrictedPartialCloseMinimizeTrading = (await upgrades.deployProxy(
       MdexRestrictedStrategyPartialCloseMinimizeTrading,
-      [config.Exchanges.Mdex.MdexRouter, config.Tokens.WBNB, config.SharedConfig.WNativeRelayer, config.Tokens.MDX]
+      [config.YieldSources.Mdex.MdexRouter, config.Tokens.WBNB, config.SharedConfig.WNativeRelayer, config.Tokens.MDX]
     )) as MdexRestrictedStrategyPartialCloseMinimizeTrading;
     await strategyRestrictedPartialCloseMinimizeTrading.deployed();
     console.log(`>> Deployed at ${strategyRestrictedPartialCloseMinimizeTrading.address}`);

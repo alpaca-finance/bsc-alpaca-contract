@@ -56,13 +56,12 @@
       }
     ]
   },
-  "Exchanges": {
+  "YieldSources": {
     "SpookySwap": {
       "SpookyFactory": "0x54eae3Cb4fB023648E571F4627E1A056fcEb67Da",
       "SpookyRouter": "0x2329abE57D45c9798Dd267f83ec70aD8284ea8bE",
       "SpookyMasterChef": "0xF9c40C68d4AE8234db6AbC38B7Efb91cF2232cF4",
-      "TShareRewardPool": "",
-      "LpTokens": [
+      "pools": [
         { "pId": 0, "name": "BOO-WFTM LP", "address": "0x98ee4798926d6738f58D958b4AA418AACbFF2b7b" },
         { "pId": 1, "name": "ALPACA-WFTM LP", "address": "0xE19adba4168E68fE804479A741b809e45d0b26E4" },
         { "pId": 4, "name": "WFTM-ETH LP", "address": "0x897f37e19b5aDBFF88315bC04a40d75075f428B6" },
@@ -73,6 +72,15 @@
         { "pId": 10, "name": "WFTM-fUSDT LP", "address": "0xf2221530D4a314c9AE010De77ffa567DA244bDFA" },
         { "pId": 11, "name": "WFTM-DAI LP", "address": "0x8db7A34C401446146a6c8bcf2bD188a95b5295B6" },
         { "pId": 12, "name": "WFTM-MIM LP", "address": "0x29DAbE60c473ff7da8258A95A93f0D294f242188" }
+      ]
+    },
+    "TombFinance": {
+      "SpookyFactory": "0x54eae3Cb4fB023648E571F4627E1A056fcEb67Da",
+      "SpookyRouter": "0x2329abE57D45c9798Dd267f83ec70aD8284ea8bE",
+      "TShareRewardPool": "0x0421b6CE68C71708CD18652aF5123fc2573DBCCC",
+      "pools": [
+        { "pId": 0, "name": "TOMB-WFTM LP", "address": "0x80D7344868a266e2C05989964cD73b776d720C43" },
+        { "pId": 1, "name": "TSHARE-WFTM LP", "address": "0xA8b83F884fE83550bDACb04Ea877323d2f8fEe2d" }
       ]
     }
   },
@@ -87,7 +95,9 @@
     "BTC": "0xE1A9EB1C524792AECF7985e76C2Dec25aE5FB304",
     "fUSDT": "0x80f0C578eD3D5cab61DC5D77a1C8e284F5cA75DA",
     "DAI": "0xC1C4438C60a79761b9DFa37b0834e56c65f7F48A",
-    "MIM": "0x31e8203e554B3E49eb77600Eb1Fc6C8c957BfAe2"
+    "MIM": "0x31e8203e554B3E49eb77600Eb1Fc6C8c957BfAe2",
+    "TOMB": "0x1f1F4D015A3CE748b838f058930dea311F3b69AE",
+    "TSHARE": "0xF6Ca1ED3B9CDC0F2fA4026a9a529f71c0798B6E0"
   },
   "SharedStrategies": {
     "SpookySwap": {

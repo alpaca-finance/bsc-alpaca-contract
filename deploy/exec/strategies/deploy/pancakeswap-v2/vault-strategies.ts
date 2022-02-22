@@ -45,7 +45,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       )[0]
     )) as PancakeswapV2RestrictedStrategyAddTwoSidesOptimal__factory;
     const strategyRestrictedAddTwoSidesOptimal = (await upgrades.deployProxy(StrategyRestrictedAddTwoSidesOptimal, [
-      config.Exchanges.Pancakeswap.RouterV2,
+      config.YieldSources.Pancakeswap.RouterV2,
       targetedVault.address,
     ])) as PancakeswapV2RestrictedStrategyAddTwoSidesOptimal;
     await strategyRestrictedAddTwoSidesOptimal.deployed();

@@ -1,21 +1,10 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, upgrades } from "hardhat";
-import {
-  MockERC20,
-  MockERC20__factory,
-  SpookyMasterChef__factory,
-  SpookyToken__factory,
-  TShareRewardPool__factory,
-  WaultSwapFactory__factory,
-  WaultSwapRouter__factory,
-} from "../../../../typechain";
+import { MockERC20, MockERC20__factory, TShareRewardPool__factory } from "../../../../typechain";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-  const START_TIME = "";
-  const PREMINT_BOO = ethers.utils.parseEther("2000000");
-  const BOO_PER_SEC = ethers.utils.parseEther("1");
-  const WFTM = "0xE3fEd8069957C9BA105AD97D8C467B93f88fd8A3";
+  const START_TIME = "1645506000";
 
   const deployer = (await ethers.getSigners())[0];
 
@@ -38,7 +27,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log("✅ Done");
 
   console.log("> Seed TShareRewardPool liquidity");
-  await (await tshare.transfer(tshareRewardPool.address, ethers.utils.parseEther("1000000"))).wait(3);
+  await (await tshare.transfer(tshareRewardPool.address, await tshareRewardPool.TOTAL_REWARDS())).wait(3);
   console.log("✅ Done");
 };
 

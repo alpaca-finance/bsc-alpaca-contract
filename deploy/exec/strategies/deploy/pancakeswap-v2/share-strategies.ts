@@ -94,7 +94,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     )) as PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory;
     const strategyRestrictedAddBaseTokenOnlyV2 = (await upgrades.deployProxy(
       PancakeswapV2RestrictedStrategyAddBaseTokenOnly,
-      [config.Exchanges.Pancakeswap.RouterV2]
+      [config.YieldSources.Pancakeswap.RouterV2]
     )) as PancakeswapV2RestrictedStrategyAddBaseTokenOnly;
     await strategyRestrictedAddBaseTokenOnlyV2.deployed();
     console.log(`>> Deployed at ${strategyRestrictedAddBaseTokenOnlyV2.address}`);
@@ -117,7 +117,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       )[0]
     )) as PancakeswapV2RestrictedStrategyLiquidate__factory;
     const strategyRestrictedLiquidateV2 = (await upgrades.deployProxy(PancakeswapV2RestrictedStrategyLiquidate, [
-      config.Exchanges.Pancakeswap.RouterV2,
+      config.YieldSources.Pancakeswap.RouterV2,
     ])) as PancakeswapV2RestrictedStrategyLiquidate;
     await strategyRestrictedLiquidateV2.deployed();
     console.log(`>> Deployed at ${strategyRestrictedLiquidateV2.address}`);
@@ -141,7 +141,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     )) as PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading__factory;
     const strategyRestrictedWithdrawMinimizeTradingV2 = (await upgrades.deployProxy(
       PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading,
-      [config.Exchanges.Pancakeswap.RouterV2, config.Tokens.WBNB, config.SharedConfig.WNativeRelayer]
+      [config.YieldSources.Pancakeswap.RouterV2, config.Tokens.WBNB, config.SharedConfig.WNativeRelayer]
     )) as PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading;
     await strategyRestrictedWithdrawMinimizeTradingV2.deployed();
     console.log(`>> Deployed at ${strategyRestrictedWithdrawMinimizeTradingV2.address}`);
@@ -168,7 +168,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     )) as PancakeswapV2RestrictedStrategyPartialCloseLiquidate__factory;
     const restrictedStrategyPartialCloseLiquidate = (await upgrades.deployProxy(
       PancakeswapV2RestrictedStrategyPartialCloseLiquidate,
-      [config.Exchanges.Pancakeswap.RouterV2]
+      [config.YieldSources.Pancakeswap.RouterV2]
     )) as PancakeswapV2RestrictedStrategyLiquidate;
     await restrictedStrategyPartialCloseLiquidate.deployed();
     console.log(`>> Deployed at ${restrictedStrategyPartialCloseLiquidate.address}`);
@@ -192,7 +192,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     )) as PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading__factory;
     const strategyRestrictedPartialCloseMinimizeTradingV2 = (await upgrades.deployProxy(
       PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading,
-      [config.Exchanges.Pancakeswap.RouterV2, config.Tokens.WBNB, config.SharedConfig.WNativeRelayer]
+      [config.YieldSources.Pancakeswap.RouterV2, config.Tokens.WBNB, config.SharedConfig.WNativeRelayer]
     )) as PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading;
     await strategyRestrictedPartialCloseMinimizeTradingV2.deployed();
     console.log(`>> Deployed at ${strategyRestrictedPartialCloseMinimizeTradingV2.address}`);
