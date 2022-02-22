@@ -78,7 +78,7 @@ contract DeltaNeutralVaultGateway is ReentrancyGuardUpgradeable, OwnableUpgradea
     uint64 _stableReturnBps
   ) public nonReentrant returns (uint256) {
     // _stableReturnBps should not be greater than 100%
-    if (_stableReturnBps > 10000) {
+    if (_stableReturnBps > BASIS_POINT) {
       revert DeltaNeutralVaultGateway_ReturnBpsExceed(_stableReturnBps);
     }
 
