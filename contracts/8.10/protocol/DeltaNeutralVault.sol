@@ -362,9 +362,6 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       revert DeltaNeutralVault_InsufficientTokenReceived(assetToken, _minAssetTokenAmount, _assetTokenBack);
     }
 
-    _transferTokenToShareOwner(msg.sender, stableToken, _stableTokenBack);
-    _transferTokenToShareOwner(msg.sender, assetToken, _assetTokenBack);
-
     uint256 _withdrawValue;
     {
       uint256 _stableWithdrawValue = _stableTokenBack.mulWadDown(_getTokenPrice(stableToken));
@@ -376,8 +373,12 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     if (_withdrawShareValue < _withdrawValue) {
       revert DeltaNeutralVault_WithdrawValueExceedShareValue(_withdrawValue, _withdrawShareValue);
     }
+
     _withdrawHealthCheck(_withdrawValue, _positionInfoBefore, _positionInfoAfter);
     _outstandingCheck(_outstandingBefore, _outstandingAfter);
+
+    _transferTokenToShareOwner(msg.sender, stableToken, _stableTokenBack);
+    _transferTokenToShareOwner(msg.sender, assetToken, _assetTokenBack);
 
     emit LogWithdraw(msg.sender, _stableTokenBack, _assetTokenBack);
     return _withdrawValue;
