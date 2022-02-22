@@ -1,21 +1,17 @@
-import { ethers, network } from "hardhat";
+import { ethers } from "hardhat";
 import { expect } from "chai";
-import "@openzeppelin/test-helpers";
 import {
-  CakeMaxiWorker__factory,
   ConfigurableInterestVaultConfig,
   ConfigurableInterestVaultConfig__factory,
-  MdexWorker02__factory,
   PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory,
   PancakeswapV2RestrictedStrategyAddTwoSidesOptimal__factory,
-  PancakeswapV2Worker__factory,
-  SpookyWorker03__factory,
   Vault,
   Vault__factory,
-  WaultSwapWorker__factory,
 } from "../typechain";
 import { WorkersEntity } from "../deploy/interfaces/config";
 import { getConfig } from "../deploy/entities/config";
+import { WorkerLikeFactory } from "../deploy/adaptors/workerlike/factory";
+import { WorkerLike } from "../deploy/entities/worker-like";
 
 interface IDexRouter {
   pancakeswap: string;
@@ -42,233 +38,20 @@ async function validateStrategy(strategyAddress: string, expectedRouter: string)
 async function validateWorker(vault: Vault, workerInfo: WorkersEntity, routers: IDexRouter) {
   console.log(`> validating ${workerInfo.name}`);
   if (workerInfo.name.includes("PancakeswapWorker")) {
-    const worker = PancakeswapV2Worker__factory.connect(workerInfo.address, ethers.provider);
-
-    try {
-      expect(await worker.operator()).to.be.eq(vault.address, "operator mis-config");
-      expect(workerInfo.stakingToken).to.be.eq(await worker.lpToken(), "stakingToken mis-config");
-      expect(workerInfo.pId).to.be.eq(await worker.pid(), "pool id mis-config");
-      expect(workerInfo.stakingTokenAt).to.be.eq(await worker.masterChef(), "masterChef mis-config");
-      // @notice handle BETH-ETH as it is the old version of PancakeswapWorker
-      if (workerInfo.name !== "BETH-ETH PancakeswapWorker") {
-        expect(await worker.router()).to.be.eq(routers.pancakeswap, "router mis-config");
-        expect(await worker.fee()).to.be.eq("9975");
-        expect(await worker.feeDenom()).to.be.eq("10000");
-      }
-      expect(await worker.baseToken()).to.be.eq(await vault.token(), "baseToken mis-config");
-      expect(await worker.okStrats(workerInfo.strategies.StrategyAddAllBaseToken)).to.be.eq(
-        true,
-        "mis-config on add base token only strat"
-      );
-      expect(await worker.okStrats(workerInfo.strategies.StrategyLiquidate)).to.be.eq(
-        true,
-        "mis-config on liquidate strat"
-      );
-      expect(await worker.okStrats(workerInfo.strategies.StrategyAddTwoSidesOptimal)).to.be.eq(
-        true,
-        "mis-config on add two sides strat"
-      );
-      expect(await worker.okStrats(workerInfo.strategies.StrategyWithdrawMinimizeTrading)).to.be.eq(
-        true,
-        "mis-config on minimize trading strat"
-      );
-      if (workerInfo.strategies.StrategyPartialCloseLiquidate != "") {
-        expect(await worker.okStrats(workerInfo.strategies.StrategyPartialCloseLiquidate)).to.be.eq(
-          true,
-          "mis-config on partial close liquidate strat"
-        );
-      }
-      if (workerInfo.strategies.StrategyPartialCloseMinimizeTrading != "") {
-        expect(await worker.okStrats(workerInfo.strategies.StrategyPartialCloseMinimizeTrading)).to.be.eq(
-          true,
-          "mis-config on partial close minimize"
-        );
-      }
-
-      console.log(`> ✅ done validated ${workerInfo.name}, no problem found`);
-    } catch (e) {
-      console.log(`> ❌ some problem found in ${workerInfo.name}, please double check`);
-      console.log(e);
-    }
+    const workerLike = WorkerLikeFactory.newWorkerLike(WorkerLike.pancake, workerInfo.address, ethers.provider);
+    await workerLike.validateConfig(vault.address, await vault.token(), routers.pancakeswap, workerInfo);
   } else if (workerInfo.name.includes("WaultswapWorker")) {
-    const worker = WaultSwapWorker__factory.connect(workerInfo.address, ethers.provider);
-    try {
-      expect(await worker.operator()).to.be.eq(vault.address, "operator mis-config");
-      expect(workerInfo.stakingToken).to.be.eq(await worker.lpToken(), "lpToken mis-config");
-      expect(workerInfo.pId).to.be.eq(await worker.pid(), "pool id mis-config");
-      expect(workerInfo.stakingTokenAt).to.be.eq(await worker.wexMaster(), "wexMaster mis-config");
-      expect(await worker.router()).to.be.eq(routers.waultswap, "router mis-config");
-      expect(await worker.baseToken()).to.be.eq(await vault.token(), "baseToken mis-config");
-      expect(await worker.fee()).to.be.eq("998");
-      expect(await worker.feeDenom()).to.be.eq("1000");
-      expect(await worker.okStrats(workerInfo.strategies.StrategyAddAllBaseToken)).to.be.eq(
-        true,
-        "mis-config on add base token only strat"
-      );
-      expect(await worker.okStrats(workerInfo.strategies.StrategyLiquidate)).to.be.eq(
-        true,
-        "mis-config on liquidate strat"
-      );
-      expect(await worker.okStrats(workerInfo.strategies.StrategyAddTwoSidesOptimal)).to.be.eq(
-        true,
-        "mis-config on add two sides strat"
-      );
-      expect(await worker.okStrats(workerInfo.strategies.StrategyWithdrawMinimizeTrading)).to.be.eq(
-        true,
-        "mis-config on minimize trading strat"
-      );
-      if (workerInfo.strategies.StrategyPartialCloseLiquidate != "") {
-        expect(await worker.okStrats(workerInfo.strategies.StrategyPartialCloseLiquidate)).to.be.eq(
-          true,
-          "mis-config on partial close liquidate strat"
-        );
-      }
-      if (workerInfo.strategies.StrategyPartialCloseMinimizeTrading != "") {
-        expect(await worker.okStrats(workerInfo.strategies.StrategyPartialCloseMinimizeTrading)).to.be.eq(
-          true,
-          "mis-config on partial close minimize"
-        );
-      }
-
-      console.log(`> ✅ done validated ${workerInfo.name}, no problem found`);
-    } catch (e) {
-      console.log(`> ❌ some problem found in ${workerInfo.name}, please double check`);
-      console.log(e);
-    }
+    const workerLike = WorkerLikeFactory.newWorkerLike(WorkerLike.wault, workerInfo.address, ethers.provider);
+    await workerLike.validateConfig(vault.address, await vault.token(), routers.waultswap, workerInfo);
   } else if (workerInfo.name.includes("CakeMaxiWorker")) {
-    const worker = CakeMaxiWorker__factory.connect(workerInfo.address, ethers.provider);
-    try {
-      expect(await worker.operator()).to.be.eq(vault.address, "operator mis-config");
-      expect(workerInfo.stakingToken).to.be.eq(await worker.farmingToken(), "farmingToken mis-config");
-      expect(workerInfo.pId).to.be.eq(await worker.pid(), "pool id mis-config");
-      expect(workerInfo.stakingTokenAt).to.be.eq(await worker.masterChef(), "masterChef mis-config");
-      expect(await worker.router()).to.be.eq(routers.pancakeswap, "router mis-config");
-      expect(await worker.baseToken()).to.be.eq(await vault.token(), "baseToken mis-config");
-      expect(await worker.fee()).to.be.eq("9975");
-      expect(await worker.feeDenom()).to.be.eq("10000");
-      expect(await worker.okStrats(workerInfo.strategies.StrategyAddAllBaseToken)).to.be.eq(
-        true,
-        "mis-config on add base token only strat"
-      );
-      expect(await worker.okStrats(workerInfo.strategies.StrategyLiquidate)).to.be.eq(
-        true,
-        "mis-config on liquidate strat"
-      );
-      expect(await worker.okStrats(workerInfo.strategies.StrategyAddTwoSidesOptimal)).to.be.eq(
-        true,
-        "mis-config on add two sides strat"
-      );
-      expect(await worker.okStrats(workerInfo.strategies.StrategyWithdrawMinimizeTrading)).to.be.eq(
-        true,
-        "mis-config on minimize trading strat"
-      );
-      if (workerInfo.strategies.StrategyPartialCloseLiquidate != "") {
-        expect(await worker.okStrats(workerInfo.strategies.StrategyPartialCloseLiquidate)).to.be.eq(
-          true,
-          "mis-config on partial close liquidate strat"
-        );
-      }
-      if (workerInfo.strategies.StrategyPartialCloseMinimizeTrading != "") {
-        expect(await worker.okStrats(workerInfo.strategies.StrategyPartialCloseMinimizeTrading)).to.be.eq(
-          true,
-          "mis-config on partial close minimize"
-        );
-      }
-
-      console.log(`> ✅ done validated ${workerInfo.name}, no problem found`);
-    } catch (e) {
-      console.log(`> ❌ some problem found in ${workerInfo.name}, please double check`);
-      console.log(e);
-    }
+    const workerLike = WorkerLikeFactory.newWorkerLike(WorkerLike.cakeMaxi, workerInfo.address, ethers.provider);
+    await workerLike.validateConfig(vault.address, await vault.token(), routers.pancakeswap, workerInfo);
   } else if (workerInfo.name.includes("MdexWorker")) {
-    const worker = MdexWorker02__factory.connect(workerInfo.address, ethers.provider);
-    try {
-      expect(await worker.operator()).to.be.eq(vault.address, "operator mis-config");
-      expect(workerInfo.stakingToken).to.be.eq(await worker.lpToken(), "lpToken mis-config");
-      expect(workerInfo.pId).to.be.eq(await worker.pid(), "pool id mis-config");
-      expect(workerInfo.stakingTokenAt).to.be.eq(await worker.bscPool(), "bscPool mis-config");
-      expect(await worker.router()).to.be.eq(routers.mdex, "router mis-config");
-      expect(await worker.baseToken()).to.be.eq(await vault.token(), "baseToken mis-config");
-      expect(await worker.feeDenom()).to.be.eq("10000");
-      expect(await worker.okStrats(workerInfo.strategies.StrategyAddAllBaseToken)).to.be.eq(
-        true,
-        "mis-config on add base token only strat"
-      );
-      expect(await worker.okStrats(workerInfo.strategies.StrategyLiquidate)).to.be.eq(
-        true,
-        "mis-config on liquidate strat"
-      );
-      expect(await worker.okStrats(workerInfo.strategies.StrategyAddTwoSidesOptimal)).to.be.eq(
-        true,
-        "mis-config on add two sides strat"
-      );
-      expect(await worker.okStrats(workerInfo.strategies.StrategyWithdrawMinimizeTrading)).to.be.eq(
-        true,
-        "mis-config on minimize trading strat"
-      );
-      if (workerInfo.strategies.StrategyPartialCloseLiquidate != "") {
-        expect(await worker.okStrats(workerInfo.strategies.StrategyPartialCloseLiquidate)).to.be.eq(
-          true,
-          "mis-config on partial close liquidate strat"
-        );
-      }
-      if (workerInfo.strategies.StrategyPartialCloseMinimizeTrading != "") {
-        expect(await worker.okStrats(workerInfo.strategies.StrategyPartialCloseMinimizeTrading)).to.be.eq(
-          true,
-          "mis-config on partial close minimize"
-        );
-      }
-
-      console.log(`> ✅ done validated ${workerInfo.name}, no problem found`);
-    } catch (e) {
-      console.log(`> ❌ some problem found in ${workerInfo.name}, please double check`);
-      console.log(e);
-    }
+    const workerLike = WorkerLikeFactory.newWorkerLike(WorkerLike.mdex, workerInfo.address, ethers.provider);
+    await workerLike.validateConfig(vault.address, await vault.token(), routers.mdex, workerInfo);
   } else if (workerInfo.name.includes("SpookyWorker")) {
-    const worker = SpookyWorker03__factory.connect(workerInfo.address, ethers.provider);
-    try {
-      expect(await worker.operator()).to.be.eq(vault.address, "operator mis-config");
-      expect(workerInfo.stakingToken).to.be.eq(await worker.lpToken(), "lpToken mis-config");
-      expect(workerInfo.pId).to.be.eq(await worker.pid(), "pool id mis-config");
-      expect(workerInfo.stakingTokenAt).to.be.eq(await worker.spookyMasterChef(), "spookyMasterChef mis-config");
-      expect(await worker.router()).to.be.eq(routers.spooky, "router mis-config");
-      expect(await worker.baseToken()).to.be.eq(await vault.token(), "baseToken mis-config");
-      expect(await worker.fee()).to.be.eq("998");
-      expect(await worker.feeDenom()).to.be.eq("1000");
-      expect(await worker.okStrats(workerInfo.strategies.StrategyAddAllBaseToken)).to.be.eq(
-        true,
-        "mis-config on add base token only strat"
-      );
-      expect(await worker.okStrats(workerInfo.strategies.StrategyLiquidate)).to.be.eq(
-        true,
-        "mis-config on liquidate strat"
-      );
-      expect(await worker.okStrats(workerInfo.strategies.StrategyAddTwoSidesOptimal)).to.be.eq(
-        true,
-        "mis-config on add two sides strat"
-      );
-      expect(await worker.okStrats(workerInfo.strategies.StrategyWithdrawMinimizeTrading)).to.be.eq(
-        true,
-        "mis-config on minimize trading strat"
-      );
-      if (workerInfo.strategies.StrategyPartialCloseLiquidate != "") {
-        expect(await worker.okStrats(workerInfo.strategies.StrategyPartialCloseLiquidate)).to.be.eq(
-          true,
-          "mis-config on partial close liquidate strat"
-        );
-      }
-      if (workerInfo.strategies.StrategyPartialCloseMinimizeTrading != "") {
-        expect(await worker.okStrats(workerInfo.strategies.StrategyPartialCloseMinimizeTrading)).to.be.eq(
-          true,
-          "mis-config on partial close minimize"
-        );
-      }
-
-      console.log(`> ✅ done validated ${workerInfo.name}, no problem found`);
-    } catch (e) {
-      console.log(`> ❌ some problem found in ${workerInfo.name}, please double check`);
-      console.log(e);
-    }
+    const workerLike = WorkerLikeFactory.newWorkerLike(WorkerLike.spooky, workerInfo.address, ethers.provider);
+    await workerLike.validateConfig(vault.address, await vault.token(), routers.spooky, workerInfo);
   }
 }
 
@@ -434,7 +217,7 @@ async function main() {
         console.log(e);
       }
     }
-    if (chainId === 4002) {
+    if (chainId === 4002 || chainId === 250) {
       try {
         await Promise.all([
           validateTwoSidesStrategy(
