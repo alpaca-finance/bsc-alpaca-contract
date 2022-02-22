@@ -95,6 +95,7 @@
     }
   },
   "SharedConfig": {
+    "TwoSlopeModel": "0x8f8c8b9b8b9b8b9b8b9b8b9b8b9b8b9b8b9b8b9b",
     "TripleSlopeModel": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
     "WNativeRelayer": "0x3175EC52c36fFF63dCe00E8a50E6066D38884a11",
     "WorkerConfig": "0xca1Cf7C64481B8C095828d380922505E5942C60D"

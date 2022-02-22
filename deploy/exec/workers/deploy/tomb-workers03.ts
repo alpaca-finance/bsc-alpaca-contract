@@ -73,7 +73,47 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const shortWorkerInfos: ITombWorkerInput[] = [];
+  const shortWorkerInfos: ITombWorkerInput[] = [
+    // {
+    //   VAULT_SYMBOL: "ibFTM",
+    //   WORKER_NAME: "TOMB-WFTM TombWorker",
+    //   REINVEST_BOT: "0xcf28b4da7d3ed29986831876b74af6e95211d3f9",
+    //   POOL_ID: 0,
+    //   REINVEST_BOUNTY_BPS: "900",
+    //   REINVEST_PATH: ["TSHARE", "WFTM"],
+    //   REINVEST_THRESHOLD: "0",
+    //   WORK_FACTOR: "7800",
+    //   KILL_FACTOR: "9000",
+    //   MAX_PRICE_DIFF: "11000000000000",
+    //   EXACT_ETA: "88888888", // no use due to no timelock
+    // },
+    {
+      VAULT_SYMBOL: "ibTOMB",
+      WORKER_NAME: "WFTM-TOMB TombWorker",
+      REINVEST_BOT: "0xcf28b4da7d3ed29986831876b74af6e95211d3f9",
+      POOL_ID: 0,
+      REINVEST_BOUNTY_BPS: "900",
+      REINVEST_PATH: ["TSHARE", "WFTM", "TOMB"],
+      REINVEST_THRESHOLD: "0",
+      WORK_FACTOR: "7800",
+      KILL_FACTOR: "9000",
+      MAX_PRICE_DIFF: "11000000000000",
+      EXACT_ETA: "88888888", // no use due to no timelock
+    },
+    {
+      VAULT_SYMBOL: "ibFTM",
+      WORKER_NAME: "TSHARE-WFTM TombWorker",
+      REINVEST_BOT: "0xcf28b4da7d3ed29986831876b74af6e95211d3f9",
+      POOL_ID: 2,
+      REINVEST_BOUNTY_BPS: "900",
+      REINVEST_PATH: ["TSHARE", "WFTM"],
+      REINVEST_THRESHOLD: "0",
+      WORK_FACTOR: "7000",
+      KILL_FACTOR: "8333",
+      MAX_PRICE_DIFF: "11000000000000",
+      EXACT_ETA: "88888888", // no use due to no timelock
+    },
+  ];
 
   const [deployer] = await ethers.getSigners();
   const config = ConfigEntity.getConfig();

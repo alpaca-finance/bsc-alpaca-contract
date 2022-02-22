@@ -5,6 +5,7 @@ import { IWorkerLike } from "./IWorkerLike";
 import { MdexWorkerAdaptor } from "./mdex-worker";
 import { PancakeWorkerAdaptor } from "./pancake-worker";
 import { SpookyWorkerAdaptor } from "./spooky-worker";
+import { TombWorkerAdaptor } from "./tomb-worker";
 import { WaultWorkerAdaptor } from "./wault-worker";
 
 export class WorkerLikeFactory {
@@ -18,6 +19,7 @@ export class WorkerLikeFactory {
     if (_which === WorkerLike.pancake) return new PancakeWorkerAdaptor(_address, _signerOrProvider);
     if (_which === WorkerLike.spooky) return new SpookyWorkerAdaptor(_address, _signerOrProvider);
     if (_which === WorkerLike.wault) return new WaultWorkerAdaptor(_address, _signerOrProvider);
+    if (_which === WorkerLike.tomb) return new TombWorkerAdaptor(_address, _signerOrProvider);
 
     throw new Error("Unknown WorkerLike");
   }

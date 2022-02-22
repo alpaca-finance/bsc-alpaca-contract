@@ -1,8 +1,8 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers, upgrades, network } from "hardhat";
-import { ConfigurableInterestVaultConfig__factory } from "../../../../typechain";
-import { ConfigEntity } from "../../../entities";
+import { ethers } from "hardhat";
+import { ChainlinkPriceOracle2__factory } from "../../../../typechain";
+import { getConfig } from "../../../entities/config";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -14,38 +14,39 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const config = ConfigEntity.getConfig();
+  const TOKEN0_SYMBOLS = ["WFTM", "WFTM", "WFTM"];
+  const TOKEN1_SYMBOLS = ["fUSDT", "DAI", "MIM"];
+  const AGGREGATORV3S = [
+    ["0xf4766552D15AE4d256Ad41B6cf2933482B0680dc"],
+    ["0xf4766552D15AE4d256Ad41B6cf2933482B0680dc"],
+    ["0xf4766552D15AE4d256Ad41B6cf2933482B0680dc"],
+  ];
 
-  const MIN_DEBT_SIZE = ethers.utils.parseEther("0.01");
-  const RESERVE_POOL_BPS = "1900";
-  const KILL_PRIZE_BPS = "100";
-  const TREASURY_KILL_BPS = "400";
-  const TREASURY_ADDR = "0x0FfA891ab6f410bbd7403b709e7d38D7a812125B";
-  const TRIPLE_SLOPE_MODEL = config.SharedConfig.TwoSlopeModel;
-  const WNATIVE = config.Tokens.WFTM!;
-  const FAIR_LAUNCH = config.MiniFL!.address;
+  const config = getConfig();
+  const tokenList: any = config.Tokens;
+  const token0Addrs: Array<string> = TOKEN0_SYMBOLS.map((t) => {
+    const addr = tokenList[t];
+    if (addr === undefined) {
+      throw `error: token: unable to find address of ${t}`;
+    }
+    return addr;
+  });
+  const token1Addrs: Array<string> = TOKEN1_SYMBOLS.map((t) => {
+    const addr = tokenList[t];
+    if (addr === undefined) {
+      throw `error: token: unable to find address of ${t}`;
+    }
+    return addr;
+  });
 
-  console.log(">> Deploying an upgradable configurableInterestVaultConfig contract");
-  const ConfigurableInterestVaultConfig = (await ethers.getContractFactory(
-    "ConfigurableInterestVaultConfig",
-    (
-      await ethers.getSigners()
-    )[0]
-  )) as ConfigurableInterestVaultConfig__factory;
-  const configurableInterestVaultConfig = await upgrades.deployProxy(ConfigurableInterestVaultConfig, [
-    MIN_DEBT_SIZE,
-    RESERVE_POOL_BPS,
-    KILL_PRIZE_BPS,
-    TRIPLE_SLOPE_MODEL,
-    WNATIVE,
-    config.SharedConfig.WNativeRelayer,
-    FAIR_LAUNCH,
-    TREASURY_KILL_BPS,
-    TREASURY_ADDR,
-  ]);
-  await configurableInterestVaultConfig.deployed();
-  console.log(`>> Deployed at ${configurableInterestVaultConfig.address}`);
+  const chainlinkPriceOracle2 = ChainlinkPriceOracle2__factory.connect(
+    config.Oracle.ChainLinkOracle,
+    (await ethers.getSigners())[0]
+  );
+  console.log(">> Adding price source to chain link price oracle");
+  await chainlinkPriceOracle2.setPriceFeeds(token0Addrs, token1Addrs, AGGREGATORV3S);
+  console.log("✅ Done");
 };
 
 export default func;
-func.tags = ["ConfigurableInterestVaultConfig"];
+func.tags = ["AddSourceChainlinkPriceOracle2"];

@@ -175,6 +175,7 @@ export interface PancakeswapOrWaultswapOrPancakeswapSingleAsset {
   StrategyPartialCloseMinimizeTrading: string;
 }
 export interface SharedConfig {
+  TwoSlopeModel?: string;
   TripleSlopeModel: string;
   TripleSlopeModelStable20Max150?: string;
   TripleSlopeModel103?: string;

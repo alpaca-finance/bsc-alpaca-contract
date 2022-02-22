@@ -52,6 +52,9 @@ async function validateWorker(vault: Vault, workerInfo: WorkersEntity, routers: 
   } else if (workerInfo.name.includes("SpookyWorker")) {
     const workerLike = WorkerLikeFactory.newWorkerLike(WorkerLike.spooky, workerInfo.address, ethers.provider);
     await workerLike.validateConfig(vault.address, await vault.token(), routers.spooky, workerInfo);
+  } else if (workerInfo.name.includes("TombWorker")) {
+    const workerLike = WorkerLikeFactory.newWorkerLike(WorkerLike.tomb, workerInfo.address, ethers.provider);
+    await workerLike.validateConfig(vault.address, await vault.token(), routers.spooky, workerInfo);
   }
 }
 
