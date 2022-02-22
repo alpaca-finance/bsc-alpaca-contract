@@ -41,6 +41,18 @@
         "stakingToken": "ibUSDC",
         "address": "0xfd0B2279B866E245cAf1F0F1AeC6E87DA96b8B65",
         "rewarder": "0x763a687E631A907baDd620E20e9A0869E3Ec543D"
+      },
+      {
+        "id": 6,
+        "stakingToken": "debtIbALPACA_V2",
+        "address": "0xe9C6FaF5F4C184FDAe9eA948dFC8Dd97897D7Fc5",
+        "rewarder": "0x763a687E631A907baDd620E20e9A0869E3Ec543D"
+      },
+      {
+        "id": 7,
+        "stakingToken": "ibALPACA",
+        "address": "0x19EC3914C98450d9DAFd3769Db33157e8600D060",
+        "rewarder": "0x763a687E631A907baDd620E20e9A0869E3Ec543D"
       }
     ]
   },
@@ -56,7 +68,11 @@
         { "pId": 4, "name": "WFTM-ETH LP", "address": "0x897f37e19b5aDBFF88315bC04a40d75075f428B6" },
         { "pId": 6, "name": "WFTM-USDC LP", "address": "0xA623D2682887cD0fEe9cE4C29A3ebF2b5CAf9C9E" },
         { "pId": 7, "name": "TUSD-USDC LP", "address": "0xe7Cbf8A6F1d0eBeF477022Ef62d6B5b74FF14D92" },
-        { "pId": 8, "name": "USDT-USDC LP", "address": "0x6f7c79e2D90704Ae0c6877553C0cD17107586c14" }
+        { "pId": 8, "name": "USDT-USDC LP", "address": "0x6f7c79e2D90704Ae0c6877553C0cD17107586c14" },
+        { "pId": 9, "name": "WFTM-BTC LP", "address": "0xfA793A1eB189590a764990fc03c7146885b3C856" },
+        { "pId": 10, "name": "WFTM-fUSDT LP", "address": "0xf2221530D4a314c9AE010De77ffa567DA244bDFA" },
+        { "pId": 11, "name": "WFTM-DAI LP", "address": "0x8db7A34C401446146a6c8bcf2bD188a95b5295B6" },
+        { "pId": 12, "name": "WFTM-MIM LP", "address": "0x29DAbE60c473ff7da8258A95A93f0D294f242188" }
       ]
     }
   },
@@ -67,7 +83,11 @@
     "USDC": "0x9a499f5e53D832A2D285e46375E575CE53182533",
     "USDT": "0x2C3DFA744215B89e5816274b1571d2eBcd02cB5D",
     "ETH": "0x0fe424a06347adb455620e4E71312759010EB89b",
-    "TUSD": "0x2E67E965C6C4b305d5aC7eEBDd5da2e7c5db4C31"
+    "TUSD": "0x2E67E965C6C4b305d5aC7eEBDd5da2e7c5db4C31",
+    "BTC": "0xE1A9EB1C524792AECF7985e76C2Dec25aE5FB304",
+    "fUSDT": "0x80f0C578eD3D5cab61DC5D77a1C8e284F5cA75DA",
+    "DAI": "0xC1C4438C60a79761b9DFa37b0834e56c65f7F48A",
+    "MIM": "0x31e8203e554B3E49eb77600Eb1Fc6C8c957BfAe2"
   },
   "SharedStrategies": {
     "SpookySwap": {
@@ -169,6 +189,74 @@
             "StrategyPartialCloseLiquidate": "0xC74846Bc38AF10d172293aC1D1C524e319156F0F",
             "StrategyPartialCloseMinimizeTrading": "0x0C52c7E0c27028428DcBCBA8791f30b082aD9A3a"
           }
+        },
+        {
+          "name": "BTC-WFTM SpookyWorker",
+          "address": "0x4D26DD8f78096F4007d86912AE50ce77093D13f3",
+          "deployedBlock": 8064007,
+          "config": "0x972F1D78d1E7D7ab5c11b3346c966c2EC94a64e6",
+          "pId": 9,
+          "stakingToken": "0xfA793A1eB189590a764990fc03c7146885b3C856",
+          "stakingTokenAt": "0xF9c40C68d4AE8234db6AbC38B7Efb91cF2232cF4",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x96b6FAfdC9C3D55ef4906A005B7525B8C06CE6f5",
+            "StrategyLiquidate": "0x5f597510Af2562181F752217a3C4963c9baAC615",
+            "StrategyAddTwoSidesOptimal": "0x792eBD6e468593f4a68B01A11A491ed84D1db104",
+            "StrategyWithdrawMinimizeTrading": "0x800343333540a2e600E66e7cD73ABc0dE3cC017A",
+            "StrategyPartialCloseLiquidate": "0xC74846Bc38AF10d172293aC1D1C524e319156F0F",
+            "StrategyPartialCloseMinimizeTrading": "0x0C52c7E0c27028428DcBCBA8791f30b082aD9A3a"
+          }
+        },
+        {
+          "name": "fUSDT-WFTM SpookyWorker",
+          "address": "0x788b320db9db088B06B6AF9A49643bEaA2967075",
+          "deployedBlock": 8064252,
+          "config": "0x972F1D78d1E7D7ab5c11b3346c966c2EC94a64e6",
+          "pId": 10,
+          "stakingToken": "0xf2221530D4a314c9AE010De77ffa567DA244bDFA",
+          "stakingTokenAt": "0xF9c40C68d4AE8234db6AbC38B7Efb91cF2232cF4",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x96b6FAfdC9C3D55ef4906A005B7525B8C06CE6f5",
+            "StrategyLiquidate": "0x5f597510Af2562181F752217a3C4963c9baAC615",
+            "StrategyAddTwoSidesOptimal": "0x792eBD6e468593f4a68B01A11A491ed84D1db104",
+            "StrategyWithdrawMinimizeTrading": "0x800343333540a2e600E66e7cD73ABc0dE3cC017A",
+            "StrategyPartialCloseLiquidate": "0xC74846Bc38AF10d172293aC1D1C524e319156F0F",
+            "StrategyPartialCloseMinimizeTrading": "0x0C52c7E0c27028428DcBCBA8791f30b082aD9A3a"
+          }
+        },
+        {
+          "name": "DAI-WFTM SpookyWorker",
+          "address": "0x0646b70c1647E034c262Bd821E09E860a6AADB72",
+          "deployedBlock": 8064497,
+          "config": "0x972F1D78d1E7D7ab5c11b3346c966c2EC94a64e6",
+          "pId": 11,
+          "stakingToken": "0x8db7A34C401446146a6c8bcf2bD188a95b5295B6",
+          "stakingTokenAt": "0xF9c40C68d4AE8234db6AbC38B7Efb91cF2232cF4",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x96b6FAfdC9C3D55ef4906A005B7525B8C06CE6f5",
+            "StrategyLiquidate": "0x5f597510Af2562181F752217a3C4963c9baAC615",
+            "StrategyAddTwoSidesOptimal": "0x792eBD6e468593f4a68B01A11A491ed84D1db104",
+            "StrategyWithdrawMinimizeTrading": "0x800343333540a2e600E66e7cD73ABc0dE3cC017A",
+            "StrategyPartialCloseLiquidate": "0xC74846Bc38AF10d172293aC1D1C524e319156F0F",
+            "StrategyPartialCloseMinimizeTrading": "0x0C52c7E0c27028428DcBCBA8791f30b082aD9A3a"
+          }
+        },
+        {
+          "name": "MIM-WFTM SpookyWorker",
+          "address": "0x61A6d1D4FF033e82922Cb90B16A442cE50bBeB0d",
+          "deployedBlock": 8064740,
+          "config": "0x972F1D78d1E7D7ab5c11b3346c966c2EC94a64e6",
+          "pId": 12,
+          "stakingToken": "0x29DAbE60c473ff7da8258A95A93f0D294f242188",
+          "stakingTokenAt": "0xF9c40C68d4AE8234db6AbC38B7Efb91cF2232cF4",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x96b6FAfdC9C3D55ef4906A005B7525B8C06CE6f5",
+            "StrategyLiquidate": "0x5f597510Af2562181F752217a3C4963c9baAC615",
+            "StrategyAddTwoSidesOptimal": "0x792eBD6e468593f4a68B01A11A491ed84D1db104",
+            "StrategyWithdrawMinimizeTrading": "0x800343333540a2e600E66e7cD73ABc0dE3cC017A",
+            "StrategyPartialCloseLiquidate": "0xC74846Bc38AF10d172293aC1D1C524e319156F0F",
+            "StrategyPartialCloseMinimizeTrading": "0x0C52c7E0c27028428DcBCBA8791f30b082aD9A3a"
+          }
         }
       ]
     },
@@ -214,6 +302,38 @@
             "StrategyAddAllBaseToken": "0x96b6FAfdC9C3D55ef4906A005B7525B8C06CE6f5",
             "StrategyLiquidate": "0x5f597510Af2562181F752217a3C4963c9baAC615",
             "StrategyAddTwoSidesOptimal": "0xc582bFb2769D92fd0627AF2aE91E2F61beeEA38C",
+            "StrategyWithdrawMinimizeTrading": "0x800343333540a2e600E66e7cD73ABc0dE3cC017A",
+            "StrategyPartialCloseLiquidate": "0xC74846Bc38AF10d172293aC1D1C524e319156F0F",
+            "StrategyPartialCloseMinimizeTrading": "0x0C52c7E0c27028428DcBCBA8791f30b082aD9A3a"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Interest Bearing ALPACA",
+      "symbol": "ibALPACA",
+      "address": "0x19EC3914C98450d9DAFd3769Db33157e8600D060",
+      "deployedBlock": 7770010,
+      "baseToken": "0x17326e0677A4C89E22FBD6192F1fb1972200473a",
+      "debtToken": "0xe9C6FaF5F4C184FDAe9eA948dFC8Dd97897D7Fc5",
+      "config": "0xb3b9fb79e093830dbc466dfA7fc1259fb677b38a",
+      "tripleSlopeModel": "0x72a7AA7EAF23C31F4a1EdB0b3a66778EF6ca5077",
+      "StrategyAddTwoSidesOptimal": {
+        "SpookySwap": "0xE739A8d6AaDbD4fa44Ad7541f8a5a5D7dbfD25F4"
+      },
+      "workers": [
+        {
+          "name": "WFTM-ALPACA SpookyWorker",
+          "address": "0xD858050D16399ebdDDC5f61610004baFd6162551",
+          "deployedBlock": 7771461,
+          "config": "0x972F1D78d1E7D7ab5c11b3346c966c2EC94a64e6",
+          "pId": 1,
+          "stakingToken": "0xE19adba4168E68fE804479A741b809e45d0b26E4",
+          "stakingTokenAt": "0xF9c40C68d4AE8234db6AbC38B7Efb91cF2232cF4",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x96b6FAfdC9C3D55ef4906A005B7525B8C06CE6f5",
+            "StrategyLiquidate": "0x5f597510Af2562181F752217a3C4963c9baAC615",
+            "StrategyAddTwoSidesOptimal": "0xE739A8d6AaDbD4fa44Ad7541f8a5a5D7dbfD25F4",
             "StrategyWithdrawMinimizeTrading": "0x800343333540a2e600E66e7cD73ABc0dE3cC017A",
             "StrategyPartialCloseLiquidate": "0xC74846Bc38AF10d172293aC1D1C524e319156F0F",
             "StrategyPartialCloseMinimizeTrading": "0x0C52c7E0c27028428DcBCBA8791f30b082aD9A3a"

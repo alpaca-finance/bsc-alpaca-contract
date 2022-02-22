@@ -75,69 +75,56 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const shortWorkerInfos: ISpookySwapWorkerInput[] = [
     // {
-    //   VAULT_SYMBOL: "ibUSDC",
-    //   WORKER_NAME: "FTM-USDC SpookyWorker",
-    //   REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-    //   POOL_ID: 2,
-    //   REINVEST_BOUNTY_BPS: "900",
-    //   REINVEST_PATH: ["BOO", "WFTM", "USDC"],
-    //   REINVEST_THRESHOLD: "0",
-    //   WORK_FACTOR: "7000",
-    //   KILL_FACTOR: "8333",
-    //   MAX_PRICE_DIFF: "10500",
-    //   EXACT_ETA: "1643951700",
-    // },
-    // {
     //   VAULT_SYMBOL: "ibFTM",
-    //   WORKER_NAME: "USDC-FTM SpookyWorker",
+    //   WORKER_NAME: "BTC-WFTM SpookyWorker",
     //   REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-    //   POOL_ID: 2,
+    //   POOL_ID: 4,
     //   REINVEST_BOUNTY_BPS: "900",
     //   REINVEST_PATH: ["BOO", "WFTM"],
     //   REINVEST_THRESHOLD: "0",
     //   WORK_FACTOR: "7000",
     //   KILL_FACTOR: "8333",
     //   MAX_PRICE_DIFF: "10500",
-    //   EXACT_ETA: "1643951700",
+    //   EXACT_ETA: "88888888", // no use due to no timelock
     // },
     // {
     //   VAULT_SYMBOL: "ibFTM",
-    //   WORKER_NAME: "BOO-FTM SpookyWorker",
+    //   WORKER_NAME: "fUSDT-WFTM SpookyWorker",
     //   REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-    //   POOL_ID: 0,
+    //   POOL_ID: 1,
     //   REINVEST_BOUNTY_BPS: "900",
     //   REINVEST_PATH: ["BOO", "WFTM"],
     //   REINVEST_THRESHOLD: "0",
     //   WORK_FACTOR: "7000",
     //   KILL_FACTOR: "8333",
-    //   MAX_PRICE_DIFF: "11000",
-    //   EXACT_ETA: "1643951700",
+    //   MAX_PRICE_DIFF: "10500",
+    //   EXACT_ETA: "88888888", // no use due to no timelock
     // },
     {
       VAULT_SYMBOL: "ibFTM",
-      WORKER_NAME: "ETH-FTM SpookyWorker",
+      WORKER_NAME: "DAI-WFTM SpookyWorker",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 5,
+      POOL_ID: 3,
       REINVEST_BOUNTY_BPS: "900",
       REINVEST_PATH: ["BOO", "WFTM"],
       REINVEST_THRESHOLD: "0",
       WORK_FACTOR: "7000",
       KILL_FACTOR: "8333",
-      MAX_PRICE_DIFF: "11000",
-      EXACT_ETA: "1643951700",
+      MAX_PRICE_DIFF: "10500",
+      EXACT_ETA: "88888888", // no use due to no timelock
     },
     {
-      VAULT_SYMBOL: "ibUSDC",
-      WORKER_NAME: "TUSD-USDC SpookyWorker",
+      VAULT_SYMBOL: "ibFTM",
+      WORKER_NAME: "MIM-WFTM SpookyWorker",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 45,
+      POOL_ID: 24,
       REINVEST_BOUNTY_BPS: "900",
-      REINVEST_PATH: ["BOO", "WFTM", "USDC"],
+      REINVEST_PATH: ["BOO", "WFTM"],
       REINVEST_THRESHOLD: "0",
-      WORK_FACTOR: "7800",
-      KILL_FACTOR: "9000",
+      WORK_FACTOR: "7000",
+      KILL_FACTOR: "8333",
       MAX_PRICE_DIFF: "10500",
-      EXACT_ETA: "1643951700",
+      EXACT_ETA: "88888888", // no use due to no timelock
     },
   ];
 
@@ -198,7 +185,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   });
 
   for (let i = 0; i < workerInfos.length; i++) {
-    console.log("===================================================================================");
+    console.log("================================================================================");
     console.log(`>> Deploying an upgradable SpookyWorker03 contract for ${workerInfos[i].WORKER_NAME}`);
     const SpookyWorker03 = (await ethers.getContractFactory("SpookyWorker03", deployer)) as SpookyWorker03__factory;
     const spookyWorker03 = (await upgrades.deployProxy(SpookyWorker03, [
@@ -214,7 +201,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       workerInfos[i].REINVEST_PATH,
       workerInfos[i].REINVEST_THRESHOLD,
     ])) as SpookyWorker03;
-    const deployedTx = await spookyWorker03.deployTransaction.wait(3);
+    const deployedTx = await spookyWorker03.deployTransaction.wait(20);
     console.log(`>> Deployed at ${spookyWorker03.address}`);
     console.log(`>> Deployed block: ${deployedTx.blockNumber}`);
 
@@ -340,7 +327,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
           ],
           { nonce: nonce++ }
         )
-      ).wait(15);
+      ).wait(3);
       console.log("✅ Done");
     }
 
@@ -367,7 +354,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       console.log(">> Linking VaultConfig with WorkerConfig");
       (
         await vaultConfig.setWorkers([spookyWorker03.address], [workerInfos[i].WORKER_CONFIG_ADDR], { nonce: nonce++ })
-      ).wait(15);
+      ).wait(3);
       console.log("✅ Done");
     }
   }
