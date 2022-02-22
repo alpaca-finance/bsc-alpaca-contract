@@ -130,8 +130,8 @@ contract DeltaNeutralOracle is IDeltaNeutralOracle, Initializable, OwnableUpgrad
     uint8 _d0 = IERC20(_token0Address).decimals();
     uint8 _d1 = IERC20(_token1Address).decimals();
 
-    uint256 _px0 = (_p0 * (2**112)) / 10**(18 - _d0); // in token decimals 2**112
-    uint256 _px1 = (_p1 * (2**112)) / 10**(18 - _d1); // in token decimals 2**112
+    uint256 _px0 = (_p0 * (2**112)) / 10**(18 - _d0); // in token decimals * 2**112
+    uint256 _px1 = (_p1 * (2**112)) / 10**(18 - _d1); // in token decimals * 2**112
 
     return (_px0, _px1, _d0, _d1, _olderLastUpdate);
   }
