@@ -84,7 +84,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if (deltaVaultInputs[i].assetVaultSymbol === "ibWBNB") {
       console.log(`>> Set Caller ok for deltaNeutralVault if have native asset`);
       const wNativeRelayer = WNativeRelayer__factory.connect(wNativeRelayerAddr, deployer);
-      await wNativeRelayer.setCallerOk([deltaNeutralVault.address], true);
+      await wNativeRelayer.setCallerOk([deltaNeutralVault.address], true, { gasLimit: 1000000 });
       console.log("✅ Done");
     }
   }

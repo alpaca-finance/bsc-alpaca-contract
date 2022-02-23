@@ -79,7 +79,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log("✅ Done");
 
   console.log(`>> Setting Reinvest Path`);
-  await deltaNeutralVaultConfig.setReinvestPath(reinvestPath);
+  await deltaNeutralVaultConfig.setReinvestPath(reinvestPath, { gasLimit: 1000000 });
   console.log("✅ Done");
 
   console.log(`>> Setting Swap Router`);
