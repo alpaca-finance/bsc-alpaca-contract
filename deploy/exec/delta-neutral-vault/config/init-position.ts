@@ -1,15 +1,9 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
-import {
-  BEP20__factory,
-  DeltaNeutralVaultConfig__factory,
-  DeltaNeutralVault__factory,
-  DeltaNeutralOracle__factory,
-} from "../../../../typechain";
+import { BEP20__factory, DeltaNeutralVault__factory, DeltaNeutralOracle__factory } from "../../../../typechain";
 import { ConfigEntity } from "../../../entities";
 import { BigNumber } from "ethers";
-import { formatEther } from "ethers/lib/utils";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -111,15 +105,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     stableTwoSidesStrat = stableVault.StrategyAddTwoSidesOptimal.Pancakeswap;
     assetTwoSidesStrat = assetVault.StrategyAddTwoSidesOptimal.Pancakeswap;
-
-    const deltaNeutralVaultConfig = DeltaNeutralVaultConfig__factory.connect(
-      initPositionInputs[i].deltaNeutralVaultConfig,
-      deployer
-    );
-
-    console.log(`>> Setting leverage level at DeltaNeutralVaultConfig to be ${initPositionInputs[i].leverage}x`);
-    await deltaNeutralVaultConfig.setLeverageLevel(initPositionInputs[i].leverage);
-    console.log("✅ Done");
 
     const stableToken = tokenLists[initPositionInputs[i].stableSymbol];
     const assetToken = tokenLists[initPositionInputs[i].assetSymbol];

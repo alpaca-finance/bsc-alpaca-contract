@@ -22,11 +22,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const DELTA_NEUTRAL_VAULT_ADDRESS = "";
   const workerInputs: IWorkerInput[] = [
     {
-      name: "WBNB-BUSD DeltaNeutralMdexWorker",
+      name: "WBNB-BUSD DeltaNeutralPancakeswapWorker",
       address: "",
     },
     {
-      name: "BUSD-WBNB DeltaNeutralMdexWorker",
+      name: "BUSD-WBNB DeltaNeutralPancakeswapWorker",
       address: "",
     },
   ];

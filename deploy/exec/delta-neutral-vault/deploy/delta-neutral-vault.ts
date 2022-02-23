@@ -1,7 +1,7 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, upgrades } from "hardhat";
-import { DeltaNeutralVault, DeltaNeutralVault__factory } from "../../../../typechain";
+import { DeltaNeutralVault, DeltaNeutralVault__factory, WNativeRelayer__factory } from "../../../../typechain";
 import { ConfigEntity } from "../../../entities";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
@@ -30,8 +30,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const deltaVaultInputs: IDeltaNeutralVaultInput[] = [
     {
-      name: "Neutral3x WBNB-BUSD MDEX",
-      symbol: "N3-WBNB-BUSD-MDEX",
+      name: "Neutral3x WBNB-BUSD Pancakeswap",
+      symbol: "N3-WBNB-BUSD-PCS",
       stableVaultSymbol: "ibBUSD",
       assetVaultSymbol: "ibWBNB",
       stableSymbol: "BUSD",
@@ -47,6 +47,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const config = ConfigEntity.getConfig();
   const deployer = (await ethers.getSigners())[0];
   const alpacaTokenAddress = config.Tokens.ALPACA;
+  const wNativeRelayerAddr = config.SharedConfig.WNativeRelayer;
   for (let i = 0; i < deltaVaultInputs.length; i++) {
     const stableVault = config.Vaults.find((v) => v.symbol === deltaVaultInputs[i].stableVaultSymbol);
     const assetVault = config.Vaults.find((v) => v.symbol === deltaVaultInputs[i].assetVaultSymbol);
@@ -79,6 +80,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await deltaNeutralVault.deployed();
     console.log(`>> Deployed at ${deltaNeutralVault.address}`);
     console.log("✅ Done");
+
+    if (deltaVaultInputs[i].assetVaultSymbol === "ibWBNB") {
+      console.log(`>> Set Caller ok for deltaNeutralVault if have native asset`);
+      const wNativeRelayer = WNativeRelayer__factory.connect(wNativeRelayerAddr, deployer);
+      await wNativeRelayer.setCallerOk([deltaNeutralVault.address], true);
+      console.log("✅ Done");
+    }
   }
 };
 
