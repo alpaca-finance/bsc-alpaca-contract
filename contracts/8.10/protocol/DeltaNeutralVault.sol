@@ -446,10 +446,12 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   /// @param _actions List of actions to execute.
   /// @param _values Native token amount.
   /// @param _datas The calldata to pass along for more working context.
+  /// @param _minTokenReceive Minimum token received when swap reward.
   function reinvest(
     uint8[] memory _actions,
     uint256[] memory _values,
-    bytes[] memory _datas
+    bytes[] memory _datas,
+    uint256 _minTokenReceive
   ) external onlyReinvestors {
     uint256 _alpacaBountyBps = config.alpacaBountyBps();
 
@@ -475,7 +477,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _rewardAmount = _alpacaAfter - _bounty;
     ISwapRouter _router = ISwapRouter(config.getSwapRouter());
     IERC20Upgradeable(alpacaToken).approve(address(_router), _rewardAmount);
-    _router.swapExactTokensForTokens(_rewardAmount, 0, reinvestPath, address(this), block.timestamp);
+    _router.swapExactTokensForTokens(_rewardAmount, _minTokenReceive, reinvestPath, address(this), block.timestamp);
 
     // 4. execute reinvest
     {

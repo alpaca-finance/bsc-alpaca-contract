@@ -3487,7 +3487,7 @@ describe("DeltaNeutralVault", () => {
         const stableDepositWorkByte = buildDepositWorkByte(stableDepositWorkByteInput);
         const assetDepositWorkByte = buildDepositWorkByte(assetDepositWorkByteInput);
 
-        await deltaVault.reinvest([ACTION_WORK, ACTION_WORK], [0, 0], [stableDepositWorkByte, assetDepositWorkByte]);
+        await deltaVault.reinvest([ACTION_WORK, ACTION_WORK], [0, 0], [stableDepositWorkByte, assetDepositWorkByte], 0);
 
         const afterPositionVal = await deltaVault.shareToValue(aliceShares);
 
@@ -3595,7 +3595,12 @@ describe("DeltaNeutralVault", () => {
             const assetWithdrawWorkByte = buildWithdrawWorkByte(assetWithdrawInput);
 
             await expect(
-              deltaVault.reinvest([ACTION_WORK, ACTION_WORK], [0, 0], [stableWithdrawWorkByte, assetWithdrawWorkByte])
+              deltaVault.reinvest(
+                [ACTION_WORK, ACTION_WORK],
+                [0, 0],
+                [stableWithdrawWorkByte, assetWithdrawWorkByte],
+                0
+              )
             ).to.be.revertedWith("DeltaNeutralVault_UnsafePositionEquity()");
           });
         });
@@ -3665,7 +3670,7 @@ describe("DeltaNeutralVault", () => {
             );
 
             const aliceShares = await deltaVault.balanceOf(aliceAddress);
-            await expect(deltaVault.reinvest([], [], [])).to.be.revertedWith(
+            await expect(deltaVault.reinvest([], [], [], 0)).to.be.revertedWith(
               "DeltaNeutralVault_UnsafePositionEquity()"
             );
           });
@@ -3712,7 +3717,24 @@ describe("DeltaNeutralVault", () => {
         };
         deltaVault = await deployHelper.deployDeltaNeutralVault(_deltaNeutral);
 
-        await expect(deltaVault.reinvest([], [], [])).to.be.revertedWith("DeltaNeutralVault_BadReinvestPath()");
+        await expect(deltaVault.reinvest([], [], [], 0)).to.be.revertedWith("DeltaNeutralVault_BadReinvestPath()");
+      });
+    });
+
+    context("when token return after swap reward less than minTokenReceive", async () => {
+      it.only("should revert", async () => {
+        await swapHelper.addLiquidities([
+          {
+            token0: alpacaToken as unknown as IERC20,
+            token1: baseToken as unknown as IERC20,
+            amount0desired: ethers.utils.parseEther("100000"),
+            amount1desired: ethers.utils.parseEther("100000"),
+          },
+        ]);
+
+        await expect(deltaVault.reinvest([], [], [], ethers.utils.parseEther("1000000"))).to.be.revertedWith(
+          "PancakeRouter: INSUFFICIENT_OUTPUT_AMOUNT"
+        );
       });
     });
   });
