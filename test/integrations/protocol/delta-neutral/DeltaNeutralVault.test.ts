@@ -3678,6 +3678,23 @@ describe("DeltaNeutralVault", () => {
       });
     });
 
+    context("when token return after swap reward less than minTokenReceive", async () => {
+      it("should revert", async () => {
+        await swapHelper.addLiquidities([
+          {
+            token0: alpacaToken as unknown as IERC20,
+            token1: baseToken as unknown as IERC20,
+            amount0desired: ethers.utils.parseEther("100000"),
+            amount1desired: ethers.utils.parseEther("100000"),
+          },
+        ]);
+
+        await expect(deltaVault.reinvest([], [], [], ethers.utils.parseEther("10000000000000"))).to.be.revertedWith(
+          "PancakeRouter: INSUFFICIENT_OUTPUT_AMOUNT"
+        );
+      });
+    });
+
     context("when non set reinvestPath", async () => {
       it("should revert", async () => {
         const deployHelper = new DeployHelper(deployer);
@@ -3718,23 +3735,6 @@ describe("DeltaNeutralVault", () => {
         deltaVault = await deployHelper.deployDeltaNeutralVault(_deltaNeutral);
 
         await expect(deltaVault.reinvest([], [], [], 0)).to.be.revertedWith("DeltaNeutralVault_BadReinvestPath()");
-      });
-    });
-
-    context("when token return after swap reward less than minTokenReceive", async () => {
-      it("should revert", async () => {
-        await swapHelper.addLiquidities([
-          {
-            token0: alpacaToken as unknown as IERC20,
-            token1: baseToken as unknown as IERC20,
-            amount0desired: ethers.utils.parseEther("100000"),
-            amount1desired: ethers.utils.parseEther("100000"),
-          },
-        ]);
-
-        await expect(deltaVault.reinvest([], [], [], ethers.utils.parseEther("1000000"))).to.be.revertedWith(
-          "PancakeRouter: INSUFFICIENT_OUTPUT_AMOUNT"
-        );
       });
     });
   });
