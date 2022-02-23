@@ -24,7 +24,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     assetSymbol: string;
     stableDeltaWorker: string;
     assetDeltaWorker: string;
-    lpName: string;
+    lpAddress: string;
     deltaNeutralVaultConfig: string;
   }
 
@@ -38,7 +38,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       assetSymbol: "WBNB",
       stableDeltaWorker: "0xb2B70dD85Cd919B59deaF09B8Dcd58553c4bb465",
       assetDeltaWorker: "0x251388f3cC98541F91B1E425010f453CBe939fcd",
-      lpName: "WBNB-BUSD LP",
+      lpAddress: "",
       deltaNeutralVaultConfig: "0xf58e614C615bded1d22EdC9Dd8afD1fb7126c26d",
     },
   ];
@@ -50,15 +50,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   for (let i = 0; i < deltaVaultInputs.length; i++) {
     const stableVault = config.Vaults.find((v) => v.symbol === deltaVaultInputs[i].stableVaultSymbol);
     const assetVault = config.Vaults.find((v) => v.symbol === deltaVaultInputs[i].assetVaultSymbol);
-    const lpPair = config.Exchanges.Mdex.LpTokens.find((lp) => lp.name === deltaVaultInputs[i].lpName);
     if (stableVault === undefined) {
       throw `error: unable to find vault from ${deltaVaultInputs[i].stableVaultSymbol}`;
     }
     if (assetVault === undefined) {
       throw `error: unable to find vault from ${deltaVaultInputs[i].assetVaultSymbol}`;
-    }
-    if (lpPair === undefined) {
-      throw `error: unable to find LP token from ${deltaVaultInputs[i].lpName}`;
     }
 
     const DeltaNeutralVault = (await ethers.getContractFactory(
@@ -75,7 +71,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       assetVault.address,
       deltaVaultInputs[i].stableDeltaWorker,
       deltaVaultInputs[i].assetDeltaWorker,
-      lpPair.address,
+      deltaVaultInputs[i].lpAddress,
       alpacaTokenAddress,
       DELTA_NEUTRAL_ORACLE_ADDR,
       deltaVaultInputs[i].deltaNeutralVaultConfig,
