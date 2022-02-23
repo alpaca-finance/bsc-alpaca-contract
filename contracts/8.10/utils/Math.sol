@@ -43,7 +43,7 @@ library Math {
   /**
    * @dev Returns the rounded number.
    */
-  function roundingWei(uint256 a) internal pure returns (uint256) {
+  function e36round(uint256 a) internal pure returns (uint256) {
     return (a + 5e17) / 1e18;
   }
 }

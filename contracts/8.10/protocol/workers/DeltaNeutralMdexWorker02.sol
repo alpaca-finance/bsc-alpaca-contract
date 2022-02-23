@@ -295,7 +295,6 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
     // NOTE: last updated price should not be over 30 mins
     if (block.timestamp - _lpPriceLastUpdate > 1800 || block.timestamp - _tokenPricelastUpdate > 1800)
       revert DeltaNeutralMdexWorker02_UnTrustedPrice();
-    // TODO: discuss round up or down
     return _totalBalanceInUSD.divWadDown(_tokenPrice);
   }
 

@@ -541,7 +541,6 @@ describe("DeltaNeutralVault", () => {
             amount1desired: ethers.utils.parseEther("100000"),
           },
         ]);
-
         // stable token reserve = 100000, asset token reserve = 100000
         // deployer deposit 500 stable token, 500 asset token
         const depositStableTokenAmt = ethers.utils.parseEther("500");
