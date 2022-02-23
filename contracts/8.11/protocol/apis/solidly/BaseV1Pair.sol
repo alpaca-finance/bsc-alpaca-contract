@@ -1,25 +1,7 @@
-// SPDX-License-Identifier: MIT
 pragma solidity 0.8.11;
 
-interface erc20 {
-  function totalSupply() external view returns (uint256);
-
-  function transfer(address recipient, uint256 amount) external returns (bool);
-
-  function decimals() external view returns (uint8);
-
-  function symbol() external view returns (string memory);
-
-  function balanceOf(address) external view returns (uint256);
-
-  function transferFrom(
-    address sender,
-    address recipient,
-    uint256 amount
-  ) external returns (bool);
-
-  function approve(address spender, uint256 value) external returns (bool);
-}
+import "./BaseV1Factory.sol";
+import "./BaseV1Fees.sol";
 
 library Math {
   function min(uint256 a, uint256 b) internal pure returns (uint256) {
@@ -49,41 +31,6 @@ interface IBaseV1Callee {
   ) external;
 }
 
-// Base V1 Fees contract is used as a 1:1 pair relationship to split out fees, this ensures that the curve does not need to be modified for LP shares
-contract BaseV1Fees {
-  address internal immutable pair; // The pair it is bonded to
-  address internal immutable token0; // token0 of pair, saved localy and statically for gas optimization
-  address internal immutable token1; // Token1 of pair, saved localy and statically for gas optimization
-
-  constructor(address _token0, address _token1) {
-    pair = msg.sender;
-    token0 = _token0;
-    token1 = _token1;
-  }
-
-  function _safeTransfer(
-    address token,
-    address to,
-    uint256 value
-  ) internal {
-    require(token.code.length > 0);
-    (bool success, bytes memory data) = token.call(abi.encodeWithSelector(erc20.transfer.selector, to, value));
-    require(success && (data.length == 0 || abi.decode(data, (bool))));
-  }
-
-  // Allow the pair to transfer fees to users
-  function claimFeesFor(
-    address recipient,
-    uint256 amount0,
-    uint256 amount1
-  ) external {
-    require(msg.sender == pair);
-    if (amount0 > 0) _safeTransfer(token0, recipient, amount0);
-    if (amount1 > 0) _safeTransfer(token1, recipient, amount1);
-  }
-}
-
-// The base pair of pools, either stable or volatile
 contract BaseV1Pair {
   string public name;
   string public symbol;
@@ -681,80 +628,5 @@ contract BaseV1Pair {
     require(token.code.length > 0);
     (bool success, bytes memory data) = token.call(abi.encodeWithSelector(erc20.transfer.selector, to, value));
     require(success && (data.length == 0 || abi.decode(data, (bool))));
-  }
-}
-
-contract BaseV1Factory {
-  bool public isPaused;
-  address public pauser;
-  address public pendingPauser;
-
-  mapping(address => mapping(address => mapping(bool => address))) public getPair;
-  address[] public allPairs;
-  mapping(address => bool) public isPair; // simplified check if its a pair, given that `stable` flag might not be available in peripherals
-
-  address internal _temp0;
-  address internal _temp1;
-  bool internal _temp;
-
-  event PairCreated(address indexed token0, address indexed token1, bool stable, address pair, uint256);
-
-  constructor() {
-    pauser = msg.sender;
-    isPaused = false;
-  }
-
-  function allPairsLength() external view returns (uint256) {
-    return allPairs.length;
-  }
-
-  function setPauser(address _pauser) external {
-    require(msg.sender == pauser);
-    pendingPauser = _pauser;
-  }
-
-  function acceptPauser() external {
-    require(msg.sender == pendingPauser);
-    pauser = pendingPauser;
-  }
-
-  function setPause(bool _state) external {
-    require(msg.sender == pauser);
-    isPaused = _state;
-  }
-
-  function pairCodeHash() external pure returns (bytes32) {
-    return keccak256(type(BaseV1Pair).creationCode);
-  }
-
-  function getInitializable()
-    external
-    view
-    returns (
-      address,
-      address,
-      bool
-    )
-  {
-    return (_temp0, _temp1, _temp);
-  }
-
-  function createPair(
-    address tokenA,
-    address tokenB,
-    bool stable
-  ) external returns (address pair) {
-    require(tokenA != tokenB, "IA"); // BaseV1: IDENTICAL_ADDRESSES
-    (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
-    require(token0 != address(0), "ZA"); // BaseV1: ZERO_ADDRESS
-    require(getPair[token0][token1][stable] == address(0), "PE"); // BaseV1: PAIR_EXISTS - single check is sufficient
-    bytes32 salt = keccak256(abi.encodePacked(token0, token1, stable)); // notice salt includes stable as well, 3 parameters
-    (_temp0, _temp1, _temp) = (token0, token1, stable);
-    pair = address(new BaseV1Pair{ salt: salt }());
-    getPair[token0][token1][stable] = pair;
-    getPair[token1][token0][stable] = pair; // populate mapping in the reverse direction
-    allPairs.push(pair);
-    isPair[pair] = true;
-    emit PairCreated(token0, token1, stable, pair, allPairs.length);
   }
 }
