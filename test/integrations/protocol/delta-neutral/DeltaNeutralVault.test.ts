@@ -3722,7 +3722,7 @@ describe("DeltaNeutralVault", () => {
     });
 
     context("when token return after swap reward less than minTokenReceive", async () => {
-      it.only("should revert", async () => {
+      it("should revert", async () => {
         await swapHelper.addLiquidities([
           {
             token0: alpacaToken as unknown as IERC20,
