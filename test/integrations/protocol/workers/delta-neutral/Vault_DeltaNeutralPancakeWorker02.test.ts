@@ -34,6 +34,7 @@ import {
   ChainLinkPriceOracle,
   ChainLinkPriceOracle__factory,
   MockAggregatorV3__factory,
+  IERC20,
 } from "../../../../../typechain";
 import * as AssertHelpers from "../../../../helpers/assert";
 import * as TimeHelpers from "../../../../helpers/time";
@@ -272,26 +273,26 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
     );
     await swapHelper.addLiquidities([
       {
-        token0: baseToken,
-        token1: farmToken,
+        token0: baseToken as unknown as IERC20,
+        token1: farmToken as unknown as IERC20,
         amount0desired: ethers.utils.parseEther("1"),
         amount1desired: ethers.utils.parseEther("0.1"),
       },
       {
-        token0: cake,
-        token1: wbnb,
+        token0: cake as unknown as IERC20,
+        token1: wbnb as unknown as IERC20,
         amount0desired: ethers.utils.parseEther("0.1"),
         amount1desired: ethers.utils.parseEther("1"),
       },
       {
-        token0: baseToken,
-        token1: wbnb,
+        token0: baseToken as unknown as IERC20,
+        token1: wbnb as unknown as IERC20,
         amount0desired: ethers.utils.parseEther("1"),
         amount1desired: ethers.utils.parseEther("1"),
       },
       {
-        token0: farmToken,
-        token1: wbnb,
+        token0: farmToken as unknown as IERC20,
+        token1: wbnb as unknown as IERC20,
         amount0desired: ethers.utils.parseEther("1"),
         amount1desired: ethers.utils.parseEther("1"),
       },

@@ -36,6 +36,7 @@ import {
   MdxToken__factory,
   SwapMining,
   MdexRestrictedStrategyLiquidate,
+  IERC20,
 } from "../../../../../typechain";
 import * as AssertHelpers from "../../../../helpers/assert";
 import * as TimeHelpers from "../../../../helpers/time";
@@ -299,26 +300,26 @@ describe("Vault - DeltaNetMdexWorker02", () => {
 
     await swapHelper.addMdexLiquidities([
       {
-        token0: baseToken,
-        token1: farmToken,
+        token0: baseToken as unknown as IERC20,
+        token1: farmToken as unknown as IERC20,
         amount0desired: ethers.utils.parseEther("1"),
         amount1desired: ethers.utils.parseEther("0.1"),
       },
       {
-        token0: mdx,
-        token1: wbnb,
+        token0: mdx as unknown as IERC20,
+        token1: wbnb as unknown as IERC20,
         amount0desired: ethers.utils.parseEther("0.1"),
         amount1desired: ethers.utils.parseEther("1"),
       },
       {
-        token0: baseToken,
-        token1: wbnb,
+        token0: baseToken as unknown as IERC20,
+        token1: wbnb as unknown as IERC20,
         amount0desired: ethers.utils.parseEther("1"),
         amount1desired: ethers.utils.parseEther("1"),
       },
       {
-        token0: farmToken,
-        token1: wbnb,
+        token0: farmToken as unknown as IERC20,
+        token1: wbnb as unknown as IERC20,
         amount0desired: ethers.utils.parseEther("1"),
         amount1desired: ethers.utils.parseEther("1"),
       },
