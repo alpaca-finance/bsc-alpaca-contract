@@ -37,23 +37,23 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
   using FixedPointMathLib for uint256;
 
   /// @notice Errors
-  error InvalidRewardToken();
-  error InvalidTokens();
-  error UnTrustedPrice();
+  error DeltaNeutralPancakeWorker02_InvalidRewardToken();
+  error DeltaNeutralPancakeWorker02_InvalidTokens();
+  error DeltaNeutralPancakeWorker02_UnTrustedPrice();
 
-  error NotEOA();
-  error NotOperator();
-  error NotReinvestor();
-  error NotWhitelistedCaller();
+  error DeltaNeutralPancakeWorker02_NotEOA();
+  error DeltaNeutralPancakeWorker02_NotOperator();
+  error DeltaNeutralPancakeWorker02_NotReinvestor();
+  error DeltaNeutralPancakeWorker02_NotWhitelistedCaller();
 
-  error UnApproveStrategy();
-  error BadTreasuryAccount();
-  error NotAllowToLiquidate();
+  error DeltaNeutralPancakeWorker02_UnApproveStrategy();
+  error DeltaNeutralPancakeWorker02_BadTreasuryAccount();
+  error DeltaNeutralPancakeWorker02_NotAllowToLiquidate();
 
-  error InvalidReinvestPath();
-  error InvalidReinvestPathLength();
-  error ExceedReinvestBounty();
-  error ExceedReinvestBps();
+  error DeltaNeutralPancakeWorker02_InvalidReinvestPath();
+  error DeltaNeutralPancakeWorker02_InvalidReinvestPathLength();
+  error DeltaNeutralPancakeWorker02_ExceedReinvestBounty();
+  error DeltaNeutralPancakeWorker02_ExceedReinvestBps();
 
   /// @notice Events
   event Reinvest(address indexed caller, uint256 reward, uint256 bounty);
@@ -164,39 +164,40 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
     maxReinvestBountyBps = 900;
 
     // 6. Check if critical parameters are config properly
-    if (baseToken == cake) revert InvalidRewardToken();
+    if (baseToken == cake) revert DeltaNeutralPancakeWorker02_InvalidRewardToken();
 
-    if (reinvestBountyBps > maxReinvestBountyBps) revert ExceedReinvestBounty();
+    if (reinvestBountyBps > maxReinvestBountyBps) revert DeltaNeutralPancakeWorker02_ExceedReinvestBounty();
 
     if (
       !((farmingToken == lpToken.token0() || farmingToken == lpToken.token1()) &&
         (baseToken == lpToken.token0() || baseToken == lpToken.token1()))
-    ) revert InvalidTokens();
+    ) revert DeltaNeutralPancakeWorker02_InvalidTokens();
 
-    if (reinvestPath[0] != cake || reinvestPath[reinvestPath.length - 1] != baseToken) revert InvalidReinvestPath();
+    if (reinvestPath[0] != cake || reinvestPath[reinvestPath.length - 1] != baseToken)
+      revert DeltaNeutralPancakeWorker02_InvalidReinvestPath();
   }
 
   /// @dev Require that the caller must be an EOA account to avoid flash loans.
   modifier onlyEOA() {
-    if (msg.sender != tx.origin) revert NotEOA();
+    if (msg.sender != tx.origin) revert DeltaNeutralPancakeWorker02_NotEOA();
     _;
   }
 
   /// @dev Require that the caller must be the operator.
   modifier onlyOperator() {
-    if (msg.sender != operator) revert NotOperator();
+    if (msg.sender != operator) revert DeltaNeutralPancakeWorker02_NotOperator();
     _;
   }
 
   //// @dev Require that the caller must be ok reinvestor.
   modifier onlyReinvestor() {
-    if (!okReinvestors[msg.sender]) revert NotReinvestor();
+    if (!okReinvestors[msg.sender]) revert DeltaNeutralPancakeWorker02_NotReinvestor();
     _;
   }
 
   //// @dev Require that the caller must be whitelisted caller.
   modifier onlyWhitelistedCaller(address user) {
-    if (!whitelistCallers[user]) revert NotWhitelistedCaller();
+    if (!whitelistCallers[user]) revert DeltaNeutralPancakeWorker02_NotWhitelistedCaller();
     _;
   }
 
@@ -219,7 +220,7 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
     uint256 _callerBalance,
     uint256 _reinvestThreshold
   ) internal {
-    if (_treasuryAccount == address(0)) revert BadTreasuryAccount();
+    if (_treasuryAccount == address(0)) revert DeltaNeutralPancakeWorker02_BadTreasuryAccount();
 
     // 1. Withdraw all the rewards. Return if reward <= _reinvestThreshold.
     masterChef.withdraw(pid, 0);
@@ -228,7 +229,6 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
 
     // 2. Approve tokens
     cake.safeApprove(address(router), type(uint256).max);
-    address(lpToken).safeApprove(address(masterChef), type(uint256).max);
 
     // 3. Send the reward bounty to the _treasuryAccount.
     uint256 bounty = (reward * _treasuryBountyBps) / BASIS_POINT;
@@ -250,7 +250,6 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
 
     // 7. Reset approval
     cake.safeApprove(address(router), 0);
-    address(lpToken).safeApprove(address(masterChef), 0);
 
     emit Reinvest(_treasuryAccount, reward, bounty);
   }
@@ -265,9 +264,8 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
     uint256 debt,
     bytes calldata data
   ) external override onlyWhitelistedCaller(user) onlyOperator nonReentrant {
-    // 1. If a treasury configs are not ready. Not reinvest.
-    if (treasuryAccount != address(0) && treasuryBountyBps != 0)
-      _reinvest(treasuryAccount, treasuryBountyBps, actualBaseTokenBalance(), reinvestThreshold);
+    // 1. reinvest
+    _reinvest(treasuryAccount, treasuryBountyBps, actualBaseTokenBalance(), reinvestThreshold);
 
     // 2. Withdraw all LP tokens.
     _masterChefWithdraw();
@@ -275,7 +273,7 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
     // 3. Perform the worker strategy; sending LP tokens + BaseToken; expecting LP tokens + BaseToken.
     (address strat, bytes memory ext) = abi.decode(data, (address, bytes));
 
-    if (!okStrats[strat]) revert UnApproveStrategy();
+    if (!okStrats[strat]) revert DeltaNeutralPancakeWorker02_UnApproveStrategy();
 
     address(lpToken).safeTransfer(strat, lpToken.balanceOf(address(this)));
     baseToken.safeTransfer(strat, actualBaseTokenBalance());
@@ -296,16 +294,16 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
     (uint256 _tokenPrice, uint256 _tokenPricelastUpdate) = priceOracle.getTokenPrice(address(baseToken));
     // NOTE: last updated price should not be over 30 mins
     if (block.timestamp - _lpPriceLastUpdate > 1800 || block.timestamp - _tokenPricelastUpdate > 1800)
-      revert UnTrustedPrice();
-    // TODO: discuss round up or down
+      revert DeltaNeutralPancakeWorker02_UnTrustedPrice();
     return _totalBalanceInUSD.divWadDown(_tokenPrice);
   }
 
   /// @dev Liquidate the given position by converting it to BaseToken and return back to caller.
-  /// @param id The position ID to perform liquidation
-  function liquidate(uint256 id) external override onlyOperator nonReentrant {
+  function liquidate(
+    uint256 /*id*/
+  ) external override onlyOperator nonReentrant {
     // NOTE: this worker does not allow liquidation
-    revert NotAllowToLiquidate();
+    revert DeltaNeutralPancakeWorker02_NotAllowToLiquidate();
   }
 
   /// @dev Some portion of a bounty from reinvest will be sent to beneficialVault to increase the size of totalToken.
@@ -359,6 +357,7 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
       address(lpToken).safeApprove(address(masterChef), type(uint256).max);
       masterChef.deposit(pid, balance);
       totalLpBalance = totalLpBalance + balance;
+      address(lpToken).safeApprove(address(masterChef), 0);
       emit MasterChefDeposit(balance);
     }
   }
@@ -418,11 +417,12 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
     uint256 _reinvestThreshold,
     address[] calldata _reinvestPath
   ) external onlyOwner {
-    if (_reinvestBountyBps > maxReinvestBountyBps) revert ExceedReinvestBounty();
+    if (_reinvestBountyBps > maxReinvestBountyBps) revert DeltaNeutralPancakeWorker02_ExceedReinvestBounty();
 
-    if (_reinvestPath.length < 2) revert InvalidReinvestPathLength();
+    if (_reinvestPath.length < 2) revert DeltaNeutralPancakeWorker02_InvalidReinvestPathLength();
 
-    if (_reinvestPath[0] != cake || _reinvestPath[_reinvestPath.length - 1] != baseToken) revert InvalidReinvestPath();
+    if (_reinvestPath[0] != cake || _reinvestPath[_reinvestPath.length - 1] != baseToken)
+      revert DeltaNeutralPancakeWorker02_InvalidReinvestPath();
 
     reinvestBountyBps = _reinvestBountyBps;
     reinvestThreshold = _reinvestThreshold;
@@ -439,9 +439,9 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
   /// @dev Set Max reinvest reward for set upper limit reinvest bounty.
   /// @param _maxReinvestBountyBps - The max reinvest bounty value to update.
   function setMaxReinvestBountyBps(uint256 _maxReinvestBountyBps) external onlyOwner {
-    if (reinvestBountyBps > _maxReinvestBountyBps) revert ExceedReinvestBounty();
+    if (reinvestBountyBps > _maxReinvestBountyBps) revert DeltaNeutralPancakeWorker02_ExceedReinvestBounty();
     // _maxReinvestBountyBps should not exceeds 30%
-    if (_maxReinvestBountyBps > 3000) revert ExceedReinvestBps();
+    if (_maxReinvestBountyBps > 3000) revert DeltaNeutralPancakeWorker02_ExceedReinvestBps();
 
     maxReinvestBountyBps = _maxReinvestBountyBps;
     emit SetMaxReinvestBountyBps(msg.sender, maxReinvestBountyBps);
@@ -486,10 +486,10 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
   /// @dev Set a new reward path. In case that the liquidity of the reward path is changed.
   /// @param _rewardPath The new reward path.
   function setRewardPath(address[] calldata _rewardPath) external onlyOwner {
-    if (_rewardPath.length < 2) revert InvalidReinvestPathLength();
+    if (_rewardPath.length < 2) revert DeltaNeutralPancakeWorker02_InvalidReinvestPathLength();
 
     if (_rewardPath[0] != cake || _rewardPath[_rewardPath.length - 1] != beneficialVault.token())
-      revert InvalidReinvestPath();
+      revert DeltaNeutralPancakeWorker02_InvalidReinvestPath();
 
     rewardPath = _rewardPath;
 
@@ -508,7 +508,7 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
   /// @param _treasuryAccount - The treasury address to update
   /// @param _treasuryBountyBps - The treasury bounty to update
   function setTreasuryConfig(address _treasuryAccount, uint256 _treasuryBountyBps) external onlyOwner {
-    if (_treasuryBountyBps > maxReinvestBountyBps) revert ExceedReinvestBounty();
+    if (_treasuryBountyBps > maxReinvestBountyBps) revert DeltaNeutralPancakeWorker02_ExceedReinvestBounty();
 
     treasuryAccount = _treasuryAccount;
     treasuryBountyBps = _treasuryBountyBps;
@@ -526,12 +526,12 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
     address[] calldata _rewardPath
   ) external onlyOwner {
     // beneficialVaultBountyBps should not exceeds 100%"
-    if (_beneficialVaultBountyBps > 10000) revert ExceedReinvestBps();
+    if (_beneficialVaultBountyBps > 10000) revert DeltaNeutralPancakeWorker02_ExceedReinvestBps();
 
-    if (_rewardPath.length < 2) revert InvalidReinvestPathLength();
+    if (_rewardPath.length < 2) revert DeltaNeutralPancakeWorker02_InvalidReinvestPathLength();
 
     if (_rewardPath[0] != cake || _rewardPath[_rewardPath.length - 1] != _beneficialVault.token())
-      revert InvalidReinvestPath();
+      revert DeltaNeutralPancakeWorker02_InvalidReinvestPath();
 
     _buyback();
 

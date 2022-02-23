@@ -15,15 +15,19 @@ pragma solidity 0.8.10;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+
 import "./interfaces/ILiquidityPair.sol";
 import "./interfaces/IDeltaNeutralOracle.sol";
 import "./interfaces/IChainLinkPriceOracle.sol";
-import "../utils/AlpacaMath.sol";
+import "./interfaces/IERC20.sol";
 
-error InvalidLPAddress();
+import "../utils/AlpacaMath.sol";
 
 contract DeltaNeutralOracle is IDeltaNeutralOracle, Initializable, OwnableUpgradeable {
   using AlpacaMath for uint256;
+
+  /// @dev Errors
+  error DeltaNeutralOracle_InvalidLPAddress();
 
   /// @notice An address of chainlink usd token
   address public usd;
@@ -73,17 +77,48 @@ contract DeltaNeutralOracle is IDeltaNeutralOracle, Initializable, OwnableUpgrad
   /// @param _lpToken lp token address
   function _getLPPrice(address _lpToken) internal view returns (uint256, uint256) {
     if (_lpToken == address(0)) {
-      revert InvalidLPAddress();
+      revert DeltaNeutralOracle_InvalidLPAddress();
+    }
+    uint256 _sqrtK;
+    {
+      uint256 _totalSupply = ILiquidityPair(_lpToken).totalSupply();
+      if (_totalSupply == 0) {
+        return (0, block.timestamp);
+      }
+      (uint256 _r0, uint256 _r1, ) = ILiquidityPair(_lpToken).getReserves();
+      _sqrtK = AlpacaMath.sqrt(_r0 * _r1).fdiv(_totalSupply); //fdiv return in 2**112
     }
 
-    uint256 _totalSupply = ILiquidityPair(_lpToken).totalSupply();
-    if (_totalSupply == 0) {
-      return (0, block.timestamp);
+    (uint256 _px0, uint256 _px1, uint8 _d0, uint8 _d1, uint256 _olderLastUpdate) = _px(_lpToken);
+
+    // fair token0 amt: _sqrtK * sqrt(_px1/_px0)
+    // fair token1 amt: _sqrtK * sqrt(_px0/_px1)
+    // fair lp price = 2 * sqrt(_px0 * _px1)
+    // split into 2 sqrts multiplication to prevent uint overflow (note the 2**112)
+
+    uint256 _totalValueIn18;
+    {
+      uint8 padDecimals = 36 - (_d0 + _d1);
+      uint256 _totalValue = (((_sqrtK * 2 * (AlpacaMath.sqrt(_px0))) / (2**56)) * (AlpacaMath.sqrt(_px1))) / (2**56);
+      _totalValueIn18 = (_totalValue / (2**112)) * 10**(padDecimals); // change from 2**112 and 2**? to 2**18
     }
 
-    (uint256 _r0, uint256 _r1, ) = ILiquidityPair(_lpToken).getReserves();
-    uint256 _sqrtK = AlpacaMath.sqrt(_r0 * _r1).fdiv(_totalSupply); //fdiv return in 2**112
+    return (_totalValueIn18, _olderLastUpdate);
+  }
 
+  /// @notice Return token prices, token decimals, oldest price update of given lptoken
+  /// @param _lpToken lp token address
+  function _px(address _lpToken)
+    internal
+    view
+    returns (
+      uint256,
+      uint256,
+      uint8,
+      uint8,
+      uint256
+    )
+  {
     address _token0Address = ILiquidityPair(_lpToken).token0();
     address _token1Address = ILiquidityPair(_lpToken).token1();
 
@@ -91,14 +126,13 @@ contract DeltaNeutralOracle is IDeltaNeutralOracle, Initializable, OwnableUpgrad
     (uint256 _p1, uint256 _p1LastUpdate) = getTokenPrice(_token1Address); // in 2**112
 
     uint256 _olderLastUpdate = _p0LastUpdate > _p1LastUpdate ? _p1LastUpdate : _p0LastUpdate;
-    uint256 _px0 = _p0 * (2**112);
-    uint256 _px1 = _p1 * (2**112);
-    // fair token0 amt: _sqrtK * sqrt(_px1/_px0)
-    // fair token1 amt: _sqrtK * sqrt(_px0/_px1)
-    // fair lp price = 2 * sqrt(_px0 * _px1)
-    // split into 2 sqrts multiplication to prevent uint overflow (note the 2**112)
 
-    uint256 _totalValue = (((_sqrtK * 2 * (AlpacaMath.sqrt(_px0))) / (2**56)) * (AlpacaMath.sqrt(_px1))) / (2**56);
-    return (uint256(((_totalValue)) / (2**112)), _olderLastUpdate); // change from 2**112 to 2**18
+    uint8 _d0 = IERC20(_token0Address).decimals();
+    uint8 _d1 = IERC20(_token1Address).decimals();
+
+    uint256 _px0 = (_p0 * (2**112)) / 10**(18 - _d0); // in token decimals * 2**112
+    uint256 _px1 = (_p1 * (2**112)) / 10**(18 - _d1); // in token decimals * 2**112
+
+    return (_px0, _px1, _d0, _d1, _olderLastUpdate);
   }
 }

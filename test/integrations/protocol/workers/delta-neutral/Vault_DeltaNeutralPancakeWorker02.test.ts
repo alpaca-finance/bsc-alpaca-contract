@@ -34,6 +34,7 @@ import {
   ChainLinkPriceOracle,
   ChainLinkPriceOracle__factory,
   MockAggregatorV3__factory,
+  IERC20,
 } from "../../../../../typechain";
 import * as AssertHelpers from "../../../../helpers/assert";
 import * as TimeHelpers from "../../../../helpers/time";
@@ -272,26 +273,26 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
     );
     await swapHelper.addLiquidities([
       {
-        token0: baseToken,
-        token1: farmToken,
+        token0: baseToken as unknown as IERC20,
+        token1: farmToken as unknown as IERC20,
         amount0desired: ethers.utils.parseEther("1"),
         amount1desired: ethers.utils.parseEther("0.1"),
       },
       {
-        token0: cake,
-        token1: wbnb,
+        token0: cake as unknown as IERC20,
+        token1: wbnb as unknown as IERC20,
         amount0desired: ethers.utils.parseEther("0.1"),
         amount1desired: ethers.utils.parseEther("1"),
       },
       {
-        token0: baseToken,
-        token1: wbnb,
+        token0: baseToken as unknown as IERC20,
+        token1: wbnb as unknown as IERC20,
         amount0desired: ethers.utils.parseEther("1"),
         amount1desired: ethers.utils.parseEther("1"),
       },
       {
-        token0: farmToken,
-        token1: wbnb,
+        token0: farmToken as unknown as IERC20,
+        token1: wbnb as unknown as IERC20,
         amount0desired: ethers.utils.parseEther("1"),
         amount1desired: ethers.utils.parseEther("1"),
       },
@@ -384,14 +385,14 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
       it("should revert when owner set reinvestBountyBps > max", async () => {
         await expect(
           deltaNeutralWorker.setReinvestConfig(1000, "0", [cake.address, baseToken.address])
-        ).to.be.revertedWith("ExceedReinvestBounty()");
+        ).to.be.revertedWith("DeltaNeutralPancakeWorker02_ExceedReinvestBounty()");
         expect(await deltaNeutralWorker.reinvestBountyBps()).to.be.eq(100);
       });
 
       it("should revert when owner set reinvest path that doesn't start with $CAKE and end with $BTOKN", async () => {
         await expect(
           deltaNeutralWorker.setReinvestConfig(200, "0", [baseToken.address, cake.address])
-        ).to.be.revertedWith("InvalidReinvestPath()");
+        ).to.be.revertedWith("DeltaNeutralPancakeWorker02_InvalidReinvestPath()");
       });
     });
 
@@ -402,7 +403,9 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
       });
 
       it("should revert when new max reinvest bounty over 30%", async () => {
-        await expect(deltaNeutralWorker.setMaxReinvestBountyBps("3001")).to.be.revertedWith("ExceedReinvestBps()");
+        await expect(deltaNeutralWorker.setMaxReinvestBountyBps("3001")).to.be.revertedWith(
+          "DeltaNeutralPancakeWorker02_ExceedReinvestBps()"
+        );
         expect(await deltaNeutralWorker.maxReinvestBountyBps()).to.be.eq(MAX_REINVEST_BOUNTY);
       });
     });
@@ -472,7 +475,9 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
 
       it("should revert", async () => {
         const rewardPath = [cake.address, farmToken.address, farmToken.address];
-        await expect(deltaNeutralWorkerAsDeployer.setRewardPath(rewardPath)).to.revertedWith("InvalidReinvestPath()");
+        await expect(deltaNeutralWorkerAsDeployer.setRewardPath(rewardPath)).to.revertedWith(
+          "DeltaNeutralPancakeWorker02_InvalidReinvestPath()"
+        );
       });
 
       it("should be able to set new rewardpath", async () => {
@@ -587,7 +592,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
               [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
             )
           )
-        ).to.be.revertedWith("NotWhitelistedCaller()");
+        ).to.be.revertedWith("DeltaNeutralPancakeWorker02_NotWhitelistedCaller()");
       });
     });
   });
@@ -750,7 +755,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
               [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
             )
           )
-        ).to.be.revertedWith("UnTrustedPrice()");
+        ).to.be.revertedWith("DeltaNeutralPancakeWorker02_UnTrustedPrice()");
       });
 
       it("should has correct interest rate growth", async () => {
@@ -901,7 +906,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
 
         // Now you can liquidate because of the price fluctuation
         const bobBefore = await baseToken.balanceOf(bobAddress);
-        await expect(vaultAsBob.kill("1")).to.be.revertedWith("NotAllowToLiquidate()");
+        await expect(vaultAsBob.kill("1")).to.be.revertedWith("DeltaNeutralPancakeWorker02_NotAllowToLiquidate()");
         expect(await baseToken.balanceOf(bobAddress)).to.be.eq(bobBefore);
       });
     });
@@ -954,7 +959,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
         await chainLinkOracleAsDeployer.setPriceFeeds([farmToken.address], [busd.address], [mockAggregatorV3.address]);
 
         // Bob try kill position
-        await expect(vaultAsBob.kill("1")).to.be.revertedWith("NotAllowToLiquidate()");
+        await expect(vaultAsBob.kill("1")).to.be.revertedWith("DeltaNeutralPancakeWorker02_NotAllowToLiquidate()");
       });
     });
 
@@ -1423,76 +1428,6 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
             ).revertedWith("bad work factor");
           });
         });
-      });
-    });
-
-    context("When the treasury Account and treasury bounty bps haven't been set", async () => {
-      // if we adjust position with same condition, we not got a same lp amount
-      it("should not auto reinvest", async () => {
-        await deltaNeutralWorker.setTreasuryConfig(constants.AddressZero, 0);
-        // Deployer deposits 3 BTOKEN to the bank
-        const deposit = ethers.utils.parseEther("3");
-        await baseToken.approve(vault.address, deposit);
-        await vault.deposit(deposit);
-        // Now DeltaNet can take 1 BTOKEN loan + 1 BTOKEN of her to create a new position
-        await baseTokenAsDeltaNet.approve(vault.address, ethers.utils.parseEther("1"));
-        const path = await deltaNeutralWorker.getPath();
-        await swapHelper.loadReserves(path);
-        const [expectedLp1] = await swapHelper.computeOneSidedOptimalLp(ethers.utils.parseEther("2"), path);
-        await vaultAsDeltaNet.work(
-          0,
-          deltaNeutralWorker.address,
-          ethers.utils.parseEther("1"),
-          ethers.utils.parseEther("1"),
-          "0",
-          ethers.utils.defaultAbiCoder.encode(
-            ["address", "bytes"],
-            [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-          )
-        );
-
-        // lp balance =  0.231205137369691323
-        // lp price =  28.299236836137312801
-        // lp balance in dollar =  6.542928940156556263
-        // base token price =  1.0
-        // lp balance in dollar / base token price
-        // 6.542928940156556263 / 1.0 = 6.542928940156556263
-        const totalLpBalance = await deltaNeutralWorker.totalLpBalance();
-        expect(totalLpBalance, `#1 expect lp balance should be ${ethers.utils.formatEther(expectedLp1)}`).to.be.eq(
-          expectedLp1
-        );
-        expect(await deltaNeutralWorker.health(1)).to.be.eq(ethers.utils.parseEther("6.542928940156556263"));
-
-        const [expectedLp2] = await swapHelper.computeOneSidedOptimalLp(ethers.utils.parseEther("2"), path);
-        await baseTokenAsDeltaNet.approve(vault.address, ethers.utils.parseEther("1"));
-        await vaultAsDeltaNet.work(
-          1,
-          deltaNeutralWorker.address,
-          ethers.utils.parseEther("1"),
-          ethers.utils.parseEther("1"),
-          "0",
-          ethers.utils.defaultAbiCoder.encode(
-            ["address", "bytes"],
-            [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-          )
-        );
-
-        const [healthAfter] = await vault.positionInfo("1");
-        const totalLpBalanceAfter = await deltaNeutralWorker.totalLpBalance();
-        expect(
-          totalLpBalanceAfter,
-          `#2 expect lp balance should be ${ethers.utils.formatEther(expectedLp2.add(expectedLp1))}`
-        ).to.be.eq(expectedLp2.add(expectedLp1));
-
-        // DeltaNet opens more position.
-        // health calculation
-        // lp balance =  0.390305727260109981
-        // lp price =  28.307221370693567499
-        // lp balance in dollar =  11.04847062380148017
-        // base token price =  1.0
-        // lp balance in dollar / base token price
-        // 11.04847062380148017 / 1.0 = 11048470623801480170
-        expect(healthAfter).to.be.eq(ethers.utils.parseEther("11.048470623801480170"));
       });
     });
 

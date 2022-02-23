@@ -55,8 +55,8 @@ interface IDeltaNeutralVaultConfig {
   /// @dev Return if delta neutral vault position value acceptable.
   function isVaultSizeAcceptable(uint256 _totalPositionValue) external view returns (bool);
 
-  /// @dev Return management fee bps per year.
-  function mangementFeeBps() external view returns (uint256);
+  /// @dev Return management fee per sec.
+  function managementFeePerSec() external view returns (uint256);
 
   /// @dev Return swap router
   function getSwapRouter() external view returns (address);

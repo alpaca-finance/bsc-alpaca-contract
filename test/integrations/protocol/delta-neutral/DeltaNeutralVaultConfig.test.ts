@@ -262,7 +262,7 @@ describe("DeltaNeutralVaultConfig", () => {
     context("when as owner set swap router", async () => {
       it("should work", async () => {
         await expect(deltaNeutralVaultConfig.setSwapRouter(SWAP_ROUTER_ADDR))
-          .to.emit(deltaNeutralVaultConfig, "SetSwapRouter")
+          .to.emit(deltaNeutralVaultConfig, "LogSetSwapRouter")
           .withArgs(deployerAddress, SWAP_ROUTER_ADDR);
       });
     });
@@ -271,7 +271,7 @@ describe("DeltaNeutralVaultConfig", () => {
       it("should revert", async () => {
         await deltaNeutralVaultConfig.setSwapRouter(SWAP_ROUTER_ADDR);
         await expect(deltaNeutralVaultConfig.setSwapRouter(ethers.constants.AddressZero)).to.be.revertedWith(
-          "InvalidSwapRouter()"
+          "DeltaNeutralVaultConfig_InvalidSwapRouter()"
         );
       });
     });
@@ -281,13 +281,13 @@ describe("DeltaNeutralVaultConfig", () => {
     context("when as owner set reinvest paths and start with alpaca token", async () => {
       it("should work", async () => {
         await expect(deltaNeutralVaultConfig.setReinvestPath([ALPACA_TOKEN_ADDR, TOKEN_DESTINATION_ADDR]))
-          .to.emit(deltaNeutralVaultConfig, "SetReinvestPath")
+          .to.emit(deltaNeutralVaultConfig, "LogSetReinvestPath")
           .withArgs(deployerAddress, [ALPACA_TOKEN_ADDR, TOKEN_DESTINATION_ADDR]);
 
         await expect(
           deltaNeutralVaultConfig.setReinvestPath([ALPACA_TOKEN_ADDR, TOKEN_SOURCE_ADDR, TOKEN_DESTINATION_ADDR])
         )
-          .to.emit(deltaNeutralVaultConfig, "SetReinvestPath")
+          .to.emit(deltaNeutralVaultConfig, "LogSetReinvestPath")
           .withArgs(deployerAddress, [ALPACA_TOKEN_ADDR, TOKEN_SOURCE_ADDR, TOKEN_DESTINATION_ADDR]);
       });
     });
@@ -304,7 +304,58 @@ describe("DeltaNeutralVaultConfig", () => {
       it("should revert", async () => {
         await expect(
           deltaNeutralVaultConfig.setReinvestPath([TOKEN_SOURCE_ADDR, TOKEN_DESTINATION_ADDR])
-        ).to.be.revertedWith("InvalidReinvestPath()");
+        ).to.be.revertedWith("DeltaNeutralVaultConfig_InvalidReinvestPath()");
+      });
+    });
+  });
+
+  describe("#setFees", async () => {
+    context("when not owner call setFees", async () => {
+      it("should revert", async () => {
+        await expect(deltaNeutralVaultConfigAsAlice.setFees(0, 0, 0)).to.be.reverted;
+      });
+    });
+    context("when set too much fee", async () => {
+      it("should revert", async () => {
+        await expect(deltaNeutralVaultConfig.setFees(1001, 1002, 1003)).to.be.revertedWith(
+          "TooMuchFee(1001, 1002, 1003)"
+        );
+      });
+    });
+    context("when owner call setFees", async () => {
+      it("should be able to set fee", async () => {
+        const setFeesTx = await deltaNeutralVaultConfig.setFees(500, 500, 500);
+        expect(await deltaNeutralVaultConfig.depositFeeBps()).to.eq(500);
+        expect(await deltaNeutralVaultConfig.withdrawalFeeBps()).to.eq(500);
+        // managementFeePerSec calculation
+        // taxFeeBps 500 => 500 * 1e18 / 31536000 (SECOND IN YEAR) * 10000 = 0.000000001585489599
+        const expectedManagementFeePerSec = ethers.utils.parseEther("0.000000001585489599");
+        expect(await deltaNeutralVaultConfig.managementFeePerSec()).to.eq(expectedManagementFeePerSec);
+        expect(setFeesTx)
+          .to.emit(deltaNeutralVaultConfig, "LogSetFees")
+          .withArgs(deployerAddress, 500, 500, expectedManagementFeePerSec);
+      });
+    });
+  });
+
+  describe("#setAlpacaBountyBps", async () => {
+    context("when not owner call setAlpacaBountyBps", async () => {
+      it("should revert", async () => {
+        await expect(deltaNeutralVaultConfigAsAlice.setAlpacaBountyBps(0)).to.be.reverted;
+      });
+    });
+    context("when set too much AlpacaBountyBps", async () => {
+      it("should revert", async () => {
+        await expect(deltaNeutralVaultConfig.setAlpacaBountyBps(2501)).to.be.revertedWith(
+          "DeltaNeutralVaultConfig_TooMuchBounty(2501)"
+        );
+      });
+    });
+    context("when owner call setAlpacaBountyBps", async () => {
+      it("should be able to setAlpacaBountyBps", async () => {
+        const setAlpacaBountyTx = await deltaNeutralVaultConfig.setAlpacaBountyBps(500);
+        expect(await deltaNeutralVaultConfig.alpacaBountyBps()).to.eq(500);
+        expect(setAlpacaBountyTx).to.emit(deltaNeutralVaultConfig, "LogSetAlpacaBounty").withArgs(deployerAddress, 500);
       });
     });
   });

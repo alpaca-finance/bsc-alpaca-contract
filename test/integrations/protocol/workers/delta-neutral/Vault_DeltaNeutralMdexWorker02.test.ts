@@ -36,6 +36,7 @@ import {
   MdxToken__factory,
   SwapMining,
   MdexRestrictedStrategyLiquidate,
+  IERC20,
 } from "../../../../../typechain";
 import * as AssertHelpers from "../../../../helpers/assert";
 import * as TimeHelpers from "../../../../helpers/time";
@@ -299,26 +300,26 @@ describe("Vault - DeltaNetMdexWorker02", () => {
 
     await swapHelper.addMdexLiquidities([
       {
-        token0: baseToken,
-        token1: farmToken,
+        token0: baseToken as unknown as IERC20,
+        token1: farmToken as unknown as IERC20,
         amount0desired: ethers.utils.parseEther("1"),
         amount1desired: ethers.utils.parseEther("0.1"),
       },
       {
-        token0: mdx,
-        token1: wbnb,
+        token0: mdx as unknown as IERC20,
+        token1: wbnb as unknown as IERC20,
         amount0desired: ethers.utils.parseEther("0.1"),
         amount1desired: ethers.utils.parseEther("1"),
       },
       {
-        token0: baseToken,
-        token1: wbnb,
+        token0: baseToken as unknown as IERC20,
+        token1: wbnb as unknown as IERC20,
         amount0desired: ethers.utils.parseEther("1"),
         amount1desired: ethers.utils.parseEther("1"),
       },
       {
-        token0: farmToken,
-        token1: wbnb,
+        token0: farmToken as unknown as IERC20,
+        token1: wbnb as unknown as IERC20,
         amount0desired: ethers.utils.parseEther("1"),
         amount1desired: ethers.utils.parseEther("1"),
       },
@@ -414,14 +415,14 @@ describe("Vault - DeltaNetMdexWorker02", () => {
       it("should revert when owner set reinvestBountyBps > max", async () => {
         await expect(
           deltaNeutralWorker.setReinvestConfig(1000, "0", [mdx.address, baseToken.address])
-        ).to.be.revertedWith("ExceedReinvestBounty()");
+        ).to.be.revertedWith("DeltaNeutralMdexWorker02_ExceedReinvestBounty()");
         expect(await deltaNeutralWorker.reinvestBountyBps()).to.be.eq(100);
       });
 
       it("should revert when owner set reinvest path that doesn't start with $CAKE and end with $BTOKN", async () => {
         await expect(
           deltaNeutralWorker.setReinvestConfig(200, "0", [baseToken.address, mdx.address])
-        ).to.be.revertedWith("InvalidReinvestPath()");
+        ).to.be.revertedWith("DeltaNeutralMdexWorker02_InvalidReinvestPath()");
       });
     });
 
@@ -432,7 +433,9 @@ describe("Vault - DeltaNetMdexWorker02", () => {
       });
 
       it("should revert when new max reinvest bounty over 30%", async () => {
-        await expect(deltaNeutralWorker.setMaxReinvestBountyBps("3001")).to.be.revertedWith("ExceedReinvestBps()");
+        await expect(deltaNeutralWorker.setMaxReinvestBountyBps("3001")).to.be.revertedWith(
+          "DeltaNeutralMdexWorker02_ExceedReinvestBps()"
+        );
         expect(await deltaNeutralWorker.maxReinvestBountyBps()).to.be.eq("500");
       });
     });
@@ -502,7 +505,9 @@ describe("Vault - DeltaNetMdexWorker02", () => {
 
       it("should revert", async () => {
         const rewardPath = [mdx.address, farmToken.address, farmToken.address];
-        await expect(deltaNeutralWorkerAsDeployer.setRewardPath(rewardPath)).to.revertedWith("InvalidReinvestPath()");
+        await expect(deltaNeutralWorkerAsDeployer.setRewardPath(rewardPath)).to.revertedWith(
+          "DeltaNeutralMdexWorker02_InvalidReinvestPath()"
+        );
       });
 
       it("should be able to set new rewardpath", async () => {
@@ -619,7 +624,7 @@ describe("Vault - DeltaNetMdexWorker02", () => {
                 [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
               )
             )
-          ).to.be.revertedWith("NotWhitelistedCaller()");
+          ).to.be.revertedWith("DeltaNeutralMdexWorker02_NotWhitelistedCaller()");
         });
       });
     });
@@ -781,7 +786,7 @@ describe("Vault - DeltaNetMdexWorker02", () => {
                 [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
               )
             )
-          ).to.be.revertedWith("UnTrustedPrice()");
+          ).to.be.revertedWith("DeltaNeutralMdexWorker02_UnTrustedPrice()");
         });
 
         it("should has correct interest rate growth", async () => {
@@ -950,7 +955,7 @@ describe("Vault - DeltaNetMdexWorker02", () => {
 
           // Now you can liquidate because of the price fluctuation
           const bobBefore = await baseToken.balanceOf(bobAddress);
-          await expect(vaultAsBob.kill("1")).to.be.revertedWith("NotAllowToLiquidate()");
+          await expect(vaultAsBob.kill("1")).to.be.revertedWith("DeltaNeutralMdexWorker02_NotAllowToLiquidate()");
           expect(await baseToken.balanceOf(bobAddress)).to.be.eq(bobBefore);
         });
       });
@@ -1012,7 +1017,7 @@ describe("Vault - DeltaNetMdexWorker02", () => {
             [mockAggregatorV3.address]
           );
 
-          await expect(vaultAsBob.kill("1")).to.be.revertedWith("NotAllowToLiquidate()");
+          await expect(vaultAsBob.kill("1")).to.be.revertedWith("DeltaNeutralMdexWorker02_NotAllowToLiquidate()");
         });
       });
 

@@ -14,6 +14,9 @@ Alpaca Fin Corporation
 pragma solidity 0.8.10;
 
 library Math {
+  /**
+   * @dev Check if two values are almost equal within toleranceBps.
+   */
   function almostEqual(
     uint256 value0,
     uint256 value1,
@@ -35,5 +38,12 @@ library Math {
    */
   function min(uint256 a, uint256 b) internal pure returns (uint256) {
     return a < b ? a : b;
+  }
+
+  /**
+   * @dev Returns the rounded number.
+   */
+  function e36round(uint256 a) internal pure returns (uint256) {
+    return (a + 5e17) / 1e18;
   }
 }
