@@ -530,7 +530,7 @@ describe("DeltaNeutralVault", () => {
   });
   describe("#initPositions", async () => {
     context("when owner call initPositions", async () => {
-      it.only("should initilize positions", async () => {
+      it("should initilize positions", async () => {
         await deltaVaultConfig.setLeverageLevel(3);
         // add liquidity
         await swapHelper.addLiquidities([
