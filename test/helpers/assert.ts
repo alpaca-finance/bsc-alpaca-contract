@@ -10,7 +10,7 @@ export function assertAlmostEqual(expected: string, actual: string) {
   const actualBN = BigNumber.from(actual);
   const diffBN = expectedBN.gt(actualBN) ? expectedBN.sub(actualBN) : actualBN.sub(expectedBN);
   const tolerance = expectedBN.div(BigNumber.from("10000"));
-  return expect(diffBN, `${actual} is not almost eqaual to ${expected}`).to.be.lte(tolerance);
+  return expect(diffBN, `actual: ${actual} is not almost eqaual to expected: ${expected}`).to.be.lte(tolerance);
 }
 
 export function assertBigNumberClose(
