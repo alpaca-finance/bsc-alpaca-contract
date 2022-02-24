@@ -1,7 +1,10 @@
 pragma solidity 0.8.11;
 
 import "./IWFTM.sol";
+import "./IBaseV1Pair.sol";
+import "./erc20.sol";
 import "./IBaseV1Factory.sol";
+import "./Math.sol";
 
 contract BaseV1Router01 {
   struct route {
