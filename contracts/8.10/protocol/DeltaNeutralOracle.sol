@@ -100,7 +100,7 @@ contract DeltaNeutralOracle is IDeltaNeutralOracle, Initializable, OwnableUpgrad
     {
       uint8 padDecimals = 36 - (_d0 + _d1);
       uint256 _totalValue = (((_sqrtK * 2 * (AlpacaMath.sqrt(_px0))) / (2**56)) * (AlpacaMath.sqrt(_px1))) / (2**56);
-      _totalValueIn18 = (_totalValue / (2**112)) * 10**(padDecimals); // change from 2**112 and 2**? to 2**18
+      _totalValueIn18 = (_totalValue / (2**112)) * 10**(padDecimals); // revert bumped up 2*112 from fdiv() and convert price to 1e18 unit
     }
 
     return (_totalValueIn18, _olderLastUpdate);
