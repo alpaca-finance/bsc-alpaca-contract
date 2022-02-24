@@ -49,7 +49,7 @@ contract DeltaNeutralVaultGateway is ReentrancyGuardUpgradeable, OwnableUpgradea
   );
 
   /// @dev constants
-  uint64 private constant BASIS_POINT = 10000;
+  uint64 private constant MAX_BPS = 10000;
 
   IDeltaNeutralVault deltaNeutralVault;
 
@@ -78,7 +78,7 @@ contract DeltaNeutralVaultGateway is ReentrancyGuardUpgradeable, OwnableUpgradea
     uint64 _stableReturnBps
   ) external nonReentrant returns (uint256) {
     // _stableReturnBps should not be greater than 100%
-    if (_stableReturnBps > BASIS_POINT) {
+    if (_stableReturnBps > MAX_BPS) {
       revert DeltaNeutralVaultGateway_ReturnBpsExceed(_stableReturnBps);
     }
 
@@ -182,7 +182,7 @@ contract DeltaNeutralVaultGateway is ReentrancyGuardUpgradeable, OwnableUpgradea
     );
     uint256 _total = _withdrawStableAmountInUSD + _withdrawAssetAmountInUSD;
 
-    uint256 _expectedStableInUSD = (_stableReturnBps * _total) / BASIS_POINT;
+    uint256 _expectedStableInUSD = (_stableReturnBps * _total) / MAX_BPS;
     if (_withdrawStableAmountInUSD > _expectedStableInUSD) {
       uint256 _swapStableAmount = (_withdrawStableAmountInUSD - _expectedStableInUSD).divWadDown(_stableTokenPrice);
       _swap(_stableToken, _swapStableAmount);
