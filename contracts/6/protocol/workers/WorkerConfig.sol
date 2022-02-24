@@ -17,10 +17,12 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol";
 
 import "../interfaces/IWorker.sol";
 import "../interfaces/IWorkerConfig.sol";
 import "../interfaces/IPriceOracle.sol";
+
 import "../../utils/SafeToken.sol";
 
 contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
@@ -115,17 +117,19 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
   /// @dev Return whether the given worker is stable, presumably not under manipulation.
   function isStable(address worker) public view override returns (bool) {
     IPancakePair lp = IWorker(worker).lpToken();
-    address token0 = lp.token0();
-    address token1 = lp.token1();
+    ERC20UpgradeSafe token0 = ERC20UpgradeSafe(lp.token0());
+    ERC20UpgradeSafe token1 = ERC20UpgradeSafe(lp.token1());
     // 1. Check that reserves and balances are consistent (within 1%)
     (uint256 r0, uint256 r1, ) = lp.getReserves();
     uint256 t0bal = token0.balanceOf(address(lp));
     uint256 t1bal = token1.balanceOf(address(lp));
     _isReserveConsistent(r0, r1, t0bal, t1bal);
     // 2. Check that price is in the acceptable range
-    (uint256 price, uint256 lastUpdate) = oracle.getPrice(token0, token1);
+    (uint256 price, uint256 lastUpdate) = oracle.getPrice(address(token0), address(token1));
     require(lastUpdate >= now - 1 days, "WorkerConfig::isStable:: price too stale");
-    uint256 lpPrice = r1.mul(1e18).div(r0);
+    uint256 lpPrice = r1.mul(1e18).mul(10**(18 - uint256(token1.decimals()))).div(r0).div(
+      10**(18 - uint256(token0.decimals()))
+    );
     uint256 maxPriceDiff = workers[worker].maxPriceDiff;
     require(lpPrice.mul(10000) <= price.mul(maxPriceDiff), "WorkerConfig::isStable:: price too high");
     require(lpPrice.mul(maxPriceDiff) >= price.mul(10000), "WorkerConfig::isStable:: price too low");

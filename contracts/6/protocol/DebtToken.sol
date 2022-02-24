@@ -33,10 +33,14 @@ contract DebtToken is IDebtToken, ERC20UpgradeSafe, OwnableUpgradeSafe {
   function initialize(
     string calldata _name,
     string calldata _symbol,
+    uint8 _decimals,
     address _timelock
   ) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
     ERC20UpgradeSafe.__ERC20_init(_name, _symbol);
+
+    _setupDecimals(_decimals);
+
     timelock = _timelock;
   }
 
@@ -64,7 +68,11 @@ contract DebtToken is IDebtToken, ERC20UpgradeSafe, OwnableUpgradeSafe {
     return true;
   }
 
-  function transferFrom(address from, address to, uint256 amount) public override returns (bool) {
+  function transferFrom(
+    address from,
+    address to,
+    uint256 amount
+  ) public override returns (bool) {
     require(okHolders[from], "debtToken::transferFrom:: unapproved holder in from");
     require(okHolders[to], "debtToken::transferFrom:: unapproved holder in to");
     _transfer(from, to, amount);

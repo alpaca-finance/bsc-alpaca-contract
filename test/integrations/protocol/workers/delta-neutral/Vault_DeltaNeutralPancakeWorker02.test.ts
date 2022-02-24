@@ -1,5 +1,5 @@
 import { ethers, upgrades, waffle } from "hardhat";
-import { Signer, constants, BigNumber, utils } from "ethers";
+import { constants, BigNumber, utils } from "ethers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import "@openzeppelin/test-helpers";
@@ -41,6 +41,7 @@ import * as TimeHelpers from "../../../../helpers/time";
 import { parseEther } from "ethers/lib/utils";
 import { DeployHelper } from "../../../../helpers/deploy";
 import { SwapHelper } from "../../../../helpers/swap";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 chai.use(solidity);
 const { expect } = chai;
@@ -104,10 +105,10 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
   let chainlink: ChainLinkPriceOracle;
 
   // Accounts
-  let deployer: Signer;
-  let deltaNet: Signer;
-  let bob: Signer;
-  let eve: Signer;
+  let deployer: SignerWithAddress;
+  let deltaNet: SignerWithAddress;
+  let bob: SignerWithAddress;
+  let eve: SignerWithAddress;
 
   let deployerAddress: string;
   let deltaNetAddress: string;

@@ -19,7 +19,7 @@ import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 
 import "../../apis/wault/IWaultSwapFactory.sol";
-import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
+import "../../interfaces/IPancakePair.sol";
 
 import "../../apis/wault/IWaultSwapRouter02.sol";
 import "../../interfaces/IStrategy.sol";
@@ -84,17 +84,16 @@ contract WaultSwapRestrictedStrategyAddBaseTokenOnly is OwnableUpgradeSafe, Reen
     path[1] = farmingToken;
     router.swapExactTokensForTokens(aIn, 0, path, address(this), now);
     // 5. Mint more LP tokens and return all LP tokens to the sender.
-    (, , uint256 moreLPAmount) =
-      router.addLiquidity(
-        baseToken,
-        farmingToken,
-        baseToken.myBalance(),
-        farmingToken.myBalance(),
-        0,
-        0,
-        address(this),
-        now
-      );
+    (, , uint256 moreLPAmount) = router.addLiquidity(
+      baseToken,
+      farmingToken,
+      baseToken.myBalance(),
+      farmingToken.myBalance(),
+      0,
+      0,
+      address(this),
+      now
+    );
     require(
       moreLPAmount >= minLPAmount,
       "WaultSwapRestrictedStrategyAddBaseTokenOnly::execute:: insufficient LP tokens received"

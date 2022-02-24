@@ -46,7 +46,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     const singleAssetStrategyRestrictedAddBaseWithFarm = (await upgrades.deployProxy(
       PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm,
-      [config.Exchanges.Pancakeswap.RouterV2, targetedVault.address]
+      [config.Exchanges.Pancakeswap!.RouterV2, targetedVault.address]
     )) as PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm;
 
     await singleAssetStrategyRestrictedAddBaseWithFarm.deployed();

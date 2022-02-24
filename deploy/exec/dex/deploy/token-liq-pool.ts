@@ -1,14 +1,14 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { DeployFunction, DeploymentSubmission } from "hardhat-deploy/types";
+import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, upgrades } from "hardhat";
 import {
   MockERC20,
   MockERC20__factory,
   MockWBNB__factory,
   PancakeFactory__factory,
-  PancakeMasterChef,
   PancakeMasterChef__factory,
   PancakeRouter__factory,
+  SpookyMasterChef__factory,
 } from "../../../../typechain";
 import { BigNumber } from "ethers";
 import { ConfigEntity } from "../../../entities";
@@ -25,7 +25,7 @@ interface IToken {
   name: string;
   decimals?: string;
   address?: string;
-  mintAmount?: string;
+  mintAmount?: BigNumber;
   pairs: Array<IPair>;
 }
 
@@ -33,43 +33,78 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const config = ConfigEntity.getConfig();
 
   const FOREVER = 20000000000;
-  const PANCAKE_MASTERCHEF = config.Exchanges.Pancakeswap.MasterChef;
-  const PANCAKE_FACTORY = config.Exchanges.Pancakeswap.FactoryV2;
-  const PANCAKE_ROUTER = config.Exchanges.Pancakeswap.RouterV2;
-  const WBNB = config.Tokens.WBNB;
+  const SPOOKY_FLAG = true;
+  const PANCAKE_MASTERCHEF = config.Exchanges.SpookySwap!.SpookyMasterChef;
+  const PANCAKE_FACTORY = config.Exchanges.SpookySwap!.SpookyFactory;
+  const PANCAKE_ROUTER = config.Exchanges.SpookySwap!.SpookyRouter;
+  const WBNB = config.Tokens.WFTM!;
   const TOKENS: Array<IToken> = [
     {
-      symbol: "THG",
-      name: "THG",
-      mintAmount: ethers.utils.parseEther("88888888888").toString(),
+      symbol: "BTC",
+      name: "BTC",
+      mintAmount: ethers.utils.parseUnits("100000000", 8),
+      decimals: "8",
+      pairs: [
+        {
+          quoteToken: "WFTM",
+          quoteTokenAddr: config.Tokens.WFTM!,
+          reserveQuoteToken: ethers.utils.parseUnits("22006.5758", 18),
+          reserveBaseToken: ethers.utils.parseUnits("1", 8),
+        },
+      ],
+    },
+    {
+      symbol: "fUSDT",
+      name: "fUSDT",
+      mintAmount: ethers.utils.parseUnits("10000000000", 6),
+      decimals: "6",
+      pairs: [
+        {
+          quoteToken: "WFTM",
+          quoteTokenAddr: config.Tokens.WFTM!,
+          reserveQuoteToken: ethers.utils.parseUnits("10000", 18),
+          reserveBaseToken: ethers.utils.parseUnits("18000", 6),
+        },
+      ],
+    },
+    {
+      symbol: "DAI",
+      name: "DAI",
+      mintAmount: ethers.utils.parseUnits("10000000000", 18),
       decimals: "18",
       pairs: [
         {
-          quoteToken: "BNB",
-          quoteTokenAddr: config.Tokens.WBNB,
-          reserveQuoteToken: ethers.utils.parseEther("100"),
-          reserveBaseToken: ethers.utils.parseEther("6500"),
+          quoteToken: "WFTM",
+          quoteTokenAddr: config.Tokens.WFTM!,
+          reserveQuoteToken: ethers.utils.parseUnits("10000", 18),
+          reserveBaseToken: ethers.utils.parseUnits("18000", 18),
+        },
+      ],
+    },
+    {
+      symbol: "MIM",
+      name: "MIM",
+      mintAmount: ethers.utils.parseUnits("10000000000", 18),
+      decimals: "18",
+      pairs: [
+        {
+          quoteToken: "WFTM",
+          quoteTokenAddr: config.Tokens.WFTM!,
+          reserveQuoteToken: ethers.utils.parseUnits("10000", 18),
+          reserveBaseToken: ethers.utils.parseUnits("18000", 18),
         },
       ],
     },
   ];
 
-  const { deployments, getNamedAccounts } = hre;
-  const { deploy } = deployments;
+  const deployer = (await ethers.getSigners())[0];
 
-  const { deployer } = await getNamedAccounts();
+  const factory = PancakeFactory__factory.connect(PANCAKE_FACTORY, deployer);
+  const router = PancakeRouter__factory.connect(PANCAKE_ROUTER, deployer);
+  const pancakeMasterchef = PancakeMasterChef__factory.connect(PANCAKE_MASTERCHEF, deployer);
+  const wbnb = MockWBNB__factory.connect(WBNB, deployer);
 
-  const factory = PancakeFactory__factory.connect(PANCAKE_FACTORY, (await ethers.getSigners())[0]);
-  const router = PancakeRouter__factory.connect(PANCAKE_ROUTER, (await ethers.getSigners())[0]);
-  const pancakeMasterchef = PancakeMasterChef__factory.connect(PANCAKE_MASTERCHEF, (await ethers.getSigners())[0]);
-  const wbnb = MockWBNB__factory.connect(WBNB, (await ethers.getSigners())[0]);
-
-  const MockERC20 = (await ethers.getContractFactory(
-    "MockERC20",
-    (
-      await ethers.getSigners()
-    )[0]
-  )) as MockERC20__factory;
+  const MockERC20 = (await ethers.getContractFactory("MockERC20", deployer)) as MockERC20__factory;
 
   for (let i = 0; i < TOKENS.length; i++) {
     console.log("============================================");
@@ -83,36 +118,38 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         TOKENS[i].symbol,
         TOKENS[i].decimals,
       ])) as MockERC20;
-      await token.deployed();
+      await token.deployTransaction.wait(3);
       console.log(`>> ${TOKENS[i].symbol} deployed at: ${token.address}`);
     } else {
       console.log(`>> ${TOKENS[i].symbol} is deployed at ${TOKENS[i].address}`);
-      token = MockERC20__factory.connect(TOKENS[i].address!, (await ethers.getSigners())[0]);
+      token = MockERC20__factory.connect(TOKENS[i].address!, deployer);
     }
 
     if (TOKENS[i].mintAmount !== undefined) {
       // mint token
       console.log(`>> Minting ${TOKENS[i].mintAmount} ${TOKENS[i].symbol}`);
-      await token.mint(deployer, TOKENS[i].mintAmount!);
+      await (await token.mint(deployer.address, TOKENS[i].mintAmount!)).wait(3);
       console.log(`✅ Done`);
     }
 
     // mock liquidity
     for (let j = 0; j < TOKENS[i].pairs.length; j++) {
-      const quoteToken = MockERC20__factory.connect(TOKENS[i].pairs[j].quoteTokenAddr, (await ethers.getSigners())[0]);
+      const quoteToken = MockERC20__factory.connect(TOKENS[i].pairs[j].quoteTokenAddr, deployer);
 
       let lp = await factory.getPair(token.address, quoteToken.address);
 
       if (lp.toLowerCase() === ethers.constants.AddressZero.toLowerCase()) {
         console.log(`>> Creating the ${TOKENS[i].symbol}-${TOKENS[i].pairs[j].quoteToken} Trading Pair`);
-        await factory.createPair(token.address, TOKENS[i].pairs[j].quoteTokenAddr, { gasLimit: 2000000 });
+        await (
+          await factory.createPair(token.address, TOKENS[i].pairs[j].quoteTokenAddr, { gasLimit: 3000000 })
+        ).wait(3);
         console.log(`✅ Done`);
       }
 
       // if quoteToken is WBNB, wrap it before add Liquidity
       if (quoteToken.address.toLowerCase() == wbnb.address.toLowerCase()) {
         console.log(`>> Wrapping ${TOKENS[i].pairs[j].reserveQuoteToken} BNB`);
-        await wbnb.deposit({ value: TOKENS[i].pairs[j].reserveQuoteToken });
+        await (await wbnb.deposit({ value: TOKENS[i].pairs[j].reserveQuoteToken })).wait(3);
         console.log(`✅ Done`);
       }
 
@@ -127,20 +164,26 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         TOKENS[i].pairs[j].reserveQuoteToken,
         "0",
         "0",
-        (
-          await ethers.getSigners()
-        )[0].address,
+        deployer.address,
         FOREVER,
         { gasLimit: 5000000 }
       );
-      await addLiqTx.wait();
+      await addLiqTx.wait(3);
       console.log(`✅ Done at ${addLiqTx.hash}`);
 
       lp = await factory.getPair(token.address, quoteToken.address);
       console.log(`>> Adding the ${TOKENS[i].symbol}-${TOKENS[i].pairs[j].quoteToken} LP to MasterChef`);
       console.log(`>> ${TOKENS[i].symbol}-${TOKENS[i].pairs[j].quoteToken} LP address: ${lp}`);
-      const addPoolTx = await pancakeMasterchef.add(1000, lp, true);
-      console.log(`✅ Done at ${addPoolTx.hash}`);
+      if (!SPOOKY_FLAG) {
+        const addPoolTx = await pancakeMasterchef.add(1000, lp, true);
+        await addPoolTx.wait(3);
+        console.log(`✅ Done at ${addPoolTx.hash}`);
+      } else {
+        const spookyMasterChef = SpookyMasterChef__factory.connect(PANCAKE_MASTERCHEF, deployer);
+        const addPoolTx = await spookyMasterChef.add(1000, lp);
+        await addPoolTx.wait(3);
+        console.log(`✅ Done at ${addPoolTx.hash}`);
+      }
     }
   }
 };

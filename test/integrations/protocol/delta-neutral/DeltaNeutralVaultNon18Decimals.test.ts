@@ -1,5 +1,5 @@
 import { ethers, network, upgrades, waffle } from "hardhat";
-import { Signer, constants, BigNumber } from "ethers";
+import { constants, BigNumber } from "ethers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import "@openzeppelin/test-helpers";
@@ -47,6 +47,7 @@ import { DeployHelper, IDeltaNeutralVaultConfig } from "../../../helpers/deploy"
 import { SwapHelper } from "../../../helpers/swap";
 import { Worker02Helper } from "../../../helpers/worker";
 import { MockContract, smockit } from "@eth-optimism/smock";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 chai.use(solidity);
 const { expect } = chai;
@@ -137,10 +138,10 @@ describe("DeltaNeutralVaultNon18Decimals", () => {
   let evilContract: MockContractContext;
 
   // Accounts
-  let deployer: Signer;
-  let alice: Signer;
-  let bob: Signer;
-  let eve: Signer;
+  let deployer: SignerWithAddress;
+  let alice: SignerWithAddress;
+  let bob: SignerWithAddress;
+  let eve: SignerWithAddress;
 
   let deployerAddress: string;
   let aliceAddress: string;

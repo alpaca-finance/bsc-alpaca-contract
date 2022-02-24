@@ -13,7 +13,7 @@ Alpaca Fin Corporation
 
 pragma solidity 0.8.10;
 
-import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
+import "./IPancakePair.sol";
 
 interface IWorker {
   /// @dev Work on a (potentially new) position. Optionally send token back to Vault.

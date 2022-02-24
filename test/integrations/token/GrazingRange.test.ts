@@ -119,8 +119,6 @@ describe("GrazingRange", () => {
         let currentEndBlock = await grazingRangeAsDeployer.currentEndBlock(0);
         expect(currentEndBlock).to.eq(mockedBlock.add(9));
 
-        console.log((await TimeHelpers.latestBlockNumber()).toString());
-
         await grazingRangeAsDeployer.addRewardInfo(0, mockedBlock.add(10).toString(), INITIAL_BONUS_REWARD_PER_BLOCK);
         currentEndBlock = await grazingRangeAsDeployer.currentEndBlock(0);
         expect(currentEndBlock).to.eq(mockedBlock.add(9));
