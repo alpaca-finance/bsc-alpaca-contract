@@ -5,6 +5,7 @@ import "@openzeppelin/hardhat-upgrades";
 import "@nomiclabs/hardhat-waffle";
 import "@typechain/hardhat";
 import "solidity-coverage";
+import "hardhat-deploy";
 
 module.exports = {
   defaultNetwork: "hardhat",
@@ -14,11 +15,11 @@ module.exports = {
       gas: 12000000,
       blockGasLimit: 0x1fffffffffffff,
       allowUnlimitedContractSize: true,
-      timeout: 1800000,
+      timeout: 18000000000,
       accounts: { mnemonic: "test test test test test test test test test test test junk" },
       forking: {
         url: process.env.BSC_MAINNET_FORK_RPC,
-        blockNumber: 14600000,
+        blockNumber: 14901371,
       },
     },
     mainnetfork: {
