@@ -77,13 +77,13 @@ contract SEXWorker03 is OwnableUpgradeable, ReentrancyGuardUpgradeable, IMultiRe
   mapping(address => bool) public okReinvestors;
   uint256 public fee;
   uint256 public feeDenom;
-  mapping(address => uint256) public reinvestThreshold;
-  mapping(address => address[]) public reinvestPath;
+  mapping(address => uint256) public reinvestThresholds;
+  mapping(address => address[]) public reinvestPaths;
   address public treasuryAccount;
   uint256 public treasuryBountyBps;
   IVault public beneficialVault;
   uint256 public beneficialVaultBountyBps;
-  mapping(address => address[]) public rewardPath;
+  mapping(address => address[]) public rewardPaths;
   uint256 public buybackAmount;
 
   function initialize(
@@ -169,7 +169,7 @@ contract SEXWorker03 is OwnableUpgradeable, ReentrancyGuardUpgradeable, IMultiRe
 
   /// @dev Re-invest whatever this worker has earned back to staked LP tokens.
   function reinvest() external override onlyEOA onlyReinvestor nonReentrant {
-    _reinvest(msg.sender, reinvestBountyBps, 0, 0);
+    _reinvest(msg.sender, reinvestBountyBps, 0);
     // in case of beneficial vault equals to operator vault, call buyback to transfer some buyback amount back to the vault
     // This can't be called within the _reinvest statement since _reinvest is called within the `work` as well
     _buyback();
@@ -179,38 +179,48 @@ contract SEXWorker03 is OwnableUpgradeable, ReentrancyGuardUpgradeable, IMultiRe
   /// @param _treasuryAccount - The account that the reinvest bounty will be sent.
   /// @param _treasuryBountyBps - The bounty bps deducted from the reinvest reward.
   /// @param _callerBalance - The balance that is owned by the msg.sender within the execution scope.
-  /// @param _reinvestThreshold - The threshold to be reinvested if reward pass over.
   function _reinvest(
     address _treasuryAccount,
     uint256 _treasuryBountyBps,
-    uint256 _callerBalance,
-    uint256 _reinvestThreshold
+    uint256 _callerBalance
   ) internal {
-    // // 1. Withdraw all the rewards. Return if reward <= _reinvestThershold.
-    // SolidlyMasterChef.withdraw(pid, 0);
-    // uint256 reward = boo.balanceOf(address(this));
-    // if (reward <= _reinvestThreshold) return;
-    // // 2. Approve tokens
-    // boo.safeApprove(address(router), uint256(-1));
-    // address(lpToken).safeApprove(address(SolidlyMasterChef), uint256(-1));
-    // // 3. Send the reward bounty to the _treasuryAccount.
-    // uint256 bounty = reward.mul(_treasuryBountyBps) / 10000;
-    // if (bounty > 0) {
-    //   uint256 beneficialVaultBounty = bounty.mul(beneficialVaultBountyBps) / 10000;
-    //   if (beneficialVaultBounty > 0) _rewardToBeneficialVault(beneficialVaultBounty, _callerBalance);
-    //   boo.safeTransfer(_treasuryAccount, bounty.sub(beneficialVaultBounty));
-    // }
-    // // 4. Convert all the remaining rewards to BTOKEN.
-    // router.swapExactTokensForTokens(reward.sub(bounty), 0, getReinvestPath(), address(this), now);
-    // // 5. Use add Token strategy to convert all BaseToken without both caller balance and buyback amount to LP tokens.
-    // baseToken.safeTransfer(address(addStrat), actualBaseTokenBalance().sub(_callerBalance));
-    // addStrat.execute(address(0), 0, abi.encode(0));
-    // // 6. Stake LPs for more rewards
-    // SolidlyMasterChef.deposit(pid, lpToken.balanceOf(address(this)));
-    // // 7. Reset approvals
-    // boo.safeApprove(address(router), 0);
-    // address(lpToken).safeApprove(address(SolidlyMasterChef), 0);
-    // emit Reinvest(_treasuryAccount, reward, bounty);
+    // 1. Withdraw all the rewards. Return if reward <= _reinvestThershold.
+    address[] memory pools = new address[](1);
+    pools[0] = address(lpToken);
+    lpDepositor.getReward(pools);
+    for (uint256 i = 0; i < rewardTokens.length; i++) {
+      address _rewardToken = rewardTokens[i];
+      uint256 reward = _rewardToken.myBalance();
+      if (reward <= reinvestThresholds[_rewardToken]) return;
+      // 2. Approve tokens
+      _rewardToken.safeApprove(address(router), type(uint256).max);
+      address(lpToken).safeApprove(address(lpDepositor), type(uint256).max);
+      // 3. Send the reward bounty to the _treasuryAccount.
+      uint256 bounty = (reward * _treasuryBountyBps) / 10000;
+      if (bounty > 0) {
+        uint256 beneficialVaultBounty = (bounty * beneficialVaultBountyBps) / 10000;
+        if (beneficialVaultBounty > 0)
+          _rewardToBeneficialVault(beneficialVaultBounty, _callerBalance, rewardPaths[_rewardToken]);
+        _rewardToken.safeTransfer(_treasuryAccount, bounty - beneficialVaultBounty);
+      }
+      // 4. Convert all the remaining rewards to BTOKEN.
+      router.swapExactTokensForTokens(
+        reward - bounty,
+        0,
+        getReinvestPath(_rewardToken),
+        address(this),
+        block.timestamp
+      );
+      // 5. Use add Token strategy to convert all BaseToken without both caller balance and buyback amount to LP tokens.
+      baseToken.safeTransfer(address(addStrat), actualBaseTokenBalance() - _callerBalance);
+      addStrat.execute(address(0), 0, abi.encode(0));
+      // 6. Stake LPs for more rewards
+      lpDepositor.deposit(address(lpToken), lpToken.balanceOf(address(this)));
+      // 7. Reset approvals
+      _rewardToken.safeApprove(address(router), 0);
+      address(lpToken).safeApprove(address(lpDepositor), 0);
+      emit Reinvest(_treasuryAccount, reward, bounty);
+    }
   }
 
   /// @dev Work on the given position. Must be called by the operator.
@@ -225,7 +235,7 @@ contract SEXWorker03 is OwnableUpgradeable, ReentrancyGuardUpgradeable, IMultiRe
     bytes calldata data
   ) external override onlyOperator nonReentrant {
     // 1. If a treasury configs are not ready. Not reinvest.
-    // _reinvest(treasuryAccount, treasuryBountyBps, actualBaseTokenBalance(), reinvestThreshold);
+    _reinvest(treasuryAccount, treasuryBountyBps, actualBaseTokenBalance());
     // 2. Convert this position back to LP tokens.
     _removeShare(id);
     // 3. Perform the worker strategy; sending LP tokens + BaseToken; expecting LP tokens + BaseToken.
@@ -385,13 +395,13 @@ contract SEXWorker03 is OwnableUpgradeable, ReentrancyGuardUpgradeable, IMultiRe
 
   /// @dev Return the path that the work is using for convert reward token to beneficial vault token.
   function getRewardPath(address _rewardToken) external view override returns (address[] memory) {
-    return rewardPath[_rewardToken];
+    return rewardPaths[_rewardToken];
   }
 
   /// @dev Internal function to get reinvest path.
   /// Return route through WFTM if reinvestPath not set.
   function getReinvestPath(address _rewardToken) public view returns (address[] memory) {
-    if (reinvestPath[_rewardToken].length != 0) return reinvestPath[_rewardToken];
+    if (reinvestPaths[_rewardToken].length != 0) return reinvestPaths[_rewardToken];
     address[] memory path;
     if (baseToken == wNative) {
       path = new address[](2);
@@ -423,8 +433,8 @@ contract SEXWorker03 is OwnableUpgradeable, ReentrancyGuardUpgradeable, IMultiRe
       "bad _reinvestPath"
     );
     reinvestBountyBps = _reinvestBountyBps;
-    reinvestThreshold[_rewardToken] = _reinvestThreshold;
-    reinvestPath[_rewardToken] = _reinvestPath;
+    reinvestThresholds[_rewardToken] = _reinvestThreshold;
+    reinvestPaths[_rewardToken] = _reinvestPath;
     emit SetReinvestConfig(msg.sender, _reinvestBountyBps, _reinvestThreshold, _reinvestPath);
   }
 
@@ -467,7 +477,7 @@ contract SEXWorker03 is OwnableUpgradeable, ReentrancyGuardUpgradeable, IMultiRe
       _rewardPath[0] == _rewardToken && _rewardPath[_rewardPath.length - 1] == beneficialVault.token(),
       "bad _rewardPath"
     );
-    rewardPath[_rewardToken] = _rewardPath;
+    rewardPaths[_rewardToken] = _rewardPath;
     emit SetRewardPath(msg.sender, _rewardPath);
   }
 
@@ -515,7 +525,7 @@ contract SEXWorker03 is OwnableUpgradeable, ReentrancyGuardUpgradeable, IMultiRe
         _rewardPath[0] == _rewardToken && _rewardPath[_rewardPath.length - 1] == _beneficialVault.token(),
         "bad _rewardPath"
       );
-      rewardPath[_rewardToken] = _rewardPath;
+      rewardPaths[_rewardToken] = _rewardPath;
       emit SetBeneficialVaultConfig(msg.sender, _beneficialVaultBountyBps, _beneficialVault, _rewardPath);
     }
   }
