@@ -14,13 +14,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const MIN_DEBT_SIZE = ethers.utils.parseEther("100");
+  const config = ConfigEntity.getConfig();
+
+  const MIN_DEBT_SIZE = ethers.utils.parseEther("250");
   const RESERVE_POOL_BPS = "1900";
   const KILL_PRIZE_BPS = "100";
   const TREASURY_KILL_BPS = "400";
   const TREASURY_ADDR = "0x0FfA891ab6f410bbd7403b709e7d38D7a812125B";
-
-  const config = ConfigEntity.getConfig();
+  const TRIPLE_SLOPE_MODEL = config.SharedConfig.TripleSlopeModel;
+  const WNATIVE = config.Tokens.WFTM!;
+  const FAIR_LAUNCH = config.MiniFL!.address;
 
   console.log(">> Deploying an upgradable configurableInterestVaultConfig contract");
   const ConfigurableInterestVaultConfig = (await ethers.getContractFactory(
@@ -33,10 +36,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     MIN_DEBT_SIZE,
     RESERVE_POOL_BPS,
     KILL_PRIZE_BPS,
-    config.SharedConfig.TripleSlopeModel103,
-    config.Tokens.WBNB,
+    TRIPLE_SLOPE_MODEL,
+    WNATIVE,
     config.SharedConfig.WNativeRelayer,
-    config.FairLaunch.address,
+    FAIR_LAUNCH,
     TREASURY_KILL_BPS,
     TREASURY_ADDR,
   ]);

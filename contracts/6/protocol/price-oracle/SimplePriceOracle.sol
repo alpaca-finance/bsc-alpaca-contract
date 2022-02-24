@@ -21,7 +21,7 @@ import "../interfaces/IPriceOracle.sol";
 contract SimplePriceOracle is OwnableUpgradeSafe, PriceOracle {
   event PriceUpdate(address indexed token0, address indexed token1, uint256 price);
 
-  address feeder;
+  address private feeder;
 
   struct PriceData {
     uint192 price;

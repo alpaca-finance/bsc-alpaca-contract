@@ -14,7 +14,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const ADMIN_ADDRESS = "0x212C2a2891227f39B48D655C5ecA0b1377daFF90";
+  const ADMIN_ADDRESS = "0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51";
   const DELAY_IN_DAYS = 1;
 
   console.log("> Deploying Timelock");

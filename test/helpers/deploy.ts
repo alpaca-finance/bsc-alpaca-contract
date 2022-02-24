@@ -1,4 +1,5 @@
 import { BigNumber, BigNumberish, Signer } from "ethers";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers, upgrades } from "hardhat";
 import {
   AlpacaToken,
@@ -103,6 +104,33 @@ import {
   DeltaNeutralMdexWorker02__factory,
   DeltaNeutralVaultGateway__factory,
   DeltaNeutralVaultGateway,
+  SpookyToken,
+  SpookyMasterChef,
+  SpookyToken__factory,
+  SpookyMasterChef__factory,
+  SpookySwapStrategyAddBaseTokenOnly,
+  SpookySwapStrategyAddBaseTokenOnly__factory,
+  SpookySwapStrategyLiquidate,
+  SpookySwapStrategyAddTwoSidesOptimal,
+  SpookySwapStrategyWithdrawMinimizeTrading,
+  SpookySwapStrategyPartialCloseLiquidate,
+  SpookySwapStrategyPartialCloseMinimizeTrading,
+  SpookySwapStrategyLiquidate__factory,
+  SpookySwapStrategyAddTwoSidesOptimal__factory,
+  SpookySwapStrategyWithdrawMinimizeTrading__factory,
+  SpookySwapStrategyPartialCloseLiquidate__factory,
+  SpookySwapStrategyPartialCloseMinimizeTrading__factory,
+  Vault2__factory,
+  Vault2,
+  MiniFL,
+  MiniFL__factory,
+  Rewarder1,
+  Rewarder1__factory,
+  IVault,
+  TShareRewardPool,
+  TShare__factory,
+  TShareRewardPool__factory,
+  TShare,
 } from "../../typechain";
 import * as TimeHelpers from "../helpers/time";
 
@@ -156,9 +184,9 @@ export interface IDeltaNeutralVaultConfig {
 }
 
 export class DeployHelper {
-  private deployer: Signer;
+  private deployer: SignerWithAddress;
 
-  constructor(_deployer: Signer) {
+  constructor(_deployer: SignerWithAddress) {
     this.deployer = _deployer;
   }
 
@@ -524,6 +552,23 @@ export class DeployHelper {
     return mockBep20;
   }
 
+  public async deployMiniFL(rewardTokenAddress: string): Promise<MiniFL> {
+    const MiniFL = (await ethers.getContractFactory("MiniFL", this.deployer)) as MiniFL__factory;
+    const miniFL = (await upgrades.deployProxy(MiniFL, [rewardTokenAddress, ethers.constants.MaxUint256])) as MiniFL;
+    return miniFL;
+  }
+
+  public async deployRewarder1(miniFLaddress: string, extraRewardTokenAddress: string): Promise<Rewarder1> {
+    const Rewarder1 = (await ethers.getContractFactory("Rewarder1", this.deployer)) as Rewarder1__factory;
+    const rewarder1 = (await upgrades.deployProxy(Rewarder1, [
+      "MockRewarder1",
+      miniFLaddress,
+      extraRewardTokenAddress,
+      ethers.constants.MaxUint256,
+    ])) as Rewarder1;
+    return rewarder1;
+  }
+
   public async deployAlpacaFairLaunch(
     alpacaPerBlock: BigNumberish,
     alpacaBonusLockUpBps: BigNumberish,
@@ -550,10 +595,10 @@ export class DeployHelper {
     return [alpacaToken, fairLaunch];
   }
 
-  public async deployVault(
+  private async _deployVault(
     wbnb: MockWBNB,
     vaultConfig: IVaultConfig,
-    fairlaunch: FairLaunch,
+    fairlaunchAddress: string,
     btoken: MockERC20
   ): Promise<[Vault, SimpleVaultConfig, WNativeRelayer]> {
     const WNativeRelayer = (await ethers.getContractFactory(
@@ -574,7 +619,7 @@ export class DeployHelper {
       vaultConfig.killPrizeBps,
       wbnb.address,
       wNativeRelayer.address,
-      fairlaunch.address,
+      fairlaunchAddress,
       vaultConfig.killTreasuryBps,
       vaultConfig.killTreasuryAddress,
     ])) as SimpleVaultConfig;
@@ -584,6 +629,7 @@ export class DeployHelper {
     const debtToken = (await upgrades.deployProxy(DebtToken, [
       "debtibBTOKEN_V2",
       "debtibBTOKEN_V2",
+      18,
       await this.deployer.getAddress(),
     ])) as DebtToken;
     await debtToken.deployed();
@@ -595,7 +641,7 @@ export class DeployHelper {
       btoken.address,
       `Interest Bearing ${btokenSymbol}}`,
       `ib${btokenSymbol}`,
-      18,
+      await btoken.decimals(),
       debtToken.address,
     ])) as Vault;
     await vault.deployed();
@@ -603,14 +649,97 @@ export class DeployHelper {
     await wNativeRelayer.setCallerOk([vault.address], true);
 
     // Set holders of debtToken
-    await debtToken.setOkHolders([fairlaunch.address, vault.address], true);
+    await debtToken.setOkHolders([fairlaunchAddress, vault.address], true);
 
     // Transfer ownership to vault
     await debtToken.transferOwnership(vault.address);
 
+    return [vault, simpleVaultConfig, wNativeRelayer];
+  }
+
+  public async deployVault(
+    wbnb: MockWBNB,
+    vaultConfig: IVaultConfig,
+    fairlaunch: FairLaunch,
+    btoken: MockERC20
+  ): Promise<[Vault, SimpleVaultConfig, WNativeRelayer]> {
+    const [vault, simpleVaultConfig, wNativeRelayer] = await this._deployVault(
+      wbnb,
+      vaultConfig,
+      fairlaunch.address,
+      btoken
+    );
+
     // Set add FairLaunch poool and set fairLaunchPoolId for Vault
     await fairlaunch.addPool(1, await vault.debtToken(), false);
     await vault.setFairLaunchPoolId(0);
+
+    return [vault, simpleVaultConfig, wNativeRelayer];
+  }
+
+  public async deployMiniFLVault(
+    wbnb: MockWBNB,
+    vaultConfig: IVaultConfig,
+    miniFL: MiniFL,
+    rewarderAddress: string,
+    btoken: MockERC20
+  ): Promise<[Vault, SimpleVaultConfig, WNativeRelayer]> {
+    const [vault, simpleVaultConfig, wNativeRelayer] = await this._deployVault(
+      wbnb,
+      vaultConfig,
+      miniFL.address,
+      btoken
+    );
+
+    // Set add FairLaunch poool and set fairLaunchPoolId for Vault
+    await miniFL.addPool(1, await vault.debtToken(), rewarderAddress, true, true);
+    await miniFL.approveStakeDebtToken([0], [vault.address], true);
+    await vault.setFairLaunchPoolId(0);
+
+    return [vault, simpleVaultConfig, wNativeRelayer];
+  }
+
+  public async deployVault2(
+    wbnb: MockWBNB,
+    vaultConfig: IVaultConfig,
+    btoken: MockERC20
+  ): Promise<[Vault2, SimpleVaultConfig, WNativeRelayer]> {
+    const WNativeRelayer = (await ethers.getContractFactory(
+      "WNativeRelayer",
+      this.deployer
+    )) as WNativeRelayer__factory;
+    const wNativeRelayer = await WNativeRelayer.deploy(wbnb.address);
+    await wNativeRelayer.deployed();
+
+    const SimpleVaultConfig = (await ethers.getContractFactory(
+      "SimpleVaultConfig",
+      this.deployer
+    )) as SimpleVaultConfig__factory;
+    const simpleVaultConfig = (await upgrades.deployProxy(SimpleVaultConfig, [
+      vaultConfig.minDebtSize,
+      vaultConfig.interestRate,
+      vaultConfig.reservePoolBps,
+      vaultConfig.killPrizeBps,
+      wbnb.address,
+      wNativeRelayer.address,
+      ethers.constants.AddressZero,
+      vaultConfig.killTreasuryBps,
+      vaultConfig.killTreasuryAddress,
+    ])) as SimpleVaultConfig;
+    await simpleVaultConfig.deployed();
+
+    const Vault = (await ethers.getContractFactory("Vault2", this.deployer)) as Vault2__factory;
+    const btokenSymbol = await btoken.symbol();
+    const vault = (await upgrades.deployProxy(Vault, [
+      simpleVaultConfig.address,
+      btoken.address,
+      `Interest Bearing ${btokenSymbol}}`,
+      `ib${btokenSymbol}`,
+      18,
+    ])) as Vault2;
+    await vault.deployed();
+
+    await wNativeRelayer.setCallerOk([vault.address], true);
 
     return [vault, simpleVaultConfig, wNativeRelayer];
   }
@@ -1020,5 +1149,137 @@ export class DeployHelper {
     ])) as DeltaNeutralVaultGateway;
     await deltaNeutralVaultGateway.deployed();
     return deltaNeutralVaultGateway;
+  }
+  
+  public async deploySpookySwap(
+    wbnb: MockWBNB,
+    booPerSec: BigNumberish
+  ): Promise<[WaultSwapFactory, WaultSwapRouter, SpookyToken, SpookyMasterChef]> {
+    // Note: Use WaultSwap because same fee structure
+    // Setup WaultSwap
+    const WaultSwapFactory = (await ethers.getContractFactory(
+      "WaultSwapFactory",
+      this.deployer
+    )) as WaultSwapFactory__factory;
+    const factory = await WaultSwapFactory.deploy(await this.deployer.getAddress());
+    await factory.deployed();
+
+    const WaultSwapRouter = (await ethers.getContractFactory(
+      "WaultSwapRouter",
+      this.deployer
+    )) as WaultSwapRouter__factory;
+    const router = await WaultSwapRouter.deploy(factory.address, wbnb.address);
+    await router.deployed();
+
+    const SpookyToken = (await ethers.getContractFactory("SpookyToken", this.deployer)) as SpookyToken__factory;
+    const boo = await SpookyToken.deploy();
+    await boo.deployed();
+    await boo.mint(await this.deployer.getAddress(), ethers.utils.parseEther("100"));
+
+    /// Setup MasterChef
+    const SpookyMasterChef = (await ethers.getContractFactory(
+      "SpookyMasterChef",
+      this.deployer
+    )) as SpookyMasterChef__factory;
+    const spookyMasterChef = await SpookyMasterChef.deploy(boo.address, await this.deployer.getAddress(), booPerSec, 0);
+    await spookyMasterChef.deployed();
+    // Transfer ownership so MasterChef can mint BOO
+    await boo.transferOwnership(spookyMasterChef.address);
+
+    return [factory, router, boo, spookyMasterChef];
+  }
+
+  public async deploySpookySwapStrategies(
+    router: WaultSwapRouter,
+    vault: IVault,
+    wNativeRelayer: WNativeRelayer
+  ): Promise<
+    [
+      SpookySwapStrategyAddBaseTokenOnly,
+      SpookySwapStrategyLiquidate,
+      SpookySwapStrategyAddTwoSidesOptimal,
+      SpookySwapStrategyWithdrawMinimizeTrading,
+      SpookySwapStrategyPartialCloseLiquidate,
+      SpookySwapStrategyPartialCloseMinimizeTrading
+    ]
+  > {
+    /// Setup strategy
+    const SpookySwapStrategyAddBaseTokenOnly = (await ethers.getContractFactory(
+      "SpookySwapStrategyAddBaseTokenOnly",
+      this.deployer
+    )) as SpookySwapStrategyAddBaseTokenOnly__factory;
+    const addStrat = (await upgrades.deployProxy(SpookySwapStrategyAddBaseTokenOnly, [
+      router.address,
+    ])) as SpookySwapStrategyAddBaseTokenOnly;
+    await addStrat.deployed();
+
+    const SpookySwapStrategyLiquidate = (await ethers.getContractFactory(
+      "SpookySwapStrategyLiquidate",
+      this.deployer
+    )) as SpookySwapStrategyLiquidate__factory;
+    const liqStrat = (await upgrades.deployProxy(SpookySwapStrategyLiquidate, [
+      router.address,
+    ])) as SpookySwapStrategyLiquidate;
+    await liqStrat.deployed();
+
+    const SpookySwapStrategyAddTwoSidesOptimal = (await ethers.getContractFactory(
+      "SpookySwapStrategyAddTwoSidesOptimal",
+      this.deployer
+    )) as SpookySwapStrategyAddTwoSidesOptimal__factory;
+    const twoSidesStrat = (await upgrades.deployProxy(SpookySwapStrategyAddTwoSidesOptimal, [
+      router.address,
+      vault.address,
+    ])) as SpookySwapStrategyAddTwoSidesOptimal;
+
+    const SpookySwapStrategyWithdrawMinimizeTrading = (await ethers.getContractFactory(
+      "SpookySwapStrategyWithdrawMinimizeTrading",
+      this.deployer
+    )) as SpookySwapStrategyWithdrawMinimizeTrading__factory;
+    const minimizeTradeStrat = (await upgrades.deployProxy(SpookySwapStrategyWithdrawMinimizeTrading, [
+      router.address,
+      wNativeRelayer.address,
+    ])) as SpookySwapStrategyWithdrawMinimizeTrading;
+
+    const SpookySwapStrategyPartialCloseLiquidate = (await ethers.getContractFactory(
+      "SpookySwapStrategyPartialCloseLiquidate",
+      this.deployer
+    )) as SpookySwapStrategyPartialCloseLiquidate__factory;
+    const partialCloseStrat = (await upgrades.deployProxy(SpookySwapStrategyPartialCloseLiquidate, [
+      router.address,
+    ])) as SpookySwapStrategyPartialCloseLiquidate;
+    await partialCloseStrat.deployed();
+    await wNativeRelayer.setCallerOk([partialCloseStrat.address], true);
+
+    const SpookySwapStrategyPartialCloseMinimizeTrading = (await ethers.getContractFactory(
+      "SpookySwapStrategyPartialCloseMinimizeTrading",
+      this.deployer
+    )) as SpookySwapStrategyPartialCloseMinimizeTrading__factory;
+    const partialCloseMinimizeStrat = (await upgrades.deployProxy(SpookySwapStrategyPartialCloseMinimizeTrading, [
+      router.address,
+      wNativeRelayer.address,
+    ])) as SpookySwapStrategyPartialCloseMinimizeTrading;
+    await partialCloseMinimizeStrat.deployed();
+    await wNativeRelayer.setCallerOk([partialCloseMinimizeStrat.address], true);
+
+    return [addStrat, liqStrat, twoSidesStrat, minimizeTradeStrat, partialCloseStrat, partialCloseMinimizeStrat];
+  }
+
+  public async deployTShareRewardPool(): Promise<[TShare, TShareRewardPool]> {
+    const TShare = (await ethers.getContractFactory("TShare", this.deployer)) as TShare__factory;
+    const tshare = await TShare.deploy(
+      (await TimeHelpers.latest()).add("10"),
+      this.deployer.address,
+      this.deployer.address
+    );
+
+    const TShareRewardPool = (await ethers.getContractFactory(
+      "TShareRewardPool",
+      this.deployer
+    )) as TShareRewardPool__factory;
+    const tshareRewardPool = await TShareRewardPool.deploy(tshare.address, (await TimeHelpers.latest()).add("10"));
+
+    await tshare.distributeReward(tshareRewardPool.address);
+
+    return [tshare, tshareRewardPool];
   }
 }

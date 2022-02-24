@@ -2,7 +2,6 @@ import { ethers, waffle } from "hardhat";
 import { Signer, BigNumber } from "ethers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
-import "@openzeppelin/test-helpers";
 import {
   AlpacaToken,
   FairLaunch,
@@ -33,7 +32,6 @@ import {
   BSCPool__factory,
   SwapMining,
   Oracle,
-  WaultSwapToken__factory,
   MdxToken__factory,
 } from "../../../../../typechain";
 import * as TimeHelpers from "../../../../helpers/time";
@@ -41,6 +39,7 @@ import * as AssertHelpers from "../../../../helpers/assert";
 import { DeployHelper } from "../../../../helpers/deploy";
 import { SwapHelper } from "../../../../helpers/swap";
 import { Worker02Helper } from "../../../../helpers/worker";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 chai.use(solidity);
 const { expect } = chai;
@@ -105,10 +104,10 @@ describe("Vault - MdexWorker02", () => {
   let evilContract: MockContractContext;
 
   // Accounts
-  let deployer: Signer;
-  let alice: Signer;
-  let bob: Signer;
-  let eve: Signer;
+  let deployer: SignerWithAddress;
+  let alice: SignerWithAddress;
+  let bob: SignerWithAddress;
+  let eve: SignerWithAddress;
 
   let deployerAddress: string;
   let aliceAddress: string;

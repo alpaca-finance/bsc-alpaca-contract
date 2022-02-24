@@ -1,8 +1,7 @@
 import { ethers, upgrades, waffle } from "hardhat";
-import { Signer, constants, BigNumber } from "ethers";
+import { constants, BigNumber } from "ethers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
-import "@openzeppelin/test-helpers";
 import {
   AlpacaToken,
   CakeToken,
@@ -37,7 +36,6 @@ import {
   PancakeswapV2RestrictedStrategyAddTwoSidesOptimal,
   PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading,
   PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading,
-  MasterChef,
 } from "../../../../../typechain";
 import * as AssertHelpers from "../../../../helpers/assert";
 import * as TimeHelpers from "../../../../helpers/time";
@@ -45,6 +43,7 @@ import { parseEther } from "ethers/lib/utils";
 import { DeployHelper } from "../../../../helpers/deploy";
 import { SwapHelper } from "../../../../helpers/swap";
 import { Worker02Helper } from "../../../../helpers/worker";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 chai.use(solidity);
 const { expect } = chai;
@@ -109,10 +108,10 @@ describe("Vault - PancakeswapV202", () => {
   let evilContract: MockContractContext;
 
   // Accounts
-  let deployer: Signer;
-  let alice: Signer;
-  let bob: Signer;
-  let eve: Signer;
+  let deployer: SignerWithAddress;
+  let alice: SignerWithAddress;
+  let bob: SignerWithAddress;
+  let eve: SignerWithAddress;
 
   let deployerAddress: string;
   let aliceAddress: string;

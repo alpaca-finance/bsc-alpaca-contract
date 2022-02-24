@@ -104,7 +104,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
   let chainlink: ChainLinkPriceOracle;
 
   // Accounts
-  let deployer: Signer;
+  let deployer: SignerWithAddress;
   let deltaNet: Signer;
   let bob: Signer;
   let eve: Signer;

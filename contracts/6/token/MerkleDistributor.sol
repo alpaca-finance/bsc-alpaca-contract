@@ -26,72 +26,72 @@ contract MerkleDistributor is IMerkleDistributor, Ownable {
   bytes32 public immutable override merkleRoot;
 
   // This is a packed array of booleans.
-  mapping(uint => uint) private claimedBitMap;
+  mapping(uint256 => uint256) private claimedBitMap;
 
-  event WithdrawTokens(address indexed withdrawer, address token, uint amount);
-  event WithdrawRewardTokens(address indexed withdrawer, uint amount);
-  event WithdrawAllRewardTokens(address indexed withdrawer, uint amount);
-  event Deposit(address indexed depositor, uint amount);
+  event WithdrawTokens(address indexed withdrawer, address token, uint256 amount);
+  event WithdrawRewardTokens(address indexed withdrawer, uint256 amount);
+  event WithdrawAllRewardTokens(address indexed withdrawer, uint256 amount);
+  event Deposit(address indexed depositor, uint256 amount);
 
   constructor(address token_, bytes32 merkleRoot_) public {
     token = token_;
     merkleRoot = merkleRoot_;
   }
 
-  function isClaimed(uint index) public view override returns (bool) {
-    uint claimedWordIndex = index / 256;
-    uint claimedBitIndex = index % 256;
-    uint claimedWord = claimedBitMap[claimedWordIndex];
-    uint mask = (1 << claimedBitIndex);
+  function isClaimed(uint256 index) public view override returns (bool) {
+    uint256 claimedWordIndex = index / 256;
+    uint256 claimedBitIndex = index % 256;
+    uint256 claimedWord = claimedBitMap[claimedWordIndex];
+    uint256 mask = (1 << claimedBitIndex);
     return claimedWord & mask == mask;
   }
 
-  function _setClaimed(uint index) private {
-    uint claimedWordIndex = index / 256;
-    uint claimedBitIndex = index % 256;
+  function _setClaimed(uint256 index) private {
+    uint256 claimedWordIndex = index / 256;
+    uint256 claimedBitIndex = index % 256;
     claimedBitMap[claimedWordIndex] = claimedBitMap[claimedWordIndex] | (1 << claimedBitIndex);
   }
 
   function claim(
-    uint index,
+    uint256 index,
     address account,
-    uint amount,
+    uint256 amount,
     bytes32[] calldata merkleProof
   ) external override {
-    require(!isClaimed(index), 'MerkleDistributor::claim:: drop already claimed');
+    require(!isClaimed(index), "MerkleDistributor::claim:: drop already claimed");
 
     // Verify the merkle proof.
     bytes32 node = keccak256(abi.encodePacked(index, account, amount));
-    require(MerkleProof.verify(merkleProof, merkleRoot, node), 'MerkleDistributor::claim:: invalid proof');
+    require(MerkleProof.verify(merkleProof, merkleRoot, node), "MerkleDistributor::claim:: invalid proof");
 
     // Mark it claimed and send the token.
     _setClaimed(index);
-    require(IERC20(token).transfer(account, amount), 'MerkleDistributor::claim:: transfer failed');
+    require(IERC20(token).transfer(account, amount), "MerkleDistributor::claim:: transfer failed");
 
     emit Claimed(index, account, amount);
   }
 
   // Deposit token for merkle distribution
-  function deposit(uint _amount) external onlyOwner {
+  function deposit(uint256 _amount) external onlyOwner {
     IERC20(token).safeTransferFrom(msg.sender, address(this), _amount);
     emit Deposit(msg.sender, _amount);
   }
 
   // Emergency withdraw tokens for admin
-  function withdrawTokens(address _token, uint _amount) external onlyOwner {
+  function withdrawTokens(address _token, uint256 _amount) external onlyOwner {
     IERC20(_token).safeTransfer(msg.sender, _amount);
     emit WithdrawTokens(msg.sender, _token, _amount);
   }
 
   // Emergency withdraw reward tokens for admin
-  function withdrawRewardTokens(uint _amount) external onlyOwner {
+  function withdrawRewardTokens(uint256 _amount) external onlyOwner {
     IERC20(token).safeTransfer(msg.sender, _amount);
     emit WithdrawRewardTokens(msg.sender, _amount);
   }
 
   // Emergency withdraw ALL reward tokens for admin
   function withdrawAllRewardTokens() external onlyOwner {
-    uint amount = IERC20(token).balanceOf(address(this));
+    uint256 amount = IERC20(token).balanceOf(address(this));
     IERC20(token).safeTransfer(msg.sender, amount);
     emit WithdrawAllRewardTokens(msg.sender, amount);
   }

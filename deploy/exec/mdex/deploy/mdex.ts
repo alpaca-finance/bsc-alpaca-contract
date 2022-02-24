@@ -36,7 +36,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   // Deploy MdexRouter
   console.log(">> Deploy MdexRouter");
   const MdexRouter = (await ethers.getContractFactory("MdexRouter", deployer)) as MdexRouter__factory;
-  const router = await MdexRouter.deploy(factory.address, config.Tokens.WBNB);
+  const router = await MdexRouter.deploy(factory.address, config.Tokens.WBNB!);
   await router.deployed();
   console.log(`>> MdexRouter is deployed at: ${router.address}`);
 
@@ -67,7 +67,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     factory.address,
     oracle.address,
     router.address,
-    config.Tokens.USDT,
+    config.Tokens.USDT!,
     MDX_PER_BLOCK,
     MDX_START_BLOCK
   );

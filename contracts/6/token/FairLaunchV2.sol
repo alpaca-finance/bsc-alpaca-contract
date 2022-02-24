@@ -64,7 +64,7 @@ contract FairLaunchV2 is Ownable, ReentrancyGuard {
   IERC20 public dummyToken;
 
   /// @notice Info of each user that stakes tokens.
-  mapping (uint256 => mapping (address => UserInfo)) public userInfo;
+  mapping(uint256 => mapping(address => UserInfo)) public userInfo;
   /// @dev Total allocation points. Must be the sum of all allocation points in all pools.
   uint256 totalAllocPoint;
 
@@ -74,7 +74,7 @@ contract FairLaunchV2 is Ownable, ReentrancyGuard {
   event Withdraw(address indexed user, uint256 indexed pid, uint256 amount, address indexed to);
   event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount, address indexed to);
   event Harvest(address indexed user, uint256 indexed pid, uint256 amount);
-  event LogPoolAddition(uint256 indexed pid, uint256 allocPoint, IERC20 indexed lpToken,  ILocker indexed rewarder);
+  event LogPoolAddition(uint256 indexed pid, uint256 allocPoint, IERC20 indexed lpToken, ILocker indexed rewarder);
   event LogSetPool(uint256 indexed pid, uint256 allocPoint, ILocker rewarder, bool overwrite);
   event LogUpdatePool(uint256 indexed pid, uint256 lastRewardBlock, uint256 lpSupply, uint256 accAlpacaPerShare);
   event LogInit();
@@ -88,7 +88,11 @@ contract FairLaunchV2 is Ownable, ReentrancyGuard {
   /// @param _FAIR_LAUNCH_V1 the FairLaunch contract
   /// @param _alpaca the ALPACA Token
   /// @param _MASTER_PID the pool ID of the dummy token on the base contract
-  constructor(IFairLaunchV1 _FAIR_LAUNCH_V1, IERC20 _alpaca, uint256 _MASTER_PID) public {
+  constructor(
+    IFairLaunchV1 _FAIR_LAUNCH_V1,
+    IERC20 _alpaca,
+    uint256 _MASTER_PID
+  ) public {
     FAIR_LAUNCH_V1 = _FAIR_LAUNCH_V1;
     ALPACA = _alpaca;
     MASTER_PID = _MASTER_PID;
@@ -114,8 +118,8 @@ contract FairLaunchV2 is Ownable, ReentrancyGuard {
   /// @notice Returns if stakeToken is duplicated
   function isDuplicatedPool(IERC20 _stakeToken) public view returns (bool) {
     uint256 length = poolInfo.length;
-    for(uint256 _pid = 0; _pid < length; _pid++) {
-      if(stakeTokens[_pid] == _stakeToken) return true;
+    for (uint256 _pid = 0; _pid < length; _pid++) {
+      if (stakeTokens[_pid] == _stakeToken) return true;
     }
     return false;
   }
@@ -125,7 +129,12 @@ contract FairLaunchV2 is Ownable, ReentrancyGuard {
   /// @param allocPoint AP of the new pool
   /// @param _stakeToken address of the LP token
   /// @param _locker address of the reward Contract
-  function addPool(uint256 allocPoint, IERC20 _stakeToken, ILocker _locker, uint256 _startBlock) external onlyOwner {
+  function addPool(
+    uint256 allocPoint,
+    IERC20 _stakeToken,
+    ILocker _locker,
+    uint256 _startBlock
+  ) external onlyOwner {
     require(!isDuplicatedPool(_stakeToken), "FairLaunchV2::addPool:: stakeToken dup");
 
     uint256 lastRewardBlock = block.number > _startBlock ? block.number : _startBlock;
@@ -134,25 +143,27 @@ contract FairLaunchV2 is Ownable, ReentrancyGuard {
     stakeTokens.push(_stakeToken);
     lockers.push(_locker);
 
-    poolInfo.push(PoolInfo({
-      allocPoint: allocPoint,
-      lastRewardBlock: lastRewardBlock,
-      accAlpacaPerShare: 0
-    }));
+    poolInfo.push(PoolInfo({ allocPoint: allocPoint, lastRewardBlock: lastRewardBlock, accAlpacaPerShare: 0 }));
     emit LogPoolAddition(stakeTokens.length.sub(1), allocPoint, _stakeToken, _locker);
   }
-
 
   /// @notice Update the given pool's ALPACA allocation point and `ILocker` contract. Can only be called by the owner.
   /// @param _pid The index of the pool. See `poolInfo`.
   /// @param _allocPoint new AP of the pool
   /// @param _locker Address of the rewarder delegate.
   /// @param overwrite True if _locker should be `set`. Otherwise `_locker` is ignored.
-  function setPool(uint256 _pid, uint256 _allocPoint, ILocker _locker, bool overwrite) external onlyOwner {
+  function setPool(
+    uint256 _pid,
+    uint256 _allocPoint,
+    ILocker _locker,
+    bool overwrite
+  ) external onlyOwner {
     updatePool(_pid);
     totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint).add(_allocPoint);
     poolInfo[_pid].allocPoint = _allocPoint;
-    if (overwrite) { lockers[_pid] = _locker; }
+    if (overwrite) {
+      lockers[_pid] = _locker;
+    }
     emit LogSetPool(_pid, _allocPoint, overwrite ? _locker : lockers[_pid], overwrite);
   }
 
@@ -166,7 +177,9 @@ contract FairLaunchV2 is Ownable, ReentrancyGuard {
     uint256 stakeTokenSupply = stakeTokens[_pid].balanceOf(address(this));
     if (block.number > pool.lastRewardBlock && stakeTokenSupply != 0) {
       uint256 blocks = block.number.sub(pool.lastRewardBlock);
-      uint256 alpacaReward = blocks.mul(alpacaPerBlock()).mul(pool.allocPoint).mul(ACC_ALPACA_PRECISION).div(totalAllocPoint);
+      uint256 alpacaReward = blocks.mul(alpacaPerBlock()).mul(pool.allocPoint).mul(ACC_ALPACA_PRECISION).div(
+        totalAllocPoint
+      );
       accAlpacaPerShare = accAlpacaPerShare.add(alpacaReward.div(stakeTokenSupply));
     }
     uint256 _pendingAlpaca = (user.amount.mul(accAlpacaPerShare) / ACC_ALPACA_PRECISION).sub(user.rewardDebt);
@@ -184,8 +197,9 @@ contract FairLaunchV2 is Ownable, ReentrancyGuard {
 
   /// @notice calculates the `amount` of ALPACA per block
   function alpacaPerBlock() public view returns (uint256 amount) {
-    amount = uint256(FAIR_LAUNCH_V1.alpacaPerBlock())
-      .mul(FAIR_LAUNCH_V1.poolInfo(MASTER_PID).allocPoint) / FAIR_LAUNCH_V1.totalAllocPoint();
+    amount =
+      uint256(FAIR_LAUNCH_V1.alpacaPerBlock()).mul(FAIR_LAUNCH_V1.poolInfo(MASTER_PID).allocPoint) /
+      FAIR_LAUNCH_V1.totalAllocPoint();
   }
 
   /// @notice Update reward variables of the given pool.
@@ -197,7 +211,9 @@ contract FairLaunchV2 is Ownable, ReentrancyGuard {
       uint256 stakeTokenSupply = stakeTokens[pid].balanceOf(address(this));
       if (stakeTokenSupply > 0 && totalAllocPoint > 0) {
         uint256 blocks = block.number.sub(pool.lastRewardBlock);
-        uint256 alpacaReward = blocks.mul(alpacaPerBlock()).mul(pool.allocPoint).mul(ACC_ALPACA_PRECISION).div(totalAllocPoint);
+        uint256 alpacaReward = blocks.mul(alpacaPerBlock()).mul(pool.allocPoint).mul(ACC_ALPACA_PRECISION).div(
+          totalAllocPoint
+        );
         pool.accAlpacaPerShare = pool.accAlpacaPerShare.add((alpacaReward.div(stakeTokenSupply)));
       }
       pool.lastRewardBlock = block.number;
@@ -210,7 +226,11 @@ contract FairLaunchV2 is Ownable, ReentrancyGuard {
   /// @param _for The address that will get yield
   /// @param pid The index of the pool. See `poolInfo`.
   /// @param amount to deposit.
-  function deposit(address _for, uint256 pid, uint256 amount) external harvestFromFairLaunchV1 nonReentrant {
+  function deposit(
+    address _for,
+    uint256 pid,
+    uint256 amount
+  ) external harvestFromFairLaunchV1 nonReentrant {
     PoolInfo memory pool = updatePool(pid);
     UserInfo storage user = userInfo[pid][_for];
 
@@ -232,7 +252,11 @@ contract FairLaunchV2 is Ownable, ReentrancyGuard {
   /// @param _for Receiver of yield
   /// @param pid The index of the pool. See `poolInfo`.
   /// @param amount of lp tokens to withdraw.
-  function withdraw(address _for, uint256 pid, uint256 amount) external nonReentrant {
+  function withdraw(
+    address _for,
+    uint256 pid,
+    uint256 amount
+  ) external nonReentrant {
     PoolInfo memory pool = updatePool(pid);
     UserInfo storage user = userInfo[pid][_for];
 
@@ -266,7 +290,9 @@ contract FairLaunchV2 is Ownable, ReentrancyGuard {
     UserInfo storage user = userInfo[pid][to];
     uint256 accumulatedAlpaca = user.amount.mul(pool.accAlpacaPerShare).div(ACC_ALPACA_PRECISION);
     uint256 _pendingAlpaca = accumulatedAlpaca.sub(user.rewardDebt);
-    if (_pendingAlpaca == 0) { return; }
+    if (_pendingAlpaca == 0) {
+      return;
+    }
 
     require(_pendingAlpaca <= ALPACA.balanceOf(address(this)), "FairLaunchV2::_harvest:: wtf not enough alpaca");
 

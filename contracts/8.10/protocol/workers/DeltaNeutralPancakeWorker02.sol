@@ -18,15 +18,15 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakeFactory.sol";
-import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
-
+import "../interfaces/IPancakeFactory.sol";
+import "../interfaces/IPancakePair.sol";
+import "../interfaces/IPancakeMasterChef.sol";
 import "../interfaces/IPancakeRouter02.sol";
 import "../interfaces/IStrategy.sol";
 import "../interfaces/IWorker02.sol";
-import "../interfaces/IPancakeMasterChef.sol";
 import "../interfaces/IDeltaNeutralOracle.sol";
 import "../interfaces/IVault.sol";
+
 import "../../utils/SafeToken.sol";
 import "../../utils/FixedPointMathLib.sol";
 

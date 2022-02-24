@@ -1,8 +1,11 @@
-import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { DeployFunction } from 'hardhat-deploy/types';
+import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { DeployFunction } from "hardhat-deploy/types";
+import { ethers } from "hardhat";
+import { WNativeRelayer__factory } from "../../../../typechain";
+import { getConfig } from "../../../entities/config";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-    /*
+  /*
   ░██╗░░░░░░░██╗░█████╗░██████╗░███╗░░██╗██╗███╗░░██╗░██████╗░
   ░██║░░██╗░░██║██╔══██╗██╔══██╗████╗░██║██║████╗░██║██╔════╝░
   ░╚██╗████╗██╔╝███████║██████╔╝██╔██╗██║██║██╔██╗██║██║░░██╗░
@@ -11,38 +14,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
+  const config = getConfig();
+  const WNATIVE_ADDR = config.Tokens.WFTM!;
 
-  const WNATIVE_ADDR = '0xDfb1211E2694193df5765d54350e1145FD2404A1';
+  const deployer = (await ethers.getSigners())[0];
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  const { deployments, getNamedAccounts } = hre;
-  const { deploy } = deployments;
-
-  const { deployer } = await getNamedAccounts();
-
-  await deploy('WNativeRelayer', {
-    from: deployer,
-    args: [WNATIVE_ADDR],
-    log: true,
-    deterministicDeployment: false,
-  });
-
+  console.log("> Deploying WNativeRelayer");
+  const WNativeRelayer = (await ethers.getContractFactory("WNativeRelayer", deployer)) as WNativeRelayer__factory;
+  const wnativeRelayer = await WNativeRelayer.deploy(WNATIVE_ADDR);
+  console.log("> WNativeRelayer deployed at", wnativeRelayer.address);
 };
 
 export default func;
-func.tags = ['WNativeRelayer'];
+func.tags = ["WNativeRelayer"];

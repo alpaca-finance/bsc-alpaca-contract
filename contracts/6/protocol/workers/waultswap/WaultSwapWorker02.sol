@@ -20,7 +20,7 @@ import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard
 import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 
 import "../../apis/wault/IWaultSwapFactory.sol";
-import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
+import "../../interfaces/IPancakePair.sol";
 
 import "../../apis/wault/IWaultSwapRouter02.sol";
 import "../../interfaces/IStrategy.sol";
@@ -339,8 +339,13 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
     /// 1. read base token from beneficialVault
     address beneficialVaultToken = beneficialVault.token();
     /// 2. swap reward token to beneficialVaultToken
-    uint256[] memory amounts =
-      router.swapExactTokensForTokens(_beneficialVaultBounty, 0, rewardPath, address(this), now);
+    uint256[] memory amounts = router.swapExactTokensForTokens(
+      _beneficialVaultBounty,
+      0,
+      rewardPath,
+      address(this),
+      now
+    );
     /// 3.if beneficialvault token not equal to baseToken regardless of a caller balance, can directly transfer to beneficial vault
     /// otherwise, need to keep it as a buybackAmount,
     /// since beneficial vault is the same as the calling vault, it will think of this reward as a `back` amount to paydebt/ sending back to a position owner

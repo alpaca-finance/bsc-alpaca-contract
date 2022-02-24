@@ -60,7 +60,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     timelockTransactions.push(
       await TimelockService.queueTransaction(
         `add reward info for campaign#${rewardInfo.CAMPAIGN_ID} ${rewardInfo.PHASE_NAME}`,
-        config.GrazingRange.address,
+        config.GrazingRange!.address,
         "0",
         "addRewardInfo(uint256,uint256,uint256)",
         ["uint256", "uint256", "uint256"],
