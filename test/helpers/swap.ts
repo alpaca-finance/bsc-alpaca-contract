@@ -1,4 +1,5 @@
 import { BigNumber, BigNumberish, Signer } from "ethers";
+import { ethers } from "hardhat";
 import {
   IERC20,
   MdexRouter,
@@ -7,7 +8,7 @@ import {
   PancakePair__factory,
   PancakeRouterV2,
   PancakeRouterV2__factory,
-  MdexRouter__factory
+  MdexRouter__factory,
 } from "../../typechain";
 import { sqrt } from "./math";
 
@@ -45,7 +46,7 @@ export class SwapHelper {
     this.fee = _fee;
     this.feeDenom = _feeDenom;
     this.reserves = [];
-    this.mdexRouter = MdexRouter__factory.connect(_routerAddress, _signer)
+    this.mdexRouter = MdexRouter__factory.connect(_routerAddress, _signer);
   }
 
   public async addLiquidities(liquidities: Array<ILiquidity>) {
@@ -73,7 +74,6 @@ export class SwapHelper {
       );
     }
   }
-
 
   public async addMdexLiquidities(liquidities: Array<ILiquidity>) {
     const wbnbAddress = await this.mdexRouter.WBNB();
@@ -313,9 +313,10 @@ export class SwapHelper {
     reinvestBounty: BigNumber,
     reinvestPath: string[],
     path: string[],
-    blockDiff: BigNumber
+    blockDiff: BigNumber,
+    precision: BigNumber = BigNumber.from(1e12)
   ): Promise<[reinvestFees: BigNumber, reinvestLp: BigNumber, debrisBtoken: BigNumber, debrisFtoken: BigNumber]> {
-    const totalRewards = this.computeTotalRewards(lpBefore, rewardPerBlock, blockDiff);
+    const totalRewards = this.computeTotalRewards(lpBefore, rewardPerBlock, blockDiff, precision);
     const reinvestFees = totalRewards.mul(reinvestBounty).div(10000);
     const reinvestLeft = totalRewards.sub(reinvestFees);
     const reinvestAmts = await this.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
@@ -387,7 +388,13 @@ export class SwapHelper {
     return [amountA, amountB, rA, rB];
   }
 
-  public computeTotalRewards(lp: BigNumber, rewardPerBlock: BigNumber, blockDiff: BigNumber): BigNumber {
-    return lp.mul(rewardPerBlock.mul(blockDiff).mul(1e12).div(lp)).div(1e12);
+  public computeTotalRewards(
+    lp: BigNumber,
+    rewardPerBlock: BigNumber,
+    blockDiff: BigNumber,
+    precision: BigNumber = BigNumber.from(1e12)
+  ): BigNumber {
+    const amplifiedReward = rewardPerBlock.mul(blockDiff).mul(precision);
+    return lp.mul(amplifiedReward.div(lp)).div(precision);
   }
 }

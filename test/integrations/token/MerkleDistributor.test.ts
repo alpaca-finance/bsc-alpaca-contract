@@ -80,19 +80,19 @@ describe("MerkleDistributor", () => {
       // Alice
       expect(claims[await alice.getAddress()].amount).to.equal(BigNumber.from(200).toHexString());
       expect(claims[await alice.getAddress()].proof).to.deep.equal([
-        "0x1c7cd16d5e49ed5aec8653361fe3c0496e8b9cda29a74e2913c7bd2e830ffad1",
-        "0xa1281640dd3f2f3e400a42e90527e508f5a7ee4286dff710c570775145ee0165",
+        "0xca972cf3b814f50a7192e9778e23f6bdbb600c1245980898d250c67065d50622",
+        "0xd48eef31cb6b7ef5a8fb8ef79608aaa21a3c0c17855c721bfda30e965334ff52",
       ]);
       // Bob
       expect(claims[await bob.getAddress()].amount).to.equal(BigNumber.from(300).toHexString());
       expect(claims[await bob.getAddress()].proof).to.deep.equal([
-        "0x947a7b7d06336aaaad02bfbe9ae36b7ad7b5d36a98931901e958544620016414",
-        "0xa1281640dd3f2f3e400a42e90527e508f5a7ee4286dff710c570775145ee0165",
+        "0x00022f0f335eeb9188dc092e656ee07c60b63503bb68aa508bdd8275468827e7",
+        "0xd48eef31cb6b7ef5a8fb8ef79608aaa21a3c0c17855c721bfda30e965334ff52",
       ]);
       // Catherine
       expect(claims[await catherine.getAddress()].amount).to.equal(BigNumber.from(250).toHexString());
       expect(claims[await catherine.getAddress()].proof).to.deep.equal([
-        "0xd1df20cc2fcab841bf3870b019038437dbd4c8db2bff627a8b385ebcc951f3a6",
+        "0x4539c90b4bedec9d94419556bfd3fab8bc0359e2e050f7f99d275b137a2c8b76",
       ]);
     });
     it("should allow to claim only once", async () => {

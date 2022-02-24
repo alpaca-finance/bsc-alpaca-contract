@@ -61,6 +61,7 @@
       "SpookyFactory": "0x54eae3Cb4fB023648E571F4627E1A056fcEb67Da",
       "SpookyRouter": "0x2329abE57D45c9798Dd267f83ec70aD8284ea8bE",
       "SpookyMasterChef": "0xF9c40C68d4AE8234db6AbC38B7Efb91cF2232cF4",
+      "TShareRewardPool": "",
       "LpTokens": [
         { "pId": 0, "name": "BOO-WFTM LP", "address": "0x98ee4798926d6738f58D958b4AA418AACbFF2b7b" },
         { "pId": 1, "name": "ALPACA-WFTM LP", "address": "0xE19adba4168E68fE804479A741b809e45d0b26E4" },

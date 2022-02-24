@@ -88,6 +88,7 @@ export interface SpookySwap {
   SpookyFactory: string;
   SpookyRouter: string;
   SpookyMasterChef: string;
+  TShareRewardPool: string;
   LpTokens: LpTokensEntity[];
 }
 export interface Tokens {

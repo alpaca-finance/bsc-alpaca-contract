@@ -1,5 +1,5 @@
 import { ethers, network, upgrades, waffle } from "hardhat";
-import { Signer, BigNumberish, utils, Wallet, BigNumber, constants } from "ethers";
+import { Signer, BigNumber, constants } from "ethers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import "@openzeppelin/test-helpers";
@@ -7,10 +7,8 @@ import {
   MockERC20,
   MockERC20__factory,
   PancakeFactory,
-  PancakeFactory__factory,
   PancakeRouterV2__factory,
   PancakeMasterChef,
-  PancakeMasterChef__factory,
   PancakeRouterV2,
   PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading,
   PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading__factory,
@@ -32,8 +30,6 @@ import {
   CakeMaxiWorker,
   CakeToken,
   SyrupBar,
-  CakeToken__factory,
-  SyrupBar__factory,
   MockBeneficialVault,
   MockBeneficialVault__factory,
   Vault,
@@ -43,8 +39,6 @@ import {
   DebtToken__factory,
   DebtToken,
   FairLaunch,
-  FairLaunch__factory,
-  AlpacaToken__factory,
   AlpacaToken,
   PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate,
   PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate__factory,
@@ -52,6 +46,7 @@ import {
 } from "../../../../../typechain";
 import * as Assert from "../../../../helpers/assert";
 import { DeployHelper } from "../../../../helpers/deploy";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 chai.use(solidity);
 const { expect } = chai;
@@ -101,10 +96,10 @@ describe("CakeMaxiWorker", () => {
   let stratPartialCloseMinimize: PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading;
 
   // Accounts
-  let deployer: Signer;
-  let alice: Signer;
-  let bob: Signer;
-  let eve: Signer;
+  let deployer: SignerWithAddress;
+  let alice: SignerWithAddress;
+  let bob: SignerWithAddress;
+  let eve: SignerWithAddress;
 
   let deployerAddress: string;
   let aliceAddress: string;
