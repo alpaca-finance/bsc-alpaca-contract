@@ -219,6 +219,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     }
 
     OPENING = 1;
+
     stableVaultPosId = IVault(stableVault).nextPositionID();
     assetVaultPosId = IVault(assetVault).nextPositionID();
 
@@ -764,6 +765,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       bytes memory _workData
     ) = abi.decode(_data, (address, uint256, address, uint256, uint256, uint256, bytes));
 
+    // OPENING for initializing positions
     if (
       OPENING != 1 &&
       !((_vault == stableVault && _posId == stableVaultPosId) || (_vault == assetVault && _posId == assetVaultPosId))
