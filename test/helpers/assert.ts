@@ -1,7 +1,6 @@
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { BigNumber, BigNumberish, ethers } from "ethers";
-import { assert } from "chai";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -13,8 +12,6 @@ export function assertAlmostEqual(expected: string, actual: string) {
   const tolerance = expectedBN.div(BigNumber.from("10000"));
   return expect(diffBN, `${actual} is not almost eqaual to ${expected}`).to.be.lte(tolerance);
 }
-
-
 
 export function assertBigNumberClose(
   actual: BigNumberish,

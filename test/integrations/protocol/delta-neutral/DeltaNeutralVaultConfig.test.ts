@@ -1,10 +1,10 @@
 import { ethers, upgrades, waffle } from "hardhat";
-import { Signer } from "ethers";
 import { solidity } from "ethereum-waffle";
 import chai from "chai";
 import "@openzeppelin/test-helpers";
 import { DeltaNeutralVaultConfig, DeltaNeutralVaultConfig__factory } from "../../../../typechain";
 import { DeployHelper, IDeltaNeutralVaultConfig } from "../../../helpers/deploy";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 chai.use(solidity);
 const { expect } = chai;
@@ -16,10 +16,10 @@ interface SwapRoute {
 
 describe("DeltaNeutralVaultConfig", () => {
   // Accounts
-  let deployer: Signer;
-  let alice: Signer;
-  let bob: Signer;
-  let eve: Signer;
+  let deployer: SignerWithAddress;
+  let alice: SignerWithAddress;
+  let bob: SignerWithAddress;
+  let eve: SignerWithAddress;
 
   let deployerAddress: string;
   let aliceAddress: string;
