@@ -40,16 +40,58 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const WBNB = config.Tokens.WFTM!;
   const TOKENS: Array<IToken> = [
     {
-      symbol: "USDT",
-      name: "USDT",
-      address: config.Tokens.USDT!,
+      symbol: "BTC",
+      name: "BTC",
+      mintAmount: ethers.utils.parseUnits("100000000", 8),
+      decimals: "8",
+      pairs: [
+        {
+          quoteToken: "WFTM",
+          quoteTokenAddr: config.Tokens.WFTM!,
+          reserveQuoteToken: ethers.utils.parseUnits("22006.5758", 18),
+          reserveBaseToken: ethers.utils.parseUnits("1", 8),
+        },
+      ],
+    },
+    {
+      symbol: "fUSDT",
+      name: "fUSDT",
+      mintAmount: ethers.utils.parseUnits("10000000000", 6),
+      decimals: "6",
+      pairs: [
+        {
+          quoteToken: "WFTM",
+          quoteTokenAddr: config.Tokens.WFTM!,
+          reserveQuoteToken: ethers.utils.parseUnits("10000", 18),
+          reserveBaseToken: ethers.utils.parseUnits("18000", 6),
+        },
+      ],
+    },
+    {
+      symbol: "DAI",
+      name: "DAI",
+      mintAmount: ethers.utils.parseUnits("10000000000", 18),
       decimals: "18",
       pairs: [
         {
-          quoteToken: "USDC",
-          quoteTokenAddr: config.Tokens.USDC!,
-          reserveQuoteToken: ethers.utils.parseUnits("100000000", 6),
-          reserveBaseToken: ethers.utils.parseUnits("100000000", 18),
+          quoteToken: "WFTM",
+          quoteTokenAddr: config.Tokens.WFTM!,
+          reserveQuoteToken: ethers.utils.parseUnits("10000", 18),
+          reserveBaseToken: ethers.utils.parseUnits("18000", 18),
+        },
+      ],
+    },
+    {
+      symbol: "MIM",
+      name: "MIM",
+      mintAmount: ethers.utils.parseUnits("10000000000", 18),
+      decimals: "18",
+      pairs: [
+        {
+          quoteToken: "WFTM",
+          quoteTokenAddr: config.Tokens.WFTM!,
+          reserveQuoteToken: ethers.utils.parseUnits("10000", 18),
+          reserveBaseToken: ethers.utils.parseUnits("18000", 18),
         },
       ],
     },
