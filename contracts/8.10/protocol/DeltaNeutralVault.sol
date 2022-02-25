@@ -460,10 +460,9 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _equityBefore = totalEquityValue();
     uint256 _alpacaBefore = IERC20Upgradeable(alpacaToken).balanceOf(address(this));
 
-    // ddc63262 is a signature of harvest(uint256)
-    // low-level call prevent revert when harvest fail
-    config.fairLaunchAddr().call(abi.encodeWithSelector(0xddc63262, IVault(stableVault).fairLaunchPoolId()));
-    config.fairLaunchAddr().call(abi.encodeWithSelector(0xddc63262, IVault(assetVault).fairLaunchPoolId()));
+    address _fairLaunchAddress = config.fairLaunchAddr();
+    IFairLaunch(_fairLaunchAddress).harvest(IVault(stableVault).fairLaunchPoolId());
+    IFairLaunch(_fairLaunchAddress).harvest(IVault(assetVault).fairLaunchPoolId());
     uint256 _alpacaAfter = IERC20Upgradeable(alpacaToken).balanceOf(address(this));
 
     // 2. collect alpaca bounty
