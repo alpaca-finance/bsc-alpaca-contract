@@ -1,4 +1,4 @@
-import { BigNumber, BigNumberish, Signer } from "ethers";
+import { BaseContract, BigNumber, BigNumberish, Signer } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers, upgrades } from "hardhat";
 import {
@@ -1150,7 +1150,7 @@ export class DeployHelper {
     await deltaNeutralVaultGateway.deployed();
     return deltaNeutralVaultGateway;
   }
-  
+
   public async deploySpookySwap(
     wbnb: MockWBNB,
     booPerSec: BigNumberish
@@ -1191,7 +1191,7 @@ export class DeployHelper {
 
   public async deploySpookySwapStrategies(
     router: WaultSwapRouter,
-    vault: IVault,
+    vault: BaseContract,
     wNativeRelayer: WNativeRelayer
   ): Promise<
     [
