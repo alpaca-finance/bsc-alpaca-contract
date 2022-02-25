@@ -454,6 +454,10 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     bytes[] memory _datas,
     uint256 _minTokenReceive
   ) external onlyReinvestors {
+    address[] memory reinvestPath = config.getReinvestPath();
+    if (reinvestPath.length == 0) {
+      revert DeltaNeutralVault_BadReinvestPath();
+    }
     uint256 _alpacaBountyBps = config.alpacaBountyBps();
 
     // 1.  claim reward from fairlaunch
@@ -470,10 +474,6 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     IERC20Upgradeable(alpacaToken).safeTransfer(config.getTreasuryAddr(), _bounty);
 
     // 3. swap alpaca
-    address[] memory reinvestPath = config.getReinvestPath();
-    if (reinvestPath.length == 0) {
-      revert DeltaNeutralVault_BadReinvestPath();
-    }
     uint256 _rewardAmount = _alpacaAfter - _bounty;
     ISwapRouter _router = ISwapRouter(config.getSwapRouter());
     IERC20Upgradeable(alpacaToken).approve(address(_router), _rewardAmount);
