@@ -1,3 +1,4 @@
+import { DeltaNeutralOracle } from "./../../../../typechain/DeltaNeutralOracle";
 import { ethers, network, upgrades, waffle } from "hardhat";
 import { constants, BigNumber } from "ethers";
 import chai from "chai";
@@ -43,11 +44,10 @@ import {
 } from "../../../../typechain";
 import * as Assert from "../../../helpers/assert";
 import * as TimeHelpers from "../../../helpers/time";
-import { parseEther } from "ethers/lib/utils";
 import { DeployHelper, IDeltaNeutralVaultConfig } from "../../../helpers/deploy";
 import { SwapHelper } from "../../../helpers/swap";
 import { Worker02Helper } from "../../../helpers/worker";
-import { MockContract, smockit } from "@eth-optimism/smock";
+import { FakeContract, smock } from "@defi-wonderland/smock";
 import { zeroAddress } from "ethereumjs-util";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
@@ -117,7 +117,7 @@ describe("DeltaNeutralVault", () => {
   let deltaVaultConfig: DeltaNeutralVaultConfig;
 
   /// DeltaNeutralOracle instance
-  let mockPriceOracle: MockContract;
+  let mockPriceOracle: FakeContract<DeltaNeutralOracle>;
 
   /// FairLaunch-related instance(s)
   let fairLaunch: FairLaunch;
@@ -190,7 +190,7 @@ describe("DeltaNeutralVault", () => {
     await evilContract.deployed();
 
     // Setup IDeltaNeutralOracle
-    mockPriceOracle = await smockit(await ethers.getContractFactory("DeltaNeutralOracle", deployer));
+    mockPriceOracle = await smock.fake("DeltaNeutralOracle");
 
     /// Setup token stuffs
     [baseToken] = await deployHelper.deployBEP20([
@@ -478,21 +478,17 @@ describe("DeltaNeutralVault", () => {
 
   async function setMockTokenPrice(stableTokenPrice: BigNumber, assetTokenPrice: BigNumber, lastUpdate?: BigNumber) {
     const latest = lastUpdate ? lastUpdate : await TimeHelpers.latest();
-    mockPriceOracle.smocked.getTokenPrice.will.return.with((token: string) => {
-      if (token === baseToken.address) {
-        return [stableTokenPrice, latest];
-      }
-      if (token === wbnb.address) {
-        return [assetTokenPrice, latest];
-      }
-      return [0, latest];
-    });
+    mockPriceOracle.getTokenPrice.whenCalledWith(baseToken.address).returns([stableTokenPrice, latest]);
+    mockPriceOracle.getTokenPrice.whenCalledWith(wbnb.address).returns([assetTokenPrice, latest]);
   }
 
   async function setMockLpPrice(lpPrice: BigNumber, lastUpdate?: BigNumber) {
     const latest = lastUpdate ? lastUpdate : await TimeHelpers.latest();
-    mockPriceOracle.smocked.lpToDollar.will.return.with((lpAmount: BigNumber) => {
-      return [lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1")), latest];
+
+    mockPriceOracle.lpToDollar.returns((args: any) => {
+      const lpAmount: BigNumber = args[0];
+      const lpValue = lpAmount.mul(lpPrice).div(ethers.utils.parseEther("1"));
+      return [lpValue, latest];
     });
   }
 
