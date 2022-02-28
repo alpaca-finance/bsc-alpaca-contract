@@ -16,10 +16,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const deployer = (await ethers.getSigners())[0];
   const config = ConfigEntity.getConfig();
   const CHAINLINK_ADDRESS = config.Oracle.ChainLinkOracle;
   const USD = config.Tokens.USD;
+
+  const deployer = (await ethers.getSigners())[0];
+
   console.log(">> Deploying an upgradable DeltaNeutralOracle contract");
   const DeltaNeutralOracle = (await ethers.getContractFactory(
     "DeltaNeutralOracle",
@@ -29,7 +31,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     CHAINLINK_ADDRESS,
     USD,
   ])) as DeltaNeutralOracle;
-  await deltaNeutralOracle.deployed();
+  await deltaNeutralOracle.deployTransaction.wait(3);
   console.log(`>> Deployed at ${deltaNeutralOracle.address}`);
   console.log("✅ Done");
 };

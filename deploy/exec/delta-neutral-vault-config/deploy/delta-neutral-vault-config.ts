@@ -15,7 +15,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
     Check all variables below before execute the deployment script
     */
-
+  const config = ConfigEntity.getConfig();
   const REBALANCE_FACTOR = "6600";
   const POSITION_VALUE_TOLERANCE_BPS = "100";
   const TREASURY_ADDR = "0x2DD872C6f7275DAD633d7Deb1083EDA561E9B96b";
@@ -24,13 +24,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const WHITELIST_REBALANCE = [""];
   const WHITELIST_REINVEST = [""];
   const REINVEST_PATH = ["CAKE", "BUSD", "ALPACA"];
-  const SWAP_ROUTER_ADDR = "";
+  const SWAP_ROUTER_ADDR = config.Exchanges.Pancakeswap!.RouterV2;
 
-  const config = ConfigEntity.getConfig();
   const deployer = (await ethers.getSigners())[0];
   const WRAP_NATIVE_ADDR = config.Tokens.WBNB;
   const WNATIVE_RELAYER = config.SharedConfig.WNativeRelayer;
-  const FAIR_LAUNCH_ADDR = config.FairLaunch.address;
+  const FAIR_LAUNCH_ADDR = config.FairLaunch!.address;
   const VALUE_LIMIT = "2000000";
 
   console.log(">> Deploying an upgradable DeltaNeutralVaultConfig contract");

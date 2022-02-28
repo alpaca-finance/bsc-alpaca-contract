@@ -52,7 +52,6 @@ async function main() {
   let nonce = await deployer.getTransactionCount();
 
   /// @dev initialized all variables
-  const targetVault = ["ibFTM", "ibUSDC"];
   const reserves: Array<IReserve> = [];
   const eta = Math.floor(Date.now() / 1000) + 86400 + 1800;
 
@@ -60,12 +59,7 @@ async function main() {
   const timelock = Timelock__factory.connect(config.Timelock, deployer);
 
   /// @dev find vault info
-  const vaultInfo = config.Vaults.filter((v) => {
-    if (targetVault.indexOf(v.symbol) === -1) {
-      return false;
-    }
-    return true;
-  });
+  const vaultInfo = config.Vaults;
 
   const promises = [];
   for (let i = 0; i < vaultInfo.length; i++) {

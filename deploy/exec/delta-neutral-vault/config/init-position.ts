@@ -4,7 +4,6 @@ import { ethers } from "hardhat";
 import { BEP20__factory, DeltaNeutralVault__factory, DeltaNeutralOracle__factory } from "../../../../typechain";
 import { ConfigEntity } from "../../../entities";
 import { BigNumber } from "ethers";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -98,13 +97,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       throw `error: unable to find vault from ${initPositionInputs[i].assetVaultSymbol}`;
     }
 
-    if (initPositionInputs[i].symbol.includes("MDEX")) {
-      stableTwoSidesStrat = stableVault.StrategyAddTwoSidesOptimal.Mdex;
-      assetTwoSidesStrat = assetVault.StrategyAddTwoSidesOptimal.Mdex;
-    }
+    stableTwoSidesStrat = stableVault.StrategyAddTwoSidesOptimal.Pancakeswap!;
+    assetTwoSidesStrat = assetVault.StrategyAddTwoSidesOptimal.Pancakeswap!;
 
-    stableTwoSidesStrat = stableVault.StrategyAddTwoSidesOptimal.Pancakeswap;
-    assetTwoSidesStrat = assetVault.StrategyAddTwoSidesOptimal.Pancakeswap;
+    if (initPositionInputs[i].symbol.includes("MDEX")) {
+      stableTwoSidesStrat = stableVault.StrategyAddTwoSidesOptimal.Mdex!;
+      assetTwoSidesStrat = assetVault.StrategyAddTwoSidesOptimal.Mdex!;
+    }
 
     const stableToken = tokenLists[initPositionInputs[i].stableSymbol];
     const assetToken = tokenLists[initPositionInputs[i].assetSymbol];
