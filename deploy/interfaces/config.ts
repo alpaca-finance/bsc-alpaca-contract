@@ -242,4 +242,6 @@ export interface DeltaNeutralVaultsEntity {
   stableDeltaWorker: string;
   gateway: string;
   oracle: string;
+  assetVaultPosId: string;
+  stableVaultPosId: string;
 }

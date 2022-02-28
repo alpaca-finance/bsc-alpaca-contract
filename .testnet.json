@@ -3128,7 +3128,9 @@
       "assetDeltaWorker": "0xd3fea79f499dd91E3D9A628aaF803E3f0f1e3290",
       "stableDeltaWorker": "0xf3aa816e28c38875d77A505563FDfaBdBFE4c939",
       "gateway": "0x469e1b6F02fA01520fe4E353978Ef9D4669A8B0f",
-      "oracle": "0xa3D3294E4f1c1Fc78C2Eb8d295334384E2Dab52a"
+      "oracle": "0xa3D3294E4f1c1Fc78C2Eb8d295334384E2Dab52a",
+      "assetVaultPosId": "180",
+      "stableVaultPosId": "370"
     }
   ]
 }

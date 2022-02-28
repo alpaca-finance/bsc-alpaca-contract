@@ -287,6 +287,14 @@ async function main() {
       config.DeltaNeutralVaults[i].stableToken,
       "❌ stableToken mis-match"
     );
+    expect(await deltaVault.assetVaultPosId()).to.be.eq(
+      config.DeltaNeutralVaults[i].assetVaultPosId,
+      "❌ assetVaultPosId mis-match"
+    );
+    expect(await deltaVault.stableVaultPosId()).to.be.eq(
+      config.DeltaNeutralVaults[i].stableVaultPosId,
+      "❌ stableVaultPosId mis-match"
+    );
     console.log("✅ done");
   }
 }

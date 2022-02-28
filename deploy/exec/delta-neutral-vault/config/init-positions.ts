@@ -17,15 +17,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       */
 
   interface IInitPositionInputs {
-    deltaVaultAddress: string;
     symbol: string;
     stableVaultSymbol: string;
     assetVaultSymbol: string;
     stableSymbol: string;
     assetSymbol: string;
-    stableDeltaWorker: string;
-    assetDeltaWorker: string;
-    deltaNeutralVaultConfig: string;
     stableAmount: string;
     leverage: number;
   }
@@ -65,36 +61,36 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const initPositionInputs: IInitPositionInputs[] = [
     {
-      deltaVaultAddress: "0xEB08e2f314B8E0E5c4B265d564d1D899a39ef2a1",
       symbol: "N3-WBNB-BUSD-PCS",
       stableVaultSymbol: "ibBUSD",
       assetVaultSymbol: "ibWBNB",
       stableSymbol: "BUSD",
       assetSymbol: "WBNB",
-      stableDeltaWorker: "0xb2B70dD85Cd919B59deaF09B8Dcd58553c4bb465",
-      assetDeltaWorker: "0x251388f3cC98541F91B1E425010f453CBe939fcd",
-      deltaNeutralVaultConfig: "0xf58e614C615bded1d22EdC9Dd8afD1fb7126c26d",
-      stableAmount: "50",
+      stableAmount: "300",
       leverage: 3,
     },
   ];
-  const DELTA_NEUTRAL_ORACLE_ADDR = "";
   const config = ConfigEntity.getConfig();
   const deployer = (await ethers.getSigners())[0];
   const tokenLists: any = config.Tokens;
+  let nonce = await deployer.getTransactionCount();
   let stableTwoSidesStrat: string;
   let assetTwoSidesStrat: string;
 
   for (let i = 0; i < initPositionInputs.length; i++) {
     console.log("===================================================================================");
     console.log(`>> Initializing position at ${initPositionInputs[i].symbol}`);
+    const deltaNeutralVaultInfo = config.DeltaNeutralVaults.find((v) => v.symbol === initPositionInputs[i].symbol);
     const stableVault = config.Vaults.find((v) => v.symbol === initPositionInputs[i].stableVaultSymbol);
     const assetVault = config.Vaults.find((v) => v.symbol === initPositionInputs[i].assetVaultSymbol);
-    if (stableVault === undefined) {
-      throw `error: unable to find vault from ${initPositionInputs[i].stableVaultSymbol}`;
+    if (!deltaNeutralVaultInfo) {
+      throw new Error(`error: unable to find delta neutral vault info for ${initPositionInputs[i].symbol}`);
     }
-    if (assetVault === undefined) {
-      throw `error: unable to find vault from ${initPositionInputs[i].assetVaultSymbol}`;
+    if (!stableVault) {
+      throw new Error(`error: unable to find vault from ${initPositionInputs[i].stableVaultSymbol}`);
+    }
+    if (!assetVault) {
+      throw new Error(`error: unable to find vault from ${initPositionInputs[i].assetVaultSymbol}`);
     }
 
     stableTwoSidesStrat = stableVault.StrategyAddTwoSidesOptimal.Pancakeswap!;
@@ -110,10 +106,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const stableTokenAsDeployer = BEP20__factory.connect(stableToken, deployer);
     const assetTokenAsDeployer = BEP20__factory.connect(assetToken, deployer);
 
-    await stableTokenAsDeployer.approve(initPositionInputs[i].deltaVaultAddress, ethers.constants.MaxUint256);
-    await assetTokenAsDeployer.approve(initPositionInputs[i].deltaVaultAddress, ethers.constants.MaxUint256);
+    await stableTokenAsDeployer.approve(deltaNeutralVaultInfo.address, ethers.constants.MaxUint256, { nonce: nonce++ });
+    await assetTokenAsDeployer.approve(deltaNeutralVaultInfo.address, ethers.constants.MaxUint256, { nonce: nonce++ });
 
-    const deltaNeutralOracle = DeltaNeutralOracle__factory.connect(DELTA_NEUTRAL_ORACLE_ADDR, deployer);
+    const deltaNeutralOracle = DeltaNeutralOracle__factory.connect(config.Oracle.DeltaNeutralOracle!, deployer);
     const [stablePrice] = await deltaNeutralOracle.getTokenPrice(stableToken);
     const [assetPrice] = await deltaNeutralOracle.getTokenPrice(assetToken);
 
@@ -163,7 +159,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const stableWorkbyteInput: IDepositWorkByte = {
       posId: 0,
       vaultAddress: stableVault.address,
-      workerAddress: initPositionInputs[i].stableDeltaWorker,
+      workerAddress: deltaNeutralVaultInfo.stableDeltaWorker,
       twoSidesStrat: stableTwoSidesStrat,
       principalAmount: principalStablePosition,
       borrowAmount: borrowAmountStablePosition,
@@ -175,7 +171,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const assetWorkbyteInput: IDepositWorkByte = {
       posId: 0,
       vaultAddress: assetVault.address,
-      workerAddress: initPositionInputs[i].assetDeltaWorker,
+      workerAddress: deltaNeutralVaultInfo.assetDeltaWorker,
       twoSidesStrat: assetTwoSidesStrat,
       principalAmount: principalAssetPosition,
       borrowAmount: borrowAmountAssetPosition,
@@ -196,12 +192,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       ]
     );
 
-    const deltaNeutralVault = DeltaNeutralVault__factory.connect(initPositionInputs[i].deltaVaultAddress, deployer);
+    const deltaNeutralVault = DeltaNeutralVault__factory.connect(deltaNeutralVaultInfo.address, deployer);
 
     console.log(">> Calling openPosition");
     const minSharesReceive = ethers.utils.parseEther("0");
     const initTx = await deltaNeutralVault.initPositions(stableAmount, assetAmount, minSharesReceive, data, {
       value: assetAmount,
+      nonce: nonce++,
+      gasLimit: 4000000,
     });
     console.log(">> initTx: ", initTx.hash);
     console.log("✅ Done");

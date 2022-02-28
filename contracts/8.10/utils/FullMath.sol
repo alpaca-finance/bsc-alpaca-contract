@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: BUSL
+// SPDX-License-Identifier: MIT
 /**
   ∩~~~~∩ 
   ξ ･×･ ξ 

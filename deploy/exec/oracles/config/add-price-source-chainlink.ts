@@ -1,9 +1,7 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers, network } from "hardhat";
+import { ethers } from "hardhat";
 import { ChainLinkPriceOracle__factory } from "../../../../typechain";
-import TestnetConfig from "../../../../.testnet.json";
-import MainnetConfig from "../../../../.mainnet.json";
 import { getConfig } from "../../../entities/config";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -16,9 +14,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TOKEN0_SYMBOLS = ["WBNB"];
-  const TOKEN1_SYMBOLS = ["BUSD"];
-  const AGGREGATORV3S = ["0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526"]; // BNB/USD Chainlink's Aggregator
+  const TOKEN0_SYMBOLS = ["WBNB", "BUSD", "WBNB"];
+  const TOKEN1_SYMBOLS = ["USD", "USD", "BUSD"];
+  const AGGREGATORV3S = [
+    "0x3797B18e289511D87080012e17A2b7248c9b26e2",
+    "0x2B7D54293187F3BDBFB43664137B07a663bb612a",
+    "0x3797B18e289511D87080012e17A2b7248c9b26e2",
+  ];
 
   const config = getConfig();
   const tokenList: any = config.Tokens;
