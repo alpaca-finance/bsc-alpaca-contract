@@ -36,13 +36,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       assetVaultSymbol: "ibWBNB",
       stableSymbol: "BUSD",
       assetSymbol: "WBNB",
-      stableDeltaWorker: "0xb2B70dD85Cd919B59deaF09B8Dcd58553c4bb465",
-      assetDeltaWorker: "0x251388f3cC98541F91B1E425010f453CBe939fcd",
-      lpAddress: "",
-      deltaNeutralVaultConfig: "0xf58e614C615bded1d22EdC9Dd8afD1fb7126c26d",
+      stableDeltaWorker: "0xf3aa816e28c38875d77A505563FDfaBdBFE4c939", // Address of stable deltaneutral worker
+      assetDeltaWorker: "0xd3fea79f499dd91E3D9A628aaF803E3f0f1e3290", // Address of asset deltaneutral worker
+      lpAddress: "0x8918A1B7d90B2d33eA89784a8405896430Dd0Ba9",
+      deltaNeutralVaultConfig: "0x98ECC385Ea749Cb55874769cb38391A8299EB592",
     },
   ];
-  const DELTA_NEUTRAL_ORACLE_ADDR = "0x6F904F6c13EA3a80dD962f0150E49d943b7d1819";
 
   const config = ConfigEntity.getConfig();
   const deployer = (await ethers.getSigners())[0];
@@ -74,17 +73,18 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       deltaVaultInputs[i].assetDeltaWorker,
       deltaVaultInputs[i].lpAddress,
       alpacaTokenAddress,
-      DELTA_NEUTRAL_ORACLE_ADDR,
+      config.Oracle.DeltaNeutralOracle!,
       deltaVaultInputs[i].deltaNeutralVaultConfig,
     ])) as DeltaNeutralVault;
-    await deltaNeutralVault.deployed();
+    const deployTxReceipt = await deltaNeutralVault.deployTransaction.wait(3);
     console.log(`>> Deployed at ${deltaNeutralVault.address}`);
+    console.log(`>> Deployed block: ${deployTxReceipt.blockNumber}`);
     console.log("✅ Done");
 
     if (deltaVaultInputs[i].assetVaultSymbol === "ibWBNB") {
       console.log(`>> Set Caller ok for deltaNeutralVault if have native asset`);
       const wNativeRelayer = WNativeRelayer__factory.connect(wNativeRelayerAddr, deployer);
-      await wNativeRelayer.setCallerOk([deltaNeutralVault.address], true, { gasLimit: 1000000 });
+      await (await wNativeRelayer.setCallerOk([deltaNeutralVault.address], true)).wait(3);
       console.log("✅ Done");
     }
   }

@@ -5,4 +5,5 @@ export enum WorkerLike {
   tomb = 3,
   wault = 4,
   cakeMaxi = 5,
+  deltaNeutralPancake = 6,
 }

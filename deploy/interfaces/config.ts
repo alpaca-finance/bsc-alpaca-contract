@@ -13,6 +13,7 @@ export interface Config {
   SharedConfig: SharedConfig;
   Oracle: Oracle;
   Vaults: VaultsEntity[];
+  DeltaNeutralVaults: DeltaNeutralVaultsEntity[];
 }
 export interface MerkleDistributor {
   "ITAM-week-1": string;
@@ -188,6 +189,7 @@ export interface Oracle {
   OracleMedianizer: string;
   ChainLinkOracle: string;
   SimpleOracle: string;
+  DeltaNeutralOracle?: string;
 }
 export interface VaultsEntity {
   name: string;
@@ -225,4 +227,19 @@ export interface Strategies {
   StrategyWithdrawMinimizeTrading: string;
   StrategyPartialCloseLiquidate: string;
   StrategyPartialCloseMinimizeTrading: string;
+}
+export interface DeltaNeutralVaultsEntity {
+  name: string;
+  symbol: string;
+  address: string;
+  deployedBlock: number;
+  config: string;
+  assetToken: string;
+  stableToken: string;
+  assetVault: string;
+  stableVault: string;
+  assetDeltaWorker: string;
+  stableDeltaWorker: string;
+  gateway: string;
+  oracle: string;
 }

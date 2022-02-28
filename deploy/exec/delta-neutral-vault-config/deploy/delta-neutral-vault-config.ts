@@ -16,15 +16,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     Check all variables below before execute the deployment script
     */
   const config = ConfigEntity.getConfig();
+
   const REBALANCE_FACTOR = "6600";
   const POSITION_VALUE_TOLERANCE_BPS = "100";
-  const TREASURY_ADDR = "0x2DD872C6f7275DAD633d7Deb1083EDA561E9B96b";
+  const TREASURY_ADDR = "0x212C2a2891227f39B48D655C5ecA0b1377daFF90";
   const ALPACA_BOUNTY_BPS = "100";
   const LEVERAGE_LEVEL = 3;
-  const WHITELIST_REBALANCE = [""];
-  const WHITELIST_REINVEST = [""];
+  const WHITELIST_REBALANCE = ["0xcf28b4da7d3ed29986831876b74af6e95211d3f9"];
+  const WHITELIST_REINVEST = ["0xcf28b4da7d3ed29986831876b74af6e95211d3f9"];
   const REINVEST_PATH = ["CAKE", "BUSD", "ALPACA"];
-  const SWAP_ROUTER_ADDR = config.Exchanges.Pancakeswap!.RouterV2;
+  const SWAP_ROUTER_ADDR = config.YieldSources.Pancakeswap!.RouterV2;
 
   const deployer = (await ethers.getSigners())[0];
   const WRAP_NATIVE_ADDR = config.Tokens.WBNB;
@@ -56,33 +57,35 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     ALPACA_BOUNTY_BPS,
     alpacaTokenAddress,
   ])) as DeltaNeutralVaultConfig;
-  await deltaNeutralVaultConfig.deployed();
+  await deltaNeutralVaultConfig.deployTransaction.wait(3);
   console.log(`>> Deployed at ${deltaNeutralVaultConfig.address}`);
   console.log("✅ Done");
 
+  let nonce = await deployer.getTransactionCount();
+
   console.log(`>> Setting Value limit`);
   const limitValue = ethers.utils.parseEther(VALUE_LIMIT);
-  await deltaNeutralVaultConfig.setValueLimit(limitValue);
+  await deltaNeutralVaultConfig.setValueLimit(limitValue, { nonce: nonce++ });
   console.log("✅ Done");
 
   console.log(`>> Setting Leverage Level`);
-  await deltaNeutralVaultConfig.setLeverageLevel(LEVERAGE_LEVEL);
+  await deltaNeutralVaultConfig.setLeverageLevel(LEVERAGE_LEVEL, { nonce: nonce++ });
   console.log("✅ Done");
 
   console.log(`>> Setting Whitelist Rebalance`);
-  await deltaNeutralVaultConfig.setWhitelistedRebalancer(WHITELIST_REBALANCE, true);
+  await deltaNeutralVaultConfig.setWhitelistedRebalancer(WHITELIST_REBALANCE, true, { nonce: nonce++ });
   console.log("✅ Done");
 
   console.log(`>> Setting Whitelist Reinvest`);
-  await deltaNeutralVaultConfig.setwhitelistedReinvestors(WHITELIST_REINVEST, true);
+  await deltaNeutralVaultConfig.setwhitelistedReinvestors(WHITELIST_REINVEST, true, { nonce: nonce++ });
   console.log("✅ Done");
 
   console.log(`>> Setting Reinvest Path`);
-  await deltaNeutralVaultConfig.setReinvestPath(reinvestPath, { gasLimit: 1000000 });
+  await deltaNeutralVaultConfig.setReinvestPath(reinvestPath, { nonce: nonce++, gasLimit: 1000000 });
   console.log("✅ Done");
 
   console.log(`>> Setting Swap Router`);
-  await deltaNeutralVaultConfig.setSwapRouter(SWAP_ROUTER_ADDR);
+  await deltaNeutralVaultConfig.setSwapRouter(SWAP_ROUTER_ADDR, { nonce: nonce++ });
   console.log("✅ Done");
 };
 
