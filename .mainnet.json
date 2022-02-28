@@ -404,14 +404,14 @@
       }
     ]
   },
-  "Exchanges": {
+  "YieldSources": {
     "Pancakeswap": {
       "UniswapV2Factory": "0xBCfCcbde45cE874adCB698cC183deBcF17952812",
       "UniswapV2Router02": "0x05fF2B0DB69458A0750badebc4f9e13aDd608C7F",
       "FactoryV2": "0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73",
       "RouterV2": "0x10ED43C718714eb63d5aA57B78B54704E256024E",
       "MasterChef": "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
-      "LpTokens": [
+      "pools": [
         {
           "pId": 1,
           "name": "CAKE-WBNB LP (Legacy)",
@@ -798,7 +798,7 @@
       "WexMaster": "0x22fB2663C7ca71Adc2cc99481C77Aaf21E152e2D",
       "WaultswapRouter": "0xD48745E39BbED146eEC15b79cBF964884F9877c2",
       "WaultswapFactory": "0xB42E3FE71b7E0673335b3331B3e1053BD9822570",
-      "LpTokens": [
+      "pools": [
         {
           "pId": 35,
           "name": "ALPACA-USDT LP",
@@ -886,7 +886,7 @@
       "MdexFactory": "0x3cd1c46068daea5ebb0d3f55f6915b10648062b8",
       "MdexRouter": "0x7DAe51BD3E3376B8c7c4900E9107f12Be3AF1bA8",
       "SwapMining": "0x782395303692aBeD877d2737Aa7982345eB44c11",
-      "LpTokens": [
+      "pools": [
         {
           "pId": 42,
           "name": "MDX-WBNB LP",
@@ -963,7 +963,7 @@
       "MasterApe": "0x5c8D727b265DBAfaba67E050f2f739cAeEB4A6F9",
       "ApesFactory": "0x0841BD0B734E4F5853f0dD8d7Ea041c241fb0Da6",
       "ApeRouter": "0xcF0feBd3f17CEf5b47b0cD257aCf6025c5BFf3b7",
-      "LpTokens": []
+      "pools": []
     }
   },
   "Tokens": {

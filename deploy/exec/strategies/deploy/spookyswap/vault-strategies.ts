@@ -1,11 +1,9 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers, upgrades, network } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 import {
   SpookySwapStrategyAddTwoSidesOptimal,
   SpookySwapStrategyAddTwoSidesOptimal__factory,
-  WaultSwapRestrictedStrategyAddTwoSidesOptimal,
-  WaultSwapRestrictedStrategyAddTwoSidesOptimal__factory,
 } from "../../../../../typechain";
 import { ConfigEntity } from "../../../../entities";
 
@@ -22,7 +20,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const NEW_PARAMS = [
     {
-      VAULT_SYMBOL: "ibALPACA",
+      VAULT_SYMBOL: "ibTOMB",
       WHITELIST_WORKERS: [],
     },
   ];
@@ -45,7 +43,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       deployer
     )) as SpookySwapStrategyAddTwoSidesOptimal__factory;
     const strategyAddTwoSidesOptimal = (await upgrades.deployProxy(SpookySwapStrategyAddTwoSidesOptimal, [
-      config.Exchanges.SpookySwap!.SpookyRouter,
+      config.YieldSources.SpookySwap!.SpookyRouter,
       targetedVault.address,
     ])) as SpookySwapStrategyAddTwoSidesOptimal;
     await strategyAddTwoSidesOptimal.deployTransaction.wait(5);

@@ -6,12 +6,12 @@ import {
   MockERC20__factory,
   MockWBNB__factory,
   PancakeFactory__factory,
-  PancakeMasterChef__factory,
   PancakeRouter__factory,
-  SpookyMasterChef__factory,
 } from "../../../../typechain";
 import { BigNumber } from "ethers";
 import { ConfigEntity } from "../../../entities";
+import { MasterChefLike } from "../../../entities/masterchef-like";
+import { MasterChefLikeFactory } from "../../../adaptors/mastercheflike/factory";
 
 interface IPair {
   quoteToken: string;
@@ -33,65 +33,23 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const config = ConfigEntity.getConfig();
 
   const FOREVER = 20000000000;
-  const SPOOKY_FLAG = true;
-  const PANCAKE_MASTERCHEF = config.Exchanges.SpookySwap!.SpookyMasterChef;
-  const PANCAKE_FACTORY = config.Exchanges.SpookySwap!.SpookyFactory;
-  const PANCAKE_ROUTER = config.Exchanges.SpookySwap!.SpookyRouter;
+  const WHICH_MASTERCHEF = MasterChefLike.tomb;
+  const MASTERCHEF_LIKE_ADDRESS = config.YieldSources.TombFinance!.TShareRewardPool;
+  const FACTORY = config.YieldSources.SpookySwap!.SpookyFactory;
+  const ROUTER = config.YieldSources.SpookySwap!.SpookyRouter;
   const WBNB = config.Tokens.WFTM!;
   const TOKENS: Array<IToken> = [
     {
-      symbol: "BTC",
-      name: "BTC",
-      mintAmount: ethers.utils.parseUnits("100000000", 8),
-      decimals: "8",
-      pairs: [
-        {
-          quoteToken: "WFTM",
-          quoteTokenAddr: config.Tokens.WFTM!,
-          reserveQuoteToken: ethers.utils.parseUnits("22006.5758", 18),
-          reserveBaseToken: ethers.utils.parseUnits("1", 8),
-        },
-      ],
-    },
-    {
-      symbol: "fUSDT",
-      name: "fUSDT",
-      mintAmount: ethers.utils.parseUnits("10000000000", 6),
-      decimals: "6",
-      pairs: [
-        {
-          quoteToken: "WFTM",
-          quoteTokenAddr: config.Tokens.WFTM!,
-          reserveQuoteToken: ethers.utils.parseUnits("10000", 18),
-          reserveBaseToken: ethers.utils.parseUnits("18000", 6),
-        },
-      ],
-    },
-    {
-      symbol: "DAI",
-      name: "DAI",
-      mintAmount: ethers.utils.parseUnits("10000000000", 18),
+      symbol: "TSHARE",
+      name: "TSHARE",
+      address: config.Tokens.TSHARE!,
       decimals: "18",
       pairs: [
         {
           quoteToken: "WFTM",
           quoteTokenAddr: config.Tokens.WFTM!,
-          reserveQuoteToken: ethers.utils.parseUnits("10000", 18),
-          reserveBaseToken: ethers.utils.parseUnits("18000", 18),
-        },
-      ],
-    },
-    {
-      symbol: "MIM",
-      name: "MIM",
-      mintAmount: ethers.utils.parseUnits("10000000000", 18),
-      decimals: "18",
-      pairs: [
-        {
-          quoteToken: "WFTM",
-          quoteTokenAddr: config.Tokens.WFTM!,
-          reserveQuoteToken: ethers.utils.parseUnits("10000", 18),
-          reserveBaseToken: ethers.utils.parseUnits("18000", 18),
+          reserveQuoteToken: ethers.utils.parseUnits("7188.0571", 18),
+          reserveBaseToken: ethers.utils.parseUnits("2", 18),
         },
       ],
     },
@@ -99,9 +57,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const deployer = (await ethers.getSigners())[0];
 
-  const factory = PancakeFactory__factory.connect(PANCAKE_FACTORY, deployer);
-  const router = PancakeRouter__factory.connect(PANCAKE_ROUTER, deployer);
-  const pancakeMasterchef = PancakeMasterChef__factory.connect(PANCAKE_MASTERCHEF, deployer);
+  const factory = PancakeFactory__factory.connect(FACTORY, deployer);
+  const router = PancakeRouter__factory.connect(ROUTER, deployer);
+  const masterchefLike = MasterChefLikeFactory.newMasterChefLike(WHICH_MASTERCHEF, MASTERCHEF_LIKE_ADDRESS, deployer);
   const wbnb = MockWBNB__factory.connect(WBNB, deployer);
 
   const MockERC20 = (await ethers.getContractFactory("MockERC20", deployer)) as MockERC20__factory;
@@ -174,16 +132,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       lp = await factory.getPair(token.address, quoteToken.address);
       console.log(`>> Adding the ${TOKENS[i].symbol}-${TOKENS[i].pairs[j].quoteToken} LP to MasterChef`);
       console.log(`>> ${TOKENS[i].symbol}-${TOKENS[i].pairs[j].quoteToken} LP address: ${lp}`);
-      if (!SPOOKY_FLAG) {
-        const addPoolTx = await pancakeMasterchef.add(1000, lp, true);
-        await addPoolTx.wait(3);
-        console.log(`✅ Done at ${addPoolTx.hash}`);
-      } else {
-        const spookyMasterChef = SpookyMasterChef__factory.connect(PANCAKE_MASTERCHEF, deployer);
-        const addPoolTx = await spookyMasterChef.add(1000, lp);
-        await addPoolTx.wait(3);
-        console.log(`✅ Done at ${addPoolTx.hash}`);
-      }
+      const addPoolTx = await masterchefLike.addPool(1000, lp);
+      await addPoolTx.wait(3);
+      console.log(`✅ Done at ${addPoolTx.hash}`);
     }
   }
 };

@@ -16,12 +16,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const config = ConfigEntity.getConfig();
 
-  const MIN_DEBT_SIZE = ethers.utils.parseEther("250");
+  const MIN_DEBT_SIZE = ethers.utils.parseEther("0.01");
   const RESERVE_POOL_BPS = "1900";
   const KILL_PRIZE_BPS = "100";
   const TREASURY_KILL_BPS = "400";
   const TREASURY_ADDR = "0x0FfA891ab6f410bbd7403b709e7d38D7a812125B";
-  const TRIPLE_SLOPE_MODEL = config.SharedConfig.TripleSlopeModel;
+  const TRIPLE_SLOPE_MODEL = config.SharedConfig.TwoSlopeModel;
   const WNATIVE = config.Tokens.WFTM!;
   const FAIR_LAUNCH = config.MiniFL!.address;
 

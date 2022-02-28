@@ -6,7 +6,7 @@ export interface Config {
   GrazingRange?: GrazingRange;
   FairLaunch?: FairLaunch;
   MiniFL?: MiniFL;
-  Exchanges: Exchanges;
+  YieldSources: YieldSources;
   Tokens: Tokens;
   LpTokens?: LpTokens;
   SharedStrategies: SharedStrategies;
@@ -52,11 +52,12 @@ export interface PoolsEntity2 {
   address: string;
   rewarder: string;
 }
-export interface Exchanges {
+export interface YieldSources {
   Pancakeswap?: Pancakeswap;
   Waultswap?: Waultswap;
   Mdex?: Mdex;
   SpookySwap?: SpookySwap;
+  TombFinance?: TombFinance;
 }
 export interface Pancakeswap {
   UniswapV2Factory: string;
@@ -64,9 +65,9 @@ export interface Pancakeswap {
   FactoryV2: string;
   RouterV2: string;
   MasterChef: string;
-  LpTokens: LpTokensEntity[];
+  pools: YieldPoolsEntity[];
 }
-export interface LpTokensEntity {
+export interface YieldPoolsEntity {
   pId: number;
   name: string;
   address: string;
@@ -75,21 +76,26 @@ export interface Waultswap {
   WexMaster: string;
   WaultswapRouter: string;
   WaultswapFactory: string;
-  LpTokens: LpTokensEntity[];
+  pools: YieldPoolsEntity[];
 }
 export interface Mdex {
   BSCPool: string;
   MdexFactory: string;
   MdexRouter: string;
   SwapMining: string;
-  LpTokens: LpTokensEntity[];
+  pools: YieldPoolsEntity[];
 }
 export interface SpookySwap {
   SpookyFactory: string;
   SpookyRouter: string;
   SpookyMasterChef: string;
+  pools: YieldPoolsEntity[];
+}
+export interface TombFinance {
+  SpookyFactory: string;
+  SpookyRouter: string;
   TShareRewardPool: string;
-  LpTokens: LpTokensEntity[];
+  pools: YieldPoolsEntity[];
 }
 export interface Tokens {
   WBNB?: string;
@@ -147,6 +153,8 @@ export interface Tokens {
   WFTM?: string;
   BOO?: string;
   USD?: string;
+  TOMB?: string;
+  TSHARE?: string;
 }
 export interface LpTokens {
   "ALPACA-WBNB": string;
@@ -168,6 +176,7 @@ export interface PancakeswapOrWaultswapOrPancakeswapSingleAsset {
   StrategyPartialCloseMinimizeTrading: string;
 }
 export interface SharedConfig {
+  TwoSlopeModel?: string;
   TripleSlopeModel: string;
   TripleSlopeModelStable20Max150?: string;
   TripleSlopeModel103?: string;
