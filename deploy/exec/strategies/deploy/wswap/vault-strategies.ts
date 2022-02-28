@@ -44,7 +44,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       )[0]
     )) as WaultSwapRestrictedStrategyAddTwoSidesOptimal__factory;
     const strategyRestrictedAddTwoSidesOptimal = (await upgrades.deployProxy(StrategyRestrictedAddTwoSidesOptimal, [
-      config.Exchanges.Waultswap!.WaultswapRouter,
+      config.YieldSources.Waultswap!.WaultswapRouter,
       targetedVault.address,
     ])) as WaultSwapRestrictedStrategyAddTwoSidesOptimal;
     await strategyRestrictedAddTwoSidesOptimal.deployed();

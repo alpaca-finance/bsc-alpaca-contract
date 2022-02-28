@@ -53,7 +53,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       deployer
     )) as SpookySwapStrategyAddBaseTokenOnly__factory;
     const strategyAddBaseTokenOnly = (await upgrades.deployProxy(SpookySwapStrategyAddBaseTokenOnly, [
-      config.Exchanges.SpookySwap!.SpookyRouter,
+      config.YieldSources.SpookySwap!.SpookyRouter,
     ])) as SpookySwapStrategyAddBaseTokenOnly;
     await strategyAddBaseTokenOnly.deployTransaction.wait(3);
     console.log(`>> Deployed at ${strategyAddBaseTokenOnly.address}`);
@@ -76,7 +76,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       deployer
     )) as SpookySwapStrategyLiquidate__factory;
     const strategyLiquidate = (await upgrades.deployProxy(SpookySwapStrategyLiquidate, [
-      config.Exchanges.SpookySwap!.SpookyRouter,
+      config.YieldSources.SpookySwap!.SpookyRouter,
     ])) as SpookySwapStrategyLiquidate;
     await strategyLiquidate.deployTransaction.wait(3);
     console.log(`>> Deployed at ${strategyLiquidate.address}`);
@@ -99,7 +99,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       deployer
     )) as SpookySwapStrategyWithdrawMinimizeTrading__factory;
     const strategyWithdrawMinimizeTrading = (await upgrades.deployProxy(SpookySwapStrategyWithdrawMinimizeTrading, [
-      config.Exchanges.SpookySwap!.SpookyRouter,
+      config.YieldSources.SpookySwap!.SpookyRouter,
       config.SharedConfig.WNativeRelayer,
     ])) as SpookySwapStrategyWithdrawMinimizeTrading;
     await strategyWithdrawMinimizeTrading.deployed();
@@ -126,7 +126,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       deployer
     )) as SpookySwapStrategyPartialCloseLiquidate__factory;
     const strategyPartialCloseLiquidate = (await upgrades.deployProxy(SpookySwapStrategyPartialCloseLiquidate, [
-      config.Exchanges.SpookySwap!.SpookyRouter,
+      config.YieldSources.SpookySwap!.SpookyRouter,
     ])) as SpookySwapStrategyPartialCloseLiquidate;
     await strategyPartialCloseLiquidate.deployTransaction.wait(3);
     console.log(`>> Deployed at ${strategyPartialCloseLiquidate.address}`);
@@ -150,7 +150,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     )) as SpookySwapStrategyPartialCloseMinimizeTrading__factory;
     const strategyPartialCloseMinimizeTrading = (await upgrades.deployProxy(
       SpookySwapStrategyPartialCloseMinimizeTrading,
-      [config.Exchanges.SpookySwap!.SpookyRouter, config.SharedConfig.WNativeRelayer]
+      [config.YieldSources.SpookySwap!.SpookyRouter, config.SharedConfig.WNativeRelayer]
     )) as SpookySwapStrategyPartialCloseMinimizeTrading;
     await strategyPartialCloseMinimizeTrading.deployTransaction.wait(3);
     console.log(`>> Deployed at ${strategyPartialCloseMinimizeTrading.address}`);

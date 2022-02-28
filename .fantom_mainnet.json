@@ -44,13 +44,12 @@
       }
     ]
   },
-  "Exchanges": {
+  "YieldSources": {
     "SpookySwap": {
       "SpookyFactory": "0x152eE697f2E276fA89E96742e9bB9aB1F2E61bE3",
       "SpookyRouter": "0xF491e7B69E4244ad4002BC14e878a34207E38c29",
       "SpookyMasterChef": "0x2b2929E785374c651a81A63878Ab22742656DcDd",
-      "TShareRewardPool": "0xcc0a87f7e7c693042a9cc703661f5060c80acb43",
-      "LpTokens": [
+      "pools": [
         { "pId": 2, "name": "WFTM-USDC LP", "address": "0x2b4C76d0dc16BE1C31D4C1DC53bF9B45987Fc75c" },
         { "pId": 0, "name": "BOO-WFTM LP", "address": "0xEc7178F4C41f346b2721907F5cF7628E388A7a58" },
         { "pId": 5, "name": "WFTM-ETH LP", "address": "0xf0702249F4D3A25cD3DED7859a165693685Ab577" },
@@ -60,6 +59,15 @@
         { "pId": 3, "name": "WFTM-DAI LP", "address": "0xe120ffBDA0d14f3Bb6d6053E90E63c572A66a428" },
         { "pId": 24, "name": "WFTM-MIM LP", "address": "0x6f86e65b255c9111109d2D2325ca2dFc82456efc" },
         { "pId": 63, "name": "ALPACA-WFTM LP", "address": "0xF66D2bf736c05723b62E833A5DD747E24855ff99" }
+      ]
+    },
+    "TombFinance": {
+      "SpookyFactory": "0x152eE697f2E276fA89E96742e9bB9aB1F2E61bE3",
+      "SpookyRouter": "0xF491e7B69E4244ad4002BC14e878a34207E38c29",
+      "TShareRewardPool": "0xcc0a87f7e7c693042a9cc703661f5060c80acb43",
+      "pools": [
+        { "pId": 0, "name": "TOMB-WFTM LP", "address": "0x2A651563C9d3Af67aE0388a5c8F89b867038089e" },
+        { "pId": 1, "name": "TSHARE-WFTM LP", "address": "0x4733bc45eF91cF7CcEcaeeDb794727075fB209F2" }
       ]
     }
   },
@@ -73,7 +81,9 @@
     "TUSD": "0x9879abdea01a879644185341f7af7d8343556b7a",
     "fUSDT": "0x049d68029688eabf473097a2fc38ef61633a3c7a",
     "DAI": "0x8d11ec38a3eb5e956b052f67da8bdc9bef8abf3e",
-    "MIM": "0x82f0b8b456c1a451378467398982d4834b6829c1"
+    "MIM": "0x82f0b8b456c1a451378467398982d4834b6829c1",
+    "TOMB": "0x6c021ae822bea943b2e66552bde1d2696a53fbb7",
+    "TSHARE": "0x4cdf39285d7ca8eb3f090fda0c069ba5f4145b37"
   },
   "SharedStrategies": {
     "SpookySwap": {
@@ -85,6 +95,7 @@
     }
   },
   "SharedConfig": {
+    "TwoSlopeModel": "0x8f8c8b9b8b9b8b9b8b9b8b9b8b9b8b9b8b9b8b9b",
     "TripleSlopeModel": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
     "WNativeRelayer": "0x3175EC52c36fFF63dCe00E8a50E6066D38884a11",
     "WorkerConfig": "0xca1Cf7C64481B8C095828d380922505E5942C60D"

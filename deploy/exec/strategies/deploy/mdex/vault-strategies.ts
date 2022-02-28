@@ -47,7 +47,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       )[0]
     )) as MdexRestrictedStrategyAddTwoSidesOptimal__factory;
     const strategyRestrictedAddTwoSidesOptimal = (await upgrades.deployProxy(MdexRestrictedStrategyAddTwoSidesOptimal, [
-      config.Exchanges.Mdex.MdexRouter,
+      config.YieldSources.Mdex.MdexRouter,
       targetedVault.address,
       config.Tokens.MDX,
     ])) as MdexRestrictedStrategyAddTwoSidesOptimal;

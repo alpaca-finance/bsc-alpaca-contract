@@ -211,14 +211,14 @@
       }
     ]
   },
-  "Exchanges": {
+  "YieldSources": {
     "Pancakeswap": {
       "UniswapV2Factory": "0x716e4852251f85BDFf23B2D5B53630b838A20FC8",
       "UniswapV2Router02": "0xf46A02489B99C5A4a5cC31AA3F9eBD6A501D4B49",
       "FactoryV2": "0xda8EE87e2172d997a7fe05a83FC5c472B40FacCE",
       "RouterV2": "0x367633909278A3C91f4cB130D8e56382F00D1071",
       "MasterChef": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
-      "LpTokens": [
+      "pools": [
         {
           "pId": 1,
           "name": "CAKE-WBNB LP (Legacy)",
@@ -605,7 +605,7 @@
       "WexMaster": "0x85F6A87A056313Fd1717937Cf3cC7BCe3e3445D1",
       "WaultswapRouter": "0xA0bC344E20d89ccA131f869E059499F41d7a13D3",
       "WaultswapFactory": "0xC907F67B0fBAEbe7B557B15a5Ef77345578C4202",
-      "LpTokens": [
+      "pools": [
         {
           "pId": 0,
           "name": "WEX-WBNB LP",
@@ -698,7 +698,7 @@
       "MdexFactory": "0xd9B500d8F4ab392c09b658057b3F35dDf03f9B0F",
       "MdexRouter": "0x5eFa5Fc3ED060BcAF54A270048cF53F3c6c2A5F3",
       "SwapMining": "0xbd466744e668607004a403c739309b65a6d14de8",
-      "LpTokens": [
+      "pools": [
         {
           "pId": 0,
           "name": "BTCB-USDT LP",
@@ -775,7 +775,7 @@
       "MasterApe": "0x0000000000000000000000000000000000000000",
       "ApesFactory": "0x0000000000000000000000000000000000000000",
       "ApeRouter": "0x0000000000000000000000000000000000000000",
-      "LpTokens": []
+      "pools": []
     }
   },
   "Tokens": {

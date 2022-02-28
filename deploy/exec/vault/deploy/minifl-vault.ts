@@ -29,10 +29,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const ALLOC_POINT_FOR_DEPOSIT = 0;
   const ALLOC_POINT_FOR_OPEN_POSITION = 0;
-  const VAULT_NAME = "ALPACA Vault";
-  const NAME = "Interest Bearing ALPACA";
-  const SYMBOL = "ibALPACA";
-  const REWARDER1_ADDRESS = "0x7EEAA96bf1aBaA206615046c0991E678a2b12Da1";
+  const VAULT_NAME = "TOMB Vault";
+  const NAME = "Interest Bearing TOMB";
+  const SYMBOL = "ibTOMB";
+  const REWARDER1_ADDRESS = "0x763a687E631A907baDd620E20e9A0869E3Ec543D";
   const EXACT_ETA = "888888"; // no use due to no timelock
 
   const config = ConfigEntity.getConfig();
