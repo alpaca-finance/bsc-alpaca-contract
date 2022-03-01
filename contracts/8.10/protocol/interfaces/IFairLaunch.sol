@@ -50,5 +50,13 @@ interface IFairLaunch {
 
   function getFairLaunchPoolId() external returns (uint256);
 
-  function poolInfo(uint256 _pid) external returns (address, uint256, uint256, uint256 ,uint256);
+  function poolInfo(uint256 _pid)
+    external
+    returns (
+      address,
+      uint256,
+      uint256,
+      uint256,
+      uint256
+    );
 }
