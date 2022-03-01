@@ -50,6 +50,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   event LogWithdraw(address indexed _shareOwner, uint256 _minStableTokenAmount, uint256 _minAssetTokenAmount);
   event LogRebalance(uint256 _equityBefore, uint256 _equityAfter);
   event LogReinvest(uint256 _equityBefore, uint256 _equityAfter);
+  event LogSetDeltaNeutralOracle(address indexed _caller, address _priceOracle);
+  event LogSetDeltaNeutralVaultConfig(address indexed _caller, address _config);
 
   /// @dev Errors
   error DeltaNeutralVault_BadReinvestPath();
@@ -695,6 +697,20 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       return 0;
     }
     return _totalPositionValue - _totalDebtValue;
+  }
+
+  /// @notice Set new DeltaNeutralOracle.
+  /// @param _newPriceOracle New deltaNeutralOracle address.
+  function setDeltaNeutralOracle(IDeltaNeutralOracle _newPriceOracle) external onlyOwner {
+    priceOracle = _newPriceOracle;
+    emit LogSetDeltaNeutralOracle(msg.sender, address(_newPriceOracle));
+  }
+
+  /// @notice Set new DeltaNeutralVaultConfig.
+  /// @param _newVaultConfig New deltaNeutralOracle address.
+  function setDeltaNeutralVaultConfig(IDeltaNeutralVaultConfig _newVaultConfig) external onlyOwner {
+    config = _newVaultConfig;
+    emit LogSetDeltaNeutralVaultConfig(msg.sender, address(_newVaultConfig));
   }
 
   /// @notice Return position debt + pending interest value.

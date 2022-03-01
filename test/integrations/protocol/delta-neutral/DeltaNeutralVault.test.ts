@@ -525,6 +525,57 @@ describe("DeltaNeutralVault", () => {
       });
     });
   });
+
+  describe("#setConfig", async () => {
+    context("when owner set new DeltaNeutralVaultConfig", async () => {
+      it("should be able to set new DeltaNeutralVaultConfig", async () => {
+        const deployHelper = new DeployHelper(deployer);
+
+        const deltaNeutralConfig = {
+          wNativeAddr: wbnb.address,
+          wNativeRelayer: wNativeRelayer.address,
+          fairlaunchAddr: fairLaunch.address,
+          rebalanceFactor: REBALANCE_FACTOR,
+          positionValueTolerance: POSITION_VALUE_TOLERANCE_BPS,
+          treasuryAddr: eveAddress,
+          alpacaBountyBps: BigNumber.from("100"),
+          alpacaTokenAddress: alpacaToken.address,
+        } as IDeltaNeutralVaultConfig;
+
+        const newDeltaVaultConfig = await deployHelper.deployDeltaNeutralVaultConfig(deltaNeutralConfig);
+
+        const setDeltaVaultConfigTx = await deltaVault.setDeltaNeutralVaultConfig(newDeltaVaultConfig.address);
+
+        expect(newDeltaVaultConfig.address).to.eq(await deltaVault.config());
+        expect(setDeltaVaultConfigTx)
+          .to.emit(deltaVault, "LogSetDeltaNeutralVaultConfig")
+          .withArgs(deployerAddress, newDeltaVaultConfig.address);
+      });
+    });
+
+    context("when owner set new DeltaNeutralOracle", async () => {
+      it("should be able to set new DeltaNeutralOracle", async () => {
+        const deployHelper = new DeployHelper(deployer);
+        let newPriceOracle;
+        let chainlink;
+
+        [newPriceOracle, chainlink] = await deployHelper.deployDeltaNeutralOracle(
+          [baseToken.address, wbnb.address],
+          [ethers.utils.parseEther("1"), ethers.utils.parseEther("200")],
+          [18, 18],
+          baseToken.address
+        );
+
+        const setDeltaNeutralOracleTx = await deltaVault.setDeltaNeutralOracle(newPriceOracle.address);
+
+        expect(newPriceOracle.address).to.eq(await deltaVault.priceOracle());
+        expect(setDeltaNeutralOracleTx)
+          .to.emit(deltaVault, "LogSetDeltaNeutralOracle")
+          .withArgs(deployerAddress, newPriceOracle.address);
+      });
+    });
+  });
+
   describe("#initPositions", async () => {
     context("when owner call initPositions", async () => {
       it("should initilize positions", async () => {

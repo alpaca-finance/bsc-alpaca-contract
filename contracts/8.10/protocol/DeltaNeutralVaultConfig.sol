@@ -84,7 +84,7 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   address public fairLaunchAddr;
   address public treasury;
 
-  uint256 private maxVaultPositionValue;
+  uint256 public maxVaultPositionValue;
   uint256 public override rebalanceFactor;
   uint256 public override positionValueTolerance;
 
