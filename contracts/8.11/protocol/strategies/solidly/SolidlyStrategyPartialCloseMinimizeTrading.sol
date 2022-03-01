@@ -26,7 +26,7 @@ import "../../interfaces/IMultiRewardWorker03.sol";
 
 import "../../../utils/SafeToken.sol";
 
-contract SpookySwapStrategyPartialCloseMinimizeTrading is OwnableUpgradeable, ReentrancyGuardUpgradeable, IStrategy {
+contract SolidlyStrategyPartialCloseMinimizeTrading is OwnableUpgradeable, ReentrancyGuardUpgradeable, IStrategy {
   using SafeToken for address;
 
   event LogSetWorkerOk(address[] indexed workers, bool isOk);
@@ -38,7 +38,7 @@ contract SpookySwapStrategyPartialCloseMinimizeTrading is OwnableUpgradeable, Re
 
   mapping(address => bool) public okWorkers;
 
-  event LogSpookySwapStrategyPartialCloseMinimizeTrading(
+  event LogSolidlyStrategyPartialCloseMinimizeTrading(
     address indexed baseToken,
     address indexed farmToken,
     uint256 amounToLiquidate,
@@ -52,7 +52,7 @@ contract SpookySwapStrategyPartialCloseMinimizeTrading is OwnableUpgradeable, Re
   }
 
   /// @dev Create a new withdraw minimize trading strategy instance.
-  /// @param _router The SpookySwap Router smart contract.
+  /// @param _router The Solidly Router smart contract.
   /// @param _wNativeRelayer The relayer to support native transfer
   function initialize(ISwapRouter02Like _router, IWNativeRelayer _wNativeRelayer) external initializer {
     OwnableUpgradeable.__Ownable_init();
@@ -125,7 +125,7 @@ contract SpookySwapStrategyPartialCloseMinimizeTrading is OwnableUpgradeable, Re
     address(lpToken).safeApprove(address(router), 0);
     farmingToken.safeApprove(address(router), 0);
 
-    emit LogSpookySwapStrategyPartialCloseMinimizeTrading(baseToken, farmingToken, lpTokenToLiquidate, lessDebt);
+    emit LogSolidlyStrategyPartialCloseMinimizeTrading(baseToken, farmingToken, lpTokenToLiquidate, lessDebt);
   }
 
   function setWorkersOk(address[] calldata workers, bool isOk) external onlyOwner {

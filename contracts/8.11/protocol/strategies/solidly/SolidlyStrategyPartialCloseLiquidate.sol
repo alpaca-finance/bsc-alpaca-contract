@@ -25,7 +25,7 @@ import "../../interfaces/IMultiRewardWorker03.sol";
 
 import "../../../utils/SafeToken.sol";
 
-contract SpookySwapStrategyPartialCloseLiquidate is OwnableUpgradeable, ReentrancyGuardUpgradeable, IStrategy {
+contract SolidlyStrategyPartialCloseLiquidate is OwnableUpgradeable, ReentrancyGuardUpgradeable, IStrategy {
   using SafeToken for address;
 
   event LogSetWorkerOk(address[] indexed workers, bool isOk);
@@ -35,7 +35,7 @@ contract SpookySwapStrategyPartialCloseLiquidate is OwnableUpgradeable, Reentran
 
   mapping(address => bool) public okWorkers;
 
-  event LogSpookySwapStrategyPartialCloseLiquidate(
+  event LogSolidlyStrategyPartialCloseLiquidate(
     address indexed baseToken,
     address indexed farmToken,
     uint256 amountToLiquidate,
@@ -98,7 +98,7 @@ contract SpookySwapStrategyPartialCloseLiquidate is OwnableUpgradeable, Reentran
     address(lpToken).safeApprove(address(router), 0);
     farmingToken.safeApprove(address(router), 0);
 
-    emit LogSpookySwapStrategyPartialCloseLiquidate(baseToken, farmingToken, lpTokenToLiquidate, lessDebt);
+    emit LogSolidlyStrategyPartialCloseLiquidate(baseToken, farmingToken, lpTokenToLiquidate, lessDebt);
   }
 
   function setWorkersOk(address[] calldata workers, bool isOk) external onlyOwner {

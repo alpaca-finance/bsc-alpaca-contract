@@ -4,7 +4,6 @@ import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import "@openzeppelin/test-helpers";
 import {
-  FairLaunch,
   MockERC20,
   MockERC20__factory,
   MockWBNB,
@@ -17,17 +16,16 @@ import {
   Vault__factory,
   WNativeRelayer,
   Erc20,
-  SpookySwapStrategyAddBaseTokenOnly,
-  SpookySwapStrategyLiquidate,
-  SpookySwapStrategyAddTwoSidesOptimal,
-  SpookySwapStrategyWithdrawMinimizeTrading,
-  SpookySwapStrategyPartialCloseLiquidate,
-  SpookySwapStrategyPartialCloseMinimizeTrading,
-  SpookyMasterChef,
-  SpookyWorker03,
-  SpookyWorker03__factory,
-  SpookyMasterChef__factory,
-  Vault2,
+  SolidlyStrategyAddBaseTokenOnly,
+  SolidlyStrategyLiquidate,
+  SolidlyStrategyAddTwoSidesOptimal,
+  SolidlyStrategyWithdrawMinimizeTrading,
+  SolidlyStrategyPartialCloseLiquidate,
+  SolidlyStrategyPartialCloseMinimizeTrading,
+  LpDepositor,
+  SEXWorker03,
+  SEXWorker03__factory,
+  LpDepositor__factory,
   MiniFL,
   Rewarder1,
   MiniFL__factory,
@@ -42,7 +40,7 @@ import { Worker02Helper } from "../../../../helpers/worker";
 chai.use(solidity);
 const { expect } = chai;
 
-describe("Vault - SpookyWorker03", () => {
+describe("Vault - SEXWorker03", () => {
   const FOREVER = "2000000000";
   const LM_REWARD_PER_SECOND = ethers.utils.parseEther("100");
   const BOO_PER_SEC = ethers.utils.parseEther("0.076");
@@ -79,21 +77,21 @@ describe("Vault - SpookyWorker03", () => {
   let rewarder1: Rewarder1;
 
   /// Strategy-ralted instance(s)
-  let addStrat: SpookySwapStrategyAddBaseTokenOnly;
-  let liqStrat: SpookySwapStrategyLiquidate;
-  let twoSidesStrat: SpookySwapStrategyAddTwoSidesOptimal;
-  let minimizeStrat: SpookySwapStrategyWithdrawMinimizeTrading;
-  let partialCloseStrat: SpookySwapStrategyPartialCloseLiquidate;
-  let partialCloseMinimizeStrat: SpookySwapStrategyPartialCloseMinimizeTrading;
+  let addStrat: SolidlyStrategyAddBaseTokenOnly;
+  let liqStrat: SolidlyStrategyLiquidate;
+  let twoSidesStrat: SolidlyStrategyAddTwoSidesOptimal;
+  let minimizeStrat: SolidlyStrategyWithdrawMinimizeTrading;
+  let partialCloseStrat: SolidlyStrategyPartialCloseLiquidate;
+  let partialCloseMinimizeStrat: SolidlyStrategyPartialCloseMinimizeTrading;
 
   /// Vault-related instance(s)
   let simpleVaultConfig: SimpleVaultConfig;
   let wNativeRelayer: WNativeRelayer;
   let vault: Vault;
 
-  /// SpookyMasterChef-related instance(s)
-  let masterChef: SpookyMasterChef;
-  let spookyWorker: SpookyWorker03;
+  /// LpDepositor-related instance(s)
+  let masterChef: LpDepositor;
+  let spookyWorker: SEXWorker03;
 
   // Accounts
   let deployer: Signer;
@@ -115,10 +113,10 @@ describe("Vault - SpookyWorker03", () => {
   let lpAsAlice: BaseV1Pair;
   let lpAsBob: BaseV1Pair;
 
-  let masterChefAsAlice: SpookyMasterChef;
-  let masterChefAsBob: SpookyMasterChef;
+  let masterChefAsAlice: LpDepositor;
+  let masterChefAsBob: LpDepositor;
 
-  let spookyWorkerAsEve: SpookyWorker03;
+  let spookyWorkerAsEve: SEXWorker03;
 
   let vaultAsAlice: Vault;
   let vaultAsBob: Vault;
@@ -143,7 +141,7 @@ describe("Vault - SpookyWorker03", () => {
     const deployHelper = new DeployHelper(deployer);
 
     wbnb = await deployHelper.deployWBNB();
-    [factory, router, boo, masterChef] = await deployHelper.deploySpookySwap(wbnb, BOO_PER_SEC);
+    [factory, router, boo, masterChef] = await deployHelper.deploySolidly(wbnb, BOO_PER_SEC);
     [alpacaToken, extraToken, baseToken, farmToken] = await deployHelper.deployBEP20([
       {
         name: "ALPACA",
@@ -203,14 +201,14 @@ describe("Vault - SpookyWorker03", () => {
       baseToken
     );
     [addStrat, liqStrat, twoSidesStrat, minimizeStrat, partialCloseStrat, partialCloseMinimizeStrat] =
-      await deployHelper.deploySpookySwapStrategies(router, vault, wNativeRelayer);
+      await deployHelper.deploySolidlyStrategies(router, vault, wNativeRelayer);
 
     /// Set reward per second on both MiniFL and Rewarder
     await miniFL.setAlpacaPerSecond(LM_REWARD_PER_SECOND, true);
     await rewarder1.setRewardPerSecond(LM_REWARD_PER_SECOND, true);
     await rewarder1.addPool(1, 0, true);
 
-    /// Setup BTOKEN-FTOKEN pair on SpookySwap
+    /// Setup BTOKEN-FTOKEN pair on Solidly
     await factory.createPair(baseToken.address, farmToken.address);
     lp = BaseV1Pair__factory.connect(await factory.getPair(farmToken.address, baseToken.address), deployer);
     await lp.deployed();
@@ -218,9 +216,9 @@ describe("Vault - SpookyWorker03", () => {
     // Add lp to masterChef's pool
     await masterChef.add(1, lp.address);
 
-    /// Setup SpookyWorker03
-    const SpookyWorker03 = (await ethers.getContractFactory("SpookyWorker03", deployer)) as SpookyWorker03__factory;
-    spookyWorker = (await upgrades.deployProxy(SpookyWorker03, [
+    /// Setup SEXWorker03
+    const SEXWorker03 = (await ethers.getContractFactory("SEXWorker03", deployer)) as SEXWorker03__factory;
+    spookyWorker = (await upgrades.deployProxy(SEXWorker03, [
       vault.address,
       baseToken.address,
       masterChef.address,
@@ -232,7 +230,7 @@ describe("Vault - SpookyWorker03", () => {
       DEPLOYER,
       [boo.address, wbnb.address, baseToken.address],
       "0",
-    ])) as SpookyWorker03;
+    ])) as SEXWorker03;
     await spookyWorker.deployed();
 
     await simpleVaultConfig.setWorker(spookyWorker.address, true, true, WORK_FACTOR, KILL_FACTOR, true, true);
@@ -291,8 +289,8 @@ describe("Vault - SpookyWorker03", () => {
     lpAsAlice = BaseV1Pair__factory.connect(lp.address, alice);
     lpAsBob = BaseV1Pair__factory.connect(lp.address, bob);
 
-    masterChefAsAlice = SpookyMasterChef__factory.connect(masterChef.address, alice);
-    masterChefAsBob = SpookyMasterChef__factory.connect(masterChef.address, bob);
+    masterChefAsAlice = LpDepositor__factory.connect(masterChef.address, alice);
+    masterChefAsBob = LpDepositor__factory.connect(masterChef.address, bob);
 
     vaultAsAlice = Vault__factory.connect(vault.address, alice);
     vaultAsBob = Vault__factory.connect(vault.address, bob);
@@ -302,7 +300,7 @@ describe("Vault - SpookyWorker03", () => {
     miniFLasBob = MiniFL__factory.connect(miniFL.address, bob);
     miniFLasEve = MiniFL__factory.connect(miniFL.address, eve);
 
-    spookyWorkerAsEve = SpookyWorker03__factory.connect(spookyWorker.address, eve);
+    spookyWorkerAsEve = SEXWorker03__factory.connect(spookyWorker.address, eve);
   }
 
   beforeEach(async () => {
@@ -310,7 +308,7 @@ describe("Vault - SpookyWorker03", () => {
   });
 
   context("when worker is initialized", async () => {
-    it("should has FTOKEN as a farmingToken in SpookyWorker03", async () => {
+    it("should has FTOKEN as a farmingToken in SEXWorker03", async () => {
       expect(await spookyWorker.farmingToken()).to.be.equal(farmToken.address);
     });
 

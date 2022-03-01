@@ -111,6 +111,17 @@ import {
   Rewarder1,
   Rewarder1__factory,
   IVault,
+  BaseV1Factory,
+  BaseV1Router01,
+  Erc20,
+  LpDepositor,
+  BaseV1Factory__factory,
+  BaseV1Router01__factory,
+  Erc20__factory,
+  LpDepositor__factory,
+  Ve__factory,
+  VotingEscrow__factory,
+  BaseV1Voter__factory,
 } from "../../typechain";
 
 import * as TimeHelpers from "../helpers/time";
@@ -1009,5 +1020,39 @@ export class DeployHelper {
     await wNativeRelayer.setCallerOk([partialCloseMinimizeStrat.address], true);
 
     return [addStrat, liqStrat, twoSidesStrat, minimizeTradeStrat, partialCloseStrat, partialCloseMinimizeStrat];
+  }
+
+  public async deploySolidly(wbnb: MockWBNB): Promise<[BaseV1Factory, BaseV1Router01, Erc20, LpDepositor]> {
+    const BaseV1Factory = (await ethers.getContractFactory("BaseV1Factory", this.deployer)) as BaseV1Factory__factory;
+    const factory = await BaseV1Factory.deploy();
+    await factory.deployed();
+
+    const BaseV1Router01 = (await ethers.getContractFactory(
+      "BaseV1Router01",
+      this.deployer
+    )) as BaseV1Router01__factory;
+    const router = await BaseV1Router01.deploy(factory.address, wbnb.address);
+    await router.deployed();
+
+    const BaseV1Voter = (await ethers.getContractFactory("BaseV1Voter", this.deployer)) as BaseV1Voter__factory;
+    const baseV1Voter = await BaseV1Voter.deploy();
+
+    const SOLIDToken = (await ethers.getContractFactory("Erc20", this.deployer)) as Erc20__factory;
+    const solid = await SOLIDToken.deploy();
+    await solid.deployed();
+    await solid.mint(await this.deployer.getAddress(), ethers.utils.parseEther("100"));
+
+    const VotingEscrow = (await ethers.getContractFactory("Ve", this.deployer)) as VotingEscrow__factory;
+    const votingEscrow = await VotingEscrow.deploy(solid.address);
+    await votingEscrow.deployed();
+
+    /// Setup MasterChef
+    const LpDepositor = (await ethers.getContractFactory("LpDepositor", this.deployer)) as LpDepositor__factory;
+    const lpDepositor = await LpDepositor.deploy(solid.address);
+    await lpDepositor.deployed();
+    // Transfer ownership so MasterChef can mint BOO
+    await boo.transferOwnership(spookyMasterChef.address);
+
+    return [factory, router, boo, spookyMasterChef];
   }
 }

@@ -24,7 +24,7 @@ import "../../interfaces/IMultiRewardWorker03.sol";
 
 import "../../../utils/SafeToken.sol";
 
-contract SpookySwapStrategyLiquidate is OwnableUpgradeable, ReentrancyGuardUpgradeable, IStrategy {
+contract SolidlyStrategyLiquidate is OwnableUpgradeable, ReentrancyGuardUpgradeable, IStrategy {
   using SafeToken for address;
 
   event LogSetWorkerOk(address[] indexed workers, bool isOk);

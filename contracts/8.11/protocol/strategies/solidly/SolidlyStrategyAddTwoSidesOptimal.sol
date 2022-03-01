@@ -26,7 +26,7 @@ import "../../interfaces/IMultiRewardWorker03.sol";
 import "../../../utils/SafeToken.sol";
 import "../../../utils/AlpacaMath.sol";
 
-contract SpookySwapStrategyAddTwoSidesOptimal is OwnableUpgradeable, ReentrancyGuardUpgradeable, IStrategy {
+contract SolidlyStrategyAddTwoSidesOptimal is OwnableUpgradeable, ReentrancyGuardUpgradeable, IStrategy {
   using SafeToken for address;
 
   event LogSetWorkerOk(address[] indexed workers, bool isOk);

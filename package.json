@@ -272,6 +272,8 @@
     "test:spookyminimize": "hardhat test --no-compile ./test/integrations/protocol/strategies/spookyswap/Spookyswap_Minimize.test.ts",
     "test:spookypartialliquidate": "hardhat test --no-compile ./test/integrations/protocol/strategies/spookyswap/Spookyswap_PartialCloseLiquidate.test.ts",
     "test:spookypartialminimize": "hardhat test --no-compile ./test/integrations/protocol/strategies/spookyswap/Spookyswap_PartialCloseMinimize.test.ts",
+    "test:solidlyadd": "hardhat test --no-compile ./test/integrations/protocol/strategies/solidly/Solidly_AddBaseTokenOnly.test.ts",
+    "test:solidlytwosides": "hardhat test --no-compile ./test/integrations/protocol/strategies/solidly/Solidly_AddTwoSidesOptimal.test.ts",
     "test:vault2_spooky03": "hardhat test --no-compile ./test/integrations/protocol/workers/spookyswap/Vault2_SpookyWorker03.test.ts",
     "test:vault_spooky03": "hardhat test --no-compile ./test/integrations/protocol/workers/spookyswap/Vault_SpookyWorker03.test.ts",
     "test:router": "hardhat test --no-compile ./test/IbTokenRouter.test.ts",

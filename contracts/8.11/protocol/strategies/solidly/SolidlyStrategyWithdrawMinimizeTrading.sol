@@ -25,7 +25,7 @@ import "../../interfaces/IMultiRewardWorker03.sol";
 
 import "../../../utils/SafeToken.sol";
 
-contract SpookySwapStrategyWithdrawMinimizeTrading is OwnableUpgradeable, ReentrancyGuardUpgradeable, IStrategy {
+contract SolidlyStrategyWithdrawMinimizeTrading is OwnableUpgradeable, ReentrancyGuardUpgradeable, IStrategy {
   using SafeToken for address;
 
   event LogSetWorkerOk(address[] indexed workers, bool isOk);
@@ -44,7 +44,7 @@ contract SpookySwapStrategyWithdrawMinimizeTrading is OwnableUpgradeable, Reentr
   }
 
   /// @dev Create a new withdraw minimize trading strategy instance.
-  /// @param _router The SpookySwap Router smart contract.
+  /// @param _router The Solidly Router smart contract.
   /// @param _wNativeRelayer The relayer to support native transfer
   function initialize(ISwapRouter02Like _router, IWNativeRelayer _wNativeRelayer) external initializer {
     OwnableUpgradeable.__Ownable_init();

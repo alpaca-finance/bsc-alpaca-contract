@@ -22,7 +22,7 @@ import "../../interfaces/ISwapRouter02Like.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IMultiRewardWorker03.sol";
 import "../../interfaces/IVault.sol";
-import "../../interfaces/ILPDepositor.sol";
+import "../../apis/solidex/ILpDepositor.sol";
 
 import "../../../utils/SafeToken.sol";
 
@@ -55,7 +55,7 @@ contract SEXWorker03 is OwnableUpgradeable, ReentrancyGuardUpgradeable, IMultiRe
     address[] reinvestPath
   );
   /// @notice Immutable variables
-  ILPDepositor public lpDepositor;
+  ILpDepositor public lpDepositor;
   ISwapFactoryLike public factory;
   ISwapRouter02Like public router;
   ISwapPairLike public override lpToken;
@@ -88,7 +88,7 @@ contract SEXWorker03 is OwnableUpgradeable, ReentrancyGuardUpgradeable, IMultiRe
   function initialize(
     address _operator,
     address _baseToken,
-    ILPDepositor _lpDepositor,
+    ILpDepositor _lpDepositor,
     ISwapPairLike _lpToken,
     ISwapRouter02Like _router,
     IStrategy _addStrat,

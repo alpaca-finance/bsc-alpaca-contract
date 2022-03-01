@@ -18,7 +18,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 import "../../interfaces/ISwapFactoryLike.sol";
 import "../../interfaces/ISwapPairLike.sol";
-import "../../interfaces/ISwapRouter02Like.sol";
+import "../../interfaces/IBaseV1Router01.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IMultiRewardWorker03.sol";
 
@@ -31,7 +31,7 @@ contract SolidlyStrategyAddBaseTokenOnly is OwnableUpgradeable, ReentrancyGuardU
   event LogSetWorkerOk(address[] indexed workers, bool isOk);
 
   ISwapFactoryLike public factory;
-  ISwapRouter02Like public router;
+  IBaseV1Router01 public router;
   mapping(address => bool) public okWorkers;
 
   /// @notice require that only allowed workers are able to do the rest of the method call
@@ -42,7 +42,7 @@ contract SolidlyStrategyAddBaseTokenOnly is OwnableUpgradeable, ReentrancyGuardU
 
   /// @dev Create a new add Token only strategy instance.
   /// @param _router The Solidly Router smart contract.
-  function initialize(ISwapRouter02Like _router) external initializer {
+  function initialize(IBaseV1Router01 _router) external initializer {
     OwnableUpgradeable.__Ownable_init();
     ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
     factory = ISwapFactoryLike(_router.factory());
@@ -71,21 +71,20 @@ contract SolidlyStrategyAddBaseTokenOnly is OwnableUpgradeable, ReentrancyGuardU
     (uint256 r0, uint256 r1, ) = lpToken.getReserves();
     uint256 rIn = lpToken.token0() == baseToken ? r0 : r1;
     // find how many baseToken need to be converted to farmingToken
-    // Constants come from
-    // 2-f = 2-0.002 = 1.998
-    // 4(1-f) = 4*998*1000 = 3992000, where f = 0.0020 and 1,000 is a way to avoid floating point
-    // 1998^2 = 3992004
-    // 998*2 = 1996
-    uint256 aIn = AlpacaMath.sqrt(rIn * (balance * 3992000 + (rIn * 3992004))) - (rIn * 1998) / 1996;
+    // where a = base token reserve
+    // where x = base token balance to optimal swap
+    // swapAmt = (5000 (sqrt(399960001 a^2 + 399920004 a x) -19999 a))/99980001
+    uint256 aIn = (5000 * (AlpacaMath.sqrt(399960001 * rIn**2 + 399920004 * rIn * balance) - (19999 * rIn))) / 99980001;
     // 4. Convert that portion of baseToken to farmingToken.
     address[] memory path = new address[](2);
     path[0] = baseToken;
     path[1] = farmingToken;
-    router.swapExactTokensForTokens(aIn, 0, path, address(this), block.timestamp);
+    router.swapExactTokensForTokensSimple(aIn, 0, path[0], path[1], false, address(this), block.timestamp);
     // 5. Mint more LP tokens and return all LP tokens to the sender.
     (, , uint256 moreLPAmount) = router.addLiquidity(
       baseToken,
       farmingToken,
+      false,
       baseToken.myBalance(),
       farmingToken.myBalance(),
       0,
