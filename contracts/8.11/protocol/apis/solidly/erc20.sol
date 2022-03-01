@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 interface erc20 {
   function totalSupply() external view returns (uint256);
 
