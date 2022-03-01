@@ -527,6 +527,18 @@ describe("DeltaNeutralVault", () => {
   });
 
   describe("#setConfig", async () => {
+    context("when not owner call set DeltaNeutralVaultConfig", async () => {
+      it("should revert", async () => {
+        await expect(deltaVaultAsAlice.setDeltaNeutralVaultConfig(aliceAddress)).to.be.reverted;
+      });
+    });
+
+    context("when owner set wrong DeltaNeutralVaultConfig", async () => {
+      it("should revert", async () => {
+        await expect(deltaVault.setDeltaNeutralVaultConfig(aliceAddress)).to.be.reverted;
+      });
+    });
+
     context("when owner set new DeltaNeutralVaultConfig", async () => {
       it("should be able to set new DeltaNeutralVaultConfig", async () => {
         const deployHelper = new DeployHelper(deployer);
@@ -553,6 +565,16 @@ describe("DeltaNeutralVault", () => {
       });
     });
 
+    context("when not owner call set DeltaNeutralOracle", async () => {
+      it("should revert", async () => {
+        await expect(deltaVaultAsAlice.setDeltaNeutralOracle(aliceAddress)).to.be.reverted;
+      });
+    });
+    context("when owner set wrong DeltaNeutralOracle", async () => {
+      it("should revert", async () => {
+        await expect(deltaVault.setDeltaNeutralOracle(aliceAddress)).to.be.reverted;
+      });
+    });
     context("when owner set new DeltaNeutralOracle", async () => {
       it("should be able to set new DeltaNeutralOracle", async () => {
         const deployHelper = new DeployHelper(deployer);

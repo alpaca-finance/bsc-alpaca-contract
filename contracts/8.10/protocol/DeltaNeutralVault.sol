@@ -702,6 +702,10 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   /// @notice Set new DeltaNeutralOracle.
   /// @param _newPriceOracle New deltaNeutralOracle address.
   function setDeltaNeutralOracle(IDeltaNeutralOracle _newPriceOracle) external onlyOwner {
+    // sanity call
+    _newPriceOracle.getTokenPrice(stableToken);
+    _newPriceOracle.lpToDollar(1e18, lpToken);
+
     priceOracle = _newPriceOracle;
     emit LogSetDeltaNeutralOracle(msg.sender, address(_newPriceOracle));
   }
@@ -709,6 +713,9 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   /// @notice Set new DeltaNeutralVaultConfig.
   /// @param _newVaultConfig New deltaNeutralOracle address.
   function setDeltaNeutralVaultConfig(IDeltaNeutralVaultConfig _newVaultConfig) external onlyOwner {
+    // sanity call
+    _newVaultConfig.positionValueTolerance();
+
     config = _newVaultConfig;
     emit LogSetDeltaNeutralVaultConfig(msg.sender, address(_newVaultConfig));
   }
