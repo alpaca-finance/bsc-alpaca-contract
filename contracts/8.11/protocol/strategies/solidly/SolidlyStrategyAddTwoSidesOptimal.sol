@@ -18,7 +18,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 import "../../interfaces/ISwapFactoryLike.sol";
 import "../../interfaces/ISwapPairLike.sol";
-import "../../interfaces/ISwapRouter02Like.sol";
+import "../../interfaces/IBaseV1Router01.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IVault.sol";
 import "../../interfaces/IMultiRewardWorker03.sol";
@@ -32,7 +32,7 @@ contract SolidlyStrategyAddTwoSidesOptimal is OwnableUpgradeable, ReentrancyGuar
   event LogSetWorkerOk(address[] indexed workers, bool isOk);
 
   ISwapFactoryLike public factory;
-  ISwapRouter02Like public router;
+  IBaseV1Router01 public router;
   IVault public vault;
 
   mapping(address => bool) public okWorkers;
@@ -45,7 +45,7 @@ contract SolidlyStrategyAddTwoSidesOptimal is OwnableUpgradeable, ReentrancyGuar
 
   /// @dev Create a new add two-side optimal strategy instance.
   /// @param _router The WaultSwap Router smart contract.
-  function initialize(ISwapRouter02Like _router, IVault _vault) external initializer {
+  function initialize(IBaseV1Router01 _router, IVault _vault) external initializer {
     OwnableUpgradeable.__Ownable_init();
     ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
     factory = ISwapFactoryLike(_router.factory());
@@ -63,7 +63,7 @@ contract SolidlyStrategyAddTwoSidesOptimal is OwnableUpgradeable, ReentrancyGuar
     uint256 amtB,
     uint256 resA,
     uint256 resB
-  ) internal pure returns (uint256 swapAmt, bool isReversed) {
+  ) internal view returns (uint256 swapAmt, bool isReversed) {
     if (amtA * (resB) >= amtB * (resA)) {
       swapAmt = _optimalDepositA(amtA, amtB, resA, resB);
       isReversed = false;
@@ -84,21 +84,15 @@ contract SolidlyStrategyAddTwoSidesOptimal is OwnableUpgradeable, ReentrancyGuar
     uint256 amtB,
     uint256 resA,
     uint256 resB
-  ) internal pure returns (uint256) {
+  ) internal view returns (uint256) {
     require(amtA * (resB) >= amtB * (resA), "reversed");
+    uint256 fee = amtA / 10000;
+    uint256 _c = (amtA * resB) - (amtB * resA);
+    uint256 c = _c / (amtB + resB);
 
-    uint256 a = 998;
-    uint256 b = uint256(1998) * (resA);
-    uint256 _c = (amtA * (resB)) - (amtB * (resA));
-    uint256 c = ((_c * (1000)) / (amtB + (resB))) * (resA);
-
-    uint256 d = a * (c) * (4);
-    uint256 e = AlpacaMath.sqrt(b * (b) + (d));
-
-    uint256 numerator = e - (b);
-    uint256 denominator = a * (2);
-
-    return numerator / (denominator);
+    uint256 swapAmt = (5000 * (AlpacaMath.sqrt(399960001 * resA**2 + 399920004 * resA * c) - (19999 * resA))) /
+      99980001;
+    return swapAmt;
   }
 
   /// @dev Execute worker strategy. Take BaseToken + FarmingToken. Return LP tokens.
@@ -137,11 +131,13 @@ contract SolidlyStrategyAddTwoSidesOptimal is OwnableUpgradeable, ReentrancyGuar
     address[] memory path = new address[](2);
     (path[0], path[1]) = isReversed ? (farmingToken, baseToken) : (baseToken, farmingToken);
     // 5. Swap according to path
-    if (swapAmt > 0) router.swapExactTokensForTokens(swapAmt, 0, path, address(this), block.timestamp);
+    if (swapAmt > 0)
+      router.swapExactTokensForTokensSimple(swapAmt, 0, path[0], path[1], false, address(this), block.timestamp);
     // 6. Mint more LP tokens and return all LP tokens to the sender.
     (, , uint256 moreLPAmount) = router.addLiquidity(
       baseToken,
       farmingToken,
+      false,
       baseToken.myBalance(),
       farmingToken.myBalance(),
       0,
