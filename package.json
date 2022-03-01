@@ -330,6 +330,7 @@
     "test:mainnetfork:grazingRangeV2": "hardhat --network mainnetfork run --no-compile ./test/fork/GrazingRangeUpgrade.test.ts",
     "test:mainnet-fork:deltaneutraloracle": "hardhat --network mainnetfork run --no-compile ./scripts/fork/DeltaNeutralOracle.test.ts",
     "test:miniFL": "hardhat test --no-compile ./test/integrations/token/MiniFL.test.ts",
+    "test:FLRelayer": "hardhat test --no-compile ./test/integrations/protocol/FairLaunchRelayer.test.ts",
     "test": "hardhat test --no-compile",
     "testnet": "hardhat console --no-compile --network testnet",
     "fantom_testnet": "hardhat console --no-compile --network fantom_testnet",
