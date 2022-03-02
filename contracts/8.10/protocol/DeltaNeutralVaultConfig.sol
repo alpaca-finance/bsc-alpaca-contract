@@ -58,7 +58,7 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   uint8 private constant MIN_LEVERAGE_LEVEL = 3;
   uint256 private constant MAX_DEPOSIT_FEE_BPS = 1000;
   uint256 private constant MAX_WITHDRAWAL_FEE_BPS = 1000;
-  uint256 private constant MAX_MANGEMENT_FEE_BPS = 1000;
+  uint256 private constant MAX_MANGEMENT_FEE_PER_SEC = 3170979198;
   uint256 private constant MAX_ALPACA_BOUNTY_BPS = 2500;
 
   /// @dev Configuration for Delta Neutral Vault
@@ -221,24 +221,23 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   /// @dev Must only be called by owner.
   /// @param _newDepositFeeBps Fee when user deposit to delta neutral vault.
   /// @param _newWithdrawalFeeBps Fee when user deposit to delta neutral vault.
-  /// @param _newManagementFeeBps Mangement Fee Bps per annum.
+  /// @param _newManagementFeePerSec Mangement Fee per second.
   function setFees(
     uint256 _newDepositFeeBps,
     uint256 _newWithdrawalFeeBps,
-    uint256 _newManagementFeeBps
+    uint256 _newManagementFeePerSec
   ) external onlyOwner {
     if (
       _newDepositFeeBps > MAX_DEPOSIT_FEE_BPS ||
       _newWithdrawalFeeBps > MAX_WITHDRAWAL_FEE_BPS ||
-      _newManagementFeeBps > MAX_MANGEMENT_FEE_BPS
+      _newManagementFeePerSec > MAX_MANGEMENT_FEE_PER_SEC
     ) {
-      revert DeltaNeutralVaultConfig_TooMuchFee(_newDepositFeeBps, _newWithdrawalFeeBps, _newManagementFeeBps);
+      revert DeltaNeutralVaultConfig_TooMuchFee(_newDepositFeeBps, _newWithdrawalFeeBps, _newManagementFeePerSec);
     }
     depositFeeBps = _newDepositFeeBps;
     withdrawalFeeBps = _newWithdrawalFeeBps;
-    // managementFeePerSec = (_newManagementFeeBps * 1e18) / (365 days * 10000);
-    managementFeePerSec = (_newManagementFeeBps * 1e14) / (365 days);
-    emit LogSetFees(msg.sender, _newDepositFeeBps, _newWithdrawalFeeBps, managementFeePerSec);
+    managementFeePerSec = _newManagementFeePerSec;
+    emit LogSetFees(msg.sender, _newDepositFeeBps, _newWithdrawalFeeBps, _newManagementFeePerSec);
   }
 
   /// @notice Set alpacaBountyBps.
