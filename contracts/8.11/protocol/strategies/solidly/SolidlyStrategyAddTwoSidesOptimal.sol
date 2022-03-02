@@ -89,7 +89,6 @@ contract SolidlyStrategyAddTwoSidesOptimal is OwnableUpgradeable, ReentrancyGuar
     uint256 fee = amtA / 10000;
     uint256 _c = (amtA * resB) - (amtB * resA);
     uint256 c = _c / (amtB + resB);
-
     uint256 swapAmt = (5000 * (AlpacaMath.sqrt(399960001 * resA**2 + 399920004 * resA * c) - (19999 * resA))) /
       99980001;
     return swapAmt;
@@ -115,13 +114,27 @@ contract SolidlyStrategyAddTwoSidesOptimal is OwnableUpgradeable, ReentrancyGuar
     // 3. Compute the optimal amount of BaseToken and FarmingToken to be converted.
     vault.requestFunds(farmingToken, farmingTokenAmount);
     uint256 baseTokenBalance = baseToken.myBalance();
+
+    if (baseTokenBalance > 0 && farmingToken.myBalance() > 0)
+      router.addLiquidity(
+        baseToken,
+        farmingToken,
+        false,
+        baseToken.myBalance(),
+        farmingToken.myBalance(),
+        0,
+        0,
+        address(this),
+        block.timestamp
+      );
+
     uint256 swapAmt;
     bool isReversed;
     {
       (uint256 r0, uint256 r1, ) = lpToken.getReserves();
       (uint256 baseTokenReserve, uint256 farmingTokenReserve) = lpToken.token0() == baseToken ? (r0, r1) : (r1, r0);
       (swapAmt, isReversed) = optimalDeposit(
-        baseTokenBalance,
+        baseToken.myBalance(),
         farmingToken.myBalance(),
         baseTokenReserve,
         farmingTokenReserve
