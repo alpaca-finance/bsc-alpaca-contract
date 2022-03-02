@@ -38,6 +38,8 @@ contract MockFairLaunch is IFairLaunch {
   uint256 public override poolLength;
   PoolInfo[] public override poolInfo;
 
+  uint256 private mockPendingAlpaca;
+
   constructor(address _alpaca, address _proxyToken) {
     alpaca = _alpaca;
     proxyToken = _proxyToken;
@@ -56,12 +58,15 @@ contract MockFairLaunch is IFairLaunch {
     revert MockFairLaunch_NotImplemented();
   }
 
-  // Not used in test
-  function pendingAlpaca(uint256 _pid, address _user) external pure returns (uint256) {
-    //avoid warning
+  function pendingAlpaca(uint256 _pid, address _user) external view returns (uint256) {
+    //avoid waring
     _pid = 0;
     _user = address(0);
-    revert MockFairLaunch_NotImplemented();
+    return mockPendingAlpaca;
+  }
+
+  function setPendingAlpaca(uint256 _mockPendingAlpaca) external {
+    mockPendingAlpaca = _mockPendingAlpaca;
   }
 
   // Not used in test
@@ -137,9 +142,9 @@ contract MockFairLaunch is IFairLaunch {
     //avoid warning
     _pid = 0;
 
-    require(DEFAULT_HARVEST_AMOUNT <= alpaca.myBalance(), "not enough alpaca");
-    SafeToken.safeApprove(alpaca, msg.sender, DEFAULT_HARVEST_AMOUNT);
-    alpaca.safeTransfer(msg.sender, DEFAULT_HARVEST_AMOUNT);
+    require(mockPendingAlpaca <= alpaca.myBalance(), "not enough alpaca");
+    SafeToken.safeApprove(alpaca, msg.sender, mockPendingAlpaca);
+    alpaca.safeTransfer(msg.sender, mockPendingAlpaca);
     SafeToken.safeApprove(alpaca, msg.sender, 0);
   }
 }

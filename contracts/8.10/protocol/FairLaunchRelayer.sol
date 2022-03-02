@@ -36,6 +36,7 @@ contract FairLaunchRelayer is Initializable, OwnableUpgradeable {
 
   /// @notice Errors
   error FairLaunchRelayer_StakeTokenMismatch();
+  error FairLaunchRelayer_AmoutTooSmall();
 
   /// @notice State
   IFairLaunch public fairLaunch;
@@ -108,6 +109,7 @@ contract FairLaunchRelayer is Initializable, OwnableUpgradeable {
   /// @notice Receive reward from FairLaunch
   function _fairLaunchHarvest() internal {
     uint256 _before = token.myBalance();
+    // Low level call: this shouldn't block forward token even if failed to harvest
     (bool _success, ) = address(fairLaunch).call(abi.encodeWithSelector(0xddc63262, fairLaunchPoolId));
     if (_success) emit LogFairLaunchHarvest(address(this), token.myBalance() - _before);
   }
@@ -116,7 +118,13 @@ contract FairLaunchRelayer is Initializable, OwnableUpgradeable {
   function forwardToken() external {
     _fairLaunchHarvest();
     uint256 _forwardAmount = token.myBalance();
+    // If the amount is too small, the cross chain fee won't be plausible
+    if (_forwardAmount < (1000 * 1e18)) {
+      revert FairLaunchRelayer_AmoutTooSmall();
+    }
+
     token.safeApprove(address(router), _forwardAmount);
     router.anySwapOutUnderlying(token, destination, _forwardAmount, destChainId);
+    emit LogForwardToken(destination, _forwardAmount);
   }
 }

@@ -36,6 +36,7 @@ let anyswapRouter: MockAnySwapV4Router;
 
 /// Token-related instance(s)
 let alpaca: MockERC20;
+let alpacaAsDeployer: MockERC20;
 
 /// Contracts
 let relayer: FairLaunchRelayer;
@@ -52,6 +53,7 @@ describe("FairLaunchRelayer", () => {
     const ERC20 = (await ethers.getContractFactory("MockERC20", deployer)) as MockERC20__factory;
     alpaca = (await upgrades.deployProxy(ERC20, ["ALPACA", "ALPACA", "18"])) as MockERC20;
     await alpaca.deployed();
+    alpacaAsDeployer = MockERC20__factory.connect(alpaca.address, deployer);
 
     // MINT
     await alpaca.mint(await deployer.getAddress(), ethers.utils.parseEther("8888888"));
@@ -224,6 +226,47 @@ describe("FairLaunchRelayer", () => {
     describe("when other address try call fairLaunchWithdraw", () => {
       it("should revert", async () => {
         await expect(relayerAsAlice.fairLaunchWithdraw()).to.be.revertedWith("Ownable: caller is not the owner");
+      });
+    });
+  });
+
+  context.only("#forward", () => {
+    describe("when everything is in normal state", async () => {
+      it("should work correctly", async () => {
+        // Fund mock fairlaunch and sent pending reward
+        await alpacaAsDeployer.transfer(fairLaunch.address, ethers.utils.parseEther("1000"));
+        await fairLaunch.setPendingAlpaca(ethers.utils.parseEther("1000"));
+        await expect(relayer.forwardToken()).to.be.emit(relayer, "LogForwardToken");
+        expect(await alpaca.balanceOf(relayer.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await alpaca.balanceOf(anyswapRouter.address)).to.be.eq(ethers.utils.parseEther("1000"));
+      });
+    });
+
+    describe("even if harvest call failed but there's enough token to forward", () => {
+      it("should continue to forward", async () => {
+        // Assume that there should be 1000 alpaca to be harvest but will fail because of insufficient funds
+        await fairLaunch.setPendingAlpaca(ethers.utils.parseEther("1000"));
+
+        // If there are enough alpaca sit in the relayer to be forwarded, it should still work
+        await alpacaAsDeployer.transfer(relayer.address, ethers.utils.parseEther("1000"));
+        await expect(relayer.forwardToken()).to.be.emit(relayer, "LogForwardToken");
+        expect(await alpaca.balanceOf(relayer.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await alpaca.balanceOf(anyswapRouter.address)).to.be.eq(ethers.utils.parseEther("1000"));
+      });
+    });
+
+    describe("if the amount to be forward are too small", () => {
+      it("should revert", async () => {
+        // Fund mock fairlaunch and sent pending reward
+        await alpacaAsDeployer.transfer(fairLaunch.address, ethers.utils.parseEther("1000"));
+        // Assume that there should be 400 alpaca to be harvest but will fail because of insufficient funds
+        await fairLaunch.setPendingAlpaca(ethers.utils.parseEther("400"));
+
+        // If overall the amount to forward is less than threshold (1000 tokens), should revert
+        // Existing fund 500, to claim 400 => to forward = 900
+        // which is less than 1000
+        await alpacaAsDeployer.transfer(relayer.address, ethers.utils.parseEther("500"));
+        await expect(relayer.forwardToken()).to.be.revertedWith("FairLaunchRelayer_AmoutTooSmall()");
       });
     });
   });
