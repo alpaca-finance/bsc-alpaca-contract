@@ -163,7 +163,6 @@ describe("FairLaunchRelayer", () => {
         ])).to.be.revertedWith("Address: low-level delegate call failed");
       });
     });
-
     describe("when contract is not an expected contract", async () => {
       it("should revert", async () => {
         const FairLaunchRelayer = (await ethers.getContractFactory("FairLaunchRelayer", deployer)) as FairLaunchRelayer__factory;
@@ -197,7 +196,6 @@ describe("FairLaunchRelayer", () => {
         expect(await proxyToken.balanceOf(fairLaunch.address)).to.be.eq(ethers.utils.parseEther("1"));
       });
     });
-
     describe("when already deposit proxy token in fair launch", () => {
       it("should revert", async () => {
         await expect(relayer.fairLaunchDeposit()).to.be.emit(relayer, "LogFairLaunchDeposit");
@@ -205,7 +203,6 @@ describe("FairLaunchRelayer", () => {
         await expect(relayer.fairLaunchDeposit()).to.be.revertedWith("already deposit");
       });
     });
-
     describe("when other address try call fairLaunchDeposit", () => {
       it("should revert", async () => {
         await expect(relayerAsAlice.fairLaunchDeposit()).to.be.revertedWith("Ownable: caller is not the owner");
@@ -222,7 +219,6 @@ describe("FairLaunchRelayer", () => {
         expect(await proxyToken.balanceOf(relayer.address)).to.be.eq(ethers.utils.parseEther("0"));
       });
     });
-
     describe("when other address try call fairLaunchWithdraw", () => {
       it("should revert", async () => {
         await expect(relayerAsAlice.fairLaunchWithdraw()).to.be.revertedWith("Ownable: caller is not the owner");
@@ -241,7 +237,6 @@ describe("FairLaunchRelayer", () => {
         expect(await alpaca.balanceOf(anyswapRouter.address)).to.be.eq(ethers.utils.parseEther("1000"));
       });
     });
-
     describe("even if harvest call failed but there's enough token to forward", () => {
       it("should continue to forward", async () => {
         // Assume that there should be 1000 alpaca to be harvest but will fail because of insufficient funds
@@ -254,7 +249,6 @@ describe("FairLaunchRelayer", () => {
         expect(await alpaca.balanceOf(anyswapRouter.address)).to.be.eq(ethers.utils.parseEther("1000"));
       });
     });
-
     describe("if the amount to be forward are too small", () => {
       it("should revert", async () => {
         // Fund mock fairlaunch and sent pending reward
