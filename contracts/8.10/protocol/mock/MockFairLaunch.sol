@@ -35,16 +35,12 @@ contract MockFairLaunch is IFairLaunch {
   address public proxyToken;
   uint256 public constant DEFAULT_HARVEST_AMOUNT = 10 * 1e18;
 
+  uint256 public override poolLength;
   PoolInfo[] public override poolInfo;
 
   constructor(address _alpaca, address _proxyToken) {
     alpaca = _alpaca;
     proxyToken = _proxyToken;
-  }
-
-  // Not used in test
-  function poolLength() external pure returns (uint256) {
-    revert MockFairLaunch_NotImplemented();
   }
 
   // Not used in test
@@ -97,6 +93,7 @@ contract MockFairLaunch is IFairLaunch {
         accAlpacaPerShareTilBonusEnd: 0
       })
     );
+    poolLength = poolLength + 1;
   }
 
   // Deposit Staking tokens to FairLaunchToken for ALPACA allocation.

@@ -34,6 +34,9 @@ contract FairLaunchRelayer is Initializable, OwnableUpgradeable {
   event LogFairLaunchHarvest(address _caller, uint256 _harvestAmount);
   event LogForwardToken(address _destination, uint256 _forwardAmount);
 
+  /// @notice Errors
+  error FairLaunchRelayer_StakeTokenMismatch();
+
   /// @notice State
   IFairLaunch public fairLaunch;
   IAnyswapV4Router public router;
@@ -59,6 +62,12 @@ contract FairLaunchRelayer is Initializable, OwnableUpgradeable {
   ) external initializer {
     OwnableUpgradeable.__Ownable_init();
 
+    // Call a view function to check contract's validity
+    IERC20(_token).balanceOf(address(this));
+    IERC20(_proxyToken).balanceOf(address(this));
+    IAnyswapV4Router(_anyswapRouter).mpc();
+    IFairLaunch(_fairLaunchAddress).poolLength();
+
     token = _token;
     proxyToken = _proxyToken;
     fairLaunchPoolId = _fairLaunchPoolId;
@@ -69,7 +78,9 @@ contract FairLaunchRelayer is Initializable, OwnableUpgradeable {
 
     (address _stakeToken, , , , ) = fairLaunch.poolInfo(fairLaunchPoolId);
 
-    require(_stakeToken == _proxyToken, "!same stakeToken");
+    if (_stakeToken != _proxyToken) {
+      revert FairLaunchRelayer_StakeTokenMismatch();
+    }
 
     proxyToken.safeApprove(_fairLaunchAddress, type(uint256).max);
   }
