@@ -230,7 +230,7 @@ describe("FairLaunchRelayer", () => {
     });
   });
 
-  context.only("#forward", () => {
+  context("#forwardToken", () => {
     describe("when everything is in normal state", async () => {
       it("should work correctly", async () => {
         // Fund mock fairlaunch and sent pending reward
