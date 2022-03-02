@@ -27,6 +27,7 @@ const DESTINATION_CHAIN_ID = 250; // FTM MAINNET
 
 // Accounts
 let deployer: SignerWithAddress;
+let alice: SignerWithAddress;
 
 /// Mock instance(s)
 let proxyToken: MockProxyToken;
@@ -38,17 +39,23 @@ let alpaca: MockERC20;
 
 /// Contracts
 let relayer: FairLaunchRelayer;
+let relayerAsAlice: FairLaunchRelayer;
 
 describe("FairLaunchRelayer", () => {
   async function fixture() {
-    [deployer] = await ethers.getSigners();
+    [deployer, alice] = await ethers.getSigners();
 
-    const deployerAddress = await deployer.getAddress();
+    console.log("deployer address", await deployer.getAddress());
+    console.log("alice address", await alice.getAddress());
 
-    // PREPARE ORACLE
+    // Mint
     const ERC20 = (await ethers.getContractFactory("MockERC20", deployer)) as MockERC20__factory;
     alpaca = (await upgrades.deployProxy(ERC20, ["ALPACA", "ALPACA", "18"])) as MockERC20;
     await alpaca.deployed();
+
+    // MINT
+    await alpaca.mint(await deployer.getAddress(), ethers.utils.parseEther("8888888"));
+    await alpaca.mint(await alice.getAddress(), ethers.utils.parseEther("8888888"));
 
     // Deploy PROXYTOKEN
     const MockProxyToken = (await ethers.getContractFactory("MockProxyToken", deployer)) as MockProxyToken__factory;
@@ -81,6 +88,11 @@ describe("FairLaunchRelayer", () => {
       DESTINATION_CHAIN_ID
     ])) as FairLaunchRelayer;
     relayer = await fairLaunchRelayer.deployed();
+    relayerAsAlice = FairLaunchRelayer__factory.connect(relayer.address, alice);
+
+    // Transfer Ownership
+    await proxyToken.setOkHolders([relayer.address, fairLaunch.address], true);
+    await proxyToken.transferOwnership(relayer.address);
   }
 
   beforeEach(async () => {
@@ -172,6 +184,46 @@ describe("FairLaunchRelayer", () => {
           MINI_FL_ADDRESS,
           DESTINATION_CHAIN_ID
         ])).to.be.revertedWith("Address: low-level delegate call failed");
+      });
+    });
+  });
+
+  context("#fairLaunchDeposit", () => {
+    describe("when relayer to deposit 1 proxy token to fairlaunch", () => {
+      it("should work", async () => {
+        await expect(relayer.fairLaunchDeposit()).to.be.emit(relayer, "LogFairLaunchDeposit");
+        expect(await proxyToken.balanceOf(fairLaunch.address)).to.be.eq(ethers.utils.parseEther("1"));
+      });
+    });
+
+    describe("when already deposit proxy token in fair launch", () => {
+      it("should revert", async () => {
+        await expect(relayer.fairLaunchDeposit()).to.be.emit(relayer, "LogFairLaunchDeposit");
+        expect(await proxyToken.balanceOf(fairLaunch.address)).to.be.eq(ethers.utils.parseEther("1"));
+        await expect(relayer.fairLaunchDeposit()).to.be.revertedWith("already deposit");
+      });
+    });
+
+    describe("when other address try call fairLaunchDeposit", () => {
+      it("should revert", async () => {
+        await expect(relayerAsAlice.fairLaunchDeposit()).to.be.revertedWith("Ownable: caller is not the owner");
+      });
+    });
+  });
+
+  context("#fairLaunchWithdraw", () => {
+    describe("when relayer want to withdraw 1 proxy token from fairlaunch, and burn", () => {
+      it("should work", async () => {
+        await relayer.fairLaunchDeposit();
+        await expect(relayer.fairLaunchWithdraw()).to.be.emit(relayer, "LogFairLaunchWithdraw");
+        expect(await proxyToken.balanceOf(fairLaunch.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await proxyToken.balanceOf(relayer.address)).to.be.eq(ethers.utils.parseEther("0"));
+      });
+    });
+
+    describe("when other address try call fairLaunchWithdraw", () => {
+      it("should revert", async () => {
+        await expect(relayerAsAlice.fairLaunchWithdraw()).to.be.revertedWith("Ownable: caller is not the owner");
       });
     });
   });
