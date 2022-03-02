@@ -84,8 +84,9 @@ contract SolidlyStrategyAddTwoSidesOptimal is OwnableUpgradeable, ReentrancyGuar
     uint256 amtB,
     uint256 resA,
     uint256 resB
-  ) internal view returns (uint256) {
+  ) internal pure returns (uint256) {
     require(amtA * (resB) >= amtB * (resA), "reversed");
+
     uint256 fee = amtA / 10000;
     uint256 _c = (amtA * resB) - (amtB * resA);
     uint256 c = _c / (amtB + resB);

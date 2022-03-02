@@ -6,6 +6,8 @@
 
 pragma solidity =0.5.16;
 
+import "hardhat/console.sol";
+
 interface IWaultSwapFactory {
   event PairCreated(address indexed token0, address indexed token1, address pair, uint256);
 
@@ -276,14 +278,13 @@ contract WaultSwapERC20 is IWaultSwapERC20 {
     bytes32 s
   ) external {
     require(deadline >= block.timestamp, "WaultSwap: EXPIRED");
-    bytes32 digest =
-      keccak256(
-        abi.encodePacked(
-          "\x19\x01",
-          DOMAIN_SEPARATOR,
-          keccak256(abi.encode(PERMIT_TYPEHASH, owner, spender, value, nonces[owner]++, deadline))
-        )
-      );
+    bytes32 digest = keccak256(
+      abi.encodePacked(
+        "\x19\x01",
+        DOMAIN_SEPARATOR,
+        keccak256(abi.encode(PERMIT_TYPEHASH, owner, spender, value, nonces[owner]++, deadline))
+      )
+    );
     address recoveredAddress = ecrecover(digest, v, r, s);
     require(recoveredAddress != address(0) && recoveredAddress == owner, "WaultSwap: INVALID_SIGNATURE");
     _approve(owner, spender, value);
@@ -452,6 +453,10 @@ contract WaultSwapPair is IWaultSwapPair, WaultSwapERC20 {
       price0CumulativeLast += uint256(UQ112x112.encode(_reserve1).uqdiv(_reserve0)) * timeElapsed;
       price1CumulativeLast += uint256(UQ112x112.encode(_reserve0).uqdiv(_reserve1)) * timeElapsed;
     }
+
+    console.log("_reserve0", balance0);
+    console.log("_reserve1", balance1);
+
     reserve0 = uint112(balance0);
     reserve1 = uint112(balance1);
     blockTimestampLast = blockTimestamp;
