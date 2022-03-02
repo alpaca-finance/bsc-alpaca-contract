@@ -24,7 +24,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const LEVERAGE_LEVEL = 3;
   const WHITELIST_REBALANCE = ["0xcf28b4da7d3ed29986831876b74af6e95211d3f9"];
   const WHITELIST_REINVEST = ["0xcf28b4da7d3ed29986831876b74af6e95211d3f9"];
-  const REINVEST_PATH = ["CAKE", "BUSD", "ALPACA"];
+  const REINVEST_PATH = ["ALPACA", "BUSD"];
   const SWAP_ROUTER_ADDR = config.YieldSources.Pancakeswap!.RouterV2;
 
   const deployer = (await ethers.getSigners())[0];
