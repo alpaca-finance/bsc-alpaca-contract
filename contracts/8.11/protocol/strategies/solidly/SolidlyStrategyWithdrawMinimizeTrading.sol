@@ -18,7 +18,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 import "../../interfaces/ISwapFactoryLike.sol";
 import "../../interfaces/ISwapPairLike.sol";
-import "../../interfaces/ISwapRouter02Like.sol";
+import "../../interfaces/IBaseV1Router01.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IWNativeRelayer.sol";
 import "../../interfaces/IMultiRewardWorker03.sol";
@@ -31,7 +31,7 @@ contract SolidlyStrategyWithdrawMinimizeTrading is OwnableUpgradeable, Reentranc
   event LogSetWorkerOk(address[] indexed workers, bool isOk);
 
   ISwapFactoryLike public factory;
-  ISwapRouter02Like public router;
+  IBaseV1Router01 public router;
   address public wftm;
   IWNativeRelayer public wNativeRelayer;
 
@@ -46,12 +46,12 @@ contract SolidlyStrategyWithdrawMinimizeTrading is OwnableUpgradeable, Reentranc
   /// @dev Create a new withdraw minimize trading strategy instance.
   /// @param _router The Solidly Router smart contract.
   /// @param _wNativeRelayer The relayer to support native transfer
-  function initialize(ISwapRouter02Like _router, IWNativeRelayer _wNativeRelayer) external initializer {
+  function initialize(IBaseV1Router01 _router, IWNativeRelayer _wNativeRelayer) external initializer {
     OwnableUpgradeable.__Ownable_init();
     ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
     factory = ISwapFactoryLike(_router.factory());
     router = _router;
-    wftm = _router.WETH();
+    wftm = _router.wftm();
     wNativeRelayer = _wNativeRelayer;
   }
 
@@ -78,6 +78,7 @@ contract SolidlyStrategyWithdrawMinimizeTrading is OwnableUpgradeable, Reentranc
     router.removeLiquidity(
       baseToken,
       farmingToken,
+      false,
       lpToken.balanceOf(address(this)),
       0,
       0,
@@ -92,7 +93,7 @@ contract SolidlyStrategyWithdrawMinimizeTrading is OwnableUpgradeable, Reentranc
     if (debt > balance) {
       // Convert some farming tokens to BaseToken.
       uint256 remainingDebt = debt - (balance);
-      router.swapTokensForExactTokens(remainingDebt, farmingToken.myBalance(), path, address(this), block.timestamp);
+      swapTokensForExactTokensSimple(remainingDebt, path[0], path[1]);
     }
     // 5. Return BaseToken back to the original caller.
     uint256 remainingBalance = baseToken.myBalance();
@@ -119,6 +120,26 @@ contract SolidlyStrategyWithdrawMinimizeTrading is OwnableUpgradeable, Reentranc
       okWorkers[workers[idx]] = isOk;
     }
     emit LogSetWorkerOk(workers, isOk);
+  }
+
+  function swapTokensForExactTokensSimple(
+    uint256 amountOut,
+    address tokenFrom,
+    address tokenTo
+  ) internal {
+    (uint256 reserveIn, uint256 reserveOut) = router.getReserves(tokenFrom, tokenTo, false);
+    uint256 numerator = reserveIn * amountOut * 10000;
+    uint256 denominator = (reserveOut - amountOut) * 9999;
+    uint256 amountIn = (numerator / denominator) + 1;
+    router.swapExactTokensForTokensSimple(
+      amountIn,
+      amountOut,
+      tokenFrom,
+      tokenTo,
+      false,
+      address(this),
+      block.timestamp
+    );
   }
 
   receive() external payable {}
