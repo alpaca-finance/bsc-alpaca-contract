@@ -1,12 +1,8 @@
-// SPDX-License-Identifier: UNLICENSED
-
 pragma solidity 0.8.11;
 
 import "./BaseV1Factory.sol";
 import "./BaseV1Fees.sol";
 import "./Math.sol";
-
-import "hardhat/console.sol";
 
 interface IBaseV1Callee {
   function hook(
@@ -241,9 +237,6 @@ contract BaseV1Pair {
       reserve0CumulativeLast += _reserve0 * timeElapsed;
       reserve1CumulativeLast += _reserve1 * timeElapsed;
     }
-
-    console.log("_reserve0", _reserve0);
-    console.log("_reserve1", _reserve1);
 
     Observation memory _point = lastObservation();
     timeElapsed = blockTimestamp - _point.timestamp; // compare the last observation with current timestamp, if greater than 30 minutes, record a new event

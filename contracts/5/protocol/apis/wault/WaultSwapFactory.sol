@@ -6,8 +6,6 @@
 
 pragma solidity =0.5.16;
 
-import "hardhat/console.sol";
-
 interface IWaultSwapFactory {
   event PairCreated(address indexed token0, address indexed token1, address pair, uint256);
 
@@ -453,10 +451,6 @@ contract WaultSwapPair is IWaultSwapPair, WaultSwapERC20 {
       price0CumulativeLast += uint256(UQ112x112.encode(_reserve1).uqdiv(_reserve0)) * timeElapsed;
       price1CumulativeLast += uint256(UQ112x112.encode(_reserve0).uqdiv(_reserve1)) * timeElapsed;
     }
-
-    console.log("_reserve0", balance0);
-    console.log("_reserve1", balance1);
-
     reserve0 = uint112(balance0);
     reserve1 = uint112(balance1);
     blockTimestampLast = blockTimestamp;

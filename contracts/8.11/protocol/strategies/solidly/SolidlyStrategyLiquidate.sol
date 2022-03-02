@@ -18,7 +18,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 import "../../interfaces/ISwapFactoryLike.sol";
 import "../../interfaces/ISwapPairLike.sol";
-import "../../interfaces/ISwapRouter02Like.sol";
+import "../../interfaces/IBaseV1Router01.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IMultiRewardWorker03.sol";
 
@@ -30,7 +30,7 @@ contract SolidlyStrategyLiquidate is OwnableUpgradeable, ReentrancyGuardUpgradea
   event LogSetWorkerOk(address[] indexed workers, bool isOk);
 
   ISwapFactoryLike public factory;
-  ISwapRouter02Like public router;
+  IBaseV1Router01 public router;
 
   mapping(address => bool) public okWorkers;
 
@@ -42,7 +42,7 @@ contract SolidlyStrategyLiquidate is OwnableUpgradeable, ReentrancyGuardUpgradea
 
   /// @dev Create a new liquidate strategy instance.
   /// @param _router The WaultSwap Router smart contract.
-  function initialize(ISwapRouter02Like _router) external initializer {
+  function initialize(IBaseV1Router01 _router) external initializer {
     OwnableUpgradeable.__Ownable_init();
     ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
     factory = ISwapFactoryLike(_router.factory());
@@ -69,6 +69,7 @@ contract SolidlyStrategyLiquidate is OwnableUpgradeable, ReentrancyGuardUpgradea
     router.removeLiquidity(
       baseToken,
       farmingToken,
+      false,
       lpToken.balanceOf(address(this)),
       0,
       0,
@@ -79,7 +80,15 @@ contract SolidlyStrategyLiquidate is OwnableUpgradeable, ReentrancyGuardUpgradea
     address[] memory path = new address[](2);
     path[0] = farmingToken;
     path[1] = baseToken;
-    router.swapExactTokensForTokens(farmingToken.myBalance(), 0, path, address(this), block.timestamp);
+    router.swapExactTokensForTokensSimple(
+      farmingToken.myBalance(),
+      0,
+      path[0],
+      path[1],
+      false,
+      address(this),
+      block.timestamp
+    );
     // 5. Return all baseToken back to the original caller.
     uint256 balance = baseToken.myBalance();
     require(balance - (debt) >= minBaseToken, "insufficient baseToken received");
