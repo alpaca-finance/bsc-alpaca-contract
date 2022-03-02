@@ -24,6 +24,7 @@ const { expect } = chai;
 const FAIR_LAUNCH_POOL_ID = 0;
 const MINI_FL_ADDRESS = "0x838B7F64Fa89d322C563A6f904851A13a164f84C";
 const DESTINATION_CHAIN_ID = 250; // FTM MAINNET
+const RELAYER_NAME = "ALPACA-FTM Relayer";
 
 // Accounts
 let deployer: SignerWithAddress;
@@ -45,9 +46,6 @@ let relayerAsAlice: FairLaunchRelayer;
 describe("FairLaunchRelayer", () => {
   async function fixture() {
     [deployer, alice] = await ethers.getSigners();
-
-    console.log("deployer address", await deployer.getAddress());
-    console.log("alice address", await alice.getAddress());
 
     // Mint
     const ERC20 = (await ethers.getContractFactory("MockERC20", deployer)) as MockERC20__factory;
@@ -81,6 +79,7 @@ describe("FairLaunchRelayer", () => {
     // Deploy relayer
     const FairLaunchRelayer = (await ethers.getContractFactory("FairLaunchRelayer", deployer)) as FairLaunchRelayer__factory;
     const fairLaunchRelayer = (await upgrades.deployProxy(FairLaunchRelayer, [
+      RELAYER_NAME,
       alpaca.address,
       proxyToken.address,
       fairLaunch.address,
@@ -104,6 +103,7 @@ describe("FairLaunchRelayer", () => {
   context("#initialize", () => {
     describe("when params were set correctly", async () => {
       it("shoud work", async () => {
+        expect(await relayer.name()).to.be.eq(RELAYER_NAME);
         expect(await relayer.owner()).to.be.eq(deployer.address);
         expect(await relayer.fairLaunch()).to.be.eq(fairLaunch.address);
         expect(await relayer.router()).to.be.eq(anyswapRouter.address);
@@ -114,6 +114,7 @@ describe("FairLaunchRelayer", () => {
       it("should revert", async () => {
         const FairLaunchRelayer = (await ethers.getContractFactory("FairLaunchRelayer", deployer)) as FairLaunchRelayer__factory;
         await expect(upgrades.deployProxy(FairLaunchRelayer, [
+          RELAYER_NAME,
           alpaca.address,
           proxyToken.address,
           fairLaunch.address,
@@ -129,6 +130,7 @@ describe("FairLaunchRelayer", () => {
         await fairLaunch.addPool(0, alpaca.address, true);
         const FairLaunchRelayer = (await ethers.getContractFactory("FairLaunchRelayer", deployer)) as FairLaunchRelayer__factory;
         await expect(upgrades.deployProxy(FairLaunchRelayer, [
+          RELAYER_NAME,
           alpaca.address,
           proxyToken.address,
           fairLaunch.address,
@@ -143,6 +145,7 @@ describe("FairLaunchRelayer", () => {
       it("should revert", async () => {
         const FairLaunchRelayer = (await ethers.getContractFactory("FairLaunchRelayer", deployer)) as FairLaunchRelayer__factory;
         await expect(upgrades.deployProxy(FairLaunchRelayer, [
+          RELAYER_NAME,
           deployer.address, // should be erc 20
           proxyToken.address,
           fairLaunch.address,
@@ -153,6 +156,7 @@ describe("FairLaunchRelayer", () => {
         ])).to.be.revertedWith("Address: low-level delegate call failed");
 
         await expect(upgrades.deployProxy(FairLaunchRelayer, [
+          RELAYER_NAME,
           alpaca.address,
           deployer.address, // should be erc20
           fairLaunch.address,
@@ -167,6 +171,7 @@ describe("FairLaunchRelayer", () => {
       it("should revert", async () => {
         const FairLaunchRelayer = (await ethers.getContractFactory("FairLaunchRelayer", deployer)) as FairLaunchRelayer__factory;
         await expect(upgrades.deployProxy(FairLaunchRelayer, [
+          RELAYER_NAME,
           alpaca.address,
           proxyToken.address,
           proxyToken.address, // should be fairlaunch contract address
@@ -177,6 +182,7 @@ describe("FairLaunchRelayer", () => {
         ])).to.be.revertedWith("Address: low-level delegate call failed");
 
         await expect(upgrades.deployProxy(FairLaunchRelayer, [
+          RELAYER_NAME,
           alpaca.address,
           proxyToken.address,
           fairLaunch.address,
@@ -237,6 +243,16 @@ describe("FairLaunchRelayer", () => {
         expect(await alpaca.balanceOf(anyswapRouter.address)).to.be.eq(ethers.utils.parseEther("1000"));
       });
     });
+    describe("if amount to forward exceed maxCrossChainAmount", async () => {
+      it("should forward only maxCrossChainAmount", async () => {
+        // Fund mock fairlaunch and sent pending reward
+        await alpacaAsDeployer.transfer(fairLaunch.address, ethers.utils.parseEther("2000"));
+        await fairLaunch.setPendingAlpaca(ethers.utils.parseEther("1500"));
+        await expect(relayer.forwardToken()).to.be.emit(relayer, "LogForwardToken");
+        expect(await alpaca.balanceOf(relayer.address)).to.be.eq(ethers.utils.parseEther("500"));
+        expect(await alpaca.balanceOf(anyswapRouter.address)).to.be.eq(ethers.utils.parseEther("1000"));
+      });
+    });
     describe("even if harvest call failed but there's enough token to forward", () => {
       it("should continue to forward", async () => {
         // Assume that there should be 1000 alpaca to be harvest but will fail because of insufficient funds
@@ -261,6 +277,20 @@ describe("FairLaunchRelayer", () => {
         // which is less than 1000
         await alpacaAsDeployer.transfer(relayer.address, ethers.utils.parseEther("500"));
         await expect(relayer.forwardToken()).to.be.revertedWith("FairLaunchRelayer_AmoutTooSmall()");
+      });
+    });
+  });
+
+  context("#setMaxCrossChainAmount", () => {
+    describe("if the value > minimum amount", async () => {
+      it("should work correctly", async () => {
+        await expect(relayer.setMaxCrossChainAmount(ethers.utils.parseEther("1000"))).to.be.emit(relayer, "LogSetMaxCrossChainAmount");
+        await expect(relayer.setMaxCrossChainAmount(ethers.utils.parseEther("2000"))).to.be.emit(relayer, "LogSetMaxCrossChainAmount");
+      });
+    });
+    describe("if the value < minimum amount", async () => {
+      it("should revert", async () => {
+        await expect(relayer.setMaxCrossChainAmount(ethers.utils.parseEther("500"))).to.be.revertedWith("FairLaunchRelayer_MaxCrossChainAmountTooLow()");
       });
     });
   });

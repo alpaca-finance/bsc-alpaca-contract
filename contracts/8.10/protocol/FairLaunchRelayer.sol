@@ -33,16 +33,20 @@ contract FairLaunchRelayer is Initializable, OwnableUpgradeable {
   event LogFairLaunchWithdraw();
   event LogFairLaunchHarvest(address _caller, uint256 _harvestAmount);
   event LogForwardToken(address _destination, uint256 _forwardAmount);
+  event LogSetMaxCrossChainAmount(uint256 _oldMaxCrossChainAmount, uint256 _newMaxCrossChainAmount);
 
   /// @notice Errors
   error FairLaunchRelayer_StakeTokenMismatch();
   error FairLaunchRelayer_AmoutTooSmall();
   error FairLaunchRelayer_AlreadyDeposited();
+  error FairLaunchRelayer_MaxCrossChainAmountTooLow();
 
   /// @notice State
+  string public name;
   IFairLaunch public fairLaunch;
   IAnyswapV4Router public router;
   uint256 public fairLaunchPoolId;
+  uint256 public maxCrossChainAmount;
 
   address public destination;
   uint64 public destChainId;
@@ -54,6 +58,7 @@ contract FairLaunchRelayer is Initializable, OwnableUpgradeable {
   address public proxyToken;
 
   function initialize(
+    string memory _name,
     address _token,
     address _proxyToken,
     address _fairLaunchAddress,
@@ -70,6 +75,7 @@ contract FairLaunchRelayer is Initializable, OwnableUpgradeable {
     IAnyswapV4Router(_anyswapRouter).mpc();
     IFairLaunch(_fairLaunchAddress).poolLength();
 
+    name = _name;
     token = _token;
     proxyToken = _proxyToken;
     fairLaunchPoolId = _fairLaunchPoolId;
@@ -78,6 +84,9 @@ contract FairLaunchRelayer is Initializable, OwnableUpgradeable {
     destination = _destination;
     destChainId = _destChainId;
 
+    // Default value should at least be equal to minimum cross chain amount
+    maxCrossChainAmount = 1000 * 1e18;
+
     (address _stakeToken, , , , ) = fairLaunch.poolInfo(fairLaunchPoolId);
 
     if (_stakeToken != _proxyToken) {
@@ -85,6 +94,17 @@ contract FairLaunchRelayer is Initializable, OwnableUpgradeable {
     }
 
     proxyToken.safeApprove(_fairLaunchAddress, type(uint256).max);
+  }
+
+  function setMaxCrossChainAmount(uint256 _newMaxCrossChainAmount) external onlyOwner {
+    if (_newMaxCrossChainAmount < 1000 * 1e18) {
+      revert FairLaunchRelayer_MaxCrossChainAmountTooLow();
+    }
+
+    uint256 _oldMaxCrossChainAmount = maxCrossChainAmount;
+    maxCrossChainAmount = _newMaxCrossChainAmount;
+
+    emit LogSetMaxCrossChainAmount(_oldMaxCrossChainAmount, maxCrossChainAmount);
   }
 
   /// @notice Deposit token to FairLaunch
@@ -120,7 +140,7 @@ contract FairLaunchRelayer is Initializable, OwnableUpgradeable {
   /// @notice Harvest reward from FairLaunch and send it to another chain destination address
   function forwardToken() external {
     _fairLaunchHarvest();
-    uint256 _forwardAmount = token.myBalance();
+    uint256 _forwardAmount = token.myBalance() > maxCrossChainAmount ? maxCrossChainAmount : token.myBalance();
     // If the amount is too small, the cross chain fee won't be plausible
     if (_forwardAmount < (1000 * 1e18)) {
       revert FairLaunchRelayer_AmoutTooSmall();
