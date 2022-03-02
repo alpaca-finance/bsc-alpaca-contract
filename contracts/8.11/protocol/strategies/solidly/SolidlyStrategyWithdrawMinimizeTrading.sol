@@ -131,6 +131,7 @@ contract SolidlyStrategyWithdrawMinimizeTrading is OwnableUpgradeable, Reentranc
     uint256 numerator = reserveIn * amountOut * 10000;
     uint256 denominator = (reserveOut - amountOut) * 9999;
     uint256 amountIn = (numerator / denominator) + 1;
+    require(amountIn <= tokenFrom.myBalance(), "insufficient farming token");
     router.swapExactTokensForTokensSimple(
       amountIn,
       amountOut,
