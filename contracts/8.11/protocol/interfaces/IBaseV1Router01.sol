@@ -157,4 +157,10 @@ interface IBaseV1Router01 {
   function getAmountsOut(uint256 amountIn, route[] calldata path) external view returns (uint256[] memory amounts);
 
   function getAmountsIn(uint256 amountOut, route[] calldata path) external view returns (uint256[] memory amounts);
+
+  function getReserves(
+    address tokenA,
+    address tokenB,
+    bool stable
+  ) external view returns (uint256 reserveA, uint256 reserveB);
 }

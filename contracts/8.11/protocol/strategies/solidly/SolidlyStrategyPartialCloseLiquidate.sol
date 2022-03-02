@@ -17,9 +17,9 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 
-import "../../interfaces/ISwapFactoryLike.sol";
+import "../../apis/solidly/IBaseV1Factory.sol";
 import "../../interfaces/ISwapPairLike.sol";
-import "../../interfaces/ISwapRouter02Like.sol";
+import "../../interfaces/IBaseV1Router01.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IMultiRewardWorker03.sol";
 
@@ -30,8 +30,8 @@ contract SolidlyStrategyPartialCloseLiquidate is OwnableUpgradeable, ReentrancyG
 
   event LogSetWorkerOk(address[] indexed workers, bool isOk);
 
-  ISwapFactoryLike public factory;
-  ISwapRouter02Like public router;
+  IBaseV1Factory public factory;
+  IBaseV1Router01 public router;
 
   mapping(address => bool) public okWorkers;
 
@@ -50,10 +50,10 @@ contract SolidlyStrategyPartialCloseLiquidate is OwnableUpgradeable, ReentrancyG
 
   /// @dev Create a new liquidate strategy instance.
   /// @param _router The WaultSwap Router smart contract.
-  function initialize(ISwapRouter02Like _router) public initializer {
+  function initialize(IBaseV1Router01 _router) public initializer {
     OwnableUpgradeable.__Ownable_init();
     ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
-    factory = ISwapFactoryLike(_router.factory());
+    factory = IBaseV1Factory(_router.factory());
     router = _router;
   }
 
@@ -75,7 +75,7 @@ contract SolidlyStrategyPartialCloseLiquidate is OwnableUpgradeable, ReentrancyG
     IMultiRewardWorker03 worker = IMultiRewardWorker03(msg.sender);
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
-    ISwapPairLike lpToken = ISwapPairLike(factory.getPair(farmingToken, baseToken));
+    ISwapPairLike lpToken = ISwapPairLike(factory.getPair(farmingToken, baseToken, false));
     uint256 lpTokenToLiquidate = MathUpgradeable.min(address(lpToken).myBalance(), maxLpTokenToLiquidate);
     uint256 lessDebt = MathUpgradeable.min(debt, maxDebtRepayment);
     uint256 baseTokenBefore = baseToken.myBalance();
@@ -83,12 +83,20 @@ contract SolidlyStrategyPartialCloseLiquidate is OwnableUpgradeable, ReentrancyG
     address(lpToken).safeApprove(address(router), type(uint256).max);
     farmingToken.safeApprove(address(router), type(uint256).max);
     // 3. Remove some LP back to BaseToken and farming tokens as we want to return some of the position.
-    router.removeLiquidity(baseToken, farmingToken, lpTokenToLiquidate, 0, 0, address(this), block.timestamp);
+    router.removeLiquidity(baseToken, farmingToken, false, lpTokenToLiquidate, 0, 0, address(this), block.timestamp);
     // 4. Convert farming tokens to baseToken.
     address[] memory path = new address[](2);
     path[0] = farmingToken;
     path[1] = baseToken;
-    router.swapExactTokensForTokens(farmingToken.myBalance(), 0, path, address(this), block.timestamp);
+    router.swapExactTokensForTokensSimple(
+      farmingToken.myBalance(),
+      0,
+      path[0],
+      path[1],
+      false,
+      address(this),
+      block.timestamp
+    );
     // 5. Return all baseToken back to the original caller.
     uint256 baseTokenAfter = baseToken.myBalance();
     require(baseTokenAfter - (baseTokenBefore) - (lessDebt) >= minBaseToken, "insufficient baseToken received");
