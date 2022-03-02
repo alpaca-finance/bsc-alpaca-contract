@@ -37,6 +37,7 @@ contract FairLaunchRelayer is Initializable, OwnableUpgradeable {
   /// @notice Errors
   error FairLaunchRelayer_StakeTokenMismatch();
   error FairLaunchRelayer_AmoutTooSmall();
+  error FairLaunchRelayer_AlreadyDeposited();
 
   /// @notice State
   IFairLaunch public fairLaunch;
@@ -88,7 +89,9 @@ contract FairLaunchRelayer is Initializable, OwnableUpgradeable {
 
   /// @notice Deposit token to FairLaunch
   function fairLaunchDeposit() external onlyOwner {
-    require(IERC20(proxyToken).balanceOf(address(fairLaunch)) == 0, "already deposit");
+    if (IERC20(proxyToken).balanceOf(address(fairLaunch)) != 0) {
+      revert FairLaunchRelayer_AlreadyDeposited();
+    }
     IProxyToken(proxyToken).mint(address(this), 1e18);
     fairLaunch.deposit(address(this), fairLaunchPoolId, 1e18);
     emit LogFairLaunchDeposit();

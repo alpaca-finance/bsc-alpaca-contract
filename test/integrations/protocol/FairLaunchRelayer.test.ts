@@ -200,7 +200,7 @@ describe("FairLaunchRelayer", () => {
       it("should revert", async () => {
         await expect(relayer.fairLaunchDeposit()).to.be.emit(relayer, "LogFairLaunchDeposit");
         expect(await proxyToken.balanceOf(fairLaunch.address)).to.be.eq(ethers.utils.parseEther("1"));
-        await expect(relayer.fairLaunchDeposit()).to.be.revertedWith("already deposit");
+        await expect(relayer.fairLaunchDeposit()).to.be.revertedWith("FairLaunchRelayer_AlreadyDeposited()");
       });
     });
     describe("when other address try call fairLaunchDeposit", () => {
