@@ -113,16 +113,42 @@ import {
   IVault,
   BaseV1Factory,
   BaseV1Router01,
-  Erc20,
   LpDepositor,
   BaseV1Factory__factory,
   BaseV1Router01__factory,
-  Erc20__factory,
   LpDepositor__factory,
-  Ve__factory,
-  VotingEscrow__factory,
   BaseV1Voter__factory,
+  BaseV1GaugeFactory,
+  BaseV1GaugeFactory__factory,
+  BaseV1BribeFactory,
+  BaseV1BribeFactory__factory,
+  BaseV1__factory,
+  BaseV1,
+  BaseV1Voter,
+  SolidlyStrategyAddBaseTokenOnly,
+  SolidlyStrategyLiquidate,
+  SolidlyStrategyAddTwoSidesOptimal,
+  SolidlyStrategyWithdrawMinimizeTrading,
+  SolidlyStrategyPartialCloseLiquidate,
+  SolidlyStrategyPartialCloseMinimizeTrading,
+  SolidlyStrategyAddBaseTokenOnly__factory,
+  SolidlyStrategyLiquidate__factory,
+  SolidlyStrategyAddTwoSidesOptimal__factory,
+  SolidlyStrategyWithdrawMinimizeTrading__factory,
+  SolidlyStrategyPartialCloseLiquidate__factory,
+  SolidlyStrategyPartialCloseMinimizeTrading__factory,
+  SolidexToken__factory,
+  VeDepositor__factory,
+  VeDist__factory,
+  VeSOLID__factory,
+  VeSOLID,
+  SolidexToken,
+  WrappedFtm,
+  MockWFTM,
+  MockSolidexVoter__factory,
 } from "../../typechain";
+import { DepositToken__factory } from "../../typechain/factories/DepositToken__factory";
+import { MockSolidexFeeDistributor__factory } from "../../typechain/factories/MockSolidexFeeDistributor__factory";
 
 import * as TimeHelpers from "../helpers/time";
 
@@ -553,7 +579,7 @@ export class DeployHelper {
   }
 
   private async _deployVault(
-    wbnb: MockWBNB,
+    wbnb: MockWBNB | MockWFTM,
     vaultConfig: IVaultConfig,
     fairlaunchAddress: string,
     btoken: MockERC20
@@ -635,7 +661,7 @@ export class DeployHelper {
   }
 
   public async deployMiniFLVault(
-    wbnb: MockWBNB,
+    wbnb: MockWBNB | MockWFTM,
     vaultConfig: IVaultConfig,
     miniFL: MiniFL,
     rewarderAddress: string,
@@ -1022,7 +1048,22 @@ export class DeployHelper {
     return [addStrat, liqStrat, twoSidesStrat, minimizeTradeStrat, partialCloseStrat, partialCloseMinimizeStrat];
   }
 
-  public async deploySolidly(wbnb: MockWBNB): Promise<[BaseV1Factory, BaseV1Router01, Erc20, LpDepositor]> {
+  public async deploySolidly(
+    wftm: MockWFTM
+  ): Promise<
+    [
+      BaseV1Factory,
+      BaseV1Router01,
+      BaseV1GaugeFactory,
+      BaseV1BribeFactory,
+      BaseV1,
+      VeSOLID,
+      BaseV1Voter,
+      LpDepositor,
+      SolidexToken
+    ]
+  > {
+    const deployerAddress = await this.deployer.getAddress();
     const BaseV1Factory = (await ethers.getContractFactory("BaseV1Factory", this.deployer)) as BaseV1Factory__factory;
     const factory = await BaseV1Factory.deploy();
     await factory.deployed();
@@ -1031,28 +1072,176 @@ export class DeployHelper {
       "BaseV1Router01",
       this.deployer
     )) as BaseV1Router01__factory;
-    const router = await BaseV1Router01.deploy(factory.address, wbnb.address);
+    const router = await BaseV1Router01.deploy(factory.address, wftm.address);
     await router.deployed();
 
-    const BaseV1Voter = (await ethers.getContractFactory("BaseV1Voter", this.deployer)) as BaseV1Voter__factory;
-    const baseV1Voter = await BaseV1Voter.deploy();
+    const BaseV1GaugeFactory = (await ethers.getContractFactory(
+      "BaseV1GaugeFactory",
+      this.deployer
+    )) as BaseV1GaugeFactory__factory;
+    const baseV1GaugeFactory = await BaseV1GaugeFactory.deploy();
 
-    const SOLIDToken = (await ethers.getContractFactory("Erc20", this.deployer)) as Erc20__factory;
+    const BaseV1BribeFactory = (await ethers.getContractFactory(
+      "BaseV1BribeFactory",
+      this.deployer
+    )) as BaseV1BribeFactory__factory;
+    const baseV1BribeFactory = await BaseV1BribeFactory.deploy();
+
+    const SOLIDToken = (await ethers.getContractFactory("BaseV1", this.deployer)) as BaseV1__factory;
     const solid = await SOLIDToken.deploy();
     await solid.deployed();
     await solid.mint(await this.deployer.getAddress(), ethers.utils.parseEther("100"));
 
-    const VotingEscrow = (await ethers.getContractFactory("Ve", this.deployer)) as VotingEscrow__factory;
+    const VotingEscrow = (await ethers.getContractFactory("veSOLID", this.deployer)) as VeSOLID__factory;
     const votingEscrow = await VotingEscrow.deploy(solid.address);
     await votingEscrow.deployed();
 
-    /// Setup MasterChef
-    const LpDepositor = (await ethers.getContractFactory("LpDepositor", this.deployer)) as LpDepositor__factory;
-    const lpDepositor = await LpDepositor.deploy(solid.address);
-    await lpDepositor.deployed();
-    // Transfer ownership so MasterChef can mint BOO
-    await boo.transferOwnership(spookyMasterChef.address);
+    const BaseV1Voter = (await ethers.getContractFactory("BaseV1Voter", this.deployer)) as BaseV1Voter__factory;
+    const baseV1Voter = await BaseV1Voter.deploy(
+      votingEscrow.address,
+      factory.address,
+      baseV1GaugeFactory.address,
+      baseV1BribeFactory.address
+    );
+    await votingEscrow.setVoter(baseV1Voter.address);
 
-    return [factory, router, boo, spookyMasterChef];
+    const LpDepositor = (await ethers.getContractFactory("LpDepositor", this.deployer)) as LpDepositor__factory;
+    const lpDepositor = await LpDepositor.deploy(solid.address, votingEscrow.address, baseV1Voter.address);
+    await lpDepositor.deployed();
+
+    const SolidexToken = (await ethers.getContractFactory("SolidexToken", this.deployer)) as SolidexToken__factory;
+    const sex = await SolidexToken.deploy();
+    await sex.deployed();
+    await sex.setMinters([await this.deployer.getAddress()]);
+    await sex.mint(await this.deployer.getAddress(), ethers.utils.parseEther("100"));
+
+    const VeDist = (await ethers.getContractFactory("VeDist", this.deployer)) as VeDist__factory;
+    const veDist = await VeDist.deploy(votingEscrow.address);
+    await veDist.deployed();
+
+    const VeDepositor = (await ethers.getContractFactory("VeDepositor", this.deployer)) as VeDepositor__factory;
+    const solidSEX = await VeDepositor.deploy(solid.address, votingEscrow.address, veDist.address);
+    await solidSEX.deployed();
+
+    const MockSolidexFeeDistributor = (await ethers.getContractFactory(
+      "MockSolidexFeeDistributor",
+      this.deployer
+    )) as MockSolidexFeeDistributor__factory;
+    const mockSolidexFeeDistributor = await MockSolidexFeeDistributor.deploy();
+    await mockSolidexFeeDistributor.deployed();
+
+    const LpDepositToken = (await ethers.getContractFactory("DepositToken", this.deployer)) as DepositToken__factory;
+    const lpDepositToken = await LpDepositToken.deploy();
+    await lpDepositToken.deployed();
+
+    const MockSolidexVoter = (await ethers.getContractFactory(
+      "MockSolidexVoter",
+      this.deployer
+    )) as MockSolidexVoter__factory;
+    const mockSolidexVoter = await MockSolidexVoter.deploy();
+    await mockSolidexVoter.deployed();
+
+    await lpDepositor.setAddresses(
+      sex.address,
+      solidSEX.address,
+      mockSolidexVoter.address,
+      mockSolidexFeeDistributor.address,
+      deployerAddress,
+      deployerAddress,
+      lpDepositToken.address
+    );
+
+    await solidSEX.setAddresses(lpDepositor.address, mockSolidexVoter.address, mockSolidexFeeDistributor.address);
+
+    await solid.approve(votingEscrow.address, ethers.utils.parseEther("1"));
+    await votingEscrow.create_lock(ethers.utils.parseEther("1"), 4 * 365 * 86400);
+    await votingEscrow["safeTransferFrom(address,address,uint256)"](deployerAddress, solidSEX.address, 1);
+
+    return [
+      factory,
+      router,
+      baseV1GaugeFactory,
+      baseV1BribeFactory,
+      solid,
+      votingEscrow,
+      baseV1Voter,
+      lpDepositor,
+      sex,
+    ];
+  }
+
+  public async deploySolidlyStrategies(
+    router: BaseV1Router01,
+    vault: IVault,
+    wNativeRelayer: WNativeRelayer
+  ): Promise<
+    [
+      SolidlyStrategyAddBaseTokenOnly,
+      SolidlyStrategyLiquidate,
+      SolidlyStrategyAddTwoSidesOptimal,
+      SolidlyStrategyWithdrawMinimizeTrading,
+      SolidlyStrategyPartialCloseLiquidate,
+      SolidlyStrategyPartialCloseMinimizeTrading
+    ]
+  > {
+    /// Setup strategy
+    const SolidlyStrategyAddBaseTokenOnly = (await ethers.getContractFactory(
+      "SolidlyStrategyAddBaseTokenOnly",
+      this.deployer
+    )) as SolidlyStrategyAddBaseTokenOnly__factory;
+    const addStrat = (await upgrades.deployProxy(SolidlyStrategyAddBaseTokenOnly, [
+      router.address,
+    ])) as SolidlyStrategyAddBaseTokenOnly;
+    await addStrat.deployed();
+
+    const SolidlyStrategyLiquidate = (await ethers.getContractFactory(
+      "SolidlyStrategyLiquidate",
+      this.deployer
+    )) as SolidlyStrategyLiquidate__factory;
+    const liqStrat = (await upgrades.deployProxy(SolidlyStrategyLiquidate, [
+      router.address,
+    ])) as SolidlyStrategyLiquidate;
+    await liqStrat.deployed();
+
+    const SolidlyStrategyAddTwoSidesOptimal = (await ethers.getContractFactory(
+      "SolidlyStrategyAddTwoSidesOptimal",
+      this.deployer
+    )) as SolidlyStrategyAddTwoSidesOptimal__factory;
+    const twoSidesStrat = (await upgrades.deployProxy(SolidlyStrategyAddTwoSidesOptimal, [
+      router.address,
+      vault.address,
+    ])) as SolidlyStrategyAddTwoSidesOptimal;
+
+    const SolidlyStrategyWithdrawMinimizeTrading = (await ethers.getContractFactory(
+      "SolidlyStrategyWithdrawMinimizeTrading",
+      this.deployer
+    )) as SolidlyStrategyWithdrawMinimizeTrading__factory;
+    const minimizeTradeStrat = (await upgrades.deployProxy(SolidlyStrategyWithdrawMinimizeTrading, [
+      router.address,
+      wNativeRelayer.address,
+    ])) as SolidlyStrategyWithdrawMinimizeTrading;
+
+    const SolidlyStrategyPartialCloseLiquidate = (await ethers.getContractFactory(
+      "SolidlyStrategyPartialCloseLiquidate",
+      this.deployer
+    )) as SolidlyStrategyPartialCloseLiquidate__factory;
+    const partialCloseStrat = (await upgrades.deployProxy(SolidlyStrategyPartialCloseLiquidate, [
+      router.address,
+    ])) as SolidlyStrategyPartialCloseLiquidate;
+    await partialCloseStrat.deployed();
+    await wNativeRelayer.setCallerOk([partialCloseStrat.address], true);
+
+    const SolidlyStrategyPartialCloseMinimizeTrading = (await ethers.getContractFactory(
+      "SolidlyStrategyPartialCloseMinimizeTrading",
+      this.deployer
+    )) as SolidlyStrategyPartialCloseMinimizeTrading__factory;
+    const partialCloseMinimizeStrat = (await upgrades.deployProxy(SolidlyStrategyPartialCloseMinimizeTrading, [
+      router.address,
+      wNativeRelayer.address,
+    ])) as SolidlyStrategyPartialCloseMinimizeTrading;
+    await partialCloseMinimizeStrat.deployed();
+    await wNativeRelayer.setCallerOk([partialCloseMinimizeStrat.address], true);
+
+    return [addStrat, liqStrat, twoSidesStrat, minimizeTradeStrat, partialCloseStrat, partialCloseMinimizeStrat];
   }
 }

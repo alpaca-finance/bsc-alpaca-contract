@@ -18,7 +18,7 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 
 import "../../interfaces/ISwapFactoryLike.sol";
 import "../../interfaces/ISwapPairLike.sol";
-import "../../interfaces/ISwapRouter02Like.sol";
+import "../../interfaces/IBaseV1Router01.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IMultiRewardWorker03.sol";
 import "../../interfaces/IVault.sol";
@@ -57,7 +57,7 @@ contract SEXWorker03 is OwnableUpgradeable, ReentrancyGuardUpgradeable, IMultiRe
   /// @notice Immutable variables
   ILpDepositor public lpDepositor;
   ISwapFactoryLike public factory;
-  ISwapRouter02Like public router;
+  IBaseV1Router01 public router;
   ISwapPairLike public override lpToken;
   address public wNative;
   address public override baseToken;
@@ -90,7 +90,7 @@ contract SEXWorker03 is OwnableUpgradeable, ReentrancyGuardUpgradeable, IMultiRe
     address _baseToken,
     ILpDepositor _lpDepositor,
     ISwapPairLike _lpToken,
-    ISwapRouter02Like _router,
+    IBaseV1Router01 _router,
     IStrategy _addStrat,
     IStrategy _liqStrat,
     uint256 _reinvestBountyBps,
@@ -101,7 +101,7 @@ contract SEXWorker03 is OwnableUpgradeable, ReentrancyGuardUpgradeable, IMultiRe
     ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
     // 2. Assign dependency contracts
     operator = _operator;
-    wNative = _router.WETH();
+    wNative = _router.wftm();
     lpDepositor = _lpDepositor;
     router = _router;
     factory = ISwapFactoryLike(_router.factory());
@@ -124,8 +124,8 @@ contract SEXWorker03 is OwnableUpgradeable, ReentrancyGuardUpgradeable, IMultiRe
     treasuryBountyBps = _reinvestBountyBps;
     maxReinvestBountyBps = 900;
     // 6. Set swap fees
-    fee = 99999;
-    feeDenom = 100000;
+    fee = 9999;
+    feeDenom = 10000;
     require(reinvestBountyBps <= maxReinvestBountyBps, "exceeded maxReinvestBountyBps");
     require(
       (farmingToken == lpToken.token0() || farmingToken == lpToken.token1()) &&
@@ -154,7 +154,7 @@ contract SEXWorker03 is OwnableUpgradeable, ReentrancyGuardUpgradeable, IMultiRe
   /// @param share The number of shares to be converted to LP balance.
   function shareToBalance(uint256 share) public view returns (uint256) {
     if (totalShare == 0) return share; // When there's no share, 1 share = 1 balance.
-    uint256 totalBalance = lpDepositor.userBalances(address(lpToken), address(this));
+    uint256 totalBalance = lpDepositor.userBalances(address(this), address(lpToken));
     return (share * totalBalance) / totalShare;
   }
 
@@ -162,7 +162,7 @@ contract SEXWorker03 is OwnableUpgradeable, ReentrancyGuardUpgradeable, IMultiRe
   /// @param balance the number of LP tokens to be converted to shares.
   function balanceToShare(uint256 balance) public view returns (uint256) {
     if (totalShare == 0) return balance; // When there's no share, 1 share = 1 balance.
-    uint256 totalBalance = lpDepositor.userBalances(address(lpToken), address(this));
+    uint256 totalBalance = lpDepositor.userBalances(address(this), address(lpToken));
     return (balance * totalShare) / (totalBalance);
   }
 
@@ -199,14 +199,14 @@ contract SEXWorker03 is OwnableUpgradeable, ReentrancyGuardUpgradeable, IMultiRe
       if (bounty > 0) {
         uint256 beneficialVaultBounty = (bounty * beneficialVaultBountyBps) / 10000;
         if (beneficialVaultBounty > 0)
-          _rewardToBeneficialVault(beneficialVaultBounty, _callerBalance, rewardPaths[_rewardToken]);
+          _rewardToBeneficialVault(beneficialVaultBounty, _callerBalance, convertToRoute(rewardPaths[_rewardToken]));
         _rewardToken.safeTransfer(_treasuryAccount, bounty - beneficialVaultBounty);
       }
       // 4. Convert all the remaining rewards to BTOKEN.
       router.swapExactTokensForTokens(
         reward - bounty,
         0,
-        getReinvestPath(_rewardToken),
+        convertToRoute(getReinvestPath(_rewardToken)),
         address(this),
         block.timestamp
       );
@@ -303,7 +303,7 @@ contract SEXWorker03 is OwnableUpgradeable, ReentrancyGuardUpgradeable, IMultiRe
   function _rewardToBeneficialVault(
     uint256 _beneficialVaultBounty,
     uint256 _callerBalance,
-    address[] memory _rewardPath
+    IBaseV1Router01.route[] memory _rewardPath
   ) internal {
     /// 1. read base token from beneficialVault
     address beneficialVaultToken = beneficialVault.token();
@@ -527,5 +527,15 @@ contract SEXWorker03 is OwnableUpgradeable, ReentrancyGuardUpgradeable, IMultiRe
       rewardPaths[_rewardToken] = _rewardPath;
       emit SetBeneficialVaultConfig(msg.sender, _beneficialVaultBountyBps, _beneficialVault, _rewardPath);
     }
+  }
+
+  function convertToRoute(address[] memory _path) internal pure returns (IBaseV1Router01.route[] memory _routes) {
+    _routes = new IBaseV1Router01.route[](_path.length - 1);
+    for (uint256 i = 0; i < _path.length - 1; i++) {
+      _routes[i].from = _path[i];
+      _routes[i].to = _path[i + 1];
+      _routes[i].stable = false;
+    }
+    return _routes;
   }
 }

@@ -6,7 +6,8 @@ import "@openzeppelin/test-helpers";
 import {
   MockERC20,
   MockERC20__factory,
-  MockWBNB,
+  MockWFTM,
+  MockWFTM__factory,
   BaseV1Factory,
   BaseV1Pair,
   BaseV1Pair__factory,
@@ -29,6 +30,14 @@ import {
   MiniFL,
   Rewarder1,
   MiniFL__factory,
+  BaseV1GaugeFactory,
+  BaseV1BribeFactory,
+  BaseV1,
+  VotingEscrow,
+  BaseV1Voter,
+  VeSOLID,
+  SolidexToken,
+  MockMinter__factory,
 } from "../../../../../typechain";
 import * as AssertHelpers from "../../../../helpers/assert";
 import * as TimeHelpers from "../../../../helpers/time";
@@ -43,7 +52,7 @@ const { expect } = chai;
 describe("Vault - SEXWorker03", () => {
   const FOREVER = "2000000000";
   const LM_REWARD_PER_SECOND = ethers.utils.parseEther("100");
-  const BOO_PER_SEC = ethers.utils.parseEther("0.076");
+  const solid_PER_SEC = ethers.utils.parseEther("0.076");
   const REINVEST_BOUNTY_BPS = "100"; // 1% reinvest bounty
   const RESERVE_POOL_BPS = "1000"; // 10% reserve pool
   const KILL_PRIZE_BPS = "1000"; // 10% Kill prize
@@ -62,7 +71,15 @@ describe("Vault - SEXWorker03", () => {
   let factory: BaseV1Factory;
   let router: BaseV1Router01;
 
-  let wbnb: MockWBNB;
+  let baseV1GaugeFactory: BaseV1GaugeFactory;
+  let baseV1BribeFactory: BaseV1BribeFactory;
+  let solid: BaseV1;
+  let sex: SolidexToken;
+  let veSOLID: VotingEscrow;
+  let baseV1Voter: BaseV1Voter;
+  let votingEscrow: VeSOLID;
+
+  let wftm: MockWFTM;
   let lp: BaseV1Pair;
 
   /// Token-related instance(s)
@@ -70,7 +87,6 @@ describe("Vault - SEXWorker03", () => {
   let extraToken: MockERC20;
   let baseToken: MockERC20;
   let farmToken: MockERC20;
-  let boo: Erc20;
 
   /// MiniFL instance(s)
   let miniFL: MiniFL;
@@ -90,8 +106,8 @@ describe("Vault - SEXWorker03", () => {
   let vault: Vault;
 
   /// LpDepositor-related instance(s)
-  let masterChef: LpDepositor;
-  let spookyWorker: SEXWorker03;
+  let lpDepositor: LpDepositor;
+  let sexWorker: SEXWorker03;
 
   // Accounts
   let deployer: Signer;
@@ -113,10 +129,10 @@ describe("Vault - SEXWorker03", () => {
   let lpAsAlice: BaseV1Pair;
   let lpAsBob: BaseV1Pair;
 
-  let masterChefAsAlice: LpDepositor;
-  let masterChefAsBob: LpDepositor;
+  let lpDepositorAsAlice: LpDepositor;
+  let lpDepositorAsBob: LpDepositor;
 
-  let spookyWorkerAsEve: SEXWorker03;
+  let sexWorkerAsEve: SEXWorker03;
 
   let vaultAsAlice: Vault;
   let vaultAsBob: Vault;
@@ -140,8 +156,12 @@ describe("Vault - SEXWorker03", () => {
     ]);
     const deployHelper = new DeployHelper(deployer);
 
-    wbnb = await deployHelper.deployWBNB();
-    [factory, router, boo, masterChef] = await deployHelper.deploySolidly(wbnb, BOO_PER_SEC);
+    const WFTM = (await ethers.getContractFactory("MockWFTM", deployer)) as MockWFTM__factory;
+    wftm = await WFTM.deploy();
+    await wftm.deployed();
+
+    [factory, router, baseV1GaugeFactory, baseV1BribeFactory, solid, votingEscrow, baseV1Voter, lpDepositor, sex] =
+      await deployHelper.deploySolidly(wftm);
     [alpacaToken, extraToken, baseToken, farmToken] = await deployHelper.deployBEP20([
       {
         name: "ALPACA",
@@ -184,10 +204,19 @@ describe("Vault - SEXWorker03", () => {
         ],
       },
     ]);
+
+    const MockMinter = (await ethers.getContractFactory("MockMinter", deployer)) as MockMinter__factory;
+    const mockMinter = await MockMinter.deploy();
+    await mockMinter.deployed();
+    await baseV1Voter.initialize(
+      [alpacaToken.address, extraToken.address, baseToken.address, farmToken.address],
+      mockMinter.address
+    );
+
     miniFL = await deployHelper.deployMiniFL(alpacaToken.address);
     rewarder1 = await deployHelper.deployRewarder1(miniFL.address, extraToken.address);
     [vault, simpleVaultConfig, wNativeRelayer] = await deployHelper.deployMiniFLVault(
-      wbnb,
+      wftm,
       {
         minDebtSize: MIN_DEBT_SIZE,
         interestRate: INTEREST_RATE,
@@ -202,51 +231,56 @@ describe("Vault - SEXWorker03", () => {
     );
     [addStrat, liqStrat, twoSidesStrat, minimizeStrat, partialCloseStrat, partialCloseMinimizeStrat] =
       await deployHelper.deploySolidlyStrategies(router, vault, wNativeRelayer);
-
     /// Set reward per second on both MiniFL and Rewarder
     await miniFL.setAlpacaPerSecond(LM_REWARD_PER_SECOND, true);
     await rewarder1.setRewardPerSecond(LM_REWARD_PER_SECOND, true);
     await rewarder1.addPool(1, 0, true);
 
     /// Setup BTOKEN-FTOKEN pair on Solidly
-    await factory.createPair(baseToken.address, farmToken.address);
-    lp = BaseV1Pair__factory.connect(await factory.getPair(farmToken.address, baseToken.address), deployer);
+    await factory.createPair(baseToken.address, farmToken.address, false);
+    lp = BaseV1Pair__factory.connect(await factory.getPair(farmToken.address, baseToken.address, false), deployer);
     await lp.deployed();
-
-    // Add lp to masterChef's pool
-    await masterChef.add(1, lp.address);
 
     /// Setup SEXWorker03
     const SEXWorker03 = (await ethers.getContractFactory("SEXWorker03", deployer)) as SEXWorker03__factory;
-    spookyWorker = (await upgrades.deployProxy(SEXWorker03, [
+    sexWorker = (await upgrades.deployProxy(SEXWorker03, [
       vault.address,
       baseToken.address,
-      masterChef.address,
+      lpDepositor.address,
+      lp.address,
       router.address,
-      POOL_ID,
       addStrat.address,
       liqStrat.address,
       REINVEST_BOUNTY_BPS,
       DEPLOYER,
-      [boo.address, wbnb.address, baseToken.address],
-      "0",
     ])) as SEXWorker03;
-    await spookyWorker.deployed();
+    await sexWorker.deployed();
 
-    await simpleVaultConfig.setWorker(spookyWorker.address, true, true, WORK_FACTOR, KILL_FACTOR, true, true);
-    await spookyWorker.setStrategyOk([twoSidesStrat.address, partialCloseStrat.address], true);
-    await spookyWorker.setReinvestorOk([eveAddress], true);
-    await spookyWorker.setTreasuryConfig(DEPLOYER, REINVEST_BOUNTY_BPS);
-    await addStrat.setWorkersOk([spookyWorker.address], true);
-    await twoSidesStrat.setWorkersOk([spookyWorker.address], true);
-    await liqStrat.setWorkersOk([spookyWorker.address], true);
-    await partialCloseStrat.setWorkersOk([spookyWorker.address], true);
+    await sexWorker.setReinvestConfig(REINVEST_BOUNTY_BPS, "0", solid.address, [
+      solid.address,
+      wftm.address,
+      baseToken.address,
+    ]);
+    await sexWorker.setReinvestConfig(REINVEST_BOUNTY_BPS, "0", sex.address, [
+      sex.address,
+      wftm.address,
+      baseToken.address,
+    ]);
+
+    await simpleVaultConfig.setWorker(sexWorker.address, true, true, WORK_FACTOR, KILL_FACTOR, true, true);
+    await sexWorker.setStrategyOk([twoSidesStrat.address, partialCloseStrat.address], true);
+    await sexWorker.setReinvestorOk([eveAddress], true);
+    await sexWorker.setTreasuryConfig(DEPLOYER, REINVEST_BOUNTY_BPS);
+    await addStrat.setWorkersOk([sexWorker.address], true);
+    await twoSidesStrat.setWorkersOk([sexWorker.address], true);
+    await liqStrat.setWorkersOk([sexWorker.address], true);
+    await partialCloseStrat.setWorkersOk([sexWorker.address], true);
     await simpleVaultConfig.setApprovedAddStrategy([addStrat.address, twoSidesStrat.address], true);
     await simpleVaultConfig.setWhitelistedLiquidators([await alice.getAddress(), await eve.getAddress()], true);
 
     // Initiate swapHelper
     swapHelper = new SwapHelper(factory.address, router.address, BigNumber.from(998), BigNumber.from(1000), deployer);
-    workerHelper = new Worker02Helper(spookyWorker.address, masterChef.address);
+    workerHelper = new Worker02Helper(sexWorker.address, lpDepositor.address);
 
     // Deployer adds 0.1 FTOKEN + 1 BTOKEN
     await baseToken.approve(router.address, ethers.utils.parseEther("1"));
@@ -254,6 +288,7 @@ describe("Vault - SEXWorker03", () => {
     await router.addLiquidity(
       baseToken.address,
       farmToken.address,
+      false,
       ethers.utils.parseEther("1"),
       ethers.utils.parseEther("0.1"),
       "0",
@@ -262,23 +297,65 @@ describe("Vault - SEXWorker03", () => {
       FOREVER
     );
 
-    // Deployer adds 0.1 BOO + 1 NATIVE
-    await boo.approve(router.address, ethers.utils.parseEther("1"));
-    await router.addLiquidityETH(boo.address, ethers.utils.parseEther("0.1"), "0", "0", deployerAddress, FOREVER, {
-      value: ethers.utils.parseEther("1"),
-    });
+    // Deployer adds 0.1 SOLID + 1 NATIVE
+    await solid.approve(router.address, ethers.utils.parseEther("1"));
+    await router.addLiquidityFTM(
+      solid.address,
+      false,
+      ethers.utils.parseEther("0.1"),
+      "0",
+      "0",
+      deployerAddress,
+      FOREVER,
+      {
+        value: ethers.utils.parseEther("1"),
+      }
+    );
+
+    // Deployer adds 0.1 SEX + 1 NATIVE
+    await sex.approve(router.address, ethers.utils.parseEther("1"));
+    await router.addLiquidityFTM(
+      sex.address,
+      false,
+      ethers.utils.parseEther("0.1"),
+      "0",
+      "0",
+      deployerAddress,
+      FOREVER,
+      {
+        value: ethers.utils.parseEther("1"),
+      }
+    );
 
     // Deployer adds 1 BTOKEN + 1 NATIVE
     await baseToken.approve(router.address, ethers.utils.parseEther("1"));
-    await router.addLiquidityETH(baseToken.address, ethers.utils.parseEther("1"), "0", "0", deployerAddress, FOREVER, {
-      value: ethers.utils.parseEther("1"),
-    });
+    await router.addLiquidityFTM(
+      baseToken.address,
+      false,
+      ethers.utils.parseEther("1"),
+      "0",
+      "0",
+      deployerAddress,
+      FOREVER,
+      {
+        value: ethers.utils.parseEther("1"),
+      }
+    );
 
     // Deployer adds 1 FTOKEN + 1 NATIVE
     await farmToken.approve(router.address, ethers.utils.parseEther("1"));
-    await router.addLiquidityETH(farmToken.address, ethers.utils.parseEther("1"), "0", "0", deployerAddress, FOREVER, {
-      value: ethers.utils.parseEther("1"),
-    });
+    await router.addLiquidityFTM(
+      farmToken.address,
+      false,
+      ethers.utils.parseEther("1"),
+      "0",
+      "0",
+      deployerAddress,
+      FOREVER,
+      {
+        value: ethers.utils.parseEther("1"),
+      }
+    );
 
     // Contract signer
     baseTokenAsAlice = MockERC20__factory.connect(baseToken.address, alice);
@@ -289,8 +366,8 @@ describe("Vault - SEXWorker03", () => {
     lpAsAlice = BaseV1Pair__factory.connect(lp.address, alice);
     lpAsBob = BaseV1Pair__factory.connect(lp.address, bob);
 
-    masterChefAsAlice = LpDepositor__factory.connect(masterChef.address, alice);
-    masterChefAsBob = LpDepositor__factory.connect(masterChef.address, bob);
+    lpDepositorAsAlice = LpDepositor__factory.connect(lpDepositor.address, alice);
+    lpDepositorAsBob = LpDepositor__factory.connect(lpDepositor.address, bob);
 
     vaultAsAlice = Vault__factory.connect(vault.address, alice);
     vaultAsBob = Vault__factory.connect(vault.address, bob);
@@ -300,7 +377,7 @@ describe("Vault - SEXWorker03", () => {
     miniFLasBob = MiniFL__factory.connect(miniFL.address, bob);
     miniFLasEve = MiniFL__factory.connect(miniFL.address, eve);
 
-    spookyWorkerAsEve = SEXWorker03__factory.connect(spookyWorker.address, eve);
+    sexWorkerAsEve = SEXWorker03__factory.connect(sexWorker.address, eve);
   }
 
   beforeEach(async () => {
@@ -309,12 +386,12 @@ describe("Vault - SEXWorker03", () => {
 
   context("when worker is initialized", async () => {
     it("should has FTOKEN as a farmingToken in SEXWorker03", async () => {
-      expect(await spookyWorker.farmingToken()).to.be.equal(farmToken.address);
+      expect(await sexWorker.farmingToken()).to.be.equal(farmToken.address);
     });
 
     it("should initialized the correct fee and feeDenom", async () => {
-      expect(await spookyWorker.fee()).to.be.eq("998");
-      expect(await spookyWorker.feeDenom()).to.be.eq("1000");
+      expect(await sexWorker.fee()).to.be.eq("9999");
+      expect(await sexWorker.feeDenom()).to.be.eq("10000");
     });
   });
 
@@ -322,73 +399,73 @@ describe("Vault - SEXWorker03", () => {
     describe("#setReinvestConfig", async () => {
       it("should set reinvest config correctly", async () => {
         await expect(
-          spookyWorker.setReinvestConfig(250, ethers.utils.parseEther("1"), [boo.address, baseToken.address])
+          sexWorker.setReinvestConfig(250, ethers.utils.parseEther("1"), sex.address, [sex.address, baseToken.address])
         )
-          .to.be.emit(spookyWorker, "SetReinvestConfig")
-          .withArgs(deployerAddress, 250, ethers.utils.parseEther("1"), [boo.address, baseToken.address]);
-        expect(await spookyWorker.reinvestBountyBps()).to.be.eq(250);
-        expect(await spookyWorker.reinvestThreshold()).to.be.eq(ethers.utils.parseEther("1"));
-        expect(await spookyWorker.getReinvestPath()).to.deep.eq([boo.address, baseToken.address]);
+          .to.be.emit(sexWorker, "SetReinvestConfig")
+          .withArgs(deployerAddress, 250, ethers.utils.parseEther("1"), [sex.address, baseToken.address]);
+        expect(await sexWorker.reinvestBountyBps()).to.be.eq(250);
+        expect(await sexWorker.reinvestThresholds(sex.address)).to.be.eq(ethers.utils.parseEther("1"));
+        expect(await sexWorker.getReinvestPath(sex.address)).to.deep.eq([sex.address, baseToken.address]);
       });
 
       it("should revert when owner set reinvestBountyBps > max", async () => {
-        await expect(spookyWorker.setReinvestConfig(1000, "0", [boo.address, baseToken.address])).to.be.revertedWith(
-          "exceeded maxReinvestBountyBps"
-        );
-        expect(await spookyWorker.reinvestBountyBps()).to.be.eq(100);
+        await expect(
+          sexWorker.setReinvestConfig(1000, "0", sex.address, [sex.address, baseToken.address])
+        ).to.be.revertedWith("exceeded maxReinvestBountyBps");
+        expect(await sexWorker.reinvestBountyBps()).to.be.eq(100);
       });
 
-      it("should revert when owner set reinvest path that does not start with BOO and end with BTOKEN", async () => {
-        await expect(spookyWorker.setReinvestConfig(200, "0", [baseToken.address, boo.address])).to.be.revertedWith(
-          "bad _reinvestPath"
-        );
+      it("should revert when owner set reinvest path that does not start with solid and end with BTOKEN", async () => {
+        await expect(
+          sexWorker.setReinvestConfig(200, "0", sex.address, [baseToken.address, sex.address])
+        ).to.be.revertedWith("bad _reinvestPath");
       });
     });
 
     describe("#setMaxReinvestBountyBps", async () => {
       it("should set max reinvest bounty", async () => {
-        await spookyWorker.setMaxReinvestBountyBps(200);
-        expect(await spookyWorker.maxReinvestBountyBps()).to.be.eq(200);
+        await sexWorker.setMaxReinvestBountyBps(200);
+        expect(await sexWorker.maxReinvestBountyBps()).to.be.eq(200);
       });
 
       it("should revert when new max reinvest bounty over 30%", async () => {
-        await expect(spookyWorker.setMaxReinvestBountyBps("3001")).to.be.revertedWith("exceeded 30%");
-        expect(await spookyWorker.maxReinvestBountyBps()).to.be.eq("900");
+        await expect(sexWorker.setMaxReinvestBountyBps("3001")).to.be.revertedWith("exceeded 30%");
+        expect(await sexWorker.maxReinvestBountyBps()).to.be.eq("900");
       });
     });
 
     describe("#setTreasuryConfig", async () => {
       it("should successfully set a treasury account", async () => {
         const aliceAddr = aliceAddress;
-        await spookyWorker.setTreasuryConfig(aliceAddr, REINVEST_BOUNTY_BPS);
-        expect(await spookyWorker.treasuryAccount()).to.eq(aliceAddr);
+        await sexWorker.setTreasuryConfig(aliceAddr, REINVEST_BOUNTY_BPS);
+        expect(await sexWorker.treasuryAccount()).to.eq(aliceAddr);
       });
 
       it("should successfully set a treasury bounty", async () => {
-        await spookyWorker.setTreasuryConfig(DEPLOYER, 499);
-        expect(await spookyWorker.treasuryBountyBps()).to.eq(499);
+        await sexWorker.setTreasuryConfig(DEPLOYER, 499);
+        expect(await sexWorker.treasuryBountyBps()).to.eq(499);
       });
 
       it("should revert when treasury bounty > max reinvest bounty", async () => {
-        await expect(spookyWorker.setTreasuryConfig(DEPLOYER, parseInt(MAX_REINVEST_BOUNTY) + 1)).to.revertedWith(
+        await expect(sexWorker.setTreasuryConfig(DEPLOYER, parseInt(MAX_REINVEST_BOUNTY) + 1)).to.revertedWith(
           "exceeded maxReinvestBountyBps"
         );
-        expect(await spookyWorker.treasuryBountyBps()).to.eq(REINVEST_BOUNTY_BPS);
+        expect(await sexWorker.treasuryBountyBps()).to.eq(REINVEST_BOUNTY_BPS);
       });
 
       it("should revert when treasury account set to address(0)", async () => {
         await expect(
-          spookyWorker.setTreasuryConfig(ethers.constants.AddressZero, parseInt(MAX_REINVEST_BOUNTY))
+          sexWorker.setTreasuryConfig(ethers.constants.AddressZero, parseInt(MAX_REINVEST_BOUNTY))
         ).to.revertedWith("bad _treasuryAccount");
-        expect(await spookyWorker.treasuryAccount()).to.eq(DEPLOYER);
-        expect(await spookyWorker.treasuryBountyBps()).to.eq(REINVEST_BOUNTY_BPS);
+        expect(await sexWorker.treasuryAccount()).to.eq(DEPLOYER);
+        expect(await sexWorker.treasuryBountyBps()).to.eq(REINVEST_BOUNTY_BPS);
       });
     });
 
     describe("#setStrategyOk", async () => {
       it("should set strat ok", async () => {
-        await spookyWorker.setStrategyOk([aliceAddress], true);
-        expect(await spookyWorker.okStrats(aliceAddress)).to.be.eq(true);
+        await sexWorker.setStrategyOk([aliceAddress], true);
+        expect(await sexWorker.okStrats(aliceAddress)).to.be.eq(true);
       });
     });
   });
@@ -404,7 +481,7 @@ describe("Vault - SEXWorker03", () => {
         await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("0.3"));
         await vaultAsAlice.work(
           0,
-          spookyWorker.address,
+          sexWorker.address,
           ethers.utils.parseEther("0.3"),
           ethers.utils.parseEther("0"),
           "0",
@@ -421,7 +498,7 @@ describe("Vault - SEXWorker03", () => {
         // userFarmingToken = 0.012283403885953603
 
         // health = amount of underlying of lp after converted to BTOKEN
-        // = userBaseToken + userFarmingTokenAfterSellToBaseToken
+        // = usxerBaseToken + userFarmingTokenAfterSellToBaseToken
 
         // Find userFarmingTokenAfterSellToBaseToken from
         // mktSellAMount
@@ -432,12 +509,12 @@ describe("Vault - SEXWorker03", () => {
         // health = userBaseToken + userFarmingTokenAfterSellToBaseToken
         // = 0.159684250517396851 + 0.139823800150121109
         // = 0.29950805066751796
-        expect(await spookyWorker.health(1)).to.be.equal(ethers.utils.parseEther("0.29950805066751796"));
+        expect(await sexWorker.health(1)).to.be.equal(ethers.utils.parseEther("0.299973687794080500"));
 
         // must be able to close position
         await vaultAsAlice.work(
           1,
-          spookyWorker.address,
+          sexWorker.address,
           "0",
           "0",
           ethers.constants.MaxUint256.toString(),
@@ -446,7 +523,7 @@ describe("Vault - SEXWorker03", () => {
             [liqStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
           )
         );
-        expect(await spookyWorker.health(1)).to.be.equal(ethers.constants.Zero);
+        expect(await sexWorker.health(1)).to.be.equal(ethers.constants.Zero);
       });
 
       it("should not allow to open a position with debt less than MIN_DEBT_SIZE", async () => {
@@ -459,7 +536,7 @@ describe("Vault - SEXWorker03", () => {
         await expect(
           vaultAsAlice.work(
             0,
-            spookyWorker.address,
+            sexWorker.address,
             ethers.utils.parseEther("0.3"),
             ethers.utils.parseEther("0.3"),
             "0",
@@ -481,7 +558,7 @@ describe("Vault - SEXWorker03", () => {
         await expect(
           vaultAsAlice.work(
             0,
-            spookyWorker.address,
+            sexWorker.address,
             ethers.utils.parseEther("0.3"),
             ethers.utils.parseEther("1"),
             "0",
@@ -499,7 +576,7 @@ describe("Vault - SEXWorker03", () => {
         await expect(
           vaultAsAlice.work(
             0,
-            spookyWorker.address,
+            sexWorker.address,
             ethers.utils.parseEther("1"),
             ethers.utils.parseEther("1"),
             "0",
@@ -523,7 +600,7 @@ describe("Vault - SEXWorker03", () => {
         await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
         await vaultAsAlice.work(
           0,
-          spookyWorker.address,
+          sexWorker.address,
           ethers.utils.parseEther("1"),
           loan,
           "0",
@@ -553,19 +630,20 @@ describe("Vault - SEXWorker03", () => {
         // = 1.267216253674334111 + 0.731091001597324380
         // = 1.998307255271658491
 
-        expect(await spookyWorker.health(1)).to.be.eq(ethers.utils.parseEther("1.998307255271658491"));
+        expect(await sexWorker.health(1)).to.be.eq(ethers.utils.parseEther("1.998307255271658491"));
 
         // Eve comes and trigger reinvest
         stages["beforeReinvest"] = await TimeHelpers.latest();
         await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-        await spookyWorkerAsEve.reinvest();
+        await sexWorkerAsEve.reinvest();
         stages["afterReinvest"] = await TimeHelpers.latest();
         AssertHelpers.assertAlmostEqual(
-          BOO_PER_SEC.mul(stages["afterReinvest"].sub(stages["beforeReinvest"]))
+          solid_PER_SEC
+            .mul(stages["afterReinvest"].sub(stages["beforeReinvest"]))
             .mul(REINVEST_BOUNTY_BPS)
             .div("10000")
             .toString(),
-          (await boo.balanceOf(eveAddress)).toString()
+          (await solid.balanceOf(eveAddress)).toString()
         );
 
         await vault.deposit(0); // Random action to trigger interest computation
@@ -598,7 +676,7 @@ describe("Vault - SEXWorker03", () => {
         await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
         await vaultAsAlice.work(
           0,
-          spookyWorker.address,
+          sexWorker.address,
           ethers.utils.parseEther("1"),
           loan,
           "0",
@@ -609,7 +687,7 @@ describe("Vault - SEXWorker03", () => {
         );
 
         await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-        await spookyWorkerAsEve.reinvest();
+        await sexWorkerAsEve.reinvest();
         await vault.deposit(0); // Random action to trigger interest computation
 
         await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
@@ -636,16 +714,16 @@ describe("Vault - SEXWorker03", () => {
           "0", // 0% per year
           "1000", // 10% reserve pool
           "1000", // 10% Kill prize
-          wbnb.address,
+          wftm.address,
           wNativeRelayer.address,
           miniFL.address,
           "0",
           ethers.constants.AddressZero
         );
         // Set Reinvest bounty to 10% of the reward
-        await spookyWorker.setReinvestConfig("100", "0", [boo.address, wbnb.address, baseToken.address]);
+        await sexWorker.setReinvestConfig("100", "0", solid.address, [solid.address, wftm.address, baseToken.address]);
 
-        const [path, reinvestPath] = await Promise.all([spookyWorker.getPath(), spookyWorker.getReinvestPath()]);
+        const [path, reinvestPath] = await Promise.all([sexWorker.getPath(), sexWorker.getReinvestPath(solid.address)]);
 
         // Bob deposits 10 BTOKEN
         await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
@@ -664,7 +742,7 @@ describe("Vault - SEXWorker03", () => {
         await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
         await vaultAsBob.work(
           0,
-          spookyWorker.address,
+          sexWorker.address,
           ethers.utils.parseEther("10"),
           ethers.utils.parseEther("10"),
           "0", // max return = 0, don't return NATIVE to the debt
@@ -685,13 +763,12 @@ describe("Vault - SEXWorker03", () => {
         totalShare = totalShare.add(expectedShare);
 
         // Expect
-        let [workerLpAfter] = await masterChef.userInfo(POOL_ID, spookyWorker.address);
-        expect(await spookyWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.eq(shares[0]);
-        expect(
-          await spookyWorker.shareToBalance(await spookyWorker.shares(1)),
-          `expect Pos#1 LPs = ${expectedLp}`
-        ).to.be.eq(expectedLp);
-        expect(await spookyWorker.totalShare(), `expect totalShare = ${totalShare}`).to.be.eq(totalShare);
+        let workerLpAfter = await lpDepositor.userBalances(sexWorker.address, lp.address);
+        expect(await sexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.eq(shares[0]);
+        expect(await sexWorker.shareToBalance(await sexWorker.shares(1)), `expect Pos#1 LPs = ${expectedLp}`).to.be.eq(
+          expectedLp
+        );
+        expect(await sexWorker.totalShare(), `expect totalShare = ${totalShare}`).to.be.eq(totalShare);
         expect(
           await baseToken.balanceOf(addStrat.address),
           `expect add BTOKEN strat to have ${debrisBtoken} BTOKEN debris`
@@ -703,16 +780,16 @@ describe("Vault - SEXWorker03", () => {
         expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.eq(accumLp);
 
         // Position#2: Bob borrows another 2 BTOKEN
-        [workerLpBefore] = await masterChef.userInfo(POOL_ID, spookyWorker.address);
-        let eveBooBefore = await boo.balanceOf(eveAddress);
-        let deployerBooBefore = await boo.balanceOf(DEPLOYER);
+        workerLpBefore = await lpDepositor.userBalances(sexWorker.address, lp.address);
+        let evesolidBefore = await solid.balanceOf(eveAddress);
+        let deployersolidBefore = await solid.balanceOf(DEPLOYER);
         stages["beforeReinvest"] = await TimeHelpers.latest();
         await swapHelper.loadReserves(path);
         await swapHelper.loadReserves(reinvestPath);
         await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("1"));
         await vaultAsBob.work(
           0,
-          spookyWorker.address,
+          sexWorker.address,
           ethers.utils.parseEther("1"),
           ethers.utils.parseEther("2"),
           "0", // max return = 0, don't return BTOKEN to the debt
@@ -722,12 +799,12 @@ describe("Vault - SEXWorker03", () => {
           )
         );
         stages["afterReinvest"] = await TimeHelpers.latest();
-        [workerLpAfter] = await masterChef.userInfo(POOL_ID, spookyWorker.address);
-        let eveBooAfter = await boo.balanceOf(eveAddress);
-        let deployerBooAfter = await boo.balanceOf(DEPLOYER);
+        workerLpAfter = await lpDepositor.userBalances(sexWorker.address, lp.address);
+        let evesolidAfter = await solid.balanceOf(eveAddress);
+        let deployersolidAfter = await solid.balanceOf(DEPLOYER);
         let totalRewards = swapHelper.computeTotalRewards(
           workerLpBefore,
-          BOO_PER_SEC,
+          solid_PER_SEC,
           stages["afterReinvest"].sub(stages["beforeReinvest"])
         );
         let reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
@@ -749,23 +826,23 @@ describe("Vault - SEXWorker03", () => {
         shares.push(expectedShare);
         totalShare = totalShare.add(expectedShare);
 
-        expect(await spookyWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.eq(shares[0]);
+        expect(await sexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.eq(shares[0]);
         expect(
-          await spookyWorker.shareToBalance(await spookyWorker.shares(1)),
+          await sexWorker.shareToBalance(await sexWorker.shares(1)),
           `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
         ).to.be.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
 
-        expect(await spookyWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.eq(shares[1]);
+        expect(await sexWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.eq(shares[1]);
         expect(
-          await spookyWorker.shareToBalance(await spookyWorker.shares(2)),
+          await sexWorker.shareToBalance(await sexWorker.shares(2)),
           `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
         ).to.be.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
 
         expect(
-          deployerBooAfter.sub(deployerBooBefore),
-          `expect DEPLOYER to get ${reinvestFees} BOO as treasury fees`
+          deployersolidAfter.sub(deployersolidBefore),
+          `expect DEPLOYER to get ${reinvestFees} solid as treasury fees`
         ).to.be.eq(reinvestFees);
-        expect(eveBooAfter.sub(eveBooBefore), `expect eve's BOO to remain the same`).to.be.eq("0");
+        expect(evesolidAfter.sub(evesolidBefore), `expect eve's solid to remain the same`).to.be.eq("0");
         expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.eq(accumLp);
         expect(
           await baseToken.balanceOf(addStrat.address),
@@ -783,21 +860,21 @@ describe("Vault - SEXWorker03", () => {
         // Wait for 1 day and someone calls reinvest
         await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
 
-        let [workerLPBefore] = await masterChef.userInfo(POOL_ID, spookyWorker.address);
-        deployerBooBefore = await boo.balanceOf(DEPLOYER);
-        eveBooBefore = await boo.balanceOf(eveAddress);
+        workerLpBefore = await lpDepositor.userBalances(sexWorker.address, lp.address);
+        deployersolidBefore = await solid.balanceOf(DEPLOYER);
+        evesolidBefore = await solid.balanceOf(eveAddress);
         await swapHelper.loadReserves(path);
         await swapHelper.loadReserves(reinvestPath);
 
-        await spookyWorkerAsEve.reinvest();
+        await sexWorkerAsEve.reinvest();
         stages["afterReinvest"] = await TimeHelpers.latest();
 
-        deployerBooAfter = await boo.balanceOf(DEPLOYER);
-        eveBooAfter = await boo.balanceOf(eveAddress);
-        [workerLpAfter] = await masterChef.userInfo(POOL_ID, spookyWorker.address);
+        deployersolidAfter = await solid.balanceOf(DEPLOYER);
+        evesolidAfter = await solid.balanceOf(eveAddress);
+        workerLpAfter = await lpDepositor.userBalances(sexWorker.address, lp.address);
         totalRewards = swapHelper.computeTotalRewards(
-          workerLPBefore,
-          BOO_PER_SEC,
+          workerLpBefore,
+          solid_PER_SEC,
           stages["afterReinvest"].sub(stages["beforeReinvest"])
         );
         reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
@@ -808,26 +885,26 @@ describe("Vault - SEXWorker03", () => {
         [reinvestLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
         accumLp = accumLp.add(reinvestLp);
 
-        expect(await spookyWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.eq(shares[0]);
+        expect(await sexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.eq(shares[0]);
         expect(
-          await spookyWorker.shareToBalance(await spookyWorker.shares(1)),
+          await sexWorker.shareToBalance(await sexWorker.shares(1)),
           `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
         ).to.be.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
 
-        expect(await spookyWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.eq(shares[1]);
+        expect(await sexWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.eq(shares[1]);
         expect(
-          await spookyWorker.shareToBalance(await spookyWorker.shares(2)),
+          await sexWorker.shareToBalance(await sexWorker.shares(2)),
           `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
         ).to.be.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
 
-        expect(deployerBooAfter.sub(deployerBooBefore), `expect DEPLOYER's BOO to remain the same`).to.be.eq("0");
-        expect(eveBooAfter.sub(eveBooBefore), `expect eve to get ${reinvestFees}`).to.be.eq(reinvestFees);
+        expect(deployersolidAfter.sub(deployersolidBefore), `expect DEPLOYER's solid to remain the same`).to.be.eq("0");
+        expect(evesolidAfter.sub(evesolidBefore), `expect eve to get ${reinvestFees}`).to.be.eq(reinvestFees);
         expect(workerLpAfter).to.be.eq(accumLp);
 
         // Check Position#1 info
         let [bob1Health, bob1DebtToShare] = await vault.positionInfo("1");
         const bob1ExpectedHealth = await swapHelper.computeLpHealth(
-          await spookyWorker.shareToBalance(await spookyWorker.shares(1)),
+          await sexWorker.shareToBalance(await sexWorker.shares(1)),
           baseToken.address,
           farmToken.address
         );
@@ -838,7 +915,7 @@ describe("Vault - SEXWorker03", () => {
         // Check Position#2 info
         let [bob2Health, bob2DebtToShare] = await vault.positionInfo("2");
         const bob2ExpectedHealth = await swapHelper.computeLpHealth(
-          await spookyWorker.shareToBalance(await spookyWorker.shares(2)),
+          await sexWorker.shareToBalance(await sexWorker.shares(2)),
           baseToken.address,
           farmToken.address
         );
@@ -850,7 +927,7 @@ describe("Vault - SEXWorker03", () => {
         // Bob close position#1
         await vaultAsBob.work(
           1,
-          spookyWorker.address,
+          sexWorker.address,
           "0",
           "0",
           ethers.constants.MaxUint256,
@@ -874,7 +951,7 @@ describe("Vault - SEXWorker03", () => {
         await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
         await vaultAsBob.work(
           2,
-          spookyWorker.address,
+          sexWorker.address,
           ethers.utils.parseEther("10"),
           0,
           "0", // max return = 0, don't return NATIVE to the debt
@@ -894,7 +971,7 @@ describe("Vault - SEXWorker03", () => {
         // Bob close position#2
         await vaultAsBob.work(
           2,
-          spookyWorker.address,
+          sexWorker.address,
           "0",
           "0",
           "1000000000000000000000000000000",
@@ -940,17 +1017,17 @@ describe("Vault - SEXWorker03", () => {
           "0", // 0% per year
           "1000", // 10% reserve pool
           "1000", // 10% Kill prize
-          wbnb.address,
+          wftm.address,
           wNativeRelayer.address,
           miniFL.address,
           "0",
           ethers.constants.AddressZero
         );
 
-        const [path, reinvestPath] = await Promise.all([spookyWorker.getPath(), spookyWorker.getReinvestPath()]);
+        const [path, reinvestPath] = await Promise.all([sexWorker.getPath(), sexWorker.getReinvestPath(solid.address)]);
 
         // Set Reinvest bounty to 10% of the reward
-        await spookyWorker.setReinvestConfig("100", "0", [boo.address, wbnb.address, baseToken.address]);
+        await sexWorker.setReinvestConfig("100", "0", solid.address, [solid.address, wftm.address, baseToken.address]);
 
         // Bob deposits 10 BTOKEN
         await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
@@ -969,7 +1046,7 @@ describe("Vault - SEXWorker03", () => {
         await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
         await vaultAsBob.work(
           0,
-          spookyWorker.address,
+          sexWorker.address,
           ethers.utils.parseEther("10"),
           ethers.utils.parseEther("10"),
           "0", // max return = 0, don't return NATIVE to the debt
@@ -990,13 +1067,12 @@ describe("Vault - SEXWorker03", () => {
         totalShare = totalShare.add(expectedShare);
 
         // Expect
-        let [workerLpAfter] = await masterChef.userInfo(POOL_ID, spookyWorker.address);
-        expect(await spookyWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.eq(shares[0]);
-        expect(
-          await spookyWorker.shareToBalance(await spookyWorker.shares(1)),
-          `expect Pos#1 LPs = ${expectedLp}`
-        ).to.be.eq(expectedLp);
-        expect(await spookyWorker.totalShare(), `expect totalShare = ${totalShare}`).to.be.eq(totalShare);
+        let workerLpAfter = await lpDepositor.userBalances(sexWorker.address, lp.address);
+        expect(await sexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.eq(shares[0]);
+        expect(await sexWorker.shareToBalance(await sexWorker.shares(1)), `expect Pos#1 LPs = ${expectedLp}`).to.be.eq(
+          expectedLp
+        );
+        expect(await sexWorker.totalShare(), `expect totalShare = ${totalShare}`).to.be.eq(totalShare);
         expect(
           await baseToken.balanceOf(addStrat.address),
           `expect add BTOKEN strat to have ${debrisBtoken} BTOKEN debris`
@@ -1011,9 +1087,9 @@ describe("Vault - SEXWorker03", () => {
         stages["beforeReinvest"] = await TimeHelpers.latest();
 
         // Position#2: Bob borrows another 2 BTOKEN
-        [workerLpBefore] = await masterChef.userInfo(POOL_ID, spookyWorker.address);
-        let eveBooBefore = await boo.balanceOf(eveAddress);
-        let deployerBooBefore = await boo.balanceOf(DEPLOYER);
+        workerLpBefore = await lpDepositor.userBalances(sexWorker.address, lp.address);
+        let evesolidBefore = await solid.balanceOf(eveAddress);
+        let deployersolidBefore = await solid.balanceOf(DEPLOYER);
 
         // Position#2: Bob open 1x position with 3 BTOKEN
         await swapHelper.loadReserves(path);
@@ -1021,7 +1097,7 @@ describe("Vault - SEXWorker03", () => {
         await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("3"));
         await vaultAsBob.work(
           0,
-          spookyWorker.address,
+          sexWorker.address,
           ethers.utils.parseEther("3"),
           "0",
           "0", // max return = 0, don't return BTOKEN to the debt
@@ -1030,13 +1106,13 @@ describe("Vault - SEXWorker03", () => {
             [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
           )
         );
-        [workerLpAfter] = await masterChef.userInfo(POOL_ID, spookyWorker.address);
-        let eveBooAfter = await boo.balanceOf(eveAddress);
-        let deployerBooAfter = await boo.balanceOf(DEPLOYER);
+        workerLpAfter = await lpDepositor.userBalances(sexWorker.address, lp.address);
+        let evesolidAfter = await solid.balanceOf(eveAddress);
+        let deployersolidAfter = await solid.balanceOf(DEPLOYER);
         stages["afterReinvest"] = await TimeHelpers.latest();
         let totalRewards = swapHelper.computeTotalRewards(
           workerLpBefore,
-          BOO_PER_SEC,
+          solid_PER_SEC,
           stages["afterReinvest"].sub(stages["beforeReinvest"])
         );
         let reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
@@ -1058,23 +1134,23 @@ describe("Vault - SEXWorker03", () => {
         shares.push(expectedShare);
         totalShare = totalShare.add(expectedShare);
 
-        expect(await spookyWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.eq(shares[0]);
+        expect(await sexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.eq(shares[0]);
         expect(
-          await spookyWorker.shareToBalance(await spookyWorker.shares(1)),
+          await sexWorker.shareToBalance(await sexWorker.shares(1)),
           `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
         ).to.be.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
 
-        expect(await spookyWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.eq(shares[1]);
+        expect(await sexWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.eq(shares[1]);
         expect(
-          await spookyWorker.shareToBalance(await spookyWorker.shares(2)),
+          await sexWorker.shareToBalance(await sexWorker.shares(2)),
           `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
         ).to.be.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
 
         expect(
-          deployerBooAfter.sub(deployerBooBefore),
-          `expect DEPLOYER to get ${reinvestFees} BOO as treasury fees`
+          deployersolidAfter.sub(deployersolidBefore),
+          `expect DEPLOYER to get ${reinvestFees} solid as treasury fees`
         ).to.be.eq(reinvestFees);
-        expect(eveBooAfter.sub(eveBooBefore), `expect eve's BOO to remain the same`).to.be.eq("0");
+        expect(evesolidAfter.sub(evesolidBefore), `expect eve's solid to remain the same`).to.be.eq("0");
         expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.eq(accumLp);
         expect(
           await baseToken.balanceOf(addStrat.address),
@@ -1092,21 +1168,21 @@ describe("Vault - SEXWorker03", () => {
         // Wait for 1 day and someone calls reinvest
         await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
 
-        let [workerLPBefore] = await masterChef.userInfo(POOL_ID, spookyWorker.address);
-        deployerBooBefore = await boo.balanceOf(DEPLOYER);
-        eveBooBefore = await boo.balanceOf(eveAddress);
+        workerLpBefore = await lpDepositor.userBalances(sexWorker.address, lp.address);
+        deployersolidBefore = await solid.balanceOf(DEPLOYER);
+        evesolidBefore = await solid.balanceOf(eveAddress);
         await swapHelper.loadReserves(path);
         await swapHelper.loadReserves(reinvestPath);
 
-        await spookyWorkerAsEve.reinvest();
+        await sexWorkerAsEve.reinvest();
         stages["afterReinvest"] = await TimeHelpers.latest();
 
-        deployerBooAfter = await boo.balanceOf(DEPLOYER);
-        eveBooAfter = await boo.balanceOf(eveAddress);
-        [workerLpAfter] = await masterChef.userInfo(POOL_ID, spookyWorker.address);
+        deployersolidAfter = await solid.balanceOf(DEPLOYER);
+        evesolidAfter = await solid.balanceOf(eveAddress);
+        workerLpAfter = await lpDepositor.userBalances(sexWorker.address, lp.address);
         totalRewards = swapHelper.computeTotalRewards(
-          workerLPBefore,
-          BOO_PER_SEC,
+          workerLpBefore,
+          solid_PER_SEC,
           stages["afterReinvest"].sub(stages["beforeReinvest"])
         );
         reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
@@ -1117,26 +1193,26 @@ describe("Vault - SEXWorker03", () => {
         [reinvestLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
         accumLp = accumLp.add(reinvestLp);
 
-        expect(await spookyWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.eq(shares[0]);
+        expect(await sexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.eq(shares[0]);
         expect(
-          await spookyWorker.shareToBalance(await spookyWorker.shares(1)),
+          await sexWorker.shareToBalance(await sexWorker.shares(1)),
           `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
         ).to.be.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
 
-        expect(await spookyWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.eq(shares[1]);
+        expect(await sexWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.eq(shares[1]);
         expect(
-          await spookyWorker.shareToBalance(await spookyWorker.shares(2)),
+          await sexWorker.shareToBalance(await sexWorker.shares(2)),
           `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
         ).to.be.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
 
-        expect(deployerBooAfter.sub(deployerBooBefore), `expect DEPLOYER's BOO to remain the same`).to.be.eq("0");
-        expect(eveBooAfter.sub(eveBooBefore), `expect eve to get ${reinvestFees}`).to.be.eq(reinvestFees);
+        expect(deployersolidAfter.sub(deployersolidBefore), `expect DEPLOYER's solid to remain the same`).to.be.eq("0");
+        expect(evesolidAfter.sub(evesolidBefore), `expect eve to get ${reinvestFees}`).to.be.eq(reinvestFees);
         expect(workerLpAfter).to.be.eq(accumLp);
 
         // Check Position#1 info
         let [bob1Health, bob1DebtToShare] = await vault.positionInfo("1");
         const bob1ExpectedHealth = await swapHelper.computeLpHealth(
-          await spookyWorker.shareToBalance(await spookyWorker.shares(1)),
+          await sexWorker.shareToBalance(await sexWorker.shares(1)),
           baseToken.address,
           farmToken.address
         );
@@ -1147,7 +1223,7 @@ describe("Vault - SEXWorker03", () => {
         // Check Position#2 info
         let [bob2Health, bob2DebtToShare] = await vault.positionInfo("2");
         const bob2ExpectedHealth = await swapHelper.computeLpHealth(
-          await spookyWorker.shareToBalance(await spookyWorker.shares(2)),
+          await sexWorker.shareToBalance(await sexWorker.shares(2)),
           baseToken.address,
           farmToken.address
         );
@@ -1159,7 +1235,7 @@ describe("Vault - SEXWorker03", () => {
         // Bob close position#1
         await vaultAsBob.work(
           1,
-          spookyWorker.address,
+          sexWorker.address,
           "0",
           "0",
           "1000000000000000000000",
@@ -1177,7 +1253,7 @@ describe("Vault - SEXWorker03", () => {
         await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
         await vaultAsBob.work(
           2,
-          spookyWorker.address,
+          sexWorker.address,
           ethers.utils.parseEther("10"),
           0,
           "0", // max return = 0, don't return NATIVE to the debt
@@ -1191,7 +1267,7 @@ describe("Vault - SEXWorker03", () => {
         // Bob close position#2
         await vaultAsBob.work(
           2,
-          spookyWorker.address,
+          sexWorker.address,
           "0",
           "0",
           "1000000000000000000000000000000",
@@ -1224,7 +1300,7 @@ describe("Vault - SEXWorker03", () => {
         await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
         await vaultAsAlice.work(
           0,
-          spookyWorker.address,
+          sexWorker.address,
           ethers.utils.parseEther("1"),
           loan,
           "0",
@@ -1236,7 +1312,7 @@ describe("Vault - SEXWorker03", () => {
 
         // Her position should have ~2 BTOKEN health (minus some small trading fee)
         await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-        await spookyWorkerAsEve.reinvest();
+        await sexWorkerAsEve.reinvest();
         await vault.deposit(0); // Random action to trigger interest computation
 
         // You can't liquidate her position yet
@@ -1256,7 +1332,7 @@ describe("Vault - SEXWorker03", () => {
         await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
         await vaultAsAlice.work(
           0,
-          spookyWorker.address,
+          sexWorker.address,
           ethers.utils.parseEther("1"),
           loan,
           "0",
@@ -1267,7 +1343,7 @@ describe("Vault - SEXWorker03", () => {
         );
 
         await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-        await spookyWorkerAsEve.reinvest();
+        await sexWorkerAsEve.reinvest();
         await vault.deposit(0); // Random action to trigger interest computation
 
         await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
@@ -1292,13 +1368,13 @@ describe("Vault - SEXWorker03", () => {
           0,
           RESERVE_POOL_BPS,
           KILL_PRIZE_BPS,
-          wbnb.address,
+          wftm.address,
           wNativeRelayer.address,
           miniFL.address,
           KILL_TREASURY_BPS,
           deployerAddress
         );
-        const toBeLiquidatedValue = await spookyWorker.health(1);
+        const toBeLiquidatedValue = await sexWorker.health(1);
         const liquidationBounty = toBeLiquidatedValue.mul(KILL_PRIZE_BPS).div(10000);
         const treasuryKillFees = toBeLiquidatedValue.mul(KILL_TREASURY_BPS).div(10000);
         const totalLiquidationFees = liquidationBounty.add(treasuryKillFees);
@@ -1355,7 +1431,7 @@ describe("Vault - SEXWorker03", () => {
         await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
         await vaultAsAlice.work(
           0,
-          spookyWorker.address,
+          sexWorker.address,
           ethers.utils.parseEther("1"),
           ethers.utils.parseEther("1"),
           "0",
@@ -1368,7 +1444,7 @@ describe("Vault - SEXWorker03", () => {
         // She can close position
         await vaultAsAlice.work(
           2,
-          spookyWorker.address,
+          sexWorker.address,
           "0",
           "0",
           "115792089237316195423570985008687907853269984665640564039457584007913129639935",
@@ -1388,7 +1464,7 @@ describe("Vault - SEXWorker03", () => {
         await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("10"));
         await vaultAsAlice.work(
           0,
-          spookyWorker.address,
+          sexWorker.address,
           ethers.utils.parseEther("10"),
           ethers.utils.parseEther("10"),
           "0", // max return = 0, don't return BTOKEN to the debt
@@ -1403,10 +1479,12 @@ describe("Vault - SEXWorker03", () => {
 
         // Price swing 10%
         // Add more token to the pool equals to sqrt(10*((0.1)**2) / 9) - 0.1 = 0.005409255338945984, (0.1 is the balance of token in the pool)
-        await router.swapExactTokensForTokens(
+        await router.swapExactTokensForTokensSimple(
           ethers.utils.parseEther("0.005409255338945984"),
           "0",
-          [farmToken.address, baseToken.address],
+          farmToken.address,
+          baseToken.address,
+          false,
           deployerAddress,
           FOREVER
         );
@@ -1416,10 +1494,12 @@ describe("Vault - SEXWorker03", () => {
         // Add more token to the pool equals to
         // sqrt(10*((0.10540925533894599)**2) / 8) - 0.10540925533894599 = 0.012441874858811944
         // (0.10540925533894599 is the balance of token in the pool)
-        await router.swapExactTokensForTokens(
+        await router.swapExactTokensForTokensSimple(
           ethers.utils.parseEther("0.012441874858811944"),
           "0",
-          [farmToken.address, baseToken.address],
+          farmToken.address,
+          baseToken.address,
+          false,
           deployerAddress,
           FOREVER
         );
@@ -1429,10 +1509,12 @@ describe("Vault - SEXWorker03", () => {
         // Existing token on the pool = 0.10540925533894599 + 0.012441874858811944 = 0.11785113019775793
         // Add more token to the pool equals to
         // sqrt(10*((0.11785113019775793)**2) / 7.656999999999999) - 0.11785113019775793 = 0.016829279312591913
-        await router.swapExactTokensForTokens(
+        await router.swapExactTokensForTokensSimple(
           ethers.utils.parseEther("0.016829279312591913"),
           "0",
-          [farmToken.address, baseToken.address],
+          farmToken.address,
+          baseToken.address,
+          false,
           deployerAddress,
           FOREVER
         );
@@ -1442,10 +1524,12 @@ describe("Vault - SEXWorker03", () => {
         // Existing token on the pool = 0.11785113019775793 + 0.016829279312591913 = 0.13468040951034985
         // Add more token to the pool equals to
         // sqrt(10*((0.13468040951034985)**2) / 7) - 0.13468040951034985 = 0.026293469053292218
-        await router.swapExactTokensForTokens(
+        await router.swapExactTokensForTokensSimple(
           ethers.utils.parseEther("0.026293469053292218"),
           "0",
-          [farmToken.address, baseToken.address],
+          farmToken.address,
+          baseToken.address,
+          false,
           deployerAddress,
           FOREVER
         );
@@ -1472,7 +1556,7 @@ describe("Vault - SEXWorker03", () => {
         await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("1"));
         await vaultAsBob.work(
           0,
-          spookyWorker.address,
+          sexWorker.address,
           ethers.utils.parseEther("1"),
           loan,
           "0", // max return = 0, don't return BTOKEN to the debt
@@ -1503,10 +1587,12 @@ describe("Vault - SEXWorker03", () => {
         // Simulate BTOKEN price is very high by swap FTOKEN to BTOKEN (reduce BTOKEN supply)
         await farmToken.mint(deployerAddress, ethers.utils.parseEther("100"));
         await farmToken.approve(router.address, ethers.utils.parseEther("100"));
-        await router.swapExactTokensForTokens(
+        await router.swapExactTokensForTokensSimple(
           ethers.utils.parseEther("100"),
           "0",
-          [farmToken.address, baseToken.address],
+          farmToken.address,
+          baseToken.address,
+          false,
           deployerAddress,
           FOREVER
         );
@@ -1554,7 +1640,7 @@ describe("Vault - SEXWorker03", () => {
           "0", // 0% per year
           "1000", // 10% reserve pool
           "1000", // 10% Kill prize
-          wbnb.address,
+          wftm.address,
           wNativeRelayer.address,
           miniFL.address,
           "0",
@@ -1562,9 +1648,9 @@ describe("Vault - SEXWorker03", () => {
         );
 
         // Set Reinvest bounty to 10% of the reward
-        await spookyWorker.setReinvestConfig("100", "0", [boo.address, wbnb.address, baseToken.address]);
+        await sexWorker.setReinvestConfig("100", "0", solid.address, [solid.address, wftm.address, baseToken.address]);
 
-        const [path, reinvestPath] = await Promise.all([spookyWorker.getPath(), spookyWorker.getReinvestPath()]);
+        const [path, reinvestPath] = await Promise.all([sexWorker.getPath(), sexWorker.getReinvestPath(solid.address)]);
 
         // Bob deposits 10 BTOKEN
         await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
@@ -1583,7 +1669,7 @@ describe("Vault - SEXWorker03", () => {
         await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
         await vaultAsBob.work(
           0,
-          spookyWorker.address,
+          sexWorker.address,
           ethers.utils.parseEther("10"),
           ethers.utils.parseEther("10"),
           "0", // max return = 0, don't return NATIVE to the debt
@@ -1604,13 +1690,12 @@ describe("Vault - SEXWorker03", () => {
         totalShare = totalShare.add(expectedShare);
 
         // Expect
-        let [workerLpAfter] = await masterChef.userInfo(POOL_ID, spookyWorker.address);
-        expect(await spookyWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.eq(shares[0]);
-        expect(
-          await spookyWorker.shareToBalance(await spookyWorker.shares(1)),
-          `expect Pos#1 LPs = ${expectedLp}`
-        ).to.be.eq(expectedLp);
-        expect(await spookyWorker.totalShare(), `expect totalShare = ${totalShare}`).to.be.eq(totalShare);
+        let workerLpAfter = await lpDepositor.userBalances(sexWorker.address, lp.address);
+        expect(await sexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.eq(shares[0]);
+        expect(await sexWorker.shareToBalance(await sexWorker.shares(1)), `expect Pos#1 LPs = ${expectedLp}`).to.be.eq(
+          expectedLp
+        );
+        expect(await sexWorker.totalShare(), `expect totalShare = ${totalShare}`).to.be.eq(totalShare);
         expect(
           await baseToken.balanceOf(addStrat.address),
           `expect add BTOKEN strat to have ${debrisBtoken} BTOKEN debris`
@@ -1625,15 +1710,15 @@ describe("Vault - SEXWorker03", () => {
         stages["beforeReinvest"] = await TimeHelpers.latest();
 
         // Position#2: Bob borrows another 2 BTOKEN
-        [workerLpBefore] = await masterChef.userInfo(POOL_ID, spookyWorker.address);
-        let eveBooBefore = await boo.balanceOf(eveAddress);
-        let deployerBooBefore = await boo.balanceOf(DEPLOYER);
+        workerLpBefore = await lpDepositor.userBalances(sexWorker.address, lp.address);
+        let evesolidBefore = await solid.balanceOf(eveAddress);
+        let deployersolidBefore = await solid.balanceOf(DEPLOYER);
         await swapHelper.loadReserves(path);
         await swapHelper.loadReserves(reinvestPath);
         await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
         await vaultAsAlice.work(
           0,
-          spookyWorker.address,
+          sexWorker.address,
           ethers.utils.parseEther("1"),
           ethers.utils.parseEther("2"),
           "0", // max return = 0, don't return BTOKEN to the debt
@@ -1643,12 +1728,12 @@ describe("Vault - SEXWorker03", () => {
           )
         );
         stages["afterReinvest"] = await TimeHelpers.latest();
-        [workerLpAfter] = await masterChef.userInfo(POOL_ID, spookyWorker.address);
-        let eveBooAfter = await boo.balanceOf(eveAddress);
-        let deployerBooAfter = await boo.balanceOf(DEPLOYER);
+        workerLpAfter = await lpDepositor.userBalances(sexWorker.address, lp.address);
+        let evesolidAfter = await solid.balanceOf(eveAddress);
+        let deployersolidAfter = await solid.balanceOf(DEPLOYER);
         let totalRewards = swapHelper.computeTotalRewards(
           workerLpBefore,
-          BOO_PER_SEC,
+          solid_PER_SEC,
           stages["afterReinvest"].sub(stages["beforeReinvest"])
         );
         let reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
@@ -1670,23 +1755,23 @@ describe("Vault - SEXWorker03", () => {
         shares.push(expectedShare);
         totalShare = totalShare.add(expectedShare);
 
-        expect(await spookyWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.eq(shares[0]);
+        expect(await sexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.eq(shares[0]);
         expect(
-          await spookyWorker.shareToBalance(await spookyWorker.shares(1)),
+          await sexWorker.shareToBalance(await sexWorker.shares(1)),
           `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
         ).to.be.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
 
-        expect(await spookyWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.eq(shares[1]);
+        expect(await sexWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.eq(shares[1]);
         expect(
-          await spookyWorker.shareToBalance(await spookyWorker.shares(2)),
+          await sexWorker.shareToBalance(await sexWorker.shares(2)),
           `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
         ).to.be.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
 
         expect(
-          deployerBooAfter.sub(deployerBooBefore),
-          `expect DEPLOYER to get ${reinvestFees} BOO as treasury fees`
+          deployersolidAfter.sub(deployersolidBefore),
+          `expect DEPLOYER to get ${reinvestFees} solid as treasury fees`
         ).to.be.eq(reinvestFees);
-        expect(eveBooAfter.sub(eveBooBefore), `expect eve's BOO to remain the same`).to.be.eq("0");
+        expect(evesolidAfter.sub(evesolidBefore), `expect eve's solid to remain the same`).to.be.eq("0");
         expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.eq(accumLp);
         expect(
           await baseToken.balanceOf(addStrat.address),
@@ -1704,21 +1789,21 @@ describe("Vault - SEXWorker03", () => {
         // Wait for 1 day and someone calls reinvest
         await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
 
-        let [workerLPBefore] = await masterChef.userInfo(POOL_ID, spookyWorker.address);
-        deployerBooBefore = await boo.balanceOf(DEPLOYER);
-        eveBooBefore = await boo.balanceOf(eveAddress);
+        workerLpBefore = await lpDepositor.userBalances(sexWorker.address, lp.address);
+        deployersolidBefore = await solid.balanceOf(DEPLOYER);
+        evesolidBefore = await solid.balanceOf(eveAddress);
         await swapHelper.loadReserves(path);
         await swapHelper.loadReserves(reinvestPath);
 
-        await spookyWorkerAsEve.reinvest();
+        await sexWorkerAsEve.reinvest();
         stages["afterReinvest"] = await TimeHelpers.latest();
 
-        deployerBooAfter = await boo.balanceOf(DEPLOYER);
-        eveBooAfter = await boo.balanceOf(eveAddress);
-        [workerLpAfter] = await masterChef.userInfo(POOL_ID, spookyWorker.address);
+        deployersolidAfter = await solid.balanceOf(DEPLOYER);
+        evesolidAfter = await solid.balanceOf(eveAddress);
+        workerLpAfter = await lpDepositor.userBalances(sexWorker.address, lp.address);
         totalRewards = swapHelper.computeTotalRewards(
-          workerLPBefore,
-          BOO_PER_SEC,
+          workerLpBefore,
+          solid_PER_SEC,
           stages["afterReinvest"].sub(stages["beforeReinvest"])
         );
         reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
@@ -1729,26 +1814,26 @@ describe("Vault - SEXWorker03", () => {
         [reinvestLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
         accumLp = accumLp.add(reinvestLp);
 
-        expect(await spookyWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.eq(shares[0]);
+        expect(await sexWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.eq(shares[0]);
         expect(
-          await spookyWorker.shareToBalance(await spookyWorker.shares(1)),
+          await sexWorker.shareToBalance(await sexWorker.shares(1)),
           `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
         ).to.be.eq(workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter));
 
-        expect(await spookyWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.eq(shares[1]);
+        expect(await sexWorker.shares(2), `expect Pos#2 has ${shares[1]} shares`).to.be.eq(shares[1]);
         expect(
-          await spookyWorker.shareToBalance(await spookyWorker.shares(2)),
+          await sexWorker.shareToBalance(await sexWorker.shares(2)),
           `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
         ).to.be.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
 
-        expect(deployerBooAfter.sub(deployerBooBefore), `expect DEPLOYER's BOO to remain the same`).to.be.eq("0");
-        expect(eveBooAfter.sub(eveBooBefore), `expect eve to get ${reinvestFees}`).to.be.eq(reinvestFees);
+        expect(deployersolidAfter.sub(deployersolidBefore), `expect DEPLOYER's solid to remain the same`).to.be.eq("0");
+        expect(evesolidAfter.sub(evesolidBefore), `expect eve to get ${reinvestFees}`).to.be.eq(reinvestFees);
         expect(workerLpAfter).to.be.eq(accumLp);
 
         // Check Position#1 info
         let [bob1Health, bob1DebtToShare] = await vault.positionInfo("1");
         const bob1ExpectedHealth = await swapHelper.computeLpHealth(
-          await spookyWorker.shareToBalance(await spookyWorker.shares(1)),
+          await sexWorker.shareToBalance(await sexWorker.shares(1)),
           baseToken.address,
           farmToken.address
         );
@@ -1759,7 +1844,7 @@ describe("Vault - SEXWorker03", () => {
         // Check Position#2 info
         let [alice2Health, alice2DebtToShare] = await vault.positionInfo("2");
         const alice2ExpectedHealth = await swapHelper.computeLpHealth(
-          await spookyWorker.shareToBalance(await spookyWorker.shares(2)),
+          await sexWorker.shareToBalance(await sexWorker.shares(2)),
           baseToken.address,
           farmToken.address
         );
@@ -1771,7 +1856,7 @@ describe("Vault - SEXWorker03", () => {
         // Bob close position#1
         await vaultAsBob.work(
           1,
-          spookyWorker.address,
+          sexWorker.address,
           "0",
           "0",
           "1000000000000000000000",
@@ -1789,7 +1874,7 @@ describe("Vault - SEXWorker03", () => {
         await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("10"));
         await vaultAsAlice.work(
           2,
-          spookyWorker.address,
+          sexWorker.address,
           ethers.utils.parseEther("10"),
           0,
           "0", // max return = 0, don't return NATIVE to the debt
@@ -1803,7 +1888,7 @@ describe("Vault - SEXWorker03", () => {
         // Alice close position#2
         await vaultAsAlice.work(
           2,
-          spookyWorker.address,
+          sexWorker.address,
           "0",
           "0",
           "1000000000000000000000000000000",
@@ -1831,17 +1916,24 @@ describe("Vault - SEXWorker03", () => {
               "0", // 0% per year
               "1000", // 10% reserve pool
               "1000", // 10% Kill prize
-              wbnb.address,
+              wftm.address,
               wNativeRelayer.address,
               miniFL.address,
               "0",
               ethers.constants.AddressZero
             );
 
-            const [path, reinvestPath] = await Promise.all([spookyWorker.getPath(), spookyWorker.getReinvestPath()]);
+            const [path, reinvestPath] = await Promise.all([
+              sexWorker.getPath(),
+              sexWorker.getReinvestPath(solid.address),
+            ]);
 
             // Set Reinvest bounty to 1% of the reward
-            await spookyWorker.setReinvestConfig("100", "0", [boo.address, wbnb.address, baseToken.address]);
+            await sexWorker.setReinvestConfig("100", "0", solid.address, [
+              solid.address,
+              wftm.address,
+              baseToken.address,
+            ]);
 
             // Bob deposits 10 BTOKEN
             await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
@@ -1854,10 +1946,10 @@ describe("Vault - SEXWorker03", () => {
             await swapHelper.loadReserves(reinvestPath);
 
             await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-            let [workerLpBefore] = await masterChef.userInfo(POOL_ID, spookyWorker.address);
+            let workerLpBefore = await lpDepositor.userBalances(sexWorker.address, lp.address);
             await vaultAsBob.work(
               0,
-              spookyWorker.address,
+              sexWorker.address,
               principalAmount,
               borrowedAmount,
               "0", // max return = 0, don't return NATIVE to the debt
@@ -1866,7 +1958,7 @@ describe("Vault - SEXWorker03", () => {
                 [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
               )
             );
-            let [workerLpAfter] = await masterChef.userInfo(POOL_ID, spookyWorker.address);
+            let workerLpAfter = await lpDepositor.userBalances(sexWorker.address, lp.address);
 
             const [expectedLp, debrisBtoken] = await swapHelper.computeOneSidedOptimalLp(
               borrowedAmount.add(principalAmount),
@@ -1874,13 +1966,13 @@ describe("Vault - SEXWorker03", () => {
             );
             expect(workerLpAfter.sub(workerLpBefore)).to.eq(expectedLp);
 
-            const deployerBooBefore = await boo.balanceOf(DEPLOYER);
+            const deployersolidBefore = await solid.balanceOf(DEPLOYER);
             const bobBefore = await baseToken.balanceOf(bobAddress);
             const [bobHealthBefore] = await vault.positionInfo("1");
-            const lpUnderBobPosition = await spookyWorker.shareToBalance(await spookyWorker.shares(1));
+            const lpUnderBobPosition = await sexWorker.shareToBalance(await sexWorker.shares(1));
             const liquidatedLp = lpUnderBobPosition.div(2);
             const returnDebt = ethers.utils.parseEther("6");
-            [workerLpBefore] = await masterChef.userInfo(POOL_ID, spookyWorker.address);
+            workerLpBefore = await lpDepositor.userBalances(sexWorker.address, lp.address);
 
             // Load reserve
             await swapHelper.loadReserves(path);
@@ -1889,7 +1981,7 @@ describe("Vault - SEXWorker03", () => {
 
             await vaultAsBob.work(
               1,
-              spookyWorker.address,
+              sexWorker.address,
               "0",
               "0",
               returnDebt,
@@ -1902,14 +1994,14 @@ describe("Vault - SEXWorker03", () => {
               )
             );
             const bobAfter = await baseToken.balanceOf(bobAddress);
-            const deployerBooAfter = await boo.balanceOf(DEPLOYER);
+            const deployersolidAfter = await solid.balanceOf(DEPLOYER);
             stages["afterReinvest"] = await TimeHelpers.latest();
 
             // Compute reinvest
             const [reinvestFees, reinvestLp] = await swapHelper.computeReinvestLp(
               workerLpBefore,
               debrisBtoken,
-              BOO_PER_SEC,
+              solid_PER_SEC,
               BigNumber.from(REINVEST_BOUNTY_BPS),
               reinvestPath,
               path,
@@ -1924,12 +2016,12 @@ describe("Vault - SEXWorker03", () => {
             );
             const sellFtokenAmounts = await swapHelper.computeSwapExactTokensForTokens(
               ftokenAmount,
-              await spookyWorker.getReversedPath(),
+              await sexWorker.getReversedPath(),
               true
             );
             const liquidatedBtoken = sellFtokenAmounts[sellFtokenAmounts.length - 1].add(btokenAmount).sub(returnDebt);
 
-            expect(deployerBooAfter.sub(deployerBooBefore), `expect Deployer to get ${reinvestFees}`).to.be.eq(
+            expect(deployersolidAfter.sub(deployersolidBefore), `expect Deployer to get ${reinvestFees}`).to.be.eq(
               reinvestFees
             );
             expect(bobAfter.sub(bobBefore), `expect Bob get ${liquidatedBtoken}`).to.be.eq(liquidatedBtoken);
@@ -1940,8 +2032,8 @@ describe("Vault - SEXWorker03", () => {
             expect(bobHealth).to.be.lt(bobHealthBefore.div(2));
             // Bob's debt should be left only 4 BTOKEN due he said he wants to return at max 4 BTOKEN
             expect(bobDebtToShare).to.be.eq(borrowedAmount.sub(returnDebt));
-            // Check LP deposited by Worker on MasterChef
-            [workerLpAfter] = await masterChef.userInfo(POOL_ID, spookyWorker.address);
+            // Check LP deposited by Worker on lpDepositor
+            workerLpAfter = await lpDepositor.userBalances(sexWorker.address, lp.address);
             // LP tokens + 0.000207570473714694 LP from reinvest of worker should be decreased by lpUnderBobPosition/2
             // due to Bob execute StrategyClosePartialLiquidate
             expect(workerLpAfter).to.be.eq(workerLpBefore.add(reinvestLp).sub(lpUnderBobPosition.div(2)));
@@ -1958,14 +2050,17 @@ describe("Vault - SEXWorker03", () => {
               "0", // 0% per year
               "1000", // 10% reserve pool
               "1000", // 10% Kill prize
-              wbnb.address,
+              wftm.address,
               wNativeRelayer.address,
               miniFL.address,
               KILL_TREASURY_BPS,
               deployerAddress
             );
 
-            const [path, reinvestPath] = await Promise.all([spookyWorker.getPath(), spookyWorker.getReinvestPath()]);
+            const [path, reinvestPath] = await Promise.all([
+              sexWorker.getPath(),
+              sexWorker.getReinvestPath(solid.address),
+            ]);
 
             // Bob deposits 10 BTOKEN
             await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
@@ -1978,10 +2073,10 @@ describe("Vault - SEXWorker03", () => {
             await swapHelper.loadReserves(reinvestPath);
 
             await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
-            let [workerLpBefore] = await masterChef.userInfo(POOL_ID, spookyWorker.address);
+            let workerLpBefore = await lpDepositor.userBalances(sexWorker.address, lp.address);
             await vaultAsBob.work(
               0,
-              spookyWorker.address,
+              sexWorker.address,
               principalAmount,
               borrowedAmount,
               "0", // max return = 0, don't return BTOKEN to the debt
@@ -1990,7 +2085,7 @@ describe("Vault - SEXWorker03", () => {
                 [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
               )
             );
-            let [workerLpAfter] = await masterChef.userInfo(POOL_ID, spookyWorker.address);
+            let workerLpAfter = await lpDepositor.userBalances(sexWorker.address, lp.address);
 
             const [expectedLp, debrisBtoken] = await swapHelper.computeOneSidedOptimalLp(
               borrowedAmount.add(principalAmount),
@@ -2000,11 +2095,11 @@ describe("Vault - SEXWorker03", () => {
 
             // Bob think he made enough. He now wants to close position partially.
             // He close 50% of his position and return all debt
-            const deployerBooBefore = await boo.balanceOf(DEPLOYER);
+            const deployersolidBefore = await solid.balanceOf(DEPLOYER);
             const bobBefore = await baseToken.balanceOf(bobAddress);
             const [bobHealthBefore] = await vault.positionInfo("1");
-            const lpUnderBobPosition = await spookyWorker.shareToBalance(await spookyWorker.shares(1));
-            [workerLpBefore] = await masterChef.userInfo(POOL_ID, spookyWorker.address);
+            const lpUnderBobPosition = await sexWorker.shareToBalance(await sexWorker.shares(1));
+            workerLpBefore = await lpDepositor.userBalances(sexWorker.address, lp.address);
 
             // Load reserve
             await swapHelper.loadReserves(path);
@@ -2013,7 +2108,7 @@ describe("Vault - SEXWorker03", () => {
 
             await vaultAsBob.work(
               1,
-              spookyWorker.address,
+              sexWorker.address,
               "0",
               "0",
               ethers.utils.parseEther("5000000000"),
@@ -2029,14 +2124,14 @@ describe("Vault - SEXWorker03", () => {
               )
             );
             const bobAfter = await baseToken.balanceOf(bobAddress);
-            const deployerBooAfter = await boo.balanceOf(DEPLOYER);
+            const deployersolidAfter = await solid.balanceOf(DEPLOYER);
             stages["afterReinvest"] = await TimeHelpers.latest();
 
             // Compute reinvest
             const [reinvestFees, reinvestLp] = await swapHelper.computeReinvestLp(
               workerLpBefore,
               debrisBtoken,
-              BOO_PER_SEC,
+              solid_PER_SEC,
               BigNumber.from(REINVEST_BOUNTY_BPS),
               reinvestPath,
               path,
@@ -2051,14 +2146,14 @@ describe("Vault - SEXWorker03", () => {
             );
             const sellFtokenAmounts = await swapHelper.computeSwapExactTokensForTokens(
               ftokenAmount,
-              await spookyWorker.getReversedPath(),
+              await sexWorker.getReversedPath(),
               true
             );
             const liquidatedBtoken = sellFtokenAmounts[sellFtokenAmounts.length - 1]
               .add(btokenAmount)
               .sub(borrowedAmount);
 
-            expect(deployerBooAfter.sub(deployerBooBefore), `expect Deployer to get ${reinvestFees} BOO`).to.eq(
+            expect(deployersolidAfter.sub(deployersolidBefore), `expect Deployer to get ${reinvestFees} solid`).to.eq(
               reinvestFees
             );
             expect(bobAfter.sub(bobBefore), `expect Bob get ${liquidatedBtoken} BTOKEN`).to.be.eq(liquidatedBtoken);
@@ -2069,8 +2164,8 @@ describe("Vault - SEXWorker03", () => {
             expect(bobHealth).to.be.lt(bobHealthBefore.div(2));
             // Bob's debt should be 0 BTOKEN due he said he wants to return at max 5,000,000,000 BTOKEN (> debt, return all debt)
             expect(bobDebtVal).to.be.eq("0");
-            // Check LP deposited by Worker on MasterChef
-            [workerLpAfter] = await masterChef.userInfo(POOL_ID, spookyWorker.address);
+            // Check LP deposited by Worker on lpDepositor
+            workerLpAfter = await lpDepositor.userBalances(sexWorker.address, lp.address);
             // LP tokens of worker should be decreased by lpUnderBobPosition/2
             // due to Bob execute StrategyClosePartialLiquidate
             expect(workerLpAfter).to.be.eq(workerLpBefore.add(reinvestLp).sub(lpUnderBobPosition.div(2)));
@@ -2085,7 +2180,7 @@ describe("Vault - SEXWorker03", () => {
               "0", // 0% per year
               "1000", // 10% reserve pool
               "1000", // 10% Kill prize
-              wbnb.address,
+              wftm.address,
               wNativeRelayer.address,
               miniFL.address,
               KILL_TREASURY_BPS,
@@ -2100,7 +2195,7 @@ describe("Vault - SEXWorker03", () => {
             await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
             await vaultAsBob.work(
               0,
-              spookyWorker.address,
+              sexWorker.address,
               ethers.utils.parseEther("10"),
               ethers.utils.parseEther("10"),
               "0", // max return = 0, don't return BTOKEN to the debt
@@ -2112,14 +2207,14 @@ describe("Vault - SEXWorker03", () => {
 
             // Bob think he made enough. He now wants to close position partially.
             // He liquidate all of his position but not payback the debt.
-            const lpUnderBobPosition = await spookyWorker.shareToBalance(await spookyWorker.shares(1));
+            const lpUnderBobPosition = await sexWorker.shareToBalance(await sexWorker.shares(1));
             // Bob closes position with maxReturn 0 and liquidate full of his position
             // Expect that Bob will not be able to close his position as he liquidate all underlying assets but not paydebt
             // which made his position debt ratio higher than allow work factor
             await expect(
               vaultAsBob.work(
                 1,
-                spookyWorker.address,
+                sexWorker.address,
                 "0",
                 "0",
                 "0",
@@ -2151,10 +2246,10 @@ describe("Vault - SEXWorker03", () => {
 
         // Now Alice can borrow 1 BTOKEN + 1 BTOKEN of her to create a new position
         await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
-        await swapHelper.loadReserves(await spookyWorker.getPath());
+        await swapHelper.loadReserves(await sexWorker.getPath());
         await vaultAsAlice.work(
           0,
-          spookyWorker.address,
+          sexWorker.address,
           ethers.utils.parseEther("1"),
           borrowedAmount,
           "0",
@@ -2166,24 +2261,24 @@ describe("Vault - SEXWorker03", () => {
 
         const [expectedLp] = await swapHelper.computeOneSidedOptimalLp(
           ethers.utils.parseEther("1").add(borrowedAmount),
-          await spookyWorker.getPath()
+          await sexWorker.getPath()
         );
         const expectedHealth = await swapHelper.computeLpHealth(expectedLp, baseToken.address, farmToken.address);
 
-        expect(await spookyWorker.health(1)).to.be.eq(expectedHealth);
-        expect(await spookyWorker.shares(1)).to.eq(expectedLp);
-        expect(await spookyWorker.shareToBalance(await spookyWorker.shares(1))).to.eq(expectedLp);
+        expect(await sexWorker.health(1)).to.be.eq(expectedHealth);
+        expect(await sexWorker.shares(1)).to.eq(expectedLp);
+        expect(await sexWorker.shareToBalance(await sexWorker.shares(1))).to.eq(expectedLp);
       });
 
       async function successBtokenOnly(lastWorkBlockTimestamp: BigNumber, goRouge: boolean) {
         await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
 
-        let accumLp = await spookyWorker.shareToBalance(await spookyWorker.shares(1));
-        const [workerLpBefore] = await masterChef.userInfo(POOL_ID, spookyWorker.address);
+        let accumLp = await sexWorker.shareToBalance(await sexWorker.shares(1));
+        const workerLpBefore = await lpDepositor.userBalances(sexWorker.address, lp.address);
         const debris = await baseToken.balanceOf(addStrat.address);
 
-        const reinvestPath = await spookyWorker.getReinvestPath();
-        const path = await spookyWorker.getPath();
+        const reinvestPath = await sexWorker.getReinvestPath(solid.address);
+        const path = await sexWorker.getPath();
 
         let reserves = await swapHelper.loadReserves(reinvestPath);
         reserves.push(...(await swapHelper.loadReserves(path)));
@@ -2200,7 +2295,7 @@ describe("Vault - SEXWorker03", () => {
         );
         const blockAfter = await TimeHelpers.latest();
         const blockDiff = blockAfter.sub(lastWorkBlockTimestamp);
-        const totalRewards = workerLpBefore.mul(BOO_PER_SEC.mul(blockDiff).mul(1e12).div(workerLpBefore)).div(1e12);
+        const totalRewards = workerLpBefore.mul(solid_PER_SEC.mul(blockDiff).mul(1e12).div(workerLpBefore)).div(1e12);
         const totalReinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
         const reinvestLeft = totalRewards.sub(totalReinvestFees);
         const reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
@@ -2232,14 +2327,14 @@ describe("Vault - SEXWorker03", () => {
           deposit.add(interest).sub(reservePool).toString(),
           (await vault.totalToken()).toString()
         );
-        expect(await spookyWorker.shares(1), `expect Alice's shares = ${accumLp}`).to.be.eq(accumLp);
+        expect(await sexWorker.shares(1), `expect Alice's shares = ${accumLp}`).to.be.eq(accumLp);
         expect(
-          await spookyWorker.shareToBalance(await spookyWorker.shares(1)),
+          await sexWorker.shareToBalance(await sexWorker.shares(1)),
           `expect Alice's staked LPs = ${accumLp}`
         ).to.be.eq(accumLp);
         expect(
-          await boo.balanceOf(DEPLOYER),
-          `expect Deployer gets ${ethers.utils.formatEther(totalReinvestFees)} BOO`
+          await solid.balanceOf(DEPLOYER),
+          `expect Deployer gets ${ethers.utils.formatEther(totalReinvestFees)} solid`
         ).to.be.eq(totalReinvestFees);
       }
 
@@ -2255,19 +2350,19 @@ describe("Vault - SEXWorker03", () => {
           0,
           RESERVE_POOL_BPS,
           KILL_PRIZE_BPS,
-          wbnb.address,
+          wftm.address,
           wNativeRelayer.address,
           miniFL.address,
           KILL_TREASURY_BPS,
           deployerAddress
         );
 
-        let accumLp = await spookyWorker.shareToBalance(await spookyWorker.shares(1));
-        const [workerLpBefore] = await masterChef.userInfo(POOL_ID, spookyWorker.address);
+        let accumLp = await sexWorker.shareToBalance(await sexWorker.shares(1));
+        const workerLpBefore = await lpDepositor.userBalances(sexWorker.address, lp.address);
         const debris = await baseToken.balanceOf(addStrat.address);
 
-        const reinvestPath = await spookyWorker.getReinvestPath();
-        const path = await spookyWorker.getPath();
+        const reinvestPath = await sexWorker.getReinvestPath(solid.address);
+        const path = await sexWorker.getPath();
 
         let reserves = await swapHelper.loadReserves(reinvestPath);
         reserves.push(...(await swapHelper.loadReserves(path)));
@@ -2288,7 +2383,7 @@ describe("Vault - SEXWorker03", () => {
         );
         const blockAfter = await TimeHelpers.latest();
         const blockDiff = blockAfter.sub(lastWorkBlockTimestamp);
-        const totalRewards = workerLpBefore.mul(BOO_PER_SEC.mul(blockDiff).mul(1e12).div(workerLpBefore)).div(1e12);
+        const totalRewards = workerLpBefore.mul(solid_PER_SEC.mul(blockDiff).mul(1e12).div(workerLpBefore)).div(1e12);
         const totalReinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
         const reinvestLeft = totalRewards.sub(totalReinvestFees);
         const reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
@@ -2325,12 +2420,12 @@ describe("Vault - SEXWorker03", () => {
           deposit.add(interest).sub(reservePool).toString(),
           (await vault.totalToken()).toString()
         );
-        expect(await spookyWorker.shares(1), `expect Alice's shares = ${accumLp}`).to.be.eq(accumLp);
+        expect(await sexWorker.shares(1), `expect Alice's shares = ${accumLp}`).to.be.eq(accumLp);
         expect(
-          await spookyWorker.shareToBalance(await spookyWorker.shares(1)),
+          await sexWorker.shareToBalance(await sexWorker.shares(1)),
           `expect Alice's staked LPs = ${accumLp}`
         ).to.be.eq(accumLp);
-        expect(await boo.balanceOf(DEPLOYER), `expect Deployer gets ${totalReinvestFees} BOO`).to.be.eq(
+        expect(await solid.balanceOf(DEPLOYER), `expect Deployer gets ${totalReinvestFees} solid`).to.be.eq(
           totalReinvestFees
         );
         expect(
@@ -2346,10 +2441,12 @@ describe("Vault - SEXWorker03", () => {
       async function revertNotEnoughCollateral(goRouge: boolean, stratAddress: string) {
         // Simulate price swing to make position under water
         await farmToken.approve(router.address, ethers.utils.parseEther("888"));
-        await router.swapExactTokensForTokens(
+        await router.swapExactTokensForTokensSimple(
           ethers.utils.parseEther("888"),
           "0",
-          [farmToken.address, baseToken.address],
+          farmToken.address,
+          baseToken.address,
+          false,
           deployerAddress,
           FOREVER
         );
@@ -2432,7 +2529,7 @@ describe("Vault - SEXWorker03", () => {
         context("when worker is unstable", async () => {
           it("should revert", async () => {
             // Set worker to unstable
-            simpleVaultConfig.setWorker(spookyWorker.address, true, true, WORK_FACTOR, KILL_FACTOR, false, true);
+            simpleVaultConfig.setWorker(sexWorker.address, true, true, WORK_FACTOR, KILL_FACTOR, false, true);
 
             await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
             await expect(
@@ -2457,7 +2554,7 @@ describe("Vault - SEXWorker03", () => {
           beforeEach(async () => {
             // Set worker to unstable
             timestampAfterWork = await TimeHelpers.latest();
-            await simpleVaultConfig.setWorker(spookyWorker.address, true, true, WORK_FACTOR, KILL_FACTOR, false, true);
+            await simpleVaultConfig.setWorker(sexWorker.address, true, true, WORK_FACTOR, KILL_FACTOR, false, true);
           });
 
           it("should increase health when add BTOKEN only strat is choosen", async () => {
@@ -2492,7 +2589,7 @@ describe("Vault - SEXWorker03", () => {
         context("when reserve is inconsistent", async () => {
           beforeEach(async () => {
             // Set worker to unstable
-            await simpleVaultConfig.setWorker(spookyWorker.address, true, true, WORK_FACTOR, KILL_FACTOR, false, false);
+            await simpleVaultConfig.setWorker(sexWorker.address, true, true, WORK_FACTOR, KILL_FACTOR, false, false);
           });
 
           it("should revert", async () => {

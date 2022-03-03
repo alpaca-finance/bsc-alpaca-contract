@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.11;
 
+import "./IMinter.sol";
+
 library Math {
   function min(uint256 a, uint256 b) internal pure returns (uint256) {
     return a < b ? a : b;
@@ -85,10 +87,6 @@ interface IBribe {
   function _withdraw(uint256 amount, uint256 tokenId) external;
 
   function getRewardForOwner(uint256 tokenId, address[] memory tokens) external;
-}
-
-interface IMinter {
-  function update_period() external returns (uint256);
 }
 
 contract BaseV1Voter {

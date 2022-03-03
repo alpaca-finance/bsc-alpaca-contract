@@ -5,7 +5,7 @@ import "./Base64.sol";
 import "./IERC721.sol";
 import "./IERC721Metadata.sol";
 import "./IERC721Receiver.sol";
-import "./IERC20.sol";
+import "../solidex/IERC20.sol";
 
 /**
 @title Voting Escrow

@@ -284,7 +284,7 @@ describe("SolidlyStrategyAddTwoSideOptimal", () => {
       expect(await farmingToken.balanceOf(addTwoSides.address)).to.be.below(MAX_ROUNDING_ERROR);
     });
 
-    it("should convert some BTOKEN and some FTOKEN to LP tokens at best rate", async () => {
+    it.only("should convert some BTOKEN and some FTOKEN to LP tokens at best rate", async () => {
       // Now Alice leverage 2x on her 1 BTOKEN.
       // So totally Alice will take 1 BTOKEN from the pool and 1 BTOKEN from her pocket to
       // Provide liquidity in the BTOKEN-FTOKEN pool on Pancakeswap
@@ -301,7 +301,7 @@ describe("SolidlyStrategyAddTwoSideOptimal", () => {
             addTwoSides.address,
             ethers.utils.defaultAbiCoder.encode(
               ["uint256", "uint256"],
-              [ethers.utils.parseEther("0.05"), ethers.utils.parseEther("0")]
+              [ethers.utils.parseEther("1"), ethers.utils.parseEther("0")]
             ),
           ]
         )

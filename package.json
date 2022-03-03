@@ -280,6 +280,7 @@
     "test:solidlypartialminimize": "hardhat test --no-compile ./test/integrations/protocol/strategies/solidly/Solidly_PartialCloseMinimize.test.ts",
     "test:vault2_spooky03": "hardhat test --no-compile ./test/integrations/protocol/workers/spookyswap/Vault2_SpookyWorker03.test.ts",
     "test:vault_spooky03": "hardhat test --no-compile ./test/integrations/protocol/workers/spookyswap/Vault_SpookyWorker03.test.ts",
+    "test:vault_sex03": "hardhat test --no-compile ./test/integrations/protocol/workers/solidex/Vault_SEXWorker03.test.ts",
     "test:router": "hardhat test --no-compile ./test/IbTokenRouter.test.ts",
     "test:timelock": "hardhat test --no-compile ./test/integrations/Timelock.test.ts",
     "test:tripleslope": "hardhat test --no-compile ./test/TripleSlopeModel.test.ts",
