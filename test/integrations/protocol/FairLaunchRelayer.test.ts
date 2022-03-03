@@ -47,7 +47,7 @@ describe("FairLaunchRelayer", () => {
   async function fixture() {
     [deployer, alice] = await ethers.getSigners();
 
-    // Mint
+    // Deploy ERC-20
     const ERC20 = (await ethers.getContractFactory("MockERC20", deployer)) as MockERC20__factory;
     alpaca = (await upgrades.deployProxy(ERC20, ["ALPACA", "ALPACA", "18"])) as MockERC20;
     await alpaca.deployed();
