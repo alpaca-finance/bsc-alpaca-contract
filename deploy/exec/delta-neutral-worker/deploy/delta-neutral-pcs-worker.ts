@@ -70,34 +70,34 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const shortWorkerInfos: IDeltaNeutralPCSWorkerInput[] = [
     {
-      VAULT_SYMBOL: "ibBUSD",
-      WORKER_NAME: "WBNB-BUSD DeltaNeutralPancakeswapWorker",
-      TREASURY_ADDRESS: "0xcf28b4da7d3ed29986831876b74af6e95211d3f9",
-      REINVEST_BOT: "0xcf28b4da7d3ed29986831876b74af6e95211d3f9",
-      POOL_ID: 38,
-      REINVEST_BOUNTY_BPS: "900",
-      REINVEST_PATH: ["CAKE", "BUSD"],
-      REINVEST_THRESHOLD: "0",
-      WORK_FACTOR: "9000",
-      KILL_FACTOR: "0",
-      MAX_PRICE_DIFF: "1050000000",
-    },
-    {
       VAULT_SYMBOL: "ibWBNB",
-      WORKER_NAME: "BUSD-WBNB DeltaNeutralPancakeswapWorker",
-      TREASURY_ADDRESS: "0xcf28b4da7d3ed29986831876b74af6e95211d3f9",
-      REINVEST_BOT: "0xcf28b4da7d3ed29986831876b74af6e95211d3f9",
-      POOL_ID: 38,
-      REINVEST_BOUNTY_BPS: "900",
+      WORKER_NAME: "USDT-WBNB DeltaNeutralPancakeswapWorker",
+      TREASURY_ADDRESS: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
+      REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
+      POOL_ID: 264,
+      REINVEST_BOUNTY_BPS: "1500",
       REINVEST_PATH: ["CAKE", "WBNB"],
       REINVEST_THRESHOLD: "0",
-      WORK_FACTOR: "9000",
+      WORK_FACTOR: "8000",
       KILL_FACTOR: "0",
-      MAX_PRICE_DIFF: "1050000000",
+      MAX_PRICE_DIFF: "10500",
+    },
+    {
+      VAULT_SYMBOL: "ibUSDT",
+      WORKER_NAME: "WBNB-USDT DeltaNeutralPancakeswapWorker",
+      TREASURY_ADDRESS: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
+      REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
+      POOL_ID: 264,
+      REINVEST_BOUNTY_BPS: "1500",
+      REINVEST_PATH: ["CAKE", "USDT"],
+      REINVEST_THRESHOLD: "0",
+      WORK_FACTOR: "8000",
+      KILL_FACTOR: "0",
+      MAX_PRICE_DIFF: "10500",
     },
   ];
-  const TITLE = "mainnet_delta_neutral_3x_pcs_worker";
-  const EXACT_ETA = "1646022600";
+  const TITLE = "mainnet_delta_neutral_3x_wbnbusdt_pcs_worker";
+  const EXACT_ETA = "1646402400";
 
   const deployer = (await ethers.getSigners())[0];
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];

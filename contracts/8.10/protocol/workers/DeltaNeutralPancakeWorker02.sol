@@ -161,7 +161,7 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
     reinvestPath = _reinvestPath;
     treasuryAccount = _treasuryAccount;
     treasuryBountyBps = _reinvestBountyBps;
-    maxReinvestBountyBps = 900;
+    maxReinvestBountyBps = 2000;
 
     // 6. Check if critical parameters are config properly
     if (baseToken == cake) revert DeltaNeutralPancakeWorker02_InvalidRewardToken();

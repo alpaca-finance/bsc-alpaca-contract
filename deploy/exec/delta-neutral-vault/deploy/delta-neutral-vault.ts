@@ -3,7 +3,6 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, upgrades } from "hardhat";
 import { DeltaNeutralVault, DeltaNeutralVault__factory, WNativeRelayer__factory } from "../../../../typechain";
 import { ConfigEntity } from "../../../entities";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -30,16 +29,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const deltaVaultInputs: IDeltaNeutralVaultInput[] = [
     {
-      name: "Neutral3x WBNB-BUSD Pancakeswap",
-      symbol: "N3-WBNB-BUSD-PCS",
-      stableVaultSymbol: "ibBUSD",
+      name: "Market Neutral 3x BNB-USDT PCS1",
+      symbol: "n3x-BNBUSDT-PCS1",
+      stableVaultSymbol: "ibUSDT",
       assetVaultSymbol: "ibWBNB",
-      stableSymbol: "BUSD",
+      stableSymbol: "USDT",
       assetSymbol: "WBNB",
-      stableDeltaWorker: "0xf3aa816e28c38875d77A505563FDfaBdBFE4c939", // Address of stable deltaneutral worker
-      assetDeltaWorker: "0xd3fea79f499dd91E3D9A628aaF803E3f0f1e3290", // Address of asset deltaneutral worker
-      lpAddress: "0x8918A1B7d90B2d33eA89784a8405896430Dd0Ba9",
-      deltaNeutralVaultConfig: "0x98ECC385Ea749Cb55874769cb38391A8299EB592",
+      stableDeltaWorker: "0x539FC3fD348b427B5F70B4f87c1a44983c9E8DBD", // Address of stable deltaneutral worker
+      assetDeltaWorker: "0x41d2E4ac5B7373041c06A9D331B0624142fa1123", // Address of asset deltaneutral worker
+      lpAddress: "0x16b9a82891338f9bA80E2D6970FddA79D1eb0daE",
+      deltaNeutralVaultConfig: "0x5359911A2081F8AFEB0A19e01CF1Fe6b0457d9D3",
     },
   ];
 

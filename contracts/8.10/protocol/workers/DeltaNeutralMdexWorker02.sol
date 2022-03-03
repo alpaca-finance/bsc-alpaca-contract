@@ -161,7 +161,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
     reinvestPath = _reinvestPath;
     treasuryAccount = _treasuryAccount;
     treasuryBountyBps = _reinvestBountyBps;
-    maxReinvestBountyBps = 500;
+    maxReinvestBountyBps = 2000;
 
     // 6. Check if critical parameters are config properly
     if (baseToken == mdx) revert DeltaNeutralMdexWorker02_InvalidRewardToken();

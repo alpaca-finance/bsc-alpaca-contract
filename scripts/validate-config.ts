@@ -277,14 +277,20 @@ async function main() {
     const deltaVault = DeltaNeutralVault__factory.connect(config.DeltaNeutralVaults[i].address, ethers.provider);
 
     console.log("> validate vault configuration");
-    expect(await deltaVault.assetVault()).to.be.eq(config.DeltaNeutralVaults[i].assetVault, "❌ assetVault mis-match");
-    expect(await deltaVault.stableVault()).to.be.eq(
-      config.DeltaNeutralVaults[i].stableVault,
+    expect((await deltaVault.assetVault()).toLowerCase()).to.be.eq(
+      config.DeltaNeutralVaults[i].assetVault.toLowerCase(),
+      "❌ assetVault mis-match"
+    );
+    expect((await deltaVault.stableVault()).toLowerCase()).to.be.eq(
+      config.DeltaNeutralVaults[i].stableVault.toLowerCase(),
       "❌ stableVault mis-match"
     );
-    expect(await deltaVault.assetToken()).to.be.eq(config.DeltaNeutralVaults[i].assetToken, "❌ assetToken mis-match");
-    expect(await deltaVault.stableToken()).to.be.eq(
-      config.DeltaNeutralVaults[i].stableToken,
+    expect((await deltaVault.assetToken()).toLowerCase()).to.be.eq(
+      config.DeltaNeutralVaults[i].assetToken.toLowerCase(),
+      "❌ assetToken mis-match"
+    );
+    expect((await deltaVault.stableToken()).toLowerCase()).to.be.eq(
+      config.DeltaNeutralVaults[i].stableToken.toLowerCase(),
       "❌ stableToken mis-match"
     );
     expect(await deltaVault.assetVaultPosId()).to.be.eq(
