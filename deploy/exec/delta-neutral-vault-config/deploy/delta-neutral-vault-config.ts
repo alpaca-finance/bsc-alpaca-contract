@@ -18,7 +18,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const REBALANCE_FACTOR = "6600";
   const POSITION_VALUE_TOLERANCE_BPS = "100";
-  const TREASURY_ADDR = "0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51";
+  const ALPACA_REINVEST_FEE_TREASURY = "0x417D3e491cbAaD07B2433781e50Bc6Cd09641BC0";
   const ALPACA_BOUNTY_BPS = "1500";
   const LEVERAGE_LEVEL = 3;
   const WHITELIST_REBALANCE = ["0xcf28b4da7d3ed29986831876b74af6e95211d3f9"];
@@ -26,9 +26,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const REINVEST_PATH = ["ALPACA", "BUSD"];
   const SWAP_ROUTER_ADDR = config.YieldSources.Pancakeswap!.RouterV2;
   const VALUE_LIMIT = "30000";
-  const DEPOSIT_FEE_BPS = "";
+  const DEPOSIT_FEE_TREASURY = "0x417D3e491cbAaD07B2433781e50Bc6Cd09641BC0";
+  const DEPOSIT_FEE_BPS = "0";
+  const WITHDRAWAL_FEE_TREASURY = "0x417D3e491cbAaD07B2433781e50Bc6Cd09641BC0";
   const WITHDRAWAL_FEE_BPS = "2";
+  const MANAGEMENT_TREASURY = "0x7E2308437c2f4C8934214663dc8476037625a270";
   const MANAGEMENT_FEE_PER_SEC = "634195839";
+  const ALPACA_BENEFICIARY = "0x44B3868cbba5fbd2c5D8d1445BDB14458806B3B4";
+  const ALPACA_BENEFICIARY_FEE_BPS = "5330";
 
   const deployer = (await ethers.getSigners())[0];
   const WRAP_NATIVE_ADDR = config.Tokens.WBNB;
@@ -55,8 +60,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     FAIR_LAUNCH_ADDR,
     REBALANCE_FACTOR,
     POSITION_VALUE_TOLERANCE_BPS,
-    TREASURY_ADDR,
-    ALPACA_BOUNTY_BPS,
+    DEPOSIT_FEE_TREASURY,
+    WITHDRAWAL_FEE_TREASURY,
+    MANAGEMENT_TREASURY,
     alpacaTokenAddress,
   ])) as DeltaNeutralVaultConfig;
   await deltaNeutralVaultConfig.deployTransaction.wait(3);
@@ -89,6 +95,29 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log(`>> Setting Swap Router`);
   await deltaNeutralVaultConfig.setSwapRouter(SWAP_ROUTER_ADDR, { nonce: nonce++ });
   console.log("✅ Done");
+
+  console.log(`>> Setting Fees`);
+  await deltaNeutralVaultConfig.setFees(
+    DEPOSIT_FEE_TREASURY,
+    DEPOSIT_FEE_BPS,
+    WITHDRAWAL_FEE_TREASURY,
+    WITHDRAWAL_FEE_BPS,
+    MANAGEMENT_TREASURY,
+    MANAGEMENT_FEE_PER_SEC,
+    { nonce: nonce++ }
+  );
+  console.log("✅ Done");
+
+  console.log(">> Setting ALPACA bounty");
+  await deltaNeutralVaultConfig.setAlpacaBountyConfig(ALPACA_REINVEST_FEE_TREASURY, ALPACA_BOUNTY_BPS, {
+    nonce: nonce++,
+  });
+  console.log("✅ Done");
+
+  console.log(">> Setting ALPACA beneficiacy");
+  await deltaNeutralVaultConfig.setAlpacaBeneficiaryConfig(ALPACA_BENEFICIARY, ALPACA_BENEFICIARY_FEE_BPS, {
+    nonce: nonce++,
+  });
 };
 
 export default func;

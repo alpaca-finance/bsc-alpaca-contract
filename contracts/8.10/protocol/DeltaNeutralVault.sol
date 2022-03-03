@@ -33,8 +33,6 @@ import "../utils/FixedPointMathLib.sol";
 import "../utils/Math.sol";
 import "../utils/FullMath.sol";
 
-import "hardhat/console.sol";
-
 /// @title Delta Neutral Vault is designed to take a long and short position in an asset at the same time
 /// to cancel out the effect on the out-standing portfolio when the asset’s price moves.
 // solhint-disable max-states-count
