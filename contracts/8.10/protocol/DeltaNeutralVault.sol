@@ -33,6 +33,11 @@ import "../utils/FixedPointMathLib.sol";
 import "../utils/Math.sol";
 import "../utils/FullMath.sol";
 
+import "hardhat/console.sol";
+
+/// @title Delta Neutral Vault is designed to take a long and short position in an asset at the same time
+/// to cancel out the effect on the out-standing portfolio when the asset’s price moves.
+// solhint-disable max-states-count
 contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, OwnableUpgradeable {
   /// @notice Libraries
   using FixedPointMathLib for uint256;
@@ -264,7 +269,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
   /// @notice minting shares as a form of management fee to teasury account
   function _mintFee() internal {
-    _mint(config.getTreasuryAddr(), pendingManagementFee());
+    _mint(config.managementFeeTreasury(), pendingManagementFee());
     lastFeeCollected = block.timestamp;
   }
 
@@ -308,7 +313,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       revert DeltaNeutralVault_InsufficientShareReceived(_minShareReceive, _sharesToUser);
     }
     _mint(_shareReceiver, _sharesToUser);
-    _mint(config.getTreasuryAddr(), _mintShares - _sharesToUser);
+    _mint(config.depositFeeTreasury(), _mintShares - _sharesToUser);
 
     {
       // 3. call execute to do more work.
@@ -352,7 +357,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     _burn(msg.sender, _shareAmount);
 
     // mint shares equal to withdrawal fee to treasury.
-    _mint(config.getTreasuryAddr(), _shareAmount - _shareToWithdraw);
+    _mint(config.withdrawalFeeTreasury(), _shareAmount - _shareToWithdraw);
 
     {
       (uint8[] memory actions, uint256[] memory values, bytes[] memory _datas) = abi.decode(
@@ -457,10 +462,12 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _minTokenReceive
   ) external onlyReinvestors {
     address[] memory reinvestPath = config.getReinvestPath();
+    uint256 _alpacaBountyBps = config.alpacaBountyBps();
+    uint256 _alpacaBeneficiaryBps = config.alpacaBeneficiaryBps();
+
     if (reinvestPath.length == 0) {
       revert DeltaNeutralVault_BadReinvestPath();
     }
-    uint256 _alpacaBountyBps = config.alpacaBountyBps();
 
     // 1.  claim reward from fairlaunch
     uint256 _equityBefore = totalEquityValue();
@@ -471,9 +478,12 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     IFairLaunch(_fairLaunchAddress).harvest(IVault(assetVault).fairLaunchPoolId());
     uint256 _alpacaAfter = IERC20Upgradeable(alpacaToken).balanceOf(address(this));
 
-    // 2. collect alpaca bounty
+    // 2. collect alpaca bounty & distribute to ALPACA beneficiary
     uint256 _bounty = ((_alpacaBountyBps) * (_alpacaAfter - _alpacaBefore)) / MAX_BPS;
-    IERC20Upgradeable(alpacaToken).safeTransfer(config.getTreasuryAddr(), _bounty);
+    uint256 _beneficiaryShare = (_bounty * _alpacaBeneficiaryBps) / MAX_BPS;
+    if (_beneficiaryShare > 0)
+      IERC20Upgradeable(alpacaToken).safeTransfer(config.alpacaBeneficiary(), _beneficiaryShare);
+    IERC20Upgradeable(alpacaToken).safeTransfer(config.alpacaReinvestFeeTreasury(), _bounty - _beneficiaryShare);
 
     // 3. swap alpaca
     uint256 _rewardAmount = _alpacaAfter - _bounty;

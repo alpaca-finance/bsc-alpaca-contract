@@ -17,6 +17,8 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 import "./interfaces/IDeltaNeutralVaultConfig.sol";
 
+/// @title DeltaNeutralVaultConfig - A place where you can find all delta neutral vault config
+// solhint-disable max-states-count
 contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable {
   /// @dev Events
   event LogSetParams(
@@ -25,16 +27,19 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     address _getWNativeRelayer,
     address _fairLaunchAddr,
     uint256 _rebalanceFactor,
-    uint256 _positionValueTolerance,
-    address _treasury,
-    uint256 _alpacaBountyBps
+    uint256 _positionValueTolerance
   );
   event LogSetWhitelistedCallers(address indexed _caller, address indexed _address, bool _ok);
   event LogSetWhitelistedRebalancers(address indexed _caller, address indexed _address, bool _ok);
   event LogSetFeeExemptedCallers(address indexed _caller, address indexed _address, bool _ok);
   event LogSetSwapRoute(address indexed _caller, address indexed _swapRouter, address source, address destination);
   event LogSetLeverageLevel(address indexed _caller, uint8 _newLeverageLevel);
-  event LogSetAlpacaBounty(address indexed _caller, uint256 _alpacaBountyBps);
+  event LogSetAlpacaBountyConfig(address indexed _caller, address _alpacaReinvestTreasury, uint256 _alpacaBountyBps);
+  event LogSetAlpacaBeneficiaryConfig(
+    address indexed _caller,
+    address _alpacaBeneficiary,
+    uint256 _alpacaBeneficiaryBps
+  );
   event LogSetWhitelistedReinvestors(address indexed _caller, address indexed _address, bool _ok);
   event LogSetValueLimit(address indexed _caller, uint256 _maxVaultPositionValue);
   event LogSetFees(
@@ -42,6 +47,12 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     uint256 _depositFeeBps,
     uint256 _withdrawalFeeBps,
     uint256 _managementFeePerSec
+  );
+  event LogSetFeeTreasury(
+    address indexed _caller,
+    address _depositFeeTreasury,
+    address _withdrawFeeTreasury,
+    address _managementFeeTreasury
   );
   event LogSetSwapRouter(address indexed _caller, address _swapRouter);
   event LogSetReinvestPath(address indexed _caller, address[] _reinvestPath);
@@ -60,54 +71,65 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   uint256 private constant MAX_WITHDRAWAL_FEE_BPS = 1000;
   uint256 private constant MAX_MANGEMENT_FEE_PER_SEC = 3170979198;
   uint256 private constant MAX_ALPACA_BOUNTY_BPS = 2500;
+  uint256 private constant MAX_ALPACA_BENEFICIARY_BPS = 6000;
 
-  /// @dev Configuration for Delta Neutral Vault
-  /// getWrappedNativeAddr - address for wrapped native eg WBNB, WETH
-  /// getWNativeRelayer - address for wNtive Relayer
-  /// fairLaunchAddr - FairLaunch contract address
-  /// treasury - address of treasury account
-  /// maxVaultPositionValue - maximum total position value in vault.
-  /// rebalanceFactor - threshold that must be reached to allow rebalancing
-  /// positionValueTolerance- Tolerance bps that allow margin for misc calculation
-  /// depositFeeBps - Fee when user deposit to delta neutral vault
-  /// withdrawalFeeBps - Fee when user withdraw from delta neutral vault
-  /// managementFeePerSec Fee collected as a manager of delta neutral vault
-  /// leverageLevel - Leverage level used for underlying positions
-  /// alpacaToken - address of alpaca token
-  /// swapRouter - address of router for swap
-  /// whitelistedCallers - mapping of whitelisted callers
-  /// whitelistedRebalancers - list of whitelisted rebalancers.
-  /// router - Router address.
-
+  /// @notice Configuration for Delta Neutral Vault
+  /// @notice Address for wrapped native eg WBNB, WETH
   address public override getWrappedNativeAddr;
+  /// @notice Address for wNtive Relayer
   address public override getWNativeRelayer;
+  /// @notice FairLaunch contract address
   address public fairLaunchAddr;
-  address public treasury;
 
+  /// @notice The maximum position value in USD that can be held in the vault
   uint256 public maxVaultPositionValue;
+  /// @notice If debt ratio went above rebalanceFactor, then rebalance
   uint256 public override rebalanceFactor;
+  /// @notice Tolerance bps that allow margin for misc calculation
   uint256 public override positionValueTolerance;
 
+  /// @notice Deposit fee treasury.
+  address public depositFeeTreasury;
+  /// @notice Fee when user deposit to delta neutral vault
   uint256 public override depositFeeBps;
+  /// @notice Withdrawal fee treasury.
+  address public withdrawalFeeTreasury;
+  /// @notice Fee when user withdraw from delta neutral vault
   uint256 public override withdrawalFeeBps;
+  /// @notice Management fee treausry.
+  address public managementFeeTreasury;
+  /// @notice Management fee when users is using the vault
   uint256 public override managementFeePerSec;
 
+  /// @notice Targeted leverage level used for underlying positions
   uint8 public override leverageLevel;
 
+  /// @notice ALPACA token
   address public alpacaToken;
-  address public swapRouter;
+  /// @notice The router to be used for swaping ALPACA to other assets
+  address public getSwapRouter;
+  /// @notice The path to be used for reinvesting
   address[] public reinvestPath;
 
+  /// @notice Mapping of whitelisted callers
   mapping(address => bool) public whitelistedCallers;
+  /// @notice Mapping of whitelisted rebalancers
   mapping(address => bool) public whitelistedRebalancers;
 
-  // list of exempted callers.
+  /// @notice list of exempted callers.
   mapping(address => bool) public feeExemptedCallers;
 
-  /// list of reinvestors
+  /// @notice list of reinvestors
   mapping(address => bool) public whitelistedReinvestors;
 
+  /// @notice ALPACA treausry
+  address public alpacaReinvestFeeTreasury;
+  /// @notice ALPACA bounty percentage.
   uint256 public alpacaBountyBps;
+  /// @notice ALPACA beneficiary. This is the address that will receive portion of the bounty.
+  address public alpacaBeneficiary;
+  /// @notice ALPACA beneficiary percentage.
+  uint256 public alpacaBeneficiaryBps;
 
   function initialize(
     address _getWrappedNativeAddr,
@@ -115,22 +137,17 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     address _fairLaunchAddr,
     uint256 _rebalanceFactor,
     uint256 _positionValueTolerance,
-    address _treasury,
-    uint256 _alpacaBountyBps,
+    address _depositFeeTreasury,
+    address _managementFeeTreasury,
+    address _withdrawFeeTreasury,
     address _alpacaToken
   ) external initializer {
     OwnableUpgradeable.__Ownable_init();
 
     alpacaToken = _alpacaToken;
-    setParams(
-      _getWrappedNativeAddr,
-      _getWNativeRelayer,
-      _fairLaunchAddr,
-      _rebalanceFactor,
-      _positionValueTolerance,
-      _treasury,
-      _alpacaBountyBps
-    );
+
+    setFees(_depositFeeTreasury, 0, _withdrawFeeTreasury, 0, _managementFeeTreasury, 0);
+    setParams(_getWrappedNativeAddr, _getWNativeRelayer, _fairLaunchAddr, _rebalanceFactor, _positionValueTolerance);
   }
 
   function setParams(
@@ -138,17 +155,13 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     address _getWNativeRelayer,
     address _fairLaunchAddr,
     uint256 _rebalanceFactor,
-    uint256 _positionValueTolerance,
-    address _treasury,
-    uint256 _alpacaBountyBps
+    uint256 _positionValueTolerance
   ) public onlyOwner {
     getWrappedNativeAddr = _getWrappedNativeAddr;
     getWNativeRelayer = _getWNativeRelayer;
     fairLaunchAddr = _fairLaunchAddr;
     rebalanceFactor = _rebalanceFactor;
     positionValueTolerance = _positionValueTolerance;
-    treasury = _treasury;
-    alpacaBountyBps = _alpacaBountyBps;
 
     emit LogSetParams(
       msg.sender,
@@ -156,9 +169,7 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
       _getWNativeRelayer,
       _fairLaunchAddr,
       _rebalanceFactor,
-      _positionValueTolerance,
-      _treasury,
-      _alpacaBountyBps
+      _positionValueTolerance
     );
   }
 
@@ -223,10 +234,13 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   /// @param _newWithdrawalFeeBps Fee when user deposit to delta neutral vault.
   /// @param _newManagementFeePerSec Mangement Fee per second.
   function setFees(
+    address _newDepositFeeTreasury,
     uint256 _newDepositFeeBps,
+    address _newWithdrawalFeeTreasury,
     uint256 _newWithdrawalFeeBps,
+    address _newManagementFeeTreasury,
     uint256 _newManagementFeePerSec
-  ) external onlyOwner {
+  ) public onlyOwner {
     if (
       _newDepositFeeBps > MAX_DEPOSIT_FEE_BPS ||
       _newWithdrawalFeeBps > MAX_WITHDRAWAL_FEE_BPS ||
@@ -234,26 +248,54 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     ) {
       revert DeltaNeutralVaultConfig_TooMuchFee(_newDepositFeeBps, _newWithdrawalFeeBps, _newManagementFeePerSec);
     }
+
+    depositFeeTreasury = _newDepositFeeTreasury;
     depositFeeBps = _newDepositFeeBps;
+
+    withdrawalFeeTreasury = _newWithdrawalFeeTreasury;
     withdrawalFeeBps = _newWithdrawalFeeBps;
+
+    managementFeeTreasury = _newManagementFeeTreasury;
     managementFeePerSec = _newManagementFeePerSec;
+
     emit LogSetFees(msg.sender, _newDepositFeeBps, _newWithdrawalFeeBps, _newManagementFeePerSec);
+    emit LogSetFeeTreasury(msg.sender, _newDepositFeeTreasury, _newWithdrawalFeeTreasury, _newManagementFeeTreasury);
   }
 
   /// @notice Set alpacaBountyBps.
   /// @dev Must only be called by owner.
-  /// @param _alpacaBountyBps Fee.
-  function setAlpacaBountyBps(uint256 _alpacaBountyBps) external onlyOwner {
-    if (_alpacaBountyBps > MAX_ALPACA_BOUNTY_BPS) {
-      revert DeltaNeutralVaultConfig_TooMuchBounty(_alpacaBountyBps);
+  /// @param _newAlpacaReinvestFeeTreasury The new address to received ALPACA reinvest fee
+  /// @param _newAlpacaBountyBps Fee from reinvesting ALPACA to positions.
+  function setAlpacaBountyConfig(address _newAlpacaReinvestFeeTreasury, uint256 _newAlpacaBountyBps)
+    external
+    onlyOwner
+  {
+    if (_newAlpacaBountyBps > MAX_ALPACA_BOUNTY_BPS) {
+      revert DeltaNeutralVaultConfig_TooMuchBounty(_newAlpacaBountyBps);
     }
-    alpacaBountyBps = _alpacaBountyBps;
-    emit LogSetAlpacaBounty(msg.sender, alpacaBountyBps);
+
+    alpacaReinvestFeeTreasury = _newAlpacaReinvestFeeTreasury;
+    alpacaBountyBps = _newAlpacaBountyBps;
+
+    emit LogSetAlpacaBountyConfig(msg.sender, alpacaReinvestFeeTreasury, alpacaBountyBps);
   }
 
-  /// @dev Return the treasuryAddr.
-  function getTreasuryAddr() external view override returns (address) {
-    return treasury == address(0) ? 0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51 : treasury;
+  /// @notice Set alpacaBeneficiaryBps.
+  /// @dev Must only be called by owner.
+  /// @param _newAlpacaBeneficiary The new address to received ALPACA reinvest fee
+  /// @param _newAlpacaBeneficiaryBps Fee from reinvesting ALPACA to positions.
+  function setAlpacaBeneficiaryConfig(address _newAlpacaBeneficiary, uint256 _newAlpacaBeneficiaryBps)
+    external
+    onlyOwner
+  {
+    if (_newAlpacaBeneficiaryBps > MAX_ALPACA_BENEFICIARY_BPS) {
+      revert DeltaNeutralVaultConfig_TooMuchBounty(_newAlpacaBeneficiaryBps);
+    }
+
+    alpacaBeneficiary = _newAlpacaBeneficiary;
+    alpacaBeneficiaryBps = _newAlpacaBeneficiaryBps;
+
+    emit LogSetAlpacaBeneficiaryConfig(msg.sender, alpacaBeneficiary, alpacaBeneficiaryBps);
   }
 
   /// @notice Set position value limit.
@@ -273,16 +315,11 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     return true;
   }
 
-  /// @dev Get the swap router
-  function getSwapRouter() external view returns (address) {
-    return swapRouter;
-  }
-
   /// @dev Set the reinvest configuration.
   /// @param _swapRouter - The router address to update.
   function setSwapRouter(address _swapRouter) external onlyOwner {
     if (_swapRouter == address(0)) revert DeltaNeutralVaultConfig_InvalidSwapRouter();
-    swapRouter = _swapRouter;
+    getSwapRouter = _swapRouter;
     emit LogSetSwapRouter(msg.sender, _swapRouter);
   }
 

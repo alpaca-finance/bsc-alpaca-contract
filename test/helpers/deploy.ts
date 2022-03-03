@@ -178,8 +178,9 @@ export interface IDeltaNeutralVaultConfig {
   fairlaunchAddr: string;
   rebalanceFactor: BigNumberish;
   positionValueTolerance: BigNumberish;
-  treasuryAddr: string;
-  alpacaBountyBps: BigNumberish;
+  depositFeeTreasury: string;
+  managementFeeTreasury: string;
+  withdrawFeeTreasury: string;
   alpacaTokenAddress: string;
 }
 
@@ -1108,8 +1109,9 @@ export class DeployHelper {
       input.fairlaunchAddr,
       input.rebalanceFactor,
       input.positionValueTolerance,
-      input.treasuryAddr,
-      input.alpacaBountyBps,
+      input.depositFeeTreasury,
+      input.managementFeeTreasury,
+      input.withdrawFeeTreasury,
       input.alpacaTokenAddress,
     ])) as DeltaNeutralVaultConfig;
     await deltaNeutralVaultConfig.deployed();
