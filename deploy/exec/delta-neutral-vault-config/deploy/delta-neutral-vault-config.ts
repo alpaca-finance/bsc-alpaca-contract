@@ -16,13 +16,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     */
   const config = ConfigEntity.getConfig();
 
-  const REBALANCE_FACTOR = "7200";
+  const REBALANCE_FACTOR = "9200";
   const POSITION_VALUE_TOLERANCE_BPS = "100";
   const ALPACA_REINVEST_FEE_TREASURY = "0x417D3e491cbAaD07B2433781e50Bc6Cd09641BC0";
   const ALPACA_BOUNTY_BPS = "1500";
-  const ALPACA_BENEFICIARY = "0x44B3868cbba5fbd2c5D8d1445BDB14458806B3B4";
-  const ALPACA_BENEFICIARY_FEE_BPS = "5330";
-  const LEVERAGE_LEVEL = 3;
+  const LEVERAGE_LEVEL = 8;
   const WHITELIST_REBALANCE = ["0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De"];
   const WHITELIST_REINVEST = ["0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De"];
   const REINVEST_PATH = ["ALPACA", "BUSD"];
@@ -34,6 +32,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const WITHDRAWAL_FEE_BPS = "20";
   const MANAGEMENT_TREASURY = "0x7E2308437c2f4C8934214663dc8476037625a270";
   const MANAGEMENT_FEE_PER_SEC = "634195840";
+  const ALPACA_BENEFICIARY = "0x44B3868cbba5fbd2c5D8d1445BDB14458806B3B4";
+  const ALPACA_BENEFICIARY_FEE_BPS = "5330";
 
   const deployer = (await ethers.getSigners())[0];
   const WRAP_NATIVE_ADDR = config.Tokens.WBNB;

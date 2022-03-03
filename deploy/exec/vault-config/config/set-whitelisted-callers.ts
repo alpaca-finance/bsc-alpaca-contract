@@ -27,11 +27,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "testnet_deltaneutral";
+  const TITLE = "mainnet_8x_delta_neutral_set_whitelisted_callers";
   const TARGETED_VAULT_CONFIG: Array<IInput> = [
     {
       VAULT_SYMBOL: "ibWBNB",
-      WHITELISTED_CALLERS: ["0x9AaaD0AB432eFDf86B27b4ea020dF2DfB223e00c"],
+      WHITELISTED_CALLERS: ["0x1c623105d072Dc69F9a3F8A3dB67b5AeCEDC082b"],
       IS_ENABLE: true,
     },
     // {
@@ -61,7 +61,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     // },
     {
       VAULT_SYMBOL: "ibTUSD",
-      WHITELISTED_CALLERS: ["0x9AaaD0AB432eFDf86B27b4ea020dF2DfB223e00c"],
+      WHITELISTED_CALLERS: ["0x1c623105d072Dc69F9a3F8A3dB67b5AeCEDC082b"],
       IS_ENABLE: true,
     },
   ];

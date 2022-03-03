@@ -71,32 +71,32 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const shortWorkerInfos: IDeltaNeutralPCSWorkerInput[] = [
     {
       VAULT_SYMBOL: "ibWBNB",
-      WORKER_NAME: "USDT-WBNB DeltaNeutralPancakeswapWorker",
+      WORKER_NAME: "USDT-WBNB 8x DeltaNeutralPancakeswapWorker",
       TREASURY_ADDRESS: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
       POOL_ID: 264,
       REINVEST_BOUNTY_BPS: "1500",
       REINVEST_PATH: ["CAKE", "WBNB"],
       REINVEST_THRESHOLD: "0",
-      WORK_FACTOR: "8000",
+      WORK_FACTOR: "9500",
       KILL_FACTOR: "0",
       MAX_PRICE_DIFF: "10500",
     },
     {
       VAULT_SYMBOL: "ibUSDT",
-      WORKER_NAME: "WBNB-USDT DeltaNeutralPancakeswapWorker",
+      WORKER_NAME: "WBNB-USDT 8x DeltaNeutralPancakeswapWorker",
       TREASURY_ADDRESS: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
       POOL_ID: 264,
       REINVEST_BOUNTY_BPS: "1500",
       REINVEST_PATH: ["CAKE", "USDT"],
       REINVEST_THRESHOLD: "0",
-      WORK_FACTOR: "8000",
+      WORK_FACTOR: "9500",
       KILL_FACTOR: "0",
       MAX_PRICE_DIFF: "10500",
     },
   ];
-  const TITLE = "mainnet_delta_neutral_3x_wbnbusdt_pcs_worker";
+  const TITLE = "mainnet_delta_neutral_8x_pcs_worker";
   const EXACT_ETA = "1646402400";
 
   const deployer = (await ethers.getSigners())[0];
