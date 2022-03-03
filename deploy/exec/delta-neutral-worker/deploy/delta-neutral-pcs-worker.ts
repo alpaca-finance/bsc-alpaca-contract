@@ -96,7 +96,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       MAX_PRICE_DIFF: "1050000000",
     },
   ];
-  const TITLE = "testnet_delta_neutral_pcs_worker";
+  const TITLE = "mainnet_delta_neutral_3x_pcs_worker";
   const EXACT_ETA = "1646022600";
 
   const deployer = (await ethers.getSigners())[0];

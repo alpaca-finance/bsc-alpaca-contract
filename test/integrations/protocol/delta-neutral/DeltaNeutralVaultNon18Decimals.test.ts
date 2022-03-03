@@ -343,8 +343,9 @@ describe("DeltaNeutralVaultNon18Decimals", () => {
       fairlaunchAddr: fairLaunch.address,
       rebalanceFactor: REBALANCE_FACTOR,
       positionValueTolerance: POSITION_VALUE_TOLERANCE_BPS,
-      treasuryAddr: eveAddress,
-      alpacaBountyBps: BigNumber.from("100"),
+      depositFeeTreasury: eveAddress,
+      managementFeeTreasury: eveAddress,
+      withdrawFeeTreasury: eveAddress,
       alpacaTokenAddress: alpacaToken.address,
     } as IDeltaNeutralVaultConfig;
 

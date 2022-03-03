@@ -250,7 +250,7 @@
     "deploy:fantom_mainnet:two-slope-model:deploy:two-slope-model": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags TwoSlopeModel",
     "mainnet": "hardhat console --no-compile --network mainnet",
     "ethereum": "hardhat console --no-compile --network ethereum",
-    "test:case": "mocha --require hardhat/register --file test/integrations/protocol/workers/spookyswap/Vault_SpookyWorker03.test.ts --extension ts -g",
+    "test:case": "mocha --require hardhat/register --file test/integrations/protocol/delta-neutral/DeltaNeutralVault.test.ts --extension ts -g",
     "test:parallel": "mocha --require hardhat/register --recursive --parallel --extension ts --exit",
     "test:vaultconfig": "hardhat test --no-compile ./test/ConfigurableInterestVaultConfig.test.ts",
     "test:fairlaunch": "hardhat test --no-compile ./test/FairLaunch.test.ts",

@@ -1,4 +1,4 @@
-import { ethers, upgrades, waffle } from "hardhat";
+import { ethers, waffle } from "hardhat";
 import { solidity } from "ethereum-waffle";
 import chai from "chai";
 import "@openzeppelin/test-helpers";
@@ -60,15 +60,12 @@ describe("DeltaNeutralVaultConfig", () => {
       fairlaunchAddr: FAIR_LAUNCH_ADDR,
       rebalanceFactor: REBALANCE_FACTOR,
       positionValueTolerance: POSITION_VALUE_TOLERANCE_BPS,
-      treasuryAddr: TREASURY_ADDR,
+      depositFeeTreasury: TREASURY_ADDR,
+      managementFeeTreasury: TREASURY_ADDR,
+      withdrawFeeTreasury: TREASURY_ADDR,
       alpacaBountyBps: ALPACA_BOUNTY_BPS,
       alpacaTokenAddress: ALPACA_TOKEN_ADDR,
     } as IDeltaNeutralVaultConfig;
-
-    const DeltaNeutralVaultConfig = (await ethers.getContractFactory(
-      "DeltaNeutralVaultConfig",
-      deployer
-    )) as DeltaNeutralVaultConfig__factory;
 
     const deployHelper = new DeployHelper(deployer);
     deltaNeutralVaultConfig = await deployHelper.deployDeltaNeutralVaultConfig(deltaNeutralConfig);
@@ -87,19 +84,15 @@ describe("DeltaNeutralVaultConfig", () => {
         const NEW_WRAP_NATIVE_ADDR = "0x0000000000000000000000000000000000000001";
         const NEW_WNATIVE_RELAYER = "0x0000000000000000000000000000000000000002";
         const NEW_FAIR_LAUNCH_ADDR = "0x0000000000000000000000000000000000000003";
-        const NEW_TREASURY_BPS = "0x0000000000000000000000000000000000000004";
         const NEW_REBALANCE_FACTOR = "6600";
         const NEW_POSITION_VALUE_TOLERANCE_BPS = "1200";
-        const NEW_ALPACA_BOUNTY_BPS = "200";
 
         await deltaNeutralVaultConfigAsDeployer.setParams(
           NEW_WRAP_NATIVE_ADDR,
           NEW_WNATIVE_RELAYER,
           NEW_FAIR_LAUNCH_ADDR,
           NEW_REBALANCE_FACTOR,
-          NEW_POSITION_VALUE_TOLERANCE_BPS,
-          NEW_TREASURY_BPS,
-          NEW_ALPACA_BOUNTY_BPS
+          NEW_POSITION_VALUE_TOLERANCE_BPS
         );
 
         const WRAP_NATIVE_ADDR_ = await deltaNeutralVaultConfigAsDeployer.getWrappedNativeAddr();
@@ -107,16 +100,12 @@ describe("DeltaNeutralVaultConfig", () => {
         const FAIR_LAUNCH_ADDR_ = await deltaNeutralVaultConfigAsDeployer.fairLaunchAddr();
         const REBALANCE_FACTOR_ = await deltaNeutralVaultConfigAsDeployer.rebalanceFactor();
         const POSITION_VALUE_TOLERANCE_BPS_ = await deltaNeutralVaultConfigAsDeployer.positionValueTolerance();
-        const TREASURY_BPS_ = await deltaNeutralVaultConfigAsDeployer.treasury();
-        const ALPACA_BOUNTY_BPS = await deltaNeutralVaultConfigAsDeployer.alpacaBountyBps();
 
         expect(WRAP_NATIVE_ADDR_).to.equal(NEW_WRAP_NATIVE_ADDR);
         expect(WNATIVE_RELAYER_).to.equal(NEW_WNATIVE_RELAYER);
         expect(FAIR_LAUNCH_ADDR_).to.equal(NEW_FAIR_LAUNCH_ADDR);
         expect(REBALANCE_FACTOR_).to.equal(NEW_REBALANCE_FACTOR);
         expect(POSITION_VALUE_TOLERANCE_BPS_).to.equal(NEW_POSITION_VALUE_TOLERANCE_BPS);
-        expect(TREASURY_BPS_).to.equal(NEW_TREASURY_BPS);
-        expect(ALPACA_BOUNTY_BPS).to.equal(NEW_ALPACA_BOUNTY_BPS);
       });
     });
 
@@ -129,8 +118,6 @@ describe("DeltaNeutralVaultConfig", () => {
             FAIR_LAUNCH_ADDR,
             REBALANCE_FACTOR,
             POSITION_VALUE_TOLERANCE_BPS,
-            TREASURY_ADDR,
-            ALPACA_BOUNTY_BPS,
             { from: aliceAddress }
           )
         ).to.be.revertedWith("Ownable: caller is not the owner");
@@ -312,14 +299,30 @@ describe("DeltaNeutralVaultConfig", () => {
   describe("#setFees", async () => {
     context("when not owner call setFees", async () => {
       it("should revert", async () => {
-        await expect(deltaNeutralVaultConfigAsAlice.setFees(0, 0, 0)).to.be.reverted;
+        await expect(
+          deltaNeutralVaultConfigAsAlice.setFees(
+            ethers.constants.AddressZero,
+            0,
+            ethers.constants.AddressZero,
+            0,
+            ethers.constants.AddressZero,
+            0
+          )
+        ).to.be.reverted;
       });
     });
     context("when set too much fee", async () => {
       it("should revert", async () => {
-        await expect(deltaNeutralVaultConfig.setFees(1001, 1002, 1003)).to.be.revertedWith(
-          "TooMuchFee(1001, 1002, 1003)"
-        );
+        await expect(
+          deltaNeutralVaultConfig.setFees(
+            ethers.constants.AddressZero,
+            1001,
+            ethers.constants.AddressZero,
+            1002,
+            ethers.constants.AddressZero,
+            1003
+          )
+        ).to.be.revertedWith("TooMuchFee(1001, 1002, 1003)");
       });
     });
     context("when owner call setFees", async () => {
@@ -327,9 +330,19 @@ describe("DeltaNeutralVaultConfig", () => {
         // managementFeePerSec calculation
         //  0.05 * 1e18 / 31536000 = 0.000000001585489599
         const expectedManagementFeePerSec = ethers.utils.parseEther("0.000000001585489599");
-        const setFeesTx = await deltaNeutralVaultConfig.setFees(500, 500, expectedManagementFeePerSec);
+        const setFeesTx = await deltaNeutralVaultConfig.setFees(
+          deployerAddress,
+          500,
+          aliceAddress,
+          500,
+          bobAddress,
+          expectedManagementFeePerSec
+        );
+        expect(await deltaNeutralVaultConfig.depositFeeTreasury()).to.be.eq(deployerAddress);
         expect(await deltaNeutralVaultConfig.depositFeeBps()).to.eq(500);
+        expect(await deltaNeutralVaultConfig.withdrawalFeeTreasury()).to.be.eq(aliceAddress);
         expect(await deltaNeutralVaultConfig.withdrawalFeeBps()).to.eq(500);
+        expect(await deltaNeutralVaultConfig.managementFeeTreasury()).to.be.eq(bobAddress);
         expect(await deltaNeutralVaultConfig.managementFeePerSec()).to.eq(expectedManagementFeePerSec);
         expect(setFeesTx)
           .to.emit(deltaNeutralVaultConfig, "LogSetFees")
@@ -338,24 +351,54 @@ describe("DeltaNeutralVaultConfig", () => {
     });
   });
 
-  describe("#setAlpacaBountyBps", async () => {
-    context("when not owner call setAlpacaBountyBps", async () => {
+  describe("#setAlpacaBountyConfig", async () => {
+    context("when not owner call setAlpacaBountyConfig", async () => {
       it("should revert", async () => {
-        await expect(deltaNeutralVaultConfigAsAlice.setAlpacaBountyBps(0)).to.be.reverted;
+        await expect(deltaNeutralVaultConfigAsAlice.setAlpacaBountyConfig(ethers.constants.AddressZero, 0)).to.be
+          .reverted;
       });
     });
-    context("when set too much AlpacaBountyBps", async () => {
+    context("when set too much setAlpacaBountyConfig", async () => {
       it("should revert", async () => {
-        await expect(deltaNeutralVaultConfig.setAlpacaBountyBps(2501)).to.be.revertedWith(
-          "DeltaNeutralVaultConfig_TooMuchBounty(2501)"
-        );
+        await expect(
+          deltaNeutralVaultConfig.setAlpacaBountyConfig(ethers.constants.AddressZero, 2501)
+        ).to.be.revertedWith("DeltaNeutralVaultConfig_TooMuchBounty(2501)");
       });
     });
-    context("when owner call setAlpacaBountyBps", async () => {
-      it("should be able to setAlpacaBountyBps", async () => {
-        const setAlpacaBountyTx = await deltaNeutralVaultConfig.setAlpacaBountyBps(500);
+    context("when owner call setAlpacaBountyConfig", async () => {
+      it("should be able to setAlpacaBountyConfig", async () => {
+        const setAlpacaBountyTx = await deltaNeutralVaultConfig.setAlpacaBountyConfig(aliceAddress, 500);
+        expect(await deltaNeutralVaultConfig.alpacaReinvestFeeTreasury()).to.be.eq(aliceAddress);
         expect(await deltaNeutralVaultConfig.alpacaBountyBps()).to.eq(500);
-        expect(setAlpacaBountyTx).to.emit(deltaNeutralVaultConfig, "LogSetAlpacaBounty").withArgs(deployerAddress, 500);
+        expect(setAlpacaBountyTx)
+          .to.emit(deltaNeutralVaultConfig, "LogSetAlpacaBountyConfig")
+          .withArgs(deployerAddress, aliceAddress, 500);
+      });
+    });
+  });
+
+  describe("#setAlpacaBeneficiaryConfig", async () => {
+    context("when not owner call setAlpacaBeneficiaryConfig", async () => {
+      it("should revert", async () => {
+        await expect(deltaNeutralVaultConfigAsAlice.setAlpacaBeneficiaryConfig(ethers.constants.AddressZero, 0)).to.be
+          .reverted;
+      });
+    });
+    context("when set too much setAlpacaBeneficiaryConfig", async () => {
+      it("should revert", async () => {
+        await expect(
+          deltaNeutralVaultConfig.setAlpacaBeneficiaryConfig(ethers.constants.AddressZero, 6001)
+        ).to.be.revertedWith("DeltaNeutralVaultConfig_TooMuchBounty(6001)");
+      });
+    });
+    context("when owner call setAlpacaBeneficiaryConfig", async () => {
+      it("should be able to setAlpacaBeneficiaryConfig", async () => {
+        const setAlpacaBountyTx = await deltaNeutralVaultConfig.setAlpacaBeneficiaryConfig(aliceAddress, 5000);
+        expect(await deltaNeutralVaultConfig.alpacaBeneficiary()).to.be.eq(aliceAddress);
+        expect(await deltaNeutralVaultConfig.alpacaBeneficiaryBps()).to.eq(5000);
+        expect(setAlpacaBountyTx)
+          .to.emit(deltaNeutralVaultConfig, "LogSetAlpacaBeneficiaryConfig")
+          .withArgs(deployerAddress, aliceAddress, 5000);
       });
     });
   });
