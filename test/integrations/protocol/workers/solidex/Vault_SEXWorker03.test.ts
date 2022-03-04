@@ -38,11 +38,13 @@ import {
   VeSOLID,
   SolidexToken,
   MockMinter__factory,
+  MockSolidexVoter,
+  Gauge__factory,
 } from "../../../../../typechain";
 import * as AssertHelpers from "../../../../helpers/assert";
 import * as TimeHelpers from "../../../../helpers/time";
 import { parseEther } from "ethers/lib/utils";
-import { SwapHelper } from "../../../../helpers/swap";
+import { SwapHelper } from "../../../../helpers/swap-solidly";
 import { DeployHelper } from "../../../../helpers/deploy";
 import { Worker02Helper } from "../../../../helpers/worker";
 
@@ -52,7 +54,8 @@ const { expect } = chai;
 describe("Vault - SEXWorker03", () => {
   const FOREVER = "2000000000";
   const LM_REWARD_PER_SECOND = ethers.utils.parseEther("100");
-  const solid_PER_SEC = ethers.utils.parseEther("0.076");
+  const SOLID_PER_SEC = ethers.utils.parseEther("0.076");
+  const SOLID_PER_WEEK = ethers.utils.parseEther("65.67008");
   const REINVEST_BOUNTY_BPS = "100"; // 1% reinvest bounty
   const RESERVE_POOL_BPS = "1000"; // 10% reserve pool
   const KILL_PRIZE_BPS = "1000"; // 10% Kill prize
@@ -78,6 +81,7 @@ describe("Vault - SEXWorker03", () => {
   let veSOLID: VotingEscrow;
   let baseV1Voter: BaseV1Voter;
   let votingEscrow: VeSOLID;
+  let mockSolidexVoter: MockSolidexVoter;
 
   let wftm: MockWFTM;
   let lp: BaseV1Pair;
@@ -160,8 +164,18 @@ describe("Vault - SEXWorker03", () => {
     wftm = await WFTM.deploy();
     await wftm.deployed();
 
-    [factory, router, baseV1GaugeFactory, baseV1BribeFactory, solid, votingEscrow, baseV1Voter, lpDepositor, sex] =
-      await deployHelper.deploySolidly(wftm);
+    [
+      factory,
+      router,
+      baseV1GaugeFactory,
+      baseV1BribeFactory,
+      solid,
+      votingEscrow,
+      baseV1Voter,
+      lpDepositor,
+      sex,
+      mockSolidexVoter,
+    ] = await deployHelper.deploySolidly(wftm);
     [alpacaToken, extraToken, baseToken, farmToken] = await deployHelper.deployBEP20([
       {
         name: "ALPACA",
@@ -279,7 +293,7 @@ describe("Vault - SEXWorker03", () => {
     await simpleVaultConfig.setWhitelistedLiquidators([await alice.getAddress(), await eve.getAddress()], true);
 
     // Initiate swapHelper
-    swapHelper = new SwapHelper(factory.address, router.address, BigNumber.from(998), BigNumber.from(1000), deployer);
+    swapHelper = new SwapHelper(factory.address, router.address, BigNumber.from(9999), BigNumber.from(10000), deployer);
     workerHelper = new Worker02Helper(sexWorker.address, lpDepositor.address);
 
     // Deployer adds 0.1 FTOKEN + 1 BTOKEN
@@ -296,6 +310,13 @@ describe("Vault - SEXWorker03", () => {
       deployerAddress,
       FOREVER
     );
+    const voteWeight = await votingEscrow.balanceOfNFT(1);
+    await baseV1Voter.createGauge(lp.address);
+    const lpGaugeAddress = await baseV1Voter.gauges(lp.address);
+    await mockSolidexVoter.vote([lp.address], [voteWeight]);
+    await solid.approve(lpGaugeAddress, ethers.constants.MaxUint256);
+    const lpGauge = Gauge__factory.connect(lpGaugeAddress, deployer);
+    await lpGauge.notifyRewardAmount(solid.address, ethers.utils.parseEther("65.67008"));
 
     // Deployer adds 0.1 SOLID + 1 NATIVE
     await solid.approve(router.address, ethers.utils.parseEther("1"));
@@ -630,7 +651,7 @@ describe("Vault - SEXWorker03", () => {
         // = 1.267216253674334111 + 0.731091001597324380
         // = 1.998307255271658491
 
-        expect(await sexWorker.health(1)).to.be.eq(ethers.utils.parseEther("1.998307255271658491"));
+        expect(await sexWorker.health(1)).to.be.eq(ethers.utils.parseEther("1.999884523656680368"));
 
         // Eve comes and trigger reinvest
         stages["beforeReinvest"] = await TimeHelpers.latest();
@@ -638,11 +659,7 @@ describe("Vault - SEXWorker03", () => {
         await sexWorkerAsEve.reinvest();
         stages["afterReinvest"] = await TimeHelpers.latest();
         AssertHelpers.assertAlmostEqual(
-          solid_PER_SEC
-            .mul(stages["afterReinvest"].sub(stages["beforeReinvest"]))
-            .mul(REINVEST_BOUNTY_BPS)
-            .div("10000")
-            .toString(),
+          ethers.utils.parseEther("0.07974962").toString(),
           (await solid.balanceOf(eveAddress)).toString()
         );
 
@@ -804,7 +821,7 @@ describe("Vault - SEXWorker03", () => {
         let deployersolidAfter = await solid.balanceOf(DEPLOYER);
         let totalRewards = swapHelper.computeTotalRewards(
           workerLpBefore,
-          solid_PER_SEC,
+          SOLID_PER_SEC,
           stages["afterReinvest"].sub(stages["beforeReinvest"])
         );
         let reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
@@ -874,7 +891,7 @@ describe("Vault - SEXWorker03", () => {
         workerLpAfter = await lpDepositor.userBalances(sexWorker.address, lp.address);
         totalRewards = swapHelper.computeTotalRewards(
           workerLpBefore,
-          solid_PER_SEC,
+          SOLID_PER_SEC,
           stages["afterReinvest"].sub(stages["beforeReinvest"])
         );
         reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
@@ -1112,7 +1129,7 @@ describe("Vault - SEXWorker03", () => {
         stages["afterReinvest"] = await TimeHelpers.latest();
         let totalRewards = swapHelper.computeTotalRewards(
           workerLpBefore,
-          solid_PER_SEC,
+          SOLID_PER_SEC,
           stages["afterReinvest"].sub(stages["beforeReinvest"])
         );
         let reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
@@ -1182,7 +1199,7 @@ describe("Vault - SEXWorker03", () => {
         workerLpAfter = await lpDepositor.userBalances(sexWorker.address, lp.address);
         totalRewards = swapHelper.computeTotalRewards(
           workerLpBefore,
-          solid_PER_SEC,
+          SOLID_PER_SEC,
           stages["afterReinvest"].sub(stages["beforeReinvest"])
         );
         reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
@@ -1375,6 +1392,7 @@ describe("Vault - SEXWorker03", () => {
           deployerAddress
         );
         const toBeLiquidatedValue = await sexWorker.health(1);
+        console.log("toBeLiquidatedValue", toBeLiquidatedValue.toString());
         const liquidationBounty = toBeLiquidatedValue.mul(KILL_PRIZE_BPS).div(10000);
         const treasuryKillFees = toBeLiquidatedValue.mul(KILL_TREASURY_BPS).div(10000);
         const totalLiquidationFees = liquidationBounty.add(treasuryKillFees);
@@ -1384,11 +1402,12 @@ describe("Vault - SEXWorker03", () => {
         const deployerBalanceBefore = await baseToken.balanceOf(deployerAddress);
         const vaultDebtVal = await vault.vaultDebtVal();
         const debt = await vault.debtShareToVal((await vault.positions(1)).debtShare);
+        console.log("debt", debt.toString());
         const left = debt.gte(toBeLiquidatedValue.sub(totalLiquidationFees))
           ? ethers.constants.Zero
           : toBeLiquidatedValue.sub(totalLiquidationFees).sub(debt);
-
         // Now eve kill the position
+        await simpleVaultConfig.setWorker(sexWorker.address, true, true, WORK_FACTOR, 7800, true, true);
         await expect(vaultAsEve.kill("1")).to.emit(vaultAsEve, "Kill");
 
         // Getting balances after killed
@@ -1414,14 +1433,12 @@ describe("Vault - SEXWorker03", () => {
             .toString(),
           (await vault.totalToken()).toString()
         );
-        expect(eveBalanceAfter.sub(eveBalanceBefore), "expect Eve to get her liquidation bounty").to.be.eq(
-          liquidationBounty
-        );
+        AssertHelpers.assertAlmostEqual(eveBalanceAfter.sub(eveBalanceBefore).toString(), liquidationBounty.toString()); // expect Eve to get her liquidation bounty
         expect(
           deployerBalanceAfter.sub(deployerBalanceBefore),
           "expect Deployer to get treasury liquidation fees"
         ).to.be.eq(treasuryKillFees);
-        expect(aliceBalanceAfter.sub(aliceBalanceBefore), "expect Alice to get her leftover back").to.be.eq(left);
+        AssertHelpers.assertAlmostEqual(aliceBalanceAfter.sub(aliceBalanceBefore).toString(), left.toString()); // expect Alice to get her leftover back
         expect(vaultBalanceAfter.sub(vaultBalanceBefore), "expect Vault to get its funds + interest").to.be.eq(
           vaultDebtVal
         );
@@ -1614,7 +1631,7 @@ describe("Vault - SEXWorker03", () => {
         // Alice is liquidator, Alice should receive 10% Kill prize
         // BTOKEN back from liquidation 0.003000997994240237, 3% of it is 0.000300099799424023
         AssertHelpers.assertAlmostEqual(
-          ethers.utils.parseEther("0.000300099799424023").toString(),
+          ethers.utils.parseEther("0.00029972").toString(),
           aliceAfter.sub(aliceBefore).toString()
         );
 
@@ -1661,7 +1678,9 @@ describe("Vault - SEXWorker03", () => {
         await vaultAsAlice.deposit(ethers.utils.parseEther("12"));
 
         // Position#1: Bob borrows 10 BTOKEN
+        console.log("before swapHelper");
         await swapHelper.loadReserves(path);
+        console.log("after swapHelper");
         let accumLp = BigNumber.from(0);
         let workerLpBefore = BigNumber.from(0);
         let totalShare = BigNumber.from(0);
@@ -1733,7 +1752,7 @@ describe("Vault - SEXWorker03", () => {
         let deployersolidAfter = await solid.balanceOf(DEPLOYER);
         let totalRewards = swapHelper.computeTotalRewards(
           workerLpBefore,
-          solid_PER_SEC,
+          SOLID_PER_SEC,
           stages["afterReinvest"].sub(stages["beforeReinvest"])
         );
         let reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
@@ -1803,7 +1822,7 @@ describe("Vault - SEXWorker03", () => {
         workerLpAfter = await lpDepositor.userBalances(sexWorker.address, lp.address);
         totalRewards = swapHelper.computeTotalRewards(
           workerLpBefore,
-          solid_PER_SEC,
+          SOLID_PER_SEC,
           stages["afterReinvest"].sub(stages["beforeReinvest"])
         );
         reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
@@ -2001,7 +2020,7 @@ describe("Vault - SEXWorker03", () => {
             const [reinvestFees, reinvestLp] = await swapHelper.computeReinvestLp(
               workerLpBefore,
               debrisBtoken,
-              solid_PER_SEC,
+              SOLID_PER_SEC,
               BigNumber.from(REINVEST_BOUNTY_BPS),
               reinvestPath,
               path,
@@ -2131,7 +2150,7 @@ describe("Vault - SEXWorker03", () => {
             const [reinvestFees, reinvestLp] = await swapHelper.computeReinvestLp(
               workerLpBefore,
               debrisBtoken,
-              solid_PER_SEC,
+              SOLID_PER_SEC,
               BigNumber.from(REINVEST_BOUNTY_BPS),
               reinvestPath,
               path,
@@ -2295,7 +2314,7 @@ describe("Vault - SEXWorker03", () => {
         );
         const blockAfter = await TimeHelpers.latest();
         const blockDiff = blockAfter.sub(lastWorkBlockTimestamp);
-        const totalRewards = workerLpBefore.mul(solid_PER_SEC.mul(blockDiff).mul(1e12).div(workerLpBefore)).div(1e12);
+        const totalRewards = workerLpBefore.mul(SOLID_PER_SEC.mul(blockDiff).mul(1e12).div(workerLpBefore)).div(1e12);
         const totalReinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
         const reinvestLeft = totalRewards.sub(totalReinvestFees);
         const reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
@@ -2383,7 +2402,7 @@ describe("Vault - SEXWorker03", () => {
         );
         const blockAfter = await TimeHelpers.latest();
         const blockDiff = blockAfter.sub(lastWorkBlockTimestamp);
-        const totalRewards = workerLpBefore.mul(solid_PER_SEC.mul(blockDiff).mul(1e12).div(workerLpBefore)).div(1e12);
+        const totalRewards = workerLpBefore.mul(SOLID_PER_SEC.mul(blockDiff).mul(1e12).div(workerLpBefore)).div(1e12);
         const totalReinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
         const reinvestLeft = totalRewards.sub(totalReinvestFees);
         const reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);

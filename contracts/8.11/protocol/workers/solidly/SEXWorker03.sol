@@ -193,7 +193,6 @@ contract SEXWorker03 is OwnableUpgradeable, ReentrancyGuardUpgradeable, IMultiRe
       if (reward <= reinvestThresholds[_rewardToken]) return;
       // 2. Approve tokens
       _rewardToken.safeApprove(address(router), type(uint256).max);
-      address(lpToken).safeApprove(address(lpDepositor), type(uint256).max);
       // 3. Send the reward bounty to the _treasuryAccount.
       uint256 bounty = (reward * _treasuryBountyBps) / 10000;
       if (bounty > 0) {
@@ -210,16 +209,17 @@ contract SEXWorker03 is OwnableUpgradeable, ReentrancyGuardUpgradeable, IMultiRe
         address(this),
         block.timestamp
       );
-      // 5. Use add Token strategy to convert all BaseToken without both caller balance and buyback amount to LP tokens.
-      baseToken.safeTransfer(address(addStrat), actualBaseTokenBalance() - _callerBalance);
-      addStrat.execute(address(0), 0, abi.encode(0));
-      // 6. Stake LPs for more rewards
-      lpDepositor.deposit(address(lpToken), lpToken.balanceOf(address(this)));
-      // 7. Reset approvals
       _rewardToken.safeApprove(address(router), 0);
-      address(lpToken).safeApprove(address(lpDepositor), 0);
       emit Reinvest(_treasuryAccount, reward, bounty);
     }
+    // 5. Use add Token strategy to convert all BaseToken without both caller balance and buyback amount to LP tokens.
+    baseToken.safeTransfer(address(addStrat), actualBaseTokenBalance() - _callerBalance);
+    addStrat.execute(address(0), 0, abi.encode(0));
+    // 6. Stake LPs for more rewards
+    address(lpToken).safeApprove(address(lpDepositor), type(uint256).max);
+    lpDepositor.deposit(address(lpToken), lpToken.balanceOf(address(this)));
+    // 7. Reset approvals
+    address(lpToken).safeApprove(address(lpDepositor), 0);
   }
 
   /// @dev Work on the given position. Must be called by the operator.

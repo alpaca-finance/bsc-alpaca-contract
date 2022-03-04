@@ -146,6 +146,7 @@ import {
   WrappedFtm,
   MockWFTM,
   MockSolidexVoter__factory,
+  MockSolidexVoter,
 } from "../../typechain";
 import { DepositToken__factory } from "../../typechain/factories/DepositToken__factory";
 import { MockSolidexFeeDistributor__factory } from "../../typechain/factories/MockSolidexFeeDistributor__factory";
@@ -1060,7 +1061,8 @@ export class DeployHelper {
       VeSOLID,
       BaseV1Voter,
       LpDepositor,
-      SolidexToken
+      SolidexToken,
+      MockSolidexVoter
     ]
   > {
     const deployerAddress = await this.deployer.getAddress();
@@ -1090,7 +1092,7 @@ export class DeployHelper {
     const SOLIDToken = (await ethers.getContractFactory("BaseV1", this.deployer)) as BaseV1__factory;
     const solid = await SOLIDToken.deploy();
     await solid.deployed();
-    await solid.mint(await this.deployer.getAddress(), ethers.utils.parseEther("100"));
+    await solid.mint(await this.deployer.getAddress(), ethers.utils.parseEther("10000000"));
 
     const VotingEscrow = (await ethers.getContractFactory("veSOLID", this.deployer)) as VeSOLID__factory;
     const votingEscrow = await VotingEscrow.deploy(solid.address);
@@ -1112,7 +1114,7 @@ export class DeployHelper {
     const SolidexToken = (await ethers.getContractFactory("SolidexToken", this.deployer)) as SolidexToken__factory;
     const sex = await SolidexToken.deploy();
     await sex.deployed();
-    await sex.setMinters([await this.deployer.getAddress()]);
+    await sex.setMinters([await this.deployer.getAddress(), lpDepositor.address]);
     await sex.mint(await this.deployer.getAddress(), ethers.utils.parseEther("100"));
 
     const VeDist = (await ethers.getContractFactory("VeDist", this.deployer)) as VeDist__factory;
@@ -1141,6 +1143,8 @@ export class DeployHelper {
     const mockSolidexVoter = await MockSolidexVoter.deploy();
     await mockSolidexVoter.deployed();
 
+    await mockSolidexVoter.setSolidVoter(baseV1Voter.address);
+
     await lpDepositor.setAddresses(
       sex.address,
       solidSEX.address,
@@ -1167,6 +1171,7 @@ export class DeployHelper {
       baseV1Voter,
       lpDepositor,
       sex,
+      mockSolidexVoter,
     ];
   }
 
