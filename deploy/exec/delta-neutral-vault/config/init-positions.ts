@@ -61,15 +61,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const initPositionInputs: IInitPositionInputs[] = [
     {
-      symbol: "N3-WBNB-BUSD-PCS",
-      stableVaultSymbol: "ibBUSD",
+      symbol: "n3x-BNBUSDT-PCS1",
+      stableVaultSymbol: "ibUSDT",
       assetVaultSymbol: "ibWBNB",
-      stableSymbol: "BUSD",
+      stableSymbol: "USDT",
       assetSymbol: "WBNB",
       stableAmount: "300",
       leverage: 3,
     },
   ];
+
   const config = ConfigEntity.getConfig();
   const deployer = (await ethers.getSigners())[0];
   const tokenLists: any = config.Tokens;
@@ -106,8 +107,22 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const stableTokenAsDeployer = BEP20__factory.connect(stableToken, deployer);
     const assetTokenAsDeployer = BEP20__factory.connect(assetToken, deployer);
 
-    await stableTokenAsDeployer.approve(deltaNeutralVaultInfo.address, ethers.constants.MaxUint256, { nonce: nonce++ });
-    await assetTokenAsDeployer.approve(deltaNeutralVaultInfo.address, ethers.constants.MaxUint256, { nonce: nonce++ });
+    console.log(">> Check allowance");
+    const stableTokenAllowance = await stableTokenAsDeployer.allowance(deployer.address, deltaNeutralVaultInfo.address);
+    const assetTokenAllowance = await assetTokenAsDeployer.allowance(deployer.address, deltaNeutralVaultInfo.address);
+    if (stableTokenAllowance.eq(0) || assetTokenAllowance.eq(0)) {
+      console.log(">> Approve vault to spend stable tokens");
+      await stableTokenAsDeployer.approve(deltaNeutralVaultInfo.address, ethers.constants.MaxUint256, {
+        nonce: nonce++,
+      });
+    }
+    if (assetTokenAllowance.eq(0)) {
+      console.log(">> Approve vault to spend asset tokens");
+      await assetTokenAsDeployer.approve(deltaNeutralVaultInfo.address, ethers.constants.MaxUint256, {
+        nonce: nonce++,
+      });
+    }
+    console.log(">> Allowance ok");
 
     const deltaNeutralOracle = DeltaNeutralOracle__factory.connect(config.Oracle.DeltaNeutralOracle!, deployer);
     const [stablePrice] = await deltaNeutralOracle.getTokenPrice(stableToken);

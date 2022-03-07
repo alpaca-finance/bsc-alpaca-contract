@@ -774,7 +774,7 @@ describe("Vault - DeltaNetMdexWorker02", () => {
           // Now DeltaNet can take 1 BTOKEN loan + 1 BTOKEN of her to create a new position
           const loan = ethers.utils.parseEther("1");
           await baseTokenAsDeltaNet.approve(vault.address, ethers.utils.parseEther("1"));
-          await TimeHelpers.increase(TimeHelpers.duration.minutes(ethers.BigNumber.from("30")));
+          await TimeHelpers.increase(TimeHelpers.duration.minutes(ethers.BigNumber.from("1440")));
           await expect(
             vaultAsDeltaNet.work(
               0,

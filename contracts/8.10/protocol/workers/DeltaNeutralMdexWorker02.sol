@@ -292,8 +292,8 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
   ) external view override returns (uint256) {
     (uint256 _totalBalanceInUSD, uint256 _lpPriceLastUpdate) = priceOracle.lpToDollar(totalLpBalance, address(lpToken));
     (uint256 _tokenPrice, uint256 _tokenPricelastUpdate) = priceOracle.getTokenPrice(address(baseToken));
-    // NOTE: last updated price should not be over 30 mins
-    if (block.timestamp - _lpPriceLastUpdate > 1800 || block.timestamp - _tokenPricelastUpdate > 1800)
+    // NOTE: last updated price should not be over 1 day
+    if (block.timestamp - _lpPriceLastUpdate > 86400 || block.timestamp - _tokenPricelastUpdate > 86400)
       revert DeltaNeutralMdexWorker02_UnTrustedPrice();
     return _totalBalanceInUSD.divWadDown(_tokenPrice);
   }

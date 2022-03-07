@@ -153,8 +153,8 @@ contract DeltaNeutralVaultGateway is ReentrancyGuardUpgradeable, OwnableUpgradea
   /// @param _token token address
   function _getTokenPrice(address _token) internal returns (uint256) {
     (uint256 _price, uint256 _lastUpdated) = deltaNeutralVault.priceOracle().getTokenPrice(_token);
-    // _lastUpdated > 30 mins revert
-    if (block.timestamp - _lastUpdated > 1800) revert DeltaNeutralVaultGateway_UnTrustedPrice();
+    // _lastUpdated > 1 day revert
+    if (block.timestamp - _lastUpdated > 86400) revert DeltaNeutralVaultGateway_UnTrustedPrice();
     return _price;
   }
 

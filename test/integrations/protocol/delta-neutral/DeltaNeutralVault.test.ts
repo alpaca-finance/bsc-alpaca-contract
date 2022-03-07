@@ -2169,7 +2169,7 @@ describe("DeltaNeutralVault", () => {
             ]
           );
           const shareToWithdraw = await deltaVault.valueToShare(withdrawValue);
-          await TimeHelpers.increase(TimeHelpers.duration.minutes(ethers.BigNumber.from("30")));
+          await TimeHelpers.increase(TimeHelpers.duration.minutes(ethers.BigNumber.from("1440")));
           await expect(deltaVaultAsAlice.withdraw(shareToWithdraw, 0, 0, withdrawData)).to.be.revertedWith(
             "DeltaNeutralVault_UnTrustedPrice()"
           );

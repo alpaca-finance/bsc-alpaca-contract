@@ -1,9 +1,12 @@
-import * as fs from 'fs';
+import * as fs from "fs";
 
-export function write(fileName:string, content: any) {
-  const timestamp = Math.floor(Date.now()/1000)
-  fs.writeFileSync(
-    `./deploy/results/${timestamp}_${fileName}.json`,
-    JSON.stringify(content, null, 2)
-  )
+export function readJson(filePath: string): any {
+  const raw = fs.readFileSync(filePath);
+  const json = JSON.parse(raw.toString());
+  return json;
+}
+
+export function write(fileName: string, content: any) {
+  const timestamp = Math.floor(Date.now() / 1000);
+  fs.writeFileSync(`./deploy/results/${timestamp}_${fileName}.json`, JSON.stringify(content, null, 2));
 }

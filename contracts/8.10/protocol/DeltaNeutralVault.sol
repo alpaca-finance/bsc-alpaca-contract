@@ -751,7 +751,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   /// @param _worker Worker address.
   function _positionValue(address _worker) internal view returns (uint256) {
     (uint256 _lpValue, uint256 _lastUpdated) = priceOracle.lpToDollar(IWorker02(_worker).totalLpBalance(), lpToken);
-    if (block.timestamp - _lastUpdated > 1800) revert DeltaNeutralVault_UnTrustedPrice();
+    if (block.timestamp - _lastUpdated > 86400) revert DeltaNeutralVault_UnTrustedPrice();
     return _lpValue;
   }
 
@@ -818,8 +818,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   /// @dev _getTokenPrice with validate last price updated
   function _getTokenPrice(address _token) internal view returns (uint256) {
     (uint256 _price, uint256 _lastUpdated) = priceOracle.getTokenPrice(_token);
-    // _lastUpdated > 30 mins revert
-    if (block.timestamp - _lastUpdated > 1800) revert DeltaNeutralVault_UnTrustedPrice();
+    // _lastUpdated > 1 day revert
+    if (block.timestamp - _lastUpdated > 86400) revert DeltaNeutralVault_UnTrustedPrice();
     return _price;
   }
 
