@@ -1,4 +1,4 @@
-import { BigNumber, BigNumberish, Signer } from "ethers";
+import { BigNumber, BigNumberish, Signer, utils } from "ethers";
 import {
   IERC20,
   BaseV1Factory,
@@ -125,10 +125,9 @@ export class SwapHelper {
   }
 
   public getMktSell(aIn: BigNumber, rIn: BigNumber, rOut: BigNumber): BigNumber {
-    const aInWithFee = aIn.mul(this.fee);
-    const numerator = aInWithFee.mul(rOut);
-    const denominator = rIn.mul(this.feeDenom).add(aInWithFee);
-    return numerator.div(denominator);
+    const fee = aIn.div(10000);
+    const amountInWithFee = aIn.sub(fee);
+    return amountInWithFee.mul(rOut).div(rIn.add(amountInWithFee));
   }
 
   public async computeLpHealth(liquidity: BigNumber, tokenA: string, tokenB: string): Promise<BigNumber> {
@@ -143,7 +142,7 @@ export class SwapHelper {
   ): Promise<BigNumber[]> {
     const amts = [amtIn];
     for (let i = 1; i < path.length; i++) {
-      const fee = amtIn.div(10000);
+      const fee = amts[i - 1].div(10000);
       const currLp = BaseV1Pair__factory.connect(await this.factory.getPair(path[i - 1], path[i], false), this.signer);
       const reserveIdx = this.reserves.findIndex((r) => r.lp === currLp.address);
       if (reserveIdx === -1) {
@@ -156,6 +155,8 @@ export class SwapHelper {
       amts.push(this.getMktSell(amts[i - 1], rIn, rOut));
 
       if (updateReserve) {
+        console.log("test: before r0", this.reserves[reserveIdx].r0);
+        console.log("test: before r1", this.reserves[reserveIdx].r1);
         if (isReverse) {
           this.reserves[reserveIdx].r1 = this.reserves[reserveIdx].r1.sub(amts[i]);
           this.reserves[reserveIdx].r0 = this.reserves[reserveIdx].r0.add(amts[i - 1].sub(fee));
@@ -163,6 +164,8 @@ export class SwapHelper {
           this.reserves[reserveIdx].r0 = this.reserves[reserveIdx].r0.sub(amts[i]);
           this.reserves[reserveIdx].r1 = this.reserves[reserveIdx].r1.add(amts[i - 1].sub(fee));
         }
+        console.log("test: after r0", this.reserves[reserveIdx].r0);
+        console.log("test: after r1", this.reserves[reserveIdx].r1);
       }
     }
 
@@ -392,5 +395,20 @@ export class SwapHelper {
 
   public computeTotalRewards(lp: BigNumber, rewardPerBlock: BigNumber, blockDiff: BigNumber): BigNumber {
     return lp.mul(rewardPerBlock.mul(blockDiff).mul(1e12).div(lp)).div(1e12);
+  }
+
+  public computeSolidSexRewards(lp: BigNumber, solidPerWeek: BigNumber, blockDiff: BigNumber): [BigNumber, BigNumber] {
+    console.log("blockDiff", blockDiff);
+    const solidRewardRate = solidPerWeek.div(604800);
+    console.log("solidRewardRate", solidRewardRate);
+    let solidReward = solidRewardRate.mul(blockDiff);
+    console.log("solidReward beforefee", solidReward.toString());
+    const fee = solidReward.mul(15).div(100);
+    console.log("solidReward fee", fee.toString());
+    solidReward = solidReward.sub(fee);
+    console.log("solidReward afterfee", solidReward.toString());
+    const sexReward = solidReward.mul(10000).div(42069);
+    console.log("sexReward", sexReward.toString());
+    return [solidReward, sexReward];
   }
 }
