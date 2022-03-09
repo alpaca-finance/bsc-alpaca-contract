@@ -817,7 +817,7 @@ describe("Vault - TombWorker03", () => {
         expect(deployerTShareAfter.sub(deployerTShareBefore), `expect DEPLOYER's TSHARE to remain the same`).to.be.eq(
           "0"
         );
-        expect(eveTShareAfter.sub(eveTShareBefore), `expect eve to get ${reinvestFees}`).to.be.eq(reinvestFees);
+        AssertHelpers.assertBigNumberClosePercent(eveTShareAfter.sub(eveTShareBefore), reinvestFees);
         expect(workerLpAfter).to.be.eq(accumLp);
 
         // Check Position#1 info
@@ -1130,7 +1130,7 @@ describe("Vault - TombWorker03", () => {
         expect(deployerTShareAfter.sub(deployerTShareBefore), `expect DEPLOYER's TSHARE to remain the same`).to.be.eq(
           "0"
         );
-        expect(eveTShareAfter.sub(eveTShareBefore), `expect eve to get ${reinvestFees}`).to.be.eq(reinvestFees);
+        AssertHelpers.assertBigNumberClosePercent(eveTShareAfter.sub(eveTShareBefore), reinvestFees);
         expect(workerLpAfter).to.be.eq(accumLp);
 
         // Check Position#1 info

@@ -7,7 +7,8 @@
     "ITAM-week-1": "0x2909278D6e7B8fCaf91daFB26005B5A7D9045340",
     "ITAM-week-2": "",
     "ITAM-week-3": "",
-    "ITAM-week-4": ""
+    "ITAM-week-4": "",
+    "AIP1": "0x30876Ef22Ad5d3170cCCef12F4B7f579897087E0"
   },
   "GrazingRange": {
     "address": "0x0f124b314FF168578Cb79103a3fF37fbfdB71d65",
@@ -906,9 +907,10 @@
     "PancakeswapSingleAssetWorkerConfig": "0x84c8c614826f312BE90f0161498e3d57646Ef34f"
   },
   "Oracle": {
-    "OracleMedianizer": "0x9d4cC31Ad8532c3B46E9a0D7E637D5152FF3C367",
+    "OracleMedianizer": "0x6a82d4AdacC794d957F71Ad4570495D1f959d529",
     "ChainLinkOracle": "0xc4f3330dF77b0E925461ce5b5cfE0795114Cdf8E",
-    "SimpleOracle": "0xFb0645d38e35DA4C4Aa0079366B7d9905f162fCe"
+    "SimpleOracle": "0xFb0645d38e35DA4C4Aa0079366B7d9905f162fCe",
+    "DeltaNeutralOracle": "0xa3D3294E4f1c1Fc78C2Eb8d295334384E2Dab52a"
   },
   "Vaults": [
     {
@@ -1640,6 +1642,23 @@
             "StrategyPartialCloseLiquidate": "0x566aC15667Ae05c1F50Ed9944Aeef5A9dae4AB55",
             "StrategyPartialCloseMinimizeTrading": "0xBb79EB494Da88F115430D174D5372b51Fc37De50"
           }
+        },
+        {
+          "name": "BUSD-WBNB DeltaNeutralPancakeswapWorker",
+          "address": "0xd3fea79f499dd91E3D9A628aaF803E3f0f1e3290",
+          "deployedBlock": 17140377,
+          "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+          "pId": 38,
+          "stakingToken": "0x8918A1B7d90B2d33eA89784a8405896430Dd0Ba9",
+          "stakingTokenAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
+            "StrategyLiquidate": "0x58Bbb507248635413172Ed7A2eeC048402C6b39b",
+            "StrategyAddTwoSidesOptimal": "0x0A5515aEdc275b9fF19d11Cd74465e83067f6D40",
+            "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32",
+            "StrategyPartialCloseLiquidate": "0x566aC15667Ae05c1F50Ed9944Aeef5A9dae4AB55",
+            "StrategyPartialCloseMinimizeTrading": "0xBb79EB494Da88F115430D174D5372b51Fc37De50"
+          }
         }
       ]
     },
@@ -2116,6 +2135,23 @@
             "StrategyWithdrawMinimizeTrading": "0xB4686c71A1bA35B9E537B5482848c676b5F40F72",
             "StrategyPartialCloseLiquidate": "0xb0B73e4f3cC53dE84E1f76448d959c79cFCbdAD4",
             "StrategyPartialCloseMinimizeTrading": "0xe238e880A7D3A0A7A9d099387B3Db78137E592De"
+          }
+        },
+        {
+          "name": "WBNB-BUSD DeltaNeutralPancakeswapWorker",
+          "address": "0xf3aa816e28c38875d77A505563FDfaBdBFE4c939",
+          "deployedBlock": 17140346,
+          "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+          "pId": 38,
+          "stakingToken": "0x8918A1B7d90B2d33eA89784a8405896430Dd0Ba9",
+          "stakingTokenAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
+            "StrategyLiquidate": "0x58Bbb507248635413172Ed7A2eeC048402C6b39b",
+            "StrategyAddTwoSidesOptimal": "0x22fC6110d5d9b122f3C2d4715C24566342161a12",
+            "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32",
+            "StrategyPartialCloseLiquidate": "0x566aC15667Ae05c1F50Ed9944Aeef5A9dae4AB55",
+            "StrategyPartialCloseMinimizeTrading": "0xBb79EB494Da88F115430D174D5372b51Fc37De50"
           }
         }
       ]
@@ -3077,6 +3113,25 @@
           }
         }
       ]
+    }
+  ],
+  "DeltaNeutralVaults": [
+    {
+      "name": "Neutral3x WBNB-BUSD Pancakeswap",
+      "symbol": "N3-WBNB-BUSD-PCS",
+      "address": "0xD283Cc1c165Fe25154458A41a9c1D35107d3a0f2",
+      "deployedBlock": 17140646,
+      "config": "0x8ab15812Cd672f5adfbC32062373a4C3E26F30e3",
+      "assetToken": "0xDfb1211E2694193df5765d54350e1145FD2404A1",
+      "stableToken": "0x0266693F9Df932aD7dA8a9b44C2129Ce8a87E81f",
+      "assetVault": "0xf9d32C5E10Dd51511894b360e6bD39D7573450F9",
+      "stableVault": "0xe5ed8148fE4915cE857FC648b9BdEF8Bb9491Fa5",
+      "assetDeltaWorker": "0xd3fea79f499dd91E3D9A628aaF803E3f0f1e3290",
+      "stableDeltaWorker": "0xf3aa816e28c38875d77A505563FDfaBdBFE4c939",
+      "gateway": "0x469e1b6F02fA01520fe4E353978Ef9D4669A8B0f",
+      "oracle": "0xa3D3294E4f1c1Fc78C2Eb8d295334384E2Dab52a",
+      "assetVaultPosId": "180",
+      "stableVaultPosId": "370"
     }
   ]
 }

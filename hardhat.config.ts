@@ -17,7 +17,10 @@ module.exports = {
       blockGasLimit: 0x1fffffffffffff,
       allowUnlimitedContractSize: true,
       timeout: 1800000,
-      accounts: { mnemonic: "test test test test test test test test test test test junk" },
+      accounts: {
+        mnemonic: "test test test test test test test test test test test junk",
+        accountsBalance: "100000000000000000000000000",
+      },
     },
     testnet: {
       url: "https://data-seed-prebsc-2-s2.binance.org:8545/",

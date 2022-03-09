@@ -1,5 +1,5 @@
+import { BaseContract, BigNumber, BigNumberish, Signer } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { BigNumberish, Signer } from "ethers";
 import { ethers, upgrades } from "hardhat";
 import {
   AlpacaToken,
@@ -89,6 +89,21 @@ import {
   Oracle__factory,
   SwapMining,
   SwapMining__factory,
+  DeltaNeutralVault__factory,
+  DeltaNeutralVault,
+  DeltaNeutralVaultConfig,
+  DeltaNeutralVaultConfig__factory,
+  DeltaNeutralOracle,
+  DeltaNeutralOracle__factory,
+  ChainLinkPriceOracle,
+  ChainLinkPriceOracle__factory,
+  MockAggregatorV3__factory,
+  DeltaNeutralPancakeWorker02__factory,
+  DeltaNeutralPancakeWorker02,
+  DeltaNeutralMdexWorker02,
+  DeltaNeutralMdexWorker02__factory,
+  DeltaNeutralVaultGateway__factory,
+  DeltaNeutralVaultGateway,
   SpookyToken,
   SpookyMasterChef,
   SpookyToken__factory,
@@ -140,6 +155,35 @@ export interface IVaultConfig {
   killTreasuryAddress: string;
 }
 
+export interface IDeltaNeutralVault {
+  name: string;
+  symbol: string;
+  vaultStable: string;
+  vaultAsset: string;
+  stableVaultWorker: string;
+  assetVaultWorker: string;
+  lpToken: string;
+  alpacaToken: string;
+  deltaNeutralOracle: string;
+  deltaVaultConfig: string;
+}
+
+export interface IDeltaNeutralVaultGatewayDeployParams {
+  deltaVault: string;
+}
+
+export interface IDeltaNeutralVaultConfig {
+  wNativeAddr: string;
+  wNativeRelayer: string;
+  fairlaunchAddr: string;
+  rebalanceFactor: BigNumberish;
+  positionValueTolerance: BigNumberish;
+  depositFeeTreasury: string;
+  managementFeeTreasury: string;
+  withdrawFeeTreasury: string;
+  alpacaTokenAddress: string;
+}
+
 export class DeployHelper {
   private deployer: SignerWithAddress;
 
@@ -152,6 +196,13 @@ export class DeployHelper {
     const wbnb = await WBNB.deploy();
     await wbnb.deployed();
     return wbnb;
+  }
+
+  public async deployERC20(): Promise<MockERC20> {
+    const ERC20 = (await ethers.getContractFactory("MockERC20", this.deployer)) as MockERC20__factory;
+    const erc20 = (await upgrades.deployProxy(ERC20, ["token0", "token0", "18"])) as MockERC20;
+    await erc20.deployed();
+    return erc20;
   }
 
   public async deployPancakeV2(
@@ -744,6 +795,150 @@ export class DeployHelper {
     return pancakeswapV2Worker02;
   }
 
+  public async deployDeltaNeutralOracle(
+    tokens: string[],
+    tokenPrices: BigNumber[],
+    tokenDecimals: number[],
+    usdToken: string
+  ): Promise<[DeltaNeutralOracle, ChainLinkPriceOracle]> {
+    const ChainLinkPriceOracle = (await ethers.getContractFactory(
+      "ChainLinkPriceOracle",
+      this.deployer
+    )) as ChainLinkPriceOracle__factory;
+    const chainLinkOracle = (await upgrades.deployProxy(ChainLinkPriceOracle)) as ChainLinkPriceOracle;
+    await chainLinkOracle.deployed();
+
+    const MockAggregatorV3 = (await ethers.getContractFactory(
+      "MockAggregatorV3",
+      this.deployer
+    )) as MockAggregatorV3__factory;
+
+    const aggregators = await Promise.all(
+      tokens.map(async (_, index) => {
+        const mockAggregatorV3 = await MockAggregatorV3.deploy(tokenPrices[index], tokenDecimals[index]);
+        await mockAggregatorV3.deployed();
+        return mockAggregatorV3.address;
+      })
+    );
+    const chainLinkOracleAsDeployer = ChainLinkPriceOracle__factory.connect(chainLinkOracle.address, this.deployer);
+    chainLinkOracleAsDeployer.setPriceFeeds(
+      tokens,
+      tokens.map((_) => usdToken),
+      aggregators
+    );
+
+    const DeltaNeutralOracle = (await ethers.getContractFactory(
+      "DeltaNeutralOracle",
+      this.deployer
+    )) as DeltaNeutralOracle__factory;
+    const deltaNeutralOracle = (await upgrades.deployProxy(DeltaNeutralOracle, [
+      chainLinkOracle.address,
+      usdToken,
+    ])) as DeltaNeutralOracle;
+    await deltaNeutralOracle.deployed();
+    return [deltaNeutralOracle, chainLinkOracle];
+  }
+
+  public async deployDeltaNeutralPancakeWorker02(
+    vault: Vault,
+    btoken: MockERC20,
+    masterChef: PancakeMasterChef,
+    routerV2: PancakeRouterV2,
+    poolId: number,
+    workFactor: BigNumberish,
+    killFactor: BigNumberish,
+    addStrat: PancakeswapV2RestrictedStrategyAddBaseTokenOnly,
+    reinvestBountyBps: BigNumberish,
+    okReinvestor: string[],
+    treasuryAddress: string,
+    reinvestPath: Array<string>,
+    extraStrategies: string[],
+    simpleVaultConfig: SimpleVaultConfig,
+    priceOracleAddress: string
+  ): Promise<DeltaNeutralPancakeWorker02> {
+    const DeltaNeutralPancakeWorker02 = (await ethers.getContractFactory(
+      "DeltaNeutralPancakeWorker02",
+      this.deployer
+    )) as DeltaNeutralPancakeWorker02__factory;
+    const deltaNeutralWorker02 = (await upgrades.deployProxy(DeltaNeutralPancakeWorker02, [
+      vault.address,
+      btoken.address,
+      masterChef.address,
+      routerV2.address,
+      poolId,
+      addStrat.address,
+      reinvestBountyBps,
+      treasuryAddress,
+      reinvestPath,
+      0,
+      priceOracleAddress,
+    ])) as DeltaNeutralPancakeWorker02;
+    await deltaNeutralWorker02.deployed();
+
+    await simpleVaultConfig.setWorker(deltaNeutralWorker02.address, true, true, workFactor, killFactor, true, true);
+    await deltaNeutralWorker02.setStrategyOk(extraStrategies, true);
+    await deltaNeutralWorker02.setReinvestorOk(okReinvestor, true);
+    await deltaNeutralWorker02.setTreasuryConfig(treasuryAddress, reinvestBountyBps);
+
+    extraStrategies.push(addStrat.address);
+    extraStrategies.forEach(async (stratAddress) => {
+      const strat = PancakeswapV2RestrictedStrategyLiquidate__factory.connect(stratAddress, this.deployer);
+      await strat.setWorkersOk([deltaNeutralWorker02.address], true);
+    });
+
+    return deltaNeutralWorker02;
+  }
+
+  public async deployDeltaNeutralMdexWorker02(
+    vault: Vault,
+    btoken: MockERC20,
+    masterChef: BSCPool,
+    routerV2: MdexRouter,
+    poolIndex: number,
+    workFactor: BigNumberish,
+    killFactor: BigNumberish,
+    addStrat: MdexRestrictedStrategyAddBaseTokenOnly,
+    reinvestBountyBps: BigNumberish,
+    okReinvestor: string[],
+    treasuryAddress: string,
+    reinvestPath: Array<string>,
+    extraStrategies: string[],
+    simpleVaultConfig: SimpleVaultConfig,
+    priceOracleAddress: string
+  ): Promise<DeltaNeutralMdexWorker02> {
+    const DeltaNeutralMdexWorker02 = (await ethers.getContractFactory(
+      "DeltaNeutralMdexWorker02",
+      this.deployer
+    )) as DeltaNeutralMdexWorker02__factory;
+    const worker = (await upgrades.deployProxy(DeltaNeutralMdexWorker02, [
+      vault.address,
+      btoken.address,
+      masterChef.address,
+      routerV2.address,
+      poolIndex,
+      addStrat.address,
+      reinvestBountyBps,
+      treasuryAddress,
+      reinvestPath,
+      0,
+      priceOracleAddress,
+    ])) as DeltaNeutralMdexWorker02;
+    await worker.deployed();
+
+    await simpleVaultConfig.setWorker(worker.address, true, true, workFactor, killFactor, true, true);
+    await worker.setStrategyOk(extraStrategies, true);
+    await worker.setReinvestorOk(okReinvestor, true);
+    await worker.setTreasuryConfig(treasuryAddress, reinvestBountyBps);
+
+    extraStrategies.push(addStrat.address);
+    extraStrategies.forEach(async (stratAddress) => {
+      const strat = MdexRestrictedStrategyLiquidate__factory.connect(stratAddress, this.deployer);
+      await strat.setWorkersOk([worker.address], true);
+    });
+
+    return worker;
+  }
+
   public async deployPancakeV2Worker(
     vault: Vault,
     btoken: MockERC20,
@@ -902,6 +1097,62 @@ export class DeployHelper {
     return [addStrat, liqStrat, twoSidesStrat, minimizeTradeStrat, partialCloseStrat, partialCloseMinimizeStrat];
   }
 
+  public async deployDeltaNeutralVaultConfig(input: IDeltaNeutralVaultConfig): Promise<DeltaNeutralVaultConfig> {
+    const DeltaNeutralVaultConfig = (await ethers.getContractFactory(
+      "DeltaNeutralVaultConfig",
+      this.deployer
+    )) as DeltaNeutralVaultConfig__factory;
+
+    const deltaNeutralVaultConfig = (await upgrades.deployProxy(DeltaNeutralVaultConfig, [
+      input.wNativeAddr,
+      input.wNativeRelayer,
+      input.fairlaunchAddr,
+      input.rebalanceFactor,
+      input.positionValueTolerance,
+      input.depositFeeTreasury,
+      input.managementFeeTreasury,
+      input.withdrawFeeTreasury,
+      input.alpacaTokenAddress,
+    ])) as DeltaNeutralVaultConfig;
+    await deltaNeutralVaultConfig.deployed();
+    return deltaNeutralVaultConfig;
+  }
+
+  public async deployDeltaNeutralVault(input: IDeltaNeutralVault): Promise<DeltaNeutralVault> {
+    const DeltaNeutralVault = (await ethers.getContractFactory(
+      "DeltaNeutralVault",
+      this.deployer
+    )) as DeltaNeutralVault__factory;
+    const deltaNeutralVault = (await upgrades.deployProxy(DeltaNeutralVault, [
+      input.name,
+      input.symbol,
+      input.vaultStable,
+      input.vaultAsset,
+      input.stableVaultWorker,
+      input.assetVaultWorker,
+      input.lpToken,
+      input.alpacaToken,
+      input.deltaNeutralOracle,
+      input.deltaVaultConfig,
+    ])) as DeltaNeutralVault;
+    await deltaNeutralVault.deployed();
+    return deltaNeutralVault;
+  }
+
+  public async deployDeltaNeutralGateway(
+    params: IDeltaNeutralVaultGatewayDeployParams
+  ): Promise<DeltaNeutralVaultGateway> {
+    const DeltaNeutralVaultGateway = (await ethers.getContractFactory(
+      "DeltaNeutralVaultGateway",
+      this.deployer
+    )) as DeltaNeutralVaultGateway__factory;
+    const deltaNeutralVaultGateway = (await upgrades.deployProxy(DeltaNeutralVaultGateway, [
+      params.deltaVault,
+    ])) as DeltaNeutralVaultGateway;
+    await deltaNeutralVaultGateway.deployed();
+    return deltaNeutralVaultGateway;
+  }
+
   public async deploySpookySwap(
     wbnb: MockWBNB,
     booPerSec: BigNumberish
@@ -942,7 +1193,7 @@ export class DeployHelper {
 
   public async deploySpookySwapStrategies(
     router: WaultSwapRouter,
-    vault: IVault,
+    vault: BaseContract,
     wNativeRelayer: WNativeRelayer
   ): Promise<
     [

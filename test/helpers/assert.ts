@@ -1,10 +1,9 @@
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { BigNumber, BigNumberish, ethers } from "ethers";
-import { assert } from "chai";
 
 chai.use(solidity);
-const { expect } = chai;
+const { expect, assert } = chai;
 
 export function assertAlmostEqual(expected: string, actual: string) {
   const expectedBN = BigNumber.from(expected);

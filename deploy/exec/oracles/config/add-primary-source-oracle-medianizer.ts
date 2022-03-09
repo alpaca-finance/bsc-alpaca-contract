@@ -18,26 +18,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const DEFAULT_MAX_PRICE_STALE = "86400";
   const config = ConfigEntity.getConfig();
 
-  const TOKEN0_SYMBOLS = ["WFTM", "WFTM", "WFTM", "WFTM"];
-  const TOKEN1_SYMBOLS = ["BTC", "fUSDT", "DAI", "MIM"];
-  const MAX_PRICE_DEVIATIONS = [
-    DEFAULT_MAX_PRICE_DEVIATION,
-    DEFAULT_MAX_PRICE_DEVIATION,
-    DEFAULT_MAX_PRICE_DEVIATION,
-    DEFAULT_MAX_PRICE_DEVIATION,
-  ];
-  const MAX_PRICE_STALES = [
-    DEFAULT_MAX_PRICE_STALE,
-    DEFAULT_MAX_PRICE_STALE,
-    DEFAULT_MAX_PRICE_STALE,
-    DEFAULT_MAX_PRICE_STALE,
-  ];
-  const SOURCES = [
-    [config.Oracle.ChainLinkOracle],
-    [config.Oracle.ChainLinkOracle],
-    [config.Oracle.ChainLinkOracle],
-    [config.Oracle.ChainLinkOracle],
-  ];
+  const TOKEN0_SYMBOLS = ["USDT"];
+  const TOKEN1_SYMBOLS = ["USD"];
+  const MAX_PRICE_DEVIATIONS = [DEFAULT_MAX_PRICE_DEVIATION];
+  const MAX_PRICE_STALES = [DEFAULT_MAX_PRICE_STALE];
+  const SOURCES = [[config.Oracle.ChainLinkOracle]];
 
   const tokenList: any = config.Tokens;
   const token0Addrs: Array<string> = TOKEN0_SYMBOLS.map((t) => {
@@ -60,13 +45,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     (await ethers.getSigners())[0]
   );
   console.log(">> Adding primary source to oracle medianizer");
-  await oracleMedianizer.setMultiPrimarySources(
-    token0Addrs,
-    token1Addrs,
-    MAX_PRICE_DEVIATIONS,
-    MAX_PRICE_STALES,
-    SOURCES
-  );
+  const setMultiPrimarySourcesTx = await (
+    await oracleMedianizer.setMultiPrimarySources(
+      token0Addrs,
+      token1Addrs,
+      MAX_PRICE_DEVIATIONS,
+      MAX_PRICE_STALES,
+      SOURCES
+    )
+  ).wait(3);
+  console.log("Tx hash:", setMultiPrimarySourcesTx.transactionHash);
   console.log("✅ Done");
 };
 

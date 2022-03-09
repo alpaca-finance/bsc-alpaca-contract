@@ -3,6 +3,7 @@ import { expect } from "chai";
 import {
   ConfigurableInterestVaultConfig,
   ConfigurableInterestVaultConfig__factory,
+  DeltaNeutralVault__factory,
   PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory,
   PancakeswapV2RestrictedStrategyAddTwoSidesOptimal__factory,
   Vault,
@@ -37,7 +38,14 @@ async function validateStrategy(strategyAddress: string, expectedRouter: string)
 
 async function validateWorker(vault: Vault, workerInfo: WorkersEntity, routers: IDexRouter) {
   console.log(`> validating ${workerInfo.name}`);
-  if (workerInfo.name.includes("PancakeswapWorker")) {
+  if (workerInfo.name.includes("DeltaNeutralPancakeswapWorker")) {
+    const workerLike = WorkerLikeFactory.newWorkerLike(
+      WorkerLike.deltaNeutralPancake,
+      workerInfo.address,
+      ethers.provider
+    );
+    await workerLike.validateConfig(vault.address, await vault.token(), routers.pancakeswap, workerInfo);
+  } else if (workerInfo.name.includes("PancakeswapWorker")) {
     const workerLike = WorkerLikeFactory.newWorkerLike(WorkerLike.pancake, workerInfo.address, ethers.provider);
     await workerLike.validateConfig(vault.address, await vault.token(), routers.pancakeswap, workerInfo);
   } else if (workerInfo.name.includes("WaultswapWorker")) {
@@ -261,6 +269,39 @@ async function main() {
     }
     await Promise.all(validateWorkers);
     await delay(3000);
+  }
+
+  console.log("=== validate delta vaults ===");
+  for (let i = 0; i < config.DeltaNeutralVaults.length; i++) {
+    console.log("> validting " + config.DeltaNeutralVaults[i].name);
+    const deltaVault = DeltaNeutralVault__factory.connect(config.DeltaNeutralVaults[i].address, ethers.provider);
+
+    console.log("> validate vault configuration");
+    expect((await deltaVault.assetVault()).toLowerCase()).to.be.eq(
+      config.DeltaNeutralVaults[i].assetVault.toLowerCase(),
+      "❌ assetVault mis-match"
+    );
+    expect((await deltaVault.stableVault()).toLowerCase()).to.be.eq(
+      config.DeltaNeutralVaults[i].stableVault.toLowerCase(),
+      "❌ stableVault mis-match"
+    );
+    expect((await deltaVault.assetToken()).toLowerCase()).to.be.eq(
+      config.DeltaNeutralVaults[i].assetToken.toLowerCase(),
+      "❌ assetToken mis-match"
+    );
+    expect((await deltaVault.stableToken()).toLowerCase()).to.be.eq(
+      config.DeltaNeutralVaults[i].stableToken.toLowerCase(),
+      "❌ stableToken mis-match"
+    );
+    expect(await deltaVault.assetVaultPosId()).to.be.eq(
+      config.DeltaNeutralVaults[i].assetVaultPosId,
+      "❌ assetVaultPosId mis-match"
+    );
+    expect(await deltaVault.stableVaultPosId()).to.be.eq(
+      config.DeltaNeutralVaults[i].stableVaultPosId,
+      "❌ stableVaultPosId mis-match"
+    );
+    console.log("✅ done");
   }
 }
 
