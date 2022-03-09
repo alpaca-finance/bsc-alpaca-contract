@@ -5,7 +5,6 @@ import {
   DebtToken__factory,
   MiniFL__factory,
   MockERC20__factory,
-  Rewarder1__factory,
   Timelock,
   Timelock__factory,
   Vault,
@@ -32,7 +31,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const VAULT_NAME = "TOMB Vault";
   const NAME = "Interest Bearing TOMB";
   const SYMBOL = "ibTOMB";
-  const REWARDER1_ADDRESS = "0x763a687E631A907baDd620E20e9A0869E3Ec543D";
+  const REWARDER1_ADDRESS = "0x7EEAA96bf1aBaA206615046c0991E678a2b12Da1";
   const EXACT_ETA = "888888"; // no use due to no timelock
 
   const config = ConfigEntity.getConfig();
