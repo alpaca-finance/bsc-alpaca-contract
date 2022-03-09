@@ -3339,8 +3339,8 @@
       "stableDeltaWorker": "0x539FC3fD348b427B5F70B4f87c1a44983c9E8DBD",
       "gateway": "0xcfBCB958514e6c1294F0C900454dE7049110Cf84",
       "oracle": "0x08EA5fB66EA41f236E3001d2655e43A1E735787F",
-      "assetVaultPosId": "0",
-      "stableVaultPosId": "0"
+      "assetVaultPosId": "45958",
+      "stableVaultPosId": "26285"
     },
     {
       "name": "Market Neutral 8x BNB-USDT PCS1",
@@ -3356,8 +3356,8 @@
       "stableDeltaWorker": "0x5124bAA8cA9c5E327eFc458271DaC157acEB4f04",
       "gateway": "0x452Fc464583ab2a149D6A63437fe90322A65E252",
       "oracle": "0x08EA5fB66EA41f236E3001d2655e43A1E735787F",
-      "assetVaultPosId": "0",
-      "stableVaultPosId": "0"
+      "assetVaultPosId": "45959",
+      "stableVaultPosId": "26287"
     }
   ]
 }
