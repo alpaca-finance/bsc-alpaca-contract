@@ -10,7 +10,8 @@
     "compile6.12": "hardhat typechain --config hardhat.config.6.12.ts",
     "compile8.10": "hardhat typechain --config hardhat.config.8.10.ts",
     "compile8.11": "hardhat typechain --config hardhat.config.8.11.ts",
-    "compile": "yarn run compile5 && yarn run compile6 && yarn run compile6.12 && yarn run compile8.10 && yarn run compile8.11",
+    "compilevy2.11": "hardhat typechain --config hardhat.config.vyper.2.11.ts --show-stack-traces",
+    "compile": "yarn run compile5 && yarn run compile6 && yarn run compile6.12 && yarn run compile8.10 && yarn run compile8.11 && yarn run compilevy2.11",
     "deploy:mainnet:001": "hardhat --network mainnet deploy --no-compile --reset --tags TimeLock",
     "deploy:mainnet:002": "hardhat --network mainnet deploy --no-compile --reset --tags FairLaunch",
     "deploy:mainnet:003": "hardhat --network mainnet deploy --no-compile --reset --tags ShareStrategies",
@@ -27,7 +28,7 @@
     "deploy:mainnet:014": "hardhat --network mainnet deploy --no-compile --reset --tags DebtTokenV2",
     "deploy:mainnet:015": "hardhat --network mainnet deploy --no-compile --reset --tags StrategyWithdrawMinimizeTrading",
     "deploy:mainnet:016": "hardhat --network mainnet deploy --no-compile --reset --tags PancakeswapWorkers",
-    "deploy:mainnet:017": "hardhat --network mainnet deploy --no-compile --reset --tags MerkleDistributor",
+    "deploy:mainnet:merkle-distribution:deploy:merkle-distribution": "hardhat --network mainnet deploy --no-compile --reset --tags MerkleDistributor",
     "deploy:mainnet:018": "hardhat --network mainnet deploy --no-compile --reset --tags --verbose VaultStrategiesV2",
     "deploy:mainnet:019": "hardhat --network mainnet deploy --no-compile --reset --tags ShareStrategiesV2",
     "deploy:mainnet:020": "hardhat --network mainnet deploy --no-compile --reset --tags TwoSideOptimalMigrateV2",
@@ -119,7 +120,7 @@
     "deploy:testnet:014": "hardhat --network testnet deploy --no-compile --reset --tags DebtTokenV2",
     "deploy:testnet:015": "hardhat --network testnet deploy --no-compile --reset --tags StrategyWithdrawMinimizeTrading",
     "deploy:testnet:016": "hardhat --network testnet deploy --no-compile --reset --tags PancakeswapWorkers",
-    "deploy:testnet:017": "hardhat --network testnet deploy --no-compile --reset --tags MerkleDistributor",
+    "deploy:testnet:merkle-distribution:deploy:merkle-distribution": "hardhat --network testnet deploy --no-compile --reset --tags MerkleDistributor",
     "deploy:testnet:018": "hardhat --network testnet deploy --no-compile --reset --tags VaultStrategiesV2",
     "deploy:testnet:019": "hardhat --network testnet deploy --no-compile --reset --tags ShareStrategiesV2",
     "deploy:testnet:020": "hardhat --network testnet deploy --no-compile --reset --tags TwoSideOptimalMigrateV2",
@@ -421,5 +422,8 @@
   "engines": {
     "node": ">=14"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@nomiclabs/hardhat-vyper": "^2.0.1",
+    "@openzeppelin/contracts-upgradeable": "^4.5.1"
+  }
 }
