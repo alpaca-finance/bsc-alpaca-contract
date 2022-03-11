@@ -15,6 +15,7 @@ pragma solidity 0.8.10;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 import "./interfaces/IERC20.sol";
 import "./interfaces/IFairLaunch.sol";
@@ -23,16 +24,16 @@ import "./interfaces/IAnyswapV4Router.sol";
 
 import "../utils/SafeToken.sol";
 
-/// @title EmissionForwarder
-contract EmissionForwarder is Initializable, OwnableUpgradeable {
+/// @title EmissionForwarder - Forward ALPACA emission from FairLaunch to other chains
+contract EmissionForwarder is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable {
   /// @notice Libraries
   using SafeToken for address;
 
   /// @notice Errors
-  error EmissionForwarder_StakeTokenMismatch();
-  error EmissionForwarder_AmoutTooSmall();
   error EmissionForwarder_AlreadyDeposited();
+  error EmissionForwarder_AmoutTooSmall();
   error EmissionForwarder_MaxCrossChainAmountTooLow();
+  error EmissionForwarder_StakeTokenMismatch();
 
   /// @notice State
   string public name;
@@ -68,6 +69,7 @@ contract EmissionForwarder is Initializable, OwnableUpgradeable {
     uint64 _destChainId
   ) external initializer {
     OwnableUpgradeable.__Ownable_init();
+    ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
 
     // Call a view function to check contract's validity
     IERC20(_token).balanceOf(address(this));
@@ -139,7 +141,7 @@ contract EmissionForwarder is Initializable, OwnableUpgradeable {
   }
 
   /// @notice Harvest reward from FairLaunch and send it to another chain destination address
-  function forwardToken() external {
+  function forwardToken() external nonReentrant {
     _fairLaunchHarvest();
     uint256 _forwardAmount = token.myBalance() > maxCrossChainAmount ? maxCrossChainAmount : token.myBalance();
     // If the amount is too small, the cross chain fee won't be plausible
