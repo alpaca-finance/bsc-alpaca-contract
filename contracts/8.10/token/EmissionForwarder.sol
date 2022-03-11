@@ -20,6 +20,7 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "./interfaces/IERC20.sol";
 import "./interfaces/IFairLaunch.sol";
 import "./interfaces/IProxyToken.sol";
+import "./interfaces/IAnyswapV1ERC20.sol";
 import "./interfaces/IAnyswapV4Router.sol";
 
 import "../utils/SafeToken.sol";
@@ -47,8 +48,10 @@ contract EmissionForwarder is Initializable, OwnableUpgradeable, ReentrancyGuard
 
   /// @notice Attributes for AlcapaFeeder
   /// token - address of the token to be deposited in this contract
+  /// anyToken - address of the multichain token that is being used to deposit
   /// proxyToken - just a simple ERC20 token for staking with FairLaunch
   address public token;
+  address public anyToken;
   address public proxyToken;
 
   /// @notice Events
@@ -61,6 +64,7 @@ contract EmissionForwarder is Initializable, OwnableUpgradeable, ReentrancyGuard
   function initialize(
     string memory _name,
     address _token,
+    address _anyToken,
     address _proxyToken,
     address _fairLaunchAddress,
     uint256 _fairLaunchPoolId,
@@ -74,11 +78,13 @@ contract EmissionForwarder is Initializable, OwnableUpgradeable, ReentrancyGuard
     // Call a view function to check contract's validity
     IERC20(_token).balanceOf(address(this));
     IERC20(_proxyToken).balanceOf(address(this));
+    IAnyswapV1ERC20(_anyToken).underlying();
     IAnyswapV4Router(_anyswapRouter).mpc();
     IFairLaunch(_fairLaunchAddress).poolLength();
 
     name = _name;
     token = _token;
+    anyToken = _anyToken;
     proxyToken = _proxyToken;
     fairLaunchPoolId = _fairLaunchPoolId;
     fairLaunch = IFairLaunch(_fairLaunchAddress);
@@ -150,7 +156,7 @@ contract EmissionForwarder is Initializable, OwnableUpgradeable, ReentrancyGuard
     }
 
     token.safeApprove(address(router), _forwardAmount);
-    router.anySwapOutUnderlying(token, destination, _forwardAmount, destChainId);
+    router.anySwapOutUnderlying(anyToken, destination, _forwardAmount, destChainId);
     emit LogForwardToken(destination, _forwardAmount);
   }
 }

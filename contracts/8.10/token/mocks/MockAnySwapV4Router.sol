@@ -15,6 +15,8 @@ pragma solidity 0.8.10;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
+import "../interfaces/IAnyswapV1ERC20.sol";
+
 contract MockAnySwapV4Router {
   using SafeERC20Upgradeable for IERC20Upgradeable;
 
@@ -24,7 +26,7 @@ contract MockAnySwapV4Router {
     uint256 amount,
     uint256 /* toChainID */
   ) external {
-    IERC20Upgradeable(token).safeTransferFrom(msg.sender, address(this), amount);
+    IERC20Upgradeable(IAnyswapV1ERC20(token).underlying()).safeTransferFrom(msg.sender, token, amount);
   }
 
   function mpc() public view returns (address) {
