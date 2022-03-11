@@ -61,13 +61,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const initPositionInputs: IInitPositionInputs[] = [
     {
-      symbol: "n3x-BNBUSDT-PCS1",
+      symbol: "n8x-BNBUSDT-PCS1",
       stableVaultSymbol: "ibUSDT",
       assetVaultSymbol: "ibWBNB",
       stableSymbol: "USDT",
       assetSymbol: "WBNB",
       stableAmount: "300",
-      leverage: 3,
+      leverage: 8,
     },
   ];
 
@@ -211,12 +211,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     console.log(">> Calling openPosition");
     const minSharesReceive = ethers.utils.parseEther("0");
-    const initTx = await deltaNeutralVault.initPositions(stableAmount, assetAmount, minSharesReceive, data, {
-      value: assetAmount,
-      nonce: nonce++,
-      gasLimit: 4000000,
-    });
-    console.log(">> initTx: ", initTx.hash);
+    const initTx = await (
+      await deltaNeutralVault.initPositions(stableAmount, assetAmount, minSharesReceive, data, {
+        value: assetAmount,
+        nonce: nonce++,
+        gasLimit: 4000000,
+      })
+    ).wait(3);
+    console.log(">> initTx: ", initTx.transactionHash);
     console.log("✅ Done");
 
     const stablePosId = await deltaNeutralVault.stableVaultPosId();

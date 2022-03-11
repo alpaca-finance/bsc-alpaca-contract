@@ -41,6 +41,18 @@
         "stakingToken": "ibALPACA",
         "address": "0x2E7f32e38EA5a5fcb4494d9B626d2d393B176B1E",
         "rewarder": "0x7EEAA96bf1aBaA206615046c0991E678a2b12Da1"
+      },
+      {
+        "id": 6,
+        "stakingToken": "debtIbTOMB_V2",
+        "address": "0x46AD1C4F5D7542AeDf57dE7a8Bf0765233A4457f",
+        "rewarder": "0x7EEAA96bf1aBaA206615046c0991E678a2b12Da1"
+      },
+      {
+        "id": 7,
+        "stakingToken": "ibTOMB",
+        "address": "0x60dDe8BBE160fe033fACB3446Cf7795cC575B171",
+        "rewarder": "0x7EEAA96bf1aBaA206615046c0991E678a2b12Da1"
       }
     ]
   },
@@ -64,7 +76,7 @@
     "TombFinance": {
       "SpookyFactory": "0x152eE697f2E276fA89E96742e9bB9aB1F2E61bE3",
       "SpookyRouter": "0xF491e7B69E4244ad4002BC14e878a34207E38c29",
-      "TShareRewardPool": "0xcc0a87f7e7c693042a9cc703661f5060c80acb43",
+      "TShareRewardPool": "0xcc0a87F7e7c693042a9Cc703661F5060c80ACb43",
       "pools": [
         { "pId": 0, "name": "TOMB-WFTM LP", "address": "0x2A651563C9d3Af67aE0388a5c8F89b867038089e" },
         { "pId": 1, "name": "TSHARE-WFTM LP", "address": "0x4733bc45eF91cF7CcEcaeeDb794727075fB209F2" }
@@ -95,7 +107,7 @@
     }
   },
   "SharedConfig": {
-    "TwoSlopeModel": "0x8f8c8b9b8b9b8b9b8b9b8b9b8b9b8b9b8b9b8b9b",
+    "TwoSlopeModel": "0x3D525E1162460EB4Bb9bEe087f9bCC5fe94bC81a",
     "TripleSlopeModel": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
     "WNativeRelayer": "0x3175EC52c36fFF63dCe00E8a50E6066D38884a11",
     "WorkerConfig": "0xca1Cf7C64481B8C095828d380922505E5942C60D"
@@ -254,6 +266,40 @@
             "StrategyPartialCloseLiquidate": "0x311a522e43C035244e72247895F5C17e46CAB000",
             "StrategyPartialCloseMinimizeTrading": "0x540247c00645E85fA548064039493beD4a0c522C"
           }
+        },
+        {
+          "name": "TOMB-WFTM TombWorker",
+          "address": "0x77d23aFF927f3d46e51D449372c957B3CBBFB40e",
+          "deployedBlock": 32935398,
+          "config": "0xca1Cf7C64481B8C095828d380922505E5942C60D",
+          "pId": 0,
+          "stakingToken": "0x2A651563C9d3Af67aE0388a5c8F89b867038089e",
+          "stakingTokenAt": "0xcc0a87F7e7c693042a9Cc703661F5060c80ACb43",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0xD50aAb6B210fe049B6c5262f5A7676204699AB8E",
+            "StrategyLiquidate": "0x65Cc57347bA3761358Eb175540E9e5D39CbceFd8",
+            "StrategyAddTwoSidesOptimal": "0x11288Ceee9C12C9d2b1A80a4Df10d5c18F0429e8",
+            "StrategyWithdrawMinimizeTrading": "0x07DE1F788Fa7E0C215AA772d4429f47902640ef5",
+            "StrategyPartialCloseLiquidate": "0x311a522e43C035244e72247895F5C17e46CAB000",
+            "StrategyPartialCloseMinimizeTrading": "0x540247c00645E85fA548064039493beD4a0c522C"
+          }
+        },
+        {
+          "name": "TSHARE-WFTM TombWorker",
+          "address": "0x5BbD947bb67f3CB55bA7C01A8DB0B21c5d5A4b03",
+          "deployedBlock": 32935824,
+          "config": "0xca1Cf7C64481B8C095828d380922505E5942C60D",
+          "pId": 1,
+          "stakingToken": "0x4733bc45eF91cF7CcEcaeeDb794727075fB209F2",
+          "stakingTokenAt": "0xcc0a87F7e7c693042a9Cc703661F5060c80ACb43",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0xD50aAb6B210fe049B6c5262f5A7676204699AB8E",
+            "StrategyLiquidate": "0x65Cc57347bA3761358Eb175540E9e5D39CbceFd8",
+            "StrategyAddTwoSidesOptimal": "0x11288Ceee9C12C9d2b1A80a4Df10d5c18F0429e8",
+            "StrategyWithdrawMinimizeTrading": "0x07DE1F788Fa7E0C215AA772d4429f47902640ef5",
+            "StrategyPartialCloseLiquidate": "0x311a522e43C035244e72247895F5C17e46CAB000",
+            "StrategyPartialCloseMinimizeTrading": "0x540247c00645E85fA548064039493beD4a0c522C"
+          }
         }
       ]
     },
@@ -331,6 +377,38 @@
             "StrategyAddAllBaseToken": "0xD50aAb6B210fe049B6c5262f5A7676204699AB8E",
             "StrategyLiquidate": "0x65Cc57347bA3761358Eb175540E9e5D39CbceFd8",
             "StrategyAddTwoSidesOptimal": "0x4b0e0D158e6a272295e404A4C06C937d4947093C",
+            "StrategyWithdrawMinimizeTrading": "0x07DE1F788Fa7E0C215AA772d4429f47902640ef5",
+            "StrategyPartialCloseLiquidate": "0x311a522e43C035244e72247895F5C17e46CAB000",
+            "StrategyPartialCloseMinimizeTrading": "0x540247c00645E85fA548064039493beD4a0c522C"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Interest Bearing TOMB",
+      "symbol": "ibTOMB",
+      "address": "0x60dDe8BBE160fe033fACB3446Cf7795cC575B171",
+      "deployedBlock": 32934658,
+      "baseToken": "0x6c021ae822bea943b2e66552bde1d2696a53fbb7",
+      "debtToken": "0x46AD1C4F5D7542AeDf57dE7a8Bf0765233A4457f",
+      "config": "0x83875cB3B520275183c5c383C8745199293Cd89C",
+      "tripleSlopeModel": "0x3D525E1162460EB4Bb9bEe087f9bCC5fe94bC81a",
+      "StrategyAddTwoSidesOptimal": {
+        "SpookySwap": "0x4F34511e604a1795E854aEF9D872cb9c9836F1dF"
+      },
+      "workers": [
+        {
+          "name": "WFTM-TOMB TombWorker",
+          "address": "0x995e502BA378d855925a238606c6df63E471E419",
+          "deployedBlock": 32935576,
+          "config": "0xca1Cf7C64481B8C095828d380922505E5942C60D",
+          "pId": 0,
+          "stakingToken": "0x2A651563C9d3Af67aE0388a5c8F89b867038089e",
+          "stakingTokenAt": "0xcc0a87F7e7c693042a9Cc703661F5060c80ACb43",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0xD50aAb6B210fe049B6c5262f5A7676204699AB8E",
+            "StrategyLiquidate": "0x65Cc57347bA3761358Eb175540E9e5D39CbceFd8",
+            "StrategyAddTwoSidesOptimal": "0x4F34511e604a1795E854aEF9D872cb9c9836F1dF",
             "StrategyWithdrawMinimizeTrading": "0x07DE1F788Fa7E0C215AA772d4429f47902640ef5",
             "StrategyPartialCloseLiquidate": "0x311a522e43C035244e72247895F5C17e46CAB000",
             "StrategyPartialCloseMinimizeTrading": "0x540247c00645E85fA548064039493beD4a0c522C"
