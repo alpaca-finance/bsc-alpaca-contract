@@ -23,23 +23,16 @@ import "./interfaces/IAnyswapV4Router.sol";
 
 import "../utils/SafeToken.sol";
 
-/// @title FairLaunchRelayer
-contract FairLaunchRelayer is Initializable, OwnableUpgradeable {
+/// @title EmissionForwarder
+contract EmissionForwarder is Initializable, OwnableUpgradeable {
   /// @notice Libraries
   using SafeToken for address;
 
-  /// @notice Events
-  event LogFairLaunchDeposit();
-  event LogFairLaunchWithdraw();
-  event LogFairLaunchHarvest(address _caller, uint256 _harvestAmount);
-  event LogForwardToken(address _destination, uint256 _forwardAmount);
-  event LogSetMaxCrossChainAmount(uint256 _oldMaxCrossChainAmount, uint256 _newMaxCrossChainAmount);
-
   /// @notice Errors
-  error FairLaunchRelayer_StakeTokenMismatch();
-  error FairLaunchRelayer_AmoutTooSmall();
-  error FairLaunchRelayer_AlreadyDeposited();
-  error FairLaunchRelayer_MaxCrossChainAmountTooLow();
+  error EmissionForwarder_StakeTokenMismatch();
+  error EmissionForwarder_AmoutTooSmall();
+  error EmissionForwarder_AlreadyDeposited();
+  error EmissionForwarder_MaxCrossChainAmountTooLow();
 
   /// @notice State
   string public name;
@@ -56,6 +49,13 @@ contract FairLaunchRelayer is Initializable, OwnableUpgradeable {
   /// proxyToken - just a simple ERC20 token for staking with FairLaunch
   address public token;
   address public proxyToken;
+
+  /// @notice Events
+  event LogFairLaunchDeposit();
+  event LogFairLaunchWithdraw();
+  event LogFairLaunchHarvest(address _caller, uint256 _harvestAmount);
+  event LogForwardToken(address _destination, uint256 _forwardAmount);
+  event LogSetMaxCrossChainAmount(uint256 _oldMaxCrossChainAmount, uint256 _newMaxCrossChainAmount);
 
   function initialize(
     string memory _name,
@@ -90,7 +90,7 @@ contract FairLaunchRelayer is Initializable, OwnableUpgradeable {
     (address _stakeToken, , , , ) = fairLaunch.poolInfo(fairLaunchPoolId);
 
     if (_stakeToken != _proxyToken) {
-      revert FairLaunchRelayer_StakeTokenMismatch();
+      revert EmissionForwarder_StakeTokenMismatch();
     }
 
     proxyToken.safeApprove(_fairLaunchAddress, type(uint256).max);
@@ -98,7 +98,7 @@ contract FairLaunchRelayer is Initializable, OwnableUpgradeable {
 
   function setMaxCrossChainAmount(uint256 _newMaxCrossChainAmount) external onlyOwner {
     if (_newMaxCrossChainAmount < 1000 * 1e18) {
-      revert FairLaunchRelayer_MaxCrossChainAmountTooLow();
+      revert EmissionForwarder_MaxCrossChainAmountTooLow();
     }
 
     uint256 _oldMaxCrossChainAmount = maxCrossChainAmount;
@@ -110,7 +110,7 @@ contract FairLaunchRelayer is Initializable, OwnableUpgradeable {
   /// @notice Deposit token to FairLaunch
   function fairLaunchDeposit() external onlyOwner {
     if (IERC20(proxyToken).balanceOf(address(fairLaunch)) != 0) {
-      revert FairLaunchRelayer_AlreadyDeposited();
+      revert EmissionForwarder_AlreadyDeposited();
     }
     IProxyToken(proxyToken).mint(address(this), 1e18);
     fairLaunch.deposit(address(this), fairLaunchPoolId, 1e18);
@@ -133,6 +133,7 @@ contract FairLaunchRelayer is Initializable, OwnableUpgradeable {
   function _fairLaunchHarvest() internal {
     uint256 _before = token.myBalance();
     // Low level call: this shouldn't block forward token even if failed to harvest
+    // solhint-disable-next-line
     (bool _success, ) = address(fairLaunch).call(abi.encodeWithSelector(0xddc63262, fairLaunchPoolId));
     if (_success) emit LogFairLaunchHarvest(address(this), token.myBalance() - _before);
   }
@@ -143,7 +144,7 @@ contract FairLaunchRelayer is Initializable, OwnableUpgradeable {
     uint256 _forwardAmount = token.myBalance() > maxCrossChainAmount ? maxCrossChainAmount : token.myBalance();
     // If the amount is too small, the cross chain fee won't be plausible
     if (_forwardAmount < (1000 * 1e18)) {
-      revert FairLaunchRelayer_AmoutTooSmall();
+      revert EmissionForwarder_AmoutTooSmall();
     }
 
     token.safeApprove(address(router), _forwardAmount);
