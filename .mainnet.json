@@ -407,6 +407,11 @@
         "id": 25,
         "stakingToken": "AUSD3EPS",
         "address": "0xae70E3f6050d6AB05E03A50c655309C2148615bE"
+      },
+      {
+        "id": 26,
+        "stakingToken": "FTM_EMISSION_PROXY_TOKEN",
+        "address": "0xC4Ed268754DD3CbCA82A6eE743ACAd2D355D938b"
       }
     ]
   },

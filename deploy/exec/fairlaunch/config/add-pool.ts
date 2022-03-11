@@ -1,9 +1,9 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers, network } from "hardhat";
-import { Timelock__factory } from "../../../../typechain";
-import MainnetConfig from "../../../../.mainnet.json";
-import TestnetConfig from "../../../../.testnet.json";
+import { ethers } from "hardhat";
+import { TimelockEntity } from "../../../entities";
+import { FileService, TimelockService } from "../../../services";
+import { getConfig } from "../../../entities/config";
 
 interface IAddPool {
   STAKING_TOKEN_ADDRESS: string;
@@ -20,36 +20,36 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
+  const TITLE = "add-ftm-emission-pool";
   const POOLS: Array<IAddPool> = [
     {
-      STAKING_TOKEN_ADDRESS: "0xae70E3f6050d6AB05E03A50c655309C2148615bE",
+      STAKING_TOKEN_ADDRESS: "0xC4Ed268754DD3CbCA82A6eE743ACAd2D355D938b",
       ALLOC_POINT: 0,
     },
   ];
-  const EXACT_ETA = "1646204400";
+  const EXACT_ETA = "1647064800";
 
-  const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
-
-  const timelock = Timelock__factory.connect(config.Timelock, (await ethers.getSigners())[0]);
+  const config = getConfig();
+  const deployer = (await ethers.getSigners())[0];
+  const timelockTransactions: Array<TimelockEntity.Transaction> = [];
+  let nonce = await deployer.getTransactionCount();
 
   for (const pool of POOLS) {
-    console.log(`>> Timelock: Add ${pool.STAKING_TOKEN_ADDRESS} with ${pool.ALLOC_POINT} via Timelock`);
-    await timelock.queueTransaction(
-      config.Shield,
-      "0",
-      "addPool(uint256,address,bool)",
-      ethers.utils.defaultAbiCoder.encode(
+    timelockTransactions.push(
+      await TimelockService.queueTransaction(
+        `>> Timelock: Add ${pool.STAKING_TOKEN_ADDRESS} with ${pool.ALLOC_POINT} via Timelock`,
+        config.Shield!,
+        "0",
+        "addPool(uint256,address,bool)",
         ["uint256", "address", "bool"],
-        [pool.ALLOC_POINT, pool.STAKING_TOKEN_ADDRESS, true]
-      ),
-      EXACT_ETA
+        [pool.ALLOC_POINT, pool.STAKING_TOKEN_ADDRESS, true],
+        EXACT_ETA,
+        { nonce: nonce++ }
+      )
     );
-    console.log("generate timelock.executeTransaction:");
-    console.log(
-      `await timelock.executeTransaction('${config.Shield}', '0', 'addPool(uint256,address,bool)', ethers.utils.defaultAbiCoder.encode(['uint256','address','bool'],[${pool.ALLOC_POINT}, '${pool.STAKING_TOKEN_ADDRESS}', true]), ${EXACT_ETA})`
-    );
-    console.log("✅ Done");
   }
+
+  FileService.write(TITLE, timelockTransactions);
 };
 
 export default func;
