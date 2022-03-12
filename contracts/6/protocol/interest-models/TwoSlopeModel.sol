@@ -23,9 +23,9 @@ contract TwoSlopeModel {
   uint256 public constant CEIL_SLOPE_2 = 80e18;
   uint256 public constant CEIL_SLOPE_3 = 100e18;
 
-  uint256 public constant MAX_INTEREST_SLOPE_1 = 80e16;
-  uint256 public constant MAX_INTEREST_SLOPE_2 = 80e16;
-  uint256 public constant MAX_INTEREST_SLOPE_3 = 150e16;
+  uint256 public constant MAX_INTEREST_SLOPE_1 = 50e16;
+  uint256 public constant MAX_INTEREST_SLOPE_2 = 50e16;
+  uint256 public constant MAX_INTEREST_SLOPE_3 = 100e16;
 
   /// @dev Return the interest rate per second, using 1e18 as denom.
   function getInterestRate(uint256 debt, uint256 floating) external pure returns (uint256) {
