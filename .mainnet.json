@@ -802,6 +802,11 @@
           "pId": 491,
           "name": "HIGH-BUSD LP",
           "address": "0xe98ac95A1dB2fCaaa9c7D4ba7ecfCE4877ca2bEa"
+        },
+        {
+          "pId": 472,
+          "name": "XWG-USDC LP",
+          "address": "0x936928146a21AfCcd30DfA84824A780572B1630B"
         }
       ]
     },
@@ -3324,6 +3329,23 @@
             "StrategyWithdrawMinimizeTrading": "0x94f5E884e11fC054Ca0b332e3a8773750BDBe242",
             "StrategyPartialCloseLiquidate": "0xa6b2a3Fdd415Ca304a36909a35f974B670960843",
             "StrategyPartialCloseMinimizeTrading": "0xDD8A4302299115226676F943E01306107DD98495"
+          }
+        },
+        {
+          "name": "XWG-USDC PancakeswapWorker",
+          "address": "0x2245634E4c325F3f3Fc2b98cf75352b5D92F4c46",
+          "deployedBlock": 16018106,
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 472,
+          "stakingToken": "0x936928146a21AfCcd30DfA84824A780572B1630B",
+          "stakingTokenAt": "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+            "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+            "StrategyAddTwoSidesOptimal": "0x66C7170d102dB819f50f9582973ab0d16d6f5242",
+            "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         }
       ]

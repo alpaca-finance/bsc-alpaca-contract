@@ -2,13 +2,20 @@ import { expect } from "chai";
 import { ethers } from "ethers";
 import { TombWorker03, TombWorker03__factory } from "../../../../typechain";
 import { WorkersEntity } from "../../../interfaces/config";
+import { IMultiCallService } from "../../../services/multicall/interfaces";
 import { IWorkerLike } from "../IWorkerLike";
 
 export class TombWorkerAdaptor implements IWorkerLike {
   private _worker: TombWorker03;
+  private _multiCallService: IMultiCallService;
 
-  constructor(_workerAddress: string, _signerOrProvider: ethers.Signer | ethers.providers.Provider) {
+  constructor(
+    _workerAddress: string,
+    _multiCallService: IMultiCallService,
+    _signerOrProvider: ethers.Signer | ethers.providers.Provider
+  ) {
     this._worker = TombWorker03__factory.connect(_workerAddress, _signerOrProvider);
+    this._multiCallService = _multiCallService;
   }
 
   public async validateConfig(
@@ -18,42 +25,95 @@ export class TombWorkerAdaptor implements IWorkerLike {
     workerInfo: WorkersEntity
   ): Promise<void> {
     try {
-      expect(await this._worker.operator()).to.be.eq(vaultAddress, "operator mis-config");
-      expect(workerInfo.stakingToken).to.be.eq(await this._worker.lpToken(), "lpToken mis-config");
-      expect(workerInfo.pId).to.be.eq(await this._worker.pid(), "pool id mis-config");
-      expect(workerInfo.stakingTokenAt).to.be.eq(await this._worker.tshareRewardPool(), "tshareRewardPool mis-config");
-      expect(await this._worker.router()).to.be.eq(routerAddress, "router mis-config");
-      expect(await this._worker.baseToken()).to.be.eq(vaultToken, "baseToken mis-config");
-      expect(await this._worker.fee()).to.be.eq("998");
-      expect(await this._worker.feeDenom()).to.be.eq("1000");
-      expect(await this._worker.okStrats(workerInfo.strategies.StrategyAddAllBaseToken)).to.be.eq(
-        true,
-        "mis-config on add base token only strat"
-      );
-      expect(await this._worker.okStrats(workerInfo.strategies.StrategyLiquidate)).to.be.eq(
-        true,
-        "mis-config on liquidate strat"
-      );
-      expect(await this._worker.okStrats(workerInfo.strategies.StrategyAddTwoSidesOptimal)).to.be.eq(
-        true,
-        "mis-config on add two sides strat"
-      );
-      expect(await this._worker.okStrats(workerInfo.strategies.StrategyWithdrawMinimizeTrading)).to.be.eq(
-        true,
-        "mis-config on minimize trading strat"
-      );
-      if (workerInfo.strategies.StrategyPartialCloseLiquidate != "") {
-        expect(await this._worker.okStrats(workerInfo.strategies.StrategyPartialCloseLiquidate)).to.be.eq(
-          true,
-          "mis-config on partial close liquidate strat"
-        );
-      }
-      if (workerInfo.strategies.StrategyPartialCloseMinimizeTrading != "") {
-        expect(await this._worker.okStrats(workerInfo.strategies.StrategyPartialCloseMinimizeTrading)).to.be.eq(
-          true,
-          "mis-config on partial close minimize"
-        );
-      }
+      const [
+        workerOperator,
+        workerLpToken,
+        workerPid,
+        workerMasterChef,
+        workerRouter,
+        workerFee,
+        workerFeeDenom,
+        workerBaseToken,
+        workerAddBaseTokenOk,
+        workerLiqOk,
+        workerTwoSidesOk,
+        workerMinimizeOk,
+        workerPartialCloseLiqOk,
+        workerPartialCloseMinimizeOk,
+      ] = await this._multiCallService.multiContractCall<
+        [
+          string,
+          string,
+          string,
+          string,
+          string,
+          string,
+          string,
+          string,
+          boolean,
+          boolean,
+          boolean,
+          boolean,
+          boolean,
+          boolean
+        ]
+      >([
+        { contract: this._worker, functionName: "operator" },
+        { contract: this._worker, functionName: "lpToken" },
+        { contract: this._worker, functionName: "pid" },
+        { contract: this._worker, functionName: "tshareRewardPool" },
+        { contract: this._worker, functionName: "router" },
+        { contract: this._worker, functionName: "fee" },
+        { contract: this._worker, functionName: "feeDenom" },
+        { contract: this._worker, functionName: "baseToken" },
+        { contract: this._worker, functionName: "okStrats", params: [workerInfo.strategies.StrategyAddAllBaseToken] },
+        { contract: this._worker, functionName: "okStrats", params: [workerInfo.strategies.StrategyLiquidate] },
+        {
+          contract: this._worker,
+          functionName: "okStrats",
+          params: [workerInfo.strategies.StrategyAddTwoSidesOptimal],
+        },
+        {
+          contract: this._worker,
+          functionName: "okStrats",
+          params: [workerInfo.strategies.StrategyWithdrawMinimizeTrading],
+        },
+        {
+          contract: this._worker,
+          functionName: "okStrats",
+          params: [
+            workerInfo.strategies.StrategyPartialCloseLiquidate !== ""
+              ? workerInfo.strategies.StrategyPartialCloseLiquidate
+              : "0x0000000000000000000000000000000000000000",
+          ],
+        },
+        {
+          contract: this._worker,
+          functionName: "okStrats",
+          params: [
+            workerInfo.strategies.StrategyPartialCloseMinimizeTrading !== ""
+              ? workerInfo.strategies.StrategyPartialCloseMinimizeTrading
+              : "0x0000000000000000000000000000000000000000",
+          ],
+        },
+      ]);
+
+      expect(workerOperator).to.be.eq(vaultAddress, "operator mis-config");
+      expect(workerLpToken).to.be.eq(workerInfo.stakingToken, "stakingToken mis-config");
+      expect(workerPid).to.be.eq(workerInfo.pId, "pool id mis-config");
+      expect(workerMasterChef).to.be.eq(workerInfo.stakingTokenAt, "tshareRewardPool mis-config");
+      expect(workerRouter).to.be.eq(routerAddress, "router mis-config");
+      expect(workerFee).to.be.eq("998");
+      expect(workerFeeDenom).to.be.eq("1000");
+      expect(workerBaseToken).to.be.eq(vaultToken, "baseToken mis-config");
+      expect(workerAddBaseTokenOk).to.be.eq(true, "mis-config on add base token only strat");
+      expect(workerLiqOk).to.be.eq(true, "mis-config on liquidate strat");
+      expect(workerTwoSidesOk).to.be.eq(true, "mis-config on add two sides strat");
+      expect(workerMinimizeOk).to.be.eq(true, "mis-config on minimize trading strat");
+      if (workerInfo.strategies.StrategyPartialCloseLiquidate !== "")
+        expect(workerPartialCloseLiqOk).to.be.eq(true, "mis-config on partial close liquidate strat");
+      if (workerInfo.strategies.StrategyPartialCloseMinimizeTrading !== "")
+        expect(workerPartialCloseMinimizeOk).to.be.eq(true, "mis-config on partial close minimize");
 
       console.log(`> ✅ done validated ${workerInfo.name}, no problem found`);
     } catch (e) {
