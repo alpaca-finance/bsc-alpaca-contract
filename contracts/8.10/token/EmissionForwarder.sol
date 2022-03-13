@@ -59,6 +59,8 @@ contract EmissionForwarder is Initializable, OwnableUpgradeable, ReentrancyGuard
   event LogFairLaunchWithdraw();
   event LogFairLaunchHarvest(address _caller, uint256 _harvestAmount);
   event LogForwardToken(address _destination, uint256 _forwardAmount);
+  event LogSetAnyswapConfig(address _router, address _anyToken);
+  event LogSetDestinationConfig(address _destination, uint64 _destChainId);
   event LogSetMaxCrossChainAmount(uint256 _oldMaxCrossChainAmount, uint256 _newMaxCrossChainAmount);
 
   function initialize(
@@ -104,17 +106,6 @@ contract EmissionForwarder is Initializable, OwnableUpgradeable, ReentrancyGuard
     proxyToken.safeApprove(_fairLaunchAddress, type(uint256).max);
   }
 
-  function setMaxCrossChainAmount(uint256 _newMaxCrossChainAmount) external onlyOwner {
-    if (_newMaxCrossChainAmount < 1000 * 1e18) {
-      revert EmissionForwarder_MaxCrossChainAmountTooLow();
-    }
-
-    uint256 _oldMaxCrossChainAmount = maxCrossChainAmount;
-    maxCrossChainAmount = _newMaxCrossChainAmount;
-
-    emit LogSetMaxCrossChainAmount(_oldMaxCrossChainAmount, maxCrossChainAmount);
-  }
-
   /// @notice Deposit token to FairLaunch
   function fairLaunchDeposit() external onlyOwner {
     if (IERC20(proxyToken).balanceOf(address(fairLaunch)) != 0) {
@@ -158,5 +149,30 @@ contract EmissionForwarder is Initializable, OwnableUpgradeable, ReentrancyGuard
     token.safeApprove(address(router), _forwardAmount);
     router.anySwapOutUnderlying(anyToken, destination, _forwardAmount, destChainId);
     emit LogForwardToken(destination, _forwardAmount);
+  }
+
+  function setAnyswapConfig(IAnyswapV4Router _anyswapRouter, address _anyToken) external onlyOwner {
+    router = _anyswapRouter;
+    anyToken = _anyToken;
+
+    emit LogSetAnyswapConfig(address(_anyswapRouter), _anyToken);
+  }
+
+  function setDestinationConfig(address _destination, uint64 _destChainId) external onlyOwner {
+    destination = _destination;
+    destChainId = _destChainId;
+
+    emit LogSetDestinationConfig(_destination, _destChainId);
+  }
+
+  function setMaxCrossChainAmount(uint256 _newMaxCrossChainAmount) external onlyOwner {
+    if (_newMaxCrossChainAmount < 1000 * 1e18) {
+      revert EmissionForwarder_MaxCrossChainAmountTooLow();
+    }
+
+    uint256 _oldMaxCrossChainAmount = maxCrossChainAmount;
+    maxCrossChainAmount = _newMaxCrossChainAmount;
+
+    emit LogSetMaxCrossChainAmount(_oldMaxCrossChainAmount, maxCrossChainAmount);
   }
 }

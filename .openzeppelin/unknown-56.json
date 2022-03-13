@@ -454,6 +454,11 @@
       "address": "0xC4Ed268754DD3CbCA82A6eE743ACAd2D355D938b",
       "txHash": "0xc7470c2d256635e01d1662df441bd8bbb3228f70ca9467727d00674443efc9b9",
       "kind": "transparent"
+    },
+    {
+      "address": "0x4F4054B4D286213a39cA5b8eF89116AC62c1cf43",
+      "txHash": "0x0a294426b5f4664eed46146fdc59d46d1ed00804575f885f74496fea3b3239a7",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -15847,6 +15852,145 @@
           },
           "t_array(t_uint256)50_storage": {
             "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "b2edf970eee0f65c2b3044cc25501f9a46fc76ad8bc90ab092c033ab8bba6e19": {
+      "address": "0x7e6F681DF3210fbA706fc2F8c59cAdbEDE7227f7",
+      "txHash": "0xe2c9663967cc6ff5657b2208d54a274d07e92bcfb0b0b6df5cfe7e0e26869073",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:74"
+          },
+          {
+            "contract": "EmissionForwarder",
+            "label": "name",
+            "type": "t_string_storage",
+            "src": "contracts/8.10/token/EmissionForwarder.sol:42"
+          },
+          {
+            "contract": "EmissionForwarder",
+            "label": "fairLaunch",
+            "type": "t_contract(IFairLaunch)12562",
+            "src": "contracts/8.10/token/EmissionForwarder.sol:43"
+          },
+          {
+            "contract": "EmissionForwarder",
+            "label": "router",
+            "type": "t_contract(IAnyswapV4Router)12398",
+            "src": "contracts/8.10/token/EmissionForwarder.sol:44"
+          },
+          {
+            "contract": "EmissionForwarder",
+            "label": "fairLaunchPoolId",
+            "type": "t_uint256",
+            "src": "contracts/8.10/token/EmissionForwarder.sol:44"
+          },
+          {
+            "contract": "EmissionForwarder",
+            "label": "maxCrossChainAmount",
+            "type": "t_uint256",
+            "src": "contracts/8.10/token/EmissionForwarder.sol:47"
+          },
+          {
+            "contract": "EmissionForwarder",
+            "label": "destination",
+            "type": "t_address",
+            "src": "contracts/8.10/token/EmissionForwarder.sol:49"
+          },
+          {
+            "contract": "EmissionForwarder",
+            "label": "destChainId",
+            "type": "t_uint64",
+            "src": "contracts/8.10/token/EmissionForwarder.sol:50"
+          },
+          {
+            "contract": "EmissionForwarder",
+            "label": "token",
+            "type": "t_address",
+            "src": "contracts/8.10/token/EmissionForwarder.sol:55"
+          },
+          {
+            "contract": "EmissionForwarder",
+            "label": "anyToken",
+            "type": "t_address",
+            "src": "contracts/8.10/token/EmissionForwarder.sol:57"
+          },
+          {
+            "contract": "EmissionForwarder",
+            "label": "proxyToken",
+            "type": "t_address",
+            "src": "contracts/8.10/token/EmissionForwarder.sol:58"
+          }
+        ],
+        "types": {
+          "t_string_storage": {
+            "label": "string"
+          },
+          "t_contract(IFairLaunch)12562": {
+            "label": "contract IFairLaunch"
+          },
+          "t_contract(IAnyswapV4Router)12398": {
+            "label": "contract IAnyswapV4Router"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_uint64": {
+            "label": "uint64"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_bool": {
+            "label": "bool"
           }
         }
       }
