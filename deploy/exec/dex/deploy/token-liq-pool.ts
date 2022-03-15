@@ -33,23 +33,23 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const config = ConfigEntity.getConfig();
 
   const FOREVER = 20000000000;
-  const WHICH_MASTERCHEF = MasterChefLike.tomb;
-  const MASTERCHEF_LIKE_ADDRESS = config.YieldSources.TombFinance!.TShareRewardPool;
-  const FACTORY = config.YieldSources.SpookySwap!.SpookyFactory;
-  const ROUTER = config.YieldSources.SpookySwap!.SpookyRouter;
-  const WBNB = config.Tokens.WFTM!;
+  const WHICH_MASTERCHEF = MasterChefLike.pancake;
+  const MASTERCHEF_LIKE_ADDRESS = config.YieldSources.Pancakeswap!.MasterChef;
+  const FACTORY = config.YieldSources.Pancakeswap!.FactoryV2;
+  const ROUTER = config.YieldSources.Pancakeswap!.RouterV2;
+  const WBNB = config.Tokens.WBNB!;
   const TOKENS: Array<IToken> = [
     {
-      symbol: "TSHARE",
-      name: "TSHARE",
-      address: config.Tokens.TSHARE!,
+      symbol: "XWG",
+      name: "XWG",
+      mintAmount: ethers.utils.parseEther("100000000000"),
       decimals: "18",
       pairs: [
         {
-          quoteToken: "WFTM",
-          quoteTokenAddr: config.Tokens.WFTM!,
-          reserveQuoteToken: ethers.utils.parseUnits("7188.0571", 18),
-          reserveBaseToken: ethers.utils.parseUnits("2", 18),
+          quoteToken: "USDC",
+          quoteTokenAddr: config.Tokens.USDC!,
+          reserveQuoteToken: ethers.utils.parseUnits("1000000", 18),
+          reserveBaseToken: ethers.utils.parseUnits("16800000", 18),
         },
       ],
     },

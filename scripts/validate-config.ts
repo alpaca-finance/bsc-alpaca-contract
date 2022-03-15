@@ -13,6 +13,8 @@ import { WorkersEntity } from "../deploy/interfaces/config";
 import { getConfig } from "../deploy/entities/config";
 import { WorkerLikeFactory } from "../deploy/adaptors/workerlike/factory";
 import { WorkerLike } from "../deploy/entities/worker-like";
+import { IMultiCallService, IMultiContractCall } from "../deploy/services/multicall/interfaces";
+import { Multicall2Service } from "../deploy/services/multicall/multicall2";
 
 interface IDexRouter {
   pancakeswap: string;
@@ -21,61 +23,163 @@ interface IDexRouter {
   spooky: string;
 }
 
-async function validateTwoSidesStrategy(strategyAddress: string, expectedVault: string, expectedRouter: string) {
-  if (strategyAddress === "") {
-    console.log("> ⚠️ no two sides strategy address provided. Is this an expected case?");
+interface IStrategyRouterInfo {
+  strategyAddress: string;
+  expectedRouter: string;
+}
+
+interface ITwoSidesVaultRouterInfo {
+  strategyAddress: string;
+  expectedVault: string;
+  expectedRouter: string;
+}
+
+async function validateTwoSidesStrategies(
+  multiCallService: IMultiCallService,
+  twoSidesVaultRouterInfos: Array<ITwoSidesVaultRouterInfo>
+) {
+  twoSidesVaultRouterInfos = twoSidesVaultRouterInfos.filter((twoSides) => twoSides.strategyAddress !== "");
+
+  const calls = twoSidesVaultRouterInfos.reduce((accum, info) => {
+    accum.push(
+      {
+        contract: PancakeswapV2RestrictedStrategyAddTwoSidesOptimal__factory.connect(
+          info.strategyAddress,
+          ethers.provider
+        ),
+        functionName: "vault",
+      },
+      {
+        contract: PancakeswapV2RestrictedStrategyAddTwoSidesOptimal__factory.connect(
+          info.strategyAddress,
+          ethers.provider
+        ),
+        functionName: "router",
+      }
+    );
+    return accum;
+  }, [] as Array<IMultiContractCall>);
+
+  const results = await multiCallService.multiContractCall<Array<string>>(calls);
+  for (let i = 0; i < results.length; i += 2) {
+    expect(results[i]).to.be.eq(
+      twoSidesVaultRouterInfos[i / 2].expectedVault,
+      `vault mis-config on ${twoSidesVaultRouterInfos[i / 2].strategyAddress} strat`
+    );
+    expect(results[i + 1]).to.be.eq(
+      twoSidesVaultRouterInfos[i / 2].expectedRouter,
+      `router mis-config on ${twoSidesVaultRouterInfos[i / 2].strategyAddress} strat`
+    );
+  }
+}
+
+async function validateStrategies(
+  multiCallService: IMultiCallService,
+  strategyRouterInfos: Array<IStrategyRouterInfo>
+) {
+  const calls = strategyRouterInfos.map((info) => {
+    return {
+      contract: PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory.connect(info.strategyAddress, ethers.provider),
+      functionName: "router",
+    };
+  });
+  const results = await multiCallService.multiContractCall<Array<string>>(calls);
+  for (let i = 0; i < strategyRouterInfos.length; i++)
+    expect(results[i]).to.be.eq(
+      strategyRouterInfos[i].expectedRouter,
+      `router mis-config on ${strategyRouterInfos[i].strategyAddress} strat`
+    );
+}
+
+async function validateWorker(
+  vault: Vault,
+  workerInfo: WorkersEntity,
+  multiCallService: IMultiCallService,
+  routers: IDexRouter
+) {
+  console.log(`> validating ${workerInfo.name}`);
+  if (workerInfo.name === "BETH-ETH PancakeswapWorker") {
+    console.log(`> skipping ${workerInfo.name}`);
     return;
   }
-  const strat = PancakeswapV2RestrictedStrategyAddTwoSidesOptimal__factory.connect(strategyAddress, ethers.provider);
-  expect(await strat.vault()).to.be.eq(expectedVault, `vault mis-config on ${strategyAddress} strat`);
-  expect(await strat.router()).to.be.eq(expectedRouter, `router mis-config on ${strategyAddress} strat`);
-}
-
-async function validateStrategy(strategyAddress: string, expectedRouter: string) {
-  const strat = PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory.connect(strategyAddress, ethers.provider);
-  expect(await strat.router()).to.be.eq(expectedRouter, `router mis-config on ${strategyAddress} strat`);
-}
-
-async function validateWorker(vault: Vault, workerInfo: WorkersEntity, routers: IDexRouter) {
-  console.log(`> validating ${workerInfo.name}`);
   if (workerInfo.name.includes("DeltaNeutralPancakeswapWorker")) {
     const workerLike = WorkerLikeFactory.newWorkerLike(
       WorkerLike.deltaNeutralPancake,
       workerInfo.address,
+      multiCallService,
       ethers.provider
     );
     await workerLike.validateConfig(vault.address, await vault.token(), routers.pancakeswap, workerInfo);
   } else if (workerInfo.name.includes("PancakeswapWorker")) {
-    const workerLike = WorkerLikeFactory.newWorkerLike(WorkerLike.pancake, workerInfo.address, ethers.provider);
+    const workerLike = WorkerLikeFactory.newWorkerLike(
+      WorkerLike.pancake,
+      workerInfo.address,
+      multiCallService,
+      ethers.provider
+    );
     await workerLike.validateConfig(vault.address, await vault.token(), routers.pancakeswap, workerInfo);
   } else if (workerInfo.name.includes("WaultswapWorker")) {
-    const workerLike = WorkerLikeFactory.newWorkerLike(WorkerLike.wault, workerInfo.address, ethers.provider);
+    const workerLike = WorkerLikeFactory.newWorkerLike(
+      WorkerLike.wault,
+      workerInfo.address,
+      multiCallService,
+      ethers.provider
+    );
     await workerLike.validateConfig(vault.address, await vault.token(), routers.waultswap, workerInfo);
   } else if (workerInfo.name.includes("CakeMaxiWorker")) {
-    const workerLike = WorkerLikeFactory.newWorkerLike(WorkerLike.cakeMaxi, workerInfo.address, ethers.provider);
+    const workerLike = WorkerLikeFactory.newWorkerLike(
+      WorkerLike.cakeMaxi,
+      workerInfo.address,
+      multiCallService,
+      ethers.provider
+    );
     await workerLike.validateConfig(vault.address, await vault.token(), routers.pancakeswap, workerInfo);
   } else if (workerInfo.name.includes("MdexWorker")) {
-    const workerLike = WorkerLikeFactory.newWorkerLike(WorkerLike.mdex, workerInfo.address, ethers.provider);
+    const workerLike = WorkerLikeFactory.newWorkerLike(
+      WorkerLike.mdex,
+      workerInfo.address,
+      multiCallService,
+      ethers.provider
+    );
     await workerLike.validateConfig(vault.address, await vault.token(), routers.mdex, workerInfo);
   } else if (workerInfo.name.includes("SpookyWorker")) {
-    const workerLike = WorkerLikeFactory.newWorkerLike(WorkerLike.spooky, workerInfo.address, ethers.provider);
+    const workerLike = WorkerLikeFactory.newWorkerLike(
+      WorkerLike.spooky,
+      workerInfo.address,
+      multiCallService,
+      ethers.provider
+    );
     await workerLike.validateConfig(vault.address, await vault.token(), routers.spooky, workerInfo);
   } else if (workerInfo.name.includes("TombWorker")) {
-    const workerLike = WorkerLikeFactory.newWorkerLike(WorkerLike.tomb, workerInfo.address, ethers.provider);
+    const workerLike = WorkerLikeFactory.newWorkerLike(
+      WorkerLike.tomb,
+      workerInfo.address,
+      multiCallService,
+      ethers.provider
+    );
     await workerLike.validateConfig(vault.address, await vault.token(), routers.spooky, workerInfo);
   }
 }
 
-async function validateApproveAddStrategy(vaultConfig: ConfigurableInterestVaultConfig, addStrats: Array<string>) {
+async function validateApproveAddStrategies(
+  multiCallService: IMultiCallService,
+  vaultConfig: ConfigurableInterestVaultConfig,
+  addStrats: Array<string>
+) {
   console.log(`> 🔎 validating approve add strategy`);
-  const promises = [];
-  for (let i = 0; i < addStrats.length; i++) promises.push(vaultConfig.approvedAddStrategies(addStrats[i]));
-  const isApproves = await Promise.all(promises);
+
+  const calls = addStrats.map((strat) => {
+    return {
+      contract: vaultConfig,
+      functionName: "approvedAddStrategies",
+      params: [strat],
+    };
+  });
+
+  const isApproves = await multiCallService.multiContractCall<Array<boolean>>(calls);
 
   const isReturnFalse = isApproves.find((isApprove) => isApprove === false);
-  if (isReturnFalse) {
-    console.log(`> ❌ some problem found in approve add strategy, please double check`);
-  }
+  if (isReturnFalse) throw new Error(`> ❌ some problem found in approve add strategy, please double check`);
 }
 
 function delay(ms: number) {
@@ -85,66 +189,93 @@ function delay(ms: number) {
 async function main() {
   const config = getConfig();
   const chainId = (await ethers.provider.getNetwork()).chainId;
+  const multiCall2Service = new Multicall2Service(config.MultiCall, ethers.provider);
 
   console.log("=== validate strats ===");
   if (chainId === 56 || chainId === 97) {
     console.log(">> Validate in BSC context");
     try {
-      await Promise.all([
-        validateStrategy(
-          config.SharedStrategies.Pancakeswap!.StrategyAddBaseTokenOnly,
-          config.YieldSources.Pancakeswap!.RouterV2
-        ),
-        validateStrategy(
-          config.SharedStrategies.Pancakeswap!.StrategyLiquidate,
-          config.YieldSources.Pancakeswap!.RouterV2
-        ),
-        validateStrategy(
-          config.SharedStrategies.Pancakeswap!.StrategyWithdrawMinimizeTrading,
-          config.YieldSources.Pancakeswap!.RouterV2
-        ),
-        validateStrategy(
-          config.SharedStrategies.Pancakeswap!.StrategyPartialCloseLiquidate,
-          config.YieldSources.Pancakeswap!.RouterV2
-        ),
-        validateStrategy(
-          config.SharedStrategies.Pancakeswap!.StrategyPartialCloseMinimizeTrading,
-          config.YieldSources.Pancakeswap!.RouterV2
-        ),
-        validateStrategy(
-          config.SharedStrategies.Waultswap!.StrategyAddBaseTokenOnly,
-          config.YieldSources.Waultswap!.WaultswapRouter
-        ),
-        validateStrategy(
-          config.SharedStrategies.Waultswap!.StrategyLiquidate,
-          config.YieldSources.Waultswap!.WaultswapRouter
-        ),
-        validateStrategy(
-          config.SharedStrategies.Waultswap!.StrategyWithdrawMinimizeTrading,
-          config.YieldSources.Waultswap!.WaultswapRouter
-        ),
-        validateStrategy(
-          config.SharedStrategies.Waultswap!.StrategyPartialCloseLiquidate,
-          config.YieldSources.Waultswap!.WaultswapRouter
-        ),
-        validateStrategy(
-          config.SharedStrategies.Waultswap!.StrategyPartialCloseMinimizeTrading,
-          config.YieldSources.Waultswap!.WaultswapRouter
-        ),
-        validateStrategy(config.SharedStrategies.Mdex!.StrategyAddBaseTokenOnly, config.YieldSources.Mdex!.MdexRouter),
-        validateStrategy(config.SharedStrategies.Mdex!.StrategyLiquidate, config.YieldSources.Mdex!.MdexRouter),
-        validateStrategy(
-          config.SharedStrategies.Mdex!.StrategyPartialCloseLiquidate,
-          config.YieldSources.Mdex!.MdexRouter
-        ),
-        validateStrategy(
-          config.SharedStrategies.Mdex!.StrategyPartialCloseMinimizeTrading,
-          config.YieldSources.Mdex!.MdexRouter
-        ),
-        validateStrategy(
-          config.SharedStrategies.Mdex!.StrategyWithdrawMinimizeTrading,
-          config.YieldSources.Mdex!.MdexRouter
-        ),
+      await validateStrategies(multiCall2Service, [
+        {
+          strategyAddress: config.SharedStrategies.Pancakeswap!.StrategyAddBaseTokenOnly,
+          expectedRouter: config.YieldSources.Pancakeswap!.RouterV2,
+        },
+        {
+          strategyAddress: config.SharedStrategies.Pancakeswap!.StrategyLiquidate,
+          expectedRouter: config.YieldSources.Pancakeswap!.RouterV2,
+        },
+        {
+          strategyAddress: config.SharedStrategies.Pancakeswap!.StrategyWithdrawMinimizeTrading,
+          expectedRouter: config.YieldSources.Pancakeswap!.RouterV2,
+        },
+        {
+          strategyAddress: config.SharedStrategies.Pancakeswap!.StrategyPartialCloseLiquidate,
+          expectedRouter: config.YieldSources.Pancakeswap!.RouterV2,
+        },
+        {
+          strategyAddress: config.SharedStrategies.Pancakeswap!.StrategyPartialCloseMinimizeTrading,
+          expectedRouter: config.YieldSources.Pancakeswap!.RouterV2,
+        },
+        {
+          strategyAddress: config.SharedStrategies.Waultswap!.StrategyAddBaseTokenOnly,
+          expectedRouter: config.YieldSources.Waultswap!.WaultswapRouter,
+        },
+        {
+          strategyAddress: config.SharedStrategies.Waultswap!.StrategyLiquidate,
+          expectedRouter: config.YieldSources.Waultswap!.WaultswapRouter,
+        },
+        {
+          strategyAddress: config.SharedStrategies.Waultswap!.StrategyWithdrawMinimizeTrading,
+          expectedRouter: config.YieldSources.Waultswap!.WaultswapRouter,
+        },
+        {
+          strategyAddress: config.SharedStrategies.Waultswap!.StrategyPartialCloseLiquidate,
+          expectedRouter: config.YieldSources.Waultswap!.WaultswapRouter,
+        },
+        {
+          strategyAddress: config.SharedStrategies.Waultswap!.StrategyPartialCloseMinimizeTrading,
+          expectedRouter: config.YieldSources.Waultswap!.WaultswapRouter,
+        },
+        {
+          strategyAddress: config.SharedStrategies.PancakeswapSingleAsset!.StrategyAddBaseTokenOnly,
+          expectedRouter: config.YieldSources.Pancakeswap!.RouterV2,
+        },
+        {
+          strategyAddress: config.SharedStrategies.PancakeswapSingleAsset!.StrategyLiquidate,
+          expectedRouter: config.YieldSources.Pancakeswap!.RouterV2,
+        },
+        {
+          strategyAddress: config.SharedStrategies.PancakeswapSingleAsset!.StrategyWithdrawMinimizeTrading,
+          expectedRouter: config.YieldSources.Pancakeswap!.RouterV2,
+        },
+        {
+          strategyAddress: config.SharedStrategies.PancakeswapSingleAsset!.StrategyPartialCloseLiquidate,
+          expectedRouter: config.YieldSources.Pancakeswap!.RouterV2,
+        },
+        {
+          strategyAddress: config.SharedStrategies.PancakeswapSingleAsset!.StrategyPartialCloseMinimizeTrading,
+          expectedRouter: config.YieldSources.Pancakeswap!.RouterV2,
+        },
+        {
+          strategyAddress: config.SharedStrategies.Mdex!.StrategyAddBaseTokenOnly,
+          expectedRouter: config.YieldSources.Mdex!.MdexRouter,
+        },
+        {
+          strategyAddress: config.SharedStrategies.Mdex!.StrategyLiquidate,
+          expectedRouter: config.YieldSources.Mdex!.MdexRouter,
+        },
+        {
+          strategyAddress: config.SharedStrategies.Mdex!.StrategyWithdrawMinimizeTrading,
+          expectedRouter: config.YieldSources.Mdex!.MdexRouter,
+        },
+        {
+          strategyAddress: config.SharedStrategies.Mdex!.StrategyPartialCloseLiquidate,
+          expectedRouter: config.YieldSources.Mdex!.MdexRouter,
+        },
+        {
+          strategyAddress: config.SharedStrategies.Mdex!.StrategyPartialCloseMinimizeTrading,
+          expectedRouter: config.YieldSources.Mdex!.MdexRouter,
+        },
       ]);
       console.log("> ✅ done");
     } catch (e) {
@@ -154,27 +285,27 @@ async function main() {
   if (chainId === 4002 || chainId === 250) {
     console.log(">> Validate in Fantom context");
     try {
-      await Promise.all([
-        validateStrategy(
-          config.SharedStrategies.SpookySwap!.StrategyAddBaseTokenOnly,
-          config.YieldSources.SpookySwap!.SpookyRouter
-        ),
-        validateStrategy(
-          config.SharedStrategies.SpookySwap!.StrategyLiquidate,
-          config.YieldSources.SpookySwap!.SpookyRouter
-        ),
-        validateStrategy(
-          config.SharedStrategies.SpookySwap!.StrategyWithdrawMinimizeTrading,
-          config.YieldSources.SpookySwap!.SpookyRouter
-        ),
-        validateStrategy(
-          config.SharedStrategies.SpookySwap!.StrategyPartialCloseLiquidate,
-          config.YieldSources.SpookySwap!.SpookyRouter
-        ),
-        validateStrategy(
-          config.SharedStrategies.SpookySwap!.StrategyPartialCloseMinimizeTrading,
-          config.YieldSources.SpookySwap!.SpookyRouter
-        ),
+      await validateStrategies(multiCall2Service, [
+        {
+          strategyAddress: config.SharedStrategies.SpookySwap!.StrategyAddBaseTokenOnly,
+          expectedRouter: config.YieldSources.SpookySwap!.SpookyRouter,
+        },
+        {
+          strategyAddress: config.SharedStrategies.SpookySwap!.StrategyLiquidate,
+          expectedRouter: config.YieldSources.SpookySwap!.SpookyRouter,
+        },
+        {
+          strategyAddress: config.SharedStrategies.SpookySwap!.StrategyWithdrawMinimizeTrading,
+          expectedRouter: config.YieldSources.SpookySwap!.SpookyRouter,
+        },
+        {
+          strategyAddress: config.SharedStrategies.SpookySwap!.StrategyPartialCloseLiquidate,
+          expectedRouter: config.YieldSources.SpookySwap!.SpookyRouter,
+        },
+        {
+          strategyAddress: config.SharedStrategies.SpookySwap!.StrategyPartialCloseMinimizeTrading,
+          expectedRouter: config.YieldSources.SpookySwap!.SpookyRouter,
+        },
       ]);
       console.log("> ✅ done");
     } catch (e) {
@@ -191,30 +322,30 @@ async function main() {
     console.log(`> validate vault strategies`);
     if (chainId === 56 || chainId === 97) {
       try {
-        await Promise.all([
-          validateTwoSidesStrategy(
-            config.Vaults[i].StrategyAddTwoSidesOptimal.Pancakeswap!,
-            vault.address,
-            config.YieldSources.Pancakeswap!.RouterV2
-          ),
-          validateTwoSidesStrategy(
-            config.Vaults[i].StrategyAddTwoSidesOptimal.Waultswap!,
-            vault.address,
-            config.YieldSources.Waultswap!.WaultswapRouter
-          ),
-          validateTwoSidesStrategy(
-            config.Vaults[i].StrategyAddTwoSidesOptimal.PancakeswapSingleAsset!,
-            vault.address,
-            config.YieldSources.Pancakeswap!.RouterV2
-          ),
-          validateTwoSidesStrategy(
-            config.Vaults[i].StrategyAddTwoSidesOptimal.Mdex!,
-            vault.address,
-            config.YieldSources.Mdex!.MdexRouter
-          ),
+        await validateTwoSidesStrategies(multiCall2Service, [
+          {
+            strategyAddress: config.Vaults[i].StrategyAddTwoSidesOptimal.Pancakeswap!,
+            expectedVault: vault.address,
+            expectedRouter: config.YieldSources.Pancakeswap!.RouterV2,
+          },
+          {
+            strategyAddress: config.Vaults[i].StrategyAddTwoSidesOptimal.Waultswap!,
+            expectedVault: vault.address,
+            expectedRouter: config.YieldSources.Waultswap!.WaultswapRouter,
+          },
+          {
+            strategyAddress: config.Vaults[i].StrategyAddTwoSidesOptimal.PancakeswapSingleAsset!,
+            expectedVault: vault.address,
+            expectedRouter: config.YieldSources.Pancakeswap!.RouterV2,
+          },
+          {
+            strategyAddress: config.Vaults[i].StrategyAddTwoSidesOptimal.Mdex!,
+            expectedVault: vault.address,
+            expectedRouter: config.YieldSources.Mdex!.MdexRouter,
+          },
         ]);
 
-        validateApproveAddStrategy(vaultConfig, [
+        await validateApproveAddStrategies(multiCall2Service, vaultConfig, [
           config.SharedStrategies.Pancakeswap!.StrategyAddBaseTokenOnly,
           config.Vaults[i].StrategyAddTwoSidesOptimal.Pancakeswap!,
           config.SharedStrategies.PancakeswapSingleAsset!.StrategyAddBaseTokenOnly,
@@ -230,15 +361,15 @@ async function main() {
     }
     if (chainId === 4002 || chainId === 250) {
       try {
-        await Promise.all([
-          validateTwoSidesStrategy(
-            config.Vaults[i].StrategyAddTwoSidesOptimal.SpookySwap!,
-            vault.address,
-            config.YieldSources.SpookySwap!.SpookyRouter
-          ),
+        await validateTwoSidesStrategies(multiCall2Service, [
+          {
+            strategyAddress: config.Vaults[i].StrategyAddTwoSidesOptimal.SpookySwap!,
+            expectedVault: vault.address,
+            expectedRouter: config.YieldSources.SpookySwap!.SpookyRouter,
+          },
         ]);
 
-        validateApproveAddStrategy(vaultConfig, [
+        await validateApproveAddStrategies(multiCall2Service, vaultConfig, [
           config.SharedStrategies.SpookySwap!.StrategyAddBaseTokenOnly,
           config.Vaults[i].StrategyAddTwoSidesOptimal.SpookySwap!,
         ]);
@@ -265,7 +396,7 @@ async function main() {
       dexRouters.spooky = config.YieldSources.SpookySwap!.SpookyRouter;
     }
     for (const worker of config.Vaults[i].workers) {
-      validateWorkers.push(validateWorker(vault, worker, dexRouters));
+      validateWorkers.push(validateWorker(vault, worker, multiCall2Service, dexRouters));
     }
     await Promise.all(validateWorkers);
     await delay(3000);

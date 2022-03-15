@@ -599,6 +599,11 @@
           "pId": 79,
           "name": "ETH-USDC LP",
           "address": "0x51e526d6FC138543084a9a67a82B4C90AB0c7Ee5"
+        },
+        {
+          "pId": 80,
+          "name": "XWG-USDC LP",
+          "address": "0x61BFf7617b699900AF999a477B66dACb26E72fD2"
         }
       ]
     },
@@ -861,7 +866,8 @@
     "PAYB": "0x0000000000000000000000000000000000000000",
     "LAND": "0x0000000000000000000000000000000000000000",
     "HIGH": "0x47F13fd7e2DbE2a52C3366D0B03B48455af33Ba2",
-    "DLTA": "0x0000000000000000000000000000000000000000"
+    "DLTA": "0x0000000000000000000000000000000000000000",
+    "XWG": "0x6F8Fda17E8d3b05170E0bfEd51F3af73c703a9D1"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x7549b7d0edcd411e7e5013dc74727f8dab13ab0f",
@@ -3110,6 +3116,23 @@
             "StrategyWithdrawMinimizeTrading": "0x0EA3307c33403c81A99C76f7370D78e09Bc50539",
             "StrategyPartialCloseLiquidate": "0xdE0DD9Ed04a04f08A96D7E80D72A3D18E2F766A6",
             "StrategyPartialCloseMinimizeTrading": "0xd34Ffa026D2754118Cb32525df93eb9a3AC57761"
+          }
+        },
+        {
+          "name": "XWG-USDC PancakeswapWorker",
+          "address": "0x570F86D85909be8E492F8B8026c0a9D750A70Fea",
+          "deployedBlock": 17519336,
+          "config": "0x8ae5e14864090E9332Ceb238F7cEa183d7C056a7",
+          "pId": 80,
+          "stakingToken": "0x61BFf7617b699900AF999a477B66dACb26E72fD2",
+          "stakingTokenAt": "0xbCC50b0B0AFD19Ee83a6E79e6c01D51b16090A0B",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x2943b6fC64bDF5bD26E9DFeB9b35d1DBcbdE936C",
+            "StrategyLiquidate": "0x58Bbb507248635413172Ed7A2eeC048402C6b39b",
+            "StrategyAddTwoSidesOptimal": "0x60CB025B3B97fEf74E3b3Ad80CDaB4F3F864B6eB",
+            "StrategyWithdrawMinimizeTrading": "0xD8196dc675E92021aC40d42a8cF437789CD1aC32",
+            "StrategyPartialCloseLiquidate": "0x566aC15667Ae05c1F50Ed9944Aeef5A9dae4AB55",
+            "StrategyPartialCloseMinimizeTrading": "0xBb79EB494Da88F115430D174D5372b51Fc37De50"
           }
         }
       ]

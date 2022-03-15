@@ -1,19 +1,15 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, upgrades } from "hardhat";
-import {
-  EmissionForwarder,
-  EmissionForwarder__factory,
-  ProxyToken__factory,
-  Proxy__factory,
-} from "../../../../typechain";
+import { EmissionForwarder, EmissionForwarder__factory, ProxyToken__factory } from "../../../../typechain";
 import { getConfig } from "../../../entities/config";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const NAME = "Fantom Emission Forwarder";
-  const PROXY_TOKEN_ADDRESS = "";
-  const FAIRLAUNCH_POOL_ID = "";
-  const ANYSWAP_ROUTER_ADDRESS = "";
+  const PROXY_TOKEN_ADDRESS = "0xC4Ed268754DD3CbCA82A6eE743ACAd2D355D938b";
+  const ANY_TOKEN_ADDRESS = "0x3222b546981ca597842cb271138e26ea1afab44a";
+  const FAIRLAUNCH_POOL_ID = "26";
+  const ANYSWAP_ROUTER_ADDRESS = "0xABd380327Fe66724FFDa91A87c772FB8D00bE488";
   const DESTINATION = "0x838B7F64Fa89d322C563A6f904851A13a164f84C";
   const CHAIN_ID = "250";
 
@@ -28,6 +24,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const emissionForwarder = (await upgrades.deployProxy(EmissionForwarder, [
     NAME,
     config.Tokens.ALPACA!,
+    ANY_TOKEN_ADDRESS,
+    PROXY_TOKEN_ADDRESS,
     config.FairLaunch!.address,
     FAIRLAUNCH_POOL_ID,
     ANYSWAP_ROUTER_ADDRESS,

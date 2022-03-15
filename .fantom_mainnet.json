@@ -107,7 +107,7 @@
     }
   },
   "SharedConfig": {
-    "TwoSlopeModel": "0x3D525E1162460EB4Bb9bEe087f9bCC5fe94bC81a",
+    "TwoSlopeModel": "0xbA7A1e40A555135BE83F6B19E2efeA5332a0fa3B",
     "TripleSlopeModel": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
     "WNativeRelayer": "0x3175EC52c36fFF63dCe00E8a50E6066D38884a11",
     "WorkerConfig": "0xca1Cf7C64481B8C095828d380922505E5942C60D"
@@ -392,7 +392,7 @@
       "baseToken": "0x6c021ae822bea943b2e66552bde1d2696a53fbb7",
       "debtToken": "0x46AD1C4F5D7542AeDf57dE7a8Bf0765233A4457f",
       "config": "0x83875cB3B520275183c5c383C8745199293Cd89C",
-      "tripleSlopeModel": "0x3D525E1162460EB4Bb9bEe087f9bCC5fe94bC81a",
+      "tripleSlopeModel": "0xbA7A1e40A555135BE83F6B19E2efeA5332a0fa3B",
       "StrategyAddTwoSidesOptimal": {
         "SpookySwap": "0x4F34511e604a1795E854aEF9D872cb9c9836F1dF"
       },
