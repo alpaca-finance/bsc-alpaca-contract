@@ -415,6 +415,12 @@
       }
     ]
   },
+  "EmissionForwarder": [
+    {
+      "name": "Fantom Emission Forwarder",
+      "address": "0x4F4054B4D286213a39cA5b8eF89116AC62c1cf43"
+    }
+  ],
   "YieldSources": {
     "Pancakeswap": {
       "UniswapV2Factory": "0xBCfCcbde45cE874adCB698cC183deBcF17952812",

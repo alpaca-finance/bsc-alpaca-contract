@@ -7,7 +7,7 @@ import { FileService, TimelockService } from "../../services";
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
-  const queuedTimelockPath = "./deploy/results/1646977232_add-ftm-emission-pool.json";
+  const queuedTimelockPath = "./deploy/results/1646977342_set-ftm-emission-alloc.json";
   const queuedTimelocks = (await FileService.readJson(queuedTimelockPath)) as Array<TimelockEntity.Transaction>;
   const errs = [];
   let nonce = await deployer.getTransactionCount();
