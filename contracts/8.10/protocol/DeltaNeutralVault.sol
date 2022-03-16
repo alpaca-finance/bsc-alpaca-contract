@@ -312,7 +312,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     PositionInfo memory _positionInfoAfter = positionInfo();
     uint256 _actualEquityChange = _calcDeltaEq(_positionInfoBefore, _positionInfoAfter);
 
-    uint256 _sharesToUser = valueToShare(_actualEquityChange);
+    uint256 _sharesToUser = _valueToShare(_actualEquityChange, _positionInfoBefore.stablePositionEquity + _positionInfoBefore.assetPositionEquity);
 
     if (_sharesToUser < _minShareReceive) {
       revert DeltaNeutralVault_InsufficientShareReceived(_minShareReceive, _sharesToUser);
@@ -335,6 +335,12 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   function _calcDeltaEq(PositionInfo memory _prev, PositionInfo memory _current) internal pure returns(uint256) {
     // (_current.stablePositionEquity - _prev.stablePositionEquity) + (_current.assetPositionEquity - _prev.assetPositionEquity)
     return (_current.stablePositionEquity + _current.assetPositionEquity) - (_prev.stablePositionEquity + _prev.assetPositionEquity);
+  }
+
+  function _valueToShare(uint256 _value, uint256 _totalEquity) internal view returns (uint256) {
+    uint256 _shareSupply = totalSupply() + pendingManagementFee();
+    if (_shareSupply == 0) return _value;
+    return FullMath.mulDiv(_value, _shareSupply, _totalEquity);
   }
 
   /// @notice Withdraw from delta neutral vault.
@@ -696,10 +702,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
   /// @notice Return the amount of share from the given value.
   /// @param _value value in usd.
-  function valueToShare(uint256 _value) public view returns (uint256) {
-    uint256 _shareSupply = totalSupply() + pendingManagementFee();
-    if (_shareSupply == 0) return _value;
-    return FullMath.mulDiv(_value, _shareSupply, totalEquityValue());
+  function valueToShare(uint256 _value) external view returns (uint256) {
+    return _valueToShare(_value, totalEquityValue());
   }
 
   /// @notice Return equity value of delta neutral position.
