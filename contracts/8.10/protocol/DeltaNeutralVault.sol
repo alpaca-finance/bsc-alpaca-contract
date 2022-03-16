@@ -298,23 +298,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     _transferTokenToVault(stableToken, _stableTokenAmount);
     _transferTokenToVault(assetToken, _assetTokenAmount);
 
-    // 2. mint share for shareReceiver
-    uint256 _depositValue = Math.e36round(
-      (_stableTokenAmount * stableTo18ConversionFactor * _getTokenPrice(stableToken)) +
-        (_assetTokenAmount * assetTo18ConversionFactor * _getTokenPrice(assetToken))
-    );
-
-    uint256 _mintShares = valueToShare(_depositValue);
-    uint256 _sharesToUser = ((MAX_BPS - config.depositFeeBps()) * _mintShares) / MAX_BPS;
-
-    if (_sharesToUser < _minShareReceive) {
-      revert DeltaNeutralVault_InsufficientShareReceived(_minShareReceive, _sharesToUser);
-    }
-    _mint(_shareReceiver, _sharesToUser);
-    _mint(config.depositFeeTreasury(), _mintShares - _sharesToUser);
-
     {
-      // 3. call execute to do more work.
+      // 2. call execute to do more work.
       // Perform the actual work, using a new scope to avoid stack-too-deep errors.
       (uint8[] memory _actions, uint256[] memory _values, bytes[] memory _datas) = abi.decode(
         _data,
@@ -323,12 +308,33 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       _execute(_actions, _values, _datas);
     }
 
+    // 3. mint share for shareReceiver
+    PositionInfo memory _positionInfoAfter = positionInfo();
+    uint256 _actualEquityChange = _calcDeltaEq(_positionInfoBefore, _positionInfoAfter);
+
+    uint256 _sharesToUser = valueToShare(_actualEquityChange);
+
+    if (_sharesToUser < _minShareReceive) {
+      revert DeltaNeutralVault_InsufficientShareReceived(_minShareReceive, _sharesToUser);
+    }
+
+    _mint(_shareReceiver, _sharesToUser);
+
     // 4. sanity check
-    _depositHealthCheck(_depositValue, _positionInfoBefore, positionInfo());
+    _depositHealthCheck(_actualEquityChange, _positionInfoBefore, _positionInfoAfter);
     _outstandingCheck(_outstandingBefore, _outstanding());
 
     emit LogDeposit(msg.sender, _shareReceiver, _sharesToUser, _stableTokenAmount, _assetTokenAmount);
     return _sharesToUser;
+  }
+  
+  /// @notice Calculate change in total equity.
+  /// @param _prev Previous position info
+  /// @param _current Current position info
+  /// @return changes in total equity
+  function _calcDeltaEq(PositionInfo memory _prev, PositionInfo memory _current) internal pure returns(uint256) {
+    // (_current.stablePositionEquity - _prev.stablePositionEquity) + (_current.assetPositionEquity - _prev.assetPositionEquity)
+    return (_current.stablePositionEquity + _current.assetPositionEquity) - (_prev.stablePositionEquity + _prev.assetPositionEquity);
   }
 
   /// @notice Withdraw from delta neutral vault.
