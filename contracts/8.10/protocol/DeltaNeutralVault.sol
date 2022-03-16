@@ -310,9 +310,13 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
     // 3. mint share for shareReceiver
     PositionInfo memory _positionInfoAfter = positionInfo();
-    uint256 _actualEquityChange = _calcDeltaEq(_positionInfoBefore, _positionInfoAfter);
+    uint256 _equityGain = _equityChange(_positionInfoBefore, _positionInfoAfter);
 
-    uint256 _sharesToUser = _valueToShare(_actualEquityChange, _positionInfoBefore.stablePositionEquity + _positionInfoBefore.assetPositionEquity);
+    // Calculate share from the equity gain against the total equity before execution of actions
+    uint256 _sharesToUser = _valueToShare(
+      _equityGain,
+      _positionInfoBefore.stablePositionEquity + _positionInfoBefore.assetPositionEquity
+    );
 
     if (_sharesToUser < _minShareReceive) {
       revert DeltaNeutralVault_InsufficientShareReceived(_minShareReceive, _sharesToUser);
@@ -321,26 +325,11 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     _mint(_shareReceiver, _sharesToUser);
 
     // 4. sanity check
-    _depositHealthCheck(_actualEquityChange, _positionInfoBefore, _positionInfoAfter);
+    _depositHealthCheck(_equityGain, _positionInfoBefore, _positionInfoAfter);
     _outstandingCheck(_outstandingBefore, _outstanding());
 
     emit LogDeposit(msg.sender, _shareReceiver, _sharesToUser, _stableTokenAmount, _assetTokenAmount);
     return _sharesToUser;
-  }
-  
-  /// @notice Calculate change in total equity.
-  /// @param _prev Previous position info
-  /// @param _current Current position info
-  /// @return changes in total equity
-  function _calcDeltaEq(PositionInfo memory _prev, PositionInfo memory _current) internal pure returns(uint256) {
-    // (_current.stablePositionEquity - _prev.stablePositionEquity) + (_current.assetPositionEquity - _prev.assetPositionEquity)
-    return (_current.stablePositionEquity + _current.assetPositionEquity) - (_prev.stablePositionEquity + _prev.assetPositionEquity);
-  }
-
-  function _valueToShare(uint256 _value, uint256 _totalEquity) internal view returns (uint256) {
-    uint256 _shareSupply = totalSupply() + pendingManagementFee();
-    if (_shareSupply == 0) return _value;
-    return FullMath.mulDiv(_value, _shareSupply, _totalEquity);
   }
 
   /// @notice Withdraw from delta neutral vault.
@@ -831,6 +820,25 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     // _lastUpdated > 1 day revert
     if (block.timestamp - _lastUpdated > 86400) revert DeltaNeutralVault_UnTrustedPrice();
     return _price;
+  }
+
+  /// @notice Calculate change in total equity.
+  /// @param _prev Previous position info
+  /// @param _current Current position info
+  function _equityChange(PositionInfo memory _prev, PositionInfo memory _current) internal pure returns (uint256) {
+    // (_current.stablePositionEquity - _prev.stablePositionEquity) + (_current.assetPositionEquity - _prev.assetPositionEquity)
+    return
+      (_current.stablePositionEquity + _current.assetPositionEquity) -
+      (_prev.stablePositionEquity + _prev.assetPositionEquity);
+  }
+
+  /// @notice Calculate share from value and total equity
+  /// @param _value Value to convert
+  /// @param _totalEquity Total equity at the time of calculation
+  function _valueToShare(uint256 _value, uint256 _totalEquity) internal view returns (uint256) {
+    uint256 _shareSupply = totalSupply() + pendingManagementFee();
+    if (_shareSupply == 0) return _value;
+    return FullMath.mulDiv(_value, _shareSupply, _totalEquity);
   }
 
   /// @dev Return a conversion factor to 18 decimals.
