@@ -197,17 +197,17 @@ describe("DeltaNeutralVault", () => {
         symbol: "BTOKEN",
         decimals: "18",
         holders: [
-          { address: deployerAddress, amount: ethers.utils.parseEther("100000000") },
-          { address: aliceAddress, amount: ethers.utils.parseEther("100000000") },
-          { address: bobAddress, amount: ethers.utils.parseEther("100000000") },
+          { address: deployerAddress, amount: ethers.utils.parseEther("10000000000000") },
+          { address: aliceAddress, amount: ethers.utils.parseEther("10000000000000") },
+          { address: bobAddress, amount: ethers.utils.parseEther("10000000000000") },
         ],
       },
     ]);
     wbnb = await deployHelper.deployWBNB();
 
-    await wbnb.mint(deployerAddress, ethers.utils.parseEther("100000000"));
-    await wbnb.mint(aliceAddress, ethers.utils.parseEther("100000000"));
-    await wbnb.mint(bobAddress, ethers.utils.parseEther("100000000"));
+    await wbnb.mint(deployerAddress, ethers.utils.parseEther("10000000000000"));
+    await wbnb.mint(aliceAddress, ethers.utils.parseEther("10000000000000"));
+    await wbnb.mint(bobAddress, ethers.utils.parseEther("10000000000000"));
 
     [factoryV2, routerV2, cake, syrup, masterChef] = await deployHelper.deployPancakeV2(wbnb, CAKE_REWARD_PER_BLOCK, [
       { address: deployerAddress, amount: ethers.utils.parseEther("100") },
@@ -607,8 +607,8 @@ describe("DeltaNeutralVault", () => {
           {
             token0: baseToken as unknown as IERC20,
             token1: wbnb as unknown as IERC20,
-            amount0desired: ethers.utils.parseEther("100000"),
-            amount1desired: ethers.utils.parseEther("100000"),
+            amount0desired: ethers.utils.parseEther("10000000000"),
+            amount1desired: ethers.utils.parseEther("10000000000"),
           },
         ]);
         // stable token reserve = 100000, asset token reserve = 100000
@@ -701,7 +701,8 @@ describe("DeltaNeutralVault", () => {
 
         // shareReceive  = depositValue * totalSupply / Equity
         // since totalSupply = 0, shareReceive = depositValue = (1*500 + 1*500) = 1000
-        const minSharesReceive = ethers.utils.parseEther("1000");
+        // apply 0.5% slippage = 995
+        const minSharesReceive = ethers.utils.parseEther("995");
         const initTx = await deltaVault.initPositions(
           depositStableTokenAmt,
           depositAssetTokenAmt,
@@ -717,7 +718,7 @@ describe("DeltaNeutralVault", () => {
         const deployerShare = await deltaVault.balanceOf(deployerAddress);
         expect(stablePosId).to.not.eq(0);
         expect(assetPostId).to.not.eq(0);
-        expect(deployerShare).to.eq(minSharesReceive);
+        expect(deployerShare).to.be.at.least(minSharesReceive.toBigInt());
 
         expect(initTx)
           .to.emit(deltaVault, "LogInitializePositions")
@@ -798,6 +799,10 @@ describe("DeltaNeutralVault", () => {
           ]
         );
 
+        // shareReceive  = depositValue * totalSupply / Equity
+        // since totalSupply = 0, shareReceive = depositValue = (1*500 + 1*500) = 1000
+        // since this is not 3x apply 1% slippage = 990
+        const minSharesReceive = ethers.utils.parseEther("990");
         const stableTokenPrice = ethers.utils.parseEther("1");
         const assetTokenPrice = ethers.utils.parseEther("1");
         const lpPrice = ethers.utils.parseEther("2");
@@ -808,7 +813,7 @@ describe("DeltaNeutralVault", () => {
         const initTx = await deltaVault.initPositions(
           stableTokenAmount,
           assetTokenAmount,
-          ethers.utils.parseEther("1000"),
+          minSharesReceive,
           data,
           {
             value: assetTokenAmount,
@@ -820,7 +825,7 @@ describe("DeltaNeutralVault", () => {
         const deployerShare = await deltaVault.balanceOf(deployerAddress);
         expect(stablePosId).to.not.eq(0);
         expect(assetPostId).to.not.eq(0);
-        expect(deployerShare).to.eq(ethers.utils.parseEther("1000"));
+        expect(deployerShare).to.be.at.least(minSharesReceive.toBigInt());
         expect(initTx)
           .to.emit(deltaVault, "LogInitializePositions")
           .withArgs(deployerAddress, stablePosId, assetPostId);
@@ -835,8 +840,8 @@ describe("DeltaNeutralVault", () => {
           {
             token0: baseToken as unknown as IERC20,
             token1: wbnb as unknown as IERC20,
-            amount0desired: ethers.utils.parseEther("100000"),
-            amount1desired: ethers.utils.parseEther("100000"),
+            amount0desired: ethers.utils.parseEther("10000000000"),
+            amount1desired: ethers.utils.parseEther("10000000000"),
           },
         ]);
 
@@ -902,8 +907,8 @@ describe("DeltaNeutralVault", () => {
           {
             token0: baseToken as unknown as IERC20,
             token1: wbnb as unknown as IERC20,
-            amount0desired: ethers.utils.parseEther("100000"),
-            amount1desired: ethers.utils.parseEther("100000"),
+            amount0desired: ethers.utils.parseEther("10000000000"),
+            amount1desired: ethers.utils.parseEther("10000000000"),
           },
         ]);
 
@@ -1046,13 +1051,14 @@ describe("DeltaNeutralVault", () => {
           const assetLpDiff = assetWorkerLpAfter.sub(assetWorkerLpBefore);
 
           // deposit value = (1 *250) + (1 *750) = 1000
-          // expect alice share = depositValue * shareSupply / totalEquity = 1000 * (1000 / 995.027565828794416348) = 1004.997282831118214845
+          // expect alice share = depositValue * shareSupply / totalEquity = 1000 * (995027565828794416348 / 995027565828794416348) = 1000
+          // applied 0.5% slippage = 995
 
-          const expectAliceShare = ethers.utils.parseEther("1004.997282831118214845");
+          const expectAliceShare = ethers.utils.parseEther("995");
           const expectPosiitonValueDiff = stableLpDiff.add(assetLpDiff).mul(lpPrice).div(ethers.utils.parseEther("1"));
           const aliceShare = await deltaVault.balanceOf(aliceAddress);
 
-          expect(expectAliceShare).to.eq(aliceShare);
+          expect(aliceShare).to.at.least(expectAliceShare);
           expect(expectPosiitonValueDiff).to.eq(positionValueAfter.sub(positionValueBefore));
           expect(positionInfoAfter.stablePositionDebtValue.sub(positionInfoBefore.stablePositionDebtValue)).to.eq(
             ethers.utils.parseEther("500")
@@ -1126,7 +1132,7 @@ describe("DeltaNeutralVault", () => {
                 }
               )
             ).to.be.revertedWith(
-              "DeltaNeutralVault_InsufficientShareReceived(1000000000000000000000000000000, 1004997282831118214845)"
+              "DeltaNeutralVault_InsufficientShareReceived(1000000000000000000000000000000, 997496795745176936356)"
             );
           });
         });
@@ -1703,94 +1709,6 @@ describe("DeltaNeutralVault", () => {
         });
       });
 
-      context("when alice deposit to delta neutral vault with deposit fee", async () => {
-        it("should be able to deposit and deduct deposit fee", async () => {
-          const depositFee = 100;
-          const withdrawFee = 0;
-          await deltaVaultConfig.setFees(eveAddress, depositFee, eveAddress, withdrawFee, eveAddress, 0);
-
-          const depositStableTokenAmount = ethers.utils.parseEther("500");
-          const depositAssetTokenAmount = ethers.utils.parseEther("500");
-
-          await baseTokenAsAlice.approve(deltaVault.address, depositStableTokenAmount);
-
-          const stableWorkbyteInput: IDepositWorkByte = {
-            posId: 1,
-            vaultAddress: stableVault.address,
-            workerAddress: stableVaultWorker.address,
-            twoSidesStrat: stableTwoSidesStrat.address,
-            principalAmount: ethers.utils.parseEther("125"),
-            borrowAmount: ethers.utils.parseEther("500"),
-            farmingTokenAmount: ethers.utils.parseEther("125"),
-            maxReturn: BigNumber.from(0),
-            minLpReceive: BigNumber.from(0),
-          };
-
-          const assetWorkbyteInput: IDepositWorkByte = {
-            posId: 1,
-            vaultAddress: assetVault.address,
-            workerAddress: assetVaultWorker.address,
-            twoSidesStrat: assetTwoSidesStrat.address,
-            principalAmount: ethers.utils.parseEther("375"),
-            borrowAmount: ethers.utils.parseEther("1500"),
-            farmingTokenAmount: ethers.utils.parseEther("375"),
-            maxReturn: BigNumber.from(0),
-            minLpReceive: BigNumber.from(0),
-          };
-
-          const stableWorkByte = buildDepositWorkByte(stableWorkbyteInput);
-          const assetWorkByte = buildDepositWorkByte(assetWorkbyteInput);
-
-          const data = ethers.utils.defaultAbiCoder.encode(
-            ["uint8[]", "uint256[]", "bytes[]"],
-            [
-              [ACTION_WORK, ACTION_WORK],
-              [0, 0],
-              [stableWorkByte, assetWorkByte],
-            ]
-          );
-
-          const stableTokenPrice = ethers.utils.parseEther("1");
-          const assetTokenPrice = ethers.utils.parseEther("1");
-          const lpPrice = ethers.utils.parseEther("2");
-
-          await setMockTokenPrice(stableTokenPrice, assetTokenPrice);
-          await setMockLpPrice(lpPrice);
-
-          const shareSupplyBefore = await deltaVault.totalSupply();
-          const aliceShareBeofre = await deltaVault.balanceOf(aliceAddress);
-          const treasuryShareBefore = await deltaVault.balanceOf(eveAddress);
-
-          const depositTx = await deltaVaultAsAlice.deposit(
-            depositStableTokenAmount,
-            depositAssetTokenAmount,
-            aliceAddress,
-            0,
-            data,
-            {
-              value: depositAssetTokenAmount,
-            }
-          );
-
-          // alice should get 99% of minted shares
-          // treasury should get 1% of minted shares
-
-          const shareSupplyAfter = await deltaVault.totalSupply();
-          const totalMintShare = shareSupplyAfter.sub(shareSupplyBefore);
-          const aliceShareAfter = await deltaVault.balanceOf(aliceAddress);
-          const treasuryShareAfter = await deltaVault.balanceOf(eveAddress);
-
-          const expectedAliceShare = totalMintShare.mul(10000 - depositFee).div(10000);
-          const expectedDeltaVaultShare = totalMintShare.mul(depositFee).div(10000);
-
-          Assert.assertAlmostEqual(expectedAliceShare.toString(), aliceShareAfter.sub(aliceShareBeofre).toString());
-          Assert.assertAlmostEqual(
-            expectedDeltaVaultShare.toString(),
-            treasuryShareAfter.sub(treasuryShareBefore).toString()
-          );
-        });
-      });
-
       context("when alice deposit make total position value exceed limit", async () => {
         it("should be revert", async () => {
           const depositStableTokenAmount = ethers.utils.parseEther("500");
@@ -1914,7 +1832,7 @@ describe("DeltaNeutralVault", () => {
         const initTx = await deltaVault.initPositions(
           stableTokenAmount,
           assetTokenAmount,
-          ethers.utils.parseEther("1000"),
+          ethers.utils.parseEther("995"),
           data,
           {
             value: assetTokenAmount,
@@ -3192,7 +3110,7 @@ describe("DeltaNeutralVault", () => {
         const initTx = await deltaVault.initPositions(
           stableTokenAmount,
           assetTokenAmount,
-          ethers.utils.parseEther("1000"),
+          ethers.utils.parseEther("995"),
           data,
           {
             value: assetTokenAmount,
