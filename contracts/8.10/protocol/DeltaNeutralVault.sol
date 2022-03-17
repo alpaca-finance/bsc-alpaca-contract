@@ -611,20 +611,34 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       revert DeltaNeutralVault_UnsafePositionValue();
     }
 
-    // debt ratio check to prevent closing all out the debt but the equity stay healthy
-    uint256 _totalDebtBefore = _positionInfoBefore.stablePositionDebtValue + _positionInfoBefore.assetPositionDebtValue;
-    uint256 _totalPositionValueBefore = _positionInfoBefore.stablePositionEquity +
-      _positionInfoBefore.assetPositionEquity +
-      _totalDebtBefore;
-    uint256 _totalDebtAfter = _positionInfoAfter.stablePositionDebtValue + _positionInfoAfter.assetPositionDebtValue;
-    uint256 _totalPositionValueAfter = _positionInfoAfter.stablePositionEquity +
-      _positionInfoAfter.assetPositionEquity +
-      _totalDebtAfter;
+    // // debt ratio check to prevent closing all out the debt but the equity stay healthy
+    uint256 _totalStablePositionBefore = _positionInfoBefore.stablePositionEquity +
+      _positionInfoBefore.stablePositionDebtValue;
+    uint256 _totalStablePositionAfter = _positionInfoAfter.stablePositionEquity +
+      _positionInfoAfter.stablePositionDebtValue;
+    // debt ratio = debt / position
+    // debt after / position after ~= debt b4 / position b4
+    // position b4 * debt after = position after * debt b4
     if (
       !Math.almostEqual(
-        _totalPositionValueBefore * _totalDebtAfter,
-        _totalPositionValueAfter * _totalDebtBefore,
-        _toleranceBps
+        _totalStablePositionBefore * _positionInfoAfter.stablePositionDebtValue,
+        _totalStablePositionAfter * _positionInfoBefore.stablePositionDebtValue,
+        30
+      )
+    ) {
+      revert DeltaNeutralVault_UnsafeDebtRatio();
+    }
+
+    uint256 _totalassetPositionBefore = _positionInfoBefore.assetPositionEquity +
+      _positionInfoBefore.assetPositionDebtValue;
+    uint256 _totalassetPositionAfter = _positionInfoAfter.assetPositionEquity +
+      _positionInfoAfter.assetPositionDebtValue;
+
+    if (
+      !Math.almostEqual(
+        _totalassetPositionBefore * _positionInfoAfter.assetPositionDebtValue,
+        _totalassetPositionAfter * _positionInfoBefore.assetPositionDebtValue,
+        30
       )
     ) {
       revert DeltaNeutralVault_UnsafeDebtRatio();

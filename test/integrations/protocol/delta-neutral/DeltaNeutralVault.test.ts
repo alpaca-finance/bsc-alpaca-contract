@@ -2287,6 +2287,84 @@ describe("DeltaNeutralVault", () => {
           );
         });
 
+        it("should revert if debt ratio change more than 30 BPS", async () => {
+          await swapHelper.loadReserves([baseToken.address, wbnb.address]);
+          const lpPrice = await swapHelper.computeLpHealth(
+            ethers.utils.parseEther("1"),
+            baseToken.address,
+            wbnb.address
+          );
+
+          await setMockLpPrice(lpPrice);
+          // Same calculation from previos test case
+
+          // Action1: partialCloseMinimize lp = 78.004799780378508254
+          // return stableToken = 105.962442582155495886, repay debt -105.962442582155495886, remaining = 0
+          // return assetToken = 49.976458329680142948
+
+          // Try to repay more debt which will get from other's LP in the pool
+          const stableDebtToRepay = ethers.utils.parseEther("110.962442582155495886");
+          const stableValueToWithDraw = ethers.utils.parseEther("49.850417244373105111").add(stableDebtToRepay);
+          const lpStableToLiquidate = stableValueToWithDraw.mul(ethers.utils.parseEther("1")).div(lpPrice);
+
+          const stableWithdrawInput: IWithdrawWorkByte = {
+            posId: 1,
+            vaultAddress: stableVault.address,
+            workerAddress: stableVaultWorker.address,
+            partialCloseMinimizeStrat: partialCloseMinimizeStrat.address,
+            debt: stableDebtToRepay,
+            maxLpTokenToLiquidate: lpStableToLiquidate, // lp amount to withdraw consists of both equity and debt
+            maxDebtRepayment: stableDebtToRepay,
+            minFarmingToken: BigNumber.from(0),
+          };
+
+          // Action2: partialCloseMinimize lp = 234.028498471773286624
+          // return stableToken = 149.931452849760353839
+          // return assetToken = 317.917159425125022223, repay debt -317.917159425125022223, remaining = 0
+
+          const assetDebtToRepay = ethers.utils.parseEther("317.917159425125022223");
+          const assetValueToWithDraw = ethers.utils.parseEther("149.549582755626896671").add(assetDebtToRepay);
+          const lpAssetToLiquidate = assetValueToWithDraw.mul(ethers.utils.parseEther("1")).div(lpPrice);
+
+          const assetWithdrawInput: IWithdrawWorkByte = {
+            posId: 1,
+            vaultAddress: assetVault.address,
+            workerAddress: assetVaultWorker.address,
+            partialCloseMinimizeStrat: partialCloseMinimizeStrat.address,
+            debt: assetDebtToRepay,
+            maxLpTokenToLiquidate: lpAssetToLiquidate,
+            maxDebtRepayment: assetDebtToRepay,
+            minFarmingToken: BigNumber.from(0),
+          };
+
+          const stableWithdrawWorkByte = buildWithdrawWorkByte(stableWithdrawInput);
+          const assetWithdrawWorkByte = buildWithdrawWorkByte(assetWithdrawInput);
+
+          const withdrawData = ethers.utils.defaultAbiCoder.encode(
+            ["uint8[]", "uint256[]", "bytes[]"],
+            [
+              [ACTION_WORK, ACTION_WORK],
+              [0, 0],
+              [stableWithdrawWorkByte, assetWithdrawWorkByte],
+            ]
+          );
+
+          const withdrawValue = ethers.utils.parseEther("200");
+          const shareToWithdraw = await deltaVault.valueToShare(withdrawValue);
+
+          // ======== withdraw ======
+          const minStableTokenReceive = ethers.utils.parseEther("149.931452849760353839");
+          const minAssetTokenReceive = ethers.utils.parseEther("49.976458329680142948");
+
+          await expect(deltaVaultAsAlice.withdraw(
+            shareToWithdraw,
+            0,
+            0,
+            withdrawData,
+            { gasPrice: 0 }
+          )).to.be.revertedWith("DeltaNeutralVault_UnsafeDebtRatio()");
+        });
+
         describe("_burn", async () => {
           it("when burned token amount is greater then token balance", async () => {
             it("should revert", async () => {
