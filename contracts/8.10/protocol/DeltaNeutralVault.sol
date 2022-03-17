@@ -574,7 +574,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     PositionInfo memory _positionInfoBefore,
     PositionInfo memory _positionInfoAfter
   ) internal view {
-    uint256 _toleranceBps = config.positionValueTolerance();
+    uint256 _positionValueTolerance = config.positionValueTolerance();
+    uint256 _debtRationTolerance = config.debtRatioTolerance();
 
     uint256 _totalEquityBefore = _positionInfoBefore.stablePositionEquity + _positionInfoBefore.assetPositionEquity;
     uint256 _stableActualWithdrawValue = _positionInfoBefore.stablePositionEquity -
@@ -588,7 +589,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       !Math.almostEqual(
         _stableActualWithdrawValue * _totalEquityBefore,
         _withdrawValue * _positionInfoBefore.stablePositionEquity,
-        _toleranceBps
+        _positionValueTolerance
       )
     ) {
       revert DeltaNeutralVault_UnsafePositionValue();
@@ -605,7 +606,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       !Math.almostEqual(
         _assetActualWithdrawValue * _totalEquityBefore,
         _withdrawValue * _positionInfoBefore.assetPositionEquity,
-        _toleranceBps
+        _positionValueTolerance
       )
     ) {
       revert DeltaNeutralVault_UnsafePositionValue();
@@ -623,7 +624,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       !Math.almostEqual(
         _totalStablePositionBefore * _positionInfoAfter.stablePositionDebtValue,
         _totalStablePositionAfter * _positionInfoBefore.stablePositionDebtValue,
-        30
+        _debtRationTolerance
       )
     ) {
       revert DeltaNeutralVault_UnsafeDebtRatio();
@@ -638,7 +639,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       !Math.almostEqual(
         _totalassetPositionBefore * _positionInfoAfter.assetPositionDebtValue,
         _totalassetPositionAfter * _positionInfoBefore.assetPositionDebtValue,
-        30
+        _debtRationTolerance
       )
     ) {
       revert DeltaNeutralVault_UnsafeDebtRatio();

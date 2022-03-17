@@ -27,7 +27,8 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     address _getWNativeRelayer,
     address _fairLaunchAddr,
     uint256 _rebalanceFactor,
-    uint256 _positionValueTolerance
+    uint256 _positionValueTolerance,
+    uint256 _debtRatioTolerance
   );
   event LogSetWhitelistedCallers(address indexed _caller, address indexed _address, bool _ok);
   event LogSetWhitelistedRebalancers(address indexed _caller, address indexed _address, bool _ok);
@@ -87,6 +88,8 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
   uint256 public override rebalanceFactor;
   /// @notice Tolerance bps that allow margin for misc calculation
   uint256 public override positionValueTolerance;
+  /// @notice Specific Tolerance bps use for debt ratio check during withdraw
+  uint256 public override debtRatioTolerance;
 
   /// @notice Deposit fee treasury.
   address public depositFeeTreasury;
@@ -137,6 +140,7 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     address _fairLaunchAddr,
     uint256 _rebalanceFactor,
     uint256 _positionValueTolerance,
+    uint256 _debtRatioTolerance,
     address _depositFeeTreasury,
     address _managementFeeTreasury,
     address _withdrawFeeTreasury,
@@ -147,7 +151,14 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     alpacaToken = _alpacaToken;
 
     setFees(_depositFeeTreasury, 0, _withdrawFeeTreasury, 0, _managementFeeTreasury, 0);
-    setParams(_getWrappedNativeAddr, _getWNativeRelayer, _fairLaunchAddr, _rebalanceFactor, _positionValueTolerance);
+    setParams(
+      _getWrappedNativeAddr,
+      _getWNativeRelayer,
+      _fairLaunchAddr,
+      _rebalanceFactor,
+      _positionValueTolerance,
+      _debtRatioTolerance
+    );
   }
 
   function setParams(
@@ -155,13 +166,15 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
     address _getWNativeRelayer,
     address _fairLaunchAddr,
     uint256 _rebalanceFactor,
-    uint256 _positionValueTolerance
+    uint256 _positionValueTolerance,
+    uint256 _debtRatioTolerance
   ) public onlyOwner {
     getWrappedNativeAddr = _getWrappedNativeAddr;
     getWNativeRelayer = _getWNativeRelayer;
     fairLaunchAddr = _fairLaunchAddr;
     rebalanceFactor = _rebalanceFactor;
     positionValueTolerance = _positionValueTolerance;
+    debtRatioTolerance = _debtRatioTolerance;
 
     emit LogSetParams(
       msg.sender,
@@ -169,7 +182,8 @@ contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable
       _getWNativeRelayer,
       _fairLaunchAddr,
       _rebalanceFactor,
-      _positionValueTolerance
+      _positionValueTolerance,
+      _debtRatioTolerance
     );
   }
 

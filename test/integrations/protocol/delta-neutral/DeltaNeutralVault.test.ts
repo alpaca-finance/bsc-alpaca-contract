@@ -76,6 +76,7 @@ describe("DeltaNeutralVault", () => {
   // Delta Vault Config
   const REBALANCE_FACTOR = "6800";
   const POSITION_VALUE_TOLERANCE_BPS = "200";
+  const DEBT_RATIO_TOLERANCE_BPS = "30";
   const MAX_VAULT_POSITION_VALUE = ethers.utils.parseEther("100000");
   const DEPOSIT_FEE_BPS = "0"; // 0%
 
@@ -335,6 +336,7 @@ describe("DeltaNeutralVault", () => {
       fairlaunchAddr: fairLaunch.address,
       rebalanceFactor: REBALANCE_FACTOR,
       positionValueTolerance: POSITION_VALUE_TOLERANCE_BPS,
+      debtRatioTolerance: DEBT_RATIO_TOLERANCE_BPS,
       depositFeeTreasury: eveAddress,
       managementFeeTreasury: eveAddress,
       withdrawFeeTreasury: eveAddress,
@@ -548,6 +550,7 @@ describe("DeltaNeutralVault", () => {
           fairlaunchAddr: fairLaunch.address,
           rebalanceFactor: REBALANCE_FACTOR,
           positionValueTolerance: POSITION_VALUE_TOLERANCE_BPS,
+          debtRatioTolerance: DEBT_RATIO_TOLERANCE_BPS,
           depositFeeTreasury: eveAddress,
           managementFeeTreasury: eveAddress,
           withdrawFeeTreasury: eveAddress,
@@ -3985,6 +3988,7 @@ describe("DeltaNeutralVault", () => {
             fairlaunchAddr: fairLaunch.address,
             rebalanceFactor: REBALANCE_FACTOR,
             positionValueTolerance: POSITION_VALUE_TOLERANCE_BPS,
+            debtRatioTolerance: DEBT_RATIO_TOLERANCE_BPS,
             depositFeeTreasury: eveAddress,
             managementFeeTreasury: eveAddress,
             withdrawFeeTreasury: eveAddress,
