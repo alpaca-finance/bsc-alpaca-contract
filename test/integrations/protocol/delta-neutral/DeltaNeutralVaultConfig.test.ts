@@ -34,6 +34,7 @@ describe("DeltaNeutralVaultConfig", () => {
   const FAIR_LAUNCH_ADDR = ethers.constants.AddressZero;
   const REBALANCE_FACTOR = "6500";
   const POSITION_VALUE_TOLERANCE_BPS = "1000";
+  const DEBT_RATIO_TOLERANCE_BPS = "1000";
   const ALPACA_BOUNTY_BPS = "100";
 
   const TOKEN_SOURCE_ADDR = "0x0000000000000000000000000000000000000001";
@@ -60,6 +61,7 @@ describe("DeltaNeutralVaultConfig", () => {
       fairlaunchAddr: FAIR_LAUNCH_ADDR,
       rebalanceFactor: REBALANCE_FACTOR,
       positionValueTolerance: POSITION_VALUE_TOLERANCE_BPS,
+      debtRatioTolerance: DEBT_RATIO_TOLERANCE_BPS,
       depositFeeTreasury: TREASURY_ADDR,
       managementFeeTreasury: TREASURY_ADDR,
       withdrawFeeTreasury: TREASURY_ADDR,
@@ -86,13 +88,14 @@ describe("DeltaNeutralVaultConfig", () => {
         const NEW_FAIR_LAUNCH_ADDR = "0x0000000000000000000000000000000000000003";
         const NEW_REBALANCE_FACTOR = "6600";
         const NEW_POSITION_VALUE_TOLERANCE_BPS = "1200";
-
+        const NEW_DEBT_RATIO_TOLERANCE_BPS = "50";
         await deltaNeutralVaultConfigAsDeployer.setParams(
           NEW_WRAP_NATIVE_ADDR,
           NEW_WNATIVE_RELAYER,
           NEW_FAIR_LAUNCH_ADDR,
           NEW_REBALANCE_FACTOR,
-          NEW_POSITION_VALUE_TOLERANCE_BPS
+          NEW_POSITION_VALUE_TOLERANCE_BPS,
+          NEW_DEBT_RATIO_TOLERANCE_BPS
         );
 
         const WRAP_NATIVE_ADDR_ = await deltaNeutralVaultConfigAsDeployer.getWrappedNativeAddr();
@@ -100,12 +103,14 @@ describe("DeltaNeutralVaultConfig", () => {
         const FAIR_LAUNCH_ADDR_ = await deltaNeutralVaultConfigAsDeployer.fairLaunchAddr();
         const REBALANCE_FACTOR_ = await deltaNeutralVaultConfigAsDeployer.rebalanceFactor();
         const POSITION_VALUE_TOLERANCE_BPS_ = await deltaNeutralVaultConfigAsDeployer.positionValueTolerance();
+        const DEBT_RATIO_VALUE_TOLERANCE_BPS_ = await deltaNeutralVaultConfigAsDeployer.debtRatioTolerance();
 
         expect(WRAP_NATIVE_ADDR_).to.equal(NEW_WRAP_NATIVE_ADDR);
         expect(WNATIVE_RELAYER_).to.equal(NEW_WNATIVE_RELAYER);
         expect(FAIR_LAUNCH_ADDR_).to.equal(NEW_FAIR_LAUNCH_ADDR);
         expect(REBALANCE_FACTOR_).to.equal(NEW_REBALANCE_FACTOR);
         expect(POSITION_VALUE_TOLERANCE_BPS_).to.equal(NEW_POSITION_VALUE_TOLERANCE_BPS);
+        expect(DEBT_RATIO_VALUE_TOLERANCE_BPS_).to.equal(NEW_DEBT_RATIO_TOLERANCE_BPS);
       });
     });
 
@@ -118,6 +123,7 @@ describe("DeltaNeutralVaultConfig", () => {
             FAIR_LAUNCH_ADDR,
             REBALANCE_FACTOR,
             POSITION_VALUE_TOLERANCE_BPS,
+            DEBT_RATIO_TOLERANCE_BPS,
             { from: aliceAddress }
           )
         ).to.be.revertedWith("Ownable: caller is not the owner");

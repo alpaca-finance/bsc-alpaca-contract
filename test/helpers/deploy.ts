@@ -178,6 +178,7 @@ export interface IDeltaNeutralVaultConfig {
   fairlaunchAddr: string;
   rebalanceFactor: BigNumberish;
   positionValueTolerance: BigNumberish;
+  debtRatioTolerance: BigNumberish;
   depositFeeTreasury: string;
   managementFeeTreasury: string;
   withdrawFeeTreasury: string;
@@ -1109,6 +1110,7 @@ export class DeployHelper {
       input.fairlaunchAddr,
       input.rebalanceFactor,
       input.positionValueTolerance,
+      input.debtRatioTolerance,
       input.depositFeeTreasury,
       input.managementFeeTreasury,
       input.withdrawFeeTreasury,

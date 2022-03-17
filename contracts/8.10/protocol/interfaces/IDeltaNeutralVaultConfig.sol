@@ -22,6 +22,8 @@ interface IDeltaNeutralVaultConfig {
 
   function positionValueTolerance() external view returns (uint256);
 
+  function debtRatioTolerance() external view returns (uint256);
+
   /// @dev Return if the caller is whitelisted.
   function whitelistedCallers(address _caller) external view returns (bool);
 
