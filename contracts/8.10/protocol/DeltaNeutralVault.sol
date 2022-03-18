@@ -351,6 +351,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _withdrawalFeeBps = config.feeExemptedCallers(msg.sender) ? 0 : config.withdrawalFeeBps();
     uint256 _shareToWithdraw = ((MAX_BPS - _withdrawalFeeBps) * _shareAmount) / MAX_BPS;
     uint256 _withdrawShareValue = shareToValue(_shareToWithdraw);
+    uint256 _totalUnderlyingLpBefore = _getTotalUnderlyingLp();
 
     // burn shares from share owner
     _burn(msg.sender, _shareAmount);
@@ -382,26 +383,17 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       revert DeltaNeutralVault_InsufficientTokenReceived(assetToken, _minAssetTokenAmount, _assetTokenBack);
     }
 
-    uint256 _withdrawValue;
-    {
-      uint256 _stableWithdrawValue = (_stableTokenBack * stableTo18ConversionFactor).mulWadDown(
-        _getTokenPrice(stableToken)
-      );
-      uint256 _assetWithdrawValue = (_assetTokenBack * assetTo18ConversionFactor).mulWadDown(
-        _getTokenPrice(assetToken)
-      );
-      _withdrawValue = _stableWithdrawValue + _assetWithdrawValue;
-    }
+    uint256 _withdrawValue = _getWithdrawValue(
+      _totalUnderlyingLpBefore,
+      (_positionInfoBefore.assetPositionDebtValue + _positionInfoBefore.stablePositionDebtValue) -
+        (_positionInfoAfter.assetPositionDebtValue + _positionInfoAfter.stablePositionDebtValue)
+    );
 
-    uint256 _totalEquityLoss = _totalEquityChange(_positionInfoBefore, _positionInfoAfter);
-    // sanity check
     if (_withdrawShareValue < _withdrawValue) {
       revert DeltaNeutralVault_WithdrawValueExceedShareValue(_withdrawValue, _withdrawShareValue);
     }
-    if (_withdrawShareValue < _totalEquityLoss) {
-      revert DeltaNeutralVault_WithdrawValueExceedShareValue(_totalEquityLoss, _withdrawShareValue);
-    }
 
+    // sanity check
     _withdrawHealthCheck(_withdrawShareValue, _positionInfoBefore, _positionInfoAfter);
     _outstandingCheck(_outstandingBefore, _outstandingAfter);
 
@@ -410,6 +402,13 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
     emit LogWithdraw(msg.sender, _stableTokenBack, _assetTokenBack);
     return _withdrawValue;
+  }
+
+  function _getWithdrawValue(uint256 _totalUnderlyingLpBefore, uint256 _debtRepaid) internal view returns (uint256) {
+    // If the price is outdated, it should have been reverted from positionInfo() already
+    (uint256 _diffLpPrice, ) = priceOracle.lpToDollar(_totalUnderlyingLpBefore - _getTotalUnderlyingLp(), lpToken);
+
+    return _diffLpPrice - _debtRepaid;
   }
 
   /// @notice Rebalance stable and asset positions.
@@ -775,6 +774,10 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     (uint256 _lpValue, uint256 _lastUpdated) = priceOracle.lpToDollar(IWorker02(_worker).totalLpBalance(), lpToken);
     if (block.timestamp - _lastUpdated > 86400) revert DeltaNeutralVault_UnTrustedPrice();
     return _lpValue;
+  }
+
+  function _getTotalUnderlyingLp() internal view returns (uint256) {
+    return IWorker02(stableVaultWorker).totalLpBalance() + IWorker02(assetVaultWorker).totalLpBalance();
   }
 
   /// @notice Proxy function for calling internal action.
