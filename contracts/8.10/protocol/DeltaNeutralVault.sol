@@ -390,8 +390,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     // and debt repaid = debt before - debt
     uint256 _withdrawValue = _calculateWithdrawValue(
       _totalUnderlyingLpBefore,
-      (_positionInfoBefore.assetPositionDebtValue + _positionInfoBefore.stablePositionDebtValue) -
-        (_positionInfoAfter.assetPositionDebtValue + _positionInfoAfter.stablePositionDebtValue)
+      (_positionInfoBefore.stablePositionDebtValue + _positionInfoBefore.assetPositionDebtValue) -
+        (_positionInfoAfter.stablePositionDebtValue + _positionInfoAfter.assetPositionDebtValue)
     );
 
     if (_withdrawShareValue < _withdrawValue) {
