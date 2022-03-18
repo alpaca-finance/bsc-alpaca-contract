@@ -33,7 +33,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const UPDATES: Array<IUpdate> = [
     {
-      STAKING_TOKEN: "fdAlpacaToken",
+      STAKING_TOKEN: "fdALPACA",
       ALLOC_POINT: 225,
       OVERWRITE: false,
       WITH_UPDATE: true,

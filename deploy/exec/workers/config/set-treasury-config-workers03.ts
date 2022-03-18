@@ -36,7 +36,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "TSHARE-WFTM TombWorker",
     "TOMB-WFTM TombWorker",
   ];
-  const TREASURY_ACCOUNT = "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De";
+  const TREASURY_ACCOUNT = "";
   const TREASURY_BOUNTY_BPS = "900";
 
   const targetedWorkers = mapWorkers(workerInputs);
