@@ -19,7 +19,7 @@ module.exports = {
       timeout: 1800000,
       accounts: {
         mnemonic: "test test test test test test test test test test test junk",
-        accountsBalance: "100000000000000000000000000000000000",
+        accountsBalance: "100000000000000000000000000000000000000000",
       },
     },
     testnet: {

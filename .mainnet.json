@@ -1854,8 +1854,8 @@
         },
         {
           "name": "USDT-WBNB 8x DeltaNeutralPancakeswapWorker",
-          "address": "",
-          "deployedBlock": 234234,
+          "address": "0x83A5d5c54Ad83bBeA8667B3B95d7610E16e52723",
+          "deployedBlock": 16158215,
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 264,
           "stakingToken": "0x16b9a82891338f9bA80E2D6970FddA79D1eb0daE",
@@ -2997,8 +2997,8 @@
         },
         {
           "name": "WBNB-USDT 8x DeltaNeutralPancakeswapWorker",
-          "address": "",
-          "deployedBlock": 353453,
+          "address": "0x4b70c41F514FBBEa718234Ac72f36c1b077a4162",
+          "deployedBlock": 16158228,
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 264,
           "stakingToken": "0x16b9a82891338f9bA80E2D6970FddA79D1eb0daE",
@@ -3379,19 +3379,19 @@
     {
       "name": "Market Neutral 8x BNB-USDT PCS1",
       "symbol": "n8x-BNBUSDT-PCS1",
-      "address": "",
-      "deployedBlock": 12312312312,
-      "config": "",
+      "address": "0x8e5CfA7C06F187B56537f7F0CaBfb55611Af6F16",
+      "deployedBlock": 16158281,
+      "config": "0x31e4614551A80eAb40c29AE851d710a3A0B72967",
       "assetToken": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
       "stableToken": "0x55d398326f99059ff775485246999027b3197955",
       "assetVault": "0xd7D069493685A581d27824Fc46EdA46B7EfC0063",
       "stableVault": "0x158Da805682BdC8ee32d52833aD41E74bb951E59",
-      "assetDeltaWorker": "",
-      "stableDeltaWorker": "",
-      "gateway": "",
+      "assetDeltaWorker": "0x83A5d5c54Ad83bBeA8667B3B95d7610E16e52723",
+      "stableDeltaWorker": "0x4b70c41F514FBBEa718234Ac72f36c1b077a4162",
+      "gateway": "0xD3f82E0aF8c5a078C783DeDdDF79Ccb762bA413a",
       "oracle": "0x08EA5fB66EA41f236E3001d2655e43A1E735787F",
-      "assetVaultPosId": "",
-      "stableVaultPosId": ""
+      "assetVaultPosId": "0",
+      "stableVaultPosId": "0"
     }
   ]
 }
