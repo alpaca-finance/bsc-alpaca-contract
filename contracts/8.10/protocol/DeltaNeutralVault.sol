@@ -383,7 +383,12 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       revert DeltaNeutralVault_InsufficientTokenReceived(assetToken, _minAssetTokenAmount, _assetTokenBack);
     }
 
-    uint256 _withdrawValue = _getWithdrawValue(
+    // To avoid stack too deep, we use internal function.
+    // The real equation behind this was
+    // _withdrawValue = position value loss - debt repaid
+    // where position value loss = Workers' LP amount before - Workers' LP amount after
+    // and debt repaid = debt before - debt
+    uint256 _withdrawValue = _calculateWithdrawValue(
       _totalUnderlyingLpBefore,
       (_positionInfoBefore.assetPositionDebtValue + _positionInfoBefore.stablePositionDebtValue) -
         (_positionInfoAfter.assetPositionDebtValue + _positionInfoAfter.stablePositionDebtValue)
@@ -402,13 +407,6 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
     emit LogWithdraw(msg.sender, _stableTokenBack, _assetTokenBack);
     return _withdrawValue;
-  }
-
-  function _getWithdrawValue(uint256 _totalUnderlyingLpBefore, uint256 _debtRepaid) internal view returns (uint256) {
-    // If the price is outdated, it should have been reverted from positionInfo() already
-    (uint256 _diffLpPrice, ) = priceOracle.lpToDollar(_totalUnderlyingLpBefore - _getTotalUnderlyingLp(), lpToken);
-
-    return _diffLpPrice - _debtRepaid;
   }
 
   /// @notice Rebalance stable and asset positions.
@@ -776,8 +774,23 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     return _lpValue;
   }
 
+  /// @notice Return total amount of LP token in both workers
   function _getTotalUnderlyingLp() internal view returns (uint256) {
     return IWorker02(stableVaultWorker).totalLpBalance() + IWorker02(assetVaultWorker).totalLpBalance();
+  }
+
+  /// @notice Return withdraw value
+  /// @param _totalUnderlyingLpBefore Total lp amount before withdrawal.
+  /// @param _debtRepaid Total debt value repaid.
+  function _calculateWithdrawValue(uint256 _totalUnderlyingLpBefore, uint256 _debtRepaid)
+    internal
+    view
+    returns (uint256)
+  {
+    // If the price is outdated, it should have been reverted from positionInfo() already
+    (uint256 _lpValueUsed, ) = priceOracle.lpToDollar(_totalUnderlyingLpBefore - _getTotalUnderlyingLp(), lpToken);
+
+    return _lpValueUsed - _debtRepaid;
   }
 
   /// @notice Proxy function for calling internal action.
