@@ -351,8 +351,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _withdrawalFeeBps = config.feeExemptedCallers(msg.sender) ? 0 : config.withdrawalFeeBps();
     uint256 _shareToWithdraw = ((MAX_BPS - _withdrawalFeeBps) * _shareAmount) / MAX_BPS;
     uint256 _withdrawShareValue = shareToValue(_shareToWithdraw);
-    uint256 _totalUnderlyingLpBefore = _getTotalUnderlyingLp();
-
+    uint256 _totalUnderlyingLpBefore = _getUnderlyingLp(stableVaultWorker) + _getUnderlyingLp(assetVaultWorker);
     // burn shares from share owner
     _burn(msg.sender, _shareAmount);
 
@@ -775,8 +774,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   }
 
   /// @notice Return total amount of LP token in both workers
-  function _getTotalUnderlyingLp() internal view returns (uint256) {
-    return IWorker02(stableVaultWorker).totalLpBalance() + IWorker02(assetVaultWorker).totalLpBalance();
+  function _getUnderlyingLp(address _worker) internal view returns (uint256) {
+    return IWorker02(_worker).totalLpBalance() + IWorker02(assetVaultWorker).totalLpBalance();
   }
 
   /// @notice Return withdraw value
@@ -788,7 +787,10 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     returns (uint256)
   {
     // If the price is outdated, it should have been reverted from positionInfo() already
-    (uint256 _lpValueUsed, ) = priceOracle.lpToDollar(_totalUnderlyingLpBefore - _getTotalUnderlyingLp(), lpToken);
+    (uint256 _lpValueUsed, ) = priceOracle.lpToDollar(
+      _totalUnderlyingLpBefore - (_getUnderlyingLp(stableVaultWorker) + _getUnderlyingLp(assetVaultWorker)),
+      lpToken
+    );
 
     return _lpValueUsed - _debtRepaid;
   }
