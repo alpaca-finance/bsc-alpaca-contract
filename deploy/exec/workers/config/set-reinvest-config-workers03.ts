@@ -1,9 +1,8 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, network } from "hardhat";
-import { SpookyWorker03__factory, Timelock__factory, TombWorker03__factory } from "../../../../typechain";
-import MainnetConfig from "../../../../.mainnet.json";
-import TestnetConfig from "../../../../.testnet.json";
+import { SpookyWorker03__factory } from "./../../../../typechain/factories/SpookyWorker03__factory";
+import { TombWorker03__factory } from "./../../../../typechain/factories/TombWorker03__factory";
 import { FileService, TimelockService } from "../../../services";
 import { ConfigEntity, TimelockEntity } from "../../../entities";
 
@@ -118,19 +117,19 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       WORKER_NAME: "WFTM-TOMB TombWorker",
       REINVEST_BOUNTY_BPS: "900",
       REINVEST_THRESHOLD: "33",
-      REINVEST_PATH: ["BOO", "WFTM", "TOMB"],
+      REINVEST_PATH: ["TSHARE", "WFTM", "TOMB"],
     },
     {
       WORKER_NAME: "TSHARE-WFTM TombWorker",
       REINVEST_BOUNTY_BPS: "900",
       REINVEST_THRESHOLD: "33",
-      REINVEST_PATH: ["BOO", "WFTM"],
+      REINVEST_PATH: ["TSHARE", "WFTM"],
     },
     {
       WORKER_NAME: "TOMB-WFTM TombWorker",
       REINVEST_BOUNTY_BPS: "900",
       REINVEST_THRESHOLD: "33",
-      REINVEST_PATH: ["BOO", "WFTM", "WFTM"],
+      REINVEST_PATH: ["TSHARE", "WFTM"],
     },
   ];
 
@@ -194,6 +193,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
           gasPrice: ethers.utils.parseUnits("10", "gwei"),
         }
       );
+      console.log("✅ Done");
       continue;
     }
     const spookyWorker03 = SpookyWorker03__factory.connect(reinvestConfig.ADDRESS, deployer);

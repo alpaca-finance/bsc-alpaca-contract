@@ -5,7 +5,8 @@ import MainnetConfig from "../../../../.mainnet.json";
 import TestnetConfig from "../../../../.testnet.json";
 import { ConfigEntity, TimelockEntity } from "../../../entities";
 import { FileService, TimelockService } from "../../../services";
-import { SpookyWorker03__factory, TombWorker03__factory } from "../../../../typechain";
+import { SpookyWorker03__factory } from "./../../../../typechain/factories/SpookyWorker03__factory";
+import { TombWorker03__factory } from "./../../../../typechain/factories/TombWorker03__factory";
 
 interface IWorker {
   WORKER_NAME: string;
@@ -90,6 +91,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         nonce: nonce++,
         gasPrice: ethers.utils.parseUnits("10", "gwei"),
       });
+      console.log("✅ Done");
       continue;
     }
     const spookyWorker03 = SpookyWorker03__factory.connect(TO_BE_UPGRADE_WORKERS[i].ADDRESS, deployer);

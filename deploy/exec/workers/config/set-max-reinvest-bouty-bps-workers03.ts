@@ -81,6 +81,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         nonce: nonce++,
         gasPrice: ethers.utils.parseUnits("10", "gwei"),
       });
+      console.log("✅ Done");
       continue;
     }
     const spookyWorker03 = SpookyWorker03__factory.connect(TO_BE_UPDATED_WORKERS[i].ADDRESS, deployer);

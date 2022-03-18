@@ -4,7 +4,8 @@ import { TimelockEntity } from "../../../entities";
 import { mapWorkers } from "../../../entities/worker";
 import { FileService, TimelockService } from "../../../services";
 import { ethers } from "hardhat";
-import { SpookyWorker03__factory, TombWorker03__factory } from "../../../../typechain";
+import { SpookyWorker03__factory } from "./../../../../typechain/factories/SpookyWorker03__factory";
+import { TombWorker03__factory } from "./../../../../typechain/factories/TombWorker03__factory";
 /**
  * @description Deployment script for upgrades workers to 02 version
  * @param  {HardhatRuntimeEnvironment} hre
@@ -52,6 +53,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         nonce: nonce++,
         gasPrice: ethers.utils.parseUnits("10", "gwei"),
       });
+      console.log("✅ Done");
       continue;
     }
     const spookyWorker03 = SpookyWorker03__factory.connect(targetedWorker.address, deployer);
