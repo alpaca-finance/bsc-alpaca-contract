@@ -876,19 +876,6 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     return _price;
   }
 
-  /// @notice Calculate change in total equity.
-  /// @param _positionInfoBefore Previous position info
-  /// @param _positionInfoAfter Current position info
-  function _totalEquityGain(PositionInfo memory _positionInfoBefore, PositionInfo memory _positionInfoAfter)
-    internal
-    pure
-    returns (uint256)
-  {
-    return
-      (_positionInfoAfter.stablePositionEquity + _positionInfoAfter.assetPositionEquity) -
-      (_positionInfoBefore.stablePositionEquity + _positionInfoBefore.assetPositionEquity);
-  }
-
   /// @notice Calculate share from value and total equity
   /// @param _value Value to convert
   /// @param _totalEquity Total equity at the time of calculation
