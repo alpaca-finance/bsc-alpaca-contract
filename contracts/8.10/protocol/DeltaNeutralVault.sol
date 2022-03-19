@@ -568,10 +568,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _debtRationTolerance = config.debtRatioTolerance();
 
     uint256 _totalEquityBefore = _positionInfoBefore.stablePositionEquity + _positionInfoBefore.assetPositionEquity;
-    (uint256 _stableLpWithdrawValue, ) = priceOracle.lpToDollar(
-      _positionInfoBefore.stableLpAmount - _positionInfoAfter.stableLpAmount,
-      lpToken
-    );
+    uint256 _stableLpWithdrawValue = _lpToValue(_positionInfoBefore.stableLpAmount - _positionInfoAfter.stableLpAmount);
 
     // This will force the equity loss in stable vault stay within the expectation
     // Given that the expectation is equity loss in stable vault will not alter the stable equity to total equity ratio
@@ -589,10 +586,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       revert DeltaNeutralVault_UnsafePositionValue();
     }
 
-    (uint256 _assetLpWithdrawValue, ) = priceOracle.lpToDollar(
-      _positionInfoBefore.assetLpAmount - _positionInfoAfter.assetLpAmount,
-      lpToken
-    );
+    uint256 _assetLpWithdrawValue = _lpToValue(_positionInfoBefore.assetLpAmount - _positionInfoAfter.assetLpAmount);
 
     // This will force the equity loss in asset vault stay within the expectation
     // Given that the expectation is equity loss in asset vault will not alter the asset equity to total equity ratio
@@ -688,8 +682,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   function positionInfo() public view returns (PositionInfo memory) {
     uint256 _stableLpAmount = IWorker02(stableVaultWorker).totalLpBalance();
     uint256 _assetLpAmount = IWorker02(assetVaultWorker).totalLpBalance();
-    uint256 _stablePositionValue = _positionValue(_stableLpAmount);
-    uint256 _assetPositionValue = _positionValue(_assetLpAmount);
+    uint256 _stablePositionValue = _lpToValue(_stableLpAmount);
+    uint256 _assetPositionValue = _lpToValue(_assetLpAmount);
     uint256 _stableDebtValue = _positionDebtValue(stableVault, stableVaultPosId, stableTo18ConversionFactor);
     uint256 _assetDebtValue = _positionDebtValue(assetVault, assetVaultPosId, assetTo18ConversionFactor);
     return
@@ -722,7 +716,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
   /// @notice Return equity value of delta neutral position.
   function totalEquityValue() public view returns (uint256) {
-    uint256 _totalPositionValue = _positionValue(
+    uint256 _totalPositionValue = _lpToValue(
       IWorker02(stableVaultWorker).totalLpBalance() + IWorker02(assetVaultWorker).totalLpBalance()
     );
     uint256 _totalDebtValue = _positionDebtValue(stableVault, stableVaultPosId, stableTo18ConversionFactor) +
@@ -773,9 +767,9 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     return (_debtAmount * _18ConversionFactor).mulWadDown(_getTokenPrice(_token));
   }
 
-  /// @notice Return position value of a worker.
-  /// @param _lpAmount Amount of lp that worker hold.
-  function _positionValue(uint256 _lpAmount) internal view returns (uint256) {
+  /// @notice Return value of given lp amount.
+  /// @param _lpAmount Amount of lp.
+  function _lpToValue(uint256 _lpAmount) internal view returns (uint256) {
     (uint256 _lpValue, uint256 _lastUpdated) = priceOracle.lpToDollar(_lpAmount, lpToken);
     if (block.timestamp - _lastUpdated > 86400) revert DeltaNeutralVault_UnTrustedPrice();
     return _lpValue;
@@ -791,13 +785,10 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   {
     uint256 _lpUsed = (_positionInfoBefore.stableLpAmount + _positionInfoBefore.assetLpAmount) -
       (_positionInfoAfter.stableLpAmount + _positionInfoAfter.assetLpAmount);
-    // If the price is outdated, it should have been reverted from positionInfo() already
-    (uint256 _lpValueUsed, ) = priceOracle.lpToDollar(_lpUsed, lpToken);
-
     uint256 _debtRepaid = (_positionInfoBefore.stablePositionDebtValue + _positionInfoBefore.assetPositionDebtValue) -
       (_positionInfoAfter.stablePositionDebtValue + _positionInfoAfter.assetPositionDebtValue);
 
-    return _lpValueUsed - _debtRepaid;
+    return _lpToValue(_lpUsed) - _debtRepaid;
   }
 
   /// @notice Proxy function for calling internal action.
