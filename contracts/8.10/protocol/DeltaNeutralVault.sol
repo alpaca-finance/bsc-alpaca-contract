@@ -722,8 +722,9 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
   /// @notice Return equity value of delta neutral position.
   function totalEquityValue() public view returns (uint256) {
-    uint256 _totalPositionValue = _positionValue(IWorker02(stableVaultWorker).totalLpBalance()) +
-      _positionValue(IWorker02(assetVaultWorker).totalLpBalance());
+    uint256 _totalPositionValue = _positionValue(
+      IWorker02(stableVaultWorker).totalLpBalance() + IWorker02(assetVaultWorker).totalLpBalance()
+    );
     uint256 _totalDebtValue = _positionDebtValue(stableVault, stableVaultPosId, stableTo18ConversionFactor) +
       _positionDebtValue(assetVault, assetVaultPosId, assetTo18ConversionFactor);
     if (_totalPositionValue < _totalDebtValue) {
