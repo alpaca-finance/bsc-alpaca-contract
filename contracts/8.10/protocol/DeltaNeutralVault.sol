@@ -89,8 +89,10 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   struct PositionInfo {
     uint256 stablePositionEquity;
     uint256 stablePositionDebtValue;
+    uint256 stableLpAmount;
     uint256 assetPositionEquity;
     uint256 assetPositionDebtValue;
+    uint256 assetLpAmount;
   }
 
   /// @dev constants
@@ -351,8 +353,6 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _withdrawalFeeBps = config.feeExemptedCallers(msg.sender) ? 0 : config.withdrawalFeeBps();
     uint256 _shareToWithdraw = ((MAX_BPS - _withdrawalFeeBps) * _shareAmount) / MAX_BPS;
     uint256 _withdrawShareValue = shareToValue(_shareToWithdraw);
-    uint256 _stableLpBefore = _getUnderlyingLp(stableVaultWorker);
-    uint256 _assetLpBefore = _getUnderlyingLp(assetVaultWorker);
 
     // burn shares from share owner
     _burn(msg.sender, _shareAmount);
@@ -369,8 +369,9 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     }
 
     PositionInfo memory _positionInfoAfter = positionInfo();
+    Outstanding memory _outstandingAfter = _outstanding();
 
-    (uint256 _stableTokenBack, uint256 _assetTokenBack) = _getTokenBack(_outstandingBefore, _outstanding());
+    (uint256 _stableTokenBack, uint256 _assetTokenBack) = _getTokenBack(_outstandingBefore, _outstandingAfter);
 
     if (_stableTokenBack < _minStableTokenAmount) {
       revert DeltaNeutralVault_InsufficientTokenReceived(stableToken, _minStableTokenAmount, _stableTokenBack);
@@ -380,23 +381,15 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     }
 
     // To avoid stack too deep, we use internal function.
-    // The real equation behind this was
-    // _withdrawValue = position value loss - debt repaid
-    // where position value loss = Workers' LP amount before - Workers' LP amount after
-    // and debt repaid = debt before - debt
-    uint256 _withdrawValue = _calculateWithdrawValue(
-      _stableLpBefore + _assetLpBefore,
-      (_positionInfoBefore.stablePositionDebtValue + _positionInfoBefore.assetPositionDebtValue) -
-        (_positionInfoAfter.stablePositionDebtValue + _positionInfoAfter.assetPositionDebtValue)
-    );
+    uint256 _withdrawValue = _calculateWithdrawValue(_positionInfoBefore, _positionInfoAfter);
 
     if (_withdrawShareValue < _withdrawValue) {
       revert DeltaNeutralVault_WithdrawValueExceedShareValue(_withdrawValue, _withdrawShareValue);
     }
 
     // sanity check
-    _withdrawHealthCheck(_withdrawShareValue, _positionInfoBefore, _positionInfoAfter, _stableLpBefore, _assetLpBefore);
-    _outstandingCheck(_outstandingBefore, _outstanding());
+    _withdrawHealthCheck(_withdrawShareValue, _positionInfoBefore, _positionInfoAfter);
+    _outstandingCheck(_outstandingBefore, _outstandingAfter);
 
     _transferTokenToShareOwner(msg.sender, stableToken, _stableTokenBack);
     _transferTokenToShareOwner(msg.sender, assetToken, _assetTokenBack);
@@ -576,21 +569,17 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   /// @param _withdrawValue Withdraw value in usd.
   /// @param _positionInfoBefore Position equity and debt before deposit.
   /// @param _positionInfoAfter Position equity and debt after deposit.
-  /// @param _stableLpBefore Stable Lp amount before
-  /// @param _assetLpBefore Asset lp amount before
   function _withdrawHealthCheck(
     uint256 _withdrawValue,
     PositionInfo memory _positionInfoBefore,
-    PositionInfo memory _positionInfoAfter,
-    uint256 _stableLpBefore,
-    uint256 _assetLpBefore
+    PositionInfo memory _positionInfoAfter
   ) internal view {
     uint256 _positionValueTolerance = config.positionValueTolerance();
     uint256 _debtRationTolerance = config.debtRatioTolerance();
 
     uint256 _totalEquityBefore = _positionInfoBefore.stablePositionEquity + _positionInfoBefore.assetPositionEquity;
     (uint256 _stableLpWithdrawValue, ) = priceOracle.lpToDollar(
-      _stableLpBefore - _getUnderlyingLp(stableVaultWorker),
+      _positionInfoBefore.stableLpAmount - _positionInfoAfter.stableLpAmount,
       lpToken
     );
 
@@ -611,7 +600,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     }
 
     (uint256 _assetLpWithdrawValue, ) = priceOracle.lpToDollar(
-      _assetLpBefore - _getUnderlyingLp(assetVaultWorker),
+      _positionInfoBefore.assetLpAmount - _positionInfoAfter.assetLpAmount,
       lpToken
     );
 
@@ -707,6 +696,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
   /// @notice Return equity and debt value in usd of stable and asset positions.
   function positionInfo() public view returns (PositionInfo memory) {
+    uint256 _stableLpAmount = IWorker02(stableVaultWorker).totalLpBalance();
+    uint256 _assetLpAmount = IWorker02(assetVaultWorker).totalLpBalance();
     uint256 _stablePositionValue = _positionValue(stableVaultWorker);
     uint256 _assetPositionValue = _positionValue(assetVaultWorker);
     uint256 _stableDebtValue = _positionDebtValue(stableVault, stableVaultPosId, stableTo18ConversionFactor);
@@ -715,8 +706,10 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       PositionInfo({
         stablePositionEquity: _stablePositionValue > _stableDebtValue ? _stablePositionValue - _stableDebtValue : 0,
         stablePositionDebtValue: _stableDebtValue,
+        stableLpAmount: _stableLpAmount,
         assetPositionEquity: _assetPositionValue > _assetDebtValue ? _assetPositionValue - _assetDebtValue : 0,
-        assetPositionDebtValue: _assetDebtValue
+        assetPositionDebtValue: _assetDebtValue,
+        assetLpAmount: _assetLpAmount
       });
   }
 
@@ -796,24 +789,21 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     return _lpValue;
   }
 
-  /// @notice Return total amount of LP token in both workers
-  function _getUnderlyingLp(address _worker) internal view returns (uint256) {
-    return IWorker02(_worker).totalLpBalance();
-  }
-
   /// @notice Return withdraw value
-  /// @param _totalUnderlyingLpBefore Total lp amount before withdrawal.
-  /// @param _debtRepaid Total debt value repaid.
-  function _calculateWithdrawValue(uint256 _totalUnderlyingLpBefore, uint256 _debtRepaid)
+  /// @param _positionInfoBefore Position information before withdraw.
+  /// @param _positionInfoAfter Position information after withdraw.
+  function _calculateWithdrawValue(PositionInfo memory _positionInfoBefore, PositionInfo memory _positionInfoAfter)
     internal
     view
     returns (uint256)
   {
+    uint256 _lpUsed = (_positionInfoBefore.stableLpAmount + _positionInfoBefore.assetLpAmount) -
+      (_positionInfoAfter.stableLpAmount + _positionInfoAfter.assetLpAmount);
     // If the price is outdated, it should have been reverted from positionInfo() already
-    (uint256 _lpValueUsed, ) = priceOracle.lpToDollar(
-      _totalUnderlyingLpBefore - (_getUnderlyingLp(stableVaultWorker) + _getUnderlyingLp(assetVaultWorker)),
-      lpToken
-    );
+    (uint256 _lpValueUsed, ) = priceOracle.lpToDollar(_lpUsed, lpToken);
+
+    uint256 _debtRepaid = (_positionInfoBefore.stablePositionDebtValue + _positionInfoBefore.assetPositionDebtValue) -
+      (_positionInfoAfter.stablePositionDebtValue + _positionInfoAfter.assetPositionDebtValue);
 
     return _lpValueUsed - _debtRepaid;
   }
