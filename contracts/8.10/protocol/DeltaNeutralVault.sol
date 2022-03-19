@@ -312,11 +312,11 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
     // 3. mint share for shareReceiver
     PositionInfo memory _positionInfoAfter = positionInfo();
-    uint256 _equityGain = _totalEquityGain(_positionInfoBefore, _positionInfoAfter);
+    uint256 _valueGain = _calculateValueGain(_positionInfoBefore, _positionInfoAfter);
 
-    // Calculate share from the equity gain against the total equity before execution of actions
+    // Calculate share from the value gain against the total equity before execution of actions
     uint256 _sharesToUser = _valueToShare(
-      _equityGain,
+      _valueGain,
       _positionInfoBefore.stablePositionEquity + _positionInfoBefore.assetPositionEquity
     );
 
@@ -327,7 +327,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     _mint(_shareReceiver, _sharesToUser);
 
     // 4. sanity check
-    _depositHealthCheck(_equityGain, _positionInfoBefore, _positionInfoAfter);
+    _depositHealthCheck(_valueGain, _positionInfoBefore, _positionInfoAfter);
     _outstandingCheck(_outstandingBefore, _outstanding());
 
     emit LogDeposit(msg.sender, _shareReceiver, _sharesToUser, _stableTokenAmount, _assetTokenAmount);
@@ -384,7 +384,6 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       revert DeltaNeutralVault_InsufficientTokenReceived(assetToken, _minAssetTokenAmount, _assetTokenBack);
     }
 
-    // To avoid stack too deep, we use internal function.
     uint256 _withdrawValue = _calculateWithdrawValue(_positionInfoBefore, _positionInfoAfter);
 
     if (_withdrawShareValue < _withdrawValue) {
@@ -775,20 +774,38 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     return _lpValue;
   }
 
+  /// @notice Return deposit value
+  /// @param _positionInfoBefore Position information before execute.
+  /// @param _positionInfoAfter Position information after execute.
+  function _calculateValueGain(PositionInfo memory _positionInfoBefore, PositionInfo memory _positionInfoAfter)
+    internal
+    view
+    returns (uint256)
+  {
+    uint256 _lpGain = (_positionInfoAfter.stableLpAmount + _positionInfoAfter.assetLpAmount) -
+      (_positionInfoBefore.stableLpAmount + _positionInfoBefore.assetLpAmount);
+
+    uint256 _moreDebt = (_positionInfoAfter.stablePositionDebtValue + _positionInfoAfter.assetPositionDebtValue) -
+      (_positionInfoBefore.stablePositionDebtValue + _positionInfoBefore.assetPositionDebtValue);
+
+    return _lpToValue(_lpGain) - _moreDebt;
+  }
+
   /// @notice Return withdraw value
-  /// @param _positionInfoBefore Position information before withdraw.
-  /// @param _positionInfoAfter Position information after withdraw.
+  /// @param _positionInfoBefore Position information before execute.
+  /// @param _positionInfoAfter Position information after execute.
   function _calculateWithdrawValue(PositionInfo memory _positionInfoBefore, PositionInfo memory _positionInfoAfter)
     internal
     view
     returns (uint256)
   {
-    uint256 _lpUsed = (_positionInfoBefore.stableLpAmount + _positionInfoBefore.assetLpAmount) -
+    uint256 _lpLoss = (_positionInfoBefore.stableLpAmount + _positionInfoBefore.assetLpAmount) -
       (_positionInfoAfter.stableLpAmount + _positionInfoAfter.assetLpAmount);
+
     uint256 _debtRepaid = (_positionInfoBefore.stablePositionDebtValue + _positionInfoBefore.assetPositionDebtValue) -
       (_positionInfoAfter.stablePositionDebtValue + _positionInfoAfter.assetPositionDebtValue);
 
-    return _lpToValue(_lpUsed) - _debtRepaid;
+    return _lpToValue(_lpLoss) - _debtRepaid;
   }
 
   /// @notice Proxy function for calling internal action.
