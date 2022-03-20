@@ -53,9 +53,6 @@ contract StrategyOracleLiquidate is OwnableUpgradeable, ReentrancyGuardUpgradeab
   ISwapFactoryLike public factory;
   ISwapRouter02Like public router;
 
-  IWETH public wrappedNative;
-  IWNativeRelayer public wNativeRelayer;
-
   mapping(address => bool) public okWorkers;
 
   /// @notice Events
@@ -71,7 +68,6 @@ contract StrategyOracleLiquidate is OwnableUpgradeable, ReentrancyGuardUpgradeab
   function initialize(
     string calldata _name,
     ISwapRouter02Like _router,
-    IWNativeRelayer _wNativeRelayer,
     IPriceOracle _priceOracle,
     address _liquiditySource,
     uint256 _defaultDiscountFactor
@@ -82,8 +78,6 @@ contract StrategyOracleLiquidate is OwnableUpgradeable, ReentrancyGuardUpgradeab
     name = _name;
     factory = ISwapFactoryLike(_router.factory());
     router = _router;
-    wrappedNative = IWETH(_router.WETH());
-    wNativeRelayer = _wNativeRelayer;
     priceOracle = _priceOracle;
     liquiditySource = _liquiditySource;
     defaultDiscountFactor = _defaultDiscountFactor;
@@ -102,7 +96,7 @@ contract StrategyOracleLiquidate is OwnableUpgradeable, ReentrancyGuardUpgradeab
       (_farmAmount *
         10**_farmTo18Factor *
         ((_farmBasePrice * getDiscountFactor(address(_farmingToken), address(_baseToken))) / 10000)) /
-      (1e18 * _baseTo18Factor);
+      (10**(18 + _baseTo18Factor));
   }
 
   function execute(
@@ -136,7 +130,7 @@ contract StrategyOracleLiquidate is OwnableUpgradeable, ReentrancyGuardUpgradeab
     _baseToken.safeTransferFrom(
       liquiditySource,
       address(this),
-      (_farmingTokenBalance * (_farmBasePrice * getDiscountFactor(address(_farmingToken), address(_baseToken)))) / 10000
+      calBaseFromLiquiditySource(address(_baseToken), address(_farmingToken), _farmBasePrice, _farmingTokenBalance)
     );
     uint256 _baseTokenBalance = _baseToken.balanceOf(address(this));
     if (_baseTokenBalance - _debt < _minBaseToken) revert StrategyOracleLiquidate_Slippage();

@@ -1,13 +1,12 @@
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
-import { FakeContract, smock } from "@defi-wonderland/smock";
+import { smock } from "@defi-wonderland/smock";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { BigNumber } from "ethers";
 import { ethers, upgrades, waffle } from "hardhat";
 import {
   IERC20,
   IERC20__factory,
-  IPriceOracle,
   MockWaultSwapWorker,
   MockWaultSwapWorker__factory,
   MockWBNB,
@@ -17,7 +16,6 @@ import {
   StrategyOracleMinimize__factory,
   WaultSwapFactory,
   WaultSwapRouter,
-  WaultSwapWorker02,
   WNativeRelayer,
   WNativeRelayer__factory,
 } from "../../../../../typechain";
