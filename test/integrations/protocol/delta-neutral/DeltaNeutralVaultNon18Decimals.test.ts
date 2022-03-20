@@ -78,6 +78,7 @@ describe("DeltaNeutralVaultNon18Decimals", () => {
   // Delta Vault Config
   const REBALANCE_FACTOR = "6800";
   const POSITION_VALUE_TOLERANCE_BPS = "200";
+  const DEBT_RATIO_TOLERANCE_BPS = "30";
   const MAX_VAULT_POSITION_VALUE = ethers.utils.parseEther("100000");
   const DEPOSIT_FEE_BPS = "0"; // 0%
 
@@ -343,6 +344,7 @@ describe("DeltaNeutralVaultNon18Decimals", () => {
       fairlaunchAddr: fairLaunch.address,
       rebalanceFactor: REBALANCE_FACTOR,
       positionValueTolerance: POSITION_VALUE_TOLERANCE_BPS,
+      debtRatioTolerance: DEBT_RATIO_TOLERANCE_BPS,
       depositFeeTreasury: eveAddress,
       managementFeeTreasury: eveAddress,
       withdrawFeeTreasury: eveAddress,
@@ -526,12 +528,12 @@ describe("DeltaNeutralVaultNon18Decimals", () => {
           {
             token0: baseToken as unknown as IERC20,
             token1: wbnb as unknown as IERC20,
-            amount0desired: parseStable("100000"),
-            amount1desired: parseAsset("100000"),
+            amount0desired: parseStable("10000000000"),
+            amount1desired: parseAsset("10000000000"),
           },
         ]);
 
-        // stable token reserve = 100000, asset token reserve = 100000
+        // stable token reserve = 10000000000, asset token reserve = 10000000000
         // deployer deposit 500 stable token, 500 asset token
         const depositStableTokenAmt = parseStable("500");
         const depositAssetTokenAmt = parseAsset("500");
@@ -577,15 +579,18 @@ describe("DeltaNeutralVaultNon18Decimals", () => {
         const stableTokenPrice = ethers.utils.parseEther("1");
         const assetTokenPrice = ethers.utils.parseEther("1");
         // lp price = 2 * sqrt(r0 * r1) * (p0 * p1) / totalSupply
-        // 2  * (Math.sqrt(100000000000000000000000 * 100000000000000  ) * Math.sqrt(1e18*1e9))/(3162277660168379331 * 1e9 )
-        const lpPrice = ethers.utils.parseEther("63245.55320336759");
+        // 2  * (Math.sqrt(10000000000000000000000000000 * 10000000000000000000  ) * Math.sqrt(1e18*1e9))/(316227766016837933199889 * 1e9 )
+        const lpPrice = ethers.utils.parseEther("63245.553203367585");
 
         await setMockTokenPrice(stableTokenPrice, assetTokenPrice);
         await setMockLpPrice(lpPrice);
 
         // shareReceive  = depositValue * totalSupply / Equity
-        // since totalSupply = 0, shareReceive = depositValue = (1*500 + 1*500) = 1000
-        const minSharesReceive = ethers.utils.parseEther("1000");
+        // stableLpAmount = 0.011848646641109569, assetLpAmount = 0.035466784031603639
+        // positionValue = ((0.011848646641109569 + 0.035466784031603639) * 63245.553203367585) = 2992.490587951334
+        // debt =(1500 + 500) = 2000
+        // since totalSupply = 0, shareReceive = depositValue = 2992.490587951334 - (1500 + 500) = 992.490587951334
+        const minSharesReceive = ethers.utils.parseEther("992.49058795133");
         const initTx = await deltaVault.initPositions(
           depositStableTokenAmt,
           depositAssetTokenAmt,
@@ -601,7 +606,7 @@ describe("DeltaNeutralVaultNon18Decimals", () => {
         const deployerShare = await deltaVault.balanceOf(deployerAddress);
         expect(stablePosId).to.not.eq(0);
         expect(assetPostId).to.not.eq(0);
-        expect(deployerShare).to.eq(minSharesReceive);
+        expect(deployerShare).to.be.at.least(minSharesReceive.toBigInt());
 
         expect(initTx)
           .to.emit(deltaVault, "LogInitializePositions")
@@ -624,12 +629,12 @@ describe("DeltaNeutralVaultNon18Decimals", () => {
           {
             token0: baseToken as unknown as IERC20,
             token1: wbnb as unknown as IERC20,
-            amount0desired: parseStable("1000000"),
-            amount1desired: parseAsset("1000000"),
+            amount0desired: parseStable("10000000000"),
+            amount1desired: parseAsset("10000000000"),
           },
         ]);
 
-        // stable token reserve = 100000, asset token reserve = 100000
+        // stable token reserve = 10000000000, asset token reserve = 10000000000
         // deployer deposit 500 stable token, 500 asset token
         const stableTokenAmount = parseStable("500");
         const assetTokenAmount = parseAsset("500");
@@ -684,27 +689,28 @@ describe("DeltaNeutralVaultNon18Decimals", () => {
 
         const stableTokenPrice = ethers.utils.parseEther("1");
         const assetTokenPrice = ethers.utils.parseEther("1");
-        const lpPrice = ethers.utils.parseEther("63245.55320336759");
+        const lpPrice = ethers.utils.parseEther("63245.553203367585");
 
         await setMockTokenPrice(stableTokenPrice, assetTokenPrice);
         await setMockLpPrice(lpPrice);
 
-        const initTx = await deltaVault.initPositions(
-          stableTokenAmount,
-          assetTokenAmount,
-          ethers.utils.parseEther("1000"),
-          data,
-          {
-            value: assetTokenAmount,
-          }
-        );
+        // shareReceive  = depositValue * totalSupply / Equity
+        // stableLpAmount = 0.029607002160303329, assetLpAmount = 0.049365799917528781
+        // positionValue = ((0.029607002160303329 + 0.049365799917528781) * 63245.553203367585) = 4994.678555432548877358
+        // debt =(2500 + 1500) = 4000
+        // since totalSupply = 0, shareReceive = depositValue = 4994.678555432548877358 - 400 = 994.678555432548877358
+
+        const minSharesReceive = ethers.utils.parseEther("994.678555432549272222");
+        const initTx = await deltaVault.initPositions(stableTokenAmount, assetTokenAmount, minSharesReceive, data, {
+          value: assetTokenAmount,
+        });
 
         const stablePosId = await deltaVault.stableVaultPosId();
         const assetPostId = await deltaVault.stableVaultPosId();
         const deployerShare = await deltaVault.balanceOf(deployerAddress);
         expect(stablePosId).to.not.eq(0);
         expect(assetPostId).to.not.eq(0);
-        expect(deployerShare).to.eq(ethers.utils.parseEther("1000"));
+        expect(deployerShare).to.be.at.least(minSharesReceive.toBigInt());
         expect(initTx)
           .to.emit(deltaVault, "LogInitializePositions")
           .withArgs(deployerAddress, stablePosId, assetPostId);
@@ -720,8 +726,8 @@ describe("DeltaNeutralVaultNon18Decimals", () => {
           {
             token0: baseToken as unknown as IERC20,
             token1: wbnb as unknown as IERC20,
-            amount0desired: parseStable("100000"),
-            amount1desired: parseAsset("100000"),
+            amount0desired: parseStable("10000000000"),
+            amount1desired: parseAsset("10000000000"),
           },
         ]);
 
@@ -767,7 +773,7 @@ describe("DeltaNeutralVaultNon18Decimals", () => {
         );
         const stableTokenPrice = ethers.utils.parseEther("1");
         const assetTokenPrice = ethers.utils.parseEther("1");
-        const lpPrice = ethers.utils.parseEther("63245.55320336759");
+        const lpPrice = ethers.utils.parseEther("63245.553203367585");
         await setMockTokenPrice(stableTokenPrice, assetTokenPrice);
         await setMockLpPrice(lpPrice);
 
@@ -856,15 +862,23 @@ describe("DeltaNeutralVaultNon18Decimals", () => {
           const stableLpDiff = stableWorkerLpAfter.sub(stableWorkerLpBefore);
           const assetLpDiff = assetWorkerLpAfter.sub(assetWorkerLpBefore);
 
-          // deposit value = (1 *250) + (1 *750) = 1000
-          // expect alice share = depositValue * shareSupply / totalEquity = 1000 * (1000 / 995.027565825678938741) = 1004.997282834264908100
+          // newStableLpAmount = 11848647034195200, newAssetLpAmount = 35545938733851396
+          // newPositionValue = (11848647034195200 + 35545938733851396) * 63245.55320336759 = 2997.496795744559380483
+          // new debt = 1500 + 500 = 2000
+          // deposit value = 2997.496795744559380483 - 2000 = 997.496795744559380483
+          // shareSupply = 997.496846022942854931
+          // equity = 997.496846022943091904
+          // expect alice share = depositValue * shareSupply / totalEquity = 997.496795744559380483 * (997.496846022942854931 / 997.496846022943091904) = 997.496795744559143511
 
-          const expectAliceShare = ethers.utils.parseEther("1004.997282834264908100");
-          const expectPosiitonValueDiff = stableLpDiff.add(assetLpDiff).mul(lpPrice).div(ethers.utils.parseEther("1"));
+          const expectAliceShare = ethers.utils.parseEther("997.496795744559143511");
+          const expectPositionValueDiff = stableLpDiff.add(assetLpDiff).mul(lpPrice).div(ethers.utils.parseEther("1"));
           const aliceShare = await deltaVault.balanceOf(aliceAddress);
 
           expect(expectAliceShare).to.eq(aliceShare);
-          expect(expectPosiitonValueDiff).to.eq(positionValueAfter.sub(positionValueBefore));
+          Assert.assertAlmostEqual(
+            expectPositionValueDiff.toString(),
+            positionValueAfter.sub(positionValueBefore).toString()
+          );
           expect(positionInfoAfter.stablePositionDebtValue.sub(positionInfoBefore.stablePositionDebtValue)).to.eq(
             ethers.utils.parseEther("500")
           );
@@ -937,15 +951,11 @@ describe("DeltaNeutralVaultNon18Decimals", () => {
         await setMockTokenPrice(stableTokenPrice, assetTokenPrice);
         await setMockLpPrice(lpPrice);
 
-        const initTx = await deltaVault.initPositions(
-          stableTokenAmount,
-          assetTokenAmount,
-          ethers.utils.parseEther("1000"),
-          data,
-          {
-            value: assetTokenAmount,
-          }
-        );
+        const minSharesReceive = ethers.utils.parseEther("992.49058795133");
+
+        const initTx = await deltaVault.initPositions(stableTokenAmount, assetTokenAmount, minSharesReceive, data, {
+          value: assetTokenAmount,
+        });
 
         const depositStableTokenAmount = parseStable("500");
         const depositAssetTokenAmount = parseAsset("500");
