@@ -525,8 +525,15 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     // The equity allocation of short side should be equal to _depositValue * _leverageLevel / ((2*_leverageLevel) - 2)
     uint256 _expectedAssetEqChange = (_depositValue * _leverageLevel) / ((2 * _leverageLevel) - 2);
 
-    uint256 _actualStableEqChange = _positionInfoAfter.stablePositionEquity - _positionInfoBefore.stablePositionEquity;
-    uint256 _actualAssetEqChange = _positionInfoAfter.assetPositionEquity - _positionInfoBefore.assetPositionEquity;
+    uint256 _actualStableDebtChange = _positionInfoAfter.stablePositionDebtValue -
+      _positionInfoBefore.stablePositionDebtValue;
+    uint256 _actualAssetDebtChange = _positionInfoAfter.assetPositionDebtValue -
+      _positionInfoBefore.assetPositionDebtValue;
+
+    uint256 _actualStableEqChange = _lpToValue(_positionInfoAfter.stableLpAmount - _positionInfoBefore.stableLpAmount) -
+      _actualStableDebtChange;
+    uint256 _actualAssetEqChange = _lpToValue(_positionInfoAfter.assetLpAmount - _positionInfoBefore.assetLpAmount) -
+      _actualAssetDebtChange;
 
     if (
       !Math.almostEqual(_actualStableEqChange, _expectedStableEqChange, _toleranceBps) ||
@@ -540,11 +547,6 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _expectedStableDebtChange = (_expectedStableEqChange * (_leverageLevel - 1));
     // The debt allocation of short side should be equal to _expectedAssetEqChange * (_leverageLevel - 1)
     uint256 _expectedAssetDebtChange = (_expectedAssetEqChange * (_leverageLevel - 1));
-
-    uint256 _actualStableDebtChange = _positionInfoAfter.stablePositionDebtValue -
-      _positionInfoBefore.stablePositionDebtValue;
-    uint256 _actualAssetDebtChange = _positionInfoAfter.assetPositionDebtValue -
-      _positionInfoBefore.assetPositionDebtValue;
 
     if (
       !Math.almostEqual(_actualStableDebtChange, _expectedStableDebtChange, _toleranceBps) ||
