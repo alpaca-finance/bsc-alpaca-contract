@@ -89,8 +89,10 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   struct PositionInfo {
     uint256 stablePositionEquity;
     uint256 stablePositionDebtValue;
+    uint256 stableLpAmount;
     uint256 assetPositionEquity;
     uint256 assetPositionDebtValue;
+    uint256 assetLpAmount;
   }
 
   /// @dev constants
@@ -310,11 +312,11 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
     // 3. mint share for shareReceiver
     PositionInfo memory _positionInfoAfter = positionInfo();
-    uint256 _equityGain = _totalEquityChange(_positionInfoBefore, _positionInfoAfter);
+    uint256 _depositValue = _calculateEquityChange(_positionInfoAfter, _positionInfoBefore);
 
-    // Calculate share from the equity gain against the total equity before execution of actions
+    // Calculate share from the value gain against the total equity before execution of actions
     uint256 _sharesToUser = _valueToShare(
-      _equityGain,
+      _depositValue,
       _positionInfoBefore.stablePositionEquity + _positionInfoBefore.assetPositionEquity
     );
 
@@ -325,7 +327,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     _mint(_shareReceiver, _sharesToUser);
 
     // 4. sanity check
-    _depositHealthCheck(_equityGain, _positionInfoBefore, _positionInfoAfter);
+    _depositHealthCheck(_depositValue, _positionInfoBefore, _positionInfoAfter);
     _outstandingCheck(_outstandingBefore, _outstanding());
 
     emit LogDeposit(msg.sender, _shareReceiver, _sharesToUser, _stableTokenAmount, _assetTokenAmount);
@@ -382,26 +384,13 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       revert DeltaNeutralVault_InsufficientTokenReceived(assetToken, _minAssetTokenAmount, _assetTokenBack);
     }
 
-    uint256 _withdrawValue;
-    {
-      uint256 _stableWithdrawValue = (_stableTokenBack * stableTo18ConversionFactor).mulWadDown(
-        _getTokenPrice(stableToken)
-      );
-      uint256 _assetWithdrawValue = (_assetTokenBack * assetTo18ConversionFactor).mulWadDown(
-        _getTokenPrice(assetToken)
-      );
-      _withdrawValue = _stableWithdrawValue + _assetWithdrawValue;
-    }
+    uint256 _withdrawValue = _calculateEquityChange(_positionInfoBefore, _positionInfoAfter);
 
-    uint256 _totalEquityLoss = _totalEquityChange(_positionInfoBefore, _positionInfoAfter);
-    // sanity check
     if (_withdrawShareValue < _withdrawValue) {
       revert DeltaNeutralVault_WithdrawValueExceedShareValue(_withdrawValue, _withdrawShareValue);
     }
-    if (_withdrawShareValue < _totalEquityLoss) {
-      revert DeltaNeutralVault_WithdrawValueExceedShareValue(_totalEquityLoss, _withdrawShareValue);
-    }
 
+    // sanity check
     _withdrawHealthCheck(_withdrawShareValue, _positionInfoBefore, _positionInfoAfter);
     _outstandingCheck(_outstandingBefore, _outstandingAfter);
 
@@ -536,8 +525,15 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     // The equity allocation of short side should be equal to _depositValue * _leverageLevel / ((2*_leverageLevel) - 2)
     uint256 _expectedAssetEqChange = (_depositValue * _leverageLevel) / ((2 * _leverageLevel) - 2);
 
-    uint256 _actualStableEqChange = _positionInfoAfter.stablePositionEquity - _positionInfoBefore.stablePositionEquity;
-    uint256 _actualAssetEqChange = _positionInfoAfter.assetPositionEquity - _positionInfoBefore.assetPositionEquity;
+    uint256 _actualStableDebtChange = _positionInfoAfter.stablePositionDebtValue -
+      _positionInfoBefore.stablePositionDebtValue;
+    uint256 _actualAssetDebtChange = _positionInfoAfter.assetPositionDebtValue -
+      _positionInfoBefore.assetPositionDebtValue;
+
+    uint256 _actualStableEqChange = _lpToValue(_positionInfoAfter.stableLpAmount - _positionInfoBefore.stableLpAmount) -
+      _actualStableDebtChange;
+    uint256 _actualAssetEqChange = _lpToValue(_positionInfoAfter.assetLpAmount - _positionInfoBefore.assetLpAmount) -
+      _actualAssetDebtChange;
 
     if (
       !Math.almostEqual(_actualStableEqChange, _expectedStableEqChange, _toleranceBps) ||
@@ -551,11 +547,6 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _expectedStableDebtChange = (_expectedStableEqChange * (_leverageLevel - 1));
     // The debt allocation of short side should be equal to _expectedAssetEqChange * (_leverageLevel - 1)
     uint256 _expectedAssetDebtChange = (_expectedAssetEqChange * (_leverageLevel - 1));
-
-    uint256 _actualStableDebtChange = _positionInfoAfter.stablePositionDebtValue -
-      _positionInfoBefore.stablePositionDebtValue;
-    uint256 _actualAssetDebtChange = _positionInfoAfter.assetPositionDebtValue -
-      _positionInfoBefore.assetPositionDebtValue;
 
     if (
       !Math.almostEqual(_actualStableDebtChange, _expectedStableDebtChange, _toleranceBps) ||
@@ -578,8 +569,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _debtRationTolerance = config.debtRatioTolerance();
 
     uint256 _totalEquityBefore = _positionInfoBefore.stablePositionEquity + _positionInfoBefore.assetPositionEquity;
-    uint256 _stableActualWithdrawValue = _positionInfoBefore.stablePositionEquity -
-      _positionInfoAfter.stablePositionEquity;
+    uint256 _stableLpWithdrawValue = _lpToValue(_positionInfoBefore.stableLpAmount - _positionInfoAfter.stableLpAmount);
 
     // This will force the equity loss in stable vault stay within the expectation
     // Given that the expectation is equity loss in stable vault will not alter the stable equity to total equity ratio
@@ -587,7 +577,9 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     // _stableActualWithdrawValue should be almost equal to _stableExpectedWithdrawValue
     if (
       !Math.almostEqual(
-        _stableActualWithdrawValue * _totalEquityBefore,
+        (_stableLpWithdrawValue -
+          (_positionInfoBefore.stablePositionDebtValue - _positionInfoAfter.stablePositionDebtValue)) *
+          _totalEquityBefore,
         _withdrawValue * _positionInfoBefore.stablePositionEquity,
         _positionValueTolerance
       )
@@ -595,8 +587,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
       revert DeltaNeutralVault_UnsafePositionValue();
     }
 
-    uint256 _assetActualWithdrawValue = _positionInfoBefore.assetPositionEquity -
-      _positionInfoAfter.assetPositionEquity;
+    uint256 _assetLpWithdrawValue = _lpToValue(_positionInfoBefore.assetLpAmount - _positionInfoAfter.assetLpAmount);
 
     // This will force the equity loss in asset vault stay within the expectation
     // Given that the expectation is equity loss in asset vault will not alter the asset equity to total equity ratio
@@ -604,7 +595,9 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     // _assetActualWithdrawValue should be almost equal to _assetExpectedWithdrawValue
     if (
       !Math.almostEqual(
-        _assetActualWithdrawValue * _totalEquityBefore,
+        (_assetLpWithdrawValue -
+          (_positionInfoBefore.assetPositionDebtValue - _positionInfoAfter.assetPositionDebtValue)) *
+          _totalEquityBefore,
         _withdrawValue * _positionInfoBefore.assetPositionEquity,
         _positionValueTolerance
       )
@@ -688,16 +681,20 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
   /// @notice Return equity and debt value in usd of stable and asset positions.
   function positionInfo() public view returns (PositionInfo memory) {
-    uint256 _stablePositionValue = _positionValue(stableVaultWorker);
-    uint256 _assetPositionValue = _positionValue(assetVaultWorker);
+    uint256 _stableLpAmount = IWorker02(stableVaultWorker).totalLpBalance();
+    uint256 _assetLpAmount = IWorker02(assetVaultWorker).totalLpBalance();
+    uint256 _stablePositionValue = _lpToValue(_stableLpAmount);
+    uint256 _assetPositionValue = _lpToValue(_assetLpAmount);
     uint256 _stableDebtValue = _positionDebtValue(stableVault, stableVaultPosId, stableTo18ConversionFactor);
     uint256 _assetDebtValue = _positionDebtValue(assetVault, assetVaultPosId, assetTo18ConversionFactor);
     return
       PositionInfo({
         stablePositionEquity: _stablePositionValue > _stableDebtValue ? _stablePositionValue - _stableDebtValue : 0,
         stablePositionDebtValue: _stableDebtValue,
+        stableLpAmount: _stableLpAmount,
         assetPositionEquity: _assetPositionValue > _assetDebtValue ? _assetPositionValue - _assetDebtValue : 0,
-        assetPositionDebtValue: _assetDebtValue
+        assetPositionDebtValue: _assetDebtValue,
+        assetLpAmount: _assetLpAmount
       });
   }
 
@@ -720,7 +717,9 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
   /// @notice Return equity value of delta neutral position.
   function totalEquityValue() public view returns (uint256) {
-    uint256 _totalPositionValue = _positionValue(stableVaultWorker) + _positionValue(assetVaultWorker);
+    uint256 _totalPositionValue = _lpToValue(
+      IWorker02(stableVaultWorker).totalLpBalance() + IWorker02(assetVaultWorker).totalLpBalance()
+    );
     uint256 _totalDebtValue = _positionDebtValue(stableVault, stableVaultPosId, stableTo18ConversionFactor) +
       _positionDebtValue(assetVault, assetVaultPosId, assetTo18ConversionFactor);
     if (_totalPositionValue < _totalDebtValue) {
@@ -769,12 +768,29 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     return (_debtAmount * _18ConversionFactor).mulWadDown(_getTokenPrice(_token));
   }
 
-  /// @notice Return position value of a worker.
-  /// @param _worker Worker address.
-  function _positionValue(address _worker) internal view returns (uint256) {
-    (uint256 _lpValue, uint256 _lastUpdated) = priceOracle.lpToDollar(IWorker02(_worker).totalLpBalance(), lpToken);
+  /// @notice Return value of given lp amount.
+  /// @param _lpAmount Amount of lp.
+  function _lpToValue(uint256 _lpAmount) internal view returns (uint256) {
+    (uint256 _lpValue, uint256 _lastUpdated) = priceOracle.lpToDollar(_lpAmount, lpToken);
     if (block.timestamp - _lastUpdated > 86400) revert DeltaNeutralVault_UnTrustedPrice();
     return _lpValue;
+  }
+
+  /// @notice Return equity change between two position
+  /// @param _greaterPosition Position information that's expected to have higer value
+  /// @param _lesserPosition Position information that's expected to have lower value
+  function _calculateEquityChange(PositionInfo memory _greaterPosition, PositionInfo memory _lesserPosition)
+    internal
+    view
+    returns (uint256)
+  {
+    uint256 _lpChange = (_greaterPosition.stableLpAmount + _greaterPosition.assetLpAmount) -
+      (_lesserPosition.stableLpAmount + _lesserPosition.assetLpAmount);
+
+    uint256 _debtChange = (_greaterPosition.stablePositionDebtValue + _greaterPosition.assetPositionDebtValue) -
+      (_lesserPosition.stablePositionDebtValue + _lesserPosition.assetPositionDebtValue);
+
+    return _lpToValue(_lpChange) - _debtChange;
   }
 
   /// @notice Proxy function for calling internal action.
@@ -843,19 +859,6 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     // _lastUpdated > 1 day revert
     if (block.timestamp - _lastUpdated > 86400) revert DeltaNeutralVault_UnTrustedPrice();
     return _price;
-  }
-
-  /// @notice Calculate change in total equity.
-  /// @param _prev Previous position info
-  /// @param _current Current position info
-  function _totalEquityChange(PositionInfo memory _prev, PositionInfo memory _current) internal pure returns (uint256) {
-    // (_current.stablePositionEquity - _prev.stablePositionEquity) + (_current.assetPositionEquity - _prev.assetPositionEquity)
-    uint256 _totalEquityBefore = _prev.stablePositionEquity + _prev.assetPositionEquity;
-    uint256 _totalEquityAfter = _current.stablePositionEquity + _current.assetPositionEquity;
-    return
-      _totalEquityAfter > _totalEquityBefore
-        ? _totalEquityAfter - _totalEquityBefore
-        : _totalEquityBefore - _totalEquityAfter;
   }
 
   /// @notice Calculate share from value and total equity
