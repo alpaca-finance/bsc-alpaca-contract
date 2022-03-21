@@ -7,7 +7,7 @@ import { FileService, TimelockService } from "../../services";
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
-  const queuedTimelockPath = "./deploy/results/1647579626_mainnet2_delta_neutral_3x_pcs_worker.json";
+  const queuedTimelockPath = "./deploy/results/1647581909_mainnet_disable_deprecated_market_neutral.json";
   const queuedTimelocks = (await FileService.readJson(queuedTimelockPath)) as Array<TimelockEntity.Transaction>;
   const errs = [];
   let nonce = await deployer.getTransactionCount();

@@ -232,9 +232,6 @@ describe("MdexRestrictedStrategyPartialCloseLiquidate", () => {
     expect(await baseToken.balanceOf(bobAddress)).to.be.eq(ethers.utils.parseEther("99"));
     expect(await farmingToken.balanceOf(bobAddress)).to.be.eq(ethers.utils.parseEther("9.9"));
     expect(await lp.balanceOf(bobAddress)).to.be.eq(ethers.utils.parseEther("0.316227766016837933"));
-
-    // Set block base fee per gas to 0
-    await network.provider.send("hardhat_setNextBlockBaseFeePerGas", ["0x0"]);
   }
 
   beforeEach(async () => {

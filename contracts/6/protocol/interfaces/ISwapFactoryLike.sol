@@ -11,7 +11,7 @@
 Alpaca Fin Corporation
 */
 
-pragma solidity 0.8.11;
+pragma solidity 0.6.6;
 
 interface ISwapFactoryLike {
   function feeTo() external view returns (address);

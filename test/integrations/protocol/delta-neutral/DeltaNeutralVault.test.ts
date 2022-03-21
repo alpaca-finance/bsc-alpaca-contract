@@ -402,9 +402,6 @@ describe("DeltaNeutralVault", () => {
     deltaVaultAsAlice = DeltaNeutralVault__factory.connect(deltaVault.address, alice);
     deltaVaultAsBob = DeltaNeutralVault__factory.connect(deltaVault.address, bob);
     deltaVaultAsEve = DeltaNeutralVault__factory.connect(deltaVault.address, eve);
-
-    // Set block base fee per gas to 0
-    await network.provider.send("hardhat_setNextBlockBaseFeePerGas", ["0x0"]);
   }
 
   interface IDepositWorkByte {
@@ -813,15 +810,9 @@ describe("DeltaNeutralVault", () => {
         await setMockTokenPrice(stableTokenPrice, assetTokenPrice);
         await setMockLpPrice(lpPrice);
 
-        const initTx = await deltaVault.initPositions(
-          stableTokenAmount,
-          assetTokenAmount,
-          minSharesReceive,
-          data,
-          {
-            value: assetTokenAmount,
-          }
-        );
+        const initTx = await deltaVault.initPositions(stableTokenAmount, assetTokenAmount, minSharesReceive, data, {
+          value: assetTokenAmount,
+        });
 
         const stablePosId = await deltaVault.stableVaultPosId();
         const assetPostId = await deltaVault.stableVaultPosId();
@@ -2045,7 +2036,6 @@ describe("DeltaNeutralVault", () => {
 
           await setMockLpPrice(lpPrice);
 
-
           const expectStableEquity = ethers.utils.parseEther("447.009358034759650323");
           const expectStableDebt = ethers.utils.parseEther("894.037557417844504114");
           const expectAssetEquity = ethers.utils.parseEther("1341.013108360786729768");
@@ -2065,7 +2055,6 @@ describe("DeltaNeutralVault", () => {
             maxDebtRepayment: stableDebtToRepay,
             minFarmingToken: BigNumber.from(0),
           };
-
 
           const assetDebtToRepay = ethers.utils.parseEther("317.917159425125022223");
           const assetValueToWithDraw = ethers.utils.parseEther("149.549582755626896671").add(assetDebtToRepay);
@@ -2359,13 +2348,9 @@ describe("DeltaNeutralVault", () => {
           const minStableTokenReceive = ethers.utils.parseEther("149.931452849760353839");
           const minAssetTokenReceive = ethers.utils.parseEther("49.976458329680142948");
 
-          await expect(deltaVaultAsAlice.withdraw(
-            shareToWithdraw,
-            0,
-            0,
-            withdrawData,
-            { gasPrice: 0 }
-          )).to.be.revertedWith("DeltaNeutralVault_UnsafeDebtRatio()");
+          await expect(
+            deltaVaultAsAlice.withdraw(shareToWithdraw, 0, 0, withdrawData, { gasPrice: 0 })
+          ).to.be.revertedWith("DeltaNeutralVault_UnsafeDebtRatio()");
         });
 
         describe("_burn", async () => {

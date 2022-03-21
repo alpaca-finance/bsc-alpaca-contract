@@ -103,9 +103,6 @@ describe("Pancakeswap - StrategyLiquidate", () => {
     routerAsBob = PancakeRouter__factory.connect(router.address, bob);
 
     lpAsBob = PancakePair__factory.connect(lp.address, bob);
-
-    // Set block base fee per gas to 0
-    await network.provider.send("hardhat_setNextBlockBaseFeePerGas", ["0x0"]);
   }
 
   beforeEach(async () => {

@@ -197,8 +197,6 @@ describe("MdexRestrictedStrategyAddBaseTokenOnly", () => {
     // refer to MdexFactory line: 842
     // totalSupply =  sqrt(amount0 * amount1) - 0.000000000000001000
     // totalSupply =  sqrt(1 * 0.1) - 0.000000000000001000 = 0.316227766016836933
-
-    await network.provider.send("hardhat_setNextBlockBaseFeePerGas", ["0x0"]);
   }
 
   beforeEach(async () => {
