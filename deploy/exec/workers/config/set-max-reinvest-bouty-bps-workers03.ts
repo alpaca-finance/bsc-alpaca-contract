@@ -4,6 +4,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 import { ConfigEntity } from "../../../entities";
+import { getDeployer } from "../../../../utils/deployer-helper";
 
 interface IWorker {
   WORKER_NAME: string;
@@ -69,7 +70,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     throw new Error(`could not find ${workerInput}`);
   });
 
-  const deployer = (await ethers.getSigners())[0];
+  const deployer = await getDeployer();
 
   let nonce = await deployer.getTransactionCount();
 
