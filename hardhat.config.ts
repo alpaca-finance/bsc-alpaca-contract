@@ -17,24 +17,10 @@ module.exports = {
       blockGasLimit: 0x1fffffffffffff,
       allowUnlimitedContractSize: true,
       timeout: 1800000,
-      accounts: [
-        {
-          privateKey: process.env.LOCAL_PRIVATE_KEY_1,
-          balance: "10000000000000000000000",
-        },
-        {
-          privateKey: process.env.LOCAL_PRIVATE_KEY_2,
-          balance: "10000000000000000000000",
-        },
-        {
-          privateKey: process.env.LOCAL_PRIVATE_KEY_3,
-          balance: "10000000000000000000000",
-        },
-        {
-          privateKey: process.env.LOCAL_PRIVATE_KEY_4,
-          balance: "10000000000000000000000",
-        },
-      ],
+      accounts: {
+        mnemonic: "test test test test test test test test test test test junk",
+        accountsBalance: "100000000000000000000000000000000000",
+      },
     },
     testnet: {
       url: "https://data-seed-prebsc-2-s2.binance.org:8545/",
@@ -52,11 +38,19 @@ module.exports = {
       url: process.env.ETH_MAINNET_RPC,
       accounts: [process.env.ETH_MAINNET_PRIVATE_KEY],
     },
-    // mainnetfork: {
-    //   url: "http://127.0.0.1:8545",
-    //   accounts: [process.env.BSC_MAINNET_PRIVATE_KEY, process.env.QA_PRIVATE_KEY],
-    //   timeout: 500000,
-    // },
+    fantom_testnet: {
+      url: "https://rpc.testnet.fantom.network/",
+      accounts: [process.env.FANTOM_TESTNET_PRIVATE_KEY],
+    },
+    fantom_mainnet: {
+      url: process.env.FTM_MAINNET_RPC,
+      accounts: [process.env.FANTOM_MAINNET_PRIVATE_KEY],
+    },
+    mainnetfork: {
+      url: "http://127.0.0.1:8545",
+      accounts: [process.env.BSC_MAINNET_PRIVATE_KEY, process.env.QA_PRIVATE_KEY],
+      timeout: 500000,
+    },
   },
   namedAccounts: {
     deployer: {
@@ -97,6 +91,6 @@ module.exports = {
     target: process.env.TYPECHAIN_TARGET || "ethers-v5",
   },
   mocha: {
-    timeout: 50000,
+    timeout: 100000,
   },
 };

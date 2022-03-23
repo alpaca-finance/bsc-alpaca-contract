@@ -17,10 +17,11 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
-import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakeFactory.sol";
-import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
 
+import "../interfaces/IPancakeFactory.sol";
+import "../interfaces/IPancakePair.sol";
 import "../interfaces/IWorker02.sol";
+
 import "../apis/pancake/IPancakeRouter02.sol";
 import "../interfaces/IWorkerConfig.sol";
 import "../interfaces/IPriceOracle.sol";

@@ -1,223 +1,185 @@
-import { ethers, network } from "hardhat";
+import { ethers } from "hardhat";
 import { expect } from "chai";
-import "@openzeppelin/test-helpers";
 import {
-  CakeMaxiWorker__factory,
-  MdexWorker02__factory,
+  ConfigurableInterestVaultConfig,
+  ConfigurableInterestVaultConfig__factory,
+  DeltaNeutralVault__factory,
   PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory,
   PancakeswapV2RestrictedStrategyAddTwoSidesOptimal__factory,
-  PancakeswapV2Worker__factory,
   Vault,
   Vault__factory,
-  WaultSwapWorker__factory,
 } from "../typechain";
-import MainnetConfig from "../.mainnet.json";
-import TestnetConfig from "../.testnet.json";
 import { WorkersEntity } from "../deploy/interfaces/config";
+import { getConfig } from "../deploy/entities/config";
+import { WorkerLikeFactory } from "../deploy/adaptors/workerlike/factory";
+import { WorkerLike } from "../deploy/entities/worker-like";
+import { IMultiCallService, IMultiContractCall } from "../deploy/services/multicall/interfaces";
+import { Multicall2Service } from "../deploy/services/multicall/multicall2";
 
 interface IDexRouter {
   pancakeswap: string;
   waultswap: string;
   mdex: string;
+  spooky: string;
 }
 
-async function validateTwoSidesStrategy(strategyAddress: string, expectedVault: string, expectedRouter: string) {
-  const strat = PancakeswapV2RestrictedStrategyAddTwoSidesOptimal__factory.connect(strategyAddress, ethers.provider);
-  expect(await strat.vault()).to.be.eq(expectedVault, `vault mis-config on ${strategyAddress} strat`);
-  expect(await strat.router()).to.be.eq(expectedRouter, `router mis-config on ${strategyAddress} strat`);
+interface IStrategyRouterInfo {
+  strategyAddress: string;
+  expectedRouter: string;
 }
 
-async function validateStrategy(strategyAddress: string, expectedRouter: string) {
-  const strat = PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory.connect(strategyAddress, ethers.provider);
-  expect(await strat.router()).to.be.eq(expectedRouter, `router mis-config on ${strategyAddress} strat`);
+interface ITwoSidesVaultRouterInfo {
+  strategyAddress: string;
+  expectedVault: string;
+  expectedRouter: string;
 }
 
-async function validateWorker(vault: Vault, workerInfo: WorkersEntity, routers: IDexRouter) {
-  console.log(`> validating ${workerInfo.name}`);
-  if (workerInfo.name.includes("PancakeswapWorker")) {
-    const worker = PancakeswapV2Worker__factory.connect(workerInfo.address, ethers.provider);
+async function validateTwoSidesStrategies(
+  multiCallService: IMultiCallService,
+  twoSidesVaultRouterInfos: Array<ITwoSidesVaultRouterInfo>
+) {
+  twoSidesVaultRouterInfos = twoSidesVaultRouterInfos.filter((twoSides) => twoSides.strategyAddress !== "");
 
-    try {
-      expect(await worker.operator()).to.be.eq(vault.address, "operator mis-config");
-      expect(workerInfo.stakingToken).to.be.eq(await worker.lpToken(), "stakingToken mis-config");
-      expect(workerInfo.pId).to.be.eq(await worker.pid(), "pool id mis-config");
-      expect(workerInfo.stakingTokenAt).to.be.eq(await worker.masterChef(), "masterChef mis-config");
-      // @notice handle BETH-ETH as it is the old version of PancakeswapWorker
-      if (workerInfo.name !== "BETH-ETH PancakeswapWorker") {
-        expect(await worker.router()).to.be.eq(routers.pancakeswap, "router mis-config");
-        expect(await worker.fee()).to.be.eq("9975");
-        expect(await worker.feeDenom()).to.be.eq("10000");
+  const calls = twoSidesVaultRouterInfos.reduce((accum, info) => {
+    accum.push(
+      {
+        contract: PancakeswapV2RestrictedStrategyAddTwoSidesOptimal__factory.connect(
+          info.strategyAddress,
+          ethers.provider
+        ),
+        functionName: "vault",
+      },
+      {
+        contract: PancakeswapV2RestrictedStrategyAddTwoSidesOptimal__factory.connect(
+          info.strategyAddress,
+          ethers.provider
+        ),
+        functionName: "router",
       }
-      expect(await worker.baseToken()).to.be.eq(await vault.token(), "baseToken mis-config");
-      expect(await worker.okStrats(workerInfo.strategies.StrategyAddAllBaseToken)).to.be.eq(
-        true,
-        "mis-config on add base token only strat"
-      );
-      expect(await worker.okStrats(workerInfo.strategies.StrategyLiquidate)).to.be.eq(
-        true,
-        "mis-config on liquidate strat"
-      );
-      expect(await worker.okStrats(workerInfo.strategies.StrategyAddTwoSidesOptimal)).to.be.eq(
-        true,
-        "mis-config on add two sides strat"
-      );
-      expect(await worker.okStrats(workerInfo.strategies.StrategyWithdrawMinimizeTrading)).to.be.eq(
-        true,
-        "mis-config on minimize trading strat"
-      );
-      if (workerInfo.strategies.StrategyPartialCloseLiquidate != "") {
-        expect(await worker.okStrats(workerInfo.strategies.StrategyPartialCloseLiquidate)).to.be.eq(
-          true,
-          "mis-config on partial close liquidate strat"
-        );
-      }
-      if (workerInfo.strategies.StrategyPartialCloseMinimizeTrading != "") {
-        expect(await worker.okStrats(workerInfo.strategies.StrategyPartialCloseMinimizeTrading)).to.be.eq(
-          true,
-          "mis-config on partial close minimize"
-        );
-      }
+    );
+    return accum;
+  }, [] as Array<IMultiContractCall>);
 
-      console.log(`> ✅ done validated ${workerInfo.name}, no problem found`);
-    } catch (e) {
-      console.log(`> ❌ some problem found in ${workerInfo.name}, please double check`);
-      console.log(e);
-    }
-  } else if (workerInfo.name.includes("WaultswapWorker")) {
-    const worker = WaultSwapWorker__factory.connect(workerInfo.address, ethers.provider);
-    try {
-      expect(await worker.operator()).to.be.eq(vault.address, "operator mis-config");
-      expect(workerInfo.stakingToken).to.be.eq(await worker.lpToken(), "lpToken mis-config");
-      expect(workerInfo.pId).to.be.eq(await worker.pid(), "pool id mis-config");
-      expect(workerInfo.stakingTokenAt).to.be.eq(await worker.wexMaster(), "wexMaster mis-config");
-      expect(await worker.router()).to.be.eq(routers.waultswap, "router mis-config");
-      expect(await worker.baseToken()).to.be.eq(await vault.token(), "baseToken mis-config");
-      expect(await worker.fee()).to.be.eq("998");
-      expect(await worker.feeDenom()).to.be.eq("1000");
-      expect(await worker.okStrats(workerInfo.strategies.StrategyAddAllBaseToken)).to.be.eq(
-        true,
-        "mis-config on add base token only strat"
-      );
-      expect(await worker.okStrats(workerInfo.strategies.StrategyLiquidate)).to.be.eq(
-        true,
-        "mis-config on liquidate strat"
-      );
-      expect(await worker.okStrats(workerInfo.strategies.StrategyAddTwoSidesOptimal)).to.be.eq(
-        true,
-        "mis-config on add two sides strat"
-      );
-      expect(await worker.okStrats(workerInfo.strategies.StrategyWithdrawMinimizeTrading)).to.be.eq(
-        true,
-        "mis-config on minimize trading strat"
-      );
-      if (workerInfo.strategies.StrategyPartialCloseLiquidate != "") {
-        expect(await worker.okStrats(workerInfo.strategies.StrategyPartialCloseLiquidate)).to.be.eq(
-          true,
-          "mis-config on partial close liquidate strat"
-        );
-      }
-      if (workerInfo.strategies.StrategyPartialCloseMinimizeTrading != "") {
-        expect(await worker.okStrats(workerInfo.strategies.StrategyPartialCloseMinimizeTrading)).to.be.eq(
-          true,
-          "mis-config on partial close minimize"
-        );
-      }
-
-      console.log(`> ✅ done validated ${workerInfo.name}, no problem found`);
-    } catch (e) {
-      console.log(`> ❌ some problem found in ${workerInfo.name}, please double check`);
-      console.log(e);
-    }
-  } else if (workerInfo.name.includes("CakeMaxiWorker")) {
-    const worker = CakeMaxiWorker__factory.connect(workerInfo.address, ethers.provider);
-    try {
-      expect(await worker.operator()).to.be.eq(vault.address, "operator mis-config");
-      expect(workerInfo.stakingToken).to.be.eq(await worker.farmingToken(), "farmingToken mis-config");
-      expect(workerInfo.pId).to.be.eq(await worker.pid(), "pool id mis-config");
-      expect(workerInfo.stakingTokenAt).to.be.eq(await worker.masterChef(), "masterChef mis-config");
-      expect(await worker.router()).to.be.eq(routers.pancakeswap, "router mis-config");
-      expect(await worker.baseToken()).to.be.eq(await vault.token(), "baseToken mis-config");
-      expect(await worker.fee()).to.be.eq("9975");
-      expect(await worker.feeDenom()).to.be.eq("10000");
-      expect(await worker.okStrats(workerInfo.strategies.StrategyAddAllBaseToken)).to.be.eq(
-        true,
-        "mis-config on add base token only strat"
-      );
-      expect(await worker.okStrats(workerInfo.strategies.StrategyLiquidate)).to.be.eq(
-        true,
-        "mis-config on liquidate strat"
-      );
-      expect(await worker.okStrats(workerInfo.strategies.StrategyAddTwoSidesOptimal)).to.be.eq(
-        true,
-        "mis-config on add two sides strat"
-      );
-      expect(await worker.okStrats(workerInfo.strategies.StrategyWithdrawMinimizeTrading)).to.be.eq(
-        true,
-        "mis-config on minimize trading strat"
-      );
-      if (workerInfo.strategies.StrategyPartialCloseLiquidate != "") {
-        expect(await worker.okStrats(workerInfo.strategies.StrategyPartialCloseLiquidate)).to.be.eq(
-          true,
-          "mis-config on partial close liquidate strat"
-        );
-      }
-      if (workerInfo.strategies.StrategyPartialCloseMinimizeTrading != "") {
-        expect(await worker.okStrats(workerInfo.strategies.StrategyPartialCloseMinimizeTrading)).to.be.eq(
-          true,
-          "mis-config on partial close minimize"
-        );
-      }
-
-      console.log(`> ✅ done validated ${workerInfo.name}, no problem found`);
-    } catch (e) {
-      console.log(`> ❌ some problem found in ${workerInfo.name}, please double check`);
-      console.log(e);
-    }
-  } else if (workerInfo.name.includes("MdexWorker")) {
-    const worker = MdexWorker02__factory.connect(workerInfo.address, ethers.provider);
-    try {
-      expect(await worker.operator()).to.be.eq(vault.address, "operator mis-config");
-      expect(workerInfo.stakingToken).to.be.eq(await worker.lpToken(), "lpToken mis-config");
-      expect(workerInfo.pId).to.be.eq(await worker.pid(), "pool id mis-config");
-      expect(workerInfo.stakingTokenAt).to.be.eq(await worker.bscPool(), "bscPool mis-config");
-      expect(await worker.router()).to.be.eq(routers.mdex, "router mis-config");
-      expect(await worker.baseToken()).to.be.eq(await vault.token(), "baseToken mis-config");
-      expect(await worker.feeDenom()).to.be.eq("10000");
-      expect(await worker.okStrats(workerInfo.strategies.StrategyAddAllBaseToken)).to.be.eq(
-        true,
-        "mis-config on add base token only strat"
-      );
-      expect(await worker.okStrats(workerInfo.strategies.StrategyLiquidate)).to.be.eq(
-        true,
-        "mis-config on liquidate strat"
-      );
-      expect(await worker.okStrats(workerInfo.strategies.StrategyAddTwoSidesOptimal)).to.be.eq(
-        true,
-        "mis-config on add two sides strat"
-      );
-      expect(await worker.okStrats(workerInfo.strategies.StrategyWithdrawMinimizeTrading)).to.be.eq(
-        true,
-        "mis-config on minimize trading strat"
-      );
-      if (workerInfo.strategies.StrategyPartialCloseLiquidate != "") {
-        expect(await worker.okStrats(workerInfo.strategies.StrategyPartialCloseLiquidate)).to.be.eq(
-          true,
-          "mis-config on partial close liquidate strat"
-        );
-      }
-      if (workerInfo.strategies.StrategyPartialCloseMinimizeTrading != "") {
-        expect(await worker.okStrats(workerInfo.strategies.StrategyPartialCloseMinimizeTrading)).to.be.eq(
-          true,
-          "mis-config on partial close minimize"
-        );
-      }
-
-      console.log(`> ✅ done validated ${workerInfo.name}, no problem found`);
-    } catch (e) {
-      console.log(`> ❌ some problem found in ${workerInfo.name}, please double check`);
-      console.log(e);
-    }
+  const results = await multiCallService.multiContractCall<Array<string>>(calls);
+  for (let i = 0; i < results.length; i += 2) {
+    expect(results[i]).to.be.eq(
+      twoSidesVaultRouterInfos[i / 2].expectedVault,
+      `vault mis-config on ${twoSidesVaultRouterInfos[i / 2].strategyAddress} strat`
+    );
+    expect(results[i + 1]).to.be.eq(
+      twoSidesVaultRouterInfos[i / 2].expectedRouter,
+      `router mis-config on ${twoSidesVaultRouterInfos[i / 2].strategyAddress} strat`
+    );
   }
+}
+
+async function validateStrategies(
+  multiCallService: IMultiCallService,
+  strategyRouterInfos: Array<IStrategyRouterInfo>
+) {
+  const calls = strategyRouterInfos.map((info) => {
+    return {
+      contract: PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory.connect(info.strategyAddress, ethers.provider),
+      functionName: "router",
+    };
+  });
+  const results = await multiCallService.multiContractCall<Array<string>>(calls);
+  for (let i = 0; i < strategyRouterInfos.length; i++)
+    expect(results[i]).to.be.eq(
+      strategyRouterInfos[i].expectedRouter,
+      `router mis-config on ${strategyRouterInfos[i].strategyAddress} strat`
+    );
+}
+
+async function validateWorker(
+  vault: Vault,
+  workerInfo: WorkersEntity,
+  multiCallService: IMultiCallService,
+  routers: IDexRouter
+) {
+  console.log(`> validating ${workerInfo.name}`);
+  if (workerInfo.name === "BETH-ETH PancakeswapWorker") {
+    console.log(`> skipping ${workerInfo.name}`);
+    return;
+  }
+  if (workerInfo.name.includes("DeltaNeutralPancakeswapWorker")) {
+    const workerLike = WorkerLikeFactory.newWorkerLike(
+      WorkerLike.deltaNeutralPancake,
+      workerInfo.address,
+      multiCallService,
+      ethers.provider
+    );
+    await workerLike.validateConfig(vault.address, await vault.token(), routers.pancakeswap, workerInfo);
+  } else if (workerInfo.name.includes("PancakeswapWorker")) {
+    const workerLike = WorkerLikeFactory.newWorkerLike(
+      WorkerLike.pancake,
+      workerInfo.address,
+      multiCallService,
+      ethers.provider
+    );
+    await workerLike.validateConfig(vault.address, await vault.token(), routers.pancakeswap, workerInfo);
+  } else if (workerInfo.name.includes("WaultswapWorker")) {
+    const workerLike = WorkerLikeFactory.newWorkerLike(
+      WorkerLike.wault,
+      workerInfo.address,
+      multiCallService,
+      ethers.provider
+    );
+    await workerLike.validateConfig(vault.address, await vault.token(), routers.waultswap, workerInfo);
+  } else if (workerInfo.name.includes("CakeMaxiWorker")) {
+    const workerLike = WorkerLikeFactory.newWorkerLike(
+      WorkerLike.cakeMaxi,
+      workerInfo.address,
+      multiCallService,
+      ethers.provider
+    );
+    await workerLike.validateConfig(vault.address, await vault.token(), routers.pancakeswap, workerInfo);
+  } else if (workerInfo.name.includes("MdexWorker")) {
+    const workerLike = WorkerLikeFactory.newWorkerLike(
+      WorkerLike.mdex,
+      workerInfo.address,
+      multiCallService,
+      ethers.provider
+    );
+    await workerLike.validateConfig(vault.address, await vault.token(), routers.mdex, workerInfo);
+  } else if (workerInfo.name.includes("SpookyWorker")) {
+    const workerLike = WorkerLikeFactory.newWorkerLike(
+      WorkerLike.spooky,
+      workerInfo.address,
+      multiCallService,
+      ethers.provider
+    );
+    await workerLike.validateConfig(vault.address, await vault.token(), routers.spooky, workerInfo);
+  } else if (workerInfo.name.includes("TombWorker")) {
+    const workerLike = WorkerLikeFactory.newWorkerLike(
+      WorkerLike.tomb,
+      workerInfo.address,
+      multiCallService,
+      ethers.provider
+    );
+    await workerLike.validateConfig(vault.address, await vault.token(), routers.spooky, workerInfo);
+  }
+}
+
+async function validateApproveAddStrategies(
+  multiCallService: IMultiCallService,
+  vaultConfig: ConfigurableInterestVaultConfig,
+  addStrats: Array<string>
+) {
+  console.log(`> 🔎 validating approve add strategy`);
+
+  const calls = addStrats.map((strat) => {
+    return {
+      contract: vaultConfig,
+      functionName: "approvedAddStrategies",
+      params: [strat],
+    };
+  });
+
+  const isApproves = await multiCallService.multiContractCall<Array<boolean>>(calls);
+
+  const isReturnFalse = isApproves.find((isApprove) => isApprove === false);
+  if (isReturnFalse) throw new Error(`> ❌ some problem found in approve add strategy, please double check`);
 }
 
 function delay(ms: number) {
@@ -225,106 +187,252 @@ function delay(ms: number) {
 }
 
 async function main() {
-  const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
+  const config = getConfig();
+  const chainId = (await ethers.provider.getNetwork()).chainId;
+  const multiCall2Service = new Multicall2Service(config.MultiCall, ethers.provider);
 
   console.log("=== validate strats ===");
-  try {
-    await Promise.all([
-      validateStrategy(
-        config.SharedStrategies.Pancakeswap.StrategyAddBaseTokenOnly,
-        config.Exchanges.Pancakeswap.RouterV2
-      ),
-      validateStrategy(config.SharedStrategies.Pancakeswap.StrategyLiquidate, config.Exchanges.Pancakeswap.RouterV2),
-      validateStrategy(
-        config.SharedStrategies.Pancakeswap.StrategyWithdrawMinimizeTrading,
-        config.Exchanges.Pancakeswap.RouterV2
-      ),
-      validateStrategy(
-        config.SharedStrategies.Pancakeswap.StrategyPartialCloseLiquidate,
-        config.Exchanges.Pancakeswap.RouterV2
-      ),
-      validateStrategy(
-        config.SharedStrategies.Pancakeswap.StrategyPartialCloseMinimizeTrading,
-        config.Exchanges.Pancakeswap.RouterV2
-      ),
-      validateStrategy(
-        config.SharedStrategies.Waultswap.StrategyAddBaseTokenOnly,
-        config.Exchanges.Waultswap.WaultswapRouter
-      ),
-      validateStrategy(config.SharedStrategies.Waultswap.StrategyLiquidate, config.Exchanges.Waultswap.WaultswapRouter),
-      validateStrategy(
-        config.SharedStrategies.Waultswap.StrategyWithdrawMinimizeTrading,
-        config.Exchanges.Waultswap.WaultswapRouter
-      ),
-      validateStrategy(
-        config.SharedStrategies.Waultswap.StrategyPartialCloseLiquidate,
-        config.Exchanges.Waultswap.WaultswapRouter
-      ),
-      validateStrategy(
-        config.SharedStrategies.Waultswap.StrategyPartialCloseMinimizeTrading,
-        config.Exchanges.Waultswap.WaultswapRouter
-      ),
-      validateStrategy(config.SharedStrategies.Mdex.StrategyAddBaseTokenOnly, config.Exchanges.Mdex.MdexRouter),
-      validateStrategy(config.SharedStrategies.Mdex.StrategyLiquidate, config.Exchanges.Mdex.MdexRouter),
-      validateStrategy(config.SharedStrategies.Mdex.StrategyPartialCloseLiquidate, config.Exchanges.Mdex.MdexRouter),
-      validateStrategy(
-        config.SharedStrategies.Mdex.StrategyPartialCloseMinimizeTrading,
-        config.Exchanges.Mdex.MdexRouter
-      ),
-      validateStrategy(config.SharedStrategies.Mdex.StrategyWithdrawMinimizeTrading, config.Exchanges.Mdex.MdexRouter),
-    ]);
-    console.log("> ✅ done");
-  } catch (e) {
-    console.log(e);
+  if (chainId === 56 || chainId === 97) {
+    console.log(">> Validate in BSC context");
+    try {
+      await validateStrategies(multiCall2Service, [
+        {
+          strategyAddress: config.SharedStrategies.Pancakeswap!.StrategyAddBaseTokenOnly,
+          expectedRouter: config.YieldSources.Pancakeswap!.RouterV2,
+        },
+        {
+          strategyAddress: config.SharedStrategies.Pancakeswap!.StrategyLiquidate,
+          expectedRouter: config.YieldSources.Pancakeswap!.RouterV2,
+        },
+        {
+          strategyAddress: config.SharedStrategies.Pancakeswap!.StrategyWithdrawMinimizeTrading,
+          expectedRouter: config.YieldSources.Pancakeswap!.RouterV2,
+        },
+        {
+          strategyAddress: config.SharedStrategies.Pancakeswap!.StrategyPartialCloseLiquidate,
+          expectedRouter: config.YieldSources.Pancakeswap!.RouterV2,
+        },
+        {
+          strategyAddress: config.SharedStrategies.Pancakeswap!.StrategyPartialCloseMinimizeTrading,
+          expectedRouter: config.YieldSources.Pancakeswap!.RouterV2,
+        },
+        {
+          strategyAddress: config.SharedStrategies.Waultswap!.StrategyAddBaseTokenOnly,
+          expectedRouter: config.YieldSources.Waultswap!.WaultswapRouter,
+        },
+        {
+          strategyAddress: config.SharedStrategies.Waultswap!.StrategyLiquidate,
+          expectedRouter: config.YieldSources.Waultswap!.WaultswapRouter,
+        },
+        {
+          strategyAddress: config.SharedStrategies.Waultswap!.StrategyWithdrawMinimizeTrading,
+          expectedRouter: config.YieldSources.Waultswap!.WaultswapRouter,
+        },
+        {
+          strategyAddress: config.SharedStrategies.Waultswap!.StrategyPartialCloseLiquidate,
+          expectedRouter: config.YieldSources.Waultswap!.WaultswapRouter,
+        },
+        {
+          strategyAddress: config.SharedStrategies.Waultswap!.StrategyPartialCloseMinimizeTrading,
+          expectedRouter: config.YieldSources.Waultswap!.WaultswapRouter,
+        },
+        {
+          strategyAddress: config.SharedStrategies.PancakeswapSingleAsset!.StrategyAddBaseTokenOnly,
+          expectedRouter: config.YieldSources.Pancakeswap!.RouterV2,
+        },
+        {
+          strategyAddress: config.SharedStrategies.PancakeswapSingleAsset!.StrategyLiquidate,
+          expectedRouter: config.YieldSources.Pancakeswap!.RouterV2,
+        },
+        {
+          strategyAddress: config.SharedStrategies.PancakeswapSingleAsset!.StrategyWithdrawMinimizeTrading,
+          expectedRouter: config.YieldSources.Pancakeswap!.RouterV2,
+        },
+        {
+          strategyAddress: config.SharedStrategies.PancakeswapSingleAsset!.StrategyPartialCloseLiquidate,
+          expectedRouter: config.YieldSources.Pancakeswap!.RouterV2,
+        },
+        {
+          strategyAddress: config.SharedStrategies.PancakeswapSingleAsset!.StrategyPartialCloseMinimizeTrading,
+          expectedRouter: config.YieldSources.Pancakeswap!.RouterV2,
+        },
+        {
+          strategyAddress: config.SharedStrategies.Mdex!.StrategyAddBaseTokenOnly,
+          expectedRouter: config.YieldSources.Mdex!.MdexRouter,
+        },
+        {
+          strategyAddress: config.SharedStrategies.Mdex!.StrategyLiquidate,
+          expectedRouter: config.YieldSources.Mdex!.MdexRouter,
+        },
+        {
+          strategyAddress: config.SharedStrategies.Mdex!.StrategyWithdrawMinimizeTrading,
+          expectedRouter: config.YieldSources.Mdex!.MdexRouter,
+        },
+        {
+          strategyAddress: config.SharedStrategies.Mdex!.StrategyPartialCloseLiquidate,
+          expectedRouter: config.YieldSources.Mdex!.MdexRouter,
+        },
+        {
+          strategyAddress: config.SharedStrategies.Mdex!.StrategyPartialCloseMinimizeTrading,
+          expectedRouter: config.YieldSources.Mdex!.MdexRouter,
+        },
+      ]);
+      console.log("> ✅ done");
+    } catch (e) {
+      console.log(e);
+    }
+  }
+  if (chainId === 4002 || chainId === 250) {
+    console.log(">> Validate in Fantom context");
+    try {
+      await validateStrategies(multiCall2Service, [
+        {
+          strategyAddress: config.SharedStrategies.SpookySwap!.StrategyAddBaseTokenOnly,
+          expectedRouter: config.YieldSources.SpookySwap!.SpookyRouter,
+        },
+        {
+          strategyAddress: config.SharedStrategies.SpookySwap!.StrategyLiquidate,
+          expectedRouter: config.YieldSources.SpookySwap!.SpookyRouter,
+        },
+        {
+          strategyAddress: config.SharedStrategies.SpookySwap!.StrategyWithdrawMinimizeTrading,
+          expectedRouter: config.YieldSources.SpookySwap!.SpookyRouter,
+        },
+        {
+          strategyAddress: config.SharedStrategies.SpookySwap!.StrategyPartialCloseLiquidate,
+          expectedRouter: config.YieldSources.SpookySwap!.SpookyRouter,
+        },
+        {
+          strategyAddress: config.SharedStrategies.SpookySwap!.StrategyPartialCloseMinimizeTrading,
+          expectedRouter: config.YieldSources.SpookySwap!.SpookyRouter,
+        },
+      ]);
+      console.log("> ✅ done");
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   for (let i = 0; i < config.Vaults.length; i++) {
     const vault = Vault__factory.connect(config.Vaults[i].address, ethers.provider);
+    const vaultConfig = ConfigurableInterestVaultConfig__factory.connect(config.Vaults[i].config, ethers.provider);
 
     console.log("=======================");
     console.log(`> validating ${config.Vaults[i].name}`);
     console.log(`> validate vault strategies`);
-    try {
-      await Promise.all([
-        validateTwoSidesStrategy(
-          config.Vaults[i].StrategyAddTwoSidesOptimal.Pancakeswap,
-          vault.address,
-          config.Exchanges.Pancakeswap.RouterV2
-        ),
-        validateTwoSidesStrategy(
-          config.Vaults[i].StrategyAddTwoSidesOptimal.Waultswap,
-          vault.address,
-          config.Exchanges.Waultswap.WaultswapRouter
-        ),
-        validateTwoSidesStrategy(
-          config.Vaults[i].StrategyAddTwoSidesOptimal.PancakeswapSingleAsset,
-          vault.address,
-          config.Exchanges.Pancakeswap.RouterV2
-        ),
-        validateTwoSidesStrategy(
-          config.Vaults[i].StrategyAddTwoSidesOptimal.Mdex,
-          vault.address,
-          config.Exchanges.Mdex.MdexRouter
-        ),
-      ]);
-      console.log("> ✅ done, no problem found");
-    } catch (e) {
-      console.log("> ❌ some problem found");
-      console.log(e);
+    if (chainId === 56 || chainId === 97) {
+      try {
+        await validateTwoSidesStrategies(multiCall2Service, [
+          {
+            strategyAddress: config.Vaults[i].StrategyAddTwoSidesOptimal.Pancakeswap!,
+            expectedVault: vault.address,
+            expectedRouter: config.YieldSources.Pancakeswap!.RouterV2,
+          },
+          {
+            strategyAddress: config.Vaults[i].StrategyAddTwoSidesOptimal.Waultswap!,
+            expectedVault: vault.address,
+            expectedRouter: config.YieldSources.Waultswap!.WaultswapRouter,
+          },
+          {
+            strategyAddress: config.Vaults[i].StrategyAddTwoSidesOptimal.PancakeswapSingleAsset!,
+            expectedVault: vault.address,
+            expectedRouter: config.YieldSources.Pancakeswap!.RouterV2,
+          },
+          {
+            strategyAddress: config.Vaults[i].StrategyAddTwoSidesOptimal.Mdex!,
+            expectedVault: vault.address,
+            expectedRouter: config.YieldSources.Mdex!.MdexRouter,
+          },
+        ]);
+
+        await validateApproveAddStrategies(multiCall2Service, vaultConfig, [
+          config.SharedStrategies.Pancakeswap!.StrategyAddBaseTokenOnly,
+          config.Vaults[i].StrategyAddTwoSidesOptimal.Pancakeswap!,
+          config.SharedStrategies.PancakeswapSingleAsset!.StrategyAddBaseTokenOnly,
+          config.Vaults[i].StrategyAddTwoSidesOptimal.PancakeswapSingleAsset!,
+          config.SharedStrategies.Mdex!.StrategyAddBaseTokenOnly,
+          config.Vaults[i].StrategyAddTwoSidesOptimal.Mdex!,
+        ]);
+        console.log("> ✅ done, no problem found");
+      } catch (e) {
+        console.log("> ❌ some problem found");
+        console.log(e);
+      }
+    }
+    if (chainId === 4002 || chainId === 250) {
+      try {
+        await validateTwoSidesStrategies(multiCall2Service, [
+          {
+            strategyAddress: config.Vaults[i].StrategyAddTwoSidesOptimal.SpookySwap!,
+            expectedVault: vault.address,
+            expectedRouter: config.YieldSources.SpookySwap!.SpookyRouter,
+          },
+        ]);
+
+        await validateApproveAddStrategies(multiCall2Service, vaultConfig, [
+          config.SharedStrategies.SpookySwap!.StrategyAddBaseTokenOnly,
+          config.Vaults[i].StrategyAddTwoSidesOptimal.SpookySwap!,
+        ]);
+        console.log("> ✅ done, no problem found");
+      } catch (e) {
+        console.log("> ❌ some problem found");
+        console.log(e);
+      }
     }
 
     const validateWorkers = [];
+    const dexRouters: IDexRouter = {
+      pancakeswap: ethers.constants.AddressZero,
+      waultswap: ethers.constants.AddressZero,
+      mdex: ethers.constants.AddressZero,
+      spooky: ethers.constants.AddressZero,
+    };
+    if (chainId === 56 || chainId === 97) {
+      dexRouters.pancakeswap = config.YieldSources.Pancakeswap!.RouterV2;
+      dexRouters.waultswap = config.YieldSources.Waultswap!.WaultswapRouter;
+      dexRouters.mdex = config.YieldSources.Mdex!.MdexRouter;
+    }
+    if (chainId === 4002 || chainId == 250) {
+      dexRouters.spooky = config.YieldSources.SpookySwap!.SpookyRouter;
+    }
     for (const worker of config.Vaults[i].workers) {
-      validateWorkers.push(
-        validateWorker(vault, worker, {
-          pancakeswap: config.Exchanges.Pancakeswap.RouterV2,
-          waultswap: config.Exchanges.Waultswap.WaultswapRouter,
-          mdex: config.Exchanges.Mdex.MdexRouter,
-        })
-      );
+      validateWorkers.push(validateWorker(vault, worker, multiCall2Service, dexRouters));
     }
     await Promise.all(validateWorkers);
     await delay(3000);
+  }
+
+  console.log("=== validate delta vaults ===");
+  for (let i = 0; i < config.DeltaNeutralVaults.length; i++) {
+    console.log("> validting " + config.DeltaNeutralVaults[i].name);
+    const deltaVault = DeltaNeutralVault__factory.connect(config.DeltaNeutralVaults[i].address, ethers.provider);
+
+    console.log("> validate vault configuration");
+    expect((await deltaVault.assetVault()).toLowerCase()).to.be.eq(
+      config.DeltaNeutralVaults[i].assetVault.toLowerCase(),
+      "❌ assetVault mis-match"
+    );
+    expect((await deltaVault.stableVault()).toLowerCase()).to.be.eq(
+      config.DeltaNeutralVaults[i].stableVault.toLowerCase(),
+      "❌ stableVault mis-match"
+    );
+    expect((await deltaVault.assetToken()).toLowerCase()).to.be.eq(
+      config.DeltaNeutralVaults[i].assetToken.toLowerCase(),
+      "❌ assetToken mis-match"
+    );
+    expect((await deltaVault.stableToken()).toLowerCase()).to.be.eq(
+      config.DeltaNeutralVaults[i].stableToken.toLowerCase(),
+      "❌ stableToken mis-match"
+    );
+    expect(await deltaVault.assetVaultPosId()).to.be.eq(
+      config.DeltaNeutralVaults[i].assetVaultPosId,
+      "❌ assetVaultPosId mis-match"
+    );
+    expect(await deltaVault.stableVaultPosId()).to.be.eq(
+      config.DeltaNeutralVaults[i].stableVaultPosId,
+      "❌ stableVaultPosId mis-match"
+    );
+    console.log("✅ done");
   }
 }
 

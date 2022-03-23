@@ -17,8 +17,8 @@ import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard
 import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/SafeERC20.sol";
 
-import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakeFactory.sol";
-import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
+import "../../interfaces/IPancakeFactory.sol";
+import "../../interfaces/IPancakePair.sol";
 
 import "../../apis/pancake/IPancakeRouter02.sol";
 import "../../interfaces/IStrategy.sol";
@@ -47,8 +47,10 @@ contract StrategyPartialCloseLiquidate is ReentrancyGuardUpgradeSafe, IStrategy 
     bytes calldata data
   ) external override nonReentrant {
     // 1. Find out what farming token we are dealing with.
-    (address baseToken, address farmingToken, uint256 returnLpToken, uint256 minBaseToken) =
-      abi.decode(data, (address, address, uint256, uint256));
+    (address baseToken, address farmingToken, uint256 returnLpToken, uint256 minBaseToken) = abi.decode(
+      data,
+      (address, address, uint256, uint256)
+    );
     IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
     require(
       lpToken.balanceOf(address(this)) >= returnLpToken,

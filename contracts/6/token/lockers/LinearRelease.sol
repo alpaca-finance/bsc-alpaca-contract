@@ -58,7 +58,7 @@ contract LinearRelease is Ownable, ReentrancyGuard {
     endReleaseBlock = _endReleaseBlock;
   }
 
-  function calLockAmount(uint256 _amount) external onlyFairLaunch view returns (uint256) {
+  function calLockAmount(uint256 _amount) external view onlyFairLaunch returns (uint256) {
     return _amount.mul(lockupBps).div(10000);
   }
 
@@ -91,8 +91,7 @@ contract LinearRelease is Ownable, ReentrancyGuard {
     }
     // When block number is more than startReleaseBlock but less than endReleaseBlock,
     // some ALPACAs can be released
-    else
-    {
+    else {
       uint256 releasedBlock = block.number.sub(_lastUnlockBlock[_user]);
       uint256 blockLeft = endReleaseBlock.sub(_lastUnlockBlock[_user]);
       amount = _locks[_user].mul(releasedBlock).div(blockLeft);

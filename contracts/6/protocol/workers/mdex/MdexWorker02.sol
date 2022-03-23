@@ -20,7 +20,7 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 
 import "../../apis/mdex/IMdexFactory.sol";
 import "../../apis/mdex/IMdexRouter.sol";
-import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
+import "../../interfaces/IPancakePair.sol";
 import "../../interfaces/IBSCPool.sol";
 import "../../interfaces/IMdexSwapMining.sol";
 
@@ -318,8 +318,7 @@ contract MdexWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker
         totalFarmingToken.sub(userFarmingToken),
         totalBaseToken.sub(userBaseToken),
         fee
-      )
-        .add(userBaseToken);
+      ).add(userBaseToken);
   }
 
   /// @dev Liquidate the given position by converting it to BaseToken and return back to caller.
@@ -342,8 +341,13 @@ contract MdexWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker
     /// 1. read base token from beneficialVault
     address beneficialVaultToken = beneficialVault.token();
     /// 2. swap reward token to beneficialVaultToken
-    uint256[] memory amounts =
-      router.swapExactTokensForTokens(_beneficialVaultBounty, 0, rewardPath, address(this), now);
+    uint256[] memory amounts = router.swapExactTokensForTokens(
+      _beneficialVaultBounty,
+      0,
+      rewardPath,
+      address(this),
+      now
+    );
     /// 3. if beneficialvault token not equal to baseToken regardless of a caller balance, can directly transfer to beneficial vault
     /// otherwise, need to keep it as a buybackAmount,
     /// since beneficial vault is the same as the calling vault, it will think of this reward as a `back` amount to paydebt/ sending back to a position owner

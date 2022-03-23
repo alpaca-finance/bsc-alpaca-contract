@@ -13,7 +13,7 @@ Alpaca Fin Corporation
 
 pragma solidity 0.6.6;
 
-import "@pancakeswap-libs/pancake-swap-core/contracts/interfaces/IPancakePair.sol";
+import "../interfaces/IPancakePair.sol";
 import "../apis/pancake/IPancakeRouter02.sol";
 import "../interfaces/IStrategy.sol";
 import "../interfaces/IWorker.sol";
@@ -29,7 +29,11 @@ contract MockPancakeswapV2Worker {
   address public baseToken;
   address public farmingToken;
 
-  constructor(IPancakePair _lpToken, address _baseToken, address _farmingToken) public {
+  constructor(
+    IPancakePair _lpToken,
+    address _baseToken,
+    address _farmingToken
+  ) public {
     lpToken = _lpToken;
     baseToken = _baseToken;
     farmingToken = _farmingToken;
@@ -39,12 +43,18 @@ contract MockPancakeswapV2Worker {
   /// @param user The original user that is interacting with the operator.
   /// @param debt The amount of user debt to help the strategy make decisions.
   /// @param data The encoded data, consisting of strategy address and calldata.
-  function work(uint256 /* id */, address user, uint256 debt, bytes calldata data)
-    external
-  {
+  function work(
+    uint256, /* id */
+    address user,
+    uint256 debt,
+    bytes calldata data
+  ) external {
     (address strat, bytes memory ext) = abi.decode(data, (address, bytes));
     baseToken.safeTransfer(strat, baseToken.myBalance());
-    require(lpToken.transfer(strat, lpToken.balanceOf(address(this))), "PancakeswapWorker::work:: unable to transfer lp to strat");
+    require(
+      lpToken.transfer(strat, lpToken.balanceOf(address(this))),
+      "PancakeswapWorker::work:: unable to transfer lp to strat"
+    );
     IStrategy(strat).execute(user, debt, ext);
     baseToken.safeTransfer(msg.sender, baseToken.myBalance());
   }

@@ -219,7 +219,7 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     uint256 total = totalToken().sub(amountToken);
     uint256 share = total == 0 ? amountToken : amountToken.mul(totalSupply()).div(total);
     _mint(msg.sender, share);
-    require(totalSupply() > 1e17, "no tiny shares");
+    require(totalSupply() > 10**(uint256(decimals()).sub(1)), "no tiny shares");
   }
 
   /// @dev Withdraw token from the lending and burning ibToken.
@@ -227,7 +227,7 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     uint256 amount = share.mul(totalToken()).div(totalSupply());
     _burn(msg.sender, share);
     _safeUnwrap(msg.sender, amount);
-    require(totalSupply() > 1e17, "no tiny shares");
+    require(totalSupply() > 10**(uint256(decimals()).sub(1)), "no tiny shares");
   }
 
   /// @dev Request Funds from user through Vault

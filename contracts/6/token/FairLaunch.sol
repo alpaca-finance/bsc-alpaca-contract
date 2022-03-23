@@ -176,12 +176,12 @@ contract FairLaunch is IFairLaunch, Ownable, ReentrancyGuard {
   function isDuplicatedPool(address _stakeToken) public view returns (bool) {
     uint256 length = poolInfo.length;
     for (uint256 _pid = 0; _pid < length; _pid++) {
-      if(poolInfo[_pid].stakeToken == _stakeToken) return true;
+      if (poolInfo[_pid].stakeToken == _stakeToken) return true;
     }
     return false;
   }
 
-  function poolLength() external override view returns (uint256) {
+  function poolLength() external view override returns (uint256) {
     return poolInfo.length;
   }
 
@@ -202,7 +202,7 @@ contract FairLaunch is IFairLaunch, Ownable, ReentrancyGuard {
   }
 
   // View function to see pending ALPACAs on frontend.
-  function pendingAlpaca(uint256 _pid, address _user) external override view returns (uint256) {
+  function pendingAlpaca(uint256 _pid, address _user) external view override returns (uint256) {
     PoolInfo storage pool = poolInfo[_pid];
     UserInfo storage user = userInfo[_pid][_user];
     uint256 accAlpacaPerShare = pool.accAlpacaPerShare;
@@ -244,16 +244,27 @@ contract FairLaunch is IFairLaunch, Ownable, ReentrancyGuard {
       alpaca.lock(devaddr, alpacaReward.mul(bonusLockUpBps).div(100000));
       pool.accAlpacaPerShareTilBonusEnd = pool.accAlpacaPerShare;
     }
-    if(block.number > bonusEndBlock && pool.lastRewardBlock < bonusEndBlock) {
-      uint256 alpacaBonusPortion = bonusEndBlock.sub(pool.lastRewardBlock).mul(bonusMultiplier).mul(alpacaPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
+    if (block.number > bonusEndBlock && pool.lastRewardBlock < bonusEndBlock) {
+      uint256 alpacaBonusPortion = bonusEndBlock
+        .sub(pool.lastRewardBlock)
+        .mul(bonusMultiplier)
+        .mul(alpacaPerBlock)
+        .mul(pool.allocPoint)
+        .div(totalAllocPoint);
       alpaca.lock(devaddr, alpacaBonusPortion.mul(bonusLockUpBps).div(100000));
-      pool.accAlpacaPerShareTilBonusEnd = pool.accAlpacaPerShareTilBonusEnd.add(alpacaBonusPortion.mul(1e12).div(lpSupply));
+      pool.accAlpacaPerShareTilBonusEnd = pool.accAlpacaPerShareTilBonusEnd.add(
+        alpacaBonusPortion.mul(1e12).div(lpSupply)
+      );
     }
     pool.lastRewardBlock = block.number;
   }
 
   // Deposit Staking tokens to FairLaunchToken for ALPACA allocation.
-  function deposit(address _for, uint256 _pid, uint256 _amount) external override nonReentrant {
+  function deposit(
+    address _for,
+    uint256 _pid,
+    uint256 _amount
+  ) external override nonReentrant {
     PoolInfo storage pool = poolInfo[_pid];
     UserInfo storage user = userInfo[_pid][_for];
     if (user.fundedBy != address(0)) require(user.fundedBy == msg.sender, "bad sof");
@@ -269,7 +280,11 @@ contract FairLaunch is IFairLaunch, Ownable, ReentrancyGuard {
   }
 
   // Withdraw Staking tokens from FairLaunchToken.
-  function withdraw(address _for, uint256 _pid, uint256 _amount) external override nonReentrant {
+  function withdraw(
+    address _for,
+    uint256 _pid,
+    uint256 _amount
+  ) external override nonReentrant {
     _withdraw(_for, _pid, _amount);
   }
 
@@ -277,7 +292,11 @@ contract FairLaunch is IFairLaunch, Ownable, ReentrancyGuard {
     _withdraw(_for, _pid, userInfo[_pid][_for].amount);
   }
 
-  function _withdraw(address _for, uint256 _pid, uint256 _amount) internal {
+  function _withdraw(
+    address _for,
+    uint256 _pid,
+    uint256 _amount
+  ) internal {
     PoolInfo storage pool = poolInfo[_pid];
     UserInfo storage user = userInfo[_pid][_for];
     require(user.fundedBy == msg.sender, "only funder");
@@ -327,7 +346,7 @@ contract FairLaunch is IFairLaunch, Ownable, ReentrancyGuard {
     user.fundedBy = address(0);
   }
 
-    // Safe alpaca transfer function, just in case if rounding error causes pool to not have enough ALPACAs.
+  // Safe alpaca transfer function, just in case if rounding error causes pool to not have enough ALPACAs.
   function safeAlpacaTransfer(address _to, uint256 _amount) internal {
     uint256 alpacaBal = alpaca.balanceOf(address(this));
     if (_amount > alpacaBal) {
@@ -336,5 +355,4 @@ contract FairLaunch is IFairLaunch, Ownable, ReentrancyGuard {
       require(alpaca.transfer(_to, _amount), "failed to transfer ALPACA");
     }
   }
-
 }

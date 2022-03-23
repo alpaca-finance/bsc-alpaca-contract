@@ -324,6 +324,146 @@
       "address": "0x7D306Dd73531C45F9847e547a0E8dEEAFe804939",
       "txHash": "0xf1c354657edac01979e99684608855cc3c1f062f4d04ac794fc1fb78996eeae3",
       "kind": "transparent"
+    },
+    {
+      "address": "0xA71381ff15862d0079c614b1E2B1F18485272880",
+      "txHash": "0x4873991a723eb76bed63b8f446322c0dfd9335714fef284627ef1c0e37e0360c",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x01cf56544A303025C77c76cA77982cbd8655fCBC",
+      "txHash": "0x9eb37ee91061abc94fce04cd0863b9c0af50d919241d560ab11872a364c47782",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x426BdFE8cAB2c4720B36ABBdc3ff08144BC361f3",
+      "txHash": "0xc2d8e13bfd0beb6140a4f2a39fa4f0f630ae1daf5e8ad23f267d7204ec56f804",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x800933D685E7Dc753758cEb77C8bd34aBF1E26d7",
+      "txHash": "0x6e52cac380829fd80bebff8255a40dd8fc80595a82fb43e2430fb0013a03ef55",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x66C7170d102dB819f50f9582973ab0d16d6f5242",
+      "txHash": "0xd9d252d2c8502ad914ae85ccba82d96f627588b2b9d36d82cb1fadc59016060e",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xf4c6b53bd2A1f0c06D8483e38Cd6e6ceC1860593",
+      "txHash": "0xc8f2fa40c7223c34f0a170b2df953f2ccdc3f30748045e0b34da9469a095ccf0",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x9a0Beed083D3A45b6463c621b0CE489482459b21",
+      "txHash": "0x9c51830345e4873d08ea0771ded8b69c5815c02d919f4c1ddd6088ff938e9cb9",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x8064F7019FEedA26038FbCe42031fbb26bEbEfEB",
+      "txHash": "0x4d6764ab647532b4f54099455441c326ba2482e94e1871084213a3f502770dc5",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xe93f5d253E5F367d3D5D6f5eCd8A409cEB8B510b",
+      "txHash": "0x14306dfe22d617fe77036096e763b5bd1b78ea6e84c34e2f6d3d34b6a4b448a0",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x58a3AD7f263B75532B58a60Cbf5D78Ee73123C93",
+      "txHash": "0x4d88b52ef4c083eaa0f67271ae6d402c560054a5400d2c310b548a2713f99689",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xFAC2898Ab87daa4909200ED7a99c5CBAb3bb9303",
+      "txHash": "0x8f54e4241d6f2191d8ba111d289fb16210135086c35268ff825114c44c0e0be1",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x8b452051666708A005F6C7170baADc3913b4C349",
+      "txHash": "0x3f527ab95648cdf5024e85a2ed847468d409cf676931cbe68fc7a0296d7a90fc",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xa14c9E1939b4F323EF540566b0Ee80142713A4D9",
+      "txHash": "0x55d7c0703f1f15793e0c3af472a1647fdd0ce2c20d4d689ddba8480de4727f75",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x5342Fbb861C2Aea626F66521C512ac5Fa03B6a58",
+      "txHash": "0xff59275a803745ca65dd9886a2634dfc77afde157ab50791cfd43567b3b13a8d",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x08EA5fB66EA41f236E3001d2655e43A1E735787F",
+      "txHash": "0xacb0178dacf89493d694ce67b0315f54876b738ed625467c826e9c7b1a2daa2c",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x5359911A2081F8AFEB0A19e01CF1Fe6b0457d9D3",
+      "txHash": "0xb21e2ed8f1604ab95615b1bc63b3bd31b5ed63b0b7331c518988cb724e2c41dd",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x41d2E4ac5B7373041c06A9D331B0624142fa1123",
+      "txHash": "0xaf9b60270af5df420d26cf78d499dec2d03c283f85592b6e7aaddd1ec3c84b81",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x539FC3fD348b427B5F70B4f87c1a44983c9E8DBD",
+      "txHash": "0x671bb1e1ac818b8a4726166a9e54fd0f8d62cbced3eef3d8df461e57c4d8b836",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x9AaaD0AB432eFDf86B27b4ea020dF2DfB223e00c",
+      "txHash": "0x9d827b7c2a1a546e073282d13b3978afa93fcf6fedf676baa9bcc69e1e5273c3",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xcfBCB958514e6c1294F0C900454dE7049110Cf84",
+      "txHash": "0xee1433c209faecf725be57aeb97f8aa72222bda95a782f24a7014b5b23f41674",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x301897d786adc651473e1edB87b32Ee5821bdd60",
+      "txHash": "0x7eb586b6dfeee18a74bdb5dcc9ba0831276242aca49d9d0e8b8a1e7ee061f0f8",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x6e3314453642c5Ce9fF273aa5f132c1Cc8463cEf",
+      "txHash": "0xea471be630b1bbb34147790dfac901b53270c07977c38a40d04350abc62fa8e9",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x5124bAA8cA9c5E327eFc458271DaC157acEB4f04",
+      "txHash": "0x55e80efb450f85807dd0c0083021bc52c53970eded271c12dd4f21221d952efa",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x1c623105d072Dc69F9a3F8A3dB67b5AeCEDC082b",
+      "txHash": "0x6f2c46503cf3e528f3da07f33d19199464a82d560da133c79a5a917c75aa7baa",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x452Fc464583ab2a149D6A63437fe90322A65E252",
+      "txHash": "0x51dafe79d48dfd6c83ba2b247f5bbb078564092453a6561893262df9707bb390",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xC4Ed268754DD3CbCA82A6eE743ACAd2D355D938b",
+      "txHash": "0xc7470c2d256635e01d1662df441bd8bbb3228f70ca9467727d00674443efc9b9",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x4F4054B4D286213a39cA5b8eF89116AC62c1cf43",
+      "txHash": "0x0a294426b5f4664eed46146fdc59d46d1ed00804575f885f74496fea3b3239a7",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x2245634E4c325F3f3Fc2b98cf75352b5D92F4c46",
+      "txHash": "0xfc3d5a7841db922c64199a98a1518960ddcba86b8872d4e9351df489788a4b70",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -13781,6 +13921,2343 @@
           },
           "t_bool": {
             "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "f3ffb3e69a32aa2af11c16a5e327dba4cdc6a6b5b07627555f6e8695a57964b4": {
+      "address": "0xD885797f19214e7dec84454a03bA765C75FEDa39",
+      "txHash": "0x96ab2fe73478234edcdafb660b06561c2ec3c6a3385ed44724f489b605b5b046",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:26"
+          },
+          {
+            "contract": "Initializable",
+            "label": "______gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:61"
+          },
+          {
+            "contract": "ContextUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol:37"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:18"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:78"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "_notEntered",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:21"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:63"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "masterChef",
+            "type": "t_contract(IPancakeMasterChef)27503",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:66"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "factory",
+            "type": "t_contract(IPancakeFactory)3268",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:68"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "router",
+            "type": "t_contract(IPancakeRouter02)18585",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:68"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "lpToken",
+            "type": "t_contract(IPancakePair)3510",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:70"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "wNative",
+            "type": "t_address",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:71"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "baseToken",
+            "type": "t_address",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:71"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "farmingToken",
+            "type": "t_address",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:73"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "cake",
+            "type": "t_address",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:75"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "operator",
+            "type": "t_address",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:76"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "pid",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:77"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "shares",
+            "type": "t_mapping(t_uint256,t_uint256)",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:78"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "okStrats",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:79"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "totalShare",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:81"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "addStrat",
+            "type": "t_contract(IStrategy)27531",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:82"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "liqStrat",
+            "type": "t_contract(IStrategy)27531",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:83"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "reinvestBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:83"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "maxReinvestBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:84"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "okReinvestors",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:86"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "fee",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:90"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "feeDenom",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:90"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "reinvestThreshold",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:93"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "reinvestPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:94"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "treasuryAccount",
+            "type": "t_address",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:95"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "treasuryBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:96"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "beneficialVault",
+            "type": "t_contract(IVault)28049",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:96"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "beneficialVaultBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:97"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "rewardPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:100"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "buybackAmount",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:101"
+          }
+        ],
+        "types": {
+          "t_contract(IPancakeMasterChef)27503": {
+            "label": "contract IPancakeMasterChef"
+          },
+          "t_contract(IPancakeFactory)3268": {
+            "label": "contract IPancakeFactory"
+          },
+          "t_contract(IPancakeRouter02)18585": {
+            "label": "contract IPancakeRouter02"
+          },
+          "t_contract(IPancakePair)3510": {
+            "label": "contract IPancakePair"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_uint256,t_uint256)": {
+            "label": "mapping(uint256 => uint256)"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_contract(IStrategy)27531": {
+            "label": "contract IStrategy"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]"
+          },
+          "t_contract(IVault)28049": {
+            "label": "contract IVault"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "4d492e3857c3dff9efee53e6a07735bd9ca4ec38b35b9a045e713f7f9c0be914": {
+      "address": "0x5f4Ea2Bf5FCE383305440c8edAdafc3Ef600E0A1",
+      "txHash": "0xa358be51912f07afaecf8f3d8e2caffe0a67ac591190cfd3e4c0ff110bfe3031",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+          },
+          {
+            "contract": "DeltaNeutralOracle",
+            "label": "usd",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/DeltaNeutralOracle.sol:34"
+          },
+          {
+            "contract": "DeltaNeutralOracle",
+            "label": "chainLinkPriceOracle",
+            "type": "t_contract(IChainLinkPriceOracle)5838",
+            "src": "contracts/8.10/protocol/DeltaNeutralOracle.sol:37"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address"
+          },
+          "t_contract(IChainLinkPriceOracle)5838": {
+            "label": "contract IChainLinkPriceOracle"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_bool": {
+            "label": "bool"
+          }
+        }
+      }
+    },
+    "162b86efaf0e9ac64e0a5a18cf510823971b1f9d5c1993add7b5d47f5365c581": {
+      "address": "0x4b837846Ad3322ecAE28b60a2C2Cf16e41B5a3aB",
+      "txHash": "0x2f9c20fb701aaacd12f6dea6d7176d06e5de80d318c5923112527064a7e3f713",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig",
+            "label": "getWrappedNativeAddr",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/DeltaNeutralVaultConfig.sol:79"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig",
+            "label": "getWNativeRelayer",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/DeltaNeutralVaultConfig.sol:81"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig",
+            "label": "fairLaunchAddr",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/DeltaNeutralVaultConfig.sol:84"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig",
+            "label": "maxVaultPositionValue",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/DeltaNeutralVaultConfig.sol:86"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig",
+            "label": "rebalanceFactor",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/DeltaNeutralVaultConfig.sol:88"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig",
+            "label": "positionValueTolerance",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/DeltaNeutralVaultConfig.sol:91"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig",
+            "label": "depositFeeTreasury",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/DeltaNeutralVaultConfig.sol:93"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig",
+            "label": "depositFeeBps",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/DeltaNeutralVaultConfig.sol:95"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig",
+            "label": "withdrawalFeeTreasury",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/DeltaNeutralVaultConfig.sol:97"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig",
+            "label": "withdrawalFeeBps",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/DeltaNeutralVaultConfig.sol:99"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig",
+            "label": "managementFeeTreasury",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/DeltaNeutralVaultConfig.sol:101"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig",
+            "label": "managementFeePerSec",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/DeltaNeutralVaultConfig.sol:104"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig",
+            "label": "leverageLevel",
+            "type": "t_uint8",
+            "src": "contracts/8.10/protocol/DeltaNeutralVaultConfig.sol:108"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig",
+            "label": "alpacaToken",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/DeltaNeutralVaultConfig.sol:109"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig",
+            "label": "getSwapRouter",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/DeltaNeutralVaultConfig.sol:111"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig",
+            "label": "reinvestPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "contracts/8.10/protocol/DeltaNeutralVaultConfig.sol:114"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig",
+            "label": "whitelistedCallers",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/8.10/protocol/DeltaNeutralVaultConfig.sol:116"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig",
+            "label": "whitelistedRebalancers",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/8.10/protocol/DeltaNeutralVaultConfig.sol:119"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig",
+            "label": "feeExemptedCallers",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/8.10/protocol/DeltaNeutralVaultConfig.sol:122"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig",
+            "label": "whitelistedReinvestors",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/8.10/protocol/DeltaNeutralVaultConfig.sol:125"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig",
+            "label": "alpacaReinvestFeeTreasury",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/DeltaNeutralVaultConfig.sol:127"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig",
+            "label": "alpacaBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/DeltaNeutralVaultConfig.sol:129"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig",
+            "label": "alpacaBeneficiary",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/DeltaNeutralVaultConfig.sol:131"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig",
+            "label": "alpacaBeneficiaryBps",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/DeltaNeutralVaultConfig.sol:135"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_uint8": {
+            "label": "uint8"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "ed5eeb583b8029bc81b9d640052b19494fa0a1f63e5c5b3541c3c76dc54724f4": {
+      "address": "0x61D5E93BfCBf30E6E0efd7E51d6a9222d2b081c2",
+      "txHash": "0x62335acb18b45d630acd533776e58a7c9acbbfb6f17236fda01de2e5297e423a",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:74"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "masterChef",
+            "type": "t_contract(IPancakeMasterChef)7184",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:88"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "factory",
+            "type": "t_contract(IPancakeFactory)7113",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:90"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "router",
+            "type": "t_contract(IPancakeRouter02)7816",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:90"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "lpToken",
+            "type": "t_contract(IPancakePair)7426",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:91"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "priceOracle",
+            "type": "t_contract(IDeltaNeutralOracle)5989",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:93"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "wNative",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:94"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "baseToken",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:94"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "farmingToken",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:96"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "cake",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:98"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "operator",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:99"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "pid",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:100"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "okStrats",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:101"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "addStrat",
+            "type": "t_contract(IStrategy)7829",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:103"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "reinvestBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:103"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "maxReinvestBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:104"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "okReinvestors",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:105"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "whitelistCallers",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:107"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "reinvestThreshold",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:110"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "reinvestPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:111"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "treasuryAccount",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:112"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "treasuryBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:113"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "beneficialVault",
+            "type": "t_contract(IVault)7955",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:113"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "beneficialVaultBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:114"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "rewardPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:116"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "buybackAmount",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:118"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "totalLpBalance",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:119"
+          }
+        ],
+        "types": {
+          "t_contract(IPancakeMasterChef)7184": {
+            "label": "contract IPancakeMasterChef"
+          },
+          "t_contract(IPancakeFactory)7113": {
+            "label": "contract IPancakeFactory"
+          },
+          "t_contract(IPancakeRouter02)7816": {
+            "label": "contract IPancakeRouter02"
+          },
+          "t_contract(IPancakePair)7426": {
+            "label": "contract IPancakePair"
+          },
+          "t_contract(IDeltaNeutralOracle)5989": {
+            "label": "contract IDeltaNeutralOracle"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_contract(IStrategy)7829": {
+            "label": "contract IStrategy"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]"
+          },
+          "t_contract(IVault)7955": {
+            "label": "contract IVault"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "43e116599d743e1e1df49eef2337071854abbc1404b6ddfb488bef2f6cbf8fc6": {
+      "address": "0xec135A336BFa6313DDcA09e0E38Ec1b9ccB757f9",
+      "txHash": "0xcf707dcb3996d5c9c46d0804c822c8e92bd1e4e87c0f4dc7ac68e90da55c5ada",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:74"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "masterChef",
+            "type": "t_contract(IPancakeMasterChef)7184",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:88"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "factory",
+            "type": "t_contract(IPancakeFactory)7113",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:90"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "router",
+            "type": "t_contract(IPancakeRouter02)7816",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:90"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "lpToken",
+            "type": "t_contract(IPancakePair)7426",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:91"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "priceOracle",
+            "type": "t_contract(IDeltaNeutralOracle)5989",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:93"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "wNative",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:94"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "baseToken",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:94"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "farmingToken",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:96"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "cake",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:98"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "operator",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:99"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "pid",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:100"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "okStrats",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:101"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "addStrat",
+            "type": "t_contract(IStrategy)7829",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:103"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "reinvestBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:103"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "maxReinvestBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:104"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "okReinvestors",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:105"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "whitelistCallers",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:107"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "reinvestThreshold",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:110"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "reinvestPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:111"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "treasuryAccount",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:112"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "treasuryBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:113"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "beneficialVault",
+            "type": "t_contract(IVault)7955",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:113"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "beneficialVaultBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:114"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "rewardPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:116"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "buybackAmount",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:118"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "totalLpBalance",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:119"
+          }
+        ],
+        "types": {
+          "t_contract(IPancakeMasterChef)7184": {
+            "label": "contract IPancakeMasterChef"
+          },
+          "t_contract(IPancakeFactory)7113": {
+            "label": "contract IPancakeFactory"
+          },
+          "t_contract(IPancakeRouter02)7816": {
+            "label": "contract IPancakeRouter02"
+          },
+          "t_contract(IPancakePair)7426": {
+            "label": "contract IPancakePair"
+          },
+          "t_contract(IDeltaNeutralOracle)5989": {
+            "label": "contract IDeltaNeutralOracle"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_contract(IStrategy)7829": {
+            "label": "contract IStrategy"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]"
+          },
+          "t_contract(IVault)7955": {
+            "label": "contract IVault"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "a3f8576dcefecde78ae26f6a32963bf600eb175137258c1d683004057686b78a": {
+      "address": "0x8511e6715845603597a2f33c69dacc5C19bCfbeE",
+      "txHash": "0xa26fce641ec6ce60ea10e15e97108170ea83131109213422f2c9f8de0984b4bf",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "_balances",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:37"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "_allowances",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:39"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "_totalSupply",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:41"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "_name",
+            "type": "t_string_storage",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:43"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "_symbol",
+            "type": "t_string_storage",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:44"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)45_storage",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:394"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:74"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+          },
+          {
+            "contract": "DeltaNeutralVault",
+            "label": "stableTo18ConversionFactor",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/DeltaNeutralVault.sol:103"
+          },
+          {
+            "contract": "DeltaNeutralVault",
+            "label": "assetTo18ConversionFactor",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/DeltaNeutralVault.sol:106"
+          },
+          {
+            "contract": "DeltaNeutralVault",
+            "label": "lpToken",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/DeltaNeutralVault.sol:107"
+          },
+          {
+            "contract": "DeltaNeutralVault",
+            "label": "stableVault",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/DeltaNeutralVault.sol:109"
+          },
+          {
+            "contract": "DeltaNeutralVault",
+            "label": "assetVault",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/DeltaNeutralVault.sol:110"
+          },
+          {
+            "contract": "DeltaNeutralVault",
+            "label": "stableVaultWorker",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/DeltaNeutralVault.sol:112"
+          },
+          {
+            "contract": "DeltaNeutralVault",
+            "label": "assetVaultWorker",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/DeltaNeutralVault.sol:113"
+          },
+          {
+            "contract": "DeltaNeutralVault",
+            "label": "stableToken",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/DeltaNeutralVault.sol:114"
+          },
+          {
+            "contract": "DeltaNeutralVault",
+            "label": "assetToken",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/DeltaNeutralVault.sol:116"
+          },
+          {
+            "contract": "DeltaNeutralVault",
+            "label": "alpacaToken",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/DeltaNeutralVault.sol:117"
+          },
+          {
+            "contract": "DeltaNeutralVault",
+            "label": "stableVaultPosId",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/DeltaNeutralVault.sol:119"
+          },
+          {
+            "contract": "DeltaNeutralVault",
+            "label": "assetVaultPosId",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/DeltaNeutralVault.sol:121"
+          },
+          {
+            "contract": "DeltaNeutralVault",
+            "label": "lastFeeCollected",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/DeltaNeutralVault.sol:121"
+          },
+          {
+            "contract": "DeltaNeutralVault",
+            "label": "priceOracle",
+            "type": "t_contract(IDeltaNeutralOracle)5989",
+            "src": "contracts/8.10/protocol/DeltaNeutralVault.sol:123"
+          },
+          {
+            "contract": "DeltaNeutralVault",
+            "label": "config",
+            "type": "t_contract(IDeltaNeutralVaultConfig)6177",
+            "src": "contracts/8.10/protocol/DeltaNeutralVault.sol:126"
+          },
+          {
+            "contract": "DeltaNeutralVault",
+            "label": "OPENING",
+            "type": "t_uint8",
+            "src": "contracts/8.10/protocol/DeltaNeutralVault.sol:128"
+          }
+        ],
+        "types": {
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_contract(IDeltaNeutralOracle)5989": {
+            "label": "contract IDeltaNeutralOracle"
+          },
+          "t_contract(IDeltaNeutralVaultConfig)6177": {
+            "label": "contract IDeltaNeutralVaultConfig"
+          },
+          "t_uint8": {
+            "label": "uint8"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
+            "label": "mapping(address => mapping(address => uint256))"
+          },
+          "t_string_storage": {
+            "label": "string"
+          },
+          "t_array(t_uint256)45_storage": {
+            "label": "uint256[45]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_bool": {
+            "label": "bool"
+          }
+        }
+      }
+    },
+    "b13ca16942037cb7a59f9ade54a9ae1b190c155530ab0ed5aeb33f772797138b": {
+      "address": "0x28a7178e2125D053220B47195727EFC29f1798DF",
+      "txHash": "0x88ffb754b05363cde052f47e4d42d429dd5cdcb825305e25e0497d7518a918e0",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:74"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+          },
+          {
+            "contract": "DeltaNeutralVaultGateway",
+            "label": "deltaNeutralVault",
+            "type": "t_contract(IDeltaNeutralVault)6029",
+            "src": "contracts/8.10/protocol/DeltaNeutralVaultGateway.sol:56"
+          }
+        ],
+        "types": {
+          "t_contract(IDeltaNeutralVault)6029": {
+            "label": "contract IDeltaNeutralVault"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_bool": {
+            "label": "bool"
+          }
+        }
+      }
+    },
+    "b0fe361033f2db559c6a019c9f45e43d5e6cfbd6dba7023177598a6c08d89108": {
+      "address": "0x7A81cda008E27889A52E5Ea4823a0b22388b5ca6",
+      "txHash": "0xe80b9097fbada2b7825a6f24bb292b4e85677d39e3b76abaa5aa8655b5638908",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "_balances",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:37"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "_allowances",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:39"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "_totalSupply",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:41"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "_name",
+            "type": "t_string_storage",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:43"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "_symbol",
+            "type": "t_string_storage",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:44"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)45_storage",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:394"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:74"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+          },
+          {
+            "contract": "DeltaNeutralVault",
+            "label": "stableTo18ConversionFactor",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/DeltaNeutralVault.sol:103"
+          },
+          {
+            "contract": "DeltaNeutralVault",
+            "label": "assetTo18ConversionFactor",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/DeltaNeutralVault.sol:106"
+          },
+          {
+            "contract": "DeltaNeutralVault",
+            "label": "lpToken",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/DeltaNeutralVault.sol:107"
+          },
+          {
+            "contract": "DeltaNeutralVault",
+            "label": "stableVault",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/DeltaNeutralVault.sol:109"
+          },
+          {
+            "contract": "DeltaNeutralVault",
+            "label": "assetVault",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/DeltaNeutralVault.sol:110"
+          },
+          {
+            "contract": "DeltaNeutralVault",
+            "label": "stableVaultWorker",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/DeltaNeutralVault.sol:112"
+          },
+          {
+            "contract": "DeltaNeutralVault",
+            "label": "assetVaultWorker",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/DeltaNeutralVault.sol:113"
+          },
+          {
+            "contract": "DeltaNeutralVault",
+            "label": "stableToken",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/DeltaNeutralVault.sol:114"
+          },
+          {
+            "contract": "DeltaNeutralVault",
+            "label": "assetToken",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/DeltaNeutralVault.sol:116"
+          },
+          {
+            "contract": "DeltaNeutralVault",
+            "label": "alpacaToken",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/DeltaNeutralVault.sol:117"
+          },
+          {
+            "contract": "DeltaNeutralVault",
+            "label": "stableVaultPosId",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/DeltaNeutralVault.sol:119"
+          },
+          {
+            "contract": "DeltaNeutralVault",
+            "label": "assetVaultPosId",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/DeltaNeutralVault.sol:121"
+          },
+          {
+            "contract": "DeltaNeutralVault",
+            "label": "lastFeeCollected",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/DeltaNeutralVault.sol:121"
+          },
+          {
+            "contract": "DeltaNeutralVault",
+            "label": "priceOracle",
+            "type": "t_contract(IDeltaNeutralOracle)5989",
+            "src": "contracts/8.10/protocol/DeltaNeutralVault.sol:123"
+          },
+          {
+            "contract": "DeltaNeutralVault",
+            "label": "config",
+            "type": "t_contract(IDeltaNeutralVaultConfig)6177",
+            "src": "contracts/8.10/protocol/DeltaNeutralVault.sol:126"
+          },
+          {
+            "contract": "DeltaNeutralVault",
+            "label": "OPENING",
+            "type": "t_uint8",
+            "src": "contracts/8.10/protocol/DeltaNeutralVault.sol:128"
+          }
+        ],
+        "types": {
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_contract(IDeltaNeutralOracle)5989": {
+            "label": "contract IDeltaNeutralOracle"
+          },
+          "t_contract(IDeltaNeutralVaultConfig)6177": {
+            "label": "contract IDeltaNeutralVaultConfig"
+          },
+          "t_uint8": {
+            "label": "uint8"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
+            "label": "mapping(address => mapping(address => uint256))"
+          },
+          "t_string_storage": {
+            "label": "string"
+          },
+          "t_array(t_uint256)45_storage": {
+            "label": "uint256[45]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_bool": {
+            "label": "bool"
+          }
+        }
+      }
+    },
+    "04f5a8bd0a617e5019843ae31621b45a0c1b3fe7d7e3ff15615660c0b262a6b2": {
+      "address": "0xf9E292c9608A4aba9A141e55a184D6d68d3EEB70",
+      "txHash": "0x0ceac219176b9920dc933c383555e407f6beb6ced2c238644dbdc7ada01fc13c",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:74"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "masterChef",
+            "type": "t_contract(IPancakeMasterChef)7184",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:88"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "factory",
+            "type": "t_contract(IPancakeFactory)7113",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:90"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "router",
+            "type": "t_contract(IPancakeRouter02)7816",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:90"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "lpToken",
+            "type": "t_contract(IPancakePair)7426",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:91"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "priceOracle",
+            "type": "t_contract(IDeltaNeutralOracle)5989",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:93"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "wNative",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:94"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "baseToken",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:94"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "farmingToken",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:96"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "cake",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:98"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "operator",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:99"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "pid",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:100"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "okStrats",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:101"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "addStrat",
+            "type": "t_contract(IStrategy)7829",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:103"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "reinvestBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:103"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "maxReinvestBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:104"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "okReinvestors",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:105"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "whitelistCallers",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:107"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "reinvestThreshold",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:110"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "reinvestPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:111"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "treasuryAccount",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:112"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "treasuryBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:113"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "beneficialVault",
+            "type": "t_contract(IVault)7955",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:113"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "beneficialVaultBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:114"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "rewardPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:116"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "buybackAmount",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:118"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02",
+            "label": "totalLpBalance",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:119"
+          }
+        ],
+        "types": {
+          "t_contract(IPancakeMasterChef)7184": {
+            "label": "contract IPancakeMasterChef"
+          },
+          "t_contract(IPancakeFactory)7113": {
+            "label": "contract IPancakeFactory"
+          },
+          "t_contract(IPancakeRouter02)7816": {
+            "label": "contract IPancakeRouter02"
+          },
+          "t_contract(IPancakePair)7426": {
+            "label": "contract IPancakePair"
+          },
+          "t_contract(IDeltaNeutralOracle)5989": {
+            "label": "contract IDeltaNeutralOracle"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_contract(IStrategy)7829": {
+            "label": "contract IStrategy"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]"
+          },
+          "t_contract(IVault)7955": {
+            "label": "contract IVault"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "1226efd20a3b69d2020305619b9febf514d17b246188b6a3b1bedb2d5ed3ecc9": {
+      "address": "0xD3Bb23a761db394AA8692562502Ae21B854BE6c8",
+      "txHash": "0x2fdae753bc2b995f4bda6ae88b54f9c184792c95e2f6a0e0bd3d14f8e2570a07",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "_balances",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:37"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "_allowances",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:39"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "_totalSupply",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:41"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "_name",
+            "type": "t_string_storage",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:43"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "_symbol",
+            "type": "t_string_storage",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:44"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)45_storage",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:394"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+          },
+          {
+            "contract": "ProxyToken",
+            "label": "timelock",
+            "type": "t_address",
+            "src": "contracts/8.10/token/ProxyToken.sol:30"
+          },
+          {
+            "contract": "ProxyToken",
+            "label": "okHolders",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/8.10/token/ProxyToken.sol:32"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
+            "label": "mapping(address => mapping(address => uint256))"
+          },
+          "t_string_storage": {
+            "label": "string"
+          },
+          "t_array(t_uint256)45_storage": {
+            "label": "uint256[45]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "b2edf970eee0f65c2b3044cc25501f9a46fc76ad8bc90ab092c033ab8bba6e19": {
+      "address": "0x7e6F681DF3210fbA706fc2F8c59cAdbEDE7227f7",
+      "txHash": "0xe2c9663967cc6ff5657b2208d54a274d07e92bcfb0b0b6df5cfe7e0e26869073",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:74"
+          },
+          {
+            "contract": "EmissionForwarder",
+            "label": "name",
+            "type": "t_string_storage",
+            "src": "contracts/8.10/token/EmissionForwarder.sol:42"
+          },
+          {
+            "contract": "EmissionForwarder",
+            "label": "fairLaunch",
+            "type": "t_contract(IFairLaunch)12562",
+            "src": "contracts/8.10/token/EmissionForwarder.sol:43"
+          },
+          {
+            "contract": "EmissionForwarder",
+            "label": "router",
+            "type": "t_contract(IAnyswapV4Router)12398",
+            "src": "contracts/8.10/token/EmissionForwarder.sol:44"
+          },
+          {
+            "contract": "EmissionForwarder",
+            "label": "fairLaunchPoolId",
+            "type": "t_uint256",
+            "src": "contracts/8.10/token/EmissionForwarder.sol:44"
+          },
+          {
+            "contract": "EmissionForwarder",
+            "label": "maxCrossChainAmount",
+            "type": "t_uint256",
+            "src": "contracts/8.10/token/EmissionForwarder.sol:47"
+          },
+          {
+            "contract": "EmissionForwarder",
+            "label": "destination",
+            "type": "t_address",
+            "src": "contracts/8.10/token/EmissionForwarder.sol:49"
+          },
+          {
+            "contract": "EmissionForwarder",
+            "label": "destChainId",
+            "type": "t_uint64",
+            "src": "contracts/8.10/token/EmissionForwarder.sol:50"
+          },
+          {
+            "contract": "EmissionForwarder",
+            "label": "token",
+            "type": "t_address",
+            "src": "contracts/8.10/token/EmissionForwarder.sol:55"
+          },
+          {
+            "contract": "EmissionForwarder",
+            "label": "anyToken",
+            "type": "t_address",
+            "src": "contracts/8.10/token/EmissionForwarder.sol:57"
+          },
+          {
+            "contract": "EmissionForwarder",
+            "label": "proxyToken",
+            "type": "t_address",
+            "src": "contracts/8.10/token/EmissionForwarder.sol:58"
+          }
+        ],
+        "types": {
+          "t_string_storage": {
+            "label": "string"
+          },
+          "t_contract(IFairLaunch)12562": {
+            "label": "contract IFairLaunch"
+          },
+          "t_contract(IAnyswapV4Router)12398": {
+            "label": "contract IAnyswapV4Router"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_uint64": {
+            "label": "uint64"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_bool": {
+            "label": "bool"
+          }
+        }
+      }
+    },
+    "5c8a57d4a8b7a871edd837a628efdbe33e7887080c3ca35385ffed51b859029e": {
+      "address": "0xC52dF6dDeDA590Cc59f98a0aE8EDD8c8D46D8097",
+      "txHash": "0xec3ea3c9bb840240f2ff9c89fdf8cedb50091fb1de5e09fe52222cf79a090c82",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:26"
+          },
+          {
+            "contract": "Initializable",
+            "label": "______gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:61"
+          },
+          {
+            "contract": "ContextUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol:37"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:18"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:78"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "_notEntered",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:21"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:63"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "masterChef",
+            "type": "t_contract(IPancakeMasterChef)30309",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:66"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "factory",
+            "type": "t_contract(IPancakeFactory)30241",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:68"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "router",
+            "type": "t_contract(IPancakeRouter02)19671",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:68"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "lpToken",
+            "type": "t_contract(IPancakePair)30551",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:70"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "wNative",
+            "type": "t_address",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:71"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "baseToken",
+            "type": "t_address",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:71"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "farmingToken",
+            "type": "t_address",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:73"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "cake",
+            "type": "t_address",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:75"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "operator",
+            "type": "t_address",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:76"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "pid",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:77"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "shares",
+            "type": "t_mapping(t_uint256,t_uint256)",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:78"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "okStrats",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:79"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "totalShare",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:81"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "addStrat",
+            "type": "t_contract(IStrategy)30632",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:82"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "liqStrat",
+            "type": "t_contract(IStrategy)30632",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:83"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "reinvestBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:83"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "maxReinvestBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:84"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "okReinvestors",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:86"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "fee",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:90"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "feeDenom",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:90"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "reinvestThreshold",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:93"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "reinvestPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:94"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "treasuryAccount",
+            "type": "t_address",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:95"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "treasuryBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:96"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "beneficialVault",
+            "type": "t_contract(IVault)31602",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:96"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "beneficialVaultBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:97"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "rewardPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:100"
+          },
+          {
+            "contract": "PancakeswapV2Worker02",
+            "label": "buybackAmount",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:101"
+          }
+        ],
+        "types": {
+          "t_contract(IPancakeMasterChef)30309": {
+            "label": "contract IPancakeMasterChef"
+          },
+          "t_contract(IPancakeFactory)30241": {
+            "label": "contract IPancakeFactory"
+          },
+          "t_contract(IPancakeRouter02)19671": {
+            "label": "contract IPancakeRouter02"
+          },
+          "t_contract(IPancakePair)30551": {
+            "label": "contract IPancakePair"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_uint256,t_uint256)": {
+            "label": "mapping(uint256 => uint256)"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_contract(IStrategy)30632": {
+            "label": "contract IStrategy"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]"
+          },
+          "t_contract(IVault)31602": {
+            "label": "contract IVault"
           },
           "t_array(t_uint256)49_storage": {
             "label": "uint256[49]"

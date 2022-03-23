@@ -1,9 +1,8 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers, network } from "hardhat";
+import { ethers } from "hardhat";
 import { ChainLinkPriceOracle__factory } from "../../../../typechain";
-import TestnetConfig from "../../../../.testnet.json";
-import MainnetConfig from "../../../../.mainnet.json";
+import { getConfig } from "../../../entities/config";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -15,11 +14,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TOKEN0_SYMBOLS = ["BTCB"];
-  const TOKEN1_SYMBOLS = ["USDT"];
-  const AGGREGATORV3S = ["0x264990fbd0A4796A3E3d8E37C4d5F87a3aCa5Ebf"];
+  const TOKEN0_SYMBOLS = ["WBNB"];
+  const TOKEN1_SYMBOLS = ["BUSD"];
+  const AGGREGATORV3S = ["0x87Ea38c9F24264Ec1Fff41B04ec94a97Caf99941"];
 
-  const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
+  const config = getConfig();
   const tokenList: any = config.Tokens;
   const token0Addrs: Array<string> = TOKEN0_SYMBOLS.map((t) => {
     const addr = tokenList[t];
@@ -41,7 +40,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     (await ethers.getSigners())[0]
   );
   console.log(">> Adding price source to chain link price oracle");
-  await chainLinkPriceOracle.setPriceFeeds(token0Addrs, token1Addrs, AGGREGATORV3S, { gasLimit: "10000000" });
+  await chainLinkPriceOracle.setPriceFeeds(token0Addrs, token1Addrs, AGGREGATORV3S);
   console.log("✅ Done");
 };
 

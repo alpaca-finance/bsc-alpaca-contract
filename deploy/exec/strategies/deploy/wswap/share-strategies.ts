@@ -78,7 +78,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     )) as WaultSwapRestrictedStrategyAddBaseTokenOnly__factory;
     const strategyRestrictedAddBaseTokenOnlyV2 = (await upgrades.deployProxy(
       WaultSwapRestrictedStrategyAddBaseTokenOnly,
-      [config.Exchanges.Waultswap.WaultswapRouter]
+      [config.YieldSources.Waultswap!.WaultswapRouter]
     )) as WaultSwapRestrictedStrategyAddBaseTokenOnly;
     await strategyRestrictedAddBaseTokenOnlyV2.deployed();
     console.log(`>> Deployed at ${strategyRestrictedAddBaseTokenOnlyV2.address}`);
@@ -103,7 +103,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       )[0]
     )) as WaultSwapRestrictedStrategyLiquidate__factory;
     const strategyRestrictedLiquidateV2 = (await upgrades.deployProxy(WaultSwapRestrictedStrategyLiquidate, [
-      config.Exchanges.Waultswap.WaultswapRouter,
+      config.YieldSources.Waultswap!.WaultswapRouter,
     ])) as WaultSwapRestrictedStrategyLiquidate;
     await strategyRestrictedLiquidateV2.deployed();
     console.log(`>> Deployed at ${strategyRestrictedLiquidateV2.address}`);
@@ -129,7 +129,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     )) as WaultSwapRestrictedStrategyWithdrawMinimizeTrading__factory;
     const strategyRestrictedWithdrawMinimizeTradingV2 = (await upgrades.deployProxy(
       WaultSwapRestrictedStrategyWithdrawMinimizeTrading,
-      [config.Exchanges.Waultswap.WaultswapRouter, config.Tokens.WBNB, config.SharedConfig.WNativeRelayer]
+      [config.YieldSources.Waultswap!.WaultswapRouter, config.Tokens.WBNB, config.SharedConfig.WNativeRelayer]
     )) as WaultSwapRestrictedStrategyWithdrawMinimizeTrading;
     await strategyRestrictedWithdrawMinimizeTradingV2.deployed();
     console.log(`>> Deployed at ${strategyRestrictedWithdrawMinimizeTradingV2.address}`);
@@ -158,7 +158,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     )) as WaultSwapRestrictedStrategyPartialCloseLiquidate__factory;
     const restrictedStrategyPartialCloseLiquidate = (await upgrades.deployProxy(
       WaultSwapRestrictedStrategyPartialCloseLiquidate,
-      [config.Exchanges.Waultswap.WaultswapRouter]
+      [config.YieldSources.Waultswap!.WaultswapRouter]
     )) as WaultSwapRestrictedStrategyPartialCloseLiquidate;
     await restrictedStrategyPartialCloseLiquidate.deployed();
     console.log(`>> Deployed at ${restrictedStrategyPartialCloseLiquidate.address}`);
@@ -182,7 +182,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     )) as WaultSwapRestrictedStrategyPartialCloseMinimizeTrading__factory;
     const strategyRestrictedPartialCloseMinimizeTradingV2 = (await upgrades.deployProxy(
       WaultSwapRestrictedStrategyPartialCloseMinimizeTrading,
-      [config.Exchanges.Waultswap.WaultswapRouter, config.Tokens.WBNB, config.SharedConfig.WNativeRelayer]
+      [config.YieldSources.Waultswap!.WaultswapRouter, config.Tokens.WBNB, config.SharedConfig.WNativeRelayer]
     )) as WaultSwapRestrictedStrategyPartialCloseMinimizeTrading;
     await strategyRestrictedPartialCloseMinimizeTradingV2.deployed();
     console.log(`>> Deployed at ${strategyRestrictedPartialCloseMinimizeTradingV2.address}`);

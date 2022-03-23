@@ -2,34 +2,34 @@ import { TimelockEntity } from "../../entities";
 import { ethers } from "hardhat";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import TimelockTransactions from "../../results/1639988729_testnet_set_whitelisted_callers.json";
 import { FileService, TimelockService } from "../../services";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
+  const queuedTimelockPath = "./deploy/results/1646977342_set-ftm-emission-alloc.json";
+  const queuedTimelocks = (await FileService.readJson(queuedTimelockPath)) as Array<TimelockEntity.Transaction>;
   const errs = [];
   let nonce = await deployer.getTransactionCount();
 
-  for (const timelockTransaction of TimelockTransactions) {
+  for (const queuedTimelock of queuedTimelocks) {
     try {
       timelockTransactions.push(
         await TimelockService.executeTransaction(
-          timelockTransaction.info,
-          timelockTransaction.queuedAt,
-          timelockTransaction.executionTransaction,
-          timelockTransaction.target,
-          timelockTransaction.value,
-          timelockTransaction.signature,
-          timelockTransaction.paramTypes,
-          timelockTransaction.params,
-          timelockTransaction.eta,
-          { nonce }
+          queuedTimelock.info,
+          queuedTimelock.queuedAt,
+          queuedTimelock.executionTransaction,
+          queuedTimelock.target,
+          queuedTimelock.value,
+          queuedTimelock.signature,
+          queuedTimelock.paramTypes,
+          queuedTimelock.params,
+          queuedTimelock.eta,
+          { nonce: nonce++ }
         )
       );
-      nonce++;
     } catch (error) {
-      console.log(">> error while executing transaction: ", timelockTransaction.info);
+      console.log(">> error while executing transaction: ", queuedTimelock.info);
       errs.push(error);
     }
   }

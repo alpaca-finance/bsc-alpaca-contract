@@ -1,17 +1,8 @@
-import { ethers, network } from "hardhat";
-import "@openzeppelin/test-helpers";
-import {
-  PancakePair__factory,
-  SimplePriceOracle__factory,
-  Timelock,
-  Timelock__factory,
-  Vault__factory,
-  WorkerConfig__factory,
-} from "../typechain";
-import MainnetConfig from "../.mainnet.json";
-import TestnetConfig from "../.testnet.json";
+import { ethers } from "hardhat";
+import { Timelock, Timelock__factory, Vault__factory } from "../typechain";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { VaultsEntity } from "../deploy/interfaces/config";
+import { getConfig } from "../deploy/entities/config";
 
 interface IReserve {
   vault: string;
@@ -28,6 +19,7 @@ async function _queueWithdrawReserve(
 ): Promise<IReserve> {
   console.log(`========== queue tx for withdrawing reserve pool from ${vaultInfo.symbol} ==========`);
   const vault = Vault__factory.connect(vaultInfo.address, deployer);
+  const decimals = await vault.decimals();
   const reserveAmt = await vault.reservePool();
 
   const queueTx = await timelock.queueTransaction(
@@ -36,7 +28,7 @@ async function _queueWithdrawReserve(
     "withdrawReserve(address,uint256)",
     ethers.utils.defaultAbiCoder.encode(["address", "uint256"], [deployer.address, reserveAmt]),
     eta,
-    { nonce, gasPrice: ethers.utils.parseUnits("20", "gwei") }
+    { nonce }
   );
 
   console.log(`> queued tx to withdraw reserve hash: ${queueTx.hash}`);
@@ -49,18 +41,17 @@ async function _queueWithdrawReserve(
 
   return {
     vault: vaultInfo.symbol.replace("ib", ""),
-    fullAmount: ethers.utils.formatEther(reserveAmt),
-    buybackAmount: ethers.utils.formatEther(reserveAmt.mul("5263").div("10000")),
+    fullAmount: ethers.utils.formatUnits(reserveAmt, decimals),
+    buybackAmount: ethers.utils.formatUnits(reserveAmt.mul("5263").div("10000"), decimals),
   };
 }
 
 async function main() {
-  const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
+  const config = getConfig();
   const deployer = (await ethers.getSigners())[0];
   let nonce = await deployer.getTransactionCount();
 
   /// @dev initialized all variables
-  const targetVault = ["ibWBNB", "ibBUSD", "ibETH", "ibALPACA", "ibUSDT", "ibBTCB", "ibTUSD"];
   const reserves: Array<IReserve> = [];
   const eta = Math.floor(Date.now() / 1000) + 86400 + 1800;
 
@@ -68,12 +59,7 @@ async function main() {
   const timelock = Timelock__factory.connect(config.Timelock, deployer);
 
   /// @dev find vault info
-  const vaultInfo = config.Vaults.filter((v) => {
-    if (targetVault.indexOf(v.symbol) === -1) {
-      return false;
-    }
-    return true;
-  });
+  const vaultInfo = config.Vaults;
 
   const promises = [];
   for (let i = 0; i < vaultInfo.length; i++) {

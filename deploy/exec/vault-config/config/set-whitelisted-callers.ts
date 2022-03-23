@@ -1,10 +1,9 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { network, ethers } from "hardhat";
-import MainnetConfig from "../../../../.mainnet.json";
-import TestnetConfig from "../../../../.testnet.json";
+import { ethers } from "hardhat";
 import { TimelockEntity } from "../../../entities";
 import { FileService, TimelockService } from "../../../services";
+import { getConfig } from "../../../entities/config";
 
 interface IInput {
   VAULT_SYMBOL: string;
@@ -28,48 +27,50 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "testnet_set_whitelisted_callers";
+  const TITLE = "mainnet_8x_delta_neutral_set_whitelisted_callers";
   const TARGETED_VAULT_CONFIG: Array<IInput> = [
     {
       VAULT_SYMBOL: "ibWBNB",
-      WHITELISTED_CALLERS: ["0x30903486f9b438c4dd0Db38bf8C7dF9B193971F9"],
+      WHITELISTED_CALLERS: ["0x1c623105d072Dc69F9a3F8A3dB67b5AeCEDC082b"],
       IS_ENABLE: true,
     },
-    {
-      VAULT_SYMBOL: "ibBUSD",
-      WHITELISTED_CALLERS: ["0x30903486f9b438c4dd0Db38bf8C7dF9B193971F9"],
-      IS_ENABLE: true,
-    },
-    {
-      VAULT_SYMBOL: "ibETH",
-      WHITELISTED_CALLERS: ["0x30903486f9b438c4dd0Db38bf8C7dF9B193971F9"],
-      IS_ENABLE: true,
-    },
-    {
-      VAULT_SYMBOL: "ibALPACA",
-      WHITELISTED_CALLERS: ["0x30903486f9b438c4dd0Db38bf8C7dF9B193971F9"],
-      IS_ENABLE: true,
-    },
-    {
-      VAULT_SYMBOL: "ibUSDT",
-      WHITELISTED_CALLERS: ["0x30903486f9b438c4dd0Db38bf8C7dF9B193971F9"],
-      IS_ENABLE: true,
-    },
-    {
-      VAULT_SYMBOL: "ibBTCB",
-      WHITELISTED_CALLERS: ["0x30903486f9b438c4dd0Db38bf8C7dF9B193971F9"],
-      IS_ENABLE: true,
-    },
+    // {
+    //   VAULT_SYMBOL: "ibBUSD",
+    //   WHITELISTED_CALLERS: ["0xD283Cc1c165Fe25154458A41a9c1D35107d3a0f2"],
+    //   IS_ENABLE: true,
+    // },
+    // {
+    //   VAULT_SYMBOL: "ibETH",
+    //   WHITELISTED_CALLERS: ["0x36488cC6F2E0f96e8814F315BDF4229c9c82d60A"],
+    //   IS_ENABLE: true,
+    // },
+    // {
+    //   VAULT_SYMBOL: "ibALPACA",
+    //   WHITELISTED_CALLERS: ["0x36488cC6F2E0f96e8814F315BDF4229c9c82d60A"],
+    //   IS_ENABLE: true,
+    // },
+    // {
+    //   VAULT_SYMBOL: "ibUSDT",
+    //   WHITELISTED_CALLERS: ["0xD378d37fA8040370fe42bc732e5B2A169096d3e1"],
+    //   IS_ENABLE: true,
+    // },
+    // {
+    //   VAULT_SYMBOL: "ibBTCB",
+    //   WHITELISTED_CALLERS: ["0x36488cC6F2E0f96e8814F315BDF4229c9c82d60A"],
+    //   IS_ENABLE: true,
+    // },
     {
       VAULT_SYMBOL: "ibTUSD",
-      WHITELISTED_CALLERS: ["0x30903486f9b438c4dd0Db38bf8C7dF9B193971F9"],
+      WHITELISTED_CALLERS: ["0x1c623105d072Dc69F9a3F8A3dB67b5AeCEDC082b"],
       IS_ENABLE: true,
     },
   ];
-  const EXACT_ETA = "1639989000";
+  const EXACT_ETA = "1646402400";
 
-  const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
+  const config = getConfig();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
+  const deployer = (await ethers.getSigners())[0];
+  let nonce = await deployer.getTransactionCount();
 
   const inputs: Array<IDerivedInput> = TARGETED_VAULT_CONFIG.map((tv) => {
     const vault = config.Vaults.find((v) => tv.VAULT_SYMBOL == v.symbol);
@@ -97,7 +98,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         ["address[]", "bool"],
         [i.whitelistedCallers, i.isEnable],
         EXACT_ETA,
-        { gasPrice: ethers.utils.parseUnits("15", "gwei") }
+        { gasPrice: ethers.utils.parseUnits("15", "gwei"), nonce: nonce++ }
       )
     );
   }
