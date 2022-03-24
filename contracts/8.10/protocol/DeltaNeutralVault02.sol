@@ -462,13 +462,13 @@ contract DeltaNeutralVault02 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
       revert DeltaNeutralVault_BadReinvestPath();
     }
 
-    // 1.  claim reward from fairlaunch
+    // 1.  claim reward from MiniFL
     uint256 _equityBefore = totalEquityValue();
     uint256 _alpacaBefore = IERC20Upgradeable(alpacaToken).balanceOf(address(this));
 
-    address _fairLaunchAddress = config.fairLaunchAddr();
-    IMiniFL(_fairLaunchAddress).harvest(IVault(stableVault).fairLaunchPoolId());
-    IMiniFL(_fairLaunchAddress).harvest(IVault(assetVault).fairLaunchPoolId());
+    address _miniFLAddress = config.fairLaunchAddr();
+    IMiniFL(_miniFLAddress).harvest(IVault(stableVault).fairLaunchPoolId());
+    IMiniFL(_miniFLAddress).harvest(IVault(assetVault).fairLaunchPoolId());
     uint256 _alpacaAfter = IERC20Upgradeable(alpacaToken).balanceOf(address(this));
 
     // 2. collect alpaca bounty & distribute to ALPACA beneficiary
