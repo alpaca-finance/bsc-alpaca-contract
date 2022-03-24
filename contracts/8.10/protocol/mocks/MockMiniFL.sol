@@ -20,10 +20,9 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeab
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 
-import "../interfaces/IMiniFL.sol";
 import "../interfaces/IRewarder.sol";
 
-contract MockMiniFL is IMiniFL, OwnableUpgradeable, ReentrancyGuardUpgradeable {
+contract MockMiniFL is OwnableUpgradeable, ReentrancyGuardUpgradeable {
   using SafeCastUpgradeable for uint256;
   using SafeCastUpgradeable for int256;
   using SafeERC20Upgradeable for IERC20Upgradeable;

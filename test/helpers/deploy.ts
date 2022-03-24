@@ -133,8 +133,6 @@ import {
   TShare__factory,
   TShareRewardPool__factory,
   TShare,
-  DeltaNeutralVault02,
-  DeltaNeutralVault02__factory,
 } from "../../typechain";
 import * as TimeHelpers from "../helpers/time";
 
@@ -1154,27 +1152,6 @@ export class DeployHelper {
     ])) as DeltaNeutralVault;
     await deltaNeutralVault.deployed();
     return deltaNeutralVault;
-  }
-
-  public async deployDeltaNeutralVault02(input: IDeltaNeutralVault): Promise<DeltaNeutralVault02> {
-    const DeltaNeutralVault02 = (await ethers.getContractFactory(
-      "DeltaNeutralVault02",
-      this.deployer
-    )) as DeltaNeutralVault02__factory;
-    const deltaNeutralVault02 = (await upgrades.deployProxy(DeltaNeutralVault02, [
-      input.name,
-      input.symbol,
-      input.vaultStable,
-      input.vaultAsset,
-      input.stableVaultWorker,
-      input.assetVaultWorker,
-      input.lpToken,
-      input.alpacaToken,
-      input.deltaNeutralOracle,
-      input.deltaVaultConfig,
-    ])) as DeltaNeutralVault02;
-    await deltaNeutralVault02.deployed();
-    return deltaNeutralVault02;
   }
 
   public async deployDeltaNeutralGateway(
