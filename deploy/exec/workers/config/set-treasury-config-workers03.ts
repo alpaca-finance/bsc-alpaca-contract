@@ -6,6 +6,7 @@ import { FileService, TimelockService } from "../../../services";
 import { ethers } from "hardhat";
 import { SpookyWorker03__factory } from "./../../../../typechain/factories/SpookyWorker03__factory";
 import { TombWorker03__factory } from "./../../../../typechain/factories/TombWorker03__factory";
+import { getDeployer } from "../../../../utils/deployer-helper";
 /**
  * @description Deployment script for upgrades workers to 02 version
  * @param  {HardhatRuntimeEnvironment} hre
@@ -41,7 +42,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const TREASURY_BOUNTY_BPS = "900";
 
   const targetedWorkers = mapWorkers(workerInputs);
-  const deployer = (await ethers.getSigners())[0];
+  const deployer = await getDeployer();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   let nonce = await deployer.getTransactionCount();
 
