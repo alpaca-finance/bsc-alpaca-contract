@@ -7,6 +7,7 @@ import { ConfigEntity, TimelockEntity } from "../../../entities";
 import { FileService, TimelockService } from "../../../services";
 import { SpookyWorker03__factory } from "./../../../../typechain/factories/SpookyWorker03__factory";
 import { TombWorker03__factory } from "./../../../../typechain/factories/TombWorker03__factory";
+import { getDeployer } from "../../../../utils/deployer-helper";
 
 interface IWorker {
   WORKER_NAME: string;
@@ -80,7 +81,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     throw new Error(`could not find ${workerInput}`);
   });
-  const deployer = (await ethers.getSigners())[0];
+  const deployer = await getDeployer();
   let nonce = await deployer.getTransactionCount();
 
   for (let i = 0; i < TO_BE_UPGRADE_WORKERS.length; i++) {

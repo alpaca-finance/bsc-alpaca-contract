@@ -4,6 +4,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, network } from "hardhat";
 import { Timelock__factory } from "../../../../typechain";
 import { getConfig } from "../../../entities/config";
+import { getDeployer } from "../../../../utils/deployer-helper";
 
 interface IUpdate {
   STAKING_TOKEN: string;
@@ -41,7 +42,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ];
 
   const config = getConfig();
-  const deployer = (await ethers.getSigners())[0];
+  const deployer = await getDeployer();
   const inputs: Array<IInput> = [];
   const miniFL = MiniFL__factory.connect(config.MiniFL!.address, deployer);
   let nonce = await deployer.getTransactionCount();

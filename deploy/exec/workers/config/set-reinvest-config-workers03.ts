@@ -5,6 +5,7 @@ import { SpookyWorker03__factory } from "./../../../../typechain/factories/Spook
 import { TombWorker03__factory } from "./../../../../typechain/factories/TombWorker03__factory";
 import { FileService, TimelockService } from "../../../services";
 import { ConfigEntity, TimelockEntity } from "../../../entities";
+import { getDeployer } from "../../../../utils/deployer-helper";
 
 interface IWorker {
   WORKER_NAME: string;
@@ -177,7 +178,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     };
   });
 
-  const deployer = (await ethers.getSigners())[0];
+  const deployer = await getDeployer();
   let nonce = await deployer.getTransactionCount();
 
   for (const reinvestConfig of reinvestConfigs) {
