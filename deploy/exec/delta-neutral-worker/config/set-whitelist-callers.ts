@@ -24,13 +24,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       Check all variables below before execute the deployment script
 */
   const config = getConfig();
-  const DELTA_NEUTRAL_VAULT = "Market Neutral 8x BNB-USDT PCS1";
+  const DELTA_NEUTRAL_VAULT = "Market Neutral 8x BNB-USDT PCS2";
   const workerInputs: IWorkerInput[] = [
     {
-      name: "WBNB-USDT 8x DeltaNeutralPancakeswapWorker",
+      name: "WBNB-USDT 8x PCS2 DeltaNeutralPancakeswapWorker",
     },
     {
-      name: "USDT-WBNB 8x DeltaNeutralPancakeswapWorker",
+      name: "USDT-WBNB 8x PCS2 DeltaNeutralPancakeswapWorker",
     },
   ];
 

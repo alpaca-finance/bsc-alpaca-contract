@@ -319,7 +319,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
       0,
       rewardPath,
       address(this),
-      block.number
+      block.timestamp
     );
 
     /// 3. if beneficialvault token not equal to baseToken regardless of a caller balance, can directly transfer to beneficial vault

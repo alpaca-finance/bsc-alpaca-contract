@@ -271,6 +271,7 @@
     "deploy:fantom_mainnetfork:workers:config:set-beneficial-vault-config-workers03": "hardhat --network fantom_mainnetfork deploy --no-compile --reset --tags SetBeneficialBuybackFieldsWorkers03",
     "deploy:fantom_mainnetfork:workers:config:set-reinvest-config-workers03": "hardhat --network fantom_mainnetfork deploy --no-compile --reset --tags SetReinvestConfigWorkers03",
     "deploy:fantom_mainnetfork:workers:config:set-treasury-config-workers03": "hardhat --network fantom_mainnetfork deploy --no-compile --reset --tags SetTreasuryFieldsWorkers03",
+    "deploy:fantom_mainnet:vault-config:config:set-whitelisted-callers": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags SetWhitelistedCallers",
     "mainnet": "hardhat console --no-compile --network mainnet",
     "ethereum": "hardhat console --no-compile --network ethereum",
     "test:case": "mocha --require hardhat/register --file test/integrations/protocol/delta-neutral/DeltaNeutralVault.test.ts --extension ts -g",

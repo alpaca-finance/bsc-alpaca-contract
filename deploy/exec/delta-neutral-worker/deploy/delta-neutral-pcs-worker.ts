@@ -26,6 +26,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       Check all variables below before execute the deployment script
     */
 
+  interface IBeneficialVaultInput {
+    BENEFICIAL_VAULT_BPS: string;
+    BENEFICIAL_VAULT_ADDRESS: string;
+    REWARD_PATH: Array<string>;
+  }
+
   interface IDeltaNeutralPCSWorkerInput {
     VAULT_SYMBOL: string;
     WORKER_NAME: string;
@@ -35,6 +41,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     REINVEST_BOUNTY_BPS: string;
     REINVEST_PATH: Array<string>;
     REINVEST_THRESHOLD: string;
+    BENEFICIAL_VAULT?: IBeneficialVaultInput;
     WORK_FACTOR: string;
     KILL_FACTOR: string;
     MAX_PRICE_DIFF: string;
@@ -63,6 +70,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     WORK_FACTOR: string;
     KILL_FACTOR: string;
     MAX_PRICE_DIFF: string;
+    BENEFICIAL_VAULT?: IBeneficialVaultInput;
     TIMELOCK: string;
   }
 
@@ -71,33 +79,43 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const shortWorkerInfos: IDeltaNeutralPCSWorkerInput[] = [
     {
       VAULT_SYMBOL: "ibWBNB",
-      WORKER_NAME: "USDT-WBNB 8x DeltaNeutralPancakeswapWorker",
+      WORKER_NAME: "USDT-WBNB 8x PCS2 DeltaNeutralPancakeswapWorker",
       TREASURY_ADDRESS: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
       POOL_ID: 264,
       REINVEST_BOUNTY_BPS: "1500",
       REINVEST_PATH: ["CAKE", "WBNB"],
-      REINVEST_THRESHOLD: "0",
+      REINVEST_THRESHOLD: "100",
+      BENEFICIAL_VAULT: {
+        BENEFICIAL_VAULT_BPS: "5330",
+        BENEFICIAL_VAULT_ADDRESS: "0x44B3868cbba5fbd2c5D8d1445BDB14458806B3B4",
+        REWARD_PATH: ["CAKE", "BUSD", "ALPACA"],
+      },
       WORK_FACTOR: "9500",
       KILL_FACTOR: "0",
       MAX_PRICE_DIFF: "10500",
     },
     {
       VAULT_SYMBOL: "ibUSDT",
-      WORKER_NAME: "WBNB-USDT 8x DeltaNeutralPancakeswapWorker",
+      WORKER_NAME: "WBNB-USDT 8x PCS2 DeltaNeutralPancakeswapWorker",
       TREASURY_ADDRESS: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
       POOL_ID: 264,
       REINVEST_BOUNTY_BPS: "1500",
       REINVEST_PATH: ["CAKE", "USDT"],
-      REINVEST_THRESHOLD: "0",
+      REINVEST_THRESHOLD: "100",
+      BENEFICIAL_VAULT: {
+        BENEFICIAL_VAULT_BPS: "5330",
+        BENEFICIAL_VAULT_ADDRESS: "0x44B3868cbba5fbd2c5D8d1445BDB14458806B3B4",
+        REWARD_PATH: ["CAKE", "BUSD", "ALPACA"],
+      },
       WORK_FACTOR: "9500",
       KILL_FACTOR: "0",
       MAX_PRICE_DIFF: "10500",
     },
   ];
-  const TITLE = "mainnet2_delta_neutral_8x_pcs_worker";
-  const EXACT_ETA = "1647669600";
+  const TITLE = "mainnet_delta_neutral_8x_pcs2_worker";
+  const EXACT_ETA = "1648206000";
 
   const deployer = (await ethers.getSigners())[0];
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
@@ -117,6 +135,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       }
       return addr;
     });
+
+    const beneficialVault = n.BENEFICIAL_VAULT;
+    if (beneficialVault !== undefined) {
+      beneficialVault.REWARD_PATH = beneficialVault.REWARD_PATH.map((p) => {
+        const addr = tokenList[p];
+        if (addr === undefined) {
+          throw `error: path: unable to find address of ${p}`;
+        }
+        return addr;
+      });
+    }
 
     return {
       WORKER_NAME: n.WORKER_NAME,
@@ -141,6 +170,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       WORK_FACTOR: n.WORK_FACTOR,
       KILL_FACTOR: n.KILL_FACTOR,
       MAX_PRICE_DIFF: n.MAX_PRICE_DIFF,
+      BENEFICIAL_VAULT: beneficialVault,
       TIMELOCK: config.Timelock,
     };
   });
@@ -235,6 +265,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       await partialCloseMinimize.setWorkersOk([deltaNeutralWorker.address], true, { gasPrice, nonce: nonce++ });
     }
     console.log("✅ Done");
+
+    if (workerInfos[i].BENEFICIAL_VAULT !== undefined) {
+      console.log(`>> setting beneficial vault`);
+      await deltaNeutralWorker.setBeneficialVaultConfig(
+        workerInfos[i].BENEFICIAL_VAULT!.BENEFICIAL_VAULT_BPS,
+        workerInfos[i].BENEFICIAL_VAULT!.BENEFICIAL_VAULT_ADDRESS,
+        workerInfos[i].BENEFICIAL_VAULT!.REWARD_PATH,
+        { gasPrice, nonce: nonce++ }
+      );
+    }
 
     console.log(">> Timelock");
     timelockTransactions.push(

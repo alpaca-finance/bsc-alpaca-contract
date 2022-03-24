@@ -319,7 +319,7 @@ contract DeltaNeutralPancakeWorker02 is OwnableUpgradeable, ReentrancyGuardUpgra
       0,
       rewardPath,
       address(this),
-      block.number
+      block.timestamp
     );
 
     /// 3. if beneficialvault token not equal to baseToken regardless of a caller balance, can directly transfer to beneficial vault
