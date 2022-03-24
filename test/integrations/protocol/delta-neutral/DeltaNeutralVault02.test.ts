@@ -3661,25 +3661,6 @@ describe("DeltaNeutralVault", () => {
 
           let latest = await TimeHelpers.latestBlockNumber();
 
-          // calculate ALPACA REWARD
-
-          // formula = user.amount.mul(accAlpacaPerShare).div(1e12).sub(user.rewardDebt);
-          // STABLE POSITION
-          // user.amount 1000.000000000000000000
-          // accAlpacaPerShare 7000000000
-          // user.rewardDebt 5.000000000000000000
-          // ((1000.000000000000000000 * 7000000000)/ 1000000000000) - 5.000000000000000000
-          // (7000000000000.000000000000000000 / 1000000000000) - 5.000000000000000000 => 2.000000000000000000
-
-          // ASSET POSITION
-          // user.amount 3000.000000000000000000
-          // accAlpacaPerShare 2333333332
-          // user.rewardDebt 4.999999998000000000
-          // ((3000.000000000000000000*2333333332) / 1000000000000) - 4.999999998000000000
-          // (6999999996000.000000000000000000 / 1000000000000) - 4.999999998000000000 = > 1.999999998000000000
-
-          // reward from both pool => (2.000000000000000000 +1.999999998000000000 )  => 3.999999998000000000
-
           const stableRewardAlpaca = ethers.utils.parseEther("10");
           const assetRewardAlpaca = ethers.utils.parseEther("10");
           const alpacaBefore = await alpacaToken.balanceOf(deltaVault.address);
