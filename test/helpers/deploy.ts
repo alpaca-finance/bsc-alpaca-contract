@@ -1,3 +1,5 @@
+import { MockMiniFL } from "./../../typechain/MockMiniFL";
+import { MockMiniFL__factory } from "./../../typechain/factories/MockMiniFL__factory";
 import { BaseContract, BigNumber, BigNumberish, Signer } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers, upgrades } from "hardhat";
@@ -131,6 +133,8 @@ import {
   TShare__factory,
   TShareRewardPool__factory,
   TShare,
+  DeltaNeutralVault02,
+  DeltaNeutralVault02__factory,
 } from "../../typechain";
 import * as TimeHelpers from "../helpers/time";
 
@@ -595,6 +599,17 @@ export class DeployHelper {
     await alpacaToken.transferOwnership(fairLaunch.address);
 
     return [alpacaToken, fairLaunch];
+  }
+
+  public async deployAlpacaMockMiniFL(maxAlpacaPerSecond: BigNumberish): Promise<[AlpacaToken, MockMiniFL]> {
+    const AlpacaToken = (await ethers.getContractFactory("AlpacaToken", this.deployer)) as AlpacaToken__factory;
+    const alpacaToken = await AlpacaToken.deploy(0, 1);
+    await alpacaToken.deployed();
+
+    const MiniFL = (await ethers.getContractFactory("MockMiniFL", this.deployer)) as MockMiniFL__factory;
+    const miniFL = (await upgrades.deployProxy(MiniFL, [alpacaToken.address, maxAlpacaPerSecond])) as MockMiniFL;
+
+    return [alpacaToken, miniFL];
   }
 
   private async _deployVault(
@@ -1139,6 +1154,27 @@ export class DeployHelper {
     ])) as DeltaNeutralVault;
     await deltaNeutralVault.deployed();
     return deltaNeutralVault;
+  }
+
+  public async deployDeltaNeutralVault02(input: IDeltaNeutralVault): Promise<DeltaNeutralVault02> {
+    const DeltaNeutralVault02 = (await ethers.getContractFactory(
+      "DeltaNeutralVault02",
+      this.deployer
+    )) as DeltaNeutralVault02__factory;
+    const deltaNeutralVault02 = (await upgrades.deployProxy(DeltaNeutralVault02, [
+      input.name,
+      input.symbol,
+      input.vaultStable,
+      input.vaultAsset,
+      input.stableVaultWorker,
+      input.assetVaultWorker,
+      input.lpToken,
+      input.alpacaToken,
+      input.deltaNeutralOracle,
+      input.deltaVaultConfig,
+    ])) as DeltaNeutralVault02;
+    await deltaNeutralVault02.deployed();
+    return deltaNeutralVault02;
   }
 
   public async deployDeltaNeutralGateway(
