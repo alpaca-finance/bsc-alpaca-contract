@@ -13,7 +13,7 @@ Alpaca Fin Corporation
 
 pragma solidity 0.8.10;
 
-import "../interfaces/IFairLaunch.sol";
+import "../../token/interfaces/IFairLaunch.sol";
 import "../../utils/SafeToken.sol";
 
 // FairLaunch is a smart contract for distributing ALPACA by asking user to stake the ERC20-based token.

@@ -16,7 +16,7 @@ pragma solidity 0.8.10;
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 
-import "../interfaces/IProxyToken.sol";
+import "../../token/interfaces/IProxyToken.sol";
 
 import "../../utils/SafeToken.sol";
 

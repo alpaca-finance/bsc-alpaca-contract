@@ -343,6 +343,7 @@
     "test:oracleMedianizer": "hardhat test --no-compile ./test/OracleMedianizer.test.ts",
     "test:chainLinkPriceOracle": "hardhat test --no-compile ./test/ChainLinkPriceOracle.test.ts",
     "test:deltaneutral": "hardhat test --no-compile ./test/integrations/protocol/delta-neutral/DeltaNeutralVault.test.ts",
+    "test:deltaneutralMiniFL": "hardhat test --no-compile ./test/integrations/protocol/delta-neutral/DeltaNeutralVault-MiniFL.test.ts",
     "test:deltaneutralNon18Decimals": "hardhat test --no-compile ./test/integrations/protocol/delta-neutral/DeltaNeutralVaultNon18Decimals.test.ts",
     "test:deltaneutralGateway": "hardhat test --no-compile ./test/integrations/protocol/delta-neutral/DeltaNeutralVaultGateway.test.ts",
     "test:deltaneutralConfig": "hardhat test --no-compile ./test/integrations/protocol/delta-neutral/DeltaNeutralVaultConfig.test.ts",
