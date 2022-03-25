@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL
 /**
   ∩~~~~∩ 
   ξ ･×･ ξ 
@@ -510,7 +510,6 @@ contract DeltaNeutralSpookyWorker03 is OwnableUpgradeable, ReentrancyGuardUpgrad
   /// @param _treasuryAccount - The treasury address to update
   /// @param _treasuryBountyBps - The treasury bounty to update
   function setTreasuryConfig(address _treasuryAccount, uint256 _treasuryBountyBps) external onlyOwner {
-    //TODO spooky worker has this should we add this error? require(_treasuryAccount != address(0), "bad _treasuryAccount");
     if (treasuryAccount == address(0)) revert DeltaNeutralSpookyWorker03_BadTreasuryAccount();
     if (_treasuryBountyBps > maxReinvestBountyBps) revert DeltaNeutralSpookyWorker03_ExceedReinvestBounty();
 
