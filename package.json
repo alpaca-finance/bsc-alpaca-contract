@@ -271,6 +271,21 @@
     "deploy:fantom_mainnetfork:workers:config:set-beneficial-vault-config-workers03": "hardhat --network fantom_mainnetfork deploy --no-compile --reset --tags SetBeneficialBuybackFieldsWorkers03",
     "deploy:fantom_mainnetfork:workers:config:set-reinvest-config-workers03": "hardhat --network fantom_mainnetfork deploy --no-compile --reset --tags SetReinvestConfigWorkers03",
     "deploy:fantom_mainnetfork:workers:config:set-treasury-config-workers03": "hardhat --network fantom_mainnetfork deploy --no-compile --reset --tags SetTreasuryFieldsWorkers03",
+    "deploy:fantom_mainnet:delta-neutral-oracle:deploy:delta-neutral-oracle": "hardhat --network fantom_mainnetfork deploy --no-compile --reset --tags DeltaNeutralOracle",
+    "deploy:fantom_mainnet:delta-neutral-vault-config:deploy:delta-neutral-vault-config": "hardhat --network fantom_mainnetfork deploy --no-compile --reset --tags DeltaNeutralVaultConfigFTM",
+    "deploy:fantom_mainnet:delta-neutral-worker:deploy:delta-neutral-spooky-worker": "hardhat --network fantom_mainnetfork deploy --no-compile --reset --tags DeltaNeutralSpookyWorker03",
+    
+    
+    
+    "deploy:fantom_mainnet:delta-neutral-vault:deploy:delta-neutral-vault": "hardhat --network fantom_mainnetfork deploy --no-compile --reset --tags DeltaNeutralVaultFTM",
+    
+    
+    
+    
+    "deploy:fantom_mainnet:delta-neutral-vault:config:init-positions": "hardhat --network fantom_mainnetfork deploy --no-compile --reset --tags DeltaNeutralVaultInitPositions",
+    "deploy:fantom_mainnet:delta-neutral-worker:config:set-whitelist-callers": "hardhat --network fantom_mainnetfork deploy --no-compile --reset --tags DeltaNeutralWorkerSetWhitelistCallers",
+    "deploy:fantom_mainnet:delta-neutral-vault-gateway:deploy:delta-neutral-vault-gateway": "hardhat --network fantom_mainnetfork deploy --no-compile --reset --tags DeltaNeutralVaultGateway",
+
     "mainnet": "hardhat console --no-compile --network mainnet",
     "ethereum": "hardhat console --no-compile --network ethereum",
     "test:case": "mocha --require hardhat/register --file test/integrations/protocol/delta-neutral/DeltaNeutralVault.test.ts --extension ts -g",
@@ -371,6 +386,7 @@
     "solhint": "./node_modules/.bin/solhint -f table contracts/**/*.sol",
     "prettier:solidity": "./node_modules/.bin/prettier --write contracts/**/*.sol",
     "mainnet-fork": "hardhat node --show-stack-traces --config hardhat.config.8.10.forking.ts"
+    
   },
   "devDependencies": {
     "@chainlink/contracts": "^0.1.7",
