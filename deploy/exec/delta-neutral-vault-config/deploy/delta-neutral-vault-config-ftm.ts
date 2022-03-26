@@ -75,7 +75,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log("✅ Done");
 
   let nonce = await deployer.getTransactionCount();
-  console.log("after getTransactionCount", Date.now());
 
   console.log(`>> Setting Value limit`);
   const limitValue = ethers.utils.parseEther(VALUE_LIMIT);

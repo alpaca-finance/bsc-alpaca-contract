@@ -274,9 +274,6 @@
     "deploy:fantom_mainnet:delta-neutral-oracle:deploy:delta-neutral-oracle": "hardhat --network fantom_mainnetfork deploy --no-compile --reset --tags DeltaNeutralOracle",
     "deploy:fantom_mainnet:delta-neutral-vault-config:deploy:delta-neutral-vault-config": "hardhat --network fantom_mainnetfork deploy --no-compile --reset --tags DeltaNeutralVaultConfigFTM",
     "deploy:fantom_mainnet:delta-neutral-worker:deploy:delta-neutral-spooky-worker": "hardhat --network fantom_mainnetfork deploy --no-compile --reset --tags DeltaNeutralSpookyWorker03",
-    
-    
-    
     "deploy:fantom_mainnet:delta-neutral-vault:deploy:delta-neutral-vault": "hardhat --network fantom_mainnetfork deploy --no-compile --reset --tags DeltaNeutralVaultFTM",
     
     

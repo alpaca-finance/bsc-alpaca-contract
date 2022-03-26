@@ -1,22 +1,15 @@
-import { SpookySwapStrategyPartialCloseMinimizeTrading__factory } from "./../../../../typechain/factories/SpookySwapStrategyPartialCloseMinimizeTrading__factory";
-import { SpookySwapStrategyPartialCloseLiquidate__factory } from "./../../../../typechain/factories/SpookySwapStrategyPartialCloseLiquidate__factory";
-import { SpookySwapStrategyWithdrawMinimizeTrading__factory } from "./../../../../typechain/factories/SpookySwapStrategyWithdrawMinimizeTrading__factory";
-import { SpookySwapStrategyWithdrawMinimizeTrading } from "./../../../../typechain/SpookySwapStrategyWithdrawMinimizeTrading.d";
-import { SpookySwapStrategyAddTwoSidesOptimal__factory } from "./../../../../typechain/factories/SpookySwapStrategyAddTwoSidesOptimal__factory";
-import { SpookySwapStrategyLiquidate__factory } from "./../../../../typechain/factories/SpookySwapStrategyLiquidate__factory";
-import { SpookySwapStrategyAddBaseTokenOnly__factory } from "./../../../../typechain/factories/SpookySwapStrategyAddBaseTokenOnly__factory";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, network, upgrades } from "hardhat";
 import {
   DeltaNeutralPancakeWorker02,
   DeltaNeutralPancakeWorker02__factory,
-  PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory,
-  PancakeswapV2RestrictedStrategyAddTwoSidesOptimal__factory,
-  PancakeswapV2RestrictedStrategyLiquidate__factory,
-  PancakeswapV2RestrictedStrategyPartialCloseLiquidate__factory,
-  PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading__factory,
-  PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading__factory,
+  SpookySwapStrategyAddBaseTokenOnly__factory,
+  SpookySwapStrategyAddTwoSidesOptimal__factory,
+  SpookySwapStrategyLiquidate__factory,
+  SpookySwapStrategyPartialCloseLiquidate__factory,
+  SpookySwapStrategyPartialCloseMinimizeTrading__factory,
+  SpookySwapStrategyWithdrawMinimizeTrading__factory,
 } from "../../../../typechain";
 import { ConfigEntity, TimelockEntity } from "../../../entities";
 import { FileService, TimelockService } from "../../../services";
