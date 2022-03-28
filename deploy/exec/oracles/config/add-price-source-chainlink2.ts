@@ -1,8 +1,8 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers } from "hardhat";
 import { ChainlinkPriceOracle2__factory } from "../../../../typechain";
 import { getConfig } from "../../../entities/config";
+import { getDeployer } from "../../../../utils/deployer-helper";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -14,12 +14,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TOKEN0_SYMBOLS = ["WFTM", "WFTM", "WFTM"];
-  const TOKEN1_SYMBOLS = ["fUSDT", "DAI", "MIM"];
+  // docs : https://docs.chain.link/docs/fantom-price-feeds/
+  const TOKEN0_SYMBOLS = ["WFTM", "USDC"];
+  const TOKEN1_SYMBOLS = ["USD", "USD"];
   const AGGREGATORV3S = [
     ["0xf4766552D15AE4d256Ad41B6cf2933482B0680dc"],
-    ["0xf4766552D15AE4d256Ad41B6cf2933482B0680dc"],
-    ["0xf4766552D15AE4d256Ad41B6cf2933482B0680dc"],
+    ["0x2553f4eeb82d5A26427b8d1106C51499CBa5D99c"],
   ];
 
   const config = getConfig();
@@ -41,10 +41,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const chainlinkPriceOracle2 = ChainlinkPriceOracle2__factory.connect(
     config.Oracle.ChainLinkOracle,
-    (await ethers.getSigners())[0]
+    await getDeployer()
   );
-  console.log(">> Adding price source to chain link price oracle");
-  await chainlinkPriceOracle2.setPriceFeeds(token0Addrs, token1Addrs, AGGREGATORV3S);
+
+  const transaction = await chainlinkPriceOracle2.setPriceFeeds(token0Addrs, token1Addrs, AGGREGATORV3S);
+  await transaction.wait(3);
   console.log("✅ Done");
 };
 
