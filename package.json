@@ -15,7 +15,7 @@
     "deploy:mainnet:001": "hardhat --network mainnet deploy --no-compile --reset --tags TimeLock",
     "deploy:mainnet:002": "hardhat --network mainnet deploy --no-compile --reset --tags FairLaunch",
     "deploy:mainnet:003": "hardhat --network mainnet deploy --no-compile --reset --tags ShareStrategies",
-    "deploy:mainnet:004": "hardhat --network mainnet deploy --no-compile --reset --tags TripleSlopeModel",
+    "deploy:mainnet:triple-slope-model:deploy:triple-slope-model": "hardhat --network mainnet deploy --no-compile --reset --tags TripleSlopeModel",
     "deploy:mainnet:005": "hardhat --network mainnet deploy --no-compile --reset --tags WNativeRelayer",
     "deploy:mainnet:006": "hardhat --network mainnet deploy --no-compile --reset --tags SimpleOracle",
     "deploy:mainnet:007": "hardhat --network mainnet deploy --no-compile --reset --tags WorkerConfig",

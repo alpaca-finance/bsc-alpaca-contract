@@ -61,7 +61,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const initPositionInputs: IInitPositionInputs[] = [
     {
-      symbol: "n8x-BNBUSDT-PCS1",
+      symbol: "n8x-BNBUSDT-PCS2",
       stableVaultSymbol: "ibUSDT",
       assetVaultSymbol: "ibWBNB",
       stableSymbol: "USDT",
