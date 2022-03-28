@@ -130,9 +130,7 @@ describe("Vault2 - SpookyWorker03", () => {
     const deployHelper = new DeployHelper(deployer);
 
     wbnb = await deployHelper.deployWBNB();
-    [factory, router, boo, masterChef] = await deployHelper.deploySpookySwap(wbnb, BOO_PER_SEC, [
-      { address: deployerAddress, amount: ethers.utils.parseEther("100") },
-    ]);
+    [factory, router, boo, masterChef] = await deployHelper.deploySpookySwap(wbnb, BOO_PER_SEC);
     [baseToken, farmToken] = await deployHelper.deployBEP20([
       {
         name: "BTOKEN",

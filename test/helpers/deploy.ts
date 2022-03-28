@@ -133,8 +133,6 @@ import {
   TShare__factory,
   TShareRewardPool__factory,
   TShare,
-  DeltaNeutralSpookyWorker03__factory,
-  DeltaNeutralSpookyWorker03,
 } from "../../typechain";
 import * as TimeHelpers from "../helpers/time";
 
@@ -855,57 +853,6 @@ export class DeployHelper {
     return [deltaNeutralOracle, chainLinkOracle];
   }
 
-  public async deployDeltaNeutralSpookyWorker03(
-    vault: Vault,
-    btoken: MockERC20,
-    masterChef: SpookyMasterChef,
-    router: WaultSwapRouter,
-    poolId: number,
-    workFactor: BigNumberish,
-    killFactor: BigNumberish,
-    addStrat: SpookySwapStrategyAddBaseTokenOnly,
-    reinvestBountyBps: BigNumberish,
-    okReinvestor: string[],
-    treasuryAddress: string,
-    reinvestPath: Array<string>,
-    extraStrategies: string[],
-    simpleVaultConfig: SimpleVaultConfig,
-    priceOracleAddress: string
-  ): Promise<DeltaNeutralSpookyWorker03> {
-    const DeltaNeutralSpookyWorker03 = (await ethers.getContractFactory(
-      "DeltaNeutralSpookyWorker03",
-      this.deployer
-    )) as DeltaNeutralSpookyWorker03__factory;
-
-    const deltaNeutralWorker03 = (await upgrades.deployProxy(DeltaNeutralSpookyWorker03, [
-      vault.address,
-      btoken.address,
-      masterChef.address,
-      router.address,
-      poolId,
-      addStrat.address,
-      reinvestBountyBps,
-      treasuryAddress,
-      reinvestPath,
-      0,
-      priceOracleAddress,
-    ])) as DeltaNeutralSpookyWorker03;
-    await deltaNeutralWorker03.deployed();
-
-    await simpleVaultConfig.setWorker(deltaNeutralWorker03.address, true, true, workFactor, killFactor, true, true);
-    await deltaNeutralWorker03.setStrategyOk(extraStrategies, true);
-    await deltaNeutralWorker03.setReinvestorOk(okReinvestor, true);
-    await deltaNeutralWorker03.setTreasuryConfig(treasuryAddress, reinvestBountyBps);
-
-    extraStrategies.push(addStrat.address);
-    extraStrategies.forEach(async (stratAddress) => {
-      const strat = SpookySwapStrategyLiquidate__factory.connect(stratAddress, this.deployer);
-      await strat.setWorkersOk([deltaNeutralWorker03.address], true);
-    });
-
-    return deltaNeutralWorker03;
-  }
-
   public async deployDeltaNeutralPancakeWorker02(
     vault: Vault,
     btoken: MockERC20,
@@ -1223,8 +1170,7 @@ export class DeployHelper {
 
   public async deploySpookySwap(
     wbnb: MockWBNB,
-    booPerSec: BigNumberish,
-    holders: Array<IHolder>
+    booPerSec: BigNumberish
   ): Promise<[WaultSwapFactory, WaultSwapRouter, SpookyToken, SpookyMasterChef]> {
     // Note: Use WaultSwap because same fee structure
     // Setup WaultSwap
@@ -1245,10 +1191,7 @@ export class DeployHelper {
     const SpookyToken = (await ethers.getContractFactory("SpookyToken", this.deployer)) as SpookyToken__factory;
     const boo = await SpookyToken.deploy();
     await boo.deployed();
-
-    if (holders !== undefined) {
-      holders.forEach(async (holder) => await boo.mint(holder.address, holder.amount));
-    }
+    await boo.mint(await this.deployer.getAddress(), ethers.utils.parseEther("100"));
 
     /// Setup MasterChef
     const SpookyMasterChef = (await ethers.getContractFactory(

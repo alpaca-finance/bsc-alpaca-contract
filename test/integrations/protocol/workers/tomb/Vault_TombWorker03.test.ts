@@ -136,9 +136,7 @@ describe("Vault - TombWorker03", () => {
     const deployHelper = new DeployHelper(deployer);
 
     wbnb = await deployHelper.deployWBNB();
-    [factory, router, boo] = await deployHelper.deploySpookySwap(wbnb, 0, [
-      { address: deployerAddress, amount: ethers.utils.parseEther("100") },
-    ]);
+    [factory, router, boo] = await deployHelper.deploySpookySwap(wbnb, 0);
     [alpacaToken, extraToken, baseToken, farmToken] = await deployHelper.deployBEP20([
       {
         name: "ALPACA",
