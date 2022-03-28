@@ -3,6 +3,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, upgrades } from "hardhat";
 import { DeltaNeutralVault, DeltaNeutralVault__factory, WNativeRelayer__factory } from "../../../../typechain";
 import { ConfigEntity } from "../../../entities";
+import { getDeployer } from "../../../../utils/deployer-helper";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -43,7 +44,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ];
 
   const config = ConfigEntity.getConfig();
-  const deployer = (await ethers.getSigners())[0];
+  const deployer = await getDeployer();
   const alpacaTokenAddress = config.Tokens.ALPACA;
   const wNativeRelayerAddr = config.SharedConfig.WNativeRelayer;
   for (let i = 0; i < deltaVaultInputs.length; i++) {
@@ -80,7 +81,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(`>> Deployed block: ${deployTxReceipt.blockNumber}`);
     console.log("✅ Done");
 
-    if (deltaVaultInputs[i].assetVaultSymbol === "ibWBNB") {
+    if (deltaVaultInputs[i].assetVaultSymbol === "ibWFTM") {
       console.log(`>> Set Caller ok for deltaNeutralVault if have native asset`);
       const wNativeRelayer = WNativeRelayer__factory.connect(wNativeRelayerAddr, deployer);
       await (await wNativeRelayer.setCallerOk([deltaNeutralVault.address], true)).wait(3);

@@ -3,6 +3,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, upgrades } from "hardhat";
 import { DeltaNeutralVaultConfig, DeltaNeutralVaultConfig__factory } from "../../../../typechain";
 import { ConfigEntity } from "../../../entities";
+import { getDeployer } from "../../../../utils/deployer-helper";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -24,7 +25,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const LEVERAGE_LEVEL = 3;
   const WHITELIST_REBALANCE = ["0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De"];
   const WHITELIST_REINVEST = ["0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De"];
-  const REINVEST_PATH = ["ALPACA", "WFTM", "USDC"];
+  const REINVEST_PATH = ["ALPACA", "WFTM"];
   const SWAP_ROUTER_ADDR = config.YieldSources.SpookySwap!.SpookyRouter;
   const VALUE_LIMIT = "20000000";
   const DEPOSIT_FEE_TREASURY = "0x417D3e491cbAaD07B2433781e50Bc6Cd09641BC0";
@@ -36,7 +37,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const ALPACA_BENEFICIARY = "0x44B3868cbba5fbd2c5D8d1445BDB14458806B3B4";
   const ALPACA_BENEFICIARY_FEE_BPS = "5330";
 
-  const deployer = (await ethers.getSigners())[0];
+  const deployer = await getDeployer();
   const WRAP_NATIVE_ADDR = config.Tokens.WFTM;
   const WNATIVE_RELAYER = config.SharedConfig.WNativeRelayer;
   const FAIR_LAUNCH_ADDR = config.MiniFL!.address;
@@ -69,6 +70,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     MANAGEMENT_TREASURY,
     alpacaTokenAddress,
   ])) as DeltaNeutralVaultConfig;
+  // manual advance block -- other file
   //FIXME await deltaNeutralVaultConfig.deployTransaction.wait(3);
 
   console.log(`>> Deployed at ${deltaNeutralVaultConfig.address}`);

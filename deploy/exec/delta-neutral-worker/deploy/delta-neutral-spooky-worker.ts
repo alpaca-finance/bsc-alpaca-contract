@@ -14,6 +14,7 @@ import {
 import { ConfigEntity, TimelockEntity } from "../../../entities";
 import { FileService, TimelockService } from "../../../services";
 import { BlockScanGasPrice } from "../../../services/gas-price/blockscan";
+import { getDeployer } from "../../../../utils/deployer-helper";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -166,7 +167,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       workerInfos[i].REINVEST_PATH,
       workerInfos[i].REINVEST_THRESHOLD,
       workerInfos[i].DELTA_NEUTRAL_ORACLE,
-    ])) as DeltaNeutralPancakeWorker02; //FIXME FIX CACHE TYPE
+    ])) as DeltaNeutralPancakeWorker02; //FIXME FIX CAST TYPE
     const deployTxReceipt = await deltaNeutralWorker.deployTransaction.wait(3);
     console.log(`>> Deployed at ${deltaNeutralWorker.address}`);
     console.log(`>> Deployed block: ${deployTxReceipt.blockNumber}`);
@@ -239,6 +240,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log("✅ Done");
 
     console.log(">> Timelock");
+    // add flag ?
     timelockTransactions.push(
       await TimelockService.queueTransaction(
         `>> Queue tx on Timelock Setting WorkerConfig via Timelock at ${workerInfos[i].WORKER_CONFIG_ADDR} for ${deltaNeutralWorker.address}`,
