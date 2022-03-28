@@ -1,3 +1,5 @@
+import { MockMiniFL } from "./../../typechain/MockMiniFL";
+import { MockMiniFL__factory } from "./../../typechain/factories/MockMiniFL__factory";
 import { BaseContract, BigNumber, BigNumberish, Signer } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers, upgrades } from "hardhat";
@@ -595,6 +597,17 @@ export class DeployHelper {
     await alpacaToken.transferOwnership(fairLaunch.address);
 
     return [alpacaToken, fairLaunch];
+  }
+
+  public async deployAlpacaMockMiniFL(maxAlpacaPerSecond: BigNumberish): Promise<[AlpacaToken, MockMiniFL]> {
+    const AlpacaToken = (await ethers.getContractFactory("AlpacaToken", this.deployer)) as AlpacaToken__factory;
+    const alpacaToken = await AlpacaToken.deploy(0, 1);
+    await alpacaToken.deployed();
+
+    const MiniFL = (await ethers.getContractFactory("MockMiniFL", this.deployer)) as MockMiniFL__factory;
+    const miniFL = (await upgrades.deployProxy(MiniFL, [alpacaToken.address, maxAlpacaPerSecond])) as MockMiniFL;
+
+    return [alpacaToken, miniFL];
   }
 
   private async _deployVault(
