@@ -17,6 +17,7 @@ module.exports = {
       blockGasLimit: 0x1fffffffffffff,
       allowUnlimitedContractSize: true,
       timeout: 1800000,
+      hardfork: "berlin", // use berlin in test to avoid issues with gas price 0
       accounts: {
         mnemonic: "test test test test test test test test test test test junk",
         accountsBalance: "100000000000000000000000000000000000",
@@ -44,6 +45,10 @@ module.exports = {
     },
     fantom_mainnet: {
       url: process.env.FTM_MAINNET_RPC,
+      accounts: [process.env.FANTOM_MAINNET_PRIVATE_KEY],
+    },
+    fantom_mainnetfork: {
+      url: process.env.TENDERLY_FORK_RPC,
       accounts: [process.env.FANTOM_MAINNET_PRIVATE_KEY],
     },
     mainnetfork: {

@@ -229,7 +229,7 @@
     "deploy:fantom_testnet:rewarder1:deploy:rewarder1": "hardhat --network fantom_testnet deploy --no-compile --reset --tags Rewarder1",
     "deploy:fantom_testnet:vault:deploy:minifl-vault": "hardhat --network fantom_testnet deploy --no-compile --reset --tags MiniFL_Vault",
     "deploy:fantom_testnet:two-slope-model:deploy:two-slope-model": "hardhat --network fantom_testnet deploy --no-compile --reset --tags TwoSlopeModel",
-    "deploy:fantom_testnet:minifl:config:add-pool-no-timelock": "hardhat --network fantom_testnet deploy --no-compile --reset --tags MiniFLAddPool",
+    "deploy:fantom_testnet:minifl:config:add-pool": "hardhat --network fantom_testnet deploy --no-compile --reset --tags MiniFLAddPool",
     "deploy:fantom_testnet:minifl:config:set-pool-no-timelock": "hardhat --network fantom_testnet deploy --no-compile --reset --tags MiniFLSetPool",
     "deploy:fantom_testnet:workers:config:set-max-reinvest-bouty-bps-workers03": "hardhat --network fantom_testnet deploy --no-compile --reset --tags SetMaxReinvestBountyBpsWorkers03",
     "deploy:fantom_testnet:workers:config:set-beneficial-vault-config-workers03": "hardhat --network fantom_testnet deploy --no-compile --reset --tags SetBeneficialBuybackFieldsWorkers03",
@@ -259,7 +259,7 @@
     "deploy:fantom_mainnet:oracles:config:add-price-source-chainlink": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags AddSourceChainLinkPriceOracle",
     "deploy:fantom_mainnet:oracles:config:add-primary-source-oracle-medianizer": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags AddSourceOracleMedianizer",
     "deploy:fantom_mainnet:two-slope-model:deploy:two-slope-model": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags TwoSlopeModel",
-    "deploy:fantom_mainnet:minifl:config:add-pool-no-timelock": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags MiniFLAddPool",
+    "deploy:fantom_mainnet:minifl:config:add-pool": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags MiniFLAddPool",
     "deploy:fantom_mainnet:minifl:config:set-pool-no-timelock": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags MiniFLSetPool",
     "deploy:fantom_mainnet:workers:config:set-max-reinvest-bouty-bps-workers03": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags SetMaxReinvestBountyBpsWorkers03",
     "deploy:fantom_mainnet:workers:config:set-beneficial-vault-config-workers03": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags SetBeneficialBuybackFieldsWorkers03",
@@ -271,6 +271,7 @@
     "deploy:fantom_mainnetfork:workers:config:set-beneficial-vault-config-workers03": "hardhat --network fantom_mainnetfork deploy --no-compile --reset --tags SetBeneficialBuybackFieldsWorkers03",
     "deploy:fantom_mainnetfork:workers:config:set-reinvest-config-workers03": "hardhat --network fantom_mainnetfork deploy --no-compile --reset --tags SetReinvestConfigWorkers03",
     "deploy:fantom_mainnetfork:workers:config:set-treasury-config-workers03": "hardhat --network fantom_mainnetfork deploy --no-compile --reset --tags SetTreasuryFieldsWorkers03",
+    "deploy:fantom_mainnet:vault-config:config:set-whitelisted-callers": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags SetWhitelistedCallers",
     "mainnet": "hardhat console --no-compile --network mainnet",
     "ethereum": "hardhat console --no-compile --network ethereum",
     "test:case": "mocha --require hardhat/register --file test/integrations/protocol/delta-neutral/DeltaNeutralVault.test.ts --extension ts -g",
@@ -336,7 +337,7 @@
     "test:vault_tomb03": "hardhat test --no-compile ./test/integrations/protocol/workers/tomb/Vault_TombWorker03.test.ts",
     "test:router": "hardhat test --no-compile ./test/IbTokenRouter.test.ts",
     "test:timelock": "hardhat test --no-compile ./test/integrations/Timelock.test.ts",
-    "test:tripleslope": "hardhat test --no-compile ./test/TripleSlopeModel.test.ts",
+    "test:tripleslope": "hardhat test --no-compile ./test/integrations/protocol/TripleSlopeModel.test.ts",
     "test:twoslope": "hardhat test --no-compile ./test/integrations/protocol/TwoSlopeModel.test.ts",
     "test:shield": "hardhat test --no-compile ./test/integrations/token/Shield.test.ts",
     "test:stronkalpaca": "hardhat test --no-compile ./test/StronkAlpaca.test.ts",
@@ -346,6 +347,7 @@
     "test:chainLinkPriceOracle": "hardhat test --no-compile ./test/ChainLinkPriceOracle.test.ts",
     "test:nftStaking": "hardhat test --no-compile ./test/NFTStaking.test.ts",
     "test:deltaneutral": "hardhat test --no-compile ./test/integrations/protocol/delta-neutral/DeltaNeutralVault.test.ts",
+    "test:deltaneutralMiniFL": "hardhat test --no-compile ./test/integrations/protocol/delta-neutral/DeltaNeutralVault-MiniFL.test.ts",
     "test:deltaneutralNon18Decimals": "hardhat test --no-compile ./test/integrations/protocol/delta-neutral/DeltaNeutralVaultNon18Decimals.test.ts",
     "test:deltaneutralGateway": "hardhat test --no-compile ./test/integrations/protocol/delta-neutral/DeltaNeutralVaultGateway.test.ts",
     "test:deltaneutralConfig": "hardhat test --no-compile ./test/integrations/protocol/delta-neutral/DeltaNeutralVaultConfig.test.ts",
@@ -357,6 +359,8 @@
     "test:mainnet-fork:deltaneutraloracle": "hardhat --network mainnetfork run --no-compile ./scripts/fork/DeltaNeutralOracle.test.ts",
     "test:miniFL": "hardhat test --no-compile ./test/integrations/token/MiniFL.test.ts",
     "test:emissionForwarder": "hardhat test --no-compile ./test/integrations/token/EmissionForwarder.test.ts",
+    "test:strategyOracleMinimize": "hardhat test --no-compile ./test/integrations/protocol/strategies/waultswap/StrategyOracleMinimize.test.ts",
+    "test:strategyOracleLiquidate": "hardhat test --no-compile ./test/integrations/protocol/strategies/waultswap/StrategyOracleLiquidate.test.ts",
     "test": "hardhat test --no-compile",
     "testnet": "hardhat console --no-compile --network testnet",
     "fantom_testnet": "hardhat console --no-compile --network fantom_testnet",
@@ -452,6 +456,7 @@
   },
   "dependencies": {
     "@nomiclabs/hardhat-vyper": "^2.0.1",
-    "@openzeppelin/contracts-upgradeable": "^4.5.1"
+    "@openzeppelin/contracts-upgradeable": "^4.5.1",
+    "@rari-capital/solmate": "^6.2.0"
   }
 }

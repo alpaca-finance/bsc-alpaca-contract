@@ -193,9 +193,6 @@ describe("MdexRestricted_StrategyLiquidate", () => {
 
     mockMdexWorkerAsBob = MockMdexWorker__factory.connect(mockMdexWorker.address, bob);
     mockMdexEvilWorkerAsBob = MockMdexWorker__factory.connect(mockMdexEvilWorker.address, bob);
-
-    // Set block base fee per gas to 0
-    await network.provider.send("hardhat_setNextBlockBaseFeePerGas", ["0x0"]);
   }
 
   beforeEach(async () => {

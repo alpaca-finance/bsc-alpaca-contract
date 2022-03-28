@@ -53,6 +53,12 @@
         "stakingToken": "ibTOMB",
         "address": "0x60dDe8BBE160fe033fACB3446Cf7795cC575B171",
         "rewarder": "0x7EEAA96bf1aBaA206615046c0991E678a2b12Da1"
+      },
+      {
+        "id": 8,
+        "stakingToken": "fdALPACA",
+        "address": "0xA3451cfC2f630Fc2DD8230f33Dd925c2063d2737",
+        "rewarder": "0x7EEAA96bf1aBaA206615046c0991E678a2b12Da1"
       }
     ]
   },

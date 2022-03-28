@@ -410,9 +410,6 @@ describe("DeltaNeutralVaultNon18Decimals", () => {
     deltaVaultAsAlice = DeltaNeutralVault__factory.connect(deltaVault.address, alice);
     deltaVaultAsBob = DeltaNeutralVault__factory.connect(deltaVault.address, bob);
     deltaVaultAsEve = DeltaNeutralVault__factory.connect(deltaVault.address, eve);
-
-    // Set block base fee per gas to 0
-    await network.provider.send("hardhat_setNextBlockBaseFeePerGas", ["0x0"]);
   }
 
   interface IDepositWorkByte {

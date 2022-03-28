@@ -15,7 +15,7 @@ pragma solidity 0.8.10;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
-import "../interfaces/IAnyswapV1ERC20.sol";
+import "../../token/interfaces/IAnyswapV1ERC20.sol";
 
 contract MockAnySwapV4Router {
   using SafeERC20Upgradeable for IERC20Upgradeable;

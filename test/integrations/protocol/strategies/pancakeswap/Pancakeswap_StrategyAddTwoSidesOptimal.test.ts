@@ -331,9 +331,6 @@ describe("Pancakeswap - StrategyAddTwoSidesOptimal", () => {
 
     vaultAsAlice = Vault__factory.connect(vault.address, alice);
     vaultAsBob = Vault__factory.connect(vault.address, bob);
-
-    // Set block base fee per gas to 0
-    await network.provider.send("hardhat_setNextBlockBaseFeePerGas", ["0x0"]);
   }
 
   beforeEach(async () => {
