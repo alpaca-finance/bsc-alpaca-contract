@@ -215,7 +215,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       await deltaNeutralVault.initPositions(stableAmount, assetAmount, minSharesReceive, data, {
         value: assetAmount,
         nonce: nonce++,
-        gasLimit: 4000000,
       })
     ).wait(3);
     console.log(">> initTx: ", initTx.transactionHash);

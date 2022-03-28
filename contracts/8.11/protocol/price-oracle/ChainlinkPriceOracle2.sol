@@ -20,7 +20,7 @@ import "@chainlink/contracts/src/v0.6/interfaces/AggregatorV3Interface.sol";
 
 import "../interfaces/IPriceOracle.sol";
 
-contract ChainlinkPriceOracle2 is OwnableUpgradeable, PriceOracle {
+contract ChainlinkPriceOracle2 is OwnableUpgradeable, IPriceOracle {
   /// ---------------------------------------------------
   /// Errors
   /// ---------------------------------------------------

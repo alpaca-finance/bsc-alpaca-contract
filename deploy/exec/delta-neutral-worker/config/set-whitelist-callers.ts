@@ -24,17 +24,18 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       Check all variables below before execute the deployment script
 */
   const config = getConfig();
-  const DELTA_NEUTRAL_VAULT = "Market Neutral 8x BNB-USDT PCS1";
+  const DELTA_NEUTRAL_VAULT = "Market Neutral 8x BNB-USDT PCS2";
   const workerInputs: IWorkerInput[] = [
     {
-      name: "WBNB-USDT 8x DeltaNeutralPancakeswapWorker",
+      name: "WBNB-USDT 8x PCS2 DeltaNeutralPancakeswapWorker",
     },
     {
-      name: "USDT-WBNB 8x DeltaNeutralPancakeswapWorker",
+      name: "USDT-WBNB 8x PCS2 DeltaNeutralPancakeswapWorker",
     },
   ];
 
   const deployer = (await ethers.getSigners())[0];
+  let nonce = await deployer.getTransactionCount();
 
   const allWorkers: Array<IWorkerInfo> = config.Vaults.reduce((accum, vault) => {
     return accum.concat(
@@ -61,16 +62,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   for (let i = 0; i < workerInfos.length; i++) {
     console.log("===================================================================================");
     console.log(`>> Setting up whitelist callers for ${workerInfos[i].name}`);
-    if (workerInfos[i].name.includes("Mdex")) {
-      console.log(">> Setting up whitelist callers for DeltaNeutralMdexWorker");
-      const deltaWorker = DeltaNeutralMdexWorker02__factory.connect(workerInfos[i].address, deployer);
-      await deltaWorker.setWhitelistedCallers([deltaNeutralVault.address], true);
-      console.log("✅ Done");
-      continue;
-    }
-    console.log(">> Setting up whitelist callers for DeltaNeutralPancakeWorker");
     const deltaWorker = DeltaNeutralPancakeWorker02__factory.connect(workerInfos[i].address, deployer);
-    await deltaWorker.setWhitelistedCallers([deltaNeutralVault.address], true);
+    await deltaWorker.setWhitelistedCallers([deltaNeutralVault.address], true, { nonce: nonce++ });
     console.log("✅ Done");
   }
 };

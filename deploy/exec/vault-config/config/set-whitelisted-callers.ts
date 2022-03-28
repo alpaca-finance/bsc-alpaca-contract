@@ -4,6 +4,8 @@ import { ethers } from "hardhat";
 import { TimelockEntity } from "../../../entities";
 import { FileService, TimelockService } from "../../../services";
 import { getConfig } from "../../../entities/config";
+import { Multicall2Service } from "../../../services/multicall/multicall2";
+import { ConfigurableInterestVaultConfig, ConfigurableInterestVaultConfig__factory } from "../../../../typechain";
 
 interface IInput {
   VAULT_SYMBOL: string;
@@ -12,7 +14,7 @@ interface IInput {
 }
 
 interface IDerivedInput {
-  configAddress: string;
+  vaultConfig: ConfigurableInterestVaultConfig;
   whitelistedCallers: string[];
   isEnable: boolean;
 }
@@ -27,80 +29,120 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "mainnet_8x_delta_neutral_set_whitelisted_callers";
+  const TITLE = "mainnet_whitelist_u5p2";
   const TARGETED_VAULT_CONFIG: Array<IInput> = [
-    {
-      VAULT_SYMBOL: "ibWBNB",
-      WHITELISTED_CALLERS: ["0x1c623105d072Dc69F9a3F8A3dB67b5AeCEDC082b"],
-      IS_ENABLE: true,
-    },
+    // {
+    //   VAULT_SYMBOL: "ibWBNB",
+    //   WHITELISTED_CALLERS: ["0x158B8236529B0f2cf670891AD32a4bBa27090C2f"],
+    //   IS_ENABLE: true,
+    // },
     // {
     //   VAULT_SYMBOL: "ibBUSD",
-    //   WHITELISTED_CALLERS: ["0xD283Cc1c165Fe25154458A41a9c1D35107d3a0f2"],
+    //   WHITELISTED_CALLERS: ["0x158B8236529B0f2cf670891AD32a4bBa27090C2f"],
     //   IS_ENABLE: true,
     // },
     // {
     //   VAULT_SYMBOL: "ibETH",
-    //   WHITELISTED_CALLERS: ["0x36488cC6F2E0f96e8814F315BDF4229c9c82d60A"],
+    //   WHITELISTED_CALLERS: ["0x158B8236529B0f2cf670891AD32a4bBa27090C2f"],
     //   IS_ENABLE: true,
     // },
     // {
     //   VAULT_SYMBOL: "ibALPACA",
-    //   WHITELISTED_CALLERS: ["0x36488cC6F2E0f96e8814F315BDF4229c9c82d60A"],
+    //   WHITELISTED_CALLERS: ["0x158B8236529B0f2cf670891AD32a4bBa27090C2f"],
     //   IS_ENABLE: true,
     // },
     // {
     //   VAULT_SYMBOL: "ibUSDT",
-    //   WHITELISTED_CALLERS: ["0xD378d37fA8040370fe42bc732e5B2A169096d3e1"],
+    //   WHITELISTED_CALLERS: ["0x158B8236529B0f2cf670891AD32a4bBa27090C2f"],
     //   IS_ENABLE: true,
     // },
     // {
     //   VAULT_SYMBOL: "ibBTCB",
-    //   WHITELISTED_CALLERS: ["0x36488cC6F2E0f96e8814F315BDF4229c9c82d60A"],
+    //   WHITELISTED_CALLERS: ["0x158B8236529B0f2cf670891AD32a4bBa27090C2f"],
+    //   IS_ENABLE: true,
+    // },
+    // {
+    //   VAULT_SYMBOL: "ibTUSD",
+    //   WHITELISTED_CALLERS: ["0x158B8236529B0f2cf670891AD32a4bBa27090C2f"],
     //   IS_ENABLE: true,
     // },
     {
-      VAULT_SYMBOL: "ibTUSD",
-      WHITELISTED_CALLERS: ["0x1c623105d072Dc69F9a3F8A3dB67b5AeCEDC082b"],
+      VAULT_SYMBOL: "ibFTM",
+      WHITELISTED_CALLERS: ["0x158B8236529B0f2cf670891AD32a4bBa27090C2f"],
+      IS_ENABLE: true,
+    },
+    {
+      VAULT_SYMBOL: "ibUSDC",
+      WHITELISTED_CALLERS: ["0x158B8236529B0f2cf670891AD32a4bBa27090C2f"],
+      IS_ENABLE: true,
+    },
+    {
+      VAULT_SYMBOL: "ibTOMB",
+      WHITELISTED_CALLERS: ["0x158B8236529B0f2cf670891AD32a4bBa27090C2f"],
+      IS_ENABLE: true,
+    },
+    {
+      VAULT_SYMBOL: "ibALPACA",
+      WHITELISTED_CALLERS: ["0x158B8236529B0f2cf670891AD32a4bBa27090C2f"],
       IS_ENABLE: true,
     },
   ];
-  const EXACT_ETA = "1646402400";
+  const EXACT_ETA = "1648291200";
 
   const config = getConfig();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
-  const deployer = (await ethers.getSigners())[0];
+  const [deployer] = await ethers.getSigners();
+  const multiCall2Service = new Multicall2Service(config.MultiCall, deployer);
   let nonce = await deployer.getTransactionCount();
 
   const inputs: Array<IDerivedInput> = TARGETED_VAULT_CONFIG.map((tv) => {
     const vault = config.Vaults.find((v) => tv.VAULT_SYMBOL == v.symbol);
     if (vault === undefined) {
-      throw `error: not found vault with ${tv} symbol`;
+      throw `error: not found vault with ${tv.VAULT_SYMBOL} symbol`;
     }
     if (vault.config === "") {
       throw `error: not found config address`;
     }
 
     return {
-      configAddress: vault.config,
+      vaultConfig: ConfigurableInterestVaultConfig__factory.connect(vault.config, deployer),
       whitelistedCallers: tv.WHITELISTED_CALLERS,
       isEnable: tv.IS_ENABLE,
     };
   });
 
-  for (const i of inputs) {
-    timelockTransactions.push(
-      await TimelockService.queueTransaction(
-        `>> Queue tx on Timelock to setWhitelistedCallers for ${i.configAddress}`,
-        i.configAddress,
-        "0",
-        "setWhitelistedCallers(address[],bool)",
-        ["address[]", "bool"],
-        [i.whitelistedCallers, i.isEnable],
-        EXACT_ETA,
-        { gasPrice: ethers.utils.parseUnits("15", "gwei"), nonce: nonce++ }
-      )
-    );
+  const owners = await multiCall2Service.multiContractCall<Array<string>>(
+    inputs.map((i) => {
+      return {
+        contract: i.vaultConfig,
+        functionName: "owner",
+      };
+    })
+  );
+
+  for (let index = 0; index < inputs.length; index++) {
+    const i = inputs[index];
+    const owner = owners[index];
+
+    if (owner.toLowerCase() === config.Timelock.toLowerCase()) {
+      timelockTransactions.push(
+        await TimelockService.queueTransaction(
+          `>> Queue tx on Timelock to setWhitelistedCallers for ${i.vaultConfig.address}`,
+          i.vaultConfig.address,
+          "0",
+          "setWhitelistedCallers(address[],bool)",
+          ["address[]", "bool"],
+          [i.whitelistedCallers, i.isEnable],
+          EXACT_ETA,
+          { gasPrice: ethers.utils.parseUnits("15", "gwei"), nonce: nonce++ }
+        )
+      );
+      continue;
+    } else {
+      console.log(`>> setWhitelistedCaller for ${i.vaultConfig.address}`);
+      await i.vaultConfig.setWhitelistedCallers(i.whitelistedCallers, i.isEnable, { nonce: nonce++ });
+      console.log(`>> ✅ Done`);
+    }
   }
 
   FileService.write(TITLE, timelockTransactions);

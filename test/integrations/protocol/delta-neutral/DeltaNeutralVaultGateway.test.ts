@@ -426,9 +426,6 @@ describe("DeltaNeutralVaultGateway", () => {
 
     deltaVaultGatewayAsDeployer = DeltaNeutralVaultGateway__factory.connect(deltaVaultGateway.address, deployer);
     deltaVaultGatewayAsAlice = DeltaNeutralVaultGateway__factory.connect(deltaVaultGateway.address, alice);
-
-    // Set block base fee per gas to 0
-    await network.provider.send("hardhat_setNextBlockBaseFeePerGas", ["0x0"]);
   }
 
   interface IDepositWorkByte {
