@@ -4,36 +4,36 @@ import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import "@openzeppelin/test-helpers";
 import {
-  CakeToken,
-  FairLaunch,
   MockContractContext,
   MockContractContext__factory,
   MockERC20,
   MockERC20__factory,
   MockWBNB,
-  PancakeFactory,
-  PancakeMasterChef,
-  PancakeMasterChef__factory,
   PancakePair,
   PancakePair__factory,
-  PancakeRouterV2,
-  PancakeswapV2RestrictedStrategyAddBaseTokenOnly,
-  PancakeswapV2RestrictedStrategyLiquidate,
-  PancakeswapV2RestrictedStrategyPartialCloseLiquidate,
-  DeltaNeutralPancakeWorker02,
-  DeltaNeutralPancakeWorker02__factory,
   SimpleVaultConfig,
   Vault,
   Vault__factory,
   WNativeRelayer,
-  PancakeswapV2RestrictedStrategyAddTwoSidesOptimal,
-  PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading,
-  PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading,
   DeltaNeutralOracle,
   ChainLinkPriceOracle,
   ChainLinkPriceOracle__factory,
   MockAggregatorV3__factory,
   IERC20,
+  SpookyMasterChef,
+  SpookyToken,
+  WaultSwapFactory,
+  WaultSwapRouter,
+  MiniFL,
+  SpookySwapStrategyAddBaseTokenOnly,
+  SpookySwapStrategyAddTwoSidesOptimal,
+  SpookySwapStrategyLiquidate,
+  SpookySwapStrategyWithdrawMinimizeTrading,
+  SpookySwapStrategyPartialCloseLiquidate,
+  SpookySwapStrategyPartialCloseMinimizeTrading,
+  SpookyMasterChef__factory,
+  DeltaNeutralSpookyWorker03__factory,
+  DeltaNeutralSpookyWorker03,
 } from "../../../../../typechain";
 import * as AssertHelpers from "../../../../helpers/assert";
 import * as TimeHelpers from "../../../../helpers/time";
@@ -45,11 +45,11 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 chai.use(solidity);
 const { expect } = chai;
 
-describe("Vault - DeltaNetPancakeWorker02", () => {
+describe("Vault - DeltaNetSpookyWorker03", () => {
   const FOREVER = "2000000000";
   const ALPACA_BONUS_LOCK_UP_BPS = 7000;
   const ALPACA_REWARD_PER_BLOCK = ethers.utils.parseEther("5000");
-  const CAKE_REWARD_PER_BLOCK = ethers.utils.parseEther("0.076");
+  const BOO_REWARD_PER_SEC = ethers.utils.parseEther("0.076");
   const REINVEST_BOUNTY_BPS = "100"; // 1% reinvest bounty
   const RESERVE_POOL_BPS = "1000"; // 10% reserve pool
   const KILL_PRIZE_BPS = "1000"; // 10% Kill prize
@@ -61,11 +61,12 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
   const DEPLOYER = "0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51";
   const BENEFICIALVAULT_BOUNTY_BPS = "1000";
   const KILL_TREASURY_BPS = "100";
-  const POOL_ID = 1;
+  const POOL_ID = 0;
 
-  /// Pancakeswap-related instance(s)
-  let factoryV2: PancakeFactory;
-  let routerV2: PancakeRouterV2;
+  /// DEX-related instance(s)
+  /// Note: Use WaultSwap due to same fee structure
+  let factory: WaultSwapFactory;
+  let router: WaultSwapRouter;
 
   let wbnb: MockWBNB;
   let lp: PancakePair;
@@ -74,27 +75,28 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
   let baseToken: MockERC20;
   let farmToken: MockERC20;
   let busd: MockERC20;
-  let cake: CakeToken;
+  let boo: SpookyToken;
+  let alpacaToken: MockERC20;
 
   /// Strategy-ralted instance(s)
-  let addStrat: PancakeswapV2RestrictedStrategyAddBaseTokenOnly;
-  let twoSidesStrat: PancakeswapV2RestrictedStrategyAddTwoSidesOptimal;
-  let liqStrat: PancakeswapV2RestrictedStrategyLiquidate;
-  let minimizeStrat: PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading;
-  let partialCloseStrat: PancakeswapV2RestrictedStrategyPartialCloseLiquidate;
-  let partialCloseMinimizeStrat: PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading;
+  let addStrat: SpookySwapStrategyAddBaseTokenOnly;
+  let twoSidesStrat: SpookySwapStrategyAddTwoSidesOptimal;
+  let liqStrat: SpookySwapStrategyLiquidate;
+  let minimizeStrat: SpookySwapStrategyWithdrawMinimizeTrading;
+  let partialCloseStrat: SpookySwapStrategyPartialCloseLiquidate;
+  let partialCloseMinimizeStrat: SpookySwapStrategyPartialCloseMinimizeTrading;
 
   /// Vault-related instance(s)
   let simpleVaultConfig: SimpleVaultConfig;
   let wNativeRelayer: WNativeRelayer;
   let vault: Vault;
 
-  /// FairLaunch-related instance(s)
-  let fairLaunch: FairLaunch;
+  /// MiniFL-related instance(s)
+  let miniFL: MiniFL;
 
-  /// PancakeswapMasterChef-related instance(s)
-  let masterChef: PancakeMasterChef;
-  let deltaNeutralWorker: DeltaNeutralPancakeWorker02;
+  /// Spooky-related instance(s)
+  let spookyMasterChef: SpookyMasterChef;
+  let deltaNeutralWorker: DeltaNeutralSpookyWorker03;
 
   /// Timelock instance(s)
   let whitelistedContract: MockContractContext;
@@ -122,11 +124,11 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
   let lpAsDeltaNet: PancakePair;
   let lpAsBob: PancakePair;
 
-  let pancakeMasterChefAsDeltaNet: PancakeMasterChef;
-  let pancakeMasterChefAsBob: PancakeMasterChef;
+  let spookyMasterChefAsDeltaNet: SpookyMasterChef;
+  let spookyMasterChefAsBob: SpookyMasterChef;
 
-  let deltaNeutralWorkerAsDeployer: DeltaNeutralPancakeWorker02;
-  let deltaNeutralWorkerAsBob: DeltaNeutralPancakeWorker02;
+  let deltaNeutralWorkerAsDeployer: DeltaNeutralSpookyWorker03;
+  let deltaNeutralWorkerAsBob: DeltaNeutralSpookyWorker03;
 
   let chainLinkOracleAsDeployer: ChainLinkPriceOracle;
 
@@ -162,7 +164,13 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
     await evilContract.deployed();
 
     /// Setup token stuffs
-    [baseToken, farmToken] = await deployHelper.deployBEP20([
+    [alpacaToken, baseToken, farmToken] = await deployHelper.deployBEP20([
+      {
+        name: "ALPACA",
+        symbol: "ALPACA",
+        decimals: "18",
+        holders: [{ address: deployerAddress, amount: ethers.utils.parseEther("88888888888888") }],
+      },
       {
         name: "BTOKEN",
         symbol: "BTOKEN",
@@ -186,16 +194,14 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
     ]);
     wbnb = await deployHelper.deployWBNB();
     busd = await deployHelper.deployERC20();
-    [factoryV2, routerV2, cake, , masterChef] = await deployHelper.deployPancakeV2(wbnb, CAKE_REWARD_PER_BLOCK, [
+
+    [factory, router, boo, spookyMasterChef] = await deployHelper.deploySpookySwap(wbnb, BOO_REWARD_PER_SEC, [
       { address: deployerAddress, amount: ethers.utils.parseEther("100") },
     ]);
-    [, fairLaunch] = await deployHelper.deployAlpacaFairLaunch(
-      ALPACA_REWARD_PER_BLOCK,
-      ALPACA_BONUS_LOCK_UP_BPS,
-      132,
-      137
-    );
-    [vault, simpleVaultConfig, wNativeRelayer] = await deployHelper.deployVault(
+
+    miniFL = await deployHelper.deployMiniFL(alpacaToken.address);
+
+    [vault, simpleVaultConfig, wNativeRelayer] = await deployHelper.deployMiniFLVault(
       wbnb,
       {
         minDebtSize: MIN_DEBT_SIZE,
@@ -205,12 +211,14 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
         killTreasuryBps: KILL_TREASURY_BPS,
         killTreasuryAddress: DEPLOYER,
       },
-      fairLaunch,
+      miniFL,
+      ethers.constants.AddressZero,
       baseToken
     );
+
     // Setup strategies
     [addStrat, liqStrat, twoSidesStrat, minimizeStrat, partialCloseStrat, partialCloseMinimizeStrat] =
-      await deployHelper.deployPancakeV2Strategies(routerV2, vault, wbnb, wNativeRelayer);
+      await deployHelper.deploySpookySwapStrategies(router, vault, wNativeRelayer);
 
     // whitelisted contract to be able to call work
     await simpleVaultConfig.setWhitelistedCallers([whitelistedContract.address], true);
@@ -221,11 +229,12 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
     // Set approved add strategies
     await simpleVaultConfig.setApprovedAddStrategy([addStrat.address, twoSidesStrat.address], true);
 
-    // Setup BTOKEN-FTOKEN pair on Pancakeswap
+    // Setup BTOKEN-FTOKEN pair on Spooky
     // Add lp to masterChef's pool
-    await factoryV2.createPair(baseToken.address, farmToken.address);
-    lp = PancakePair__factory.connect(await factoryV2.getPair(farmToken.address, baseToken.address), deployer);
-    await masterChef.add(1, lp.address, true);
+
+    await factory.createPair(baseToken.address, farmToken.address);
+    lp = PancakePair__factory.connect(await factory.getPair(farmToken.address, baseToken.address), deployer);
+    await spookyMasterChef.add(1, lp.address);
 
     /// Setup DeltaNeutralPancakeWorker02
     [priceOracle, chainlink] = await deployHelper.deployDeltaNeutralOracle(
@@ -242,11 +251,11 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
 
     chainLinkOracleAsDeployer = ChainLinkPriceOracle__factory.connect(chainlink.address, deployer);
 
-    deltaNeutralWorker = await deployHelper.deployDeltaNeutralPancakeWorker02(
+    deltaNeutralWorker = await deployHelper.deployDeltaNeutralSpookyWorker03(
       vault,
       baseToken,
-      masterChef,
-      routerV2,
+      spookyMasterChef,
+      router,
       POOL_ID,
       WORK_FACTOR,
       KILL_FACTOR,
@@ -254,23 +263,19 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
       REINVEST_BOUNTY_BPS,
       [bobAddress],
       DEPLOYER,
-      [cake.address, wbnb.address, baseToken.address],
+      [boo.address, wbnb.address, baseToken.address],
       [twoSidesStrat.address, minimizeStrat.address, partialCloseStrat.address, partialCloseMinimizeStrat.address],
       simpleVaultConfig,
       priceOracle.address
     );
+
     await deltaNeutralWorker.setWhitelistedCallers(
       [whitelistedContract.address, deltaNeutralWorker.address, deltaNetAddress],
       true
     );
 
-    swapHelper = new SwapHelper(
-      factoryV2.address,
-      routerV2.address,
-      BigNumber.from(9975),
-      BigNumber.from(10000),
-      deployer
-    );
+    swapHelper = new SwapHelper(factory.address, router.address, BigNumber.from(9975), BigNumber.from(10000), deployer);
+
     await swapHelper.addLiquidities([
       {
         token0: baseToken as unknown as IERC20,
@@ -279,7 +284,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
         amount1desired: ethers.utils.parseEther("0.1"),
       },
       {
-        token0: cake as unknown as IERC20,
+        token0: boo as unknown as IERC20,
         token1: wbnb as unknown as IERC20,
         amount0desired: ethers.utils.parseEther("0.1"),
         amount1desired: ethers.utils.parseEther("1"),
@@ -307,15 +312,16 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
     lpAsDeltaNet = PancakePair__factory.connect(lp.address, deltaNet);
     lpAsBob = PancakePair__factory.connect(lp.address, bob);
 
-    pancakeMasterChefAsDeltaNet = PancakeMasterChef__factory.connect(masterChef.address, deltaNet);
-    pancakeMasterChefAsBob = PancakeMasterChef__factory.connect(masterChef.address, bob);
+    spookyMasterChefAsDeltaNet = SpookyMasterChef__factory.connect(spookyMasterChef.address, deltaNet);
+    spookyMasterChefAsBob = SpookyMasterChef__factory.connect(spookyMasterChef.address, bob);
 
     vaultAsDeltaNet = Vault__factory.connect(vault.address, deltaNet);
     vaultAsBob = Vault__factory.connect(vault.address, bob);
     vaultAsEve = Vault__factory.connect(vault.address, eve);
 
-    deltaNeutralWorkerAsDeployer = DeltaNeutralPancakeWorker02__factory.connect(deltaNeutralWorker.address, deployer);
-    deltaNeutralWorkerAsBob = DeltaNeutralPancakeWorker02__factory.connect(deltaNeutralWorker.address, bob);
+    console.log("deltaNeutralWorker.address", deltaNeutralWorker.address);
+    deltaNeutralWorkerAsDeployer = DeltaNeutralSpookyWorker03__factory.connect(deltaNeutralWorker.address, deployer);
+    deltaNeutralWorkerAsBob = DeltaNeutralSpookyWorker03__factory.connect(deltaNeutralWorker.address, bob);
   }
 
   async function _updatePrice() {
@@ -339,7 +345,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
   });
 
   context("when worker is initialized", async () => {
-    it("should has FTOKEN as a farmingToken in DeltaNeutralPancakeWorker", async () => {
+    it("should has FTOKEN as a farmingToken in DeltaNeutralSpookyWorker", async () => {
       expect(await deltaNeutralWorker.farmingToken()).to.be.equal(farmToken.address);
     });
 
@@ -349,22 +355,22 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
       await lp.transfer(bobAddress, ethers.utils.parseEther("0.05"));
 
       // DeltaNet and Bob stake 0.01 LP tokens and waits for 1 day
-      await lpAsDeltaNet.approve(masterChef.address, ethers.utils.parseEther("0.01"));
-      await lpAsBob.approve(masterChef.address, ethers.utils.parseEther("0.02"));
-      await pancakeMasterChefAsDeltaNet.deposit(POOL_ID, ethers.utils.parseEther("0.01"));
-      await pancakeMasterChefAsBob.deposit(POOL_ID, ethers.utils.parseEther("0.02")); // DeltaNet +1 Reward
+      await lpAsDeltaNet.approve(spookyMasterChef.address, ethers.utils.parseEther("0.01"));
+      await lpAsBob.approve(spookyMasterChef.address, ethers.utils.parseEther("0.02"));
+      await spookyMasterChefAsDeltaNet.deposit(POOL_ID, ethers.utils.parseEther("0.01"));
+      await spookyMasterChefAsBob.deposit(POOL_ID, ethers.utils.parseEther("0.02")); // DeltaNet +1 Reward
 
       // DeltaNet and Bob withdraw stake from the pool
-      await pancakeMasterChefAsBob.withdraw(POOL_ID, ethers.utils.parseEther("0.02")); // DeltaNet +1/3 Reward  Bob + 2/3 Reward
-      await pancakeMasterChefAsDeltaNet.withdraw(POOL_ID, ethers.utils.parseEther("0.01")); // delta net +1 Reward
+      await spookyMasterChefAsBob.withdraw(POOL_ID, ethers.utils.parseEther("0.02")); // DeltaNet +1/3 Reward  Bob + 2/3 Reward
+      await spookyMasterChefAsDeltaNet.withdraw(POOL_ID, ethers.utils.parseEther("0.01")); // delta net +1 Reward
 
       AssertHelpers.assertAlmostEqual(
-        (await cake.balanceOf(deltaNetAddress)).toString(),
-        CAKE_REWARD_PER_BLOCK.mul(BigNumber.from(7)).div(BigNumber.from(3)).toString()
+        (await boo.balanceOf(deltaNetAddress)).toString(),
+        BOO_REWARD_PER_SEC.mul(BigNumber.from(7)).div(BigNumber.from(3)).toString()
       );
       AssertHelpers.assertAlmostEqual(
-        (await cake.balanceOf(bobAddress)).toString(),
-        CAKE_REWARD_PER_BLOCK.mul(2).div(3).toString()
+        (await boo.balanceOf(bobAddress)).toString(),
+        BOO_REWARD_PER_SEC.mul(2).div(3).toString()
       );
     });
   });
@@ -373,25 +379,25 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
     describe("#reinvestConfig", async () => {
       it("should set reinvest config correctly", async () => {
         await expect(
-          deltaNeutralWorker.setReinvestConfig(250, ethers.utils.parseEther("1"), [cake.address, baseToken.address])
+          deltaNeutralWorker.setReinvestConfig(250, ethers.utils.parseEther("1"), [boo.address, baseToken.address])
         )
           .to.be.emit(deltaNeutralWorker, "SetReinvestConfig")
-          .withArgs(deployerAddress, 250, ethers.utils.parseEther("1"), [cake.address, baseToken.address]);
+          .withArgs(deployerAddress, 250, ethers.utils.parseEther("1"), [boo.address, baseToken.address]);
         expect(await deltaNeutralWorker.reinvestBountyBps()).to.be.eq(250);
         expect(await deltaNeutralWorker.reinvestThreshold()).to.be.eq(ethers.utils.parseEther("1"));
-        expect(await deltaNeutralWorker.getReinvestPath()).to.deep.eq([cake.address, baseToken.address]);
+        expect(await deltaNeutralWorker.getReinvestPath()).to.deep.eq([boo.address, baseToken.address]);
       });
 
       it("should revert when owner set reinvestBountyBps > max", async () => {
         await expect(
-          deltaNeutralWorker.setReinvestConfig(2001, "0", [cake.address, baseToken.address])
+          deltaNeutralWorker.setReinvestConfig(2001, "0", [boo.address, baseToken.address])
         ).to.be.revertedWith("DeltaNeutralPancakeWorker02_ExceedReinvestBounty()");
         expect(await deltaNeutralWorker.reinvestBountyBps()).to.be.eq(100);
       });
 
       it("should revert when owner set reinvest path that doesn't start with $CAKE and end with $BTOKN", async () => {
         await expect(
-          deltaNeutralWorker.setReinvestConfig(200, "0", [baseToken.address, cake.address])
+          deltaNeutralWorker.setReinvestConfig(200, "0", [baseToken.address, boo.address])
         ).to.be.revertedWith("DeltaNeutralPancakeWorker02_InvalidReinvestPath()");
       });
     });
@@ -464,7 +470,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
 
     context("#setRewardPath", async () => {
       beforeEach(async () => {
-        const rewardPath = [cake.address, wbnb.address, baseToken.address];
+        const rewardPath = [boo.address, wbnb.address, baseToken.address];
         // set beneficialVaultConfig
         await deltaNeutralWorkerAsDeployer.setBeneficialVaultConfig(
           BENEFICIALVAULT_BOUNTY_BPS,
@@ -474,14 +480,14 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
       });
 
       it("should revert", async () => {
-        const rewardPath = [cake.address, farmToken.address, farmToken.address];
+        const rewardPath = [boo.address, farmToken.address, farmToken.address];
         await expect(deltaNeutralWorkerAsDeployer.setRewardPath(rewardPath)).to.revertedWith(
           "DeltaNeutralPancakeWorker02_InvalidReinvestPath()"
         );
       });
 
       it("should be able to set new rewardpath", async () => {
-        const rewardPath = [cake.address, farmToken.address, baseToken.address];
+        const rewardPath = [boo.address, farmToken.address, baseToken.address];
         await expect(deltaNeutralWorkerAsDeployer.setRewardPath(rewardPath))
           .to.emit(deltaNeutralWorker, "SetRewardPath")
           .withArgs(deployerAddress, rewardPath);
@@ -712,8 +718,8 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
         await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
         await deltaNeutralWorkerAsBob.reinvest();
         AssertHelpers.assertAlmostEqual(
-          CAKE_REWARD_PER_BLOCK.mul("2").mul(REINVEST_BOUNTY_BPS).div("10000").toString(),
-          (await cake.balanceOf(bobAddress)).toString()
+          BOO_REWARD_PER_SEC.mul("2").mul(REINVEST_BOUNTY_BPS).div("10000").toString(),
+          (await boo.balanceOf(bobAddress)).toString()
         );
         await vault.deposit(0); // Random action to trigger interest computation
         await _updatePrice();
@@ -846,7 +852,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
           KILL_PRIZE_BPS,
           wbnb.address,
           wNativeRelayer.address,
-          fairLaunch.address,
+          miniFL.address,
           KILL_TREASURY_BPS,
           deployerAddress
         );
@@ -973,12 +979,12 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
           "1000", // 10% Kill prize
           wbnb.address,
           wNativeRelayer.address,
-          fairLaunch.address,
+          miniFL.address,
           "0",
           ethers.constants.AddressZero
         );
         // Set Reinvest bounty to 10% of the reward
-        await deltaNeutralWorker.setReinvestConfig("100", "0", [cake.address, wbnb.address, baseToken.address]);
+        await deltaNeutralWorker.setReinvestConfig("100", "0", [boo.address, wbnb.address, baseToken.address]);
         const [path, reinvestPath] = await Promise.all([
           deltaNeutralWorker.getPath(),
           deltaNeutralWorker.getReinvestPath(),
@@ -1010,7 +1016,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
         accumLp = accumLp.add(expectedLp);
 
         // Expect
-        let [workerLpAfter] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
+        let [workerLpAfter] = await spookyMasterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
         expect(await deltaNeutralWorker.totalLpBalance(), "expected total Lp amount").to.be.eq(expectedLp);
         expect(
           await baseToken.balanceOf(addStrat.address),
@@ -1022,9 +1028,9 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
         ).to.be.eq(debrisFtoken);
         expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.eq(accumLp);
         // DeltaNet borrows another 2 BTOKEN
-        [workerLpBefore] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
-        let bobCakeBefore = await cake.balanceOf(bobAddress);
-        let deployerCakeBefore = await cake.balanceOf(DEPLOYER);
+        [workerLpBefore] = await spookyMasterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
+        let bobCakeBefore = await boo.balanceOf(bobAddress);
+        let deployerCakeBefore = await boo.balanceOf(DEPLOYER);
         await swapHelper.loadReserves(path);
         await swapHelper.loadReserves(reinvestPath);
         await baseTokenAsDeltaNet.approve(vault.address, ethers.utils.parseEther("1"));
@@ -1040,10 +1046,10 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
             [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
           )
         );
-        [workerLpAfter] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
-        let bobCakeAfter = await cake.balanceOf(bobAddress);
-        let deployerCakeAfter = await cake.balanceOf(DEPLOYER);
-        let totalRewards = swapHelper.computeTotalRewards(workerLpBefore, CAKE_REWARD_PER_BLOCK, BigNumber.from(2));
+        [workerLpAfter] = await spookyMasterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
+        let bobCakeAfter = await boo.balanceOf(bobAddress);
+        let deployerCakeAfter = await boo.balanceOf(DEPLOYER);
+        let totalRewards = swapHelper.computeTotalRewards(workerLpBefore, BOO_REWARD_PER_SEC, BigNumber.from(2));
         let reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
         let reinvestLeft = totalRewards.sub(reinvestFees);
         let reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
@@ -1073,16 +1079,16 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
         // ---------------- Reinvest#1 -------------------
         // Wait for 1 day and someone calls reinvest
         await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-        let [workerLPBefore] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
-        deployerCakeBefore = await cake.balanceOf(DEPLOYER);
-        bobCakeBefore = await cake.balanceOf(bobAddress);
+        let [workerLPBefore] = await spookyMasterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
+        deployerCakeBefore = await boo.balanceOf(DEPLOYER);
+        bobCakeBefore = await boo.balanceOf(bobAddress);
         await swapHelper.loadReserves(path);
         await swapHelper.loadReserves(reinvestPath);
         await deltaNeutralWorkerAsBob.reinvest();
-        deployerCakeAfter = await cake.balanceOf(DEPLOYER);
-        bobCakeAfter = await cake.balanceOf(bobAddress);
-        [workerLpAfter] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
-        totalRewards = swapHelper.computeTotalRewards(workerLPBefore, CAKE_REWARD_PER_BLOCK, BigNumber.from(2));
+        deployerCakeAfter = await boo.balanceOf(DEPLOYER);
+        bobCakeAfter = await boo.balanceOf(bobAddress);
+        [workerLpAfter] = await spookyMasterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
+        totalRewards = swapHelper.computeTotalRewards(workerLPBefore, BOO_REWARD_PER_SEC, BigNumber.from(2));
         reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
         reinvestLeft = totalRewards.sub(reinvestFees);
         reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
@@ -1122,7 +1128,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
               "1000", // 10% Kill prize
               wbnb.address,
               wNativeRelayer.address,
-              fairLaunch.address,
+              miniFL.address,
               "0",
               ethers.constants.AddressZero
             );
@@ -1131,7 +1137,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
               deltaNeutralWorker.getReinvestPath(),
             ]);
             // Set Reinvest bounty to 1% of the reward
-            await deltaNeutralWorker.setReinvestConfig("100", "0", [cake.address, wbnb.address, baseToken.address]);
+            await deltaNeutralWorker.setReinvestConfig("100", "0", [boo.address, wbnb.address, baseToken.address]);
             // DeltaNet deposits 10 BTOKEN
             await baseTokenAsDeltaNet.approve(vault.address, ethers.utils.parseEther("10"));
             await vaultAsDeltaNet.deposit(ethers.utils.parseEther("10"));
@@ -1145,7 +1151,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
             // lp amount from adding liquidity will be 1.131492691639043045 LP
             const borrowedAmount = ethers.utils.parseEther("10");
             const principalAmount = ethers.utils.parseEther("10");
-            let [workerLpBefore] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
+            let [workerLpBefore] = await spookyMasterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
             await swapHelper.loadReserves(path);
             await swapHelper.loadReserves(reinvestPath);
             await baseTokenAsDeltaNet.approve(vault.address, ethers.utils.parseEther("10"));
@@ -1160,13 +1166,13 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
                 [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
               )
             );
-            let [workerLpAfter] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
+            let [workerLpAfter] = await spookyMasterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
             const [expectedLp, debrisBtoken] = await swapHelper.computeOneSidedOptimalLp(
               borrowedAmount.add(principalAmount),
               path
             );
             expect(workerLpAfter.sub(workerLpBefore)).to.eq(expectedLp);
-            const deployerCakeBefore = await cake.balanceOf(DEPLOYER);
+            const deployerCakeBefore = await boo.balanceOf(DEPLOYER);
             const deltaNetBefore = await baseToken.balanceOf(deltaNetAddress);
             // health calculation
             // lp balance =  1.131492691639043045
@@ -1180,7 +1186,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
             const lpUnderPosition = await deltaNeutralWorker.totalLpBalance();
             const liquidatedLp = lpUnderPosition.div(2);
             const returnDebt = ethers.utils.parseEther("6");
-            [workerLpBefore] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
+            [workerLpBefore] = await spookyMasterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
             // Pre-compute
             await swapHelper.loadReserves(path);
             await swapHelper.loadReserves(reinvestPath);
@@ -1188,7 +1194,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
             const [reinvestFees, reinvestLp] = await swapHelper.computeReinvestLp(
               workerLpBefore,
               debrisBtoken,
-              CAKE_REWARD_PER_BLOCK,
+              BOO_REWARD_PER_SEC,
               BigNumber.from(REINVEST_BOUNTY_BPS),
               reinvestPath,
               path,
@@ -1225,7 +1231,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
               )
             );
             const deltaNetAfter = await baseToken.balanceOf(deltaNetAddress);
-            const deployerCakeAfter = await cake.balanceOf(DEPLOYER);
+            const deployerCakeAfter = await boo.balanceOf(DEPLOYER);
             expect(deployerCakeAfter.sub(deployerCakeBefore), `expect Deployer to get ${reinvestFees}`).to.be.eq(
               reinvestFees
             );
@@ -1244,7 +1250,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
             // lp balance in dollar / base token price
             // 16.316386161517946552 / 1.0 = 16.316386161517946552
             expect(deltaNetHealthAfter).to.be.eq(ethers.utils.parseEther("16.316386161517946552"));
-            [workerLpAfter] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
+            [workerLpAfter] = await spookyMasterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
             // LP tokens + 0.010276168801924356 LP from reinvest of worker should be decreased by lpUnderPosition / 2
             // due to Bob execute StrategyClosePartialLiquidate
             expect(workerLpAfter).to.be.eq(workerLpBefore.add(reinvestLp).sub(lpUnderPosition.div(2)));
@@ -1262,7 +1268,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
               "1000", // 10% Kill prize
               wbnb.address,
               wNativeRelayer.address,
-              fairLaunch.address,
+              miniFL.address,
               "0",
               ethers.constants.AddressZero
             );
@@ -1277,7 +1283,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
             // based on optimal swap formula, BTOKEN-FTOKEN to be added into the LP will be 16.412938284296807414 BTOKEN - 0.078156848972841940 FTOKEN
             // new reserve after adding liquidity 21.000000000000000000 BTOKEN - 0.100000000000000000 FTOKEN
             // lp amount from adding liquidity will be 1.131492691639043045 LP
-            let [workerLPBefore] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
+            let [workerLPBefore] = await spookyMasterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
             const borrowedAmount = ethers.utils.parseEther("10");
             const principalAmount = ethers.utils.parseEther("10");
             await baseTokenAsDeltaNet.approve(vault.address, ethers.utils.parseEther("10"));
@@ -1292,14 +1298,14 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
                 [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
               )
             );
-            let [workerLPAfter] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
+            let [workerLPAfter] = await spookyMasterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
             expect(workerLPAfter.sub(workerLPBefore)).to.eq(parseEther("1.131492691639043045"));
             // DeltaNet think he made enough. He now wants to close position partially.
             // He close 50% of his position and return all debt
             const deltaNetBefore = await baseToken.balanceOf(deltaNetAddress);
             const [deltaNetHealthBefore] = await vault.positionInfo("1");
             const lpUnderPosition = await deltaNeutralWorker.totalLpBalance();
-            [workerLPBefore] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
+            [workerLPBefore] = await spookyMasterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
             // DeltaNet think he made enough. He now wants to close position partially.
             // After calling `work()`, the `_reinvest()` is invoked
             // since 1 blocks have passed since approve and work now reward will be 0.076 * 1 =~ 0.075999999998831803 ~   CAKE
@@ -1364,7 +1370,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
             // DeltaNet's debt should be 0 BTOKEN due he said he wants to return at max 5,000,000,000 BTOKEN (> debt, return all debt)
             expect(deltaNetDebtVal).to.be.eq("0");
             // Check LP deposited by Worker on MasterChef
-            [workerLPAfter] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
+            [workerLPAfter] = await spookyMasterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
             // LP tokens + LP tokens from reinvest of worker should be decreased by lpUnderBobPosition/2
             // due to DeltaNet execute StrategyClosePartialLiquidate
             expect(workerLPAfter).to.be.eq(
@@ -1383,7 +1389,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
               "1000", // 10% Kill prize
               wbnb.address,
               wNativeRelayer.address,
-              fairLaunch.address,
+              miniFL.address,
               "0",
               ethers.constants.AddressZero
             );
@@ -1483,7 +1489,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
         await _updatePrice();
         // await TimeHelpers.increase(TimeHelpers.duration.minutes(ethers.BigNumber.from("30")));
         let accumLp = await deltaNeutralWorker.totalLpBalance();
-        const [workerLpBefore] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
+        const [workerLpBefore] = await spookyMasterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
         const debris = await baseToken.balanceOf(addStrat.address);
         const reinvestPath = await deltaNeutralWorker.getReinvestPath();
         const path = await deltaNeutralWorker.getPath();
@@ -1504,7 +1510,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
         const blockAfter = await TimeHelpers.latestBlockNumber();
         const blockDiff = blockAfter.sub(lastWorkBlock);
         const totalRewards = workerLpBefore
-          .mul(CAKE_REWARD_PER_BLOCK.mul(blockDiff).mul(1e12).div(workerLpBefore))
+          .mul(BOO_REWARD_PER_SEC.mul(blockDiff).mul(1e12).div(workerLpBefore))
           .div(1e12);
         const totalReinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
         const reinvestLeft = totalRewards.sub(totalReinvestFees);
@@ -1542,7 +1548,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
           `expect DeltaNet's staked LPs = ${ethers.utils.formatEther(accumLp)}`
         ).to.be.eq(accumLp);
         expect(
-          await cake.balanceOf(DEPLOYER),
+          await boo.balanceOf(DEPLOYER),
           `expect Deployer gets ${ethers.utils.formatEther(totalReinvestFees)} CAKE`
         ).to.be.eq(totalReinvestFees);
       }
@@ -1560,12 +1566,12 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
           KILL_PRIZE_BPS,
           wbnb.address,
           wNativeRelayer.address,
-          fairLaunch.address,
+          miniFL.address,
           KILL_TREASURY_BPS,
           deployerAddress
         );
         let accumLp = await deltaNeutralWorker.totalLpBalance();
-        const [workerLpBefore] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
+        const [workerLpBefore] = await spookyMasterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
         const debris = await baseToken.balanceOf(addStrat.address);
         const reinvestPath = await deltaNeutralWorker.getReinvestPath();
         const path = await deltaNeutralWorker.getPath();
@@ -1588,7 +1594,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
         const blockAfter = await TimeHelpers.latestBlockNumber();
         const blockDiff = blockAfter.sub(lastWorkBlock);
         const totalRewards = workerLpBefore
-          .mul(CAKE_REWARD_PER_BLOCK.mul(blockDiff).mul(1e12).div(workerLpBefore))
+          .mul(BOO_REWARD_PER_SEC.mul(blockDiff).mul(1e12).div(workerLpBefore))
           .div(1e12);
         const totalReinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
         const reinvestLeft = totalRewards.sub(totalReinvestFees);
@@ -1627,7 +1633,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
         expect(await deltaNeutralWorker.totalLpBalance(), `expect DeltaNet's staked LPs = ${accumLp}`).to.be.eq(
           accumLp
         );
-        expect(await cake.balanceOf(DEPLOYER), `expect Deployer gets ${totalReinvestFees} CAKE`).to.be.eq(
+        expect(await boo.balanceOf(DEPLOYER), `expect Deployer gets ${totalReinvestFees} CAKE`).to.be.eq(
           totalReinvestFees
         );
         expect(
@@ -1643,8 +1649,8 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
       async function revertNotEnoughCollateral(goRouge: boolean, stratAddress: string) {
         // Simulate price swing to make position under water
         simpleVaultConfig.setWorker(deltaNeutralWorker.address, true, true, WORK_FACTOR, "100", true, true);
-        await farmToken.approve(routerV2.address, ethers.utils.parseEther("888"));
-        await routerV2.swapExactTokensForTokens(
+        await farmToken.approve(router.address, ethers.utils.parseEther("888"));
+        await router.swapExactTokensForTokens(
           ethers.utils.parseEther("888"),
           "0",
           [farmToken.address, baseToken.address],
