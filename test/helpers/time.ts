@@ -1,4 +1,4 @@
-import { BigNumber } from "ethers";
+import { BigNumber, BigNumberish } from "ethers";
 import { ethers } from "hardhat";
 
 export async function latest(): Promise<BigNumber> {
@@ -28,23 +28,23 @@ export async function increase(duration: BigNumber) {
 }
 
 export const duration = {
-  seconds: function (val: BigNumber): BigNumber {
-    return val;
+  seconds: function (val: BigNumberish): BigNumber {
+    return BigNumber.from(val);
   },
-  minutes: function (val: BigNumber): BigNumber {
-    return val.mul(this.seconds(ethers.BigNumber.from("60")));
+  minutes: function (val: BigNumberish): BigNumber {
+    return BigNumber.from(val).mul(this.seconds(ethers.BigNumber.from("60")));
   },
-  hours: function (val: BigNumber): BigNumber {
-    return val.mul(this.minutes(ethers.BigNumber.from("60")));
+  hours: function (val: BigNumberish): BigNumber {
+    return BigNumber.from(val).mul(this.minutes(ethers.BigNumber.from("60")));
   },
-  days: function (val: BigNumber): BigNumber {
-    return val.mul(this.hours(ethers.BigNumber.from("24")));
+  days: function (val: BigNumberish): BigNumber {
+    return BigNumber.from(val).mul(this.hours(ethers.BigNumber.from("24")));
   },
-  weeks: function (val: BigNumber): BigNumber {
-    return val.mul(this.days(ethers.BigNumber.from("7")));
+  weeks: function (val: BigNumberish): BigNumber {
+    return BigNumber.from(val).mul(this.days(ethers.BigNumber.from("7")));
   },
-  years: function (val: BigNumber): BigNumber {
-    return val.mul(this.days(ethers.BigNumber.from("365")));
+  years: function (val: BigNumberish): BigNumber {
+    return BigNumber.from(val).mul(this.days(ethers.BigNumber.from("365")));
   },
 };
 
