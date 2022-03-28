@@ -335,7 +335,7 @@
     "test:vault_tomb03": "hardhat test --no-compile ./test/integrations/protocol/workers/tomb/Vault_TombWorker03.test.ts",
     "test:router": "hardhat test --no-compile ./test/IbTokenRouter.test.ts",
     "test:timelock": "hardhat test --no-compile ./test/integrations/Timelock.test.ts",
-    "test:tripleslope": "hardhat test --no-compile ./test/TripleSlopeModel.test.ts",
+    "test:tripleslope": "hardhat test --no-compile ./test/integrations/protocol/TripleSlopeModel.test.ts",
     "test:twoslope": "hardhat test --no-compile ./test/integrations/protocol/TwoSlopeModel.test.ts",
     "test:shield": "hardhat test --no-compile ./test/integrations/token/Shield.test.ts",
     "test:stronkalpaca": "hardhat test --no-compile ./test/StronkAlpaca.test.ts",
