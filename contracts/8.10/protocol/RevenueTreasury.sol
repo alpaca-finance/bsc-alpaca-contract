@@ -79,29 +79,27 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
     uint256 _remaining,
     uint256 _splitBps
   ) external initializer {
+    // check
+    if (_token != _vault.token()) {
+      revert RevenueTreasury_TokenMismatch();
+    }
+
+    if (_splitBps > 10000) {
+      revert RevenueTreasury_InvalidBps();
+    }
+
+    _router.WETH();
+
+    // effect
     OwnableUpgradeable.__Ownable_init();
 
     token = _token;
     grassHouse = _grasshouse;
     vault = _vault;
-
     grasshouseToken = grassHouse.rewardToken();
-
-    remaining = _remaining;
-
-    splitBps = _splitBps;
-
-    // sanity check
     router = _router;
-    router.WETH();
-
-    if (token != vault.token()) {
-      revert RevenueTreasury_TokenMismatch();
-    }
-
-    if (splitBps > 10000) {
-      revert RevenueTreasury_InvalidBps();
-    }
+    remaining = _remaining;
+    splitBps = _splitBps;
   }
 
   /// @notice Split fund and distribute
