@@ -259,7 +259,8 @@ describe("RevenueTreasury", () => {
 
         expect(await usdt.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("100"));
 
-        await treasury.settle();
+        expect(treasury.settle()).to.emit(treasury, "LogSettle")
+          .withArgs(deployerAddress, ethers.utils.parseEther("50"), ethers.utils.parseEther("50"), ethers.utils.parseEther("50"));
 
         expect(await usdt.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("0"));
         expect(await usdt.balanceOf(vault.address)).to.be.eq(ethers.utils.parseEther("50"));
@@ -273,7 +274,8 @@ describe("RevenueTreasury", () => {
 
         expect(await usdt.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("30000"));
 
-        await treasury.settle();
+        expect(treasury.settle()).to.emit(treasury, "LogSettle")
+          .withArgs(deployerAddress, ethers.utils.parseEther("10000"), ethers.utils.parseEther("20000"), ethers.utils.parseEther("20000"));
 
         expect(await usdt.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("0"));
         expect(await usdt.balanceOf(vault.address)).to.be.eq(ethers.utils.parseEther("10000"));
@@ -288,7 +290,8 @@ describe("RevenueTreasury", () => {
 
         expect(await usdt.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("20000"));
 
-        await treasury.settle();
+        expect(treasury.settle()).to.emit(treasury, "LogSettle")
+          .withArgs(deployerAddress, ethers.utils.parseEther("10000"), ethers.utils.parseEther("10000"), ethers.utils.parseEther("10000"));
 
         expect(await usdt.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("0"));
         expect(await usdt.balanceOf(vault.address)).to.be.eq(ethers.utils.parseEther("10000"));
@@ -298,7 +301,8 @@ describe("RevenueTreasury", () => {
         await usdt.transfer(treasury.address, ethers.utils.parseEther("5000"));
         expect(await usdt.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("5000"));
 
-        await treasury.settle();
+        expect(treasury.settle()).to.emit(treasury, "LogSettle")
+          .withArgs(deployerAddress, ethers.utils.parseEther("0"), ethers.utils.parseEther("5000"), ethers.utils.parseEther("5000"));
 
         expect(await usdt.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("0"));
         expect(await usdt.balanceOf(vault.address)).to.be.eq(ethers.utils.parseEther("10000"));

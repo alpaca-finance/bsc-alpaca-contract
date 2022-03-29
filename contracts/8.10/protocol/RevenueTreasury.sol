@@ -29,8 +29,8 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
   using SafeToken for address;
 
   /// @notice Events
-  event LogFeedGrassHouse(uint256 _feedAmount);
-  event LogSetNewGrassHouse(address indexed _caller, address _prevGrassHouse, address _newGrassHouse);
+  event LogSettle(address indexed _caller, uint256 _transferAmount, uint256 _swapAmount, uint256 _feedAmount);
+  event LogSetGrassHouse(address indexed _caller, address _prevGrassHouse, address _newGrassHouse);
   event LogSetWhitelistedCallers(address indexed _caller, address indexed _address, bool _ok);
   event LogSetRewardPath(address indexed _caller, address[] _newRewardPath);
   event LogSetRouter(address indexed _caller, address _prevRouter, address _newRouter);
@@ -92,11 +92,12 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
 
   /// @notice Split fund and distribute
   function settle() external {
+    uint256 _transferAmount = 0;
     if (remaining > 0) {
       // Partition receiving token balance into half.
-      // The amount to trasnfer to vault for bad debt coverage = max(balance/2 , remaining)
-      uint256 _coverPortion = token.myBalance() / 2;
-      uint256 _transferAmount = _coverPortion < remaining ? _coverPortion : remaining;
+      // The amount to transfer to vault for bad debt coverage = min(balance/2 , remaining)
+      uint256 split = token.myBalance() / 2;
+      _transferAmount = split < remaining ? split : remaining;
       remaining = remaining - _transferAmount;
 
       token.safeTransfer(address(vault), _transferAmount);
@@ -112,7 +113,7 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
     uint256 _feedAmount = grasshouseToken.myBalance();
     grasshouseToken.safeApprove(address(grassHouse), _feedAmount);
     grassHouse.feed(_feedAmount);
-    emit LogFeedGrassHouse(_feedAmount);
+    emit LogSettle(msg.sender, _transferAmount, _swapAmount, _feedAmount);
   }
 
   /// @notice Set a new GrassHouse
@@ -121,7 +122,7 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
     address _prevGrassHouse = address(grassHouse);
     grassHouse = _newGrassHouse;
     grasshouseToken = grassHouse.rewardToken();
-    emit LogSetNewGrassHouse(msg.sender, _prevGrassHouse, address(_newGrassHouse));
+    emit LogSetGrassHouse(msg.sender, _prevGrassHouse, address(_newGrassHouse));
   }
 
   /// @notice Set a new swap router
