@@ -2,6 +2,11 @@
 # yarn lockfile v1
 
 
+"@alpaca-finance/alpies-contract@1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@alpaca-finance/alpies-contract/-/alpies-contract-1.0.2.tgz#0a11b760e387c8871c7ff96614d06dad3c3191f2"
+  integrity sha512-EVfnWJWjUGpuyU3somhJILxpDvxWze4ckNVJUgz444jgX9xSO78mOY5Lq8L9KCCUtZ69Ym8X8mVg4k+kTF9JsA==
+
 "@babel/code-frame@^7.0.0":
   version "7.16.0"
   resolved "https://registry.yarnpkg.com/@babel/code-frame/-/code-frame-7.16.0.tgz#0dfc80309beec8411e65e706461c408b0bb9b431"

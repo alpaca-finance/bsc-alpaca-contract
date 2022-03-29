@@ -3,14 +3,7 @@ import { Signer, BigNumber } from "ethers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import "@openzeppelin/test-helpers";
-import {
-  NFTStaking,
-  NFTStaking__factory,
-  Alpies,
-  Alpies__factory,
-  FixedPriceModel,
-  FixedPriceModel__factory,
-} from "../typechain";
+import { NFTStaking, NFTStaking__factory, MockNFT, MockNFT__factory } from "../typechain";
 import { latestBlockNumber } from "./helpers/time";
 
 chai.use(solidity);
@@ -33,10 +26,10 @@ describe("NFTStaking", () => {
   let bobAddress: string;
 
   let nftStaking: NFTStaking;
-  let alpies: Alpies;
-  let alpies2: Alpies;
+  let mockNFT: MockNFT;
+  let mockNFT2: MockNFT;
 
-  let alpiesAsAlice: Alpies;
+  let mockNFTAsAlice: MockNFT;
   let nftStakingAsAlice: NFTStaking;
 
   async function fixture() {
@@ -46,41 +39,15 @@ describe("NFTStaking", () => {
     nftStaking = (await upgrades.deployProxy(NFTStaking, [])) as NFTStaking;
     await nftStaking.deployed();
 
-    // Deploy Fix PriceModel
-    const FixedPriceModel = (await ethers.getContractFactory("FixedPriceModel", deployer)) as FixedPriceModel__factory;
-    const fixedPriceModel = await FixedPriceModel.deploy(
-      (await latestBlockNumber()).add(1000),
-      (await latestBlockNumber()).add(1800),
-      ALPIES_PRICE
-    );
-    await fixedPriceModel.deployed();
-
-    // Deploy Alpies
+    // Deploy MockNFT
     // Sale will start 1000 blocks from here and another 1000 blocks to reveal
-    const Alpies = (await ethers.getContractFactory("Alpies", deployer)) as Alpies__factory;
-    alpies = (await upgrades.deployProxy(Alpies, [
-      "Alpies",
-      "ALPIES",
-      MAX_SALE_ALPIES,
-      (await latestBlockNumber()).add(1850),
-      fixedPriceModel.address,
-      MAX_RESERVE_AMOUNT,
-      MAX_PREMINT_AMOUNT,
-    ])) as Alpies;
-    await alpies.deployed();
+    const MockNFT = (await ethers.getContractFactory("MockNFT", deployer)) as MockNFT__factory;
+    mockNFT = (await upgrades.deployProxy(MockNFT, [])) as MockNFT;
+    mockNFT2 = (await upgrades.deployProxy(MockNFT, [])) as MockNFT;
+    await mockNFT.deployed();
+    await mockNFT2.deployed();
 
-    alpies2 = (await upgrades.deployProxy(Alpies, [
-      "Alpies2",
-      "ALPIES2",
-      MAX_SALE_ALPIES,
-      (await latestBlockNumber()).add(1850),
-      fixedPriceModel.address,
-      MAX_RESERVE_AMOUNT,
-      MAX_PREMINT_AMOUNT,
-    ])) as Alpies;
-    await alpies2.deployed();
-
-    alpiesAsAlice = Alpies__factory.connect(alpies.address, alice);
+    mockNFTAsAlice = MockNFT__factory.connect(mockNFT.address, alice);
     nftStakingAsAlice = NFTStaking__factory.connect(nftStaking.address, alice);
   }
 
@@ -98,12 +65,12 @@ describe("NFTStaking", () => {
     context("when addPool with correct params", async () => {
       it("should success", async () => {
         const poolId = ethers.utils.solidityKeccak256(["string"], ["ALPIES"]);
-        await nftStaking.addPool(poolId, [alpies.address]);
+        await nftStaking.addPool(poolId, [mockNFT.address]);
 
         const poolInfo = await nftStaking.poolInfo(poolId);
         expect(poolInfo).to.be.eq(1);
 
-        const isEligibleNFT = await nftStaking.isEligibleNFT(poolId, alpies.address);
+        const isEligibleNFT = await nftStaking.isEligibleNFT(poolId, mockNFT.address);
         expect(isEligibleNFT).to.be.true;
       });
     });
@@ -113,10 +80,10 @@ describe("NFTStaking", () => {
     context("when setStakeNFTToken with correct params", async () => {
       it("should success", async () => {
         const poolId = ethers.utils.solidityKeccak256(["string"], ["ALPIES"]);
-        await nftStaking.addPool(poolId, [alpies.address]);
+        await nftStaking.addPool(poolId, [mockNFT.address]);
 
-        await nftStaking.setStakeNFTToken(poolId, [alpies2.address], [1]);
-        const isEligibleNFT = await nftStaking.isEligibleNFT(poolId, alpies2.address);
+        await nftStaking.setStakeNFTToken(poolId, [mockNFT2.address], [1]);
+        const isEligibleNFT = await nftStaking.isEligibleNFT(poolId, mockNFT2.address);
         expect(isEligibleNFT).to.be.true;
       });
     });
@@ -126,14 +93,14 @@ describe("NFTStaking", () => {
     context("when stake eligible NFT", async () => {
       it("should success", async () => {
         const poolId = ethers.utils.solidityKeccak256(["string"], ["ALPIES"]);
-        await nftStaking.addPool(poolId, [alpies.address]);
-        await alpies.mintReserve(1);
+        await nftStaking.addPool(poolId, [mockNFT.address]);
+        await mockNFT.mint(1);
 
-        await alpies.approve(nftStaking.address, 0);
-        await nftStaking.stakeNFT(poolId, alpies.address, 0);
+        await mockNFT.approve(nftStaking.address, 0);
+        await nftStaking.stakeNFT(poolId, mockNFT.address, 0);
 
         const userStakingNFT = await nftStaking.userStakingNFT(poolId, deployerAddress);
-        expect(userStakingNFT.nftAddress).to.be.eq(alpies.address);
+        expect(userStakingNFT.nftAddress).to.be.eq(mockNFT.address);
         expect(userStakingNFT.nftTokenId).to.be.eq(0);
 
         expect(await nftStaking.isStaked(poolId, deployerAddress)).to.be.true;
@@ -143,10 +110,10 @@ describe("NFTStaking", () => {
     context("when stake eligible NFT without approval", async () => {
       it("should revert", async () => {
         const poolId = ethers.utils.solidityKeccak256(["string"], ["ALPIES"]);
-        await nftStaking.addPool(poolId, [alpies.address]);
-        await alpies.mintReserve(1);
+        await nftStaking.addPool(poolId, [mockNFT.address]);
+        await mockNFT.mint(1);
 
-        await expect(nftStaking.stakeNFT(poolId, alpies.address, 0)).to.be.revertedWith(
+        await expect(nftStaking.stakeNFT(poolId, mockNFT.address, 0)).to.be.revertedWith(
           "ERC721: transfer caller is not owner nor approved"
         );
       });
@@ -155,10 +122,10 @@ describe("NFTStaking", () => {
     context("when stake ineligible NFT", async () => {
       it("should revert", async () => {
         const poolId = ethers.utils.solidityKeccak256(["string"], ["ALPIES"]);
-        await nftStaking.addPool(poolId, [alpies.address]);
-        await alpies2.mintReserve(1);
+        await nftStaking.addPool(poolId, [mockNFT.address]);
+        await mockNFT2.mint(1);
 
-        await expect(nftStaking.stakeNFT(poolId, alpies2.address, 0)).to.be.revertedWith(
+        await expect(nftStaking.stakeNFT(poolId, mockNFT2.address, 0)).to.be.revertedWith(
           "NFTStaking::stakeNFT::nft address not allowed"
         );
         expect(await nftStaking.isStaked(poolId, deployerAddress)).to.be.false;
@@ -168,32 +135,32 @@ describe("NFTStaking", () => {
     context("when stake eligible NFT again", async () => {
       it("should allow the second NFT to be staked and received first NFT back", async () => {
         const poolId = ethers.utils.solidityKeccak256(["string"], ["ALPIES"]);
-        await nftStaking.addPool(poolId, [alpies.address]);
-        await alpies.mintReserve(2);
+        await nftStaking.addPool(poolId, [mockNFT.address]);
+        await mockNFT.mint(2);
 
-        expect(await alpies.balanceOf(deployerAddress)).to.be.eq(2);
+        expect(await mockNFT.balanceOf(deployerAddress)).to.be.eq(2);
 
-        await alpies.approve(nftStaking.address, 0);
-        await nftStaking.stakeNFT(poolId, alpies.address, 0);
+        await mockNFT.approve(nftStaking.address, 0);
+        await nftStaking.stakeNFT(poolId, mockNFT.address, 0);
 
         const userStakingNFT = await nftStaking.userStakingNFT(poolId, deployerAddress);
-        expect(userStakingNFT.nftAddress).to.be.eq(alpies.address);
+        expect(userStakingNFT.nftAddress).to.be.eq(mockNFT.address);
         expect(userStakingNFT.nftTokenId).to.be.eq(0);
 
         expect(await nftStaking.isStaked(poolId, deployerAddress)).to.be.true;
 
-        expect(await alpies.balanceOf(deployerAddress)).to.be.eq(1);
+        expect(await mockNFT.balanceOf(deployerAddress)).to.be.eq(1);
 
-        await alpies.approve(nftStaking.address, 1);
-        await nftStaking.stakeNFT(poolId, alpies.address, 1);
+        await mockNFT.approve(nftStaking.address, 1);
+        await nftStaking.stakeNFT(poolId, mockNFT.address, 1);
 
         const userStakingNFT2 = await nftStaking.userStakingNFT(poolId, deployerAddress);
-        expect(userStakingNFT2.nftAddress).to.be.eq(alpies.address);
+        expect(userStakingNFT2.nftAddress).to.be.eq(mockNFT.address);
         expect(userStakingNFT2.nftTokenId).to.be.eq(1);
 
         expect(await nftStaking.isStaked(poolId, deployerAddress)).to.be.true;
 
-        expect(await alpies.balanceOf(deployerAddress)).to.be.eq(1);
+        expect(await mockNFT.balanceOf(deployerAddress)).to.be.eq(1);
       });
     });
   });
@@ -202,24 +169,24 @@ describe("NFTStaking", () => {
     context("when unstake the already staked NFT", async () => {
       it("should success", async () => {
         const poolId = ethers.utils.solidityKeccak256(["string"], ["ALPIES"]);
-        await nftStaking.addPool(poolId, [alpies.address]);
-        await alpies.mintReserve(1);
+        await nftStaking.addPool(poolId, [mockNFT.address]);
+        await mockNFT.mint(1);
 
-        expect(await alpies.balanceOf(deployerAddress)).to.be.eq(1);
+        expect(await mockNFT.balanceOf(deployerAddress)).to.be.eq(1);
 
-        await alpies.approve(nftStaking.address, 0);
-        await nftStaking.stakeNFT(poolId, alpies.address, 0);
+        await mockNFT.approve(nftStaking.address, 0);
+        await nftStaking.stakeNFT(poolId, mockNFT.address, 0);
 
-        expect(await alpies.balanceOf(deployerAddress)).to.be.eq(0);
+        expect(await mockNFT.balanceOf(deployerAddress)).to.be.eq(0);
 
         const userStakingNFT = await nftStaking.userStakingNFT(poolId, deployerAddress);
-        expect(userStakingNFT.nftAddress).to.be.eq(alpies.address);
+        expect(userStakingNFT.nftAddress).to.be.eq(mockNFT.address);
         expect(userStakingNFT.nftTokenId).to.be.eq(0);
         expect(await nftStaking.isStaked(poolId, deployerAddress)).to.be.true;
 
         await nftStaking.unstakeNFT(poolId);
 
-        expect(await alpies.balanceOf(deployerAddress)).to.be.eq(1);
+        expect(await mockNFT.balanceOf(deployerAddress)).to.be.eq(1);
         expect(await nftStaking.isStaked(poolId, deployerAddress)).to.be.false;
       });
     });
@@ -227,10 +194,10 @@ describe("NFTStaking", () => {
     context("when unstake without staked NFT", async () => {
       it("should revert", async () => {
         const poolId = ethers.utils.solidityKeccak256(["string"], ["ALPIES"]);
-        await nftStaking.addPool(poolId, [alpies.address]);
-        await alpies.mintReserve(1);
+        await nftStaking.addPool(poolId, [mockNFT.address]);
+        await mockNFT.mint(1);
 
-        expect(await alpies.balanceOf(deployerAddress)).to.be.eq(1);
+        expect(await mockNFT.balanceOf(deployerAddress)).to.be.eq(1);
 
         const userStakingNFT = await nftStaking.userStakingNFT(poolId, deployerAddress);
         expect(userStakingNFT.nftAddress).to.be.eq(ethers.constants.AddressZero);
@@ -244,20 +211,20 @@ describe("NFTStaking", () => {
     context("when unstake other user's NFT", async () => {
       it("should revert", async () => {
         const poolId = ethers.utils.solidityKeccak256(["string"], ["ALPIES"]);
-        await nftStaking.addPool(poolId, [alpies.address]);
-        await alpies.mintReserve(1);
+        await nftStaking.addPool(poolId, [mockNFT.address]);
+        await mockNFT.mint(1);
 
-        await alpies.transferFrom(deployerAddress, aliceAddress, 0);
+        await mockNFT.transferFrom(deployerAddress, aliceAddress, 0);
 
-        expect(await alpies.balanceOf(aliceAddress)).to.be.eq(1);
+        expect(await mockNFT.balanceOf(aliceAddress)).to.be.eq(1);
 
-        await alpiesAsAlice.approve(nftStaking.address, 0);
-        await nftStakingAsAlice.stakeNFT(poolId, alpies.address, 0);
+        await mockNFTAsAlice.approve(nftStaking.address, 0);
+        await nftStakingAsAlice.stakeNFT(poolId, mockNFT.address, 0);
 
-        expect(await alpies.balanceOf(aliceAddress)).to.be.eq(0);
+        expect(await mockNFT.balanceOf(aliceAddress)).to.be.eq(0);
 
         const userStakingNFT = await nftStaking.userStakingNFT(poolId, aliceAddress);
-        expect(userStakingNFT.nftAddress).to.be.eq(alpies.address);
+        expect(userStakingNFT.nftAddress).to.be.eq(mockNFT.address);
         expect(userStakingNFT.nftTokenId).to.be.eq(0);
 
         expect(await nftStaking.isStaked(poolId, aliceAddress)).to.be.true;
