@@ -12,7 +12,9 @@ import {
   RevenueTreasury,
   RevenueTreasury__factory,
   MockSwapRouter,
-  MockSwapRouter__factory
+  MockSwapRouter__factory,
+  MockVault,
+  MockVault__factory
 } from "../../../typechain";
 
 chai.use(solidity);
@@ -27,6 +29,8 @@ describe("RevenueTreasury", () => {
   let grassHouse: MockGrassHouse;
 
   let router: MockSwapRouter;
+
+  let vault: MockVault;
 
   // Accounts
   let deployer: SignerWithAddress;
@@ -82,12 +86,19 @@ describe("RevenueTreasury", () => {
     usdt.transfer(router.address, ethers.utils.parseEther("100000"));
     alpaca.transfer(router.address, ethers.utils.parseEther("100000"));
 
-    // Deploy feeder
+    // Deploy Vault
+    const MockVault = (await ethers.getContractFactory("MockVault", deployer)) as MockVault__factory;
+    vault = await MockVault.deploy(usdt.address);
+
+    // Deploy Treasury
+    const remaining = ethers.utils.parseEther("10000");
     const RevenueTreasury = (await ethers.getContractFactory("RevenueTreasury", deployer)) as RevenueTreasury__factory;
     const revenueTreasury = (await upgrades.deployProxy(RevenueTreasury, [
       usdt.address,
       grassHouse.address,
-      router.address
+      vault.address,
+      router.address,
+      remaining
     ])) as RevenueTreasury;
     treasury = await revenueTreasury.deployed();
 
@@ -116,6 +127,7 @@ describe("RevenueTreasury", () => {
         expect(await treasury.grassHouse()).to.be.eq(grassHouse.address);
         expect(await treasury.grasshouseToken()).to.be.eq(alpaca.address);
         expect(await treasury.token()).to.be.eq(usdt.address);
+        expect(await treasury.remaining()).to.be.eq(ethers.utils.parseEther("10000"));
       });
     });
 
@@ -124,8 +136,10 @@ describe("RevenueTreasury", () => {
         const RevenueTreasury = (await ethers.getContractFactory("RevenueTreasury", deployer)) as RevenueTreasury__factory;
         await expect(upgrades.deployProxy(RevenueTreasury, [
           usdt.address,
-          alpaca.address,
-          router.address
+          alpaca.address, // should be grasshouse
+          vault.address,
+          router.address,
+          ethers.utils.parseEther("10000")
         ])).to.be.revertedWith("Address: low-level delegate call failed");
       });
     });
@@ -135,8 +149,23 @@ describe("RevenueTreasury", () => {
         const RevenueTreasury = (await ethers.getContractFactory("RevenueTreasury", deployer)) as RevenueTreasury__factory;
         await expect(upgrades.deployProxy(RevenueTreasury, [
           usdt.address,
-          alpaca.address,
-          router.address
+          grassHouse.address,
+          vault.address,
+          vault.address, //should be router
+          ethers.utils.parseEther("10000")
+        ])).to.be.revertedWith("Address: low-level delegate call failed");
+      });
+    });
+
+    describe("if the address is not vault", async () => {
+      it("should revert", async () => {
+        const RevenueTreasury = (await ethers.getContractFactory("RevenueTreasury", deployer)) as RevenueTreasury__factory;
+        await expect(upgrades.deployProxy(RevenueTreasury, [
+          usdt.address,
+          grassHouse.address,
+          router.address, // should be vault
+          router.address,
+          ethers.utils.parseEther("10000")
         ])).to.be.revertedWith("Address: low-level delegate call failed");
       });
     });
@@ -223,16 +252,58 @@ describe("RevenueTreasury", () => {
     });
   });
 
-  describe("#settle", async () => {
-    it("should work correctly", async () => {
-      await usdt.transfer(treasury.address, ethers.utils.parseEther("100"));
-      // await alpaca.transfer(treasury.address, ethers.utils.parseEther("100"));
-      expect(await usdt.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("100"));
+  context("#settle", async () => {
+    describe("If amount to cover < remaining", async () => {
+      it("should split token into 50:50", async () => {
+        await usdt.transfer(treasury.address, ethers.utils.parseEther("100"));
 
-      await treasury.settle();
+        expect(await usdt.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("100"));
 
-      expect(await usdt.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("0"));
-      expect(await alpaca.balanceOf(grassHouse.address)).to.be.eq(ethers.utils.parseEther("100"));
-    });
+        await treasury.settle();
+
+        expect(await usdt.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await usdt.balanceOf(vault.address)).to.be.eq(ethers.utils.parseEther("50"));
+        expect(await alpaca.balanceOf(grassHouse.address)).to.be.eq(ethers.utils.parseEther("50"));
+      });
+    })
+
+    describe("If amount to cover > remaining", async () => {
+      it("should transfer only to cover bad debt", async () => {
+        await usdt.transfer(treasury.address, ethers.utils.parseEther("30000"));
+
+        expect(await usdt.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("30000"));
+
+        await treasury.settle();
+
+        expect(await usdt.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await usdt.balanceOf(vault.address)).to.be.eq(ethers.utils.parseEther("10000"));
+        expect(await alpaca.balanceOf(grassHouse.address)).to.be.eq(ethers.utils.parseEther("20000"));
+      });
+    })
+
+    describe("If remaining = 0", async () => {
+      it("should swap all to reward and feed grasshouse", async () => {
+        // Cover all remaining first
+        await usdt.transfer(treasury.address, ethers.utils.parseEther("20000"));
+
+        expect(await usdt.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("20000"));
+
+        await treasury.settle();
+
+        expect(await usdt.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await usdt.balanceOf(vault.address)).to.be.eq(ethers.utils.parseEther("10000"));
+        expect(await alpaca.balanceOf(grassHouse.address)).to.be.eq(ethers.utils.parseEther("10000"));
+
+        // Another round of revenue distribution
+        await usdt.transfer(treasury.address, ethers.utils.parseEther("5000"));
+        expect(await usdt.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("5000"));
+
+        await treasury.settle();
+
+        expect(await usdt.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await usdt.balanceOf(vault.address)).to.be.eq(ethers.utils.parseEther("10000"));
+        expect(await alpaca.balanceOf(grassHouse.address)).to.be.eq(ethers.utils.parseEther("15000"));
+      });
+    })
   });
 });

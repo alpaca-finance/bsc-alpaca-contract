@@ -19,6 +19,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./interfaces/IERC20.sol";
 import "./interfaces/IGrassHouse.sol";
 import "./interfaces/ISwapRouter.sol";
+import "./interfaces/IVault.sol";
 
 import "../utils/SafeToken.sol";
 
@@ -35,6 +36,7 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
   event LogSetRouter(address indexed _caller, address _prevRouter, address _newRouter);
 
   /// @notice Errors
+  error RevenueTreasury_TokenMismatch();
   error RevenueTreasury_InvalidRewardPathLength();
   error RevenueTreasury_InvalidRewardPath();
 
@@ -50,23 +52,38 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
   /// @notice grassHouse - Implementation of GrassHouse
   IGrassHouse public grassHouse;
 
+  /// @notice vault - Implementation of vault
+  IVault public vault;
+
   /// @notice rewardPath - Path to swap recieving token to grasshouse's token
   address[] public rewardPath;
 
+  /// @notice remaining - Remaining bad debt amount to cover
+  uint256 public remaining;
+
   /// @notice Initialize function
   /// @param _token Receiving token
-  /// @param _grasshouseAddress Grasshouse's contract address
+  /// @param _grasshouse Grasshouse's contract address
   function initialize(
     address _token,
-    address _grasshouseAddress,
-    address _router
+    address _grasshouse,
+    address _vault,
+    address _router,
+    uint256 _remaining
   ) external initializer {
     OwnableUpgradeable.__Ownable_init();
 
     token = _token;
-    grassHouse = IGrassHouse(_grasshouseAddress);
+    grassHouse = IGrassHouse(_grasshouse);
+    vault = IVault(_vault);
+
+    if (token != vault.token()) {
+      revert RevenueTreasury_TokenMismatch();
+    }
 
     grasshouseToken = grassHouse.rewardToken();
+
+    remaining = _remaining;
 
     // sanity check
     router = ISwapRouter(_router);
@@ -75,14 +92,23 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
 
   /// @notice Harvest reward from FairLaunch and Feed token to a GrassHouse
   function settle() external {
-    // TODO: Settlement logic here
-    // 1. Swap token
-    uint256 _swapAmount = token.myBalance();
+    if (remaining > 0) {
+      // Partition receiving token balance into half.
+      // The amount to trasnfer to vault for bad debt coverage = max(balance/2 , remaining)
+      uint256 _coverPortion = token.myBalance() / 2;
+      uint256 _transferAmount = _coverPortion < remaining ? _coverPortion : remaining;
+      remaining = remaining - _transferAmount;
 
+      token.safeTransfer(address(vault), _transferAmount);
+    }
+
+    // Swap all the rest to reward token
+    uint256 _swapAmount = token.myBalance();
     token.safeApprove(address(router), _swapAmount);
     router.swapExactTokensForTokens(_swapAmount, 0, rewardPath, address(this), block.timestamp);
     token.safeApprove(address(router), 0);
 
+    // Feed all reward token to grasshouse
     uint256 _feedAmount = grasshouseToken.myBalance();
     grasshouseToken.safeApprove(address(grassHouse), _feedAmount);
     grassHouse.feed(_feedAmount);
