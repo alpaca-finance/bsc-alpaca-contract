@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL
 /**
   ∩~~~~∩ 
   ξ ･×･ ξ 
@@ -265,12 +265,10 @@ contract DeltaNeutralSpookyWorker03 is OwnableUpgradeable, ReentrancyGuardUpgrad
     uint256 debt,
     bytes calldata data
   ) external override onlyWhitelistedCaller(user) onlyOperator nonReentrant {
-    // 1. reinvest
-    _reinvest(treasuryAccount, treasuryBountyBps, actualBaseTokenBalance(), reinvestThreshold);
-    // 2. Withdraw all LP tokens.
+    // 1. Withdraw all LP tokens.
     _spookyMasterChefWithdraw();
 
-    // 3. Perform the worker strategy; sending LP tokens + BaseToken; expecting LP tokens + BaseToken.
+    // 2. Perform the worker strategy; sending LP tokens + BaseToken; expecting LP tokens + BaseToken.
     (address strat, bytes memory ext) = abi.decode(data, (address, bytes));
 
     if (!okStrats[strat]) revert DeltaNeutralSpookyWorker03_UnApproveStrategy();
@@ -279,10 +277,10 @@ contract DeltaNeutralSpookyWorker03 is OwnableUpgradeable, ReentrancyGuardUpgrad
     baseToken.safeTransfer(strat, actualBaseTokenBalance());
     IStrategy(strat).execute(user, debt, ext);
 
-    // 4. Add LP tokens back to the farming pool.
+    // 3. Add LP tokens back to the farming pool.
     _spookyMasterChefDeposit();
 
-    // 5. Return any remaining BaseToken back to the operator.
+    // 4. Return any remaining BaseToken back to the operator.
     baseToken.safeTransfer(msg.sender, actualBaseTokenBalance());
   }
 
@@ -510,7 +508,6 @@ contract DeltaNeutralSpookyWorker03 is OwnableUpgradeable, ReentrancyGuardUpgrad
   /// @param _treasuryAccount - The treasury address to update
   /// @param _treasuryBountyBps - The treasury bounty to update
   function setTreasuryConfig(address _treasuryAccount, uint256 _treasuryBountyBps) external onlyOwner {
-    //TODO spooky worker has this should we add this error? require(_treasuryAccount != address(0), "bad _treasuryAccount");
     if (treasuryAccount == address(0)) revert DeltaNeutralSpookyWorker03_BadTreasuryAccount();
     if (_treasuryBountyBps > maxReinvestBountyBps) revert DeltaNeutralSpookyWorker03_ExceedReinvestBounty();
 

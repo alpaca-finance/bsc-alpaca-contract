@@ -1170,7 +1170,8 @@ export class DeployHelper {
 
   public async deploySpookySwap(
     wbnb: MockWBNB,
-    booPerSec: BigNumberish
+    booPerSec: BigNumberish,
+    holders: Array<IHolder>
   ): Promise<[WaultSwapFactory, WaultSwapRouter, SpookyToken, SpookyMasterChef]> {
     // Note: Use WaultSwap because same fee structure
     // Setup WaultSwap
@@ -1191,7 +1192,10 @@ export class DeployHelper {
     const SpookyToken = (await ethers.getContractFactory("SpookyToken", this.deployer)) as SpookyToken__factory;
     const boo = await SpookyToken.deploy();
     await boo.deployed();
-    await boo.mint(await this.deployer.getAddress(), ethers.utils.parseEther("100"));
+
+    if (holders !== undefined) {
+      holders.forEach(async (holder) => await boo.mint(holder.address, holder.amount));
+    }
 
     /// Setup MasterChef
     const SpookyMasterChef = (await ethers.getContractFactory(
