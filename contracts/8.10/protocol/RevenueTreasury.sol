@@ -34,14 +34,7 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
   error RevenueTreasury_InvalidRewardPath();
   error RevenueTreasury_InvalidBps();
 
-  /// @notice Events
-  event LogFeedGrassHouse(address indexed _caller, uint256 _transferAmount, uint256 _swapAmount, uint256 _feedAmount);
-  event LogSetGrassHouse(address indexed _caller, address _prevGrassHouse, address _newGrassHouse);
-  event LogSetWhitelistedCallers(address indexed _caller, address indexed _address, bool _ok);
-  event LogSetRewardPath(address indexed _caller, address[] _newRewardPath);
-  event LogSetRouter(address indexed _caller, address _prevRouter, address _newRouter);
-  event LogSetSplitBps(address indexed _caller, uint256 _prevSplitBps, uint256 _newSplitBps);
-
+  /// @notice States
   /// @notice token - address of the receiving token
   /// Required to have token() if this contract to be destination of Worker's benefitial vault
   address public token;
@@ -66,6 +59,14 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
 
   /// @notice splitBps - Bps to split the receiving token
   uint256 public splitBps;
+
+  /// @notice Events
+  event LogFeedGrassHouse(address indexed _caller, uint256 _transferAmount, uint256 _swapAmount, uint256 _feedAmount);
+  event LogSetGrassHouse(address indexed _caller, address _prevGrassHouse, address _newGrassHouse);
+  event LogSetWhitelistedCallers(address indexed _caller, address indexed _address, bool _ok);
+  event LogSetRewardPath(address indexed _caller, address[] _newRewardPath);
+  event LogSetRouter(address indexed _caller, address _prevRouter, address _newRouter);
+  event LogSetSplitBps(address indexed _caller, uint256 _prevSplitBps, uint256 _newSplitBps);
 
   /// @notice Initialize function
   /// @param _token Receiving token
