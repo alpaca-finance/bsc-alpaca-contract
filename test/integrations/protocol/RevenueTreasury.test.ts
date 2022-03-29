@@ -91,6 +91,7 @@ describe("RevenueTreasury", () => {
     vault = await MockVault.deploy(usdt.address);
 
     // Deploy Treasury
+    const splitBps = 5000;
     const remaining = ethers.utils.parseEther("10000");
     const RevenueTreasury = (await ethers.getContractFactory("RevenueTreasury", deployer)) as RevenueTreasury__factory;
     const revenueTreasury = (await upgrades.deployProxy(RevenueTreasury, [
@@ -98,7 +99,8 @@ describe("RevenueTreasury", () => {
       grassHouse.address,
       vault.address,
       router.address,
-      remaining
+      remaining,
+      splitBps
     ])) as RevenueTreasury;
     treasury = await revenueTreasury.deployed();
 
@@ -139,7 +141,8 @@ describe("RevenueTreasury", () => {
           alpaca.address, // should be grasshouse
           vault.address,
           router.address,
-          ethers.utils.parseEther("10000")
+          ethers.utils.parseEther("10000"),
+          5000
         ])).to.be.revertedWith("Address: low-level delegate call failed");
       });
     });
@@ -152,7 +155,8 @@ describe("RevenueTreasury", () => {
           grassHouse.address,
           vault.address,
           vault.address, //should be router
-          ethers.utils.parseEther("10000")
+          ethers.utils.parseEther("10000"),
+          5000
         ])).to.be.revertedWith("Address: low-level delegate call failed");
       });
     });
@@ -165,8 +169,24 @@ describe("RevenueTreasury", () => {
           grassHouse.address,
           router.address, // should be vault
           router.address,
-          ethers.utils.parseEther("10000")
+          ethers.utils.parseEther("10000"),
+          5000
         ])).to.be.revertedWith("Address: low-level delegate call failed");
+      });
+    });
+
+
+    describe("if the split bps is exceed 10000", async () => {
+      it("should revert", async () => {
+        const RevenueTreasury = (await ethers.getContractFactory("RevenueTreasury", deployer)) as RevenueTreasury__factory;
+        await expect(upgrades.deployProxy(RevenueTreasury, [
+          usdt.address,
+          grassHouse.address,
+          vault.address,
+          router.address,
+          ethers.utils.parseEther("1000"),
+          10001 // should be less than 10000
+        ])).to.be.revertedWith("RevenueTreasury_InvalidBps()");
       });
     });
   });
@@ -252,6 +272,25 @@ describe("RevenueTreasury", () => {
     });
   });
 
+  context("#setSplitBps", async () => {
+    context("if bps < 10000", async () => {
+      it("should work", async () => {
+        await expect(treasury.setSplitBps(50))
+          .to.emit(treasury, "LogSetSplitBps")
+          .withArgs(deployerAddress, 5000, 50);
+      });
+
+      context("if bps > 10000", async () => {
+        it("should revert", async () => {
+          await expect(treasury.setSplitBps(10001)).to.be.revertedWith(
+            "RevenueTreasury_InvalidBps()"
+          );
+        });
+      });
+    });
+  });
+
+
   context("#settle", async () => {
     describe("If amount to cover < remaining", async () => {
       it("should split token into 50:50", async () => {
@@ -266,7 +305,39 @@ describe("RevenueTreasury", () => {
         expect(await usdt.balanceOf(vault.address)).to.be.eq(ethers.utils.parseEther("50"));
         expect(await alpaca.balanceOf(grassHouse.address)).to.be.eq(ethers.utils.parseEther("50"));
       });
-    })
+    });
+
+    describe("If amount to cover < remaining and split bps = 100", async () => {
+      it("should split transfer all and feed none", async () => {
+        await treasury.setSplitBps(10000);
+        await usdt.transfer(treasury.address, ethers.utils.parseEther("100"));
+
+        expect(await usdt.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("100"));
+
+        expect(treasury.feedGrassHouse()).to.emit(treasury, "LogFeedGrassHouse")
+          .withArgs(deployerAddress, ethers.utils.parseEther("100"), ethers.utils.parseEther("0"), ethers.utils.parseEther("0"));
+
+        expect(await usdt.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await usdt.balanceOf(vault.address)).to.be.eq(ethers.utils.parseEther("100"));
+        expect(await alpaca.balanceOf(grassHouse.address)).to.be.eq(ethers.utils.parseEther("0"));
+      });
+    });
+
+    describe("If amount to cover < remaining and split bps = 0", async () => {
+      it("should split swapp all and transfer non", async () => {
+        await treasury.setSplitBps(0);
+        await usdt.transfer(treasury.address, ethers.utils.parseEther("100"));
+
+        expect(await usdt.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("100"));
+
+        expect(treasury.feedGrassHouse()).to.emit(treasury, "LogFeedGrassHouse")
+          .withArgs(deployerAddress, ethers.utils.parseEther("0"), ethers.utils.parseEther("100"), ethers.utils.parseEther("100"));
+
+        expect(await usdt.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await usdt.balanceOf(vault.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await alpaca.balanceOf(grassHouse.address)).to.be.eq(ethers.utils.parseEther("100"));
+      });
+    });
 
     describe("If amount to cover > remaining", async () => {
       it("should transfer only to cover bad debt", async () => {
@@ -281,7 +352,7 @@ describe("RevenueTreasury", () => {
         expect(await usdt.balanceOf(vault.address)).to.be.eq(ethers.utils.parseEther("10000"));
         expect(await alpaca.balanceOf(grassHouse.address)).to.be.eq(ethers.utils.parseEther("20000"));
       });
-    })
+    });
 
     describe("If remaining = 0", async () => {
       it("should swap all to reward and feed grasshouse", async () => {
@@ -308,6 +379,6 @@ describe("RevenueTreasury", () => {
         expect(await usdt.balanceOf(vault.address)).to.be.eq(ethers.utils.parseEther("10000"));
         expect(await alpaca.balanceOf(grassHouse.address)).to.be.eq(ethers.utils.parseEther("15000"));
       });
-    })
+    });
   });
 });

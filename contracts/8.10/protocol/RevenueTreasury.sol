@@ -32,6 +32,7 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
   error RevenueTreasury_TokenMismatch();
   error RevenueTreasury_InvalidRewardPathLength();
   error RevenueTreasury_InvalidRewardPath();
+  error RevenueTreasury_InvalidBps();
 
   /// @notice Events
   event LogFeedGrassHouse(address indexed _caller, uint256 _transferAmount, uint256 _swapAmount, uint256 _feedAmount);
@@ -39,6 +40,7 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
   event LogSetWhitelistedCallers(address indexed _caller, address indexed _address, bool _ok);
   event LogSetRewardPath(address indexed _caller, address[] _newRewardPath);
   event LogSetRouter(address indexed _caller, address _prevRouter, address _newRouter);
+  event LogSetSplitBps(address indexed _caller, uint256 _prevSplitBps, uint256 _newSplitBps);
 
   /// @notice token - address of the receiving token
   /// Required to have token() if this contract to be destination of Worker's benefitial vault
@@ -62,6 +64,9 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
   /// @notice remaining - Remaining bad debt amount to cover
   uint256 public remaining;
 
+  /// @notice splitBps - Bps to split the receiving token
+  uint256 public splitBps;
+
   /// @notice Initialize function
   /// @param _token Receiving token
   /// @param _grasshouse Grasshouse's contract address
@@ -70,7 +75,8 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
     IGrassHouse _grasshouse,
     IVault _vault,
     ISwapRouter _router,
-    uint256 _remaining
+    uint256 _remaining,
+    uint256 _splitBps
   ) external initializer {
     OwnableUpgradeable.__Ownable_init();
 
@@ -78,29 +84,35 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
     grassHouse = _grasshouse;
     vault = _vault;
 
-    if (token != vault.token()) {
-      revert RevenueTreasury_TokenMismatch();
-    }
-
     grasshouseToken = grassHouse.rewardToken();
 
     remaining = _remaining;
 
+    splitBps = _splitBps;
+
     // sanity check
     router = _router;
     router.WETH();
+
+    if (token != vault.token()) {
+      revert RevenueTreasury_TokenMismatch();
+    }
+
+    if (splitBps > 10000) {
+      revert RevenueTreasury_InvalidBps();
+    }
   }
 
   /// @notice Split fund and distribute
   function feedGrassHouse() external {
     uint256 _transferAmount = 0;
     if (remaining > 0) {
-      // Partition receiving token balance into half.
-      // The amount to transfer to vault for bad debt coverage = min(balance/2 , remaining)
-      uint256 split = token.myBalance() / 2;
+      // Split the current receiving token balance per configured bps.
+      uint256 split = (token.myBalance() * splitBps) / 10000;
+      // The amount to transfer to vault shoule be equal to min(split , remaining)
       _transferAmount = split < remaining ? split : remaining;
-      remaining = remaining - _transferAmount;
 
+      remaining = remaining - _transferAmount;
       token.safeTransfer(address(vault), _transferAmount);
     }
 
@@ -146,5 +158,17 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
     rewardPath = _rewardPath;
 
     emit LogSetRewardPath(msg.sender, _rewardPath);
+  }
+
+  /// @notice Set a new swap router
+  /// @param _newSplitBps The new reward path.
+  function setSplitBps(uint256 _newSplitBps) external onlyOwner {
+    if (_newSplitBps > 10000) {
+      revert RevenueTreasury_InvalidBps();
+    }
+    uint256 _prevSplitBps = splitBps;
+    splitBps = _newSplitBps;
+
+    emit LogSetSplitBps(msg.sender, _prevSplitBps, _newSplitBps);
   }
 }
