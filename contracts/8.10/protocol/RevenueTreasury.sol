@@ -90,7 +90,7 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
     router.WETH();
   }
 
-  /// @notice Harvest reward from FairLaunch and Feed token to a GrassHouse
+  /// @notice Split fund and distribute
   function settle() external {
     if (remaining > 0) {
       // Partition receiving token balance into half.
