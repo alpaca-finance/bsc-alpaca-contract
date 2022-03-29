@@ -30,16 +30,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const deltaVaultInputs: IDeltaNeutralVaultInput[] = [
     {
-      name: "Market Neutral 3x FTM-USDC Spooky1",
-      symbol: "n3x-FTMUSDC-SPOOKY1",
+      name: "Market Neutral 3x FTM-USDC SPK1",
+      symbol: "n3x-FTMUSDC-SPK1",
       stableVaultSymbol: "ibUSDC",
-      assetVaultSymbol: "ibWFTM",
+      assetVaultSymbol: "ibFTM",
       stableSymbol: "USDC",
       assetSymbol: "WFTM",
-      stableDeltaWorker: "0x8EF56e94bbaEe1638C3c87D3ab0de0a90e2cB067", // Address of stable deltaneutral worker
-      assetDeltaWorker: "0x42dA676116DF26EE9bb71595fFe7c18343FB2b64", // Address of asset deltaneutral worker
+      stableDeltaWorker: "0x1C7266C551651B6469Cd615faEbd8A6259c9fc57", // Address of stable deltaneutral worker
+      assetDeltaWorker: "0x0531AB376e5a46f62e0dcb9c7349Db80246b04FC", // Address of asset deltaneutral worker
       lpAddress: "0x2b4C76d0dc16BE1C31D4C1DC53bF9B45987Fc75c",
-      deltaNeutralVaultConfig: "0x3aF24F8bbB2D2205e714fc0C3B8b002e31214055",
+      deltaNeutralVaultConfig: "0x314021D2518081d518E0F3251A576B908D5F2ABE",
     },
   ];
 
@@ -79,9 +79,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const deployTxReceipt = await deltaNeutralVault.deployTransaction.wait(3);
     console.log(`>> Deployed at ${deltaNeutralVault.address}`);
     console.log(`>> Deployed block: ${deployTxReceipt.blockNumber}`);
+
+    const deltaNeutralVaultAsDeployer = DeltaNeutralVault__factory.connect(deltaNeutralVault.address, deployer);
+    const stableVaultPosId = await deltaNeutralVaultAsDeployer.stableVaultPosId();
+    const assetVaultPosId = await deltaNeutralVaultAsDeployer.assetVaultPosId();
+    console.log(`>> stableVaultPosId: ${stableVaultPosId}`);
+    console.log(`>> assetVaultPosId: ${assetVaultPosId}`);
     console.log("✅ Done");
 
-    if (deltaVaultInputs[i].assetVaultSymbol === "ibWFTM") {
+    if (deltaVaultInputs[i].assetVaultSymbol === "ibFTM") {
       console.log(`>> Set Caller ok for deltaNeutralVault if have native asset`);
       const wNativeRelayer = WNativeRelayer__factory.connect(wNativeRelayerAddr, deployer);
       await (await wNativeRelayer.setCallerOk([deltaNeutralVault.address], true)).wait(3);
