@@ -28,22 +28,23 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
   /// @notice Libraries
   using SafeToken for address;
 
-  /// @notice Events
-  event LogSettle(address indexed _caller, uint256 _transferAmount, uint256 _swapAmount, uint256 _feedAmount);
-  event LogSetGrassHouse(address indexed _caller, address _prevGrassHouse, address _newGrassHouse);
-  event LogSetWhitelistedCallers(address indexed _caller, address indexed _address, bool _ok);
-  event LogSetRewardPath(address indexed _caller, address[] _newRewardPath);
-  event LogSetRouter(address indexed _caller, address _prevRouter, address _newRouter);
-
   /// @notice Errors
   error RevenueTreasury_TokenMismatch();
   error RevenueTreasury_InvalidRewardPathLength();
   error RevenueTreasury_InvalidRewardPath();
 
-  /// @notice token - address of the receiving token. Required to have token() if this contract to be destination of Worker's benefitial vault
+  /// @notice Events
+  event LogFeedGrassHouse(address indexed _caller, uint256 _transferAmount, uint256 _swapAmount, uint256 _feedAmount);
+  event LogSetGrassHouse(address indexed _caller, address _prevGrassHouse, address _newGrassHouse);
+  event LogSetWhitelistedCallers(address indexed _caller, address indexed _address, bool _ok);
+  event LogSetRewardPath(address indexed _caller, address[] _newRewardPath);
+  event LogSetRouter(address indexed _caller, address _prevRouter, address _newRouter);
+
+  /// @notice token - address of the receiving token
+  /// Required to have token() if this contract to be destination of Worker's benefitial vault
   address public token;
 
-  /// @notice grasshouseToken - address of the receiving token. Required to have token() if this contract to be destination of Worker's benefitial vault
+  /// @notice grasshouseToken - address of the reward token
   address public grasshouseToken;
 
   /// @notice router - Pancake Router like address
@@ -66,16 +67,16 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
   /// @param _grasshouse Grasshouse's contract address
   function initialize(
     address _token,
-    address _grasshouse,
-    address _vault,
-    address _router,
+    IGrassHouse _grasshouse,
+    IVault _vault,
+    ISwapRouter _router,
     uint256 _remaining
   ) external initializer {
     OwnableUpgradeable.__Ownable_init();
 
     token = _token;
-    grassHouse = IGrassHouse(_grasshouse);
-    vault = IVault(_vault);
+    grassHouse = _grasshouse;
+    vault = _vault;
 
     if (token != vault.token()) {
       revert RevenueTreasury_TokenMismatch();
@@ -86,12 +87,12 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
     remaining = _remaining;
 
     // sanity check
-    router = ISwapRouter(_router);
+    router = _router;
     router.WETH();
   }
 
   /// @notice Split fund and distribute
-  function settle() external {
+  function feedGrassHouse() external {
     uint256 _transferAmount = 0;
     if (remaining > 0) {
       // Partition receiving token balance into half.
@@ -113,7 +114,7 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
     uint256 _feedAmount = grasshouseToken.myBalance();
     grasshouseToken.safeApprove(address(grassHouse), _feedAmount);
     grassHouse.feed(_feedAmount);
-    emit LogSettle(msg.sender, _transferAmount, _swapAmount, _feedAmount);
+    emit LogFeedGrassHouse(msg.sender, _transferAmount, _swapAmount, _feedAmount);
   }
 
   /// @notice Set a new GrassHouse
