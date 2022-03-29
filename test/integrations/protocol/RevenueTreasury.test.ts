@@ -45,6 +45,7 @@ describe("RevenueTreasury", () => {
   let usdtAsAlice: MockERC20;
 
   let treasuryAsAlice: RevenueTreasury;
+
   async function fixture() {
     [deployer, alice, bob] = await ethers.getSigners();
     [deployerAddress, aliceAddress] = await Promise.all([deployer.getAddress(), alice.getAddress()]);
@@ -240,7 +241,7 @@ describe("RevenueTreasury", () => {
   });
 
   context("#setRewardPath", async () => {
-    context("when as owner set reinvest paths and start with alpaca token", async () => {
+    describe("when as owner set reinvest paths and start with alpaca token", async () => {
       it("should work", async () => {
         await expect(treasury.setRewardPath([usdt.address, alpaca.address]))
           .to.emit(treasury, "LogSetRewardPath")
@@ -255,7 +256,7 @@ describe("RevenueTreasury", () => {
       });
     });
 
-    context("when as owner set reinvest paths with length less than 2", async () => {
+    describe("when as owner set reinvest paths with length less than 2", async () => {
       it("should revert", async () => {
         await expect(treasury.setRewardPath([alpaca.address])).to.be.revertedWith(
           "RevenueTreasury_InvalidRewardPathLength()"
@@ -263,7 +264,7 @@ describe("RevenueTreasury", () => {
       });
     });
 
-    context("when as owner set reinvest paths but not start with alpaca token", async () => {
+    describe("when as owner set reinvest paths but not start with alpaca token", async () => {
       it("should revert", async () => {
         await expect(
           treasury.setRewardPath([alpaca.address, usdt.address])
@@ -273,23 +274,26 @@ describe("RevenueTreasury", () => {
   });
 
   context("#setSplitBps", async () => {
-    context("if bps < 10000", async () => {
+    describe("if bps < 10000", async () => {
       it("should work", async () => {
         await expect(treasury.setSplitBps(50))
           .to.emit(treasury, "LogSetSplitBps")
           .withArgs(deployerAddress, 5000, 50);
       });
-
-      context("if bps > 10000", async () => {
-        it("should revert", async () => {
-          await expect(treasury.setSplitBps(10001)).to.be.revertedWith(
-            "RevenueTreasury_InvalidBps()"
-          );
-        });
+    });
+    describe("if bps > 10000", async () => {
+      it("should revert", async () => {
+        await expect(treasury.setSplitBps(10001)).to.be.revertedWith(
+          "RevenueTreasury_InvalidBps()"
+        );
+      });
+    });
+    describe("if the caller is not owner", async () => {
+      it("should revert", async () => {
+        await expect(treasuryAsAlice.setSplitBps(10001)).to.be.revertedWith("'Ownable: caller is not the owner");
       });
     });
   });
-
 
   context("#settle", async () => {
     describe("If amount to cover < remaining", async () => {
