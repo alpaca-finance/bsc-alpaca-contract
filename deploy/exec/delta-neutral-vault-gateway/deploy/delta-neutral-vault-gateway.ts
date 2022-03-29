@@ -7,6 +7,7 @@ import {
   DeltaNeutralVaultGateway__factory,
 } from "../../../../typechain";
 import { getConfig } from "../../../entities/config";
+import { getDeployer } from "../../../../utils/deployer-helper";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -31,12 +32,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const deltaVaultInputs: IDeltaVaultInput[] = [
     {
-      name: "Market Neutral 8x BNB-USDT PCS2",
+      name: "Market Neutral 3x FTM-USDC SPK1",
     },
   ];
 
   const config = getConfig();
-  const deployer = (await ethers.getSigners())[0];
+  const deployer = await getDeployer();
 
   const deltaVaultInfos: IDeltaVaultInfo[] = deltaVaultInputs.map((input) => {
     const deltaVaultInfo = config.DeltaNeutralVaults.find((deltaVault) => input.name === deltaVault.name);

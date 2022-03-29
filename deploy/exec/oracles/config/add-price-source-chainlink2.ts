@@ -1,3 +1,4 @@
+import { DeltaNeutralOracle__factory } from "./../../../../typechain/factories/DeltaNeutralOracle__factory";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ChainlinkPriceOracle2__factory } from "../../../../typechain";

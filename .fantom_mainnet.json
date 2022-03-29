@@ -123,7 +123,7 @@
     "OracleMedianizer": "0xE1D2CA01bc88F325fF7266DD2165944f3CAf0D3D",
     "ChainLinkOracle": "0xD2D638aa6Ff4694a9147F2C8B09e86F569FA052B",
     "SimpleOracle": "0xCab46f1397fdf4b0F31CEF05345141E51F877EdB",
-    "DeltaNeutralOracle":"0x2aF3cFdEaFEC93fe5deA6e8A1ebD1450FD6789E8"
+    "DeltaNeutralOracle":"0x69950a2D99b7220Ab29eD53D9a11B7de64574Dd9"
   },
   "Vaults": [
     {
@@ -311,9 +311,9 @@
         },
         {
           "name": "USDC-WFTM 3x DeltaNeutralSpookyWorker",
-          "address": "0x4b70c41F514FBBEa718234Ac72f36c1b077a4162",
-          "deployedBlock": 16158228,
-          "config": "0x314021D2518081d518E0F3251A576B908D5F2ABE",
+          "address": "0x92e0aec5F825217Cec80002F62C0B95FA863aA93",
+          "deployedBlock": 34361282,
+          "config": "0x222EE381e27FD86eAD28628843832Ba4c41143D2",
           "pId": 2,
           "stakingToken": "0x2b4C76d0dc16BE1C31D4C1DC53bF9B45987Fc75c",
           "stakingTokenAt": "0x2b2929E785374c651a81A63878Ab22742656DcDd",
@@ -377,9 +377,9 @@
         },
         {
           "name": "WFTM-USDC 3x DeltaNeutralSpookyWorker",
-          "address": "0x1C7266C551651B6469Cd615faEbd8A6259c9fc57",
-          "deployedBlock": 34351764,
-          "config": "0x314021D2518081d518E0F3251A576B908D5F2ABE",
+          "address": "0xD8D45Edc8D5d6cB29D843d0b96b83bc8d430B035",
+          "deployedBlock": 34361322,
+          "config": "0x222EE381e27FD86eAD28628843832Ba4c41143D2",
           "pId": 2,
           "stakingToken": "0x2b4C76d0dc16BE1C31D4C1DC53bF9B45987Fc75c",
           "stakingTokenAt": "0x2b2929E785374c651a81A63878Ab22742656DcDd",
@@ -461,24 +461,22 @@
     }
   ],
   "DeltaNeutralVaults": [
-
     {
     "name": "Market Neutral 3x FTM-USDC SPK1",
     "symbol": "n3x-FTMUSDC-SPK1",
-    "address": "0x00166189cdBdB9E3a3391c458c08aa9834E592D5",
-    "deployedBlock": 34351780,
-    "config": "0x314021D2518081d518E0F3251A576B908D5F2ABE",
+    "address": "0x036664394715D255895f600861fE882A167dbF57",
+    "deployedBlock": 34361456,
+    "config": "0x222EE381e27FD86eAD28628843832Ba4c41143D2",
     "assetToken": "0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83",
     "stableToken": "0x04068da6c83afcfa0e13ba15a6696662335d5b75",
     "assetVault": "0xc1018f4Bba361A1Cc60407835e156595e92EF7Ad",
     "stableVault": "0x831332f94C4A0092040b28ECe9377AfEfF34B25a",
-    "assetDeltaWorker": "0x0531AB376e5a46f62e0dcb9c7349Db80246b04FC",
-    "stableDeltaWorker": "0x1C7266C551651B6469Cd615faEbd8A6259c9fc57",
+    "assetDeltaWorker": "0x92e0aec5F825217Cec80002F62C0B95FA863aA93",
+    "stableDeltaWorker": "0xD8D45Edc8D5d6cB29D843d0b96b83bc8d430B035",
     "gateway": "0xcfBCB958514e6c1294F0C900454dE7049110Cf84",
     "oracle": "0x08EA5fB66EA41f236E3001d2655e43A1E735787F",
     "assetVaultPosId": "0",
     "stableVaultPosId": "0"
     }
-    
     ]
 }

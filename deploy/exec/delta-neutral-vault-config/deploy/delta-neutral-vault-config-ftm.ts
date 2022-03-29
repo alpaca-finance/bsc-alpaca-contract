@@ -36,11 +36,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const MANAGEMENT_FEE_PER_SEC = "634195840";
   const ALPACA_BENEFICIARY = "0x44B3868cbba5fbd2c5D8d1445BDB14458806B3B4";
   const ALPACA_BENEFICIARY_FEE_BPS = "5330";
+  const FAIR_LAUNCH_ADDR = config.MiniFL!.address;
 
   const deployer = await getDeployer();
   const WRAP_NATIVE_ADDR = config.Tokens.WFTM;
   const WNATIVE_RELAYER = config.SharedConfig.WNativeRelayer;
-  const FAIR_LAUNCH_ADDR = config.MiniFL!.address;
+
   console.log(">> Deploying an upgradable DeltaNeutralVaultConfig contract");
 
   const alpacaTokenAddress = config.Tokens.ALPACA;
@@ -70,8 +71,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     MANAGEMENT_TREASURY,
     alpacaTokenAddress,
   ])) as DeltaNeutralVaultConfig;
-  // manual advance block -- other file
-  //FIXME await deltaNeutralVaultConfig.deployTransaction.wait(3);
+  await deltaNeutralVaultConfig.deployTransaction.wait(3);
 
   console.log(`>> Deployed at ${deltaNeutralVaultConfig.address}`);
   console.log("✅ Done");

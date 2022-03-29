@@ -36,10 +36,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       assetVaultSymbol: "ibFTM",
       stableSymbol: "USDC",
       assetSymbol: "WFTM",
-      stableDeltaWorker: "0x1C7266C551651B6469Cd615faEbd8A6259c9fc57", // Address of stable deltaneutral worker
-      assetDeltaWorker: "0x0531AB376e5a46f62e0dcb9c7349Db80246b04FC", // Address of asset deltaneutral worker
+      stableDeltaWorker: "0xD8D45Edc8D5d6cB29D843d0b96b83bc8d430B035", // Address of stable deltaneutral worker
+      assetDeltaWorker: "0x92e0aec5F825217Cec80002F62C0B95FA863aA93", // Address of asset deltaneutral worker
       lpAddress: "0x2b4C76d0dc16BE1C31D4C1DC53bF9B45987Fc75c",
-      deltaNeutralVaultConfig: "0x314021D2518081d518E0F3251A576B908D5F2ABE",
+      deltaNeutralVaultConfig: "0x222EE381e27FD86eAD28628843832Ba4c41143D2",
     },
   ];
 
