@@ -332,7 +332,7 @@ describe("DeltaNeutralVaultGatewayWithSpookySwap", () => {
       mockPriceOracle.address
     );
 
-    swapHelper = new SwapHelper(factory.address, router.address, BigNumber.from(9975), BigNumber.from(10000), deployer);
+    swapHelper = new SwapHelper(factory.address, router.address, BigNumber.from(9980), BigNumber.from(10000), deployer);
 
     await swapHelper.addLiquidities([
       {
@@ -529,54 +529,54 @@ describe("DeltaNeutralVaultGatewayWithSpookySwap", () => {
 
     // Current Delta Neutral Position
     // Stable Position:
-    // Equity=496.859775279132755434, PositionValue=1496.859775279132755434 Debt=1000.00
+    // Equity=497.484763125748942067, PositionValue=1497.484763125748942067 Debt=1000.00
     // Asset Position:
-    // Equity=1490.562691116413626439, PositionValue=4490.562691116413626439, Debt=3000.00
-    // totalEquity=496.859775279132755434 + 1490.562691116413626439 = 1987.422466395546381873
+    // Equity=1492.437648397226931363, PositionValue=4492.437648397226931363, Debt=3000.00
+    // totalEquity=497.484763125748942067 + 1492.437648397226931363 = 1989.92241152297587343
 
     // ***** Target: Delta Neutral Position After Withdraw 200 Equity *****
-    // totalEquity = 1987.422466395546381873 - 200 = 1787.422466395546381873
+    // totalEquity = 1989.92241152297587343 - 200 = 1789.92241152297587343
     // - % equity to withdraw
-    // % stableEquity = 496.859775279132755434/1987.422466395546381873 = 0.250002092499363611
-    // % assetEquity = 1490.562691116413626439/1987.422466395546381873 = 0.749997907500636388
+    // % stableEquity = 497.484763125748942067/1989.92241152297587343 = 0.250002090656892390
+    // % assetEquity = 1492.437648397226931363/1989.92241152297587343 = 0.749997909343107609
 
     // Target Stable Position:
-    // Equity = 1787.422466395546381873*0.250002092499363611 = 446.859356779260032153
-    // PositionValue = 446.859356779260032153 * Lerverage = 446.859356779260032153*3 = 1340.578070337780096459
-    // Debt = 1340.578070337780096459 - 446.859356779260032153 = 893.718713558520064306
-    // deltaEquity = 446.859356779260032153 - 496.859775279132755434 = -50.000418499872723281
-    // debtaDebt = 893.718713558520064306 - 1000.00 = -106.281286441479935694
+    // Equity = 1789.92241152297587343*0.250002090656892390 = 447.484344994370462196
+    // PositionValue = 447.484344994370462196 * Lerverage = 447.484344994370462196*3 = 1342.453034983111386588
+    // Debt = 1342.453034983111386588 - 447.484344994370462196 = 894.968689988740924392
+    // deltaEquity = 447.484344994370462196 - 497.484763125748942067 = -50.000418131378479871
+    // debtaDebt = 894.968689988740924392 - 1000.00 = -105.031310011259075608
 
-    // deltaEquityWithSlippage = -50.000418499872723281 * 9970/10000 = -49.850417244373105111
-    // deltaDebtWithSlippage = -106.281286441479935694 * 9970/10000 = -105.962442582155495886
+    // deltaEquityWithSlippage = -50.000418131378479871 * 9970/10000 = -49.850416876984344431
+    // deltaDebtWithSlippage = -105.031310011259075608 * 9970/10000 = -104.716216081225298381
 
-    // expectStableEquity = 446.859356779260032153 + (50.000418499872723281 - 49.850417244373105111) = 447.009358034759650323
-    // expectStableDebt = 893.718713558520064306 + (106.281286441479935694 - 105.962442582155495886) = 894.037557417844504114
+    // expectStableEquity = 447.484344994370462196 + (50.000418131378479871 - 49.850417244373105111) = 447.634345881375836956
+    // expectStableDebt = 894.968689988740924392 + (105.031310011259075608 - 104.716216081225298381) = 895.283783918774701619
 
     // Target Asset Position:
-    // Equity = 1787.422466395546381873 * 0.749997907500636388 = 1340.563109616286347932
-    // PositionValue = 1340.563109616286347932 * 3 = 4021.689328848859043796
-    // Debt = 4021.689328848859043796 - 1340.563109616286347932 = 2681.126219232572695864
-    // deltaEquity = 1340.563109616286347932 - 1490.562691116413626439 = -149.999581500127278507
-    // debtaDebt = 2681.126219232572695864 - 3000  = -318.873780767427304136
+    // Equity = 1789.92241152297587343 * 0.749997909343107609 = 1342.438066528605409443
+    // PositionValue = 1342.438066528605409443 * 3 = 4027.314199585816228329
+    // Debt = 4027.314199585816228329 - 1342.438066528605409443 = 2684.876133057210818886
+    // deltaEquity = 1342.438066528605409443 - 1492.437648397226931363 = -149.99958186862152192
+    // debtaDebt = 2684.876133057210818886 - 3000  = -315.123866942789181114
 
-    // deltaEquityWithSlippage = -149.999581500127278507 * 9970/10000 = -149.549582755626896671
-    // deltaDebtWithSlippage = -318.873780767427304136 * 9970/10000 = -317.917159425125022223
+    // deltaEquityWithSlippage = -149.99958186862152192 * 9970/10000 = -149.549583123015657354
+    // deltaDebtWithSlippage = -315.123866942789181114 * 9970/10000 = -314.178495341960813570
 
-    // expectAssetEquity = 1340.563109616286347932 + (149.999581500127278507 - 149.549582755626896671) = 1341.013108360786729768
-    // expectAssetDebt = 2681.126219232572695864 + (318.873780767427304136 - 317.917159425125022223) = 2682.082840574874977777
+    // expectAssetEquity = 1342.438066528605409443 + (149.99958186862152192 - 149.549583123015657354) = 1342.888065274211274009
+    // expectAssetDebt = 2684.876133057210818886 + (315.123866942789181114 - 314.178495341960813570) = 2685.821504658039186429
 
-    const expectStableEquity = ethers.utils.parseEther("447.009358034759650323");
-    const expectStableDebt = ethers.utils.parseEther("894.037557417844504114");
-    const expectAssetEquity = ethers.utils.parseEther("1341.013108360786729768");
-    const expectAssetDebt = ethers.utils.parseEther("2682.082840574874977777");
+    const expectStableEquity = ethers.utils.parseEther("447.634345881375836956");
+    const expectStableDebt = ethers.utils.parseEther("895.283783918774701619");
+    const expectAssetEquity = ethers.utils.parseEther("1342.888065274211274009");
+    const expectAssetDebt = ethers.utils.parseEther("2685.821504658039186429");
 
     // Action1: partialCloseMinimize lp = 78.004799780378508254
-    // return stableToken = 105.962442582155495886, repay debt -105.962442582155495886, remaining = 0
-    // return assetToken = 49.976458329680142948
+    // return stableToken = 104.716216081225298381, repay debt -104.716216081225298381, remaining = 0
+    // return assetToken = 49.951420020832256712 // log from contract
 
-    const stableDebtToRepay = ethers.utils.parseEther("105.962442582155495886");
-    const stableValueToWithDraw = ethers.utils.parseEther("49.850417244373105111").add(stableDebtToRepay);
+    const stableDebtToRepay = ethers.utils.parseEther("104.716216081225298381");
+    const stableValueToWithDraw = ethers.utils.parseEther("49.850416876984344431").add(stableDebtToRepay);
     const lpStableToLiquidate = stableValueToWithDraw.mul(ethers.utils.parseEther("1")).div(lpPrice);
 
     const stableWithdrawInput: IWithdrawWorkByte = {
@@ -591,11 +591,11 @@ describe("DeltaNeutralVaultGatewayWithSpookySwap", () => {
     };
 
     // Action2: partialCloseMinimize lp = 234.028498471773286624
-    // return stableToken = 149.931452849760353839
-    // return assetToken = 317.917159425125022223, repay debt -317.917159425125022223, remaining = 0
+    // return stableToken = 149.856255013609029091 // log from contract
+    // return assetToken = 314.178495341960813570, repay debt -314.178495341960813570, remaining = 0
 
-    const assetDebtToRepay = ethers.utils.parseEther("317.917159425125022223");
-    const assetValueToWithDraw = ethers.utils.parseEther("149.549582755626896671").add(assetDebtToRepay);
+    const assetDebtToRepay = ethers.utils.parseEther("314.178495341960813570");
+    const assetValueToWithDraw = ethers.utils.parseEther("149.549583123015657354").add(assetDebtToRepay);
     const lpAssetToLiquidate = assetValueToWithDraw.mul(ethers.utils.parseEther("1")).div(lpPrice);
 
     const assetWithdrawInput: IWithdrawWorkByte = {
@@ -714,13 +714,12 @@ describe("DeltaNeutralVaultGatewayWithSpookySwap", () => {
       const initTx = await deltaVault.initPositions(
         stableTokenAmount,
         assetTokenAmount,
-        ethers.utils.parseEther("1000"),
+        ethers.utils.parseEther("997.995214716531122224"),
         data,
         {
           value: assetTokenAmount,
         }
       );
-      console.log("inited");
 
       const depositStableTokenAmount = ethers.utils.parseEther("500");
       const depositAssetTokenAmount = ethers.utils.parseEther("500");
@@ -777,20 +776,19 @@ describe("DeltaNeutralVaultGatewayWithSpookySwap", () => {
 
     context("when alice withdraw and expect returns stable amount 100%", async () => {
       it("should work", async () => {
-        console.log("111");
         // ======== prepare for withdraw ======
         const withdrawValue = ethers.utils.parseEther("200");
 
-        const minWithdrawStableAmount = ethers.utils.parseEther("149.931452849760353839");
-        const minWithdrawAssetTokenAmount = ethers.utils.parseEther("49.976458329680142948");
+        const minWithdrawStableAmount = ethers.utils.parseEther("149.856255013609029091");
+        const minWithdrawAssetTokenAmount = ethers.utils.parseEther("49.951420020832256712");
 
         const minWithdrawStableAmountAfterSwap = ethers.utils.parseEther("0");
         const minWithdrawAssetAfterSwap = ethers.utils.parseEther("0");
-        console.log("1");
+
         await deltaVaultAsAlice.approve(deltaVaultGateway.address, await deltaVault.balanceOf(aliceAddress));
         const aliceBaseTokenBefore = await baseToken.balanceOf(aliceAddress);
         const aliceShareBefore = await deltaVault.balanceOf(aliceAddress);
-        console.log("a");
+
         // ======== withdraw ======
         const { tx, shareToWithdraw, expectStableEquity, expectStableDebt, expectAssetEquity, expectAssetDebt } =
           await simpleWithdrawFromGateWay(
@@ -801,14 +799,14 @@ describe("DeltaNeutralVaultGatewayWithSpookySwap", () => {
             minWithdrawAssetAfterSwap,
             10000
           );
-        console.log("b");
+
         const aliceShareAfter = await deltaVault.balanceOf(aliceAddress);
         const aliceBaseTokenAfter = await baseToken.balanceOf(aliceAddress);
         const positionInfoAfter = await deltaVault.positionInfo();
 
         const baseTokenDiff = aliceBaseTokenAfter.sub(aliceBaseTokenBefore);
         const gatewayShare = await deltaVault.balanceOf(deltaVaultGatewayAsAlice.address);
-        console.log("c");
+
         // check event
         expect(tx).to.emit(deltaVaultGateway, "LogWithdraw").withArgs(aliceAddress, baseTokenDiff, 0);
 
@@ -819,7 +817,7 @@ describe("DeltaNeutralVaultGatewayWithSpookySwap", () => {
         expect(gatewayShare).to.be.eq(BigNumber.from(0));
         expect(await baseToken.balanceOf(deltaVaultGateway.address)).to.be.eq(BigNumber.from(0));
         expect(await wbnb.balanceOf(deltaVaultGateway.address)).to.be.eq(BigNumber.from(0));
-        console.log("d");
+
         // check position info
         Assert.assertAlmostEqual(positionInfoAfter.stablePositionEquity.toString(), expectStableEquity.toString());
         Assert.assertAlmostEqual(positionInfoAfter.stablePositionDebtValue.toString(), expectStableDebt.toString());
@@ -833,8 +831,8 @@ describe("DeltaNeutralVaultGatewayWithSpookySwap", () => {
         // ======== prepare for withdraw ======
         const withdrawValue = ethers.utils.parseEther("200");
 
-        const minWithdrawStableAmount = ethers.utils.parseEther("149.931452849760353839");
-        const minWithdrawAssetTokenAmount = ethers.utils.parseEther("49.976458329680142948");
+        const minWithdrawStableAmount = ethers.utils.parseEther("149.856255013609029091");
+        const minWithdrawAssetTokenAmount = ethers.utils.parseEther("49.951420020832256712");
 
         const minWithdrawStableAmountAfterSwap = ethers.utils.parseEther("0");
         const minWithdrawAssetAfterSwap = ethers.utils.parseEther("0");
@@ -885,26 +883,26 @@ describe("DeltaNeutralVaultGatewayWithSpookySwap", () => {
         // ======== prepare for withdraw ======
         const withdrawValue = ethers.utils.parseEther("200");
 
-        const minWithdrawStableAmount = ethers.utils.parseEther("149.931452849760353839");
-        const minWithdrawAssetTokenAmount = ethers.utils.parseEther("49.976458329680142948");
-        // in normal case user will receive stable: 149.931452849760353839 asset: 49.976458329680142948
+        const minWithdrawStableAmount = ethers.utils.parseEther("149.856255013609029091");
+        const minWithdrawAssetTokenAmount = ethers.utils.parseEther("49.951420020832256712");
+        // in normal case user will receive stable: 149.856255013609029091 asset: 49.951420020832256712
         // but user provide return bsp of stable token as 50% and asset token 50%
         // stable price = 1, asset price = 1
-        // stable value = 149.931452849760353839 * 1 = 149.931452849760353839
-        // asset value = 49.976458329680142948 * 1 = 49.976458329680142948
-        // total value = 149.931452849760353839 + 49.976458329680142948 = 199.907911179440496787
+        // stable value = 149.856255013609029091 * 1 = 149.856255013609029091
+        // asset value = 49.951420020832256712 * 1 = 49.951420020832256712
+        // total value = 149.856255013609029091 + 49.951420020832256712 = 199.807675034441285803
         // expected stable bps is 5000 = 0.5
-        // expected stable value = 199.907911179440496787 * 0.5 = 99.953955589720248393
+        // expected stable value = 199.807675034441285803 * 0.5 = 99.903837517220642901
         // bps calculation
-        // current stable value 149.931452849760353839 that grater then expected value
-        // have to swap out (149.931452849760353839 - 99.953955589720248393) / 1 = 49.977497260040105446
-        // after swap will got asset amount 49.853571678348350553 // get from log in contract
+        // current stable value 149.856255013609029091 that grater then expected value
+        // have to swap out (149.856255013609029091 - 99.903837517220642901) / 1 = 49.952417496388386190
+        // after swap will got asset amount 49853532174819104048 // get from log in contract
         // expected
-        // stable amount = 149.931452849760353839 - 49.977497260040105446 = 99.953955589720248393
-        // asset amount = 49.976458329680142948 + 49.853571678348350553 = 99.830030008028493501
+        // stable amount = 149.856255013609029091 - 49.952417496388386190 = 99.903837517220642901
+        // asset amount = 49.951420020832256712 + 49853532174819104048 = 99.804952195651360760
 
-        const minWithdrawStableAmountAfterSwap = ethers.utils.parseEther("99.953955589720248393");
-        const minWithdrawAssetAfterSwap = ethers.utils.parseEther("99.830030008028493501");
+        const minWithdrawStableAmountAfterSwap = ethers.utils.parseEther("99.903837517220642901");
+        const minWithdrawAssetAfterSwap = ethers.utils.parseEther("99.804952195651360760");
 
         await deltaVaultAsAlice.approve(deltaVaultGateway.address, await deltaVault.balanceOf(aliceAddress));
         const aliceShareBefore = await deltaVault.balanceOf(aliceAddress);
@@ -958,26 +956,26 @@ describe("DeltaNeutralVaultGatewayWithSpookySwap", () => {
           // ======== prepare for withdraw ======
           const withdrawValue = ethers.utils.parseEther("200");
 
-          const minWithdrawStableAmount = ethers.utils.parseEther("149.931452849760353839");
-          const minWithdrawAssetTokenAmount = ethers.utils.parseEther("49.976458329680142948");
-          // in normal case user will receive stable: 149.931452849760353839 asset: 49.976458329680142948
+          const minWithdrawStableAmount = ethers.utils.parseEther("149.856255013609029091");
+          const minWithdrawAssetTokenAmount = ethers.utils.parseEther("49.951420020832256712");
+          // in normal case user will receive stable: 149.856255013609029091 asset: 49.951420020832256712
           // but user provide return bsp of stable token as 50% and asset token 50%
           // stable price = 1, asset price = 1
-          // stable value = 149.931452849760353839 * 1 = 149.931452849760353839
-          // asset value = 49.976458329680142948 * 1 = 49.976458329680142948
-          // total value = 149.931452849760353839 + 49.976458329680142948 = 199.907911179440496787
+          // stable value = 149.856255013609029091 * 1 = 149.856255013609029091
+          // asset value = 49.951420020832256712 * 1 = 49.951420020832256712
+          // total value = 149.856255013609029091 + 49.951420020832256712 = 199.807675034441285803
           // expected stable bps is 5000 = 0.5
-          // expected stable value = 199.907911179440496787 * 0.5 = 99.953955589720248393
+          // expected stable value = 199.807675034441285803 * 0.5 = 99.903837517220642901
           // bps calculation
-          // current stable value 149.931452849760353839 that grater then expected value
-          // have to swap out (149.931452849760353839 - 99.953955589720248393) / 1 = 49.977497260040105446
-          // after swap will got asset amount 49.853571678348350553 // get from log in contract
+          // current stable value 149.856255013609029091 that grater then expected value
+          // have to swap out (149.856255013609029091 - 99.903837517220642901) / 1 = 49.952417496388386190
+          // after swap will got asset amount 49853532174819104048 // get from log in contract
           // expected
-          // stable amount = 149.931452849760353839 - 49.977497260040105446 = 99.953955589720248393
-          // asset amount = 49.976458329680142948 + 49.853571678348350553 = 99.830030008028493501
+          // stable amount = 149.856255013609029091 - 49.952417496388386190 = 99.903837517220642901
+          // asset amount = 49.951420020832256712 + 49853532174819104048 = 99.804952195651360760
 
-          const minWithdrawStableAmountAfterSwap = ethers.utils.parseEther("99.953955589720248393");
-          const minWithdrawAssetAfterSwap = ethers.utils.parseEther("99.830030008028493501");
+          const minWithdrawStableAmountAfterSwap = ethers.utils.parseEther("99.903837517220642901");
+          const minWithdrawAssetAfterSwap = ethers.utils.parseEther("99.804952195651360760");
 
           await deltaVaultAsAlice.approve(deltaVaultGateway.address, await deltaVault.balanceOf(aliceAddress));
           const aliceShareBefore = await deltaVault.balanceOf(aliceAddress);
@@ -1026,26 +1024,26 @@ describe("DeltaNeutralVaultGatewayWithSpookySwap", () => {
           // ======== prepare for withdraw ======
           const withdrawValue = ethers.utils.parseEther("200");
 
-          const minWithdrawStableAmount = ethers.utils.parseEther("149.931452849760353839");
-          const minWithdrawAssetTokenAmount = ethers.utils.parseEther("49.976458329680142948");
-          // in normal case user will receive stable: 149.931452849760353839 asset: 49.976458329680142948
+          const minWithdrawStableAmount = ethers.utils.parseEther("149.856255013609029091");
+          const minWithdrawAssetTokenAmount = ethers.utils.parseEther("49.951420020832256712");
+          // in normal case user will receive stable: 149.856255013609029091 asset: 49.951420020832256712
           // but user provide return bsp of stable token as 50% and asset token 50%
           // stable price = 1, asset price = 1
-          // stable value = 149.931452849760353839 * 1 = 149.931452849760353839
-          // asset value = 49.976458329680142948 * 1 = 49.976458329680142948
-          // total value = 149.931452849760353839 + 49.976458329680142948 = 199.907911179440496787
+          // stable value = 149.856255013609029091 * 1 = 149.856255013609029091
+          // asset value = 49.951420020832256712 * 1 = 49.951420020832256712
+          // total value = 149.856255013609029091 + 49.951420020832256712 = 199.807675034441285803
           // expected stable bps is 5000 = 0.5
-          // expected stable value = 199.907911179440496787 * 0.5 = 99.953955589720248393
+          // expected stable value = 199.807675034441285803 * 0.5 = 99.903837517220642901
           // bps calculation
-          // current stable value 149.931452849760353839 that grater then expected value
-          // have to swap out (149.931452849760353839 - 99.953955589720248393) / 1 = 49.977497260040105446
-          // after swap will got asset amount 49.853571678348350553 // get from log in contract
+          // current stable value 149.856255013609029091 that grater then expected value
+          // have to swap out (149.856255013609029091 - 99.903837517220642901) / 1 = 49.952417496388386190
+          // after swap will got asset amount 49853532174819104048 // get from log in contract
           // expected
-          // stable amount = 149.931452849760353839 - 49.977497260040105446 = 99.953955589720248393
-          // asset amount = 49.976458329680142948 + 49.853571678348350553 = 99.830030008028493501
+          // stable amount = 149.856255013609029091 - 49.952417496388386190 = 99.903837517220642901
+          // asset amount = 49.951420020832256712 + 49853532174819104048 = 99.804952195651360760
 
-          const minWithdrawStableAmountAfterSwap = ethers.utils.parseEther("99.953955589720248393");
-          const minWithdrawAssetAfterSwap = ethers.utils.parseEther("99.830030008028493501");
+          const minWithdrawStableAmountAfterSwap = ethers.utils.parseEther("99.903837517220642901");
+          const minWithdrawAssetAfterSwap = ethers.utils.parseEther("99.804952195651360760");
           const expectedMinWithdrawStableAmountAfterSwap = ethers.utils.parseEther("100");
 
           await deltaVaultAsAlice.approve(deltaVaultGateway.address, await deltaVault.balanceOf(aliceAddress));
@@ -1071,26 +1069,26 @@ describe("DeltaNeutralVaultGatewayWithSpookySwap", () => {
           // ======== prepare for withdraw ======
           const withdrawValue = ethers.utils.parseEther("200");
 
-          const minWithdrawStableAmount = ethers.utils.parseEther("149.931452849760353839");
-          const minWithdrawAssetTokenAmount = ethers.utils.parseEther("49.976458329680142948");
-          // in normal case user will receive stable: 149.931452849760353839 asset: 49.976458329680142948
+          const minWithdrawStableAmount = ethers.utils.parseEther("149.856255013609029091");
+          const minWithdrawAssetTokenAmount = ethers.utils.parseEther("49.951420020832256712");
+          // in normal case user will receive stable: 149.856255013609029091 asset: 49.951420020832256712
           // but user provide return bsp of stable token as 50% and asset token 50%
           // stable price = 1, asset price = 1
-          // stable value = 149.931452849760353839 * 1 = 149.931452849760353839
-          // asset value = 49.976458329680142948 * 1 = 49.976458329680142948
-          // total value = 149.931452849760353839 + 49.976458329680142948 = 199.907911179440496787
+          // stable value = 149.856255013609029091 * 1 = 149.856255013609029091
+          // asset value = 49.951420020832256712 * 1 = 49.951420020832256712
+          // total value = 149.856255013609029091 + 49.951420020832256712 = 199.807675034441285803
           // expected stable bps is 5000 = 0.5
-          // expected stable value = 199.907911179440496787 * 0.5 = 99.953955589720248393
+          // expected stable value = 199.807675034441285803 * 0.5 = 99.903837517220642901
           // bps calculation
-          // current stable value 149.931452849760353839 that grater then expected value
-          // have to swap out (149.931452849760353839 - 99.953955589720248393) / 1 = 49.977497260040105446
-          // after swap will got asset amount 49.853571678348350553 // get from log in contract
+          // current stable value 149.856255013609029091 that grater then expected value
+          // have to swap out (149.856255013609029091 - 99.903837517220642901) / 1 = 49.952417496388386190
+          // after swap will got asset amount 49853532174819104048 // get from log in contract
           // expected
-          // stable amount = 149.931452849760353839 - 49.977497260040105446 = 99.953955589720248393
-          // asset amount = 49.976458329680142948 + 49.853571678348350553 = 99.830030008028493501
+          // stable amount = 149.856255013609029091 - 49.952417496388386190 = 99.903837517220642901
+          // asset amount = 49.951420020832256712 + 49853532174819104048 = 99.804952195651360760
 
-          const minWithdrawStableAmountAfterSwap = ethers.utils.parseEther("99.953955589720248393");
-          const minWithdrawAssetAfterSwap = ethers.utils.parseEther("99.830030008028493501");
+          const minWithdrawStableAmountAfterSwap = ethers.utils.parseEther("99.903837517220642901");
+          const minWithdrawAssetAfterSwap = ethers.utils.parseEther("99.804952195651360760");
           const expectMinWithdrawAssetAmountAfterSwap = ethers.utils.parseEther("100");
 
           await deltaVaultAsAlice.approve(deltaVaultGateway.address, await deltaVault.balanceOf(aliceAddress));
