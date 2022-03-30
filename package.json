@@ -281,7 +281,8 @@
     "deploy:fantom_mainnet:vault-config:config:set-whitelisted-callers": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags SetWhitelistedCallers",
     "deploy:fantom_mainnet:delta-neutral-vault:config:init-positions": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags DeltaNeutralVaultInitPositions",
 
-    "tenderly-fork":"hardhat console --no-compile --network fantom_mainnetfork",
+
+    "fork":"hardhat console --no-compile --network fantom_mainnetfork",
     "mainnet": "hardhat console --no-compile --network mainnet",
     "ethereum": "hardhat console --no-compile --network ethereum",
     "test:case": "mocha --require hardhat/register --file test/integrations/protocol/delta-neutral/DeltaNeutralVault.test.ts --extension ts -g",
