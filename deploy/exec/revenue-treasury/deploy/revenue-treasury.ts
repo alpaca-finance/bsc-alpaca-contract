@@ -13,6 +13,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const ROUTER_ADDRESS = config.YieldSources.Pancakeswap!.RouterV2;
   const REMAINING = ethers.utils.parseEther("24000");
   const SPLITBPS = "5000";
+  const REWARD_PATH = [config.Tokens.USDT!, config.Tokens.BUSD!, config.Tokens.ALPACA!];
 
   const deployer = (await ethers.getSigners())[0];
 
@@ -24,11 +25,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     VAULT_ADDRESS,
     ROUTER_ADDRESS,
     REMAINING,
-    SPLITBPS
+    SPLITBPS,
   ])) as RevenueTreasury;
 
   await revenueTreasury.deployTransaction.wait(3);
   console.log("RevenueTreasury:", revenueTreasury.address);
+  console.log("✅ Done");
+
+  console.log("> RevenueTreasury setRewardPath");
+  const setRewardPathTx = await revenueTreasury.setRewardPath(REWARD_PATH);
+  await setRewardPathTx.wait(3);
   console.log("✅ Done");
 };
 
