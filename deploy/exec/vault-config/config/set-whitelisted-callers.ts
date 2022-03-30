@@ -147,7 +147,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     }
   }
 
-  isTimeLockExecuted && FileService.write(TITLE, timelockTransactions);
+  if (isTimeLockExecuted) {
+    FileService.write(TITLE, timelockTransactions);
+  }
 };
 
 export default func;
