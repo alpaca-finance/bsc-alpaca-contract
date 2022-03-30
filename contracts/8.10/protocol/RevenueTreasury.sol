@@ -30,8 +30,8 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
 
   /// @notice Errors
   error RevenueTreasury_TokenMismatch();
-  error RevenueTreasury_InvalidRewardPathLength();
-  error RevenueTreasury_InvalidRewardPath();
+  error RevenueTreasury_InvalidSwapPathLength();
+  error RevenueTreasury_InvalidSwapPath();
   error RevenueTreasury_InvalidBps();
 
   /// @notice States
@@ -54,6 +54,9 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
   /// @notice rewardPath - Path to swap recieving token to grasshouse's token
   address[] public rewardPath;
 
+  /// @notice vaultSwapPath - Path to swap recieving token to vault's token
+  address[] public vaultSwapPath;
+
   /// @notice remaining - Remaining bad debt amount to cover
   uint256 public remaining;
 
@@ -65,6 +68,7 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
   event LogSetGrassHouse(address indexed _caller, address _prevGrassHouse, address _newGrassHouse);
   event LogSetWhitelistedCallers(address indexed _caller, address indexed _address, bool _ok);
   event LogSetRewardPath(address indexed _caller, address[] _newRewardPath);
+  event LogSetVaultSwapPath(address indexed _caller, address[] _newRewardPath);
   event LogSetRouter(address indexed _caller, address _prevRouter, address _newRouter);
   event LogSetSplitBps(address indexed _caller, uint256 _prevSplitBps, uint256 _newSplitBps);
 
@@ -80,10 +84,6 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
     uint256 _splitBps
   ) external initializer {
     // check
-    if (_token != _vault.token()) {
-      revert RevenueTreasury_TokenMismatch();
-    }
-
     if (_splitBps > 10000) {
       revert RevenueTreasury_InvalidBps();
     }
@@ -149,14 +149,21 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
   /// @notice Set a new reward path. In case that the liquidity of the reward path has changed.
   /// @param _rewardPath The new reward path.
   function setRewardPath(address[] calldata _rewardPath) external onlyOwner {
-    if (_rewardPath.length < 2) revert RevenueTreasury_InvalidRewardPathLength();
-
-    if (_rewardPath[0] != token || _rewardPath[_rewardPath.length - 1] != grasshouseToken)
-      revert RevenueTreasury_InvalidRewardPath();
+    _validateSwapPath(token, grasshouseToken, _rewardPath);
 
     rewardPath = _rewardPath;
 
     emit LogSetRewardPath(msg.sender, _rewardPath);
+  }
+
+  /// @notice Set a new vault path. In case that the destination vault has changed.
+  /// @param _vaultSwapPath The new reward path.
+  function setVaultSwapPath(address[] calldata _vaultSwapPath) external onlyOwner {
+    _validateSwapPath(token, vault.token(), _vaultSwapPath);
+
+    vaultSwapPath = _vaultSwapPath;
+
+    emit LogSetVaultSwapPath(msg.sender, _vaultSwapPath);
   }
 
   /// @notice Set a new swap router
@@ -169,5 +176,19 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
     splitBps = _newSplitBps;
 
     emit LogSetSplitBps(msg.sender, _prevSplitBps, _newSplitBps);
+  }
+
+  /// @notice Set a new swap router
+  /// @param _source Source token
+  /// @param _destination Destination token
+  /// @param _path path to check validity
+  function _validateSwapPath(
+    address _source,
+    address _destination,
+    address[] memory _path
+  ) internal pure {
+    if (_path.length < 2) revert RevenueTreasury_InvalidSwapPathLength();
+
+    if (_path[0] != _source || _path[_path.length - 1] != _destination) revert RevenueTreasury_InvalidSwapPath();
   }
 }

@@ -21,14 +21,6 @@ import "../interfaces/ISwapRouter.sol";
 contract MockSwapRouter is ISwapRouter {
   using SafeERC20Upgradeable for IERC20Upgradeable;
 
-  address public source;
-  address public destination;
-
-  constructor(address _source, address _destination) {
-    source = _source;
-    destination = _destination;
-  }
-
   function WETH() external pure returns (address) {
     return address(0);
   }
@@ -55,12 +47,12 @@ contract MockSwapRouter is ISwapRouter {
   function swapExactTokensForTokens(
     uint256 amountIn,
     uint256, /*amountOutMin*/
-    address[] calldata, /*path*/
+    address[] calldata path,
     address to,
     uint256 /*deadline*/
   ) external returns (uint256[] memory amounts) {
-    IERC20Upgradeable(source).safeTransferFrom(msg.sender, address(this), amountIn);
-    IERC20Upgradeable(destination).safeTransfer(to, amountIn);
+    IERC20Upgradeable(path[0]).safeTransferFrom(msg.sender, address(this), amountIn);
+    IERC20Upgradeable(path[path.length - 1]).safeTransfer(to, amountIn);
 
     amounts = new uint256[](2);
     amounts[0] = amountIn;
