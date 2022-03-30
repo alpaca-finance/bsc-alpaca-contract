@@ -5,7 +5,6 @@ import { solidity } from "ethereum-waffle";
 import "@openzeppelin/test-helpers";
 import {
   AlpacaToken,
-  CakeToken,
   DebtToken,
   FairLaunch,
   FairLaunch__factory,
@@ -14,34 +13,38 @@ import {
   MockERC20,
   MockERC20__factory,
   MockWBNB,
-  PancakeFactory,
-  PancakeMasterChef,
   PancakeMasterChef__factory,
   PancakePair,
   PancakePair__factory,
-  PancakeswapV2RestrictedStrategyAddBaseTokenOnly,
-  PancakeswapV2RestrictedStrategyLiquidate,
-  PancakeswapV2RestrictedStrategyPartialCloseLiquidate,
   SimpleVaultConfig,
   SyrupBar,
   Vault,
   WNativeRelayer,
-  PancakeswapV2RestrictedStrategyAddTwoSidesOptimal,
-  PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading,
-  PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading,
   DeltaNeutralVault,
   DeltaNeutralVault__factory,
   MockWBNB__factory,
-  PancakeswapV2RestrictedStrategyAddTwoSidesOptimal__factory,
   DeltaNeutralVaultConfig,
-  DeltaNeutralPancakeWorker02,
   DeltaNeutralPancakeWorker02__factory,
   DeltaNeutralVaultGateway,
   DeltaNeutralVaultGateway__factory,
   DeltaNeutralOracle,
   IERC20,
   WaultSwapRouter,
-  WaultSwapRouter__factory,
+  WaultSwapFactory,
+  SpookyToken,
+  SpookyMasterChef,
+  MiniFL,
+  AlpacaToken__factory,
+  SpookySwapStrategyAddBaseTokenOnly,
+  SpookySwapStrategyAddTwoSidesOptimal,
+  SpookySwapStrategyLiquidate,
+  SpookySwapStrategyPartialCloseLiquidate,
+  SpookySwapStrategyPartialCloseMinimizeTrading,
+  SpookySwapStrategyWithdrawMinimizeTrading,
+  SpookySwapStrategyAddTwoSidesOptimal__factory,
+  SpookyMasterChef__factory,
+  Rewarder1,
+  MockMiniFL,
 } from "../../../../typechain";
 import * as Assert from "../../../helpers/assert";
 import * as TimeHelpers from "../../../helpers/time";
@@ -50,6 +53,8 @@ import { SwapHelper } from "../../../helpers/swap";
 import { Worker02Helper } from "../../../helpers/worker";
 import { FakeContract, smock } from "@defi-wonderland/smock";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { DeltaNeutralSpookyWorker03 } from "../../../../typechain/DeltaNeutralSpookyWorker03";
+import { DeltaNeutralSpookyWorker03__factory } from "../../../../typechain/factories/DeltaNeutralSpookyWorker03__factory";
 
 chai.use(solidity);
 const { expect } = chai;
@@ -63,12 +68,10 @@ interface SimpleWithdrawReturns {
   expectAssetDebt: BigNumber;
 }
 
-describe("DeltaNeutralVaultGateway", () => {
-  const FOREVER = "2000000000";
-  const ALPACA_BONUS_LOCK_UP_BPS = 7000;
-  const ALPACA_REWARD_PER_BLOCK = ethers.utils.parseEther("1");
+describe("DeltaNeutralVaultGatewayWithSpookySwap", () => {
+  const ALPACA_MAX_PER_SEC = ethers.utils.parseEther("1");
   // const CAKE_REWARD_PER_BLOCK = ethers.utils.parseEther("0.076");
-  const CAKE_REWARD_PER_BLOCK = ethers.utils.parseEther("0");
+  const BOO_PER_SEC = ethers.utils.parseEther("0");
   const REINVEST_BOUNTY_BPS = "100"; // 1% reinvest bounty
   const RESERVE_POOL_BPS = "1000"; // 10% reserve pool
   const KILL_PRIZE_BPS = "1000"; // 10% Kill prize
@@ -76,26 +79,22 @@ describe("DeltaNeutralVaultGateway", () => {
   const MIN_DEBT_SIZE = ethers.utils.parseEther("0.1"); // 1 BTOKEN min debt size
   const WORK_FACTOR = "999999"; // delta neutral worker should have no cap workfactor
   const KILL_FACTOR = "8000";
-  const MAX_REINVEST_BOUNTY: string = "900";
   const DEPLOYER = "0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51";
-  const BENEFICIALVAULT_BOUNTY_BPS = "1000";
-  const REINVEST_THRESHOLD = ethers.utils.parseEther("1"); // If pendingCake > 1 $CAKE, then reinvest
   const KILL_TREASURY_BPS = "100";
-  const POOL_ID = 1;
-  const EMPTY_BYTE = ethers.utils.defaultAbiCoder.encode(["uint256"], [0]);
+  const POOL_ID = 0;
 
   // Delta Vault Config
   const REBALANCE_FACTOR = "6800";
   const POSITION_VALUE_TOLERANCE_BPS = "200";
   const MAX_VAULT_POSITION_VALUE = ethers.utils.parseEther("100000");
-  const DEPOSIT_FEE_BPS = "0"; // 0%
+  const DEBT_RATIO_TOLERANCE_BPS = "30";
 
   // Delta Vault Actions
   const ACTION_WORK = 1;
   const ACTION_WRAP = 2;
 
-  /// Pancakeswap-related instance(s)
-  let factoryV2: PancakeFactory;
+  /// Spookyswap-related instance(s)
+  let factory: WaultSwapFactory;
   let router: WaultSwapRouter;
 
   let wbnb: MockWBNB;
@@ -103,18 +102,18 @@ describe("DeltaNeutralVaultGateway", () => {
 
   /// Token-related instance(s)
   let baseToken: MockERC20;
-  let cake: CakeToken;
+  let boo: SpookyToken;
   let syrup: SyrupBar;
   let debtToken: DebtToken;
 
   /// Strategy-ralted instance(s)
-  let addStrat: PancakeswapV2RestrictedStrategyAddBaseTokenOnly;
-  let stableTwoSidesStrat: PancakeswapV2RestrictedStrategyAddTwoSidesOptimal;
-  let assetTwoSidesStrat: PancakeswapV2RestrictedStrategyAddTwoSidesOptimal;
-  let liqStrat: PancakeswapV2RestrictedStrategyLiquidate;
-  let minimizeStrat: PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading;
-  let partialCloseStrat: PancakeswapV2RestrictedStrategyPartialCloseLiquidate;
-  let partialCloseMinimizeStrat: PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading;
+  let addStrat: SpookySwapStrategyAddBaseTokenOnly;
+  let stableTwoSidesStrat: SpookySwapStrategyAddTwoSidesOptimal;
+  let assetTwoSidesStrat: SpookySwapStrategyAddTwoSidesOptimal;
+  let liqStrat: SpookySwapStrategyLiquidate;
+  let minimizeStrat: SpookySwapStrategyWithdrawMinimizeTrading;
+  let partialCloseStrat: SpookySwapStrategyPartialCloseLiquidate;
+  let partialCloseMinimizeStrat: SpookySwapStrategyPartialCloseMinimizeTrading;
 
   /// Vault-related instance(s)
   let stableSimpleVaultConfig: SimpleVaultConfig;
@@ -129,14 +128,16 @@ describe("DeltaNeutralVaultGateway", () => {
   /// DeltaNeutralOracle instance
   let mockPriceOracle: FakeContract<DeltaNeutralOracle>;
 
-  /// FairLaunch-related instance(s)
-  let fairLaunch: FairLaunch;
-  let alpacaToken: AlpacaToken;
+  /// MiniFairLaunch-related instance(s)
+  let miniFL: MockMiniFL;
 
-  /// PancakeswapMasterChef-related instance(s)
-  let masterChef: PancakeMasterChef;
-  let stableVaultWorker: DeltaNeutralPancakeWorker02;
-  let assetVaultWorker: DeltaNeutralPancakeWorker02;
+  let alpacaToken: AlpacaToken;
+  let extraToken: MockERC20;
+
+  /// SpookyMasterChef-related instance(s)
+  let masterChef: SpookyMasterChef;
+  let stableVaultWorker: DeltaNeutralSpookyWorker03;
+  let assetVaultWorker: DeltaNeutralSpookyWorker03;
 
   /// Timelock instance(s)
   let whitelistedContract: MockContractContext;
@@ -166,11 +167,11 @@ describe("DeltaNeutralVaultGateway", () => {
   let lpAsAlice: PancakePair;
   let lpAsBob: PancakePair;
 
-  let pancakeMasterChefAsAlice: PancakeMasterChef;
-  let pancakeMasterChefAsBob: PancakeMasterChef;
+  let pancakeMasterChefAsAlice: SpookyMasterChef;
+  let pancakeMasterChefAsBob: SpookyMasterChef;
 
-  let pancakeswapV2WorkerAsEve: DeltaNeutralPancakeWorker02__factory;
-  let pancakeswapV2Worker01AsEve: DeltaNeutralPancakeWorker02__factory;
+  let pancakeswapV2WorkerAsEve: DeltaNeutralSpookyWorker03__factory;
+  let pancakeswapV2Worker01AsEve: DeltaNeutralSpookyWorker03__factory;
 
   let deltaVaultAsAlice: DeltaNeutralVault;
   let deltaVaultAsBob: DeltaNeutralVault;
@@ -224,19 +225,13 @@ describe("DeltaNeutralVaultGateway", () => {
     await wbnb.mint(aliceAddress, ethers.utils.parseEther("100000000"));
     await wbnb.mint(bobAddress, ethers.utils.parseEther("100000000"));
 
-    [factoryV2, router, cake, syrup, masterChef] = await deployHelper.deployPancakeV2(wbnb, CAKE_REWARD_PER_BLOCK, [
+    [factory, router, boo, masterChef] = await deployHelper.deploySpookySwap(wbnb, BOO_PER_SEC, [
       { address: deployerAddress, amount: ethers.utils.parseEther("100") },
     ]);
 
-    // TODO: change to mini fairelaunch
-    [alpacaToken, fairLaunch] = await deployHelper.deployAlpacaFairLaunch(
-      ALPACA_REWARD_PER_BLOCK,
-      ALPACA_BONUS_LOCK_UP_BPS,
-      2000,
-      2500
-    );
+    [alpacaToken, miniFL] = await deployHelper.deployAlpacaMockMiniFL(ALPACA_MAX_PER_SEC);
 
-    [stableVault, stableSimpleVaultConfig, wNativeRelayer] = await deployHelper.deployVault(
+    [stableVault, stableSimpleVaultConfig, wNativeRelayer] = await deployHelper.deployMiniFLVault(
       wbnb,
       {
         minDebtSize: MIN_DEBT_SIZE,
@@ -246,11 +241,12 @@ describe("DeltaNeutralVaultGateway", () => {
         killTreasuryBps: KILL_TREASURY_BPS,
         killTreasuryAddress: DEPLOYER,
       },
-      fairLaunch,
+      miniFL,
+      ethers.constants.AddressZero,
       baseToken
     );
 
-    [assetVault, assetSimpleVaultConfig] = await deployHelper.deployVault(
+    [assetVault, assetSimpleVaultConfig] = await deployHelper.deployMiniFLVault(
       wbnb,
       {
         minDebtSize: MIN_DEBT_SIZE,
@@ -260,34 +256,41 @@ describe("DeltaNeutralVaultGateway", () => {
         killTreasuryBps: KILL_TREASURY_BPS,
         killTreasuryAddress: DEPLOYER,
       },
-      fairLaunch,
+      miniFL,
+      ethers.constants.AddressZero,
       wbnb as unknown as MockERC20
     );
+
     await assetVault.setFairLaunchPoolId(1);
+    await miniFL.approveStakeDebtToken([1], [assetVault.address], true);
+
+    /// Set reward per second on both MiniFL and Rewarder
+    await miniFL.setAlpacaPerSecond(ALPACA_MAX_PER_SEC, true);
+
+    //transfer alpacaToken to miniFl
+    await alpacaToken.transferOwnership(miniFL.address);
 
     // Setup strategies
     [addStrat, liqStrat, stableTwoSidesStrat, minimizeStrat, partialCloseStrat, partialCloseMinimizeStrat] =
-      await deployHelper.deployPancakeV2Strategies(router, stableVault, wbnb, wNativeRelayer);
+      await deployHelper.deploySpookySwapStrategies(router, stableVault, wNativeRelayer);
 
-    // TODO: change to spooky strategy
-    const PancakeswapV2RestrictedStrategyAddTwoSidesOptimal = (await ethers.getContractFactory(
-      "PancakeswapV2RestrictedStrategyAddTwoSidesOptimal",
+    const SpookySwapStrategyAddTwoSidesOptimal = (await ethers.getContractFactory(
+      "SpookySwapStrategyAddTwoSidesOptimal",
       deployer
-    )) as PancakeswapV2RestrictedStrategyAddTwoSidesOptimal__factory;
-    assetTwoSidesStrat = (await upgrades.deployProxy(PancakeswapV2RestrictedStrategyAddTwoSidesOptimal, [
+    )) as SpookySwapStrategyAddTwoSidesOptimal__factory;
+    assetTwoSidesStrat = (await upgrades.deployProxy(SpookySwapStrategyAddTwoSidesOptimal, [
       router.address,
       assetVault.address,
-    ])) as PancakeswapV2RestrictedStrategyAddTwoSidesOptimal;
+    ])) as SpookySwapStrategyAddTwoSidesOptimal;
 
     // Setup BTOKEN-WBNB pair on Pancakeswap
     // Add lp to masterChef's pool
-    await factoryV2.createPair(baseToken.address, wbnb.address);
-    lp = PancakePair__factory.connect(await factoryV2.getPair(wbnb.address, baseToken.address), deployer);
-    await masterChef.add(1, lp.address, true);
+    await factory.createPair(baseToken.address, wbnb.address);
+    lp = PancakePair__factory.connect(await factory.getPair(wbnb.address, baseToken.address), deployer);
+    await masterChef.add(1, lp.address);
 
-    // TODO: change to spooky worker
-    /// Setup DeltaNeutralPancakeWorker02
-    stableVaultWorker = await deployHelper.deployDeltaNeutralPancakeWorker02(
+    /// Setup DeltaNeutralSpookyWorker03
+    stableVaultWorker = await deployHelper.deployDeltaNeutralSpookyWorker03(
       stableVault,
       baseToken,
       masterChef,
@@ -299,7 +302,7 @@ describe("DeltaNeutralVaultGateway", () => {
       REINVEST_BOUNTY_BPS,
       [eveAddress],
       DEPLOYER,
-      [cake.address, wbnb.address, baseToken.address],
+      [boo.address, wbnb.address, baseToken.address],
       [
         stableTwoSidesStrat.address,
         minimizeStrat.address,
@@ -310,9 +313,8 @@ describe("DeltaNeutralVaultGateway", () => {
       mockPriceOracle.address
     );
 
-    // TODO: change to spooky worker
-    /// Setup DeltaNeutralPancakeWorker02
-    assetVaultWorker = await deployHelper.deployDeltaNeutralPancakeWorker02(
+    /// Setup DeltaNeutralSpookyWorker03
+    assetVaultWorker = await deployHelper.deployDeltaNeutralSpookyWorker03(
       assetVault,
       wbnb as unknown as MockERC20,
       masterChef,
@@ -324,23 +326,17 @@ describe("DeltaNeutralVaultGateway", () => {
       REINVEST_BOUNTY_BPS,
       [eveAddress],
       DEPLOYER,
-      [cake.address, wbnb.address],
+      [boo.address, wbnb.address],
       [assetTwoSidesStrat.address, minimizeStrat.address, partialCloseStrat.address, partialCloseMinimizeStrat.address],
       assetSimpleVaultConfig,
       mockPriceOracle.address
     );
 
-    swapHelper = new SwapHelper(
-      factoryV2.address,
-      router.address,
-      BigNumber.from(9975),
-      BigNumber.from(10000),
-      deployer
-    );
+    swapHelper = new SwapHelper(factory.address, router.address, BigNumber.from(9975), BigNumber.from(10000), deployer);
 
     await swapHelper.addLiquidities([
       {
-        token0: cake as unknown as IERC20,
+        token0: boo as unknown as IERC20,
         token1: wbnb as unknown as IERC20,
         amount0desired: ethers.utils.parseEther("100"),
         amount1desired: ethers.utils.parseEther("1000"),
@@ -351,13 +347,14 @@ describe("DeltaNeutralVaultGateway", () => {
     const deltaNeutralConfig = {
       wNativeAddr: wbnb.address,
       wNativeRelayer: wNativeRelayer.address,
-      fairlaunchAddr: fairLaunch.address,
+      fairlaunchAddr: miniFL.address,
       rebalanceFactor: REBALANCE_FACTOR,
       positionValueTolerance: POSITION_VALUE_TOLERANCE_BPS,
       depositFeeTreasury: eveAddress,
       managementFeeTreasury: eveAddress,
       withdrawFeeTreasury: eveAddress,
       alpacaTokenAddress: alpacaToken.address,
+      debtRatioTolerance: DEBT_RATIO_TOLERANCE_BPS,
     } as IDeltaNeutralVaultConfig;
 
     deltaVaultConfig = await deployHelper.deployDeltaNeutralVaultConfig(deltaNeutralConfig);
@@ -389,6 +386,7 @@ describe("DeltaNeutralVaultGateway", () => {
     deltaVaultGateway = await deployHelper.deployDeltaNeutralGateway({
       deltaVault: deltaVault.address,
     });
+
     // allow deltaVaultGateway as whitelisted to call delta neutral vault
     await deltaVaultConfig.setWhitelistedCallers([deltaVaultGateway.address], true);
 
@@ -418,10 +416,10 @@ describe("DeltaNeutralVaultGateway", () => {
     lpAsAlice = PancakePair__factory.connect(lp.address, alice);
     lpAsBob = PancakePair__factory.connect(lp.address, bob);
 
-    fairLaunchAsAlice = FairLaunch__factory.connect(fairLaunch.address, alice);
+    fairLaunchAsAlice = FairLaunch__factory.connect(miniFL.address, alice);
 
-    pancakeMasterChefAsAlice = PancakeMasterChef__factory.connect(masterChef.address, alice);
-    pancakeMasterChefAsBob = PancakeMasterChef__factory.connect(masterChef.address, bob);
+    pancakeMasterChefAsAlice = SpookyMasterChef__factory.connect(masterChef.address, alice);
+    pancakeMasterChefAsBob = SpookyMasterChef__factory.connect(masterChef.address, bob);
 
     deltaVaultAsAlice = DeltaNeutralVault__factory.connect(deltaVault.address, alice);
     deltaVaultAsBob = DeltaNeutralVault__factory.connect(deltaVault.address, bob);
@@ -722,6 +720,7 @@ describe("DeltaNeutralVaultGateway", () => {
           value: assetTokenAmount,
         }
       );
+      console.log("inited");
 
       const depositStableTokenAmount = ethers.utils.parseEther("500");
       const depositAssetTokenAmount = ethers.utils.parseEther("500");
@@ -778,6 +777,7 @@ describe("DeltaNeutralVaultGateway", () => {
 
     context("when alice withdraw and expect returns stable amount 100%", async () => {
       it("should work", async () => {
+        console.log("111");
         // ======== prepare for withdraw ======
         const withdrawValue = ethers.utils.parseEther("200");
 
@@ -786,11 +786,11 @@ describe("DeltaNeutralVaultGateway", () => {
 
         const minWithdrawStableAmountAfterSwap = ethers.utils.parseEther("0");
         const minWithdrawAssetAfterSwap = ethers.utils.parseEther("0");
-
+        console.log("1");
         await deltaVaultAsAlice.approve(deltaVaultGateway.address, await deltaVault.balanceOf(aliceAddress));
         const aliceBaseTokenBefore = await baseToken.balanceOf(aliceAddress);
         const aliceShareBefore = await deltaVault.balanceOf(aliceAddress);
-
+        console.log("a");
         // ======== withdraw ======
         const { tx, shareToWithdraw, expectStableEquity, expectStableDebt, expectAssetEquity, expectAssetDebt } =
           await simpleWithdrawFromGateWay(
@@ -801,14 +801,14 @@ describe("DeltaNeutralVaultGateway", () => {
             minWithdrawAssetAfterSwap,
             10000
           );
-
+        console.log("b");
         const aliceShareAfter = await deltaVault.balanceOf(aliceAddress);
         const aliceBaseTokenAfter = await baseToken.balanceOf(aliceAddress);
         const positionInfoAfter = await deltaVault.positionInfo();
 
         const baseTokenDiff = aliceBaseTokenAfter.sub(aliceBaseTokenBefore);
         const gatewayShare = await deltaVault.balanceOf(deltaVaultGatewayAsAlice.address);
-
+        console.log("c");
         // check event
         expect(tx).to.emit(deltaVaultGateway, "LogWithdraw").withArgs(aliceAddress, baseTokenDiff, 0);
 
@@ -819,7 +819,7 @@ describe("DeltaNeutralVaultGateway", () => {
         expect(gatewayShare).to.be.eq(BigNumber.from(0));
         expect(await baseToken.balanceOf(deltaVaultGateway.address)).to.be.eq(BigNumber.from(0));
         expect(await wbnb.balanceOf(deltaVaultGateway.address)).to.be.eq(BigNumber.from(0));
-
+        console.log("d");
         // check position info
         Assert.assertAlmostEqual(positionInfoAfter.stablePositionEquity.toString(), expectStableEquity.toString());
         Assert.assertAlmostEqual(positionInfoAfter.stablePositionDebtValue.toString(), expectStableDebt.toString());
