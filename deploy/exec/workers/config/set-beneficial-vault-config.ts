@@ -5,6 +5,7 @@ import MainnetConfig from "../../../../.mainnet.json";
 import TestnetConfig from "../../../../.testnet.json";
 import { TimelockEntity } from "../../../entities";
 import { FileService, TimelockService } from "../../../services";
+import { getConfig } from "../../../entities/config";
 
 interface IWorker {
   WORKER_NAME: string;
@@ -41,7 +42,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const BENEFICIAL_VAULT_BOUNTY_BPS = "5263";
   const BENEFICIAL_VAULT_ADDRESS = "0x44B3868cbba5fbd2c5D8d1445BDB14458806B3B4";
 
-  const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
+  const config = getConfig();
   const allWorkers: IWorkers = config.Vaults.reduce((accum, vault) => {
     return accum.concat(
       vault.workers.map((worker) => {
