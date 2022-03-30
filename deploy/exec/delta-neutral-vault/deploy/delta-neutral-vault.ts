@@ -36,8 +36,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       assetVaultSymbol: "ibFTM",
       stableSymbol: "USDC",
       assetSymbol: "WFTM",
-      stableDeltaWorker: "0xD8D45Edc8D5d6cB29D843d0b96b83bc8d430B035", // Address of stable deltaneutral worker
-      assetDeltaWorker: "0x92e0aec5F825217Cec80002F62C0B95FA863aA93", // Address of asset deltaneutral worker
+      stableDeltaWorker: "0x056aAAEb5DDd77a4463d3aDF4Ac1EC2Fe3A3ed78", // Address of stable deltaneutral worker
+      assetDeltaWorker: "0x21b751Dc7B44F60FB6D16400e2cCd4043ED137A9", // Address of asset deltaneutral worker
       lpAddress: "0x2b4C76d0dc16BE1C31D4C1DC53bF9B45987Fc75c",
       deltaNeutralVaultConfig: "0x222EE381e27FD86eAD28628843832Ba4c41143D2",
     },
