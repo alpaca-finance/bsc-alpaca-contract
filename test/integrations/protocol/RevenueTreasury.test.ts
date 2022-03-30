@@ -295,7 +295,7 @@ describe("RevenueTreasury", () => {
     });
   });
 
-  context("#settle", async () => {
+  context("#feedGrassHouse", async () => {
     describe("If amount to cover < remaining", async () => {
       it("should split token into 50:50", async () => {
         await usdt.transfer(treasury.address, ethers.utils.parseEther("100"));
