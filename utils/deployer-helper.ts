@@ -6,7 +6,7 @@ import { JsonRpcProvider } from "@ethersproject/providers";
 export async function getDeployer(): Promise<SignerWithAddress> {
   const defaultDeployer = (await ethers.getSigners())[0];
 
-  const provider = ethers.getDefaultProvider(process.env.TENDERLY_FORK_RPC) as JsonRpcProvider;
+  const provider = ethers.getDefaultProvider(process.env.FORK_RPC) as JsonRpcProvider;
   const signer = provider.getSigner(process.env.DEPLOYER_ADDRESS);
   const mainnetForkDeployer = await SignerWithAddress.create(signer);
 
