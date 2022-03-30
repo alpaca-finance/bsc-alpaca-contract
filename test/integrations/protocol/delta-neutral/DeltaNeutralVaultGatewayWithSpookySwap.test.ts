@@ -70,7 +70,6 @@ interface SimpleWithdrawReturns {
 
 describe("DeltaNeutralVaultGatewayWithSpookySwap", () => {
   const ALPACA_MAX_PER_SEC = ethers.utils.parseEther("1");
-  // const CAKE_REWARD_PER_BLOCK = ethers.utils.parseEther("0.076");
   const BOO_PER_SEC = ethers.utils.parseEther("0");
   const REINVEST_BOUNTY_BPS = "100"; // 1% reinvest bounty
   const RESERVE_POOL_BPS = "1000"; // 10% reserve pool
