@@ -273,11 +273,11 @@
 
     "deploy:fantom_mainnet:oracles:config:add-price-source-chainlink2": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags AddSourceChainlinkPriceOracle2",
     "deploy:fantom_mainnet:delta-neutral-oracle:deploy:delta-neutral-oracle": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags DeltaNeutralOracle",
-    "deploy:fantom_mainnet:delta-neutral-vault-config:deploy:delta-neutral-vault-config": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags DeltaNeutralVaultConfigFTM",
+    "deploy:fantom_mainnet:delta-neutral-vault-config:deploy:delta-neutral-vault-config": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags DeltaNeutralVaultConfig",
     "deploy:fantom_mainnet:delta-neutral-worker:deploy:delta-neutral-spooky-worker": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags DeltaNeutralSpookyWorker03",
-    "deploy:fantom_mainnet:delta-neutral-vault:deploy:delta-neutral-vault": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags DeltaNeutralVaultFTM",
+    "deploy:fantom_mainnet:delta-neutral-vault:deploy:delta-neutral-vault": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags DeltaNeutralVault",
     "deploy:fantom_mainnet:delta-neutral-vault-gateway:deploy:delta-neutral-vault-gateway": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags DeltaNeutralVaultGateway",
-    "deploy:fantom_mainnet:delta-neutral-worker:config:set-whitelist-callers": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags DeltaNeutralWorkerSetWhitelistCallersFTM",
+    "deploy:fantom_mainnet:delta-neutral-worker:config:set-whitelist-callers": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags DeltaNeutralWorkerSetWhitelistCallers",
     "deploy:fantom_mainnet:vault-config:config:set-whitelisted-callers": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags SetWhitelistedCallers",
     "deploy:fantom_mainnet:delta-neutral-vault:config:init-positions": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags DeltaNeutralVaultInitPositions",
 

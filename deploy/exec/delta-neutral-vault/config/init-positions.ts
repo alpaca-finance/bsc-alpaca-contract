@@ -75,7 +75,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       leverage: 3,
     },
   ];
-
   const config = ConfigEntity.getConfig();
   const deployer = await getDeployer();
   const tokenLists: any = config.Tokens;
@@ -97,6 +96,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     }
     if (!assetVault) {
       throw new Error(`error: unable to find vault from ${initPositionInputs[i].assetVaultSymbol}`);
+    }
+    if (initPositionInputs[i].stableDecimal > 18) {
+      throw new Error(`error:not supported stableTokenDecimal > 18, value  ${initPositionInputs[i].stableDecimal}`);
+    }
+    if (initPositionInputs[i].assetDecimal > 18) {
+      throw new Error(`error:not supported assetDecimal > 18, value  ${initPositionInputs[i].assetDecimal}`);
     }
 
     stableTwoSidesStrat = stableVault.StrategyAddTwoSidesOptimal.SpookySwap!;
@@ -134,21 +139,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     // open position1
     console.log(">> Preparing input for position 1 (StableVaults)");
 
-    const stableDecimalSubtract = 18 - initPositionInputs[i].stableDecimal;
-
-    const stableAmount =
-      stableDecimalSubtract === 0
-        ? ethers.utils.parseEther(initPositionInputs[i].stableAmount)
-        : ethers.utils.parseEther(initPositionInputs[i].stableAmount).div(10 ** stableDecimalSubtract);
-
+    const stableAmount = BigNumber.from(initPositionInputs[i].stableAmount).mul(initPositionInputs[i].stableDecimal);
     console.log(`>> Stable amount: ${stableAmount}`);
 
-    const assetDecimalSubtract = 18 - initPositionInputs[i].assetDecimal;
-    const assetAmount =
-      assetDecimalSubtract === 0
-        ? ethers.utils.parseEther("0")
-        : ethers.utils.parseEther("0").div(10 ** assetDecimalSubtract);
-
+    const assetAmount = BigNumber.from("0").mul(initPositionInputs[i].assetDecimal);
     console.log(`>> assetAmount: ${assetAmount}`);
 
     const leverage = BigNumber.from(initPositionInputs[i].leverage);

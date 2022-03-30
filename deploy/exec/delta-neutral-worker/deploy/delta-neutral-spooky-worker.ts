@@ -29,7 +29,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       Check all variables below before execute the deployment script
     */
 
-  interface IDeltaNeutralPCSWorkerInput {
+  interface IDeltaNeutralWorkerInput {
     VAULT_SYMBOL: string;
     WORKER_NAME: string;
     TREASURY_ADDRESS: string;
@@ -71,7 +71,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const config = ConfigEntity.getConfig();
 
-  const shortWorkerInfos: IDeltaNeutralPCSWorkerInput[] = [
+  const shortWorkerInfos: IDeltaNeutralWorkerInput[] = [
     {
       VAULT_SYMBOL: "ibFTM",
       WORKER_NAME: "USDC-WFTM 3x DeltaNeutralSpookyWorker",
@@ -100,7 +100,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     },
   ];
   const TITLE = "mainnet_delta_neutral_3x_spooky_worker";
-  const EXACT_ETA = "1646402400";
+  const EXACT_ETA = "1646402400"; //FTM DO NOT HAVE TIMELOCK LEAVE THIS VALUE
 
   const deployer = await getDeployer();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
