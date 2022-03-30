@@ -90,6 +90,7 @@ describe("DeltaNeutralVaultGateway", () => {
   const POSITION_VALUE_TOLERANCE_BPS = "200";
   const MAX_VAULT_POSITION_VALUE = ethers.utils.parseEther("100000");
   const DEPOSIT_FEE_BPS = "0"; // 0%
+  const DEBT_RATIO_TOLERANCE_BPS = "30";
 
   // Delta Vault Actions
   const ACTION_WORK = 1;
@@ -355,6 +356,7 @@ describe("DeltaNeutralVaultGateway", () => {
       managementFeeTreasury: eveAddress,
       withdrawFeeTreasury: eveAddress,
       alpacaTokenAddress: alpacaToken.address,
+      debtRatioTolerance: DEBT_RATIO_TOLERANCE_BPS,
     } as IDeltaNeutralVaultConfig;
 
     deltaVaultConfig = await deployHelper.deployDeltaNeutralVaultConfig(deltaNeutralConfig);
@@ -713,7 +715,7 @@ describe("DeltaNeutralVaultGateway", () => {
       const initTx = await deltaVault.initPositions(
         stableTokenAmount,
         assetTokenAmount,
-        ethers.utils.parseEther("1000"),
+        ethers.utils.parseEther("997.494086421640968680"),
         data,
         {
           value: assetTokenAmount,
