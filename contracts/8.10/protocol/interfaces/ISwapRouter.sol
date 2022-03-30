@@ -14,6 +14,8 @@ Alpaca Fin Corporation
 pragma solidity 0.8.10;
 
 interface ISwapRouter {
+  function WETH() external pure returns (address);
+
   function swapExactTokensForETH(
     uint256 amountIn,
     uint256 amountOutMin,
