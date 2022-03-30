@@ -1,3 +1,4 @@
+import { parseEther } from "@ethersproject/units";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
@@ -83,32 +84,33 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   let assetTwoSidesStrat: string;
 
   for (let i = 0; i < initPositionInputs.length; i++) {
+    const initPosition = initPositionInputs[i];
     console.log("===================================================================================");
-    console.log(`>> Initializing position at ${initPositionInputs[i].symbol}`);
-    const deltaNeutralVaultInfo = config.DeltaNeutralVaults.find((v) => v.symbol === initPositionInputs[i].symbol);
-    const stableVault = config.Vaults.find((v) => v.symbol === initPositionInputs[i].stableVaultSymbol);
-    const assetVault = config.Vaults.find((v) => v.symbol === initPositionInputs[i].assetVaultSymbol);
+    console.log(`>> Initializing position at ${initPosition.symbol}`);
+    const deltaNeutralVaultInfo = config.DeltaNeutralVaults.find((v) => v.symbol === initPosition.symbol);
+    const stableVault = config.Vaults.find((v) => v.symbol === initPosition.stableVaultSymbol);
+    const assetVault = config.Vaults.find((v) => v.symbol === initPosition.assetVaultSymbol);
     if (!deltaNeutralVaultInfo) {
-      throw new Error(`error: unable to find delta neutral vault info for ${initPositionInputs[i].symbol}`);
+      throw new Error(`error: unable to find delta neutral vault info for ${initPosition.symbol}`);
     }
     if (!stableVault) {
-      throw new Error(`error: unable to find vault from ${initPositionInputs[i].stableVaultSymbol}`);
+      throw new Error(`error: unable to find vault from ${initPosition.stableVaultSymbol}`);
     }
     if (!assetVault) {
-      throw new Error(`error: unable to find vault from ${initPositionInputs[i].assetVaultSymbol}`);
+      throw new Error(`error: unable to find vault from ${initPosition.assetVaultSymbol}`);
     }
-    if (initPositionInputs[i].stableDecimal > 18) {
-      throw new Error(`error:not supported stableTokenDecimal > 18, value  ${initPositionInputs[i].stableDecimal}`);
+    if (initPosition.stableDecimal > 18) {
+      throw new Error(`error:not supported stableTokenDecimal > 18, value  ${initPosition.stableDecimal}`);
     }
-    if (initPositionInputs[i].assetDecimal > 18) {
-      throw new Error(`error:not supported assetDecimal > 18, value  ${initPositionInputs[i].assetDecimal}`);
+    if (initPosition.assetDecimal > 18) {
+      throw new Error(`error:not supported assetDecimal > 18, value  ${initPosition.assetDecimal}`);
     }
 
     stableTwoSidesStrat = stableVault.StrategyAddTwoSidesOptimal.SpookySwap!;
     assetTwoSidesStrat = assetVault.StrategyAddTwoSidesOptimal.SpookySwap!;
 
-    const stableToken = tokenLists[initPositionInputs[i].stableSymbol];
-    const assetToken = tokenLists[initPositionInputs[i].assetSymbol];
+    const stableToken = tokenLists[initPosition.stableSymbol];
+    const assetToken = tokenLists[initPosition.assetSymbol];
     const stableTokenAsDeployer = BEP20__factory.connect(stableToken, deployer);
     const assetTokenAsDeployer = BEP20__factory.connect(assetToken, deployer);
 
@@ -139,13 +141,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     // open position1
     console.log(">> Preparing input for position 1 (StableVaults)");
 
-    const stableAmount = BigNumber.from(initPositionInputs[i].stableAmount).mul(initPositionInputs[i].stableDecimal);
+    const stableAmount = ethers.utils.parseUnits(initPosition.stableAmount, initPosition.stableDecimal);
     console.log(`>> Stable amount: ${stableAmount}`);
 
-    const assetAmount = BigNumber.from("0").mul(initPositionInputs[i].assetDecimal);
+    const assetAmount = ethers.utils.parseUnits("0", initPosition.assetDecimal);
     console.log(`>> assetAmount: ${assetAmount}`);
 
-    const leverage = BigNumber.from(initPositionInputs[i].leverage);
+    const leverage = BigNumber.from(initPosition.leverage);
 
     // (lev -2) / (2lev - 2) for long equity amount
     const numeratorLongPosition = leverage.sub(2);
