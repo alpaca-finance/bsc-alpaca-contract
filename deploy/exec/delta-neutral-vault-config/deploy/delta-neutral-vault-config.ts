@@ -67,8 +67,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     POSITION_VALUE_TOLERANCE_BPS,
     DEBT_RATIO_TOLERANCE_BPS,
     DEPOSIT_FEE_TREASURY,
-    WITHDRAWAL_FEE_TREASURY,
     MANAGEMENT_TREASURY,
+    WITHDRAWAL_FEE_TREASURY,
     alpacaTokenAddress,
   ])) as DeltaNeutralVaultConfig;
   await deltaNeutralVaultConfig.deployTransaction.wait(3);
