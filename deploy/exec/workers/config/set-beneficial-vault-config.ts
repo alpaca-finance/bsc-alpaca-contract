@@ -1,8 +1,6 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers, network } from "hardhat";
-import MainnetConfig from "../../../../.mainnet.json";
-import TestnetConfig from "../../../../.testnet.json";
+import { ethers } from "hardhat";
 import { TimelockEntity } from "../../../entities";
 import { FileService, TimelockService } from "../../../services";
 import { getConfig } from "../../../entities/config";
