@@ -79,12 +79,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const deployTxReceipt = await deltaNeutralVault.deployTransaction.wait(3);
     console.log(`>> Deployed at ${deltaNeutralVault.address}`);
     console.log(`>> Deployed block: ${deployTxReceipt.blockNumber}`);
-
-    const deltaNeutralVaultAsDeployer = DeltaNeutralVault__factory.connect(deltaNeutralVault.address, deployer);
-    const stableVaultPosId = await deltaNeutralVaultAsDeployer.stableVaultPosId();
-    const assetVaultPosId = await deltaNeutralVaultAsDeployer.assetVaultPosId();
-    console.log(`>> stableVaultPosId: ${stableVaultPosId}`);
-    console.log(`>> assetVaultPosId: ${assetVaultPosId}`);
     console.log("✅ Done");
 
     if (deltaVaultInputs[i].assetVaultSymbol === "ibWBNB" || deltaVaultInputs[i].assetVaultSymbol === "ibFTM") {
