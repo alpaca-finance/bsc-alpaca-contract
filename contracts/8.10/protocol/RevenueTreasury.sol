@@ -120,7 +120,7 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
       if (vaultSwapPath.length != 0) {
         // find the amount in if we're going to cover all remaining
         uint256[] memory expectedAmountsIn = router.getAmountsIn(remaining, vaultSwapPath);
-        // if the exepected amount in < _split, then swap with _split amount
+        // if the exepected amount in < _split, then swap with expeced amount in
         // otherwise, swap only neeeded
         uint256 _swapAmount = expectedAmountsIn[0] < _split ? expectedAmountsIn[0] : _split;
         token.safeApprove(address(router), _swapAmount);
