@@ -257,14 +257,20 @@ describe("RevenueTreasury", () => {
     });
 
     describe("when as owner set reinvest paths with length less than 2", async () => {
-      it("should revert", async () => {
+      it("should work unless token does not match grassHouse token", async () => {
         await expect(treasury.setRewardPath([alpaca.address])).to.be.revertedWith(
-          "RevenueTreasury_InvalidSwapPathLength()"
+          "RevenueTreasury_TokenMismatch()"
         );
+
+        await treasury.setToken(alpaca.address);
+
+        await expect(treasury.setRewardPath([alpaca.address]))
+          .to.emit(treasury, "LogSetRewardPath")
+          .withArgs(deployerAddress, [alpaca.address]);
       });
     });
 
-    describe("when as owner set reinvest paths but not start with alpaca token", async () => {
+    describe("when as owner set reinvest paths but not start with token", async () => {
       it("should revert", async () => {
         await expect(
           treasury.setRewardPath([alpaca.address, usdt.address])
@@ -289,14 +295,20 @@ describe("RevenueTreasury", () => {
     });
 
     describe("when as owner set reinvest paths with length less than 2", async () => {
-      it("should revert", async () => {
-        await expect(treasury.setVaultSwapPath([alpaca.address])).to.be.revertedWith(
-          "RevenueTreasury_InvalidSwapPathLength()"
+      it("should work unless token does not match vault token", async () => {
+        await expect(treasury.setVaultSwapPath([usdt.address])).to.be.revertedWith(
+          "RevenueTreasury_TokenMismatch()"
         );
+
+        await treasury.setToken(usdt.address);
+
+        await expect(treasury.setVaultSwapPath([usdt.address]))
+          .to.emit(treasury, "LogSetVaultSwapPath")
+          .withArgs(deployerAddress, [usdt.address]);
       });
     });
 
-    describe("when as owner set reinvest paths but not start with alpaca token", async () => {
+    describe("when as owner set reinvest paths but not start with token", async () => {
       it("should revert", async () => {
         await expect(
           treasury.setVaultSwapPath([alpaca.address, usdt.address])

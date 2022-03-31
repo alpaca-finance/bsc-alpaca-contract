@@ -31,7 +31,6 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable, ReentrancyGuardUp
 
   /// @notice Errors
   error RevenueTreasury_TokenMismatch();
-  error RevenueTreasury_InvalidSwapPathLength();
   error RevenueTreasury_InvalidSwapPath();
   error RevenueTreasury_InvalidBps();
 
@@ -119,7 +118,7 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable, ReentrancyGuardUp
       uint256 _split = (token.myBalance() * splitBps) / 10000;
       // The amount to transfer to vault should be equal to min(split , remaining)
 
-      if (vaultSwapPath.length != 0) {
+      if (vaultSwapPath.length >= 2) {
         // find the amount in if we're going to cover all remaining
         uint256[] memory expectedAmountsIn = router.getAmountsIn(remaining, vaultSwapPath);
         // if the exepected amount in < _split, then swap with expeced amount in
@@ -149,7 +148,7 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable, ReentrancyGuardUp
     }
 
     // Swap all the rest to reward token if needed
-    if (rewardPath.length != 0) {
+    if (rewardPath.length >= 2) {
       uint256 _swapAmount = token.myBalance();
       token.safeApprove(address(router), _swapAmount);
       router.swapExactTokensForTokens(_swapAmount, 0, rewardPath, address(this), block.timestamp);
@@ -249,14 +248,10 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable, ReentrancyGuardUp
     address _destination,
     address[] memory _path
   ) internal pure {
-    if (_path.length == 0) {
-      if (_source != _destination) {
-        revert RevenueTreasury_TokenMismatch();
-      } else {
-        return;
-      }
+    if (_path.length < 2) {
+      if (_source != _destination) revert RevenueTreasury_TokenMismatch();
+    } else {
+      if ((_path[0] != _source || _path[_path.length - 1] != _destination)) revert RevenueTreasury_InvalidSwapPath();
     }
-    if (_path.length == 1) revert RevenueTreasury_InvalidSwapPathLength();
-    if (_path[0] != _source || _path[_path.length - 1] != _destination) revert RevenueTreasury_InvalidSwapPath();
   }
 }
