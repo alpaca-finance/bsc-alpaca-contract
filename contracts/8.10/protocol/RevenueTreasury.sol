@@ -13,6 +13,7 @@ Alpaca Fin Corporation
 
 pragma solidity 0.8.10;
 
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
@@ -24,7 +25,7 @@ import "./interfaces/IVault.sol";
 import "../utils/SafeToken.sol";
 
 /// @title RevenueTreasury - Receives Revenue and Settles Redistribution
-contract RevenueTreasury is Initializable, OwnableUpgradeable {
+contract RevenueTreasury is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable {
   /// @notice Libraries
   using SafeToken for address;
 
@@ -106,7 +107,7 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
   }
 
   /// @notice Split fund and distribute
-  function feedGrassHouse() external {
+  function feedGrassHouse() external nonReentrant {
     //check
     _validateSwapPath(token, vault.token(), vaultSwapPath);
     _validateSwapPath(token, grasshouseToken, rewardPath);
