@@ -1,4 +1,3 @@
-import { parseEther } from "@ethersproject/units";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
@@ -177,7 +176,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const borrowAmountAssetPosition = farmingTokenAssetPosition
       .mul(ethers.constants.WeiPerEther)
       .div(assetPrice)
-      .mul(borrowMultiplierPosition);
+      .mul(borrowMultiplierPosition)
+      .mul(10 ** (initPosition.assetDecimal - initPosition.stableDecimal));
     console.log(`>> borrowAmountAssetPosition: ${borrowAmountAssetPosition}`);
 
     const stableWorkbyteInput: IDepositWorkByte = {
@@ -224,6 +224,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       await deltaNeutralVault.initPositions(stableAmount, assetAmount, minSharesReceive, data, {
         value: assetAmount,
         nonce: nonce++,
+        gasLimit: 20000000,
       })
     ).wait(3);
     console.log(">> initTx: ", initTx.transactionHash);
