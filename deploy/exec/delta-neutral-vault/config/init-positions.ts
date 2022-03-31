@@ -105,8 +105,18 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       throw new Error(`error:not supported assetDecimal > 18, value  ${initPosition.assetDecimal}`);
     }
 
-    stableTwoSidesStrat = stableVault.StrategyAddTwoSidesOptimal.SpookySwap!;
-    assetTwoSidesStrat = assetVault.StrategyAddTwoSidesOptimal.SpookySwap!;
+    if (initPosition.symbol.includes("PCS")) {
+      stableTwoSidesStrat = stableVault.StrategyAddTwoSidesOptimal.Pancakeswap!;
+      assetTwoSidesStrat = assetVault.StrategyAddTwoSidesOptimal.Pancakeswap!;
+    } else if (initPosition.symbol.includes("MDEX")) {
+      stableTwoSidesStrat = stableVault.StrategyAddTwoSidesOptimal.Mdex!;
+      assetTwoSidesStrat = assetVault.StrategyAddTwoSidesOptimal.Mdex!;
+    } else if (initPosition.symbol.includes("SPK")) {
+      stableTwoSidesStrat = stableVault.StrategyAddTwoSidesOptimal.SpookySwap!;
+      assetTwoSidesStrat = assetVault.StrategyAddTwoSidesOptimal.SpookySwap!;
+    } else {
+      throw new Error(`err: no symbol is not match any strategy, value ${initPosition.assetDecimal}`);
+    }
 
     const stableToken = tokenLists[initPosition.stableSymbol];
     const assetToken = tokenLists[initPosition.assetSymbol];
