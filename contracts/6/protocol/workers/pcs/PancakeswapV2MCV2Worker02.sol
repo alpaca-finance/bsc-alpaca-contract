@@ -30,8 +30,8 @@ import "../../../utils/AlpacaMath.sol";
 import "../../../utils/SafeToken.sol";
 import "../../interfaces/IVault.sol";
 
-/// @title PancakeswapV2Worker02 is a PancakeswapV2Worker with with reinvest-optimized and beneficial vault buyback functionalities
-contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02 {
+/// @title PancakeswapV2MCV2Worker02 is a PancakeswapV2Worker with with reinvest-optimized and beneficial vault buyback functionalities and integrating with PancakeSwap's MasterChefV2
+contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02 {
   /// @notice Libraries
   using SafeToken for address;
   using SafeMath for uint256;

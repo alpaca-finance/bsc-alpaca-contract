@@ -30,8 +30,8 @@ import "../../../utils/AlpacaMath.sol";
 import "../../../utils/SafeToken.sol";
 import "../../interfaces/IVault.sol";
 
-/// @title PancakeswapV2Worker02 is a PancakeswapV2Worker with with reinvest-optimized and beneficial vault buyback functionalities
-contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02 {
+/// @title PancakeswapV2Worker02Migrate is a PancakeswapV2Worker with with reinvest-optimized and beneficial vault buyback functionalities
+contract PancakeswapV2Worker02Migrate is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02 {
   /// @notice Libraries
   using SafeToken for address;
   using SafeMath for uint256;
@@ -60,6 +60,7 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
     uint256 reinvestThreshold,
     address[] reinvestPath
   );
+  event LogMigrateMasterChefV2(address oldMasterChef, uint256 oldPid, address masterChefV2, uint256 newPId);
 
   /// @notice Configuration variables
   IPancakeMasterChefV2 public masterChef;
@@ -582,6 +583,9 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
   /// @param _masterChefV2 The new router
   /// @param _newPId The new pool id
   function migrateLP(IPancakeMasterChefV2 _masterChefV2, uint256 _newPId) external onlyOwner {
+    // Sanity Check
+    require(address(masterChef) == _masterChefV2.MASTER_CHEF(), "PancakeswapWorker::migrateLP::wrong _masterChefV2");
+
     /// 1. Withdraw LP from MasterChefV1
     masterChef.withdraw(pid, shareToBalance(totalShare));
 
@@ -598,7 +602,11 @@ contract PancakeswapV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
     address(lpToken).safeApprove(address(_masterChefV2), 0);
 
     /// 4. Re-assign all main variables
+    address _oldMasterChef = address(masterChef);
+    uint256 _oldPid = pid;
     masterChef = _masterChefV2;
     pid = _newPId;
+
+    emit LogMigrateMasterChefV2(_oldMasterChef, _oldPid, address(_masterChefV2), _newPId);
   }
 }

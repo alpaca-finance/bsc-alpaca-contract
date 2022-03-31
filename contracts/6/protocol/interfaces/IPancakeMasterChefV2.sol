@@ -45,6 +45,7 @@ contract IPancakeMasterChefV2 {
   }
 
   address public CAKE;
+  address public MASTER_CHEF;
 
   // Info of each user that stakes LP tokens.
   mapping(uint256 => PoolInfo) public poolInfo;
