@@ -141,7 +141,8 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable, ReentrancyGuardUp
         _transferAmount = _split < remaining ? _split : remaining;
       }
 
-      remaining = remaining - _transferAmount;
+      // _transferAmount is unlikely to > remaining, but have this check to handle if happened
+      remaining = _transferAmount < remaining ? remaining - _transferAmount : 0;
       vault.token().safeTransfer(address(vault), _transferAmount);
 
       emit LogSettleBadDebt(msg.sender, _transferAmount);
