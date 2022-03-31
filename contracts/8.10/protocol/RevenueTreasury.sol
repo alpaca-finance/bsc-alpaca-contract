@@ -118,6 +118,7 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
       // The amount to transfer to vault should be equal to min(split , remaining)
 
       if (vaultSwapPath.length != 0) {
+        // find the amount in if we're going to cover all remaining
         uint256[] memory expectedAmountsIn = router.getAmountsIn(remaining, vaultSwapPath);
         // if the exepected amount in < _split, then swap with _split amount
         // otherwise, swap only neeeded
