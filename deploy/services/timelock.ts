@@ -29,7 +29,10 @@ export async function queueTransaction(
   const paramTypesStr = paramTypes.map((p) => `'${p}'`);
   const paramsStr = params.map((p) => {
     if (Array.isArray(p)) {
-      const vauleWithQuote = p.map((p) => `'${p}'`);
+      const vauleWithQuote = p.map((p) => {
+        if (typeof p === "string") return `'${p}'`;
+        return JSON.stringify(p);
+      });
       return `[${vauleWithQuote}]`;
     }
 
