@@ -117,6 +117,8 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
       uint256 split = (token.myBalance() * splitBps) / 10000;
       // The amount to transfer to vault shoule be equal to min(split , remaining)
       _transferAmount = split < remaining ? split : remaining;
+      remaining = remaining - _transferAmount;
+
       if (vaultSwapPath.length != 0) {
         token.safeApprove(address(router), _transferAmount);
         router.swapTokensForExactTokens(
@@ -127,7 +129,7 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
           block.timestamp
         );
       }
-      remaining = remaining - _transferAmount;
+
       vault.token().safeTransfer(address(vault), _transferAmount);
     }
 
