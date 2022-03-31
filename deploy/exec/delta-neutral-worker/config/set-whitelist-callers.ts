@@ -38,7 +38,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       name: "WFTM-USDC 3x DeltaNeutralSpookyWorker",
     },
   ];
-  const factoryClass = DeltaNeutralSpookyWorker03__factory;
 
   const deployer = await getDeployer();
   let nonce = await deployer.getTransactionCount();
@@ -68,7 +67,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   for (let i = 0; i < workerInfos.length; i++) {
     console.log("===================================================================================");
     console.log(`>> Setting up whitelist callers for ${workerInfos[i].name}`);
-    const deltaWorker = factoryClass.connect(workerInfos[i].address, deployer);
+    const deltaWorker = DeltaNeutralSpookyWorker03__factory.connect(workerInfos[i].address, deployer);
     await deltaWorker.setWhitelistedCallers([deltaNeutralVault.address], true, { nonce: nonce++ });
     console.log("✅ Done");
   }
