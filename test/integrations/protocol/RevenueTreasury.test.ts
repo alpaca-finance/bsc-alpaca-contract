@@ -337,7 +337,9 @@ describe("RevenueTreasury", () => {
         expect(await busd.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("100"));
 
         expect(treasury.feedGrassHouse()).to.emit(treasury, "LogFeedGrassHouse")
-          .withArgs(deployerAddress, ethers.utils.parseEther("50"), ethers.utils.parseEther("50"));
+          .withArgs(deployerAddress, ethers.utils.parseEther("50"))
+          .to.emit(treasury, "LogSettleBadDebt")
+          .withArgs(deployerAddress, ethers.utils.parseEther("50"));
 
         expect(await busd.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("0"));
         expect(await usdt.balanceOf(vault.address)).to.be.eq(ethers.utils.parseEther("50"));
@@ -353,7 +355,9 @@ describe("RevenueTreasury", () => {
         expect(await busd.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("100"));
 
         expect(treasury.feedGrassHouse()).to.emit(treasury, "LogFeedGrassHouse")
-          .withArgs(deployerAddress, ethers.utils.parseEther("100"), ethers.utils.parseEther("0"));
+          .withArgs(deployerAddress, ethers.utils.parseEther("0"))
+          .to.emit(treasury, "LogSettleBadDebt")
+          .withArgs(deployerAddress, ethers.utils.parseEther("100"));
 
         expect(await busd.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("0"));
         expect(await usdt.balanceOf(vault.address)).to.be.eq(ethers.utils.parseEther("100"));
@@ -369,7 +373,9 @@ describe("RevenueTreasury", () => {
         expect(await busd.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("100"));
 
         expect(treasury.feedGrassHouse()).to.emit(treasury, "LogFeedGrassHouse")
-          .withArgs(deployerAddress, ethers.utils.parseEther("0"), ethers.utils.parseEther("100"));
+          .withArgs(deployerAddress, ethers.utils.parseEther("100"))
+          .to.emit(treasury, "LogSettleBadDebt")
+          .withArgs(deployerAddress, ethers.utils.parseEther("0"));
 
         expect(await busd.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("0"));
         expect(await usdt.balanceOf(vault.address)).to.be.eq(ethers.utils.parseEther("0"));
@@ -384,7 +390,9 @@ describe("RevenueTreasury", () => {
         expect(await busd.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("30000"));
 
         expect(treasury.feedGrassHouse()).to.emit(treasury, "LogFeedGrassHouse")
-          .withArgs(deployerAddress, ethers.utils.parseEther("10000"), ethers.utils.parseEther("20000"));
+          .withArgs(deployerAddress, ethers.utils.parseEther("20000"))
+          .to.emit(treasury, "LogSettleBadDebt")
+          .withArgs(deployerAddress, ethers.utils.parseEther("10000"));
 
         expect(await busd.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("0"));
         expect(await usdt.balanceOf(vault.address)).to.be.eq(ethers.utils.parseEther("10000"));
@@ -400,7 +408,9 @@ describe("RevenueTreasury", () => {
         expect(await busd.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("20000"));
 
         expect(treasury.feedGrassHouse()).to.emit(treasury, "LogFeedGrassHouse")
-          .withArgs(deployerAddress, ethers.utils.parseEther("10000"), ethers.utils.parseEther("10000"));
+          .withArgs(deployerAddress, ethers.utils.parseEther("10000"))
+          .to.emit(treasury, "LogSettleBadDebt")
+          .withArgs(deployerAddress, ethers.utils.parseEther("10000"));
 
         expect(await busd.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("0"));
         expect(await usdt.balanceOf(vault.address)).to.be.eq(ethers.utils.parseEther("10000"));
@@ -411,7 +421,7 @@ describe("RevenueTreasury", () => {
         expect(await busd.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("5000"));
 
         expect(treasury.feedGrassHouse()).to.emit(treasury, "LogFeedGrassHouse")
-          .withArgs(deployerAddress, ethers.utils.parseEther("0"), ethers.utils.parseEther("5000"));
+          .withArgs(deployerAddress, ethers.utils.parseEther("5000"));
 
         expect(await busd.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("0"));
         expect(await usdt.balanceOf(vault.address)).to.be.eq(ethers.utils.parseEther("10000"));
@@ -427,7 +437,9 @@ describe("RevenueTreasury", () => {
         await usdt.transfer(treasury.address, ethers.utils.parseEther("20000"));
 
         expect(treasury.feedGrassHouse()).to.emit(treasury, "LogFeedGrassHouse")
-          .withArgs(deployerAddress, ethers.utils.parseEther("10000"), ethers.utils.parseEther("10000"));
+          .withArgs(deployerAddress, ethers.utils.parseEther("10000"))
+          .to.emit(treasury, "LogSettleBadDebt")
+          .withArgs(deployerAddress, ethers.utils.parseEther("10000"));
 
         expect(await usdt.balanceOf(vault.address)).to.be.eq(ethers.utils.parseEther("10000"));
         expect(await alpaca.balanceOf(grassHouse.address)).to.be.eq(ethers.utils.parseEther("10000"));
@@ -442,7 +454,9 @@ describe("RevenueTreasury", () => {
         await alpaca.transfer(treasury.address, ethers.utils.parseEther("20000"));
 
         expect(treasury.feedGrassHouse()).to.emit(treasury, "LogFeedGrassHouse")
-          .withArgs(deployerAddress, ethers.utils.parseEther("10000"), ethers.utils.parseEther("10000"));
+          .withArgs(deployerAddress, ethers.utils.parseEther("10000"))
+          .to.emit(treasury, "LogSettleBadDebt")
+          .withArgs(deployerAddress, ethers.utils.parseEther("10000"));
 
         expect(await usdt.balanceOf(vault.address)).to.be.eq(ethers.utils.parseEther("10000"));
         expect(await alpaca.balanceOf(grassHouse.address)).to.be.eq(ethers.utils.parseEther("10000"));

@@ -65,7 +65,8 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable, ReentrancyGuardUp
   uint256 public splitBps;
 
   /// @notice Events
-  event LogFeedGrassHouse(address indexed _caller, uint256 _transferAmount, uint256 _feedAmount);
+  event LogSettleBadDebt(address indexed _caller, uint256 _transferAmount);
+  event LogFeedGrassHouse(address indexed _caller, uint256 _feedAmount);
   event LogSetToken(address indexed _caller, address _prevToken, address _newToken);
   event LogSetVault(address indexed _caller, address _prevVault, address _newVault);
   event LogSetGrassHouse(address indexed _caller, address _prevGrassHouse, address _newGrassHouse);
@@ -142,6 +143,8 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable, ReentrancyGuardUp
 
       remaining = remaining - _transferAmount;
       vault.token().safeTransfer(address(vault), _transferAmount);
+
+      emit LogSettleBadDebt(msg.sender, _transferAmount);
     }
 
     // Swap all the rest to reward token if needed
@@ -155,7 +158,7 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable, ReentrancyGuardUp
     uint256 _feedAmount = grasshouseToken.myBalance();
     grasshouseToken.safeApprove(address(grassHouse), _feedAmount);
     grassHouse.feed(_feedAmount);
-    emit LogFeedGrassHouse(msg.sender, _transferAmount, _feedAmount);
+    emit LogFeedGrassHouse(msg.sender, _feedAmount);
   }
 
   /// @notice Set new recieving token
