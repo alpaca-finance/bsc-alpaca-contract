@@ -132,7 +132,7 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
           block.timestamp
         );
 
-        // update trasnfer amount by the amount received from swap
+        // update transfer amount by the amount received from swap
         _transferAmount = _amountsOut[_amountsOut.length - 1];
       } else {
         _transferAmount = _split < remaining ? _split : remaining;
