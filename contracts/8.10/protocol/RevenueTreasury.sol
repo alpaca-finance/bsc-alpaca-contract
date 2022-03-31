@@ -64,12 +64,15 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
   uint256 public splitBps;
 
   /// @notice Events
-  event LogFeedGrassHouse(address indexed _caller, uint256 _transferAmount, uint256 _swapAmount, uint256 _feedAmount);
+  event LogFeedGrassHouse(address indexed _caller, uint256 _transferAmount, uint256 _feedAmount);
+  event LogSetToken(address indexed _caller, address _prevToken, address _newToken);
+  event LogSetVault(address indexed _caller, address _prevVault, address _newVault);
   event LogSetGrassHouse(address indexed _caller, address _prevGrassHouse, address _newGrassHouse);
   event LogSetWhitelistedCallers(address indexed _caller, address indexed _address, bool _ok);
   event LogSetRewardPath(address indexed _caller, address[] _newRewardPath);
   event LogSetVaultSwapPath(address indexed _caller, address[] _newRewardPath);
   event LogSetRouter(address indexed _caller, address _prevRouter, address _newRouter);
+  event LogSetRemaining(address indexed _caller, uint256 _prevRemaining, uint256 _newRemaining);
   event LogSetSplitBps(address indexed _caller, uint256 _prevSplitBps, uint256 _newSplitBps);
 
   /// @notice Initialize function
@@ -104,28 +107,61 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
 
   /// @notice Split fund and distribute
   function feedGrassHouse() external {
+    //check
+    _validateSwapPath(token, vault.token(), vaultSwapPath);
+    _validateSwapPath(token, grasshouseToken, rewardPath);
+
     uint256 _transferAmount = 0;
     if (remaining > 0) {
       // Split the current receiving token balance per configured bps.
       uint256 split = (token.myBalance() * splitBps) / 10000;
       // The amount to transfer to vault shoule be equal to min(split , remaining)
       _transferAmount = split < remaining ? split : remaining;
-
+      if (vaultSwapPath.length != 0) {
+        token.safeApprove(address(router), _transferAmount);
+        router.swapTokensForExactTokens(
+          _transferAmount,
+          type(uint256).max,
+          vaultSwapPath,
+          address(this),
+          block.timestamp
+        );
+      }
       remaining = remaining - _transferAmount;
-      token.safeTransfer(address(vault), _transferAmount);
+      vault.token().safeTransfer(address(vault), _transferAmount);
     }
 
-    // Swap all the rest to reward token
-    uint256 _swapAmount = token.myBalance();
-    token.safeApprove(address(router), _swapAmount);
-    router.swapExactTokensForTokens(_swapAmount, 0, rewardPath, address(this), block.timestamp);
-    token.safeApprove(address(router), 0);
+    // Swap all the rest to reward token if needed
+    if (rewardPath.length != 0) {
+      uint256 _swapAmount = token.myBalance();
+      token.safeApprove(address(router), _swapAmount);
+      router.swapExactTokensForTokens(_swapAmount, 0, rewardPath, address(this), block.timestamp);
+    }
 
     // Feed all reward token to grasshouse
     uint256 _feedAmount = grasshouseToken.myBalance();
     grasshouseToken.safeApprove(address(grassHouse), _feedAmount);
     grassHouse.feed(_feedAmount);
-    emit LogFeedGrassHouse(msg.sender, _transferAmount, _swapAmount, _feedAmount);
+    emit LogFeedGrassHouse(msg.sender, _transferAmount, _feedAmount);
+  }
+
+  /// @notice Set new recieving token
+  /// @param _newToken - new recieving token address
+  function setToken(address _newToken) external onlyOwner {
+    address _prevToken = token;
+    token = _newToken;
+    emit LogSetToken(msg.sender, _prevToken, token);
+  }
+
+  /// @notice Set new destination vault
+  /// @param _newVault - new destination vault address
+  function setVault(IVault _newVault) external onlyOwner {
+    //check
+    _newVault.token();
+
+    IVault _prevVault = vault;
+    vault = _newVault;
+    emit LogSetVault(msg.sender, address(_prevVault), address(vault));
   }
 
   /// @notice Set a new GrassHouse
@@ -166,6 +202,15 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
     emit LogSetVaultSwapPath(msg.sender, _vaultSwapPath);
   }
 
+  /// @notice Set a new remaining
+  /// @param _newRemaining new remaining amount
+  function setRemaining(uint256 _newRemaining) external onlyOwner {
+    uint256 _prevRemaining = remaining;
+    remaining = _newRemaining;
+
+    emit LogSetRemaining(msg.sender, _prevRemaining, remaining);
+  }
+
   /// @notice Set a new swap router
   /// @param _newSplitBps The new reward path.
   function setSplitBps(uint256 _newSplitBps) external onlyOwner {
@@ -187,8 +232,14 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
     address _destination,
     address[] memory _path
   ) internal pure {
-    if (_path.length < 2) revert RevenueTreasury_InvalidSwapPathLength();
-
+    if (_path.length == 0) {
+      if (_source != _destination) {
+        revert RevenueTreasury_TokenMismatch();
+      } else {
+        return;
+      }
+    }
+    if (_path.length == 1) revert RevenueTreasury_InvalidSwapPathLength();
     if (_path[0] != _source || _path[_path.length - 1] != _destination) revert RevenueTreasury_InvalidSwapPath();
   }
 }

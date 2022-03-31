@@ -61,12 +61,18 @@ contract MockSwapRouter is ISwapRouter {
   }
 
   function swapTokensForExactTokens(
-    uint256, /*amountOut*/
+    uint256 amountOut,
     uint256, /*amountInMax*/
-    address[] calldata, /*path*/
-    address, /*to*/
+    address[] calldata path,
+    address to,
     uint256 /*deadline*/
-  ) external pure returns (uint256[] memory amounts) {
+  ) external returns (uint256[] memory amounts) {
+    IERC20Upgradeable(path[0]).safeTransferFrom(msg.sender, address(this), amountOut);
+    IERC20Upgradeable(path[path.length - 1]).safeTransfer(to, amountOut);
+
+    amounts = new uint256[](2);
+    amounts[0] = amountOut;
+    amounts[1] = amountOut;
     return amounts;
   }
 }

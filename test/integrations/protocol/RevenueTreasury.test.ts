@@ -116,6 +116,7 @@ describe("RevenueTreasury", () => {
     ])) as RevenueTreasury;
     treasury = await revenueTreasury.deployed();
     treasury.setRewardPath([busd.address, alpaca.address]);
+    treasury.setVaultSwapPath([busd.address, usdt.address]);
 
     // MINT
     await alpaca.mint(deployerAddress, ethers.utils.parseEther("8888888"));
@@ -201,11 +202,13 @@ describe("RevenueTreasury", () => {
         expect(await treasury.grasshouseToken()).to.be.eq(usdt.address);
       });
     });
+
     describe("if the address is not grasshouse", async () => {
       it("should revert", async () => {
         await expect(treasury.setGrassHouse(usdt.address)).to.be.revertedWith("Transaction reverted: function selector was not recognized and there's no fallback function");
       });
     });
+
     describe("if the caller is not owner", async () => {
       it("should revert", async () => {
         await expect(treasuryAsAlice.setGrassHouse(usdt.address)).to.be.revertedWith("'Ownable: caller is not the owner");
@@ -238,7 +241,7 @@ describe("RevenueTreasury", () => {
   });
 
   context("#setRewardPath", async () => {
-    describe("when as owner set reinvest paths and start with busd token", async () => {
+    describe("when owner set reinvest paths and start with busd token", async () => {
       it("should work", async () => {
         await expect(treasury.setRewardPath([busd.address, alpaca.address]))
           .to.emit(treasury, "LogSetRewardPath")
@@ -270,9 +273,8 @@ describe("RevenueTreasury", () => {
     });
   });
 
-
   context("#setVaultSwapPath", async () => {
-    describe("when as owner set reinvest paths and start with busd token", async () => {
+    describe("when owner set reinvest paths and start with busd token", async () => {
       it("should work", async () => {
         await expect(treasury.setVaultSwapPath([busd.address, usdt.address]))
           .to.emit(treasury, "LogSetVaultSwapPath")
@@ -311,6 +313,7 @@ describe("RevenueTreasury", () => {
           .withArgs(deployerAddress, 5000, 50);
       });
     });
+
     describe("if bps > 10000", async () => {
       it("should revert", async () => {
         await expect(treasury.setSplitBps(10001)).to.be.revertedWith(
@@ -318,6 +321,7 @@ describe("RevenueTreasury", () => {
         );
       });
     });
+
     describe("if the caller is not owner", async () => {
       it("should revert", async () => {
         await expect(treasuryAsAlice.setSplitBps(10001)).to.be.revertedWith("'Ownable: caller is not the owner");
@@ -333,10 +337,10 @@ describe("RevenueTreasury", () => {
         expect(await busd.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("100"));
 
         expect(treasury.feedGrassHouse()).to.emit(treasury, "LogFeedGrassHouse")
-          .withArgs(deployerAddress, ethers.utils.parseEther("50"), ethers.utils.parseEther("50"), ethers.utils.parseEther("50"));
+          .withArgs(deployerAddress, ethers.utils.parseEther("50"), ethers.utils.parseEther("50"));
 
         expect(await busd.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("0"));
-        expect(await busd.balanceOf(vault.address)).to.be.eq(ethers.utils.parseEther("50"));
+        expect(await usdt.balanceOf(vault.address)).to.be.eq(ethers.utils.parseEther("50"));
         expect(await alpaca.balanceOf(grassHouse.address)).to.be.eq(ethers.utils.parseEther("50"));
       });
     });
@@ -349,10 +353,10 @@ describe("RevenueTreasury", () => {
         expect(await busd.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("100"));
 
         expect(treasury.feedGrassHouse()).to.emit(treasury, "LogFeedGrassHouse")
-          .withArgs(deployerAddress, ethers.utils.parseEther("100"), ethers.utils.parseEther("0"), ethers.utils.parseEther("0"));
+          .withArgs(deployerAddress, ethers.utils.parseEther("100"), ethers.utils.parseEther("0"));
 
         expect(await busd.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("0"));
-        expect(await busd.balanceOf(vault.address)).to.be.eq(ethers.utils.parseEther("100"));
+        expect(await usdt.balanceOf(vault.address)).to.be.eq(ethers.utils.parseEther("100"));
         expect(await alpaca.balanceOf(grassHouse.address)).to.be.eq(ethers.utils.parseEther("0"));
       });
     });
@@ -365,10 +369,10 @@ describe("RevenueTreasury", () => {
         expect(await busd.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("100"));
 
         expect(treasury.feedGrassHouse()).to.emit(treasury, "LogFeedGrassHouse")
-          .withArgs(deployerAddress, ethers.utils.parseEther("0"), ethers.utils.parseEther("100"), ethers.utils.parseEther("100"));
+          .withArgs(deployerAddress, ethers.utils.parseEther("0"), ethers.utils.parseEther("100"));
 
         expect(await busd.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("0"));
-        expect(await busd.balanceOf(vault.address)).to.be.eq(ethers.utils.parseEther("0"));
+        expect(await usdt.balanceOf(vault.address)).to.be.eq(ethers.utils.parseEther("0"));
         expect(await alpaca.balanceOf(grassHouse.address)).to.be.eq(ethers.utils.parseEther("100"));
       });
     });
@@ -380,10 +384,10 @@ describe("RevenueTreasury", () => {
         expect(await busd.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("30000"));
 
         expect(treasury.feedGrassHouse()).to.emit(treasury, "LogFeedGrassHouse")
-          .withArgs(deployerAddress, ethers.utils.parseEther("10000"), ethers.utils.parseEther("20000"), ethers.utils.parseEther("20000"));
+          .withArgs(deployerAddress, ethers.utils.parseEther("10000"), ethers.utils.parseEther("20000"));
 
         expect(await busd.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("0"));
-        expect(await busd.balanceOf(vault.address)).to.be.eq(ethers.utils.parseEther("10000"));
+        expect(await usdt.balanceOf(vault.address)).to.be.eq(ethers.utils.parseEther("10000"));
         expect(await alpaca.balanceOf(grassHouse.address)).to.be.eq(ethers.utils.parseEther("20000"));
       });
     });
@@ -396,10 +400,10 @@ describe("RevenueTreasury", () => {
         expect(await busd.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("20000"));
 
         expect(treasury.feedGrassHouse()).to.emit(treasury, "LogFeedGrassHouse")
-          .withArgs(deployerAddress, ethers.utils.parseEther("10000"), ethers.utils.parseEther("10000"), ethers.utils.parseEther("10000"));
+          .withArgs(deployerAddress, ethers.utils.parseEther("10000"), ethers.utils.parseEther("10000"));
 
         expect(await busd.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("0"));
-        expect(await busd.balanceOf(vault.address)).to.be.eq(ethers.utils.parseEther("10000"));
+        expect(await usdt.balanceOf(vault.address)).to.be.eq(ethers.utils.parseEther("10000"));
         expect(await alpaca.balanceOf(grassHouse.address)).to.be.eq(ethers.utils.parseEther("10000"));
 
         // Another round of revenue distribution
@@ -407,11 +411,80 @@ describe("RevenueTreasury", () => {
         expect(await busd.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("5000"));
 
         expect(treasury.feedGrassHouse()).to.emit(treasury, "LogFeedGrassHouse")
-          .withArgs(deployerAddress, ethers.utils.parseEther("0"), ethers.utils.parseEther("5000"), ethers.utils.parseEther("5000"));
+          .withArgs(deployerAddress, ethers.utils.parseEther("0"), ethers.utils.parseEther("5000"));
 
         expect(await busd.balanceOf(treasury.address)).to.be.eq(ethers.utils.parseEther("0"));
-        expect(await busd.balanceOf(vault.address)).to.be.eq(ethers.utils.parseEther("10000"));
+        expect(await usdt.balanceOf(vault.address)).to.be.eq(ethers.utils.parseEther("10000"));
         expect(await alpaca.balanceOf(grassHouse.address)).to.be.eq(ethers.utils.parseEther("15000"));
+      });
+    });
+
+    describe("In case there's no need for vault swap", async () => {
+      it("should work", async () => {
+        await treasury.setToken(usdt.address);
+        await treasury.setRewardPath([usdt.address, alpaca.address]);
+        await treasury.setVaultSwapPath([]);
+        await usdt.transfer(treasury.address, ethers.utils.parseEther("20000"));
+
+        expect(treasury.feedGrassHouse()).to.emit(treasury, "LogFeedGrassHouse")
+          .withArgs(deployerAddress, ethers.utils.parseEther("10000"), ethers.utils.parseEther("10000"));
+
+        expect(await usdt.balanceOf(vault.address)).to.be.eq(ethers.utils.parseEther("10000"));
+        expect(await alpaca.balanceOf(grassHouse.address)).to.be.eq(ethers.utils.parseEther("10000"));
+      });
+    });
+
+    describe("In case there's no need for reward swap", async () => {
+      it("should work", async () => {
+        await treasury.setToken(alpaca.address);
+        await treasury.setRewardPath([]);
+        await treasury.setVaultSwapPath([alpaca.address, usdt.address]);
+        await alpaca.transfer(treasury.address, ethers.utils.parseEther("20000"));
+
+        expect(treasury.feedGrassHouse()).to.emit(treasury, "LogFeedGrassHouse")
+          .withArgs(deployerAddress, ethers.utils.parseEther("10000"), ethers.utils.parseEther("10000"));
+
+        expect(await usdt.balanceOf(vault.address)).to.be.eq(ethers.utils.parseEther("10000"));
+        expect(await alpaca.balanceOf(grassHouse.address)).to.be.eq(ethers.utils.parseEther("10000"));
+      });
+    });
+
+    describe("If token has been changed but swap path hasn't been changed", async () => {
+      it("should revert", async () => {
+        await treasury.setToken(usdt.address);
+        await usdt.transfer(treasury.address, ethers.utils.parseEther("20000"));
+
+        expect(treasury.feedGrassHouse()).to.be.revertedWith("RevenueTreasury_InvalidSwapPath()");
+
+      });
+    });
+
+    describe("If vault has been changed but swap path hasn't been changed", async () => {
+      it("should revert", async () => {
+        // Deploy Vault
+        const MockVault = (await ethers.getContractFactory("MockVault", deployer)) as MockVault__factory;
+        const alpacaVault = await MockVault.deploy(alpaca.address);
+
+        await treasury.setVault(alpacaVault.address);
+        await usdt.transfer(treasury.address, ethers.utils.parseEther("20000"));
+
+        expect(treasury.feedGrassHouse()).to.be.revertedWith("RevenueTreasury_InvalidSwapPath()");
+
+      });
+    });
+
+    describe("If grassHouse has been changed but swap path hasn't been changed", async () => {
+      it("should revert", async () => {
+        // Deploy GrassHouse
+        const MockGrassHouse = (await ethers.getContractFactory("MockGrassHouse", deployer)) as MockGrassHouse__factory;
+        const usdtGrassHouse = await MockGrassHouse.deploy(usdt.address);
+
+
+        await treasury.setGrassHouse(usdtGrassHouse.address);
+        await usdt.transfer(treasury.address, ethers.utils.parseEther("20000"));
+
+        expect(treasury.feedGrassHouse()).to.be.revertedWith("RevenueTreasury_InvalidSwapPath()");
+
       });
     });
   });
