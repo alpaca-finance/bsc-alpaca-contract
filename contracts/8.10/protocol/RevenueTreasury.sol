@@ -114,22 +114,31 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
     uint256 _transferAmount = 0;
     if (remaining > 0) {
       // Split the current receiving token balance per configured bps.
-      uint256 split = (token.myBalance() * splitBps) / 10000;
-      // The amount to transfer to vault shoule be equal to min(split , remaining)
-      _transferAmount = split < remaining ? split : remaining;
-      remaining = remaining - _transferAmount;
+      uint256 _split = (token.myBalance() * splitBps) / 10000;
+      // The amount to transfer to vault should be equal to min(split , remaining)
 
       if (vaultSwapPath.length != 0) {
-        token.safeApprove(address(router), _transferAmount);
-        router.swapTokensForExactTokens(
-          _transferAmount,
-          type(uint256).max,
+        uint256[] memory expectedAmountsIn = router.getAmountsIn(remaining, vaultSwapPath);
+        // if the exepected amount in < _split, swap _split amount
+        // otherwise, swap only neeeded
+        uint256 _swapAmount = expectedAmountsIn[0] < _split ? expectedAmountsIn[0] : _split;
+        token.safeApprove(address(router), _swapAmount);
+        // Need amountsOut to update remaining
+        uint256[] memory _amountsOut = router.swapExactTokensForTokens(
+          _swapAmount,
+          0,
           vaultSwapPath,
           address(this),
           block.timestamp
         );
+        _transferAmount = _amountsOut[_amountsOut.length - 1] < remaining
+          ? _amountsOut[_amountsOut.length - 1]
+          : remaining;
+      } else {
+        _transferAmount = _split < remaining ? _split : remaining;
       }
 
+      remaining = remaining - _transferAmount;
       vault.token().safeTransfer(address(vault), _transferAmount);
     }
 

@@ -18,6 +18,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
 import "../interfaces/ISwapRouter.sol";
 
+/// @title MockSwapRouter - 1:1 swap for all token without fee and price impact
 contract MockSwapRouter is ISwapRouter {
   using SafeERC20Upgradeable for IERC20Upgradeable;
 
@@ -51,13 +52,9 @@ contract MockSwapRouter is ISwapRouter {
     address to,
     uint256 /*deadline*/
   ) external returns (uint256[] memory amounts) {
+    amounts = getAmountsOut(amountIn, path);
     IERC20Upgradeable(path[0]).safeTransferFrom(msg.sender, address(this), amountIn);
     IERC20Upgradeable(path[path.length - 1]).safeTransfer(to, amountIn);
-
-    amounts = new uint256[](2);
-    amounts[0] = amountIn;
-    amounts[1] = amountIn;
-    return amounts;
   }
 
   function swapTokensForExactTokens(
@@ -67,12 +64,24 @@ contract MockSwapRouter is ISwapRouter {
     address to,
     uint256 /*deadline*/
   ) external returns (uint256[] memory amounts) {
+    amounts = getAmountsIn(amountOut, path);
     IERC20Upgradeable(path[0]).safeTransferFrom(msg.sender, address(this), amountOut);
     IERC20Upgradeable(path[path.length - 1]).safeTransfer(to, amountOut);
+  }
 
-    amounts = new uint256[](2);
-    amounts[0] = amountOut;
-    amounts[1] = amountOut;
+  function getAmountsIn(uint256 amountOut, address[] memory path) public pure returns (uint256[] memory amounts) {
+    amounts = new uint256[](path.length);
+    for (uint256 i = 0; i < path.length; i++) {
+      amounts[i] = amountOut;
+    }
+    return amounts;
+  }
+
+  function getAmountsOut(uint256 amountIn, address[] memory path) public pure returns (uint256[] memory amounts) {
+    amounts = new uint256[](path.length);
+    for (uint256 i = 0; i < path.length; i++) {
+      amounts[i] = amountIn;
+    }
     return amounts;
   }
 }
