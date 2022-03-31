@@ -1,25 +1,37 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers, network } from "hardhat";
-import { Timelock__factory } from "../../../../typechain";
-import MainnetConfig from "../../../../.mainnet.json";
-import TestnetConfig from "../../../../.testnet.json";
+import { ethers } from "hardhat";
 import { TimelockEntity } from "../../../entities";
 import { FileService, TimelockService } from "../../../services";
+import { getConfig } from "../../../entities/config";
+import { ConfigurableInterestVaultConfig__factory } from "../../../../typechain";
+import { Multicall2Service } from "../../../services/multicall/multicall2";
+import { BigNumber, BigNumberish } from "ethers";
 
-interface IInput {
+interface SetParamsInput {
   VAULT_SYMBOL: string;
-  MIN_DEBT_SIZE: string;
-  RESERVE_POOL_BPS: string;
-  KILL_PRIZE_BPS: string;
-  INTEREST_MODEL: string;
+  MIN_DEBT_SIZE_WEI?: BigNumberish;
+  RESERVE_POOL_BPS?: BigNumberish;
+  KILL_PRIZE_BPS?: BigNumberish;
+  INTEREST_MODEL?: string;
+  TREASURY_KILL_BPS?: BigNumberish;
+  TREASURY_ADDR?: string;
   EXACT_ETA: string;
-  TREASURY_KILL_BPS: string;
-  TREASURY_ADDR: string;
 }
 
-interface IInfo extends IInput {
+interface SetParamsDerivedInput {
+  VAULT_SYMBOL: string;
+  MIN_DEBT_SIZE_WEI: BigNumberish;
+  RESERVE_POOL_BPS: BigNumberish;
+  KILL_PRIZE_BPS: BigNumberish;
+  INTEREST_MODEL: string;
+  TREASURY_KILL_BPS: BigNumberish;
+  TREASURY_ADDR: string;
+  WRAPPED_NATIVE: string;
+  WNATIVE_RELAYER: string;
+  FAIRLAUNCH: string;
   VAULT_CONFIG: string;
+  EXACT_ETA: string;
 }
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -32,52 +44,73 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLTE = "update-min-debt-size";
-  const NEW_PARAMS: Array<IInput> = [
+  const TITLTE = "update_triple_slope_model_config";
+  const NEW_PARAMS: Array<SetParamsInput> = [
     {
-      VAULT_SYMBOL: "ibALPACA",
-      MIN_DEBT_SIZE: "200",
-      RESERVE_POOL_BPS: "1900",
-      INTEREST_MODEL: "0xADcfBf2e8470493060FbE0A0aFAC66d2cB028e9c",
-      KILL_PRIZE_BPS: "100",
-      TREASURY_KILL_BPS: "400",
-      TREASURY_ADDR: "0x0FfA891ab6f410bbd7403b709e7d38D7a812125B",
-      EXACT_ETA: "1642070700",
+      VAULT_SYMBOL: "ibWBNB",
+      INTEREST_MODEL: "0x4eCa08e4f2eD826dba5Bea2Ec133036fE60d30b6",
+      EXACT_ETA: "1648539000",
     },
     {
-      VAULT_SYMBOL: "ibBTCB",
-      MIN_DEBT_SIZE: "0.0025",
-      RESERVE_POOL_BPS: "1900",
-      INTEREST_MODEL: "0xADcfBf2e8470493060FbE0A0aFAC66d2cB028e9c",
-      KILL_PRIZE_BPS: "100",
-      TREASURY_KILL_BPS: "400",
-      TREASURY_ADDR: "0x0FfA891ab6f410bbd7403b709e7d38D7a812125B",
-      EXACT_ETA: "1642070700",
+      VAULT_SYMBOL: "ibUSDT",
+      INTEREST_MODEL: "0x8d657683437bf1B2f8274515B237A2Db0F233a2d",
+      EXACT_ETA: "1648539000",
     },
   ];
 
-  const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
+  const config = getConfig();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   const deployer = (await ethers.getSigners())[0];
+  const multicallService = new Multicall2Service(config.MultiCall, deployer);
   let nonce = await deployer.getTransactionCount();
 
   /// @dev derived input
-  const infos: Array<IInfo> = NEW_PARAMS.map((n) => {
-    const vault = config.Vaults.find((v) => v.symbol === n.VAULT_SYMBOL);
-    if (vault === undefined) throw new Error(`error: unable to map ${n.VAULT_SYMBOL} to any vault`);
+  const infos: Array<SetParamsDerivedInput> = await Promise.all(
+    NEW_PARAMS.map(async (n) => {
+      const vault = config.Vaults.find((v) => v.symbol === n.VAULT_SYMBOL);
+      if (vault === undefined) throw new Error(`error: unable to map ${n.VAULT_SYMBOL} to any vault`);
 
-    return {
-      VAULT_SYMBOL: n.VAULT_SYMBOL,
-      VAULT_CONFIG: vault.config,
-      MIN_DEBT_SIZE: n.MIN_DEBT_SIZE,
-      RESERVE_POOL_BPS: n.RESERVE_POOL_BPS,
-      KILL_PRIZE_BPS: n.KILL_PRIZE_BPS,
-      INTEREST_MODEL: n.INTEREST_MODEL,
-      TREASURY_ADDR: n.TREASURY_ADDR,
-      TREASURY_KILL_BPS: n.TREASURY_KILL_BPS,
-      EXACT_ETA: n.EXACT_ETA,
-    };
-  });
+      const vaultConfig = ConfigurableInterestVaultConfig__factory.connect(vault.config, deployer);
+      const [
+        minDebtSize,
+        reservePoolBps,
+        killBps,
+        interestModel,
+        treasury,
+        treasuryKillBps,
+        wrappedNative,
+        wnativeRelayer,
+        fairlaunch,
+      ] = await multicallService.multiContractCall<
+        [BigNumber, BigNumber, BigNumber, string, string, BigNumber, string, string, string]
+      >([
+        { contract: vaultConfig, functionName: "minDebtSize" },
+        { contract: vaultConfig, functionName: "getReservePoolBps" },
+        { contract: vaultConfig, functionName: "getKillBps" },
+        { contract: vaultConfig, functionName: "interestModel" },
+        { contract: vaultConfig, functionName: "treasury" },
+        { contract: vaultConfig, functionName: "getKillTreasuryBps" },
+        { contract: vaultConfig, functionName: "getWrappedNativeAddr" },
+        { contract: vaultConfig, functionName: "getWNativeRelayer" },
+        { contract: vaultConfig, functionName: "getFairLaunchAddr" },
+      ]);
+
+      return {
+        VAULT_SYMBOL: n.VAULT_SYMBOL,
+        VAULT_CONFIG: vault.config,
+        MIN_DEBT_SIZE_WEI: n.MIN_DEBT_SIZE_WEI || minDebtSize,
+        RESERVE_POOL_BPS: n.RESERVE_POOL_BPS || reservePoolBps,
+        KILL_PRIZE_BPS: n.KILL_PRIZE_BPS || killBps,
+        INTEREST_MODEL: n.INTEREST_MODEL || interestModel,
+        TREASURY_ADDR: n.TREASURY_ADDR || treasury,
+        TREASURY_KILL_BPS: n.TREASURY_KILL_BPS || treasuryKillBps,
+        WRAPPED_NATIVE: wrappedNative,
+        WNATIVE_RELAYER: wnativeRelayer,
+        FAIRLAUNCH: fairlaunch,
+        EXACT_ETA: n.EXACT_ETA,
+      } as SetParamsDerivedInput;
+    })
+  );
 
   for (const info of infos) {
     // function setParams(
@@ -99,13 +132,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         "setParams(uint256,uint256,uint256,address,address,address,address,uint256,address)",
         ["uint256", "uint256", "uint256", "address", "address", "address", "address", "uint256", "address"],
         [
-          ethers.utils.parseEther(info.MIN_DEBT_SIZE),
+          info.MIN_DEBT_SIZE_WEI,
           info.RESERVE_POOL_BPS,
           info.KILL_PRIZE_BPS,
           info.INTEREST_MODEL,
-          config.Tokens.WBNB,
-          config.SharedConfig.WNativeRelayer,
-          config.FairLaunch.address,
+          info.WRAPPED_NATIVE,
+          info.WNATIVE_RELAYER,
+          info.FAIRLAUNCH,
           info.TREASURY_KILL_BPS,
           info.TREASURY_ADDR,
         ],
