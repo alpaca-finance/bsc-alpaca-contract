@@ -432,6 +432,7 @@ describe("Vault - PancakeswapV202", () => {
             [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
           )
         );
+        const healthPosition1Before = await pancakeswapV2Worker.health(1);
 
         // Upgrade worker to migrate to MasterChefV2
         const PancakeswapV2Worker02Migrate = (await ethers.getContractFactory(
@@ -444,7 +445,39 @@ describe("Vault - PancakeswapV202", () => {
         )) as PancakeswapV2Worker02Migrate;
         await pancakeswapV202workerMigrate.deployed();
 
+        const healthBeforeMigrateLp = await pancakeswapV2Worker.health(1);
+
+        // Open Position #2 before migrateLp
+        await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("0.3"));
+        await vaultAsAlice.work(
+          0,
+          pancakeswapV2Worker.address,
+          ethers.utils.parseEther("0.3"),
+          ethers.utils.parseEther("0"),
+          "0",
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          )
+        );
+        const healthPosition2Before = await pancakeswapV2Worker.health(2);
+
         await pancakeswapV202workerMigrate.migrateLP(masterChefV2.address, 1);
+
+        // Open Position #3 after migrateLp
+        await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("0.3"));
+        await vaultAsAlice.work(
+          0,
+          pancakeswapV2Worker.address,
+          ethers.utils.parseEther("0.3"),
+          ethers.utils.parseEther("0"),
+          "0",
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          )
+        );
+        const healthPosition3Before = await pancakeswapV2Worker.health(3);
 
         // Upgrade to non-migrate version that support MasterChefV2
         const PancakeswapV2MCV2Worker02 = (await ethers.getContractFactory(
@@ -455,15 +488,41 @@ describe("Vault - PancakeswapV202", () => {
           pancakeswapV2Worker.address,
           PancakeswapV2MCV2Worker02
         )) as PancakeswapV2MCV2Worker02;
-        await pancakeswapV202workerMigrate.deployed();
+        await pancakeswapV2MCV2Worker02.deployed();
 
-        const healthBefore = await pancakeswapV2Worker.health(1);
+        // Open Position #4 after upgrade to non-migrate version
+        await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("0.3"));
+        await vaultAsAlice.work(
+          0,
+          pancakeswapV2Worker.address,
+          ethers.utils.parseEther("0.3"),
+          ethers.utils.parseEther("0"),
+          "0",
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
+          )
+        );
+        const healthPosition4Before = await pancakeswapV2Worker.health(4);
+
+        const [oldMasterChefBalance] = await masterChef.userInfo(1, pancakeswapV2Worker.address);
+        const [masterChefV2Balance, ,] = await masterChefV2.userInfo(1, pancakeswapV2Worker.address);
+        expect(oldMasterChefBalance).to.be.eq(0);
+        expect(masterChefV2Balance).to.be.gt(0);
+
         await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
         await pancakeswapV2WorkerAsEve.reinvest();
         await vault.deposit(0); // Random action to trigger interest computation
 
-        const healthAfter = await pancakeswapV202workerMigrate.health(1);
-        expect(healthAfter).to.be.gt(healthBefore);
+        const healthPosition1After = await pancakeswapV2Worker.health(1);
+        const healthPosition2After = await pancakeswapV2Worker.health(2);
+        const healthPosition3After = await pancakeswapV2Worker.health(3);
+        const healthPosition4After = await pancakeswapV2Worker.health(4);
+
+        expect(healthPosition1After).to.be.gt(healthPosition1Before);
+        expect(healthPosition2After).to.be.gt(healthPosition2Before);
+        expect(healthPosition3After).to.be.gt(healthPosition3Before);
+        expect(healthPosition4After).to.be.gt(healthPosition4Before);
       });
     });
 
