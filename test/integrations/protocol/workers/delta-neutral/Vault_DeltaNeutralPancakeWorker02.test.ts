@@ -58,7 +58,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
   const MIN_DEBT_SIZE = ethers.utils.parseEther("1"); // 1 BTOKEN min debt size
   const WORK_FACTOR = "100000000";
   const KILL_FACTOR = "8000";
-  const MAX_REINVEST_BOUNTY: string = "900";
+  const MAX_REINVEST_BOUNTY: string = "2000";
   const DEPLOYER = "0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51";
   const BENEFICIALVAULT_BOUNTY_BPS = "1000";
   const KILL_TREASURY_BPS = "100";
@@ -385,7 +385,7 @@ describe("Vault - DeltaNetPancakeWorker02", () => {
 
       it("should revert when owner set reinvestBountyBps > max", async () => {
         await expect(
-          deltaNeutralWorker.setReinvestConfig(1000, "0", [cake.address, baseToken.address])
+          deltaNeutralWorker.setReinvestConfig(2001, "0", [cake.address, baseToken.address])
         ).to.be.revertedWith("DeltaNeutralPancakeWorker02_ExceedReinvestBounty()");
         expect(await deltaNeutralWorker.reinvestBountyBps()).to.be.eq(100);
       });
