@@ -116,7 +116,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       stableTwoSidesStrat = stableVault.StrategyAddTwoSidesOptimal.SpookySwap!;
       assetTwoSidesStrat = assetVault.StrategyAddTwoSidesOptimal.SpookySwap!;
     } else {
-      throw new Error(`err: no symbol is not match any strategy, value ${initPosition.assetDecimal}`);
+      throw new Error(`err: no symbol is not match any strategy, value ${initPosition.symbol}`);
     }
 
     const stableToken = tokenLists[initPosition.stableSymbol];
@@ -187,9 +187,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const assetTokenConversionFactor = initPosition.assetDecimal - initPosition.stableDecimal;
     const borrowAmountAssetPosition = farmingTokenAssetPosition
       .mul(ethers.constants.WeiPerEther)
-      .div(assetPrice)
       .mul(borrowMultiplierPosition)
-      .mul(10 ** assetTokenConversionFactor);
+      .mul(10 ** assetTokenConversionFactor)
+      .div(assetPrice);
+
     console.log(`>> borrowAmountAssetPosition: ${borrowAmountAssetPosition}`);
 
     const stableWorkbyteInput: IDepositWorkByte = {

@@ -17,7 +17,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     */
   const config = ConfigEntity.getConfig();
 
-  const REBALANCE_FACTOR = "7200";
+  const REBALANCE_FACTOR = "6800";
   const POSITION_VALUE_TOLERANCE_BPS = "100";
   const DEBT_RATIO_TOLERANCE_BPS = "30";
   const ALPACA_REINVEST_FEE_TREASURY = "0x417D3e491cbAaD07B2433781e50Bc6Cd09641BC0";
