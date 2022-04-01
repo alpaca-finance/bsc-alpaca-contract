@@ -116,7 +116,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       stableTwoSidesStrat = stableVault.StrategyAddTwoSidesOptimal.SpookySwap!;
       assetTwoSidesStrat = assetVault.StrategyAddTwoSidesOptimal.SpookySwap!;
     } else {
-      throw new Error(`err: no symbol is not match any strategy, value ${initPosition.assetDecimal}`);
+      throw new Error(`err: no symbol is not match any strategy, value ${initPosition.symbol}`);
     }
 
     const stableToken = tokenLists[initPosition.stableSymbol];
