@@ -135,6 +135,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       return addr;
     });
 
+    const beneficialRewardPath: Array<string> = n.BENEFICIAL_REWARD_PATH.map((p) => {
+      const addr = tokenList[p];
+      if (addr === undefined) {
+        throw `error: path: unable to find address of ${p}`;
+      }
+      return addr;
+    });
+
     return {
       WORKER_NAME: n.WORKER_NAME,
       VAULT_CONFIG_ADDR: vault.config,
@@ -161,7 +169,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       TIMELOCK: config.Timelock,
       BENEFICIAL_VAULT: n.BENEFICIAL_VAULT,
       BENEFICIAL_VAULT_BOUNTY_BPS: n.BENEFICIAL_VAULT_BOUNTY_BPS,
-      BENEFICIAL_REWARD_PATH: n.BENEFICIAL_REWARD_PATH,
+      BENEFICIAL_REWARD_PATH: beneficialRewardPath,
     };
   });
   for (let i = 0; i < workerInfos.length; i++) {
