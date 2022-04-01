@@ -1,5 +1,5 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { DeployFunction } from "hardhat-deploy/types";
+import { Address, DeployFunction } from "hardhat-deploy/types";
 import { ethers, upgrades } from "hardhat";
 import { RevenueTreasury, RevenueTreasury__factory } from "../../../../typechain";
 import { getConfig } from "../../../entities/config";
@@ -13,7 +13,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const ROUTER_ADDRESS = config.YieldSources.Pancakeswap!.RouterV2;
   const REMAINING = ethers.utils.parseEther("24000");
   const SPLITBPS = "5000";
-  const REWARD_PATH = [config.Tokens.USDT!, config.Tokens.BUSD!, config.Tokens.ALPACA!];
+  const REWARD_PATH = [config.Tokens.USDT!, config.Tokens.BUSD!, config.Tokens.ALPACA!] as string[];
+  const VAULT_SWAP_PATH = [] as string[];
 
   const deployer = (await ethers.getSigners())[0];
 
@@ -32,9 +33,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log("RevenueTreasury:", revenueTreasury.address);
   console.log("✅ Done");
 
-  console.log("> RevenueTreasury setRewardPath");
-  const setRewardPathTx = await revenueTreasury.setRewardPath(REWARD_PATH);
-  await setRewardPathTx.wait(3);
+  if (REWARD_PATH.length > 0) {
+    console.log("> RevenueTreasury setRewardPath");
+    const setRewardPathTx = await revenueTreasury.setRewardPath(REWARD_PATH);
+    await setRewardPathTx.wait(3);
+  }
+
+  if (VAULT_SWAP_PATH.length > 0) {
+    console.log("> RevenueTreasury setVaultSwapPath");
+    const setVaultSwapPath = await revenueTreasury.setVaultSwapPath(VAULT_SWAP_PATH);
+    await setVaultSwapPath.wait(3);
+  }
   console.log("✅ Done");
 };
 
