@@ -361,6 +361,7 @@
     "test:strategyOracleMinimize": "hardhat test --no-compile ./test/integrations/protocol/strategies/waultswap/StrategyOracleMinimize.test.ts",
     "test:strategyOracleLiquidate": "hardhat test --no-compile ./test/integrations/protocol/strategies/waultswap/StrategyOracleLiquidate.test.ts",
     "test:revenue-treasury": "hardhat test --no-compile ./test/integrations/protocol/RevenueTreasury.test.ts",
+    "test:pancakemigratev202": "hardhat test --no-compile ./test/integrations/protocol/workers/pcs/Vault_PancakeswapV202_Migrate.test.ts",
     "test": "hardhat test --no-compile",
     "testnet": "hardhat console --no-compile --network testnet",
     "fantom_testnet": "hardhat console --no-compile --network fantom_testnet",

@@ -25,6 +25,7 @@ import "../../interfaces/IPancakePair.sol";
 import "../../apis/pancake/IPancakeRouter02.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IWorker02.sol";
+import "../../interfaces/IPancakeMasterChef.sol";
 import "../../interfaces/IPancakeMasterChefV2.sol";
 import "../../../utils/AlpacaMath.sol";
 import "../../../utils/SafeToken.sol";
@@ -587,7 +588,8 @@ contract PancakeswapV2Worker02Migrate is OwnableUpgradeSafe, ReentrancyGuardUpgr
     require(address(masterChef) == _masterChefV2.MASTER_CHEF(), "PancakeswapWorker::migrateLP::wrong _masterChefV2");
 
     /// 1. Withdraw LP from MasterChefV1
-    masterChef.withdraw(pid, shareToBalance(totalShare));
+    (uint256 totalBalance, ) = IPancakeMasterChef(address(masterChef)).userInfo(pid, address(this));
+    masterChef.withdraw(pid, totalBalance);
 
     /// 2. Reset approval
     address(lpToken).safeApprove(address(masterChef), 0);
