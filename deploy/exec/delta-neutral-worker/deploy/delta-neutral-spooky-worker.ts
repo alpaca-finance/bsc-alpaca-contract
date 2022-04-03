@@ -317,7 +317,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             killFactor: workerInfo.KILL_FACTOR,
             maxPriceDiff: workerInfo.MAX_PRICE_DIFF,
           },
-        ]
+        ],
+        { gasPrice, nonce: nonce++ }
       );
     }
 
