@@ -1,8 +1,6 @@
 import { MiniFL__factory } from "./../../../../typechain/factories/MiniFL__factory";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers, network } from "hardhat";
-import { Timelock__factory } from "../../../../typechain";
 import { getConfig } from "../../../entities/config";
 import { getDeployer } from "../../../../utils/deployer-helper";
 
@@ -35,7 +33,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const UPDATES: Array<IUpdate> = [
     {
       STAKING_TOKEN: "fdALPACA",
-      ALLOC_POINT: 225,
+      ALLOC_POINT: 125,
       OVERWRITE: false,
       WITH_UPDATE: true,
     },
@@ -68,7 +66,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(`>> >> MiniFL: set ${input.stakingPool} with ${input.allocPoint}`);
     await miniFL.setPool(input.pId, input.allocPoint, input.rewarder, input.overwrite, input.withUpdate, {
       nonce: nonce++,
-      gasPrice: ethers.utils.parseUnits("10", "gwei"),
     });
   }
 };
