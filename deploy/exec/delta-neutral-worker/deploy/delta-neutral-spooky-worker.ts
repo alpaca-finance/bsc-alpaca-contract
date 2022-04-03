@@ -20,6 +20,52 @@ import { BlockScanGasPrice } from "../../../services/gas-price/blockscan";
 import { getDeployer } from "../../../../utils/deployer-helper";
 import { compare } from "../../../../utils/address";
 
+interface IDeltaNeutralWorkerInput {
+  VAULT_SYMBOL: string;
+  WORKER_NAME: string;
+  TREASURY_ADDRESS: string;
+  REINVEST_BOT: string;
+  POOL_ID: number;
+  REINVEST_BOUNTY_BPS: string;
+  REINVEST_PATH: Array<string>;
+  REINVEST_THRESHOLD: string;
+  WORK_FACTOR: string;
+  KILL_FACTOR: string;
+  MAX_PRICE_DIFF: string;
+  BENEFICIAL_VAULT: string;
+  BENEFICIAL_VAULT_BOUNTY_BPS: string;
+  BENEFICIAL_REWARD_PATH: Array<string>;
+}
+
+interface IDeltaNeutralWorkerInfo {
+  WORKER_NAME: string;
+  VAULT_CONFIG_ADDR: string;
+  WORKER_CONFIG_ADDR: string;
+  REINVEST_BOT: string;
+  POOL_ID: number;
+  VAULT_ADDR: string;
+  BASE_TOKEN_ADDR: string;
+  DELTA_NEUTRAL_ORACLE: string;
+  MASTER_CHEF: string;
+  ROUTER_ADDR: string;
+  ADD_STRAT_ADDR: string;
+  LIQ_STRAT_ADDR: string;
+  TWO_SIDES_STRAT_ADDR: string;
+  PARTIAL_CLOSE_LIQ_STRAT_ADDR: string;
+  PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR: string;
+  MINIMIZE_TRADE_STRAT_ADDR: string;
+  REINVEST_BOUNTY_BPS: string;
+  REINVEST_PATH: Array<string>;
+  REINVEST_THRESHOLD: string;
+  WORK_FACTOR: string;
+  KILL_FACTOR: string;
+  MAX_PRICE_DIFF: string;
+  TIMELOCK: string;
+  BENEFICIAL_VAULT: string;
+  BENEFICIAL_VAULT_BOUNTY_BPS: string;
+  BENEFICIAL_REWARD_PATH: Array<string>;
+}
+
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
       ░██╗░░░░░░░██╗░█████╗░██████╗░███╗░░██╗██╗███╗░░██╗░██████╗░
@@ -30,72 +76,25 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
       Check all variables below before execute the deployment script
     */
-
-  interface IDeltaNeutralWorkerInput {
-    VAULT_SYMBOL: string;
-    WORKER_NAME: string;
-    TREASURY_ADDRESS: string;
-    REINVEST_BOT: string;
-    POOL_ID: number;
-    REINVEST_BOUNTY_BPS: string;
-    REINVEST_PATH: Array<string>;
-    REINVEST_THRESHOLD: string;
-    WORK_FACTOR: string;
-    KILL_FACTOR: string;
-    MAX_PRICE_DIFF: string;
-    BENEFICIAL_VAULT: string;
-    BENEFICIAL_VAULT_BOUNTY_BPS: string;
-    BENEFICIAL_REWARD_PATH: Array<string>;
-  }
-
-  interface IDeltaNeutralWorkerInfo {
-    WORKER_NAME: string;
-    VAULT_CONFIG_ADDR: string;
-    WORKER_CONFIG_ADDR: string;
-    REINVEST_BOT: string;
-    POOL_ID: number;
-    VAULT_ADDR: string;
-    BASE_TOKEN_ADDR: string;
-    DELTA_NEUTRAL_ORACLE: string;
-    MASTER_CHEF: string;
-    ROUTER_ADDR: string;
-    ADD_STRAT_ADDR: string;
-    LIQ_STRAT_ADDR: string;
-    TWO_SIDES_STRAT_ADDR: string;
-    PARTIAL_CLOSE_LIQ_STRAT_ADDR: string;
-    PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR: string;
-    MINIMIZE_TRADE_STRAT_ADDR: string;
-    REINVEST_BOUNTY_BPS: string;
-    REINVEST_PATH: Array<string>;
-    REINVEST_THRESHOLD: string;
-    WORK_FACTOR: string;
-    KILL_FACTOR: string;
-    MAX_PRICE_DIFF: string;
-    TIMELOCK: string;
-    BENEFICIAL_VAULT: string;
-    BENEFICIAL_VAULT_BOUNTY_BPS: string;
-    BENEFICIAL_REWARD_PATH: Array<string>;
-  }
-
   const config = ConfigEntity.getConfig();
 
   const shortWorkerInfos: IDeltaNeutralWorkerInput[] = [
-    {
-      VAULT_SYMBOL: "ibFTM",
-      WORKER_NAME: "USDC-WFTM 3x DeltaNeutralSpookyWorker",
-      TREASURY_ADDRESS: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 2,
-      REINVEST_BOUNTY_BPS: "1500",
-      REINVEST_PATH: ["BOO", "WFTM"],
-      REINVEST_THRESHOLD: "10000",
-      WORK_FACTOR: "8000",
-      KILL_FACTOR: "0",
-      MAX_PRICE_DIFF: "10500",
-      BENEFICIAL_REWARD_PATH: ["BOO", "WFTM", "ALPACA"],
-      BENEFICIAL_VAULT: "0xe32840F950F709148fdB9Ff22712083Ac40033A0",
-      BENEFICIAL_VAULT_BOUNTY_BPS: "5333",
-    },
+    // {
+    //   VAULT_SYMBOL: "ibFTM",
+    //   WORKER_NAME: "USDC-WFTM 3x DeltaNeutralSpookyWorker",
+    //   TREASURY_ADDRESS: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
+    //   REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
+    //   POOL_ID: 2,
+    //   REINVEST_BOUNTY_BPS: "1500",
+    //   REINVEST_PATH: ["BOO", "WFTM"],
+    //   REINVEST_THRESHOLD: "10000",
+    //   WORK_FACTOR: "8000",
+    //   KILL_FACTOR: "0",
+    //   MAX_PRICE_DIFF: "10500",
+    //   BENEFICIAL_REWARD_PATH: ["BOO", "WFTM", "ALPACA"],
+    //   BENEFICIAL_VAULT: "0xe32840F950F709148fdB9Ff22712083Ac40033A0",
+    //   BENEFICIAL_VAULT_BOUNTY_BPS: "5333",
+    // },
     {
       VAULT_SYMBOL: "ibUSDC",
       WORKER_NAME: "WFTM-USDC 3x DeltaNeutralSpookyWorker",
@@ -278,7 +277,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     console.log(">> Timelock PART");
 
-    const workerConfig = await WorkerConfig__factory.connect(workerInfo.WORKER_CONFIG_ADDR, deployer);
+    const workerConfig = WorkerConfig__factory.connect(workerInfo.WORKER_CONFIG_ADDR, deployer);
 
     const isTimelockedWorkerConfig = compare(await workerConfig.owner(), config.Timelock);
 
@@ -307,7 +306,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       );
       console.log("✅ Done");
     } else {
-      console.log(`>> SET WorkerConfig ${workerInfo.WORKER_CONFIG_ADDR} for ${deltaNeutralWorker.address}`);
+      console.log(`>> Set WorkerConfig ${workerInfo.WORKER_CONFIG_ADDR} for ${deltaNeutralWorker.address}`);
       await workerConfig.setConfigs(
         [deltaNeutralWorker.address],
         [
@@ -317,7 +316,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             killFactor: workerInfo.KILL_FACTOR,
             maxPriceDiff: workerInfo.MAX_PRICE_DIFF,
           },
-        ]
+        ],
+        { gasPrice, nonce: nonce++ }
       );
     }
 
@@ -340,7 +340,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       );
       console.log("✅ Done");
     } else {
-      console.log(` >> SET VaultConfig  for  ${workerInfo.VAULT_CONFIG_ADDR}`);
+      console.log(`>> Set VaultConfig for ${workerInfo.VAULT_CONFIG_ADDR}`);
       await vaultConfig.setWorkers([deltaNeutralWorker.address], [workerInfo.WORKER_CONFIG_ADDR]);
     }
 

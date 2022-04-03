@@ -9,6 +9,16 @@ import {
 import { getConfig } from "../../../entities/config";
 import { getDeployer } from "../../../../utils/deployer-helper";
 
+interface IDeltaVaultInput {
+  name: string;
+}
+
+interface IDeltaVaultInfo {
+  name: string;
+  address: string;
+  deltaVaultConfig: string;
+}
+
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
     ░██╗░░░░░░░██╗░█████╗░██████╗░███╗░░██╗██╗███╗░░██╗░██████╗░
@@ -19,17 +29,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
     Check all variables below before execute the deployment script
     */
-
-  interface IDeltaVaultInput {
-    name: string;
-  }
-
-  interface IDeltaVaultInfo {
-    name: string;
-    address: string;
-    deltaVaultConfig: string;
-  }
-
   const deltaVaultInputs: IDeltaVaultInput[] = [
     {
       name: "Market Neutral 3x FTM-USDC SPK1",
@@ -67,7 +66,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(`>> Deployed block ${deployTxReceipt.blockNumber}`);
     console.log("✅ Done");
 
-    console.log(`Setting DeltaNeutralConfig's WhitelistCallers for DeltaNeutralVaultGateway`);
+    console.log(`>> Setting DeltaNeutralConfig's WhitelistCallers for DeltaNeutralVaultGateway`);
     const deltaNeutralVaultConfig = DeltaNeutralVaultConfig__factory.connect(
       deltaVaultInfos[i].deltaVaultConfig,
       deployer

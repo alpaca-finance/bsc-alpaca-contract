@@ -1,11 +1,6 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers } from "hardhat";
-import {
-  DeltaNeutralMdexWorker02__factory,
-  DeltaNeutralPancakeWorker02__factory,
-  DeltaNeutralSpookyWorker03__factory,
-} from "../../../../typechain";
+import { DeltaNeutralSpookyWorker03__factory } from "../../../../typechain";
 import { getConfig } from "../../../entities/config";
 import { getDeployer } from "../../../../utils/deployer-helper";
 
@@ -32,10 +27,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const DELTA_NEUTRAL_VAULT = "Market Neutral 3x FTM-USDC SPK1";
   const workerInputs: IWorkerInput[] = [
     {
-      name: "USDC-WFTM 3x DeltaNeutralSpookyWorker",
+      name: "USDC-WFTM 3x SPK1 DeltaNeutralSpookyWorker",
     },
     {
-      name: "WFTM-USDC 3x DeltaNeutralSpookyWorker",
+      name: "WFTM-USDC 3x SPK1 DeltaNeutralSpookyWorker",
     },
   ];
 

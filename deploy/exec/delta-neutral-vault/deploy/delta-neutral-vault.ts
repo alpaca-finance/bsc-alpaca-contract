@@ -5,6 +5,19 @@ import { DeltaNeutralVault, DeltaNeutralVault__factory, WNativeRelayer__factory 
 import { ConfigEntity } from "../../../entities";
 import { getDeployer } from "../../../../utils/deployer-helper";
 
+interface IDeltaNeutralVaultInput {
+  name: string;
+  symbol: string;
+  stableVaultSymbol: string;
+  assetVaultSymbol: string;
+  stableSymbol: string;
+  assetSymbol: string;
+  stableDeltaWorker: string;
+  assetDeltaWorker: string;
+  lpAddress: string;
+  deltaNeutralVaultConfig: string;
+}
+
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
     ░██╗░░░░░░░██╗░█████╗░██████╗░███╗░░██╗██╗███╗░░██╗░██████╗░
@@ -15,18 +28,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
     Check all variables below before execute the deployment script
     */
-  interface IDeltaNeutralVaultInput {
-    name: string;
-    symbol: string;
-    stableVaultSymbol: string;
-    assetVaultSymbol: string;
-    stableSymbol: string;
-    assetSymbol: string;
-    stableDeltaWorker: string;
-    assetDeltaWorker: string;
-    lpAddress: string;
-    deltaNeutralVaultConfig: string;
-  }
 
   const deltaVaultInputs: IDeltaNeutralVaultInput[] = [
     {
@@ -36,10 +37,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       assetVaultSymbol: "ibFTM",
       stableSymbol: "USDC",
       assetSymbol: "WFTM",
-      stableDeltaWorker: "0x056aAAEb5DDd77a4463d3aDF4Ac1EC2Fe3A3ed78", // Address of stable deltaneutral worker
-      assetDeltaWorker: "0x21b751Dc7B44F60FB6D16400e2cCd4043ED137A9", // Address of asset deltaneutral worker
+      stableDeltaWorker: "0xceCD803b048b66a75bc64f8AA8139cAB97c421C8", // Address of stable deltaneutral worker
+      assetDeltaWorker: "0x792E8192F2fbdBb5c1e36F312760Fe01D0d7aB92", // Address of asset deltaneutral worker
       lpAddress: "0x2b4C76d0dc16BE1C31D4C1DC53bF9B45987Fc75c",
-      deltaNeutralVaultConfig: "0x222EE381e27FD86eAD28628843832Ba4c41143D2",
+      deltaNeutralVaultConfig: "0x00166189cdBdB9E3a3391c458c08aa9834E592D5",
     },
   ];
 
