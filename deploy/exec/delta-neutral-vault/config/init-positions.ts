@@ -1,9 +1,11 @@
+import { formatEther } from "ethers/lib/utils";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 import { BEP20__factory, DeltaNeutralVault__factory, DeltaNeutralOracle__factory } from "../../../../typechain";
 import { ConfigEntity } from "../../../entities";
 import { BigNumber } from "ethers";
+import { getDeployer } from "../../../../utils/deployer-helper";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -23,6 +25,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     stableSymbol: string;
     assetSymbol: string;
     stableAmount: string;
+    stableDecimal: number;
+    assetDecimal: number;
     leverage: number;
   }
   interface IDepositWorkByte {
@@ -61,49 +65,62 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const initPositionInputs: IInitPositionInputs[] = [
     {
-      symbol: "n8x-BNBUSDT-PCS2",
-      stableVaultSymbol: "ibUSDT",
-      assetVaultSymbol: "ibWBNB",
-      stableSymbol: "USDT",
-      assetSymbol: "WBNB",
+      symbol: "n3x-FTMUSDC-SPK1",
+      stableVaultSymbol: "ibUSDC",
+      assetVaultSymbol: "ibFTM",
+      stableSymbol: "USDC",
+      assetSymbol: "WFTM",
       stableAmount: "300",
-      leverage: 8,
+      stableDecimal: 6,
+      assetDecimal: 18,
+      leverage: 3,
     },
   ];
-
   const config = ConfigEntity.getConfig();
-  const deployer = (await ethers.getSigners())[0];
+  const deployer = await getDeployer();
   const tokenLists: any = config.Tokens;
   let nonce = await deployer.getTransactionCount();
   let stableTwoSidesStrat: string;
   let assetTwoSidesStrat: string;
 
   for (let i = 0; i < initPositionInputs.length; i++) {
+    const initPosition = initPositionInputs[i];
     console.log("===================================================================================");
-    console.log(`>> Initializing position at ${initPositionInputs[i].symbol}`);
-    const deltaNeutralVaultInfo = config.DeltaNeutralVaults.find((v) => v.symbol === initPositionInputs[i].symbol);
-    const stableVault = config.Vaults.find((v) => v.symbol === initPositionInputs[i].stableVaultSymbol);
-    const assetVault = config.Vaults.find((v) => v.symbol === initPositionInputs[i].assetVaultSymbol);
+    console.log(`>> Initializing position at ${initPosition.symbol}`);
+    const deltaNeutralVaultInfo = config.DeltaNeutralVaults.find((v) => v.symbol === initPosition.symbol);
+    const stableVault = config.Vaults.find((v) => v.symbol === initPosition.stableVaultSymbol);
+    const assetVault = config.Vaults.find((v) => v.symbol === initPosition.assetVaultSymbol);
     if (!deltaNeutralVaultInfo) {
-      throw new Error(`error: unable to find delta neutral vault info for ${initPositionInputs[i].symbol}`);
+      throw new Error(`error: unable to find delta neutral vault info for ${initPosition.symbol}`);
     }
     if (!stableVault) {
-      throw new Error(`error: unable to find vault from ${initPositionInputs[i].stableVaultSymbol}`);
+      throw new Error(`error: unable to find vault from ${initPosition.stableVaultSymbol}`);
     }
     if (!assetVault) {
-      throw new Error(`error: unable to find vault from ${initPositionInputs[i].assetVaultSymbol}`);
+      throw new Error(`error: unable to find vault from ${initPosition.assetVaultSymbol}`);
+    }
+    if (initPosition.stableDecimal > 18) {
+      throw new Error(`error:not supported stableTokenDecimal > 18, value  ${initPosition.stableDecimal}`);
+    }
+    if (initPosition.assetDecimal > 18) {
+      throw new Error(`error:not supported assetDecimal > 18, value  ${initPosition.assetDecimal}`);
     }
 
-    stableTwoSidesStrat = stableVault.StrategyAddTwoSidesOptimal.Pancakeswap!;
-    assetTwoSidesStrat = assetVault.StrategyAddTwoSidesOptimal.Pancakeswap!;
-
-    if (initPositionInputs[i].symbol.includes("MDEX")) {
+    if (initPosition.symbol.includes("PCS")) {
+      stableTwoSidesStrat = stableVault.StrategyAddTwoSidesOptimal.Pancakeswap!;
+      assetTwoSidesStrat = assetVault.StrategyAddTwoSidesOptimal.Pancakeswap!;
+    } else if (initPosition.symbol.includes("MDEX")) {
       stableTwoSidesStrat = stableVault.StrategyAddTwoSidesOptimal.Mdex!;
       assetTwoSidesStrat = assetVault.StrategyAddTwoSidesOptimal.Mdex!;
+    } else if (initPosition.symbol.includes("SPK")) {
+      stableTwoSidesStrat = stableVault.StrategyAddTwoSidesOptimal.SpookySwap!;
+      assetTwoSidesStrat = assetVault.StrategyAddTwoSidesOptimal.SpookySwap!;
+    } else {
+      throw new Error(`err: no symbol is not match any strategy, value ${initPosition.symbol}`);
     }
 
-    const stableToken = tokenLists[initPositionInputs[i].stableSymbol];
-    const assetToken = tokenLists[initPositionInputs[i].assetSymbol];
+    const stableToken = tokenLists[initPosition.stableSymbol];
+    const assetToken = tokenLists[initPosition.assetSymbol];
     const stableTokenAsDeployer = BEP20__factory.connect(stableToken, deployer);
     const assetTokenAsDeployer = BEP20__factory.connect(assetToken, deployer);
 
@@ -133,12 +150,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     // open position1
     console.log(">> Preparing input for position 1 (StableVaults)");
-    const stableAmount = ethers.utils.parseEther(initPositionInputs[i].stableAmount);
+
+    const stableAmount = ethers.utils.parseUnits(initPosition.stableAmount, initPosition.stableDecimal);
     console.log(`>> Stable amount: ${stableAmount}`);
-    const assetAmount = ethers.utils.parseEther("0");
+
+    const assetAmount = ethers.utils.parseUnits("0", initPosition.assetDecimal);
     console.log(`>> assetAmount: ${assetAmount}`);
 
-    const leverage = BigNumber.from(initPositionInputs[i].leverage);
+    const leverage = BigNumber.from(initPosition.leverage);
 
     // (lev -2) / (2lev - 2) for long equity amount
     const numeratorLongPosition = leverage.sub(2);
@@ -165,10 +184,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(`>> farmingTokenAssetPosition: ${farmingTokenAssetPosition}`);
 
     //(farmingTokenAssetPosition / assetPrice) * (lev-1)
+    const assetTokenConversionFactor = initPosition.assetDecimal - initPosition.stableDecimal;
     const borrowAmountAssetPosition = farmingTokenAssetPosition
       .mul(ethers.constants.WeiPerEther)
-      .div(assetPrice)
-      .mul(borrowMultiplierPosition);
+      .mul(borrowMultiplierPosition)
+      .mul(10 ** assetTokenConversionFactor)
+      .div(assetPrice);
+
     console.log(`>> borrowAmountAssetPosition: ${borrowAmountAssetPosition}`);
 
     const stableWorkbyteInput: IDepositWorkByte = {

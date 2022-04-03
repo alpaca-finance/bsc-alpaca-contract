@@ -101,7 +101,8 @@
     "DAI": "0x8d11ec38a3eb5e956b052f67da8bdc9bef8abf3e",
     "MIM": "0x82f0b8b456c1a451378467398982d4834b6829c1",
     "TOMB": "0x6c021ae822bea943b2e66552bde1d2696a53fbb7",
-    "TSHARE": "0x4cdf39285d7ca8eb3f090fda0c069ba5f4145b37"
+    "TSHARE": "0x4cdf39285d7ca8eb3f090fda0c069ba5f4145b37",
+    "USD": "0x115dffFFfffffffffFFFffffFFffFfFfFFFFfFff"
   },
   "SharedStrategies": {
     "SpookySwap": {

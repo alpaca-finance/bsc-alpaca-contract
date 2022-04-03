@@ -3,6 +3,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, upgrades } from "hardhat";
 import { DeltaNeutralVault, DeltaNeutralVault__factory, WNativeRelayer__factory } from "../../../../typechain";
 import { ConfigEntity } from "../../../entities";
+import { getDeployer } from "../../../../utils/deployer-helper";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -29,21 +30,21 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const deltaVaultInputs: IDeltaNeutralVaultInput[] = [
     {
-      name: "Market Neutral 8x BNB-USDT PCS2",
-      symbol: "n8x-BNBUSDT-PCS2",
-      stableVaultSymbol: "ibUSDT",
-      assetVaultSymbol: "ibWBNB",
-      stableSymbol: "USDT",
-      assetSymbol: "WBNB",
-      stableDeltaWorker: "0x0d9fAF7023976B45b220b692699C5f5E9432EFD9", // Address of stable deltaneutral worker
-      assetDeltaWorker: "0xFa4B1e50f6EF51D0DaB5c2EEA7434cE6974Fa832", // Address of asset deltaneutral worker
-      lpAddress: "0x16b9a82891338f9bA80E2D6970FddA79D1eb0daE",
-      deltaNeutralVaultConfig: "0x0ff370c7e245992414BeF2CaCBa369422D2A91b3",
+      name: "Market Neutral 3x FTM-USDC SPK1",
+      symbol: "n3x-FTMUSDC-SPK1",
+      stableVaultSymbol: "ibUSDC",
+      assetVaultSymbol: "ibFTM",
+      stableSymbol: "USDC",
+      assetSymbol: "WFTM",
+      stableDeltaWorker: "0x056aAAEb5DDd77a4463d3aDF4Ac1EC2Fe3A3ed78", // Address of stable deltaneutral worker
+      assetDeltaWorker: "0x21b751Dc7B44F60FB6D16400e2cCd4043ED137A9", // Address of asset deltaneutral worker
+      lpAddress: "0x2b4C76d0dc16BE1C31D4C1DC53bF9B45987Fc75c",
+      deltaNeutralVaultConfig: "0x222EE381e27FD86eAD28628843832Ba4c41143D2",
     },
   ];
 
   const config = ConfigEntity.getConfig();
-  const deployer = (await ethers.getSigners())[0];
+  const deployer = await getDeployer();
   const alpacaTokenAddress = config.Tokens.ALPACA;
   const wNativeRelayerAddr = config.SharedConfig.WNativeRelayer;
   for (let i = 0; i < deltaVaultInputs.length; i++) {
@@ -80,7 +81,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(`>> Deployed block: ${deployTxReceipt.blockNumber}`);
     console.log("✅ Done");
 
-    if (deltaVaultInputs[i].assetVaultSymbol === "ibWBNB") {
+    if (deltaVaultInputs[i].assetVaultSymbol === "ibWBNB" || deltaVaultInputs[i].assetVaultSymbol === "ibFTM") {
       console.log(`>> Set Caller ok for deltaNeutralVault if have native asset`);
       const wNativeRelayer = WNativeRelayer__factory.connect(wNativeRelayerAddr, deployer);
       await (await wNativeRelayer.setCallerOk([deltaNeutralVault.address], true)).wait(3);
