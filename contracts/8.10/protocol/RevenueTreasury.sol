@@ -13,6 +13,7 @@ Alpaca Fin Corporation
 
 pragma solidity 0.8.10;
 
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
@@ -24,14 +25,13 @@ import "./interfaces/IVault.sol";
 import "../utils/SafeToken.sol";
 
 /// @title RevenueTreasury - Receives Revenue and Settles Redistribution
-contract RevenueTreasury is Initializable, OwnableUpgradeable {
+contract RevenueTreasury is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable {
   /// @notice Libraries
   using SafeToken for address;
 
   /// @notice Errors
   error RevenueTreasury_TokenMismatch();
-  error RevenueTreasury_InvalidRewardPathLength();
-  error RevenueTreasury_InvalidRewardPath();
+  error RevenueTreasury_InvalidSwapPath();
   error RevenueTreasury_InvalidBps();
 
   /// @notice States
@@ -54,6 +54,9 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
   /// @notice rewardPath - Path to swap recieving token to grasshouse's token
   address[] public rewardPath;
 
+  /// @notice vaultSwapPath - Path to swap recieving token to vault's token
+  address[] public vaultSwapPath;
+
   /// @notice remaining - Remaining bad debt amount to cover
   uint256 public remaining;
 
@@ -61,11 +64,16 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
   uint256 public splitBps;
 
   /// @notice Events
-  event LogFeedGrassHouse(address indexed _caller, uint256 _transferAmount, uint256 _swapAmount, uint256 _feedAmount);
+  event LogSettleBadDebt(address indexed _caller, uint256 _transferAmount);
+  event LogFeedGrassHouse(address indexed _caller, uint256 _feedAmount);
+  event LogSetToken(address indexed _caller, address _prevToken, address _newToken);
+  event LogSetVault(address indexed _caller, address _prevVault, address _newVault);
   event LogSetGrassHouse(address indexed _caller, address _prevGrassHouse, address _newGrassHouse);
   event LogSetWhitelistedCallers(address indexed _caller, address indexed _address, bool _ok);
   event LogSetRewardPath(address indexed _caller, address[] _newRewardPath);
+  event LogSetVaultSwapPath(address indexed _caller, address[] _newRewardPath);
   event LogSetRouter(address indexed _caller, address _prevRouter, address _newRouter);
+  event LogSetRemaining(address indexed _caller, uint256 _prevRemaining, uint256 _newRemaining);
   event LogSetSplitBps(address indexed _caller, uint256 _prevSplitBps, uint256 _newSplitBps);
 
   /// @notice Initialize function
@@ -80,10 +88,6 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
     uint256 _splitBps
   ) external initializer {
     // check
-    if (_token != _vault.token()) {
-      revert RevenueTreasury_TokenMismatch();
-    }
-
     if (_splitBps > 10000) {
       revert RevenueTreasury_InvalidBps();
     }
@@ -103,29 +107,77 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
   }
 
   /// @notice Split fund and distribute
-  function feedGrassHouse() external {
+  function feedGrassHouse() external nonReentrant {
+    //check
+    _validateSwapPath(token, vault.token(), vaultSwapPath);
+    _validateSwapPath(token, grasshouseToken, rewardPath);
+
     uint256 _transferAmount = 0;
     if (remaining > 0) {
       // Split the current receiving token balance per configured bps.
-      uint256 split = (token.myBalance() * splitBps) / 10000;
-      // The amount to transfer to vault shoule be equal to min(split , remaining)
-      _transferAmount = split < remaining ? split : remaining;
+      uint256 _split = (token.myBalance() * splitBps) / 10000;
+      // The amount to transfer to vault should be equal to min(split , remaining)
 
-      remaining = remaining - _transferAmount;
-      token.safeTransfer(address(vault), _transferAmount);
+      if (vaultSwapPath.length >= 2) {
+        // find the amount in if we're going to cover all remaining
+        uint256[] memory expectedAmountsIn = router.getAmountsIn(remaining, vaultSwapPath);
+        // if the exepected amount in < _split, then swap with expeced amount in
+        // otherwise, swap only neeeded
+        uint256 _swapAmount = expectedAmountsIn[0] < _split ? expectedAmountsIn[0] : _split;
+        token.safeApprove(address(router), _swapAmount);
+        // Need amountsOut to update remaining
+        uint256[] memory _amountsOut = router.swapExactTokensForTokens(
+          _swapAmount,
+          0,
+          vaultSwapPath,
+          address(this),
+          block.timestamp
+        );
+
+        // update transfer amount by the amount received from swap
+        _transferAmount = _amountsOut[_amountsOut.length - 1];
+      } else {
+        _transferAmount = _split < remaining ? _split : remaining;
+      }
+
+      // _transferAmount is unlikely to > remaining, but have this check to handle if happened
+      remaining = remaining > _transferAmount ? remaining - _transferAmount : 0;
+      vault.token().safeTransfer(address(vault), _transferAmount);
+
+      emit LogSettleBadDebt(msg.sender, _transferAmount);
     }
 
-    // Swap all the rest to reward token
-    uint256 _swapAmount = token.myBalance();
-    token.safeApprove(address(router), _swapAmount);
-    router.swapExactTokensForTokens(_swapAmount, 0, rewardPath, address(this), block.timestamp);
-    token.safeApprove(address(router), 0);
+    // Swap all the rest to reward token if needed
+    if (rewardPath.length >= 2) {
+      uint256 _swapAmount = token.myBalance();
+      token.safeApprove(address(router), _swapAmount);
+      router.swapExactTokensForTokens(_swapAmount, 0, rewardPath, address(this), block.timestamp);
+    }
 
     // Feed all reward token to grasshouse
     uint256 _feedAmount = grasshouseToken.myBalance();
     grasshouseToken.safeApprove(address(grassHouse), _feedAmount);
     grassHouse.feed(_feedAmount);
-    emit LogFeedGrassHouse(msg.sender, _transferAmount, _swapAmount, _feedAmount);
+    emit LogFeedGrassHouse(msg.sender, _feedAmount);
+  }
+
+  /// @notice Set new recieving token
+  /// @param _newToken - new recieving token address
+  function setToken(address _newToken) external onlyOwner {
+    address _prevToken = token;
+    token = _newToken;
+    emit LogSetToken(msg.sender, _prevToken, token);
+  }
+
+  /// @notice Set new destination vault
+  /// @param _newVault - new destination vault address
+  function setVault(IVault _newVault) external onlyOwner {
+    //check
+    _newVault.token();
+
+    IVault _prevVault = vault;
+    vault = _newVault;
+    emit LogSetVault(msg.sender, address(_prevVault), address(vault));
   }
 
   /// @notice Set a new GrassHouse
@@ -149,14 +201,30 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
   /// @notice Set a new reward path. In case that the liquidity of the reward path has changed.
   /// @param _rewardPath The new reward path.
   function setRewardPath(address[] calldata _rewardPath) external onlyOwner {
-    if (_rewardPath.length < 2) revert RevenueTreasury_InvalidRewardPathLength();
-
-    if (_rewardPath[0] != token || _rewardPath[_rewardPath.length - 1] != grasshouseToken)
-      revert RevenueTreasury_InvalidRewardPath();
+    _validateSwapPath(token, grasshouseToken, _rewardPath);
 
     rewardPath = _rewardPath;
 
     emit LogSetRewardPath(msg.sender, _rewardPath);
+  }
+
+  /// @notice Set a new vault path. In case that the destination vault has changed.
+  /// @param _vaultSwapPath The new reward path.
+  function setVaultSwapPath(address[] calldata _vaultSwapPath) external onlyOwner {
+    _validateSwapPath(token, vault.token(), _vaultSwapPath);
+
+    vaultSwapPath = _vaultSwapPath;
+
+    emit LogSetVaultSwapPath(msg.sender, _vaultSwapPath);
+  }
+
+  /// @notice Set a new remaining
+  /// @param _newRemaining new remaining amount
+  function setRemaining(uint256 _newRemaining) external onlyOwner {
+    uint256 _prevRemaining = remaining;
+    remaining = _newRemaining;
+
+    emit LogSetRemaining(msg.sender, _prevRemaining, remaining);
   }
 
   /// @notice Set a new swap router
@@ -169,5 +237,21 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable {
     splitBps = _newSplitBps;
 
     emit LogSetSplitBps(msg.sender, _prevSplitBps, _newSplitBps);
+  }
+
+  /// @notice Set a new swap router
+  /// @param _source Source token
+  /// @param _destination Destination token
+  /// @param _path path to check validity
+  function _validateSwapPath(
+    address _source,
+    address _destination,
+    address[] memory _path
+  ) internal pure {
+    if (_path.length < 2) {
+      if (_source != _destination) revert RevenueTreasury_TokenMismatch();
+    } else {
+      if ((_path[0] != _source || _path[_path.length - 1] != _destination)) revert RevenueTreasury_InvalidSwapPath();
+    }
   }
 }
