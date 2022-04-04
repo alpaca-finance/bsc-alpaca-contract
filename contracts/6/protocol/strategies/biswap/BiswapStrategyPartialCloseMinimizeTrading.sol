@@ -41,7 +41,7 @@ contract BiswapStrategyPartialCloseMinimizeTrading is OwnableUpgradeSafe, Reentr
 
   mapping(address => bool) public okWorkers;
 
-  event LogSpookySwapStrategyPartialCloseMinimizeTrading(
+  event LogBiswapStrategyPartialCloseMinimizeTrading(
     address indexed baseToken,
     address indexed farmToken,
     uint256 amounToLiquidate,
@@ -128,7 +128,7 @@ contract BiswapStrategyPartialCloseMinimizeTrading is OwnableUpgradeSafe, Reentr
     address(lpToken).safeApprove(address(router), 0);
     farmingToken.safeApprove(address(router), 0);
 
-    emit LogSpookySwapStrategyPartialCloseMinimizeTrading(baseToken, farmingToken, lpTokenToLiquidate, lessDebt);
+    emit LogBiswapStrategyPartialCloseMinimizeTrading(baseToken, farmingToken, lpTokenToLiquidate, lessDebt);
   }
 
   function setWorkersOk(address[] calldata workers, bool isOk) external onlyOwner {

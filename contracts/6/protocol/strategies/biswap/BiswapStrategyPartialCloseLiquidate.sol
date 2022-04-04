@@ -37,7 +37,7 @@ contract BiswapStrategyPartialCloseLiquidate is OwnableUpgradeSafe, ReentrancyGu
 
   mapping(address => bool) public okWorkers;
 
-  event LogSpookySwapStrategyPartialCloseLiquidate(
+  event LogBiswapStrategyPartialCloseLiquidate(
     address indexed baseToken,
     address indexed farmToken,
     uint256 amountToLiquidate,
@@ -100,7 +100,7 @@ contract BiswapStrategyPartialCloseLiquidate is OwnableUpgradeSafe, ReentrancyGu
     address(lpToken).safeApprove(address(router), 0);
     farmingToken.safeApprove(address(router), 0);
 
-    emit LogSpookySwapStrategyPartialCloseLiquidate(baseToken, farmingToken, lpTokenToLiquidate, lessDebt);
+    emit LogBiswapStrategyPartialCloseLiquidate(baseToken, farmingToken, lpTokenToLiquidate, lessDebt);
   }
 
   function setWorkersOk(address[] calldata workers, bool isOk) external onlyOwner {
