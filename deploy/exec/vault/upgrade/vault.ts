@@ -1,9 +1,9 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers, upgrades, network } from "hardhat";
-import { Timelock__factory, Vault__factory } from "../../../../typechain";
-import MainnetConfig from "../../../../.mainnet.json";
-import TestnetConfig from "../../../../.testnet.json";
+import { ethers, upgrades } from "hardhat";
+import { getConfig } from "../../../entities/config";
+import { TimelockEntity } from "../../../entities";
+import { FileService, TimelockService } from "../../../services";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -15,20 +15,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
+  const TITLE = "upgrade_vault_to_aip42";
+  const VAULT_VERSION = "VaultAip42";
   const TARGETED_VAULTS = ["ibWBNB", "ibBUSD", "ibETH", "ibALPACA", "ibUSDT", "ibBTCB", "ibTUSD"];
   const EXACT_ETA = "1629957600";
 
-  /*
+  const config = getConfig();
 
-
-
-
-  
-  */
-
-  const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
-
-  const timelock = Timelock__factory.connect(config.Timelock, (await ethers.getSigners())[0]);
+  const timelockTransactions: Array<TimelockEntity.Transaction> = [];
+  const [deployer] = await ethers.getSigners();
   const toBeUpgradedVaults = TARGETED_VAULTS.map((tv) => {
     const vault = config.Vaults.find((v) => tv == v.symbol);
     if (vault === undefined) {
@@ -40,32 +35,32 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     return vault;
   });
+  let nonce = await deployer.getTransactionCount();
 
   for (const vault of toBeUpgradedVaults) {
-    console.log(`============`);
-    console.log(`>> Upgrading Vault at ${vault.symbol} through Timelock + ProxyAdmin`);
-    console.log(">> Prepare upgrade & deploy if needed a new IMPL automatically.");
-    const NewVaultFactory = (await ethers.getContractFactory("Vault")) as Vault__factory;
-    const preparedNewVault = await upgrades.prepareUpgrade(vault.address, NewVaultFactory);
-    console.log(`>> Implementation address: ${preparedNewVault}`);
+    console.log("------------------");
+    console.log(`> Upgrading Vault at ${vault.symbol} through Timelock + ProxyAdmin`);
+    console.log("> Prepare upgrade & deploy if needed a new IMPL automatically.");
+    const NewVault = await ethers.getContractFactory(VAULT_VERSION);
+    const preparedNewVault = await upgrades.prepareUpgrade(vault.address, NewVault);
+    console.log(`> Implementation address: ${preparedNewVault}`);
     console.log("✅ Done");
 
-    console.log(`>> Queue tx on Timelock to upgrade the implementation`);
-    await timelock.queueTransaction(
-      config.ProxyAdmin,
-      "0",
-      "upgrade(address,address)",
-      ethers.utils.defaultAbiCoder.encode(["address", "address"], [vault.address, preparedNewVault]),
-      EXACT_ETA
+    timelockTransactions.push(
+      await TimelockService.queueTransaction(
+        `> Queue tx to upgrade ${vault.symbol}`,
+        config.ProxyAdmin,
+        "0",
+        "upgrade(address,adress)",
+        ["address", "address"],
+        [vault.address, preparedNewVault],
+        EXACT_ETA,
+        { nonce: nonce++ }
+      )
     );
-    console.log("✅ Done");
-
-    console.log(`>> Generate executeTransaction:`);
-    console.log(
-      `await timelock.executeTransaction('${config.ProxyAdmin}', '0', 'upgrade(address,address)', ethers.utils.defaultAbiCoder.encode(['address','address'], ['${vault.address}','${preparedNewVault}']), ${EXACT_ETA})`
-    );
-    console.log("✅ Done");
   }
+
+  FileService.write(TITLE, timelockTransactions);
 };
 
 export default func;
