@@ -11,7 +11,7 @@
 Alpaca Fin Corporation
 */
 
-pragma solidity 0.6.6;
+pragma solidity 0.8.13;
 
 interface INFTStaking {
   function isStaked(bytes32 _poolId, address _user) external view returns (bool);

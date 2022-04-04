@@ -11,16 +11,15 @@
 Alpaca Fin Corporation
 */
 
-pragma solidity 0.6.6;
+pragma solidity 0.8.13;
 
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "./interfaces/INFTStaking.sol";
 
-import "../protocol/interfaces/INFTStaking.sol";
-
-contract NFTStaking is INFTStaking, IERC721Receiver, OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe {
+contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeable {
   event LogStakeNFT(address indexed staker, bytes32 indexed poolId, address nftAddress, uint256 nftTokenId);
   event LogUnstakeNFT(address indexed staker, bytes32 indexed poolId, address nftAddress, uint256 nftTokenId);
   event LogAddPool(address indexed caller, bytes32 indexed poolId, address[] stakeNFTToken);
@@ -51,8 +50,8 @@ contract NFTStaking is INFTStaking, IERC721Receiver, OwnableUpgradeSafe, Reentra
   }
 
   function initialize() external initializer {
-    OwnableUpgradeSafe.__Ownable_init();
-    ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
+    OwnableUpgradeable.__Ownable_init();
+    ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
   }
 
   function addPool(bytes32 _poolId, address[] calldata _stakeNFTToken) external onlyOwner {
@@ -97,10 +96,10 @@ contract NFTStaking is INFTStaking, IERC721Receiver, OwnableUpgradeSafe, Reentra
 
     userStakingNFT[_poolId][_msgSender()] = NFTStakingInfo({ nftAddress: _nftAddress, nftTokenId: _nftTokenId });
 
-    IERC721(_nftAddress).safeTransferFrom(_msgSender(), address(this), _nftTokenId);
+    IERC721Upgradeable(_nftAddress).safeTransferFrom(_msgSender(), address(this), _nftTokenId);
 
     if (_stakedNFT.nftAddress != address(0)) {
-      IERC721(_stakedNFT.nftAddress).safeTransferFrom(address(this), _msgSender(), _stakedNFT.nftTokenId);
+      IERC721Upgradeable(_stakedNFT.nftAddress).safeTransferFrom(address(this), _msgSender(), _stakedNFT.nftTokenId);
     }
     emit LogStakeNFT(_msgSender(), _poolId, _nftAddress, _nftTokenId);
   }
@@ -111,7 +110,7 @@ contract NFTStaking is INFTStaking, IERC721Receiver, OwnableUpgradeSafe, Reentra
 
     userStakingNFT[_poolId][_msgSender()] = NFTStakingInfo({ nftAddress: address(0), nftTokenId: 0 });
 
-    IERC721(toBeSentBackNft.nftAddress).safeTransferFrom(address(this), _msgSender(), toBeSentBackNft.nftTokenId);
+    IERC721Upgradeable(toBeSentBackNft.nftAddress).safeTransferFrom(address(this), _msgSender(), toBeSentBackNft.nftTokenId);
 
     emit LogUnstakeNFT(_msgSender(), _poolId, toBeSentBackNft.nftAddress, toBeSentBackNft.nftTokenId);
   }
@@ -134,7 +133,7 @@ contract NFTStaking is INFTStaking, IERC721Receiver, OwnableUpgradeSafe, Reentra
     address, /*from*/
     uint256, /*tokenId*/
     bytes calldata /*data*/
-  ) external override returns (bytes4) {
-    return IERC721Receiver.onERC721Received.selector;
+  ) external pure returns (bytes4) {
+    return IERC721ReceiverUpgradeable.onERC721Received.selector;
   }
 }

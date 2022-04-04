@@ -6,7 +6,7 @@
     "build": "yarn run build:cjs",
     "build:cjs": "tsc -p tsconfig.cjs.json",
     "compile5": "hardhat typechain --config hardhat.config.5.ts",
-    "compile6": "hardhat typechain --config hardhat.config.ts",
+    "compile6": "hardhat typechain --config hardhat.config.6.ts",
     "compile6.12": "hardhat typechain --config hardhat.config.6.12.ts",
     "compile8.10": "hardhat typechain --config hardhat.config.8.10.ts",
     "compile8.11": "hardhat typechain --config hardhat.config.8.11.ts",
