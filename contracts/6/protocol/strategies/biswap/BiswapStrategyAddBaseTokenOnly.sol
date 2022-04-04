@@ -74,12 +74,7 @@ contract BiswapStrategyAddBaseTokenOnly is OwnableUpgradeSafe, ReentrancyGuardUp
     (uint256 r0, uint256 r1, ) = lpToken.getReserves();
     uint256 rIn = lpToken.token0() == baseToken ? r0 : r1;
     // find how many baseToken need to be converted to farmingToken
-    // Constants come from
-    // 2-f = 2-0.002 = 1.998
-    // 4(1-f) = 4*998*1000 = 3992000, where f = 0.0020 and 1,000 is a way to avoid floating point
-    // 1998^2 = 3992004
-    // 998*2 = 1996
-    uint256 aIn = AlpacaMath.sqrt(rIn.mul(balance.mul(3992000).add(rIn.mul(3992004)))).sub(rIn.mul(1998)) / 1996;
+    uint256 aIn = _calculateAIn(lpToken.swapFee(), rIn, balance);
     // 4. Convert that portion of baseToken to farmingToken.
     address[] memory path = new address[](2);
     path[0] = baseToken;
@@ -101,6 +96,26 @@ contract BiswapStrategyAddBaseTokenOnly is OwnableUpgradeSafe, ReentrancyGuardUp
     // 6. Reset approval for safety reason
     baseToken.safeApprove(address(router), 0);
     farmingToken.safeApprove(address(router), 0);
+  }
+
+  /// @dev Formula for calculating one-sided optimal swap. Return the amount that needs to be swapped.
+  /// @param fee trading fee of the pair.
+  /// @param rIn reserve of baseToken in the pair.
+  /// @param balance balance of baseToken from worker.
+  function _calculateAIn(
+    uint256 fee,
+    uint256 rIn,
+    uint256 balance
+  ) internal pure returns (uint256) {
+    uint256 feeDenom = 1000; // Biswap use 1000 fee denomination
+    uint256 feeConstantA = feeDenom.mul(2).sub(fee); // 2-f
+    uint256 feeConstantB = feeDenom.sub(fee).mul(4).mul(feeDenom); // 4(1-f)
+    uint256 feeConstantC = feeConstantA**2; // (2-f)^2
+    uint256 nominator = AlpacaMath.sqrt(rIn.mul(balance.mul(feeConstantB).add(rIn.mul(feeConstantC)))).sub(
+      rIn.mul(feeConstantA)
+    );
+    uint256 denominator = feeDenom.sub(fee).mul(2); // 1-f
+    return nominator / denominator;
   }
 
   function setWorkersOk(address[] calldata workers, bool isOk) external onlyOwner {
