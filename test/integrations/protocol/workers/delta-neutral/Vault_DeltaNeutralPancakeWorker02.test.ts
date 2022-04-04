@@ -4,6 +4,7 @@ import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import "@openzeppelin/test-helpers";
 import {
+  AlpacaToken,
   CakeToken,
   FairLaunch,
   MockContractContext,

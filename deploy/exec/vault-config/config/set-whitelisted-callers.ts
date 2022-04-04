@@ -6,6 +6,7 @@ import { FileService, TimelockService } from "../../../services";
 import { getConfig } from "../../../entities/config";
 import { Multicall2Service } from "../../../services/multicall/multicall2";
 import { ConfigurableInterestVaultConfig, ConfigurableInterestVaultConfig__factory } from "../../../../typechain";
+import { getDeployer } from "../../../../utils/deployer-helper";
 
 interface IInput {
   VAULT_SYMBOL: string;
@@ -29,7 +30,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "mainnet_whitelist_u5p2";
+  const TITLE = "fantom_mainnet_3x_delta_neutral_set_whitelisted_callers";
   const TARGETED_VAULT_CONFIG: Array<IInput> = [
     // {
     //   VAULT_SYMBOL: "ibWBNB",
@@ -68,30 +69,30 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     // },
     {
       VAULT_SYMBOL: "ibFTM",
-      WHITELISTED_CALLERS: ["0x158B8236529B0f2cf670891AD32a4bBa27090C2f"],
+      WHITELISTED_CALLERS: ["0x18a9853102b51Bb228E277BeE25625874f184398"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibUSDC",
-      WHITELISTED_CALLERS: ["0x158B8236529B0f2cf670891AD32a4bBa27090C2f"],
+      WHITELISTED_CALLERS: ["0x18a9853102b51Bb228E277BeE25625874f184398"],
       IS_ENABLE: true,
     },
-    {
-      VAULT_SYMBOL: "ibTOMB",
-      WHITELISTED_CALLERS: ["0x158B8236529B0f2cf670891AD32a4bBa27090C2f"],
-      IS_ENABLE: true,
-    },
-    {
-      VAULT_SYMBOL: "ibALPACA",
-      WHITELISTED_CALLERS: ["0x158B8236529B0f2cf670891AD32a4bBa27090C2f"],
-      IS_ENABLE: true,
-    },
+    // {
+    //   VAULT_SYMBOL: "ibTOMB",
+    //   WHITELISTED_CALLERS: ["0x158B8236529B0f2cf670891AD32a4bBa27090C2f"],
+    //   IS_ENABLE: true,
+    // },
+    // {
+    //   VAULT_SYMBOL: "ibALPACA",
+    //   WHITELISTED_CALLERS: ["0x158B8236529B0f2cf670891AD32a4bBa27090C2f"],
+    //   IS_ENABLE: true,
+    // },
   ];
   const EXACT_ETA = "1648291200";
 
   const config = getConfig();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
-  const [deployer] = await ethers.getSigners();
+  const deployer = await getDeployer();
   const multiCall2Service = new Multicall2Service(config.MultiCall, deployer);
   let nonce = await deployer.getTransactionCount();
 
@@ -119,12 +120,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       };
     })
   );
-
+  let isTimeLockExecuted: boolean = false;
   for (let index = 0; index < inputs.length; index++) {
     const i = inputs[index];
     const owner = owners[index];
 
     if (owner.toLowerCase() === config.Timelock.toLowerCase()) {
+      isTimeLockExecuted = true;
       timelockTransactions.push(
         await TimelockService.queueTransaction(
           `>> Queue tx on Timelock to setWhitelistedCallers for ${i.vaultConfig.address}`,
@@ -145,7 +147,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     }
   }
 
-  FileService.write(TITLE, timelockTransactions);
+  if (isTimeLockExecuted) {
+    FileService.write(TITLE, timelockTransactions);
+  }
 };
 
 export default func;
