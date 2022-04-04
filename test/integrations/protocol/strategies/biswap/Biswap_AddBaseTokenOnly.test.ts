@@ -22,26 +22,21 @@ import {
   Oracle__factory,
 } from "../../../../../typechain";
 
-import { assertAlmostEqual } from "../../../../helpers/assert";
-import { formatEther } from "ethers/lib/utils";
-import * as TimeHelpers from "../../../../helpers/time";
-
 chai.use(solidity);
 const { expect } = chai;
 
 describe("BiswapStrategyAddBaseTokenOnly", () => {
   const FOREVER = "2000000000";
-  const mdxPerBlock = "51600000000000000000";
 
-  /// Mdex-related instance(s)
+  /// Biswap-related instance(s)
   let factory: BiswapFactory;
   let router: BiswapRouter02;
   let lp: BiswapPair;
   let oracle: Oracle;
 
-  /// MockMdexWorker-related instance(s)
-  let mockMdexWorker: MockMdexWorker;
-  let mockMdexEvilWorker: MockMdexWorker;
+  /// MockBiswapWorker which has the MockMdexWorker implementation instance(s)
+  let mockBiswapWorker: MockMdexWorker;
+  let mockBiswapEvilWorker: MockMdexWorker;
 
   /// Token-related instance(s)
   let wbnb: WETH;
@@ -66,8 +61,8 @@ describe("BiswapStrategyAddBaseTokenOnly", () => {
 
   let stratAsBob: BiswapStrategyAddBaseTokenOnly;
 
-  let mockMdexWorkerAsBob: MockMdexWorker;
-  let mockMdexEvilWorkerAsBob: MockMdexWorker;
+  let mockBiswapWorkerAsBob: MockMdexWorker;
+  let mockBiswapEvilWorkerAsBob: MockMdexWorker;
 
   async function fixture() {
     [deployer, alice, bob] = await ethers.getSigners();
@@ -106,18 +101,18 @@ describe("BiswapStrategyAddBaseTokenOnly", () => {
 
     /// Setup MockMdexWorker
     const MockMdexWorker = (await ethers.getContractFactory("MockMdexWorker", deployer)) as MockMdexWorker__factory;
-    mockMdexWorker = (await MockMdexWorker.deploy(
+    mockBiswapWorker = (await MockMdexWorker.deploy(
       lp.address,
       baseToken.address,
       farmingToken.address
     )) as MockMdexWorker;
-    await mockMdexWorker.deployed();
-    mockMdexEvilWorker = (await MockMdexWorker.deploy(
+    await mockBiswapWorker.deployed();
+    mockBiswapEvilWorker = (await MockMdexWorker.deploy(
       lp.address,
       baseToken.address,
       farmingToken.address
     )) as MockMdexWorker;
-    await mockMdexEvilWorker.deployed();
+    await mockBiswapEvilWorker.deployed();
 
     const BiswapStrategyAddBaseTokenOnly = (await ethers.getContractFactory(
       "BiswapStrategyAddBaseTokenOnly",
@@ -127,7 +122,7 @@ describe("BiswapStrategyAddBaseTokenOnly", () => {
       router.address,
     ])) as BiswapStrategyAddBaseTokenOnly;
     await strat.deployed();
-    await strat.setWorkersOk([mockMdexWorker.address], true);
+    await strat.setWorkersOk([mockBiswapWorker.address], true);
 
     // Assign contract signer
     baseTokenAsAlice = MockERC20__factory.connect(baseToken.address, alice);
@@ -139,8 +134,8 @@ describe("BiswapStrategyAddBaseTokenOnly", () => {
 
     stratAsBob = BiswapStrategyAddBaseTokenOnly__factory.connect(strat.address, bob);
 
-    mockMdexWorkerAsBob = MockMdexWorker__factory.connect(mockMdexWorker.address, bob);
-    mockMdexEvilWorkerAsBob = MockMdexWorker__factory.connect(mockMdexEvilWorker.address, bob);
+    mockBiswapWorkerAsBob = MockMdexWorker__factory.connect(mockBiswapWorker.address, bob);
+    mockBiswapEvilWorkerAsBob = MockMdexWorker__factory.connect(mockBiswapEvilWorker.address, bob);
 
     // Adding liquidity to the pool
     // Alice adds 0.1 FTOKEN + 1 BTOKEN
@@ -176,7 +171,7 @@ describe("BiswapStrategyAddBaseTokenOnly", () => {
 
   context("When the setOkWorkers caller is not an owner", async () => {
     it("should be reverted", async () => {
-      await expect(stratAsBob.setWorkersOk([mockMdexEvilWorkerAsBob.address], true)).to.reverted;
+      await expect(stratAsBob.setWorkersOk([mockBiswapEvilWorkerAsBob.address], true)).to.reverted;
     });
   });
 
@@ -191,9 +186,9 @@ describe("BiswapStrategyAddBaseTokenOnly", () => {
   context("When contract get LP < minLP", async () => {
     it("should revert", async () => {
       // Bob uses AddBaseTokenOnly strategy yet again, but now with an unreasonable min LP request
-      await baseTokenAsBob.transfer(mockMdexWorker.address, ethers.utils.parseEther("0.1"));
+      await baseTokenAsBob.transfer(mockBiswapWorker.address, ethers.utils.parseEther("0.1"));
       await expect(
-        mockMdexWorkerAsBob.work(
+        mockBiswapWorkerAsBob.work(
           0,
           await bob.getAddress(),
           "0",
@@ -208,9 +203,9 @@ describe("BiswapStrategyAddBaseTokenOnly", () => {
 
   context("When caller worker hasn't been whitelisted", async () => {
     it("should revert as bad worker", async () => {
-      await baseTokenAsBob.transfer(mockMdexEvilWorkerAsBob.address, ethers.utils.parseEther("0.05"));
+      await baseTokenAsBob.transfer(mockBiswapEvilWorkerAsBob.address, ethers.utils.parseEther("0.05"));
       await expect(
-        mockMdexEvilWorkerAsBob.work(
+        mockBiswapEvilWorkerAsBob.work(
           0,
           await bob.getAddress(),
           "0",
@@ -225,9 +220,9 @@ describe("BiswapStrategyAddBaseTokenOnly", () => {
 
   context("when revoking whitelist workers", async () => {
     it("should revert as bad worker", async () => {
-      await strat.setWorkersOk([mockMdexWorker.address], false);
+      await strat.setWorkersOk([mockBiswapWorker.address], false);
       await expect(
-        mockMdexWorkerAsBob.work(
+        mockBiswapWorkerAsBob.work(
           0,
           await bob.getAddress(),
           "0",
@@ -243,9 +238,9 @@ describe("BiswapStrategyAddBaseTokenOnly", () => {
   it("should convert all BTOKEN to LP tokens at best rate (trading fee 10 bps)", async () => {
     await factory.setSwapFee(lp.address, 1);
     // Bob transfer 0.1 BTOKEN to StrategyAddBaseTokenOnly first
-    await baseTokenAsBob.transfer(mockMdexWorker.address, ethers.utils.parseEther("0.1"));
+    await baseTokenAsBob.transfer(mockBiswapWorker.address, ethers.utils.parseEther("0.1"));
     // Bob uses AddBaseTokenOnly strategy to add 0.1 BTOKEN
-    await mockMdexWorkerAsBob.work(
+    await mockBiswapWorkerAsBob.work(
       0,
       await bob.getAddress(),
       "0",
@@ -256,14 +251,14 @@ describe("BiswapStrategyAddBaseTokenOnly", () => {
     );
 
     // // actualLpAmount = 0.01542699189141548
-    expect(await lp.balanceOf(mockMdexWorker.address)).to.be.eq(ethers.utils.parseEther("0.015426991891415481"));
+    expect(await lp.balanceOf(mockBiswapWorker.address)).to.be.eq(ethers.utils.parseEther("0.015426991891415481"));
     expect(await lp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
     expect(await farmingToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
     expect(await baseToken.balanceOf(strat.address)).to.be.eq(ethers.BigNumber.from("0"));
 
     // // Bob uses AddBaseTokenOnly strategy to add another 0.1 BTOKEN
-    await baseTokenAsBob.transfer(mockMdexWorker.address, ethers.utils.parseEther("0.1"));
-    await mockMdexWorkerAsBob.work(
+    await baseTokenAsBob.transfer(mockBiswapWorker.address, ethers.utils.parseEther("0.1"));
+    await mockBiswapWorkerAsBob.work(
       0,
       await bob.getAddress(),
       "0",
@@ -273,7 +268,7 @@ describe("BiswapStrategyAddBaseTokenOnly", () => {
       )
     );
 
-    expect(await lp.balanceOf(mockMdexWorker.address)).to.be.eq(ethers.utils.parseEther("0.030166953762765411"));
+    expect(await lp.balanceOf(mockBiswapWorker.address)).to.be.eq(ethers.utils.parseEther("0.030166953762765411"));
     expect(await lp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
     expect(await farmingToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
     expect(await baseToken.balanceOf(strat.address)).to.be.lte(ethers.BigNumber.from("13"));
@@ -281,9 +276,9 @@ describe("BiswapStrategyAddBaseTokenOnly", () => {
   it("should convert all BTOKEN to LP tokens at best rate (trading fee 20 bps)", async () => {
     await factory.setSwapFee(lp.address, 2);
     // Bob transfer 0.1 BTOKEN to StrategyAddBaseTokenOnly first
-    await baseTokenAsBob.transfer(mockMdexWorker.address, ethers.utils.parseEther("0.1"));
+    await baseTokenAsBob.transfer(mockBiswapWorker.address, ethers.utils.parseEther("0.1"));
     // Bob uses AddBaseTokenOnly strategy to add 0.1 BTOKEN
-    await mockMdexWorkerAsBob.work(
+    await mockBiswapWorkerAsBob.work(
       0,
       await bob.getAddress(),
       "0",
@@ -316,15 +311,15 @@ describe("BiswapStrategyAddBaseTokenOnly", () => {
     // lpAmount = 0.316227766016837933 * (0.051142292984839684 / 1.048857707015160316) ~= 0.015419263215025119...
 
     // actualLpAmount = 0.015419263215025115
-    expect(await lp.balanceOf(mockMdexWorker.address)).to.be.eq(ethers.utils.parseEther("0.015419263215025115"));
+    expect(await lp.balanceOf(mockBiswapWorker.address)).to.be.eq(ethers.utils.parseEther("0.015419263215025115"));
     expect(await lp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
     expect(await farmingToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
     // there is a very small remaining amount of base token left
     expect(await baseToken.balanceOf(strat.address)).to.be.lte(ethers.BigNumber.from("13"));
 
     // Bob uses AddBaseTokenOnly strategy to add another 0.1 BTOKEN
-    await baseTokenAsBob.transfer(mockMdexWorker.address, ethers.utils.parseEther("0.1"));
-    await mockMdexWorkerAsBob.work(
+    await baseTokenAsBob.transfer(mockBiswapWorker.address, ethers.utils.parseEther("0.1"));
+    await mockBiswapWorkerAsBob.work(
       0,
       await bob.getAddress(),
       "0",
@@ -334,7 +329,7 @@ describe("BiswapStrategyAddBaseTokenOnly", () => {
       )
     );
 
-    expect(await lp.balanceOf(mockMdexWorker.address)).to.be.eq(ethers.utils.parseEther("0.030151497260262730"));
+    expect(await lp.balanceOf(mockBiswapWorker.address)).to.be.eq(ethers.utils.parseEther("0.030151497260262730"));
     expect(await lp.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
     expect(await farmingToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
     expect(await baseToken.balanceOf(strat.address)).to.be.eq(ethers.utils.parseEther("0"));
