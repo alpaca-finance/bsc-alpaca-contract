@@ -133,7 +133,8 @@ contract StrategyOracleLiquidate is OwnableUpgradeable, ReentrancyGuardUpgradeab
       calBaseFromLiquiditySource(address(_baseToken), address(_farmingToken), _farmBasePrice, _farmingTokenBalance)
     );
     uint256 _baseTokenBalance = _baseToken.balanceOf(address(this));
-    if (_baseTokenBalance - _debt < _minBaseToken) revert StrategyOracleLiquidate_Slippage();
+    if (_debt <= _baseTokenBalance)
+      if (_baseTokenBalance - _debt < _minBaseToken) revert StrategyOracleLiquidate_Slippage();
     // 5. Return base token back to the worker
     _baseToken.safeTransfer(msg.sender, _baseToken.balanceOf(address(this)));
     // 6. Reset approval
