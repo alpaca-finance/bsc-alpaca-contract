@@ -18,10 +18,6 @@ import {
   WETH__factory,
   MockMdexWorker,
   MockMdexWorker__factory,
-  MdxToken,
-  MdxToken__factory,
-  SwapMining,
-  SwapMining__factory,
   Oracle,
   Oracle__factory,
 } from "../../../../../typechain";
@@ -51,7 +47,6 @@ describe("BiswapStrategyAddBaseTokenOnly", () => {
   let wbnb: WETH;
   let baseToken: MockERC20;
   let farmingToken: MockERC20;
-  let mdxToken: MdxToken;
 
   /// Strategy instance(s)
   let strat: BiswapStrategyAddBaseTokenOnly;
@@ -85,12 +80,6 @@ describe("BiswapStrategyAddBaseTokenOnly", () => {
     const WBNB = (await ethers.getContractFactory("WETH", deployer)) as WETH__factory;
     wbnb = await WBNB.deploy();
     await wbnb.deployed();
-
-    const MdxToken = (await ethers.getContractFactory("MdxToken", deployer)) as MdxToken__factory;
-    mdxToken = await MdxToken.deploy();
-    await mdxToken.deployed();
-    await mdxToken.addMinter(await deployer.getAddress());
-    await mdxToken.mint(await deployer.getAddress(), ethers.utils.parseEther("100"));
 
     const BiswapRouter02 = (await ethers.getContractFactory("BiswapRouter02", deployer)) as BiswapRouter02__factory;
     router = await BiswapRouter02.deploy(factory.address, wbnb.address);
