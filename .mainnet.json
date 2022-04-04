@@ -421,6 +421,7 @@
       "address": "0x4F4054B4D286213a39cA5b8eF89116AC62c1cf43"
     }
   ],
+  "RevenueTreasury": "0x08B5A95cb94f926a8B620E87eE92e675b35afc7E",
   "YieldSources": {
     "Pancakeswap": {
       "UniswapV2Factory": "0xBCfCcbde45cE874adCB698cC183deBcF17952812",
