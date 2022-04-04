@@ -268,14 +268,9 @@ library BiswapLibrary {
     }
 
     // calculates the CREATE2 address for a pair without making any external calls
-    function pairFor(address factory, address tokenA, address tokenB) internal pure returns (address pair) {
+    function pairFor(address factory, address tokenA, address tokenB) internal view returns (address pair) {
         (address token0, address token1) = sortTokens(tokenA, tokenB);
-        pair = address(uint(keccak256(abi.encodePacked(
-                hex'ff',
-                factory,
-                keccak256(abi.encodePacked(token0, token1)),
-                hex'fea293c909d87cd4153593f077b76bb7e94340200f4ee84211ae8e4f9bd7ffdf' // init code hash
-            ))));
+        pair = IBiswapFactory(factory).getPair(token0, token1);
     }
 
     function getSwapFee(address factory, address tokenA, address tokenB) internal view returns (uint swapFee) {
