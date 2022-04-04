@@ -19,7 +19,7 @@ import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/math/Math.sol";
 
 import "../../interfaces/ISwapFactoryLike.sol";
-import "../../interfaces/ISwapPairLike.sol";
+import "../../interfaces/IBiswapLiquidityPair.sol";
 import "../../interfaces/ISwapRouter02Like.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IWorker03.sol";
@@ -77,7 +77,7 @@ contract BiswapStrategyPartialCloseLiquidate is OwnableUpgradeSafe, ReentrancyGu
     IWorker03 worker = IWorker03(msg.sender);
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
-    ISwapPairLike lpToken = ISwapPairLike(factory.getPair(farmingToken, baseToken));
+    IBiswapLiquidityPair lpToken = IBiswapLiquidityPair(factory.getPair(farmingToken, baseToken));
     uint256 lpTokenToLiquidate = Math.min(address(lpToken).myBalance(), maxLpTokenToLiquidate);
     uint256 lessDebt = Math.min(debt, maxDebtRepayment);
     uint256 baseTokenBefore = baseToken.myBalance();

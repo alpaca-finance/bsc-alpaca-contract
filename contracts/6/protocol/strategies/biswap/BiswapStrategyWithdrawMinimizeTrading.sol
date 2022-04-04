@@ -19,7 +19,7 @@ import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 
 import "../../interfaces/ISwapFactoryLike.sol";
-import "../../interfaces/ISwapPairLike.sol";
+import "../../interfaces/IBiswapLiquidityPair.sol";
 import "../../interfaces/ISwapRouter02Like.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IWETH.sol";
@@ -74,7 +74,7 @@ contract BiswapStrategyWithdrawMinimizeTrading is OwnableUpgradeSafe, Reentrancy
     IWorker03 worker = IWorker03(msg.sender);
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
-    ISwapPairLike lpToken = worker.lpToken();
+    IBiswapLiquidityPair lpToken = IBiswapLiquidityPair(address(worker.lpToken()));
     // 2. Approve router to do their stuffs
     address(lpToken).safeApprove(address(router), uint256(-1));
     farmingToken.safeApprove(address(router), uint256(-1));
