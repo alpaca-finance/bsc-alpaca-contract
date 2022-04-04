@@ -44,7 +44,7 @@ contract BiswapStrategyAddBaseTokenOnly is OwnableUpgradeSafe, ReentrancyGuardUp
   }
 
   /// @dev Create a new add Token only strategy instance.
-  /// @param _router The SpookySwap Router smart contract.
+  /// @param _router The Biswap Router smart contract.
   function initialize(ISwapRouter02Like _router) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
@@ -52,7 +52,7 @@ contract BiswapStrategyAddBaseTokenOnly is OwnableUpgradeSafe, ReentrancyGuardUp
     router = _router;
   }
 
-  /// @notice This function is written base on fee=998, feeDenom=1000
+  /// @notice This function is written base on feeDenom=1000
   /// @dev Execute worker strategy. Take BaseToken. Return LP tokens.
   /// @param data Extra calldata information passed along to this strategy.
   function execute(
