@@ -60,7 +60,7 @@ describe("Vault - BiswapWorker03", () => {
   const BENEFICIALVAULT_BOUNTY_BPS = "1000";
   const REINVEST_THRESHOLD = ethers.utils.parseEther("1"); // If pendingCake > 1 $MDX, then reinvest
   const KILL_TREASURY_BPS = "100";
-  const POOL_IDX = 0;
+  const POOL_IDX = 1; // Normally we'ld use 0, but because Biswap will have the first pool (id:0) at deployment
 
   /// Biswap-related instance(s)
   let biswapFactory: BiswapFactory;
@@ -230,11 +230,15 @@ describe("Vault - BiswapWorker03", () => {
     await biswapFactory.createPair(bsw.address, wbnb.address);
     lp = BiswapPair__factory.connect(await biswapFactory.getPair(farmToken.address, baseToken.address), deployer);
     bswBnbLp = BiswapPair__factory.connect(await biswapFactory.getPair(bsw.address, wbnb.address), deployer);
+    // set the default pool alloc point to 0;
+    await masterchef.set(0, 0, true);
+    // set lp pool alloc point to 1;
     await masterchef.add(1, lp.address, true);
 
     biswapFactory.setSwapFee(bswBnbLp.address, 2);
     biswapFactory.setSwapFee(lp.address, 2);
-    console.log("1");
+    biswapFactory.setSwapFee(bswBnbLp.address, 2);
+
     /// Setup BiswapWorker03
     biswapWorker = await deployHelper.deployBiswapWorker03(
       vault,
@@ -253,16 +257,15 @@ describe("Vault - BiswapWorker03", () => {
       [twoSidesStrat.address, minimizeStrat.address, partialCloseStrat.address, partialCloseMinimizeStrat.address],
       simpleVaultConfig
     );
-    console.log("2");
     swapHelper = new SwapHelper(
       biswapFactory.address,
       biswapRouter.address,
-      BigNumber.from(9980),
-      BigNumber.from(10000),
+      BigNumber.from(998),
+      BigNumber.from(1000),
       deployer
     );
 
-    await swapHelper.addMdexLiquidities([
+    await swapHelper.addLiquidities([
       {
         token0: baseToken,
         token1: farmToken,
@@ -325,7 +328,7 @@ describe("Vault - BiswapWorker03", () => {
     });
 
     it("should initialized the correct feeDenom", async () => {
-      expect("10000").to.be.eq(await biswapWorker.feeDenom());
+      expect("1000").to.be.eq(await biswapWorker.feeDenom());
     });
 
     it("should give rewards out when you stake LP tokens", async () => {

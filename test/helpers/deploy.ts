@@ -1451,7 +1451,6 @@ export class DeployHelper {
       0,
     ])) as BiswapWorker03;
     await worker.deployed();
-    console.log("3");
     await simpleVaultConfig.setWorker(worker.address, true, true, workFactor, killFactor, true, true);
     await worker.setStrategyOk(extraStrategies, true);
     await worker.setReinvestorOk(okReinvestor, true);
