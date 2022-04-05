@@ -6,12 +6,12 @@ import "@openzeppelin/test-helpers";
 import {
   MockERC20,
   MockERC20__factory,
-  WaultSwapFactory,
-  WaultSwapFactory__factory,
-  WaultSwapPair,
-  WaultSwapPair__factory,
-  WaultSwapRouter,
-  WaultSwapRouter__factory,
+  BiswapFactory,
+  BiswapFactory__factory,
+  BiswapPair,
+  BiswapPair__factory,
+  BiswapRouter02,
+  BiswapRouter02__factory,
   WETH,
   WETH__factory,
   WNativeRelayer__factory,
@@ -30,10 +30,10 @@ describe("BiswapStrategyWithdrawMinimizeTrading", () => {
 
   /// DEX-related instance(s)
   /// note: Use WaultSwap here because they have the same fee-structure
-  let factory: WaultSwapFactory;
-  let router: WaultSwapRouter;
-  let lp: WaultSwapPair;
-  let baseTokenWbnbLp: WaultSwapPair;
+  let factory: BiswapFactory;
+  let router: BiswapRouter02;
+  let lp: BiswapPair;
+  let baseTokenWbnbLp: BiswapPair;
 
   /// MockWaultSwapWorker-related instance(s)
   let mockWorker: MockWaultSwapWorker;
@@ -56,16 +56,16 @@ describe("BiswapStrategyWithdrawMinimizeTrading", () => {
   // Contract Signer
   let baseTokenAsAlice: MockERC20;
   let baseTokenAsBob: MockERC20;
-  let baseTokenWbnbLpV2AsBob: WaultSwapPair;
+  let baseTokenWbnbLpV2AsBob: BiswapPair;
 
-  let lpAsAlice: WaultSwapPair;
-  let lpAsBob: WaultSwapPair;
+  let lpAsAlice: BiswapPair;
+  let lpAsBob: BiswapPair;
 
   let farmingTokenAsAlice: MockERC20;
   let farmingTokenAsBob: MockERC20;
 
-  let routerAsAlice: WaultSwapRouter;
-  let routerAsBob: WaultSwapRouter;
+  let routerAsAlice: BiswapRouter02;
+  let routerAsBob: BiswapRouter02;
 
   let stratAsAlice: BiswapStrategyWithdrawMinimizeTrading;
   let stratAsBob: BiswapStrategyWithdrawMinimizeTrading;
@@ -81,18 +81,18 @@ describe("BiswapStrategyWithdrawMinimizeTrading", () => {
     [deployer, alice, bob] = await ethers.getSigners();
 
     // Setup WaultSwap
-    const WaultSwapFactory = (await ethers.getContractFactory(
-      "WaultSwapFactory",
+    const BiswapFactory = (await ethers.getContractFactory(
+      "BiswapFactory",
       deployer
-    )) as WaultSwapFactory__factory;
-    factory = await WaultSwapFactory.deploy(await deployer.getAddress());
+    )) as BiswapFactory__factory;
+    factory = await BiswapFactory.deploy(await deployer.getAddress());
     await factory.deployed();
 
     const WBNB = (await ethers.getContractFactory("WETH", deployer)) as WETH__factory;
     wbnb = await WBNB.deploy();
 
-    const WaultSwapRouter = (await ethers.getContractFactory("WaultSwapRouter", deployer)) as WaultSwapRouter__factory;
-    router = await WaultSwapRouter.deploy(factory.address, wbnb.address);
+    const BiswapRouter02 = (await ethers.getContractFactory("BiswapRouter02", deployer)) as BiswapRouter02__factory;
+    router = await BiswapRouter02.deploy(factory.address, wbnb.address);
     await router.deployed();
 
     /// Setup token stuffs
@@ -109,8 +109,8 @@ describe("BiswapStrategyWithdrawMinimizeTrading", () => {
     await factory.createPair(baseToken.address, farmingToken.address);
     await factory.createPair(baseToken.address, wbnb.address);
 
-    lp = WaultSwapPair__factory.connect(await factory.getPair(farmingToken.address, baseToken.address), deployer);
-    baseTokenWbnbLp = WaultSwapPair__factory.connect(await factory.getPair(wbnb.address, baseToken.address), deployer);
+    lp = BiswapPair__factory.connect(await factory.getPair(farmingToken.address, baseToken.address), deployer);
+    baseTokenWbnbLp = BiswapPair__factory.connect(await factory.getPair(wbnb.address, baseToken.address), deployer);
 
     /// Setup MockWaultSwapWorker
     const MockWaultSwapWorker = (await ethers.getContractFactory(
@@ -156,16 +156,16 @@ describe("BiswapStrategyWithdrawMinimizeTrading", () => {
     // Assign contract signer
     baseTokenAsAlice = MockERC20__factory.connect(baseToken.address, alice);
     baseTokenAsBob = MockERC20__factory.connect(baseToken.address, bob);
-    baseTokenWbnbLpV2AsBob = WaultSwapPair__factory.connect(baseTokenWbnbLp.address, bob);
+    baseTokenWbnbLpV2AsBob = BiswapPair__factory.connect(baseTokenWbnbLp.address, bob);
 
     farmingTokenAsAlice = MockERC20__factory.connect(farmingToken.address, alice);
     farmingTokenAsBob = MockERC20__factory.connect(farmingToken.address, bob);
 
-    routerAsAlice = WaultSwapRouter__factory.connect(router.address, alice);
-    routerAsBob = WaultSwapRouter__factory.connect(router.address, bob);
+    routerAsAlice = BiswapRouter02__factory.connect(router.address, alice);
+    routerAsBob = BiswapRouter02__factory.connect(router.address, bob);
 
-    lpAsAlice = WaultSwapPair__factory.connect(lp.address, alice);
-    lpAsBob = WaultSwapPair__factory.connect(lp.address, bob);
+    lpAsAlice = BiswapPair__factory.connect(lp.address, alice);
+    lpAsBob = BiswapPair__factory.connect(lp.address, bob);
 
     stratAsAlice = BiswapStrategyWithdrawMinimizeTrading__factory.connect(strat.address, alice);
     stratAsBob = BiswapStrategyWithdrawMinimizeTrading__factory.connect(strat.address, bob);
@@ -176,6 +176,9 @@ describe("BiswapStrategyWithdrawMinimizeTrading", () => {
 
     wbnbAsAlice = WETH__factory.connect(wbnb.address, alice);
     wbnbAsBob = WETH__factory.connect(wbnb.address, bob);
+    // set swap fee to 0.2 for ease of testing
+    await factory.setSwapFee(lp.address, 2);
+    await factory.setSwapFee(baseTokenWbnbLp.address, 2);
   }
 
   beforeEach(async () => {
@@ -388,7 +391,7 @@ describe("BiswapStrategyWithdrawMinimizeTrading", () => {
             [strat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], [ethers.utils.parseEther("0.001")])]
           )
         )
-      ).to.be.revertedWith("subtraction overflow");
+      ).to.be.revertedWith("ds-math-sub-underflow");
     });
   });
 
@@ -558,7 +561,7 @@ describe("BiswapStrategyWithdrawMinimizeTrading", () => {
           ),
           { gasPrice: 0 }
         )
-      ).to.be.revertedWith("subtraction overflow");
+      ).to.be.revertedWith("ds-math-sub-underflow'");
     });
   });
 });
