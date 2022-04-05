@@ -4,6 +4,7 @@ import { ethers, upgrades } from "hardhat";
 import { getConfig } from "../../../entities/config";
 import { TimelockEntity } from "../../../entities";
 import { FileService, TimelockService } from "../../../services";
+import { getDeployer } from "../../../../utils/deployer-helper";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -23,7 +24,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const config = getConfig();
 
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
-  const [deployer] = await ethers.getSigners();
+  const deployer = await getDeployer();
   const toBeUpgradedVaults = TARGETED_VAULTS.map((tv) => {
     const vault = config.Vaults.find((v) => tv == v.symbol);
     if (vault === undefined) {
