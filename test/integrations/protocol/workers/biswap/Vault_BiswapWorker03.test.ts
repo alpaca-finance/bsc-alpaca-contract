@@ -358,7 +358,7 @@ describe("Vault - BiswapWorker03", () => {
     });
   });
 
-  context.only("when owner is setting worker", async () => {
+  context("when owner is setting worker", async () => {
     describe("#reinvestConfig", async () => {
       it("should set reinvest config correctly", async () => {
         await expect(biswapWorker.setReinvestConfig(250, ethers.utils.parseEther("1"), [bsw.address, baseToken.address]))
@@ -624,7 +624,7 @@ describe("Vault - BiswapWorker03", () => {
           await expect(vaultAsEve.kill("1")).to.be.revertedWith("can't liquidate");
         });
 
-        it("should work", async () => {
+        it.only("should work", async () => {
           // Deployer deposits 3 BTOKEN to the bank
           const deposit = ethers.utils.parseEther("3");
           await baseToken.approve(vault.address, deposit);
