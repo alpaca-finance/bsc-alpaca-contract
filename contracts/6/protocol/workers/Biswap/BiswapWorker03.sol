@@ -24,7 +24,7 @@ import "../../interfaces/ISwapPairLike.sol";
 import "../../interfaces/ISwapRouter02Like.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IWorker03.sol";
-import "../../interfaces/ISpookyMasterChef.sol";
+import "../../interfaces/IBiswapMasterChef.sol";
 import "../../interfaces/IVault.sol";
 
 import "../../../utils/SafeToken.sol";
@@ -61,14 +61,14 @@ contract BiswapWorker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   );
 
   /// @notice Immutable variables
-  ISpookyMasterChef public spookyMasterChef;
+  IBiswapMasterChef public biswapMasterChef;
   ISwapFactoryLike public factory;
   ISwapRouter02Like public router;
   ISwapPairLike public override lpToken;
   address public wNative;
   address public override baseToken;
   address public override farmingToken;
-  address public boo;
+  address public bsw;
   address public operator;
   uint256 public pid;
 
@@ -97,7 +97,7 @@ contract BiswapWorker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   function initialize(
     address _operator,
     address _baseToken,
-    ISpookyMasterChef _spookyMasterChef,
+    IBiswapMasterChef _biswapMasterChef,
     ISwapRouter02Like _router,
     uint256 _pid,
     IStrategy _addStrat,
@@ -114,19 +114,19 @@ contract BiswapWorker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     // 2. Assign dependency contracts
     operator = _operator;
     wNative = _router.WETH();
-    spookyMasterChef = _spookyMasterChef;
+    biswapMasterChef = _biswapMasterChef;
     router = _router;
     factory = ISwapFactoryLike(_router.factory());
 
     // 3. Assign tokens state variables
     baseToken = _baseToken;
     pid = _pid;
-    (IERC20 _lpToken, , , ) = spookyMasterChef.poolInfo(_pid);
+    (IERC20 _lpToken, , , ) = biswapMasterChef.poolInfo(_pid);
     lpToken = ISwapPairLike(address(_lpToken));
     address token0 = lpToken.token0();
     address token1 = lpToken.token1();
     farmingToken = token0 == baseToken ? token1 : token0;
-    boo = address(spookyMasterChef.boo());
+    bsw = address(biswapMasterChef.BSW());
 
     // 4. Assign critical strategy contracts
     addStrat = _addStrat;
@@ -146,7 +146,7 @@ contract BiswapWorker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     fee = 998;
     feeDenom = 1000;
 
-    require(baseToken != boo, "baseToken must !boo");
+    require(baseToken != bsw, "baseToken must !bsw");
     require(reinvestBountyBps <= maxReinvestBountyBps, "exceeded maxReinvestBountyBps");
     require(
       (farmingToken == lpToken.token0() || farmingToken == lpToken.token1()) &&
@@ -154,7 +154,7 @@ contract BiswapWorker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
       "bad baseToken or farmingToken"
     );
     require(reinvestPath.length >= 2, "_reinvestPath length must >= 2");
-    require(reinvestPath[0] == boo && reinvestPath[reinvestPath.length - 1] == baseToken, "bad reinvest path");
+    require(reinvestPath[0] == bsw && reinvestPath[reinvestPath.length - 1] == baseToken, "bad reinvest path");
   }
 
   /// @dev Require that the caller must be an EOA account to avoid flash loans.
@@ -179,7 +179,7 @@ contract BiswapWorker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   /// @param share The number of shares to be converted to LP balance.
   function shareToBalance(uint256 share) public view returns (uint256) {
     if (totalShare == 0) return share; // When there's no share, 1 share = 1 balance.
-    (uint256 totalBalance, ) = spookyMasterChef.userInfo(pid, address(this));
+    (uint256 totalBalance, ) = biswapMasterChef.userInfo(pid, address(this));
     return share.mul(totalBalance).div(totalShare);
   }
 
@@ -187,7 +187,7 @@ contract BiswapWorker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   /// @param balance the number of LP tokens to be converted to shares.
   function balanceToShare(uint256 balance) public view returns (uint256) {
     if (totalShare == 0) return balance; // When there's no share, 1 share = 1 balance.
-    (uint256 totalBalance, ) = spookyMasterChef.userInfo(pid, address(this));
+    (uint256 totalBalance, ) = biswapMasterChef.userInfo(pid, address(this));
     return balance.mul(totalShare).div(totalBalance);
   }
 
@@ -211,20 +211,20 @@ contract BiswapWorker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     uint256 _reinvestThreshold
   ) internal {
     // 1. Withdraw all the rewards. Return if reward <= _reinvestThershold.
-    spookyMasterChef.withdraw(pid, 0);
-    uint256 reward = boo.balanceOf(address(this));
+    biswapMasterChef.withdraw(pid, 0);
+    uint256 reward = bsw.balanceOf(address(this));
     if (reward <= _reinvestThreshold) return;
 
     // 2. Approve tokens
-    boo.safeApprove(address(router), uint256(-1));
-    address(lpToken).safeApprove(address(spookyMasterChef), uint256(-1));
+    bsw.safeApprove(address(router), uint256(-1));
+    address(lpToken).safeApprove(address(biswapMasterChef), uint256(-1));
 
     // 3. Send the reward bounty to the _treasuryAccount.
     uint256 bounty = reward.mul(_treasuryBountyBps) / 10000;
     if (bounty > 0) {
       uint256 beneficialVaultBounty = bounty.mul(beneficialVaultBountyBps) / 10000;
       if (beneficialVaultBounty > 0) _rewardToBeneficialVault(beneficialVaultBounty, _callerBalance);
-      boo.safeTransfer(_treasuryAccount, bounty.sub(beneficialVaultBounty));
+      bsw.safeTransfer(_treasuryAccount, bounty.sub(beneficialVaultBounty));
     }
 
     // 4. Convert all the remaining rewards to BTOKEN.
@@ -235,11 +235,11 @@ contract BiswapWorker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     addStrat.execute(address(0), 0, abi.encode(0));
 
     // 6. Stake LPs for more rewards
-    spookyMasterChef.deposit(pid, lpToken.balanceOf(address(this)));
+    biswapMasterChef.deposit(pid, lpToken.balanceOf(address(this)));
 
     // 7. Reset approvals
-    boo.safeApprove(address(router), 0);
-    address(lpToken).safeApprove(address(spookyMasterChef), 0);
+    bsw.safeApprove(address(router), 0);
+    address(lpToken).safeApprove(address(biswapMasterChef), 0);
 
     emit Reinvest(_treasuryAccount, reward, bounty);
   }
@@ -320,7 +320,7 @@ contract BiswapWorker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   }
 
   /// @dev Some portion of a bounty from reinvest will be sent to beneficialVault to increase the size of totalToken.
-  /// @param _beneficialVaultBounty - The amount of BOO to be swapped to BTOKEN & send back to the Vault.
+  /// @param _beneficialVaultBounty - The amount of BSW to be swapped to BTOKEN & send back to the Vault.
   /// @param _callerBalance - The balance that is owned by the msg.sender within the execution scope.
   function _rewardToBeneficialVault(uint256 _beneficialVaultBounty, uint256 _callerBalance) internal {
     /// 1. read base token from beneficialVault
@@ -366,18 +366,18 @@ contract BiswapWorker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     uint256 balance = lpToken.balanceOf(address(this));
     if (balance > 0) {
       // 1. Approve token to be spend by Spooky's MasterChef
-      address(lpToken).safeApprove(address(spookyMasterChef), uint256(-1));
+      address(lpToken).safeApprove(address(biswapMasterChef), uint256(-1));
       // 2. Convert balance to share
       uint256 share = balanceToShare(balance);
       require(share > 0, "no zero share");
       // 3. Deposit balance to Spooky's MasterChef
       // and also force reward claim, to mimic the behaviour of Spooky's MasterChef
-      spookyMasterChef.deposit(pid, balance);
+      biswapMasterChef.deposit(pid, balance);
       // 4. Update shares
       shares[id] = shares[id].add(share);
       totalShare = totalShare.add(share);
       // 5. Reset approve token
-      address(lpToken).safeApprove(address(spookyMasterChef), 0);
+      address(lpToken).safeApprove(address(biswapMasterChef), 0);
       emit AddShare(id, share);
     }
   }
@@ -387,7 +387,7 @@ contract BiswapWorker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     uint256 share = shares[id];
     if (share > 0) {
       uint256 balance = shareToBalance(share);
-      spookyMasterChef.withdraw(pid, balance);
+      biswapMasterChef.withdraw(pid, balance);
       totalShare = totalShare.sub(share);
       shares[id] = 0;
       emit RemoveShare(id, share);
@@ -422,11 +422,11 @@ contract BiswapWorker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     address[] memory path;
     if (baseToken == wNative) {
       path = new address[](2);
-      path[0] = address(boo);
+      path[0] = address(bsw);
       path[1] = address(wNative);
     } else {
       path = new address[](3);
-      path[0] = address(boo);
+      path[0] = address(bsw);
       path[1] = address(wNative);
       path[2] = address(baseToken);
     }
@@ -444,7 +444,7 @@ contract BiswapWorker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   ) external onlyOwner {
     require(_reinvestBountyBps <= maxReinvestBountyBps, "exceeded maxReinvestBountyBps");
     require(_reinvestPath.length >= 2, "_reinvestPath length must >= 2");
-    require(_reinvestPath[0] == boo && _reinvestPath[_reinvestPath.length - 1] == baseToken, "bad _reinvestPath");
+    require(_reinvestPath[0] == bsw && _reinvestPath[_reinvestPath.length - 1] == baseToken, "bad _reinvestPath");
 
     reinvestBountyBps = _reinvestBountyBps;
     reinvestThreshold = _reinvestThreshold;
@@ -490,7 +490,7 @@ contract BiswapWorker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   /// @param _rewardPath The new reward path.
   function setRewardPath(address[] calldata _rewardPath) external onlyOwner {
     require(_rewardPath.length >= 2, "_rewardPath length must be >= 2");
-    require(_rewardPath[0] == boo && _rewardPath[_rewardPath.length - 1] == beneficialVault.token(), "bad _rewardPath");
+    require(_rewardPath[0] == bsw && _rewardPath[_rewardPath.length - 1] == beneficialVault.token(), "bad _rewardPath");
 
     rewardPath = _rewardPath;
 
@@ -532,7 +532,7 @@ contract BiswapWorker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     require(_beneficialVaultBountyBps <= 10000, "exceeds 100%");
     require(_rewardPath.length >= 2, "_rewardPath length must >= 2");
     require(
-      _rewardPath[0] == boo && _rewardPath[_rewardPath.length - 1] == _beneficialVault.token(),
+      _rewardPath[0] == bsw && _rewardPath[_rewardPath.length - 1] == _beneficialVault.token(),
       "bad _rewardPath"
     );
 
