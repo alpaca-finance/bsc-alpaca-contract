@@ -31,7 +31,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     */
   const deltaVaultInputs: IDeltaVaultInput[] = [
     {
-      name: "Market Neutral 3x FTM-USDC SPK1",
+      name: "Market Neutral 3x BNB-BUSD PCS1",
     },
   ];
 
