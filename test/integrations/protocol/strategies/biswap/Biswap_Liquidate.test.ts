@@ -6,20 +6,18 @@ import "@openzeppelin/test-helpers";
 import {
   MockERC20,
   MockERC20__factory,
-  WaultSwapFactory,
-  WaultSwapFactory__factory,
-  WaultSwapPair,
-  WaultSwapPair__factory,
-  WaultSwapRouter,
-  WaultSwapRouter__factory,
-  WaultSwapRestrictedStrategyLiquidate,
-  WaultSwapRestrictedStrategyLiquidate__factory,
+  BiswapFactory,
+  BiswapFactory__factory,
+  BiswapPair,
+  BiswapPair__factory,
+  BiswapRouter02,
+  BiswapRouter02__factory,
+  BiswapStrategyLiquidate,
+  BiswapStrategyLiquidate__factory,
   WETH,
   WETH__factory,
   MockWaultSwapWorker,
   MockWaultSwapWorker__factory,
-  BiswapStrategyLiquidate__factory,
-  BiswapStrategyLiquidate,
 } from "../../../../../typechain";
 import { assertAlmostEqual } from "../../../../helpers/assert";
 
@@ -31,9 +29,9 @@ describe("BiswapStrategyLiquidate", () => {
 
   /// DEX-related instance(s)
   /// note: Use WaultSwap here because they have the same fee-structure
-  let factory: WaultSwapFactory;
-  let router: WaultSwapRouter;
-  let lp: WaultSwapPair;
+  let factory: BiswapFactory;
+  let router: BiswapRouter02;
+  let lp: BiswapPair;
 
   /// MockWaultSwapV2Worker-related instance(s)
   let mockWorker: MockWaultSwapWorker;
@@ -45,7 +43,7 @@ describe("BiswapStrategyLiquidate", () => {
   let farmingToken: MockERC20;
 
   /// Strategy instance(s)
-  let liqStrat: WaultSwapRestrictedStrategyLiquidate;
+  let liqStrat: BiswapStrategyLiquidate;
 
   // Accounts
   let deployer: Signer;
@@ -56,17 +54,17 @@ describe("BiswapStrategyLiquidate", () => {
   let baseTokenAsAlice: MockERC20;
   let baseTokenAsBob: MockERC20;
 
-  let lpAsAlice: WaultSwapPair;
-  let lpAsBob: WaultSwapPair;
+  let lpAsAlice: BiswapPair;
+  let lpAsBob: BiswapPair;
 
   let farmingTokenAsAlice: MockERC20;
   let farmingTokenAsBob: MockERC20;
 
-  let routerV2AsAlice: WaultSwapRouter;
-  let routerV2AsBob: WaultSwapRouter;
+  let routerV2AsAlice: BiswapRouter02;
+  let routerV2AsBob: BiswapRouter02;
 
-  let liqStratAsAlice: WaultSwapRestrictedStrategyLiquidate;
-  let liqStratAsBob: WaultSwapRestrictedStrategyLiquidate;
+  let liqStratAsAlice: BiswapStrategyLiquidate;
+  let liqStratAsBob: BiswapStrategyLiquidate;
 
   let mockWorkerAsBob: MockWaultSwapWorker;
   let mockWorkerEvilAsBob: MockWaultSwapWorker;
@@ -75,19 +73,19 @@ describe("BiswapStrategyLiquidate", () => {
     [deployer, alice, bob] = await ethers.getSigners();
 
     // Setup WaultSwap
-    const WaultSwapFactory = (await ethers.getContractFactory(
-      "WaultSwapFactory",
+    const BiswapFactory = (await ethers.getContractFactory(
+      "BiswapFactory",
       deployer
-    )) as WaultSwapFactory__factory;
-    factory = await WaultSwapFactory.deploy(await deployer.getAddress());
+    )) as BiswapFactory__factory;
+    factory = await BiswapFactory.deploy(await deployer.getAddress());
     await factory.deployed();
 
     const WBNB = (await ethers.getContractFactory("WETH", deployer)) as WETH__factory;
     wbnb = await WBNB.deploy();
     await factory.deployed();
 
-    const WaultSwapRouter = (await ethers.getContractFactory("WaultSwapRouter", deployer)) as WaultSwapRouter__factory;
-    router = await WaultSwapRouter.deploy(factory.address, wbnb.address);
+    const BiswapRouter02 = (await ethers.getContractFactory("BiswapRouter02", deployer)) as BiswapRouter02__factory;
+    router = await BiswapRouter02.deploy(factory.address, wbnb.address);
     await router.deployed();
 
     /// Setup token stuffs
@@ -103,7 +101,7 @@ describe("BiswapStrategyLiquidate", () => {
 
     await factory.createPair(baseToken.address, farmingToken.address);
 
-    lp = WaultSwapPair__factory.connect(await factory.getPair(farmingToken.address, baseToken.address), deployer);
+    lp = BiswapPair__factory.connect(await factory.getPair(farmingToken.address, baseToken.address), deployer);
 
     /// Setup MockWaultSwapWorker
     const MockWaultSwapWorker = (await ethers.getContractFactory(
@@ -140,17 +138,20 @@ describe("BiswapStrategyLiquidate", () => {
     farmingTokenAsAlice = MockERC20__factory.connect(farmingToken.address, alice);
     farmingTokenAsBob = MockERC20__factory.connect(farmingToken.address, bob);
 
-    routerV2AsAlice = WaultSwapRouter__factory.connect(router.address, alice);
-    routerV2AsBob = WaultSwapRouter__factory.connect(router.address, bob);
+    routerV2AsAlice = BiswapRouter02__factory.connect(router.address, alice);
+    routerV2AsBob = BiswapRouter02__factory.connect(router.address, bob);
 
-    lpAsAlice = WaultSwapPair__factory.connect(lp.address, alice);
-    lpAsBob = WaultSwapPair__factory.connect(lp.address, bob);
+    lpAsAlice = BiswapPair__factory.connect(lp.address, alice);
+    lpAsBob = BiswapPair__factory.connect(lp.address, bob);
 
-    liqStratAsAlice = WaultSwapRestrictedStrategyLiquidate__factory.connect(liqStrat.address, alice);
-    liqStratAsBob = WaultSwapRestrictedStrategyLiquidate__factory.connect(liqStrat.address, bob);
+    liqStratAsAlice = BiswapStrategyLiquidate__factory.connect(liqStrat.address, alice);
+    liqStratAsBob = BiswapStrategyLiquidate__factory.connect(liqStrat.address, bob);
 
     mockWorkerAsBob = MockWaultSwapWorker__factory.connect(mockWorker.address, bob);
     mockWorkerEvilAsBob = MockWaultSwapWorker__factory.connect(mockEvilWorker.address, bob);
+
+    // Set fee to 0.2 percent for ease of testing
+    factory.setSwapFee(lp.address, 2);
   }
 
   beforeEach(async () => {
