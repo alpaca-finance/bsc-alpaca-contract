@@ -228,6 +228,7 @@ describe("Vault - BiswapWorker03", () => {
     // Add lp to masterchef's pool
     await biswapFactory.createPair(baseToken.address, farmToken.address);
     await biswapFactory.createPair(bsw.address, wbnb.address);
+    await biswapFactory.createPair(baseToken.address, wbnb.address);
     lp = BiswapPair__factory.connect(await biswapFactory.getPair(farmToken.address, baseToken.address), deployer);
     bswBnbLp = BiswapPair__factory.connect(await biswapFactory.getPair(bsw.address, wbnb.address), deployer);
     // set the default pool alloc point to 0;
@@ -235,9 +236,12 @@ describe("Vault - BiswapWorker03", () => {
     // set lp pool alloc point to 1;
     await masterchef.add(1, lp.address, true);
 
-    biswapFactory.setSwapFee(bswBnbLp.address, 2);
-    biswapFactory.setSwapFee(lp.address, 2);
-    biswapFactory.setSwapFee(bswBnbLp.address, 2);
+    await biswapFactory.setSwapFee(bswBnbLp.address, 2);
+
+    const bnbBaseTokenLpAddress = await biswapFactory.getPair(wbnb.address, baseToken.address);
+    await biswapFactory.setSwapFee(bnbBaseTokenLpAddress, 2);
+
+    await biswapFactory.setSwapFee(lp.address, 2);
 
     /// Setup BiswapWorker03
     biswapWorker = await deployHelper.deployBiswapWorker03(
@@ -624,7 +628,7 @@ describe("Vault - BiswapWorker03", () => {
           await expect(vaultAsEve.kill("1")).to.be.revertedWith("can't liquidate");
         });
 
-        it.only("should work", async () => {
+        it("should work", async () => {
           // Deployer deposits 3 BTOKEN to the bank
           const deposit = ethers.utils.parseEther("3");
           await baseToken.approve(vault.address, deposit);
@@ -646,7 +650,7 @@ describe("Vault - BiswapWorker03", () => {
           );
 
           // Her position should have ~2 NATIVE health (minus some small trading fee)
-          expect(await biswapWorker.health(1)).to.be.eq(ethers.utils.parseEther("1.997883397660681282"));
+          expect(await biswapWorker.health(1)).to.be.eq(ethers.utils.parseEther("1.998307255271658491"));
 
           // Eve comes and trigger reinvest
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
@@ -789,7 +793,7 @@ describe("Vault - BiswapWorker03", () => {
           );
         });
 
-        it("should close position correctly when user holds multiple positions", async () => {
+        it.only("should close position correctly when user holds multiple positions", async () => {
           // Set interests to 0% per year for easy testing
           await simpleVaultConfig.setParams(
             ethers.utils.parseEther("1"), // 1 BTOKEN min debt size,close position correctly when user holds
@@ -885,6 +889,7 @@ describe("Vault - BiswapWorker03", () => {
           let eveCakeAfter = await bsw.balanceOf(eveAddress);
           let deployerCakeAfter = await bsw.balanceOf(DEPLOYER);
           let totalRewards = swapHelper.computeTotalRewards(workerLpBefore, BSW_REWARD_PER_BLOCK, BigNumber.from(2));
+
           let reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
           let reinvestLeft = totalRewards.sub(reinvestFees);
 
@@ -905,6 +910,10 @@ describe("Vault - BiswapWorker03", () => {
           totalShare = totalShare.add(expectedShare);
 
           expect(await biswapWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.eq(shares[0]);
+          console.log("[script] totalRewards", totalRewards);
+          console.log("[script] reinvest reward", reinvestLeft);
+          console.log("[Script] reinvestLp:", reinvestLp);
+          console.log("[script] actualBaseTokenBalance", reinvestBtoken);
           expect(
             await biswapWorker.shareToBalance(await biswapWorker.shares(1)),
             `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`

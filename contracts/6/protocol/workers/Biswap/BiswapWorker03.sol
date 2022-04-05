@@ -21,6 +21,7 @@ import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 
 import "../../interfaces/ISwapFactoryLike.sol";
 import "../../interfaces/ISwapPairLike.sol";
+import "../../interfaces/IBiswapLiquidityPair.sol";
 import "../../interfaces/ISwapRouter02Like.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IWorker03.sol";
@@ -82,7 +83,6 @@ contract BiswapWorker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   uint256 public reinvestBountyBps;
   uint256 public maxReinvestBountyBps;
   mapping(address => bool) public okReinvestors;
-  uint256 public fee;
   uint256 public feeDenom;
 
   uint256 public reinvestThreshold;
@@ -143,7 +143,6 @@ contract BiswapWorker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     maxReinvestBountyBps = 900;
 
     // 6. Set swap fees
-    fee = 998;
     feeDenom = 1000;
 
     require(baseToken != bsw, "baseToken must !bsw");
@@ -221,6 +220,7 @@ contract BiswapWorker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
 
     // 3. Send the reward bounty to the _treasuryAccount.
     uint256 bounty = reward.mul(_treasuryBountyBps) / 10000;
+
     if (bounty > 0) {
       uint256 beneficialVaultBounty = bounty.mul(beneficialVaultBountyBps) / 10000;
       if (beneficialVaultBounty > 0) _rewardToBeneficialVault(beneficialVaultBounty, _callerBalance);
@@ -233,7 +233,6 @@ contract BiswapWorker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     // 5. Use add Token strategy to convert all BaseToken without both caller balance and buyback amount to LP tokens.
     baseToken.safeTransfer(address(addStrat), actualBaseTokenBalance().sub(_callerBalance));
     addStrat.execute(address(0), 0, abi.encode(0));
-
     // 6. Stake LPs for more rewards
     biswapMasterChef.deposit(pid, lpToken.balanceOf(address(this)));
 
@@ -271,14 +270,15 @@ contract BiswapWorker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     baseToken.safeTransfer(msg.sender, actualBaseTokenBalance());
   }
 
-  /// @dev Return maximum output given the input amount and the status of Uniswap reserves.
+  /// @dev Return maximum output given the input amount and the status of MDEX reserves.
   /// @param aIn The amount of asset to market sell.
   /// @param rIn the amount of asset in reserve for input.
   /// @param rOut The amount of asset in reserve for output.
   function getMktSellAmount(
     uint256 aIn,
     uint256 rIn,
-    uint256 rOut
+    uint256 rOut,
+    uint256 fee
   ) public view returns (uint256) {
     if (aIn == 0) return 0;
     require(rIn > 0 && rOut > 0, "bad reserve values");
@@ -288,7 +288,7 @@ contract BiswapWorker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     return numerator / denominator;
   }
 
-  /// @dev Return the amount of BTOKEN to receive if we are to liquidate the given position.
+  /// @dev Return the amount of BaseToken to receive if we are to liquidate the given position.
   /// @param id The position ID to perform health check.
   function health(uint256 id) external view override returns (uint256) {
     // 1. Get the position's LP balance and LP total supply.
@@ -300,10 +300,16 @@ contract BiswapWorker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     // 3. Convert the position's LP tokens to the underlying assets.
     uint256 userBaseToken = lpBalance.mul(totalBaseToken).div(lpSupply);
     uint256 userFarmingToken = lpBalance.mul(totalFarmingToken).div(lpSupply);
-    // 4. Convert all FarmingToken to BaseToken and return total BaseToken.
+    // 4. Calculate fee by using pair fee
+    uint256 fee = feeDenom.sub(IBiswapLiquidityPair(address(lpToken)).swapFee());
+    // 5. Convert all FarmingToken to BaseToken and return total BaseToken.
     return
-      getMktSellAmount(userFarmingToken, totalFarmingToken.sub(userFarmingToken), totalBaseToken.sub(userBaseToken))
-        .add(userBaseToken);
+      getMktSellAmount(
+        userFarmingToken,
+        totalFarmingToken.sub(userFarmingToken),
+        totalBaseToken.sub(userBaseToken),
+        fee
+      ).add(userBaseToken);
   }
 
   /// @dev Liquidate the given position by converting it to BaseToken and return back to caller.
