@@ -66,18 +66,18 @@ contract BiswapStrategyAddTwoSidesOptimal is OwnableUpgradeSafe, ReentrancyGuard
     uint256 amtA,
     uint256 amtB,
     uint256 resA,
-    uint256 resB
+    uint256 resB,
+    uint256 fee
   ) internal pure returns (uint256 swapAmt, bool isReversed) {
     if (amtA.mul(resB) >= amtB.mul(resA)) {
-      swapAmt = _optimalDepositA(amtA, amtB, resA, resB);
+      swapAmt = _optimalDepositA(amtA, amtB, resA, resB, fee);
       isReversed = false;
     } else {
-      swapAmt = _optimalDepositA(amtB, amtA, resB, resA);
+      swapAmt = _optimalDepositA(amtB, amtA, resB, resA, fee);
       isReversed = true;
     }
   }
 
-  /// @notice This function is written base on fee=998, feeDenom=1000
   /// @dev Compute optimal deposit amount helper
   /// @param amtA amount of token A desired to deposit
   /// @param amtB amonut of token B desired to deposit
@@ -87,14 +87,16 @@ contract BiswapStrategyAddTwoSidesOptimal is OwnableUpgradeSafe, ReentrancyGuard
     uint256 amtA,
     uint256 amtB,
     uint256 resA,
-    uint256 resB
+    uint256 resB,
+    uint256 fee
   ) internal pure returns (uint256) {
-    require(amtA.mul(resB) >= amtB.mul(resA), "reversed");
-
-    uint256 a = 998;
-    uint256 b = uint256(1998).mul(resA);
+    require(amtA.mul(resB) >= amtB.mul(resA), "Reversed");
+    // Biswap fee use 1000 fee denominator
+    fee = fee * 10;
+    uint256 a = uint256(10000).sub(fee);
+    uint256 b = uint256(20000).sub(fee).mul(resA);
     uint256 _c = (amtA.mul(resB)).sub(amtB.mul(resA));
-    uint256 c = _c.mul(1000).div(amtB.add(resB)).mul(resA);
+    uint256 c = _c.mul(10000).div(amtB.add(resB)).mul(resA);
 
     uint256 d = a.mul(c).mul(4);
     uint256 e = AlpacaMath.sqrt(b.mul(b).add(d));
@@ -127,6 +129,7 @@ contract BiswapStrategyAddTwoSidesOptimal is OwnableUpgradeSafe, ReentrancyGuard
     uint256 baseTokenBalance = baseToken.myBalance();
     uint256 swapAmt;
     bool isReversed;
+    uint256 fee = lpToken.swapFee();
     {
       (uint256 r0, uint256 r1, ) = lpToken.getReserves();
       (uint256 baseTokenReserve, uint256 farmingTokenReserve) = lpToken.token0() == baseToken ? (r0, r1) : (r1, r0);
@@ -134,7 +137,8 @@ contract BiswapStrategyAddTwoSidesOptimal is OwnableUpgradeSafe, ReentrancyGuard
         baseTokenBalance,
         farmingToken.myBalance(),
         baseTokenReserve,
-        farmingTokenReserve
+        farmingTokenReserve,
+        fee
       );
     }
     // 4. Convert between BaseToken and farming tokens
