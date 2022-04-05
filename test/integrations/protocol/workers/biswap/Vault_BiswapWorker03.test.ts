@@ -55,7 +55,7 @@ describe("Vault - BiswapWorker03", () => {
   const MIN_DEBT_SIZE = ethers.utils.parseEther("1"); // 1 BTOKEN min debt size
   const WORK_FACTOR = "7000";
   const KILL_FACTOR = "8000";
-  const MAX_REINVEST_BOUNTY: string = "500";
+  const MAX_REINVEST_BOUNTY: string = "900";
   const DEPLOYER = "0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51";
   const BENEFICIALVAULT_BOUNTY_BPS = "1000";
   const REINVEST_THRESHOLD = ethers.utils.parseEther("1"); // If pendingCake > 1 $MDX, then reinvest
@@ -358,7 +358,7 @@ describe("Vault - BiswapWorker03", () => {
     });
   });
 
-  context("when owner is setting worker", async () => {
+  context.only("when owner is setting worker", async () => {
     describe("#reinvestConfig", async () => {
       it("should set reinvest config correctly", async () => {
         await expect(biswapWorker.setReinvestConfig(250, ethers.utils.parseEther("1"), [bsw.address, baseToken.address]))
@@ -371,14 +371,14 @@ describe("Vault - BiswapWorker03", () => {
 
       it("should revert when owner set reinvestBountyBps > max", async () => {
         await expect(biswapWorker.setReinvestConfig(1000, "0", [bsw.address, baseToken.address])).to.be.revertedWith(
-          "BiswapWorker03::setReinvestConfig:: _reinvestBountyBps exceeded maxReinvestBountyBps"
+          "exceeded maxReinvestBountyBps"
         );
         expect(await biswapWorker.reinvestBountyBps()).to.be.eq(100);
       });
 
       it("should revert when owner set reinvest path that doesn't start with $MDX and end with $BTOKN", async () => {
         await expect(biswapWorker.setReinvestConfig(200, "0", [baseToken.address, bsw.address])).to.be.revertedWith(
-          "BiswapWorker03::setReinvestConfig:: _reinvestPath must start with MDX, end with BTOKEN"
+          "bad _reinvestPath"
         );
       });
     });
@@ -391,9 +391,9 @@ describe("Vault - BiswapWorker03", () => {
 
       it("should revert when new max reinvest bounty over 30%", async () => {
         await expect(biswapWorker.setMaxReinvestBountyBps("3001")).to.be.revertedWith(
-          "BiswapWorker03::setMaxReinvestBountyBps:: _maxReinvestBountyBps exceeded 30%"
+          "exceeded 30%"
         );
-        expect(await biswapWorker.maxReinvestBountyBps()).to.be.eq("500");
+        expect(await biswapWorker.maxReinvestBountyBps()).to.be.eq("900");
       });
     });
 
@@ -411,7 +411,7 @@ describe("Vault - BiswapWorker03", () => {
 
       it("should revert when a new treasury bounty > max reinvest bounty bps", async () => {
         await expect(biswapWorker.setTreasuryConfig(DEPLOYER, parseInt(MAX_REINVEST_BOUNTY) + 1)).to.revertedWith(
-          "BiswapWorker03::setTreasuryConfig:: _treasuryBountyBps exceeded maxReinvestBountyBps"
+          "exceeded maxReinvestBountyBps"
         );
         expect(await biswapWorker.treasuryBountyBps()).to.eq(REINVEST_BOUNTY_BPS);
       });
