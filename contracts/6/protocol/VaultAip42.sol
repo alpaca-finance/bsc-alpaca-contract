@@ -397,18 +397,18 @@ contract VaultAip42 is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, Own
   /// @dev Only the deployer can call this function.
   /// @param id The position ID to be killed.
   function forceClose(uint256 id, bytes calldata data) external accrue(0) nonReentrant {
-    // 1. Verify that the position is eligible for liquidation.
+    // 1. Only deployer is allowed to execute this function
     require(msg.sender == 0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51, "!D");
     Position storage pos = positions[id];
-    // 2. Distribute ALPACAs in FairLaunch to owner
+    // 2. Distribute ALPACAs in FairLaunch to the position owner
     _fairLaunchWithdraw(id);
     uint256 debt = _removeDebt(id);
-    // 3. Perform liquidation and compute the amount of token received.
+    // 3. Perform force close and compute the amount of token received.
     uint256 beforeToken = SafeToken.myBalance(token);
     IWorker(pos.worker).work(id, pos.owner, debt, data);
     uint256 back = SafeToken.myBalance(token).sub(beforeToken);
 
-    // 4. Clear position debt and return funds to liquidator and position owner.
+    // 4. Clear position debt and return funds to the position owner.
     uint256 left = back > debt ? back - debt : 0;
     if (left > 0) {
       _safeUnwrap(pos.owner, left);
