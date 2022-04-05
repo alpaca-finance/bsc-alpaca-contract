@@ -910,10 +910,6 @@ describe("Vault - BiswapWorker03", () => {
           totalShare = totalShare.add(expectedShare);
 
           expect(await biswapWorker.shares(1), `expect Pos#1 has ${shares[0]} shares`).to.be.eq(shares[0]);
-          console.log("[script] totalRewards", totalRewards);
-          console.log("[script] reinvest reward", reinvestLeft);
-          console.log("[Script] reinvestLp:", reinvestLp);
-          console.log("[script] actualBaseTokenBalance", reinvestBtoken);
           expect(
             await biswapWorker.shareToBalance(await biswapWorker.shares(1)),
             `expect Pos#1 LPs = ${workerHelper.computeShareToBalance(shares[0], totalShare, workerLpAfter)}`
