@@ -20,7 +20,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 import "../interfaces/ISwapFactoryLike.sol";
 import "../interfaces/ISwapPairLike.sol";
-import "../interfaces/ISpookyMasterChef.sol";
+import "../interfaces/IBiswapMasterChef.sol";
 import "../interfaces/ISwapRouter02Like.sol";
 import "../interfaces/IStrategy.sol";
 import "../interfaces/IWorker03.sol";
@@ -37,28 +37,28 @@ contract DeltaNeutralBiswapWorker03 is OwnableUpgradeable, ReentrancyGuardUpgrad
   using FixedPointMathLib for uint256;
 
   /// @notice Errors
-  error DeltaNeutralSpookyWorker03_InvalidRewardToken();
-  error DeltaNeutralSpookyWorker03_InvalidTokens();
-  error DeltaNeutralSpookyWorker03_UnTrustedPrice();
+  error DeltaNeutralBiswapWorker03_InvalidRewardToken();
+  error DeltaNeutralBiswapWorker03_InvalidTokens();
+  error DeltaNeutralBiswapWorker03_UnTrustedPrice();
 
-  error DeltaNeutralSpookyWorker03_NotEOA();
-  error DeltaNeutralSpookyWorker03_NotOperator();
-  error DeltaNeutralSpookyWorker03_NotReinvestor();
-  error DeltaNeutralSpookyWorker03_NotWhitelistedCaller();
+  error DeltaNeutralBiswapWorker03_NotEOA();
+  error DeltaNeutralBiswapWorker03_NotOperator();
+  error DeltaNeutralBiswapWorker03_NotReinvestor();
+  error DeltaNeutralBiswapWorker03_NotWhitelistedCaller();
 
-  error DeltaNeutralSpookyWorker03_UnApproveStrategy();
-  error DeltaNeutralSpookyWorker03_BadTreasuryAccount();
-  error DeltaNeutralSpookyWorker03_NotAllowToLiquidate();
+  error DeltaNeutralBiswapWorker03_UnApproveStrategy();
+  error DeltaNeutralBiswapWorker03_BadTreasuryAccount();
+  error DeltaNeutralBiswapWorker03_NotAllowToLiquidate();
 
-  error DeltaNeutralSpookyWorker03_InvalidReinvestPath();
-  error DeltaNeutralSpookyWorker03_InvalidReinvestPathLength();
-  error DeltaNeutralSpookyWorker03_ExceedReinvestBounty();
-  error DeltaNeutralSpookyWorker03_ExceedReinvestBps();
+  error DeltaNeutralBiswapWorker03_InvalidReinvestPath();
+  error DeltaNeutralBiswapWorker03_InvalidReinvestPathLength();
+  error DeltaNeutralBiswapWorker03_ExceedReinvestBounty();
+  error DeltaNeutralBiswapWorker03_ExceedReinvestBps();
 
   /// @notice Events
   event Reinvest(address indexed caller, uint256 reward, uint256 bounty);
-  event SpookyMasterChefDeposit(uint256 lpAmount);
-  event SpookyMasterChefWithdraw(uint256 lpAmount);
+  event BiswapMasterChefDeposit(uint256 lpAmount);
+  event BiswapMasterChefWithdraw(uint256 lpAmount);
 
   event SetTreasuryConfig(address indexed caller, address indexed account, uint256 bountyBps);
   event BeneficialVaultTokenBuyback(address indexed caller, IVault indexed beneficialVault, uint256 indexed buyback);
@@ -85,7 +85,7 @@ contract DeltaNeutralBiswapWorker03 is OwnableUpgradeable, ReentrancyGuardUpgrad
   uint256 private constant BASIS_POINT = 10000;
 
   /// @notice Immutable variables
-  ISpookyMasterChef public spookyMasterChef;
+  IBiswapMasterChef public biswapMasterChef;
   ISwapFactoryLike public factory;
   ISwapRouter02Like public router;
   ISwapPairLike public override lpToken;
@@ -93,7 +93,7 @@ contract DeltaNeutralBiswapWorker03 is OwnableUpgradeable, ReentrancyGuardUpgrad
   address public wNative;
   address public override baseToken;
   address public override farmingToken;
-  address public boo;
+  address public bsw;
   address public operator;
   uint256 public pid;
 
@@ -120,7 +120,7 @@ contract DeltaNeutralBiswapWorker03 is OwnableUpgradeable, ReentrancyGuardUpgrad
   function initialize(
     address _operator,
     address _baseToken,
-    ISpookyMasterChef _spookyMasterChef,
+    IBiswapMasterChef _biswapMasterChef,
     ISwapRouter02Like _router,
     uint256 _pid,
     IStrategy _addStrat,
@@ -137,7 +137,7 @@ contract DeltaNeutralBiswapWorker03 is OwnableUpgradeable, ReentrancyGuardUpgrad
     // 2. Assign dependency contracts
     operator = _operator;
     wNative = _router.WETH();
-    spookyMasterChef = _spookyMasterChef;
+    biswapMasterChef = _biswapMasterChef;
     router = _router;
     factory = ISwapFactoryLike(_router.factory());
     priceOracle = _priceOracle;
@@ -145,12 +145,12 @@ contract DeltaNeutralBiswapWorker03 is OwnableUpgradeable, ReentrancyGuardUpgrad
     // 3. Assign tokens state variables
     baseToken = _baseToken;
     pid = _pid;
-    (ERC20Upgradeable _lpToken, , , ) = spookyMasterChef.poolInfo(_pid);
+    (ERC20Upgradeable _lpToken, , , ) = biswapMasterChef.poolInfo(_pid);
     lpToken = ISwapPairLike(address(_lpToken));
     address token0 = lpToken.token0();
     address token1 = lpToken.token1();
     farmingToken = token0 == baseToken ? token1 : token0;
-    boo = address(spookyMasterChef.boo());
+    bsw = address(biswapMasterChef.BSW());
     totalLpBalance = 0;
 
     // 4. Assign critical strategy contracts
@@ -166,40 +166,40 @@ contract DeltaNeutralBiswapWorker03 is OwnableUpgradeable, ReentrancyGuardUpgrad
     maxReinvestBountyBps = 2000;
 
     // 6. Check if critical parameters are config properly
-    if (baseToken == boo) revert DeltaNeutralSpookyWorker03_InvalidRewardToken();
+    if (baseToken == bsw) revert DeltaNeutralBiswapWorker03_InvalidRewardToken();
 
-    if (reinvestBountyBps > maxReinvestBountyBps) revert DeltaNeutralSpookyWorker03_ExceedReinvestBounty();
+    if (reinvestBountyBps > maxReinvestBountyBps) revert DeltaNeutralBiswapWorker03_ExceedReinvestBounty();
 
     if (
       !((farmingToken == lpToken.token0() || farmingToken == lpToken.token1()) &&
         (baseToken == lpToken.token0() || baseToken == lpToken.token1()))
-    ) revert DeltaNeutralSpookyWorker03_InvalidTokens();
+    ) revert DeltaNeutralBiswapWorker03_InvalidTokens();
 
-    if (reinvestPath[0] != boo || reinvestPath[reinvestPath.length - 1] != baseToken)
-      revert DeltaNeutralSpookyWorker03_InvalidReinvestPath();
+    if (reinvestPath[0] != bsw || reinvestPath[reinvestPath.length - 1] != baseToken)
+      revert DeltaNeutralBiswapWorker03_InvalidReinvestPath();
   }
 
   /// @dev Require that the caller must be an EOA account to avoid flash loans.
   modifier onlyEOA() {
-    if (msg.sender != tx.origin) revert DeltaNeutralSpookyWorker03_NotEOA();
+    if (msg.sender != tx.origin) revert DeltaNeutralBiswapWorker03_NotEOA();
     _;
   }
 
   /// @dev Require that the caller must be the operator.
   modifier onlyOperator() {
-    if (msg.sender != operator) revert DeltaNeutralSpookyWorker03_NotOperator();
+    if (msg.sender != operator) revert DeltaNeutralBiswapWorker03_NotOperator();
     _;
   }
 
   //// @dev Require that the caller must be ok reinvestor.
   modifier onlyReinvestor() {
-    if (!okReinvestors[msg.sender]) revert DeltaNeutralSpookyWorker03_NotReinvestor();
+    if (!okReinvestors[msg.sender]) revert DeltaNeutralBiswapWorker03_NotReinvestor();
     _;
   }
 
   //// @dev Require that the caller must be whitelisted caller.
   modifier onlyWhitelistedCaller(address user) {
-    if (!whitelistCallers[user]) revert DeltaNeutralSpookyWorker03_NotWhitelistedCaller();
+    if (!whitelistCallers[user]) revert DeltaNeutralBiswapWorker03_NotWhitelistedCaller();
     _;
   }
 
@@ -223,19 +223,19 @@ contract DeltaNeutralBiswapWorker03 is OwnableUpgradeable, ReentrancyGuardUpgrad
     uint256 _reinvestThreshold
   ) internal {
     // 1. Withdraw all the rewards. Return if reward <= _reinvestThershold.
-    spookyMasterChef.withdraw(pid, 0);
-    uint256 reward = boo.myBalance();
+    biswapMasterChef.withdraw(pid, 0);
+    uint256 reward = bsw.myBalance();
     if (reward <= _reinvestThreshold) return;
 
     // 2. Approve tokens
-    boo.safeApprove(address(router), type(uint256).max);
+    bsw.safeApprove(address(router), type(uint256).max);
 
     // 3. Send the reward bounty to the _treasuryAccount.
     uint256 bounty = (reward * _treasuryBountyBps) / BASIS_POINT;
     if (bounty > 0) {
       uint256 beneficialVaultBounty = (bounty * beneficialVaultBountyBps) / BASIS_POINT;
       if (beneficialVaultBounty > 0) _rewardToBeneficialVault(beneficialVaultBounty, _callerBalance);
-      boo.safeTransfer(_treasuryAccount, bounty - beneficialVaultBounty);
+      bsw.safeTransfer(_treasuryAccount, bounty - beneficialVaultBounty);
     }
 
     // 4. Convert all the remaining rewards to BTOKEN.
@@ -246,10 +246,10 @@ contract DeltaNeutralBiswapWorker03 is OwnableUpgradeable, ReentrancyGuardUpgrad
     addStrat.execute(address(0), 0, abi.encode(0));
 
     // 6. Stake LPs for more rewards
-    _spookyMasterChefDeposit();
+    _biswapMasterChefDeposit();
 
     // 7. Reset approvals
-    boo.safeApprove(address(router), 0);
+    bsw.safeApprove(address(router), 0);
 
     emit Reinvest(_treasuryAccount, reward, bounty);
   }
@@ -266,19 +266,19 @@ contract DeltaNeutralBiswapWorker03 is OwnableUpgradeable, ReentrancyGuardUpgrad
     bytes calldata data
   ) external override onlyWhitelistedCaller(user) onlyOperator nonReentrant {
     // 1. Withdraw all LP tokens.
-    _spookyMasterChefWithdraw();
+    _biswapMasterChefWithdraw();
 
     // 2. Perform the worker strategy; sending LP tokens + BaseToken; expecting LP tokens + BaseToken.
     (address strat, bytes memory ext) = abi.decode(data, (address, bytes));
 
-    if (!okStrats[strat]) revert DeltaNeutralSpookyWorker03_UnApproveStrategy();
+    if (!okStrats[strat]) revert DeltaNeutralBiswapWorker03_UnApproveStrategy();
     address(lpToken).safeTransfer(strat, lpToken.balanceOf(address(this)));
 
     baseToken.safeTransfer(strat, actualBaseTokenBalance());
     IStrategy(strat).execute(user, debt, ext);
 
     // 3. Add LP tokens back to the farming pool.
-    _spookyMasterChefDeposit();
+    _biswapMasterChefDeposit();
 
     // 4. Return any remaining BaseToken back to the operator.
     baseToken.safeTransfer(msg.sender, actualBaseTokenBalance());
@@ -292,7 +292,7 @@ contract DeltaNeutralBiswapWorker03 is OwnableUpgradeable, ReentrancyGuardUpgrad
     (uint256 _tokenPrice, uint256 _tokenPricelastUpdate) = priceOracle.getTokenPrice(address(baseToken));
     // NOTE: last updated price should not be over 1 day
     if (block.timestamp - _lpPriceLastUpdate > 86400 || block.timestamp - _tokenPricelastUpdate > 86400)
-      revert DeltaNeutralSpookyWorker03_UnTrustedPrice();
+      revert DeltaNeutralBiswapWorker03_UnTrustedPrice();
     return _totalBalanceInUSD.divWadDown(_tokenPrice);
   }
 
@@ -301,7 +301,7 @@ contract DeltaNeutralBiswapWorker03 is OwnableUpgradeable, ReentrancyGuardUpgrad
     uint256 /*id*/
   ) external override onlyOperator nonReentrant {
     // NOTE: this worker does not allow liquidation
-    revert DeltaNeutralSpookyWorker03_NotAllowToLiquidate();
+    revert DeltaNeutralBiswapWorker03_NotAllowToLiquidate();
   }
 
   /// @dev Some portion of a bounty from reinvest will be sent to beneficialVault to increase the size of totalToken.
@@ -348,25 +348,25 @@ contract DeltaNeutralBiswapWorker03 is OwnableUpgradeable, ReentrancyGuardUpgrad
   }
 
   /// @dev Internal function to stake all outstanding LP tokens to the given position ID.
-  function _spookyMasterChefDeposit() internal {
+  function _biswapMasterChefDeposit() internal {
     uint256 balance = lpToken.balanceOf(address(this));
     if (balance > 0) {
-      address(lpToken).safeApprove(address(spookyMasterChef), type(uint256).max);
+      address(lpToken).safeApprove(address(biswapMasterChef), type(uint256).max);
 
-      spookyMasterChef.deposit(pid, balance);
+      biswapMasterChef.deposit(pid, balance);
       totalLpBalance = totalLpBalance + balance;
 
-      address(lpToken).safeApprove(address(spookyMasterChef), 0);
-      emit SpookyMasterChefDeposit(balance);
+      address(lpToken).safeApprove(address(biswapMasterChef), 0);
+      emit BiswapMasterChefDeposit(balance);
     }
   }
 
   /// @dev Internal function to withdraw all outstanding LP tokens.
-  function _spookyMasterChefWithdraw() internal {
+  function _biswapMasterChefWithdraw() internal {
     uint256 _totalLpBalance = totalLpBalance;
-    spookyMasterChef.withdraw(pid, _totalLpBalance);
+    biswapMasterChef.withdraw(pid, _totalLpBalance);
     totalLpBalance = 0;
-    emit SpookyMasterChefWithdraw(_totalLpBalance);
+    emit BiswapMasterChefWithdraw(_totalLpBalance);
   }
 
   /// @dev Return the path that the worker is working on.
@@ -397,11 +397,11 @@ contract DeltaNeutralBiswapWorker03 is OwnableUpgradeable, ReentrancyGuardUpgrad
     address[] memory path;
     if (baseToken == wNative) {
       path = new address[](2);
-      path[0] = address(boo);
+      path[0] = address(bsw);
       path[1] = address(wNative);
     } else {
       path = new address[](3);
-      path[0] = address(boo);
+      path[0] = address(bsw);
       path[1] = address(wNative);
       path[2] = address(baseToken);
     }
@@ -417,12 +417,12 @@ contract DeltaNeutralBiswapWorker03 is OwnableUpgradeable, ReentrancyGuardUpgrad
     uint256 _reinvestThreshold,
     address[] calldata _reinvestPath
   ) external onlyOwner {
-    if (_reinvestBountyBps > maxReinvestBountyBps) revert DeltaNeutralSpookyWorker03_ExceedReinvestBounty();
+    if (_reinvestBountyBps > maxReinvestBountyBps) revert DeltaNeutralBiswapWorker03_ExceedReinvestBounty();
 
-    if (_reinvestPath.length < 2) revert DeltaNeutralSpookyWorker03_InvalidReinvestPathLength();
+    if (_reinvestPath.length < 2) revert DeltaNeutralBiswapWorker03_InvalidReinvestPathLength();
 
-    if (_reinvestPath[0] != boo || _reinvestPath[_reinvestPath.length - 1] != baseToken)
-      revert DeltaNeutralSpookyWorker03_InvalidReinvestPath();
+    if (_reinvestPath[0] != bsw || _reinvestPath[_reinvestPath.length - 1] != baseToken)
+      revert DeltaNeutralBiswapWorker03_InvalidReinvestPath();
 
     reinvestBountyBps = _reinvestBountyBps;
     reinvestThreshold = _reinvestThreshold;
@@ -440,9 +440,9 @@ contract DeltaNeutralBiswapWorker03 is OwnableUpgradeable, ReentrancyGuardUpgrad
   /// @dev Set Max reinvest reward for set upper limit reinvest bounty.
   /// @param _maxReinvestBountyBps The max reinvest bounty value to update.
   function setMaxReinvestBountyBps(uint256 _maxReinvestBountyBps) external onlyOwner {
-    if (reinvestBountyBps > _maxReinvestBountyBps) revert DeltaNeutralSpookyWorker03_ExceedReinvestBounty();
+    if (reinvestBountyBps > _maxReinvestBountyBps) revert DeltaNeutralBiswapWorker03_ExceedReinvestBounty();
     // _maxReinvestBountyBps should not exceeds 30%
-    if (_maxReinvestBountyBps > 3000) revert DeltaNeutralSpookyWorker03_ExceedReinvestBps();
+    if (_maxReinvestBountyBps > 3000) revert DeltaNeutralBiswapWorker03_ExceedReinvestBps();
 
     maxReinvestBountyBps = _maxReinvestBountyBps;
 
@@ -486,10 +486,10 @@ contract DeltaNeutralBiswapWorker03 is OwnableUpgradeable, ReentrancyGuardUpgrad
   /// @dev Set a new reward path. In case that the liquidity of the reward path is changed.
   /// @param _rewardPath The new reward path.
   function setRewardPath(address[] calldata _rewardPath) external onlyOwner {
-    if (_rewardPath.length < 2) revert DeltaNeutralSpookyWorker03_InvalidReinvestPathLength();
+    if (_rewardPath.length < 2) revert DeltaNeutralBiswapWorker03_InvalidReinvestPathLength();
 
-    if (_rewardPath[0] != boo || _rewardPath[_rewardPath.length - 1] != beneficialVault.token())
-      revert DeltaNeutralSpookyWorker03_InvalidReinvestPath();
+    if (_rewardPath[0] != bsw || _rewardPath[_rewardPath.length - 1] != beneficialVault.token())
+      revert DeltaNeutralBiswapWorker03_InvalidReinvestPath();
 
     rewardPath = _rewardPath;
 
@@ -508,8 +508,8 @@ contract DeltaNeutralBiswapWorker03 is OwnableUpgradeable, ReentrancyGuardUpgrad
   /// @param _treasuryAccount - The treasury address to update
   /// @param _treasuryBountyBps - The treasury bounty to update
   function setTreasuryConfig(address _treasuryAccount, uint256 _treasuryBountyBps) external onlyOwner {
-    if (treasuryAccount == address(0)) revert DeltaNeutralSpookyWorker03_BadTreasuryAccount();
-    if (_treasuryBountyBps > maxReinvestBountyBps) revert DeltaNeutralSpookyWorker03_ExceedReinvestBounty();
+    if (treasuryAccount == address(0)) revert DeltaNeutralBiswapWorker03_BadTreasuryAccount();
+    if (_treasuryBountyBps > maxReinvestBountyBps) revert DeltaNeutralBiswapWorker03_ExceedReinvestBounty();
 
     treasuryAccount = _treasuryAccount;
     treasuryBountyBps = _treasuryBountyBps;
@@ -527,12 +527,12 @@ contract DeltaNeutralBiswapWorker03 is OwnableUpgradeable, ReentrancyGuardUpgrad
     address[] calldata _rewardPath
   ) external onlyOwner {
     // beneficialVaultBountyBps should not exceeds 100%"
-    if (_beneficialVaultBountyBps > 10000) revert DeltaNeutralSpookyWorker03_ExceedReinvestBps();
+    if (_beneficialVaultBountyBps > 10000) revert DeltaNeutralBiswapWorker03_ExceedReinvestBps();
 
-    if (_rewardPath.length < 2) revert DeltaNeutralSpookyWorker03_InvalidReinvestPathLength();
+    if (_rewardPath.length < 2) revert DeltaNeutralBiswapWorker03_InvalidReinvestPathLength();
 
-    if (_rewardPath[0] != boo || _rewardPath[_rewardPath.length - 1] != _beneficialVault.token())
-      revert DeltaNeutralSpookyWorker03_InvalidReinvestPath();
+    if (_rewardPath[0] != bsw || _rewardPath[_rewardPath.length - 1] != _beneficialVault.token())
+      revert DeltaNeutralBiswapWorker03_InvalidReinvestPath();
 
     _buyback();
 

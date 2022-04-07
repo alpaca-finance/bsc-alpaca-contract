@@ -157,6 +157,8 @@ import {
   BiswapMasterChef__factory,
   BiswapWorker03,
   BiswapWorker03__factory,
+  DeltaNeutralBiswapWorker03,
+  DeltaNeutralBiswapWorker03__factory
 } from "../../typechain";
 import * as TimeHelpers from "../helpers/time";
 
@@ -912,6 +914,57 @@ export class DeployHelper {
       0,
       priceOracleAddress,
     ])) as DeltaNeutralSpookyWorker03;
+    await deltaNeutralWorker03.deployed();
+
+    await simpleVaultConfig.setWorker(deltaNeutralWorker03.address, true, true, workFactor, killFactor, true, true);
+    await deltaNeutralWorker03.setStrategyOk(extraStrategies, true);
+    await deltaNeutralWorker03.setReinvestorOk(okReinvestor, true);
+    await deltaNeutralWorker03.setTreasuryConfig(treasuryAddress, reinvestBountyBps);
+
+    extraStrategies.push(addStrat.address);
+    extraStrategies.forEach(async (stratAddress) => {
+      const strat = SpookySwapStrategyLiquidate__factory.connect(stratAddress, this.deployer);
+      await strat.setWorkersOk([deltaNeutralWorker03.address], true);
+    });
+
+    return deltaNeutralWorker03;
+  }
+
+  public async deployDeltaNeutralBiswapWorker03(
+    vault: Vault,
+    btoken: MockERC20,
+    masterChef: BiswapMasterChef,
+    router: BiswapRouter02,
+    poolId: number,
+    workFactor: BigNumberish,
+    killFactor: BigNumberish,
+    addStrat: BiswapStrategyAddBaseTokenOnly,
+    reinvestBountyBps: BigNumberish,
+    okReinvestor: string[],
+    treasuryAddress: string,
+    reinvestPath: Array<string>,
+    extraStrategies: string[],
+    simpleVaultConfig: SimpleVaultConfig,
+    priceOracleAddress: string
+  ): Promise<DeltaNeutralBiswapWorker03> {
+    const DeltaNeutralBiswapWorker03 = (await ethers.getContractFactory(
+      "DeltaNeutralBiswapWorker03",
+      this.deployer
+    )) as DeltaNeutralBiswapWorker03__factory;
+
+    const deltaNeutralWorker03 = (await upgrades.deployProxy(DeltaNeutralBiswapWorker03, [
+      vault.address,
+      btoken.address,
+      masterChef.address,
+      router.address,
+      poolId,
+      addStrat.address,
+      reinvestBountyBps,
+      treasuryAddress,
+      reinvestPath,
+      0,
+      priceOracleAddress,
+    ])) as DeltaNeutralBiswapWorker03;
     await deltaNeutralWorker03.deployed();
 
     await simpleVaultConfig.setWorker(deltaNeutralWorker03.address, true, true, workFactor, killFactor, true, true);
