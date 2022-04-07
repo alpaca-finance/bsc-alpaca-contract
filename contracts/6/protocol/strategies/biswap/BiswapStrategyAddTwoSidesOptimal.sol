@@ -92,11 +92,10 @@ contract BiswapStrategyAddTwoSidesOptimal is OwnableUpgradeSafe, ReentrancyGuard
   ) internal pure returns (uint256) {
     require(amtA.mul(resB) >= amtB.mul(resA), "Reversed");
     // Biswap fee use 1000 fee denominator
-    fee = fee * 10;
-    uint256 a = uint256(10000).sub(fee);
-    uint256 b = uint256(20000).sub(fee).mul(resA);
+    uint256 a = uint256(1000).sub(fee);
+    uint256 b = uint256(2000).sub(fee).mul(resA);
     uint256 _c = (amtA.mul(resB)).sub(amtB.mul(resA));
-    uint256 c = _c.mul(10000).div(amtB.add(resB)).mul(resA);
+    uint256 c = _c.mul(1000).div(amtB.add(resB)).mul(resA);
 
     uint256 d = a.mul(c).mul(4);
     uint256 e = AlpacaMath.sqrt(b.mul(b).add(d));
