@@ -72,12 +72,12 @@ describe("NFTStaking", () => {
         expect(isEligibleNFT).to.be.true;
       });
     });
-    
+
     context("when addPool with already exist pool", async () => {
       it("should fail", async () => {
         await nftStaking.addPool(poolId, [mockNFT.address]);
         expect(nftStaking.addPool(poolId, [mockNFT.address])).to.be.revertedWith(
-          "NFTStaking::addPool::pool already init"
+          "NFTStaking_PoolAlreadyExist()"
         );
       });
     });
@@ -98,7 +98,7 @@ describe("NFTStaking", () => {
     context("when pool not initialize", async () => {
       it("should revert", async () => {
         expect(nftStaking.setStakeNFTToken(poolId, [mockNFT2.address], [1])).to.be.revertedWith(
-          "NFTStaking::setStakeNFTToken::pool not init"
+          "NFTStaking_PoolNotExist()"
         );
       });
     });
@@ -107,7 +107,7 @@ describe("NFTStaking", () => {
       it("should revert", async () => {
         await nftStaking.addPool(poolId, [mockNFT.address]);
         expect(nftStaking.setStakeNFTToken(poolId, [], [1])).to.be.revertedWith(
-          "NFTStaking::setStakeNFTToken::bad params length"
+          "NFTStaking_BadParamsLength()"
         );
       });
     });
@@ -150,7 +150,7 @@ describe("NFTStaking", () => {
         await mockNFT2.mint(1);
 
         await expect(nftStaking.stakeNFT(poolId, mockNFT2.address, 0)).to.be.revertedWith(
-          "NFTStaking::stakeNFT::nft address not allowed"
+          "NFTStaking_InvalidNFTAddress()"
         );
         expect(await nftStaking.isStaked(poolId, deployerAddress)).to.be.false;
       });
@@ -228,7 +228,7 @@ describe("NFTStaking", () => {
         expect(userStakingNFT.nftTokenId).to.be.eq(0);
         expect(await nftStaking.isStaked(poolId, deployerAddress)).to.be.false;
 
-        await expect(nftStaking.unstakeNFT(poolId)).to.be.revertedWith("NFTStaking::unstakeNFT::no nft staked");
+        await expect(nftStaking.unstakeNFT(poolId)).to.be.revertedWith("NFTStaking_NoNFTStaked()");
       });
     });
 
@@ -254,7 +254,7 @@ describe("NFTStaking", () => {
         expect(await nftStaking.isStaked(poolId, aliceAddress)).to.be.true;
         expect(await nftStaking.isStaked(poolId, deployerAddress)).to.be.false;
 
-        await expect(nftStaking.unstakeNFT(poolId)).to.be.revertedWith("NFTStaking::unstakeNFT::no nft staked");
+        await expect(nftStaking.unstakeNFT(poolId)).to.be.revertedWith("NFTStaking_NoNFTStaked()");
       });
     });
   });
