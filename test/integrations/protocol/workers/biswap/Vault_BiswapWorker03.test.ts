@@ -58,7 +58,7 @@ describe("Vault - BiswapWorker03", () => {
   const MAX_REINVEST_BOUNTY: string = "900";
   const DEPLOYER = "0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51";
   const BENEFICIALVAULT_BOUNTY_BPS = "1000";
-  const REINVEST_THRESHOLD = ethers.utils.parseEther("1"); // If pendingCake > 1 $MDX, then reinvest
+  const REINVEST_THRESHOLD = ethers.utils.parseEther("1"); // If pendingCake > 1 $BSW, then reinvest
   const KILL_TREASURY_BPS = "100";
   const POOL_IDX = 1; // Normally we'ld use 0, but because Biswap will have the first pool (id:0) at deployment
 
@@ -229,18 +229,18 @@ describe("Vault - BiswapWorker03", () => {
     await biswapFactory.createPair(baseToken.address, farmToken.address);
     await biswapFactory.createPair(bsw.address, wbnb.address);
     await biswapFactory.createPair(baseToken.address, wbnb.address);
+    await biswapFactory.createPair(farmToken.address, wbnb.address);
     lp = BiswapPair__factory.connect(await biswapFactory.getPair(farmToken.address, baseToken.address), deployer);
     bswBnbLp = BiswapPair__factory.connect(await biswapFactory.getPair(bsw.address, wbnb.address), deployer);
     // set the default pool alloc point to 0;
     await masterchef.set(0, 0, true);
     // set lp pool alloc point to 1;
     await masterchef.add(1, lp.address, true);
-
-    await biswapFactory.setSwapFee(bswBnbLp.address, 2);
-
     const bnbBaseTokenLpAddress = await biswapFactory.getPair(wbnb.address, baseToken.address);
+    const farmBnbLpAddress = await biswapFactory.getPair(wbnb.address, farmToken.address);
+    await biswapFactory.setSwapFee(bswBnbLp.address, 2);
     await biswapFactory.setSwapFee(bnbBaseTokenLpAddress, 2);
-
+    await biswapFactory.setSwapFee(farmBnbLpAddress, 2);
     await biswapFactory.setSwapFee(lp.address, 2);
 
     /// Setup BiswapWorker03
@@ -380,7 +380,7 @@ describe("Vault - BiswapWorker03", () => {
         expect(await biswapWorker.reinvestBountyBps()).to.be.eq(100);
       });
 
-      it("should revert when owner set reinvest path that doesn't start with $MDX and end with $BTOKN", async () => {
+      it("should revert when owner set reinvest path that doesn't start with $BSW and end with $BTOKN", async () => {
         await expect(biswapWorker.setReinvestConfig(200, "0", [baseToken.address, bsw.address])).to.be.revertedWith(
           "bad _reinvestPath"
         );
@@ -793,7 +793,7 @@ describe("Vault - BiswapWorker03", () => {
           );
         });
 
-        it.only("should close position correctly when user holds multiple positions", async () => {
+        it("should close position correctly when user holds multiple positions", async () => {
           // Set interests to 0% per year for easy testing
           await simpleVaultConfig.setParams(
             ethers.utils.parseEther("1"), // 1 BTOKEN min debt size,close position correctly when user holds
@@ -923,9 +923,9 @@ describe("Vault - BiswapWorker03", () => {
 
           expect(
             deployerCakeAfter.sub(deployerCakeBefore),
-            `expect DEPLOYER to get ${reinvestFees} MDX as treasury fees`
+            `expect DEPLOYER to get ${reinvestFees} BSW as treasury fees`
           ).to.be.eq(reinvestFees);
-          expect(eveCakeAfter.sub(eveCakeBefore), `expect eve's MDX to remain the same`).to.be.eq("0");
+          expect(eveCakeAfter.sub(eveCakeBefore), `expect eve's BSW to remain the same`).to.be.eq("0");
           expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.eq(accumLp);
           expect(
             await baseToken.balanceOf(addStrat.address),
@@ -972,7 +972,7 @@ describe("Vault - BiswapWorker03", () => {
             `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
           ).to.be.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
 
-          expect(deployerCakeAfter.sub(deployerCakeBefore), `expect DEPLOYER's MDX to remain the same`).to.be.eq("0");
+          expect(deployerCakeAfter.sub(deployerCakeBefore), `expect DEPLOYER's BSW to remain the same`).to.be.eq("0");
           expect(eveCakeAfter.sub(eveCakeBefore), `expect eve to get ${reinvestFees}`).to.be.eq(reinvestFees);
           expect(workerLpAfter).to.be.eq(accumLp);
 
@@ -1185,9 +1185,9 @@ describe("Vault - BiswapWorker03", () => {
 
           expect(
             deployerCakeAfter.sub(deployerCakeBefore),
-            `expect DEPLOYER to get ${reinvestFees} MDX as treasury fees`
+            `expect DEPLOYER to get ${reinvestFees} BSW as treasury fees`
           ).to.be.eq(reinvestFees);
-          expect(eveCakeAfter.sub(eveCakeBefore), `expect eve's MDX to remain the same`).to.be.eq("0");
+          expect(eveCakeAfter.sub(eveCakeBefore), `expect eve's BSW to remain the same`).to.be.eq("0");
           expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.eq(accumLp);
           expect(
             await baseToken.balanceOf(addStrat.address),
@@ -1234,7 +1234,7 @@ describe("Vault - BiswapWorker03", () => {
             `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
           ).to.be.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
 
-          expect(deployerCakeAfter.sub(deployerCakeBefore), `expect DEPLOYER's MDX to remain the same`).to.be.eq("0");
+          expect(deployerCakeAfter.sub(deployerCakeBefore), `expect DEPLOYER's BSW to remain the same`).to.be.eq("0");
           expect(eveCakeAfter.sub(eveCakeBefore), `expect eve to get ${reinvestFees}`).to.be.eq(reinvestFees);
           expect(workerLpAfter).to.be.eq(accumLp);
 
@@ -1703,9 +1703,9 @@ describe("Vault - BiswapWorker03", () => {
             (await baseToken.balanceOf(vault.address)).toString()
           );
           // Alice is liquidator, Alice should receive 10% Kill prize
-          // BTOKEN back from liquidation 0.00300199830261993, 10% of it is 0.000300199830261993
+          // BTOKEN back from liquidation 0.00300099799424023, 10% of it is 0.000300099799424023
           AssertHelpers.assertAlmostEqual(
-            ethers.utils.parseEther("0.000300199830261993").toString(),
+            ethers.utils.parseEther("0.000300099799424023").toString(),
             aliceAfter.sub(aliceBefore).toString()
           );
 
@@ -1852,9 +1852,9 @@ describe("Vault - BiswapWorker03", () => {
 
           expect(
             deployerCakeAfter.sub(deployerCakeBefore),
-            `expect DEPLOYER to get ${reinvestFees} MDX as treasury fees`
+            `expect DEPLOYER to get ${reinvestFees} BSW as treasury fees`
           ).to.be.eq(reinvestFees);
-          expect(eveCakeAfter.sub(eveCakeBefore), `expect eve's MDX to remain the same`).to.be.eq("0");
+          expect(eveCakeAfter.sub(eveCakeBefore), `expect eve's BSW to remain the same`).to.be.eq("0");
           expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.eq(accumLp);
           expect(
             await baseToken.balanceOf(addStrat.address),
@@ -1901,7 +1901,7 @@ describe("Vault - BiswapWorker03", () => {
             `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
           ).to.be.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
 
-          expect(deployerCakeAfter.sub(deployerCakeBefore), `expect DEPLOYER's MDX to remain the same`).to.be.eq("0");
+          expect(deployerCakeAfter.sub(deployerCakeBefore), `expect DEPLOYER's BSW to remain the same`).to.be.eq("0");
           expect(eveCakeAfter.sub(eveCakeBefore), `expect eve to get ${reinvestFees}`).to.be.eq(reinvestFees);
           expect(workerLpAfter).to.be.eq(accumLp);
 
@@ -2138,15 +2138,13 @@ describe("Vault - BiswapWorker03", () => {
               // Bob deposits 10 BTOKEN
               await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
               await vaultAsBob.deposit(ethers.utils.parseEther("10"));
+              const workerPath = await biswapWorker.getPath();
+              await swapHelper.loadReserves(workerPath);
+              let [expectedLp] = await swapHelper.computeOneSidedOptimalLp(ethers.utils.parseEther("20"), workerPath)
 
               // Position#1: Bob borrows 10 BTOKEN loan and supply another 10 BToken
               // Thus, Bob's position value will be worth 20 BTOKEN
-              // After calling `work()`
-              // 20 BTOKEN needs to swap 3.587061715703192586 BTOKEN to FTOKEN
-              // new reserve after swap will be 4.587061715703192586 0.021843151027158060
-              // based on optimal swap formula, BTOKEN-FTOKEN to be added into the LP will be 16.412938284296807414 BTOKEN - 0.078156848972841940 FTOKEN
-              // new reserve after adding liquidity 21.000000000000000000 BTOKEN - 0.100000000000000000 FTOKEN
-              // lp amount from adding liquidity will be 1.131492691639043045 LP
+
               let [workerLPBefore] = await masterchef.userInfo(POOL_IDX, biswapWorker.address);
               await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("10"));
               await vaultAsBob.work(
@@ -2162,7 +2160,7 @@ describe("Vault - BiswapWorker03", () => {
               );
 
               let [workerLPAfter] = await masterchef.userInfo(POOL_IDX, biswapWorker.address);
-              expect(workerLPAfter.sub(workerLPBefore)).to.eq(ethers.utils.parseEther("1.131492691639043045"));
+              expect(workerLPAfter.sub(workerLPBefore)).to.eq(expectedLp);
 
               // Bob think he made enough. He now wants to close position partially.
               // He close 50% of his position and return all debt
@@ -2172,23 +2170,6 @@ describe("Vault - BiswapWorker03", () => {
               [workerLPBefore] = await masterchef.userInfo(POOL_IDX, biswapWorker.address);
 
               // Bob think he made enough. He now wants to close position partially.
-              // After calling `work()`, the `_reinvest()` is invoked
-              // since 1 blocks have passed since approve and work now reward will be 0.076 * 1 =~ 0.075999999998831803 ~   MDX
-              // reward without bounty will be 0.075999999998831803 - 0.000759999999988318 =~ 0.0752399999988435 MDX
-              // 0.0752399999988435 MDX can be converted into:
-              // (0.0752399999988435 * 0.9975 * 1) / (0.1 + 0.0752399999988435 * 0.9975) = 0.428740847712892766 WBNB
-              // 0.428740847712892766 WBNB can be converted into (0.428740847712892766 * 0.9975 * 1) / (1 + 0.428740847712892766 * 0.9975) = 0.299557528330150526 BTOKEN
-              // based on optimal swap formula, 0.299557528330150526 BTOKEN needs to swap 0.149435199790075736 BTOKEN
-              // new reserve after swap will be 21.149435199790075736 BTOKEN - 0.099295185694161018 FTOKEN
-              // based on optimal swap formula, BTOKEN-FTOKEN to be added into the LP will be 0.150122328540074790 BTOKEN - 0.000704814305838982 FTOKEN
-              // new reserve after adding liquidity receiving from `_reinvest()` is 21.299557528330150526 BTOKEN - 0.100000000000000000 FTOKEN
-              // more LP amount after executing add strategy will be 0.010276168801924356 LP
-              // accumulated LP of the worker will be 1.131492691639043045 + 0.010276168801924356 = 1.1417688604409675 LP
-
-              // bob close 50% of his position, thus he will close 1.131492691639043045 * (1.131492691639043045 / (1.131492691639043045)) =~ 1.131492691639043045 / 2 = 0.5657463458195215 LP
-              // 0.5657463458195215 LP will be converted into 8.264866063854500749 BTOKEN - 0.038802994160144191 FTOKEN
-              // 0.038802994160144191 FTOKEN will be converted into (0.038802994160144191 * 0.9975 * 13.034691464475649777) / (0.061197005839855809 + 0.038802994160144191 * 0.9975) = 5.050104921127982573 BTOKEN
-              // thus, Bob will receive 8.264866063854500749 + 5.050104921127982573 = 13.314970984982483322 BTOKEN
               await vaultAsBob.work(
                 1,
                 biswapWorker.address,
@@ -2204,7 +2185,7 @@ describe("Vault - BiswapWorker03", () => {
                       [
                         lpUnderBobPosition.div(2),
                         ethers.utils.parseEther("5000000000"),
-                        ethers.utils.parseEther("3.314970984982483322"),
+                        ethers.utils.parseEther("0"),
                       ]
                     ),
                   ]
@@ -2212,16 +2193,7 @@ describe("Vault - BiswapWorker03", () => {
               );
               const bobAfter = await baseToken.balanceOf(bobAddress);
 
-              // After Bob liquidate half of his position which worth
-              // 13.314970984982483322 BTOKEN (price impact+trading fee included)
-              // Bob wish to return 5,000,000,000 BTOKEN (when maxReturn > debt, return all debt)
-              // The following criteria must be stratified:
-              // - Bob should get 13.314970984982483322 - 10 = 3.314970984982483322 BTOKEN back.
               // - Bob's position debt must be 0
-              expect(
-                bobBefore.add(ethers.utils.parseEther("3.314970984982483322")),
-                "Expect BTOKEN in Bob's account after close position to increase by ~3.32 BTOKEN"
-              ).to.be.eq(bobAfter);
               // Check Bob position info
               const [bobHealth, bobDebtVal] = await vault.positionInfo("1");
               // Bob's health after partial close position must be 50% less than before
@@ -2233,8 +2205,8 @@ describe("Vault - BiswapWorker03", () => {
               [workerLPAfter] = await masterchef.userInfo(POOL_IDX, biswapWorker.address);
               // LP tokens + LP tokens from reinvest of worker should be decreased by lpUnderBobPosition/2
               // due to Bob execute StrategyClosePartialLiquidate
-              expect(workerLPAfter).to.be.eq(
-                workerLPBefore.add(ethers.utils.parseEther("0.010276168801924356")).sub(lpUnderBobPosition.div(2))
+              expect(workerLPAfter).to.be.at.least(
+                workerLPBefore.sub(lpUnderBobPosition.div(2))
               );
             });
           });
@@ -2411,15 +2383,15 @@ describe("Vault - BiswapWorker03", () => {
             deposit.add(interest).sub(reservePool).toString(),
             (await vault.totalToken()).toString()
           );
-          const deployerMdxBalance = await bsw.balanceOf(DEPLOYER);
+          const deployerBswBalance = await bsw.balanceOf(DEPLOYER);
           expect(await biswapWorker.shares(1), `expect Alice's shares = ${accumLp}`).to.be.eq(accumLp);
           expect(
             await biswapWorker.shareToBalance(await biswapWorker.shares(1)),
             `expect Alice's staked LPs = ${accumLp}`
           ).to.be.eq(accumLp);
           expect(
-            deployerMdxBalance,
-            `expect Deployer gets ${ethers.utils.formatEther(totalReinvestFees)} MDX`
+            deployerBswBalance,
+            `expect Deployer gets ${ethers.utils.formatEther(totalReinvestFees)} BSW`
           ).to.be.eq(totalReinvestFees);
         }
 
@@ -2512,7 +2484,7 @@ describe("Vault - BiswapWorker03", () => {
             await biswapWorker.shareToBalance(await biswapWorker.shares(1)),
             `expect Alice's staked LPs = ${accumLp}`
           ).to.be.eq(accumLp);
-          expect(await bsw.balanceOf(DEPLOYER), `expect Deployer gets ${totalReinvestFees} MDX`).to.be.eq(
+          expect(await bsw.balanceOf(DEPLOYER), `expect Deployer gets ${totalReinvestFees} BSW`).to.be.eq(
             totalReinvestFees
           );
           expect(
@@ -2690,7 +2662,7 @@ describe("Vault - BiswapWorker03", () => {
         it("should revert", async () => {
           const rewardPath = [bsw.address, farmToken.address, farmToken.address];
           await expect(biswapWorkerAsDeployer.setRewardPath(rewardPath)).to.revertedWith(
-            "BiswapWorker03::setRewardPath:: rewardPath must start with MDX and end with beneficialVault token"
+            "bad _rewardPath"
           );
         });
 
