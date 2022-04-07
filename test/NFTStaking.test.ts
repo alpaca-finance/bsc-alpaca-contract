@@ -4,7 +4,6 @@ import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import "@openzeppelin/test-helpers";
 import { NFTStaking, NFTStaking__factory, MockNFT, MockNFT__factory } from "../typechain";
-import { latestBlockNumber } from "./helpers/time";
 
 chai.use(solidity);
 const { expect } = chai;
@@ -46,7 +45,6 @@ describe("NFTStaking", () => {
     mockNFT2 = (await upgrades.deployProxy(MockNFT, [])) as MockNFT;
     await mockNFT.deployed();
     await mockNFT2.deployed();
-
     mockNFTAsAlice = MockNFT__factory.connect(mockNFT.address, alice);
     nftStakingAsAlice = NFTStaking__factory.connect(nftStaking.address, alice);
   }
@@ -62,9 +60,9 @@ describe("NFTStaking", () => {
   });
 
   describe("#addPool", async () => {
+    const poolId = ethers.utils.solidityKeccak256(["string"], ["ALPIES"]);
     context("when addPool with correct params", async () => {
       it("should success", async () => {
-        const poolId = ethers.utils.solidityKeccak256(["string"], ["ALPIES"]);
         await nftStaking.addPool(poolId, [mockNFT.address]);
 
         const poolInfo = await nftStaking.poolInfo(poolId);
@@ -74,17 +72,43 @@ describe("NFTStaking", () => {
         expect(isEligibleNFT).to.be.true;
       });
     });
+    
+    context("when addPool with already exist pool", async () => {
+      it("should fail", async () => {
+        await nftStaking.addPool(poolId, [mockNFT.address]);
+        expect(nftStaking.addPool(poolId, [mockNFT.address])).to.be.revertedWith(
+          "NFTStaking::addPool::pool already init"
+        );
+      });
+    });
   });
 
   describe("#setStakeNFTToken", async () => {
+    const poolId = ethers.utils.solidityKeccak256(["string"], ["ALPIES"]);
     context("when setStakeNFTToken with correct params", async () => {
       it("should success", async () => {
-        const poolId = ethers.utils.solidityKeccak256(["string"], ["ALPIES"]);
         await nftStaking.addPool(poolId, [mockNFT.address]);
 
         await nftStaking.setStakeNFTToken(poolId, [mockNFT2.address], [1]);
         const isEligibleNFT = await nftStaking.isEligibleNFT(poolId, mockNFT2.address);
         expect(isEligibleNFT).to.be.true;
+      });
+    });
+
+    context("when pool not initialize", async () => {
+      it("should revert", async () => {
+        expect(nftStaking.setStakeNFTToken(poolId, [mockNFT2.address], [1])).to.be.revertedWith(
+          "NFTStaking::setStakeNFTToken::pool not init"
+        );
+      });
+    });
+
+    context("when setStakeNFTToken with bad params", async () => {
+      it("should revert", async () => {
+        await nftStaking.addPool(poolId, [mockNFT.address]);
+        expect(nftStaking.setStakeNFTToken(poolId, [], [1])).to.be.revertedWith(
+          "NFTStaking::setStakeNFTToken::bad params length"
+        );
       });
     });
   });
