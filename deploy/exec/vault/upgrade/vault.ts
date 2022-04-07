@@ -16,10 +16,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "upgrade_vault_to_aip42";
-  const VAULT_VERSION = "VaultAip42";
-  const TARGETED_VAULTS = ["ibWBNB", "ibBUSD", "ibETH", "ibALPACA", "ibUSDT", "ibBTCB", "ibTUSD"];
-  const EXACT_ETA = "1629957600";
+  const TITLE = "downgrade_vaults_to_normal_vault";
+  const VAULT_VERSION = "Vault";
+  const TARGETED_VAULTS = ["ibWBNB", "ibBUSD", "ibETH", "ibALPACA", "ibUSDT", "ibBTCB", "ibTUSD", "ibUSDC"];
+  const EXACT_ETA = "1649232000";
 
   const config = getConfig();
 

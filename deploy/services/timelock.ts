@@ -13,7 +13,7 @@ export async function queueTransaction(
   eta: string,
   overrides?: CallOverrides
 ): Promise<TimelockEntity.Transaction> {
-  console.log(`==========`);
+  console.log(`------------------`);
   console.log(`>> Queue tx for: ${info}`);
   const config = ConfigEntity.getConfig();
   const timelock = Timelock__factory.connect(config.Timelock, (await ethers.getSigners())[0]);
@@ -71,7 +71,7 @@ export async function executeTransaction(
   eta: string,
   overrides?: CallOverrides
 ): Promise<TimelockEntity.Transaction> {
-  console.log(`==========`);
+  console.log(`------------------`);
   console.log(`>> Execute tx for: ${info}`);
   const config = ConfigEntity.getConfig();
   const timelock = Timelock__factory.connect(config.Timelock, (await ethers.getSigners())[0]);

@@ -64,16 +64,36 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const fileName = "upgrade-workers";
+  const fileName = "upgrade-disable-liquidate-waultswap-workers02";
   const workerInputs: IWorkerInputs = [
-    "ITAM-WBNB PancakeswapWorker",
-    "BOR-WBNB PancakeswapWorker",
-    "BRY-WBNB PancakeswapWorker",
-    "BORING-WBNB PancakeswapWorker",
-    "TRX-WBNB PancakeswapWorker",
-    "BTT-WBNB PancakeswapWorker",
+    "WEX-WBNB WaultswapWorker",
+    "BUSD-WBNB WaultswapWorker",
+    "ALPACA-WBNB WaultswapWorker",
+    "WAULTx-WBNB WaultswapWorker",
+    "ETH-BUSD WaultswapWorker",
+    "WBNB-BUSD WaultswapWorker",
+    "USDT-BUSD WaultswapWorker",
+    "BTCB-BUSD WaultswapWorker",
+    "WUSD-BUSD WaultswapWorker",
+    "BUSD-ETH WaultswapWorker",
+    "BTCB-ETH WaultswapWorker",
+    "BETH-ETH WaultswapWorker",
+    "USDT-ETH WaultswapWorker",
+    "USDT-ALPACA WaultswapWorker",
+    "WBNB-ALPACA WaultswapWorker",
+    "ALPACA-USDT WaultswapWorker",
+    "WEX-USDT WaultswapWorker",
+    "BUSD-USDT WaultswapWorker",
+    "BTCB-USDT WaultswapWorker",
+    "ETH-USDT WaultswapWorker",
+    "MATIC-USDT WaultswapWorker",
+    "TUSD-USDT WaultswapWorker",
+    "ETH-BTCB WaultswapWorker",
+    "USDT-BTCB WaultswapWorker",
+    "BUSD-BTCB WaultswapWorker",
+    "USDT-TUSD WaultswapWorker",
   ];
-  const EXACT_ETA = "1639489500";
+  const EXACT_ETA = "1649232000";
 
   const config = ConfigEntity.getConfig();
   const allWorkers: IWorkers = config.Vaults.reduce((accum, vault) => {

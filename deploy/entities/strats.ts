@@ -18,6 +18,8 @@ export enum Strats {
   withdrawMinimize = 3,
   partialCloseLiquidate = 4,
   partialCloseWithdrawMinizmie = 5,
+  oracleMinimize = 6,
+  oracleLiquidate = 7,
 }
 
 export function getShareStratsProxy(group: string): Array<IProxyStrat> {
@@ -113,6 +115,10 @@ export async function getStratFactory(group: string, strat: Strats): Promise<Con
     return await ethers.getContractFactory(`${group}Restricted${singleAsset}StrategyPartialCloseLiquidate`);
   } else if (strat === Strats.partialCloseWithdrawMinizmie) {
     return await ethers.getContractFactory(`${group}Restricted${singleAsset}StrategyPartialCloseMinimizeTrading`);
+  } else if (strat === Strats.oracleMinimize) {
+    return await ethers.getContractFactory(`StrategyOracleMinimize`);
+  } else if (strat === Strats.oracleLiquidate) {
+    return await ethers.getContractFactory(`StrategyOracleLiquidate`);
   }
 
   throw new Error("getStratFactory: not found factory");

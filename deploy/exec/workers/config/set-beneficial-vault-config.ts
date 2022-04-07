@@ -48,8 +48,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "BTCB-WBNB MdexWorker",
   ];
   const rewardPathInput: Array<string> = ["MDX", "BUSD"];
-  const EXACT_ETA = "1649136600";
-  const BENEFICIAL_VAULT_BOUNTY_BPS = "5263";
+  const EXACT_ETA = "1649240100";
+  const BENEFICIAL_VAULT_BOUNTY_BPS = "5555";
   const BENEFICIAL_VAULT_ADDRESS = "0x08B5A95cb94f926a8B620E87eE92e675b35afc7E";
 
   const config = getConfig();
