@@ -1289,7 +1289,6 @@ export class DeployHelper {
     wbnb: MockWBNB,
     bswPerBlock: BigNumberish
   ): Promise<[BiswapFactory, BiswapRouter02, BSWToken, BiswapMasterChef]> {
-    // Setup WaultSwap
     const BiswapFactory = (await ethers.getContractFactory(
       "BiswapFactory",
       this.deployer
@@ -1338,7 +1337,7 @@ export class DeployHelper {
     );
 
     await biswapMasterChef.deployed();
-    // Transfer mintership so biswapMasterChef can mint WEX
+    // Transfer mintership so biswapMasterChef can mint BSW
     await bsw.addMinter(biswapMasterChef.address);
 
     return [factory, router, bsw, biswapMasterChef];
