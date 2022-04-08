@@ -157,6 +157,7 @@ import {
   BiswapMasterChef__factory,
   BiswapWorker03,
   BiswapWorker03__factory,
+  VaultAip42,
 } from "../../typechain";
 import * as TimeHelpers from "../helpers/time";
 
@@ -638,7 +639,8 @@ export class DeployHelper {
     wbnb: MockWBNB,
     vaultConfig: IVaultConfig,
     fairlaunchAddress: string,
-    btoken: MockERC20
+    btoken: MockERC20,
+    vaultVersion = "Vault"
   ): Promise<[Vault, SimpleVaultConfig, WNativeRelayer]> {
     const WNativeRelayer = (await ethers.getContractFactory(
       "WNativeRelayer",
@@ -673,7 +675,7 @@ export class DeployHelper {
     ])) as DebtToken;
     await debtToken.deployed();
 
-    const Vault = (await ethers.getContractFactory("Vault", this.deployer)) as Vault__factory;
+    const Vault = (await ethers.getContractFactory(vaultVersion, this.deployer)) as Vault__factory;
     const btokenSymbol = await btoken.symbol();
     const vault = (await upgrades.deployProxy(Vault, [
       simpleVaultConfig.address,
@@ -711,9 +713,30 @@ export class DeployHelper {
 
     // Set add FairLaunch poool and set fairLaunchPoolId for Vault
     await fairlaunch.addPool(1, await vault.debtToken(), false);
-    await vault.setFairLaunchPoolId(0);
+    await vault.setFairLaunchPoolId((await fairlaunch.poolLength()).sub(1));
 
     return [vault, simpleVaultConfig, wNativeRelayer];
+  }
+
+  public async deployVaultAip42(
+    wbnb: MockWBNB,
+    vaultConfig: IVaultConfig,
+    fairlaunch: FairLaunch,
+    btoken: MockERC20
+  ): Promise<[VaultAip42, SimpleVaultConfig, WNativeRelayer]> {
+    const [vault, simpleVaultConfig, wNativeRelayer] = await this._deployVault(
+      wbnb,
+      vaultConfig,
+      fairlaunch.address,
+      btoken,
+      "VaultAip42"
+    );
+
+    // Set add FairLaunch poool and set fairLaunchPoolId for Vault
+    await fairlaunch.addPool(1, await vault.debtToken(), true);
+    await vault.setFairLaunchPoolId((await fairlaunch.poolLength()).sub(1));
+
+    return [vault as unknown as VaultAip42, simpleVaultConfig, wNativeRelayer];
   }
 
   public async deployMiniFLVault(

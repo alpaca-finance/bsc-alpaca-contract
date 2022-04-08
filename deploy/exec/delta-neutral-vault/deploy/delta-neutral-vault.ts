@@ -20,27 +20,27 @@ interface IDeltaNeutralVaultInput {
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
-    ░██╗░░░░░░░██╗░█████╗░██████╗░███╗░░██╗██╗███╗░░██╗░██████╗░
-    ░██║░░██╗░░██║██╔══██╗██╔══██╗████╗░██║██║████╗░██║██╔════╝░
-    ░╚██╗████╗██╔╝███████║██████╔╝██╔██╗██║██║██╔██╗██║██║░░██╗░
-    ░░████╔═████║░██╔══██║██╔══██╗██║╚████║██║██║╚████║██║░░╚██╗
-    ░░╚██╔╝░╚██╔╝░██║░░██║██║░░██║██║░╚███║██║██║░╚███║╚██████╔╝
-    ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
-    Check all variables below before execute the deployment script
-    */
+  ░██╗░░░░░░░██╗░█████╗░██████╗░███╗░░██╗██╗███╗░░██╗░██████╗░
+  ░██║░░██╗░░██║██╔══██╗██╔══██╗████╗░██║██║████╗░██║██╔════╝░
+  ░╚██╗████╗██╔╝███████║██████╔╝██╔██╗██║██║██╔██╗██║██║░░██╗░
+  ░░████╔═████║░██╔══██║██╔══██╗██║╚████║██║██║╚████║██║░░╚██╗
+  ░░╚██╔╝░╚██╔╝░██║░░██║██║░░██║██║░╚███║██║██║░╚███║╚██████╔╝
+  ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
+  Check all variables below before execute the deployment script
+  */
 
   const deltaVaultInputs: IDeltaNeutralVaultInput[] = [
     {
-      name: "Market Neutral 3x FTM-USDC SPK1",
-      symbol: "n3x-FTMUSDC-SPK1",
-      stableVaultSymbol: "ibUSDC",
-      assetVaultSymbol: "ibFTM",
-      stableSymbol: "USDC",
-      assetSymbol: "WFTM",
-      stableDeltaWorker: "0xceCD803b048b66a75bc64f8AA8139cAB97c421C8", // Address of stable deltaneutral worker
-      assetDeltaWorker: "0x792E8192F2fbdBb5c1e36F312760Fe01D0d7aB92", // Address of asset deltaneutral worker
-      lpAddress: "0x2b4C76d0dc16BE1C31D4C1DC53bF9B45987Fc75c",
-      deltaNeutralVaultConfig: "0x00166189cdBdB9E3a3391c458c08aa9834E592D5",
+      name: "Market Neutral 3x BNB-BUSD PCS1",
+      symbol: "n3x-BNBBUSD-PCS1",
+      stableVaultSymbol: "ibBUSD",
+      assetVaultSymbol: "ibWBNB",
+      stableSymbol: "BUSD",
+      assetSymbol: "WBNB",
+      lpAddress: "0x58F876857a02D6762E0101bb5C46A8c1ED44Dc16",
+      deltaNeutralVaultConfig: "0x5640ce665c4fAc707885A04059449DadAbe56Cf2",
+      stableDeltaWorker: "0x54D3218787060463EEb944fa01b0cbE745Ef4DB5",
+      assetDeltaWorker: "0x07767daF4e84bDAaBf3A72c80cec8C8Eb962f3Ae",
     },
   ];
 

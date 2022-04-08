@@ -1,6 +1,6 @@
 {
   "name": "@alpaca-finance/alpaca-contract",
-  "version": "1.2.27",
+  "version": "1.2.30",
   "scripts": {
     "prepublish": "yarn build",
     "build": "yarn run build:cjs",
@@ -100,6 +100,7 @@
     "deploy:mainnet:delta-neutral-worker:config:set-whitelist-callers": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralWorkerSetWhitelistCallers",
     "deploy:mainnet:delta-neutral-vault-gateway:deploy:delta-neutral-vault-gateway": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralVaultGateway",
     "deploy:mainnet:proxy-token:deploy:proxy-token": "hardhat --network mainnet deploy --no-compile --reset --tags ProxyToken",
+    "deploy:mainnet:revenue-treasury:deploy:revenue-treasury": "hardhat --network mainnet deploy --no-compile --reset --tags RevenueTreasury",
     "deploy:mainnet:emission-forwarder:deploy:emission-forwarder": "hardhat --network mainnet deploy --no-compile --reset --tags EmissionForwarder",
     "deploy:testnet:000": "hardhat --network testnet deploy --no-compile --reset --tags Testnet",
     "deploy:testnet:000:panV2": "hardhat --network testnet deploy --no-compile --reset --tags PancakeswapV2",
@@ -270,7 +271,6 @@
     "deploy:fantom_mainnetfork:workers:config:set-beneficial-vault-config-workers03": "hardhat --network fantom_mainnetfork deploy --no-compile --reset --tags SetBeneficialBuybackFieldsWorkers03",
     "deploy:fantom_mainnetfork:workers:config:set-reinvest-config-workers03": "hardhat --network fantom_mainnetfork deploy --no-compile --reset --tags SetReinvestConfigWorkers03",
     "deploy:fantom_mainnetfork:workers:config:set-treasury-config-workers03": "hardhat --network fantom_mainnetfork deploy --no-compile --reset --tags SetTreasuryFieldsWorkers03",
-
     "deploy:fantom_mainnet:oracles:config:add-price-source-chainlink2": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags AddSourceChainlinkPriceOracle2",
     "deploy:fantom_mainnet:delta-neutral-oracle:deploy:delta-neutral-oracle": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags DeltaNeutralOracle",
     "deploy:fantom_mainnet:delta-neutral-vault-config:deploy:delta-neutral-vault-config": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags DeltaNeutralVaultConfig",
@@ -280,9 +280,7 @@
     "deploy:fantom_mainnet:delta-neutral-worker:config:set-whitelist-callers": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags DeltaNeutralWorkerSetWhitelistCallers",
     "deploy:fantom_mainnet:vault-config:config:set-whitelisted-callers": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags SetWhitelistedCallers",
     "deploy:fantom_mainnet:delta-neutral-vault:config:init-positions": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags DeltaNeutralVaultInitPositions",
-
-
-    "fork":"hardhat console --no-compile --network fantom_mainnetfork",
+    "fork": "hardhat console --no-compile --network fantom_mainnetfork",
     "mainnet": "hardhat console --no-compile --network mainnet",
     "ethereum": "hardhat console --no-compile --network ethereum",
     "test:case": "mocha --require hardhat/register --file test/integrations/protocol/delta-neutral/DeltaNeutralVault.test.ts --extension ts -g",
@@ -379,6 +377,7 @@
     "test:strategyOracleMinimize": "hardhat test --no-compile ./test/integrations/protocol/strategies/waultswap/StrategyOracleMinimize.test.ts",
     "test:strategyOracleLiquidate": "hardhat test --no-compile ./test/integrations/protocol/strategies/waultswap/StrategyOracleLiquidate.test.ts",
     "test:revenue-treasury": "hardhat test --no-compile ./test/integrations/protocol/RevenueTreasury.test.ts",
+    "test:vault42_wault": "hardhat test --no-compile ./test/integrations/protocol/workers/waultswap/VaultAip42_WaultSwapWorker02.test.ts",
     "test": "hardhat test --no-compile",
     "testnet": "hardhat console --no-compile --network testnet",
     "fantom_testnet": "hardhat console --no-compile --network fantom_testnet",
@@ -395,7 +394,6 @@
     "solhint": "./node_modules/.bin/solhint -f table contracts/**/*.sol",
     "prettier:solidity": "./node_modules/.bin/prettier --write contracts/**/*.sol",
     "mainnet-fork": "hardhat node --show-stack-traces --config hardhat.config.8.10.forking.ts"
-    
   },
   "devDependencies": {
     "@chainlink/contracts": "^0.1.7",
