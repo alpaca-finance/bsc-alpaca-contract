@@ -69,7 +69,7 @@ interface SimpleWithdrawReturns {
 
 describe("DeltaNeutralVaultGatewayWithBiswap", () => {
   const ALPACA_MAX_PER_SEC = ethers.utils.parseEther("1");
-  const BOO_PER_SEC = ethers.utils.parseEther("0");
+  const BSW_PER_BLOCK = ethers.utils.parseEther("0");
   const REINVEST_BOUNTY_BPS = "100"; // 1% reinvest bounty
   const RESERVE_POOL_BPS = "1000"; // 10% reserve pool
   const KILL_PRIZE_BPS = "1000"; // 10% Kill prize
@@ -221,7 +221,7 @@ describe("DeltaNeutralVaultGatewayWithBiswap", () => {
     await wbnb.mint(aliceAddress, ethers.utils.parseEther("100000000"));
     await wbnb.mint(bobAddress, ethers.utils.parseEther("100000000"));
 
-    [factory, router, bsw, masterChef] = await deployHelper.deployBiswap(wbnb, BOO_PER_SEC);
+    [factory, router, bsw, masterChef] = await deployHelper.deployBiswap(wbnb, BSW_PER_BLOCK);
 
     bsw["mint(uint256)"](ethers.utils.parseEther("100"));
 
