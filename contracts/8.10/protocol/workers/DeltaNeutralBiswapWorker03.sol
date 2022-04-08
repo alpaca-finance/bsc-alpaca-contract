@@ -30,7 +30,7 @@ import "../interfaces/IVault.sol";
 import "../../utils/SafeToken.sol";
 import "../../utils/FixedPointMathLib.sol";
 
-/// @title DeltaNeutralBiswapWorker03 is a SpookyWorker03 worker with reinvest-optimized and beneficial vault buyback functionalities
+/// @title DeltaNeutralBiswapWorker03 is a BiswapWorker03 worker with reinvest-optimized and beneficial vault buyback functionalities
 contract DeltaNeutralBiswapWorker03 is OwnableUpgradeable, ReentrancyGuardUpgradeable, IWorker03 {
   /// @notice Libraries
   using SafeToken for address;
@@ -305,7 +305,7 @@ contract DeltaNeutralBiswapWorker03 is OwnableUpgradeable, ReentrancyGuardUpgrad
   }
 
   /// @dev Some portion of a bounty from reinvest will be sent to beneficialVault to increase the size of totalToken.
-  /// @param _beneficialVaultBounty - The amount of BOO to be swapped to BTOKEN & send back to the Vault.
+  /// @param _beneficialVaultBounty - The amount of BSW to be swapped to BTOKEN & send back to the Vault.
   /// @param _callerBalance - The balance that is owned by the msg.sender within the execution scope.
   function _rewardToBeneficialVault(uint256 _beneficialVaultBounty, uint256 _callerBalance) internal {
     /// 1. read base token from beneficialVault
