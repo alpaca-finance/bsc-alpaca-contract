@@ -270,7 +270,7 @@ contract BiswapWorker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     baseToken.safeTransfer(msg.sender, actualBaseTokenBalance());
   }
 
-  /// @dev Return maximum output given the input amount and the status of MDEX reserves.
+  /// @dev Return maximum output given the input amount and the status of Biswap reserves.
   /// @param aIn The amount of asset to market sell.
   /// @param rIn the amount of asset in reserve for input.
   /// @param rOut The amount of asset in reserve for output.
@@ -371,13 +371,13 @@ contract BiswapWorker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   function _addShare(uint256 id) internal {
     uint256 balance = lpToken.balanceOf(address(this));
     if (balance > 0) {
-      // 1. Approve token to be spend by Spooky's MasterChef
+      // 1. Approve token to be spend by Biswap's MasterChef
       address(lpToken).safeApprove(address(biswapMasterChef), uint256(-1));
       // 2. Convert balance to share
       uint256 share = balanceToShare(balance);
       require(share > 0, "no zero share");
-      // 3. Deposit balance to Spooky's MasterChef
-      // and also force reward claim, to mimic the behaviour of Spooky's MasterChef
+      // 3. Deposit balance to Biswap's MasterChef
+      // and also force reward claim, to mimic the behaviour of Biswap's MasterChef
       biswapMasterChef.deposit(pid, balance);
       // 4. Update shares
       shares[id] = shares[id].add(share);
