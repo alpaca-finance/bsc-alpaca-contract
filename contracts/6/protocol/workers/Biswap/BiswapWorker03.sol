@@ -270,7 +270,7 @@ contract BiswapWorker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
     baseToken.safeTransfer(msg.sender, actualBaseTokenBalance());
   }
 
-  /// @dev Return maximum output given the input amount and the status of MDEX reserves.
+  /// @dev Return maximum output given the input amount and the status of Biswap reserves.
   /// @param aIn The amount of asset to market sell.
   /// @param rIn the amount of asset in reserve for input.
   /// @param rOut The amount of asset in reserve for output.
