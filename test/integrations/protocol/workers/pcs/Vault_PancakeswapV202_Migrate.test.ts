@@ -54,7 +54,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 chai.use(solidity);
 const { expect } = chai;
 
-describe("Vault - PancakeswapV202", () => {
+describe("Vault - PancakeswapV202_Migrate", () => {
   const FOREVER = "2000000000";
   const ALPACA_BONUS_LOCK_UP_BPS = 7000;
   const ALPACA_REWARD_PER_BLOCK = ethers.utils.parseEther("5000");

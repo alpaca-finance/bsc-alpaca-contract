@@ -34,6 +34,8 @@ import {
   PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading__factory,
   PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading,
   PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading__factory,
+  PancakeswapV2MCV2Worker02,
+  PancakeswapV2MCV2Worker02__factory,
   PancakeswapV2Worker,
   PancakeswapV2Worker02,
   PancakeswapV2Worker02__factory,
@@ -135,6 +137,8 @@ import {
   TShare,
   DeltaNeutralSpookyWorker03__factory,
   DeltaNeutralSpookyWorker03,
+  MasterChefV2,
+  MasterChefV2__factory,
 } from "../../typechain";
 import * as TimeHelpers from "../helpers/time";
 
@@ -265,6 +269,35 @@ export class DeployHelper {
     ]);
 
     return [factoryV2, routerV2, cake, syrup, masterChef];
+  }
+
+  public async deployPancakeMasterChefV2(masterChef: PancakeMasterChef): Promise<[MasterChefV2]> {
+    // Deploy dummyToken for MasterChefV2 to stake in MasterChefV1
+    const dummyToken = await this.deployERC20();
+    await dummyToken.mint(this.deployer.address, 1);
+
+    // Add Master Pool for MasterChefV2
+    await masterChef.add(1, dummyToken.address, true);
+    await masterChef.set(0, 0, true);
+    const MASTER_PID = (await masterChef.poolLength()).sub(1);
+
+    // Deploy MasterChefV2
+    const MasterChefV2 = (await ethers.getContractFactory("MasterChefV2", this.deployer)) as MasterChefV2__factory;
+    const masterChefV2 = await MasterChefV2.deploy(
+      masterChef.address,
+      await masterChef.cake(),
+      MASTER_PID,
+      this.deployer.address
+    );
+    await masterChefV2.deployed();
+
+    // Init MasterChefV2
+    await dummyToken.approve(masterChefV2.address, 1);
+    await masterChefV2.init(dummyToken.address);
+
+    // Add Dummy Pool 0
+    await masterChefV2.add(0, dummyToken.address, true, true);
+    return [masterChefV2];
   }
 
   public async deployPancakeV2Strategies(
@@ -795,6 +828,56 @@ export class DeployHelper {
       reinvestPath,
       0,
     ])) as PancakeswapV2Worker02;
+    await pancakeswapV2Worker02.deployed();
+
+    await simpleVaultConfig.setWorker(pancakeswapV2Worker02.address, true, true, workFactor, killFactor, true, true);
+    await pancakeswapV2Worker02.setStrategyOk(extraStrategies, true);
+    await pancakeswapV2Worker02.setReinvestorOk(okReinvestor, true);
+    await pancakeswapV2Worker02.setTreasuryConfig(treasuryAddress, reinvestBountyBps);
+
+    extraStrategies.push(...[addStrat.address, liqStrat.address]);
+    extraStrategies.forEach(async (stratAddress) => {
+      const strat = PancakeswapV2RestrictedStrategyLiquidate__factory.connect(stratAddress, this.deployer);
+      await strat.setWorkersOk([pancakeswapV2Worker02.address], true);
+    });
+
+    return pancakeswapV2Worker02;
+  }
+
+  public async deployPancakeV2MCV2Worker02(
+    vault: Vault,
+    btoken: MockERC20,
+    masterChef: MasterChefV2,
+    routerV2: PancakeRouterV2,
+    poolId: number,
+    workFactor: BigNumberish,
+    killFactor: BigNumberish,
+    addStrat: PancakeswapV2RestrictedStrategyAddBaseTokenOnly,
+    liqStrat: PancakeswapV2RestrictedStrategyLiquidate,
+    reinvestBountyBps: BigNumberish,
+    okReinvestor: string[],
+    treasuryAddress: string,
+    reinvestPath: Array<string>,
+    extraStrategies: string[],
+    simpleVaultConfig: SimpleVaultConfig
+  ): Promise<PancakeswapV2MCV2Worker02> {
+    const PancakeswapV2MCV2Worker02 = (await ethers.getContractFactory(
+      "PancakeswapV2MCV2Worker02",
+      this.deployer
+    )) as PancakeswapV2MCV2Worker02__factory;
+    const pancakeswapV2Worker02 = (await upgrades.deployProxy(PancakeswapV2MCV2Worker02, [
+      vault.address,
+      btoken.address,
+      masterChef.address,
+      routerV2.address,
+      poolId,
+      addStrat.address,
+      liqStrat.address,
+      reinvestBountyBps,
+      treasuryAddress,
+      reinvestPath,
+      0,
+    ])) as PancakeswapV2MCV2Worker02;
     await pancakeswapV2Worker02.deployed();
 
     await simpleVaultConfig.setWorker(pancakeswapV2Worker02.address, true, true, workFactor, killFactor, true, true);
