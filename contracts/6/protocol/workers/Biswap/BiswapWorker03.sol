@@ -371,7 +371,7 @@ contract BiswapWorker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWork
   function _addShare(uint256 id) internal {
     uint256 balance = lpToken.balanceOf(address(this));
     if (balance > 0) {
-      // 1. Approve token to be spend by Spooky's MasterChef
+      // 1. Approve token to be spend by Biswap's MasterChef
       address(lpToken).safeApprove(address(biswapMasterChef), uint256(-1));
       // 2. Convert balance to share
       uint256 share = balanceToShare(balance);
