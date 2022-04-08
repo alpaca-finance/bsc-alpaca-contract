@@ -26,7 +26,7 @@ import "../apis/pancake/IPancakeRouter02.sol";
 import "../interfaces/IWorkerConfig.sol";
 import "../interfaces/IPriceOracle.sol";
 import "../../utils/SafeToken.sol";
-import "../interfaces/INFTStaking.sol";
+import "../interfaces/INFTBoostedLeverageController.sol";
 
 contract SingleAssetWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
   /// @notice Using libraries
@@ -65,23 +65,12 @@ contract SingleAssetWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
     uint64 maxPriceDiff;
   }
 
-  struct BoostedLeverage {
-    uint256 allowBoost;
-    uint256 boostedWorkFactor;
-  }
-
-  struct BoostedKillFactor {
-    uint256 allowBoost;
-    uint256 boostedKillFactor;
-  }
-
   PriceOracle public oracle;
   IPancakeFactory public factory;
   address public wNative;
   mapping(address => Config) public workers;
   address public governor;
-  mapping(address => BoostedLeverage) public boostedLeverage;
-  mapping(address => BoostedKillFactor) public boostedKillFactor;
+  INFTBoostedLeverageController nftBoostedLeverageController;
 
   function initialize(PriceOracle _oracle, IPancakeRouter02 _router) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
@@ -121,40 +110,6 @@ contract SingleAssetWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
         workers[addrs[idx]].killFactor,
         workers[addrs[idx]].maxPriceDiff
       );
-    }
-  }
-
-  function setBoostedLeverage(address[] calldata addrs, BoostedLeverage[] calldata configs) external onlyOwner {
-    uint256 len = addrs.length;
-    require(configs.length == len, "SingleAssetWorkerConfig::setBoostedLeverage:: bad len");
-    for (uint256 idx = 0; idx < len; idx++) {
-      require(
-        uint256(workers[addrs[idx]].killFactor) > configs[idx].boostedWorkFactor,
-        "SingleAssetWorkerConfig::setBoostedLeverage:: bad boostedWorkFactor"
-      );
-      boostedLeverage[addrs[idx]] = BoostedLeverage({
-        allowBoost: configs[idx].allowBoost,
-        boostedWorkFactor: configs[idx].boostedWorkFactor
-      });
-
-      emit SetBoostedLeverage(_msgSender(), addrs[idx], configs[idx].allowBoost, configs[idx].boostedWorkFactor);
-    }
-  }
-
-  function setBoostedKillFactor(address[] calldata addrs, BoostedKillFactor[] calldata configs) external onlyOwner {
-    uint256 len = addrs.length;
-    require(configs.length == len, "SingleAssetWorkerConfig::setBoostedKillFactor:: bad len");
-    for (uint256 idx = 0; idx < len; idx++) {
-      require(
-        uint256(workers[addrs[idx]].killFactor) > configs[idx].boostedKillFactor,
-        "SingleAssetWorkerConfig::setBoostedKillFactor:: bad boostedKillFactor"
-      );
-      boostedKillFactor[addrs[idx]] = BoostedKillFactor({
-        allowBoost: configs[idx].allowBoost,
-        boostedKillFactor: configs[idx].boostedKillFactor
-      });
-
-      emit SetBoostedKillFactor(_msgSender(), addrs[idx], configs[idx].allowBoost, configs[idx].boostedKillFactor);
     }
   }
 
@@ -237,9 +192,12 @@ contract SingleAssetWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
     address positionOwner
   ) external view override returns (uint256) {
     require(isStable(worker), "SingleAssetWorkerConfig::workFactor:: !stable");
-    bool _isStaked = INFTStaking(nftStaking).isStaked(keccak256("ALPIES"), positionOwner);
-    if (_isStaked && boostedLeverage[worker].allowBoost == 1) {
-      return boostedLeverage[worker].boostedWorkFactor;
+    uint256 _boostedWorkFactor = INFTBoostedLeverageController(nftBoostedLeverageController).getBoostedWorkFactor(
+      positionOwner,
+      worker
+    );
+    if (_boostedWorkFactor > 0) {
+      return _boostedWorkFactor;
     } else {
       return uint256(workers[worker].workFactor);
     }
@@ -261,9 +219,12 @@ contract SingleAssetWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
     address positionOwner
   ) external view override returns (uint256) {
     require(isStable(worker), "SingleAssetWorkerConfig::killFactor:: !stable");
-    bool _isStaked = INFTStaking(nftStaking).isStaked(keccak256("ALPIES"), positionOwner);
-    if (_isStaked && boostedKillFactor[worker].allowBoost == 1) {
-      return boostedKillFactor[worker].boostedKillFactor;
+    uint256 _boostedKillFactor = INFTBoostedLeverageController(nftBoostedLeverageController).getBoostedKillFactor(
+      positionOwner,
+      worker
+    );
+    if (_boostedKillFactor > 0) {
+      return _boostedKillFactor;
     } else {
       return uint256(workers[worker].killFactor);
     }
@@ -283,9 +244,12 @@ contract SingleAssetWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
     uint256, /* debt */
     address positionOwner
   ) external view override returns (uint256) {
-    bool _isStaked = INFTStaking(nftStaking).isStaked(keccak256("ALPIES"), positionOwner);
-    if (_isStaked && boostedKillFactor[worker].allowBoost == 1) {
-      return boostedKillFactor[worker].boostedKillFactor;
+    uint256 _boostedKillFactor = INFTBoostedLeverageController(nftBoostedLeverageController).getBoostedKillFactor(
+      positionOwner,
+      worker
+    );
+    if (_boostedKillFactor > 0) {
+      return _boostedKillFactor;
     } else {
       return uint256(workers[worker].killFactor);
     }
@@ -311,5 +275,15 @@ contract SingleAssetWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
         workers[addrs[idx]].maxPriceDiff
       );
     }
+  }
+
+  function setNFTBoostedLeverageController(INFTBoostedLeverageController _newNFTBoostedLeverageController)
+    external
+    onlyGovernor
+  {
+    // Sanity check
+    _newNFTBoostedLeverageController.getBoostedWorkFactor(address(0), address(0));
+
+    nftBoostedLeverageController = _newNFTBoostedLeverageController;
   }
 }
