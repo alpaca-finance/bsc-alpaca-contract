@@ -52,7 +52,7 @@ contract BiswapStrategyPartialCloseLiquidate is OwnableUpgradeSafe, ReentrancyGu
 
   /// @dev Create a new liquidate strategy instance.
   /// @param _router The WaultSwap Router smart contract.
-  function initialize(ISwapRouter02Like _router) public initializer {
+  function initialize(ISwapRouter02Like _router) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
     factory = ISwapFactoryLike(_router.factory());
