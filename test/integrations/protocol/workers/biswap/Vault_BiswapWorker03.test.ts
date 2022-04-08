@@ -58,7 +58,7 @@ describe("Vault - BiswapWorker03", () => {
   const MAX_REINVEST_BOUNTY: string = "900";
   const DEPLOYER = "0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51";
   const BENEFICIALVAULT_BOUNTY_BPS = "1000";
-  const REINVEST_THRESHOLD = ethers.utils.parseEther("1"); // If pendingCake > 1 $BSW, then reinvest
+  const REINVEST_THRESHOLD = ethers.utils.parseEther("1"); // If pendingBsw > 1 $BSW, then reinvest
   const KILL_TREASURY_BPS = "100";
   const POOL_IDX = 1; // Normally we'ld use 0, but because Biswap will have the first pool (id:0) at deployment
 
@@ -224,7 +224,7 @@ describe("Vault - BiswapWorker03", () => {
     // Set approved add strategies
     await simpleVaultConfig.setApprovedAddStrategy([addStrat.address, twoSidesStrat.address], true);
 
-    // Setup BTOKEN-FTOKEN pair on Pancakeswap
+    // Setup BTOKEN-FTOKEN pair on Biswap
     // Add lp to masterchef's pool
     await biswapFactory.createPair(baseToken.address, farmToken.address);
     await biswapFactory.createPair(bsw.address, wbnb.address);
@@ -869,8 +869,8 @@ describe("Vault - BiswapWorker03", () => {
 
           // Position#2: Bob borrows another 2 BTOKEN
           [workerLpBefore] = await masterchef.userInfo(POOL_IDX, biswapWorker.address);
-          let eveCakeBefore = await bsw.balanceOf(eveAddress);
-          let deployerCakeBefore = await bsw.balanceOf(DEPLOYER);
+          let eveBswBefore = await bsw.balanceOf(eveAddress);
+          let deployerBswBefore = await bsw.balanceOf(DEPLOYER);
           await swapHelper.loadReserves(path);
           await swapHelper.loadReserves(reinvestPath);
           await baseTokenAsBob.approve(vault.address, ethers.utils.parseEther("1"));
@@ -886,8 +886,8 @@ describe("Vault - BiswapWorker03", () => {
             )
           );
           [workerLpAfter] = await masterchef.userInfo(POOL_IDX, biswapWorker.address);
-          let eveCakeAfter = await bsw.balanceOf(eveAddress);
-          let deployerCakeAfter = await bsw.balanceOf(DEPLOYER);
+          let eveBswAfter = await bsw.balanceOf(eveAddress);
+          let deployerBswAfter = await bsw.balanceOf(DEPLOYER);
           let totalRewards = swapHelper.computeTotalRewards(workerLpBefore, BSW_REWARD_PER_BLOCK, BigNumber.from(2));
 
           let reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
@@ -922,10 +922,10 @@ describe("Vault - BiswapWorker03", () => {
           ).to.be.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
 
           expect(
-            deployerCakeAfter.sub(deployerCakeBefore),
+            deployerBswAfter.sub(deployerBswBefore),
             `expect DEPLOYER to get ${reinvestFees} BSW as treasury fees`
           ).to.be.eq(reinvestFees);
-          expect(eveCakeAfter.sub(eveCakeBefore), `expect eve's BSW to remain the same`).to.be.eq("0");
+          expect(eveBswAfter.sub(eveBswBefore), `expect eve's BSW to remain the same`).to.be.eq("0");
           expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.eq(accumLp);
           expect(
             await baseToken.balanceOf(addStrat.address),
@@ -941,15 +941,15 @@ describe("Vault - BiswapWorker03", () => {
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
 
           let [workerLPBefore] = await masterchef.userInfo(POOL_IDX, biswapWorker.address);
-          deployerCakeBefore = await bsw.balanceOf(DEPLOYER);
-          eveCakeBefore = await bsw.balanceOf(eveAddress);
+          deployerBswBefore = await bsw.balanceOf(DEPLOYER);
+          eveBswBefore = await bsw.balanceOf(eveAddress);
           await swapHelper.loadReserves(path);
           await swapHelper.loadReserves(reinvestPath);
 
           await biswapWorkerAsEve.reinvest();
 
-          deployerCakeAfter = await bsw.balanceOf(DEPLOYER);
-          eveCakeAfter = await bsw.balanceOf(eveAddress);
+          deployerBswAfter = await bsw.balanceOf(DEPLOYER);
+          eveBswAfter = await bsw.balanceOf(eveAddress);
           [workerLpAfter] = await masterchef.userInfo(POOL_IDX, biswapWorker.address);
           totalRewards = swapHelper.computeTotalRewards(workerLPBefore, BSW_REWARD_PER_BLOCK, BigNumber.from(2));
           reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
@@ -972,8 +972,8 @@ describe("Vault - BiswapWorker03", () => {
             `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
           ).to.be.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
 
-          expect(deployerCakeAfter.sub(deployerCakeBefore), `expect DEPLOYER's BSW to remain the same`).to.be.eq("0");
-          expect(eveCakeAfter.sub(eveCakeBefore), `expect eve to get ${reinvestFees}`).to.be.eq(reinvestFees);
+          expect(deployerBswAfter.sub(deployerBswBefore), `expect DEPLOYER's BSW to remain the same`).to.be.eq("0");
+          expect(eveBswAfter.sub(eveBswBefore), `expect eve to get ${reinvestFees}`).to.be.eq(reinvestFees);
           expect(workerLpAfter).to.be.eq(accumLp);
 
           // Check Position#1 info
@@ -1130,8 +1130,8 @@ describe("Vault - BiswapWorker03", () => {
 
           // Position#2: Bob borrows another 2 BTOKEN
           [workerLpBefore] = await masterchef.userInfo(POOL_IDX, biswapWorker.address);
-          let eveCakeBefore = await bsw.balanceOf(eveAddress);
-          let deployerCakeBefore = await bsw.balanceOf(DEPLOYER);
+          let eveBswBefore = await bsw.balanceOf(eveAddress);
+          let deployerBswBefore = await bsw.balanceOf(DEPLOYER);
 
           // Position#2: Bob open 1x position with 3 BTOKEN
           await swapHelper.loadReserves(path);
@@ -1149,8 +1149,8 @@ describe("Vault - BiswapWorker03", () => {
             )
           );
           [workerLpAfter] = await masterchef.userInfo(POOL_IDX, biswapWorker.address);
-          let eveCakeAfter = await bsw.balanceOf(eveAddress);
-          let deployerCakeAfter = await bsw.balanceOf(DEPLOYER);
+          let eveBswAfter = await bsw.balanceOf(eveAddress);
+          let deployerBswAfter = await bsw.balanceOf(DEPLOYER);
           let totalRewards = swapHelper.computeTotalRewards(workerLpBefore, BSW_REWARD_PER_BLOCK, BigNumber.from(2));
           let reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
           let reinvestLeft = totalRewards.sub(reinvestFees);
@@ -1184,10 +1184,10 @@ describe("Vault - BiswapWorker03", () => {
           ).to.be.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
 
           expect(
-            deployerCakeAfter.sub(deployerCakeBefore),
+            deployerBswAfter.sub(deployerBswBefore),
             `expect DEPLOYER to get ${reinvestFees} BSW as treasury fees`
           ).to.be.eq(reinvestFees);
-          expect(eveCakeAfter.sub(eveCakeBefore), `expect eve's BSW to remain the same`).to.be.eq("0");
+          expect(eveBswAfter.sub(eveBswBefore), `expect eve's BSW to remain the same`).to.be.eq("0");
           expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.eq(accumLp);
           expect(
             await baseToken.balanceOf(addStrat.address),
@@ -1203,15 +1203,15 @@ describe("Vault - BiswapWorker03", () => {
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
 
           let [workerLPBefore] = await masterchef.userInfo(POOL_IDX, biswapWorker.address);
-          deployerCakeBefore = await bsw.balanceOf(DEPLOYER);
-          eveCakeBefore = await bsw.balanceOf(eveAddress);
+          deployerBswBefore = await bsw.balanceOf(DEPLOYER);
+          eveBswBefore = await bsw.balanceOf(eveAddress);
           await swapHelper.loadReserves(path);
           await swapHelper.loadReserves(reinvestPath);
 
           await biswapWorkerAsEve.reinvest();
 
-          deployerCakeAfter = await bsw.balanceOf(DEPLOYER);
-          eveCakeAfter = await bsw.balanceOf(eveAddress);
+          deployerBswAfter = await bsw.balanceOf(DEPLOYER);
+          eveBswAfter = await bsw.balanceOf(eveAddress);
           [workerLpAfter] = await masterchef.userInfo(POOL_IDX, biswapWorker.address);
           totalRewards = swapHelper.computeTotalRewards(workerLPBefore, BSW_REWARD_PER_BLOCK, BigNumber.from(2));
           reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
@@ -1234,8 +1234,8 @@ describe("Vault - BiswapWorker03", () => {
             `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
           ).to.be.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
 
-          expect(deployerCakeAfter.sub(deployerCakeBefore), `expect DEPLOYER's BSW to remain the same`).to.be.eq("0");
-          expect(eveCakeAfter.sub(eveCakeBefore), `expect eve to get ${reinvestFees}`).to.be.eq(reinvestFees);
+          expect(deployerBswAfter.sub(deployerBswBefore), `expect DEPLOYER's BSW to remain the same`).to.be.eq("0");
+          expect(eveBswAfter.sub(eveBswBefore), `expect eve to get ${reinvestFees}`).to.be.eq(reinvestFees);
           expect(workerLpAfter).to.be.eq(accumLp);
 
           // Check Position#1 info
@@ -1799,8 +1799,8 @@ describe("Vault - BiswapWorker03", () => {
 
           // Position#2: Bob borrows another 2 BTOKEN
           [workerLpBefore] = await masterchef.userInfo(POOL_IDX, biswapWorker.address);
-          let eveCakeBefore = await bsw.balanceOf(eveAddress);
-          let deployerCakeBefore = await bsw.balanceOf(DEPLOYER);
+          let eveBswBefore = await bsw.balanceOf(eveAddress);
+          let deployerBswBefore = await bsw.balanceOf(DEPLOYER);
           await swapHelper.loadReserves(path);
           await swapHelper.loadReserves(reinvestPath);
           await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
@@ -1816,8 +1816,8 @@ describe("Vault - BiswapWorker03", () => {
             )
           );
           [workerLpAfter] = await masterchef.userInfo(POOL_IDX, biswapWorker.address);
-          let eveCakeAfter = await bsw.balanceOf(eveAddress);
-          let deployerCakeAfter = await bsw.balanceOf(DEPLOYER);
+          let eveBswAfter = await bsw.balanceOf(eveAddress);
+          let deployerBswAfter = await bsw.balanceOf(DEPLOYER);
           let totalRewards = swapHelper.computeTotalRewards(workerLpBefore, BSW_REWARD_PER_BLOCK, BigNumber.from(2));
           let reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
           let reinvestLeft = totalRewards.sub(reinvestFees);
@@ -1851,10 +1851,10 @@ describe("Vault - BiswapWorker03", () => {
           ).to.be.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
 
           expect(
-            deployerCakeAfter.sub(deployerCakeBefore),
+            deployerBswAfter.sub(deployerBswBefore),
             `expect DEPLOYER to get ${reinvestFees} BSW as treasury fees`
           ).to.be.eq(reinvestFees);
-          expect(eveCakeAfter.sub(eveCakeBefore), `expect eve's BSW to remain the same`).to.be.eq("0");
+          expect(eveBswAfter.sub(eveBswBefore), `expect eve's BSW to remain the same`).to.be.eq("0");
           expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.eq(accumLp);
           expect(
             await baseToken.balanceOf(addStrat.address),
@@ -1870,15 +1870,15 @@ describe("Vault - BiswapWorker03", () => {
           await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
 
           let [workerLPBefore] = await masterchef.userInfo(POOL_IDX, biswapWorker.address);
-          deployerCakeBefore = await bsw.balanceOf(DEPLOYER);
-          eveCakeBefore = await bsw.balanceOf(eveAddress);
+          deployerBswBefore = await bsw.balanceOf(DEPLOYER);
+          eveBswBefore = await bsw.balanceOf(eveAddress);
           await swapHelper.loadReserves(path);
           await swapHelper.loadReserves(reinvestPath);
 
           await biswapWorkerAsEve.reinvest();
 
-          deployerCakeAfter = await bsw.balanceOf(DEPLOYER);
-          eveCakeAfter = await bsw.balanceOf(eveAddress);
+          deployerBswAfter = await bsw.balanceOf(DEPLOYER);
+          eveBswAfter = await bsw.balanceOf(eveAddress);
           [workerLpAfter] = await masterchef.userInfo(POOL_IDX, biswapWorker.address);
           totalRewards = swapHelper.computeTotalRewards(workerLPBefore, BSW_REWARD_PER_BLOCK, BigNumber.from(2));
           reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
@@ -1901,8 +1901,8 @@ describe("Vault - BiswapWorker03", () => {
             `expect Pos#2 LPs = ${workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter)}`
           ).to.be.eq(workerHelper.computeShareToBalance(shares[1], totalShare, workerLpAfter));
 
-          expect(deployerCakeAfter.sub(deployerCakeBefore), `expect DEPLOYER's BSW to remain the same`).to.be.eq("0");
-          expect(eveCakeAfter.sub(eveCakeBefore), `expect eve to get ${reinvestFees}`).to.be.eq(reinvestFees);
+          expect(deployerBswAfter.sub(deployerBswBefore), `expect DEPLOYER's BSW to remain the same`).to.be.eq("0");
+          expect(eveBswAfter.sub(eveBswBefore), `expect eve to get ${reinvestFees}`).to.be.eq(reinvestFees);
           expect(workerLpAfter).to.be.eq(accumLp);
 
           // Check Position#1 info
@@ -2042,7 +2042,7 @@ describe("Vault - BiswapWorker03", () => {
 
               expect(workerLpAfter.sub(workerLpBefore)).to.eq(expectedLp);
 
-              const deployerCakeBefore = await bsw.balanceOf(DEPLOYER);
+              const deployerBswBefore = await bsw.balanceOf(DEPLOYER);
               const bobBefore = await baseToken.balanceOf(bobAddress);
               const [bobHealthBefore] = await vault.positionInfo("1");
               const lpUnderBobPosition = await biswapWorker.shareToBalance(await biswapWorker.shares(1));
@@ -2098,9 +2098,9 @@ describe("Vault - BiswapWorker03", () => {
                 )
               );
               const bobAfter = await baseToken.balanceOf(bobAddress);
-              const deployerCakeAfter = await bsw.balanceOf(DEPLOYER);
+              const deployerBswAfter = await bsw.balanceOf(DEPLOYER);
 
-              expect(deployerCakeAfter.sub(deployerCakeBefore), `expect Deployer to get ${reinvestFees}`).to.be.eq(
+              expect(deployerBswAfter.sub(deployerBswBefore), `expect Deployer to get ${reinvestFees}`).to.be.eq(
                 reinvestFees
               );
               expect(bobAfter.sub(bobBefore), `expect Bob get ${liquidatedBtoken}`).to.be.eq(liquidatedBtoken);
