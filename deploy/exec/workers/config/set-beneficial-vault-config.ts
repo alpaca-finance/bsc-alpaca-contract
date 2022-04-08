@@ -1,10 +1,9 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers, network } from "hardhat";
-import MainnetConfig from "../../../../.mainnet.json";
-import TestnetConfig from "../../../../.testnet.json";
+import { ethers } from "hardhat";
 import { TimelockEntity } from "../../../entities";
 import { FileService, TimelockService } from "../../../services";
+import { getConfig } from "../../../entities/config";
 
 interface IWorker {
   WORKER_NAME: string;
@@ -27,21 +26,33 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const fileName = "mainnet-xALPACA-set-beneficial-vault-config-cakemaxi";
+  const fileName = "mainnet-revenue-tresury-set-beneficial-vault-config-mdex";
   const workerInputs = [
-    "TUSD CakeMaxiWorker",
-    "BTCB CakeMaxiWorker",
-    "USDT CakeMaxiWorker",
-    "ETH CakeMaxiWorker",
-    "BUSD CakeMaxiWorker",
-    "WBNB CakeMaxiWorker",
+    "USDT-BTCB MdexWorker",
+    "ETH-BTCB MdexWorker",
+    "WBNB-BTCB MdexWorker",
+    "BTCB-USDT MdexWorker",
+    "ETH-USDT MdexWorker",
+    "WBNB-USDT MdexWorker",
+    "USDC-USDT MdexWorker",
+    "DAI-USDT MdexWorker",
+    "USDT-ETH MdexWorker",
+    "WBNB-ETH MdexWorker",
+    "BTCB-ETH MdexWorker",
+    "MDX-BUSD MdexWorker",
+    "WBNB-BUSD MdexWorker",
+    "MDX-WBNB MdexWorker",
+    "BUSD-WBNB MdexWorker",
+    "ETH-WBNB MdexWorker",
+    "USDT-WBNB MdexWorker",
+    "BTCB-WBNB MdexWorker",
   ];
-  const rewardPathInput: Array<string> = ["CAKE", "BUSD", "ALPACA"];
-  const EXACT_ETA = "1640242800";
+  const rewardPathInput: Array<string> = ["MDX", "BUSD"];
+  const EXACT_ETA = "1649136600";
   const BENEFICIAL_VAULT_BOUNTY_BPS = "5263";
-  const BENEFICIAL_VAULT_ADDRESS = "0x44B3868cbba5fbd2c5D8d1445BDB14458806B3B4";
+  const BENEFICIAL_VAULT_ADDRESS = "0x08B5A95cb94f926a8B620E87eE92e675b35afc7E";
 
-  const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
+  const config = getConfig();
   const allWorkers: IWorkers = config.Vaults.reduce((accum, vault) => {
     return accum.concat(
       vault.workers.map((worker) => {

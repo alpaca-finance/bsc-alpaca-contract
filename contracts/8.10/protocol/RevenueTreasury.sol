@@ -82,24 +82,29 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable, ReentrancyGuardUp
   function initialize(
     address _token,
     IGrassHouse _grasshouse,
+    address[] calldata _rewardPath,
     IVault _vault,
+    address[] calldata _vaultSwapPath,
     ISwapRouter _router,
     uint256 _remaining,
     uint256 _splitBps
   ) external initializer {
-    // check
+    // Check
+    _validateSwapPath(_token, _vault.token(), _vaultSwapPath);
+    _validateSwapPath(_token, _grasshouse.rewardToken(), _rewardPath);
     if (_splitBps > 10000) {
       revert RevenueTreasury_InvalidBps();
     }
-
     _router.WETH();
 
-    // effect
+    // Effect
     OwnableUpgradeable.__Ownable_init();
 
     token = _token;
     grassHouse = _grasshouse;
+    rewardPath = _rewardPath;
     vault = _vault;
+    vaultSwapPath = _vaultSwapPath;
     grasshouseToken = grassHouse.rewardToken();
     router = _router;
     remaining = _remaining;
@@ -108,7 +113,7 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable, ReentrancyGuardUp
 
   /// @notice Split fund and distribute
   function feedGrassHouse() external nonReentrant {
-    //check
+    // Check
     _validateSwapPath(token, vault.token(), vaultSwapPath);
     _validateSwapPath(token, grasshouseToken, rewardPath);
 
@@ -163,30 +168,53 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable, ReentrancyGuardUp
 
   /// @notice Set new recieving token
   /// @param _newToken - new recieving token address
-  function setToken(address _newToken) external onlyOwner {
+  function setToken(
+    address _newToken,
+    address[] calldata _vaultSwapPath,
+    address[] calldata _rewardPath
+  ) external onlyOwner {
+    // Check
+    _validateSwapPath(_newToken, vault.token(), _vaultSwapPath);
+    _validateSwapPath(_newToken, grasshouseToken, _rewardPath);
+
+    // Effect
     address _prevToken = token;
     token = _newToken;
+    vaultSwapPath = _vaultSwapPath;
+    rewardPath = _rewardPath;
+
     emit LogSetToken(msg.sender, _prevToken, token);
   }
 
   /// @notice Set new destination vault
   /// @param _newVault - new destination vault address
-  function setVault(IVault _newVault) external onlyOwner {
-    //check
+  function setVault(IVault _newVault, address[] calldata _vaultSwapPath) external onlyOwner {
+    // Check
     _newVault.token();
+    _validateSwapPath(token, _newVault.token(), _vaultSwapPath);
 
+    // Effect
     IVault _prevVault = vault;
     vault = _newVault;
+    vaultSwapPath = _vaultSwapPath;
+
+    emit LogSetVaultSwapPath(msg.sender, _vaultSwapPath);
     emit LogSetVault(msg.sender, address(_prevVault), address(vault));
   }
 
   /// @notice Set a new GrassHouse
   /// @param _newGrassHouse - new GrassHouse address
-  function setGrassHouse(IGrassHouse _newGrassHouse) external onlyOwner {
+  function setGrassHouse(IGrassHouse _newGrassHouse, address[] calldata _rewardPath) external onlyOwner {
+    // Check
+    _validateSwapPath(token, _newGrassHouse.rewardToken(), _rewardPath);
+
     address _prevGrassHouse = address(grassHouse);
     grassHouse = _newGrassHouse;
     grasshouseToken = grassHouse.rewardToken();
+    rewardPath = _rewardPath;
+
     emit LogSetGrassHouse(msg.sender, _prevGrassHouse, address(_newGrassHouse));
+    emit LogSetRewardPath(msg.sender, _rewardPath);
   }
 
   /// @notice Set a new swap router
@@ -196,26 +224,6 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable, ReentrancyGuardUp
     router = _newRouter;
 
     emit LogSetRouter(msg.sender, _prevRouter, address(router));
-  }
-
-  /// @notice Set a new reward path. In case that the liquidity of the reward path has changed.
-  /// @param _rewardPath The new reward path.
-  function setRewardPath(address[] calldata _rewardPath) external onlyOwner {
-    _validateSwapPath(token, grasshouseToken, _rewardPath);
-
-    rewardPath = _rewardPath;
-
-    emit LogSetRewardPath(msg.sender, _rewardPath);
-  }
-
-  /// @notice Set a new vault path. In case that the destination vault has changed.
-  /// @param _vaultSwapPath The new reward path.
-  function setVaultSwapPath(address[] calldata _vaultSwapPath) external onlyOwner {
-    _validateSwapPath(token, vault.token(), _vaultSwapPath);
-
-    vaultSwapPath = _vaultSwapPath;
-
-    emit LogSetVaultSwapPath(msg.sender, _vaultSwapPath);
   }
 
   /// @notice Set a new remaining
