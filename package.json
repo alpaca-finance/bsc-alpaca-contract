@@ -366,6 +366,7 @@
     "test:deltaneutralNon18Decimals": "hardhat test --no-compile ./test/integrations/protocol/delta-neutral/DeltaNeutralVaultNon18Decimals.test.ts",
     "test:deltaneutralGateway": "hardhat test --no-compile ./test/integrations/protocol/delta-neutral/DeltaNeutralVaultGateway.test.ts",
     "test:deltaneutralGateway:spooky": "hardhat test --no-compile ./test/integrations/protocol/delta-neutral/DeltaNeutralVaultGatewayWithSpookySwap.test.ts",
+    "test:deltaneutralGateway:biswap": "hardhat test --no-compile ./test/integrations/protocol/delta-neutral/DeltaNeutralVaultGatewayWithBiswap.test.ts",
     "test:deltaneutralConfig": "hardhat test --no-compile ./test/integrations/protocol/delta-neutral/DeltaNeutralVaultConfig.test.ts",
     "test:deltaneutral:pancakeworker": "hardhat test --no-compile ./test/integrations/protocol/workers/delta-neutral/Vault_DeltaNeutralPancakeWorker02.test.ts",
     "test:deltaneutral:mdexworker": "hardhat test --no-compile ./test/integrations/protocol/workers/delta-neutral/Vault_DeltaNeutralMdexWorker02.test.ts",
