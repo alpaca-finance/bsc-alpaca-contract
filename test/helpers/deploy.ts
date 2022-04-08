@@ -997,7 +997,7 @@ export class DeployHelper {
 
     extraStrategies.push(addStrat.address);
     extraStrategies.forEach(async (stratAddress) => {
-      const strat = SpookySwapStrategyLiquidate__factory.connect(stratAddress, this.deployer);
+      const strat = BiswapStrategyLiquidate__factory.connect(stratAddress, this.deployer);
       await strat.setWorkersOk([deltaNeutralWorker03.address], true);
     });
 
