@@ -1285,22 +1285,6 @@ describe("Vault - DeltaNetBiswap03", () => {
             const lpUnderPosition = await deltaNeutralWorker.totalLpBalance();
             [workerLPBefore] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
             // DeltaNet think he made enough. He now wants to close position partially.
-            // After calling `work()`, the `_reinvest()` is invoked
-            // since 1 blocks have passed since approve and work now reward will be 0.076 * 1 =~ 0.075999999998831803 ~   Bsw
-            // reward without bounty will be 0.075999999998831803 - 0.000759999999988318 =~ 0.0752399999988435 Bsw
-            // 0.0752399999988435 Bsw can be converted into:
-            // (0.0752399999988435 * 0.9975 * 1) / (0.1 + 0.0752399999988435 * 0.9975) = 0.428740847712892766 WBNB
-            // 0.428740847712892766 WBNB can be converted into (0.428740847712892766 * 0.9975 * 1) / (1 + 0.428740847712892766 * 0.9975) = 0.299557528330150526 BTOKEN
-            // based on optimal swap formula, 0.299557528330150526 BTOKEN needs to swap 0.149435199790075736 BTOKEN
-            // new reserve after swap will be 21.149435199790075736 BTOKEN - 0.099295185694161018 FTOKEN
-            // based on optimal swap formula, BTOKEN-FTOKEN to be added into the LP will be 0.150122328540074790 BTOKEN - 0.000704814305838982 FTOKEN
-            // new reserve after adding liquidity receiving from `_reinvest()` is 21.299557528330150526 BTOKEN - 0.100000000000000000 FTOKEN
-            // more LP amount after executing add strategy will be 0.010276168801924356 LP
-            // accumulated LP of the worker will be 1.131492691639043045 + 0.010276168801924356 = 1.1417688604409675 LP
-            // DeltaNet close 50% of his position, thus he will close 1.131492691639043045 * (1.131492691639043045 / (1.131492691639043045)) =~ 1.131492691639043045 / 2 = 0.5657463458195215 LP
-            // 0.5657463458195215 LP will be converted into 8.264866063854500749 BTOKEN - 0.038802994160144191 FTOKEN
-            // 0.038802994160144191 FTOKEN will be converted into (0.038802994160144191 * 0.9975 * 13.034691464475649777) / (0.061197005839855809 + 0.038802994160144191 * 0.9975) = 5.050104921127982573 BTOKEN
-            // thus, DeltaNet will receive 8.264866063854500749 + 5.050104921127982573 = 13.314970984982483322 BTOKEN
             await vaultAsDeltaNet.work(
               1,
               deltaNeutralWorker.address,
@@ -1324,11 +1308,6 @@ describe("Vault - DeltaNetBiswap03", () => {
             );
             const deltaNetAfter = await baseToken.balanceOf(deltaNetAddress);
             // After DeltaNet liquidate half of his position which worth
-            // 13.314970984982483322 BTOKEN (price impact+trading fee included)
-            // DeltaNet wish to return 5,000,000,000 BTOKEN (when maxReturn > debt, return all debt)
-            // The following criteria must be stratified:
-            // - DeltaNet should get 13.314970984982483322 - 10 = 3.314970984982483322 BTOKEN back.
-            // - DeltaNet's position debt must be 0
             expect(
               deltaNetBefore.add(ethers.utils.parseEther("3.200430549066301204")),
               "Expect BTOKEN in Bob's account after close position to increase by ~3.32 BTOKEN"
@@ -1337,13 +1316,6 @@ describe("Vault - DeltaNetBiswap03", () => {
             const [deltaNetHealth, deltaNetDebtVal] = await vault.positionInfo("1");
             // DeltaNet's health after partial close position must be 50% less than before
             // due to he exit half of lp under his position
-            // health calculation
-            // lp balance = 0.565888153968511675
-            // lp price = 28.317482983668635249
-            // lp balance in dollar =  16.024528170662986041
-            // base token price =  1.0
-            // lp balance in dollar / base token price
-            // 16.024528170662986041 / 1.0 = 16.024528170662986041
             expect(deltaNetHealth).to.be.eq(ethers.utils.parseEther("16.024528170662986041"));
             // DeltaNet's debt should be 0 BTOKEN due he said he wants to return at max 5,000,000,000 BTOKEN (> debt, return all debt)
             expect(deltaNetDebtVal).to.be.eq("0");
