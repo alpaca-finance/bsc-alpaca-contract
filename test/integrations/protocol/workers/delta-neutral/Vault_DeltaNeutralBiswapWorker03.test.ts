@@ -64,7 +64,7 @@ describe("Vault - DeltaNetBiswap03", () => {
   const KILL_TREASURY_BPS = "100";
   const POOL_ID = 1;
 
-  /// Pancakeswap-related instance(s)
+  /// Biswapswap-related instance(s)
   let factoryV2: BiswapFactory;
   let routerV2: BiswapRouter02;
 
@@ -93,7 +93,7 @@ describe("Vault - DeltaNetBiswap03", () => {
   /// FairLaunch-related instance(s)
   let fairLaunch: FairLaunch;
 
-  /// PancakeswapMasterChef-related instance(s)
+  /// BiswapMasterChef-related instance(s)
   let masterChef: BiswapMasterChef;
   let deltaNeutralWorker: DeltaNeutralBiswapWorker03;
 
@@ -222,7 +222,7 @@ describe("Vault - DeltaNetBiswap03", () => {
     // Set approved add strategies
     await simpleVaultConfig.setApprovedAddStrategy([addStrat.address, twoSidesStrat.address], true);
 
-    // Setup BTOKEN-FTOKEN pair on Pancakeswap
+    // Setup BTOKEN-FTOKEN pair on Biswapswap
     // Add lp to masterChef's pool
     await factoryV2.createPair(baseToken.address, farmToken.address);
     await factoryV2.createPair(bsw.address, wbnb.address);
@@ -353,7 +353,7 @@ describe("Vault - DeltaNetBiswap03", () => {
   });
 
   context("when worker is initialized", async () => {
-    it("should has FTOKEN as a farmingToken in DeltaNeutralPancakeWorker", async () => {
+    it("should has FTOKEN as a farmingToken in DeltaNeutralBiswapWorker", async () => {
       expect(await deltaNeutralWorker.farmingToken()).to.be.equal(farmToken.address);
     });
 
@@ -403,7 +403,7 @@ describe("Vault - DeltaNetBiswap03", () => {
         expect(await deltaNeutralWorker.reinvestBountyBps()).to.be.eq(100);
       });
 
-      it("should revert when owner set reinvest path that doesn't start with $CAKE and end with $BTOKN", async () => {
+      it("should revert when owner set reinvest path that doesn't start with $Bsw and end with $BTOKN", async () => {
         await expect(
           deltaNeutralWorker.setReinvestConfig(200, "0", [baseToken.address, bsw.address])
         ).to.be.revertedWith("DeltaNeutralBiswapWorker03_InvalidReinvestPath()");
@@ -972,7 +972,7 @@ describe("Vault - DeltaNetBiswap03", () => {
     });
 
     context("#reinvest", async () => {
-      it.only("should reinvest correctly", async () => {
+      it("should reinvest correctly", async () => {
         // Set interests to 0% per year for easy testing
         await simpleVaultConfig.setParams(
           ethers.utils.parseEther("1"), // 1 BTOKEN min debt size,
@@ -1018,9 +1018,8 @@ describe("Vault - DeltaNetBiswap03", () => {
         accumLp = accumLp.add(expectedLp);
 
         // Expect
-        let [workerLpAfter] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
-        console.log("expected", expectedLp)
-        console.log("actual", await deltaNeutralWorker.totalLpBalance())
+        let [workerLpAfter] = await biswapMasterChefAsDeltaNet.userInfo(POOL_ID, deltaNeutralWorker.address);
+
         expect(await deltaNeutralWorker.totalLpBalance(), "expected total Lp amount").to.be.eq(expectedLp);
         expect(
           await baseToken.balanceOf(addStrat.address),
@@ -1032,9 +1031,9 @@ describe("Vault - DeltaNetBiswap03", () => {
         ).to.be.eq(debrisFtoken);
         expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.eq(accumLp);
         // DeltaNet borrows another 2 BTOKEN
-        [workerLpBefore] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
-        let bobCakeBefore = await bsw.balanceOf(bobAddress);
-        let deployerCakeBefore = await bsw.balanceOf(DEPLOYER);
+        [workerLpBefore] = await biswapMasterChefAsDeltaNet.userInfo(POOL_ID, deltaNeutralWorker.address);
+        let bobBswBefore = await bsw.balanceOf(bobAddress);
+        let deployerBswBefore = await bsw.balanceOf(DEPLOYER);
         await swapHelper.loadReserves(path);
         await swapHelper.loadReserves(reinvestPath);
         await baseTokenAsDeltaNet.approve(vault.address, ethers.utils.parseEther("1"));
@@ -1050,69 +1049,52 @@ describe("Vault - DeltaNetBiswap03", () => {
             [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
           )
         );
-        [workerLpAfter] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
-        let bobCakeAfter = await bsw.balanceOf(bobAddress);
-        let deployerCakeAfter = await bsw.balanceOf(DEPLOYER);
-        let totalRewards = swapHelper.computeTotalRewards(workerLpBefore, BSW_REWARD_PER_BLOCK, BigNumber.from(2));
-        let reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
-        let reinvestLeft = totalRewards.sub(reinvestFees);
-        let reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
-        let reinvestBtoken = reinvestAmts[reinvestAmts.length - 1].add(debrisBtoken);
-        let reinvestLp = BigNumber.from(0);
-        [reinvestLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
-        accumLp = accumLp.add(reinvestLp);
-        [expectedLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(
-          ethers.utils.parseEther("3"),
-          path
-        );
-        accumLp = accumLp.add(expectedLp);
-        expect(
-          deployerCakeAfter.sub(deployerCakeBefore),
-          `expect DEPLOYER to get ${reinvestFees} CAKE as treasury fees`
-        ).to.be.eq(reinvestFees);
-        expect(bobCakeAfter.sub(bobCakeBefore), `expect bob's CAKE to remain the same`).to.be.eq("0");
-        expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.eq(accumLp);
-        expect(
-          await baseToken.balanceOf(addStrat.address),
-          `expect add BTOKEN strat to have ${debrisBtoken} BTOKEN debris`
-        ).to.be.eq(debrisBtoken);
-        expect(
-          await farmToken.balanceOf(addStrat.address),
-          `expect add BTOKEN strat to have ${debrisFtoken} FTOKEN debris`
-        ).to.be.eq(debrisFtoken);
+
+        // trigger reinvest once for simple calculation
+        await deltaNeutralWorkerAsBob.reinvest();
+
+
         // ---------------- Reinvest#1 -------------------
         // Wait for 1 day and someone calls reinvest
         await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
-        let [workerLPBefore] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
-        deployerCakeBefore = await bsw.balanceOf(DEPLOYER);
-        bobCakeBefore = await bsw.balanceOf(bobAddress);
+
+        let [workerLPBefore] = await biswapMasterChefAsDeltaNet.userInfo(POOL_ID, deltaNeutralWorker.address);
+        deployerBswBefore = await bsw.balanceOf(DEPLOYER);
+        bobBswBefore = await bsw.balanceOf(bobAddress);
         await swapHelper.loadReserves(path);
         await swapHelper.loadReserves(reinvestPath);
+
         await deltaNeutralWorkerAsBob.reinvest();
-        deployerCakeAfter = await bsw.balanceOf(DEPLOYER);
-        bobCakeAfter = await bsw.balanceOf(bobAddress);
-        [workerLpAfter] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
-        totalRewards = swapHelper.computeTotalRewards(workerLPBefore, BSW_REWARD_PER_BLOCK, BigNumber.from(2));
-        reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
-        reinvestLeft = totalRewards.sub(reinvestFees);
-        reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
-        reinvestBtoken = reinvestAmts[reinvestAmts.length - 1].add(debrisBtoken);
+
+        const deployerBswAfter = await bsw.balanceOf(DEPLOYER);
+        const bobBswAfter = await bsw.balanceOf(bobAddress);
+        [workerLpAfter] = await biswapMasterChefAsDeltaNet.userInfo(POOL_ID, deltaNeutralWorker.address);
+
+        let totalRewards = swapHelper.computeTotalRewards(
+          workerLPBefore,
+          BSW_REWARD_PER_BLOCK,
+          BigNumber.from(2)
+        );
+
+        const reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
+        const reinvestLeft = totalRewards.sub(reinvestFees);
+
+        const reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
+        const reinvestBtoken = reinvestAmts[reinvestAmts.length - 1].add(debrisBtoken);
+        let reinvestLp;
         [reinvestLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
         accumLp = accumLp.add(reinvestLp);
-        expect(deployerCakeAfter.sub(deployerCakeBefore), `expect DEPLOYER's CAKE to remain the same`).to.be.eq("0");
-        expect(bobCakeAfter.sub(bobCakeBefore), `expect bob to get ${reinvestFees}`).to.be.eq(reinvestFees);
-        expect(workerLpAfter).to.be.eq(accumLp);
+        expect(deployerBswAfter.sub(deployerBswBefore), `expect DEPLOYER's BSW to remain the same`).to.be.eq("0");
+        expect(bobBswAfter.sub(bobBswBefore), `expect bob to get ${reinvestFees}`).to.be.eq(reinvestFees);
+        expect(workerLpAfter).to.be.eq(workerLPBefore.add(reinvestLp));
         // Check Position info
         await _updatePrice();
         let [vaultHealth, vaultDebtToShare] = await vault.positionInfo("1");
-        // health calculation
-        // lp balance =  1.245043209303108183
-        // lp price =  28.31456242504544871
-        // lp balance in dollar =  35.252853671691783003
-        // base token price =  1.0
-        // lp balance in dollar / base token price
-        // 35.252853671691783003 / 1.0 = 35.252853671691783003
-        const vaultExpectedHealth = ethers.utils.parseEther("35.252853671691783003");
+
+        // dynamic health calculation since reinvest lp based on time passed
+        const [baseTokenPrice] = await priceOracle.getTokenPrice(baseToken.address);
+        const [lpValue] = await priceOracle.lpToDollar(workerLpAfter, lp.address);
+        const vaultExpectedHealth = lpValue.mul(ethers.utils.parseEther("1")).div(baseTokenPrice);
         expect(vaultHealth, `expect Position health = ${vaultExpectedHealth}`).to.be.eq(vaultExpectedHealth);
         // now we got debt to share as 12 because DeltaNet barrow 10 and 2
         AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("12").toString(), vaultDebtToShare.toString());
@@ -1152,13 +1134,14 @@ describe("Vault - DeltaNetBiswap03", () => {
             // new reserve after swap will be 4.587061715703192586 0.021843151027158060
             // based on optimal swap formula, BTOKEN-FTOKEN to be added into the LP will be 16.412938284296807414 BTOKEN - 0.078156848972841940 FTOKEN
             // new reserve after adding liquidity 21.000000000000000000 BTOKEN - 0.100000000000000000 FTOKEN
-            // lp amount from adding liquidity will be 1.131492691639043045 LP
+            // lp amount from adding liquidity will be 1.131776307937023350 LP
             const borrowedAmount = ethers.utils.parseEther("10");
             const principalAmount = ethers.utils.parseEther("10");
-            let [workerLpBefore] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
+            let [workerLpBefore] = await biswapMasterChefAsDeltaNet.userInfo(POOL_ID, deltaNeutralWorker.address);
             await swapHelper.loadReserves(path);
             await swapHelper.loadReserves(reinvestPath);
             await baseTokenAsDeltaNet.approve(vault.address, ethers.utils.parseEther("10"));
+
             await vaultAsDeltaNet.work(
               0,
               deltaNeutralWorker.address,
@@ -1170,40 +1153,32 @@ describe("Vault - DeltaNetBiswap03", () => {
                 [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
               )
             );
-            let [workerLpAfter] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
+            let [workerLpAfter] = await biswapMasterChefAsDeltaNet.userInfo(POOL_ID, deltaNeutralWorker.address);
             const [expectedLp, debrisBtoken] = await swapHelper.computeOneSidedOptimalLp(
               borrowedAmount.add(principalAmount),
               path
             );
             expect(workerLpAfter.sub(workerLpBefore)).to.eq(expectedLp);
-            const deployerCakeBefore = await bsw.balanceOf(DEPLOYER);
+            const deployerBswBefore = await bsw.balanceOf(DEPLOYER);
             const deltaNetBefore = await baseToken.balanceOf(deltaNetAddress);
             // health calculation
-            // lp balance =  1.131492691639043045
-            // lp price =  28.311959568634539084
-            // lp balance in dollar =  32.034775337890054677
-            // base token price =  1.0
+            // lp balance = 1.131776307937023350
+            // lp price = 28.306414188406775957
+            // lp balance in dollar = 32.036528941091194155
+            // base token price = 1.0
             // lp balance in dollar / base token price
-            // 32.034775337890054677 / 1.0 = 32.034775337890054677
+            // 32.036528941091194155 / 1.0 = 32.036528941091194155
+
             const [deltaNetHealthBefore] = await vault.positionInfo("1");
-            expect(deltaNetHealthBefore).to.be.eq(ethers.utils.parseEther("32.034775337890054677"));
+            expect(deltaNetHealthBefore).to.be.eq(ethers.utils.parseEther("32.036528941091194155"));
             const lpUnderPosition = await deltaNeutralWorker.totalLpBalance();
             const liquidatedLp = lpUnderPosition.div(2);
             const returnDebt = ethers.utils.parseEther("6");
-            [workerLpBefore] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
+            [workerLpBefore] = await biswapMasterChefAsDeltaNet.userInfo(POOL_ID, deltaNeutralWorker.address);
             // Pre-compute
             await swapHelper.loadReserves(path);
             await swapHelper.loadReserves(reinvestPath);
-            // Compute reinvest
-            const [reinvestFees, reinvestLp] = await swapHelper.computeReinvestLp(
-              workerLpBefore,
-              debrisBtoken,
-              BSW_REWARD_PER_BLOCK,
-              BigNumber.from(REINVEST_BOUNTY_BPS),
-              reinvestPath,
-              path,
-              BigNumber.from(1)
-            );
+
             // Compute liquidate
             const [btokenAmount, ftokenAmount] = await swapHelper.computeRemoveLiquidiy(
               baseToken.address,
@@ -1234,30 +1209,29 @@ describe("Vault - DeltaNetBiswap03", () => {
                 ]
               )
             );
+
             const deltaNetAfter = await baseToken.balanceOf(deltaNetAddress);
-            const deployerCakeAfter = await bsw.balanceOf(DEPLOYER);
-            expect(deployerCakeAfter.sub(deployerCakeBefore), `expect Deployer to get ${reinvestFees}`).to.be.eq(
-              reinvestFees
-            );
+
             expect(deltaNetAfter.sub(deltaNetBefore), `expect DeltaNet get ${liquidatedBtoken}`).to.be.eq(
               liquidatedBtoken
             );
             // Check position info
             const [deltaNetHealthAfter] = await vault.positionInfo("1");
+
             // DeltaNet's health after partial close position must be 50% less than before
             // due to he exit half of lp under his position
             // health calculation
-            // lp balance =  0.576022514621445879
-            // lp price =  28.325952106647866799
-            // lp balance in dollar =  16.316386161517946552
+            // lp balance =  0.565888153968511675
+            // lp price =  28.317482983668635249
+            // lp balance in dollar =  16.024528170662986041
             // base token price =  1.0
             // lp balance in dollar / base token price
-            // 16.316386161517946552 / 1.0 = 16.316386161517946552
-            expect(deltaNetHealthAfter).to.be.eq(ethers.utils.parseEther("16.316386161517946552"));
-            [workerLpAfter] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
-            // LP tokens + 0.010276168801924356 LP from reinvest of worker should be decreased by lpUnderPosition / 2
+            // 16.024528170662986041 / 1.0 = 16.024528170662986041
+            expect(deltaNetHealthAfter).to.be.eq(ethers.utils.parseEther("16.024528170662986041"));
+            [workerLpAfter] = await biswapMasterChefAsDeltaNet.userInfo(POOL_ID, deltaNeutralWorker.address);
+            // LP tokens should be decreased by lpUnderPosition / 2
             // due to Bob execute StrategyClosePartialLiquidate
-            expect(workerLpAfter).to.be.eq(workerLpBefore.add(reinvestLp).sub(lpUnderPosition.div(2)));
+            expect(workerLpAfter).to.be.eq(lpUnderPosition.div(2));
           });
         });
 
@@ -1312,9 +1286,9 @@ describe("Vault - DeltaNetBiswap03", () => {
             [workerLPBefore] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
             // DeltaNet think he made enough. He now wants to close position partially.
             // After calling `work()`, the `_reinvest()` is invoked
-            // since 1 blocks have passed since approve and work now reward will be 0.076 * 1 =~ 0.075999999998831803 ~   CAKE
-            // reward without bounty will be 0.075999999998831803 - 0.000759999999988318 =~ 0.0752399999988435 CAKE
-            // 0.0752399999988435 CAKE can be converted into:
+            // since 1 blocks have passed since approve and work now reward will be 0.076 * 1 =~ 0.075999999998831803 ~   Bsw
+            // reward without bounty will be 0.075999999998831803 - 0.000759999999988318 =~ 0.0752399999988435 Bsw
+            // 0.0752399999988435 Bsw can be converted into:
             // (0.0752399999988435 * 0.9975 * 1) / (0.1 + 0.0752399999988435 * 0.9975) = 0.428740847712892766 WBNB
             // 0.428740847712892766 WBNB can be converted into (0.428740847712892766 * 0.9975 * 1) / (1 + 0.428740847712892766 * 0.9975) = 0.299557528330150526 BTOKEN
             // based on optimal swap formula, 0.299557528330150526 BTOKEN needs to swap 0.149435199790075736 BTOKEN
@@ -1481,16 +1455,13 @@ describe("Vault - DeltaNetBiswap03", () => {
       });
 
       async function successBtokenOnly(lastWorkBlock: BigNumber, goRouge: boolean) {
-        await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")).sub(3));
+        await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
         await _updatePrice();
-        // await TimeHelpers.increase(TimeHelpers.duration.minutes(ethers.BigNumber.from("30")));
+
         let accumLp = await deltaNeutralWorker.totalLpBalance();
-        const [workerLpBefore] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
-        const debris = await baseToken.balanceOf(addStrat.address);
-        const reinvestPath = await deltaNeutralWorker.getReinvestPath();
+
         const path = await deltaNeutralWorker.getPath();
-        let reserves = await swapHelper.loadReserves(reinvestPath);
-        reserves.push(...(await swapHelper.loadReserves(path)));
+        await swapHelper.loadReserves(path);
 
         await baseTokenAsDeltaNet.approve(vault.address, ethers.utils.parseEther("1"));
         await vaultAsDeltaNet.addCollateral(
@@ -1502,18 +1473,6 @@ describe("Vault - DeltaNetBiswap03", () => {
             [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
           )
         );
-
-        const blockAfter = await TimeHelpers.latestBlockNumber();
-        const blockDiff = blockAfter.sub(lastWorkBlock);
-        const totalRewards = workerLpBefore
-          .mul(BSW_REWARD_PER_BLOCK.mul(blockDiff).mul(1e12).div(workerLpBefore))
-          .div(1e12);
-        const totalReinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
-        const reinvestLeft = totalRewards.sub(totalReinvestFees);
-        const reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
-        const reinvestBtoken = reinvestAmts[reinvestAmts.length - 1].add(debris);
-        const [reinvestLp] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
-        accumLp = accumLp.add(reinvestLp);
 
         // Compute add collateral
         const addCollateralBtoken = ethers.utils.parseEther("1");
@@ -1539,18 +1498,11 @@ describe("Vault - DeltaNetBiswap03", () => {
           (await vault.totalToken()).toString()
         );
 
-        expect(
-          await deltaNeutralWorker.totalLpBalance(),
-          `expect DeltaNet's staked LPs = ${ethers.utils.formatEther(accumLp)}`
-        ).to.be.eq(accumLp);
-        expect(
-          await bsw.balanceOf(DEPLOYER),
-          `expect Deployer gets ${ethers.utils.formatEther(totalReinvestFees)} CAKE`
-        ).to.be.eq(totalReinvestFees);
+        AssertHelpers.assertAlmostEqual((await deltaNeutralWorker.totalLpBalance()).toString(), accumLp.toString());
       }
 
       async function successTwoSides(lastWorkBlock: BigNumber, goRouge: boolean) {
-        await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")).sub(3));
+        await TimeHelpers.increase(TimeHelpers.duration.days(ethers.BigNumber.from("1")));
         await _updatePrice();
         // Random action to trigger interest computation
         await vault.deposit("0");
@@ -1567,12 +1519,9 @@ describe("Vault - DeltaNetBiswap03", () => {
           deployerAddress
         );
         let accumLp = await deltaNeutralWorker.totalLpBalance();
-        const [workerLpBefore] = await masterChef.userInfo(POOL_ID, deltaNeutralWorker.address);
-        const debris = await baseToken.balanceOf(addStrat.address);
-        const reinvestPath = await deltaNeutralWorker.getReinvestPath();
         const path = await deltaNeutralWorker.getPath();
-        let reserves = await swapHelper.loadReserves(reinvestPath);
-        reserves.push(...(await swapHelper.loadReserves(path)));
+        await swapHelper.loadReserves(path);
+
         await baseTokenAsDeltaNet.approve(vault.address, ethers.utils.parseEther("1"));
         await farmTokenAsDeltaNet.approve(vault.address, ethers.utils.parseEther("0.1"));
         await vaultAsDeltaNet.addCollateral(
@@ -1587,18 +1536,7 @@ describe("Vault - DeltaNetBiswap03", () => {
             ]
           )
         );
-        const blockAfter = await TimeHelpers.latestBlockNumber();
-        const blockDiff = blockAfter.sub(lastWorkBlock);
-        const totalRewards = workerLpBefore
-          .mul(BSW_REWARD_PER_BLOCK.mul(blockDiff).mul(1e12).div(workerLpBefore))
-          .div(1e12);
-        const totalReinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
-        const reinvestLeft = totalRewards.sub(totalReinvestFees);
-        const reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
-        const reinvestBtoken = reinvestAmts[reinvestAmts.length - 1].add(debris);
-        const [reinvestLp] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
-        accumLp = accumLp.add(reinvestLp);
-        // Compute add collateral
+
         const addCollateralBtoken = ethers.utils.parseEther("1");
         const addCollateralFtoken = ethers.utils.parseEther("0.1");
         const [addCollateralLp, debrisBtoken, debrisFtoken] = await swapHelper.computeTwoSidesOptimalLp(
@@ -1628,9 +1566,6 @@ describe("Vault - DeltaNetBiswap03", () => {
 
         expect(await deltaNeutralWorker.totalLpBalance(), `expect DeltaNet's staked LPs = ${accumLp}`).to.be.eq(
           accumLp
-        );
-        expect(await bsw.balanceOf(DEPLOYER), `expect Deployer gets ${totalReinvestFees} CAKE`).to.be.eq(
-          totalReinvestFees
         );
         expect(
           await baseToken.balanceOf(twoSidesStrat.address),
