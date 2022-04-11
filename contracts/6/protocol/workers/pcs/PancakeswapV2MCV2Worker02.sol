@@ -90,7 +90,7 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
   uint256 public fee;
   uint256 public feeDenom;
 
-  /// @notice Upgraded State Variables for PancakeswapV2Worker02
+  /// @notice Upgraded State Variables for PancakeswapV2MCV2Worker02
   uint256 public reinvestThreshold;
   address[] public reinvestPath;
   address public treasuryAccount;
@@ -155,37 +155,37 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
     feeDenom = 10000;
 
     // 7. Check if critical parameters are config properly
-    require(baseToken != cake, "PancakeswapV2Worker02::initialize:: base token cannot be a reward token");
+    require(baseToken != cake, "PancakeswapV2MCV2Worker02::initialize:: base token cannot be a reward token");
     require(
       reinvestBountyBps <= maxReinvestBountyBps,
-      "PancakeswapV2Worker02::initialize:: reinvestBountyBps exceeded maxReinvestBountyBps"
+      "PancakeswapV2MCV2Worker02::initialize:: reinvestBountyBps exceeded maxReinvestBountyBps"
     );
     require(
       (farmingToken == lpToken.token0() || farmingToken == lpToken.token1()) &&
         (baseToken == lpToken.token0() || baseToken == lpToken.token1()),
-      "PancakeswapV2Worker02::initialize:: LP underlying not match with farm & base token"
+      "PancakeswapV2MCV2Worker02::initialize:: LP underlying not match with farm & base token"
     );
     require(
       reinvestPath[0] == cake && reinvestPath[reinvestPath.length - 1] == baseToken,
-      "PancakeswapV2Worker02::initialize:: reinvestPath must start with CAKE, end with BTOKEN"
+      "PancakeswapV2MCV2Worker02::initialize:: reinvestPath must start with CAKE, end with BTOKEN"
     );
   }
 
   /// @dev Require that the caller must be an EOA account to avoid flash loans.
   modifier onlyEOA() {
-    require(msg.sender == tx.origin, "PancakeswapV2Worker02::onlyEOA:: not eoa");
+    require(msg.sender == tx.origin, "PancakeswapV2MCV2Worker02::onlyEOA:: not eoa");
     _;
   }
 
   /// @dev Require that the caller must be the operator.
   modifier onlyOperator() {
-    require(msg.sender == operator, "PancakeswapV2Worker02::onlyOperator:: not operator");
+    require(msg.sender == operator, "PancakeswapV2MCV2Worker02::onlyOperator:: not operator");
     _;
   }
 
   //// @dev Require that the caller must be ok reinvestor.
   modifier onlyReinvestor() {
-    require(okReinvestors[msg.sender], "PancakeswapV2Worker02::onlyReinvestor:: not reinvestor");
+    require(okReinvestors[msg.sender], "PancakeswapV2MCV2Worker02::onlyReinvestor:: not reinvestor");
     _;
   }
 
@@ -224,7 +224,7 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
     uint256 _callerBalance,
     uint256 _reinvestThreshold
   ) internal {
-    require(_treasuryAccount != address(0), "PancakeswapV2Worker02::_reinvest:: bad treasury account");
+    require(_treasuryAccount != address(0), "PancakeswapV2MCV2Worker02::_reinvest:: bad treasury account");
     // 1. Withdraw all the rewards. Return if reward <= _reinvestThreshold.
     activeMasterChef().withdraw(pid, 0);
     uint256 reward = cake.balanceOf(address(this));
@@ -277,10 +277,10 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
     _removeShare(id);
     // 3. Perform the worker strategy; sending LP tokens + BaseToken; expecting LP tokens + BaseToken.
     (address strat, bytes memory ext) = abi.decode(data, (address, bytes));
-    require(okStrats[strat], "PancakeswapV2Worker02::work:: unapproved work strategy");
+    require(okStrats[strat], "PancakeswapV2MCV2Worker02::work:: unapproved work strategy");
     require(
       lpToken.transfer(strat, lpToken.balanceOf(address(this))),
-      "PancakeswapV2Worker02::work:: unable to transfer lp to strat"
+      "PancakeswapV2MCV2Worker02::work:: unable to transfer lp to strat"
     );
     baseToken.safeTransfer(strat, actualBaseTokenBalance());
     IStrategy(strat).execute(user, debt, ext);
@@ -300,7 +300,7 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
     uint256 rOut
   ) public view returns (uint256) {
     if (aIn == 0) return 0;
-    require(rIn > 0 && rOut > 0, "PancakeswapV2Worker02::getMktSellAmount:: bad reserve values");
+    require(rIn > 0 && rOut > 0, "PancakeswapV2MCV2Worker02::getMktSellAmount:: bad reserve values");
     uint256 aInWithFee = aIn.mul(fee);
     uint256 numerator = aInWithFee.mul(rOut);
     uint256 denominator = rIn.mul(feeDenom).add(aInWithFee);
@@ -460,12 +460,12 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
   ) external onlyOwner {
     require(
       _reinvestBountyBps <= maxReinvestBountyBps,
-      "PancakeswapV2Worker02::setReinvestConfig:: _reinvestBountyBps exceeded maxReinvestBountyBps"
+      "PancakeswapV2MCV2Worker02::setReinvestConfig:: _reinvestBountyBps exceeded maxReinvestBountyBps"
     );
-    require(_reinvestPath.length >= 2, "PancakeswapV2Worker02::setReinvestConfig:: _reinvestPath length must >= 2");
+    require(_reinvestPath.length >= 2, "PancakeswapV2MCV2Worker02::setReinvestConfig:: _reinvestPath length must >= 2");
     require(
       _reinvestPath[0] == cake && _reinvestPath[_reinvestPath.length - 1] == baseToken,
-      "PancakeswapV2Worker02::setReinvestConfig:: _reinvestPath must start with CAKE, end with BTOKEN"
+      "PancakeswapV2MCV2Worker02::setReinvestConfig:: _reinvestPath must start with CAKE, end with BTOKEN"
     );
 
     reinvestBountyBps = _reinvestBountyBps;
@@ -480,11 +480,11 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
   function setMaxReinvestBountyBps(uint256 _maxReinvestBountyBps) external onlyOwner {
     require(
       _maxReinvestBountyBps >= reinvestBountyBps,
-      "PancakeswapV2Worker02::setMaxReinvestBountyBps:: _maxReinvestBountyBps lower than reinvestBountyBps"
+      "PancakeswapV2MCV2Worker02::setMaxReinvestBountyBps:: _maxReinvestBountyBps lower than reinvestBountyBps"
     );
     require(
       _maxReinvestBountyBps <= 3000,
-      "PancakeswapV2Worker02::setMaxReinvestBountyBps:: _maxReinvestBountyBps exceeded 30%"
+      "PancakeswapV2MCV2Worker02::setMaxReinvestBountyBps:: _maxReinvestBountyBps exceeded 30%"
     );
 
     maxReinvestBountyBps = _maxReinvestBountyBps;
@@ -519,10 +519,10 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
   /// @dev Set a new reward path. In case that the liquidity of the reward path is changed.
   /// @param _rewardPath The new reward path.
   function setRewardPath(address[] calldata _rewardPath) external onlyOwner {
-    require(_rewardPath.length >= 2, "PancakeswapV2Worker02::setRewardPath:: rewardPath length must be >= 2");
+    require(_rewardPath.length >= 2, "PancakeswapV2MCV2Worker02::setRewardPath:: rewardPath length must be >= 2");
     require(
       _rewardPath[0] == cake && _rewardPath[_rewardPath.length - 1] == beneficialVault.token(),
-      "PancakeswapV2Worker02::setRewardPath:: rewardPath must start with CAKE and end with beneficialVault token"
+      "PancakeswapV2MCV2Worker02::setRewardPath:: rewardPath must start with CAKE and end with beneficialVault token"
     );
 
     rewardPath = _rewardPath;
@@ -546,7 +546,7 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
   function setTreasuryConfig(address _treasuryAccount, uint256 _treasuryBountyBps) external onlyOwner {
     require(
       _treasuryBountyBps <= maxReinvestBountyBps,
-      "PancakeswapV2Worker02::setTreasuryConfig:: _treasuryBountyBps exceeded maxReinvestBountyBps"
+      "PancakeswapV2MCV2Worker02::setTreasuryConfig:: _treasuryBountyBps exceeded maxReinvestBountyBps"
     );
 
     treasuryAccount = _treasuryAccount;
@@ -566,12 +566,15 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
   ) external onlyOwner {
     require(
       _beneficialVaultBountyBps <= 10000,
-      "PancakeswapV2Worker02::setBeneficialVaultConfig:: _beneficialVaultBountyBps exceeds 100%"
+      "PancakeswapV2MCV2Worker02::setBeneficialVaultConfig:: _beneficialVaultBountyBps exceeds 100%"
     );
-    require(_rewardPath.length >= 2, "PancakeswapV2Worker02::setBeneficialVaultConfig:: rewardPath length must >= 2");
+    require(
+      _rewardPath.length >= 2,
+      "PancakeswapV2MCV2Worker02::setBeneficialVaultConfig:: rewardPath length must >= 2"
+    );
     require(
       _rewardPath[0] == cake && _rewardPath[_rewardPath.length - 1] == _beneficialVault.token(),
-      "PancakeswapV2Worker02::setBeneficialVaultConfig:: rewardPath must start with CAKE, end with beneficialVault token"
+      "PancakeswapV2MCV2Worker02::setBeneficialVaultConfig:: rewardPath must start with CAKE, end with beneficialVault token"
     );
 
     _buyback();
