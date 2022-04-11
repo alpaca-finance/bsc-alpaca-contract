@@ -185,14 +185,14 @@ contract DeltaNeutralVaultGateway is ReentrancyGuardUpgradeable, OwnableUpgradea
     uint256 _expectedStableInUSD = (_stableReturnBps * _total) / MAX_BPS;
     if (_withdrawStableAmountInUSD > _expectedStableInUSD) {
       uint256 _swapStableAmount = (_withdrawStableAmountInUSD - _expectedStableInUSD).divWadDown(_stableTokenPrice);
-      _swap(_stableToken, _swapStableAmount);
+      _swap(_stableToken, _swapStableAmount / 10**(18 - _stableTokenDecimals));
       return;
     }
 
     uint256 _expectedAssetInUSD = _total - _expectedStableInUSD;
     if (_withdrawAssetAmountInUSD > _expectedAssetInUSD) {
       uint256 _swapAssetAmount = (_withdrawAssetAmountInUSD - _expectedAssetInUSD).divWadDown(_assetTokenPrice);
-      _swap(_assetToken, _swapAssetAmount);
+      _swap(_assetToken, _swapAssetAmount / 10**(18 - _assetTokenDecimals));
       return;
     }
   }
