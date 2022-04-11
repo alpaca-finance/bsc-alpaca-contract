@@ -74,56 +74,22 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
   const shortWorkerInfos: ISpookySwapWorkerInput[] = [
-    // {
-    //   VAULT_SYMBOL: "ibFTM",
-    //   WORKER_NAME: "BTC-WFTM SpookyWorker",
-    //   REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-    //   POOL_ID: 4,
-    //   REINVEST_BOUNTY_BPS: "900",
-    //   REINVEST_PATH: ["BOO", "WFTM"],
-    //   REINVEST_THRESHOLD: "0",
-    //   WORK_FACTOR: "7000",
-    //   KILL_FACTOR: "8333",
-    //   MAX_PRICE_DIFF: "10500",
-    //   EXACT_ETA: "88888888", // no use due to no timelock
-    // },
-    // {
-    //   VAULT_SYMBOL: "ibFTM",
-    //   WORKER_NAME: "fUSDT-WFTM SpookyWorker",
-    //   REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-    //   POOL_ID: 1,
-    //   REINVEST_BOUNTY_BPS: "900",
-    //   REINVEST_PATH: ["BOO", "WFTM"],
-    //   REINVEST_THRESHOLD: "0",
-    //   WORK_FACTOR: "7000",
-    //   KILL_FACTOR: "8333",
-    //   MAX_PRICE_DIFF: "10500",
-    //   EXACT_ETA: "88888888", // no use due to no timelock
-    // },
     {
-      VAULT_SYMBOL: "ibFTM",
-      WORKER_NAME: "DAI-WFTM SpookyWorker",
+      VAULT_SYMBOL: "ibUSDC",
+      WORKER_NAME: "BOO-USDC SpookyWorker",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 3,
+      POOL_ID: 69,
       REINVEST_BOUNTY_BPS: "900",
-      REINVEST_PATH: ["BOO", "WFTM"],
+      REINVEST_PATH: ["BOO", "USDC"],
       REINVEST_THRESHOLD: "0",
+      BENEFICIAL_VAULT: {
+        BENEFICIAL_VAULT_ADDRESS: "0xe32840F950F709148fdB9Ff22712083Ac40033A0",
+        REWARD_PATH: ["BOO", "WFTM", "ALPACA"],
+        BENEFICIAL_VAULT_BPS: "5555",
+      },
       WORK_FACTOR: "7000",
       KILL_FACTOR: "8333",
-      MAX_PRICE_DIFF: "10500",
-      EXACT_ETA: "88888888", // no use due to no timelock
-    },
-    {
-      VAULT_SYMBOL: "ibFTM",
-      WORKER_NAME: "MIM-WFTM SpookyWorker",
-      REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 24,
-      REINVEST_BOUNTY_BPS: "900",
-      REINVEST_PATH: ["BOO", "WFTM"],
-      REINVEST_THRESHOLD: "0",
-      WORK_FACTOR: "7000",
-      KILL_FACTOR: "8333",
-      MAX_PRICE_DIFF: "10500",
+      MAX_PRICE_DIFF: "11000",
       EXACT_ETA: "88888888", // no use due to no timelock
     },
   ];
