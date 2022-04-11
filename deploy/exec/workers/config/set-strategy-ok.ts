@@ -3,6 +3,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { mapWorkers } from "../../../entities/worker";
 import { FileService, TimelockService } from "../../../services";
 import { TimelockEntity, WorkerEntity } from "../../../entities";
+import { getDeployer } from "../../../../utils/deployer-helper";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -14,21 +15,41 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "pcs-single-asset-worker02-turn-on-new-partial-close-strats";
+  const TITLE = "waultswap_allow_oracle_minimize_and_liquidate";
   const ADD_STRAT = "";
   const LIQ_STRAT = "";
 
   const OK_FLAG = true;
-  const STRATEGY = ["0xa6b2a3Fdd415Ca304a36909a35f974B670960843", "0xDD8A4302299115226676F943E01306107DD98495"];
+  const STRATEGY = ["0x82573b46630cA335A7cA68a0AE42d0eE6a02df68", "0x3DA8c388cd5e5a7011EBd084D3708a117067eBbc"];
   const WORKERS = [
-    "TUSD CakeMaxiWorker",
-    "BTCB CakeMaxiWorker",
-    "USDT CakeMaxiWorker",
-    "ETH CakeMaxiWorker",
-    "BUSD CakeMaxiWorker",
-    "WBNB CakeMaxiWorker",
+    "WEX-WBNB WaultswapWorker",
+    "BUSD-WBNB WaultswapWorker",
+    "ALPACA-WBNB WaultswapWorker",
+    "WAULTx-WBNB WaultswapWorker",
+    "ETH-BUSD WaultswapWorker",
+    "WBNB-BUSD WaultswapWorker",
+    "USDT-BUSD WaultswapWorker",
+    "BTCB-BUSD WaultswapWorker",
+    "WUSD-BUSD WaultswapWorker",
+    "BUSD-ETH WaultswapWorker",
+    "BTCB-ETH WaultswapWorker",
+    "BETH-ETH WaultswapWorker",
+    "USDT-ETH WaultswapWorker",
+    "USDT-ALPACA WaultswapWorker",
+    "WBNB-ALPACA WaultswapWorker",
+    "ALPACA-USDT WaultswapWorker",
+    "WEX-USDT WaultswapWorker",
+    "BUSD-USDT WaultswapWorker",
+    "BTCB-USDT WaultswapWorker",
+    "ETH-USDT WaultswapWorker",
+    "MATIC-USDT WaultswapWorker",
+    "TUSD-USDT WaultswapWorker",
+    "ETH-BTCB WaultswapWorker",
+    "USDT-BTCB WaultswapWorker",
+    "BUSD-BTCB WaultswapWorker",
+    "USDT-TUSD WaultswapWorker",
   ];
-  const EXACT_ETA = "1628141400";
+  const EXACT_ETA = "1649233800";
 
   const miniWorkers: Array<WorkerEntity.IMiniWorker> = mapWorkers(WORKERS).map((w) => {
     return {
@@ -37,9 +58,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     };
   });
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
+  const deployer = await getDeployer();
+  let nonce = await deployer.getTransactionCount();
 
   for (const miniWorker of miniWorkers) {
-    if (ADD_STRAT && LIQ_STRAT) {
+    if (ADD_STRAT != "" && LIQ_STRAT != "") {
       timelockTransactions.push(
         await TimelockService.queueTransaction(
           `Setting critical strats for ${miniWorker.name}`,
@@ -48,7 +71,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
           "setCriticalStrategies(address,address)",
           ["address", "address"],
           [ADD_STRAT, LIQ_STRAT],
-          EXACT_ETA
+          EXACT_ETA,
+          { nonce: nonce++ }
         )
       );
     }
@@ -61,7 +85,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         "setStrategyOk(address[],bool)",
         ["address[]", "bool"],
         [STRATEGY, OK_FLAG],
-        EXACT_ETA
+        EXACT_ETA,
+        { nonce: nonce++ }
       )
     );
   }
