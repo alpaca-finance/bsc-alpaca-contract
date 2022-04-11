@@ -68,7 +68,6 @@ describe("DeltaNeutralVaultGateway", () => {
   const FOREVER = "2000000000";
   const ALPACA_BONUS_LOCK_UP_BPS = 7000;
   const ALPACA_REWARD_PER_BLOCK = ethers.utils.parseEther("1");
-  // const CAKE_REWARD_PER_BLOCK = ethers.utils.parseEther("0.076");
   const CAKE_REWARD_PER_BLOCK = ethers.utils.parseEther("0");
   const REINVEST_BOUNTY_BPS = "100"; // 1% reinvest bounty
   const RESERVE_POOL_BPS = "1000"; // 10% reserve pool
