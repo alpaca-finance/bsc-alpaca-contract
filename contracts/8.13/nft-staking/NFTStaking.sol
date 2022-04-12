@@ -43,6 +43,7 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
 
   mapping(bytes32 => PoolInfo) public poolInfo;
   mapping(bytes32 => mapping(address => NFTStakingInfo)) public userStakingNFT;
+  bytes32[] poolId;
 
   event LogStakeNFT(address indexed _staker, bytes32 indexed _poolId, address _nftAddress, uint256 _nftTokenId);
   event LogUnstakeNFT(address indexed _staker, bytes32 indexed _poolId, address _nftAddress, uint256 _nftTokenId);
@@ -68,6 +69,7 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
     if (poolInfo[_poolId].isInit != 0) revert NFTStaking_PoolAlreadyExist();
 
     poolInfo[_poolId].isInit = 1;
+    poolId.push(_poolId);
 
     for (uint256 _i; _i < _stakeNFTToken.length; _i++) {
       poolInfo[_poolId].eligibleToken[_stakeNFTToken[_i]] = 1;
@@ -76,6 +78,11 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
     emit LogAddPool(_msgSender(), _poolId, _stakeNFTToken);
   }
 
+  function getPool() external view returns(bytes32[] memory) {
+    return poolId;
+  }
+
+  
   function setStakeNFTToken(
     bytes32 _poolId,
     address[] calldata _stakeNFTToken,
