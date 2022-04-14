@@ -1,8 +1,6 @@
 import { ethers, upgrades, waffle } from "hardhat";
-import { Signer, BigNumber, Bytes } from "ethers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
-import "@openzeppelin/test-helpers";
 import {
   NFTStaking,
   NFTStaking__factory,
@@ -11,39 +9,38 @@ import {
   PancakePair__factory,
   PancakeFactory,
   PancakeFactory__factory,
+  PancakeRouterV2,
+  PancakeRouterV2__factory,
+  CakeToken,
+  CakeToken__factory,
+  WorkerConfig,
+  WorkerConfig__factory,
   IWETH,
-  IWETH__factory,
-  ERC20Upgradeable,
+  WETH,
+  WETH__factory,
+  SimplePriceOracle,
   SimplePriceOracle__factory,
   NFTBoostedLeverageController,
   NFTBoostedLeverageController__factory,
+  MockERC20,
+  MockERC20__factory,
+  MockPancakeswapV2Worker,
+  MockPancakeswapV2Worker__factory,
 } from "../typechain";
-import { MockPancakeswapV2Worker } from "../typechain/MockPancakeswapV2Worker";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { MockPancakeswapV2Worker__factory } from "../typechain/factories/MockPancakeswapV2Worker__factory";
-import { MockERC20 } from "../typechain/MockERC20";
-import { WETH } from "../typechain/WETH";
-import { WETH__factory } from "../typechain/factories/WETH__factory";
-import { CakeToken } from "../typechain/CakeToken";
-import { PancakeRouterV2 } from "../typechain/PancakeRouterV2";
-import { PancakeRouterV2__factory } from "../typechain/factories/PancakeRouterV2__factory";
-import { WorkerConfig__factory } from "../typechain/factories/WorkerConfig__factory";
-import { WorkerConfig } from "../typechain/WorkerConfig";
-import { MockERC20__factory } from "../typechain/factories/MockERC20__factory";
-import { CakeToken__factory } from "../typechain/factories/CakeToken__factory";
-import { SimplePriceOracle } from "../typechain/SimplePriceOracle";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 
 chai.use(solidity);
-
+const { expect } = chai;
 
 describe("NFTBoostedLeverageController", () => {
+  // NFTBoostedLeverage
   let nftBoostedLeverageController: NFTBoostedLeverageController;
 
-  /// PancakeswapV2-related instance(s)
+  // PancakeswapV2-related instance(s)
   let factoryV2: PancakeFactory;
   let routerV2: PancakeRouterV2;
 
-  /// Token-related instance(s)
+  // Token-related instance(s)
   let wbnb: IWETH;
   let baseToken: MockERC20;
   let decimal6: MockERC20;
@@ -52,8 +49,11 @@ describe("NFTBoostedLeverageController", () => {
 
   // NFT
   let nftStaking: NFTStaking;
+  let nftStakingAsAlice: NFTStaking;
+
+  // MockNFT
   let mockNFT: MockNFT;
-  let poolId: string[];
+  let mockNFTAsAlice: MockNFT;
 
   // Worker
   let mockWorker1: MockPancakeswapV2Worker;
@@ -63,23 +63,34 @@ describe("NFTBoostedLeverageController", () => {
   // WorkerConfig instance
   let workerConfig: WorkerConfig;
 
+  // SimpleOracle-related instance(s)
+  let simplePriceOracle: SimplePriceOracle;
+
   // Account
   let deployer: SignerWithAddress;
   let alice: SignerWithAddress;
 
-  /// SimpleOracle-related instance(s)
-  let simplePriceOracle: SimplePriceOracle;
-
   async function fixture() {
-    console.log("deploy user");
-
     [deployer, alice] = await ethers.getSigners();
+
+    const CakeToken = (await ethers.getContractFactory("CakeToken", deployer)) as CakeToken__factory;
+    cake = await CakeToken.deploy();
+    await cake.deployed();
+    await cake["mint(address,uint256)"](await deployer.getAddress(), ethers.utils.parseEther("100"));
+    await cake["mint(address,uint256)"](await alice.getAddress(), ethers.utils.parseEther("10"));
+
+    const WBNB = (await ethers.getContractFactory("WETH", deployer)) as WETH__factory;
+    wbnb = (await WBNB.deploy()) as WETH;
+    await wbnb.deployed();
+
     // Setup Pancakeswap
     const PancakeFactory = (await ethers.getContractFactory("PancakeFactory", deployer)) as PancakeFactory__factory;
     factoryV2 = await PancakeFactory.deploy(await deployer.getAddress());
     await factoryV2.deployed();
 
-    console.log("deploy simpleoracle");
+    const PancakeRouterV2 = (await ethers.getContractFactory("PancakeRouterV2", deployer)) as PancakeRouterV2__factory;
+    routerV2 = await PancakeRouterV2.deploy(factoryV2.address, wbnb.address);
+    await routerV2.deployed();
 
     /// Deploy SimpleOracle
     const SimplePriceOracle = (await ethers.getContractFactory(
@@ -91,101 +102,59 @@ describe("NFTBoostedLeverageController", () => {
     ])) as SimplePriceOracle;
     await simplePriceOracle.deployed();
 
-    const NFTStaking = (await ethers.getContractFactory("NFTStaking", deployer)) as NFTStaking__factory;
-    nftStaking = (await upgrades.deployProxy(NFTStaking, [])) as NFTStaking;
-    await nftStaking.deployed();
-
-    // Deploy MockNFT
-    // Sale will start 1000 blocks from here and another 1000 blocks to reveal
-    const MockNFT = (await ethers.getContractFactory("MockNFT", deployer)) as MockNFT__factory;
-    mockNFT = (await upgrades.deployProxy(MockNFT, [])) as MockNFT;
-    // mockNFT2 = (await upgrades.deployProxy(MockNFT, [])) as MockNFT;
-    await mockNFT.deployed();
-    // await mockNFT2.deployed();
-    // mockNFTAsAlice = MockNFT__factory.connect(mockNFT.address, alice);
-    // nftStakingAsAlice = NFTStaking__factory.connect(nftStaking.address, alice);
-
-    console.log("WBNB");
-
-    const WBNB = (await ethers.getContractFactory("WETH", deployer)) as WETH__factory;
-    wbnb = (await WBNB.deploy()) as WETH;
-    await wbnb.deployed();
-
-    console.log("Pancake router");
-
-    const PancakeRouterV2 = (await ethers.getContractFactory("PancakeRouterV2", deployer)) as PancakeRouterV2__factory;
-    routerV2 = await PancakeRouterV2.deploy(factoryV2.address, wbnb.address);
-    await routerV2.deployed();
-
-    console.log("worker config");
-
     // Deploy WorkerConfig
     const WorkerConfig = (await ethers.getContractFactory("WorkerConfig", deployer)) as WorkerConfig__factory;
     workerConfig = (await upgrades.deployProxy(WorkerConfig, [simplePriceOracle.address])) as WorkerConfig;
     await workerConfig.deployed();
 
-    console.log("token");
+    // Deploy NFTStaking
+    const NFTStaking = (await ethers.getContractFactory("NFTStaking", deployer)) as NFTStaking__factory;
+    nftStaking = (await upgrades.deployProxy(NFTStaking, [])) as NFTStaking;
+    await nftStaking.deployed();
+    nftStakingAsAlice = NFTStaking__factory.connect(nftStaking.address, alice);
+
+    // Deploy MockNFT
+    const MockNFT = (await ethers.getContractFactory("MockNFT", deployer)) as MockNFT__factory;
+    mockNFT = (await upgrades.deployProxy(MockNFT, [])) as MockNFT;
+    await mockNFT.deployed();
+    mockNFTAsAlice = MockNFT__factory.connect(mockNFT.address, alice);
 
     // Setup token stuffs
     const MockERC20 = (await ethers.getContractFactory("MockERC20", deployer)) as MockERC20__factory;
     baseToken = (await upgrades.deployProxy(MockERC20, ["BTOKEN", "BTOKEN", 18])) as MockERC20;
     await baseToken.deployed();
     await baseToken.mint(await alice.getAddress(), ethers.utils.parseEther("100"));
-    console.log(await baseToken.owner());
-    console.log("cakeToken");
-
-    const CakeToken = (await ethers.getContractFactory("CakeToken", deployer)) as CakeToken__factory;
-    cake = await CakeToken.deploy();
-    await cake.deployed();
-    await cake["mint(address,uint256)"](await deployer.getAddress(), ethers.utils.parseEther("100"));
-    await cake["mint(address,uint256)"](await alice.getAddress(), ethers.utils.parseEther("10"));
-    console.log(cake.address);
-    console.log("dec6");
 
     decimal6 = (await upgrades.deployProxy(MockERC20, ["DEC6", "DEC6", 6])) as MockERC20;
     await decimal6.deployed();
     await decimal6.mint(deployer.address, ethers.utils.parseUnits("88888888", 6));
 
-    console.log("dec8");
-
     decimal8 = (await upgrades.deployProxy(MockERC20, ["DEC8", "DEC8", 8])) as MockERC20;
     await decimal8.deployed();
     await decimal8.mint(deployer.address, ethers.utils.parseUnits("88888888", 8));
 
-    console.log("create farm");
-
+    // Deplot NFTBoostedLeverageController
     const NFTBoostedLeverageController = (await ethers.getContractFactory(
       "NFTBoostedLeverageController",
       deployer
     )) as NFTBoostedLeverageController__factory;
-    console.log(NFTBoostedLeverageController.signer.getAddress());
-    nftBoostedLeverageController = (await upgrades.deployProxy(
-      NFTBoostedLeverageController,
-      []
-    )) as NFTBoostedLeverageController;
+    nftBoostedLeverageController = (await upgrades.deployProxy(NFTBoostedLeverageController, [
+      nftStaking.address,
+    ])) as NFTBoostedLeverageController;
     await nftBoostedLeverageController.deployed();
-    console.log(deployer.address);
-    console.log(await nftBoostedLeverageController.owner());
-    console.log(await nftBoostedLeverageController.address);
 
     // Create Farm
     await Promise.all([
       factoryV2.createPair(cake.address, wbnb.address),
       factoryV2.createPair(decimal6.address, wbnb.address),
       factoryV2.createPair(decimal8.address, wbnb.address),
-      factoryV2.createPair(decimal6.address, decimal8.address),
     ]);
 
-    console.log("create pair");
-
-    const [cakewbnbLp, dec6wbnbLp, dec8wbnbLp, dec8dec6Lp] = await Promise.all([
+    const [cakewbnbLp, dec6wbnbLp, dec8wbnbLp] = await Promise.all([
       PancakePair__factory.connect(await factoryV2.getPair(wbnb.address, cake.address), deployer),
       PancakePair__factory.connect(await factoryV2.getPair(wbnb.address, decimal6.address), deployer),
       PancakePair__factory.connect(await factoryV2.getPair(wbnb.address, decimal8.address), deployer),
-      PancakePair__factory.connect(await factoryV2.getPair(decimal8.address, decimal6.address), deployer),
     ]);
-
-    console.log("set up mockworker");
 
     // Setup MockWorker
     const MockWorker = (await ethers.getContractFactory(
@@ -195,15 +164,12 @@ describe("NFTBoostedLeverageController", () => {
     mockWorker1 = (await MockWorker.deploy(cakewbnbLp.address, wbnb.address, cake.address)) as MockPancakeswapV2Worker;
     await mockWorker1.deployed();
 
-    console.log("worker2");
     mockWorker2 = (await MockWorker.deploy(
       dec6wbnbLp.address,
       decimal6.address,
       wbnb.address
     )) as MockPancakeswapV2Worker;
     await mockWorker2.deployed();
-
-    console.log("worker3");
 
     mockWorker3 = (await MockWorker.deploy(
       dec8wbnbLp.address,
@@ -217,47 +183,184 @@ describe("NFTBoostedLeverageController", () => {
     await waffle.loadFixture(fixture);
   });
 
+  describe("#setPools", async () => {
+    context("When setPools with correct params", async () => {
+      it("should success", async () => {
+        const pools = [
+          ethers.utils.solidityKeccak256(["string"], ["NFT1"]),
+          ethers.utils.solidityKeccak256(["string"], ["NFT2"]),
+          ethers.utils.solidityKeccak256(["string"], ["NFT3"]),
+        ];
+        await nftBoostedLeverageController.setPools(pools);
+      });
+    });
+
+    context("When setPools with already existing pool", async () => {
+      it("should revert", async () => {
+        const pools = [
+          ethers.utils.solidityKeccak256(["string"], ["NFT1"]),
+          ethers.utils.solidityKeccak256(["string"], ["NFT2"]),
+          ethers.utils.solidityKeccak256(["string"], ["NFT3"]),
+          ethers.utils.solidityKeccak256(["string"], ["NFT3"]),
+        ];
+        expect(nftBoostedLeverageController.setPools(pools)).to.be.revertedWith(
+          "NFTBoostedLeverageController_PoolAlreadyListed()"
+        );
+      });
+    });
+  });
+
   describe("#setBoosted", async () => {
+    const poolId1 = ethers.utils.solidityKeccak256(["string"], ["NFT1"]);
+    const poolId2 = ethers.utils.solidityKeccak256(["string"], ["NFT2"]);
+    const poolId3 = ethers.utils.solidityKeccak256(["string"], ["NFT3"]);
+
     const workFactors = [34, 56, 76];
     const killFactors = [50, 60, 80];
     context("when setBoosted with correct params", async () => {
       it("should success", async () => {
-        await nftStaking.addPool(ethers.utils.solidityKeccak256(["string"], ["NFT1"]), [mockNFT.address]);
-        await nftStaking.addPool(ethers.utils.solidityKeccak256(["string"], ["NFT2"]), [mockNFT.address]);
-        await nftStaking.addPool(ethers.utils.solidityKeccak256(["string"], ["NFT3"]), [mockNFT.address]);
-        console.log("add pool success");
-        console.log("setpoolfrom contract");
-        console.log(await nftBoostedLeverageController.setPoolFromContract());
+        await nftStaking.addPool(poolId1, [mockNFT.address]);
+        await nftStaking.addPool(poolId2, [mockNFT.address]);
+        await nftStaking.addPool(poolId3, [mockNFT.address]);
 
+        const pools = [poolId1, poolId2, poolId3];
+
+        await nftBoostedLeverageController.setPools(pools);
         const workers = [mockWorker1.address, mockWorker2.address, mockWorker3.address];
-        console.log(workers.length, workFactors.length, killFactors.length);
-        const x = await nftBoostedLeverageController.setBoosted(workers, workFactors, killFactors);
-        console.log(x);
+        await nftBoostedLeverageController.setBoosted(workers, workFactors, killFactors);
+      });
+    });
+
+    context("when setBoosted with bad params", async () => {
+      it("should revert", async () => {
+        await nftStaking.addPool(poolId1, [mockNFT.address]);
+        await nftStaking.addPool(poolId2, [mockNFT.address]);
+        await nftStaking.addPool(poolId3, [mockNFT.address]);
+
+        const pools = [poolId1, poolId2, poolId3];
+
+        await nftBoostedLeverageController.setPools(pools);
+        const workers = [mockWorker1.address, mockWorker2.address];
+        await expect(nftBoostedLeverageController.setBoosted(workers, workFactors, killFactors)).to.be.revertedWith(
+          "NFTBoostedLeverageController_BadParamsLength()"
+        );
       });
     });
   });
-  //   describe("#getBoostedWorkFactor", async () => {
-  //     context("getBoostedWorkFacetor", async () => {
-  //       it("should success", async () => {
-  //         const workers = [mockWorker1.address, mockWorker2.address, mockWorker3.address];
-  //         const workFactors = [34, 56, 76];
-  //         const killFactors = [50, 60, 80];
 
-  //         await nftBoostedLeverageController.setBoosted(workers, workFactors, killFactors);
-  //         await nftBoostedLeverageController.getBoostedWorkFactor(deployer.address, mockWorker2.address);
-  //       });
-  //     });
-  //   });
-  //   describe("#getBoostedKillFactor", async () => {
-  //     context("getBoostedKillFacetor", async () => {
-  //       it("should success", async () => {
-  //         const workers = [mockWorker1.address, mockWorker2.address, mockWorker3.address];
-  //         const workFactors = [34, 56, 76];
-  //         const killFactors = [50, 60, 80];
+  describe("#getBoostedWorkFactor", async () => {
+    const poolId1 = ethers.utils.solidityKeccak256(["string"], ["NFT1"]);
+    const poolId2 = ethers.utils.solidityKeccak256(["string"], ["NFT2"]);
+    const poolId3 = ethers.utils.solidityKeccak256(["string"], ["NFT3"]);
+    context("getBoostedWorkFacetor", async () => {
+      it("should success", async () => {
+        await nftStaking.addPool(poolId1, [mockNFT.address]);
+        await nftStaking.addPool(poolId2, [mockNFT.address]);
+        await nftStaking.addPool(poolId3, [mockNFT.address]);
+        await mockNFTAsAlice.mint(1);
+        await mockNFTAsAlice.approve(nftStakingAsAlice.address, 0);
+        await nftStakingAsAlice.stakeNFT(
+          ethers.utils.solidityKeccak256(["string"], ["NFT1"]),
+          mockNFTAsAlice.address,
+          0
+        );
 
-  //         await nftBoostedLeverageController.setBoosted(workers, workFactors, killFactors);
-  //         await nftBoostedLeverageController.getBoostedKillFactor(deployer.address, mockWorker2.address);
-  //       });
-  //     });
-  //   });
+        const workers = [mockWorker1.address, mockWorker2.address, mockWorker3.address];
+        const workFactors = [34, 56, 76];
+        const killFactors = [50, 60, 80];
+
+        const pools = [poolId1, poolId2, poolId3];
+        await nftBoostedLeverageController.setPools(pools);
+        await nftBoostedLeverageController.setBoosted(workers, workFactors, killFactors);
+        const boostedWorkFactor = await nftBoostedLeverageController.getBoostedWorkFactor(
+          alice.address,
+          mockWorker1.address
+        );
+        expect(boostedWorkFactor).to.be.eq(34);
+      });
+    });
+
+    context("getBoostedWorkFactor that does not exist", async () => {
+      it("should revert", async () => {
+        await nftStaking.addPool(poolId1, [mockNFT.address]);
+        await nftStaking.addPool(poolId2, [mockNFT.address]);
+        await mockNFTAsAlice.mint(1);
+        await mockNFTAsAlice.approve(nftStakingAsAlice.address, 0);
+        await nftStakingAsAlice.stakeNFT(
+          ethers.utils.solidityKeccak256(["string"], ["NFT1"]),
+          mockNFTAsAlice.address,
+          0
+        );
+
+        const workers = [mockWorker1.address, mockWorker2.address];
+        const workFactors = [34, 56];
+        const killFactors = [50, 60];
+
+        const pools = [poolId1, poolId2];
+        await nftBoostedLeverageController.setPools(pools);
+        await nftBoostedLeverageController.setBoosted(workers, workFactors, killFactors);
+        const boostedWorkFactor = await nftBoostedLeverageController.getBoostedWorkFactor(
+          alice.address,
+          mockWorker3.address
+        );
+        expect(boostedWorkFactor).to.be.eq(0);
+      });
+    });
+  });
+
+  describe("#getBoostedKillFactor", async () => {
+    const poolId1 = ethers.utils.solidityKeccak256(["string"], ["NFT1"]);
+    const poolId2 = ethers.utils.solidityKeccak256(["string"], ["NFT2"]);
+    const poolId3 = ethers.utils.solidityKeccak256(["string"], ["NFT3"]);
+
+    context("getBoostedKillFacetor", async () => {
+      it("should success", async () => {
+        await nftStaking.addPool(poolId1, [mockNFT.address]);
+        await nftStaking.addPool(poolId2, [mockNFT.address]);
+        await nftStaking.addPool(poolId3, [mockNFT.address]);
+        await mockNFTAsAlice.mint(1);
+        await mockNFTAsAlice.approve(nftStakingAsAlice.address, 0);
+        await nftStakingAsAlice.stakeNFT(poolId1, mockNFTAsAlice.address, 0);
+
+        const workers = [mockWorker1.address, mockWorker2.address, mockWorker3.address];
+        const workFactors = [34, 56, 76];
+        const killFactors = [50, 60, 80];
+        const pools = [poolId1, poolId2, poolId3];
+        await nftBoostedLeverageController.setPools(pools);
+        await nftBoostedLeverageController.setBoosted(workers, workFactors, killFactors);
+        const boostedKillFactor = await nftBoostedLeverageController.getBoostedKillFactor(
+          alice.address,
+          mockWorker1.address
+        );
+        expect(boostedKillFactor).to.be.eq(50);
+      });
+    });
+
+    context("getBoostedKillFactor that does not exist", async () => {
+      it("should revert", async () => {
+        await nftStaking.addPool(poolId1, [mockNFT.address]);
+        await nftStaking.addPool(poolId2, [mockNFT.address]);
+        await mockNFTAsAlice.mint(1);
+        await mockNFTAsAlice.approve(nftStakingAsAlice.address, 0);
+        await nftStakingAsAlice.stakeNFT(
+          ethers.utils.solidityKeccak256(["string"], ["NFT1"]),
+          mockNFTAsAlice.address,
+          0
+        );
+
+        const workers = [mockWorker1.address, mockWorker2.address];
+        const workFactors = [34, 56];
+        const killFactors = [50, 60];
+        const pools = [poolId1, poolId2];
+
+        await nftBoostedLeverageController.setPools(pools);
+        await nftBoostedLeverageController.setBoosted(workers, workFactors, killFactors);
+        const boostedWorkFactor = await nftBoostedLeverageController.getBoostedKillFactor(
+          alice.address,
+          mockWorker3.address
+        );
+        expect(boostedWorkFactor).to.be.eq(0);
+      });
+    });
+  });
 });

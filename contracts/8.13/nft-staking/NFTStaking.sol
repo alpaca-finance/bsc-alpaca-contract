@@ -21,6 +21,7 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "./interfaces/INFTStaking.sol";
 
 contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeable {
+  // @notice Errors
   error NFTStaking_Unauthorize();
   error NFTStaking_PoolAlreadyExist();
   error NFTStaking_PoolNotExist();
@@ -29,6 +30,7 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
   error NFTStaking_NFTAlreadyStaked();
   error NFTStaking_NoNFTStaked();
 
+  // @notice States
   // Info of each pool.
   struct PoolInfo {
     // Mapping of NFT token addresses that are allowed to stake in this pool
@@ -43,8 +45,8 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
 
   mapping(bytes32 => PoolInfo) public poolInfo;
   mapping(bytes32 => mapping(address => NFTStakingInfo)) public userStakingNFT;
-  bytes32[] poolId;
 
+  // @notice Events
   event LogStakeNFT(address indexed _staker, bytes32 indexed _poolId, address _nftAddress, uint256 _nftTokenId);
   event LogUnstakeNFT(address indexed _staker, bytes32 indexed _poolId, address _nftAddress, uint256 _nftTokenId);
   event LogAddPool(address indexed _caller, bytes32 indexed _poolId, address[] _stakeNFTToken);
@@ -56,7 +58,7 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
   );
 
   modifier onlyEOA() {
-    if (msg.sender != tx.origin) revert NFTStaking_Unauthorize();
+    if (_msgSender() != tx.origin) revert NFTStaking_Unauthorize();
     _;
   }
 
@@ -69,7 +71,6 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
     if (poolInfo[_poolId].isInit != 0) revert NFTStaking_PoolAlreadyExist();
 
     poolInfo[_poolId].isInit = 1;
-    poolId.push(_poolId);
 
     for (uint256 _i; _i < _stakeNFTToken.length; _i++) {
       poolInfo[_poolId].eligibleToken[_stakeNFTToken[_i]] = 1;
@@ -78,11 +79,6 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
     emit LogAddPool(_msgSender(), _poolId, _stakeNFTToken);
   }
 
-  function getPool() external view returns(bytes32[] memory) {
-    return poolId;
-  }
-
-  
   function setStakeNFTToken(
     bytes32 _poolId,
     address[] calldata _stakeNFTToken,
