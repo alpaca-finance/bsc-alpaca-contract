@@ -21,18 +21,17 @@ import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 
 import "../../interfaces/IPancakeFactory.sol";
 import "../../interfaces/IPancakePair.sol";
-
-import "../../apis/pancake/IPancakeRouter02.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IWorker02.sol";
 import "../../interfaces/IPancakeMasterChef.sol";
 import "../../interfaces/IPancakeMasterChefV2.sol";
 import "../../interfaces/IGenericPancakeMasterChef.sol";
+import "../../interfaces/IVault.sol";
 import "../../../utils/AlpacaMath.sol";
 import "../../../utils/SafeToken.sol";
-import "../../interfaces/IVault.sol";
+import "../../apis/pancake/IPancakeRouter02.sol";
 
-/// @title PancakeswapV2Worker02Migrate is a PancakeswapV2Worker with with reinvest-optimized and beneficial vault buyback functionalities
+/// @title PancakeswapV2Worker02Migrate is a migrating version of PancakeswapV2Worker02 which migrates the existing LP into MasterChefV2 introduced in the PancakeSwap's MasterChefV2 migration
 contract PancakeswapV2Worker02Migrate is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02 {
   /// @notice Libraries
   using SafeToken for address;
@@ -608,12 +607,16 @@ contract PancakeswapV2Worker02Migrate is OwnableUpgradeSafe, ReentrancyGuardUpgr
 
   /// @dev Migrate LP token from MasterChefV1 to MasterChefV2. FOR PCS MIGRATION ONLY.
   /// @param _masterChefV2 The new router
-  /// @param _newPId The new pool id
-  function migrateLP(IPancakeMasterChefV2 _masterChefV2, uint256 _newPId) external onlyOwner {
+  /// @param _newPid The new pool id
+  function migrateLP(IPancakeMasterChefV2 _masterChefV2, uint256 _newPid) external onlyOwner {
     // Sanity Check
     require(
       address(activeMasterChef()) == _masterChefV2.MASTER_CHEF(),
       "PancakeswapWorker::migrateLP::wrong _masterChefV2"
+    );
+    require(
+      address(lpToken) == address(_masterChefV2.lpToken(_newPid)),
+      "PancakeswapWorker::migrateLP::mismatch lp token"
     );
 
     /// 1. Withdraw LP from MasterChefV1
@@ -624,20 +627,16 @@ contract PancakeswapV2Worker02Migrate is OwnableUpgradeSafe, ReentrancyGuardUpgr
     address(lpToken).safeApprove(address(activeMasterChef()), 0);
 
     /// 3. Deposit LP to MasterChefV2
-    require(
-      address(lpToken) == address(_masterChefV2.lpToken(_newPId)),
-      "PancakeswapWorker::migrateLP::mismatch lp token"
-    );
     address(lpToken).safeApprove(address(_masterChefV2), uint256(-1));
-    _masterChefV2.deposit(_newPId, address(lpToken).myBalance());
+    _masterChefV2.deposit(_newPid, address(lpToken).myBalance());
     address(lpToken).safeApprove(address(_masterChefV2), 0);
 
     /// 4. Re-assign all main variables
     address _oldMasterChef = address(activeMasterChef());
     uint256 _oldPid = pid;
     masterChefV2 = _masterChefV2;
-    pid = _newPId;
+    pid = _newPid;
 
-    emit LogMigrateMasterChefV2(_oldMasterChef, _oldPid, address(_masterChefV2), _newPId);
+    emit LogMigrateMasterChefV2(_oldMasterChef, _oldPid, address(_masterChefV2), _newPid);
   }
 }

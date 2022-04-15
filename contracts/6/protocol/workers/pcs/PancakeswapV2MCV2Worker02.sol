@@ -21,18 +21,17 @@ import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 
 import "../../interfaces/IPancakeFactory.sol";
 import "../../interfaces/IPancakePair.sol";
-
-import "../../apis/pancake/IPancakeRouter02.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IWorker02.sol";
 import "../../interfaces/IPancakeMasterChef.sol";
 import "../../interfaces/IPancakeMasterChefV2.sol";
 import "../../interfaces/IGenericPancakeMasterChef.sol";
+import "../../interfaces/IVault.sol";
 import "../../../utils/AlpacaMath.sol";
 import "../../../utils/SafeToken.sol";
-import "../../interfaces/IVault.sol";
+import "../../apis/pancake/IPancakeRouter02.sol";
 
-/// @title PancakeswapV2MCV2Worker02 is a PancakeswapV2Worker with with reinvest-optimized and beneficial vault buyback functionalities and integrating with PancakeSwap's MasterChefV2
+/// @title PancakeswapV2MCV2Worker02 is a reinvest-optimized Worker which deposit LP into MasterChefV2 introduced in the PancakeSwap's MasterChefV2 migration
 contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02 {
   /// @notice Libraries
   using SafeToken for address;
