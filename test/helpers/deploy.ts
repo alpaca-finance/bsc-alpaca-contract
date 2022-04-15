@@ -139,6 +139,8 @@ import {
   DeltaNeutralSpookyWorker03,
   MasterChefV2,
   MasterChefV2__factory,
+  DeltaNeutralPancakeMCV2Worker02,
+  DeltaNeutralPancakeMCV2Worker02__factory,
 } from "../../typechain";
 import * as TimeHelpers from "../helpers/time";
 
@@ -1023,6 +1025,56 @@ export class DeployHelper {
       0,
       priceOracleAddress,
     ])) as DeltaNeutralPancakeWorker02;
+    await deltaNeutralWorker02.deployed();
+
+    await simpleVaultConfig.setWorker(deltaNeutralWorker02.address, true, true, workFactor, killFactor, true, true);
+    await deltaNeutralWorker02.setStrategyOk(extraStrategies, true);
+    await deltaNeutralWorker02.setReinvestorOk(okReinvestor, true);
+    await deltaNeutralWorker02.setTreasuryConfig(treasuryAddress, reinvestBountyBps);
+
+    extraStrategies.push(addStrat.address);
+    extraStrategies.forEach(async (stratAddress) => {
+      const strat = PancakeswapV2RestrictedStrategyLiquidate__factory.connect(stratAddress, this.deployer);
+      await strat.setWorkersOk([deltaNeutralWorker02.address], true);
+    });
+
+    return deltaNeutralWorker02;
+  }
+
+  public async deployDeltaNeutralPancakeMCV2Worker02(
+    vault: Vault,
+    btoken: MockERC20,
+    masterChef: MasterChefV2,
+    routerV2: PancakeRouterV2,
+    poolId: number,
+    workFactor: BigNumberish,
+    killFactor: BigNumberish,
+    addStrat: PancakeswapV2RestrictedStrategyAddBaseTokenOnly,
+    reinvestBountyBps: BigNumberish,
+    okReinvestor: string[],
+    treasuryAddress: string,
+    reinvestPath: Array<string>,
+    extraStrategies: string[],
+    simpleVaultConfig: SimpleVaultConfig,
+    priceOracleAddress: string
+  ): Promise<DeltaNeutralPancakeMCV2Worker02> {
+    const DeltaNeutralPancakeMCV2Worker02 = (await ethers.getContractFactory(
+      "DeltaNeutralPancakeMCV2Worker02",
+      this.deployer
+    )) as DeltaNeutralPancakeMCV2Worker02__factory;
+    const deltaNeutralWorker02 = (await upgrades.deployProxy(DeltaNeutralPancakeMCV2Worker02, [
+      vault.address,
+      btoken.address,
+      masterChef.address,
+      routerV2.address,
+      poolId,
+      addStrat.address,
+      reinvestBountyBps,
+      treasuryAddress,
+      reinvestPath,
+      0,
+      priceOracleAddress,
+    ])) as DeltaNeutralPancakeMCV2Worker02;
     await deltaNeutralWorker02.deployed();
 
     await simpleVaultConfig.setWorker(deltaNeutralWorker02.address, true, true, workFactor, killFactor, true, true);
