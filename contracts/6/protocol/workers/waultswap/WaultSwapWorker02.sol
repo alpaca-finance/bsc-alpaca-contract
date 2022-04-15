@@ -319,17 +319,12 @@ contract WaultSwapWorker02 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IW
         .add(userBaseToken);
   }
 
-  /// @dev Liquidate the given position by converting it to BaseToken and return back to caller.
-  /// @param id The position ID to perform liquidation
-  function liquidate(uint256 id) external override onlyOperator nonReentrant {
-    // 1. Convert the position back to LP tokens and use liquidate strategy.
-    _removeShare(id);
-    lpToken.transfer(address(liqStrat), lpToken.balanceOf(address(this)));
-    liqStrat.execute(address(0), 0, abi.encode(0));
-    // 2. Return all available BaseToken back to the operator.
-    uint256 liquidatedAmount = actualBaseTokenBalance();
-    baseToken.safeTransfer(msg.sender, liquidatedAmount);
-    emit Liquidate(id, liquidatedAmount);
+  /// @notice Liquidate the given position by converting it to BaseToken and return back to caller.
+  /// @dev As AIP4.2 is running, not allow to liquidate
+  function liquidate(
+    uint256 /* id */
+  ) external override onlyOperator {
+    revert("aip4.2");
   }
 
   /// @dev Some portion of a bounty from reinvest will be sent to beneficialVault to increase the size of totalToken.
