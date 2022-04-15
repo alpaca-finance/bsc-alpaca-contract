@@ -96,7 +96,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
   uint256 public buybackAmount;
 
   ICakePool public cakePool;
-  uint256 public accumulatedProfit;
+  uint256 public accumulatedProfit; // This variable will keep track of the amount of profit in CAKE that has not been reinvested
 
   function initialize(
     address _operator,
