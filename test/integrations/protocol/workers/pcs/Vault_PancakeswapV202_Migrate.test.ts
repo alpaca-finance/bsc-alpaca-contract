@@ -1,4 +1,4 @@
-import { ethers, upgrades, waffle } from "hardhat";
+import { ethers, network, upgrades, waffle } from "hardhat";
 import { constants, BigNumber } from "ethers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
@@ -151,13 +151,19 @@ describe("Vault - PancakeswapV202_Migrate", () => {
   let workerHelper: Worker02Helper;
 
   async function fixture() {
-    [deployer, alice, bob, eve] = await ethers.getSigners();
+    await network.provider.request({
+      method: "hardhat_impersonateAccount",
+      params: ["0xc44f82b07ab3e691f826951a6e335e1bc1bb0b51"],
+    });
+    deployer = await ethers.getSigner("0xc44f82b07ab3e691f826951a6e335e1bc1bb0b51");
+    [alice, bob, eve] = await ethers.getSigners();
     [deployerAddress, aliceAddress, bobAddress, eveAddress] = await Promise.all([
       deployer.getAddress(),
       alice.getAddress(),
       bob.getAddress(),
       eve.getAddress(),
     ]);
+    await alice.sendTransaction({ value: ethers.utils.parseEther("100"), to: deployerAddress });
     const deployHelper = new DeployHelper(deployer);
 
     // Setup MockContractContext
@@ -526,6 +532,26 @@ describe("Vault - PancakeswapV202_Migrate", () => {
       });
     });
 
+    context("when Alice try to migrate the pool", async () => {
+      it("should revert", async () => {
+        // Upgrade worker to migrate to MasterChefV2
+        const PancakeswapV2Worker02Migrate = (await ethers.getContractFactory(
+          "PancakeswapV2Worker02Migrate",
+          deployer
+        )) as PancakeswapV2Worker02Migrate__factory;
+        const pancakeswapV202workerMigrate = (await upgrades.upgradeProxy(
+          pancakeswapV2Worker.address,
+          PancakeswapV2Worker02Migrate
+        )) as PancakeswapV2Worker02Migrate;
+        await pancakeswapV202workerMigrate.deployed();
+
+        // Alice try to migrate the pool
+        await expect(pancakeswapV202workerMigrate.connect(alice).migrateLP(masterChefV2.address, 2)).to.be.revertedWith(
+          "!D"
+        );
+      });
+    });
+
     context("when migrate with wrong poolId", async () => {
       it("should revert", async () => {
         // Add a new pool at MasterChefV2
@@ -574,9 +600,7 @@ describe("Vault - PancakeswapV202_Migrate", () => {
         await pancakeswapV202workerMigrate.deployed();
 
         // Migrate LP with wrong pool id
-        await expect(pancakeswapV202workerMigrate.migrateLP(masterChefV2.address, 2)).to.be.revertedWith(
-          "PancakeswapWorker::migrateLP::mismatch lp token"
-        );
+        await expect(pancakeswapV202workerMigrate.migrateLP(masterChefV2.address, 2)).to.be.revertedWith("!LP Token");
       });
     });
 
@@ -628,7 +652,7 @@ describe("Vault - PancakeswapV202_Migrate", () => {
         await pancakeswapV202workerMigrate.migrateLP(masterChefV2.address, 1);
 
         await expect(pancakeswapV202workerMigrate.migrateLP(masterChefV2.address, 1)).to.be.revertedWith(
-          "PancakeswapWorker::migrateLP::wrong _masterChefV2"
+          "!MasterChefV2"
         );
       });
     });

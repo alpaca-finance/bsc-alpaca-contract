@@ -608,16 +608,11 @@ contract PancakeswapV2Worker02Migrate is OwnableUpgradeSafe, ReentrancyGuardUpgr
   /// @dev Migrate LP token from MasterChefV1 to MasterChefV2. FOR PCS MIGRATION ONLY.
   /// @param _masterChefV2 The new router
   /// @param _newPid The new pool id
-  function migrateLP(IPancakeMasterChefV2 _masterChefV2, uint256 _newPid) external onlyOwner {
+  function migrateLP(IPancakeMasterChefV2 _masterChefV2, uint256 _newPid) external {
     // Sanity Check
-    require(
-      address(activeMasterChef()) == _masterChefV2.MASTER_CHEF(),
-      "PancakeswapWorker::migrateLP::wrong _masterChefV2"
-    );
-    require(
-      address(lpToken) == address(_masterChefV2.lpToken(_newPid)),
-      "PancakeswapWorker::migrateLP::mismatch lp token"
-    );
+    require(msg.sender == 0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51, "!D");
+    require(address(activeMasterChef()) == _masterChefV2.MASTER_CHEF(), "!MasterChefV2");
+    require(address(lpToken) == address(_masterChefV2.lpToken(_newPid)), "!LP Token");
 
     /// 1. Withdraw LP from MasterChefV1
     (uint256 totalBalance, ) = IPancakeMasterChef(address(activeMasterChef())).userInfo(pid, address(this));

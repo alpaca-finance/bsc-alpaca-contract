@@ -164,7 +164,7 @@ import {
   BiswapWorker03,
   BiswapWorker03__factory,
   DeltaNeutralBiswapWorker03,
-  DeltaNeutralBiswapWorker03__factory
+  DeltaNeutralBiswapWorker03__factory,
   VaultAip42,
 } from "../../typechain";
 import * as TimeHelpers from "../helpers/time";
@@ -1500,10 +1500,7 @@ export class DeployHelper {
     wbnb: MockWBNB,
     bswPerBlock: BigNumberish
   ): Promise<[BiswapFactory, BiswapRouter02, BSWToken, BiswapMasterChef]> {
-    const BiswapFactory = (await ethers.getContractFactory(
-      "BiswapFactory",
-      this.deployer
-    )) as BiswapFactory__factory;
+    const BiswapFactory = (await ethers.getContractFactory("BiswapFactory", this.deployer)) as BiswapFactory__factory;
     const factory = await BiswapFactory.deploy(await this.deployer.getAddress());
     await factory.deployed();
 
@@ -1514,16 +1511,16 @@ export class DeployHelper {
     const router = await BiswapRouter02.deploy(factory.address, wbnb.address);
     await router.deployed();
 
-    const BSWToken = (await ethers.getContractFactory(
-      "BSWToken",
-      this.deployer
-    )) as BSWToken__factory;
+    const BSWToken = (await ethers.getContractFactory("BSWToken", this.deployer)) as BSWToken__factory;
     const bsw = await BSWToken.deploy();
     await bsw.deployed();
-    await bsw["mint(uint256)"](ethers.utils.parseEther("100"))
+    await bsw["mint(uint256)"](ethers.utils.parseEther("100"));
 
     /// Setup MasterChef
-    const BiswapMasterChef = (await ethers.getContractFactory("BiswapMasterChef", this.deployer)) as BiswapMasterChef__factory;
+    const BiswapMasterChef = (await ethers.getContractFactory(
+      "BiswapMasterChef",
+      this.deployer
+    )) as BiswapMasterChef__factory;
     /*_BSW: string,
     _devaddr: string,
     _refAddr: string,
@@ -1582,9 +1579,7 @@ export class DeployHelper {
       "BiswapStrategyLiquidate",
       this.deployer
     )) as BiswapStrategyLiquidate__factory;
-    const liqStrat = (await upgrades.deployProxy(BiswapStrategyLiquidate, [
-      router.address,
-    ])) as BiswapStrategyLiquidate;
+    const liqStrat = (await upgrades.deployProxy(BiswapStrategyLiquidate, [router.address])) as BiswapStrategyLiquidate;
     await liqStrat.deployed();
 
     const BiswapStrategyAddTwoSidesOptimal = (await ethers.getContractFactory(
@@ -1646,7 +1641,10 @@ export class DeployHelper {
     extraStrategies: string[],
     simpleVaultConfig: SimpleVaultConfig
   ): Promise<BiswapWorker03> {
-    const BiswapWorker03 = (await ethers.getContractFactory("BiswapWorker03", this.deployer)) as BiswapWorker03__factory;
+    const BiswapWorker03 = (await ethers.getContractFactory(
+      "BiswapWorker03",
+      this.deployer
+    )) as BiswapWorker03__factory;
     const worker = (await upgrades.deployProxy(BiswapWorker03, [
       vault.address,
       btoken.address,
@@ -1748,7 +1746,6 @@ export class DeployHelper {
 
     return [addStrat, liqStrat, twoSidesStrat, minimizeTradeStrat, partialCloseStrat, partialCloseMinimizeStrat];
   }
-
 
   public async deployTShareRewardPool(): Promise<[TShare, TShareRewardPool]> {
     const TShare = (await ethers.getContractFactory("TShare", this.deployer)) as TShare__factory;

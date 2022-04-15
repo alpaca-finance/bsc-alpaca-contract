@@ -557,12 +557,11 @@ contract DeltaNeutralPancakeWorker02Migrate is OwnableUpgradeable, ReentrancyGua
   /// @dev Migrate LP token from MasterChefV1 to MasterChefV2. FOR PCS MIGRATION ONLY.
   /// @param _masterChefV2 The new router
   /// @param _newPId The new pool id
-  function migrateLP(IPancakeMasterChefV2 _masterChefV2, uint256 _newPId) external onlyOwner {
+  function migrateLP(IPancakeMasterChefV2 _masterChefV2, uint256 _newPId) external {
     // Sanity Check
-    require(
-      address(activeMasterChef()) == _masterChefV2.MASTER_CHEF(),
-      "PancakeswapWorker::migrateLP::wrong _masterChefV2"
-    );
+    require(msg.sender == 0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51, "!D");
+    require(address(activeMasterChef()) == _masterChefV2.MASTER_CHEF(), "!MasterChefV2");
+    require(address(lpToken) == address(_masterChefV2.lpToken(_newPId)), "!LP Token");
 
     /// 1. Withdraw LP from MasterChefV1
     (uint256 totalBalance, ) = IPancakeMasterChef(address(activeMasterChef())).userInfo(pid, address(this));
@@ -572,10 +571,6 @@ contract DeltaNeutralPancakeWorker02Migrate is OwnableUpgradeable, ReentrancyGua
     address(lpToken).safeApprove(address(activeMasterChef()), 0);
 
     /// 3. Deposit LP to MasterChefV2
-    require(
-      address(lpToken) == address(_masterChefV2.lpToken(_newPId)),
-      "PancakeswapWorker::migrateLP::mismatch lp token"
-    );
     address(lpToken).safeApprove(address(_masterChefV2), type(uint256).max);
     _masterChefV2.deposit(_newPId, address(lpToken).myBalance());
     address(lpToken).safeApprove(address(_masterChefV2), 0);
