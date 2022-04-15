@@ -166,6 +166,8 @@ import {
   DeltaNeutralBiswapWorker03,
   DeltaNeutralBiswapWorker03__factory,
   VaultAip42,
+  CakePool,
+  CakePool__factory,
 } from "../../typechain";
 import * as TimeHelpers from "../helpers/time";
 
@@ -325,6 +327,33 @@ export class DeployHelper {
     // Add Dummy Pool 0
     await masterChefV2.add(0, dummyToken.address, true, true);
     return [masterChefV2];
+  }
+
+  public async deployPancakeCakePool(masterChefV2: MasterChefV2): Promise<[CakePool]> {
+    // Deploy dummyToken for CakePool to stake in MasterChefV2
+    const dummyToken = await this.deployERC20();
+    await dummyToken.mint(this.deployer.address, 1);
+
+    // Add Master Pool for MasterChefV2
+    await masterChefV2.add(1, dummyToken.address, false, true);
+    const CAKE_POOL_PID = (await masterChefV2.poolLength()).sub(1);
+
+    const CakePool = (await ethers.getContractFactory("CakePool", this.deployer)) as CakePool__factory;
+    const cakePool = await CakePool.deploy(
+      await masterChefV2.CAKE(),
+      masterChefV2.address,
+      this.deployer.address,
+      this.deployer.address,
+      this.deployer.address,
+      CAKE_POOL_PID
+    );
+    await cakePool.deployed();
+
+    await masterChefV2.updateWhiteList(cakePool.address, true);
+    await dummyToken.approve(cakePool.address, 1);
+    await cakePool.init(dummyToken.address);
+
+    return [cakePool];
   }
 
   public async deployPancakeV2Strategies(
