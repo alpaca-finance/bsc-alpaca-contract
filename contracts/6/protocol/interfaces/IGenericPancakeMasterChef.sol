@@ -16,7 +16,7 @@ pragma solidity 0.6.6;
 // Making the original MasterChefV2 as an interface leads to compilation fail.
 // Use Contract instead of Interface here
 contract IGenericPancakeMasterChef {
-  // Deposit LP tokens to MasterChef for SUSHI allocation.
+  // Deposit LP tokens to MasterChef for CAKE allocation.
   function deposit(uint256 _pid, uint256 _amount) external {}
 
   // Withdraw LP tokens from MasterChef.
