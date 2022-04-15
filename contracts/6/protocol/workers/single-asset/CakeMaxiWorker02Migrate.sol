@@ -189,7 +189,7 @@ contract CakeMaxiWorker02Migrate is OwnableUpgradeSafe, ReentrancyGuardUpgradeSa
   /// @param share The number of shares to be converted to farming tokens.
   function shareToBalance(uint256 share) public view returns (uint256) {
     if (totalShare == 0) return share; // When there's no share, 1 share = 1 balance.
-    (uint256 totalBalance, ) = masterChef.userInfo(pid, address(this));
+    uint256 totalBalance = totalBalance();
     return share.mul(totalBalance).div(totalShare);
   }
 
@@ -197,7 +197,7 @@ contract CakeMaxiWorker02Migrate is OwnableUpgradeSafe, ReentrancyGuardUpgradeSa
   /// @param balance the balance of farming token to be converted to shares.
   function balanceToShare(uint256 balance) public view returns (uint256) {
     if (totalShare == 0) return balance; // When there's no share, 1 share = 1 balance.
-    (uint256 totalBalance, ) = masterChef.userInfo(pid, address(this));
+    uint256 totalBalance = totalBalance();
     return balance.mul(totalShare).div(totalBalance);
   }
 
@@ -220,6 +220,10 @@ contract CakeMaxiWorker02Migrate is OwnableUpgradeSafe, ReentrancyGuardUpgradeSa
     uint256 _callerBalance,
     uint256 _reinvestThreshold
   ) internal {
+    if (address(cakePool) != address(0)) {
+      // no reinvest for CakePool
+      return;
+    }
     require(_treasuryAccount != address(0), "CakeMaxiWorker02Migrate::_reinvest:: bad treasury account");
     // 1. reset all reward balance since all rewards will be reinvested
     rewardBalance = 0;
@@ -245,9 +249,6 @@ contract CakeMaxiWorker02Migrate is OwnableUpgradeSafe, ReentrancyGuardUpgradeSa
 
     // 5. re-stake the farming token to get more rewards
     deposit(reward.sub(bounty));
-
-    // 6. reset approvals
-    farmingToken.safeApprove(address(masterChef), 0);
 
     emit Reinvest(_treasuryAccount, reward, bounty);
   }
@@ -386,18 +387,14 @@ contract CakeMaxiWorker02Migrate is OwnableUpgradeSafe, ReentrancyGuardUpgradeSa
   function _addShare(uint256 id) internal {
     uint256 shareBalance = actualFarmingTokenBalance();
     if (shareBalance > 0) {
-      // 1. Approve token to be spend by masterChef
-      address(farmingToken).safeApprove(address(masterChef), uint256(-1));
-      // 2. Convert balance to share
+      // 1. Convert balance to share
       uint256 share = balanceToShare(shareBalance);
-      // 3. Update shares
+      // 2. Update shares
       shares[id] = shares[id].add(share);
       totalShare = totalShare.add(share);
       rewardBalance = rewardBalance.add(pendingCake());
-      // 4. Deposit balance to PancakeMasterChef
+      // 3. Deposit balance to PancakeMasterChef
       deposit(shareBalance);
-      // 5. Reset approve token
-      address(farmingToken).safeApprove(address(masterChef), 0);
       emit AddShare(id, share);
     }
   }
@@ -588,9 +585,17 @@ contract CakeMaxiWorker02Migrate is OwnableUpgradeSafe, ReentrancyGuardUpgradeSa
 
   function deposit(uint256 _balance) internal {
     if (address(cakePool) == address(0)) {
+      address(farmingToken).safeApprove(address(masterChef), uint256(-1));
       masterChef.enterStaking(_balance);
+      address(farmingToken).safeApprove(address(masterChef), 0);
     } else {
+      address(farmingToken).safeApprove(address(cakePool), uint256(-1));
+      require(
+        cakePool.freeFeeUsers(address(this)),
+        "CakeMaxiWorker02Migrate::deposit::cannot deposit with withdrawal fee on"
+      );
       cakePool.deposit(_balance, 0);
+      address(farmingToken).safeApprove(address(cakePool), 0);
     }
   }
 
@@ -598,7 +603,7 @@ contract CakeMaxiWorker02Migrate is OwnableUpgradeSafe, ReentrancyGuardUpgradeSa
     if (address(cakePool) == address(0)) {
       masterChef.leaveStaking(_balance);
     } else {
-      cakePool.withdraw(_balance);
+      if (_balance > 0) cakePool.withdrawByAmount(_balance);
     }
   }
 
@@ -610,6 +615,16 @@ contract CakeMaxiWorker02Migrate is OwnableUpgradeSafe, ReentrancyGuardUpgradeSa
     }
   }
 
+  function totalBalance() internal view returns (uint256 _totalBalance) {
+    if (address(cakePool) == address(0)) {
+      (_totalBalance, ) = masterChef.userInfo(pid, address(this));
+    } else {
+      (uint256 _shares, , , , , , , , ) = cakePool.userInfo(address(this));
+      _totalBalance = _shares.mul(cakePool.getPricePerFullShare()).div(1e18);
+    }
+    return _totalBalance;
+  }
+
   /// @dev Migrate CAKE token from MasterChefV1 to CakePool. FOR PCS MIGRATION ONLY.
   /// @param _cakePool The new CakePool
   function migrateCAKE(ICakePool _cakePool) external onlyOwner {
@@ -619,9 +634,10 @@ contract CakeMaxiWorker02Migrate is OwnableUpgradeSafe, ReentrancyGuardUpgradeSa
       address(farmingToken) == address(_cakePool.token()),
       "CakeMaxiWorker02Migrate::migrateCAKE::wrong CakePool"
     );
+    _cakePool.getPricePerFullShare();
 
     /// Perform reinvest and buyback here to handle the leftover CAKE in the contract
-    _reinvest(msg.sender, reinvestBountyBps, 0, 0);
+    _reinvest(treasuryAccount, reinvestBountyBps, 0, 0);
     // in case of beneficial vault equals to operator vault, call buyback to transfer some buyback amount back to the vault
     // This can't be called within the _reinvest statement since _reinvest is called within the `work` as well
     _buyback();
