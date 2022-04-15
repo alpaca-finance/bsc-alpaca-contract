@@ -40,4 +40,6 @@ interface ICakePool {
   function getPricePerFullShare() external view returns (uint256);
 
   function freeFeeUsers(address user) external view returns (bool);
+
+  function withdrawFeeContract() external view returns (uint256);
 }

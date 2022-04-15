@@ -344,7 +344,7 @@ contract CakeMaxiWorker02Migrate is OwnableUpgradeSafe, ReentrancyGuardUpgradeSa
     uint256[] memory amount;
     address[] memory reversedPath = getReversedPath();
     amount = new uint256[](reversedPath.length);
-    amount[0] = shareToBalance(shares[id]);
+    amount[0] = getAmountAfterWithdrawalFee(shareToBalance(shares[id]));
     for (uint256 i = 1; i < reversedPath.length; i++) {
       /// 1. Get the current LP based on the specified paths.
       currentLP = IPancakePair(factory.getPair(reversedPath[i - 1], reversedPath[i]));
@@ -659,5 +659,13 @@ contract CakeMaxiWorker02Migrate is OwnableUpgradeSafe, ReentrancyGuardUpgradeSa
     cakePool = _cakePool;
 
     emit LogMigrateCakePool(_oldMasterChef, address(_cakePool));
+  }
+
+  function getAmountAfterWithdrawalFee(uint256 _amount) internal view returns (uint256) {
+    bool isFreeFee = address(cakePool) == address(0) || cakePool.freeFeeUsers(address(this));
+    if (isFreeFee) return _amount;
+    uint256 _feeRate = cakePool.withdrawFeeContract();
+    uint256 _withdrawFee = (_amount.mul(_feeRate)).div(10000);
+    return _amount.sub(_withdrawFee);
   }
 }
