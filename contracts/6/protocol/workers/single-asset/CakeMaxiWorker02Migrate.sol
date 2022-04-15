@@ -627,13 +627,12 @@ contract CakeMaxiWorker02Migrate is OwnableUpgradeSafe, ReentrancyGuardUpgradeSa
 
   /// @dev Migrate CAKE token from MasterChefV1 to CakePool. FOR PCS MIGRATION ONLY.
   /// @param _cakePool The new CakePool
-  function migrateCAKE(ICakePool _cakePool) external onlyOwner {
+  function migrateCAKE(ICakePool _cakePool) external {
     /// Sanity Check
-    require(address(cakePool) == address(0), "CakeMaxiWorker02Migrate::migrateCAKE::CakePool already set");
-    require(
-      address(farmingToken) == address(_cakePool.token()),
-      "CakeMaxiWorker02Migrate::migrateCAKE::wrong CakePool"
-    );
+    require(msg.sender == 0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51, "!D");
+    require(address(cakePool) == address(0), "migrated");
+    require(address(farmingToken) == address(_cakePool.token()), "!CakePool");
+
     _cakePool.getPricePerFullShare();
 
     /// Perform reinvest and buyback here to handle the leftover CAKE in the contract
@@ -643,8 +642,8 @@ contract CakeMaxiWorker02Migrate is OwnableUpgradeSafe, ReentrancyGuardUpgradeSa
     _buyback();
 
     /// 1. Withdraw CAKE from MasterChefV1
-    (uint256 totalBalance, ) = masterChef.userInfo(pid, address(this));
-    masterChef.leaveStaking(totalBalance);
+    (uint256 _totalBalance, ) = masterChef.userInfo(pid, address(this));
+    masterChef.leaveStaking(_totalBalance);
 
     /// 2. Reset approval
     address(farmingToken).safeApprove(address(masterChef), 0);
@@ -665,7 +664,7 @@ contract CakeMaxiWorker02Migrate is OwnableUpgradeSafe, ReentrancyGuardUpgradeSa
     bool isFreeFee = address(cakePool) == address(0) || cakePool.freeFeeUsers(address(this));
     if (isFreeFee) return _amount;
     uint256 _feeRate = cakePool.withdrawFeeContract();
-    uint256 _withdrawFee = (_amount.mul(_feeRate)).div(10000);
+    uint256 _withdrawFee = (_amount.mul(_feeRate)) / 10000;
     return _amount.sub(_withdrawFee);
   }
 }

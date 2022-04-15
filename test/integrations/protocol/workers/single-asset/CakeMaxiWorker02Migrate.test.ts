@@ -1,4 +1,4 @@
-import { ethers, upgrades, waffle } from "hardhat";
+import { ethers, network, upgrades, waffle } from "hardhat";
 import { Signer, BigNumber, constants, Wallet } from "ethers";
 import chai from "chai";
 import { MockProvider, solidity } from "ethereum-waffle";
@@ -154,13 +154,19 @@ describe("CakeMaxiWorker02Migrate", () => {
   let wNativeRelayer: WNativeRelayer;
 
   async function fixture(maybeWallets?: Wallet[], maybeProvider?: MockProvider) {
-    [deployer, alice, bob, eve] = await ethers.getSigners();
+    await network.provider.request({
+      method: "hardhat_impersonateAccount",
+      params: ["0xc44f82b07ab3e691f826951a6e335e1bc1bb0b51"],
+    });
+    deployer = await ethers.getSigner("0xc44f82b07ab3e691f826951a6e335e1bc1bb0b51");
+    [alice, bob, eve] = await ethers.getSigners();
     [deployerAddress, aliceAddress, bobAddress, eveAddress] = await Promise.all([
       deployer.getAddress(),
       alice.getAddress(),
       bob.getAddress(),
       eve.getAddress(),
     ]);
+    await alice.sendTransaction({ value: ethers.utils.parseEther("100"), to: deployerAddress });
 
     // Setup Mocked Vault (for unit testing purposed)
     const MockVault = (await ethers.getContractFactory(
@@ -904,9 +910,24 @@ describe("CakeMaxiWorker02Migrate", () => {
         const healthPosition2Before = await integratedCakeMaxiWorker.health(2);
 
         await cakeMaxiWorker02Migrate.migrateCAKE(cakePool.address);
-        await expect(cakeMaxiWorker02Migrate.migrateCAKE(cakePool.address)).to.be.revertedWith(
-          "CakeMaxiWorker02Migrate::migrateCAKE::CakePool already set"
-        );
+        await expect(cakeMaxiWorker02Migrate.migrateCAKE(cakePool.address)).to.be.revertedWith("migrated");
+      });
+    });
+
+    context("when Bob try to migrate", async () => {
+      it("should revert", async () => {
+        // Upgrade worker to migrate to MasterChefV2
+        const CakeMaxiWorker02Migrate = (await ethers.getContractFactory(
+          "CakeMaxiWorker02Migrate",
+          deployer
+        )) as CakeMaxiWorker02Migrate__factory;
+        const cakeMaxiWorker02Migrate = (await upgrades.upgradeProxy(
+          integratedCakeMaxiWorker.address,
+          CakeMaxiWorker02Migrate
+        )) as CakeMaxiWorker02Migrate;
+        await cakeMaxiWorker02Migrate.deployed();
+
+        await expect(cakeMaxiWorker02Migrate.connect(bob).migrateCAKE(cakePool.address)).to.be.revertedWith("!D");
       });
     });
 
