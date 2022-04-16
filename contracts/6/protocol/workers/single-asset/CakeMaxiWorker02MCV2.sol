@@ -96,7 +96,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
   uint256 public buybackAmount;
 
   ICakePool public cakePool;
-  uint256 public accumulatedProfit; // This variable will keep track of the amount of profit in CAKE that has not been reinvested
+  uint256 public accumulatedBounty; // This variable will keep track of the amount of accumulated CAKE bounty that has not been reinvested
 
   function initialize(
     address _operator,
@@ -227,12 +227,12 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
 
     // 2. Calculate the profit since cakeAtLastUserAction with the current CAKE balance
     (, , uint256 _cakeAtLastUserAction, , , , , , ) = cakePool.userInfo(address(this));
-    uint256 _currentProfit = _currentTotalBalance.sub(_cakeAtLastUserAction).add(accumulatedProfit);
-    if (_currentProfit < _reinvestThreshold) {
-      accumulatedProfit = _currentProfit;
+    uint256 _currentProfit = _currentTotalBalance.sub(_cakeAtLastUserAction);
+    uint256 _bounty = _currentProfit.mul(_treasuryBountyBps).div(10000).add(accumulatedBounty);
+    if (_bounty < _reinvestThreshold || _bounty < cakePool.MIN_WITHDRAW_AMOUNT()) {
+      accumulatedBounty = _bounty;
       return;
     }
-    uint256 _bounty = _currentProfit.mul(_treasuryBountyBps) / 10000;
 
     // 3. Withdraw only the bounty from the profit, taking into account withdrawal fee
     uint256 _rewardBalanceBefore = farmingToken.myBalance();
@@ -246,8 +246,8 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
       farmingToken.safeTransfer(_treasuryAccount, _actualBountyReceived.sub(beneficialVaultBounty));
     }
 
-    // 5. Reset `accumulatedProfit`
-    accumulatedProfit = 0;
+    // 5. Reset `accumulatedBounty`
+    accumulatedBounty = 0;
     emit Reinvest(_treasuryAccount, _currentProfit, _actualBountyReceived);
   }
 

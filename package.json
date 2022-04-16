@@ -318,6 +318,7 @@
     "test:cakemaxiworker": "hardhat test --no-compile ./test/CakeMaxiWorker.test.ts",
     "test:cakemaxiworker02": "hardhat test --no-compile ./test/CakeMaxiWorker02.test.ts",
     "test:cakemaxiworker02migrate": "hardhat test --no-compile ./test/integrations/protocol/workers/single-asset/CakeMaxiWorker02Migrate.test.ts",
+    "test:cakemaxiworker02mcv2": "hardhat test --no-compile ./test/integrations/protocol/workers/single-asset/CakeMaxiWorker02MCV2.test.ts",
     "test:singleassetworkerconf": "hardhat test --no-compile ./test/SingleAssetWorkerConfig.test.ts",
     "test:waultrestrictedadd": "hardhat test --no-compile ./test/WaultSwap_Restricted_StrategyAddBaseTokenOnly.test.ts",
     "test:waultrestrictedtwoside": "hardhat test --no-compile ./test/WaultSwap_Restricted_StrategyAddTwoSidesOptimal.test.ts",

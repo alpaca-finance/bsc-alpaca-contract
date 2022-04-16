@@ -42,4 +42,6 @@ interface ICakePool {
   function freeFeeUsers(address user) external view returns (bool);
 
   function withdrawFeeContract() external view returns (uint256);
+
+  function MIN_WITHDRAW_AMOUNT() external view returns (uint256);
 }
