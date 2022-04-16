@@ -5,7 +5,7 @@ import { Timelock__factory } from "../../../../typechain";
 import MainnetConfig from "../../../../.mainnet.json";
 import TestnetConfig from "../../../../.testnet.json";
 import { TimelockEntity } from "../../../entities";
-import { FileService, TimelockService } from "../../../services";
+import { fileService, TimelockService } from "../../../services";
 
 interface IInput {
   VAULT_SYMBOL: string;
@@ -102,7 +102,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     );
   }
 
-  FileService.write(TITLE, timelockTransactions);
+  fileService.writeJson(TITLE, timelockTransactions);
 };
 
 export default func;

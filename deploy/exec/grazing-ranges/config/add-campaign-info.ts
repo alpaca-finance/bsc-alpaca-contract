@@ -1,7 +1,7 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ConfigEntity, TimelockEntity } from "../../../entities";
-import { FileService, TimelockService } from "../../../services";
+import { fileService, TimelockService } from "../../../services";
 import { ethers } from "ethers";
 
 interface IAddGrazingRangeCampaignParam {
@@ -52,7 +52,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     );
   }
 
-  FileService.write("add-gr-campaign-info", timelockTransactions);
+  fileService.writeJson("add-gr-campaign-info", timelockTransactions);
 };
 
 export default func;

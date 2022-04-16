@@ -2,7 +2,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { TimelockEntity } from "../../../entities";
 import { mapWorkers } from "../../../entities/worker";
-import { FileService, TimelockService } from "../../../services";
+import { fileService, TimelockService } from "../../../services";
 import { ethers } from "hardhat";
 /**
  * @description Deployment script for upgrades workers to 02 version
@@ -118,7 +118,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     );
   }
 
-  FileService.write(fileName, timelockTransactions);
+  fileService.writeJson(fileName, timelockTransactions);
 };
 
 export default func;

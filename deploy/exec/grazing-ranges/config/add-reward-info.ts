@@ -3,7 +3,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, network } from "hardhat";
 import { Timelock__factory } from "../../../../typechain";
 import { ConfigEntity, TimelockEntity } from "../../../entities";
-import { FileService, TimelockService } from "../../../services";
+import { fileService, TimelockService } from "../../../services";
 
 interface IAddGrazingRangeRewardInfoParam {
   PHASE_NAME: string;
@@ -71,7 +71,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     );
   }
 
-  FileService.write("add-reward-info", timelockTransactions);
+  fileService.writeJson("add-reward-info", timelockTransactions);
 };
 
 export default func;

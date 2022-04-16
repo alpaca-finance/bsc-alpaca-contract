@@ -6,7 +6,7 @@ export function readJson(filePath: string): any {
   return json;
 }
 
-export function write(fileName: string, content: any) {
+export function writeJson(fileName: string, content: any) {
   const timestamp = Math.floor(Date.now() / 1000);
   fs.writeFileSync(`./deploy/results/${timestamp}_${fileName}.json`, JSON.stringify(content, null, 2));
 }

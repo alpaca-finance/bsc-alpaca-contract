@@ -1,7 +1,7 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { mapWorkers } from "../../../entities/worker";
-import { FileService, TimelockService } from "../../../services";
+import { fileService, TimelockService } from "../../../services";
 import { TimelockEntity, WorkerEntity } from "../../../entities";
 import { getDeployer } from "../../../../utils/deployer-helper";
 
@@ -91,7 +91,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     );
   }
 
-  FileService.write(TITLE, timelockTransactions);
+  fileService.writeJson(TITLE, timelockTransactions);
 };
 
 export default func;

@@ -1,15 +1,9 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, upgrades } from "hardhat";
-import {
-  WaultSwapWorker02__factory,
-  CakeMaxiWorker02__factory,
-  PancakeswapV2Worker02__factory,
-  MdexWorker02__factory,
-} from "../../../../typechain";
 import { ContractFactory } from "ethers";
 import { ConfigEntity, TimelockEntity } from "../../../entities";
-import { FileService, TimelockService } from "../../../services";
+import { fileService, TimelockService } from "../../../services";
 
 interface IWorker {
   WORKER_NAME: string;
@@ -20,35 +14,43 @@ type IWorkers = Array<IWorker>;
 
 type IWorkerInputs = Array<string>;
 
-interface IFactory {
-  PANCAKESWAP_V2_WORKER_02: PancakeswapV2Worker02__factory;
-  WAULTSWAP_WORKER_02: WaultSwapWorker02__factory;
-  CAKEMAXI_WORKER_02: CakeMaxiWorker02__factory;
-  MDEX_WORKER_02: MdexWorker02__factory;
+interface FactoryMap {
+  workerType: string;
+  newVersion: string;
 }
+
 /**
  *
  * @description This is a function for getting ContractFactory that is either PancakeswapV2Worker02__factory or WaultSwapWorker02__factory or CakeMaxiWorker02__factory
  * so that each worker will contain a contract factory using for upgrade proxy
  * @param {string} workerName
- * @param {IFactory} factory
+ * @param {Array<FactoryMap>} factories
  * @return {*}  {ContractFactory}
  */
-const getFactory = (workerName: string, factory: IFactory): ContractFactory => {
+async function getFactory(workerName: string, factories: Array<FactoryMap>): Promise<ContractFactory> {
+  if (workerName.includes("DeltaNeutralPancakeswapWorker")) {
+    const factory = factories.find((f) => f.workerType == "DeltaNeutralPancakeswapWorker");
+    if (!factory) throw new Error("not found new DeltaNeutralPancakeswapWorker factory");
+    return await ethers.getContractFactory(factory.newVersion);
+  }
   if (workerName.includes("CakeMaxiWorker")) {
-    return factory.CAKEMAXI_WORKER_02;
+    const factory = factories.find((f) => f.workerType == "CakeMaxiWorker");
+    if (!factory) throw new Error("not found new CakeMaxiWorker factory");
+    return await ethers.getContractFactory(factory.newVersion);
   }
   if (workerName.includes("PancakeswapWorker")) {
-    return factory.PANCAKESWAP_V2_WORKER_02;
-  }
-  if (workerName.includes("WaultswapWorker")) {
-    return factory.WAULTSWAP_WORKER_02;
+    const factory = factories.find((f) => f.workerType === "PancakeswapWorker");
+    if (!factory) throw new Error("not found new PancakeswapWorker factory");
+    return await ethers.getContractFactory(factory.newVersion);
   }
   if (workerName.includes("MdexWorker")) {
-    return factory.MDEX_WORKER_02;
+    const factory = factories.find((f) => f.workerType === "MdexWorker");
+    if (!factory) throw new Error("not found new MdexWorker factory");
+    return await ethers.getContractFactory(factory.newVersion);
   }
+
   throw new Error(`getFactory:: unable to return a factor regarding to the worker ${workerName}`);
-};
+}
 
 /**
  * @description Deployment script for upgrades workers to 02 version
@@ -65,6 +67,20 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
   const fileName = "upgrade-disable-liquidate-waultswap-workers02";
+  const factories: Array<FactoryMap> = [
+    {
+      workerType: "PancakeswapWorker",
+      newVersion: "PancakeswapV2Worker02Migrate",
+    },
+    {
+      workerType: "CakeMaxiWorker",
+      newVersion: "CakeMaxiWorker02Migrate",
+    },
+    {
+      workerType: "DeltaNeutralPancakeswapWorker",
+      newVersion: "DeltaNeutralPancakeWorker02Migrate",
+    },
+  ];
   const workerInputs: IWorkerInputs = [
     "WEX-WBNB WaultswapWorker",
     "BUSD-WBNB WaultswapWorker",
@@ -118,31 +134,20 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     throw new Error(`could not find ${workerInput}`);
   });
-  const [pancakeSwapV2Worker02Factory, waultSwapWorker02Factory, cakeMaxiWorker02Factory, mdexWorker02Factory] =
-    await Promise.all([
-      (await ethers.getContractFactory("PancakeswapV2Worker02")) as PancakeswapV2Worker02__factory,
-      (await ethers.getContractFactory("WaultSwapWorker02")) as WaultSwapWorker02__factory,
-      (await ethers.getContractFactory("CakeMaxiWorker02")) as CakeMaxiWorker02__factory,
-      (await ethers.getContractFactory("MdexWorker02")) as MdexWorker02__factory,
-    ]);
 
-  const FACTORY: IFactory = {
-    PANCAKESWAP_V2_WORKER_02: pancakeSwapV2Worker02Factory,
-    WAULTSWAP_WORKER_02: waultSwapWorker02Factory,
-    CAKEMAXI_WORKER_02: cakeMaxiWorker02Factory,
-    MDEX_WORKER_02: mdexWorker02Factory,
-  };
+  // Map each TO_BE_UPGRADE_WORKERS with related factory
+  // Do it here so error throw here before queue timelock
+  const contractFactories: Array<ContractFactory> = [];
+  for (let i = 0; i < TO_BE_UPGRADE_WORKERS.length; i++) {
+    contractFactories.push(await getFactory(TO_BE_UPGRADE_WORKERS[i].WORKER_NAME, factories));
+  }
+
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
-
   for (let i = 0; i < TO_BE_UPGRADE_WORKERS.length; i++) {
     console.log(`>> Preparing to upgrade ${TO_BE_UPGRADE_WORKERS[i].WORKER_NAME}`);
-    const NewPancakeswapWorker: ContractFactory = getFactory(TO_BE_UPGRADE_WORKERS[i].WORKER_NAME, FACTORY);
-    const preparedNewWorker: string = await upgrades.prepareUpgrade(
-      TO_BE_UPGRADE_WORKERS[i].ADDRESS,
-      NewPancakeswapWorker
-    );
+    const NewWorkerFactory: ContractFactory = contractFactories[i];
+    const preparedNewWorker: string = await upgrades.prepareUpgrade(TO_BE_UPGRADE_WORKERS[i].ADDRESS, NewWorkerFactory);
 
-    const newImpl = preparedNewWorker;
     console.log(`>> New implementation deployed at: ${preparedNewWorker}`);
     console.log("✅ Done");
 
@@ -153,15 +158,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         "0",
         "upgrade(address,address)",
         ["address", "address"],
-        [TO_BE_UPGRADE_WORKERS[i].ADDRESS, newImpl],
+        [TO_BE_UPGRADE_WORKERS[i].ADDRESS, preparedNewWorker],
         EXACT_ETA,
         { gasPrice: ethers.utils.parseUnits("20", "gwei") }
       )
     );
   }
 
-  FileService.write(fileName, timelockTransactions);
+  fileService.writeJson(fileName, timelockTransactions);
 };
 
 export default func;
-func.tags = ["UpgradeWorkers02"];
+func.tags = ["UpgradeWorkers"];

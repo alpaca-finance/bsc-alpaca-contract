@@ -3,7 +3,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, upgrades } from "hardhat";
 import { getConfig } from "../../../entities/config";
 import { TimelockEntity } from "../../../entities";
-import { FileService, TimelockService } from "../../../services";
+import { fileService, TimelockService } from "../../../services";
 import { getDeployer } from "../../../../utils/deployer-helper";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -61,7 +61,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     );
   }
 
-  FileService.write(TITLE, timelockTransactions);
+  fileService.writeJson(TITLE, timelockTransactions);
 };
 
 export default func;
