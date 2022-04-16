@@ -1983,10 +1983,7 @@ describe("CakeMaxiWorker02MCV2", () => {
             deployer
           );
           const toBeLiquidatedValue = swapHelper.getMktSell(cakeToBeLiquidated, reservesAfter[1], reservesAfter[0]);
-          // const toBeLiquidatedValue = await integratedCakeMaxiWorker.health(1);
-          console.log("test:toBeLiquidatedValue", toBeLiquidatedValue);
           const liquidationBounty = toBeLiquidatedValue.mul(1000).div(10000);
-          console.log("test:liquidationBounty", liquidationBounty);
           const treasuryKillFees = toBeLiquidatedValue.mul(100).div(10000);
           const totalLiquidationFees = liquidationBounty.add(treasuryKillFees);
           const bobBalanceBefore = await ethers.provider.getBalance(await bob.getAddress());
@@ -2026,7 +2023,7 @@ describe("CakeMaxiWorker02MCV2", () => {
         });
       });
       context("when there is no buybackAmount left when killing a position", async () => {
-        it.only("should successfully liquidate a certain position after all transactions", async () => {
+        it("should successfully liquidate a certain position after all transactions", async () => {
           await integratedCakeMaxiWorker.setBeneficialVaultBountyBps(BigNumber.from(BENEFICIALVAULT_BOUNTY_BPS));
           expect(await integratedCakeMaxiWorker.beneficialVaultBountyBps()).to.eq(
             BigNumber.from(BENEFICIALVAULT_BOUNTY_BPS)
@@ -2123,7 +2120,7 @@ describe("CakeMaxiWorker02MCV2", () => {
           );
           Assert.assertAlmostEqual(
             (await integratedCakeMaxiWorker.buybackAmount()).toString(),
-            ethers.utils.parseEther("0.001205378386656404").toString()
+            ethers.utils.parseEther("0.067930831381089758").toString()
           );
           // since it's 1 blocks away from the last `work()`, the reward will be 6 CAKE
           // thus, reward staked in the masterchef will be  6 - 0.06 (as a reward) + 5.957612900496471886 = 11.897612900496471886
@@ -2142,15 +2139,15 @@ describe("CakeMaxiWorker02MCV2", () => {
           const afterVaultTotalToken = await integratedVault.totalToken();
           Assert.assertAlmostEqual(
             (await cake.balanceOf(await eve.getAddress())).toString(),
-            ethers.utils.parseEther("0.0018").toString()
+            ethers.utils.parseEther("0.108").toString()
           );
           Assert.assertAlmostEqual(
             (await wbnb.balanceOf(integratedVault.address))
               .sub(ethers.utils.parseEther("1").sub(ethers.utils.parseEther("0.05")))
               .toString(),
             ethers.utils
-              .parseEther("0.001431176510697250")
-              .add(ethers.utils.parseEther("0.001205378386656404"))
+              .parseEther("0.071794884397277023")
+              .add(ethers.utils.parseEther("0.067930831381089758"))
               .toString()
           );
           Assert.assertAlmostEqual(
@@ -2158,17 +2155,20 @@ describe("CakeMaxiWorker02MCV2", () => {
             ethers.utils.parseEther("0").toString()
           );
           // Now it's a liquidation part
-          await cakeAsAlice.approve(routerV2.address, constants.MaxUint256);
+          await cake.approve(routerV2.address, constants.MaxUint256);
           // alice buy wbnb so that the price will be fluctuated, so that the position can be liquidated
-          // swap tokens for exact 0.935 WBNB.
-          await routerV2AsAlice.swapTokensForExactETH(
+          // swap tokens for exact 1.13 WBNB.
+          const lpAddress = await factoryV2.getPair(cake.address, wbnb.address);
+          const lp = PancakePair__factory.connect(lpAddress, alice);
+          console.log(await lp.getReserves());
+          await routerV2.swapTokensForExactETH(
             ethers.utils.parseEther("1"),
             constants.MaxUint256,
             [cake.address, wbnb.address],
             await alice.getAddress(),
             FOREVER
           );
-
+          const reservesAfter = await lp.getReserves();
           // set interest rate to be 0 to be easy for testing.
           await simpleVaultConfig.setParams(
             MIN_DEBT_SIZE,
@@ -2182,8 +2182,20 @@ describe("CakeMaxiWorker02MCV2", () => {
             await deployer.getAddress()
           );
           // pre calculated left, liquidation reward, health
-          const toBeLiquidatedValue = await integratedCakeMaxiWorker.health(1);
-          const liquidationBounty = toBeLiquidatedValue.mul(KILL_PRIZE_BPS).div(10000);
+          const shares = await integratedCakeMaxiWorker.shares(1);
+          const totalBalance = await getUserCakeStakedBalance(integratedCakeMaxiWorker.address);
+          const totalShare = await integratedCakeMaxiWorker.totalShare();
+          const extraCakeInTheNextBlock = ethers.utils.parseEther("6");
+          const cakeToBeLiquidated = shares.mul(totalBalance.add(extraCakeInTheNextBlock)).div(totalShare);
+          const swapHelper = new SwapHelper(
+            factoryV2.address,
+            routerV2.address,
+            BigNumber.from(9975),
+            BigNumber.from(10000),
+            deployer
+          );
+          const toBeLiquidatedValue = swapHelper.getMktSell(cakeToBeLiquidated, reservesAfter[1], reservesAfter[0]);
+          const liquidationBounty = toBeLiquidatedValue.mul(1000).div(10000);
           const treasuryKillFees = toBeLiquidatedValue.mul(KILL_TREASURY_BPS).div(10000);
           const totalLiquidationFees = liquidationBounty.add(treasuryKillFees);
           const bobBalanceBefore = await ethers.provider.getBalance(await bob.getAddress());
