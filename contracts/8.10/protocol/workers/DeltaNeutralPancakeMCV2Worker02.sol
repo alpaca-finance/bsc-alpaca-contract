@@ -81,7 +81,6 @@ contract DeltaNeutralPancakeMCV2Worker02 is OwnableUpgradeable, ReentrancyGuardU
     uint256 reinvestThreshold,
     address[] reinvestPath
   );
-  event LogMigrateMasterChefV2(address oldMasterChef, uint256 oldPid, address masterChefV2, uint256 newPId);
 
   /// @dev constants
   uint256 private constant BASIS_POINT = 10000;

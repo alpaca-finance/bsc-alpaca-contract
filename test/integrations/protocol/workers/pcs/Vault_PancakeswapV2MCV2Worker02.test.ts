@@ -1,4 +1,4 @@
-import { ethers, upgrades, waffle } from "hardhat";
+import { ethers, network, upgrades, waffle } from "hardhat";
 import { constants, BigNumber } from "ethers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
@@ -48,7 +48,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 chai.use(solidity);
 const { expect } = chai;
 
-describe("Vault - PancakeswapV202", () => {
+describe("Vault - PancakeswapV2MCV2Worker02", () => {
   const FOREVER = "2000000000";
   const ALPACA_BONUS_LOCK_UP_BPS = 7000;
   const ALPACA_REWARD_PER_BLOCK = ethers.utils.parseEther("5000");
@@ -152,6 +152,7 @@ describe("Vault - PancakeswapV202", () => {
       bob.getAddress(),
       eve.getAddress(),
     ]);
+    await alice.sendTransaction({ value: ethers.utils.parseEther("100"), to: deployerAddress });
     const deployHelper = new DeployHelper(deployer);
 
     // Setup MockContractContext

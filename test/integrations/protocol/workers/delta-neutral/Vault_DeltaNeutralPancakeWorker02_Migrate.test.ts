@@ -1,4 +1,4 @@
-import { ethers, upgrades, waffle } from "hardhat";
+import { ethers, network, upgrades, waffle } from "hardhat";
 import { constants, BigNumber, utils } from "ethers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
@@ -149,7 +149,12 @@ describe("Vault - DeltaNetPancakeWorker02_Migrate", () => {
   let deployHelper: DeployHelper;
 
   async function fixture() {
-    [deployer, deltaNet, bob, eve] = await ethers.getSigners();
+    await network.provider.request({
+      method: "hardhat_impersonateAccount",
+      params: ["0xc44f82b07ab3e691f826951a6e335e1bc1bb0b51"],
+    });
+    deployer = await ethers.getSigner("0xc44f82b07ab3e691f826951a6e335e1bc1bb0b51");
+    [deltaNet, bob, eve] = await ethers.getSigners();
     deltaNet = deltaNet;
     [deployerAddress, deltaNetAddress, bobAddress] = await Promise.all([
       deployer.getAddress(),
@@ -157,6 +162,7 @@ describe("Vault - DeltaNetPancakeWorker02_Migrate", () => {
       bob.getAddress(),
     ]);
     deltaNetAddress = deltaNetAddress;
+    await bob.sendTransaction({ value: ethers.utils.parseEther("100"), to: deployerAddress });
     deployHelper = new DeployHelper(deployer);
 
     // Setup MockContractContext
@@ -712,8 +718,28 @@ describe("Vault - DeltaNetPancakeWorker02_Migrate", () => {
 
         // Migrate LP with wrong pool id
         await expect(deltaNeutralPancakeWorker02Migrate.migrateLP(masterChefV2.address, 2)).to.be.revertedWith(
-          "PancakeswapWorker::migrateLP::mismatch lp token"
+          "!LP Token"
         );
+      });
+    });
+
+    context("when Bob try to migrate pool", async () => {
+      it("should revert", async () => {
+        // Upgrade worker to migrate to MasterChefV2
+        const DeltaNeutralPancakeWorker02Migrate = (await ethers.getContractFactory(
+          "DeltaNeutralPancakeWorker02Migrate",
+          deployer
+        )) as DeltaNeutralPancakeWorker02Migrate__factory;
+        const deltaNeutralPancakeWorker02Migrate = (await upgrades.upgradeProxy(
+          deltaNeutralWorker.address,
+          DeltaNeutralPancakeWorker02Migrate
+        )) as DeltaNeutralPancakeWorker02Migrate;
+        await deltaNeutralPancakeWorker02Migrate.deployed();
+
+        // Bob try to migrate LP
+        await expect(
+          deltaNeutralPancakeWorker02Migrate.connect(bob).migrateLP(masterChefV2.address, 1)
+        ).to.be.revertedWith("!D");
       });
     });
 
@@ -765,7 +791,7 @@ describe("Vault - DeltaNetPancakeWorker02_Migrate", () => {
         await deltaNeutralPancakeWorker02Migrate.migrateLP(masterChefV2.address, 1);
 
         await expect(deltaNeutralPancakeWorker02Migrate.migrateLP(masterChefV2.address, 1)).to.be.revertedWith(
-          "PancakeswapWorker::migrateLP::wrong _masterChefV2"
+          "!MasterChefV2"
         );
       });
     });
