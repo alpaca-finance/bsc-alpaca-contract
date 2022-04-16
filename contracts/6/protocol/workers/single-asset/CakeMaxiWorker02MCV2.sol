@@ -30,6 +30,7 @@ import "../../../utils/AlpacaMath.sol";
 import "../../../utils/SafeToken.sol";
 import "../../interfaces/IVault.sol";
 import "../../interfaces/ICakePool.sol";
+import "hardhat/console.sol";
 
 /// @title CakeMaxiWorker02MCV2 is a reinvest-optimized CakeMaxiWorker which deposit into CakePool introduced in the PancakeSwap's MasterChefV2 migration
 contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02 {
@@ -97,6 +98,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
 
   ICakePool public cakePool;
   uint256 public accumulatedBounty; // This variable will keep track of the amount of accumulated CAKE bounty that has not been reinvested
+  uint256 public lastCakePoolActionTime;
 
   function initialize(
     address _operator,
@@ -226,11 +228,19 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     uint256 _currentTotalBalance = totalBalance();
 
     // 2. Calculate the profit since cakeAtLastUserAction with the current CAKE balance
-    (, , uint256 _cakeAtLastUserAction, , , , , , ) = cakePool.userInfo(address(this));
+    (, , uint256 _cakeAtLastUserAction, uint256 _lastUserActionTime, , , , , ) = cakePool.userInfo(address(this));
     uint256 _currentProfit = _currentTotalBalance.sub(_cakeAtLastUserAction);
-    uint256 _bounty = _currentProfit.mul(_treasuryBountyBps).div(10000).add(accumulatedBounty);
+    uint256 _bounty = _currentProfit.mul(_treasuryBountyBps).div(10000);
+    // If the CakePool has been interacted since last time, the `accumulatedBounty` must be added.
+    // This is to prevent double counting `accumulatedBounty` in case there is no interaction at all between two `_reinvest()` calls.
+    if (_lastUserActionTime > lastCakePoolActionTime) _bounty = _bounty.add(accumulatedBounty);
+    // Check for `_reinvestThreshold` to save gas and `MIN_WITHDRAW_AMOUNT` to prevent failed bounty withdrawal
     if (_bounty < _reinvestThreshold || _bounty < cakePool.MIN_WITHDRAW_AMOUNT()) {
+      // If the worker decided to not collect performance fee here,
+      // Update `accumulatedBounty` with `_bounty` which will already include any previously accumulated bounty.
       accumulatedBounty = _bounty;
+      // Update `lastCakePoolActionTime` for double counting prevention
+      lastCakePoolActionTime = _lastUserActionTime;
       return;
     }
 
@@ -246,8 +256,11 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
       farmingToken.safeTransfer(_treasuryAccount, _actualBountyReceived.sub(beneficialVaultBounty));
     }
 
-    // 5. Reset `accumulatedBounty`
+    // 5. Reset `accumulatedBounty` when the bounty has been collected
     accumulatedBounty = 0;
+    // Update `lastCakePoolActionTime` for double counting prevention
+    lastCakePoolActionTime = block.timestamp;
+
     emit Reinvest(_treasuryAccount, _currentProfit, _actualBountyReceived);
   }
 
@@ -309,9 +322,13 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     // 3. Perform the worker strategy; sending a basetoken amount to the strategy.
     (address strat, bytes memory ext) = abi.decode(data, (address, bytes));
     require(okStrats[strat], "CakeMaxiWorker02MCV2::work:: unapproved work strategy");
+    console.log("baseBefore", actualBaseTokenBalance());
+    console.log("farmBefore", actualFarmingTokenBalance());
     baseToken.safeTransfer(strat, actualBaseTokenBalance());
     farmingToken.safeTransfer(strat, actualFarmingTokenBalance());
     IStrategy(strat).execute(user, debt, ext);
+    console.log("baseAfter", actualBaseTokenBalance());
+    console.log("farmAfter", actualFarmingTokenBalance());
     // 4. Add farming token back to the farming pool. Thus, increasing an LP size of the current position's shares
     _addShare(id);
     // 5. Return any remaining BaseToken back to the operator.
@@ -596,6 +613,10 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
   function totalBalance() internal view returns (uint256 _totalBalance) {
     (uint256 _shares, , , , , , , , ) = cakePool.userInfo(address(this));
     _totalBalance = _shares.mul(cakePool.getPricePerFullShare()).div(1e18);
+    uint256 _cakePoolPerformanceFee = cakePool.calculatePerformanceFee(address(this));
+    _totalBalance = _totalBalance.sub(_cakePoolPerformanceFee);
+    console.log("_cakePoolPerformanceFee", _cakePoolPerformanceFee);
+    console.log("worker::_totalBalance", _totalBalance);
   }
 
   function getAmountAfterWithdrawalFee(uint256 _amount) internal view returns (uint256) {

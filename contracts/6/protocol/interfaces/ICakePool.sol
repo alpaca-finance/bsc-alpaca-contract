@@ -35,6 +35,8 @@ interface ICakePool {
       uint256 lockedAmount
     );
 
+  function calculatePerformanceFee(address _user) external view returns (uint256);
+
   function token() external view returns (address);
 
   function getPricePerFullShare() external view returns (uint256);
