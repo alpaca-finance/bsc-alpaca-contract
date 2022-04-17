@@ -227,7 +227,7 @@ contract DeltaNeutralPancakeMCV2Worker02 is OwnableUpgradeable, ReentrancyGuardU
     if (_treasuryAccount == address(0)) revert DeltaNeutralPancakeMCV2Worker02_BadTreasuryAccount();
 
     // 1. Withdraw all the rewards. Return if reward <= _reinvestThreshold.
-    activeMasterChef().withdraw(pid, 0);
+    masterChefV2.withdraw(pid, 0);
     uint256 reward = cake.myBalance();
     if (reward <= _reinvestThreshold) return;
 
@@ -358,10 +358,10 @@ contract DeltaNeutralPancakeMCV2Worker02 is OwnableUpgradeable, ReentrancyGuardU
   function _masterChefDeposit() internal {
     uint256 balance = lpToken.balanceOf(address(this));
     if (balance > 0) {
-      address(lpToken).safeApprove(address(activeMasterChef()), type(uint256).max);
-      activeMasterChef().deposit(pid, balance);
+      address(lpToken).safeApprove(address(masterChefV2), type(uint256).max);
+      masterChefV2.deposit(pid, balance);
       totalLpBalance = totalLpBalance + balance;
-      address(lpToken).safeApprove(address(activeMasterChef()), 0);
+      address(lpToken).safeApprove(address(masterChefV2), 0);
       emit MasterChefDeposit(balance);
     }
   }
@@ -369,7 +369,7 @@ contract DeltaNeutralPancakeMCV2Worker02 is OwnableUpgradeable, ReentrancyGuardU
   /// @dev Internal function to withdraw all outstanding LP tokens.
   function _masterChefWithdraw() internal {
     uint256 _totalLpBalance = totalLpBalance;
-    activeMasterChef().withdraw(pid, _totalLpBalance);
+    masterChefV2.withdraw(pid, _totalLpBalance);
     totalLpBalance = 0;
     emit MasterChefWithdraw(_totalLpBalance);
   }
@@ -544,12 +544,5 @@ contract DeltaNeutralPancakeMCV2Worker02 is OwnableUpgradeable, ReentrancyGuardU
     rewardPath = _rewardPath;
 
     emit SetBeneficialVaultConfig(msg.sender, _beneficialVaultBountyBps, _beneficialVault, _rewardPath);
-  }
-
-  function activeMasterChef() public view returns (IGenericPancakeMasterChef _activeMasterChef) {
-    return
-      address(masterChefV2) == address(0)
-        ? IGenericPancakeMasterChef(address(masterChef))
-        : IGenericPancakeMasterChef(address(masterChefV2));
   }
 }
