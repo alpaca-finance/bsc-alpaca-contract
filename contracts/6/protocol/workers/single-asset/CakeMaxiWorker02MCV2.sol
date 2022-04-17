@@ -221,7 +221,6 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     uint256 _callerBalance,
     uint256 _reinvestThreshold
   ) internal {
-    require(_treasuryAccount != address(0), "CakeMaxiWorker02::_reinvest:: bad treasury account");
     // 1. reset all reward balance since all rewards will be reinvested
     rewardBalance = 0;
     uint256 _currentTotalBalance = totalBalance();
@@ -231,10 +230,37 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     // Deduct `accumulatedBounty` which has not been collected from here for profit calculation to be correct
     _cakeAtLastUserAction = _cakeAtLastUserAction.sub(accumulatedBounty);
     uint256 _currentProfit = _currentTotalBalance.sub(_cakeAtLastUserAction);
-    uint256 _bounty = _currentProfit.mul(_treasuryBountyBps).div(10000);
-    // If the CakePool has been interacted since last time, the `accumulatedBounty` must be added.
+    uint256 _bounty = _currentProfit.mul(_treasuryBountyBps) / 10000;
+
+    // If the CakePool has been interacted since last time (_lastUserActionTime > lastCakePoolActionTime), the `accumulatedBounty` must be added.
     // This is to prevent double counting `accumulatedBounty` in case there is no interaction at all between two `_reinvest()` calls.
+    // The `_bounty` must correctly represent the Performance Fee calculated from profit.
+    // `accumulatedBounty` is the state that will remember any uncollected Performance Fee due to `_reinvestThreshold` and `MIN_WITHDRAW_AMOUNT`.
+    //
+    // Case 1: CakePool interaction between two reinvest
+    // #1 Reinvest                                                     #2 Reinvest
+    // lastUserActionTime: 1                                           lastUserActionTime: 2
+    // profit: 1 CAKE                     Position                     profit: 1 CAKE
+    // bounty: 0.1 CAKE                   Interaction                  bounty: 0.1 CAKE
+    // +--------------------------------------+--------------------------------------+
+    // [No reinvest]                                                   [Reinvest occur]
+    // accumulatedBounty: 0.1 CAKE                                     accumulatedBounty: 0.1 CAKE
+    // lastCakePoolActionTime: 1                                       lastCakePoolActionTime: 1
+    //                                                                 bountyToCollect = bounty + accumulatedBounty = 0.2 CAKE
+    // Case 2: No CakePool interaction between two reinvest
+    // #1 Reinvest                                                     #2 Reinvest
+    // lastUserActionTime: 1                                           lastUserActionTime: 1
+    // profit: 1 CAKE                                                  profit: 2 CAKE
+    // bounty: 0.1 CAKE                                                bounty: 0.2 CAKE
+    // +-----------------------------------------------------------------------------+
+    // [No reinvest]                                                   [Reinvest occur]
+    // accumulatedBounty: 0.1 CAKE                                     accumulatedBounty: 0.1 CAKE
+    // lastCakePoolActionTime: 1                                       lastCakePoolActionTime: 1
+    //                                                                 bountyToCollect = bounty = 0.2 CAKE
+    //                                                                 (accumulatedBounty is ignored here, because it is already included when calculating bounty)
+    //
     if (_lastUserActionTime > lastCakePoolActionTime) _bounty = _bounty.add(accumulatedBounty);
+
     // Check for `_reinvestThreshold` to save gas and `MIN_WITHDRAW_AMOUNT` to prevent failed bounty withdrawal
     if (_bounty < _reinvestThreshold || _bounty < cakePool.MIN_WITHDRAW_AMOUNT()) {
       // If the worker decided to not collect performance fee here,
@@ -315,9 +341,8 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     uint256 debt,
     bytes calldata data
   ) external override onlyOperator nonReentrant {
-    // 1. If a treasury configs are not ready. Not reinvest.
-    if (treasuryAccount != address(0) && treasuryBountyBps != 0)
-      _reinvest(treasuryAccount, treasuryBountyBps, actualBaseTokenBalance(), reinvestThreshold);
+    // 1. Reinvest
+    _reinvest(treasuryAccount, treasuryBountyBps, actualBaseTokenBalance(), reinvestThreshold);
     // 2. Remove shares on this position back to farming tokens
     _removeShare(id);
     // 3. Perform the worker strategy; sending a basetoken amount to the strategy.
