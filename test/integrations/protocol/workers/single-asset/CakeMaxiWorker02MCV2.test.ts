@@ -1926,7 +1926,7 @@ describe("CakeMaxiWorker02MCV2", () => {
         context(
           "When there is no CakePool interaction at all, between each reinvest and bounty is below minimum withdraw amount",
           async () => {
-            it.only("should track accumulated bounty correctly", async () => {
+            it("should track accumulated bounty correctly", async () => {
               // Set reinvestThreshold to 0 CAKE
               await cakeMaxiWorkerNative.setReinvestConfig(REINVEST_BOUNTY_BPS, ethers.utils.parseEther("0"));
 
