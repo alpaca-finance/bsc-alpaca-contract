@@ -12,7 +12,7 @@ import {
   PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading__factory,
 } from "../../../../typechain";
 import { ConfigEntity, TimelockEntity } from "../../../entities";
-import { FileService, TimelockService } from "../../../services";
+import { fileService, TimelockService } from "../../../services";
 import { BlockScanGasPrice } from "../../../services/gas-price/blockscan";
 
 interface IBeneficialVaultInput {
@@ -314,7 +314,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     );
     console.log("✅ Done");
   }
-  FileService.write(TITLE, timelockTransactions);
+  fileService.writeJson(TITLE, timelockTransactions);
 };
 
 export default func;

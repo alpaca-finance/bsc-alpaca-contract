@@ -1,5 +1,5 @@
-import * as TimelockService from './timelock'
-export { TimelockService }
+import * as TimelockService from "./timelock";
+export { TimelockService };
 
-import * as FileService from './file'
-export { FileService }
+import * as fileService from "./file";
+export { fileService };

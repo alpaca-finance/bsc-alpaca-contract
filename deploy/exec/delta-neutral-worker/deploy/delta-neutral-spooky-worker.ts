@@ -15,7 +15,7 @@ import {
   WorkerConfig__factory,
 } from "../../../../typechain";
 import { ConfigEntity, TimelockEntity } from "../../../entities";
-import { FileService, TimelockService } from "../../../services";
+import { fileService, TimelockService } from "../../../services";
 import { BlockScanGasPrice } from "../../../services/gas-price/blockscan";
 import { getDeployer } from "../../../../utils/deployer-helper";
 import { compare } from "../../../../utils/address";
@@ -345,7 +345,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     }
 
     if (isTimelockedWorkerConfig || isTimeLockVaultConfig) {
-      FileService.write(TITLE, timelockTransactions);
+      fileService.writeJson(TITLE, timelockTransactions);
     }
   }
 };

@@ -6,7 +6,7 @@ import { getConfig } from "../../../entities/config";
 import { Multicall2Service } from "../../../services/multicall/multicall2";
 import { BigNumber, BigNumberish } from "ethers";
 import { TimelockEntity } from "../../../entities";
-import { FileService, TimelockService } from "../../../services";
+import { fileService, TimelockService } from "../../../services";
 
 interface SetConfigInput {
   WORKER: string;
@@ -111,7 +111,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     );
   }
 
-  FileService.write(TITLE, timelockTransactions);
+  fileService.writeJson(TITLE, timelockTransactions);
 };
 
 export default func;
