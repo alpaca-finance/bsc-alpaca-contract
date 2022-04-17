@@ -66,7 +66,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const fileName = "upgrade-disable-liquidate-waultswap-workers02";
+  const fileName = "upgrade-pcs-migrate-mcv2";
   const factories: Array<FactoryMap> = [
     {
       workerType: "PancakeswapWorker",
@@ -82,36 +82,68 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     },
   ];
   const workerInputs: IWorkerInputs = [
-    "WEX-WBNB WaultswapWorker",
-    "BUSD-WBNB WaultswapWorker",
-    "ALPACA-WBNB WaultswapWorker",
-    "WAULTx-WBNB WaultswapWorker",
-    "ETH-BUSD WaultswapWorker",
-    "WBNB-BUSD WaultswapWorker",
-    "USDT-BUSD WaultswapWorker",
-    "BTCB-BUSD WaultswapWorker",
-    "WUSD-BUSD WaultswapWorker",
-    "BUSD-ETH WaultswapWorker",
-    "BTCB-ETH WaultswapWorker",
-    "BETH-ETH WaultswapWorker",
-    "USDT-ETH WaultswapWorker",
-    "USDT-ALPACA WaultswapWorker",
-    "WBNB-ALPACA WaultswapWorker",
-    "ALPACA-USDT WaultswapWorker",
-    "WEX-USDT WaultswapWorker",
-    "BUSD-USDT WaultswapWorker",
-    "BTCB-USDT WaultswapWorker",
-    "ETH-USDT WaultswapWorker",
-    "MATIC-USDT WaultswapWorker",
-    "TUSD-USDT WaultswapWorker",
-    "ETH-BTCB WaultswapWorker",
-    "USDT-BTCB WaultswapWorker",
-    "BUSD-BTCB WaultswapWorker",
-    "USDT-TUSD WaultswapWorker",
+    "WBNB CakeMaxiWorker",
+    "BUSD CakeMaxiWorker",
+    "ETH CakeMaxiWorker",
+    "USDT CakeMaxiWorker",
+    "BTCB CakeMaxiWorker",
+    "TUSD CakeMaxiWorker",
+    "USDC CakeMaxiWorker",
+    "CAKE-WBNB PancakeswapWorker",
+    "BTCB-WBNB PancakeswapWorker",
+    "ETH-WBNB PancakeswapWorker",
+    "DOT-WBNB PancakeswapWorker",
+    "UNI-WBNB PancakeswapWorker",
+    "LINK-WBNB PancakeswapWorker",
+    "XVS-WBNB PancakeswapWorker",
+    "BUSD-WBNB PancakeswapWorker",
+    "BELT-WBNB PancakeswapWorker",
+    "USDT-WBNB PancakeswapWorker",
+    "ADA-WBNB PancakeswapWorker",
+    "AXS-WBNB PancakeswapWorker",
+    "MBOX-WBNB PancakeswapWorker",
+    "DVI-WBNB PancakeswapWorker",
+    "SPS-WBNB PancakeswapWorker",
+    "USDT-BUSD PancakeswapWorker",
+    "WBNB-BUSD PancakeswapWorker",
+    "VAI-BUSD PancakeswapWorker",
+    "USDC-BUSD PancakeswapWorker",
+    "DAI-BUSD PancakeswapWorker",
+    "UST-BUSD PancakeswapWorker",
+    "BTCB-BUSD PancakeswapWorker",
+    "ALPACA-BUSD PancakeswapWorker",
+    "CAKE-BUSD PancakeswapWorker",
+    "TUSD-BUSD PancakeswapWorker",
+    "TRX-BUSD PancakeswapWorker",
+    "SUSHI-ETH PancakeswapWorker",
+    "WBNB-ETH PancakeswapWorker",
+    "BTCB-ETH PancakeswapWorker",
+    "BUSD-ALPACA PancakeswapWorker",
+    "BUSD-USDT PancakeswapWorker",
+    "WBNB-USDT PancakeswapWorker",
+    "CAKE-USDT PancakeswapWorker",
+    "USDC-USDT PancakeswapWorker",
+    "WBNB-BTCB PancakeswapWorker",
+    "BUSD-BTCB PancakeswapWorker",
+    "ETH-BTCB PancakeswapWorker",
+    "BUSD-TUSD PancakeswapWorker",
+    "USDT-WBNB 3x DeltaNeutralPancakeswapWorker",
+    "USDT-WBNB 8x PCS1 DeltaNeutralPancakeswapWorker",
+    "USDT-WBNB 8x PCS2 DeltaNeutralPancakeswapWorker",
+    "WBNB-USDT 3x DeltaNeutralPancakeswapWorker",
+    "WBNB-USDT 8x PCS1 DeltaNeutralPancakeswapWorker",
+    "WBNB-USDT 8x PCS2 DeltaNeutralPancakeswapWorker",
+    "XWG-USDC PancakeswapWorker",
+    "THG-WBNB PancakeswapWorker",
+    "HIGH-BUSD PancakeswapWorker",
+    "USDC-ETH PancakeswapWorker",
+    "ETH-USDC PancakeswapWorker",
+    "USDT-USDC PancakeswapWorker",
   ];
-  const EXACT_ETA = "1649232000";
+  const EXACT_ETA = "1650295800";
 
   const config = ConfigEntity.getConfig();
+  const ts = Math.floor(new Date().getTime() / 1000);
   const allWorkers: IWorkers = config.Vaults.reduce((accum, vault) => {
     return accum.concat(
       vault.workers.map((worker) => {
@@ -144,6 +176,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   for (let i = 0; i < TO_BE_UPGRADE_WORKERS.length; i++) {
+    console.log("-------");
     console.log(`>> Preparing to upgrade ${TO_BE_UPGRADE_WORKERS[i].WORKER_NAME}`);
     const NewWorkerFactory: ContractFactory = contractFactories[i];
     const preparedNewWorker: string = await upgrades.prepareUpgrade(TO_BE_UPGRADE_WORKERS[i].ADDRESS, NewWorkerFactory);
@@ -163,9 +196,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         { gasPrice: ethers.utils.parseUnits("20", "gwei") }
       )
     );
-  }
 
-  fileService.writeJson(fileName, timelockTransactions);
+    fileService.writeJson(`${ts}_${fileName}`, timelockTransactions);
+  }
 };
 
 export default func;

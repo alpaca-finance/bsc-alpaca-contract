@@ -8,7 +8,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   const queuedTimelockPath = "./deploy/results/1648448738_adjust_BUSD-ALPACA_kill_factor.json";
-  const queuedTimelocks = (await FileService.readJson(queuedTimelockPath)) as Array<TimelockEntity.Transaction>;
+  const queuedTimelocks = (await fileService.readJson(queuedTimelockPath)) as Array<TimelockEntity.Transaction>;
   const errs = [];
   let nonce = await deployer.getTransactionCount();
 

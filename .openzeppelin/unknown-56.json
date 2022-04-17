@@ -12273,25 +12273,25 @@
           {
             "contract": "CakeMaxiWorker02",
             "label": "masterChef",
-            "type": "t_contract(IPancakeMasterChef)27062",
+            "type": "t_contract(IPancakeMasterChef)30199",
             "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02.sol:63"
           },
           {
             "contract": "CakeMaxiWorker02",
             "label": "factory",
-            "type": "t_contract(IPancakeFactory)3268",
+            "type": "t_contract(IPancakeFactory)30131",
             "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02.sol:65"
           },
           {
             "contract": "CakeMaxiWorker02",
             "label": "router",
-            "type": "t_contract(IPancakeRouter02)18144",
+            "type": "t_contract(IPancakeRouter02)19671",
             "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02.sol:65"
           },
           {
             "contract": "CakeMaxiWorker02",
             "label": "lpToken",
-            "type": "t_contract(IPancakePair)3510",
+            "type": "t_contract(IPancakePair)30441",
             "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02.sol:67"
           },
           {
@@ -12327,7 +12327,7 @@
           {
             "contract": "CakeMaxiWorker02",
             "label": "beneficialVault",
-            "type": "t_contract(IVault)27124",
+            "type": "t_contract(IVault)31437",
             "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02.sol:74"
           },
           {
@@ -12351,13 +12351,13 @@
           {
             "contract": "CakeMaxiWorker02",
             "label": "addStrat",
-            "type": "t_contract(IStrategy)27090",
+            "type": "t_contract(IStrategy)30522",
             "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02.sol:79"
           },
           {
             "contract": "CakeMaxiWorker02",
             "label": "liqStrat",
-            "type": "t_contract(IStrategy)27090",
+            "type": "t_contract(IStrategy)30522",
             "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02.sol:80"
           },
           {
@@ -12440,16 +12440,16 @@
           }
         ],
         "types": {
-          "t_contract(IPancakeMasterChef)27062": {
+          "t_contract(IPancakeMasterChef)30199": {
             "label": "contract IPancakeMasterChef"
           },
-          "t_contract(IPancakeFactory)3268": {
+          "t_contract(IPancakeFactory)30131": {
             "label": "contract IPancakeFactory"
           },
-          "t_contract(IPancakeRouter02)18144": {
+          "t_contract(IPancakeRouter02)19671": {
             "label": "contract IPancakeRouter02"
           },
-          "t_contract(IPancakePair)3510": {
+          "t_contract(IPancakePair)30441": {
             "label": "contract IPancakePair"
           },
           "t_address": {
@@ -12458,7 +12458,7 @@
           "t_uint256": {
             "label": "uint256"
           },
-          "t_contract(IVault)27124": {
+          "t_contract(IVault)31437": {
             "label": "contract IVault"
           },
           "t_mapping(t_uint256,t_uint256)": {
@@ -12470,7 +12470,7 @@
           "t_bool": {
             "label": "bool"
           },
-          "t_contract(IStrategy)27090": {
+          "t_contract(IStrategy)30522": {
             "label": "contract IStrategy"
           },
           "t_array(t_address)dyn_storage": {
@@ -14112,25 +14112,25 @@
           {
             "contract": "PancakeswapV2Worker02",
             "label": "masterChef",
-            "type": "t_contract(IPancakeMasterChef)27503",
+            "type": "t_contract(IPancakeMasterChef)30199",
             "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:66"
           },
           {
             "contract": "PancakeswapV2Worker02",
             "label": "factory",
-            "type": "t_contract(IPancakeFactory)3268",
+            "type": "t_contract(IPancakeFactory)30131",
             "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:68"
           },
           {
             "contract": "PancakeswapV2Worker02",
             "label": "router",
-            "type": "t_contract(IPancakeRouter02)18585",
+            "type": "t_contract(IPancakeRouter02)19671",
             "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:68"
           },
           {
             "contract": "PancakeswapV2Worker02",
             "label": "lpToken",
-            "type": "t_contract(IPancakePair)3510",
+            "type": "t_contract(IPancakePair)30441",
             "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:70"
           },
           {
@@ -14190,13 +14190,13 @@
           {
             "contract": "PancakeswapV2Worker02",
             "label": "addStrat",
-            "type": "t_contract(IStrategy)27531",
+            "type": "t_contract(IStrategy)30522",
             "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:82"
           },
           {
             "contract": "PancakeswapV2Worker02",
             "label": "liqStrat",
-            "type": "t_contract(IStrategy)27531",
+            "type": "t_contract(IStrategy)30522",
             "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:83"
           },
           {
@@ -14256,7 +14256,7 @@
           {
             "contract": "PancakeswapV2Worker02",
             "label": "beneficialVault",
-            "type": "t_contract(IVault)28049",
+            "type": "t_contract(IVault)31437",
             "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:96"
           },
           {
@@ -14279,16 +14279,16 @@
           }
         ],
         "types": {
-          "t_contract(IPancakeMasterChef)27503": {
+          "t_contract(IPancakeMasterChef)30199": {
             "label": "contract IPancakeMasterChef"
           },
-          "t_contract(IPancakeFactory)3268": {
+          "t_contract(IPancakeFactory)30131": {
             "label": "contract IPancakeFactory"
           },
-          "t_contract(IPancakeRouter02)18585": {
+          "t_contract(IPancakeRouter02)19671": {
             "label": "contract IPancakeRouter02"
           },
-          "t_contract(IPancakePair)3510": {
+          "t_contract(IPancakePair)30441": {
             "label": "contract IPancakePair"
           },
           "t_address": {
@@ -14306,13 +14306,13 @@
           "t_bool": {
             "label": "bool"
           },
-          "t_contract(IStrategy)27531": {
+          "t_contract(IStrategy)30522": {
             "label": "contract IStrategy"
           },
           "t_array(t_address)dyn_storage": {
             "label": "address[]"
           },
-          "t_contract(IVault)28049": {
+          "t_contract(IVault)31437": {
             "label": "contract IVault"
           },
           "t_array(t_uint256)49_storage": {
@@ -16181,25 +16181,25 @@
           {
             "contract": "PancakeswapV2Worker02",
             "label": "masterChef",
-            "type": "t_contract(IPancakeMasterChef)30309",
+            "type": "t_contract(IPancakeMasterChef)32869",
             "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:66"
           },
           {
             "contract": "PancakeswapV2Worker02",
             "label": "factory",
-            "type": "t_contract(IPancakeFactory)30241",
+            "type": "t_contract(IPancakeFactory)32801",
             "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:68"
           },
           {
             "contract": "PancakeswapV2Worker02",
             "label": "router",
-            "type": "t_contract(IPancakeRouter02)19671",
+            "type": "t_contract(IPancakeRouter02)21574",
             "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:68"
           },
           {
             "contract": "PancakeswapV2Worker02",
             "label": "lpToken",
-            "type": "t_contract(IPancakePair)30551",
+            "type": "t_contract(IPancakePair)33176",
             "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:70"
           },
           {
@@ -16259,13 +16259,13 @@
           {
             "contract": "PancakeswapV2Worker02",
             "label": "addStrat",
-            "type": "t_contract(IStrategy)30632",
+            "type": "t_contract(IStrategy)33257",
             "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:82"
           },
           {
             "contract": "PancakeswapV2Worker02",
             "label": "liqStrat",
-            "type": "t_contract(IStrategy)30632",
+            "type": "t_contract(IStrategy)33257",
             "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:83"
           },
           {
@@ -16325,7 +16325,7 @@
           {
             "contract": "PancakeswapV2Worker02",
             "label": "beneficialVault",
-            "type": "t_contract(IVault)31602",
+            "type": "t_contract(IVault)34227",
             "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02.sol:96"
           },
           {
@@ -16348,16 +16348,16 @@
           }
         ],
         "types": {
-          "t_contract(IPancakeMasterChef)30309": {
+          "t_contract(IPancakeMasterChef)32869": {
             "label": "contract IPancakeMasterChef"
           },
-          "t_contract(IPancakeFactory)30241": {
+          "t_contract(IPancakeFactory)32801": {
             "label": "contract IPancakeFactory"
           },
-          "t_contract(IPancakeRouter02)19671": {
+          "t_contract(IPancakeRouter02)21574": {
             "label": "contract IPancakeRouter02"
           },
-          "t_contract(IPancakePair)30551": {
+          "t_contract(IPancakePair)33176": {
             "label": "contract IPancakePair"
           },
           "t_address": {
@@ -16375,13 +16375,13 @@
           "t_bool": {
             "label": "bool"
           },
-          "t_contract(IStrategy)30632": {
+          "t_contract(IStrategy)33257": {
             "label": "contract IStrategy"
           },
           "t_array(t_address)dyn_storage": {
             "label": "address[]"
           },
-          "t_contract(IVault)31602": {
+          "t_contract(IVault)34227": {
             "label": "contract IVault"
           },
           "t_array(t_uint256)49_storage": {
@@ -17173,31 +17173,31 @@
           {
             "contract": "DeltaNeutralPancakeWorker02",
             "label": "masterChef",
-            "type": "t_contract(IPancakeMasterChef)7305",
+            "type": "t_contract(IPancakeMasterChef)11668",
             "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:88"
           },
           {
             "contract": "DeltaNeutralPancakeWorker02",
             "label": "factory",
-            "type": "t_contract(IPancakeFactory)7234",
+            "type": "t_contract(IPancakeFactory)11597",
             "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:90"
           },
           {
             "contract": "DeltaNeutralPancakeWorker02",
             "label": "router",
-            "type": "t_contract(IPancakeRouter02)7937",
+            "type": "t_contract(IPancakeRouter02)12369",
             "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:90"
           },
           {
             "contract": "DeltaNeutralPancakeWorker02",
             "label": "lpToken",
-            "type": "t_contract(IPancakePair)7547",
+            "type": "t_contract(IPancakePair)11979",
             "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:91"
           },
           {
             "contract": "DeltaNeutralPancakeWorker02",
             "label": "priceOracle",
-            "type": "t_contract(IDeltaNeutralOracle)6090",
+            "type": "t_contract(IDeltaNeutralOracle)10360",
             "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:93"
           },
           {
@@ -17245,7 +17245,7 @@
           {
             "contract": "DeltaNeutralPancakeWorker02",
             "label": "addStrat",
-            "type": "t_contract(IStrategy)7950",
+            "type": "t_contract(IStrategy)12494",
             "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:103"
           },
           {
@@ -17299,7 +17299,7 @@
           {
             "contract": "DeltaNeutralPancakeWorker02",
             "label": "beneficialVault",
-            "type": "t_contract(IVault)8076",
+            "type": "t_contract(IVault)13527",
             "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:113"
           },
           {
@@ -17328,19 +17328,19 @@
           }
         ],
         "types": {
-          "t_contract(IPancakeMasterChef)7305": {
+          "t_contract(IPancakeMasterChef)11668": {
             "label": "contract IPancakeMasterChef"
           },
-          "t_contract(IPancakeFactory)7234": {
+          "t_contract(IPancakeFactory)11597": {
             "label": "contract IPancakeFactory"
           },
-          "t_contract(IPancakeRouter02)7937": {
+          "t_contract(IPancakeRouter02)12369": {
             "label": "contract IPancakeRouter02"
           },
-          "t_contract(IPancakePair)7547": {
+          "t_contract(IPancakePair)11979": {
             "label": "contract IPancakePair"
           },
-          "t_contract(IDeltaNeutralOracle)6090": {
+          "t_contract(IDeltaNeutralOracle)10360": {
             "label": "contract IDeltaNeutralOracle"
           },
           "t_address": {
@@ -17355,13 +17355,13 @@
           "t_bool": {
             "label": "bool"
           },
-          "t_contract(IStrategy)7950": {
+          "t_contract(IStrategy)12494": {
             "label": "contract IStrategy"
           },
           "t_array(t_address)dyn_storage": {
             "label": "address[]"
           },
-          "t_contract(IVault)8076": {
+          "t_contract(IVault)13527": {
             "label": "contract IVault"
           },
           "t_array(t_uint256)49_storage": {
@@ -18649,6 +18649,819 @@
           },
           "t_bool": {
             "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "a7b489ea5f3fecfb17f4f4701480c7a74978fc951de96169a91d5ed6bd63d220": {
+      "address": "0xe87822C211Eaaae2D294c592EC9Dd44eAFF7372c",
+      "txHash": "0xf89a3a861b2f175433ddfaaa0c73c0b1b6669c64ea53f2eb6e7916b62f6fff18",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:26"
+          },
+          {
+            "contract": "Initializable",
+            "label": "______gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:61"
+          },
+          {
+            "contract": "ContextUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol:37"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:18"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:78"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "_notEntered",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:21"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:63"
+          },
+          {
+            "contract": "CakeMaxiWorker02Migrate",
+            "label": "masterChef",
+            "type": "t_contract(IPancakeMasterChef)32869",
+            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02Migrate.sol:65"
+          },
+          {
+            "contract": "CakeMaxiWorker02Migrate",
+            "label": "factory",
+            "type": "t_contract(IPancakeFactory)32801",
+            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02Migrate.sol:67"
+          },
+          {
+            "contract": "CakeMaxiWorker02Migrate",
+            "label": "router",
+            "type": "t_contract(IPancakeRouter02)21574",
+            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02Migrate.sol:67"
+          },
+          {
+            "contract": "CakeMaxiWorker02Migrate",
+            "label": "lpToken",
+            "type": "t_contract(IPancakePair)33176",
+            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02Migrate.sol:69"
+          },
+          {
+            "contract": "CakeMaxiWorker02Migrate",
+            "label": "wNative",
+            "type": "t_address",
+            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02Migrate.sol:70"
+          },
+          {
+            "contract": "CakeMaxiWorker02Migrate",
+            "label": "baseToken",
+            "type": "t_address",
+            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02Migrate.sol:70"
+          },
+          {
+            "contract": "CakeMaxiWorker02Migrate",
+            "label": "farmingToken",
+            "type": "t_address",
+            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02Migrate.sol:72"
+          },
+          {
+            "contract": "CakeMaxiWorker02Migrate",
+            "label": "operator",
+            "type": "t_address",
+            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02Migrate.sol:73"
+          },
+          {
+            "contract": "CakeMaxiWorker02Migrate",
+            "label": "pid",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02Migrate.sol:75"
+          },
+          {
+            "contract": "CakeMaxiWorker02Migrate",
+            "label": "beneficialVault",
+            "type": "t_contract(IVault)34227",
+            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02Migrate.sol:76"
+          },
+          {
+            "contract": "CakeMaxiWorker02Migrate",
+            "label": "shares",
+            "type": "t_mapping(t_uint256,t_uint256)",
+            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02Migrate.sol:77"
+          },
+          {
+            "contract": "CakeMaxiWorker02Migrate",
+            "label": "okStrats",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02Migrate.sol:78"
+          },
+          {
+            "contract": "CakeMaxiWorker02Migrate",
+            "label": "totalShare",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02Migrate.sol:80"
+          },
+          {
+            "contract": "CakeMaxiWorker02Migrate",
+            "label": "addStrat",
+            "type": "t_contract(IStrategy)33257",
+            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02Migrate.sol:81"
+          },
+          {
+            "contract": "CakeMaxiWorker02Migrate",
+            "label": "liqStrat",
+            "type": "t_contract(IStrategy)33257",
+            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02Migrate.sol:82"
+          },
+          {
+            "contract": "CakeMaxiWorker02Migrate",
+            "label": "beneficialVaultBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02Migrate.sol:82"
+          },
+          {
+            "contract": "CakeMaxiWorker02Migrate",
+            "label": "reinvestBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02Migrate.sol:83"
+          },
+          {
+            "contract": "CakeMaxiWorker02Migrate",
+            "label": "maxReinvestBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02Migrate.sol:85"
+          },
+          {
+            "contract": "CakeMaxiWorker02Migrate",
+            "label": "rewardBalance",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02Migrate.sol:85"
+          },
+          {
+            "contract": "CakeMaxiWorker02Migrate",
+            "label": "okReinvestors",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02Migrate.sol:86"
+          },
+          {
+            "contract": "CakeMaxiWorker02Migrate",
+            "label": "path",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02Migrate.sol:89"
+          },
+          {
+            "contract": "CakeMaxiWorker02Migrate",
+            "label": "rewardPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02Migrate.sol:89"
+          },
+          {
+            "contract": "CakeMaxiWorker02Migrate",
+            "label": "fee",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02Migrate.sol:93"
+          },
+          {
+            "contract": "CakeMaxiWorker02Migrate",
+            "label": "feeDenom",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02Migrate.sol:93"
+          },
+          {
+            "contract": "CakeMaxiWorker02Migrate",
+            "label": "reinvestThreshold",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02Migrate.sol:96"
+          },
+          {
+            "contract": "CakeMaxiWorker02Migrate",
+            "label": "treasuryAccount",
+            "type": "t_address",
+            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02Migrate.sol:97"
+          },
+          {
+            "contract": "CakeMaxiWorker02Migrate",
+            "label": "treasuryBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02Migrate.sol:99"
+          },
+          {
+            "contract": "CakeMaxiWorker02Migrate",
+            "label": "buybackAmount",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02Migrate.sol:101"
+          },
+          {
+            "contract": "CakeMaxiWorker02Migrate",
+            "label": "cakePool",
+            "type": "t_contract(ICakePool)32621",
+            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02Migrate.sol:102"
+          }
+        ],
+        "types": {
+          "t_contract(IPancakeMasterChef)32869": {
+            "label": "contract IPancakeMasterChef"
+          },
+          "t_contract(IPancakeFactory)32801": {
+            "label": "contract IPancakeFactory"
+          },
+          "t_contract(IPancakeRouter02)21574": {
+            "label": "contract IPancakeRouter02"
+          },
+          "t_contract(IPancakePair)33176": {
+            "label": "contract IPancakePair"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_contract(IVault)34227": {
+            "label": "contract IVault"
+          },
+          "t_mapping(t_uint256,t_uint256)": {
+            "label": "mapping(uint256 => uint256)"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_contract(IStrategy)33257": {
+            "label": "contract IStrategy"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]"
+          },
+          "t_contract(ICakePool)32621": {
+            "label": "contract ICakePool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "6730943dbef311f67bad9049691985bcd58ad021c60e267ad8c1af30c9eea76b": {
+      "address": "0xbc13DF0cAE75114a44c3d7ACd6aDFAa229444d06",
+      "txHash": "0x30eb08766e85fb3c8847dccdeda69e599445f6d3c10de6794e09fbf3176d4f6a",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:26"
+          },
+          {
+            "contract": "Initializable",
+            "label": "______gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:61"
+          },
+          {
+            "contract": "ContextUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol:37"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:18"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:78"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "_notEntered",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:21"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:63"
+          },
+          {
+            "contract": "PancakeswapV2Worker02Migrate",
+            "label": "masterChef",
+            "type": "t_contract(IPancakeMasterChef)32869",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02Migrate.sol:68"
+          },
+          {
+            "contract": "PancakeswapV2Worker02Migrate",
+            "label": "factory",
+            "type": "t_contract(IPancakeFactory)32801",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02Migrate.sol:70"
+          },
+          {
+            "contract": "PancakeswapV2Worker02Migrate",
+            "label": "router",
+            "type": "t_contract(IPancakeRouter02)21574",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02Migrate.sol:70"
+          },
+          {
+            "contract": "PancakeswapV2Worker02Migrate",
+            "label": "lpToken",
+            "type": "t_contract(IPancakePair)33176",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02Migrate.sol:72"
+          },
+          {
+            "contract": "PancakeswapV2Worker02Migrate",
+            "label": "wNative",
+            "type": "t_address",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02Migrate.sol:73"
+          },
+          {
+            "contract": "PancakeswapV2Worker02Migrate",
+            "label": "baseToken",
+            "type": "t_address",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02Migrate.sol:73"
+          },
+          {
+            "contract": "PancakeswapV2Worker02Migrate",
+            "label": "farmingToken",
+            "type": "t_address",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02Migrate.sol:75"
+          },
+          {
+            "contract": "PancakeswapV2Worker02Migrate",
+            "label": "cake",
+            "type": "t_address",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02Migrate.sol:77"
+          },
+          {
+            "contract": "PancakeswapV2Worker02Migrate",
+            "label": "operator",
+            "type": "t_address",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02Migrate.sol:78"
+          },
+          {
+            "contract": "PancakeswapV2Worker02Migrate",
+            "label": "pid",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02Migrate.sol:79"
+          },
+          {
+            "contract": "PancakeswapV2Worker02Migrate",
+            "label": "shares",
+            "type": "t_mapping(t_uint256,t_uint256)",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02Migrate.sol:80"
+          },
+          {
+            "contract": "PancakeswapV2Worker02Migrate",
+            "label": "okStrats",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02Migrate.sol:81"
+          },
+          {
+            "contract": "PancakeswapV2Worker02Migrate",
+            "label": "totalShare",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02Migrate.sol:83"
+          },
+          {
+            "contract": "PancakeswapV2Worker02Migrate",
+            "label": "addStrat",
+            "type": "t_contract(IStrategy)33257",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02Migrate.sol:84"
+          },
+          {
+            "contract": "PancakeswapV2Worker02Migrate",
+            "label": "liqStrat",
+            "type": "t_contract(IStrategy)33257",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02Migrate.sol:85"
+          },
+          {
+            "contract": "PancakeswapV2Worker02Migrate",
+            "label": "reinvestBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02Migrate.sol:85"
+          },
+          {
+            "contract": "PancakeswapV2Worker02Migrate",
+            "label": "maxReinvestBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02Migrate.sol:86"
+          },
+          {
+            "contract": "PancakeswapV2Worker02Migrate",
+            "label": "okReinvestors",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02Migrate.sol:88"
+          },
+          {
+            "contract": "PancakeswapV2Worker02Migrate",
+            "label": "fee",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02Migrate.sol:92"
+          },
+          {
+            "contract": "PancakeswapV2Worker02Migrate",
+            "label": "feeDenom",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02Migrate.sol:92"
+          },
+          {
+            "contract": "PancakeswapV2Worker02Migrate",
+            "label": "reinvestThreshold",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02Migrate.sol:95"
+          },
+          {
+            "contract": "PancakeswapV2Worker02Migrate",
+            "label": "reinvestPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02Migrate.sol:96"
+          },
+          {
+            "contract": "PancakeswapV2Worker02Migrate",
+            "label": "treasuryAccount",
+            "type": "t_address",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02Migrate.sol:97"
+          },
+          {
+            "contract": "PancakeswapV2Worker02Migrate",
+            "label": "treasuryBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02Migrate.sol:98"
+          },
+          {
+            "contract": "PancakeswapV2Worker02Migrate",
+            "label": "beneficialVault",
+            "type": "t_contract(IVault)34227",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02Migrate.sol:98"
+          },
+          {
+            "contract": "PancakeswapV2Worker02Migrate",
+            "label": "beneficialVaultBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02Migrate.sol:99"
+          },
+          {
+            "contract": "PancakeswapV2Worker02Migrate",
+            "label": "rewardPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02Migrate.sol:102"
+          },
+          {
+            "contract": "PancakeswapV2Worker02Migrate",
+            "label": "buybackAmount",
+            "type": "t_uint256",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02Migrate.sol:102"
+          },
+          {
+            "contract": "PancakeswapV2Worker02Migrate",
+            "label": "masterChefV2",
+            "type": "t_contract(IPancakeMasterChefV2)32934",
+            "src": "contracts/6/protocol/workers/pcs/PancakeswapV2Worker02Migrate.sol:105"
+          }
+        ],
+        "types": {
+          "t_contract(IPancakeMasterChef)32869": {
+            "label": "contract IPancakeMasterChef"
+          },
+          "t_contract(IPancakeFactory)32801": {
+            "label": "contract IPancakeFactory"
+          },
+          "t_contract(IPancakeRouter02)21574": {
+            "label": "contract IPancakeRouter02"
+          },
+          "t_contract(IPancakePair)33176": {
+            "label": "contract IPancakePair"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_uint256,t_uint256)": {
+            "label": "mapping(uint256 => uint256)"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_contract(IStrategy)33257": {
+            "label": "contract IStrategy"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]"
+          },
+          "t_contract(IVault)34227": {
+            "label": "contract IVault"
+          },
+          "t_contract(IPancakeMasterChefV2)32934": {
+            "label": "contract IPancakeMasterChefV2"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "91d2d16cb214a8f493c6b783825a3c34296d531be864d790b1851362413cf4fb": {
+      "address": "0x0c99DAA3516C1F4405F1618A69182d806F68Ba43",
+      "txHash": "0x45854b364af6af7aeb7b28372962af967cc274ad1650fc307ec50860cf71270c",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:74"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02Migrate",
+            "label": "masterChef",
+            "type": "t_contract(IPancakeMasterChef)11668",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02Migrate.sol:91"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02Migrate",
+            "label": "factory",
+            "type": "t_contract(IPancakeFactory)11597",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02Migrate.sol:93"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02Migrate",
+            "label": "router",
+            "type": "t_contract(IPancakeRouter02)12369",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02Migrate.sol:93"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02Migrate",
+            "label": "lpToken",
+            "type": "t_contract(IPancakePair)11979",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02Migrate.sol:94"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02Migrate",
+            "label": "priceOracle",
+            "type": "t_contract(IDeltaNeutralOracle)10360",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02Migrate.sol:96"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02Migrate",
+            "label": "wNative",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02Migrate.sol:97"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02Migrate",
+            "label": "baseToken",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02Migrate.sol:97"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02Migrate",
+            "label": "farmingToken",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02Migrate.sol:99"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02Migrate",
+            "label": "cake",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02Migrate.sol:101"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02Migrate",
+            "label": "operator",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02Migrate.sol:102"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02Migrate",
+            "label": "pid",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02Migrate.sol:103"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02Migrate",
+            "label": "okStrats",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02Migrate.sol:104"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02Migrate",
+            "label": "addStrat",
+            "type": "t_contract(IStrategy)12494",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02Migrate.sol:106"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02Migrate",
+            "label": "reinvestBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02Migrate.sol:106"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02Migrate",
+            "label": "maxReinvestBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02Migrate.sol:107"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02Migrate",
+            "label": "okReinvestors",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02Migrate.sol:108"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02Migrate",
+            "label": "whitelistCallers",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02Migrate.sol:110"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02Migrate",
+            "label": "reinvestThreshold",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02Migrate.sol:113"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02Migrate",
+            "label": "reinvestPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02Migrate.sol:114"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02Migrate",
+            "label": "treasuryAccount",
+            "type": "t_address",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02Migrate.sol:115"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02Migrate",
+            "label": "treasuryBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02Migrate.sol:116"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02Migrate",
+            "label": "beneficialVault",
+            "type": "t_contract(IVault)13527",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02Migrate.sol:116"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02Migrate",
+            "label": "beneficialVaultBountyBps",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02Migrate.sol:117"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02Migrate",
+            "label": "rewardPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02Migrate.sol:119"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02Migrate",
+            "label": "buybackAmount",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02Migrate.sol:121"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02Migrate",
+            "label": "totalLpBalance",
+            "type": "t_uint256",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02Migrate.sol:121"
+          },
+          {
+            "contract": "DeltaNeutralPancakeWorker02Migrate",
+            "label": "masterChefV2",
+            "type": "t_contract(IPancakeMasterChefV2)11737",
+            "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02Migrate.sol:124"
+          }
+        ],
+        "types": {
+          "t_contract(IPancakeMasterChef)11668": {
+            "label": "contract IPancakeMasterChef"
+          },
+          "t_contract(IPancakeFactory)11597": {
+            "label": "contract IPancakeFactory"
+          },
+          "t_contract(IPancakeRouter02)12369": {
+            "label": "contract IPancakeRouter02"
+          },
+          "t_contract(IPancakePair)11979": {
+            "label": "contract IPancakePair"
+          },
+          "t_contract(IDeltaNeutralOracle)10360": {
+            "label": "contract IDeltaNeutralOracle"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_contract(IStrategy)12494": {
+            "label": "contract IStrategy"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]"
+          },
+          "t_contract(IVault)13527": {
+            "label": "contract IVault"
+          },
+          "t_contract(IPancakeMasterChefV2)11737": {
+            "label": "contract IPancakeMasterChefV2"
           },
           "t_array(t_uint256)49_storage": {
             "label": "uint256[49]"

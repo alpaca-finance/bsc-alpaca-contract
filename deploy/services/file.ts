@@ -8,5 +8,5 @@ export function readJson(filePath: string): any {
 
 export function writeJson(fileName: string, content: any) {
   const timestamp = Math.floor(Date.now() / 1000);
-  fs.writeFileSync(`./deploy/results/${timestamp}_${fileName}.json`, JSON.stringify(content, null, 2));
+  fs.writeFileSync(`./deploy/results/${fileName}.json`, JSON.stringify(content, null, 2));
 }
