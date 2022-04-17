@@ -33,11 +33,11 @@ import "../../interfaces/ICakePool.sol";
 
 /// @title CakeMaxiWorker02MCV2 is a reinvest-optimized CakeMaxiWorker which deposit into CakePool introduced in the PancakeSwap's MasterChefV2 migration
 contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02 {
-  /// @notice Libraries
+  /// ---- Libraries ----
   using SafeToken for address;
   using SafeMath for uint256;
 
-  /// @notice Events
+  /// ---- Events ----
   event Reinvest(address indexed caller, uint256 reward, uint256 bounty);
   event AddShare(uint256 indexed id, uint256 share);
   event RemoveShare(uint256 indexed id, uint256 share);
@@ -59,7 +59,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
   );
   event SetReinvestConfig(address indexed caller, uint256 reinvestBountyBps, uint256 reinvestThreshold);
 
-  /// @notice Configuration variables
+  /// ---- Configuration variables ----
   IPancakeMasterChef public masterChef;
   IPancakeFactory public factory;
   IPancakeRouter02 public router;
@@ -71,7 +71,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
   uint256 public pid;
   IVault public beneficialVault;
 
-  /// @notice Mutable state variables
+  /// ---- Mutable state variables ----
   mapping(uint256 => uint256) public shares;
   mapping(address => bool) public okStrats;
   uint256 public totalShare;
@@ -85,18 +85,20 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
   address[] public path;
   address[] public rewardPath;
 
-  /// @notice Configuration varaibles for V2
+  /// ---- Configuration varaibles for V2 ----
   uint256 public fee;
   uint256 public feeDenom;
 
-  /// @notice Upgraded State Variables for CakeMaxiWorker02MCV2
+  /// ---- Upgraded state variables for CakeMaxiWorker02 ----
   uint256 public reinvestThreshold;
   address public treasuryAccount;
   uint256 public treasuryBountyBps;
   uint256 public buybackAmount;
 
+  /// ---- Upgraded state variables for CakeMaxiWorker02MCV2 ----
   ICakePool public cakePool;
-  uint256 public accumulatedBounty; // This variable will keep track of the amount of accumulated CAKE bounty that has not been reinvested
+  /// @notice This variable will keep track of the amount of accumulated CAKE bounty that has not been reinvested
+  uint256 public accumulatedBounty;
   uint256 public lastCakePoolActionTime;
 
   function initialize(
@@ -168,25 +170,25 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     );
   }
 
-  /// @dev Require that the caller must be an EOA account to avoid flash loans.
+  /// @notice Require that the caller must be an EOA account to avoid flash loans.
   modifier onlyEOA() {
     require(msg.sender == tx.origin, "CakeMaxiWorker02MCV2::onlyEOA:: not eoa");
     _;
   }
 
-  /// @dev Require that the caller must be the operator.
+  /// @notice Require that the caller must be the operator.
   modifier onlyOperator() {
     require(msg.sender == operator, "CakeMaxiWorker02MCV2::onlyOperator:: not operator");
     _;
   }
 
-  //// @dev Require that the caller must be ok reinvestor.
+  //// @notice Require that the caller must be ok reinvestor.
   modifier onlyReinvestor() {
     require(okReinvestors[msg.sender], "CakeMaxiWorker02MCV2::onlyReinvestor:: not reinvestor");
     _;
   }
 
-  /// @dev Return the entitied farming token for the given shares.
+  /// @notice Return the entitied farming token for the given shares.
   /// @param share The number of shares to be converted to farming tokens.
   function shareToBalance(uint256 share) public view returns (uint256) {
     if (totalShare == 0) return share; // When there's no share, 1 share = 1 balance.
@@ -194,7 +196,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     return share.mul(totalBalance).div(totalShare);
   }
 
-  /// @dev Return the number of shares to receive if staking the farming token.
+  /// @notice Return the number of shares to receive if staking the farming token.
   /// @param balance the balance of farming token to be converted to shares.
   function balanceToShare(uint256 balance) public view returns (uint256) {
     if (totalShare == 0) return balance; // When there's no share, 1 share = 1 balance.
@@ -202,7 +204,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     return balance.mul(totalShare).div(totalBalance);
   }
 
-  /// @dev Re-invest whatever this worker has earned to the staking pool.
+  /// @notice Keep it as reinvest even though CakePool will be auto-compounded it for compatibility.
   function reinvest() external override onlyEOA onlyReinvestor nonReentrant {
     _reinvest(msg.sender, reinvestBountyBps, 0, 0);
     // in case of beneficial vault equals to operator vault, call buyback to transfer some buyback amount back to the vault
@@ -210,7 +212,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     _buyback();
   }
 
-  /// @dev Internal method containing reinvest logic
+  /// @notice Internal method containing performance collecting logic
   /// @param _treasuryAccount - The account that the reinvest bounty will be sent.
   /// @param _treasuryBountyBps - The bounty bps deducted from the reinvest reward.
   /// @param _callerBalance - The balance that is owned by the msg.sender within the execution scope.
@@ -265,7 +267,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     emit Reinvest(_treasuryAccount, _currentProfit, _actualBountyReceived);
   }
 
-  /// @dev Some portion of a bounty from reinvest will be sent to beneficialVault to increase the size of totalToken.
+  /// @notice Some portion of a bounty from reinvest will be sent to beneficialVault to increase the size of totalToken.
   /// @param _beneficialVaultBounty - The amount of CAKE to be swapped to BTOKEN & send back to the Vault.
   /// @param _callerBalance - The balance that is owned by the msg.sender within the execution scope.
   function _rewardToBeneficialVault(uint256 _beneficialVaultBounty, uint256 _callerBalance) internal {
@@ -294,7 +296,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     farmingToken.safeApprove(address(router), 0);
   }
 
-  /// @dev for transfering a buyback amount to the particular beneficial vault
+  /// @notice for transfering a buyback amount to the particular beneficial vault
   // this will be triggered when beneficialVaultToken equals to baseToken.
   function _buyback() internal {
     if (buybackAmount == 0) return;
@@ -304,7 +306,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     emit BeneficialVaultTokenBuyback(msg.sender, beneficialVault, _buybackAmount);
   }
 
-  /// @dev Work on the given position. Must be called by the operator.
+  /// @notice Work on the given position. Must be called by the operator.
   /// @param id The position ID to work on.
   /// @param user The original user that is interacting with the operator.
   /// @param debt The amount of user debt to help the strategy make decisions.
@@ -332,7 +334,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     baseToken.safeTransfer(msg.sender, actualBaseTokenBalance());
   }
 
-  /// @dev Return maximum output given the input amount and the status of Pancakeswap reserves.
+  /// @notice Return maximum output given the input amount and the status of Pancakeswap reserves.
   /// @param aIn The amount of asset to market sell.
   /// @param rIn the amount of asset in reserve for input.
   /// @param rOut The amount of asset in reserve for output.
@@ -349,7 +351,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     return numerator / denominator;
   }
 
-  /// @dev Return the amount of BaseToken to receive if we are to liquidate the given position.
+  /// @notice Return the amount of BaseToken to receive if we are to liquidate the given position.
   /// @param id The position ID to perform health check.
   function health(uint256 id) external view override returns (uint256) {
     IPancakePair currentLP;
@@ -370,7 +372,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     return amount[amount.length - 1];
   }
 
-  /// @dev Liquidate the given position by converting it to BaseToken and return back to caller.
+  /// @notice Liquidate the given position by converting it to BaseToken and return back to caller.
   /// @param id The position ID to perform liquidation
   function liquidate(uint256 id) external override onlyOperator nonReentrant {
     // 1. Remove shares on this position back to farming tokens
@@ -383,19 +385,19 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     emit Liquidate(id, liquidatedAmount);
   }
 
-  /// @dev since reward gaining from the masterchef is the same token with farmingToken,
+  /// @notice since reward gaining from the masterchef is the same token with farmingToken,
   /// thus the rewardBalance exists to differentiate an actual farming token balance without taking reward balance into account
   function actualFarmingTokenBalance() internal view returns (uint256) {
     return farmingToken.myBalance();
   }
 
-  /// @dev since buybackAmount variable has been created to collect a buyback balance when during the reinvest within the work method,
+  /// @notice since buybackAmount variable has been created to collect a buyback balance when during the reinvest within the work method,
   /// thus the actualBaseTokenBalance exists to differentiate an actual base token balance balance without taking buy back amount into account
   function actualBaseTokenBalance() internal view returns (uint256) {
     return baseToken.myBalance().sub(buybackAmount);
   }
 
-  /// @dev Internal function to stake all outstanding LP tokens to the given position ID.
+  /// @notice Internal function to stake all outstanding LP tokens to the given position ID.
   function _addShare(uint256 id) internal {
     uint256 shareBalance = actualFarmingTokenBalance();
     if (shareBalance > 0) {
@@ -410,9 +412,9 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     }
   }
 
-  /// @dev Internal function to remove shares of the ID and convert to outstanding LP tokens.
-  /// @notice since when removing shares, rewards token can be the same as farming token,
-  /// so it needs to return the current reward balance to be excluded fro the farming token balance
+  /// @notice Internal function to remove shares of the ID and convert to outstanding LP tokens.
+  /// @dev Since when removing shares, rewards token can be the same as farming token,
+  /// so it needs to return the current reward balance to be excluded fro the farming token balance.
   function _removeShare(uint256 id) internal {
     uint256 share = shares[id];
     if (share > 0) {
@@ -425,12 +427,12 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     }
   }
 
-  /// @dev Return the path that the worker is working on.
+  /// @notice Return the path that the worker is working on.
   function getPath() external view override returns (address[] memory) {
     return path;
   }
 
-  /// @dev Return the inverse path.
+  /// @notice Return the inverse path.
   function getReversedPath() public view override returns (address[] memory) {
     address tmp;
     address[] memory reversedPath = path;
@@ -442,12 +444,12 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     return reversedPath;
   }
 
-  /// @dev Return the path that the work is using for convert reward token to beneficial vault token.
+  /// @notice Return the path that the work is using for convert reward token to beneficial vault token.
   function getRewardPath() external view override returns (address[] memory) {
     return rewardPath;
   }
 
-  /// @dev Set the reinvest configuration.
+  /// @notice Set the reinvest configuration.
   /// @param _reinvestBountyBps - The bounty value to update.
   /// @param _reinvestThreshold - The threshold to update.
   function setReinvestConfig(uint256 _reinvestBountyBps, uint256 _reinvestThreshold) external onlyOwner {
@@ -462,7 +464,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     emit SetReinvestConfig(msg.sender, _reinvestBountyBps, _reinvestThreshold);
   }
 
-  /// @dev Set the reward bounty from reinvest operations sending to a beneficial vault.
+  /// @notice Set the reward bounty from reinvest operations sending to a beneficial vault.
   /// this bps will be deducted from reinvest bounty bps
   /// @param _beneficialVaultBountyBps The bounty value to update.
   function setBeneficialVaultBountyBps(uint256 _beneficialVaultBountyBps) external onlyOwner {
@@ -474,7 +476,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     emit SetBeneficialVaultBountyBps(msg.sender, _beneficialVaultBountyBps);
   }
 
-  /// @dev Set Max reinvest reward for set upper limit reinvest bounty.
+  /// @notice Set Max reinvest reward for set upper limit reinvest bounty.
   /// @param _maxReinvestBountyBps The max reinvest bounty value to update.
   function setMaxReinvestBountyBps(uint256 _maxReinvestBountyBps) external onlyOwner {
     require(
@@ -491,7 +493,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     emit SetMaxReinvestBountyBps(msg.sender, _maxReinvestBountyBps);
   }
 
-  /// @dev Set the given strategies' approval status.
+  /// @notice Set the given strategies' approval status.
   /// @param strats The strategy addresses.
   /// @param isOk Whether to approve or unapprove the given strategies.
   function setStrategyOk(address[] calldata strats, bool isOk) external override onlyOwner {
@@ -502,7 +504,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     }
   }
 
-  /// @dev Set the given address's to be reinvestor.
+  /// @notice Set the given address's to be reinvestor.
   /// @param reinvestors The reinvest bot addresses.
   /// @param isOk Whether to approve or unapprove the given strategies.
   function setReinvestorOk(address[] calldata reinvestors, bool isOk) external override onlyOwner {
@@ -513,7 +515,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     }
   }
 
-  /// @dev Set a new path. In case that the liquidity of the given path is changed.
+  /// @notice Set a new path. In case that the liquidity of the given path is changed.
   /// @param _path The new path.
   function setPath(address[] calldata _path) external onlyOwner {
     require(_path.length >= 2, "CakeMaxiWorker02MCV2::setPath:: path length must be >= 2");
@@ -527,7 +529,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     emit SetPath(msg.sender, _path);
   }
 
-  /// @dev Set a new reward path. In case that the liquidity of the reward path is changed.
+  /// @notice Set a new reward path. In case that the liquidity of the reward path is changed.
   /// @param _rewardPath The new reward path.
   function setRewardPath(address[] calldata _rewardPath) external onlyOwner {
     require(_rewardPath.length >= 2, "CakeMaxiWorker02MCV2::setRewardPath:: rewardPath length must be >= 2");
@@ -541,7 +543,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     emit SetRewardPath(msg.sender, _rewardPath);
   }
 
-  /// @dev Update critical strategy smart contracts. EMERGENCY ONLY. Bad strategies can steal funds.
+  /// @notice Update critical strategy smart contracts. EMERGENCY ONLY. Bad strategies can steal funds.
   /// @param _addStrat The new add strategy contract.
   /// @param _liqStrat The new liquidate strategy contract.
   function setCriticalStrategies(IStrategy _addStrat, IStrategy _liqStrat) external onlyOwner {
@@ -550,7 +552,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     emit SetCriticalStrategy(msg.sender, _addStrat, _liqStrat);
   }
 
-  /// @dev Set treasury configurations.
+  /// @notice Set treasury configurations.
   /// @param _treasuryAccount - The treasury address to update
   /// @param _treasuryBountyBps - The treasury bounty to update
   function setTreasuryConfig(address _treasuryAccount, uint256 _treasuryBountyBps) external onlyOwner {
@@ -565,7 +567,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     emit SetTreasuryConfig(msg.sender, treasuryAccount, treasuryBountyBps);
   }
 
-  /// @dev Set beneficial vault related configuration including beneficialVaultBountyBps, beneficialVaultAddress, and rewardPath
+  /// @notice Set beneficial vault related configuration including beneficialVaultBountyBps, beneficialVaultAddress, and rewardPath
   /// @param _beneficialVaultBountyBps - The bounty value to update.
   /// @param _beneficialVault - beneficialVaultAddress
   /// @param _rewardPath - reward token path from rewardToken to beneficialVaultToken
@@ -593,20 +595,27 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     emit SetBeneficialVaultConfig(msg.sender, _beneficialVaultBountyBps, _beneficialVault, _rewardPath);
   }
 
-  function deposit(uint256 _balance) internal {
+  /// @notice Deposit to the CakePool.
+  /// @dev Revert if waive fee assumption is not met.
+  /// @param _amount The amount to deposit.
+  function deposit(uint256 _amount) internal {
     require(
       cakePool.freeFeeUsers(address(this)),
       "CakeMaxiWorker02MCV2::deposit::cannot deposit with withdrawal fee on"
     );
     address(farmingToken).safeApprove(address(cakePool), uint256(-1));
-    cakePool.deposit(_balance, 0);
+    cakePool.deposit(_amount, 0);
     address(farmingToken).safeApprove(address(cakePool), 0);
   }
 
-  function withdraw(uint256 _balance) internal {
-    if (_balance > 0) cakePool.withdrawByAmount(_balance);
+  /// @notice Withdraw from the CakePool.
+  /// @param _amount The amount to withdraw.
+  function withdraw(uint256 _amount) internal {
+    if (_amount > 0) cakePool.withdrawByAmount(_amount);
   }
 
+  /// @notice Return the current balance that is owned by users.
+  /// @dev Balance should deduct the fee.
   function totalBalance() internal view returns (uint256 _totalBalance) {
     (uint256 _shares, , , , , , , , ) = cakePool.userInfo(address(this));
     _totalBalance = _shares.mul(cakePool.getPricePerFullShare()).div(1e18);
@@ -615,6 +624,9 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     _totalBalance = _totalBalance.sub(_cakePoolPerformanceFee);
   }
 
+  /// @notice Return the expected withdrawal amount if fee is applied.
+  /// @dev Meant to be used when free fee assumption not met and liquidation needs to be done.
+  /// @param _amount The amount to be withdrawn.
   function getAmountAfterWithdrawalFee(uint256 _amount) internal view returns (uint256) {
     bool isFreeFee = cakePool.freeFeeUsers(address(this));
     if (isFreeFee) return _amount;
