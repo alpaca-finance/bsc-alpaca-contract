@@ -2,7 +2,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 import { TimelockEntity } from "../../../entities";
-import { FileService, TimelockService } from "../../../services";
+import { fileService, TimelockService } from "../../../services";
 import { getConfig } from "../../../entities/config";
 
 interface IWorker {
@@ -102,7 +102,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     );
   }
 
-  FileService.write(fileName, timelockTransactions);
+  fileService.writeJson(fileName, timelockTransactions);
 };
 
 export default func;

@@ -4,7 +4,7 @@ import { ethers, network } from "hardhat";
 import { MiniFL__factory, Timelock, Timelock__factory } from "../../../../typechain";
 import { getConfig } from "../../../entities/config";
 import { TimelockEntity } from "../../../entities";
-import { FileService, TimelockService } from "../../../services";
+import { fileService, TimelockService } from "../../../services";
 
 interface IAddPool {
   STAKING_TOKEN_ADDRESS: string;
@@ -67,7 +67,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     }
   }
 
-  if (isTimelocked) FileService.write("add-pool", timelockTransactions);
+  if (isTimelocked) fileService.writeJson("add-pool", timelockTransactions);
 };
 
 export default func;

@@ -2,7 +2,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { TimelockEntity } from "../../../entities";
 import { mapWorkers } from "../../../entities/worker";
-import { FileService, TimelockService } from "../../../services";
+import { fileService, TimelockService } from "../../../services";
 import { ethers } from "hardhat";
 import { SpookyWorker03__factory } from "./../../../../typechain/factories/SpookyWorker03__factory";
 import { TombWorker03__factory } from "./../../../../typechain/factories/TombWorker03__factory";
@@ -65,7 +65,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log("✅ Done");
   }
 
-  FileService.write(fileName, timelockTransactions);
+  fileService.writeJson(fileName, timelockTransactions);
 };
 
 export default func;

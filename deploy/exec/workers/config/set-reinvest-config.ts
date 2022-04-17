@@ -4,7 +4,7 @@ import { ethers, network } from "hardhat";
 import { Timelock__factory } from "../../../../typechain";
 import MainnetConfig from "../../../../.mainnet.json";
 import TestnetConfig from "../../../../.testnet.json";
-import { FileService, TimelockService } from "../../../services";
+import { fileService, TimelockService } from "../../../services";
 import { TimelockEntity } from "../../../entities";
 
 interface IWorker {
@@ -568,7 +568,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     }
   }
 
-  FileService.write(`${title}`, timelockTransactions);
+  fileService.writeJson(`${title}`, timelockTransactions);
 };
 
 export default func;
