@@ -269,8 +269,7 @@ contract DeltaNeutralPancakeWorker02Migrate is OwnableUpgradeable, ReentrancyGua
     uint256 debt,
     bytes calldata data
   ) external override onlyWhitelistedCaller(user) onlyOperator nonReentrant {
-    // 1. reinvest
-    _reinvest(treasuryAccount, treasuryBountyBps, actualBaseTokenBalance(), reinvestThreshold);
+    // 1. not reinvest
 
     // 2. Withdraw all LP tokens.
     _masterChefWithdraw();
