@@ -209,6 +209,8 @@
     "deploy:mainnetfork:delta-neutral:configs:worker:set-whitelist-caller": "hardhat --network mainnetfork deploy --config hardhat.config.8.10.forking.ts --no-compile --reset --tags DeltaNeutralWorkerSetWhitelistCallers",
     "deploy:mainnetfork:vault-config:config:set-whitelisted-callers": "hardhat --network mainnetfork deploy --config hardhat.config.8.10.forking.ts --no-compile --reset --tags SetWhitelistedCallers",
     "deploy:mainnetfork:timelock:execute": "hardhat --network mainnetfork deploy --config hardhat.config.8.10.forking.ts --no-compile --reset --tags TimeLockExecution",
+    "deploy:mainnetfork:strategies:deploy:biswap:share-strategies": "hardhat --network mainnetfork deploy --config hardhat.config.8.10.forking.ts --no-compile --reset --tags BiswapShareRestrictedStrategies",
+    "deploy:mainnetfork:strategies:deploy:biswap:vault-strategies": "hardhat --network mainnetfork deploy --config hardhat.config.8.10.forking.ts --no-compile --reset --tags BiswapVaultRestrictedStrategies",
     "deploy:fantom_testnet:wftm:deploy:wftm": "hardhat --network fantom_testnet deploy --no-compile --reset --tags WFTM",
     "deploy:fantom_testnet:spooky:deploy:spookyswap": "hardhat --network fantom_testnet deploy --no-compile --reset --tags SpookySwap",
     "deploy:fantom_testnet:tomb:deploy:tshare-reward-pool": "hardhat --network fantom_testnet deploy --no-compile --reset --tags TShareRewardPool",
