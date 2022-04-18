@@ -995,7 +995,7 @@
       "pools": [
         {
           "pId": 1,
-          "name": "USDT-WBNB LP",
+          "name": "WBNB-USDT LP",
           "address": "0x8840C6252e2e86e545deFb6da98B2a0E26d8C1BA"
         }
       ]
