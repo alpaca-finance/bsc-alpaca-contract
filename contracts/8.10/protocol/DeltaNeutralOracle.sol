@@ -52,6 +52,25 @@ contract DeltaNeutralOracle is IDeltaNeutralOracle, Initializable, OwnableUpgrad
     return ((_lpAmount * _lpPrice) / (10**18), _lastUpdate);
   }
 
+  /// @notice Perform the conversion from LP to token amount
+  /// @dev convert lpToDollar using chainlink oracle price
+  /// @param _lpAmount in ether format
+  /// @param _lpToken address of LP token
+  /// @param _denominator address of denominator token
+  function lpFairPrice(
+    uint256 _lpAmount,
+    address _lpToken,
+    address _denominator
+  ) external view returns (uint256, uint256) {
+    if (_lpAmount == 0) {
+      return (0, block.timestamp);
+    }
+    (uint256 _lpPriceInUSD, uint256 _lastLpUpdate) = _getLPPrice(_lpToken);
+    (uint256 _denominatorPriceInUSD, uint256 _lastDenominatorUpdate) = getTokenPrice(_denominator);
+
+    return ((_lpAmount * _lpPriceInUSD) / _denominatorPriceInUSD, _lastLpUpdate);
+  }
+
   /// @notice Perform the conversion from dollar to LP
   /// @dev convert dollartoLp using chainlink oracle price
   /// @param _dollarAmount in ether format
@@ -69,6 +88,15 @@ contract DeltaNeutralOracle is IDeltaNeutralOracle, Initializable, OwnableUpgrad
   /// @param _tokenAddress tokenAddress
   function getTokenPrice(address _tokenAddress) public view returns (uint256, uint256) {
     (uint256 _price, uint256 _lastTimestamp) = chainLinkPriceOracle.getPrice(_tokenAddress, usd);
+    return (_price, _lastTimestamp);
+  }
+
+  /// @notice Get token price in denominator token
+  /// @dev getTokenPrice from address
+  /// @param _tokenAddress tokenAddress
+  /// @param _tokenAddress tokenAddress
+  function getTokenPrice(address _tokenAddress, address _denominator) external view returns (uint256, uint256) {
+    (uint256 _price, uint256 _lastTimestamp) = chainLinkPriceOracle.getPrice(_tokenAddress, _denominator);
     return (_price, _lastTimestamp);
   }
 
