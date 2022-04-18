@@ -66,19 +66,19 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const fileName = "upgrade-pcs-migrate-mcv2";
+  const fileName = "upgrade-pcs-mcv2";
   const factories: Array<FactoryMap> = [
     {
       workerType: "PancakeswapWorker",
-      newVersion: "PancakeswapV2Worker02Migrate",
+      newVersion: "PancakeswapV2MCV2Worker02",
     },
     {
       workerType: "CakeMaxiWorker",
-      newVersion: "CakeMaxiWorker02Migrate",
+      newVersion: "CakeMaxiWorker02MCV2",
     },
     {
       workerType: "DeltaNeutralPancakeswapWorker",
-      newVersion: "DeltaNeutralPancakeWorker02Migrate",
+      newVersion: "DeltaNeutralPancakeMCV2Worker02",
     },
   ];
   const workerInputs: IWorkerInputs = [
