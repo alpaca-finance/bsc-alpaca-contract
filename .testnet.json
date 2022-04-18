@@ -2207,6 +2207,7 @@
         "Pancakeswap": "0xD8916928Cd542016E319Ad0c816EF01310462BEa",
         "Waultswap": "0xeBfda6D0232335a067aE6a3e5E470D8cDcb22f53",
         "PancakeswapSingleAsset": "0xf327b3Af3b1691f52F434D71289f1Ae628aab5e8",
+        "Mdex": "0x47cf4fb23B9D92B0BC96fF98a2689d6faFc461aA",
         "Biswap": ""
       },
       "workers": [
