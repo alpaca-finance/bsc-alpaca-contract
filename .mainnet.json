@@ -817,6 +817,15 @@
         }
       ]
     },
+    "PancakeswapMasterChefV2": {
+      "UniswapV2Factory": "0xBCfCcbde45cE874adCB698cC183deBcF17952812",
+      "UniswapV2Router02": "0x05fF2B0DB69458A0750badebc4f9e13aDd608C7F",
+      "FactoryV2": "0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73",
+      "RouterV2": "0x10ED43C718714eb63d5aA57B78B54704E256024E",
+      "MasterChefV2": "0x0000000000000000000000000000000000000000",
+      "CakePool": "0x0000000000000000000000000000000000000000",
+      "pools": []
+    },
     "Waultswap": {
       "WexMaster": "0x22fB2663C7ca71Adc2cc99481C77Aaf21E152e2D",
       "WaultswapRouter": "0xD48745E39BbED146eEC15b79cBF964884F9877c2",
