@@ -824,7 +824,143 @@
       "RouterV2": "0x10ED43C718714eb63d5aA57B78B54704E256024E",
       "MasterChefV2": "0x0000000000000000000000000000000000000000",
       "CakePool": "0x0000000000000000000000000000000000000000",
-      "pools": []
+      "pools": [
+        {
+          "pId": 2,
+          "name": "CAKE-WBNB LP",
+          "address": "0x0eD7e52944161450477ee417DE9Cd3a859b14fD0"
+        },
+        {
+          "pId": 3,
+          "name": "WBNB-BUSD LP",
+          "address": "0x58F876857a02D6762E0101bb5C46A8c1ED44Dc16"
+        },
+        {
+          "pId": 4,
+          "name": "ADA-WBNB LP",
+          "address": "0x28415ff2C35b65B9E5c7de82126b4015ab9d031F"
+        },
+        {
+          "pId": 5,
+          "name": "DOT-WBNB LP",
+          "address": "0xDd5bAd8f8b360d76d12FdA230F8BAF42fe0022CF"
+        },
+        {
+          "pId": 6,
+          "name": "LINK-WBNB LP",
+          "address": "0x824eb9faDFb377394430d2744fa7C42916DE3eCe"
+        },
+        {
+          "pId": 7,
+          "name": "USDT-BUSD LP",
+          "address": "0x7EFaEf62fDdCCa950418312c6C91Aef321375A00"
+        },
+        {
+          "pId": 9,
+          "name": "XVS-WBNB LP",
+          "address": "0x7EB5D86FD78f3852a3e0e064f2842d45a3dB6EA2"
+        },
+        {
+          "pId": 10,
+          "name": "ETH-WBNB LP",
+          "address": "0x74E4716E431f45807DCF19f284c7aA99F18a4fbc"
+        },
+        {
+          "pId": 11,
+          "name": "BTCB-WBNB LP",
+          "address": "0x61EB789d75A95CAa3fF50ed7E47b96c132fEc082"
+        },
+        {
+          "pId": 13,
+          "name": "USDT-WBNB LP",
+          "address": "0x16b9a82891338f9bA80E2D6970FddA79D1eb0daE"
+        },
+        {
+          "pId": 15,
+          "name": "UNI-WBNB LP",
+          "address": "0x014608E87AF97a054C9a49f81E1473076D51d9a3"
+        },
+        {
+          "pId": 18,
+          "name": "VAI-BUSD LP",
+          "address": "0x133ee93FE93320e1182923E1a640912eDE17C90C"
+        },
+        {
+          "pId": 19,
+          "name": "DAI-BUSD LP",
+          "address": "0x66FDB2eCCfB58cF098eaa419e5EfDe841368e489"
+        },
+        {
+          "pId": 20,
+          "name": "USDC-BUSD LP",
+          "address": "0x2354ef4DF11afacb85a5C7f98B624072ECcddbB1"
+        },
+        {
+          "pId": 23,
+          "name": "UST-BUSD LP",
+          "address": "0x05faf555522Fa3F93959F86B41A3808666093210"
+        },
+        {
+          "pId": 26,
+          "name": "SUSHI-ETH LP",
+          "address": "0x16aFc4F2Ad82986bbE2a4525601F8199AB9c832D"
+        },
+        {
+          "pId": 29,
+          "name": "BELT-WBNB LP",
+          "address": "0xF3Bc6FC080ffCC30d93dF48BFA2aA14b869554bb"
+        },
+        {
+          "pId": 35,
+          "name": "ALPACA-BUSD LP",
+          "address": "0x7752e1FA9F3a2e860856458517008558DEb989e3"
+        },
+        {
+          "pId": 36,
+          "name": "BTCB-BUSD LP",
+          "address": "0xF45cd219aEF8618A92BAa7aD848364a158a24F33"
+        },
+        {
+          "pId": 39,
+          "name": "CAKE-BUSD LP",
+          "address": "0x804678fa97d91B974ec2af3c843270886528a9E6"
+        },
+        {
+          "pId": 41,
+          "name": "TUSD-BUSD LP",
+          "address": "0x2E28b9B74D6d99D4697e913b82B41ef1CAC51c6C"
+        },
+        {
+          "pId": 42,
+          "name": "MBOX-WBNB LP",
+          "address": "0x8FA59693458289914dB0097F5F366d771B7a7C3F"
+        },
+        {
+          "pId": 43,
+          "name": "ETH-BTCB LP",
+          "address": "0xD171B26E4484402de70e3Ea256bE5A2630d7e88D"
+        },
+        {
+          "pId": 44,
+          "name": "ETH-USDC LP",
+          "address": "0xEa26B78255Df2bBC31C1eBf60010D78670185bD0"
+        },
+        {
+          "pId": 66,
+          "name": "XWG-USDC LP",
+          "address": "0x936928146a21AfCcd30DfA84824A780572B1630B"
+        },
+        {
+          "pId": 71,
+          "name": "THG-WBNB LP",
+          "address": "0x486697ae24469cB1122F537924Aa46E705B142Aa"
+        },
+        {
+          "pId": 73,
+          "name": "HIGH-BUSD LP",
+          "address": "0xe98ac95A1dB2fCaaa9c7D4ba7ecfCE4877ca2bEa"
+        }
+      ]
     },
     "Waultswap": {
       "WexMaster": "0x22fB2663C7ca71Adc2cc99481C77Aaf21E152e2D",
