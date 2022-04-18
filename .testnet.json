@@ -909,7 +909,7 @@
       "StrategyPartialCloseLiquidate": "0xdE0DD9Ed04a04f08A96D7E80D72A3D18E2F766A6",
       "StrategyPartialCloseMinimizeTrading": "0xd34Ffa026D2754118Cb32525df93eb9a3AC57761"
     },
-    "BiSwap": {
+    "Biswap": {
       "StrategyAddBaseTokenOnly": "",
       "StrategyLiquidate": "",
       "StrategyWithdrawMinimizeTrading": "",

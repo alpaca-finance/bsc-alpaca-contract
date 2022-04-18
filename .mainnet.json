@@ -1931,7 +1931,7 @@
         {
           "name": "USDT-WBNB BiswapWorker",
           "address": "changeme:worker",
-          "deployedBlock": "changeme:deployblock",
+          "deployedBlock": 0,
           "config": "changeme:workerconfig",
           "pId": 1,
           "stakingToken": "0x8840C6252e2e86e545deFb6da98B2a0E26d8C1BA",
@@ -3129,7 +3129,7 @@
         {
           "name": "WBNB-USDT BiswapWorker",
           "address": "changeme:worker",
-          "deployedBlock": "changeme:deployblock",
+          "deployedBlock": 0,
           "config": "changeme:workerconfig",
           "pId": 1,
           "stakingToken": "0x8840C6252e2e86e545deFb6da98B2a0E26d8C1BA",
