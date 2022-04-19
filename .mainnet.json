@@ -946,6 +946,36 @@
           "address": "0xEa26B78255Df2bBC31C1eBf60010D78670185bD0"
         },
         {
+          "pId": 47,
+          "name": "CAKE-USDT LP",
+          "address": "0xA39Af17CE4a8eb807E076805Da1e2B8EA7D0755b"
+        },
+        {
+          "pId": 48,
+          "name": "USDC-USDT LP",
+          "address": "0xec6557348085aa57c72514d67070dc863c0a5a8c"
+        },
+        {
+          "pId": 49,
+          "name": "DVI-WBNB LP",
+          "address": "0x89EBF9cD99864f6E51bd7a578965922029cAB977"
+        },
+        {
+          "pId": 52,
+          "name": "AXS-WBNB LP",
+          "address": "0xC2d00De94795e60FB76Bc37d899170996cBdA436"
+        },
+        {
+          "pId": 54,
+          "name": "SPS-WBNB LP",
+          "address": "0xfdfde3af740a22648b9dd66d05698e5095940850"
+        },
+        {
+          "pId": 56,
+          "name": "TRX-BUSD LP",
+          "address": "0xb5D108578Be3750209d1b3A8f45FFee8C5a75146"
+        },
+        {
           "pId": 66,
           "name": "XWG-USDC LP",
           "address": "0x936928146a21AfCcd30DfA84824A780572B1630B"
