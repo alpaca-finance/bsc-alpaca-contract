@@ -66,19 +66,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const fileName = "upgrade-pcs-mcv2";
+  const fileName = "upgrade-pcs-cakemaxi-cakepool-final";
   const factories: Array<FactoryMap> = [
     {
-      workerType: "PancakeswapWorker",
-      newVersion: "PancakeswapV2MCV2Worker02",
-    },
-    {
       workerType: "CakeMaxiWorker",
-      newVersion: "CakeMaxiWorker02MCV2",
-    },
-    {
-      workerType: "DeltaNeutralPancakeswapWorker",
-      newVersion: "DeltaNeutralPancakeMCV2Worker02",
+      newVersion: "CakeMaxiWorker02Migrate",
     },
   ];
   const workerInputs: IWorkerInputs = [
@@ -89,58 +81,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "BTCB CakeMaxiWorker",
     "TUSD CakeMaxiWorker",
     "USDC CakeMaxiWorker",
-    "CAKE-WBNB PancakeswapWorker",
-    "BTCB-WBNB PancakeswapWorker",
-    "ETH-WBNB PancakeswapWorker",
-    "DOT-WBNB PancakeswapWorker",
-    "UNI-WBNB PancakeswapWorker",
-    "LINK-WBNB PancakeswapWorker",
-    "XVS-WBNB PancakeswapWorker",
-    "BUSD-WBNB PancakeswapWorker",
-    "BELT-WBNB PancakeswapWorker",
-    "USDT-WBNB PancakeswapWorker",
-    "ADA-WBNB PancakeswapWorker",
-    "AXS-WBNB PancakeswapWorker",
-    "MBOX-WBNB PancakeswapWorker",
-    "DVI-WBNB PancakeswapWorker",
-    "SPS-WBNB PancakeswapWorker",
-    "USDT-BUSD PancakeswapWorker",
-    "WBNB-BUSD PancakeswapWorker",
-    "VAI-BUSD PancakeswapWorker",
-    "USDC-BUSD PancakeswapWorker",
-    "DAI-BUSD PancakeswapWorker",
-    "UST-BUSD PancakeswapWorker",
-    "BTCB-BUSD PancakeswapWorker",
-    "ALPACA-BUSD PancakeswapWorker",
-    "CAKE-BUSD PancakeswapWorker",
-    "TUSD-BUSD PancakeswapWorker",
-    "TRX-BUSD PancakeswapWorker",
-    "SUSHI-ETH PancakeswapWorker",
-    "WBNB-ETH PancakeswapWorker",
-    "BTCB-ETH PancakeswapWorker",
-    "BUSD-ALPACA PancakeswapWorker",
-    "BUSD-USDT PancakeswapWorker",
-    "WBNB-USDT PancakeswapWorker",
-    "CAKE-USDT PancakeswapWorker",
-    "USDC-USDT PancakeswapWorker",
-    "WBNB-BTCB PancakeswapWorker",
-    "BUSD-BTCB PancakeswapWorker",
-    "ETH-BTCB PancakeswapWorker",
-    "BUSD-TUSD PancakeswapWorker",
-    "USDT-WBNB 3x DeltaNeutralPancakeswapWorker",
-    "USDT-WBNB 8x PCS1 DeltaNeutralPancakeswapWorker",
-    "USDT-WBNB 8x PCS2 DeltaNeutralPancakeswapWorker",
-    "WBNB-USDT 3x DeltaNeutralPancakeswapWorker",
-    "WBNB-USDT 8x PCS1 DeltaNeutralPancakeswapWorker",
-    "WBNB-USDT 8x PCS2 DeltaNeutralPancakeswapWorker",
-    "XWG-USDC PancakeswapWorker",
-    "THG-WBNB PancakeswapWorker",
-    "HIGH-BUSD PancakeswapWorker",
-    "USDC-ETH PancakeswapWorker",
-    "ETH-USDC PancakeswapWorker",
-    "USDT-USDC PancakeswapWorker",
   ];
-  const EXACT_ETA = "1650295800";
+  const EXACT_ETA = "1650400200";
 
   const config = ConfigEntity.getConfig();
   const ts = Math.floor(new Date().getTime() / 1000);
