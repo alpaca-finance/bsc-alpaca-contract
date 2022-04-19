@@ -4,17 +4,12 @@ import { ethers, upgrades } from "hardhat";
 import {
   ConfigurableInterestVaultConfig__factory,
   BiswapStrategyAddBaseTokenOnly__factory,
-  BiswapStrategyAddTwoSidesOptimal__factory,
-  BiswapStrategyLiquidate__factory,
-  BiswapStrategyPartialCloseLiquidate__factory,
-  BiswapStrategyWithdrawMinimizeTrading__factory,
   BiswapWorker03,
-  BiswapWorker03__factory,
   Timelock__factory,
   WorkerConfig__factory,
 } from "../../../../typechain";
 import { ConfigEntity, TimelockEntity } from "../../../entities";
-import { compare, validateAddress } from "../../../../utils/address";
+import { compare } from "../../../../utils/address";
 import { getDeployer } from "../../../../utils/deployer-helper";
 import { fileService, TimelockService } from "../../../services";
 
@@ -93,7 +88,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       WORK_FACTOR: "7000",
       KILL_FACTOR: "8333",
       MAX_PRICE_DIFF: "11000",
-      EXACT_ETA: "1650653600", // no use due to no timelock
+      EXACT_ETA: "1650753600", // no use due to no timelock
     },
     {
       VAULT_SYMBOL: "ibUSDT",
@@ -111,7 +106,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       WORK_FACTOR: "7000",
       KILL_FACTOR: "8333",
       MAX_PRICE_DIFF: "11000",
-      EXACT_ETA: "1650653600", // no use due to no timelock
+      EXACT_ETA: "1650753600", // no use due to no timelock
     },
   ];
 
@@ -178,7 +173,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   for (let i = 0; i < workerInfos.length; i++) {
     console.log("================================================================================");
     console.log(`>> Deploying an upgradable BiswapWorker03 contract for ${workerInfos[i].WORKER_NAME}`);
-    const BiswapWorker03 = (await ethers.getContractFactory("BiswapWorker03", deployer)) as BiswapWorker03__factory;
+    const BiswapWorker03 = await ethers.getContractFactory("BiswapWorker03", deployer);
     const biswapWorker03 = (await upgrades.deployProxy(BiswapWorker03, [
       workerInfos[i].VAULT_ADDR,
       workerInfos[i].BASE_TOKEN_ADDR,
@@ -204,51 +199,25 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log("✅ Done");
 
     console.log(`>> Adding Strategies`);
-    const okStrats = [workerInfos[i].TWO_SIDES_STRAT_ADDR, workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR];
-    if (validateAddress(workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR)) {
-      okStrats.push(workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR);
-    }
-    if (validateAddress(workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR)) {
-      okStrats.push(workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR);
-    }
+    const okStrats = [
+      workerInfos[i].TWO_SIDES_STRAT_ADDR,
+      workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR,
+      workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR,
+      workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR,
+    ];
+
     await biswapWorker03.setStrategyOk(okStrats, true, { nonce: nonce++ });
     console.log("✅ Done");
 
-    console.log(`>> Whitelisting a worker on strats`);
-    const addStrat = BiswapStrategyAddBaseTokenOnly__factory.connect(workerInfos[i].ADD_STRAT_ADDR, deployer);
-    await addStrat.setWorkersOk([biswapWorker03.address], true, { nonce: nonce++ });
+    console.log(`>> Whitelisting a worker on ok strats`);
+    const allOkStrats = [workerInfos[i].ADD_STRAT_ADDR, workerInfos[i].LIQ_STRAT_ADDR, ...okStrats];
 
-    const liqStrat = BiswapStrategyLiquidate__factory.connect(workerInfos[i].LIQ_STRAT_ADDR, deployer);
-    await liqStrat.setWorkersOk([biswapWorker03.address], true, { nonce: nonce++ });
-
-    const twoSidesStrat = BiswapStrategyAddTwoSidesOptimal__factory.connect(
-      workerInfos[i].TWO_SIDES_STRAT_ADDR,
-      deployer
-    );
-    await twoSidesStrat.setWorkersOk([biswapWorker03.address], true, { nonce: nonce++ });
-
-    const minimizeStrat = BiswapStrategyWithdrawMinimizeTrading__factory.connect(
-      workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR,
-      deployer
-    );
-    await minimizeStrat.setWorkersOk([biswapWorker03.address], true, { nonce: nonce++ });
-
-    if (validateAddress(workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR)) {
-      console.log(">> partial close liquidate is deployed");
-      const partialCloseLiquidate = BiswapStrategyPartialCloseLiquidate__factory.connect(
-        workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR,
-        deployer
-      );
-      await partialCloseLiquidate.setWorkersOk([biswapWorker03.address], true, { nonce: nonce++ });
-    }
-
-    if (validateAddress(workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR)) {
-      console.log(">> partial close minimize is deployed");
-      const partialCloseMinimize = BiswapStrategyWithdrawMinimizeTrading__factory.connect(
-        workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR,
-        deployer
-      );
-      await partialCloseMinimize.setWorkersOk([biswapWorker03.address], true, { nonce: nonce++ });
+    for (let idx = 0; idx < allOkStrats.length; idx++) {
+      const stratAddress = allOkStrats[idx];
+      // NOTE: all BiswapStrategy have the same signature of func setWorkersOk.
+      //       then we can use any BiswapStrategy factory for all BiswapStrategy addresses
+      const contractFactory = BiswapStrategyAddBaseTokenOnly__factory.connect(stratAddress, deployer);
+      await contractFactory.setWorkersOk([biswapWorker03.address], true, { nonce: nonce++ });
     }
 
     console.log("✅ Done");
@@ -340,7 +309,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     } else {
       console.log(">> Linking VaultConfig with WorkerConfig");
       (
-        await vaultConfig.setWorkers([biswapWorker03.address], [workerInfos[i].WORKER_CONFIG_ADDR], { nonce: nonce++ })
+        await vaultConfig.setWorkers([biswapWorker03.address], [workerInfos[i].WORKER_CONFIG_ADDR], {
+          nonce: nonce++,
+        })
       ).wait(3);
       console.log("✅ Done");
     }
