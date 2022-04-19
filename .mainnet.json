@@ -1121,11 +1121,11 @@
       "StrategyPartialCloseMinimizeTrading": "0xDD8A4302299115226676F943E01306107DD98495"
     },
     "Biswap": {
-      "StrategyAddBaseTokenOnly": "0xB50258Ce105DCB0476f4366095729788FbAE8fA7",
-      "StrategyLiquidate": "0x60125986257E3d2C3c701d2719e28Ec53fA2B77E",
-      "StrategyWithdrawMinimizeTrading": "0xd7e9748eb8AC796741940B4EA7E28499d25FbD36",
-      "StrategyPartialCloseLiquidate": "0x61ac4dD939d3d34c43DB13c679D4996c9E079779",
-      "StrategyPartialCloseMinimizeTrading": "0xf0163dB6aa888B294A536046B87b8A0BB52383eb"
+      "StrategyAddBaseTokenOnly": "0x0000000000000000000000000000000000000000",
+      "StrategyLiquidate": "0x0000000000000000000000000000000000000000",
+      "StrategyWithdrawMinimizeTrading": "0x0000000000000000000000000000000000000000",
+      "StrategyPartialCloseLiquidate": "0x0000000000000000000000000000000000000000",
+      "StrategyPartialCloseMinimizeTrading": "0x0000000000000000000000000000000000000000"
     }
   },
   "SharedConfig": {
@@ -1161,7 +1161,7 @@
         "Waultswap": "0xA7559bB0235a1c6003D0E48d2cFa89a6C8748439",
         "PancakeswapSingleAsset": "0xB0951EB5eCd9948AAA8Eb76D1061361F592BA029",
         "Mdex": "0xD8A128e5712D9b240811a0D55D3F9CA8E6599B7A",
-        "Biswap": "0xf5295390f831b6E3019955154e420E231Cf9a56d"
+        "Biswap": "0x0000000000000000000000000000000000000000"
       },
       "workers": [
         {
@@ -1931,19 +1931,19 @@
         },
         {
           "name": "USDT-WBNB BiswapWorker",
-          "address": "0xaB3A0282f9d0C10d29e0b8c1336b24c0AD8678dF",
+          "address": "0x0000000000000000000000000000000000000000",
           "deployedBlock": 0,
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 2,
           "stakingToken": "0x8840C6252e2e86e545deFb6da98B2a0E26d8C1BA",
           "stakingTokenAt": "0xdbc1a13490deef9c3c12b44fe77b503c1b061739",
           "strategies": {
-            "StrategyAddAllBaseToken": "0xB50258Ce105DCB0476f4366095729788FbAE8fA7",
-            "StrategyLiquidate": "0x60125986257E3d2C3c701d2719e28Ec53fA2B77E",
-            "StrategyAddTwoSidesOptimal": "0xf5295390f831b6E3019955154e420E231Cf9a56d",
-            "StrategyWithdrawMinimizeTrading": "0xd7e9748eb8AC796741940B4EA7E28499d25FbD36",
-            "StrategyPartialCloseLiquidate": "0x61ac4dD939d3d34c43DB13c679D4996c9E079779",
-            "StrategyPartialCloseMinimizeTrading": "0xf0163dB6aa888B294A536046B87b8A0BB52383eb"
+            "StrategyAddAllBaseToken": "0x0000000000000000000000000000000000000000",
+            "StrategyLiquidate": "0x0000000000000000000000000000000000000000",
+            "StrategyAddTwoSidesOptimal": "0x0000000000000000000000000000000000000000",
+            "StrategyWithdrawMinimizeTrading": "0x0000000000000000000000000000000000000000",
+            "StrategyPartialCloseLiquidate": "0x0000000000000000000000000000000000000000",
+            "StrategyPartialCloseMinimizeTrading": "0x0000000000000000000000000000000000000000"
           }
         }
       ]
@@ -2784,7 +2784,7 @@
         "Waultswap": "0xcE37fD1Ff0A6cb4A6A59cd46CCf55D5Dc70ec585",
         "PancakeswapSingleAsset": "0x50380Ac8DA73D73719785F0A4433192F4e0E6c90",
         "Mdex": "0x0768EF9E891725C4c65f3E0fB671aBCD66FC6bee",
-        "Biswap": "0x76210008876979cadF5c590181f812E72aE949A2"
+        "Biswap": "0x0000000000000000000000000000000000000000"
       },
       "workers": [
         {
@@ -3129,19 +3129,19 @@
         },
         {
           "name": "WBNB-USDT BiswapWorker",
-          "address": "0xb7Aa8DC3EDCA9D9275871b159B35819A43aa3548",
+          "address": "0x0000000000000000000000000000000000000000",
           "deployedBlock": 0,
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 2,
           "stakingToken": "0x8840C6252e2e86e545deFb6da98B2a0E26d8C1BA",
           "stakingTokenAt": "0xdbc1a13490deef9c3c12b44fe77b503c1b061739",
           "strategies": {
-            "StrategyAddAllBaseToken": "0xB50258Ce105DCB0476f4366095729788FbAE8fA7",
-            "StrategyLiquidate": "0x60125986257E3d2C3c701d2719e28Ec53fA2B77E",
-            "StrategyAddTwoSidesOptimal": "0x76210008876979cadF5c590181f812E72aE949A2",
-            "StrategyWithdrawMinimizeTrading": "0xd7e9748eb8AC796741940B4EA7E28499d25FbD36",
-            "StrategyPartialCloseLiquidate": "0x61ac4dD939d3d34c43DB13c679D4996c9E079779",
-            "StrategyPartialCloseMinimizeTrading": "0xf0163dB6aa888B294A536046B87b8A0BB52383eb"
+            "StrategyAddAllBaseToken": "0x0000000000000000000000000000000000000000",
+            "StrategyLiquidate": "0x0000000000000000000000000000000000000000",
+            "StrategyAddTwoSidesOptimal": "0x0000000000000000000000000000000000000000",
+            "StrategyWithdrawMinimizeTrading": "0x0000000000000000000000000000000000000000",
+            "StrategyPartialCloseLiquidate": "0x0000000000000000000000000000000000000000",
+            "StrategyPartialCloseMinimizeTrading": "0x0000000000000000000000000000000000000000"
           }
         }
       ]
