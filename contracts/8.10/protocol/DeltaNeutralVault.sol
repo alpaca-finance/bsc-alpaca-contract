@@ -372,7 +372,9 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     Outstanding memory _outstandingAfter = _outstanding();
 
     // transfer funds back to shareOwner
-    uint256 _stableTokenBack = _outstandingAfter.stableAmount - _outstandingBefore.stableAmount;
+    uint256 _stableTokenBack = stableToken == config.getWrappedNativeAddr()
+      ? _outstandingAfter.nativeAmount - _outstandingBefore.nativeAmount
+      : _outstandingAfter.stableAmount - _outstandingBefore.stableAmount;
     uint256 _assetTokenBack = assetToken == config.getWrappedNativeAddr()
       ? _outstandingAfter.nativeAmount - _outstandingBefore.nativeAmount
       : _outstandingAfter.assetAmount - _outstandingBefore.assetAmount;
