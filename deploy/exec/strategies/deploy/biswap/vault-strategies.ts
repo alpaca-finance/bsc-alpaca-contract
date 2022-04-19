@@ -48,13 +48,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       config.YieldSources.Biswap!.BiswapRouterV2,
       targetedVault.address,
     ])) as BiswapStrategyAddTwoSidesOptimal;
-    await strategyRestrictedAddTwoSidesOptimal.deployed();
+    const deployedTx = await strategyRestrictedAddTwoSidesOptimal.deployTransaction.wait(3);
     console.log(`>> Deployed at ${strategyRestrictedAddTwoSidesOptimal.address}`);
+    console.log(`>> Deployed block: ${deployedTx.blockNumber}`);
+    console.log("✅ Done");
 
     if (NEW_PARAMS[i].WHITELIST_WORKERS.length > 0) {
       console.log(">> Whitelisting Workers");
       const tx = await strategyRestrictedAddTwoSidesOptimal.setWorkersOk(NEW_PARAMS[i].WHITELIST_WORKERS, true);
-      console.log(">> Done at: ", tx.hash);
+      console.log("✅ Done at: ", tx.hash);
     }
   }
 };

@@ -56,8 +56,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const strategyAddBaseTokenOnly = (await upgrades.deployProxy(BiswapStrategyAddBaseTokenOnly, [
       config.YieldSources.Biswap!.BiswapRouterV2,
     ])) as BiswapStrategyAddBaseTokenOnly;
-    await strategyAddBaseTokenOnly.deployed();
+    const deployedTx = await strategyAddBaseTokenOnly.deployTransaction.wait(3);
     console.log(`>> Deployed at ${strategyAddBaseTokenOnly.address}`);
+    console.log(`>> Deployed block: ${deployedTx.blockNumber}`);
     console.log("✅ Done");
 
     if (whitelistedWorkerAddrs.length > 0) {
@@ -79,8 +80,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const strategyLiquidate = (await upgrades.deployProxy(BiswapStrategyLiquidate, [
       config.YieldSources.Biswap!.BiswapRouterV2,
     ])) as BiswapStrategyLiquidate;
-    await strategyLiquidate.deployed();
+    const deployedTx = await strategyLiquidate.deployTransaction.wait(3);
     console.log(`>> Deployed at ${strategyLiquidate.address}`);
+    console.log(`>> Deployed block: ${deployedTx.blockNumber}`);
     console.log("✅ Done");
 
     if (whitelistedWorkerAddrs.length > 0) {
@@ -103,8 +105,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       config.YieldSources.Biswap!.BiswapRouterV2,
       config.SharedConfig.WNativeRelayer,
     ])) as BiswapStrategyWithdrawMinimizeTrading;
-    await strategyWithdrawMinimizeTrading.deployed();
+    const deployedTx = await strategyWithdrawMinimizeTrading.deployTransaction.wait(3);
     console.log(`>> Deployed at ${strategyWithdrawMinimizeTrading.address}`);
+    console.log(`>> Deployed block: ${deployedTx.blockNumber}`);
 
     if (whitelistedWorkerAddrs.length > 0) {
       console.log(">> Whitelisting workers for strategyWithdrawMinimizeTrading");
@@ -129,8 +132,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const restrictedStrategyPartialCloseLiquidate = (await upgrades.deployProxy(BiswapStrategyPartialCloseLiquidate, [
       config.YieldSources.Biswap!.BiswapRouterV2,
     ])) as BiswapStrategyLiquidate;
-    await restrictedStrategyPartialCloseLiquidate.deployed();
+    const deployedTx = await restrictedStrategyPartialCloseLiquidate.deployTransaction.wait(3);
     console.log(`>> Deployed at ${restrictedStrategyPartialCloseLiquidate.address}`);
+    console.log(`>> Deployed block: ${deployedTx.blockNumber}`);
     console.log("✅ Done");
 
     if (whitelistedWorkerAddrs.length > 0) {
@@ -153,7 +157,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       config.YieldSources.Biswap!.BiswapRouterV2,
       config.SharedConfig.WNativeRelayer,
     ])) as BiswapStrategyPartialCloseMinimizeTrading;
-    await strategyPartialCloseMinimizeTrading.deployed();
+    const deployedTx = await strategyPartialCloseMinimizeTrading.deployTransaction.wait(3);
+
+    console.log(`>> Deployed block: ${deployedTx.blockNumber}`);
     console.log(`>> Deployed at ${strategyPartialCloseMinimizeTrading.address}`);
 
     if (whitelistedWorkerAddrs.length > 0) {

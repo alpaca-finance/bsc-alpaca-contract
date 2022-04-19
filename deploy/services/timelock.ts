@@ -1,6 +1,7 @@
 import { CallOverrides } from "@ethersproject/contracts";
 import { ethers } from "hardhat";
 import { Timelock__factory } from "../../typechain";
+import { getDeployer } from "../../utils/deployer-helper";
 import { ConfigEntity, TimelockEntity } from "../entities";
 
 export async function queueTransaction(
@@ -13,10 +14,11 @@ export async function queueTransaction(
   eta: string,
   overrides?: CallOverrides
 ): Promise<TimelockEntity.Transaction> {
+  const deployer = await getDeployer();
   console.log(`------------------`);
   console.log(`>> Queue tx for: ${info}`);
   const config = ConfigEntity.getConfig();
-  const timelock = Timelock__factory.connect(config.Timelock, (await ethers.getSigners())[0]);
+  const timelock = Timelock__factory.connect(config.Timelock, deployer);
   const queueTx = await timelock.queueTransaction(
     target,
     value,

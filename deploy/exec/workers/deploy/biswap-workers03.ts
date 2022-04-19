@@ -13,9 +13,10 @@ import {
   Timelock__factory,
   WorkerConfig__factory,
 } from "../../../../typechain";
-import { ConfigEntity } from "../../../entities";
+import { ConfigEntity, TimelockEntity } from "../../../entities";
 import { compare, validateAddress } from "../../../../utils/address";
 import { getDeployer } from "../../../../utils/deployer-helper";
+import { fileService, TimelockService } from "../../../services";
 
 interface IBeneficialVaultInput {
   BENEFICIAL_VAULT_BPS: string;
@@ -92,7 +93,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       WORK_FACTOR: "7000",
       KILL_FACTOR: "8333",
       MAX_PRICE_DIFF: "11000",
-      EXACT_ETA: "1650443592", // no use due to no timelock
+      EXACT_ETA: "1650653600", // no use due to no timelock
     },
     {
       VAULT_SYMBOL: "ibUSDT",
@@ -110,9 +111,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       WORK_FACTOR: "7000",
       KILL_FACTOR: "8333",
       MAX_PRICE_DIFF: "11000",
-      EXACT_ETA: "1650443592", // no use due to no timelock
+      EXACT_ETA: "1650653600", // no use due to no timelock
     },
   ];
+
+  const TITLE = "biswap-worker03";
+  const timelockTransactions: Array<TimelockEntity.Transaction> = [];
 
   const deployer = await getDeployer();
 
@@ -188,9 +192,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       workerInfos[i].REINVEST_PATH,
       workerInfos[i].REINVEST_THRESHOLD,
     ])) as BiswapWorker03;
-    const deployedTx = await biswapWorker03.deployed();
+    const deployedTx = await biswapWorker03.deployTransaction.wait(3);
     console.log(`>> Deployed at ${biswapWorker03.address}`);
-    // console.log(`>> Deployed block: ${deployedTx.blockNumber}`);
+    console.log(`>> Deployed block: ${deployedTx.blockNumber}`);
+    console.log("✅ Done");
 
     let nonce = await deployer.getTransactionCount();
 
@@ -245,10 +250,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       );
       await partialCloseMinimize.setWorkersOk([biswapWorker03.address], true, { nonce: nonce++ });
     }
+
     console.log("✅ Done");
 
     if (workerInfos[i].BENEFICIAL_VAULT) {
-      console.log(">> config baneficial vault");
+      console.log(">> set baneficial vault config");
       await biswapWorker03.setBeneficialVaultConfig(
         workerInfos[i].BENEFICIAL_VAULT!.BENEFICIAL_VAULT_BPS,
         workerInfos[i].BENEFICIAL_VAULT!.BENEFICIAL_VAULT_ADDRESS,
@@ -266,33 +272,32 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const [workerOwnerAddress, vaultOwnerAddress] = await Promise.all([workerConfig.owner(), vaultConfig.owner()]);
 
     if (compare(workerOwnerAddress, timelock.address)) {
-      console.log(">> Timelock: Setting WorkerConfig via Timelock");
-      const setConfigsTx = await timelock.queueTransaction(
+      const setConfigsTx = await TimelockService.queueTransaction(
+        `>> Queue tx on Timelock Setting WorkerConfig via Timelock at ${workerInfos[i].WORKER_CONFIG_ADDR} for ${biswapWorker03.address}`,
         workerInfos[i].WORKER_CONFIG_ADDR,
         "0",
         "setConfigs(address[],(bool,uint64,uint64,uint64)[])",
-        ethers.utils.defaultAbiCoder.encode(
-          ["address[]", "(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]"],
+        ["address[]", "(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]"],
+        [
+          [biswapWorker03.address],
           [
-            [biswapWorker03.address],
-            [
-              {
-                acceptDebt: true,
-                workFactor: workerInfos[i].WORK_FACTOR,
-                killFactor: workerInfos[i].KILL_FACTOR,
-                maxPriceDiff: workerInfos[i].MAX_PRICE_DIFF,
-              },
-            ],
-          ]
-        ),
+            {
+              acceptDebt: true,
+              workFactor: workerInfos[i].WORK_FACTOR,
+              killFactor: workerInfos[i].KILL_FACTOR,
+              maxPriceDiff: workerInfos[i].MAX_PRICE_DIFF,
+            },
+          ],
+        ],
         workerInfos[i].EXACT_ETA,
-        { nonce: nonce++ }
+        { gasPrice: ethers.utils.parseUnits("15", "gwei"), nonce: nonce++ }
       );
-      console.log(`queue setConfigs at: ${setConfigsTx.hash}`);
+      console.log(`queue setConfigs at: ${setConfigsTx.queuedAt}`);
       console.log("generate timelock.executeTransaction:");
       console.log(
         `await timelock.executeTransaction('${workerInfos[i].WORKER_CONFIG_ADDR}', '0', 'setConfigs(address[],(bool,uint64,uint64,uint64)[])', ethers.utils.defaultAbiCoder.encode(['address[]','(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]'],[['${biswapWorker03.address}'], [{acceptDebt: true, workFactor: ${workerInfos[i].WORK_FACTOR}, killFactor: ${workerInfos[i].KILL_FACTOR}, maxPriceDiff: ${workerInfos[i].MAX_PRICE_DIFF}}]]), ${workerInfos[i].EXACT_ETA})`
       );
+      timelockTransactions.push(setConfigsTx);
       console.log("✅ Done");
     } else {
       console.log(">> Setting WorkerConfig");
@@ -314,23 +319,23 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     }
 
     if (compare(vaultOwnerAddress, timelock.address)) {
-      console.log(">> Timelock: Linking VaultConfig with WorkerConfig via Timelock");
-      const setWorkersTx = await timelock.queueTransaction(
+      const setWorkersTx = await TimelockService.queueTransaction(
+        `>> Queue tx on Timelock Linking VaultConfig with WorkerConfig via Timelock for ${workerInfos[i].VAULT_CONFIG_ADDR}`,
         workerInfos[i].VAULT_CONFIG_ADDR,
         "0",
         "setWorkers(address[],address[])",
-        ethers.utils.defaultAbiCoder.encode(
-          ["address[]", "address[]"],
-          [[biswapWorker03.address], [workerInfos[i].WORKER_CONFIG_ADDR]]
-        ),
+        ["address[]", "address[]"],
+        [[biswapWorker03.address], [workerInfos[i].WORKER_CONFIG_ADDR]],
         workerInfos[i].EXACT_ETA,
-        { nonce: nonce++ }
+        { gasPrice: ethers.utils.parseUnits("15", "gwei"), nonce: nonce++ }
       );
-      console.log(`queue setWorkers at: ${setWorkersTx.hash}`);
+
+      console.log(`queue setWorkers at: ${setWorkersTx.queuedAt}`);
       console.log("generate timelock.executeTransaction:");
       console.log(
         `await timelock.executeTransaction('${workerInfos[i].VAULT_CONFIG_ADDR}', '0','setWorkers(address[],address[])', ethers.utils.defaultAbiCoder.encode(['address[]','address[]'],[['${biswapWorker03.address}'], ['${workerInfos[i].WORKER_CONFIG_ADDR}']]), ${workerInfos[i].EXACT_ETA})`
       );
+      timelockTransactions.push(setWorkersTx);
       console.log("✅ Done");
     } else {
       console.log(">> Linking VaultConfig with WorkerConfig");
@@ -340,6 +345,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       console.log("✅ Done");
     }
   }
+
+  fileService.writeJson(TITLE, timelockTransactions);
 };
 
 export default func;
