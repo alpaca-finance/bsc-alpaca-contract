@@ -22,14 +22,4 @@ interface IDeltaNeutralOracle {
 
   /// @dev Return value of given token in USD.
   function getTokenPrice(address _token) external view returns (uint256, uint256);
-
-  /// @dev Return value of given token in given denominator token
-  function getTokenPrice(address _token, address _denominator) external view returns (uint256, uint256);
-
-  /// @dev Return value in USD for the given lpAmount.
-  function lpFairPrice(
-    uint256 _lpAmount,
-    address _pancakeLPToken,
-    address _denominator
-  ) external view returns (uint256, uint256);
 }
