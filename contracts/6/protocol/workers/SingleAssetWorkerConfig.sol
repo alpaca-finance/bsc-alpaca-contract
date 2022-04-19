@@ -70,7 +70,7 @@ contract SingleAssetWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
   address public wNative;
   mapping(address => Config) public workers;
   address public governor;
-  INFTBoostedLeverageController nftBoostedLeverageController;
+  INFTBoostedLeverageController public nftBoostedLeverageController;
 
   function initialize(PriceOracle _oracle, IPancakeRouter02 _router) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
@@ -279,7 +279,7 @@ contract SingleAssetWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
 
   function setNFTBoostedLeverageController(INFTBoostedLeverageController _newNFTBoostedLeverageController)
     external
-    onlyGovernor
+    onlyOwner
   {
     // Sanity check
     _newNFTBoostedLeverageController.getBoostedWorkFactor(address(0), address(0));

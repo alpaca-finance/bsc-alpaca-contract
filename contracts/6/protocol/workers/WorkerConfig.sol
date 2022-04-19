@@ -53,7 +53,7 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
   PriceOracle public oracle;
   mapping(address => Config) public workers;
   address public governor;
-  INFTBoostedLeverageController nftBoostedLeverageController;
+  INFTBoostedLeverageController public nftBoostedLeverageController;
 
   function initialize(PriceOracle _oracle) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
@@ -249,7 +249,7 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
 
   function setNFTBoostedLeverageController(INFTBoostedLeverageController _newNFTBoostedLeverageController)
     external
-    onlyGovernor
+    onlyOwner
   {
     // Sanity check
     _newNFTBoostedLeverageController.getBoostedWorkFactor(address(0), address(0));

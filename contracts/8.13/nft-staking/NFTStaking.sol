@@ -13,15 +13,15 @@ Alpaca Fin Corporation
 
 pragma solidity 0.8.13;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import { IERC721Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
+import { IERC721ReceiverUpgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
+import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
-import "./interfaces/INFTStaking.sol";
+import { INFTStaking } from "./interfaces/INFTStaking.sol";
 
 contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeable {
-  // @notice Errors
+  /// ------ Errors ------
   error NFTStaking_Unauthorize();
   error NFTStaking_PoolAlreadyExist();
   error NFTStaking_PoolNotExist();
@@ -30,12 +30,13 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
   error NFTStaking_NFTAlreadyStaked();
   error NFTStaking_NoNFTStaked();
 
-  // @notice States
+  /// ------ States ------
   // Info of each pool.
   struct PoolInfo {
     // Mapping of NFT token addresses that are allowed to stake in this pool
     mapping(address => uint256) eligibleToken;
     uint256 isInit; // Flag will be `1` if pool is already init
+    uint256 poolWeight;
   }
 
   struct NFTStakingInfo {
@@ -45,11 +46,12 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
 
   mapping(bytes32 => PoolInfo) public poolInfo;
   mapping(bytes32 => mapping(address => NFTStakingInfo)) public userStakingNFT;
+  mapping(address => bytes32) public userHighestWeightPoolId;
 
-  // @notice Events
+  /// ------ Events ------
   event LogStakeNFT(address indexed _staker, bytes32 indexed _poolId, address _nftAddress, uint256 _nftTokenId);
   event LogUnstakeNFT(address indexed _staker, bytes32 indexed _poolId, address _nftAddress, uint256 _nftTokenId);
-  event LogAddPool(address indexed _caller, bytes32 indexed _poolId, address[] _stakeNFTToken);
+  event LogAddPool(address indexed _caller, bytes32 indexed _poolId, address[] _stakeNFTToken, uint256);
   event LogSetStakeNFTToken(
     address indexed _caller,
     bytes32 indexed _poolId,
@@ -58,7 +60,7 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
   );
 
   modifier onlyEOA() {
-    if (_msgSender() != tx.origin) revert NFTStaking_Unauthorize();
+    if (msg.sender != tx.origin) revert NFTStaking_Unauthorize();
     _;
   }
 
@@ -67,16 +69,21 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
     ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
   }
 
-  function addPool(bytes32 _poolId, address[] calldata _stakeNFTToken) external onlyOwner {
+  function addPool(
+    bytes32 _poolId,
+    address[] calldata _stakeNFTToken,
+    uint256 _poolWeight
+  ) external onlyOwner {
     if (poolInfo[_poolId].isInit != 0) revert NFTStaking_PoolAlreadyExist();
 
     poolInfo[_poolId].isInit = 1;
+    poolInfo[_poolId].poolWeight = _poolWeight;
 
     for (uint256 _i; _i < _stakeNFTToken.length; _i++) {
       poolInfo[_poolId].eligibleToken[_stakeNFTToken[_i]] = 1;
     }
 
-    emit LogAddPool(_msgSender(), _poolId, _stakeNFTToken);
+    emit LogAddPool(msg.sender, _poolId, _stakeNFTToken, _poolWeight);
   }
 
   function setStakeNFTToken(
@@ -91,7 +98,7 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
       poolInfo[_poolId].eligibleToken[_stakeNFTToken[_i]] = _allowance[_i];
     }
 
-    emit LogSetStakeNFTToken(_msgSender(), _poolId, _stakeNFTToken, _allowance);
+    emit LogSetStakeNFTToken(msg.sender, _poolId, _stakeNFTToken, _allowance);
   }
 
   function stakeNFT(
@@ -101,33 +108,35 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
   ) external nonReentrant onlyEOA {
     if (poolInfo[_poolId].eligibleToken[_nftAddress] != 1) revert NFTStaking_InvalidNFTAddress();
 
-    NFTStakingInfo memory _stakedNFT = userStakingNFT[_poolId][_msgSender()];
+    NFTStakingInfo memory _stakedNFT = userStakingNFT[_poolId][msg.sender];
     if (_stakedNFT.nftAddress == _nftAddress && _stakedNFT.nftTokenId == _nftTokenId)
       revert NFTStaking_NFTAlreadyStaked();
 
-    userStakingNFT[_poolId][_msgSender()] = NFTStakingInfo({ nftAddress: _nftAddress, nftTokenId: _nftTokenId });
-
-    IERC721Upgradeable(_nftAddress).safeTransferFrom(_msgSender(), address(this), _nftTokenId);
+    userStakingNFT[_poolId][msg.sender] = NFTStakingInfo({ nftAddress: _nftAddress, nftTokenId: _nftTokenId });
+    if (poolInfo[userHighestWeightPoolId[msg.sender]].poolWeight < poolInfo[_poolId].poolWeight) {
+      userHighestWeightPoolId[msg.sender] = _poolId;
+    }
+    IERC721Upgradeable(_nftAddress).safeTransferFrom(msg.sender, address(this), _nftTokenId);
 
     if (_stakedNFT.nftAddress != address(0)) {
-      IERC721Upgradeable(_stakedNFT.nftAddress).safeTransferFrom(address(this), _msgSender(), _stakedNFT.nftTokenId);
+      IERC721Upgradeable(_stakedNFT.nftAddress).safeTransferFrom(address(this), msg.sender, _stakedNFT.nftTokenId);
     }
-    emit LogStakeNFT(_msgSender(), _poolId, _nftAddress, _nftTokenId);
+    emit LogStakeNFT(msg.sender, _poolId, _nftAddress, _nftTokenId);
   }
 
   function unstakeNFT(bytes32 _poolId) external nonReentrant onlyEOA {
-    NFTStakingInfo memory _toBeSentBackNFT = userStakingNFT[_poolId][_msgSender()];
+    NFTStakingInfo memory _toBeSentBackNFT = userStakingNFT[_poolId][msg.sender];
     if (_toBeSentBackNFT.nftAddress == address(0)) revert NFTStaking_NoNFTStaked();
 
-    userStakingNFT[_poolId][_msgSender()] = NFTStakingInfo({ nftAddress: address(0), nftTokenId: 0 });
+    userStakingNFT[_poolId][msg.sender] = NFTStakingInfo({ nftAddress: address(0), nftTokenId: 0 });
 
     IERC721Upgradeable(_toBeSentBackNFT.nftAddress).safeTransferFrom(
       address(this),
-      _msgSender(),
+      msg.sender,
       _toBeSentBackNFT.nftTokenId
     );
 
-    emit LogUnstakeNFT(_msgSender(), _poolId, _toBeSentBackNFT.nftAddress, _toBeSentBackNFT.nftTokenId);
+    emit LogUnstakeNFT(msg.sender, _poolId, _toBeSentBackNFT.nftAddress, _toBeSentBackNFT.nftTokenId);
   }
 
   function isStaked(bytes32 _poolId, address _user) external view override returns (bool) {

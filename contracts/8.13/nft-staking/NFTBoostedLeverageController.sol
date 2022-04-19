@@ -13,79 +13,59 @@ Alpaca Fin Corporation
 
 pragma solidity 0.8.13;
 
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-import "./interfaces/INFTBoostedLeverageController.sol";
-import "./interfaces/INFTStaking.sol";
+import { INFTBoostedLeverageController } from "./interfaces/INFTBoostedLeverageController.sol";
+import { INFTStaking } from "./interfaces/INFTStaking.sol";
 
 contract NFTBoostedLeverageController is INFTBoostedLeverageController, OwnableUpgradeable {
-  // @notice Errors
+  /// ------ Errors ------
   error NFTBoostedLeverageController_NoPool();
   error NFTBoostedLeverageController_PoolAlreadyListed();
   error NFTBoostedLeverageController_BadParamsLength();
 
-  // @notice States
+  /// ------ States ------
   // poolIds => worker => boostNumber
   mapping(bytes32 => mapping(address => uint256)) public boostedWorkFactors;
   mapping(bytes32 => mapping(address => uint256)) public boostedKillFactors;
-  mapping(bytes32 => bytes32) uniquePoolIds;
 
-  bytes32[] public poolIds;
-  address public nftStakingContractAddress;
+  INFTStaking public nftStaking;
 
-  INFTStaking nftStaking;
-
-  // @event Events
-  event LogSetPools(bytes32[] _poolIds);
+  /// ------ Events ------
   event LogSetBoosted(address[] _workers, uint256[] _workFactors, uint256[] _killFactors);
 
-  function initialize(address _nftStakingContractAddress) external initializer {
+  function initialize(INFTStaking _nftStaking) external initializer {
     OwnableUpgradeable.__Ownable_init();
-    nftStakingContractAddress = _nftStakingContractAddress;
+    nftStaking = _nftStaking;
   }
 
   function getBoostedWorkFactor(address _owner, address _worker) external view override returns (uint256) {
-    for (uint256 _i; _i < poolIds.length; _i++) {
-      if (INFTStaking(nftStakingContractAddress).isStaked(poolIds[_i], _owner)) {
-        if (boostedWorkFactors[poolIds[_i]][_worker] != 0) {
-          return boostedWorkFactors[poolIds[_i]][_worker];
-        }
-      }
+    bytes32 poolId = nftStaking.userHighestWeightPoolId(_owner);
+    if (INFTStaking(nftStaking).isStaked(poolId, _owner)) {
+      return boostedWorkFactors[poolId][_worker];
     }
     return 0;
   }
 
   function getBoostedKillFactor(address _owner, address _worker) external view override returns (uint256) {
-    for (uint256 _i; _i < poolIds.length; _i++) {
-      if (INFTStaking(nftStakingContractAddress).isStaked(poolIds[_i], _owner)) {
-        if (boostedWorkFactors[poolIds[_i]][_worker] != 0) {
-          return boostedKillFactors[poolIds[_i]][_worker];
-        }
-      }
+    bytes32 poolId = nftStaking.userHighestWeightPoolId(_owner);
+    if (INFTStaking(nftStaking).isStaked(poolId, _owner)) {
+      return boostedKillFactors[poolId][_worker];
     }
     return 0;
   }
 
-  function setPools(bytes32[] calldata _poolIds) external onlyOwner {
-    for (uint256 _i; _i < _poolIds.length; _i++) {
-      if (uniquePoolIds[_poolIds[_i]] != 0) revert NFTBoostedLeverageController_PoolAlreadyListed();
-      poolIds.push(_poolIds[_i]);
-      uniquePoolIds[_poolIds[_i]] = _poolIds[_i];
-    }
-    emit LogSetPools(_poolIds);
-  }
-
   function setBoosted(
+    bytes32[] calldata _poolIds,
     address[] calldata _workers,
     uint256[] calldata _workFactors,
     uint256[] calldata _killFactors
   ) external onlyOwner {
-    if ((_workers.length != _workFactors.length) && (_workers.length != _killFactors.length))
+    if ((_poolIds.length != _workers.length) || (_poolIds.length != _workFactors.length) || (_workers.length != _killFactors.length)) 
       revert NFTBoostedLeverageController_BadParamsLength();
-    if (poolIds.length == 0) revert NFTBoostedLeverageController_NoPool();
-    for (uint256 _i; _i < poolIds.length; _i++) {
-      boostedWorkFactors[poolIds[_i]][_workers[_i]] = _workFactors[_i];
-      boostedKillFactors[poolIds[_i]][_workers[_i]] = _killFactors[_i];
+    for (uint256 _i; _i < _workers.length; _i++) {
+      boostedWorkFactors[_poolIds[_i]][_workers[_i]] = _workFactors[_i];
+      boostedKillFactors[_poolIds[_i]][_workers[_i]] = _killFactors[_i];
     }
     emit LogSetBoosted(_workers, _workFactors, _killFactors);
   }
