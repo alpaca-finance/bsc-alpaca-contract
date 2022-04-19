@@ -1,11 +1,9 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, upgrades } from "hardhat";
-import {
-  SpookySwapStrategyAddTwoSidesOptimal,
-  SpookySwapStrategyAddTwoSidesOptimal__factory,
-} from "../../../../../typechain";
-import { ConfigEntity } from "../../../../entities";
+import { BiswapStrategyAddTwoSidesOptimal, BiswapStrategyAddTwoSidesOptimal__factory } from "../../../../../typechain";
+import { getConfig } from "../../../../entities/config";
+import { getDeployer } from "../../../../../utils/deployer-helper";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -20,13 +18,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const NEW_PARAMS = [
     {
-      VAULT_SYMBOL: "ibTOMB",
+      VAULT_SYMBOL: "ibWBNB",
+      WHITELIST_WORKERS: [],
+    },
+    {
+      VAULT_SYMBOL: "ibUSDT",
       WHITELIST_WORKERS: [],
     },
   ];
 
-  const config = ConfigEntity.getConfig();
-  const deployer = (await ethers.getSigners())[0];
+  const config = getConfig();
+  const deployer = await getDeployer();
 
   for (let i = 0; i < NEW_PARAMS.length; i++) {
     const targetedVault = config.Vaults.find((v) => v.symbol === NEW_PARAMS[i].VAULT_SYMBOL);
@@ -37,26 +39,25 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       throw `error: no address`;
     }
 
-    console.log(">> Deploying an upgradable Spooky - StrategyAddTwoSidesOptimal contract");
-    const SpookySwapStrategyAddTwoSidesOptimal = (await ethers.getContractFactory(
-      "SpookySwapStrategyAddTwoSidesOptimal",
+    console.log(">> Deploying an upgradable BiswapStrategyAddTwoSidesOptimal contract");
+    const BiswapStrategyAddTwoSidesOptimal = (await ethers.getContractFactory(
+      "BiswapStrategyAddTwoSidesOptimal",
       deployer
-    )) as SpookySwapStrategyAddTwoSidesOptimal__factory;
-    const strategyAddTwoSidesOptimal = (await upgrades.deployProxy(SpookySwapStrategyAddTwoSidesOptimal, [
-      config.YieldSources.SpookySwap!.SpookyRouter,
+    )) as BiswapStrategyAddTwoSidesOptimal__factory;
+    const strategyRestrictedAddTwoSidesOptimal = (await upgrades.deployProxy(BiswapStrategyAddTwoSidesOptimal, [
+      config.YieldSources.Biswap!.BiswapRouterV2,
       targetedVault.address,
-    ])) as SpookySwapStrategyAddTwoSidesOptimal;
-    await strategyAddTwoSidesOptimal.deployTransaction.wait(5);
-    console.log(`>> Deployed at ${strategyAddTwoSidesOptimal.address}`);
+    ])) as BiswapStrategyAddTwoSidesOptimal;
+    await strategyRestrictedAddTwoSidesOptimal.deployed();
+    console.log(`>> Deployed at ${strategyRestrictedAddTwoSidesOptimal.address}`);
 
     if (NEW_PARAMS[i].WHITELIST_WORKERS.length > 0) {
       console.log(">> Whitelisting Workers");
-      const tx = await strategyAddTwoSidesOptimal.setWorkersOk(NEW_PARAMS[i].WHITELIST_WORKERS, true);
-      await tx.wait(5);
+      const tx = await strategyRestrictedAddTwoSidesOptimal.setWorkersOk(NEW_PARAMS[i].WHITELIST_WORKERS, true);
       console.log(">> Done at: ", tx.hash);
     }
   }
 };
 
 export default func;
-func.tags = ["BiswapVaultRestrictedStrategies"];
+func.tags = ["BiswapVaultStrategies"];

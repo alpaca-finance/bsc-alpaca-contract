@@ -60,7 +60,9 @@ export interface YieldSources {
   Mdex?: Mdex;
   SpookySwap?: SpookySwap;
   TombFinance?: TombFinance;
+  Biswap?: Biswap;
 }
+
 export interface Pancakeswap {
   UniswapV2Factory: string;
   UniswapV2Router02: string;
@@ -99,6 +101,14 @@ export interface TombFinance {
   TShareRewardPool: string;
   pools: YieldPoolsEntity[];
 }
+
+export interface Biswap {
+  BiswapRouterV2: string;
+  MasterChef: string;
+  BiswapFactory: string;
+  pools: YieldPoolsEntity[];
+}
+
 export interface Tokens {
   WBNB?: string;
   ALPACA?: string;
@@ -169,7 +179,9 @@ export interface SharedStrategies {
   PancakeswapSingleAsset?: PancakeswapOrWaultswapOrPancakeswapSingleAsset;
   Mdex?: PancakeswapOrWaultswapOrPancakeswapSingleAsset;
   SpookySwap?: PancakeswapOrWaultswapOrPancakeswapSingleAsset;
+  Biswap?: PancakeswapOrWaultswapOrPancakeswapSingleAsset;
 }
+
 export interface PancakeswapOrWaultswapOrPancakeswapSingleAsset {
   StrategyAddBaseTokenOnly: string;
   StrategyLiquidate: string;
@@ -210,6 +222,7 @@ export interface StrategyAddTwoSidesOptimal {
   PancakeswapSingleAsset?: string;
   Mdex?: string;
   SpookySwap?: string;
+  Biswap?: string;
 }
 export interface WorkersEntity {
   name: string;
