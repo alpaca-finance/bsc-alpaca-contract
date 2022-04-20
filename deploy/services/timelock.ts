@@ -13,7 +13,7 @@ export async function queueTransaction(
   eta: string,
   overrides?: CallOverrides
 ): Promise<TimelockEntity.Transaction> {
-  console.log(`==========`);
+  console.log(`------------------`);
   console.log(`>> Queue tx for: ${info}`);
   const config = ConfigEntity.getConfig();
   const timelock = Timelock__factory.connect(config.Timelock, (await ethers.getSigners())[0]);
@@ -29,7 +29,10 @@ export async function queueTransaction(
   const paramTypesStr = paramTypes.map((p) => `'${p}'`);
   const paramsStr = params.map((p) => {
     if (Array.isArray(p)) {
-      const vauleWithQuote = p.map((p) => `'${p}'`);
+      const vauleWithQuote = p.map((p) => {
+        if (typeof p === "string") return `'${p}'`;
+        return JSON.stringify(p);
+      });
       return `[${vauleWithQuote}]`;
     }
 
@@ -68,7 +71,7 @@ export async function executeTransaction(
   eta: string,
   overrides?: CallOverrides
 ): Promise<TimelockEntity.Transaction> {
-  console.log(`==========`);
+  console.log(`------------------`);
   console.log(`>> Execute tx for: ${info}`);
   const config = ConfigEntity.getConfig();
   const timelock = Timelock__factory.connect(config.Timelock, (await ethers.getSigners())[0]);

@@ -3,47 +3,49 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, upgrades } from "hardhat";
 import { DeltaNeutralVault, DeltaNeutralVault__factory, WNativeRelayer__factory } from "../../../../typechain";
 import { ConfigEntity } from "../../../entities";
+import { getDeployer } from "../../../../utils/deployer-helper";
+
+interface IDeltaNeutralVaultInput {
+  name: string;
+  symbol: string;
+  stableVaultSymbol: string;
+  assetVaultSymbol: string;
+  stableSymbol: string;
+  assetSymbol: string;
+  stableDeltaWorker: string;
+  assetDeltaWorker: string;
+  lpAddress: string;
+  deltaNeutralVaultConfig: string;
+}
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
-    ░██╗░░░░░░░██╗░█████╗░██████╗░███╗░░██╗██╗███╗░░██╗░██████╗░
-    ░██║░░██╗░░██║██╔══██╗██╔══██╗████╗░██║██║████╗░██║██╔════╝░
-    ░╚██╗████╗██╔╝███████║██████╔╝██╔██╗██║██║██╔██╗██║██║░░██╗░
-    ░░████╔═████║░██╔══██║██╔══██╗██║╚████║██║██║╚████║██║░░╚██╗
-    ░░╚██╔╝░╚██╔╝░██║░░██║██║░░██║██║░╚███║██║██║░╚███║╚██████╔╝
-    ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
-    Check all variables below before execute the deployment script
-    */
-  interface IDeltaNeutralVaultInput {
-    name: string;
-    symbol: string;
-    stableVaultSymbol: string;
-    assetVaultSymbol: string;
-    stableSymbol: string;
-    assetSymbol: string;
-    stableDeltaWorker: string;
-    assetDeltaWorker: string;
-    lpAddress: string;
-    deltaNeutralVaultConfig: string;
-  }
+  ░██╗░░░░░░░██╗░█████╗░██████╗░███╗░░██╗██╗███╗░░██╗░██████╗░
+  ░██║░░██╗░░██║██╔══██╗██╔══██╗████╗░██║██║████╗░██║██╔════╝░
+  ░╚██╗████╗██╔╝███████║██████╔╝██╔██╗██║██║██╔██╗██║██║░░██╗░
+  ░░████╔═████║░██╔══██║██╔══██╗██║╚████║██║██║╚████║██║░░╚██╗
+  ░░╚██╔╝░╚██╔╝░██║░░██║██║░░██║██║░╚███║██║██║░╚███║╚██████╔╝
+  ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
+  Check all variables below before execute the deployment script
+  */
 
   const deltaVaultInputs: IDeltaNeutralVaultInput[] = [
     {
-      name: "Market Neutral 8x BNB-USDT PCS2",
-      symbol: "n8x-BNBUSDT-PCS2",
-      stableVaultSymbol: "ibUSDT",
+      name: "Market Neutral 3x BNB-BUSD PCS1",
+      symbol: "n3x-BNBBUSD-PCS1",
+      stableVaultSymbol: "ibBUSD",
       assetVaultSymbol: "ibWBNB",
-      stableSymbol: "USDT",
+      stableSymbol: "BUSD",
       assetSymbol: "WBNB",
-      stableDeltaWorker: "0x0d9fAF7023976B45b220b692699C5f5E9432EFD9", // Address of stable deltaneutral worker
-      assetDeltaWorker: "0xFa4B1e50f6EF51D0DaB5c2EEA7434cE6974Fa832", // Address of asset deltaneutral worker
-      lpAddress: "0x16b9a82891338f9bA80E2D6970FddA79D1eb0daE",
-      deltaNeutralVaultConfig: "0x0ff370c7e245992414BeF2CaCBa369422D2A91b3",
+      lpAddress: "0x58F876857a02D6762E0101bb5C46A8c1ED44Dc16",
+      deltaNeutralVaultConfig: "0x5640ce665c4fAc707885A04059449DadAbe56Cf2",
+      stableDeltaWorker: "0x54D3218787060463EEb944fa01b0cbE745Ef4DB5",
+      assetDeltaWorker: "0x07767daF4e84bDAaBf3A72c80cec8C8Eb962f3Ae",
     },
   ];
 
   const config = ConfigEntity.getConfig();
-  const deployer = (await ethers.getSigners())[0];
+  const deployer = await getDeployer();
   const alpacaTokenAddress = config.Tokens.ALPACA;
   const wNativeRelayerAddr = config.SharedConfig.WNativeRelayer;
   for (let i = 0; i < deltaVaultInputs.length; i++) {
@@ -80,7 +82,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(`>> Deployed block: ${deployTxReceipt.blockNumber}`);
     console.log("✅ Done");
 
-    if (deltaVaultInputs[i].assetVaultSymbol === "ibWBNB") {
+    if (deltaVaultInputs[i].assetVaultSymbol === "ibWBNB" || deltaVaultInputs[i].assetVaultSymbol === "ibFTM") {
       console.log(`>> Set Caller ok for deltaNeutralVault if have native asset`);
       const wNativeRelayer = WNativeRelayer__factory.connect(wNativeRelayerAddr, deployer);
       await (await wNativeRelayer.setCallerOk([deltaNeutralVault.address], true)).wait(3);

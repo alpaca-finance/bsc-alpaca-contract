@@ -76,7 +76,8 @@
         { "pId": 1, "name": "WFTM-fUSDT LP", "address": "0x5965E53aa80a0bcF1CD6dbDd72e6A9b2AA047410" },
         { "pId": 3, "name": "WFTM-DAI LP", "address": "0xe120ffBDA0d14f3Bb6d6053E90E63c572A66a428" },
         { "pId": 24, "name": "WFTM-MIM LP", "address": "0x6f86e65b255c9111109d2D2325ca2dFc82456efc" },
-        { "pId": 63, "name": "ALPACA-WFTM LP", "address": "0xF66D2bf736c05723b62E833A5DD747E24855ff99" }
+        { "pId": 63, "name": "ALPACA-WFTM LP", "address": "0xF66D2bf736c05723b62E833A5DD747E24855ff99" },
+        { "pId": 69, "name": "BOO-USDC LP", "address": "0xf8Cb2980120469d79958151daa45Eb937c6E1eD6" }
       ]
     },
     "TombFinance": {
@@ -101,7 +102,8 @@
     "DAI": "0x8d11ec38a3eb5e956b052f67da8bdc9bef8abf3e",
     "MIM": "0x82f0b8b456c1a451378467398982d4834b6829c1",
     "TOMB": "0x6c021ae822bea943b2e66552bde1d2696a53fbb7",
-    "TSHARE": "0x4cdf39285d7ca8eb3f090fda0c069ba5f4145b37"
+    "TSHARE": "0x4cdf39285d7ca8eb3f090fda0c069ba5f4145b37",
+    "USD": "0x115dffFFfffffffffFFFffffFFffFfFfFFFFfFff"
   },
   "SharedStrategies": {
     "SpookySwap": {
@@ -121,7 +123,8 @@
   "Oracle": {
     "OracleMedianizer": "0xE1D2CA01bc88F325fF7266DD2165944f3CAf0D3D",
     "ChainLinkOracle": "0xD2D638aa6Ff4694a9147F2C8B09e86F569FA052B",
-    "SimpleOracle": "0xCab46f1397fdf4b0F31CEF05345141E51F877EdB"
+    "SimpleOracle": "0xCab46f1397fdf4b0F31CEF05345141E51F877EdB",
+    "DeltaNeutralOracle": "0x0C372D369aBd6ab047a0da3181cB69280a3C2126"
   },
   "Vaults": [
     {
@@ -306,6 +309,23 @@
             "StrategyPartialCloseLiquidate": "0x311a522e43C035244e72247895F5C17e46CAB000",
             "StrategyPartialCloseMinimizeTrading": "0x540247c00645E85fA548064039493beD4a0c522C"
           }
+        },
+        {
+          "name": "USDC-WFTM 3x SPK1 DeltaNeutralSpookyWorker",
+          "address": "0x792E8192F2fbdBb5c1e36F312760Fe01D0d7aB92",
+          "deployedBlock": 35130591,
+          "config": "0xca1Cf7C64481B8C095828d380922505E5942C60D",
+          "pId": 2,
+          "stakingToken": "0x2b4C76d0dc16BE1C31D4C1DC53bF9B45987Fc75c",
+          "stakingTokenAt": "0x2b2929E785374c651a81A63878Ab22742656DcDd",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0xD50aAb6B210fe049B6c5262f5A7676204699AB8E",
+            "StrategyLiquidate": "0x65Cc57347bA3761358Eb175540E9e5D39CbceFd8",
+            "StrategyAddTwoSidesOptimal": "0x11288Ceee9C12C9d2b1A80a4Df10d5c18F0429e8",
+            "StrategyWithdrawMinimizeTrading": "0x07DE1F788Fa7E0C215AA772d4429f47902640ef5",
+            "StrategyPartialCloseLiquidate": "0x311a522e43C035244e72247895F5C17e46CAB000",
+            "StrategyPartialCloseMinimizeTrading": "0x540247c00645E85fA548064039493beD4a0c522C"
+          }
         }
       ]
     },
@@ -346,6 +366,40 @@
           "config": "0xca1Cf7C64481B8C095828d380922505E5942C60D",
           "pId": 45,
           "stakingToken": "0x12692B3bf8dd9Aa1d2E721d1a79efD0C244d7d96",
+          "stakingTokenAt": "0x2b2929E785374c651a81A63878Ab22742656DcDd",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0xD50aAb6B210fe049B6c5262f5A7676204699AB8E",
+            "StrategyLiquidate": "0x65Cc57347bA3761358Eb175540E9e5D39CbceFd8",
+            "StrategyAddTwoSidesOptimal": "0xe9eF08a1eA08e5145547815e496bAE265D4A85Bf",
+            "StrategyWithdrawMinimizeTrading": "0x07DE1F788Fa7E0C215AA772d4429f47902640ef5",
+            "StrategyPartialCloseLiquidate": "0x311a522e43C035244e72247895F5C17e46CAB000",
+            "StrategyPartialCloseMinimizeTrading": "0x540247c00645E85fA548064039493beD4a0c522C"
+          }
+        },
+        {
+          "name": "WFTM-USDC 3x SPK1 DeltaNeutralSpookyWorker",
+          "address": "0xceCD803b048b66a75bc64f8AA8139cAB97c421C8",
+          "deployedBlock": 35130945,
+          "config": "0xca1Cf7C64481B8C095828d380922505E5942C60D",
+          "pId": 2,
+          "stakingToken": "0x2b4C76d0dc16BE1C31D4C1DC53bF9B45987Fc75c",
+          "stakingTokenAt": "0x2b2929E785374c651a81A63878Ab22742656DcDd",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0xD50aAb6B210fe049B6c5262f5A7676204699AB8E",
+            "StrategyLiquidate": "0x65Cc57347bA3761358Eb175540E9e5D39CbceFd8",
+            "StrategyAddTwoSidesOptimal": "0xe9eF08a1eA08e5145547815e496bAE265D4A85Bf",
+            "StrategyWithdrawMinimizeTrading": "0x07DE1F788Fa7E0C215AA772d4429f47902640ef5",
+            "StrategyPartialCloseLiquidate": "0x311a522e43C035244e72247895F5C17e46CAB000",
+            "StrategyPartialCloseMinimizeTrading": "0x540247c00645E85fA548064039493beD4a0c522C"
+          }
+        },
+        {
+          "name": "BOO-USDC SpookyWorker",
+          "address": "0x5875796B385caCC467C2BFdD794e1B43bAC78f7a",
+          "deployedBlock": 35768665,
+          "config": "0xca1Cf7C64481B8C095828d380922505E5942C60D",
+          "pId": 69,
+          "stakingToken": "0xf8Cb2980120469d79958151daa45Eb937c6E1eD6",
           "stakingTokenAt": "0x2b2929E785374c651a81A63878Ab22742656DcDd",
           "strategies": {
             "StrategyAddAllBaseToken": "0xD50aAb6B210fe049B6c5262f5A7676204699AB8E",
@@ -423,5 +477,23 @@
       ]
     }
   ],
-  "DeltaNeutralVaults": []
+  "DeltaNeutralVaults": [
+    {
+      "name": "Market Neutral 3x FTM-USDC SPK1",
+      "symbol": "n3x-FTMUSDC-SPK1",
+      "address": "0x18a9853102b51Bb228E277BeE25625874f184398",
+      "deployedBlock": 35131132,
+      "config": "0x00166189cdBdB9E3a3391c458c08aa9834E592D5",
+      "assetToken": "0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83",
+      "stableToken": "0x04068da6c83afcfa0e13ba15a6696662335d5b75",
+      "assetVault": "0xc1018f4Bba361A1Cc60407835e156595e92EF7Ad",
+      "stableVault": "0x831332f94C4A0092040b28ECe9377AfEfF34B25a",
+      "assetDeltaWorker": "0x792E8192F2fbdBb5c1e36F312760Fe01D0d7aB92",
+      "stableDeltaWorker": "0xceCD803b048b66a75bc64f8AA8139cAB97c421C8",
+      "gateway": "0x5A6E9832aD521E58afc72D1b1cb5ce8D1f0BC2Bb",
+      "oracle": "0x0C372D369aBd6ab047a0da3181cB69280a3C2126",
+      "assetVaultPosId": "0",
+      "stableVaultPosId": "0"
+    }
+  ]
 }

@@ -34,6 +34,8 @@ import {
   PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading__factory,
   PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading,
   PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading__factory,
+  PancakeswapV2MCV2Worker02,
+  PancakeswapV2MCV2Worker02__factory,
   PancakeswapV2Worker,
   PancakeswapV2Worker02,
   PancakeswapV2Worker02__factory,
@@ -133,6 +135,39 @@ import {
   TShare__factory,
   TShareRewardPool__factory,
   TShare,
+  DeltaNeutralSpookyWorker03__factory,
+  DeltaNeutralSpookyWorker03,
+  MasterChefV2,
+  MasterChefV2__factory,
+  DeltaNeutralPancakeMCV2Worker02,
+  DeltaNeutralPancakeMCV2Worker02__factory,
+  BiswapRouter02,
+  BiswapRouter02__factory,
+  BiswapStrategyAddBaseTokenOnly,
+  BiswapStrategyAddBaseTokenOnly__factory,
+  BiswapStrategyLiquidate,
+  BiswapStrategyLiquidate__factory,
+  BiswapStrategyAddTwoSidesOptimal,
+  BiswapStrategyAddTwoSidesOptimal__factory,
+  BiswapStrategyWithdrawMinimizeTrading,
+  BiswapStrategyWithdrawMinimizeTrading__factory,
+  BiswapStrategyPartialCloseLiquidate,
+  BiswapStrategyPartialCloseLiquidate__factory,
+  BiswapStrategyPartialCloseMinimizeTrading,
+  BiswapStrategyPartialCloseMinimizeTrading__factory,
+  BiswapFactory,
+  BiswapFactory__factory,
+  BSWToken,
+  BSWToken__factory,
+  BiswapMasterChef,
+  BiswapMasterChef__factory,
+  BiswapWorker03,
+  BiswapWorker03__factory,
+  DeltaNeutralBiswapWorker03,
+  DeltaNeutralBiswapWorker03__factory,
+  VaultAip42,
+  CakePool,
+  CakePool__factory,
 } from "../../typechain";
 import * as TimeHelpers from "../helpers/time";
 
@@ -263,6 +298,62 @@ export class DeployHelper {
     ]);
 
     return [factoryV2, routerV2, cake, syrup, masterChef];
+  }
+
+  public async deployPancakeMasterChefV2(masterChef: PancakeMasterChef): Promise<[MasterChefV2]> {
+    // Deploy dummyToken for MasterChefV2 to stake in MasterChefV1
+    const dummyToken = await this.deployERC20();
+    await dummyToken.mint(this.deployer.address, 1);
+
+    // Add Master Pool for MasterChefV2
+    await masterChef.add(1, dummyToken.address, true);
+    await masterChef.set(0, 0, true);
+    const MASTER_PID = (await masterChef.poolLength()).sub(1);
+
+    // Deploy MasterChefV2
+    const MasterChefV2 = (await ethers.getContractFactory("MasterChefV2", this.deployer)) as MasterChefV2__factory;
+    const masterChefV2 = await MasterChefV2.deploy(
+      masterChef.address,
+      await masterChef.cake(),
+      MASTER_PID,
+      this.deployer.address
+    );
+    await masterChefV2.deployed();
+
+    // Init MasterChefV2
+    await dummyToken.approve(masterChefV2.address, 1);
+    await masterChefV2.init(dummyToken.address);
+
+    // Add Dummy Pool 0
+    await masterChefV2.add(0, dummyToken.address, true, true);
+    return [masterChefV2];
+  }
+
+  public async deployPancakeCakePool(masterChefV2: MasterChefV2): Promise<[CakePool]> {
+    // Deploy dummyToken for CakePool to stake in MasterChefV2
+    const dummyToken = await this.deployERC20();
+    await dummyToken.mint(this.deployer.address, 1);
+
+    // Add Master Pool for MasterChefV2
+    await masterChefV2.add(1, dummyToken.address, false, true);
+    const CAKE_POOL_PID = (await masterChefV2.poolLength()).sub(1);
+
+    const CakePool = (await ethers.getContractFactory("CakePool", this.deployer)) as CakePool__factory;
+    const cakePool = await CakePool.deploy(
+      await masterChefV2.CAKE(),
+      masterChefV2.address,
+      this.deployer.address,
+      this.deployer.address,
+      this.deployer.address,
+      CAKE_POOL_PID
+    );
+    await cakePool.deployed();
+
+    await masterChefV2.updateWhiteList(cakePool.address, true);
+    await dummyToken.approve(cakePool.address, 1);
+    await cakePool.init(dummyToken.address);
+
+    return [cakePool];
   }
 
   public async deployPancakeV2Strategies(
@@ -614,7 +705,8 @@ export class DeployHelper {
     wbnb: MockWBNB,
     vaultConfig: IVaultConfig,
     fairlaunchAddress: string,
-    btoken: MockERC20
+    btoken: MockERC20,
+    vaultVersion = "Vault"
   ): Promise<[Vault, SimpleVaultConfig, WNativeRelayer]> {
     const WNativeRelayer = (await ethers.getContractFactory(
       "WNativeRelayer",
@@ -649,7 +741,7 @@ export class DeployHelper {
     ])) as DebtToken;
     await debtToken.deployed();
 
-    const Vault = (await ethers.getContractFactory("Vault", this.deployer)) as Vault__factory;
+    const Vault = (await ethers.getContractFactory(vaultVersion, this.deployer)) as Vault__factory;
     const btokenSymbol = await btoken.symbol();
     const vault = (await upgrades.deployProxy(Vault, [
       simpleVaultConfig.address,
@@ -687,9 +779,30 @@ export class DeployHelper {
 
     // Set add FairLaunch poool and set fairLaunchPoolId for Vault
     await fairlaunch.addPool(1, await vault.debtToken(), false);
-    await vault.setFairLaunchPoolId(0);
+    await vault.setFairLaunchPoolId((await fairlaunch.poolLength()).sub(1));
 
     return [vault, simpleVaultConfig, wNativeRelayer];
+  }
+
+  public async deployVaultAip42(
+    wbnb: MockWBNB,
+    vaultConfig: IVaultConfig,
+    fairlaunch: FairLaunch,
+    btoken: MockERC20
+  ): Promise<[VaultAip42, SimpleVaultConfig, WNativeRelayer]> {
+    const [vault, simpleVaultConfig, wNativeRelayer] = await this._deployVault(
+      wbnb,
+      vaultConfig,
+      fairlaunch.address,
+      btoken,
+      "VaultAip42"
+    );
+
+    // Set add FairLaunch poool and set fairLaunchPoolId for Vault
+    await fairlaunch.addPool(1, await vault.debtToken(), true);
+    await vault.setFairLaunchPoolId((await fairlaunch.poolLength()).sub(1));
+
+    return [vault as unknown as VaultAip42, simpleVaultConfig, wNativeRelayer];
   }
 
   public async deployMiniFLVault(
@@ -809,6 +922,56 @@ export class DeployHelper {
     return pancakeswapV2Worker02;
   }
 
+  public async deployPancakeV2MCV2Worker02(
+    vault: Vault,
+    btoken: MockERC20,
+    masterChef: MasterChefV2,
+    routerV2: PancakeRouterV2,
+    poolId: number,
+    workFactor: BigNumberish,
+    killFactor: BigNumberish,
+    addStrat: PancakeswapV2RestrictedStrategyAddBaseTokenOnly,
+    liqStrat: PancakeswapV2RestrictedStrategyLiquidate,
+    reinvestBountyBps: BigNumberish,
+    okReinvestor: string[],
+    treasuryAddress: string,
+    reinvestPath: Array<string>,
+    extraStrategies: string[],
+    simpleVaultConfig: SimpleVaultConfig
+  ): Promise<PancakeswapV2MCV2Worker02> {
+    const PancakeswapV2MCV2Worker02 = (await ethers.getContractFactory(
+      "PancakeswapV2MCV2Worker02",
+      this.deployer
+    )) as PancakeswapV2MCV2Worker02__factory;
+    const pancakeswapV2Worker02 = (await upgrades.deployProxy(PancakeswapV2MCV2Worker02, [
+      vault.address,
+      btoken.address,
+      masterChef.address,
+      routerV2.address,
+      poolId,
+      addStrat.address,
+      liqStrat.address,
+      reinvestBountyBps,
+      treasuryAddress,
+      reinvestPath,
+      0,
+    ])) as PancakeswapV2MCV2Worker02;
+    await pancakeswapV2Worker02.deployed();
+
+    await simpleVaultConfig.setWorker(pancakeswapV2Worker02.address, true, true, workFactor, killFactor, true, true);
+    await pancakeswapV2Worker02.setStrategyOk(extraStrategies, true);
+    await pancakeswapV2Worker02.setReinvestorOk(okReinvestor, true);
+    await pancakeswapV2Worker02.setTreasuryConfig(treasuryAddress, reinvestBountyBps);
+
+    extraStrategies.push(...[addStrat.address, liqStrat.address]);
+    extraStrategies.forEach(async (stratAddress) => {
+      const strat = PancakeswapV2RestrictedStrategyLiquidate__factory.connect(stratAddress, this.deployer);
+      await strat.setWorkersOk([pancakeswapV2Worker02.address], true);
+    });
+
+    return pancakeswapV2Worker02;
+  }
+
   public async deployDeltaNeutralOracle(
     tokens: string[],
     tokenPrices: BigNumber[],
@@ -853,6 +1016,108 @@ export class DeployHelper {
     return [deltaNeutralOracle, chainLinkOracle];
   }
 
+  public async deployDeltaNeutralSpookyWorker03(
+    vault: Vault,
+    btoken: MockERC20,
+    masterChef: SpookyMasterChef,
+    router: WaultSwapRouter,
+    poolId: number,
+    workFactor: BigNumberish,
+    killFactor: BigNumberish,
+    addStrat: SpookySwapStrategyAddBaseTokenOnly,
+    reinvestBountyBps: BigNumberish,
+    okReinvestor: string[],
+    treasuryAddress: string,
+    reinvestPath: Array<string>,
+    extraStrategies: string[],
+    simpleVaultConfig: SimpleVaultConfig,
+    priceOracleAddress: string
+  ): Promise<DeltaNeutralSpookyWorker03> {
+    const DeltaNeutralSpookyWorker03 = (await ethers.getContractFactory(
+      "DeltaNeutralSpookyWorker03",
+      this.deployer
+    )) as DeltaNeutralSpookyWorker03__factory;
+
+    const deltaNeutralWorker03 = (await upgrades.deployProxy(DeltaNeutralSpookyWorker03, [
+      vault.address,
+      btoken.address,
+      masterChef.address,
+      router.address,
+      poolId,
+      addStrat.address,
+      reinvestBountyBps,
+      treasuryAddress,
+      reinvestPath,
+      0,
+      priceOracleAddress,
+    ])) as DeltaNeutralSpookyWorker03;
+    await deltaNeutralWorker03.deployed();
+
+    await simpleVaultConfig.setWorker(deltaNeutralWorker03.address, true, true, workFactor, killFactor, true, true);
+    await deltaNeutralWorker03.setStrategyOk(extraStrategies, true);
+    await deltaNeutralWorker03.setReinvestorOk(okReinvestor, true);
+    await deltaNeutralWorker03.setTreasuryConfig(treasuryAddress, reinvestBountyBps);
+
+    extraStrategies.push(addStrat.address);
+    extraStrategies.forEach(async (stratAddress) => {
+      const strat = SpookySwapStrategyLiquidate__factory.connect(stratAddress, this.deployer);
+      await strat.setWorkersOk([deltaNeutralWorker03.address], true);
+    });
+
+    return deltaNeutralWorker03;
+  }
+
+  public async deployDeltaNeutralBiswapWorker03(
+    vault: Vault,
+    btoken: MockERC20,
+    masterChef: BiswapMasterChef,
+    router: BiswapRouter02,
+    poolId: number,
+    workFactor: BigNumberish,
+    killFactor: BigNumberish,
+    addStrat: BiswapStrategyAddBaseTokenOnly,
+    reinvestBountyBps: BigNumberish,
+    okReinvestor: string[],
+    treasuryAddress: string,
+    reinvestPath: Array<string>,
+    extraStrategies: string[],
+    simpleVaultConfig: SimpleVaultConfig,
+    priceOracleAddress: string
+  ): Promise<DeltaNeutralBiswapWorker03> {
+    const DeltaNeutralBiswapWorker03 = (await ethers.getContractFactory(
+      "DeltaNeutralBiswapWorker03",
+      this.deployer
+    )) as DeltaNeutralBiswapWorker03__factory;
+
+    const deltaNeutralWorker03 = (await upgrades.deployProxy(DeltaNeutralBiswapWorker03, [
+      vault.address,
+      btoken.address,
+      masterChef.address,
+      router.address,
+      poolId,
+      addStrat.address,
+      reinvestBountyBps,
+      treasuryAddress,
+      reinvestPath,
+      0,
+      priceOracleAddress,
+    ])) as DeltaNeutralBiswapWorker03;
+    await deltaNeutralWorker03.deployed();
+
+    await simpleVaultConfig.setWorker(deltaNeutralWorker03.address, true, true, workFactor, killFactor, true, true);
+    await deltaNeutralWorker03.setStrategyOk(extraStrategies, true);
+    await deltaNeutralWorker03.setReinvestorOk(okReinvestor, true);
+    await deltaNeutralWorker03.setTreasuryConfig(treasuryAddress, reinvestBountyBps);
+
+    extraStrategies.push(addStrat.address);
+    extraStrategies.forEach(async (stratAddress) => {
+      const strat = BiswapStrategyLiquidate__factory.connect(stratAddress, this.deployer);
+      await strat.setWorkersOk([deltaNeutralWorker03.address], true);
+    });
+
+    return deltaNeutralWorker03;
+  }
+
   public async deployDeltaNeutralPancakeWorker02(
     vault: Vault,
     btoken: MockERC20,
@@ -887,6 +1152,56 @@ export class DeployHelper {
       0,
       priceOracleAddress,
     ])) as DeltaNeutralPancakeWorker02;
+    await deltaNeutralWorker02.deployed();
+
+    await simpleVaultConfig.setWorker(deltaNeutralWorker02.address, true, true, workFactor, killFactor, true, true);
+    await deltaNeutralWorker02.setStrategyOk(extraStrategies, true);
+    await deltaNeutralWorker02.setReinvestorOk(okReinvestor, true);
+    await deltaNeutralWorker02.setTreasuryConfig(treasuryAddress, reinvestBountyBps);
+
+    extraStrategies.push(addStrat.address);
+    extraStrategies.forEach(async (stratAddress) => {
+      const strat = PancakeswapV2RestrictedStrategyLiquidate__factory.connect(stratAddress, this.deployer);
+      await strat.setWorkersOk([deltaNeutralWorker02.address], true);
+    });
+
+    return deltaNeutralWorker02;
+  }
+
+  public async deployDeltaNeutralPancakeMCV2Worker02(
+    vault: Vault,
+    btoken: MockERC20,
+    masterChef: MasterChefV2,
+    routerV2: PancakeRouterV2,
+    poolId: number,
+    workFactor: BigNumberish,
+    killFactor: BigNumberish,
+    addStrat: PancakeswapV2RestrictedStrategyAddBaseTokenOnly,
+    reinvestBountyBps: BigNumberish,
+    okReinvestor: string[],
+    treasuryAddress: string,
+    reinvestPath: Array<string>,
+    extraStrategies: string[],
+    simpleVaultConfig: SimpleVaultConfig,
+    priceOracleAddress: string
+  ): Promise<DeltaNeutralPancakeMCV2Worker02> {
+    const DeltaNeutralPancakeMCV2Worker02 = (await ethers.getContractFactory(
+      "DeltaNeutralPancakeMCV2Worker02",
+      this.deployer
+    )) as DeltaNeutralPancakeMCV2Worker02__factory;
+    const deltaNeutralWorker02 = (await upgrades.deployProxy(DeltaNeutralPancakeMCV2Worker02, [
+      vault.address,
+      btoken.address,
+      masterChef.address,
+      routerV2.address,
+      poolId,
+      addStrat.address,
+      reinvestBountyBps,
+      treasuryAddress,
+      reinvestPath,
+      0,
+      priceOracleAddress,
+    ])) as DeltaNeutralPancakeMCV2Worker02;
     await deltaNeutralWorker02.deployed();
 
     await simpleVaultConfig.setWorker(deltaNeutralWorker02.address, true, true, workFactor, killFactor, true, true);
@@ -1170,7 +1485,8 @@ export class DeployHelper {
 
   public async deploySpookySwap(
     wbnb: MockWBNB,
-    booPerSec: BigNumberish
+    booPerSec: BigNumberish,
+    holders: Array<IHolder>
   ): Promise<[WaultSwapFactory, WaultSwapRouter, SpookyToken, SpookyMasterChef]> {
     // Note: Use WaultSwap because same fee structure
     // Setup WaultSwap
@@ -1191,7 +1507,10 @@ export class DeployHelper {
     const SpookyToken = (await ethers.getContractFactory("SpookyToken", this.deployer)) as SpookyToken__factory;
     const boo = await SpookyToken.deploy();
     await boo.deployed();
-    await boo.mint(await this.deployer.getAddress(), ethers.utils.parseEther("100"));
+
+    if (holders !== undefined) {
+      holders.forEach(async (holder) => await boo.mint(holder.address, holder.amount));
+    }
 
     /// Setup MasterChef
     const SpookyMasterChef = (await ethers.getContractFactory(
@@ -1206,6 +1525,182 @@ export class DeployHelper {
     return [factory, router, boo, spookyMasterChef];
   }
 
+  public async deployBiswap(
+    wbnb: MockWBNB,
+    bswPerBlock: BigNumberish
+  ): Promise<[BiswapFactory, BiswapRouter02, BSWToken, BiswapMasterChef]> {
+    const BiswapFactory = (await ethers.getContractFactory("BiswapFactory", this.deployer)) as BiswapFactory__factory;
+    const factory = await BiswapFactory.deploy(await this.deployer.getAddress());
+    await factory.deployed();
+
+    const BiswapRouter02 = (await ethers.getContractFactory(
+      "BiswapRouter02",
+      this.deployer
+    )) as BiswapRouter02__factory;
+    const router = await BiswapRouter02.deploy(factory.address, wbnb.address);
+    await router.deployed();
+
+    const BSWToken = (await ethers.getContractFactory("BSWToken", this.deployer)) as BSWToken__factory;
+    const bsw = await BSWToken.deploy();
+    await bsw.deployed();
+    await bsw["mint(uint256)"](ethers.utils.parseEther("100"));
+
+    /// Setup MasterChef
+    const BiswapMasterChef = (await ethers.getContractFactory(
+      "BiswapMasterChef",
+      this.deployer
+    )) as BiswapMasterChef__factory;
+    /*_BSW: string,
+    _devaddr: string,
+    _refAddr: string,
+    _safuaddr: string,
+    _BSWPerBlock: BigNumberish,
+    _startBlock: BigNumberish,
+    _stakingPercent: BigNumberish,
+    _devPercent: BigNumberish,
+    _refPercent: BigNumberish,
+    _safuPercent: BigNumberish,*/
+    const biswapMasterChef = await BiswapMasterChef.deploy(
+      bsw.address,
+      await this.deployer.getAddress(),
+      await this.deployer.getAddress(),
+      await this.deployer.getAddress(),
+      bswPerBlock,
+      BigNumber.from(0),
+      BigNumber.from(1000000),
+      BigNumber.from(0),
+      BigNumber.from(0),
+      BigNumber.from(0)
+    );
+
+    await biswapMasterChef.deployed();
+    // Transfer mintership so biswapMasterChef can mint BSW
+    await bsw.addMinter(biswapMasterChef.address);
+
+    return [factory, router, bsw, biswapMasterChef];
+  }
+
+  public async deployBiswapStrategies(
+    router: BiswapRouter02,
+    vault: BaseContract,
+    wNativeRelayer: WNativeRelayer
+  ): Promise<
+    [
+      BiswapStrategyAddBaseTokenOnly,
+      BiswapStrategyLiquidate,
+      BiswapStrategyAddTwoSidesOptimal,
+      BiswapStrategyWithdrawMinimizeTrading,
+      BiswapStrategyPartialCloseLiquidate,
+      BiswapStrategyPartialCloseMinimizeTrading
+    ]
+  > {
+    /// Setup strategy
+    const BiswapStrategyAddBaseTokenOnly = (await ethers.getContractFactory(
+      "BiswapStrategyAddBaseTokenOnly",
+      this.deployer
+    )) as BiswapStrategyAddBaseTokenOnly__factory;
+    const addStrat = (await upgrades.deployProxy(BiswapStrategyAddBaseTokenOnly, [
+      router.address,
+    ])) as BiswapStrategyAddBaseTokenOnly;
+    await addStrat.deployed();
+
+    const BiswapStrategyLiquidate = (await ethers.getContractFactory(
+      "BiswapStrategyLiquidate",
+      this.deployer
+    )) as BiswapStrategyLiquidate__factory;
+    const liqStrat = (await upgrades.deployProxy(BiswapStrategyLiquidate, [router.address])) as BiswapStrategyLiquidate;
+    await liqStrat.deployed();
+
+    const BiswapStrategyAddTwoSidesOptimal = (await ethers.getContractFactory(
+      "BiswapStrategyAddTwoSidesOptimal",
+      this.deployer
+    )) as BiswapStrategyAddTwoSidesOptimal__factory;
+    const twoSidesStrat = (await upgrades.deployProxy(BiswapStrategyAddTwoSidesOptimal, [
+      router.address,
+      vault.address,
+    ])) as BiswapStrategyAddTwoSidesOptimal;
+
+    const BiswapStrategyWithdrawMinimizeTrading = (await ethers.getContractFactory(
+      "BiswapStrategyWithdrawMinimizeTrading",
+      this.deployer
+    )) as BiswapStrategyWithdrawMinimizeTrading__factory;
+    const minimizeTradeStrat = (await upgrades.deployProxy(BiswapStrategyWithdrawMinimizeTrading, [
+      router.address,
+      wNativeRelayer.address,
+    ])) as BiswapStrategyWithdrawMinimizeTrading;
+
+    const BiswapStrategyPartialCloseLiquidate = (await ethers.getContractFactory(
+      "BiswapStrategyPartialCloseLiquidate",
+      this.deployer
+    )) as BiswapStrategyPartialCloseLiquidate__factory;
+    const partialCloseStrat = (await upgrades.deployProxy(BiswapStrategyPartialCloseLiquidate, [
+      router.address,
+    ])) as BiswapStrategyPartialCloseLiquidate;
+    await partialCloseStrat.deployed();
+    await wNativeRelayer.setCallerOk([partialCloseStrat.address], true);
+
+    const BiswapStrategyPartialCloseMinimizeTrading = (await ethers.getContractFactory(
+      "BiswapStrategyPartialCloseMinimizeTrading",
+      this.deployer
+    )) as BiswapStrategyPartialCloseMinimizeTrading__factory;
+    const partialCloseMinimizeStrat = (await upgrades.deployProxy(BiswapStrategyPartialCloseMinimizeTrading, [
+      router.address,
+      wNativeRelayer.address,
+    ])) as BiswapStrategyPartialCloseMinimizeTrading;
+    await partialCloseMinimizeStrat.deployed();
+    await wNativeRelayer.setCallerOk([partialCloseMinimizeStrat.address], true);
+
+    return [addStrat, liqStrat, twoSidesStrat, minimizeTradeStrat, partialCloseStrat, partialCloseMinimizeStrat];
+  }
+
+  public async deployBiswapWorker03(
+    vault: Vault,
+    btoken: MockERC20,
+    masterChef: BiswapMasterChef,
+    routerV2: BiswapRouter02,
+    poolIndex: number,
+    workFactor: BigNumberish,
+    killFactor: BigNumberish,
+    addStrat: BiswapStrategyAddBaseTokenOnly,
+    liqStrat: BiswapStrategyLiquidate,
+    reinvestBountyBps: BigNumberish,
+    okReinvestor: string[],
+    treasuryAddress: string,
+    reinvestPath: Array<string>,
+    extraStrategies: string[],
+    simpleVaultConfig: SimpleVaultConfig
+  ): Promise<BiswapWorker03> {
+    const BiswapWorker03 = (await ethers.getContractFactory(
+      "BiswapWorker03",
+      this.deployer
+    )) as BiswapWorker03__factory;
+    const worker = (await upgrades.deployProxy(BiswapWorker03, [
+      vault.address,
+      btoken.address,
+      masterChef.address,
+      routerV2.address,
+      poolIndex,
+      addStrat.address,
+      liqStrat.address,
+      reinvestBountyBps,
+      treasuryAddress,
+      reinvestPath,
+      0,
+    ])) as BiswapWorker03;
+    await worker.deployed();
+    await simpleVaultConfig.setWorker(worker.address, true, true, workFactor, killFactor, true, true);
+    await worker.setStrategyOk(extraStrategies, true);
+    await worker.setReinvestorOk(okReinvestor, true);
+    await worker.setTreasuryConfig(treasuryAddress, reinvestBountyBps);
+
+    extraStrategies.push(...[addStrat.address, liqStrat.address]);
+    extraStrategies.forEach(async (stratAddress) => {
+      const strat = BiswapStrategyLiquidate__factory.connect(stratAddress, this.deployer);
+      await strat.setWorkersOk([worker.address], true);
+    });
+
+    return worker;
+  }
   public async deploySpookySwapStrategies(
     router: WaultSwapRouter,
     vault: BaseContract,

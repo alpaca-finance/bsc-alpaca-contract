@@ -3,7 +3,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, network } from "hardhat";
 import { SpookyWorker03__factory } from "./../../../../typechain/factories/SpookyWorker03__factory";
 import { TombWorker03__factory } from "./../../../../typechain/factories/TombWorker03__factory";
-import { FileService, TimelockService } from "../../../services";
+import { fileService, TimelockService } from "../../../services";
 import { ConfigEntity, TimelockEntity } from "../../../entities";
 import { getDeployer } from "../../../../utils/deployer-helper";
 

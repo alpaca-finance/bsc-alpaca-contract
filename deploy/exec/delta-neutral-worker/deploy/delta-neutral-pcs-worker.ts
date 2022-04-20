@@ -12,110 +12,109 @@ import {
   PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading__factory,
 } from "../../../../typechain";
 import { ConfigEntity, TimelockEntity } from "../../../entities";
-import { FileService, TimelockService } from "../../../services";
+import { fileService, TimelockService } from "../../../services";
 import { BlockScanGasPrice } from "../../../services/gas-price/blockscan";
+
+interface IBeneficialVaultInput {
+  BENEFICIAL_VAULT_BPS: string;
+  BENEFICIAL_VAULT_ADDRESS: string;
+  REWARD_PATH: Array<string>;
+}
+
+interface IDeltaNeutralPCSWorkerInput {
+  VAULT_SYMBOL: string;
+  WORKER_NAME: string;
+  TREASURY_ADDRESS: string;
+  REINVEST_BOT: string;
+  POOL_ID: number;
+  REINVEST_BOUNTY_BPS: string;
+  REINVEST_PATH: Array<string>;
+  REINVEST_THRESHOLD: string;
+  BENEFICIAL_VAULT?: IBeneficialVaultInput;
+  WORK_FACTOR: string;
+  KILL_FACTOR: string;
+  MAX_PRICE_DIFF: string;
+}
+
+interface IDeltaNeutralPCSWorkerInfo {
+  WORKER_NAME: string;
+  VAULT_CONFIG_ADDR: string;
+  WORKER_CONFIG_ADDR: string;
+  REINVEST_BOT: string;
+  POOL_ID: number;
+  VAULT_ADDR: string;
+  BASE_TOKEN_ADDR: string;
+  DELTA_NEUTRAL_ORACLE: string;
+  MASTER_CHEF: string;
+  PCS_ROUTER_ADDR: string;
+  ADD_STRAT_ADDR: string;
+  LIQ_STRAT_ADDR: string;
+  TWO_SIDES_STRAT_ADDR: string;
+  PARTIAL_CLOSE_LIQ_STRAT_ADDR: string;
+  PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR: string;
+  MINIMIZE_TRADE_STRAT_ADDR: string;
+  REINVEST_BOUNTY_BPS: string;
+  REINVEST_PATH: Array<string>;
+  REINVEST_THRESHOLD: string;
+  WORK_FACTOR: string;
+  KILL_FACTOR: string;
+  MAX_PRICE_DIFF: string;
+  BENEFICIAL_VAULT?: IBeneficialVaultInput;
+  TIMELOCK: string;
+}
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
-      ░██╗░░░░░░░██╗░█████╗░██████╗░███╗░░██╗██╗███╗░░██╗░██████╗░
-      ░██║░░██╗░░██║██╔══██╗██╔══██╗████╗░██║██║████╗░██║██╔════╝░
-      ░╚██╗████╗██╔╝███████║██████╔╝██╔██╗██║██║██╔██╗██║██║░░██╗░
-      ░░████╔═████║░██╔══██║██╔══██╗██║╚████║██║██║╚████║██║░░╚██╗
-      ░░╚██╔╝░╚██╔╝░██║░░██║██║░░██║██║░╚███║██║██║░╚███║╚██████╔╝
-      ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
-      Check all variables below before execute the deployment script
-    */
-
-  interface IBeneficialVaultInput {
-    BENEFICIAL_VAULT_BPS: string;
-    BENEFICIAL_VAULT_ADDRESS: string;
-    REWARD_PATH: Array<string>;
-  }
-
-  interface IDeltaNeutralPCSWorkerInput {
-    VAULT_SYMBOL: string;
-    WORKER_NAME: string;
-    TREASURY_ADDRESS: string;
-    REINVEST_BOT: string;
-    POOL_ID: number;
-    REINVEST_BOUNTY_BPS: string;
-    REINVEST_PATH: Array<string>;
-    REINVEST_THRESHOLD: string;
-    BENEFICIAL_VAULT?: IBeneficialVaultInput;
-    WORK_FACTOR: string;
-    KILL_FACTOR: string;
-    MAX_PRICE_DIFF: string;
-  }
-
-  interface IDeltaNeutralPCSWorkerInfo {
-    WORKER_NAME: string;
-    VAULT_CONFIG_ADDR: string;
-    WORKER_CONFIG_ADDR: string;
-    REINVEST_BOT: string;
-    POOL_ID: number;
-    VAULT_ADDR: string;
-    BASE_TOKEN_ADDR: string;
-    DELTA_NEUTRAL_ORACLE: string;
-    MASTER_CHEF: string;
-    PCS_ROUTER_ADDR: string;
-    ADD_STRAT_ADDR: string;
-    LIQ_STRAT_ADDR: string;
-    TWO_SIDES_STRAT_ADDR: string;
-    PARTIAL_CLOSE_LIQ_STRAT_ADDR: string;
-    PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR: string;
-    MINIMIZE_TRADE_STRAT_ADDR: string;
-    REINVEST_BOUNTY_BPS: string;
-    REINVEST_PATH: Array<string>;
-    REINVEST_THRESHOLD: string;
-    WORK_FACTOR: string;
-    KILL_FACTOR: string;
-    MAX_PRICE_DIFF: string;
-    BENEFICIAL_VAULT?: IBeneficialVaultInput;
-    TIMELOCK: string;
-  }
-
+    ░██╗░░░░░░░██╗░█████╗░██████╗░███╗░░██╗██╗███╗░░██╗░██████╗░
+    ░██║░░██╗░░██║██╔══██╗██╔══██╗████╗░██║██║████╗░██║██╔════╝░
+    ░╚██╗████╗██╔╝███████║██████╔╝██╔██╗██║██║██╔██╗██║██║░░██╗░
+    ░░████╔═████║░██╔══██║██╔══██╗██║╚████║██║██║╚████║██║░░╚██╗
+    ░░╚██╔╝░╚██╔╝░██║░░██║██║░░██║██║░╚███║██║██║░╚███║╚██████╔╝
+    ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
+    Check all variables below before execute the deployment script
+  */
   const config = ConfigEntity.getConfig();
 
   const shortWorkerInfos: IDeltaNeutralPCSWorkerInput[] = [
     {
       VAULT_SYMBOL: "ibWBNB",
-      WORKER_NAME: "USDT-WBNB 8x PCS2 DeltaNeutralPancakeswapWorker",
+      WORKER_NAME: "BUSD-WBNB 3x PCS1 DeltaNeutralPancakeswapWorker",
       TREASURY_ADDRESS: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 264,
+      POOL_ID: 252,
       REINVEST_BOUNTY_BPS: "1500",
       REINVEST_PATH: ["CAKE", "WBNB"],
-      REINVEST_THRESHOLD: "100",
+      REINVEST_THRESHOLD: "10000",
       BENEFICIAL_VAULT: {
-        BENEFICIAL_VAULT_BPS: "5330",
+        BENEFICIAL_VAULT_BPS: "5333",
         BENEFICIAL_VAULT_ADDRESS: "0x44B3868cbba5fbd2c5D8d1445BDB14458806B3B4",
         REWARD_PATH: ["CAKE", "BUSD", "ALPACA"],
       },
-      WORK_FACTOR: "9500",
+      WORK_FACTOR: "8000",
       KILL_FACTOR: "0",
       MAX_PRICE_DIFF: "10500",
     },
     {
-      VAULT_SYMBOL: "ibUSDT",
-      WORKER_NAME: "WBNB-USDT 8x PCS2 DeltaNeutralPancakeswapWorker",
+      VAULT_SYMBOL: "ibBUSD",
+      WORKER_NAME: "WBNB-BUSD 3x PCS1 DeltaNeutralPancakeswapWorker",
       TREASURY_ADDRESS: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 264,
+      POOL_ID: 252,
       REINVEST_BOUNTY_BPS: "1500",
-      REINVEST_PATH: ["CAKE", "USDT"],
-      REINVEST_THRESHOLD: "100",
+      REINVEST_PATH: ["CAKE", "BUSD"],
+      REINVEST_THRESHOLD: "10000",
       BENEFICIAL_VAULT: {
-        BENEFICIAL_VAULT_BPS: "5330",
+        BENEFICIAL_VAULT_BPS: "5333",
         BENEFICIAL_VAULT_ADDRESS: "0x44B3868cbba5fbd2c5D8d1445BDB14458806B3B4",
         REWARD_PATH: ["CAKE", "BUSD", "ALPACA"],
       },
-      WORK_FACTOR: "9500",
+      WORK_FACTOR: "8000",
       KILL_FACTOR: "0",
       MAX_PRICE_DIFF: "10500",
     },
   ];
-  const TITLE = "mainnet_delta_neutral_8x_pcs2_worker";
-  const EXACT_ETA = "1648206000";
+  const TITLE = "mainnet_n3x_BNBBUSD_pcs1_worker";
+  const EXACT_ETA = "1649145600";
 
   const deployer = (await ethers.getSigners())[0];
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
@@ -315,7 +314,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     );
     console.log("✅ Done");
   }
-  FileService.write(TITLE, timelockTransactions);
+  fileService.writeJson(TITLE, timelockTransactions);
 };
 
 export default func;

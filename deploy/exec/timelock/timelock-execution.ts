@@ -2,12 +2,12 @@ import { TimelockEntity } from "../../entities";
 import { ethers } from "hardhat";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { FileService, TimelockService } from "../../services";
+import { fileService, TimelockService } from "../../services";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
-  const queuedTimelockPath = "./deploy/results/1648204424_mainnet_whitelist_u5p2.json";
+  const queuedTimelockPath = "./deploy/results/1648448738_adjust_BUSD-ALPACA_kill_factor.json";
   const queuedTimelocks = (await FileService.readJson(queuedTimelockPath)) as Array<TimelockEntity.Transaction>;
   const errs = [];
   let nonce = await deployer.getTransactionCount();
@@ -35,11 +35,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   }
 
   console.log("> Writing time execution results");
-  FileService.write("timelock-execution", timelockTransactions);
+  fileService.writeJson("timelock-execution", timelockTransactions);
 
   if (errs.length > 0) {
     console.log("> Writing errors");
-    FileService.write("timelock-execution-errors", errs);
+    fileService.writeJson("timelock-execution-errors", errs);
   }
 };
 
