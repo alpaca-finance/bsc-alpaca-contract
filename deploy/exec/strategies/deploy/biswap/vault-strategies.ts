@@ -4,6 +4,8 @@ import { ethers, upgrades } from "hardhat";
 import { BiswapStrategyAddTwoSidesOptimal, BiswapStrategyAddTwoSidesOptimal__factory } from "../../../../../typechain";
 import { getConfig } from "../../../../entities/config";
 import { getDeployer } from "../../../../../utils/deployer-helper";
+import { validateAddress } from "../../../../../utils/address";
+import { fileService } from "../../../../services";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -31,11 +33,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = await getDeployer();
 
   for (let i = 0; i < NEW_PARAMS.length; i++) {
-    const targetedVault = config.Vaults.find((v) => v.symbol === NEW_PARAMS[i].VAULT_SYMBOL);
-    if (targetedVault === undefined) {
+    const targetedVaultIdx = config.Vaults.findIndex((v) => v.symbol === NEW_PARAMS[i].VAULT_SYMBOL);
+    if (targetedVaultIdx === -1) {
       throw `error: not found vault based on ${NEW_PARAMS[i].VAULT_SYMBOL}`;
     }
-    if (targetedVault.address === "") {
+
+    const targetedVault = config.Vaults[targetedVaultIdx];
+    if (!validateAddress(targetedVault.address)) {
       throw `error: no address`;
     }
 
@@ -44,18 +48,24 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       "BiswapStrategyAddTwoSidesOptimal",
       deployer
     )) as BiswapStrategyAddTwoSidesOptimal__factory;
-    const strategyRestrictedAddTwoSidesOptimal = (await upgrades.deployProxy(BiswapStrategyAddTwoSidesOptimal, [
+    const strategyAddTwoSidesOptimal = (await upgrades.deployProxy(BiswapStrategyAddTwoSidesOptimal, [
       config.YieldSources.Biswap!.BiswapRouterV2,
       targetedVault.address,
     ])) as BiswapStrategyAddTwoSidesOptimal;
-    const deployedTx = await strategyRestrictedAddTwoSidesOptimal.deployTransaction.wait(3);
-    console.log(`>> Deployed at ${strategyRestrictedAddTwoSidesOptimal.address}`);
+    const deployedTx = await strategyAddTwoSidesOptimal.deployTransaction.wait(3);
+    console.log(`>> Deployed at ${strategyAddTwoSidesOptimal.address}`);
     console.log(`>> Deployed block: ${deployedTx.blockNumber}`);
+    console.log("✅ Done");
+
+    console.log(">> Updating json config file");
+    config.Vaults[targetedVaultIdx].StrategyAddTwoSidesOptimal.Biswap = strategyAddTwoSidesOptimal.address;
+    fileService.writeConfigJson(config);
+    console.log(`>> Updated StrategyAddTwoSidesOptimal.Biswap for Vault ${targetedVault.name}`);
     console.log("✅ Done");
 
     if (NEW_PARAMS[i].WHITELIST_WORKERS.length > 0) {
       console.log(">> Whitelisting Workers");
-      const tx = await strategyRestrictedAddTwoSidesOptimal.setWorkersOk(NEW_PARAMS[i].WHITELIST_WORKERS, true);
+      const tx = await strategyAddTwoSidesOptimal.setWorkersOk(NEW_PARAMS[i].WHITELIST_WORKERS, true);
       console.log("✅ Done at: ", tx.hash);
     }
   }

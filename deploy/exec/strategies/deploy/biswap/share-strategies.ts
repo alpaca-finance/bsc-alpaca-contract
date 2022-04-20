@@ -17,6 +17,7 @@ import { Strats } from "../../../../entities/strats";
 import { mapWorkers } from "../../../../entities/worker";
 import { getConfig } from "../../../../entities/config";
 import { getDeployer } from "../../../../../utils/deployer-helper";
+import { fileService } from "../../../../services";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -61,6 +62,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(`>> Deployed block: ${deployedTx.blockNumber}`);
     console.log("✅ Done");
 
+    console.log(">> Updating json config file");
+    config.SharedStrategies.Biswap!.StrategyAddBaseTokenOnly = strategyAddBaseTokenOnly.address;
+    fileService.writeConfigJson(config);
+    console.log(">> Updated StrategyAddBaseTokenOnly address on SharedStrategies.Biswap");
+    console.log("✅ Done");
+
     if (whitelistedWorkerAddrs.length > 0) {
       console.log(">> Whitelisting workers for strategyAddBaseTokenOnly");
       await strategyAddBaseTokenOnly.setWorkersOk(whitelistedWorkerAddrs, true);
@@ -83,6 +90,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const deployedTx = await strategyLiquidate.deployTransaction.wait(3);
     console.log(`>> Deployed at ${strategyLiquidate.address}`);
     console.log(`>> Deployed block: ${deployedTx.blockNumber}`);
+    console.log("✅ Done");
+
+    console.log(">> Updating json config file");
+    config.SharedStrategies.Biswap!.StrategyLiquidate = strategyLiquidate.address;
+    fileService.writeConfigJson(config);
+    console.log(">> Updated StrategyLiquidate address on SharedStrategies.Biswap");
     console.log("✅ Done");
 
     if (whitelistedWorkerAddrs.length > 0) {
@@ -109,6 +122,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(`>> Deployed at ${strategyWithdrawMinimizeTrading.address}`);
     console.log(`>> Deployed block: ${deployedTx.blockNumber}`);
 
+    console.log(">> Updating json config file");
+    config.SharedStrategies.Biswap!.StrategyWithdrawMinimizeTrading = strategyWithdrawMinimizeTrading.address;
+    fileService.writeConfigJson(config);
+    console.log(">> Updated StrategyWithdrawMinimizeTrading address on SharedStrategies.Biswap");
+    console.log("✅ Done");
+
     if (whitelistedWorkerAddrs.length > 0) {
       console.log(">> Whitelisting workers for strategyWithdrawMinimizeTrading");
       await strategyWithdrawMinimizeTrading.setWorkersOk(whitelistedWorkerAddrs, true);
@@ -129,17 +148,23 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       "BiswapStrategyPartialCloseLiquidate",
       deployer
     )) as BiswapStrategyPartialCloseLiquidate__factory;
-    const restrictedStrategyPartialCloseLiquidate = (await upgrades.deployProxy(BiswapStrategyPartialCloseLiquidate, [
+    const strategyPartialCloseLiquidate = (await upgrades.deployProxy(BiswapStrategyPartialCloseLiquidate, [
       config.YieldSources.Biswap!.BiswapRouterV2,
     ])) as BiswapStrategyLiquidate;
-    const deployedTx = await restrictedStrategyPartialCloseLiquidate.deployTransaction.wait(3);
-    console.log(`>> Deployed at ${restrictedStrategyPartialCloseLiquidate.address}`);
+    const deployedTx = await strategyPartialCloseLiquidate.deployTransaction.wait(3);
+    console.log(`>> Deployed at ${strategyPartialCloseLiquidate.address}`);
     console.log(`>> Deployed block: ${deployedTx.blockNumber}`);
+    console.log("✅ Done");
+
+    console.log(">> Updating json config file");
+    config.SharedStrategies.Biswap!.StrategyPartialCloseLiquidate = strategyPartialCloseLiquidate.address;
+    fileService.writeConfigJson(config);
+    console.log(">> Updated StrategyPartialCloseLiquidate address on SharedStrategies.Biswap");
     console.log("✅ Done");
 
     if (whitelistedWorkerAddrs.length > 0) {
       console.log(">> Whitelisting workers for strategyLiquidate");
-      await restrictedStrategyPartialCloseLiquidate.setWorkersOk(whitelistedWorkerAddrs, true);
+      await strategyPartialCloseLiquidate.setWorkersOk(whitelistedWorkerAddrs, true);
       console.log("✅ Done");
     }
   }
@@ -158,9 +183,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       config.SharedConfig.WNativeRelayer,
     ])) as BiswapStrategyPartialCloseMinimizeTrading;
     const deployedTx = await strategyPartialCloseMinimizeTrading.deployTransaction.wait(3);
-
-    console.log(`>> Deployed block: ${deployedTx.blockNumber}`);
     console.log(`>> Deployed at ${strategyPartialCloseMinimizeTrading.address}`);
+    console.log(`>> Deployed block: ${deployedTx.blockNumber}`);
+    console.log("✅ Done");
+
+    console.log(">> Updating json config file");
+    config.SharedStrategies.Biswap!.StrategyPartialCloseMinimizeTrading = strategyPartialCloseMinimizeTrading.address;
+    fileService.writeConfigJson(config);
+    console.log(">> Updated StrategyPartialCloseMinimizeTrading address on SharedStrategies.Biswap");
+    console.log("✅ Done");
 
     if (whitelistedWorkerAddrs.length > 0) {
       console.log(">> Whitelisting workers for strategyPartialCloseMinimizeTrading");

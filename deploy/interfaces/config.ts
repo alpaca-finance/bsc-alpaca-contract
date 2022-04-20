@@ -16,6 +16,7 @@ export interface Config {
   Vaults: VaultsEntity[];
   DeltaNeutralVaults: DeltaNeutralVaultsEntity[];
 }
+
 export interface MerkleDistributor {
   "ITAM-week-1": string;
   "ITAM-week-2": string;

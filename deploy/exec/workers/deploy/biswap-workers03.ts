@@ -9,6 +9,7 @@ import {
   WorkerConfig__factory,
 } from "../../../../typechain";
 import { ConfigEntity, TimelockEntity } from "../../../entities";
+import { WorkersEntity } from "../../../interfaces/config";
 import { compare } from "../../../../utils/address";
 import { getDeployer } from "../../../../utils/deployer-helper";
 import { fileService, TimelockService } from "../../../services";
@@ -62,6 +63,8 @@ interface IBiswapWorkerInfo {
 }
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+  const executeFileTitle = "biswap-worker03";
+  const executeTimestamp = Math.floor(Date.now() / 1000);
   /*
   ░██╗░░░░░░░██╗░█████╗░██████╗░███╗░░██╗██╗███╗░░██╗░██████╗░
   ░██║░░██╗░░██║██╔══██╗██╔══██╗████╗░██║██║████╗░██║██╔════╝░
@@ -88,7 +91,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       WORK_FACTOR: "7000",
       KILL_FACTOR: "8333",
       MAX_PRICE_DIFF: "11000",
-      EXACT_ETA: "1650753600", // no use due to no timelock
+      EXACT_ETA: "1650953600", // no use due to no timelock
     },
     {
       VAULT_SYMBOL: "ibUSDT",
@@ -106,11 +109,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       WORK_FACTOR: "7000",
       KILL_FACTOR: "8333",
       MAX_PRICE_DIFF: "11000",
-      EXACT_ETA: "1650753600", // no use due to no timelock
+      EXACT_ETA: "1650953600", // no use due to no timelock
     },
   ];
 
-  const TITLE = "biswap-worker03";
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
 
   const deployer = await getDeployer();
@@ -192,6 +194,42 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(`>> Deployed block: ${deployedTx.blockNumber}`);
     console.log("✅ Done");
 
+    console.log(">> Updating json config file");
+    const lpPoolAddress = config.YieldSources.Biswap!.pools.find(
+      (pool) => pool.pId === workerInfos[i].POOL_ID
+    )!.address;
+    const biswapWorkersEntity: WorkersEntity = {
+      name: workerInfos[i].WORKER_NAME,
+      address: biswapWorker03.address,
+      deployedBlock: deployedTx.blockNumber,
+      config: workerInfos[i].WORKER_CONFIG_ADDR,
+      pId: workerInfos[i].POOL_ID,
+      stakingToken: lpPoolAddress,
+      stakingTokenAt: workerInfos[i].MASTER_CHEF_ADDR,
+      strategies: {
+        StrategyAddAllBaseToken: workerInfos[i].ADD_STRAT_ADDR,
+        StrategyLiquidate: workerInfos[i].LIQ_STRAT_ADDR,
+        StrategyAddTwoSidesOptimal: workerInfos[i].TWO_SIDES_STRAT_ADDR,
+        StrategyWithdrawMinimizeTrading: workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR,
+        StrategyPartialCloseLiquidate: workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR,
+        StrategyPartialCloseMinimizeTrading: workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR,
+      },
+    };
+    // check if exists
+    const workerVaultIdx = config.Vaults.findIndex((v) => v.address === workerInfos[i].VAULT_ADDR);
+    const vaultWorkers = workerVaultIdx >= 0 ? config.Vaults[workerVaultIdx].workers : [];
+    const workerIdx = vaultWorkers.findIndex((w) => w.name === workerInfos[i].WORKER_NAME);
+    if (workerIdx === -1) {
+      config.Vaults[workerVaultIdx].workers = [...vaultWorkers, biswapWorkersEntity];
+      console.log(`>> Added ${workerInfos[i].WORKER_NAME} in Vault workers`);
+    } else {
+      config.Vaults[workerVaultIdx].workers[workerIdx] = biswapWorkersEntity;
+      console.log(`>> Updated ${workerInfos[i].WORKER_NAME} in Vault workers`);
+    }
+
+    fileService.writeConfigJson(config);
+    console.log("✅ Done");
+
     let nonce = await deployer.getTransactionCount();
 
     console.log(`>> Adding REINVEST_BOT`);
@@ -242,7 +280,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     if (compare(workerOwnerAddress, timelock.address)) {
       const setConfigsTx = await TimelockService.queueTransaction(
-        `>> Queue tx on Timelock Setting WorkerConfig via Timelock at ${workerInfos[i].WORKER_CONFIG_ADDR} for ${biswapWorker03.address}`,
+        `>> Queue tx on Timelock Setting WorkerConfig via Timelock at ${workerInfos[i].WORKER_CONFIG_ADDR} for ${biswapWorker03.address} ETA ${workerInfos[i].EXACT_ETA}`,
         workerInfos[i].WORKER_CONFIG_ADDR,
         "0",
         "setConfigs(address[],(bool,uint64,uint64,uint64)[])",
@@ -267,6 +305,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         `await timelock.executeTransaction('${workerInfos[i].WORKER_CONFIG_ADDR}', '0', 'setConfigs(address[],(bool,uint64,uint64,uint64)[])', ethers.utils.defaultAbiCoder.encode(['address[]','(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]'],[['${biswapWorker03.address}'], [{acceptDebt: true, workFactor: ${workerInfos[i].WORK_FACTOR}, killFactor: ${workerInfos[i].KILL_FACTOR}, maxPriceDiff: ${workerInfos[i].MAX_PRICE_DIFF}}]]), ${workerInfos[i].EXACT_ETA})`
       );
       timelockTransactions.push(setConfigsTx);
+      fileService.writeJson(executeFileTitle, timelockTransactions, executeTimestamp);
       console.log("✅ Done");
     } else {
       console.log(">> Setting WorkerConfig");
@@ -305,6 +344,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         `await timelock.executeTransaction('${workerInfos[i].VAULT_CONFIG_ADDR}', '0','setWorkers(address[],address[])', ethers.utils.defaultAbiCoder.encode(['address[]','address[]'],[['${biswapWorker03.address}'], ['${workerInfos[i].WORKER_CONFIG_ADDR}']]), ${workerInfos[i].EXACT_ETA})`
       );
       timelockTransactions.push(setWorkersTx);
+      fileService.writeJson(executeFileTitle, timelockTransactions, executeTimestamp);
       console.log("✅ Done");
     } else {
       console.log(">> Linking VaultConfig with WorkerConfig");
@@ -316,8 +356,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       console.log("✅ Done");
     }
   }
-
-  fileService.writeJson(TITLE, timelockTransactions);
 };
 
 export default func;
