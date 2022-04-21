@@ -96,11 +96,11 @@ contract MasterChefV2 is Ownable, ReentrancyGuard {
   uint256 public constant CAKE_RATE_TOTAL_PRECISION = 1e12;
   /// @notice The last block number of CAKE burn action being executed.
   /// @notice CAKE distribute % for burn
-  uint256 public cakeRateToBurn = 75 * 1e10;
+  uint256 public cakeRateToBurn = 643750000000;
   /// @notice CAKE distribute % for regular farm pool
-  uint256 public cakeRateToRegularFarm = 10 * 1e10;
+  uint256 public cakeRateToRegularFarm = 62847222222;
   /// @notice CAKE distribute % for special pools
-  uint256 public cakeRateToSpecialFarm = 15 * 1e10;
+  uint256 public cakeRateToSpecialFarm = 293402777778;
 
   uint256 public lastBurnedBlock;
 
@@ -116,7 +116,7 @@ contract MasterChefV2 is Ownable, ReentrancyGuard {
   event UpdateBurnAdmin(address indexed oldAdmin, address indexed newAdmin);
   event UpdateWhiteList(address indexed user, bool isValid);
   event UpdateBoostContract(address indexed boostContract);
-  event UpdateBoostMultiplier(address indexed user, uint256 oldMultiplier, uint256 newMultiplier);
+  event UpdateBoostMultiplier(address indexed user, uint256 pid, uint256 oldMultiplier, uint256 newMultiplier);
 
   /// @param _MASTER_CHEF The PancakeSwap MCV1 contract address.
   /// @param _CAKE The CAKE token contract address.
@@ -492,7 +492,7 @@ contract MasterChefV2 is Ownable, ReentrancyGuard {
     poolInfo[_pid] = pool;
     userInfo[_pid][_user].boostMultiplier = _newMultiplier;
 
-    emit UpdateBoostMultiplier(_user, prevMultiplier, _newMultiplier);
+    emit UpdateBoostMultiplier(_user, _pid, prevMultiplier, _newMultiplier);
   }
 
   /// @notice Get user boost multiplier for specific pool id.

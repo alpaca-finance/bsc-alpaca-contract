@@ -6,6 +6,7 @@ import "./SafeERC20.sol";
 import "./Pausable.sol";
 import "../../interfaces/IMasterChefV2.sol";
 import "../../interfaces/IBoostContract.sol";
+import "../../interfaces/IVCake.sol";
 
 contract CakePool is Ownable, Pausable {
   using SafeERC20 for IERC20;
@@ -27,12 +28,14 @@ contract CakePool is Ownable, Pausable {
   IMasterChefV2 public immutable masterchefV2;
 
   address public boostContract; // boost contract used in Masterchef.
+  address public VCake;
 
   mapping(address => UserInfo) public userInfo;
-  mapping(address => bool) public freeFeeUsers; // free fee users.
+  mapping(address => bool) public freePerformanceFeeUsers; // free performance fee users.
+  mapping(address => bool) public freeWithdrawFeeUsers; // free withdraw fee users.
+  mapping(address => bool) public freeOverdueFeeUsers; // free overdue fee users.
 
   uint256 public totalShares;
-  uint256 public lastHarvestedTime;
   address public admin;
   address public treasury;
   address public operator;
@@ -41,12 +44,12 @@ contract CakePool is Ownable, Pausable {
   uint256 public totalLockedAmount; // total lock amount.
 
   uint256 public constant MAX_PERFORMANCE_FEE = 2000; // 20%
-  uint256 public constant MAX_CALL_FEE = 100; // 1%
   uint256 public constant MAX_WITHDRAW_FEE = 500; // 5%
+  uint256 public constant MAX_OVERDUE_FEE = 100 * 1e10; // 100%
   uint256 public constant MAX_WITHDRAW_FEE_PERIOD = 1 weeks; // 1 week
   uint256 public constant MIN_LOCK_DURATION = 1 weeks; // 1 week
   uint256 public constant MAX_LOCK_DURATION_LIMIT = 1000 days; // 1000 days
-  uint256 public constant BOOST_WEIGHT_LIMIT = 500 * 1e10; // 500%
+  uint256 public constant BOOST_WEIGHT_LIMIT = 5000 * 1e10; // 5000%
   uint256 public constant PRECISION_FACTOR = 1e12; // precision factor.
   uint256 public constant PRECISION_FACTOR_SHARE = 1e28; // precision factor for share.
   uint256 public constant MIN_DEPOSIT_AMOUNT = 0.00001 ether;
@@ -78,6 +81,23 @@ contract CakePool is Ownable, Pausable {
     uint256 blockTimestamp
   );
   event Unlock(address indexed sender, uint256 amount, uint256 blockTimestamp);
+  event NewAdmin(address admin);
+  event NewTreasury(address treasury);
+  event NewOperator(address operator);
+  event NewBoostContract(address boostContract);
+  event NewVCakeContract(address VCake);
+  event FreeFeeUser(address indexed user, bool indexed free);
+  event NewPerformanceFee(uint256 performanceFee);
+  event NewPerformanceFeeContract(uint256 performanceFeeContract);
+  event NewWithdrawFee(uint256 withdrawFee);
+  event NewOverdueFee(uint256 overdueFee);
+  event NewWithdrawFeeContract(uint256 withdrawFeeContract);
+  event NewWithdrawFeePeriod(uint256 withdrawFeePeriod);
+  event NewMaxLockDuration(uint256 maxLockDuration);
+  event NewDurationFactor(uint256 durationFactor);
+  event NewDurationFactorOverdue(uint256 durationFactorOverdue);
+  event NewUnlockFreeDuration(uint256 unlockFreeDuration);
+  event NewBoostWeight(uint256 boostWeight);
 
   /**
    * @notice Constructor
@@ -109,7 +129,7 @@ contract CakePool is Ownable, Pausable {
    * It will transfer all the `dummyToken` in the tx sender address.
    * @param dummyToken The address of the token to be deposited into MCV2.
    */
-  function init(IERC20 dummyToken) external {
+  function init(IERC20 dummyToken) external onlyOwner {
     uint256 balance = dummyToken.balanceOf(msg.sender);
     require(balance != 0, "Balance must exceed 0");
     dummyToken.safeTransferFrom(msg.sender, address(this), balance);
@@ -166,7 +186,7 @@ contract CakePool is Ownable, Pausable {
         user.userBoostedShare = 0;
         totalShares -= user.shares;
         //Charge a overdue fee after the free duration has expired.
-        if (!freeFeeUsers[_user] && ((user.lockEndTime + UNLOCK_FREE_DURATION) < block.timestamp)) {
+        if (!freeOverdueFeeUsers[_user] && ((user.lockEndTime + UNLOCK_FREE_DURATION) < block.timestamp)) {
           uint256 earnAmount = currentAmount - user.lockedAmount;
           uint256 overdueDuration = block.timestamp - user.lockEndTime - UNLOCK_FREE_DURATION;
           if (overdueDuration > DURATION_FACTOR_OVERDUE) {
@@ -197,7 +217,7 @@ contract CakePool is Ownable, Pausable {
           user.lockedAmount = 0;
           emit Unlock(_user, currentAmount, block.timestamp);
         }
-      } else if (!freeFeeUsers[_user]) {
+      } else if (!freePerformanceFeeUsers[_user]) {
         // Calculate Performance fee.
         uint256 totalAmount = (user.shares * balanceOf()) / totalShares;
         totalShares -= user.shares;
@@ -276,6 +296,10 @@ contract CakePool is Ownable, Pausable {
     }
     require(_lockDuration == 0 || totalLockDuration >= MIN_LOCK_DURATION, "Minimum lock period is one week");
     require(totalLockDuration <= MAX_LOCK_DURATION, "Maximum lock period exceeded");
+
+    if (VCake != address(0)) {
+      IVCake(VCake).deposit(_user, _amount, _lockDuration);
+    }
 
     // Harvest tokens from Masterchef.
     harvest();
@@ -367,7 +391,7 @@ contract CakePool is Ownable, Pausable {
    * @notice Withdraw funds from the Cake Pool.
    * @param _amount: Number of amount to withdraw
    */
-  function withdrawByAmount(uint256 _amount) public {
+  function withdrawByAmount(uint256 _amount) public whenNotPaused {
     require(_amount > MIN_WITHDRAW_AMOUNT, "Withdraw amount must be greater than MIN_WITHDRAW_AMOUNT");
     withdrawOperation(0, _amount);
   }
@@ -376,7 +400,7 @@ contract CakePool is Ownable, Pausable {
    * @notice Withdraw funds from the Cake Pool.
    * @param _shares: Number of shares to withdraw
    */
-  function withdraw(uint256 _shares) public {
+  function withdraw(uint256 _shares) public whenNotPaused {
     require(_shares > 0, "Nothing to withdraw");
     withdrawOperation(_shares, 0);
   }
@@ -390,6 +414,10 @@ contract CakePool is Ownable, Pausable {
     UserInfo storage user = userInfo[msg.sender];
     require(_shares <= user.shares, "Withdraw amount exceeds balance");
     require(user.lockEndTime < block.timestamp, "Still in lock");
+
+    if (VCake != address(0)) {
+      IVCake(VCake).withdraw(msg.sender);
+    }
 
     // Calculate the percent of withdraw shares, when unlocking or calculating the Performance fee, the shares will be updated.
     uint256 currentShare = _shares;
@@ -415,7 +443,7 @@ contract CakePool is Ownable, Pausable {
     totalShares -= currentShare;
 
     // Calculate withdraw fee
-    if (!freeFeeUsers[msg.sender] && (block.timestamp < user.lastDepositedTime + withdrawFeePeriod)) {
+    if (!freeWithdrawFeeUsers[msg.sender] && (block.timestamp < user.lastDepositedTime + withdrawFeePeriod)) {
       uint256 feeRate = withdrawFee;
       if (_isContract(msg.sender)) {
         feeRate = withdrawFeeContract;
@@ -468,6 +496,7 @@ contract CakePool is Ownable, Pausable {
   function setAdmin(address _admin) external onlyOwner {
     require(_admin != address(0), "Cannot be zero address");
     admin = _admin;
+    emit NewAdmin(admin);
   }
 
   /**
@@ -477,6 +506,7 @@ contract CakePool is Ownable, Pausable {
   function setTreasury(address _treasury) external onlyOwner {
     require(_treasury != address(0), "Cannot be zero address");
     treasury = _treasury;
+    emit NewTreasury(treasury);
   }
 
   /**
@@ -486,6 +516,7 @@ contract CakePool is Ownable, Pausable {
   function setOperator(address _operator) external onlyOwner {
     require(_operator != address(0), "Cannot be zero address");
     operator = _operator;
+    emit NewOperator(operator);
   }
 
   /**
@@ -495,17 +526,53 @@ contract CakePool is Ownable, Pausable {
   function setBoostContract(address _boostContract) external onlyAdmin {
     require(_boostContract != address(0), "Cannot be zero address");
     boostContract = _boostContract;
+    emit NewBoostContract(boostContract);
   }
 
   /**
-   * @notice Set free fee address
+   * @notice Set VCake Contract address
+   * @dev Callable by the contract admin.
+   */
+  function setVCakeContract(address _VCake) external onlyAdmin {
+    require(_VCake != address(0), "Cannot be zero address");
+    VCake = _VCake;
+    emit NewVCakeContract(VCake);
+  }
+
+  /**
+   * @notice Set free performance fee address
    * @dev Only callable by the contract admin.
    * @param _user: User address
    * @param _free: true:free false:not free
    */
-  function setFreeFeeUser(address _user, bool _free) external onlyAdmin {
+  function setFreePerformanceFeeUser(address _user, bool _free) external onlyAdmin {
     require(_user != address(0), "Cannot be zero address");
-    freeFeeUsers[_user] = _free;
+    freePerformanceFeeUsers[_user] = _free;
+    emit FreeFeeUser(_user, _free);
+  }
+
+  /**
+   * @notice Set free overdue fee address
+   * @dev Only callable by the contract admin.
+   * @param _user: User address
+   * @param _free: true:free false:not free
+   */
+  function setOverdueFeeUser(address _user, bool _free) external onlyAdmin {
+    require(_user != address(0), "Cannot be zero address");
+    freeOverdueFeeUsers[_user] = _free;
+    emit FreeFeeUser(_user, _free);
+  }
+
+  /**
+   * @notice Set free withdraw fee address
+   * @dev Only callable by the contract admin.
+   * @param _user: User address
+   * @param _free: true:free false:not free
+   */
+  function setWithdrawFeeUser(address _user, bool _free) external onlyAdmin {
+    require(_user != address(0), "Cannot be zero address");
+    freeWithdrawFeeUsers[_user] = _free;
+    emit FreeFeeUser(_user, _free);
   }
 
   /**
@@ -515,6 +582,7 @@ contract CakePool is Ownable, Pausable {
   function setPerformanceFee(uint256 _performanceFee) external onlyAdmin {
     require(_performanceFee <= MAX_PERFORMANCE_FEE, "performanceFee cannot be more than MAX_PERFORMANCE_FEE");
     performanceFee = _performanceFee;
+    emit NewPerformanceFee(performanceFee);
   }
 
   /**
@@ -524,6 +592,7 @@ contract CakePool is Ownable, Pausable {
   function setPerformanceFeeContract(uint256 _performanceFeeContract) external onlyAdmin {
     require(_performanceFeeContract <= MAX_PERFORMANCE_FEE, "performanceFee cannot be more than MAX_PERFORMANCE_FEE");
     performanceFeeContract = _performanceFeeContract;
+    emit NewPerformanceFeeContract(performanceFeeContract);
   }
 
   /**
@@ -533,6 +602,17 @@ contract CakePool is Ownable, Pausable {
   function setWithdrawFee(uint256 _withdrawFee) external onlyAdmin {
     require(_withdrawFee <= MAX_WITHDRAW_FEE, "withdrawFee cannot be more than MAX_WITHDRAW_FEE");
     withdrawFee = _withdrawFee;
+    emit NewWithdrawFee(withdrawFee);
+  }
+
+  /**
+   * @notice Set overdue fee
+   * @dev Only callable by the contract admin.
+   */
+  function setOverdueFee(uint256 _overdueFee) external onlyAdmin {
+    require(_overdueFee <= MAX_OVERDUE_FEE, "overdueFee cannot be more than MAX_OVERDUE_FEE");
+    overdueFee = _overdueFee;
+    emit NewOverdueFee(_overdueFee);
   }
 
   /**
@@ -542,6 +622,7 @@ contract CakePool is Ownable, Pausable {
   function setWithdrawFeeContract(uint256 _withdrawFeeContract) external onlyAdmin {
     require(_withdrawFeeContract <= MAX_WITHDRAW_FEE, "withdrawFee cannot be more than MAX_WITHDRAW_FEE");
     withdrawFeeContract = _withdrawFeeContract;
+    emit NewWithdrawFeeContract(withdrawFeeContract);
   }
 
   /**
@@ -554,6 +635,7 @@ contract CakePool is Ownable, Pausable {
       "withdrawFeePeriod cannot be more than MAX_WITHDRAW_FEE_PERIOD"
     );
     withdrawFeePeriod = _withdrawFeePeriod;
+    emit NewWithdrawFeePeriod(withdrawFeePeriod);
   }
 
   /**
@@ -566,6 +648,7 @@ contract CakePool is Ownable, Pausable {
       "MAX_LOCK_DURATION cannot be more than MAX_LOCK_DURATION_LIMIT"
     );
     MAX_LOCK_DURATION = _maxLockDuration;
+    emit NewMaxLockDuration(_maxLockDuration);
   }
 
   /**
@@ -575,6 +658,7 @@ contract CakePool is Ownable, Pausable {
   function setDurationFactor(uint256 _durationFactor) external onlyAdmin {
     require(_durationFactor > 0, "DURATION_FACTOR cannot be zero");
     DURATION_FACTOR = _durationFactor;
+    emit NewDurationFactor(_durationFactor);
   }
 
   /**
@@ -584,6 +668,7 @@ contract CakePool is Ownable, Pausable {
   function setDurationFactorOverdue(uint256 _durationFactorOverdue) external onlyAdmin {
     require(_durationFactorOverdue > 0, "DURATION_FACTOR_OVERDUE cannot be zero");
     DURATION_FACTOR_OVERDUE = _durationFactorOverdue;
+    emit NewDurationFactorOverdue(_durationFactorOverdue);
   }
 
   /**
@@ -593,6 +678,7 @@ contract CakePool is Ownable, Pausable {
   function setUnlockFreeDuration(uint256 _unlockFreeDuration) external onlyAdmin {
     require(_unlockFreeDuration > 0, "UNLOCK_FREE_DURATION cannot be zero");
     UNLOCK_FREE_DURATION = _unlockFreeDuration;
+    emit NewUnlockFreeDuration(_unlockFreeDuration);
   }
 
   /**
@@ -602,6 +688,7 @@ contract CakePool is Ownable, Pausable {
   function setBoostWeight(uint256 _boostWeight) external onlyAdmin {
     require(_boostWeight <= BOOST_WEIGHT_LIMIT, "BOOST_WEIGHT cannot be more than BOOST_WEIGHT_LIMIT");
     BOOST_WEIGHT = _boostWeight;
+    emit NewBoostWeight(_boostWeight);
   }
 
   /**
@@ -639,7 +726,7 @@ contract CakePool is Ownable, Pausable {
    */
   function calculatePerformanceFee(address _user) public view returns (uint256) {
     UserInfo storage user = userInfo[_user];
-    if (user.shares > 0 && !user.locked && !freeFeeUsers[_user]) {
+    if (user.shares > 0 && !user.locked && !freePerformanceFeeUsers[_user]) {
       uint256 pool = balanceOf() + calculateTotalPendingCakeRewards();
       uint256 totalAmount = (user.shares * pool) / totalShares;
       uint256 earnAmount = totalAmount - user.cakeAtLastUserAction;
@@ -663,7 +750,7 @@ contract CakePool is Ownable, Pausable {
     if (
       user.shares > 0 &&
       user.locked &&
-      !freeFeeUsers[_user] &&
+      !freeOverdueFeeUsers[_user] &&
       ((user.lockEndTime + UNLOCK_FREE_DURATION) < block.timestamp)
     ) {
       uint256 pool = balanceOf() + calculateTotalPendingCakeRewards();
@@ -701,7 +788,7 @@ contract CakePool is Ownable, Pausable {
     if (user.shares < _shares) {
       _shares = user.shares;
     }
-    if (!freeFeeUsers[msg.sender] && (block.timestamp < user.lastDepositedTime + withdrawFeePeriod)) {
+    if (!freeWithdrawFeeUsers[msg.sender] && (block.timestamp < user.lastDepositedTime + withdrawFeePeriod)) {
       uint256 pool = balanceOf() + calculateTotalPendingCakeRewards();
       uint256 sharesPercent = (_shares * PRECISION_FACTOR) / user.shares;
       uint256 currentTotalAmount = (pool * (user.shares)) /

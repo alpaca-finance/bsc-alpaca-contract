@@ -655,7 +655,7 @@ describe("CakeMaxiWorker02Migrate", () => {
       [masterChefV2] = await deployHelper.deployPancakeMasterChefV2(masterChef);
       [cakePool] = await deployHelper.deployPancakeCakePool(masterChefV2);
 
-      await cakePool.setFreeFeeUser(integratedCakeMaxiWorker.address, true);
+      await cakePool.setWithdrawFeeUser(integratedCakeMaxiWorker.address, true);
     });
 
     context("when CakePool pool is empty", async () => {
@@ -995,7 +995,7 @@ describe("CakeMaxiWorker02Migrate", () => {
         await cakeMaxiWorker02Migrate.migrateCAKE(cakePool.address);
 
         // Turn withdrawal fee back on
-        await cakePool.setFreeFeeUser(integratedCakeMaxiWorker.address, false);
+        await cakePool.setWithdrawFeeUser(integratedCakeMaxiWorker.address, false);
 
         // Open Position #3 after migrateLp and withdrawal fee on, should fail
         await expect(

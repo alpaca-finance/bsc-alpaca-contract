@@ -1,6 +1,6 @@
 {
   "name": "@alpaca-finance/alpaca-contract",
-  "version": "1.2.30",
+  "version": "1.2.31",
   "scripts": {
     "prepublish": "yarn build",
     "build": "yarn run build:cjs",
@@ -407,7 +407,10 @@
     "coverage": "hardhat coverage",
     "solhint": "./node_modules/.bin/solhint -f table contracts/**/*.sol",
     "prettier:solidity": "./node_modules/.bin/prettier --write contracts/**/*.sol",
-    "mainnet-fork": "hardhat node --show-stack-traces --config hardhat.config.8.10.forking.ts"
+    "mainnet-fork": "hardhat node --show-stack-traces --config hardhat.config.8.10.forking.ts",
+    "forge:build": "forge build --sizes --force",
+    "forge:test": "forge test",
+    "forge:watch": "forge test -w"
   },
   "devDependencies": {
     "@chainlink/contracts": "^0.1.7",

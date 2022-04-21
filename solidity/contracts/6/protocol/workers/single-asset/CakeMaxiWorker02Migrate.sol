@@ -31,8 +31,8 @@ import "../../../utils/SafeToken.sol";
 import "../../interfaces/IVault.sol";
 import "../../interfaces/ICakePool.sol";
 
-/// @title CakeMaxiWorker02MCV2 is a reinvest-optimized CakeMaxiWorker which deposit into CakePool introduced in the PancakeSwap's MasterChefV2 migration
-contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02 {
+/// @title CakeMaxiWorker02Migrate is a migrating version of CakeMaxiWorker02 which migrates the existing CAKE into CakePool introduced in the PancakeSwap's MasterChefV2 migration
+contract CakeMaxiWorker02Migrate is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker02 {
   /// ---- Libraries ----
   using SafeToken for address;
   using SafeMath for uint256;
@@ -58,6 +58,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     address[] rewardPath
   );
   event SetReinvestConfig(address indexed caller, uint256 reinvestBountyBps, uint256 reinvestThreshold);
+  event LogMigrateCakePool(address indexed oldMasterChef, address indexed cakePool);
 
   /// ---- Configuration variables ----
   IPancakeMasterChef public masterChef;
@@ -97,14 +98,14 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
 
   /// ---- Upgraded state variables for CakeMaxiWorker02MCV2 ----
   ICakePool public cakePool;
-  /// @notice This variable will keep track of the amount of accumulated CAKE bounty that has not been reinvested
+  /// --- This variable will keep track of the amount of accumulated CAKE bounty that has not been reinvested ---
   uint256 public accumulatedBounty;
   uint256 public lastCakePoolActionTime;
 
   function initialize(
     address _operator,
     address _baseToken,
-    ICakePool _cakePool,
+    IPancakeMasterChef _masterChef,
     IPancakeRouter02 _router,
     IVault _beneficialVault,
     uint256 _pid,
@@ -123,7 +124,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     // 2. Assign dependency contracts
     operator = _operator;
     wNative = _router.WETH();
-    cakePool = _cakePool;
+    masterChef = _masterChef;
     beneficialVault = _beneficialVault;
     router = _router;
     factory = IPancakeFactory(_router.factory());
@@ -131,7 +132,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     // 3. Assign tokens state variables
     baseToken = _baseToken;
     pid = _pid;
-    IERC20 _farmingToken = IERC20(cakePool.token());
+    (IERC20 _farmingToken, , , ) = masterChef.poolInfo(_pid);
     farmingToken = address(_farmingToken);
 
     // 4. Assign critical strategy contracts
@@ -154,37 +155,37 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     fee = 9975;
     feeDenom = 10000;
 
-    require(path.length >= 2, "CakeMaxiWorker02MCV2::initialize:: path length must be >= 2");
+    require(path.length >= 2, "CakeMaxiWorker02Migrate::initialize:: path length must be >= 2");
     require(
       path[0] == baseToken && path[path.length - 1] == farmingToken,
-      "CakeMaxiWorker02MCV2::initialize:: path must start with base token and end with farming token"
+      "CakeMaxiWorker02Migrate::initialize:: path must start with base token and end with farming token"
     );
-    require(rewardPath.length >= 2, "CakeMaxiWorker02MCV2::initialize:: rewardPath length must be >= 2");
+    require(rewardPath.length >= 2, "CakeMaxiWorker02Migrate::initialize:: rewardPath length must be >= 2");
     require(
       rewardPath[0] == farmingToken && rewardPath[rewardPath.length - 1] == beneficialVault.token(),
-      "CakeMaxiWorker02MCV2::initialize:: rewardPath must start with farming token and end with beneficialVault.token()"
+      "CakeMaxiWorker02Migrate::initialize:: rewardPath must start with farming token and end with beneficialVault.token()"
     );
     require(
       reinvestBountyBps <= maxReinvestBountyBps,
-      "CakeMaxiWorker02MCV2::initialize:: reinvestBountyBps exceeded maxReinvestBountyBps"
+      "CakeMaxiWorker02Migrate::initialize:: reinvestBountyBps exceeded maxReinvestBountyBps"
     );
   }
 
   /// @notice Require that the caller must be an EOA account to avoid flash loans.
   modifier onlyEOA() {
-    require(msg.sender == tx.origin, "CakeMaxiWorker02MCV2::onlyEOA:: not eoa");
+    require(msg.sender == tx.origin, "CakeMaxiWorker02Migrate::onlyEOA:: not eoa");
     _;
   }
 
   /// @notice Require that the caller must be the operator.
   modifier onlyOperator() {
-    require(msg.sender == operator, "CakeMaxiWorker02MCV2::onlyOperator:: not operator");
+    require(msg.sender == operator, "CakeMaxiWorker02Migrate::onlyOperator:: not operator");
     _;
   }
 
   //// @notice Require that the caller must be ok reinvestor.
   modifier onlyReinvestor() {
-    require(okReinvestors[msg.sender], "CakeMaxiWorker02MCV2::onlyReinvestor:: not reinvestor");
+    require(okReinvestors[msg.sender], "CakeMaxiWorker02Migrate::onlyReinvestor:: not reinvestor");
     _;
   }
 
@@ -204,7 +205,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     return balance.mul(totalShare).div(totalBalance);
   }
 
-  /// @notice Keep it as reinvest even though CakePool will be auto-compounded it for compatibility.
+  /// @notice Re-invest whatever this worker has earned to the staking pool.
   function reinvest() external override onlyEOA onlyReinvestor nonReentrant {
     _reinvest(msg.sender, reinvestBountyBps, 0, 0);
     // in case of beneficial vault equals to operator vault, call buyback to transfer some buyback amount back to the vault
@@ -212,7 +213,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     _buyback();
   }
 
-  /// @notice Internal method containing performance collecting logic
+  /// @notice Internal method containing reinvest logic
   /// @param _treasuryAccount - The account that the reinvest bounty will be sent.
   /// @param _treasuryBountyBps - The bounty bps deducted from the reinvest reward.
   /// @param _callerBalance - The balance that is owned by the msg.sender within the execution scope.
@@ -223,74 +224,37 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     uint256 _callerBalance,
     uint256 _reinvestThreshold
   ) internal {
+    if (address(cakePool) != address(0)) {
+      // no reinvest for CakePool
+      return;
+    }
+    require(_treasuryAccount != address(0), "CakeMaxiWorker02Migrate::_reinvest:: bad treasury account");
     // 1. reset all reward balance since all rewards will be reinvested
     rewardBalance = 0;
-    uint256 _currentTotalBalance = totalBalance();
 
-    // 2. Calculate the profit since cakeAtLastUserAction with the current CAKE balance
-    (, , uint256 _cakeAtLastUserAction, uint256 _lastUserActionTime, , , , , ) = cakePool.userInfo(address(this));
-    // Deduct `accumulatedBounty` which has not been collected from here for profit calculation to be correct
-    _cakeAtLastUserAction = _cakeAtLastUserAction.sub(accumulatedBounty);
-    uint256 _currentProfit = _currentTotalBalance.sub(_cakeAtLastUserAction);
-    uint256 _bounty = _currentProfit.mul(_treasuryBountyBps) / 10000;
-
-    // If the CakePool has been interacted since last time (_lastUserActionTime > lastCakePoolActionTime), the `accumulatedBounty` must be added.
-    // This is to prevent double counting `accumulatedBounty` in case there is no interaction at all between two `_reinvest()` calls.
-    // The `_bounty` must correctly represent the Performance Fee calculated from profit.
-    // `accumulatedBounty` is the state that will remember any uncollected Performance Fee due to `_reinvestThreshold` and `MIN_WITHDRAW_AMOUNT`.
-    //
-    // Case 1: CakePool interaction between two reinvest
-    // #1 Reinvest                                                     #2 Reinvest
-    // lastUserActionTime: 1                                           lastUserActionTime: 2
-    // profit: 1 CAKE                     Position                     profit: 1 CAKE
-    // bounty: 0.1 CAKE                   Interaction                  bounty: 0.1 CAKE
-    // +--------------------------------------+--------------------------------------+
-    // [No reinvest]                                                   [Reinvest occur]
-    // accumulatedBounty: 0.1 CAKE                                     accumulatedBounty: 0.1 CAKE
-    // lastCakePoolActionTime: 1                                       lastCakePoolActionTime: 1
-    //                                                                 bountyToCollect = bounty + accumulatedBounty = 0.2 CAKE
-    // Case 2: No CakePool interaction between two reinvest
-    // #1 Reinvest                                                     #2 Reinvest
-    // lastUserActionTime: 1                                           lastUserActionTime: 1
-    // profit: 1 CAKE                                                  profit: 2 CAKE
-    // bounty: 0.1 CAKE                                                bounty: 0.2 CAKE
-    // +-----------------------------------------------------------------------------+
-    // [No reinvest]                                                   [Reinvest occur]
-    // accumulatedBounty: 0.1 CAKE                                     accumulatedBounty: 0.1 CAKE
-    // lastCakePoolActionTime: 1                                       lastCakePoolActionTime: 1
-    //                                                                 bountyToCollect = bounty = 0.2 CAKE
-    //                                                                 (accumulatedBounty is ignored here, because it is already included when calculating bounty)
-    //
-    if (_lastUserActionTime > lastCakePoolActionTime) _bounty = _bounty.add(accumulatedBounty);
-
-    // Check for `_reinvestThreshold` to save gas and `MIN_WITHDRAW_AMOUNT` to prevent failed bounty withdrawal
-    if (_bounty < _reinvestThreshold || _bounty < cakePool.MIN_WITHDRAW_AMOUNT()) {
-      // If the worker decided to not collect performance fee here,
-      // Update `accumulatedBounty` with `_bounty` which will already include any previously accumulated bounty.
-      accumulatedBounty = _bounty;
-      // Update `lastCakePoolActionTime` for double counting prevention
-      lastCakePoolActionTime = _lastUserActionTime;
+    // 2. withdraw all the rewards. Return if rewards smaller than the threshold.
+    withdraw(0);
+    uint256 reward = farmingToken.myBalance();
+    if (reward <= _reinvestThreshold) {
+      rewardBalance = reward;
       return;
     }
 
-    // 3. Withdraw only the bounty from the profit, taking into account withdrawal fee
-    uint256 _rewardBalanceBefore = farmingToken.myBalance();
-    cakePool.withdrawByAmount(_bounty);
-    uint256 _actualBountyReceived = farmingToken.myBalance().sub(_rewardBalanceBefore);
+    // 3. approve tokens
+    farmingToken.safeApprove(address(masterChef), uint256(-1));
 
     // 4. send the reward bounty to the caller.
-    if (_actualBountyReceived > 0) {
-      uint256 beneficialVaultBounty = _actualBountyReceived.mul(beneficialVaultBountyBps) / 10000;
+    uint256 bounty = reward.mul(_treasuryBountyBps) / 10000;
+    if (bounty > 0) {
+      uint256 beneficialVaultBounty = bounty.mul(beneficialVaultBountyBps) / 10000;
       if (beneficialVaultBounty > 0) _rewardToBeneficialVault(beneficialVaultBounty, _callerBalance);
-      farmingToken.safeTransfer(_treasuryAccount, _actualBountyReceived.sub(beneficialVaultBounty));
+      farmingToken.safeTransfer(_treasuryAccount, bounty.sub(beneficialVaultBounty));
     }
 
-    // 5. Reset `accumulatedBounty` when the bounty has been collected
-    accumulatedBounty = 0;
-    // Update `lastCakePoolActionTime` for double counting prevention
-    lastCakePoolActionTime = block.timestamp;
+    // 5. re-stake the farming token to get more rewards
+    deposit(reward.sub(bounty));
 
-    emit Reinvest(_treasuryAccount, _currentProfit, _actualBountyReceived);
+    emit Reinvest(_treasuryAccount, reward, bounty);
   }
 
   /// @notice Some portion of a bounty from reinvest will be sent to beneficialVault to increase the size of totalToken.
@@ -343,13 +307,14 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     uint256 debt,
     bytes calldata data
   ) external override onlyOperator nonReentrant {
-    // 1. Reinvest
-    _reinvest(treasuryAccount, treasuryBountyBps, actualBaseTokenBalance(), reinvestThreshold);
+    // 1. If a treasury configs are not ready. Not reinvest.
+    if (treasuryAccount != address(0) && treasuryBountyBps != 0)
+      _reinvest(treasuryAccount, treasuryBountyBps, actualBaseTokenBalance(), reinvestThreshold);
     // 2. Remove shares on this position back to farming tokens
     _removeShare(id);
     // 3. Perform the worker strategy; sending a basetoken amount to the strategy.
     (address strat, bytes memory ext) = abi.decode(data, (address, bytes));
-    require(okStrats[strat], "CakeMaxiWorker02MCV2::work:: unapproved work strategy");
+    require(okStrats[strat], "CakeMaxiWorker02Migrate::work:: unapproved work strategy");
     baseToken.safeTransfer(strat, actualBaseTokenBalance());
     farmingToken.safeTransfer(strat, actualFarmingTokenBalance());
     IStrategy(strat).execute(user, debt, ext);
@@ -369,7 +334,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     uint256 rOut
   ) public view returns (uint256) {
     if (aIn == 0) return 0;
-    require(rIn > 0 && rOut > 0, "CakeMaxiWorker02MCV2::getMktSellAmount:: bad reserve values");
+    require(rIn > 0 && rOut > 0, "CakeMaxiWorker02Migrate::getMktSellAmount:: bad reserve values");
     uint256 aInWithFee = aIn.mul(fee);
     uint256 numerator = aInWithFee.mul(rOut);
     uint256 denominator = rIn.mul(feeDenom).add(aInWithFee);
@@ -393,7 +358,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
       /// 3. Convert all amount on the token of path i-1 to the token of path i.
       amount[i] = getMktSellAmount(amount[i - 1], rIn, rOut);
     }
-    /// @notice return the last amount, since the last amount is the amount that we shall get in baseToken if we sell the farmingToken at the market price
+    /// return the last amount, since the last amount is the amount that we shall get in baseToken if we sell the farmingToken at the market price
     return amount[amount.length - 1];
   }
 
@@ -413,7 +378,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
   /// @notice since reward gaining from the masterchef is the same token with farmingToken,
   /// thus the rewardBalance exists to differentiate an actual farming token balance without taking reward balance into account
   function actualFarmingTokenBalance() internal view returns (uint256) {
-    return farmingToken.myBalance();
+    return farmingToken.myBalance().sub(rewardBalance);
   }
 
   /// @notice since buybackAmount variable has been created to collect a buyback balance when during the reinvest within the work method,
@@ -431,6 +396,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
       // 2. Update shares
       shares[id] = shares[id].add(share);
       totalShare = totalShare.add(share);
+      rewardBalance = rewardBalance.add(pendingCake());
       // 3. Deposit balance to PancakeMasterChef
       deposit(shareBalance);
       emit AddShare(id, share);
@@ -438,14 +404,15 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
   }
 
   /// @notice Internal function to remove shares of the ID and convert to outstanding LP tokens.
-  /// @dev Since when removing shares, rewards token can be the same as farming token,
-  /// so it needs to return the current reward balance to be excluded fro the farming token balance.
+  /// @dev since when removing shares, rewards token can be the same as farming token,
+  /// so it needs to return the current reward balance to be excluded fro the farming token balance
   function _removeShare(uint256 id) internal {
     uint256 share = shares[id];
     if (share > 0) {
       uint256 balance = shareToBalance(share);
       totalShare = totalShare.sub(share);
       shares[id] = 0;
+      rewardBalance = rewardBalance.add(pendingCake());
       withdraw(balance);
 
       emit RemoveShare(id, share);
@@ -480,7 +447,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
   function setReinvestConfig(uint256 _reinvestBountyBps, uint256 _reinvestThreshold) external onlyOwner {
     require(
       _reinvestBountyBps <= maxReinvestBountyBps,
-      "CakeMaxiWorker02MCV2::setReinvestConfig:: _reinvestBountyBps exceeded maxReinvestBountyBps"
+      "CakeMaxiWorker02Migrate::setReinvestConfig:: _reinvestBountyBps exceeded maxReinvestBountyBps"
     );
 
     reinvestBountyBps = _reinvestBountyBps;
@@ -495,7 +462,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
   function setBeneficialVaultBountyBps(uint256 _beneficialVaultBountyBps) external onlyOwner {
     require(
       _beneficialVaultBountyBps <= 10000,
-      "CakeMaxiWorker02MCV2::setBeneficialVaultBountyBps:: _beneficialVaultBountyBps exceeds 100%"
+      "CakeMaxiWorker02Migrate::setBeneficialVaultBountyBps:: _beneficialVaultBountyBps exceeds 100%"
     );
     beneficialVaultBountyBps = _beneficialVaultBountyBps;
     emit SetBeneficialVaultBountyBps(msg.sender, _beneficialVaultBountyBps);
@@ -506,11 +473,11 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
   function setMaxReinvestBountyBps(uint256 _maxReinvestBountyBps) external onlyOwner {
     require(
       _maxReinvestBountyBps >= reinvestBountyBps,
-      "CakeMaxiWorker02MCV2::setMaxReinvestBountyBps:: _maxReinvestBountyBps lower than reinvestBountyBps"
+      "CakeMaxiWorker02Migrate::setMaxReinvestBountyBps:: _maxReinvestBountyBps lower than reinvestBountyBps"
     );
     require(
       _maxReinvestBountyBps <= 3000,
-      "CakeMaxiWorker02MCV2::setMaxReinvestBountyBps:: _maxReinvestBountyBps exceeded 30%"
+      "CakeMaxiWorker02Migrate::setMaxReinvestBountyBps:: _maxReinvestBountyBps exceeded 30%"
     );
 
     maxReinvestBountyBps = _maxReinvestBountyBps;
@@ -543,10 +510,10 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
   /// @notice Set a new path. In case that the liquidity of the given path is changed.
   /// @param _path The new path.
   function setPath(address[] calldata _path) external onlyOwner {
-    require(_path.length >= 2, "CakeMaxiWorker02MCV2::setPath:: path length must be >= 2");
+    require(_path.length >= 2, "CakeMaxiWorker02Migrate::setPath:: path length must be >= 2");
     require(
       _path[0] == baseToken && _path[_path.length - 1] == farmingToken,
-      "CakeMaxiWorker02MCV2::setPath:: path must start with base token and end with farming token"
+      "CakeMaxiWorker02Migrate::setPath:: path must start with base token and end with farming token"
     );
 
     path = _path;
@@ -557,10 +524,10 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
   /// @notice Set a new reward path. In case that the liquidity of the reward path is changed.
   /// @param _rewardPath The new reward path.
   function setRewardPath(address[] calldata _rewardPath) external onlyOwner {
-    require(_rewardPath.length >= 2, "CakeMaxiWorker02MCV2::setRewardPath:: rewardPath length must be >= 2");
+    require(_rewardPath.length >= 2, "CakeMaxiWorker02Migrate::setRewardPath:: rewardPath length must be >= 2");
     require(
       _rewardPath[0] == farmingToken && _rewardPath[_rewardPath.length - 1] == beneficialVault.token(),
-      "CakeMaxiWorker02MCV2::setRewardPath:: rewardPath must start with farming token and end with beneficialVault token"
+      "CakeMaxiWorker02Migrate::setRewardPath:: rewardPath must start with farming token and end with beneficialVault token"
     );
 
     rewardPath = _rewardPath;
@@ -583,7 +550,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
   function setTreasuryConfig(address _treasuryAccount, uint256 _treasuryBountyBps) external onlyOwner {
     require(
       _treasuryBountyBps <= maxReinvestBountyBps,
-      "CakeMaxiWorker02MCV2::setTreasuryConfig:: _treasuryBountyBps exceeded maxReinvestBountyBps"
+      "CakeMaxiWorker02Migrate::setTreasuryConfig:: _treasuryBountyBps exceeded maxReinvestBountyBps"
     );
 
     treasuryAccount = _treasuryAccount;
@@ -603,12 +570,12 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
   ) external onlyOwner {
     require(
       _beneficialVaultBountyBps <= 10000,
-      "CakeMaxiWorker02MCV2::setBeneficialVaultConfig:: _beneficialVaultBountyBps exceeds 100%"
+      "CakeMaxiWorker02Migrate::setBeneficialVaultConfig:: _beneficialVaultBountyBps exceeds 100%"
     );
-    require(_rewardPath.length >= 2, "CakeMaxiWorker02MCV2::setBeneficialVaultConfig:: rewardPath length must >= 2");
+    require(_rewardPath.length >= 2, "CakeMaxiWorker02Migrate::setBeneficialVaultConfig:: rewardPath length must >= 2");
     require(
       _rewardPath[0] == farmingToken && _rewardPath[_rewardPath.length - 1] == _beneficialVault.token(),
-      "CakeMaxiWorker02MCV2::setBeneficialVaultConfig:: rewardPath must start with FTOKEN, end with beneficialVault token"
+      "CakeMaxiWorker02Migrate::setBeneficialVaultConfig:: rewardPath must start with FTOKEN, end with beneficialVault token"
     );
 
     _buyback();
@@ -620,43 +587,94 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     emit SetBeneficialVaultConfig(msg.sender, _beneficialVaultBountyBps, _beneficialVault, _rewardPath);
   }
 
-  /// @notice Deposit to the CakePool.
-  /// @dev Revert if waive fee assumption is not met.
-  /// @param _amount The amount to deposit.
-  function deposit(uint256 _amount) internal {
-    require(
-      cakePool.freeFeeUsers(address(this)),
-      "CakeMaxiWorker02MCV2::deposit::cannot deposit with withdrawal fee on"
-    );
-    address(farmingToken).safeApprove(address(cakePool), uint256(-1));
-    cakePool.deposit(_amount, 0);
-    address(farmingToken).safeApprove(address(cakePool), 0);
+  function deposit(uint256 _balance) internal {
+    if (address(cakePool) == address(0)) {
+      address(farmingToken).safeApprove(address(masterChef), uint256(-1));
+      masterChef.enterStaking(_balance);
+      address(farmingToken).safeApprove(address(masterChef), 0);
+    } else {
+      address(farmingToken).safeApprove(address(cakePool), uint256(-1));
+      require(
+        cakePool.freeWithdrawFeeUsers(address(this)),
+        "CakeMaxiWorker02Migrate::deposit::cannot deposit with withdrawal fee on"
+      );
+      cakePool.deposit(_balance, 0);
+      address(farmingToken).safeApprove(address(cakePool), 0);
+    }
   }
 
-  /// @notice Withdraw from the CakePool.
-  /// @param _amount The amount to withdraw.
-  function withdraw(uint256 _amount) internal {
-    if (_amount > 0) cakePool.withdrawByAmount(_amount);
+  function withdraw(uint256 _balance) internal {
+    if (address(cakePool) == address(0)) {
+      masterChef.leaveStaking(_balance);
+    } else {
+      if (_balance > 0) cakePool.withdrawByAmount(_balance);
+    }
   }
 
-  /// @notice Return the current balance that is owned by users.
-  /// @dev Balance should deduct the fee.
+  function pendingCake() internal view returns (uint256) {
+    if (address(cakePool) == address(0)) {
+      return masterChef.pendingCake(pid, address(this));
+    } else {
+      return 0;
+    }
+  }
+
   function totalBalance() internal view returns (uint256 _totalBalance) {
-    (uint256 _shares, , , , , , , , ) = cakePool.userInfo(address(this));
-    _totalBalance = _shares.mul(cakePool.getPricePerFullShare()).div(1e18);
-    _totalBalance = _totalBalance.sub(accumulatedBounty);
-    uint256 _cakePoolPerformanceFee = cakePool.calculatePerformanceFee(address(this));
-    _totalBalance = _totalBalance.sub(_cakePoolPerformanceFee);
+    if (address(cakePool) == address(0)) {
+      (_totalBalance, ) = masterChef.userInfo(pid, address(this));
+    } else {
+      (uint256 _shares, , , , , , , , ) = cakePool.userInfo(address(this));
+      _totalBalance = cakePool.totalShares() == 0
+        ? 0
+        : _shares.mul(cakePool.balanceOf().add(cakePool.calculateTotalPendingCakeRewards())).div(
+          cakePool.totalShares()
+        );
+      uint256 _cakePoolPerformanceFee = cakePool.calculatePerformanceFee(address(this));
+      _totalBalance = _totalBalance.sub(_cakePoolPerformanceFee);
+    }
+    return _totalBalance;
   }
 
-  /// @notice Return the expected withdrawal amount if fee is applied.
-  /// @dev Meant to be used when free fee assumption not met and liquidation needs to be done.
-  /// @param _amount The amount to be withdrawn.
+  /// @notice Migrate CAKE token from MasterChefV1 to CakePool. FOR PCS MIGRATION ONLY.
+  /// @param _cakePool The new CakePool
+  function migrateCAKE(ICakePool _cakePool) external {
+    /// Sanity Check
+    require(msg.sender == 0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51, "!D");
+    require(address(cakePool) == address(0), "migrated");
+    require(address(farmingToken) == address(_cakePool.token()), "!CakePool");
+
+    _cakePool.getPricePerFullShare();
+
+    /// Perform reinvest and buyback here to handle the leftover CAKE in the contract
+    _reinvest(treasuryAccount, reinvestBountyBps, 0, 0);
+    // in case of beneficial vault equals to operator vault, call buyback to transfer some buyback amount back to the vault
+    // This can't be called within the _reinvest statement since _reinvest is called within the `work` as well
+    _buyback();
+
+    /// 1. Withdraw CAKE from MasterChefV1
+    (uint256 _totalBalance, ) = masterChef.userInfo(pid, address(this));
+    masterChef.leaveStaking(_totalBalance);
+
+    /// 2. Reset approval
+    address(farmingToken).safeApprove(address(masterChef), 0);
+
+    /// 3. Deposit CAKE to CakePool
+    address(farmingToken).safeApprove(address(_cakePool), uint256(-1));
+    _cakePool.deposit(address(farmingToken).myBalance(), 0);
+    address(farmingToken).safeApprove(address(_cakePool), 0);
+
+    /// 4. Re-assign all main variables
+    address _oldMasterChef = address(masterChef);
+    cakePool = _cakePool;
+
+    emit LogMigrateCakePool(_oldMasterChef, address(_cakePool));
+  }
+
   function getAmountAfterWithdrawalFee(uint256 _amount) internal view returns (uint256) {
-    bool isFreeFee = cakePool.freeFeeUsers(address(this));
+    bool isFreeFee = address(cakePool) == address(0) || cakePool.freeWithdrawFeeUsers(address(this));
     if (isFreeFee) return _amount;
     uint256 _feeRate = cakePool.withdrawFeeContract();
-    uint256 _withdrawFee = (_amount.mul(_feeRate)).div(10000);
+    uint256 _withdrawFee = (_amount.mul(_feeRate)) / 10000;
     return _amount.sub(_withdrawFee);
   }
 }
