@@ -1,5 +1,5 @@
 [default]
-src = 'contracts'
+src = 'solidity/contracts'
 out = 'out'
 libs = ['node_modules']
-test = 'contracts'
+test = 'solidity/tests'
