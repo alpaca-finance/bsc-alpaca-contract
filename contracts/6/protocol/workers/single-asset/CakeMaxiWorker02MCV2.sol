@@ -97,7 +97,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
 
   /// ---- Upgraded state variables for CakeMaxiWorker02MCV2 ----
   ICakePool public cakePool;
-  /// @notice This variable will keep track of the amount of accumulated CAKE bounty that has not been reinvested
+  /// --- This variable will keep track of the amount of accumulated CAKE bounty that has not been reinvested ---
   uint256 public accumulatedBounty;
   uint256 public lastCakePoolActionTime;
 
@@ -625,7 +625,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
   /// @param _amount The amount to deposit.
   function deposit(uint256 _amount) internal {
     require(
-      cakePool.freeFeeUsers(address(this)),
+      cakePool.freeWithdrawFeeUsers(address(this)),
       "CakeMaxiWorker02MCV2::deposit::cannot deposit with withdrawal fee on"
     );
     address(farmingToken).safeApprove(address(cakePool), uint256(-1));
@@ -643,7 +643,9 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
   /// @dev Balance should deduct the fee.
   function totalBalance() internal view returns (uint256 _totalBalance) {
     (uint256 _shares, , , , , , , , ) = cakePool.userInfo(address(this));
-    _totalBalance = _shares.mul(cakePool.getPricePerFullShare()).div(1e18);
+    _totalBalance = cakePool.totalShares() == 0
+      ? 0
+      : _shares.mul(cakePool.balanceOf().add(cakePool.calculateTotalPendingCakeRewards())).div(cakePool.totalShares());
     _totalBalance = _totalBalance.sub(accumulatedBounty);
     uint256 _cakePoolPerformanceFee = cakePool.calculatePerformanceFee(address(this));
     _totalBalance = _totalBalance.sub(_cakePoolPerformanceFee);
@@ -653,7 +655,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
   /// @dev Meant to be used when free fee assumption not met and liquidation needs to be done.
   /// @param _amount The amount to be withdrawn.
   function getAmountAfterWithdrawalFee(uint256 _amount) internal view returns (uint256) {
-    bool isFreeFee = cakePool.freeFeeUsers(address(this));
+    bool isFreeFee = cakePool.freeWithdrawFeeUsers(address(this));
     if (isFreeFee) return _amount;
     uint256 _feeRate = cakePool.withdrawFeeContract();
     uint256 _withdrawFee = (_amount.mul(_feeRate)).div(10000);

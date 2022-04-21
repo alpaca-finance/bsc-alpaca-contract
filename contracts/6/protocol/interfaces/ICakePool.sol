@@ -41,9 +41,15 @@ interface ICakePool {
 
   function getPricePerFullShare() external view returns (uint256);
 
-  function freeFeeUsers(address user) external view returns (bool);
+  function freeWithdrawFeeUsers(address user) external view returns (bool);
 
   function withdrawFeeContract() external view returns (uint256);
 
   function MIN_WITHDRAW_AMOUNT() external view returns (uint256);
+
+  function balanceOf() external view returns (uint256);
+
+  function calculateTotalPendingCakeRewards() external view returns (uint256);
+
+  function totalShares() external view returns (uint256);
 }

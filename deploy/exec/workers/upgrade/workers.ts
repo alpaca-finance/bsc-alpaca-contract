@@ -66,52 +66,21 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const fileName = "upgrade-disable-liquidate-waultswap-workers02";
+  const fileName = "upgrade-pcs-cakemaxi-cakepool-final";
   const factories: Array<FactoryMap> = [
     {
-      workerType: "PancakeswapWorker",
-      newVersion: "PancakeswapV2Worker02Migrate",
-    },
-    {
-      workerType: "CakeMaxiWorker",
-      newVersion: "CakeMaxiWorker02Migrate",
-    },
-    {
       workerType: "DeltaNeutralPancakeswapWorker",
-      newVersion: "DeltaNeutralPancakeWorker02Migrate",
+      newVersion: "DeltaNeutralPancakeMCV2Worker02",
     },
   ];
   const workerInputs: IWorkerInputs = [
-    "WEX-WBNB WaultswapWorker",
-    "BUSD-WBNB WaultswapWorker",
-    "ALPACA-WBNB WaultswapWorker",
-    "WAULTx-WBNB WaultswapWorker",
-    "ETH-BUSD WaultswapWorker",
-    "WBNB-BUSD WaultswapWorker",
-    "USDT-BUSD WaultswapWorker",
-    "BTCB-BUSD WaultswapWorker",
-    "WUSD-BUSD WaultswapWorker",
-    "BUSD-ETH WaultswapWorker",
-    "BTCB-ETH WaultswapWorker",
-    "BETH-ETH WaultswapWorker",
-    "USDT-ETH WaultswapWorker",
-    "USDT-ALPACA WaultswapWorker",
-    "WBNB-ALPACA WaultswapWorker",
-    "ALPACA-USDT WaultswapWorker",
-    "WEX-USDT WaultswapWorker",
-    "BUSD-USDT WaultswapWorker",
-    "BTCB-USDT WaultswapWorker",
-    "ETH-USDT WaultswapWorker",
-    "MATIC-USDT WaultswapWorker",
-    "TUSD-USDT WaultswapWorker",
-    "ETH-BTCB WaultswapWorker",
-    "USDT-BTCB WaultswapWorker",
-    "BUSD-BTCB WaultswapWorker",
-    "USDT-TUSD WaultswapWorker",
+    "BUSD-WBNB 3x PCS1 DeltaNeutralPancakeswapWorker",
+    "WBNB-BUSD 3x PCS1 DeltaNeutralPancakeswapWorker",
   ];
-  const EXACT_ETA = "1649232000";
+  const EXACT_ETA = "1650445200";
 
   const config = ConfigEntity.getConfig();
+  const ts = Math.floor(new Date().getTime() / 1000);
   const allWorkers: IWorkers = config.Vaults.reduce((accum, vault) => {
     return accum.concat(
       vault.workers.map((worker) => {
@@ -144,6 +113,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   for (let i = 0; i < TO_BE_UPGRADE_WORKERS.length; i++) {
+    console.log("-------");
     console.log(`>> Preparing to upgrade ${TO_BE_UPGRADE_WORKERS[i].WORKER_NAME}`);
     const NewWorkerFactory: ContractFactory = contractFactories[i];
     const preparedNewWorker: string = await upgrades.prepareUpgrade(TO_BE_UPGRADE_WORKERS[i].ADDRESS, NewWorkerFactory);
@@ -163,9 +133,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         { gasPrice: ethers.utils.parseUnits("20", "gwei") }
       )
     );
-  }
 
-  fileService.writeJson(fileName, timelockTransactions);
+    fileService.writeJson(`${ts}_${fileName}`, timelockTransactions);
+  }
 };
 
 export default func;
