@@ -8,11 +8,13 @@ import {
   Timelock__factory,
   WorkerConfig__factory,
 } from "../../../../typechain";
-import { ConfigEntity, TimelockEntity } from "../../../entities";
+import { TimelockEntity } from "../../../entities";
 import { WorkersEntity } from "../../../interfaces/config";
 import { compare } from "../../../../utils/address";
 import { getDeployer } from "../../../../utils/deployer-helper";
 import { fileService, TimelockService } from "../../../services";
+import { UpgradeableContractDeployer } from "../../../deployer";
+import { ConfigFileHelper } from "../../../helper";
 
 interface IBeneficialVaultInput {
   BENEFICIAL_VAULT_BPS: string;
@@ -91,7 +93,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       WORK_FACTOR: "7000",
       KILL_FACTOR: "8333",
       MAX_PRICE_DIFF: "11000",
-      EXACT_ETA: "1650953600", // no use due to no timelock
+      EXACT_ETA: "1651283600", // no use due to no timelock
     },
     {
       VAULT_SYMBOL: "ibUSDT",
@@ -109,7 +111,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       WORK_FACTOR: "7000",
       KILL_FACTOR: "8333",
       MAX_PRICE_DIFF: "11000",
-      EXACT_ETA: "1650953600", // no use due to no timelock
+      EXACT_ETA: "1651283600", // no use due to no timelock
     },
   ];
 
@@ -117,7 +119,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const deployer = await getDeployer();
 
-  const config = ConfigEntity.getConfig();
+  const configFileHelper = new ConfigFileHelper();
+  let config = configFileHelper.getConfig();
+
   const workerInfos: IBiswapWorkerInfo[] = shortWorkerInfos.map((n) => {
     const vault = config.Vaults.find((v) => v.symbol === n.VAULT_SYMBOL);
     if (vault === undefined) {
@@ -173,10 +177,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   });
 
   for (let i = 0; i < workerInfos.length; i++) {
-    console.log("================================================================================");
-    console.log(`>> Deploying an upgradable BiswapWorker03 contract for ${workerInfos[i].WORKER_NAME}`);
-    const BiswapWorker03 = await ethers.getContractFactory("BiswapWorker03", deployer);
-    const biswapWorker03 = (await upgrades.deployProxy(BiswapWorker03, [
+    const biswapWorker03Deployer = new UpgradeableContractDeployer<BiswapWorker03>(
+      deployer,
+      "BiswapWorker03",
+      workerInfos[i].WORKER_NAME
+    );
+
+    const { contract: biswapWorker03, deployedBlock } = await biswapWorker03Deployer.deploy([
       workerInfos[i].VAULT_ADDR,
       workerInfos[i].BASE_TOKEN_ADDR,
       workerInfos[i].MASTER_CHEF_ADDR,
@@ -188,20 +195,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       workerInfos[i].REINVEST_BOT,
       workerInfos[i].REINVEST_PATH,
       workerInfos[i].REINVEST_THRESHOLD,
-    ])) as BiswapWorker03;
-    const deployedTx = await biswapWorker03.deployTransaction.wait(3);
-    console.log(`>> Deployed at ${biswapWorker03.address}`);
-    console.log(`>> Deployed block: ${deployedTx.blockNumber}`);
-    console.log("✅ Done");
+    ]);
 
-    console.log(">> Updating json config file");
     const lpPoolAddress = config.YieldSources.Biswap!.pools.find(
       (pool) => pool.pId === workerInfos[i].POOL_ID
     )!.address;
+
     const biswapWorkersEntity: WorkersEntity = {
       name: workerInfos[i].WORKER_NAME,
       address: biswapWorker03.address,
-      deployedBlock: deployedTx.blockNumber,
+      deployedBlock: deployedBlock,
       config: workerInfos[i].WORKER_CONFIG_ADDR,
       pId: workerInfos[i].POOL_ID,
       stakingToken: lpPoolAddress,
@@ -215,20 +218,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         StrategyPartialCloseMinimizeTrading: workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR,
       },
     };
-    // check if exists
-    const workerVaultIdx = config.Vaults.findIndex((v) => v.address === workerInfos[i].VAULT_ADDR);
-    const vaultWorkers = workerVaultIdx >= 0 ? config.Vaults[workerVaultIdx].workers : [];
-    const workerIdx = vaultWorkers.findIndex((w) => w.name === workerInfos[i].WORKER_NAME);
-    if (workerIdx === -1) {
-      config.Vaults[workerVaultIdx].workers = [...vaultWorkers, biswapWorkersEntity];
-      console.log(`>> Added ${workerInfos[i].WORKER_NAME} in Vault workers`);
-    } else {
-      config.Vaults[workerVaultIdx].workers[workerIdx] = biswapWorkersEntity;
-      console.log(`>> Updated ${workerInfos[i].WORKER_NAME} in Vault workers`);
-    }
 
-    fileService.writeConfigJson(config);
-    console.log("✅ Done");
+    config = configFileHelper.setVaultWorker(workerInfos[i].VAULT_ADDR, biswapWorkersEntity);
 
     let nonce = await deployer.getTransactionCount();
 
@@ -257,7 +248,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       const contractFactory = BiswapStrategyAddBaseTokenOnly__factory.connect(stratAddress, deployer);
       await contractFactory.setWorkersOk([biswapWorker03.address], true, { nonce: nonce++ });
     }
-
     console.log("✅ Done");
 
     if (workerInfos[i].BENEFICIAL_VAULT) {

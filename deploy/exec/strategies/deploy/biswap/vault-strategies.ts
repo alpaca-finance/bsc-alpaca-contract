@@ -1,11 +1,10 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers, upgrades } from "hardhat";
-import { BiswapStrategyAddTwoSidesOptimal, BiswapStrategyAddTwoSidesOptimal__factory } from "../../../../../typechain";
-import { getConfig } from "../../../../entities/config";
+import { BiswapStrategyAddTwoSidesOptimal } from "../../../../../typechain";
 import { getDeployer } from "../../../../../utils/deployer-helper";
 import { validateAddress } from "../../../../../utils/address";
-import { fileService } from "../../../../services";
+import { UpgradeableContractDeployer } from "../../../../deployer";
+import { ConfigFileHelper } from "../../../../helper";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -29,8 +28,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     },
   ];
 
-  const config = getConfig();
   const deployer = await getDeployer();
+  const configFileHelper = new ConfigFileHelper();
+  let config = configFileHelper.getConfig();
 
   for (let i = 0; i < NEW_PARAMS.length; i++) {
     const targetedVaultIdx = config.Vaults.findIndex((v) => v.symbol === NEW_PARAMS[i].VAULT_SYMBOL);
@@ -43,25 +43,20 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       throw `error: no address`;
     }
 
-    console.log(">> Deploying an upgradable BiswapStrategyAddTwoSidesOptimal contract");
-    const BiswapStrategyAddTwoSidesOptimal = (await ethers.getContractFactory(
-      "BiswapStrategyAddTwoSidesOptimal",
-      deployer
-    )) as BiswapStrategyAddTwoSidesOptimal__factory;
-    const strategyAddTwoSidesOptimal = (await upgrades.deployProxy(BiswapStrategyAddTwoSidesOptimal, [
+    const stratTwoSidesOptimalDeployer = new UpgradeableContractDeployer<BiswapStrategyAddTwoSidesOptimal>(
+      deployer,
+      "BiswapStrategyAddTwoSidesOptimal"
+    );
+    const { contract: strategyAddTwoSidesOptimal } = await stratTwoSidesOptimalDeployer.deploy([
       config.YieldSources.Biswap!.BiswapRouterV2,
       targetedVault.address,
-    ])) as BiswapStrategyAddTwoSidesOptimal;
-    const deployedTx = await strategyAddTwoSidesOptimal.deployTransaction.wait(3);
-    console.log(`>> Deployed at ${strategyAddTwoSidesOptimal.address}`);
-    console.log(`>> Deployed block: ${deployedTx.blockNumber}`);
-    console.log("✅ Done");
+    ]);
 
-    console.log(">> Updating json config file");
-    config.Vaults[targetedVaultIdx].StrategyAddTwoSidesOptimal.Biswap = strategyAddTwoSidesOptimal.address;
-    fileService.writeConfigJson(config);
-    console.log(`>> Updated StrategyAddTwoSidesOptimal.Biswap for Vault ${targetedVault.name}`);
-    console.log("✅ Done");
+    config = configFileHelper.setVaultTwosideOptimalOnKey(
+      targetedVault.name,
+      "Biswap",
+      strategyAddTwoSidesOptimal.address
+    );
 
     if (NEW_PARAMS[i].WHITELIST_WORKERS.length > 0) {
       console.log(">> Whitelisting Workers");
