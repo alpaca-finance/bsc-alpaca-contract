@@ -10,6 +10,10 @@ export function readJson(filePath: string): any {
 
 export function writeJson(fileName: string, content: any, timestampInput?: number) {
   const timestamp = timestampInput ?? Math.floor(Date.now() / 1000);
+  const exists = fs.existsSync("./deploy/results");
+  if (!exists) {
+    fs.mkdirSync("./deploy/results");
+  }
   fs.writeFileSync(`./deploy/results/${timestamp}_${fileName}.json`, JSON.stringify(content, null, 2));
 }
 
