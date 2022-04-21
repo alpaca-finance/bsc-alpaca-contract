@@ -78,7 +78,14 @@ contract PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading is
     farmingToken.safeApprove(address(router), uint256(-1));
     // 3. Swap from farming token -> base token according to worker's path
     if (debt > 0) {
-      router.swapTokensForExactTokens(debt, farmingToken.myBalance(), worker.getReversedPath(), address(this), now);
+      uint256[] memory amts = new uint256[](2);
+      amts = router.swapTokensForExactTokens(
+        debt,
+        farmingToken.myBalance(),
+        worker.getReversedPath(),
+        address(this),
+        now
+      );
     }
     // 4. Return baseToken back to the original caller in order to repay the debt.
     baseToken.safeTransfer(msg.sender, baseToken.myBalance());
