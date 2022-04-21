@@ -17173,31 +17173,31 @@
           {
             "contract": "DeltaNeutralPancakeWorker02",
             "label": "masterChef",
-            "type": "t_contract(IPancakeMasterChef)11668",
+            "type": "t_contract(IPancakeMasterChef)11964",
             "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:88"
           },
           {
             "contract": "DeltaNeutralPancakeWorker02",
             "label": "factory",
-            "type": "t_contract(IPancakeFactory)11597",
+            "type": "t_contract(IPancakeFactory)11893",
             "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:90"
           },
           {
             "contract": "DeltaNeutralPancakeWorker02",
             "label": "router",
-            "type": "t_contract(IPancakeRouter02)12369",
+            "type": "t_contract(IPancakeRouter02)12665",
             "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:90"
           },
           {
             "contract": "DeltaNeutralPancakeWorker02",
             "label": "lpToken",
-            "type": "t_contract(IPancakePair)11979",
+            "type": "t_contract(IPancakePair)12275",
             "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:91"
           },
           {
             "contract": "DeltaNeutralPancakeWorker02",
             "label": "priceOracle",
-            "type": "t_contract(IDeltaNeutralOracle)10360",
+            "type": "t_contract(IDeltaNeutralOracle)10656",
             "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:93"
           },
           {
@@ -17245,7 +17245,7 @@
           {
             "contract": "DeltaNeutralPancakeWorker02",
             "label": "addStrat",
-            "type": "t_contract(IStrategy)12494",
+            "type": "t_contract(IStrategy)12790",
             "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:103"
           },
           {
@@ -17299,7 +17299,7 @@
           {
             "contract": "DeltaNeutralPancakeWorker02",
             "label": "beneficialVault",
-            "type": "t_contract(IVault)13527",
+            "type": "t_contract(IVault)13840",
             "src": "contracts/8.10/protocol/workers/DeltaNeutralPancakeWorker02.sol:113"
           },
           {
@@ -17328,19 +17328,19 @@
           }
         ],
         "types": {
-          "t_contract(IPancakeMasterChef)11668": {
+          "t_contract(IPancakeMasterChef)11964": {
             "label": "contract IPancakeMasterChef"
           },
-          "t_contract(IPancakeFactory)11597": {
+          "t_contract(IPancakeFactory)11893": {
             "label": "contract IPancakeFactory"
           },
-          "t_contract(IPancakeRouter02)12369": {
+          "t_contract(IPancakeRouter02)12665": {
             "label": "contract IPancakeRouter02"
           },
-          "t_contract(IPancakePair)11979": {
+          "t_contract(IPancakePair)12275": {
             "label": "contract IPancakePair"
           },
-          "t_contract(IDeltaNeutralOracle)10360": {
+          "t_contract(IDeltaNeutralOracle)10656": {
             "label": "contract IDeltaNeutralOracle"
           },
           "t_address": {
@@ -17355,13 +17355,13 @@
           "t_bool": {
             "label": "bool"
           },
-          "t_contract(IStrategy)12494": {
+          "t_contract(IStrategy)12790": {
             "label": "contract IStrategy"
           },
           "t_array(t_address)dyn_storage": {
             "label": "address[]"
           },
-          "t_contract(IVault)13527": {
+          "t_contract(IVault)13840": {
             "label": "contract IVault"
           },
           "t_array(t_uint256)49_storage": {
