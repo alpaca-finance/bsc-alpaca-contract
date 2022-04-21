@@ -85,7 +85,7 @@ module.exports = {
     },
   },
   paths: {
-    sources: "./contracts/6",
+    sources: "./solidity/contracts/6",
     tests: "./test",
     cache: "./cache",
     artifacts: "./artifacts",
