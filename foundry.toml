@@ -1,0 +1,5 @@
+[default]
+src = 'contracts'
+out = 'out'
+libs = ['node_modules']
+test = 'contracts'
