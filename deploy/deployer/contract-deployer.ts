@@ -14,14 +14,12 @@ abstract class IContractDeployer<C> {
   protected contract: string;
   protected key?: string;
 
-  // for specific contract
   constructor(_deployer: SignerWithAddress, _contract: string, _key?: string) {
     this.deployer = _deployer;
     this.contract = _contract;
     this.key = _key;
   }
 
-  // retrun deployed address
   public abstract deploy(args: ParamData[]): Promise<DeployResponse<C>>;
 }
 
