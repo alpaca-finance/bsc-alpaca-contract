@@ -54,7 +54,7 @@ describe("Vault - PancakeswapV2MCV2Worker02", () => {
   const ALPACA_REWARD_PER_BLOCK = ethers.utils.parseEther("5000");
   const CAKE_REWARD_PER_BLOCK = ethers.utils.parseEther("40");
   const CAKE_RATE_TOTAL_PRECISION = BigNumber.from(1e12);
-  const CAKE_RATE_TO_REGULAR_FARM = BigNumber.from(10 * 1e10);
+  const CAKE_RATE_TO_REGULAR_FARM = BigNumber.from(62847222222);
   const REINVEST_BOUNTY_BPS = "100"; // 1% reinvest bounty
   const RESERVE_POOL_BPS = "1000"; // 10% reserve pool
   const KILL_PRIZE_BPS = "1000"; // 10% Kill prize
@@ -824,7 +824,8 @@ describe("Vault - PancakeswapV2MCV2Worker02", () => {
           let totalRewards = swapHelper.computeTotalRewards(
             workerLpBefore,
             CAKE_REWARD_PER_BLOCK.mul(CAKE_RATE_TO_REGULAR_FARM).div(CAKE_RATE_TOTAL_PRECISION),
-            BigNumber.from(2)
+            ethers.BigNumber.from(2),
+            ethers.constants.WeiPerEther
           );
           let reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
           let reinvestLeft = totalRewards.sub(reinvestFees);
@@ -891,7 +892,8 @@ describe("Vault - PancakeswapV2MCV2Worker02", () => {
           totalRewards = swapHelper.computeTotalRewards(
             workerLPBefore,
             CAKE_REWARD_PER_BLOCK.mul(CAKE_RATE_TO_REGULAR_FARM).div(CAKE_RATE_TOTAL_PRECISION),
-            BigNumber.from(2)
+            BigNumber.from(2),
+            ethers.constants.WeiPerEther
           );
           reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
           reinvestLeft = totalRewards.sub(reinvestFees);
@@ -1100,7 +1102,8 @@ describe("Vault - PancakeswapV2MCV2Worker02", () => {
           let totalRewards = swapHelper.computeTotalRewards(
             workerLpBefore,
             CAKE_REWARD_PER_BLOCK.mul(CAKE_RATE_TO_REGULAR_FARM).div(CAKE_RATE_TOTAL_PRECISION),
-            BigNumber.from(2)
+            BigNumber.from(2),
+            ethers.constants.WeiPerEther
           );
           let reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
           let reinvestLeft = totalRewards.sub(reinvestFees);
@@ -1167,7 +1170,8 @@ describe("Vault - PancakeswapV2MCV2Worker02", () => {
           totalRewards = swapHelper.computeTotalRewards(
             workerLPBefore,
             CAKE_REWARD_PER_BLOCK.mul(CAKE_RATE_TO_REGULAR_FARM).div(CAKE_RATE_TOTAL_PRECISION),
-            BigNumber.from(2)
+            BigNumber.from(2),
+            ethers.constants.WeiPerEther
           );
           reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
           reinvestLeft = totalRewards.sub(reinvestFees);
@@ -1780,7 +1784,8 @@ describe("Vault - PancakeswapV2MCV2Worker02", () => {
           let totalRewards = swapHelper.computeTotalRewards(
             workerLpBefore,
             CAKE_REWARD_PER_BLOCK.mul(CAKE_RATE_TO_REGULAR_FARM).div(CAKE_RATE_TOTAL_PRECISION),
-            BigNumber.from(2)
+            BigNumber.from(2),
+            ethers.constants.WeiPerEther
           );
           let reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
           let reinvestLeft = totalRewards.sub(reinvestFees);
@@ -1846,7 +1851,8 @@ describe("Vault - PancakeswapV2MCV2Worker02", () => {
           totalRewards = swapHelper.computeTotalRewards(
             workerLPBefore,
             CAKE_REWARD_PER_BLOCK.mul(CAKE_RATE_TO_REGULAR_FARM).div(CAKE_RATE_TOTAL_PRECISION),
-            BigNumber.from(2)
+            BigNumber.from(2),
+            ethers.constants.WeiPerEther
           );
           reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
           reinvestLeft = totalRewards.sub(reinvestFees);
@@ -2102,6 +2108,11 @@ describe("Vault - PancakeswapV2MCV2Worker02", () => {
           context("when debt is lessDebt", async () => {
             // back cannot be less than lessDebt as less debt is Min(debt, back, maxReturn) = debt
             it("should pay back all debt and return 'liquidatedAmount - debt' BTOKEN to user", async () => {
+              const [path, reinvestPath] = await Promise.all([
+                pancakeswapV2Worker.getPath(),
+                pancakeswapV2Worker.getReinvestPath(),
+              ]);
+
               // Set interests to 0% per year for easy testing
               await simpleVaultConfig.setParams(
                 ethers.utils.parseEther("1"), // 1 BTOKEN min debt size,
@@ -2169,6 +2180,11 @@ describe("Vault - PancakeswapV2MCV2Worker02", () => {
               // 0.5657463458195215 LP will be converted into 8.264866063854500749 BTOKEN - 0.038802994160144191 FTOKEN
               // 0.038802994160144191 FTOKEN will be converted into (0.038802994160144191 * 0.9975 * 13.034691464475649777) / (0.061197005839855809 + 0.038802994160144191 * 0.9975) = 5.050104921127982573 BTOKEN
               // thus, Bob will receive 8.264866063854500749 + 5.050104921127982573 = 13.314970984982483322 BTOKEN
+
+              // Load swapPath reserves for compute later
+              await swapHelper.loadReserves(path);
+              await swapHelper.loadReserves(reinvestPath);
+
               await vaultAsBob.work(
                 1,
                 pancakeswapV2Worker.address,
@@ -2191,6 +2207,20 @@ describe("Vault - PancakeswapV2MCV2Worker02", () => {
                 )
               );
               const bobAfter = await baseToken.balanceOf(bobAddress);
+
+              // --- Compute ---
+              const totalRewards = swapHelper.computeTotalRewards(
+                workerLPBefore,
+                CAKE_REWARD_PER_BLOCK.mul(CAKE_RATE_TO_REGULAR_FARM).div(CAKE_RATE_TOTAL_PRECISION),
+                1,
+                ethers.constants.WeiPerEther
+              );
+              const totalReinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
+
+              const reinvestLeft = totalRewards.sub(totalReinvestFees);
+              const reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
+              const reinvestBtoken = reinvestAmts[reinvestAmts.length - 1];
+              const [reinvestLp] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
 
               // After Bob liquidate half of his position which worth
               // 13.314970984982483322 BTOKEN (price impact+trading fee included)
@@ -2215,8 +2245,8 @@ describe("Vault - PancakeswapV2MCV2Worker02", () => {
               // LP tokens + LP tokens from reinvest of worker should be decreased by lpUnderBobPosition/2
               // due to Bob execute StrategyClosePartialLiquidate
               AssertHelpers.assertAlmostEqual(
-                workerLPAfter.toString(),
-                workerLPBefore.add(parseEther("0.01687799")).sub(lpUnderBobPosition.div(2)).toString()
+                workerLPBefore.add(reinvestLp).sub(lpUnderBobPosition.div(2)).toString(),
+                workerLPAfter.toString()
               );
             });
           });
@@ -2406,15 +2436,12 @@ describe("Vault - PancakeswapV2MCV2Worker02", () => {
           );
           const blockAfter = await TimeHelpers.latestBlockNumber();
           const blockDiff = blockAfter.sub(lastWorkBlock);
-          const totalRewards = workerLpBefore
-            .mul(
-              CAKE_REWARD_PER_BLOCK.mul(blockDiff)
-                .mul(CAKE_RATE_TO_REGULAR_FARM)
-                .div(CAKE_RATE_TOTAL_PRECISION)
-                .mul(1e12)
-                .div(workerLpBefore)
-            )
-            .div(1e12);
+          const totalRewards = swapHelper.computeTotalRewards(
+            workerLpBefore,
+            CAKE_REWARD_PER_BLOCK.mul(CAKE_RATE_TO_REGULAR_FARM).div(CAKE_RATE_TOTAL_PRECISION),
+            blockDiff,
+            ethers.constants.WeiPerEther
+          );
           const totalReinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
 
           const reinvestLeft = totalRewards.sub(totalReinvestFees);
@@ -2500,15 +2527,12 @@ describe("Vault - PancakeswapV2MCV2Worker02", () => {
           );
           const blockAfter = await TimeHelpers.latestBlockNumber();
           const blockDiff = blockAfter.sub(lastWorkBlock);
-          const totalRewards = workerLpBefore
-            .mul(
-              CAKE_REWARD_PER_BLOCK.mul(blockDiff)
-                .mul(CAKE_RATE_TO_REGULAR_FARM)
-                .div(CAKE_RATE_TOTAL_PRECISION)
-                .mul(1e12)
-                .div(workerLpBefore)
-            )
-            .div(1e12);
+          const totalRewards = swapHelper.computeTotalRewards(
+            workerLpBefore,
+            CAKE_REWARD_PER_BLOCK.mul(CAKE_RATE_TO_REGULAR_FARM).div(CAKE_RATE_TOTAL_PRECISION),
+            blockDiff,
+            ethers.constants.WeiPerEther
+          );
           const totalReinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
           const reinvestLeft = totalRewards.sub(totalReinvestFees);
           const reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);

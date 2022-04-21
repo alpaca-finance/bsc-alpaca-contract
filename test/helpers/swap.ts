@@ -39,12 +39,18 @@ export class SwapHelper {
 
   private reserves: Array<IReserve>;
 
-  constructor(_factoryAddress: string, _routerAddress: string, _fee: BigNumber, _feeDenom: BigNumber, _signer: Signer) {
+  constructor(
+    _factoryAddress: string,
+    _routerAddress: string,
+    _fee: BigNumberish,
+    _feeDenom: BigNumberish,
+    _signer: Signer
+  ) {
     this.router = PancakeRouterV2__factory.connect(_routerAddress, _signer);
     this.factory = PancakeFactory__factory.connect(_factoryAddress, _signer);
     this.signer = _signer;
-    this.fee = _fee;
-    this.feeDenom = _feeDenom;
+    this.fee = ethers.BigNumber.from(_fee);
+    this.feeDenom = ethers.BigNumber.from(_feeDenom);
     this.reserves = [];
     this.mdexRouter = MdexRouter__factory.connect(_routerAddress, _signer);
   }
@@ -162,6 +168,41 @@ export class SwapHelper {
         } else {
           this.reserves[reserveIdx].r0 = this.reserves[reserveIdx].r0.sub(amts[i]);
           this.reserves[reserveIdx].r1 = this.reserves[reserveIdx].r1.add(amts[i - 1]);
+        }
+      }
+    }
+
+    return amts;
+  }
+
+  public async computeSwapTokensForExactTokens(
+    amtOut: BigNumber,
+    path: string[],
+    updateReserve: boolean
+  ): Promise<BigNumber[]> {
+    const amts = new Array(path.length);
+    amts[amts.length - 1] = amtOut;
+    for (let i = path.length - 1; i > 0; i--) {
+      const currLp = PancakePair__factory.connect(await this.factory.getPair(path[i - 1], path[i]), this.signer);
+      const reserveIdx = this.reserves.findIndex((r) => r.lp === currLp.address);
+      if (reserveIdx === -1) {
+        throw new Error("computeSwapExactTokensForTokens: not found reserve");
+      }
+      const isReverse = (await currLp.token0()) != path[i - 1];
+      const [rOut, rIn] = isReverse
+        ? [this.reserves[reserveIdx].r1, this.reserves[reserveIdx].r0]
+        : [this.reserves[reserveIdx].r0, this.reserves[reserveIdx].r1];
+      const numerator = rIn.mul(amts[i]).mul(this.feeDenom);
+      const denominator = rOut.sub(amts[i]).mul(this.fee);
+      amts[i - 1] = numerator.div(denominator).add(1);
+
+      if (updateReserve) {
+        if (isReverse) {
+          this.reserves[reserveIdx].r1 = this.reserves[reserveIdx].r1.sub(amts[i - 1]);
+          this.reserves[reserveIdx].r0 = this.reserves[reserveIdx].r0.add(amts[i]);
+        } else {
+          this.reserves[reserveIdx].r0 = this.reserves[reserveIdx].r0.sub(amts[i - 1]);
+          this.reserves[reserveIdx].r1 = this.reserves[reserveIdx].r1.add(amts[i]);
         }
       }
     }
@@ -389,12 +430,16 @@ export class SwapHelper {
   }
 
   public computeTotalRewards(
-    lp: BigNumber,
-    rewardPerBlock: BigNumber,
-    blockDiff: BigNumber,
-    precision: BigNumber = BigNumber.from(1e12)
+    lp: BigNumberish,
+    rewardPerBlock: BigNumberish,
+    blockDiff: BigNumberish,
+    precision: BigNumberish = BigNumber.from(1e12)
   ): BigNumber {
-    const amplifiedReward = rewardPerBlock.mul(blockDiff).mul(precision);
-    return lp.mul(amplifiedReward.div(lp)).div(precision);
+    const rewardPerBlockBN = BigNumber.from(rewardPerBlock);
+    const lpBN = BigNumber.from(lp);
+
+    const amplifiedReward = rewardPerBlockBN.mul(blockDiff).mul(precision);
+
+    return lpBN.mul(amplifiedReward.div(lp)).div(precision);
   }
 }
