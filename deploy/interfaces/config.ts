@@ -168,6 +168,7 @@ export interface Tokens {
   USD?: string;
   TOMB?: string;
   TSHARE?: string;
+  BSW?: string;
 }
 export interface LpTokens {
   "ALPACA-WBNB": string;

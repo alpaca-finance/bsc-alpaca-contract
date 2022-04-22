@@ -66,7 +66,6 @@ interface IBiswapWorkerInfo {
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const executeFileTitle = "biswap-worker03";
-  const executeTimestamp = Math.floor(Date.now() / 1000);
   /*
   ░██╗░░░░░░░██╗░█████╗░██████╗░███╗░░██╗██╗███╗░░██╗░██████╗░
   ░██║░░██╗░░██║██╔══██╗██╔══██╗████╗░██║██║████╗░██║██╔════╝░
@@ -93,7 +92,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       WORK_FACTOR: "7000",
       KILL_FACTOR: "8333",
       MAX_PRICE_DIFF: "11000",
-      EXACT_ETA: "1651283600", // no use due to no timelock
+      EXACT_ETA: "1651583600", // no use due to no timelock
     },
     {
       VAULT_SYMBOL: "ibUSDT",
@@ -111,7 +110,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       WORK_FACTOR: "7000",
       KILL_FACTOR: "8333",
       MAX_PRICE_DIFF: "11000",
-      EXACT_ETA: "1651283600", // no use due to no timelock
+      EXACT_ETA: "1651583600", // no use due to no timelock
     },
   ];
 
@@ -295,7 +294,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         `await timelock.executeTransaction('${workerInfos[i].WORKER_CONFIG_ADDR}', '0', 'setConfigs(address[],(bool,uint64,uint64,uint64)[])', ethers.utils.defaultAbiCoder.encode(['address[]','(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]'],[['${biswapWorker03.address}'], [{acceptDebt: true, workFactor: ${workerInfos[i].WORK_FACTOR}, killFactor: ${workerInfos[i].KILL_FACTOR}, maxPriceDiff: ${workerInfos[i].MAX_PRICE_DIFF}}]]), ${workerInfos[i].EXACT_ETA})`
       );
       timelockTransactions.push(setConfigsTx);
-      fileService.writeJson(executeFileTitle, timelockTransactions, executeTimestamp);
+      fileService.writeJson(executeFileTitle, timelockTransactions);
       console.log("✅ Done");
     } else {
       console.log(">> Setting WorkerConfig");
@@ -334,7 +333,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         `await timelock.executeTransaction('${workerInfos[i].VAULT_CONFIG_ADDR}', '0','setWorkers(address[],address[])', ethers.utils.defaultAbiCoder.encode(['address[]','address[]'],[['${biswapWorker03.address}'], ['${workerInfos[i].WORKER_CONFIG_ADDR}']]), ${workerInfos[i].EXACT_ETA})`
       );
       timelockTransactions.push(setWorkersTx);
-      fileService.writeJson(executeFileTitle, timelockTransactions, executeTimestamp);
+      fileService.writeJson(executeFileTitle, timelockTransactions);
       console.log("✅ Done");
     } else {
       console.log(">> Linking VaultConfig with WorkerConfig");
