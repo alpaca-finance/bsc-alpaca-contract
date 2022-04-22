@@ -8,6 +8,7 @@ import {
   SharedStrategies,
   StrategyAddTwoSidesOptimal,
   WorkersEntity,
+  DeltaNeutralVaultsEntity,
 } from "../interfaces/config";
 
 export class ConfigFileHelper {
@@ -104,6 +105,47 @@ export class ConfigFileHelper {
     return this.config;
   }
 
+  // DeltaNeutralVaults
+  public addOrSetDeltaNeutralVaults(nameOrSymbolOrAddress: string, value: DeltaNeutralVaultsEntity) {
+    console.log(`>> Updating config on DeltaNeutralVaults address: ${value.address}`);
+    const idx = this._findDeltaNeurtralVaultIdxByNameOrSymbolOrAddress(nameOrSymbolOrAddress);
+    if (idx === -1) {
+      this.config.DeltaNeutralVaults = [...this.config.DeltaNeutralVaults, value];
+      console.log(`>> Added DeltaNeutralVault ${value.name} address: ${value.address}`);
+    } else {
+      this.config.DeltaNeutralVaults[idx] = value;
+      console.log(`>> Updated DeltaNeutralVault ${value.name} address: ${value.address}`);
+    }
+    console.log("✅ Done");
+
+    this._writeConfigFile(this.config);
+    return this.config;
+  }
+
+  public setDeltaNeutralVaultsInitPositionIds(
+    nameOrSymbolOrAddress: string,
+    vaultPositionIds: {
+      stableVaultPosId: string;
+      assetVaultPosId: string;
+    }
+  ) {
+    console.log(
+      `>> Updating config on DeltaNeutralVaults > { assetVaultPosId: ${vaultPositionIds.assetVaultPosId}, stableVaultPosId: ${vaultPositionIds.stableVaultPosId} }`
+    );
+    const idx = this._findDeltaNeurtralVaultIdxByNameOrSymbolOrAddress(nameOrSymbolOrAddress);
+    if (idx === -1)
+      throw Error(
+        `[ConfigFileHelper::setDeltaNeutralVaultsInitPositionIds]: DeltaNeutralVaults not found [${nameOrSymbolOrAddress}]`
+      );
+
+    this.config.DeltaNeutralVaults[idx].stableVaultPosId = vaultPositionIds.assetVaultPosId;
+    this.config.DeltaNeutralVaults[idx].assetVaultPosId = vaultPositionIds.stableVaultPosId;
+    console.log("✅ Done");
+
+    this._writeConfigFile(this.config);
+    return this.config;
+  }
+
   private _writeConfigFile(config: Config) {
     console.log(`>> Writing ${this.filePath}`);
     fs.writeFileSync(this.filePath, JSON.stringify(config, null, 2));
@@ -112,6 +154,15 @@ export class ConfigFileHelper {
 
   private _findVaultIdxByNameOrSymbolOrAddress(nameOrSymbolOrAddress: string): number {
     return this.config.Vaults.findIndex(
+      (v) =>
+        v.name === nameOrSymbolOrAddress ||
+        v.symbol === nameOrSymbolOrAddress ||
+        compare(v.address, nameOrSymbolOrAddress)
+    );
+  }
+
+  private _findDeltaNeurtralVaultIdxByNameOrSymbolOrAddress(nameOrSymbolOrAddress: string): number {
+    return this.config.DeltaNeutralVaults.findIndex(
       (v) =>
         v.name === nameOrSymbolOrAddress ||
         v.symbol === nameOrSymbolOrAddress ||

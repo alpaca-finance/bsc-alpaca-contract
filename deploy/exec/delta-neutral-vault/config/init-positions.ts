@@ -1,11 +1,10 @@
-import { formatEther } from "ethers/lib/utils";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 import { BEP20__factory, DeltaNeutralVault__factory, DeltaNeutralOracle__factory } from "../../../../typechain";
-import { ConfigEntity } from "../../../entities";
 import { BigNumber } from "ethers";
 import { getDeployer } from "../../../../utils/deployer-helper";
+import { ConfigFileHelper } from "../../../helper";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -76,8 +75,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       leverage: 3,
     },
   ];
-  const config = ConfigEntity.getConfig();
   const deployer = await getDeployer();
+
+  const configFileHelper = new ConfigFileHelper();
+  let config = configFileHelper.getConfig();
+
   const tokenLists: any = config.Tokens;
   let nonce = await deployer.getTransactionCount();
   let stableTwoSidesStrat: string;
@@ -115,6 +117,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     } else if (initPosition.symbol.includes("SPK")) {
       stableTwoSidesStrat = stableVault.StrategyAddTwoSidesOptimal.SpookySwap!;
       assetTwoSidesStrat = assetVault.StrategyAddTwoSidesOptimal.SpookySwap!;
+    } else if (initPosition.symbol.includes("BS")) {
+      stableTwoSidesStrat = stableVault.StrategyAddTwoSidesOptimal.Biswap!;
+      assetTwoSidesStrat = assetVault.StrategyAddTwoSidesOptimal.Biswap!;
     } else {
       throw new Error(`err: no symbol is not match any strategy, value ${initPosition.symbol}`);
     }
@@ -244,6 +249,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     const stablePosId = await deltaNeutralVault.stableVaultPosId();
     const assetPostId = await deltaNeutralVault.assetVaultPosId();
+
+    config = configFileHelper.setDeltaNeutralVaultsInitPositionIds(initPosition.symbol, {
+      stableVaultPosId: stablePosId.toString(),
+      assetVaultPosId: assetPostId.toString(),
+    });
 
     console.log(`>> Stable Vault Position ID: ${stablePosId}`);
     console.log(`>> Asset Vault Position ID: ${assetPostId}`);
