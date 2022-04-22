@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.13;
+pragma solidity >=0.6.6 <0.9.0;
 
 import { DSTest } from "./DSTest.sol";
 
@@ -18,22 +18,11 @@ contract BaseTest is DSTest {
 
   ProxyAdmin internal proxyAdmin;
 
-  constructor() {
+  constructor() public {
     proxyAdmin = _setupProxyAdmin();
   }
 
   function _setupProxyAdmin() internal returns (ProxyAdmin) {
     return new ProxyAdmin();
-  }
-
-  function _setupUpgradeableErc20(string memory _name, string memory _symbol) internal returns (UpgradeableErc20) {
-    UpgradeableErc20 _impl = new UpgradeableErc20();
-    TransparentUpgradeableProxy _proxy = new TransparentUpgradeableProxy(
-      address(_impl),
-      address(proxyAdmin),
-      abi.encodeWithSelector(bytes4(keccak256("initialize(string,string)")), _name, _symbol)
-    );
-
-    return UpgradeableErc20(address(_proxy));
   }
 }
