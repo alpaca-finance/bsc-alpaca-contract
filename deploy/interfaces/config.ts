@@ -175,15 +175,13 @@ export interface LpTokens {
   "sALPACA-ALPACA": string;
 }
 export interface SharedStrategies {
-  Pancakeswap?: PancakeswapOrWaultswapOrPancakeswapSingleAsset;
-  Waultswap?: PancakeswapOrWaultswapOrPancakeswapSingleAsset;
-  PancakeswapSingleAsset?: PancakeswapOrWaultswapOrPancakeswapSingleAsset;
-  Mdex?: PancakeswapOrWaultswapOrPancakeswapSingleAsset;
-  SpookySwap?: PancakeswapOrWaultswapOrPancakeswapSingleAsset;
-  Biswap?: PancakeswapOrWaultswapOrPancakeswapSingleAsset;
+  Pancakeswap?: SharedStrategiesGroup;
+  Waultswap?: SharedStrategiesGroup;
+  PancakeswapSingleAsset?: SharedStrategiesGroup;
+  Mdex?: SharedStrategiesGroup;
+  SpookySwap?: SharedStrategiesGroup;
 }
-
-export interface PancakeswapOrWaultswapOrPancakeswapSingleAsset {
+export interface SharedStrategiesGroup {
   StrategyAddBaseTokenOnly: string;
   StrategyLiquidate: string;
   StrategyWithdrawMinimizeTrading: string;
