@@ -219,7 +219,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       },
     };
 
-    config = configFileHelper.setVaultWorker(workerInfos[i].VAULT_ADDR, biswapWorkersEntity);
+    config = configFileHelper.addOrSetVaultWorker(workerInfos[i].VAULT_ADDR, biswapWorkersEntity);
 
     let nonce = await deployer.getTransactionCount();
 

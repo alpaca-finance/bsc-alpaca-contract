@@ -45,15 +45,10 @@ export class ConfigFileHelper {
   }
 
   // Vaults
-  public setVaultWorker(vaultNameOrSymbolOrAddress: string, value: WorkersEntity): Config {
+  public addOrSetVaultWorker(vaultNameOrSymbolOrAddress: string, value: WorkersEntity): Config {
     console.log(`>> Updating config on Vaults[${vaultNameOrSymbolOrAddress}] > workers`);
-    const vaultIdx = this.config.Vaults.findIndex(
-      (v) =>
-        v.name === vaultNameOrSymbolOrAddress ||
-        v.symbol === vaultNameOrSymbolOrAddress ||
-        compare(v.address, vaultNameOrSymbolOrAddress)
-    );
-    if (vaultIdx === -1) throw Error("[ConfigFileHelper::setWorkerEntity]: Vault not found");
+    const vaultIdx = this._findVaultIdxByNameOrSymbolOrAddress(vaultNameOrSymbolOrAddress);
+    if (vaultIdx === -1) throw Error("[ConfigFileHelper::addOrSetVaultWorker]: Vault not found");
     const vaultWorkers = this.config.Vaults[vaultIdx].workers;
     const workerIdx = vaultWorkers.findIndex((w) => w.name === value.name);
 
@@ -76,12 +71,7 @@ export class ConfigFileHelper {
     value: string
   ) {
     console.log(`>> Updating config on Vaults[${vaultNameOrSymbolOrAddress}] > StrategyAddTwoSidesOptimal > ${key}`);
-    const vaultIdx = this.config.Vaults.findIndex(
-      (v) =>
-        v.name === vaultNameOrSymbolOrAddress ||
-        v.symbol === vaultNameOrSymbolOrAddress ||
-        compare(v.address, vaultNameOrSymbolOrAddress)
-    );
+    const vaultIdx = this._findVaultIdxByNameOrSymbolOrAddress(vaultNameOrSymbolOrAddress);
     if (vaultIdx === -1) throw Error("[ConfigFileHelper::setVaultTwosideOptimalOnKey]: Vault not found");
     const strategyTwoSidesOptimal = this.config.Vaults[vaultIdx]!.StrategyAddTwoSidesOptimal[key];
     if (!strategyTwoSidesOptimal)
@@ -118,5 +108,14 @@ export class ConfigFileHelper {
     console.log(`>> Writing ${this.filePath}`);
     fs.writeFileSync(this.filePath, JSON.stringify(config, null, 2));
     console.log("✅ Done");
+  }
+
+  private _findVaultIdxByNameOrSymbolOrAddress(nameOrSymbolOrAddress: string): number {
+    return this.config.Vaults.findIndex(
+      (v) =>
+        v.name === nameOrSymbolOrAddress ||
+        v.symbol === nameOrSymbolOrAddress ||
+        compare(v.address, nameOrSymbolOrAddress)
+    );
   }
 }

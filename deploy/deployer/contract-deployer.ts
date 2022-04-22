@@ -58,9 +58,9 @@ export class ContractDeployer<C extends Contract> extends IContractDeployer<C> {
   public async deploy(args: ParamData[]): Promise<DeployResponse<C>> {
     console.log("================================================================================");
     if (!!this.key) {
-      console.log(`>> Deploying an upgradable ${this.contract} contract for ${this.key}`);
+      console.log(`>> Deploying ${this.contract} contract for ${this.key}`);
     } else {
-      console.log(`>> Deploying an upgradable ${this.contract}`);
+      console.log(`>> Deploying ${this.contract}`);
     }
 
     const ContractFactory = await ethers.getContractFactory(this.contract, this.deployer);
