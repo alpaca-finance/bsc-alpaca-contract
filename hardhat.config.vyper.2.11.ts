@@ -59,7 +59,7 @@ module.exports = {
     version: "0.2.11",
   },
   paths: {
-    sources: "./contracts/vyper/2.11",
+    sources: "./solidity/contracts/vyper/2.11",
     tests: "./test",
     cache: "./cache",
     artifacts: "./artifacts",

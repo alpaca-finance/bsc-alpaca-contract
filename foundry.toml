@@ -1,0 +1,5 @@
+[default]
+src = 'solidity/contracts'
+out = 'out'
+libs = ['node_modules']
+test = 'solidity/tests'
