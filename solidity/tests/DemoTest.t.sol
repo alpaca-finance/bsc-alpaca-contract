@@ -1,24 +1,16 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity 0.8.10;
+// SPDX-License-Identifier: MIT
+pragma solidity >=0.4.22 <0.9.0;
 
-import "./DSTest.sol";
+import { BaseTest } from "./base/BaseTest.sol";
 
-contract DemoTest is DSTest {
-  uint256 testNumber;
+contract DemoTest is BaseTest {
+  uint256 private testNumber;
 
-  function setUp() public {
+  function setUp() external {
     testNumber = 42;
   }
 
-  function testNumberIs42() public {
+  function testNumberIs42() external {
     assertEq(testNumber, 42);
-  }
-
-  function testFailUnderflow() public {
-    testNumber -= 43;
-  }
-
-  function testFailSubtract43() public {
-    testNumber -= 43;
   }
 }
