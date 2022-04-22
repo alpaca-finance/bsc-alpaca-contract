@@ -182,7 +182,6 @@ export interface SharedStrategies {
   SpookySwap?: SharedStrategiesGroup;
   Biswap?: SharedStrategiesGroup;
 }
-
 export interface SharedStrategiesGroup {
   StrategyAddBaseTokenOnly: string;
   StrategyLiquidate: string;
