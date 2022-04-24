@@ -2093,7 +2093,7 @@
           "deployedBlock": 17218767,
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 13,
-          "stakingToken": "0x58F876857a02D6762E0101bb5C46A8c1ED44Dc16",
+          "stakingToken": "0x16b9a82891338f9bA80E2D6970FddA79D1eb0daE",
           "stakingTokenAt": "0xa5f8C5Dbd5F286960b9d90548680aE5ebFf07652",
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
