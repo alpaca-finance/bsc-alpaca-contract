@@ -268,12 +268,10 @@ contract DeltaNeutralPancakeMCV2Worker02 is OwnableUpgradeable, ReentrancyGuardU
     uint256 debt,
     bytes calldata data
   ) external override onlyWhitelistedCaller(user) onlyOperator nonReentrant {
-    // 1. not reinvest
-
-    // 2. Withdraw all LP tokens.
+    // 1. Withdraw all LP tokens.
     _masterChefWithdraw();
 
-    // 3. Perform the worker strategy; sending LP tokens + BaseToken; expecting LP tokens + BaseToken.
+    // 2. Perform the worker strategy; sending LP tokens + BaseToken; expecting LP tokens + BaseToken.
     (address strat, bytes memory ext) = abi.decode(data, (address, bytes));
 
     if (!okStrats[strat]) revert DeltaNeutralPancakeMCV2Worker02_UnApproveStrategy();
@@ -282,10 +280,10 @@ contract DeltaNeutralPancakeMCV2Worker02 is OwnableUpgradeable, ReentrancyGuardU
     baseToken.safeTransfer(strat, actualBaseTokenBalance());
     IStrategy(strat).execute(user, debt, ext);
 
-    // 4. Add LP tokens back to the farming pool.
+    // 3. Add LP tokens back to the farming pool.
     _masterChefDeposit();
 
-    // 5. Return any remaining BaseToken back to the operator.
+    // 4. Return any remaining BaseToken back to the operator.
     baseToken.safeTransfer(msg.sender, actualBaseTokenBalance());
   }
 
