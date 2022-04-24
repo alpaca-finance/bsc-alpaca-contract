@@ -103,7 +103,8 @@
     "MIM": "0x82f0b8b456c1a451378467398982d4834b6829c1",
     "TOMB": "0x6c021ae822bea943b2e66552bde1d2696a53fbb7",
     "TSHARE": "0x4cdf39285d7ca8eb3f090fda0c069ba5f4145b37",
-    "USD": "0x115dffFFfffffffffFFFffffFFffFfFfFFFFfFff"
+    "USD": "0x115dffFFfffffffffFFFffffFFffFfFfFFFFfFff",
+    "n3x-FTM-USDC-SPK1": "0x18a9853102b51Bb228E277BeE25625874f184398"
   },
   "SharedStrategies": {
     "SpookySwap": {
