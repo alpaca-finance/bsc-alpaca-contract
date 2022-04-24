@@ -614,6 +614,36 @@
       "address": "0xd4f67BcDC74b0655F388Da91F4Fb5B883880b0B4",
       "txHash": "0x6f53f494ca404826ac29f200dfffd1d579755b446003ec6c01ccb80a602e9b9a",
       "kind": "transparent"
+    },
+    {
+      "address": "0x19756C5A8E24A824BE9D4FF1fECfF0F2E63cfFdE",
+      "txHash": "0x338d05e191b600b337922915f4c48931bc0e3c4b2ec066424862b4bd852914cd",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x361fb085795140c5d8bA604ba547Fb118800ea83",
+      "txHash": "0x9f2bb598d81df50b0c1f45507a0cddcf01d4b8b26ecfa2c1e7c3722104f0d767",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xb4FF3828d9d8eE0997cc29fF173A1C621D797bD7",
+      "txHash": "0x6731268096ddf696a9148ca9d3d2b6d68874adf3e4ce12cb9618d9bc28c0690a",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x59984D70342dB0A4797D6C6E256d9445efeeb949",
+      "txHash": "0x8cf9a1500abfbf970154cf8923905d65cc75447a81294d283d93cf21fde6c6a5",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xD14ED91dcD2E06ED72F536008cCd581DA73adDB5",
+      "txHash": "0x6a8f0d97de78fc794dc74a008377bedae5cd1aefcb6b4f8b4744071bcef17499",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x49966a489a6B6a43652Ee1924349B902fE14bC6F",
+      "txHash": "0x9935efa69cc8da99e79edde4f85e6f955efccf781dc3b1bf72b9e6467eeb1a43",
+      "kind": "transparent"
     }
   ],
   "impls": {

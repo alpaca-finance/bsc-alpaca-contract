@@ -27,10 +27,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const DELTA_NEUTRAL_VAULT = "Market Neutral 3x BNB-USDT PCS2";
   const workerInputs: IWorkerInput[] = [
     {
-      name: "WBNB-USDT 3x PCS2 DeltaNeutralPancakeswapWorker",
+      name: "WBNB-BUSD 3x PCS2 DeltaNeutralPancakeswapWorker",
     },
     {
-      name: "USDT-WBNB 3x PCS2 DeltaNeutralPancakeswapWorker",
+      name: "BUSD-WBNB 3x PCS2 DeltaNeutralPancakeswapWorker",
     },
   ];
 

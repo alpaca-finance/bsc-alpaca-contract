@@ -2103,6 +2103,23 @@
             "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
             "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
+        },
+        {
+          "name": "BUSD-WBNB 3x PCS2 DeltaNeutralPancakeswapWorker",
+          "address": "0xb4FF3828d9d8eE0997cc29fF173A1C621D797bD7",
+          "deployedBlock": 17219622,
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 3,
+          "stakingToken": "0x58F876857a02D6762E0101bb5C46A8c1ED44Dc16",
+          "stakingTokenAt": "0xa5f8C5Dbd5F286960b9d90548680aE5ebFf07652",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+            "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+            "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
+            "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
+          }
         }
       ]
     },
@@ -2585,6 +2602,23 @@
           "name": "WBNB-BUSD 3x PCS1 DeltaNeutralPancakeswapWorker",
           "address": "0x54D3218787060463EEb944fa01b0cbE745Ef4DB5",
           "deployedBlock": 16646207,
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 3,
+          "stakingToken": "0x58F876857a02D6762E0101bb5C46A8c1ED44Dc16",
+          "stakingTokenAt": "0xa5f8C5Dbd5F286960b9d90548680aE5ebFf07652",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+            "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+            "StrategyAddTwoSidesOptimal": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
+            "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
+          }
+        },
+        {
+          "name": "WBNB-BUSD 3x PCS2 DeltaNeutralPancakeswapWorker",
+          "address": "0x59984D70342dB0A4797D6C6E256d9445efeeb949",
+          "deployedBlock": 17219660,
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 3,
           "stakingToken": "0x58F876857a02D6762E0101bb5C46A8c1ED44Dc16",
@@ -3726,6 +3760,23 @@
       "assetDeltaWorker": "0xae2b281719f2D27C1478a53995Afed82Ccd8B051",
       "stableDeltaWorker": "0xCB0531f17ff9f4FF3FbEdA38A63250706BE2B853",
       "gateway": "0xd4f67BcDC74b0655F388Da91F4Fb5B883880b0B4",
+      "oracle": "0x08EA5fB66EA41f236E3001d2655e43A1E735787F",
+      "assetVaultPosId": "0",
+      "stableVaultPosId": "0"
+    },
+    {
+      "name": "Market Neutral 3x BNB-BUSD PCS2",
+      "symbol": "n3x-BNBBUSD-PCS2",
+      "address": "0xD14ED91dcD2E06ED72F536008cCd581DA73adDB5",
+      "deployedBlock": 17219767,
+      "config": "0x19756C5A8E24A824BE9D4FF1fECfF0F2E63cfFdE",
+      "assetToken": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+      "stableToken": "0xe9e7cea3dedca5984780bafc599bd69add087d56",
+      "assetVault": "0xd7D069493685A581d27824Fc46EdA46B7EfC0063",
+      "stableVault": "0x7C9e73d4C71dae564d41F78d56439bB4ba87592f",
+      "assetDeltaWorker": "0xb4FF3828d9d8eE0997cc29fF173A1C621D797bD7",
+      "stableDeltaWorker": "0x59984D70342dB0A4797D6C6E256d9445efeeb949",
+      "gateway": "0x49966a489a6B6a43652Ee1924349B902fE14bC6F",
       "oracle": "0x08EA5fB66EA41f236E3001d2655e43A1E735787F",
       "assetVaultPosId": "0",
       "stableVaultPosId": "0"

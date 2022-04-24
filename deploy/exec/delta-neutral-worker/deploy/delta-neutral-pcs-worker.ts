@@ -78,10 +78,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const shortWorkerInfos: IDeltaNeutralPCSWorkerInput[] = [
     {
       VAULT_SYMBOL: "ibWBNB",
-      WORKER_NAME: "USDT-WBNB 3x PCS2 DeltaNeutralPancakeswapWorker",
+      WORKER_NAME: "BUSD-WBNB 3x PCS2 DeltaNeutralPancakeswapWorker",
       TREASURY_ADDRESS: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 13,
+      POOL_ID: 3,
       REINVEST_BOUNTY_BPS: "1500",
       REINVEST_PATH: ["CAKE", "WBNB"],
       REINVEST_THRESHOLD: "0",
@@ -95,13 +95,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       MAX_PRICE_DIFF: "10500",
     },
     {
-      VAULT_SYMBOL: "ibUSDT",
-      WORKER_NAME: "WBNB-USDT 3x PCS2 DeltaNeutralPancakeswapWorker",
+      VAULT_SYMBOL: "ibBUSD",
+      WORKER_NAME: "WBNB-BUSD 3x PCS2 DeltaNeutralPancakeswapWorker",
       TREASURY_ADDRESS: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 13,
+      POOL_ID: 3,
       REINVEST_BOUNTY_BPS: "1500",
-      REINVEST_PATH: ["CAKE", "USDT"],
+      REINVEST_PATH: ["CAKE", "BUSD"],
       REINVEST_THRESHOLD: "0",
       BENEFICIAL_VAULT: {
         BENEFICIAL_VAULT_BPS: "5333",
@@ -113,8 +113,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       MAX_PRICE_DIFF: "10500",
     },
   ];
-  const TITLE = "mainnet_n3x_wbnbusdt_pcs2_worker";
-  const EXACT_ETA = "1650873600";
+  const TITLE = "mainnet_n3x_wbnbbusd_pcs2_worker";
+  const EXACT_ETA = "1650875400";
 
   const deployer = (await ethers.getSigners())[0];
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
@@ -317,7 +317,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log("✅ Done");
   }
 
-  const ts = Math.floor(Date.now() / 1000) / 100000;
+  const ts = Math.floor(Date.now() / 1000);
   fileService.writeJson(`${ts}_${TITLE}`, timelockTransactions);
 };
 
