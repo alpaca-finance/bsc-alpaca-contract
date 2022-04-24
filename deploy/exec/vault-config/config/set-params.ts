@@ -44,17 +44,22 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLTE = "update_wbnb_usdt_triple_slope_model";
+  const TITLTE = "update_wbnb_busd_usdt_triple_slope_model";
   const NEW_PARAMS: Array<SetParamsInput> = [
     {
       VAULT_SYMBOL: "ibWBNB",
-      INTEREST_MODEL: "0x284e25169CE75fc62c9339207de5d775F46aD406",
-      EXACT_ETA: "1649228400",
+      INTEREST_MODEL: "0xc51d25a2C2d49eE2508B822829d43b9961deCB44",
+      EXACT_ETA: "1650875400",
+    },
+    {
+      VAULT_SYMBOL: "ibBUSD",
+      INTEREST_MODEL: "0x4eCa08e4f2eD826dba5Bea2Ec133036fE60d30b6",
+      EXACT_ETA: "1650875400",
     },
     {
       VAULT_SYMBOL: "ibUSDT",
-      INTEREST_MODEL: "0xcB1bF51A93fC162bFa761F18c236E39D107F6b23",
-      EXACT_ETA: "1649228400",
+      INTEREST_MODEL: "0x284e25169CE75fc62c9339207de5d775F46aD406",
+      EXACT_ETA: "1650875400",
     },
   ];
 
@@ -148,7 +153,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     );
   }
 
-  fileService.writeJson(TITLTE, timelockTransactions);
+  const ts = Math.floor(Date.now() / 1000);
+  fileService.writeJson(`${ts}_${TITLTE}`, timelockTransactions);
 };
 
 export default func;
