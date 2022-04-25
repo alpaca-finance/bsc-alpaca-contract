@@ -16,6 +16,7 @@ export interface Config {
   Vaults: VaultsEntity[];
   DeltaNeutralVaults: DeltaNeutralVaultsEntity[];
 }
+
 export interface MerkleDistributor {
   "ITAM-week-1": string;
   "ITAM-week-2": string;
@@ -60,7 +61,9 @@ export interface YieldSources {
   Mdex?: Mdex;
   SpookySwap?: SpookySwap;
   TombFinance?: TombFinance;
+  Biswap?: Biswap;
 }
+
 export interface Pancakeswap {
   UniswapV2Factory: string;
   UniswapV2Router02: string;
@@ -99,6 +102,14 @@ export interface TombFinance {
   TShareRewardPool: string;
   pools: YieldPoolsEntity[];
 }
+
+export interface Biswap {
+  BiswapRouterV2: string;
+  MasterChef: string;
+  BiswapFactory: string;
+  pools: YieldPoolsEntity[];
+}
+
 export interface Tokens {
   WBNB?: string;
   ALPACA?: string;
@@ -157,6 +168,7 @@ export interface Tokens {
   USD?: string;
   TOMB?: string;
   TSHARE?: string;
+  BSW?: string;
 }
 export interface LpTokens {
   "ALPACA-WBNB": string;
@@ -164,19 +176,21 @@ export interface LpTokens {
   "sALPACA-ALPACA": string;
 }
 export interface SharedStrategies {
-  Pancakeswap?: PancakeswapOrWaultswapOrPancakeswapSingleAsset;
-  Waultswap?: PancakeswapOrWaultswapOrPancakeswapSingleAsset;
-  PancakeswapSingleAsset?: PancakeswapOrWaultswapOrPancakeswapSingleAsset;
-  Mdex?: PancakeswapOrWaultswapOrPancakeswapSingleAsset;
-  SpookySwap?: PancakeswapOrWaultswapOrPancakeswapSingleAsset;
+  Pancakeswap?: SharedStrategiesGroup;
+  Waultswap?: SharedStrategiesGroup;
+  PancakeswapSingleAsset?: SharedStrategiesGroup;
+  Mdex?: SharedStrategiesGroup;
+  SpookySwap?: SharedStrategiesGroup;
+  Biswap?: SharedStrategiesGroup;
 }
-export interface PancakeswapOrWaultswapOrPancakeswapSingleAsset {
+export interface SharedStrategiesGroup {
   StrategyAddBaseTokenOnly: string;
   StrategyLiquidate: string;
   StrategyWithdrawMinimizeTrading: string;
   StrategyPartialCloseLiquidate: string;
   StrategyPartialCloseMinimizeTrading: string;
 }
+
 export interface SharedConfig {
   TwoSlopeModel?: string;
   TripleSlopeModel: string;
@@ -210,6 +224,7 @@ export interface StrategyAddTwoSidesOptimal {
   PancakeswapSingleAsset?: string;
   Mdex?: string;
   SpookySwap?: string;
+  Biswap?: string;
 }
 export interface WorkersEntity {
   name: string;

@@ -6,7 +6,7 @@
     "avoid-suicide": "error",
     "avoid-sha3": "warn",
     "quotes": ["warn", "double"],
-    "compiler-version": ["warn", "0.8.11"]
+    "compiler-version": ["off"]
   },
   "plugins": ["prettier"]
 }
