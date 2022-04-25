@@ -218,8 +218,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       },
     };
 
-    config = configFileHelper.addOrSetVaultWorker(workerInfos[i].VAULT_ADDR, biswapWorkersEntity);
-
     let nonce = await deployer.getTransactionCount();
 
     console.log(`>> Adding REINVEST_BOT`);
@@ -344,6 +342,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       ).wait(3);
       console.log("✅ Done");
     }
+
+    config = configFileHelper.addOrSetVaultWorker(workerInfos[i].VAULT_ADDR, biswapWorkersEntity);
   }
 };
 
