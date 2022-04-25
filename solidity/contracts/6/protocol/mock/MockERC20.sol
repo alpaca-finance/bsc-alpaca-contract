@@ -18,10 +18,6 @@ import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol
 import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 
 contract MockERC20 is ERC20UpgradeSafe, OwnableUpgradeSafe {
-  receive() external payable {
-    _mint(msg.sender, msg.value);
-  }
-
   function initialize(
     string memory _name,
     string memory _symbol,
@@ -34,5 +30,9 @@ contract MockERC20 is ERC20UpgradeSafe, OwnableUpgradeSafe {
 
   function mint(address to, uint256 amount) public onlyOwner {
     _mint(to, amount);
+  }
+
+  receive() external payable {
+    _mint(msg.sender, msg.value);
   }
 }
