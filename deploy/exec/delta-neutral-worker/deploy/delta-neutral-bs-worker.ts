@@ -1,7 +1,12 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, network } from "hardhat";
-import { BiswapStrategyAddBaseTokenOnly__factory, DeltaNeutralBiswapWorker03 } from "../../../../typechain";
+import {
+  BiswapStrategyAddBaseTokenOnly__factory,
+  ConfigurableInterestVaultConfig__factory,
+  DeltaNeutralBiswapWorker03,
+  WorkerConfig__factory,
+} from "../../../../typechain";
 import { ConfigEntity, TimelockEntity } from "../../../entities";
 import { fileService, TimelockService } from "../../../services";
 import { BlockScanGasPrice } from "../../../services/gas-price/blockscan";
@@ -9,6 +14,7 @@ import { getDeployer } from "../../../../utils/deployer-helper";
 import { UpgradeableContractDeployer } from "../../../deployer";
 import { WorkersEntity } from "../../../interfaces/config";
 import { ConfigFileHelper } from "../../../helper";
+import { compare } from "../../../../utils/address";
 
 interface IBeneficialVaultInput {
   BENEFICIAL_VAULT_BPS: string;
@@ -187,30 +193,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       workerInfos[i].DELTA_NEUTRAL_ORACLE,
     ]);
 
-    const lpPoolAddress = config.YieldSources.Biswap!.pools.find(
-      (pool) => pool.pId === workerInfos[i].POOL_ID
-    )!.address;
-
-    const biswapWorkersEntity: WorkersEntity = {
-      name: workerInfos[i].WORKER_NAME,
-      address: deltaNeutralWorker.address,
-      deployedBlock,
-      config: workerInfos[i].WORKER_CONFIG_ADDR,
-      pId: workerInfos[i].POOL_ID,
-      stakingToken: lpPoolAddress,
-      stakingTokenAt: workerInfos[i].MASTER_CHEF,
-      strategies: {
-        StrategyAddAllBaseToken: workerInfos[i].ADD_STRAT_ADDR,
-        StrategyLiquidate: workerInfos[i].LIQ_STRAT_ADDR,
-        StrategyAddTwoSidesOptimal: workerInfos[i].TWO_SIDES_STRAT_ADDR,
-        StrategyWithdrawMinimizeTrading: workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR,
-        StrategyPartialCloseLiquidate: workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR,
-        StrategyPartialCloseMinimizeTrading: workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR,
-      },
-    };
-
-    config = configFileHelper.addOrSetVaultWorker(workerInfos[i].VAULT_ADDR, biswapWorkersEntity);
-
     let nonce = await deployer.getTransactionCount();
 
     console.log(`>> Adding REINVEST_BOT`);
@@ -258,15 +240,40 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       );
     }
 
-    console.log(">> Timelock");
-    timelockTransactions.push(
-      await TimelockService.queueTransaction(
-        `>> Queue tx on Timelock Setting WorkerConfig via Timelock at ${workerInfos[i].WORKER_CONFIG_ADDR} for ${deltaNeutralWorker.address}`,
-        workerInfos[i].WORKER_CONFIG_ADDR,
-        "0",
-        "setConfigs(address[],(bool,uint64,uint64,uint64)[])",
-        ["address[]", "(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]"],
-        [
+    const workerConfig = WorkerConfig__factory.connect(workerInfos[i].WORKER_CONFIG_ADDR, deployer);
+    const vaultConfig = ConfigurableInterestVaultConfig__factory.connect(workerInfos[i].VAULT_CONFIG_ADDR, deployer);
+
+    const [workerOwnerAddress, vaultOwnerAddress] = await Promise.all([workerConfig.owner(), vaultConfig.owner()]);
+
+    if (compare(workerOwnerAddress, workerInfos[i].TIMELOCK)) {
+      timelockTransactions.push(
+        await TimelockService.queueTransaction(
+          `>> Queue tx on Timelock Setting WorkerConfig via Timelock at ${workerInfos[i].WORKER_CONFIG_ADDR} for ${deltaNeutralWorker.address} ETA ${EXACT_ETA}`,
+          workerInfos[i].WORKER_CONFIG_ADDR,
+          "0",
+          "setConfigs(address[],(bool,uint64,uint64,uint64)[])",
+          ["address[]", "(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]"],
+          [
+            [deltaNeutralWorker.address],
+            [
+              {
+                acceptDebt: true,
+                workFactor: workerInfos[i].WORK_FACTOR,
+                killFactor: workerInfos[i].KILL_FACTOR,
+                maxPriceDiff: workerInfos[i].MAX_PRICE_DIFF,
+              },
+            ],
+          ],
+          EXACT_ETA,
+          { gasPrice, nonce: nonce++ }
+        )
+      );
+      fileService.writeJson(TITLE, timelockTransactions);
+      console.log("✅ Done");
+    } else {
+      console.log(">> Setting WorkerConfig");
+      (
+        await workerConfig.setConfigs(
           [deltaNeutralWorker.address],
           [
             {
@@ -276,28 +283,61 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
               maxPriceDiff: workerInfos[i].MAX_PRICE_DIFF,
             },
           ],
-        ],
-        EXACT_ETA,
-        { gasPrice, nonce: nonce++ }
-      )
-    );
-    fileService.writeJson(TITLE, timelockTransactions);
-    console.log("✅ Done");
+          { nonce: nonce++ }
+        )
+      ).wait(3);
+      console.log("✅ Done");
+    }
 
-    timelockTransactions.push(
-      await TimelockService.queueTransaction(
-        `>> Queue tx on Timelock Linking VaultConfig with WorkerConfig via Timelock for ${workerInfos[i].VAULT_CONFIG_ADDR}`,
-        workerInfos[i].VAULT_CONFIG_ADDR,
-        "0",
-        "setWorkers(address[],address[])",
-        ["address[]", "address[]"],
-        [[deltaNeutralWorker.address], [workerInfos[i].WORKER_CONFIG_ADDR]],
-        EXACT_ETA,
-        { gasPrice, nonce: nonce++ }
-      )
-    );
-    fileService.writeJson(TITLE, timelockTransactions);
-    console.log("✅ Done");
+    if (compare(vaultOwnerAddress, workerInfos[i].TIMELOCK)) {
+      timelockTransactions.push(
+        await TimelockService.queueTransaction(
+          `>> Queue tx on Timelock Linking VaultConfig with WorkerConfig via Timelock for ${workerInfos[i].VAULT_CONFIG_ADDR}`,
+          workerInfos[i].VAULT_CONFIG_ADDR,
+          "0",
+          "setWorkers(address[],address[])",
+          ["address[]", "address[]"],
+          [[deltaNeutralWorker.address], [workerInfos[i].WORKER_CONFIG_ADDR]],
+          EXACT_ETA,
+          { gasPrice, nonce: nonce++ }
+        )
+      );
+      fileService.writeJson(TITLE, timelockTransactions);
+      console.log("✅ Done");
+    } else {
+      console.log(">> Linking VaultConfig with WorkerConfig");
+      (
+        await vaultConfig.setWorkers([deltaNeutralWorker.address], [workerInfos[i].WORKER_CONFIG_ADDR], {
+          nonce: nonce++,
+        })
+      ).wait(3);
+      console.log("✅ Done");
+    }
+
+    // update config file
+    const lpPoolAddress = config.YieldSources.Biswap!.pools.find(
+      (pool) => pool.pId === workerInfos[i].POOL_ID
+    )!.address;
+
+    const biswapWorkersEntity: WorkersEntity = {
+      name: workerInfos[i].WORKER_NAME,
+      address: deltaNeutralWorker.address,
+      deployedBlock,
+      config: workerInfos[i].WORKER_CONFIG_ADDR,
+      pId: workerInfos[i].POOL_ID,
+      stakingToken: lpPoolAddress,
+      stakingTokenAt: workerInfos[i].MASTER_CHEF,
+      strategies: {
+        StrategyAddAllBaseToken: workerInfos[i].ADD_STRAT_ADDR,
+        StrategyLiquidate: workerInfos[i].LIQ_STRAT_ADDR,
+        StrategyAddTwoSidesOptimal: workerInfos[i].TWO_SIDES_STRAT_ADDR,
+        StrategyWithdrawMinimizeTrading: workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR,
+        StrategyPartialCloseLiquidate: workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR,
+        StrategyPartialCloseMinimizeTrading: workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR,
+      },
+    };
+
+    config = configFileHelper.addOrSetVaultWorker(workerInfos[i].VAULT_ADDR, biswapWorkersEntity);
   }
 };
 
