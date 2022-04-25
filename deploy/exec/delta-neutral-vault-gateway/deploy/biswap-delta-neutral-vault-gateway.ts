@@ -4,6 +4,7 @@ import { DeltaNeutralVaultConfig__factory, DeltaNeutralVaultGateway } from "../.
 import { getConfig } from "../../../entities/config";
 import { getDeployer } from "../../../../utils/deployer-helper";
 import { UpgradeableContractDeployer } from "../../../deployer";
+import { ConfigFileHelper } from "../../../helper";
 
 interface IDeltaVaultInput {
   name: string;
@@ -31,8 +32,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     },
   ];
 
-  const config = getConfig();
   const deployer = await getDeployer();
+
+  const configFileHelper = new ConfigFileHelper();
+  let config = configFileHelper.getConfig();
 
   const deltaVaultInfos: IDeltaVaultInfo[] = deltaVaultInputs.map((input) => {
     const deltaVaultInfo = config.DeltaNeutralVaults.find((deltaVault) => input.name === deltaVault.name);
@@ -47,21 +50,21 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   });
 
   for (let i = 0; i < deltaVaultInfos.length; i++) {
+    const deltaVaultInfo = deltaVaultInfos[i];
     const deltaVaultGWDeployer = new UpgradeableContractDeployer<DeltaNeutralVaultGateway>(
       deployer,
       "DeltaNeutralVaultGateway",
       deltaVaultInputs[i].name
     );
 
-    const { contract: deltaNeutralVaultGateway } = await deltaVaultGWDeployer.deploy([deltaVaultInfos[i].address]);
+    const { contract: deltaNeutralVaultGateway } = await deltaVaultGWDeployer.deploy([deltaVaultInfo.address]);
 
     console.log(`>> Setting DeltaNeutralConfig's WhitelistCallers for DeltaNeutralVaultGateway`);
-    const deltaNeutralVaultConfig = DeltaNeutralVaultConfig__factory.connect(
-      deltaVaultInfos[i].deltaVaultConfig,
-      deployer
-    );
+    const deltaNeutralVaultConfig = DeltaNeutralVaultConfig__factory.connect(deltaVaultInfo.deltaVaultConfig, deployer);
     await deltaNeutralVaultConfig.setWhitelistedCallers([deltaNeutralVaultGateway.address], true);
     console.log("✅ Done");
+
+    config = configFileHelper.setDeltaNeutralGateway(deltaVaultInfo.name, deltaNeutralVaultGateway.address);
   }
 };
 

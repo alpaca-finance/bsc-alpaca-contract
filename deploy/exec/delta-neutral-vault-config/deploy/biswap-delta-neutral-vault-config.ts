@@ -2,9 +2,9 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 import { DeltaNeutralVaultConfig } from "../../../../typechain";
-import { ConfigEntity } from "../../../entities";
 import { getDeployer } from "../../../../utils/deployer-helper";
 import { UpgradeableContractDeployer } from "../../../deployer";
+import { ConfigFileHelper } from "../../../helper";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -16,8 +16,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
     Check all variables below before execute the deployment script
     */
-  const config = ConfigEntity.getConfig();
 
+  const deployer = await getDeployer();
+
+  const configFileHelper = new ConfigFileHelper();
+  let config = configFileHelper.getConfig();
+
+  // use to write config file
+  const DELTA_VAULT_SYMBOL = "n3x-BNBUSDT-BS1";
   const REBALANCE_FACTOR = "6800";
   const POSITION_VALUE_TOLERANCE_BPS = "100";
   const DEBT_RATIO_TOLERANCE_BPS = "30";
@@ -39,8 +45,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const ALPACA_BENEFICIARY_FEE_BPS = "5333";
   const FAIR_LAUNCH_ADDR = config.FairLaunch!.address;
   const WRAP_NATIVE_ADDR = config.Tokens.WBNB;
-
-  const deployer = await getDeployer();
   const WNATIVE_RELAYER = config.SharedConfig.WNativeRelayer;
 
   const alpacaTokenAddress = config.Tokens.ALPACA;
@@ -121,6 +125,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   await deltaNeutralVaultConfig.setAlpacaBeneficiaryConfig(ALPACA_BENEFICIARY, ALPACA_BENEFICIARY_FEE_BPS, {
     nonce: nonce++,
   });
+
+  if (DELTA_VAULT_SYMBOL) {
+    // if not force DELTA_VAULT_SYMBOL config address should set in delta neutral vault deployment script
+    config = configFileHelper.addOrSetDeltaNeutralVaultsConfig(DELTA_VAULT_SYMBOL, deltaNeutralVaultConfig.address);
+  }
 };
 
 export default func;

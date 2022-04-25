@@ -113,7 +113,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     },
   ];
   const TITLE = "mainnet_n3x_BNBUSDT_bs1_worker";
-  const EXACT_ETA = "1649145600";
+  const EXACT_ETA = "1651583600";
 
   const deployer = await getDeployer();
 
