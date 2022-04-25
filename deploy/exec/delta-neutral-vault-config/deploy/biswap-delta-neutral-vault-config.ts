@@ -21,8 +21,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const REBALANCE_FACTOR = "6800";
   const POSITION_VALUE_TOLERANCE_BPS = "100";
   const DEBT_RATIO_TOLERANCE_BPS = "30";
-  const BSW_REINVEST_FEE_TREASURY = "changeme";
-  const BSW_BOUNTY_BPS = "1500";
+  const ALPACA_REINVEST_FEE_TREASURY = "changeme";
+  const ALPACA_BOUNTY_BPS = "1500";
   const LEVERAGE_LEVEL = 3;
   const WHITELIST_REBALANCE = ["0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De"];
   const WHITELIST_REINVEST = ["0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De"];
@@ -35,16 +35,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const WITHDRAWAL_FEE_BPS = "20";
   const MANAGEMENT_TREASURY = "changeme";
   const MANAGEMENT_FEE_PER_SEC = "634195840";
-  // RevenueTreasury
-  const BSW_BENEFICIARY = "0x08B5A95cb94f926a8B620E87eE92e675b35afc7E";
-  const BSW_BENEFICIARY_FEE_BPS = "5333";
+  const ALPACA_BENEFICIARY = "0x08B5A95cb94f926a8B620E87eE92e675b35afc7E";
+  const ALPACA_BENEFICIARY_FEE_BPS = "5333";
   const FAIR_LAUNCH_ADDR = config.FairLaunch!.address;
   const WRAP_NATIVE_ADDR = config.Tokens.WBNB;
 
   const deployer = await getDeployer();
   const WNATIVE_RELAYER = config.SharedConfig.WNativeRelayer;
 
-  const tokenAddress = config.Tokens.BSW;
+  const alpacaTokenAddress = config.Tokens.ALPACA;
   const tokenList: any = config.Tokens;
   // validate reinvest tokens
   const reinvestPath: Array<string> = REINVEST_PATH.map((p) => {
@@ -70,7 +69,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     DEPOSIT_FEE_TREASURY,
     MANAGEMENT_TREASURY,
     WITHDRAWAL_FEE_TREASURY,
-    tokenAddress,
+    alpacaTokenAddress,
   ]);
 
   let nonce = await deployer.getTransactionCount();
@@ -113,13 +112,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log("✅ Done");
 
   console.log(">> Setting ALPACA bounty");
-  await deltaNeutralVaultConfig.setAlpacaBountyConfig(BSW_REINVEST_FEE_TREASURY, BSW_BOUNTY_BPS, {
+  await deltaNeutralVaultConfig.setAlpacaBountyConfig(ALPACA_REINVEST_FEE_TREASURY, ALPACA_BOUNTY_BPS, {
     nonce: nonce++,
   });
   console.log("✅ Done");
 
   console.log(">> Setting ALPACA beneficiacy");
-  await deltaNeutralVaultConfig.setAlpacaBeneficiaryConfig(BSW_BENEFICIARY, BSW_BENEFICIARY_FEE_BPS, {
+  await deltaNeutralVaultConfig.setAlpacaBeneficiaryConfig(ALPACA_BENEFICIARY, ALPACA_BENEFICIARY_FEE_BPS, {
     nonce: nonce++,
   });
 };
