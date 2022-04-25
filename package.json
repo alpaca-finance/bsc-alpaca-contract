@@ -282,7 +282,7 @@
     "deploy:fantom_mainnet:delta-neutral-worker:config:set-whitelist-callers": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags DeltaNeutralWorkerSetWhitelistCallers",
     "deploy:fantom_mainnet:vault-config:config:set-whitelisted-callers": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags SetWhitelistedCallers",
     "deploy:fantom_mainnet:delta-neutral-vault:config:init-positions": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags DeltaNeutralVaultInitPositions",
-    "deploy": "hardhat --network $NETWORK deploy --no-compile --reset --tags $TAGS",
+    "deploy:mainnetfork": "hardhat --network mainnetfork deploy --no-compile --reset",
     "fork": "hardhat console --no-compile --network fantom_mainnetfork",
     "mainnet": "hardhat console --no-compile --network mainnet",
     "ethereum": "hardhat console --no-compile --network ethereum",
