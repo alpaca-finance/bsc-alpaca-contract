@@ -6,6 +6,7 @@ import MainnetConfig from "../../../../.mainnet.json";
 import TestnetConfig from "../../../../.testnet.json";
 import { TimelockEntity } from "../../../entities";
 import { fileService, TimelockService } from "../../../services";
+import { getConfig } from "../../../entities/config";
 
 interface IInput {
   VAULT_SYMBOL: string;
@@ -69,7 +70,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ];
   const EXACT_ETA = "1632903300";
 
-  const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
+  const config = getConfig();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
 
   const inputs: Array<IDerivedInput> = TARGETED_VAULT_CONFIG.map((tv) => {
@@ -97,7 +98,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         "setApprovedAddStrategy(address[],bool)",
         ["address[]", "bool"],
         [i.addStrategies, i.isEnable],
-        EXACT_ETA
+        EXACT_ETA,
+        { gasPrice: ethers.utils.parseUnits("15", "gwei") }
       )
     );
   }
