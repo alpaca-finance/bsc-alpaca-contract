@@ -125,4 +125,4 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 };
 
 export default func;
-func.tags = ["DeltaNeutralVaultConfig"];
+func.tags = ["BiswapDeltaNeutralVaultConfig"];
