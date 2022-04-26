@@ -13,6 +13,9 @@ import { MockErc20Like } from "../interfaces/MockErc20Like.sol";
 import { DebtTokenLike } from "../interfaces/DebtTokenLike.sol";
 import { SimpleVaultConfigLike } from "../interfaces/SimpleVaultConfigLike.sol";
 import { VaultLike } from "../interfaces/VaultLike.sol";
+import { NFTBoostedLeverageControllerLike } from "../interfaces/NFTBoostedLeverageControllerLike.sol";
+import { NFTStakingLike } from "../interfaces/NFTStakingLike.sol";
+import { MockNFTLike } from "../interfaces/MockNFTLike.sol";
 
 // solhint-disable const-name-snakecase
 // solhint-disable no-inline-assembly
@@ -144,5 +147,31 @@ contract BaseTest is DSTest {
     );
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
     return VaultLike(payable(_proxy));
+  }
+
+  function _setupMockNFT() internal returns (MockNFTLike) {
+    bytes memory _logicBytecode = abi.encodePacked(vm.getCode("./out/MockNFT.sol/MockNFT.json"));
+    bytes memory _initializer = abi.encodeWithSelector(bytes4(keccak256("initialize()")));
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return MockNFTLike(_proxy);
+  }
+
+  function _setupNFTStaking() internal returns (NFTStakingLike) {
+    bytes memory _logicBytecode = abi.encodePacked(vm.getCode("./out/NFTStaking.sol/NFTStaking.json"));
+    bytes memory _initializer = abi.encodeWithSelector(bytes4(keccak256("initialize()")));
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return NFTStakingLike(_proxy);
+  }
+
+  function _setupNFTBoostedLeverageController(NFTStakingLike _nftStaking)
+    internal
+    returns (NFTBoostedLeverageControllerLike)
+  {
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/NFTBoostedLeverageController.sol/NFTBoostedLeverageController.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(bytes4(keccak256("initialize(INFTStaking)")), _nftStaking);
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return NFTBoostedLeverageControllerLike(payable(_proxy));
   }
 }
