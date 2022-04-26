@@ -78,17 +78,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const shortWorkerInfos: IDeltaNeutralPCSWorkerInput[] = [
     {
       VAULT_SYMBOL: "ibWBNB",
-      WORKER_NAME: "BUSD-WBNB 3x PCS1 DeltaNeutralPancakeswapWorker",
+      WORKER_NAME: "BUSD-WBNB 3x PCS2 DeltaNeutralPancakeswapWorker",
       TREASURY_ADDRESS: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 252,
+      POOL_ID: 3,
       REINVEST_BOUNTY_BPS: "1500",
       REINVEST_PATH: ["CAKE", "WBNB"],
-      REINVEST_THRESHOLD: "10000",
+      REINVEST_THRESHOLD: "0",
       BENEFICIAL_VAULT: {
         BENEFICIAL_VAULT_BPS: "5333",
-        BENEFICIAL_VAULT_ADDRESS: "0x44B3868cbba5fbd2c5D8d1445BDB14458806B3B4",
-        REWARD_PATH: ["CAKE", "BUSD", "ALPACA"],
+        BENEFICIAL_VAULT_ADDRESS: "0x08B5A95cb94f926a8B620E87eE92e675b35afc7E",
+        REWARD_PATH: ["CAKE", "BUSD"],
       },
       WORK_FACTOR: "8000",
       KILL_FACTOR: "0",
@@ -96,25 +96,25 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     },
     {
       VAULT_SYMBOL: "ibBUSD",
-      WORKER_NAME: "WBNB-BUSD 3x PCS1 DeltaNeutralPancakeswapWorker",
+      WORKER_NAME: "WBNB-BUSD 3x PCS2 DeltaNeutralPancakeswapWorker",
       TREASURY_ADDRESS: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 252,
+      POOL_ID: 3,
       REINVEST_BOUNTY_BPS: "1500",
       REINVEST_PATH: ["CAKE", "BUSD"],
-      REINVEST_THRESHOLD: "10000",
+      REINVEST_THRESHOLD: "0",
       BENEFICIAL_VAULT: {
         BENEFICIAL_VAULT_BPS: "5333",
-        BENEFICIAL_VAULT_ADDRESS: "0x44B3868cbba5fbd2c5D8d1445BDB14458806B3B4",
-        REWARD_PATH: ["CAKE", "BUSD", "ALPACA"],
+        BENEFICIAL_VAULT_ADDRESS: "0x08B5A95cb94f926a8B620E87eE92e675b35afc7E",
+        REWARD_PATH: ["CAKE", "BUSD"],
       },
       WORK_FACTOR: "8000",
       KILL_FACTOR: "0",
       MAX_PRICE_DIFF: "10500",
     },
   ];
-  const TITLE = "mainnet_n3x_BNBBUSD_pcs1_worker";
-  const EXACT_ETA = "1649145600";
+  const TITLE = "mainnet_n3x_wbnbbusd_pcs2_worker";
+  const EXACT_ETA = "1650875400";
 
   const deployer = (await ethers.getSigners())[0];
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
@@ -155,8 +155,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       VAULT_ADDR: vault.address,
       BASE_TOKEN_ADDR: vault.baseToken,
       DELTA_NEUTRAL_ORACLE: config.Oracle.DeltaNeutralOracle!,
-      MASTER_CHEF: config.YieldSources.Pancakeswap!.MasterChef,
-      PCS_ROUTER_ADDR: config.YieldSources.Pancakeswap!.RouterV2,
+      MASTER_CHEF: config.YieldSources.PancakeswapMasterChefV2!.MasterChefV2,
+      PCS_ROUTER_ADDR: config.YieldSources.PancakeswapMasterChefV2!.RouterV2,
       ADD_STRAT_ADDR: config.SharedStrategies.Pancakeswap!.StrategyAddBaseTokenOnly,
       LIQ_STRAT_ADDR: config.SharedStrategies.Pancakeswap!.StrategyLiquidate,
       TWO_SIDES_STRAT_ADDR: vault.StrategyAddTwoSidesOptimal.Pancakeswap!,
@@ -175,9 +175,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   });
   for (let i = 0; i < workerInfos.length; i++) {
     console.log("===================================================================================");
-    console.log(`>> Deploying an upgradable PancaleWorker contract for ${workerInfos[i].WORKER_NAME}`);
+    console.log(
+      `>> Deploying an upgradable DeltaNeutralPancakeMCV2Worker02 contract for ${workerInfos[i].WORKER_NAME}`
+    );
     const DeltaNeutralPancakeWorker02 = (await ethers.getContractFactory(
-      "DeltaNeutralPancakeWorker02",
+      "DeltaNeutralPancakeMCV2Worker02",
       deployer
     )) as DeltaNeutralPancakeWorker02__factory;
 
@@ -314,7 +316,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     );
     console.log("✅ Done");
   }
-  fileService.writeJson(TITLE, timelockTransactions);
+
+  const ts = Math.floor(Date.now() / 1000);
+  fileService.writeJson(`${ts}_${TITLE}`, timelockTransactions);
 };
 
 export default func;

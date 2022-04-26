@@ -27,7 +27,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const WHITELIST_REINVEST = ["0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De"];
   const REINVEST_PATH = ["ALPACA", "BUSD"];
   const SWAP_ROUTER_ADDR = config.YieldSources.Pancakeswap!.RouterV2;
-  const VALUE_LIMIT = "20000000";
+  const VALUE_LIMIT = "25000000";
   const DEPOSIT_FEE_TREASURY = "0x417D3e491cbAaD07B2433781e50Bc6Cd09641BC0";
   const DEPOSIT_FEE_BPS = "0";
   const WITHDRAWAL_FEE_TREASURY = "0x417D3e491cbAaD07B2433781e50Bc6Cd09641BC0";
@@ -111,6 +111,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     WITHDRAWAL_FEE_BPS,
     MANAGEMENT_TREASURY,
     MANAGEMENT_FEE_PER_SEC,
+    { nonce: nonce++ }
+  );
+  console.log("✅ Done");
+
+  console.log(`>> Setting fee exemptions`);
+  await deltaNeutralVaultConfig.setFeeExemptedCallers(
+    [DEPOSIT_FEE_TREASURY, WITHDRAWAL_FEE_TREASURY, MANAGEMENT_TREASURY],
+    true,
     { nonce: nonce++ }
   );
   console.log("✅ Done");
