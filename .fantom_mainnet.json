@@ -458,7 +458,7 @@
       "baseToken": "0x6c021ae822bea943b2e66552bde1d2696a53fbb7",
       "debtToken": "0x46AD1C4F5D7542AeDf57dE7a8Bf0765233A4457f",
       "config": "0x83875cB3B520275183c5c383C8745199293Cd89C",
-      "tripleSlopeModel": "0x9640447D1670cb990874dD811683DF688606B92E",
+      "tripleSlopeModel": "0xbA7A1e40A555135BE83F6B19E2efeA5332a0fa3B",
       "StrategyAddTwoSidesOptimal": {
         "SpookySwap": "0x4F34511e604a1795E854aEF9D872cb9c9836F1dF"
       },
@@ -498,8 +498,8 @@
       "stableDeltaWorker": "0xceCD803b048b66a75bc64f8AA8139cAB97c421C8",
       "gateway": "0x5A6E9832aD521E58afc72D1b1cb5ce8D1f0BC2Bb",
       "oracle": "0x0C372D369aBd6ab047a0da3181cB69280a3C2126",
-      "assetVaultPosId": "0",
-      "stableVaultPosId": "0"
+      "assetVaultPosId": "2729",
+      "stableVaultPosId": "1924"
     }
   ]
 }

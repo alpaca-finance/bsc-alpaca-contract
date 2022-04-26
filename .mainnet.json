@@ -3787,8 +3787,8 @@
       "stableDeltaWorker": "0xCB0531f17ff9f4FF3FbEdA38A63250706BE2B853",
       "gateway": "0xd4f67BcDC74b0655F388Da91F4Fb5B883880b0B4",
       "oracle": "0x08EA5fB66EA41f236E3001d2655e43A1E735787F",
-      "assetVaultPosId": "0",
-      "stableVaultPosId": "0"
+      "assetVaultPosId": "46491",
+      "stableVaultPosId": "26674"
     },
     {
       "name": "Market Neutral 3x BNB-BUSD PCS2",
@@ -3804,8 +3804,8 @@
       "stableDeltaWorker": "0x59984D70342dB0A4797D6C6E256d9445efeeb949",
       "gateway": "0x49966a489a6B6a43652Ee1924349B902fE14bC6F",
       "oracle": "0x08EA5fB66EA41f236E3001d2655e43A1E735787F",
-      "assetVaultPosId": "0",
-      "stableVaultPosId": "0"
+      "assetVaultPosId": "46492",
+      "stableVaultPosId": "53401"
     }
   ]
 }
