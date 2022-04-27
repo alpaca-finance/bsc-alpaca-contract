@@ -26,16 +26,18 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
     Check all variables below before execute the deployment script
     */
+  // state
+  const deployer = await getDeployer();
+
+  const configFileHelper = new ConfigFileHelper();
+  let config = configFileHelper.getConfig();
+
+  // prepare
   const deltaVaultInputs: IDeltaVaultInput[] = [
     {
       name: "Market Neutral 3x BNB-USDT BS1",
     },
   ];
-
-  const deployer = await getDeployer();
-
-  const configFileHelper = new ConfigFileHelper();
-  let config = configFileHelper.getConfig();
 
   const deltaVaultInfos: IDeltaVaultInfo[] = deltaVaultInputs.map((input) => {
     const deltaVaultInfo = config.DeltaNeutralVaults.find((deltaVault) => input.name === deltaVault.name);

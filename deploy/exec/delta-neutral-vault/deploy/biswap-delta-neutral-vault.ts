@@ -18,7 +18,7 @@ interface IDeltaNeutralVaultInputV2 {
   stableDeltaWorkerName: string;
   assetDeltaWorkerName: string;
   lpAddress: string;
-  deltaNeutralVaultConfig: string;
+  deltaNeutralVaultConfig?: string;
 }
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -37,9 +37,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const configFileHelper = new ConfigFileHelper();
   let config = configFileHelper.getConfig();
 
+  // prepare variable
   const POOL_ID = 2;
-
-  const lpPoolAddress = config.YieldSources.Biswap!.pools.find((pool) => pool.pId === POOL_ID)!.address;
+  const LP_POOL_ADDRESS = config.YieldSources.Biswap!.pools.find((pool) => pool.pId === POOL_ID)!.address;
 
   const deltaVaultInputs: IDeltaNeutralVaultInputV2[] = [
     {
@@ -49,11 +49,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       assetVaultSymbol: "ibWBNB",
       stableSymbol: "USDT",
       assetSymbol: "WBNB",
-      lpAddress: lpPoolAddress,
-      // if leave it empty, this will try get from config by using symbol to find config address
-      deltaNeutralVaultConfig: "",
       stableDeltaWorkerName: "WBNB-USDT 3x BS1 DeltaNeutralBiswapWorker",
       assetDeltaWorkerName: "USDT-WBNB 3x BS1 DeltaNeutralBiswapWorker",
+      lpAddress: LP_POOL_ADDRESS,
+      // deltaNeutralVaultConfig: "FORCE_DELTA_NEUTRAL_VAULT_CONFIG_ADDRESS", uncomment to force config address to write to config file
     },
   ];
 
@@ -70,9 +69,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       throw `error: unable to find vault from ${deltaVaultInput.assetVaultSymbol}`;
     }
 
-    if (deltaVaultInput.deltaNeutralVaultConfig === "") {
+    if (!deltaVaultInput.deltaNeutralVaultConfig) {
       const deltaVault = config.DeltaNeutralVaults.find((dv) => dv.symbol === deltaVaultInput.symbol);
-      if (!deltaVault || !validateAddress(deltaVault.config)) throw Error("Couldn't find delta vault config");
+      if (!deltaVault) throw Error(`Couldn't find DeltaNeutralVaults[${deltaVaultInput.symbol}]`);
+      if (!validateAddress(deltaVault.config))
+        throw Error(`DeltaNeutralVaults[${deltaVaultInput.symbol}] > config (${deltaVault.config}) address is invalid`);
       deltaVaultInput.deltaNeutralVaultConfig = deltaVault.config;
     }
 
@@ -105,7 +106,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       assetWorkerAddress,
       deltaVaultInput.lpAddress,
       alpacaTokenAddress,
-      // TODO: check
       config.Oracle.DeltaNeutralOracle!,
       deltaVaultInput.deltaNeutralVaultConfig,
     ]);
@@ -126,7 +126,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     ];
 
     for (let worker of whitelistedWorkers) {
-      console.log(`>> Set Whitelisted Caller for Delta Neutral Vault`, worker.name);
+      console.log(`>> Set Whitelisted Caller for Delta Neutral Vault on`, worker.name);
       const workerAsDeployer = DeltaNeutralBiswapWorker03__factory.connect(worker.address, deployer);
       await workerAsDeployer.setWhitelistedCallers([deltaNeutralVault.address], true, { nonce: nonce++ });
       console.log("✅ Done");
