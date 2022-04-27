@@ -133,7 +133,7 @@ export class ConfigFileHelper {
       this.config.DeltaNeutralVaults = [
         ...this.config.DeltaNeutralVaults,
         {
-          ...defaultDeltaNeutralVault,
+          ...defaultDeltaNeutralVaultsEntity,
           symbol,
           config: value,
         } as DeltaNeutralVaultsEntity,
@@ -234,7 +234,7 @@ export class ConfigFileHelper {
   }
 }
 
-const defaultDeltaNeutralVault = {
+const defaultDeltaNeutralVaultsEntity: DeltaNeutralVaultsEntity = {
   name: "",
   symbol: "",
   address: ethers.constants.AddressZero,
