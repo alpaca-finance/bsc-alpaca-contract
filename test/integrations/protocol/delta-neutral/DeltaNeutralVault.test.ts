@@ -3520,7 +3520,9 @@ describe("DeltaNeutralVault", () => {
           const alpacaBeneficiaryBps = await deltaVaultConfig.alpacaBeneficiaryBps();
           const netAlpacaReceived = stableRewardAlpaca.add(assetRewardAlpaca);
           expect(netAlpacaReceived).to.be.eq(ethers.utils.parseEther("3.999999998"));
-          const bounty = alpacaBountyBps.mul(netAlpacaReceived).div("10000");
+          const outstandingAlpaca = await alpacaToken.balanceOf(deltaVault.address);
+          const bounty = alpacaBountyBps.mul(outstandingAlpaca.add(netAlpacaReceived)).div("10000");
+
           const beneficiacyShare = bounty.mul(alpacaBeneficiaryBps).div("10000");
           const swapAmount = alpacaBefore.add(netAlpacaReceived).sub(bounty);
 
@@ -3701,7 +3703,8 @@ describe("DeltaNeutralVault", () => {
           const alpacaBountyBps = await deltaVaultConfig.alpacaBountyBps();
           const netAlpacaReceived = stableRewardAlpaca.add(assetRewardAlpaca);
           expect(netAlpacaReceived).to.be.eq(ethers.utils.parseEther("3.999999998"));
-          const bounty = alpacaBountyBps.mul(netAlpacaReceived).div(BigNumber.from("10000"));
+
+          const bounty = alpacaBountyBps.mul(alpacaBefore.add(netAlpacaReceived)).div(BigNumber.from("10000"));
           const swapAmount = alpacaBefore.add(netAlpacaReceived).sub(bounty);
 
           await alpacaToken.approve(routerV2.address, swapAmount);
