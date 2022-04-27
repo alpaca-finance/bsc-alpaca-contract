@@ -119,7 +119,7 @@ export interface Biswap {
   pools: YieldPoolsEntity[];
 }
 
-export interface Tokens {
+export interface Tokens extends DeltaNeutralVaultTokens {
   WBNB?: string;
   ALPACA?: string;
   sALPACA?: string;
@@ -178,6 +178,15 @@ export interface Tokens {
   TOMB?: string;
   TSHARE?: string;
   BSW?: string;
+}
+export interface DeltaNeutralVaultTokens {
+  "n3x-BNBUSDT-PCS1"?: string;
+  "n8x-BNBUSDT-PCS1"?: string;
+  "n8x-BNBUSDT-PCS2"?: string;
+  "n3x-BNBBUSD-PCS1"?: string;
+  "n3x-BNBUSDT-PCS2"?: string;
+  "n3x-BUBBUSD-PCS2"?: string;
+  "n3x-BNBUSDT-BS1"?: string;
 }
 export interface LpTokens {
   "ALPACA-WBNB": string;

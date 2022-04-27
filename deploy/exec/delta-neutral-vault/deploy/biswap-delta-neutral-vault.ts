@@ -5,7 +5,7 @@ import { DeltaNeutralBiswapWorker03__factory, DeltaNeutralVault, WNativeRelayer_
 import { getDeployer } from "../../../../utils/deployer-helper";
 import { ConfigFileHelper } from "../../../helper";
 import { UpgradeableContractDeployer } from "../../../deployer";
-import { DeltaNeutralVaultsEntity } from "../../../interfaces/config";
+import { DeltaNeutralVaultsEntity, DeltaNeutralVaultTokens } from "../../../interfaces/config";
 import { validateAddress } from "../../../../utils/address";
 
 interface IDeltaNeutralVaultInputV2 {
@@ -120,11 +120,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     // set whitelisted caller on workers
     let nonce = await deployer.getTransactionCount();
 
-    const stableWorker = DeltaNeutralBiswapWorker03__factory.connect(stableWorkerAddress, deployer);
-    await stableWorker.setWhitelistedCallers([deltaNeutralVault.address], true, { nonce: nonce++ });
+    const whitelistedWorkers = [
+      { name: deltaVaultInput.stableDeltaWorkerName, address: stableWorkerAddress },
+      { name: deltaVaultInput.assetDeltaWorkerName, address: assetWorkerAddress },
+    ];
 
-    const assetWorker = DeltaNeutralBiswapWorker03__factory.connect(assetWorkerAddress, deployer);
-    await assetWorker.setWhitelistedCallers([deltaNeutralVault.address], true, { nonce: nonce++ });
+    for (let worker of whitelistedWorkers) {
+      console.log(`>> Set Whitelisted Caller for Delta Neutral Vault`, worker.name);
+      const workerAsDeployer = DeltaNeutralBiswapWorker03__factory.connect(worker.address, deployer);
+      await workerAsDeployer.setWhitelistedCallers([deltaNeutralVault.address], true, { nonce: nonce++ });
+      console.log("✅ Done");
+    }
 
     const deltaNuetralVaultEntity: DeltaNeutralVaultsEntity = {
       name: deltaVaultInput.name,
@@ -140,11 +146,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       stableDeltaWorker: stableWorkerAddress,
       oracle: config.Oracle.DeltaNeutralOracle!,
       gateway: ethers.constants.AddressZero,
-      assetVaultPosId: "-1",
-      stableVaultPosId: "-1",
+      assetVaultPosId: "0",
+      stableVaultPosId: "0",
     };
 
     config = configFileHelper.addOrSetDeltaNeutralVaults(deltaVaultInput.symbol, deltaNuetralVaultEntity);
+    config = configFileHelper.addOrSetToken(
+      deltaVaultInput.symbol as keyof DeltaNeutralVaultTokens,
+      deltaNeutralVault.address
+    );
   }
 };
 

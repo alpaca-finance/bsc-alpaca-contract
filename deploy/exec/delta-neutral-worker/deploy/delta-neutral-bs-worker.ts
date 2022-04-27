@@ -2,6 +2,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, network } from "hardhat";
 import {
+  AlpacaToken__factory,
   BiswapStrategyAddBaseTokenOnly__factory,
   ConfigurableInterestVaultConfig__factory,
   DeltaNeutralBiswapWorker03,
@@ -73,6 +74,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
     Check all variables below before execute the deployment script
   */
+
+  const deployer = await getDeployer();
+
   const configFileHelper = new ConfigFileHelper();
   let config = configFileHelper.getConfig();
 
@@ -112,10 +116,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       MAX_PRICE_DIFF: "10500",
     },
   ];
-  const TITLE = "mainnet_n3x_BNBUSDT_bs1_worker";
+  const TIMELOCK_FILE_NAME = "mainnet_n3x_BNBUSDT_bs1_worker";
   const EXACT_ETA = "1651583600";
-
-  const deployer = await getDeployer();
 
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   const gasPriceService = new BlockScanGasPrice(network.name);
@@ -173,6 +175,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       TIMELOCK: config.Timelock,
     };
   });
+
   for (let i = 0; i < workerInfos.length; i++) {
     const deltaNeutralWorkerDeployer = new UpgradeableContractDeployer<DeltaNeutralBiswapWorker03>(
       deployer,
@@ -268,7 +271,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
           { gasPrice, nonce: nonce++ }
         )
       );
-      fileService.writeJson(TITLE, timelockTransactions);
+
+      fileService.writeJson(TIMELOCK_FILE_NAME, timelockTransactions);
       console.log("✅ Done");
     } else {
       console.log(">> Setting WorkerConfig");
@@ -302,7 +306,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
           { gasPrice, nonce: nonce++ }
         )
       );
-      fileService.writeJson(TITLE, timelockTransactions);
+      fileService.writeJson(TIMELOCK_FILE_NAME, timelockTransactions);
       console.log("✅ Done");
     } else {
       console.log(">> Linking VaultConfig with WorkerConfig");
