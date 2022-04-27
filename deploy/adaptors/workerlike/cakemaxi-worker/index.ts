@@ -1,12 +1,12 @@
 import { expect } from "chai";
 import { ethers } from "ethers";
-import { CakeMaxiWorker02, CakeMaxiWorker02__factory } from "../../../../typechain";
+import { CakeMaxiWorker02MCV2, CakeMaxiWorker02MCV2__factory } from "../../../../typechain";
 import { WorkersEntity } from "../../../interfaces/config";
 import { IMultiCallService } from "../../../services/multicall/interfaces";
 import { IWorkerLike } from "../IWorkerLike";
 
 export class CakeMaxiWorkerAdaptor implements IWorkerLike {
-  private _worker: CakeMaxiWorker02;
+  private _worker: CakeMaxiWorker02MCV2;
   private _multiCallService: IMultiCallService;
 
   constructor(
@@ -14,7 +14,7 @@ export class CakeMaxiWorkerAdaptor implements IWorkerLike {
     _multiCallService: IMultiCallService,
     _signerOrProvider: ethers.Signer | ethers.providers.Provider
   ) {
-    this._worker = CakeMaxiWorker02__factory.connect(_workerAddress, _signerOrProvider);
+    this._worker = CakeMaxiWorker02MCV2__factory.connect(_workerAddress, _signerOrProvider);
     this._multiCallService = _multiCallService;
   }
 
@@ -29,7 +29,7 @@ export class CakeMaxiWorkerAdaptor implements IWorkerLike {
         workerOperator,
         workerFarmingToken,
         workerPid,
-        workerMasterChef,
+        workerCakePool,
         workerRouter,
         workerFee,
         workerFeeDenom,
@@ -61,7 +61,7 @@ export class CakeMaxiWorkerAdaptor implements IWorkerLike {
         { contract: this._worker, functionName: "operator" },
         { contract: this._worker, functionName: "farmingToken" },
         { contract: this._worker, functionName: "pid" },
-        { contract: this._worker, functionName: "masterChef" },
+        { contract: this._worker, functionName: "cakePool" },
         { contract: this._worker, functionName: "router" },
         { contract: this._worker, functionName: "fee" },
         { contract: this._worker, functionName: "feeDenom" },
@@ -101,7 +101,7 @@ export class CakeMaxiWorkerAdaptor implements IWorkerLike {
       expect(workerOperator).to.be.eq(vaultAddress, "operator mis-config");
       expect(workerFarmingToken).to.be.eq(workerInfo.stakingToken, "stakingToken mis-config");
       expect(workerPid).to.be.eq(workerInfo.pId, "pool id mis-config");
-      expect(workerMasterChef).to.be.eq(workerInfo.stakingTokenAt, "masterChef mis-config");
+      expect(workerCakePool).to.be.eq(workerInfo.stakingTokenAt, "cakePool mis-config");
       expect(workerRouter).to.be.eq(routerAddress, "router mis-config");
       expect(workerFee).to.be.eq("9975");
       expect(workerFeeDenom).to.be.eq("10000");

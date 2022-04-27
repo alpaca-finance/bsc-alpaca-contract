@@ -31,16 +31,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const deltaVaultInputs: IDeltaNeutralVaultInput[] = [
     {
-      name: "Market Neutral 3x BNB-BUSD PCS1",
-      symbol: "n3x-BNBBUSD-PCS1",
+      name: "Market Neutral 3x BNB-BUSD PCS2",
+      symbol: "n3x-BNBBUSD-PCS2",
       stableVaultSymbol: "ibBUSD",
       assetVaultSymbol: "ibWBNB",
       stableSymbol: "BUSD",
       assetSymbol: "WBNB",
+      stableDeltaWorker: "0x59984D70342dB0A4797D6C6E256d9445efeeb949", // Address of stable deltaneutral worker
+      assetDeltaWorker: "0xb4FF3828d9d8eE0997cc29fF173A1C621D797bD7", // Address of asset deltaneutral worker
       lpAddress: "0x58F876857a02D6762E0101bb5C46A8c1ED44Dc16",
-      deltaNeutralVaultConfig: "0x5640ce665c4fAc707885A04059449DadAbe56Cf2",
-      stableDeltaWorker: "0x54D3218787060463EEb944fa01b0cbE745Ef4DB5",
-      assetDeltaWorker: "0x07767daF4e84bDAaBf3A72c80cec8C8Eb962f3Ae",
+      deltaNeutralVaultConfig: "0x19756C5A8E24A824BE9D4FF1fECfF0F2E63cfFdE",
     },
   ];
 

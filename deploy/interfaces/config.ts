@@ -57,6 +57,7 @@ export interface PoolsEntity2 {
 }
 export interface YieldSources {
   Pancakeswap?: Pancakeswap;
+  PancakeswapMasterChefV2?: PancakeswapMasterChefV2;
   Waultswap?: Waultswap;
   Mdex?: Mdex;
   SpookySwap?: SpookySwap;
@@ -76,6 +77,14 @@ export interface YieldPoolsEntity {
   pId: number;
   name: string;
   address: string;
+}
+export interface PancakeswapMasterChefV2 {
+  UniswapV2Factory: string;
+  UniswapV2Router02: string;
+  FactoryV2: string;
+  RouterV2: string;
+  MasterChefV2: string;
+  pools: YieldPoolsEntity[];
 }
 export interface Waultswap {
   WexMaster: string;

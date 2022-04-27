@@ -26,14 +26,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "set-ftm-emission-alloc";
+  const TITLE = "set_ibTUSD_alloc_point";
   const UPDATES: Array<IUpdate> = [
     {
-      STAKING_TOKEN: "FTM_EMISSION_PROXY_TOKEN",
-      ALLOC_POINT: 225,
+      STAKING_TOKEN: "ibTUSD",
+      ALLOC_POINT: 15,
     },
   ];
-  const EXACT_ETA = "1647064800";
+  const EXACT_ETA = "1650876300";
 
   const config = getConfig();
   const inputs: Array<IInput> = [];
@@ -72,7 +72,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     );
   }
 
-  fileService.writeJson(TITLE, timelockTransactions);
+  const ts = Math.floor(Date.now() / 1000);
+  fileService.writeJson(`${ts}_${TITLE}`, timelockTransactions);
 };
 
 export default func;

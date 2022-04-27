@@ -1,12 +1,12 @@
 import { expect } from "chai";
 import { ethers } from "ethers";
-import { PancakeswapV2Worker02, PancakeswapV2Worker02__factory } from "../../../../typechain";
+import { PancakeswapV2MCV2Worker02, PancakeswapV2MCV2Worker02__factory } from "../../../../typechain";
 import { WorkersEntity } from "../../../interfaces/config";
 import { IMultiCallService } from "../../../services/multicall/interfaces";
 import { IWorkerLike } from "../IWorkerLike";
 
 export class PancakeWorkerAdaptor implements IWorkerLike {
-  private _worker: PancakeswapV2Worker02;
+  private _worker: PancakeswapV2MCV2Worker02;
   private _multiCallService: IMultiCallService;
 
   constructor(
@@ -14,7 +14,7 @@ export class PancakeWorkerAdaptor implements IWorkerLike {
     _multiCallService: IMultiCallService,
     _signerOrProvider: ethers.Signer | ethers.providers.Provider
   ) {
-    this._worker = PancakeswapV2Worker02__factory.connect(_workerAddress, _signerOrProvider);
+    this._worker = PancakeswapV2MCV2Worker02__factory.connect(_workerAddress, _signerOrProvider);
     this._multiCallService = _multiCallService;
   }
 
@@ -98,10 +98,17 @@ export class PancakeWorkerAdaptor implements IWorkerLike {
         },
       ]);
 
+      let workerMasterChefV2 = "";
+      try {
+        workerMasterChefV2 = await this._worker.masterChefV2();
+      } catch (e) {
+        // do nothing
+      }
+
       expect(workerOperator).to.be.eq(vaultAddress, "operator mis-config");
       expect(workerLpToken).to.be.eq(workerInfo.stakingToken, "stakingToken mis-config");
       expect(workerPid).to.be.eq(workerInfo.pId, "pool id mis-config");
-      expect(workerMasterChef).to.be.eq(workerInfo.stakingTokenAt, "masterChef mis-config");
+      expect(workerMasterChefV2 || workerMasterChef).to.be.eq(workerInfo.stakingTokenAt, "masterChef mis-config");
       expect(workerRouter).to.be.eq(routerAddress, "router mis-config");
       expect(workerFee).to.be.eq("9975");
       expect(workerFeeDenom).to.be.eq("10000");

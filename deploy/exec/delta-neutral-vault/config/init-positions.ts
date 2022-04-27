@@ -24,8 +24,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     stableSymbol: string;
     assetSymbol: string;
     stableAmount: string;
-    stableDecimal: number;
-    assetDecimal: number;
     leverage: number;
   }
   interface IDepositWorkByte {
@@ -64,14 +62,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const initPositionInputs: IInitPositionInputs[] = [
     {
-      symbol: "n3x-BNBBUSD-PCS1",
-      stableVaultSymbol: "ibBUSD",
-      assetVaultSymbol: "ibWBNB",
-      stableSymbol: "BUSD",
-      assetSymbol: "WBNB",
+      symbol: "n3x-FTMUSDC-SPK1",
+      stableVaultSymbol: "ibUSDC",
+      assetVaultSymbol: "ibFTM",
+      stableSymbol: "USDC",
+      assetSymbol: "WFTM",
       stableAmount: "300",
-      stableDecimal: 18,
-      assetDecimal: 18,
       leverage: 3,
     },
   ];
@@ -92,6 +88,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const deltaNeutralVaultInfo = config.DeltaNeutralVaults.find((v) => v.symbol === initPosition.symbol);
     const stableVault = config.Vaults.find((v) => v.symbol === initPosition.stableVaultSymbol);
     const assetVault = config.Vaults.find((v) => v.symbol === initPosition.assetVaultSymbol);
+    const stableToken = tokenLists[initPosition.stableSymbol];
+    const assetToken = tokenLists[initPosition.assetSymbol];
+    const stableTokenAsDeployer = BEP20__factory.connect(stableToken, deployer);
+    const assetTokenAsDeployer = BEP20__factory.connect(assetToken, deployer);
+
+    const [stableDecimal, assetDecimal] = await Promise.all([
+      stableTokenAsDeployer.decimals(),
+      assetTokenAsDeployer.decimals(),
+    ]);
+
     if (!deltaNeutralVaultInfo) {
       throw new Error(`error: unable to find delta neutral vault info for ${initPosition.symbol}`);
     }
@@ -101,11 +107,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if (!assetVault) {
       throw new Error(`error: unable to find vault from ${initPosition.assetVaultSymbol}`);
     }
-    if (initPosition.stableDecimal > 18) {
-      throw new Error(`error:not supported stableTokenDecimal > 18, value  ${initPosition.stableDecimal}`);
+    if (stableDecimal > 18) {
+      throw new Error(`error:not supported stableTokenDecimal > 18, value  ${stableDecimal}`);
     }
-    if (initPosition.assetDecimal > 18) {
-      throw new Error(`error:not supported assetDecimal > 18, value  ${initPosition.assetDecimal}`);
+    if (assetDecimal > 18) {
+      throw new Error(`error:not supported assetDecimal > 18, value  ${assetDecimal}`);
     }
 
     if (initPosition.symbol.includes("PCS")) {
@@ -123,11 +129,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     } else {
       throw new Error(`err: no symbol is not match any strategy, value ${initPosition.symbol}`);
     }
-
-    const stableToken = tokenLists[initPosition.stableSymbol];
-    const assetToken = tokenLists[initPosition.assetSymbol];
-    const stableTokenAsDeployer = BEP20__factory.connect(stableToken, deployer);
-    const assetTokenAsDeployer = BEP20__factory.connect(assetToken, deployer);
 
     console.log(">> Check allowance");
     const stableTokenAllowance = await stableTokenAsDeployer.allowance(deployer.address, deltaNeutralVaultInfo.address);
@@ -156,10 +157,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     // open position1
     console.log(">> Preparing input for position 1 (StableVaults)");
 
-    const stableAmount = ethers.utils.parseUnits(initPosition.stableAmount, initPosition.stableDecimal);
+    const stableAmount = ethers.utils.parseUnits(initPosition.stableAmount, stableDecimal);
     console.log(`>> Stable amount: ${stableAmount}`);
 
-    const assetAmount = ethers.utils.parseUnits("0", initPosition.assetDecimal);
+    const assetAmount = ethers.utils.parseUnits("0", assetDecimal);
     console.log(`>> assetAmount: ${assetAmount}`);
 
     const leverage = BigNumber.from(initPosition.leverage);
@@ -189,7 +190,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(`>> farmingTokenAssetPosition: ${farmingTokenAssetPosition}`);
 
     //(farmingTokenAssetPosition / assetPrice) * (lev-1)
-    const assetTokenConversionFactor = initPosition.assetDecimal - initPosition.stableDecimal;
+    const assetTokenConversionFactor = assetDecimal - stableDecimal;
     const borrowAmountAssetPosition = farmingTokenAssetPosition
       .mul(ethers.constants.WeiPerEther)
       .mul(borrowMultiplierPosition)

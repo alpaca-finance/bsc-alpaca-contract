@@ -1,12 +1,12 @@
 import { expect } from "chai";
 import { ethers } from "ethers";
-import { DeltaNeutralPancakeWorker02, DeltaNeutralPancakeWorker02__factory } from "../../../../typechain";
+import { DeltaNeutralPancakeMCV2Worker02, DeltaNeutralPancakeMCV2Worker02__factory } from "../../../../typechain";
 import { WorkersEntity } from "../../../interfaces/config";
 import { IMultiCallService } from "../../../services/multicall/interfaces";
 import { IWorkerLike } from "../IWorkerLike";
 
 export class DeltaNeutralPancakeWorkerAdaptor implements IWorkerLike {
-  private _worker: DeltaNeutralPancakeWorker02;
+  private _worker: DeltaNeutralPancakeMCV2Worker02;
   private _multiCallService: IMultiCallService;
 
   constructor(
@@ -14,7 +14,7 @@ export class DeltaNeutralPancakeWorkerAdaptor implements IWorkerLike {
     _multiCallService: IMultiCallService,
     _signerOrProvider: ethers.Signer | ethers.providers.Provider
   ) {
-    this._worker = DeltaNeutralPancakeWorker02__factory.connect(_workerAddress, _signerOrProvider);
+    this._worker = DeltaNeutralPancakeMCV2Worker02__factory.connect(_workerAddress, _signerOrProvider);
     this._multiCallService = _multiCallService;
   }
 
@@ -29,7 +29,7 @@ export class DeltaNeutralPancakeWorkerAdaptor implements IWorkerLike {
         workerOperator,
         workerLpToken,
         workerPid,
-        workerMasterChef,
+        workerMasterChefV2,
         workerRouter,
         workerBaseToken,
         workerAddBaseTokenOk,
@@ -44,7 +44,7 @@ export class DeltaNeutralPancakeWorkerAdaptor implements IWorkerLike {
         { contract: this._worker, functionName: "operator" },
         { contract: this._worker, functionName: "lpToken" },
         { contract: this._worker, functionName: "pid" },
-        { contract: this._worker, functionName: "masterChef" },
+        { contract: this._worker, functionName: "masterChefV2" },
         { contract: this._worker, functionName: "router" },
         { contract: this._worker, functionName: "baseToken" },
         { contract: this._worker, functionName: "okStrats", params: [workerInfo.strategies.StrategyAddAllBaseToken] },
@@ -82,7 +82,7 @@ export class DeltaNeutralPancakeWorkerAdaptor implements IWorkerLike {
       expect(workerOperator).to.be.eq(vaultAddress, "operator mis-config");
       expect(workerLpToken).to.be.eq(workerInfo.stakingToken, "stakingToken mis-config");
       expect(workerPid).to.be.eq(workerInfo.pId, "pool id mis-config");
-      expect(workerMasterChef).to.be.eq(workerInfo.stakingTokenAt, "masterChef mis-config");
+      expect(workerMasterChefV2).to.be.eq(workerInfo.stakingTokenAt, "masterChef mis-config");
       expect(workerRouter).to.be.eq(routerAddress, "router mis-config");
       expect(workerBaseToken).to.be.eq(vaultToken, "baseToken mis-config");
       expect(workerAddBaseTokenOk).to.be.eq(true, "mis-config on add base token only strat");
