@@ -1,7 +1,7 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, upgrades } from "hardhat";
-import { DeltaNeutralVault, WNativeRelayer__factory } from "../../../../typechain";
+import { DeltaNeutralBiswapWorker03__factory, DeltaNeutralVault, WNativeRelayer__factory } from "../../../../typechain";
 import { getDeployer } from "../../../../utils/deployer-helper";
 import { ConfigFileHelper } from "../../../helper";
 import { UpgradeableContractDeployer } from "../../../deployer";
@@ -116,6 +116,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       await (await wNativeRelayer.setCallerOk([deltaNeutralVault.address], true)).wait(3);
       console.log("✅ Done");
     }
+
+    // set whitelisted caller on workers
+    let nonce = await deployer.getTransactionCount();
+
+    const stableWorker = DeltaNeutralBiswapWorker03__factory.connect(stableWorkerAddress, deployer);
+    await stableWorker.setWhitelistedCallers([deltaNeutralVault.address], true, { nonce: nonce++ });
+
+    const assetWorker = DeltaNeutralBiswapWorker03__factory.connect(assetWorkerAddress, deployer);
+    await assetWorker.setWhitelistedCallers([deltaNeutralVault.address], true, { nonce: nonce++ });
 
     const deltaNuetralVaultEntity: DeltaNeutralVaultsEntity = {
       name: deltaVaultInput.name,
