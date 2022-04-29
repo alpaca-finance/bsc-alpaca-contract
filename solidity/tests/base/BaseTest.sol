@@ -15,6 +15,7 @@ import { TripleSlopeModelLike } from "../interfaces/TripleSlopeModelLike.sol";
 import { DebtTokenLike } from "../interfaces/DebtTokenLike.sol";
 import { SimpleVaultConfigLike } from "../interfaces/SimpleVaultConfigLike.sol";
 import { VaultLike } from "../interfaces/VaultLike.sol";
+import { xALPACACreditorLike } from "../interfaces/xALPACACreditorLike.sol";
 
 // solhint-disable const-name-snakecase
 // solhint-disable no-inline-assembly
@@ -159,5 +160,16 @@ contract BaseTest is DSTest {
       _address := create(0, add(_bytecode, 0x20), mload(_bytecode))
     }
     return TripleSlopeModelLike(_address);
+  }
+
+  function _setupxALPACACreditor(address _xALPACA, uint256 _valuePerxALPACA) internal returns (xALPACACreditorLike) {
+    bytes memory _logicBytecode = abi.encodePacked(vm.getCode("./out/xALPACACreditor.sol/xALPACACreditor.json"));
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize(address,uint256)")),
+      _xALPACA,
+      _valuePerxALPACA
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return xALPACACreditorLike(_proxy);
   }
 }
