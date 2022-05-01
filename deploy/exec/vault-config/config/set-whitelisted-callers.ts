@@ -30,20 +30,20 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "mainnet_n3x_wbnbbusd_pcs2_whitelisted_callers";
+  const TITLE = "mainnet_3x_delta_neutral_set_whitelisted_callers";
   const TARGETED_VAULT_CONFIG: Array<IInput> = [
     {
-      VAULT_SYMBOL: "ibWBNB",
-      WHITELISTED_CALLERS: ["0xD14ED91dcD2E06ED72F536008cCd581DA73adDB5"], // Address of DeltaNeutralVault
+      VAULT_SYMBOL: "ibFTM",
+      WHITELISTED_CALLERS: ["0xF052D626743Ad2F3b38A99DD9F3C946c2A12E843"],
       IS_ENABLE: true,
     },
     {
-      VAULT_SYMBOL: "ibBUSD",
-      WHITELISTED_CALLERS: ["0xD14ED91dcD2E06ED72F536008cCd581DA73adDB5"], // Address of DeltaNeutralVault
+      VAULT_SYMBOL: "ibUSDC",
+      WHITELISTED_CALLERS: ["0xF052D626743Ad2F3b38A99DD9F3C946c2A12E843"],
       IS_ENABLE: true,
     },
   ];
-  const EXACT_ETA = "1650875400";
+  const EXACT_ETA = "1647667800"; //FTM DO NOT HAVE TIMELOCK LEAVE THIS VALUE
 
   const config = getConfig();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];

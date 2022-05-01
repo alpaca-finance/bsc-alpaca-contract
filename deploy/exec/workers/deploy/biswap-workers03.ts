@@ -65,7 +65,6 @@ interface IBiswapWorkerInfo {
 }
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-  const executeFileTitle = "biswap-worker03";
   /*
   ░██╗░░░░░░░██╗░█████╗░██████╗░███╗░░██╗██╗███╗░░██╗░██████╗░
   ░██║░░██╗░░██║██╔══██╗██╔══██╗████╗░██║██║████╗░██║██╔════╝░
@@ -75,30 +74,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
+  const executeFileTitle = "biswap-pool3";
   const shortWorkerInfos: IBiswapWorkerInput[] = [
     {
-      VAULT_SYMBOL: "ibWBNB",
-      WORKER_NAME: "USDT-WBNB BiswapWorker",
-      REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 2,
-      REINVEST_BOUNTY_BPS: "900",
-      REINVEST_PATH: ["BSW", "WBNB"],
-      REINVEST_THRESHOLD: "0",
-      BENEFICIAL_VAULT: {
-        BENEFICIAL_VAULT_ADDRESS: "0x08B5A95cb94f926a8B620E87eE92e675b35afc7E",
-        REWARD_PATH: ["BSW", "USDT", "BUSD"],
-        BENEFICIAL_VAULT_BPS: "5555",
-      },
-      WORK_FACTOR: "7000",
-      KILL_FACTOR: "8333",
-      MAX_PRICE_DIFF: "10500",
-      EXACT_ETA: "1651057200",
-    },
-    {
       VAULT_SYMBOL: "ibUSDT",
-      WORKER_NAME: "WBNB-USDT BiswapWorker",
+      WORKER_NAME: "ETH-USDT BiswapWorker",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 2,
+      POOL_ID: 5,
       REINVEST_BOUNTY_BPS: "900",
       REINVEST_PATH: ["BSW", "USDT"],
       REINVEST_THRESHOLD: "0",
@@ -110,15 +92,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       WORK_FACTOR: "7000",
       KILL_FACTOR: "8333",
       MAX_PRICE_DIFF: "10500",
-      EXACT_ETA: "1651057200",
+      EXACT_ETA: "1651482000",
     },
     {
-      VAULT_SYMBOL: "ibWBNB",
-      WORKER_NAME: "BSW-WBNB BiswapWorker",
+      VAULT_SYMBOL: "ibETH",
+      WORKER_NAME: "USDT-ETH BiswapWorker",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 10,
+      POOL_ID: 5,
       REINVEST_BOUNTY_BPS: "900",
-      REINVEST_PATH: ["BSW", "WBNB"],
+      REINVEST_PATH: ["BSW", "USDT", "ETH"],
       REINVEST_THRESHOLD: "0",
       BENEFICIAL_VAULT: {
         BENEFICIAL_VAULT_ADDRESS: "0x08B5A95cb94f926a8B620E87eE92e675b35afc7E",
@@ -127,8 +109,44 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       },
       WORK_FACTOR: "7000",
       KILL_FACTOR: "8333",
-      MAX_PRICE_DIFF: "11000",
-      EXACT_ETA: "1651057200",
+      MAX_PRICE_DIFF: "10500",
+      EXACT_ETA: "1651482000",
+    },
+    {
+      VAULT_SYMBOL: "ibUSDT",
+      WORKER_NAME: "BTCB-USDT BiswapWorker",
+      REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
+      POOL_ID: 6,
+      REINVEST_BOUNTY_BPS: "900",
+      REINVEST_PATH: ["BSW", "USDT"],
+      REINVEST_THRESHOLD: "0",
+      BENEFICIAL_VAULT: {
+        BENEFICIAL_VAULT_ADDRESS: "0x08B5A95cb94f926a8B620E87eE92e675b35afc7E",
+        REWARD_PATH: ["BSW", "USDT", "BUSD"],
+        BENEFICIAL_VAULT_BPS: "5555",
+      },
+      WORK_FACTOR: "7000",
+      KILL_FACTOR: "8333",
+      MAX_PRICE_DIFF: "10500",
+      EXACT_ETA: "1651482000",
+    },
+    {
+      VAULT_SYMBOL: "ibBTCB",
+      WORKER_NAME: "USDT-BTCB BiswapWorker",
+      REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
+      POOL_ID: 6,
+      REINVEST_BOUNTY_BPS: "900",
+      REINVEST_PATH: ["BSW", "USDT", "BTCB"],
+      REINVEST_THRESHOLD: "0",
+      BENEFICIAL_VAULT: {
+        BENEFICIAL_VAULT_ADDRESS: "0x08B5A95cb94f926a8B620E87eE92e675b35afc7E",
+        REWARD_PATH: ["BSW", "USDT", "BUSD"],
+        BENEFICIAL_VAULT_BPS: "5555",
+      },
+      WORK_FACTOR: "7000",
+      KILL_FACTOR: "8333",
+      MAX_PRICE_DIFF: "10500",
+      EXACT_ETA: "1651482000",
     },
   ];
 
@@ -136,6 +154,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const deployer = await getDeployer();
 
+  const timestamp = Math.floor(new Date().getTime() / 1000);
   const configFileHelper = new ConfigFileHelper();
   let config = configFileHelper.getConfig();
 
@@ -310,7 +329,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         `await timelock.executeTransaction('${workerInfos[i].WORKER_CONFIG_ADDR}', '0', 'setConfigs(address[],(bool,uint64,uint64,uint64)[])', ethers.utils.defaultAbiCoder.encode(['address[]','(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]'],[['${biswapWorker03.address}'], [{acceptDebt: true, workFactor: ${workerInfos[i].WORK_FACTOR}, killFactor: ${workerInfos[i].KILL_FACTOR}, maxPriceDiff: ${workerInfos[i].MAX_PRICE_DIFF}}]]), ${workerInfos[i].EXACT_ETA})`
       );
       timelockTransactions.push(setConfigsTx);
-      fileService.writeJson(executeFileTitle, timelockTransactions);
+      fileService.writeJson(`${timestamp}_${executeFileTitle}`, timelockTransactions);
       console.log("✅ Done");
     } else {
       console.log(">> Setting WorkerConfig");
@@ -349,7 +368,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         `await timelock.executeTransaction('${workerInfos[i].VAULT_CONFIG_ADDR}', '0','setWorkers(address[],address[])', ethers.utils.defaultAbiCoder.encode(['address[]','address[]'],[['${biswapWorker03.address}'], ['${workerInfos[i].WORKER_CONFIG_ADDR}']]), ${workerInfos[i].EXACT_ETA})`
       );
       timelockTransactions.push(setWorkersTx);
-      fileService.writeJson(executeFileTitle, timelockTransactions);
+      fileService.writeJson(`${timestamp}_${executeFileTitle}`, timelockTransactions);
       console.log("✅ Done");
     } else {
       console.log(">> Linking VaultConfig with WorkerConfig");

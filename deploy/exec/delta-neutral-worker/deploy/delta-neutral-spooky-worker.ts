@@ -3,6 +3,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, network, upgrades } from "hardhat";
 import {
   ConfigurableInterestVaultConfig__factory,
+  DeltaNeutralBiswapWorker03,
   DeltaNeutralSpookyWorker03,
   DeltaNeutralSpookyWorker03__factory,
   SpookySwapStrategyAddBaseTokenOnly__factory,
@@ -14,11 +15,14 @@ import {
   SpookyWorker03__factory,
   WorkerConfig__factory,
 } from "../../../../typechain";
-import { ConfigEntity, TimelockEntity } from "../../../entities";
+import { ConfigEntity, TimelockEntity, WorkerEntity } from "../../../entities";
 import { fileService, TimelockService } from "../../../services";
 import { BlockScanGasPrice } from "../../../services/gas-price/blockscan";
 import { getDeployer } from "../../../../utils/deployer-helper";
 import { compare } from "../../../../utils/address";
+import { UpgradeableContractDeployer } from "../../../deployer";
+import { WorkersEntity } from "../../../interfaces/config";
+import { ConfigFileHelper } from "../../../helper";
 
 interface IDeltaNeutralWorkerInput {
   VAULT_SYMBOL: string;
@@ -76,12 +80,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
       Check all variables below before execute the deployment script
     */
-  const config = ConfigEntity.getConfig();
+  const configFileHelper = new ConfigFileHelper();
+  let config = ConfigEntity.getConfig();
 
   const shortWorkerInfos: IDeltaNeutralWorkerInput[] = [
     // {
     //   VAULT_SYMBOL: "ibFTM",
-    //   WORKER_NAME: "USDC-WFTM 3x DeltaNeutralSpookyWorker",
+    //   WORKER_NAME: "USDC-WFTM 3x SPK2 DeltaNeutralSpookyWorker",
     //   TREASURY_ADDRESS: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
     //   REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
     //   POOL_ID: 2,
@@ -97,7 +102,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     // },
     {
       VAULT_SYMBOL: "ibUSDC",
-      WORKER_NAME: "WFTM-USDC 3x DeltaNeutralSpookyWorker",
+      WORKER_NAME: "WFTM-USDC 3x SPK2 DeltaNeutralSpookyWorker",
       TREASURY_ADDRESS: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
       POOL_ID: 2,
@@ -112,7 +117,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       BENEFICIAL_VAULT_BOUNTY_BPS: "5333",
     },
   ];
-  const TITLE = "mainnet_delta_neutral_3x_spooky_worker";
+  const TITLE = "mainnet_delta_neutral_3x_wftmusdc_spk2_worker";
   const EXACT_ETA = "1646402400"; //FTM DO NOT HAVE TIMELOCK LEAVE THIS VALUE
 
   const deployer = await getDeployer();
@@ -173,15 +178,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   });
   for (let i = 0; i < workerInfos.length; i++) {
     const workerInfo = workerInfos[i];
-    console.log("===================================================================================");
-    console.log(`>> Deploying an upgradable SpookyWorker contract for ${workerInfos[i].WORKER_NAME}`);
 
-    const DeltaNeutralSpookyWorker03 = (await ethers.getContractFactory(
+    const deltaNeutralWorkerDeployer = new UpgradeableContractDeployer<DeltaNeutralSpookyWorker03>(
+      deployer,
       "DeltaNeutralSpookyWorker03",
-      deployer
-    )) as DeltaNeutralSpookyWorker03__factory;
+      workerInfos[i].WORKER_NAME
+    );
 
-    const deltaNeutralWorker = (await upgrades.deployProxy(DeltaNeutralSpookyWorker03, [
+    const { contract: deltaNeutralWorker, deployedBlock } = await deltaNeutralWorkerDeployer.deploy([
       workerInfo.VAULT_ADDR,
       workerInfo.BASE_TOKEN_ADDR,
       workerInfo.MASTER_CHEF,
@@ -193,11 +197,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       workerInfo.REINVEST_PATH,
       workerInfo.REINVEST_THRESHOLD,
       workerInfo.DELTA_NEUTRAL_ORACLE,
-    ])) as DeltaNeutralSpookyWorker03;
-
-    const deployTxReceipt = await deltaNeutralWorker.deployTransaction.wait(3);
-    console.log(`>> Deployed at ${deltaNeutralWorker.address}`);
-    console.log(`>> Deployed block: ${deployTxReceipt.blockNumber}`);
+    ]);
 
     let nonce = await deployer.getTransactionCount();
 
@@ -224,56 +224,28 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await deltaNeutralWorker.setStrategyOk(okStrats, true, { gasPrice, nonce: nonce++ });
     console.log("✅ Done");
 
-    console.log(`>> Whitelisting a worker on strats`);
-    const addStrat = SpookySwapStrategyAddBaseTokenOnly__factory.connect(workerInfo.ADD_STRAT_ADDR, deployer);
-    await addStrat.setWorkersOk([deltaNeutralWorker.address], true, { gasPrice, nonce: nonce++ });
-    const liqStrat = SpookySwapStrategyLiquidate__factory.connect(workerInfo.LIQ_STRAT_ADDR, deployer);
+    console.log(`>> Whitelisting a worker on ok strats`);
+    const allOkStrats = [workerInfos[i].ADD_STRAT_ADDR, ...okStrats];
 
-    await liqStrat.setWorkersOk([deltaNeutralWorker.address], true, { gasPrice, nonce: nonce++ });
-
-    const twoSidesStrat = SpookySwapStrategyAddTwoSidesOptimal__factory.connect(
-      workerInfo.TWO_SIDES_STRAT_ADDR,
-      deployer
-    );
-
-    await twoSidesStrat.setWorkersOk([deltaNeutralWorker.address], true, { gasPrice, nonce: nonce++ });
-    const minimizeStrat = SpookySwapStrategyWithdrawMinimizeTrading__factory.connect(
-      workerInfo.MINIMIZE_TRADE_STRAT_ADDR,
-      deployer
-    );
-    await minimizeStrat.setWorkersOk([deltaNeutralWorker.address], true, { gasPrice, nonce: nonce++ });
-
-    if (workerInfo.PARTIAL_CLOSE_LIQ_STRAT_ADDR != "") {
-      console.log(">> partial close liquidate is deployed");
-      const partialCloseLiquidate = SpookySwapStrategyPartialCloseLiquidate__factory.connect(
-        workerInfo.PARTIAL_CLOSE_LIQ_STRAT_ADDR,
-        deployer
-      );
-      await partialCloseLiquidate.setWorkersOk([deltaNeutralWorker.address], true, { gasPrice, nonce: nonce++ });
+    for (let idx = 0; idx < allOkStrats.length; idx++) {
+      const stratAddress = allOkStrats[idx];
+      // NOTE: all BiswapStrategy have the same signature of func setWorkersOk.
+      //       then we can use any BiswapStrategy factory for all BiswapStrategy addresses
+      const contractFactory = SpookySwapStrategyAddBaseTokenOnly__factory.connect(stratAddress, deployer);
+      await contractFactory.setWorkersOk([deltaNeutralWorker.address], true, { nonce: nonce++ });
     }
-
-    if (workerInfo.PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR != "") {
-      console.log(">> partial close minimize is deployed");
-      const partialCloseMinimize = SpookySwapStrategyPartialCloseMinimizeTrading__factory.connect(
-        workerInfo.PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR,
-        deployer
-      );
-      await partialCloseMinimize.setWorkersOk([deltaNeutralWorker.address], true, { gasPrice, nonce: nonce++ });
-    }
-
-    console.log(">> setBeneficialVaultConfig");
-    const worker = SpookyWorker03__factory.connect(deltaNeutralWorker.address, deployer);
-    await worker.setBeneficialVaultConfig(
-      workerInfo.BENEFICIAL_VAULT_BOUNTY_BPS,
-      workerInfo.BENEFICIAL_VAULT,
-      workerInfo.BENEFICIAL_REWARD_PATH,
-      {
-        gasPrice,
-        nonce: nonce++,
-      }
-    );
-
     console.log("✅ Done");
+
+    if (workerInfos[i].BENEFICIAL_VAULT !== undefined) {
+      console.log(`>> setting beneficial vault`);
+      await deltaNeutralWorker.setBeneficialVaultConfig(
+        workerInfo.BENEFICIAL_VAULT_BOUNTY_BPS,
+        workerInfo.BENEFICIAL_VAULT,
+        workerInfo.BENEFICIAL_REWARD_PATH,
+        { gasPrice, nonce: nonce++ }
+      );
+      console.log("✅ Done");
+    }
 
     console.log(">> Timelock PART");
 
@@ -319,6 +291,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         ],
         { gasPrice, nonce: nonce++ }
       );
+      console.log("✅ Done");
     }
 
     const vaultConfig = ConfigurableInterestVaultConfig__factory.connect(workerInfo.VAULT_CONFIG_ADDR, deployer);
@@ -342,11 +315,37 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     } else {
       console.log(`>> Set VaultConfig for ${workerInfo.VAULT_CONFIG_ADDR}`);
       await vaultConfig.setWorkers([deltaNeutralWorker.address], [workerInfo.WORKER_CONFIG_ADDR]);
+      console.log("✅ Done");
     }
 
     if (isTimelockedWorkerConfig || isTimeLockVaultConfig) {
       fileService.writeJson(TITLE, timelockTransactions);
     }
+
+    // Update config
+    const lpPoolAddress = config.YieldSources.SpookySwap!.pools.find(
+      (pool) => pool.pId === workerInfos[i].POOL_ID
+    )!.address;
+
+    const spookyWorkersEntity: WorkersEntity = {
+      name: workerInfos[i].WORKER_NAME,
+      address: deltaNeutralWorker.address,
+      deployedBlock,
+      config: workerInfos[i].WORKER_CONFIG_ADDR,
+      pId: workerInfos[i].POOL_ID,
+      stakingToken: lpPoolAddress,
+      stakingTokenAt: workerInfos[i].MASTER_CHEF,
+      strategies: {
+        StrategyAddAllBaseToken: workerInfos[i].ADD_STRAT_ADDR,
+        StrategyLiquidate: workerInfos[i].LIQ_STRAT_ADDR,
+        StrategyAddTwoSidesOptimal: workerInfos[i].TWO_SIDES_STRAT_ADDR,
+        StrategyWithdrawMinimizeTrading: workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR,
+        StrategyPartialCloseLiquidate: workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR,
+        StrategyPartialCloseMinimizeTrading: workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR,
+      },
+    };
+
+    config = configFileHelper.addOrSetVaultWorker(workerInfos[i].VAULT_ADDR, spookyWorkersEntity);
   }
 };
 
