@@ -46,22 +46,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLTE = "update_wbnb_busd_usdt_triple_slope_model";
+  const TITLTE = "update_wftm_usdc_tomb_interest_model";
   const NEW_PARAMS: Array<SetParamsInput> = [
     {
-      VAULT_SYMBOL: "ibWBNB",
-      INTEREST_MODEL: "0xc51d25a2C2d49eE2508B822829d43b9961deCB44",
-      EXACT_ETA: "1650875400",
+      VAULT_SYMBOL: "ibFTM",
+      INTEREST_MODEL: "0xd36B6cf6Aa96Eb7185798ebccb8c5c5a82434067",
+      EXACT_ETA: "8888",
     },
     {
-      VAULT_SYMBOL: "ibBUSD",
-      INTEREST_MODEL: "0x4eCa08e4f2eD826dba5Bea2Ec133036fE60d30b6",
-      EXACT_ETA: "1650875400",
-    },
-    {
-      VAULT_SYMBOL: "ibUSDT",
-      INTEREST_MODEL: "0x284e25169CE75fc62c9339207de5d775F46aD406",
-      EXACT_ETA: "1650875400",
+      VAULT_SYMBOL: "ibUSDC",
+      INTEREST_MODEL: "0xBbf2a7FacDB318F7670cE87A5F6571Bb001d8F06",
+      EXACT_ETA: "8888",
     },
   ];
 
@@ -170,7 +165,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         info.WNATIVE_RELAYER,
         info.FAIRLAUNCH,
         info.TREASURY_KILL_BPS,
-        info.TREASURY_ADDR
+        info.TREASURY_ADDR,
+        { nonce: nonce++ }
       );
     }
   }

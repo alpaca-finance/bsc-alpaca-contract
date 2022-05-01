@@ -32,7 +32,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     Strats.partialCloseLiquidate,
     Strats.partialCloseWithdrawMinizmie,
   ];
-  const WHITELIST_WOKERS: string[] = [];
+  const WHITELIST_WOKERS: Array<string> = [];
 
   const deployer = await getDeployer();
   const configFileHelper = new ConfigFileHelper();

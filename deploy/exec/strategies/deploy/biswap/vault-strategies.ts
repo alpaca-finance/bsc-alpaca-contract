@@ -16,14 +16,37 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-
   const NEW_PARAMS = [
     {
       VAULT_SYMBOL: "ibWBNB",
       WHITELIST_WORKERS: [],
     },
     {
+      VAULT_SYMBOL: "ibBUSD",
+      WHITELIST_WORKERS: [],
+    },
+    {
+      VAULT_SYMBOL: "ibETH",
+      WHITELIST_WORKERS: [],
+    },
+    {
+      VAULT_SYMBOL: "ibALPACA",
+      WHITELIST_WORKERS: [],
+    },
+    {
       VAULT_SYMBOL: "ibUSDT",
+      WHITELIST_WORKERS: [],
+    },
+    {
+      VAULT_SYMBOL: "ibBTCB",
+      WHITELIST_WORKERS: [],
+    },
+    {
+      VAULT_SYMBOL: "ibTUSD",
+      WHITELIST_WORKERS: [],
+    },
+    {
+      VAULT_SYMBOL: "ibUSDC",
       WHITELIST_WORKERS: [],
     },
   ];

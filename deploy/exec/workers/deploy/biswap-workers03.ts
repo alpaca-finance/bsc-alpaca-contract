@@ -91,8 +91,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       },
       WORK_FACTOR: "7000",
       KILL_FACTOR: "8333",
-      MAX_PRICE_DIFF: "11000",
-      EXACT_ETA: "1651583600", // no use due to no timelock
+      MAX_PRICE_DIFF: "10500",
+      EXACT_ETA: "1651057200",
     },
     {
       VAULT_SYMBOL: "ibUSDT",
@@ -109,8 +109,26 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       },
       WORK_FACTOR: "7000",
       KILL_FACTOR: "8333",
+      MAX_PRICE_DIFF: "10500",
+      EXACT_ETA: "1651057200",
+    },
+    {
+      VAULT_SYMBOL: "ibWBNB",
+      WORKER_NAME: "BSW-WBNB BiswapWorker",
+      REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
+      POOL_ID: 10,
+      REINVEST_BOUNTY_BPS: "900",
+      REINVEST_PATH: ["BSW", "WBNB"],
+      REINVEST_THRESHOLD: "0",
+      BENEFICIAL_VAULT: {
+        BENEFICIAL_VAULT_ADDRESS: "0x08B5A95cb94f926a8B620E87eE92e675b35afc7E",
+        REWARD_PATH: ["BSW", "USDT", "BUSD"],
+        BENEFICIAL_VAULT_BPS: "5555",
+      },
+      WORK_FACTOR: "7000",
+      KILL_FACTOR: "8333",
       MAX_PRICE_DIFF: "11000",
-      EXACT_ETA: "1651583600", // no use due to no timelock
+      EXACT_ETA: "1651057200",
     },
   ];
 
