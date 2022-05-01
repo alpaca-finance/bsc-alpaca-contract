@@ -48,7 +48,7 @@
     "deploy:mainnet:workers:deploy:wswap": "hardhat --network mainnet deploy --no-compile --reset --tags WaultSwapWorkers02",
     "deploy:mainnet:workers:deploy:mdex-workers02": "hardhat --network mainnet deploy --no-compile --reset --tags MdexWorkers02",
     "deploy:mainnet:workers:deploy:cakemaxi-workers02": "hardhat --network mainnet deploy --no-compile --reset --tags CakeMaxiWorkers02",
-    "deploy:mainnet:workers:deploy:biswap-worker": "hardhat --network mainnet deploy --no-compile --reset --tags BiswapWorker03",
+    "deploy:mainnet:workers:deploy:biswap-workers03": "hardhat --network mainnet deploy --no-compile --reset --tags BiswapWorker03",
     "deploy:mainnet:s001": "hardhat --network mainnet deploy --no-compile --reset --tags AddWorkerStrategy",
     "deploy:mainnet:s002": "hardhat --network mainnet deploy --no-compile --reset --tags SeedWBNBVault",
     "deploy:mainnet:s003": "hardhat --network mainnet deploy --no-compile --reset --tags SetParamsVaultConfig",

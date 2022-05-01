@@ -644,6 +644,101 @@
       "address": "0x49966a489a6B6a43652Ee1924349B902fE14bC6F",
       "txHash": "0x9935efa69cc8da99e79edde4f85e6f955efccf781dc3b1bf72b9e6467eeb1a43",
       "kind": "transparent"
+    },
+    {
+      "address": "0xaAEF721098a4f123353495d75604fA921C7CE323",
+      "txHash": "0xc42e652c217a8625404bbc39364844f4dff67dfd2ee3ee9c020d6d97bb3ee930",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x3414C2C8d02F57D9f5844C97a71dE70eA81c751E",
+      "txHash": "0x8ad93a4f952708c6b6a7aefd1e422b3583c555bbb0896c19e3dc9213629ec213",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xD2d1318beA3FBAcbeC1C6b7583DbA74De5d9455c",
+      "txHash": "0xf8762a6b5694485d3a72c1d45dd53eb2b23e7fe31c48a1d92f91d444410e8fdb",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xba7156E07995cAD7837Ef08EC5bA936DaB2B000B",
+      "txHash": "0xd66590123ce0ae239a94b81b9e52620b5d406b3d5309c724b7b7c0ec3d86b1b1",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x3739d1E01104b019Ff105B3A8F57BC6ed62F18a4",
+      "txHash": "0x78c72372e7c29ab30920c6a7e4cf7918183564391c095705c3a7c7c5d320fb62",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x87d0BEaF4124a72F99ECDF350a8aD4Ed732A9C48",
+      "txHash": "0xa9344eee19e6286e67e4f0f02770bc36a3a9151999f9d2362bace3aa0f5fe17a",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x36b1FB077bD0185a64FF0b5E9249F700cA7C5290",
+      "txHash": "0x51304e0ecccb59c2031f959bcede1f75ae99d20b2dc8272616dff77a374b0071",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x8D9fEC1B16708F0Fa64877b54ac82e2c50Db3E73",
+      "txHash": "0x8e6bcff32933cc955ed34acf1fc9e7e1ced0caffd9ee3a884d0d982d4bb186d8",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x082eb6de59CC80107ed2c15C7c08c79F2B6b9720",
+      "txHash": "0x1cafbcffb1d846aca901c959a5b1b6a1a388faa020b85922d61e8f40ffa770d9",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xf4B38789212E997C1603E08C4Ec27A962A626E36",
+      "txHash": "0x2a6a7485ea02f660cac9a619afb141cf9ce09e811f734639c58f9890151af8a9",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x8cAFA07aa8cFd60DD3D45Dbc544EeaB958305F0e",
+      "txHash": "0x5d2a1f225754e47fd67a106d1e23589b4a28e07a54bf6d08dd6342e06e19f8c9",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x559B79aDaBe0da4BE806B788eb5e63fD95FaaD0a",
+      "txHash": "0x549f32c05275f79d1bbebd1c32e4ad14cfb22853d8f30a9cb4cfd820d5a973e4",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xf7e7c056B7F47a51264374d68C02F77d5c8dC32b",
+      "txHash": "0x255f3196c66fdfaa8a3c2ad4a4cd45b87af1e84c5aadfb6dafecaa083323c648",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x16ada6c34cf5Fc8B3D6d1946bdE840D1Df733cF1",
+      "txHash": "0x34b2b8ffb8e33ae64d9422a02cd3f6c5a8d5f5838458c2b788a5b01172b2a50f",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x7695C3688A8Cce86B2E22DF1F2E3b9ac63C12DE8",
+      "txHash": "0x7c4276b551142d40d66ebe97eda514538a0591722fff012a5a125f737a7dd049",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xAEFdEd1d9c5dd2ebD81b2F2511585FC2D6E7e65b",
+      "txHash": "0x3d3dd498f855e8176e86302de85ef4fb86719a63474b5d9f62a39bf6fd2ad1f0",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x1CaB044765F69a8db621a71b05BdD0fb36D0c51c",
+      "txHash": "0xc386bfc6a9fc3db69208250b313023ebdd01412b420d5d5217ecca559c33f15d",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x606959Ec174624627178Be2a6888ED6E5A036D22",
+      "txHash": "0x42ff0b02cefdff14efbe117b5ff98c354027ba600f448d141fea69a1931b9e86",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x3A0062Ca77Bd1926a1DCBfd436701314e483aa81",
+      "txHash": "0x428d8d0d7857a63e75846a0fe7ad6390cd7ab32601764942efe348130f421bd9",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -21216,19 +21311,19 @@
             "contract": "Initializable",
             "label": "initialized",
             "type": "t_bool",
-            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:21"
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:20"
           },
           {
             "contract": "Initializable",
             "label": "initializing",
             "type": "t_bool",
-            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:26"
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:25"
           },
           {
             "contract": "Initializable",
             "label": "______gap",
             "type": "t_array(t_uint256)50_storage",
-            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:61"
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:60"
           },
           {
             "contract": "ContextUpgradeSafe",
@@ -21263,201 +21358,201 @@
           {
             "contract": "CakeMaxiWorker02MCV2",
             "label": "masterChef",
-            "type": "t_contract(IPancakeMasterChef)32884",
-            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:64"
+            "type": "t_contract(IPancakeMasterChef)33006",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:64"
           },
           {
             "contract": "CakeMaxiWorker02MCV2",
             "label": "factory",
-            "type": "t_contract(IPancakeFactory)32816",
-            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:66"
+            "type": "t_contract(IPancakeFactory)32938",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:66"
           },
           {
             "contract": "CakeMaxiWorker02MCV2",
             "label": "router",
             "type": "t_contract(IPancakeRouter02)21574",
-            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:66"
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:66"
           },
           {
             "contract": "CakeMaxiWorker02MCV2",
             "label": "lpToken",
-            "type": "t_contract(IPancakePair)33191",
-            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:68"
+            "type": "t_contract(IPancakePair)33313",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:68"
           },
           {
             "contract": "CakeMaxiWorker02MCV2",
             "label": "wNative",
             "type": "t_address",
-            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:69"
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:69"
           },
           {
             "contract": "CakeMaxiWorker02MCV2",
             "label": "baseToken",
             "type": "t_address",
-            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:69"
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:69"
           },
           {
             "contract": "CakeMaxiWorker02MCV2",
             "label": "farmingToken",
             "type": "t_address",
-            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:71"
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:71"
           },
           {
             "contract": "CakeMaxiWorker02MCV2",
             "label": "operator",
             "type": "t_address",
-            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:72"
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:72"
           },
           {
             "contract": "CakeMaxiWorker02MCV2",
             "label": "pid",
             "type": "t_uint256",
-            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:74"
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:74"
           },
           {
             "contract": "CakeMaxiWorker02MCV2",
             "label": "beneficialVault",
-            "type": "t_contract(IVault)34242",
-            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:74"
+            "type": "t_contract(IVault)34364",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:74"
           },
           {
             "contract": "CakeMaxiWorker02MCV2",
             "label": "shares",
             "type": "t_mapping(t_uint256,t_uint256)",
-            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:76"
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:76"
           },
           {
             "contract": "CakeMaxiWorker02MCV2",
             "label": "okStrats",
             "type": "t_mapping(t_address,t_bool)",
-            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:77"
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:77"
           },
           {
             "contract": "CakeMaxiWorker02MCV2",
             "label": "totalShare",
             "type": "t_uint256",
-            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:79"
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:79"
           },
           {
             "contract": "CakeMaxiWorker02MCV2",
             "label": "addStrat",
-            "type": "t_contract(IStrategy)33272",
-            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:80"
+            "type": "t_contract(IStrategy)33394",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:80"
           },
           {
             "contract": "CakeMaxiWorker02MCV2",
             "label": "liqStrat",
-            "type": "t_contract(IStrategy)33272",
-            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:81"
+            "type": "t_contract(IStrategy)33394",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:81"
           },
           {
             "contract": "CakeMaxiWorker02MCV2",
             "label": "beneficialVaultBountyBps",
             "type": "t_uint256",
-            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:81"
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:81"
           },
           {
             "contract": "CakeMaxiWorker02MCV2",
             "label": "reinvestBountyBps",
             "type": "t_uint256",
-            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:82"
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:82"
           },
           {
             "contract": "CakeMaxiWorker02MCV2",
             "label": "maxReinvestBountyBps",
             "type": "t_uint256",
-            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:84"
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:84"
           },
           {
             "contract": "CakeMaxiWorker02MCV2",
             "label": "rewardBalance",
             "type": "t_uint256",
-            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:84"
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:84"
           },
           {
             "contract": "CakeMaxiWorker02MCV2",
             "label": "okReinvestors",
             "type": "t_mapping(t_address,t_bool)",
-            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:85"
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:85"
           },
           {
             "contract": "CakeMaxiWorker02MCV2",
             "label": "path",
             "type": "t_array(t_address)dyn_storage",
-            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:88"
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:88"
           },
           {
             "contract": "CakeMaxiWorker02MCV2",
             "label": "rewardPath",
             "type": "t_array(t_address)dyn_storage",
-            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:88"
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:88"
           },
           {
             "contract": "CakeMaxiWorker02MCV2",
             "label": "fee",
             "type": "t_uint256",
-            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:92"
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:92"
           },
           {
             "contract": "CakeMaxiWorker02MCV2",
             "label": "feeDenom",
             "type": "t_uint256",
-            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:92"
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:92"
           },
           {
             "contract": "CakeMaxiWorker02MCV2",
             "label": "reinvestThreshold",
             "type": "t_uint256",
-            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:95"
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:95"
           },
           {
             "contract": "CakeMaxiWorker02MCV2",
             "label": "treasuryAccount",
             "type": "t_address",
-            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:96"
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:96"
           },
           {
             "contract": "CakeMaxiWorker02MCV2",
             "label": "treasuryBountyBps",
             "type": "t_uint256",
-            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:98"
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:98"
           },
           {
             "contract": "CakeMaxiWorker02MCV2",
             "label": "buybackAmount",
             "type": "t_uint256",
-            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:98"
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:98"
           },
           {
             "contract": "CakeMaxiWorker02MCV2",
             "label": "cakePool",
-            "type": "t_contract(ICakePool)32636",
-            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:100"
+            "type": "t_contract(ICakePool)32758",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:100"
           },
           {
             "contract": "CakeMaxiWorker02MCV2",
             "label": "accumulatedBounty",
             "type": "t_uint256",
-            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:102"
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:102"
           },
           {
             "contract": "CakeMaxiWorker02MCV2",
             "label": "lastCakePoolActionTime",
             "type": "t_uint256",
-            "src": "contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:105"
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:105"
           }
         ],
         "types": {
-          "t_contract(IPancakeMasterChef)32884": {
+          "t_contract(IPancakeMasterChef)33006": {
             "label": "contract IPancakeMasterChef"
           },
-          "t_contract(IPancakeFactory)32816": {
+          "t_contract(IPancakeFactory)32938": {
             "label": "contract IPancakeFactory"
           },
           "t_contract(IPancakeRouter02)21574": {
             "label": "contract IPancakeRouter02"
           },
-          "t_contract(IPancakePair)33191": {
+          "t_contract(IPancakePair)33313": {
             "label": "contract IPancakePair"
           },
           "t_address": {
@@ -21466,7 +21561,7 @@
           "t_uint256": {
             "label": "uint256"
           },
-          "t_contract(IVault)34242": {
+          "t_contract(IVault)34364": {
             "label": "contract IVault"
           },
           "t_mapping(t_uint256,t_uint256)": {
@@ -21478,13 +21573,13 @@
           "t_bool": {
             "label": "bool"
           },
-          "t_contract(IStrategy)33272": {
+          "t_contract(IStrategy)33394": {
             "label": "contract IStrategy"
           },
           "t_array(t_address)dyn_storage": {
             "label": "address[]"
           },
-          "t_contract(ICakePool)32636": {
+          "t_contract(ICakePool)32758": {
             "label": "contract ICakePool"
           },
           "t_array(t_uint256)49_storage": {
@@ -21788,6 +21883,1202 @@
           },
           "t_bool": {
             "label": "bool"
+          }
+        }
+      }
+    },
+    "458d3bab64d9eb4eefb2e93c325a5a0304c5723b5b4509a56b76930f5aa8cc48": {
+      "address": "0x4C0b47C56d9f4Aa29DCb9d5dC62659a653EEC5Df",
+      "txHash": "0x95ab95158682fa0c83dfea6e465a38b56a65f67f9bad6f79131de1196f6a5ccc",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:20"
+          },
+          {
+            "contract": "Initializable",
+            "label": "initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:25"
+          },
+          {
+            "contract": "Initializable",
+            "label": "______gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:60"
+          },
+          {
+            "contract": "ContextUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol:37"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:18"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:78"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "_notEntered",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:21"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:63"
+          },
+          {
+            "contract": "BiswapStrategyAddBaseTokenOnly",
+            "label": "factory",
+            "type": "t_contract(ISwapFactoryLike)33636",
+            "src": "solidity/contracts/6/protocol/strategies/biswap/BiswapStrategyAddBaseTokenOnly.sol:38"
+          },
+          {
+            "contract": "BiswapStrategyAddBaseTokenOnly",
+            "label": "router",
+            "type": "t_contract(ISwapRouter02Like)34274",
+            "src": "solidity/contracts/6/protocol/strategies/biswap/BiswapStrategyAddBaseTokenOnly.sol:38"
+          },
+          {
+            "contract": "BiswapStrategyAddBaseTokenOnly",
+            "label": "okWorkers",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "solidity/contracts/6/protocol/strategies/biswap/BiswapStrategyAddBaseTokenOnly.sol:40"
+          }
+        ],
+        "types": {
+          "t_contract(ISwapFactoryLike)33636": {
+            "label": "contract ISwapFactoryLike"
+          },
+          "t_contract(ISwapRouter02Like)34274": {
+            "label": "contract ISwapRouter02Like"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "c90775994ea390a9ea53ecad3bc020a7d71e13b30cf5b40a9209c8d91d14a894": {
+      "address": "0x2F92c9ecfb933871A7F05C13757F61C2681301c6",
+      "txHash": "0x70ed30f0ba06b7c7b813c820bef45684bbb7dcc71127ba76b5dc10d7022d62f3",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:20"
+          },
+          {
+            "contract": "Initializable",
+            "label": "initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:25"
+          },
+          {
+            "contract": "Initializable",
+            "label": "______gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:60"
+          },
+          {
+            "contract": "ContextUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol:37"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:18"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:78"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "_notEntered",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:21"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:63"
+          },
+          {
+            "contract": "BiswapStrategyLiquidate",
+            "label": "factory",
+            "type": "t_contract(ISwapFactoryLike)33636",
+            "src": "solidity/contracts/6/protocol/strategies/biswap/BiswapStrategyLiquidate.sol:39"
+          },
+          {
+            "contract": "BiswapStrategyLiquidate",
+            "label": "router",
+            "type": "t_contract(ISwapRouter02Like)34274",
+            "src": "solidity/contracts/6/protocol/strategies/biswap/BiswapStrategyLiquidate.sol:39"
+          },
+          {
+            "contract": "BiswapStrategyLiquidate",
+            "label": "okWorkers",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "solidity/contracts/6/protocol/strategies/biswap/BiswapStrategyLiquidate.sol:41"
+          }
+        ],
+        "types": {
+          "t_contract(ISwapFactoryLike)33636": {
+            "label": "contract ISwapFactoryLike"
+          },
+          "t_contract(ISwapRouter02Like)34274": {
+            "label": "contract ISwapRouter02Like"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "3247498a9ea62d65bc010d8d0da81e38b32a1dc6554a427cb79846678097f018": {
+      "address": "0x3565b5989A838149a70d2e1B221cd30Ce0631799",
+      "txHash": "0xc9cd3c517134d55bbe03a72915d1724b7c28f8df1eae7fe1d7a7f82376926547",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:20"
+          },
+          {
+            "contract": "Initializable",
+            "label": "initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:25"
+          },
+          {
+            "contract": "Initializable",
+            "label": "______gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:60"
+          },
+          {
+            "contract": "ContextUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol:37"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:18"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:78"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "_notEntered",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:21"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:63"
+          },
+          {
+            "contract": "BiswapStrategyWithdrawMinimizeTrading",
+            "label": "factory",
+            "type": "t_contract(ISwapFactoryLike)33636",
+            "src": "solidity/contracts/6/protocol/strategies/biswap/BiswapStrategyWithdrawMinimizeTrading.sol:39"
+          },
+          {
+            "contract": "BiswapStrategyWithdrawMinimizeTrading",
+            "label": "router",
+            "type": "t_contract(ISwapRouter02Like)34274",
+            "src": "solidity/contracts/6/protocol/strategies/biswap/BiswapStrategyWithdrawMinimizeTrading.sol:40"
+          },
+          {
+            "contract": "BiswapStrategyWithdrawMinimizeTrading",
+            "label": "wftm",
+            "type": "t_address",
+            "src": "solidity/contracts/6/protocol/strategies/biswap/BiswapStrategyWithdrawMinimizeTrading.sol:42"
+          },
+          {
+            "contract": "BiswapStrategyWithdrawMinimizeTrading",
+            "label": "wNativeRelayer",
+            "type": "t_contract(IWNativeRelayer)34559",
+            "src": "solidity/contracts/6/protocol/strategies/biswap/BiswapStrategyWithdrawMinimizeTrading.sol:42"
+          },
+          {
+            "contract": "BiswapStrategyWithdrawMinimizeTrading",
+            "label": "okWorkers",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "solidity/contracts/6/protocol/strategies/biswap/BiswapStrategyWithdrawMinimizeTrading.sol:44"
+          }
+        ],
+        "types": {
+          "t_contract(ISwapFactoryLike)33636": {
+            "label": "contract ISwapFactoryLike"
+          },
+          "t_contract(ISwapRouter02Like)34274": {
+            "label": "contract ISwapRouter02Like"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_contract(IWNativeRelayer)34559": {
+            "label": "contract IWNativeRelayer"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "5d8a6a4a64df3a275f1efec669643cb7cbd874ef8402083a029350e4ea9722de": {
+      "address": "0xe85782aC932A8a4EE0B1C20C6C7B1688F939d20F",
+      "txHash": "0xcb30a286d70a2abe29644bd12abae4a7c78de81fe09f6fbb0b11ceef90fbfcc8",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:20"
+          },
+          {
+            "contract": "Initializable",
+            "label": "initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:25"
+          },
+          {
+            "contract": "Initializable",
+            "label": "______gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:60"
+          },
+          {
+            "contract": "ContextUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol:37"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:18"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:78"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "_notEntered",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:21"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:63"
+          },
+          {
+            "contract": "BiswapStrategyPartialCloseLiquidate",
+            "label": "factory",
+            "type": "t_contract(ISwapFactoryLike)33636",
+            "src": "solidity/contracts/6/protocol/strategies/biswap/BiswapStrategyPartialCloseLiquidate.sol:38"
+          },
+          {
+            "contract": "BiswapStrategyPartialCloseLiquidate",
+            "label": "router",
+            "type": "t_contract(ISwapRouter02Like)34274",
+            "src": "solidity/contracts/6/protocol/strategies/biswap/BiswapStrategyPartialCloseLiquidate.sol:38"
+          },
+          {
+            "contract": "BiswapStrategyPartialCloseLiquidate",
+            "label": "okWorkers",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "solidity/contracts/6/protocol/strategies/biswap/BiswapStrategyPartialCloseLiquidate.sol:40"
+          }
+        ],
+        "types": {
+          "t_contract(ISwapFactoryLike)33636": {
+            "label": "contract ISwapFactoryLike"
+          },
+          "t_contract(ISwapRouter02Like)34274": {
+            "label": "contract ISwapRouter02Like"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "5ac248e5a95f0a304c4f1ee4aa5f9da6c7f7f17f745b77f42dd385e7e2173ba8": {
+      "address": "0x55c89ef5f989a0A79fE0d21Ec72914Dea6De03d7",
+      "txHash": "0xf14ad6bba4100f1dd31bec918f68e3e3ac295346737191c51e8d7f220e37b69a",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:20"
+          },
+          {
+            "contract": "Initializable",
+            "label": "initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:25"
+          },
+          {
+            "contract": "Initializable",
+            "label": "______gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:60"
+          },
+          {
+            "contract": "ContextUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol:37"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:18"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:78"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "_notEntered",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:21"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:63"
+          },
+          {
+            "contract": "BiswapStrategyPartialCloseMinimizeTrading",
+            "label": "factory",
+            "type": "t_contract(ISwapFactoryLike)33636",
+            "src": "solidity/contracts/6/protocol/strategies/biswap/BiswapStrategyPartialCloseMinimizeTrading.sol:39"
+          },
+          {
+            "contract": "BiswapStrategyPartialCloseMinimizeTrading",
+            "label": "router",
+            "type": "t_contract(ISwapRouter02Like)34274",
+            "src": "solidity/contracts/6/protocol/strategies/biswap/BiswapStrategyPartialCloseMinimizeTrading.sol:40"
+          },
+          {
+            "contract": "BiswapStrategyPartialCloseMinimizeTrading",
+            "label": "wftm",
+            "type": "t_address",
+            "src": "solidity/contracts/6/protocol/strategies/biswap/BiswapStrategyPartialCloseMinimizeTrading.sol:42"
+          },
+          {
+            "contract": "BiswapStrategyPartialCloseMinimizeTrading",
+            "label": "wNativeRelayer",
+            "type": "t_contract(IWNativeRelayer)34559",
+            "src": "solidity/contracts/6/protocol/strategies/biswap/BiswapStrategyPartialCloseMinimizeTrading.sol:42"
+          },
+          {
+            "contract": "BiswapStrategyPartialCloseMinimizeTrading",
+            "label": "okWorkers",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "solidity/contracts/6/protocol/strategies/biswap/BiswapStrategyPartialCloseMinimizeTrading.sol:44"
+          }
+        ],
+        "types": {
+          "t_contract(ISwapFactoryLike)33636": {
+            "label": "contract ISwapFactoryLike"
+          },
+          "t_contract(ISwapRouter02Like)34274": {
+            "label": "contract ISwapRouter02Like"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_contract(IWNativeRelayer)34559": {
+            "label": "contract IWNativeRelayer"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "12c801036a13bf100c50297a9a00c4409c284e2ad03718217c2c08a0ce3eb90c": {
+      "address": "0x2765844510294784f5bC868533b0BADCD76BDd8b",
+      "txHash": "0x7457b8c6338d4da584b951daa9e523b8e9c892e8cf14e4c61462ccb429e52d62",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:20"
+          },
+          {
+            "contract": "Initializable",
+            "label": "initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:25"
+          },
+          {
+            "contract": "Initializable",
+            "label": "______gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:60"
+          },
+          {
+            "contract": "ContextUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol:37"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:18"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:78"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "_notEntered",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:21"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:63"
+          },
+          {
+            "contract": "BiswapStrategyAddTwoSidesOptimal",
+            "label": "factory",
+            "type": "t_contract(ISwapFactoryLike)33636",
+            "src": "solidity/contracts/6/protocol/strategies/biswap/BiswapStrategyAddTwoSidesOptimal.sol:40"
+          },
+          {
+            "contract": "BiswapStrategyAddTwoSidesOptimal",
+            "label": "router",
+            "type": "t_contract(ISwapRouter02Like)34274",
+            "src": "solidity/contracts/6/protocol/strategies/biswap/BiswapStrategyAddTwoSidesOptimal.sol:42"
+          },
+          {
+            "contract": "BiswapStrategyAddTwoSidesOptimal",
+            "label": "vault",
+            "type": "t_contract(IVault)34364",
+            "src": "solidity/contracts/6/protocol/strategies/biswap/BiswapStrategyAddTwoSidesOptimal.sol:44"
+          },
+          {
+            "contract": "BiswapStrategyAddTwoSidesOptimal",
+            "label": "okWorkers",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "solidity/contracts/6/protocol/strategies/biswap/BiswapStrategyAddTwoSidesOptimal.sol:44"
+          }
+        ],
+        "types": {
+          "t_contract(ISwapFactoryLike)33636": {
+            "label": "contract ISwapFactoryLike"
+          },
+          "t_contract(ISwapRouter02Like)34274": {
+            "label": "contract ISwapRouter02Like"
+          },
+          "t_contract(IVault)34364": {
+            "label": "contract IVault"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "e830e25d513f27f0bfe5bf2599b007c238bd5a367b2f802a5754ec88e8e39ae4": {
+      "address": "0xe4e9C2f8e5879D4c0f5c3034607ba164344885Da",
+      "txHash": "0x5e8763ca96b93c5c7def8ba3243ce066ead67e5f7bc5d958183ba5f0e0afad7b",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:20"
+          },
+          {
+            "contract": "Initializable",
+            "label": "initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:25"
+          },
+          {
+            "contract": "Initializable",
+            "label": "______gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:60"
+          },
+          {
+            "contract": "ContextUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol:37"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:18"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:78"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "_notEntered",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:21"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:63"
+          },
+          {
+            "contract": "BiswapWorker03",
+            "label": "biswapMasterChef",
+            "type": "t_contract(IBiswapMasterChef)32666",
+            "src": "solidity/contracts/6/protocol/workers/Biswap/BiswapWorker03.sol:66"
+          },
+          {
+            "contract": "BiswapWorker03",
+            "label": "factory",
+            "type": "t_contract(ISwapFactoryLike)33636",
+            "src": "solidity/contracts/6/protocol/workers/Biswap/BiswapWorker03.sol:68"
+          },
+          {
+            "contract": "BiswapWorker03",
+            "label": "router",
+            "type": "t_contract(ISwapRouter02Like)34274",
+            "src": "solidity/contracts/6/protocol/workers/Biswap/BiswapWorker03.sol:68"
+          },
+          {
+            "contract": "BiswapWorker03",
+            "label": "lpToken",
+            "type": "t_contract(ISwapPairLike)33878",
+            "src": "solidity/contracts/6/protocol/workers/Biswap/BiswapWorker03.sol:70"
+          },
+          {
+            "contract": "BiswapWorker03",
+            "label": "wNative",
+            "type": "t_address",
+            "src": "solidity/contracts/6/protocol/workers/Biswap/BiswapWorker03.sol:71"
+          },
+          {
+            "contract": "BiswapWorker03",
+            "label": "baseToken",
+            "type": "t_address",
+            "src": "solidity/contracts/6/protocol/workers/Biswap/BiswapWorker03.sol:71"
+          },
+          {
+            "contract": "BiswapWorker03",
+            "label": "farmingToken",
+            "type": "t_address",
+            "src": "solidity/contracts/6/protocol/workers/Biswap/BiswapWorker03.sol:73"
+          },
+          {
+            "contract": "BiswapWorker03",
+            "label": "bsw",
+            "type": "t_address",
+            "src": "solidity/contracts/6/protocol/workers/Biswap/BiswapWorker03.sol:76"
+          },
+          {
+            "contract": "BiswapWorker03",
+            "label": "operator",
+            "type": "t_address",
+            "src": "solidity/contracts/6/protocol/workers/Biswap/BiswapWorker03.sol:76"
+          },
+          {
+            "contract": "BiswapWorker03",
+            "label": "pid",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/Biswap/BiswapWorker03.sol:77"
+          },
+          {
+            "contract": "BiswapWorker03",
+            "label": "shares",
+            "type": "t_mapping(t_uint256,t_uint256)",
+            "src": "solidity/contracts/6/protocol/workers/Biswap/BiswapWorker03.sol:79"
+          },
+          {
+            "contract": "BiswapWorker03",
+            "label": "okStrats",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "solidity/contracts/6/protocol/workers/Biswap/BiswapWorker03.sol:80"
+          },
+          {
+            "contract": "BiswapWorker03",
+            "label": "totalShare",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/Biswap/BiswapWorker03.sol:82"
+          },
+          {
+            "contract": "BiswapWorker03",
+            "label": "addStrat",
+            "type": "t_contract(IStrategy)33394",
+            "src": "solidity/contracts/6/protocol/workers/Biswap/BiswapWorker03.sol:83"
+          },
+          {
+            "contract": "BiswapWorker03",
+            "label": "liqStrat",
+            "type": "t_contract(IStrategy)33394",
+            "src": "solidity/contracts/6/protocol/workers/Biswap/BiswapWorker03.sol:84"
+          },
+          {
+            "contract": "BiswapWorker03",
+            "label": "reinvestBountyBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/Biswap/BiswapWorker03.sol:84"
+          },
+          {
+            "contract": "BiswapWorker03",
+            "label": "maxReinvestBountyBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/Biswap/BiswapWorker03.sol:85"
+          },
+          {
+            "contract": "BiswapWorker03",
+            "label": "okReinvestors",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "solidity/contracts/6/protocol/workers/Biswap/BiswapWorker03.sol:86"
+          },
+          {
+            "contract": "BiswapWorker03",
+            "label": "feeDenom",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/Biswap/BiswapWorker03.sol:89"
+          },
+          {
+            "contract": "BiswapWorker03",
+            "label": "reinvestThreshold",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/Biswap/BiswapWorker03.sol:90"
+          },
+          {
+            "contract": "BiswapWorker03",
+            "label": "reinvestPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "solidity/contracts/6/protocol/workers/Biswap/BiswapWorker03.sol:91"
+          },
+          {
+            "contract": "BiswapWorker03",
+            "label": "treasuryAccount",
+            "type": "t_address",
+            "src": "solidity/contracts/6/protocol/workers/Biswap/BiswapWorker03.sol:92"
+          },
+          {
+            "contract": "BiswapWorker03",
+            "label": "treasuryBountyBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/Biswap/BiswapWorker03.sol:93"
+          },
+          {
+            "contract": "BiswapWorker03",
+            "label": "beneficialVault",
+            "type": "t_contract(IVault)34364",
+            "src": "solidity/contracts/6/protocol/workers/Biswap/BiswapWorker03.sol:93"
+          },
+          {
+            "contract": "BiswapWorker03",
+            "label": "beneficialVaultBountyBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/Biswap/BiswapWorker03.sol:94"
+          },
+          {
+            "contract": "BiswapWorker03",
+            "label": "rewardPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "solidity/contracts/6/protocol/workers/Biswap/BiswapWorker03.sol:97"
+          },
+          {
+            "contract": "BiswapWorker03",
+            "label": "buybackAmount",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/Biswap/BiswapWorker03.sol:98"
+          }
+        ],
+        "types": {
+          "t_contract(IBiswapMasterChef)32666": {
+            "label": "contract IBiswapMasterChef"
+          },
+          "t_contract(ISwapFactoryLike)33636": {
+            "label": "contract ISwapFactoryLike"
+          },
+          "t_contract(ISwapRouter02Like)34274": {
+            "label": "contract ISwapRouter02Like"
+          },
+          "t_contract(ISwapPairLike)33878": {
+            "label": "contract ISwapPairLike"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_uint256,t_uint256)": {
+            "label": "mapping(uint256 => uint256)"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_contract(IStrategy)33394": {
+            "label": "contract IStrategy"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]"
+          },
+          "t_contract(IVault)34364": {
+            "label": "contract IVault"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "4c72d56fe0359bf819bc828a1d85e0b7db39afc5647afdfdaaf7ce0126c7543f": {
+      "address": "0x969D1FDC6dCf3195f78990E14634a30FBf06112f",
+      "txHash": "0x1017fbd72bc62ee1a30715c63ecf7e4ba70fdd48667be8fe3e75ba5ba43c4475",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:20"
+          },
+          {
+            "contract": "Initializable",
+            "label": "initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:25"
+          },
+          {
+            "contract": "Initializable",
+            "label": "______gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:60"
+          },
+          {
+            "contract": "ContextUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol:37"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:18"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:78"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "_notEntered",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:21"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:63"
+          },
+          {
+            "contract": "CakeMaxiWorker02MCV2",
+            "label": "masterChef",
+            "type": "t_contract(IPancakeMasterChef)33006",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:64"
+          },
+          {
+            "contract": "CakeMaxiWorker02MCV2",
+            "label": "factory",
+            "type": "t_contract(IPancakeFactory)32938",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:66"
+          },
+          {
+            "contract": "CakeMaxiWorker02MCV2",
+            "label": "router",
+            "type": "t_contract(IPancakeRouter02)21574",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:66"
+          },
+          {
+            "contract": "CakeMaxiWorker02MCV2",
+            "label": "lpToken",
+            "type": "t_contract(IPancakePair)33313",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:68"
+          },
+          {
+            "contract": "CakeMaxiWorker02MCV2",
+            "label": "wNative",
+            "type": "t_address",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:69"
+          },
+          {
+            "contract": "CakeMaxiWorker02MCV2",
+            "label": "baseToken",
+            "type": "t_address",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:69"
+          },
+          {
+            "contract": "CakeMaxiWorker02MCV2",
+            "label": "farmingToken",
+            "type": "t_address",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:71"
+          },
+          {
+            "contract": "CakeMaxiWorker02MCV2",
+            "label": "operator",
+            "type": "t_address",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:72"
+          },
+          {
+            "contract": "CakeMaxiWorker02MCV2",
+            "label": "pid",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:74"
+          },
+          {
+            "contract": "CakeMaxiWorker02MCV2",
+            "label": "beneficialVault",
+            "type": "t_contract(IVault)34364",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:74"
+          },
+          {
+            "contract": "CakeMaxiWorker02MCV2",
+            "label": "shares",
+            "type": "t_mapping(t_uint256,t_uint256)",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:76"
+          },
+          {
+            "contract": "CakeMaxiWorker02MCV2",
+            "label": "okStrats",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:77"
+          },
+          {
+            "contract": "CakeMaxiWorker02MCV2",
+            "label": "totalShare",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:79"
+          },
+          {
+            "contract": "CakeMaxiWorker02MCV2",
+            "label": "addStrat",
+            "type": "t_contract(IStrategy)33394",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:80"
+          },
+          {
+            "contract": "CakeMaxiWorker02MCV2",
+            "label": "liqStrat",
+            "type": "t_contract(IStrategy)33394",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:81"
+          },
+          {
+            "contract": "CakeMaxiWorker02MCV2",
+            "label": "beneficialVaultBountyBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:81"
+          },
+          {
+            "contract": "CakeMaxiWorker02MCV2",
+            "label": "reinvestBountyBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:82"
+          },
+          {
+            "contract": "CakeMaxiWorker02MCV2",
+            "label": "maxReinvestBountyBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:84"
+          },
+          {
+            "contract": "CakeMaxiWorker02MCV2",
+            "label": "rewardBalance",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:84"
+          },
+          {
+            "contract": "CakeMaxiWorker02MCV2",
+            "label": "okReinvestors",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:85"
+          },
+          {
+            "contract": "CakeMaxiWorker02MCV2",
+            "label": "path",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:88"
+          },
+          {
+            "contract": "CakeMaxiWorker02MCV2",
+            "label": "rewardPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:88"
+          },
+          {
+            "contract": "CakeMaxiWorker02MCV2",
+            "label": "fee",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:92"
+          },
+          {
+            "contract": "CakeMaxiWorker02MCV2",
+            "label": "feeDenom",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:92"
+          },
+          {
+            "contract": "CakeMaxiWorker02MCV2",
+            "label": "reinvestThreshold",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:95"
+          },
+          {
+            "contract": "CakeMaxiWorker02MCV2",
+            "label": "treasuryAccount",
+            "type": "t_address",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:96"
+          },
+          {
+            "contract": "CakeMaxiWorker02MCV2",
+            "label": "treasuryBountyBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:98"
+          },
+          {
+            "contract": "CakeMaxiWorker02MCV2",
+            "label": "buybackAmount",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:98"
+          },
+          {
+            "contract": "CakeMaxiWorker02MCV2",
+            "label": "cakePool",
+            "type": "t_contract(ICakePool)32758",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:100"
+          },
+          {
+            "contract": "CakeMaxiWorker02MCV2",
+            "label": "accumulatedBounty",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:102"
+          },
+          {
+            "contract": "CakeMaxiWorker02MCV2",
+            "label": "lastCakePoolActionTime",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:103"
+          },
+          {
+            "contract": "CakeMaxiWorker02MCV2",
+            "label": "lastReinvestTime",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2.sol:106"
+          }
+        ],
+        "types": {
+          "t_contract(IPancakeMasterChef)33006": {
+            "label": "contract IPancakeMasterChef"
+          },
+          "t_contract(IPancakeFactory)32938": {
+            "label": "contract IPancakeFactory"
+          },
+          "t_contract(IPancakeRouter02)21574": {
+            "label": "contract IPancakeRouter02"
+          },
+          "t_contract(IPancakePair)33313": {
+            "label": "contract IPancakePair"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_contract(IVault)34364": {
+            "label": "contract IVault"
+          },
+          "t_mapping(t_uint256,t_uint256)": {
+            "label": "mapping(uint256 => uint256)"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_contract(IStrategy)33394": {
+            "label": "contract IStrategy"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]"
+          },
+          "t_contract(ICakePool)32758": {
+            "label": "contract ICakePool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
           }
         }
       }
