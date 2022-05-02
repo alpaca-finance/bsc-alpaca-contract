@@ -16,6 +16,7 @@ import { VaultLike } from "../interfaces/VaultLike.sol";
 import { NFTBoostedLeverageControllerLike } from "../interfaces/NFTBoostedLeverageControllerLike.sol";
 import { NFTStakingLike } from "../interfaces/NFTStakingLike.sol";
 import { MockNFTLike } from "../interfaces/MockNFTLike.sol";
+import { MockPancakeswapV2WorkerLike } from "../interfaces/MockPancakeswapV2WorkerLike.sol";
 
 // solhint-disable const-name-snakecase
 // solhint-disable no-inline-assembly
@@ -26,7 +27,6 @@ contract BaseTest is DSTest {
   address internal constant EVE = address(0x55);
 
   VM internal constant vm = VM(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
-
   ProxyAdminLike internal proxyAdmin;
 
   constructor() {
@@ -153,25 +153,33 @@ contract BaseTest is DSTest {
     bytes memory _logicBytecode = abi.encodePacked(vm.getCode("./out/MockNFT.sol/MockNFT.json"));
     bytes memory _initializer = abi.encodeWithSelector(bytes4(keccak256("initialize()")));
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
-    return MockNFTLike(_proxy);
+    return MockNFTLike(payable(_proxy));
   }
 
   function _setupNFTStaking() internal returns (NFTStakingLike) {
     bytes memory _logicBytecode = abi.encodePacked(vm.getCode("./out/NFTStaking.sol/NFTStaking.json"));
     bytes memory _initializer = abi.encodeWithSelector(bytes4(keccak256("initialize()")));
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
-    return NFTStakingLike(_proxy);
+    return NFTStakingLike(payable(_proxy));
   }
 
-  function _setupNFTBoostedLeverageController(NFTStakingLike _nftStaking)
-    internal
-    returns (NFTBoostedLeverageControllerLike)
-  {
+  function _setupNFTBoostedLeverageController(address _nftStaking) internal returns (NFTBoostedLeverageControllerLike) {
     bytes memory _logicBytecode = abi.encodePacked(
       vm.getCode("./out/NFTBoostedLeverageController.sol/NFTBoostedLeverageController.json")
     );
-    bytes memory _initializer = abi.encodeWithSelector(bytes4(keccak256("initialize(INFTStaking)")), _nftStaking);
+    bytes memory _initializer = abi.encodeWithSelector(bytes4(keccak256("initialize(address)")), _nftStaking);
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
-    return NFTBoostedLeverageControllerLike(payable(_proxy));
+    return NFTBoostedLeverageControllerLike(_proxy);
+  }
+
+  function _setupPancakeswapV2Worker() internal returns (MockPancakeswapV2WorkerLike) {
+    bytes memory _bytecode = abi.encodePacked(
+      vm.getCode("./out/MockPancakeswapV2Worker.sol/MockPancakeswapV2Worker.json")
+    );
+    address _address;
+    assembly {
+      _address := create(0, add(_bytecode, 0x20), mload(_bytecode))
+    }
+    return MockPancakeswapV2WorkerLike(address(_address));
   }
 }

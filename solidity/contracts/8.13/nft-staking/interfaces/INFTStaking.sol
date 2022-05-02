@@ -14,7 +14,7 @@ Alpaca Fin Corporation
 pragma solidity 0.8.13;
 
 interface INFTStaking {
-  function userHighestWeightPoolId(address _user) external view returns (bytes32);
+  function userHighestWeightPoolId(address _user) external view returns (address);
 
-  function isStaked(bytes32 _poolId, address _user) external view returns (bool);
+  function isStaked(address _poolId, address _user, uint256 _nftTokenId) external view returns (bool);
 }

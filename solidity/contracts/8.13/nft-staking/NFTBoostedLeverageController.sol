@@ -26,8 +26,8 @@ contract NFTBoostedLeverageController is INFTBoostedLeverageController, OwnableU
 
   /// ------ States ------
   // poolIds => worker => boostNumber
-  mapping(bytes32 => mapping(address => uint256)) public boostedWorkFactors;
-  mapping(bytes32 => mapping(address => uint256)) public boostedKillFactors;
+  mapping(address => mapping(address => uint256)) public boostedWorkFactors;
+  mapping(address => mapping(address => uint256)) public boostedKillFactors;
 
   INFTStaking public nftStaking;
 
@@ -39,24 +39,24 @@ contract NFTBoostedLeverageController is INFTBoostedLeverageController, OwnableU
     nftStaking = _nftStaking;
   }
 
-  function getBoostedWorkFactor(address _owner, address _worker) external view override returns (uint256) {
-    bytes32 poolId = nftStaking.userHighestWeightPoolId(_owner);
-    if (INFTStaking(nftStaking).isStaked(poolId, _owner)) {
+  function getBoostedWorkFactor(address _owner, address _worker, uint256 _nftTokenId) external view override returns (uint256) {
+    address poolId = nftStaking.userHighestWeightPoolId(_owner);
+    if (INFTStaking(nftStaking).isStaked(poolId, _owner, _nftTokenId)) {
       return boostedWorkFactors[poolId][_worker];
     }
     return 0;
   }
 
-  function getBoostedKillFactor(address _owner, address _worker) external view override returns (uint256) {
-    bytes32 poolId = nftStaking.userHighestWeightPoolId(_owner);
-    if (INFTStaking(nftStaking).isStaked(poolId, _owner)) {
+  function getBoostedKillFactor(address _owner, address _worker, uint256 _nftTokenId) external view override returns (uint256) {
+    address poolId = nftStaking.userHighestWeightPoolId(_owner);
+    if (INFTStaking(nftStaking).isStaked(poolId, _owner, _nftTokenId)) {
       return boostedKillFactors[poolId][_worker];
     }
     return 0;
   }
 
   function setBoosted(
-    bytes32[] calldata _poolIds,
+    address[] calldata _poolIds,
     address[] calldata _workers,
     uint256[] calldata _workFactors,
     uint256[] calldata _killFactors

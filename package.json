@@ -487,6 +487,7 @@
   "dependencies": {
     "@nomiclabs/hardhat-vyper": "^2.0.1",
     "@openzeppelin/contracts-upgradeable": "^4.5.1",
-    "@rari-capital/solmate": "^6.2.0"
+    "@rari-capital/solmate": "^6.2.0",
+    "abi-to-sol": "^0.5.2"
   }
 }
