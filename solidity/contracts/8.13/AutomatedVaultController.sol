@@ -36,11 +36,15 @@ contract AutomatedVaultController is OwnableUpgradeable {
     creditors = _creditors;
   }
 
-  function totalCredit(address _user) external view returns (uint256) {
+  function totalCredit(address _user) public view returns (uint256) {
     uint256 _total = 0;
     for (uint8 _i = 0; _i < creditors.length; _i++) {
       _total = _total + creditors[_i].getUserCredit(_user);
     }
     return _total;
+  }
+
+  function usedCredit(address _user) public view returns (uint256) {
+    return 0;
   }
 }

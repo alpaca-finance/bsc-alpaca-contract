@@ -11,10 +11,8 @@
 Alpaca Fin Corporation
 */
 
-pragma solidity >=0.8.4 <0.9.0;
+pragma solidity 0.8.13;
 
-interface AutomatedVaultControllerLike {
-  function totalCredit(address _user) external view returns (uint256);
-
-  function usedCredit(address _user) external view returns (uint256);
+interface IDeltaNeutralVault {
+  function shareToValue(uint256 _shareAmount) external view returns (uint256);
 }
