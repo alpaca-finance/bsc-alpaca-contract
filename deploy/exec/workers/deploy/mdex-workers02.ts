@@ -1,18 +1,20 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers, upgrades } from "hardhat";
+import { ethers } from "hardhat";
 import {
+  ConfigurableInterestVaultConfig__factory,
   MdexRestrictedStrategyAddBaseTokenOnly__factory,
-  MdexRestrictedStrategyAddTwoSidesOptimal__factory,
-  MdexRestrictedStrategyLiquidate__factory,
-  MdexRestrictedStrategyPartialCloseLiquidate__factory,
-  MdexRestrictedStrategyPartialCloseMinimizeTrading__factory,
-  MdexRestrictedStrategyWithdrawMinimizeTrading__factory,
   MdexWorker02,
-  MdexWorker02__factory,
   Timelock__factory,
+  WorkerConfig__factory,
 } from "../../../../typechain";
-import { ConfigEntity } from "../../../entities";
+import { TimelockEntity } from "../../../entities";
+import { getDeployer } from "../../../../utils/deployer-helper";
+import { ConfigFileHelper } from "../../../helper";
+import { UpgradeableContractDeployer } from "../../../deployer";
+import { compare } from "../../../../utils/address";
+import { TimelockService, fileService } from "../../../services";
+import { WorkersEntity } from "../../../interfaces/config";
 
 interface IMdexWorkerInput {
   VAULT_SYMBOL: string;
@@ -64,6 +66,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
+
+  const executeFileTitle = "mdex-workers02";
+  const timelockTransactions: Array<TimelockEntity.Transaction> = [];
+
   const shortWorkerInfos: IMdexWorkerInput[] = [
     {
       VAULT_SYMBOL: "ibBTCB",
@@ -145,7 +151,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     },
   ];
 
-  const config = ConfigEntity.getConfig();
+  const deployer = await getDeployer();
+
+  const configFileHelper = new ConfigFileHelper();
+  let config = configFileHelper.getConfig();
+
   const workerInfos: IMdexWorkerInfo[] = shortWorkerInfos.map((n) => {
     const vault = config.Vaults.find((v) => v.symbol === n.VAULT_SYMBOL);
     if (vault === undefined) {
@@ -189,15 +199,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   });
 
   for (let i = 0; i < workerInfos.length; i++) {
-    console.log("===================================================================================");
-    console.log(`>> Deploying an upgradable MdexWorker02 contract for ${workerInfos[i].WORKER_NAME}`);
-    const MdexWorker02 = (await ethers.getContractFactory(
+    const contractDeployer = new UpgradeableContractDeployer<MdexWorker02>(
+      deployer,
       "MdexWorker02",
-      (
-        await ethers.getSigners()
-      )[0]
-    )) as MdexWorker02__factory;
-    const mdexWorker02 = (await upgrades.deployProxy(MdexWorker02, [
+      workerInfos[i].WORKER_NAME
+    );
+
+    const { contract: mdexWorker02, deployedBlock } = await contractDeployer.deploy([
       workerInfos[i].VAULT_ADDR,
       workerInfos[i].BASE_TOKEN_ADDR,
       workerInfos[i].BSC_POOL,
@@ -209,74 +217,48 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       workerInfos[i].REINVEST_BOT,
       workerInfos[i].REINVEST_PATH,
       workerInfos[i].REINVEST_THRESHOLD,
-    ])) as MdexWorker02;
-    await mdexWorker02.deployed();
-    console.log(`>> Deployed at ${mdexWorker02.address}`);
+    ]);
 
     console.log(`>> Adding REINVEST_BOT`);
     await mdexWorker02.setReinvestorOk([workerInfos[i].REINVEST_BOT], true);
     console.log("✅ Done");
 
+    let nonce = await deployer.getTransactionCount();
+
     console.log(`>> Adding Strategies`);
-    const okStrats = [workerInfos[i].TWO_SIDES_STRAT_ADDR, workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR];
-    if (workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR != "") {
-      okStrats.push(workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR);
-    }
-    if (workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR != "") {
-      okStrats.push(workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR);
-    }
-    await mdexWorker02.setStrategyOk(okStrats, true);
-    console.log("✅ Done");
-
-    console.log(`>> Whitelisting a worker on strats`);
-    const addStrat = MdexRestrictedStrategyAddBaseTokenOnly__factory.connect(
-      workerInfos[i].ADD_STRAT_ADDR,
-      (await ethers.getSigners())[0]
-    );
-    await addStrat.setWorkersOk([mdexWorker02.address], true);
-    const liqStrat = MdexRestrictedStrategyLiquidate__factory.connect(
-      workerInfos[i].LIQ_STRAT_ADDR,
-      (await ethers.getSigners())[0]
-    );
-    await liqStrat.setWorkersOk([mdexWorker02.address], true);
-    const twoSidesStrat = MdexRestrictedStrategyAddTwoSidesOptimal__factory.connect(
+    const okStrats = [
       workerInfos[i].TWO_SIDES_STRAT_ADDR,
-      (await ethers.getSigners())[0]
-    );
-    await twoSidesStrat.setWorkersOk([mdexWorker02.address], true);
-    const minimizeStrat = MdexRestrictedStrategyWithdrawMinimizeTrading__factory.connect(
       workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR,
-      (await ethers.getSigners())[0]
-    );
-    await minimizeStrat.setWorkersOk([mdexWorker02.address], true);
+      workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR,
+      workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR,
+    ];
 
-    if (workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR != "") {
-      console.log(">> partial close liquidate is deployed");
-      const partialCloseLiquidate = MdexRestrictedStrategyPartialCloseLiquidate__factory.connect(
-        workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR,
-        (await ethers.getSigners())[0]
-      );
-      await partialCloseLiquidate.setWorkersOk([mdexWorker02.address], true);
-    }
+    await mdexWorker02.setStrategyOk(okStrats, true, { nonce: nonce++ });
+    console.log("✅ Done");
+    console.log(`>> Whitelisting a worker on ok strats`);
+    const allOkStrats = [workerInfos[i].ADD_STRAT_ADDR, workerInfos[i].LIQ_STRAT_ADDR, ...okStrats];
 
-    if (workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR != "") {
-      console.log(">> partial close minimize is deployed");
-      const partialCloseMinimize = MdexRestrictedStrategyPartialCloseMinimizeTrading__factory.connect(
-        workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR,
-        (await ethers.getSigners())[0]
-      );
-      await partialCloseMinimize.setWorkersOk([mdexWorker02.address], true);
+    for (const stratAddress of allOkStrats) {
+      // NOTE: all MdexRestrictedStrategy have the same signature of func setWorkersOk.
+      //       then we can use any MdexRestrictedStrategy factory for all MdexRestrictedStrategy addresses
+      const contractFactory = MdexRestrictedStrategyAddBaseTokenOnly__factory.connect(stratAddress, deployer);
+      await contractFactory.setWorkersOk([mdexWorker02.address], true, { nonce: nonce++ });
     }
     console.log("✅ Done");
 
-    const timelock = Timelock__factory.connect(workerInfos[i].TIMELOCK, (await ethers.getSigners())[0]);
+    const workerConfig = WorkerConfig__factory.connect(workerInfos[i].WORKER_CONFIG_ADDR, deployer);
+    const vaultConfig = ConfigurableInterestVaultConfig__factory.connect(workerInfos[i].VAULT_CONFIG_ADDR, deployer);
 
-    console.log(">> Timelock: Setting WorkerConfig via Timelock");
-    const setConfigsTx = await timelock.queueTransaction(
-      workerInfos[i].WORKER_CONFIG_ADDR,
-      "0",
-      "setConfigs(address[],(bool,uint64,uint64,uint64)[])",
-      ethers.utils.defaultAbiCoder.encode(
+    const timelock = Timelock__factory.connect(workerInfos[i].TIMELOCK, deployer);
+
+    const [workerOwnerAddress, vaultOwnerAddress] = await Promise.all([workerConfig.owner(), vaultConfig.owner()]);
+
+    if (compare(workerOwnerAddress, timelock.address)) {
+      const setConfigsTx = await TimelockService.queueTransaction(
+        `>> Queue tx on Timelock Setting WorkerConfig via Timelock at ${workerInfos[i].WORKER_CONFIG_ADDR} for ${mdexWorker02.address} ETA ${workerInfos[i].EXACT_ETA}`,
+        workerInfos[i].WORKER_CONFIG_ADDR,
+        "0",
+        "setConfigs(address[],(bool,uint64,uint64,uint64)[])",
         ["address[]", "(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]"],
         [
           [mdexWorker02.address],
@@ -288,34 +270,90 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
               maxPriceDiff: workerInfos[i].MAX_PRICE_DIFF,
             },
           ],
-        ]
-      ),
-      workerInfos[i].EXACT_ETA
-    );
-    console.log(`queue setConfigs at: ${setConfigsTx.hash}`);
-    console.log("generate timelock.executeTransaction:");
-    console.log(
-      `await timelock.executeTransaction('${workerInfos[i].WORKER_CONFIG_ADDR}', '0', 'setConfigs(address[],(bool,uint64,uint64,uint64)[])', ethers.utils.defaultAbiCoder.encode(['address[]','(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]'],[['${mdexWorker02.address}'], [{acceptDebt: true, workFactor: ${workerInfos[i].WORK_FACTOR}, killFactor: ${workerInfos[i].KILL_FACTOR}, maxPriceDiff: ${workerInfos[i].MAX_PRICE_DIFF}}]]), ${workerInfos[i].EXACT_ETA})`
-    );
-    console.log("✅ Done");
+        ],
+        workerInfos[i].EXACT_ETA,
+        { gasPrice: ethers.utils.parseUnits("15", "gwei"), nonce: nonce++ }
+      );
+      console.log(`queue setConfigs at: ${setConfigsTx.queuedAt}`);
+      console.log("generate timelock.executeTransaction:");
+      console.log(
+        `await timelock.executeTransaction('${workerInfos[i].WORKER_CONFIG_ADDR}', '0', 'setConfigs(address[],(bool,uint64,uint64,uint64)[])', ethers.utils.defaultAbiCoder.encode(['address[]','(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]'],[['${mdexWorker02.address}'], [{acceptDebt: true, workFactor: ${workerInfos[i].WORK_FACTOR}, killFactor: ${workerInfos[i].KILL_FACTOR}, maxPriceDiff: ${workerInfos[i].MAX_PRICE_DIFF}}]]), ${workerInfos[i].EXACT_ETA})`
+      );
+      timelockTransactions.push(setConfigsTx);
+      fileService.writeJson(executeFileTitle, timelockTransactions);
+      console.log("✅ Done");
+    } else {
+      console.log(">> Setting WorkerConfig");
+      (
+        await workerConfig.setConfigs(
+          [mdexWorker02.address],
+          [
+            {
+              acceptDebt: true,
+              workFactor: workerInfos[i].WORK_FACTOR,
+              killFactor: workerInfos[i].KILL_FACTOR,
+              maxPriceDiff: workerInfos[i].MAX_PRICE_DIFF,
+            },
+          ],
+          { nonce: nonce++ }
+        )
+      ).wait(3);
+      console.log("✅ Done");
+    }
 
-    console.log(">> Timelock: Linking VaultConfig with WorkerConfig via Timelock");
-    const setWorkersTx = await timelock.queueTransaction(
-      workerInfos[i].VAULT_CONFIG_ADDR,
-      "0",
-      "setWorkers(address[],address[])",
-      ethers.utils.defaultAbiCoder.encode(
+    if (compare(vaultOwnerAddress, timelock.address)) {
+      const setWorkersTx = await TimelockService.queueTransaction(
+        `>> Queue tx on Timelock Linking VaultConfig with WorkerConfig via Timelock for ${workerInfos[i].VAULT_CONFIG_ADDR}`,
+        workerInfos[i].VAULT_CONFIG_ADDR,
+        "0",
+        "setWorkers(address[],address[])",
         ["address[]", "address[]"],
-        [[mdexWorker02.address], [workerInfos[i].WORKER_CONFIG_ADDR]]
-      ),
-      workerInfos[i].EXACT_ETA
-    );
-    console.log(`queue setWorkers at: ${setWorkersTx.hash}`);
-    console.log("generate timelock.executeTransaction:");
-    console.log(
-      `await timelock.executeTransaction('${workerInfos[i].VAULT_CONFIG_ADDR}', '0','setWorkers(address[],address[])', ethers.utils.defaultAbiCoder.encode(['address[]','address[]'],[['${mdexWorker02.address}'], ['${workerInfos[i].WORKER_CONFIG_ADDR}']]), ${workerInfos[i].EXACT_ETA})`
-    );
-    console.log("✅ Done");
+        [[mdexWorker02.address], [workerInfos[i].WORKER_CONFIG_ADDR]],
+        workerInfos[i].EXACT_ETA,
+        { gasPrice: ethers.utils.parseUnits("15", "gwei"), nonce: nonce++ }
+      );
+
+      console.log(`queue setWorkers at: ${setWorkersTx.queuedAt}`);
+      console.log("generate timelock.executeTransaction:");
+      console.log(
+        `await timelock.executeTransaction('${workerInfos[i].VAULT_CONFIG_ADDR}', '0','setWorkers(address[],address[])', ethers.utils.defaultAbiCoder.encode(['address[]','address[]'],[['${mdexWorker02.address}'], ['${workerInfos[i].WORKER_CONFIG_ADDR}']]), ${workerInfos[i].EXACT_ETA})`
+      );
+      timelockTransactions.push(setWorkersTx);
+      fileService.writeJson(executeFileTitle, timelockTransactions);
+      console.log("✅ Done");
+    } else {
+      console.log(">> Linking VaultConfig with WorkerConfig");
+      (
+        await vaultConfig.setWorkers([mdexWorker02.address], [workerInfos[i].WORKER_CONFIG_ADDR], {
+          nonce: nonce++,
+        })
+      ).wait(3);
+      console.log("✅ Done");
+    }
+
+    const lpPoolAddress = config.YieldSources.Biswap!.pools.find(
+      (pool) => pool.pId === workerInfos[i].POOL_ID
+    )!.address;
+
+    const workersEntity: WorkersEntity = {
+      name: workerInfos[i].WORKER_NAME,
+      address: mdexWorker02.address,
+      deployedBlock: deployedBlock,
+      config: workerInfos[i].WORKER_CONFIG_ADDR,
+      pId: workerInfos[i].POOL_ID,
+      stakingToken: lpPoolAddress,
+      stakingTokenAt: workerInfos[i].BSC_POOL,
+      strategies: {
+        StrategyAddAllBaseToken: workerInfos[i].ADD_STRAT_ADDR,
+        StrategyLiquidate: workerInfos[i].LIQ_STRAT_ADDR,
+        StrategyAddTwoSidesOptimal: workerInfos[i].TWO_SIDES_STRAT_ADDR,
+        StrategyWithdrawMinimizeTrading: workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR,
+        StrategyPartialCloseLiquidate: workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR,
+        StrategyPartialCloseMinimizeTrading: workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR,
+      },
+    };
+
+    config = configFileHelper.addOrSetVaultWorker(workerInfos[i].VAULT_ADDR, workersEntity);
   }
 };
 
