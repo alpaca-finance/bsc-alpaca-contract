@@ -16,6 +16,7 @@ import { DebtTokenLike } from "../interfaces/DebtTokenLike.sol";
 import { SimpleVaultConfigLike } from "../interfaces/SimpleVaultConfigLike.sol";
 import { VaultLike } from "../interfaces/VaultLike.sol";
 import { xALPACACreditorLike } from "../interfaces/xALPACACreditorLike.sol";
+import { AutomatedVaultControllerLike } from "../interfaces/AutomatedVaultControllerLike.sol";
 
 // solhint-disable const-name-snakecase
 // solhint-disable no-inline-assembly
@@ -171,5 +172,14 @@ contract BaseTest is DSTest {
     );
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
     return xALPACACreditorLike(_proxy);
+  }
+
+  function _setupxAutomatedVaultController(address _creditor) internal returns (AutomatedVaultControllerLike) {
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/AutomatedVaultController.sol/AutomatedVaultController.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(bytes4(keccak256("initialize(address)")), _creditor);
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return AutomatedVaultControllerLike(_proxy);
   }
 }
