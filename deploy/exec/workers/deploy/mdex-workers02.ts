@@ -232,9 +232,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR,
       workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR,
     ];
-
     await mdexWorker02.setStrategyOk(okStrats, true, { nonce: nonce++ });
     console.log("✅ Done");
+
     console.log(`>> Whitelisting a worker on ok strats`);
     const allOkStrats = [workerInfos[i].ADD_STRAT_ADDR, workerInfos[i].LIQ_STRAT_ADDR, ...okStrats];
 
@@ -331,9 +331,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       console.log("✅ Done");
     }
 
-    const lpPoolAddress = config.YieldSources.Biswap!.pools.find(
-      (pool) => pool.pId === workerInfos[i].POOL_ID
-    )!.address;
+    const lpPoolAddress = config.YieldSources.Mdex!.pools.find((pool) => pool.pId === workerInfos[i].POOL_ID)!.address;
 
     const workersEntity: WorkersEntity = {
       name: workerInfos[i].WORKER_NAME,
