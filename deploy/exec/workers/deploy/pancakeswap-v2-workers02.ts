@@ -301,8 +301,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       console.log("✅ Done");
     }
 
-    // TODO: confirm yield source
-    const lpPoolAddress = config.YieldSources.PancakeswapMasterChefV2!.pools.find(
+    const lpPoolAddress = config.YieldSources.Pancakeswap!.pools.find(
       (pool) => pool.pId === workerInfos[i].POOL_ID
     )!.address;
 

@@ -30,10 +30,10 @@ export class ConfigFileHelper {
           this.filePath = `.testnet.json`;
           break;
         case "fantom_mainnet":
+        case "fantom_mainnetfork":
           this.filePath = `.fantom_mainnet.json`;
           break;
         case "fantom_testnet":
-        case "fantom_mainnetfork":
           this.filePath = `.fantom_testnet.json`;
           break;
         default:

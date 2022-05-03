@@ -310,7 +310,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       console.log("✅ Done");
     }
 
-    // TODO: check yeild source again
     const lpPoolAddress = config.YieldSources.Pancakeswap!.pools.find(
       (pool) => pool.pId === workerInfos[i].POOL_ID
     )!.address;
