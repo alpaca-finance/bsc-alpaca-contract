@@ -1,20 +1,14 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers, upgrades, network } from "hardhat";
+import { ethers } from "hardhat";
 import {
   ConfigurableInterestVaultConfig__factory,
   Timelock__factory,
   WaultSwapRestrictedStrategyAddBaseTokenOnly__factory,
-  WaultSwapRestrictedStrategyAddTwoSidesOptimal__factory,
-  WaultSwapRestrictedStrategyLiquidate__factory,
-  WaultSwapRestrictedStrategyPartialCloseLiquidate__factory,
-  WaultSwapRestrictedStrategyPartialCloseMinimizeTrading__factory,
-  WaultSwapRestrictedStrategyWithdrawMinimizeTrading__factory,
   WaultSwapWorker02,
-  WaultSwapWorker02__factory,
   WorkerConfig__factory,
 } from "../../../../typechain";
-import { ConfigEntity, TimelockEntity } from "../../../entities";
+import { TimelockEntity } from "../../../entities";
 import { getDeployer } from "../../../../utils/deployer-helper";
 import { ConfigFileHelper } from "../../../helper";
 import { UpgradeableContractDeployer } from "../../../deployer";
