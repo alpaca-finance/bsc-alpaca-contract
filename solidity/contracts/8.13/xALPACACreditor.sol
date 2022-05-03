@@ -19,13 +19,13 @@ import { IxALPACA } from "./interfaces/IxALPACA.sol";
 import { ICreditor } from "./interfaces/ICreditor.sol";
 
 contract xALPACACreditor is OwnableUpgradeable, ICreditor {
-  /// @notice Events
+  // --- Events ---
   event Log_SetValuePerxALPACA(address indexed _caller, uint256 _oldValuePerxALPACA, uint256 _newValuePerxALPACA);
 
-  /// @notice Errors
+  // --- Errors ---
   error xALPACACreditor_ValueTooHigh();
 
-  /// @notice States
+  // --- States ---
   IxALPACA public xALPACA;
   uint256 public valuePerxALPACA;
 
