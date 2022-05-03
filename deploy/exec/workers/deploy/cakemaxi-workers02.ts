@@ -4,15 +4,17 @@ import { ethers, upgrades, network } from "hardhat";
 import {
   Timelock__factory,
   PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly__factory,
-  PancakeswapV2RestrictedSingleAssetStrategyLiquidate__factory,
-  PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm__factory,
-  PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading__factory,
-  CakeMaxiWorker02__factory,
   CakeMaxiWorker02,
-  PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate__factory,
-  PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading__factory,
+  WorkerConfig__factory,
+  ConfigurableInterestVaultConfig__factory,
 } from "../../../../typechain";
-import { ConfigEntity } from "../../../entities";
+import { TimelockEntity } from "../../../entities";
+import { getDeployer } from "../../../../utils/deployer-helper";
+import { ConfigFileHelper } from "../../../helper";
+import { UpgradeableContractDeployer } from "../../../deployer";
+import { compare } from "../../../../utils/address";
+import { fileService, TimelockService } from "../../../services";
+import { WorkersEntity } from "../../../interfaces/config";
 
 interface ICakeMaxiWorkerInput {
   VAULT_SYMBOL: string;
@@ -70,6 +72,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
+  const executeFileTitle = "cakemaxi-workers02";
+  const timelockTransactions: Array<TimelockEntity.Transaction> = [];
+
   const shortCakeMaxiWorkerInfo: Array<ICakeMaxiWorkerInput> = [
     {
       VAULT_SYMBOL: "ibUSDC",
@@ -89,12 +94,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     },
   ];
 
-  const config = ConfigEntity.getConfig();
-  const deployer = (await ethers.getSigners())[0];
+  const deployer = await getDeployer();
+
+  const configFileHelper = new ConfigFileHelper();
+  let config = configFileHelper.getConfig();
+
   const workerInfos: ICakeMaxiWorkerParams[] = shortCakeMaxiWorkerInfo.map((n) => {
     const vault = config.Vaults.find((v) => v.symbol === n.VAULT_SYMBOL);
     if (vault === undefined) {
-      throw "error: unable to find vault from the given VAULT_SYMBOL";
+      throw `error: unable to find vault from the given ${n.VAULT_SYMBOL}`;
     }
 
     let beneficialVaultAddress = "";
@@ -160,13 +168,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   });
 
   for (let i = 0; i < workerInfos.length; i++) {
-    console.log("===================================================================================");
-    console.log(`>> Deploying an upgradable CakeMaxiWorker02 contract for ${workerInfos[i].WORKER_NAME}`);
-    const CakeMaxiWorker02 = (await ethers.getContractFactory(
+    const contractDeployer = new UpgradeableContractDeployer<CakeMaxiWorker02>(
+      deployer,
       "CakeMaxiWorker02",
-      deployer
-    )) as CakeMaxiWorker02__factory;
-    const cakeMaxiWorker02 = (await upgrades.deployProxy(CakeMaxiWorker02, [
+      workerInfos[i].WORKER_NAME
+    );
+
+    const { contract: cakeMaxiWorker02, deployedBlock } = await contractDeployer.deploy([
       workerInfos[i].VAULT_ADDR,
       workerInfos[i].BASE_TOKEN_ADDR,
       workerInfos[i].MASTER_CHEF_ADDR,
@@ -180,11 +188,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       workerInfos[i].PATH,
       workerInfos[i].REWARD_PATH,
       workerInfos[i].REINVEST_THRESHOLD,
-    ])) as CakeMaxiWorker02;
-    await cakeMaxiWorker02.deployed();
-    const deployTxReceipt = await cakeMaxiWorker02.deployTransaction.wait(3);
-    console.log(`>> Deployed at ${cakeMaxiWorker02.address}`);
-    console.log(`>> Deployed block: ${deployTxReceipt.blockNumber}`);
+    ]);
 
     let nonce = await deployer.getTransactionCount();
 
@@ -198,60 +202,42 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     });
 
     console.log(`>> Adding Strategies`);
-    await cakeMaxiWorker02.setStrategyOk(
-      [
-        workerInfos[i].ADD_BASE_WITH_FARM_STRAT_ADDR,
-        workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR,
-        workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR,
-        workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR,
-      ],
-      true,
-      { nonce: nonce++ }
-    );
+    const okStrats = [
+      workerInfos[i].ADD_BASE_WITH_FARM_STRAT_ADDR,
+      workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR,
+      workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR,
+      workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR,
+    ];
+    await cakeMaxiWorker02.setStrategyOk(okStrats, true, { nonce: nonce++ });
     console.log("✅ Done");
 
     console.log(`>> Whitelisting a worker on strats`);
-    const addStrat = PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly__factory.connect(
-      workerInfos[i].ADD_STRAT_ADDR,
-      deployer
-    );
-    await addStrat.setWorkersOk([cakeMaxiWorker02.address], true, { nonce: nonce++ });
-    const liqStrat = PancakeswapV2RestrictedSingleAssetStrategyLiquidate__factory.connect(
-      workerInfos[i].LIQ_STRAT_ADDR,
-      deployer
-    );
-    await liqStrat.setWorkersOk([cakeMaxiWorker02.address], true, { nonce: nonce++ });
-    const twoSidesStrat = PancakeswapV2RestrictedSingleAssetStrategyAddBaseWithFarm__factory.connect(
-      workerInfos[i].ADD_BASE_WITH_FARM_STRAT_ADDR,
-      deployer
-    );
-    await twoSidesStrat.setWorkersOk([cakeMaxiWorker02.address], true, { nonce: nonce++ });
-    const minimizeStrat = PancakeswapV2RestrictedSingleAssetStrategyWithdrawMinimizeTrading__factory.connect(
-      workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR,
-      deployer
-    );
-    await minimizeStrat.setWorkersOk([cakeMaxiWorker02.address], true, { nonce: nonce++ });
-    const partialCloseLiquidateStrat = PancakeswapV2RestrictedSingleAssetStrategyPartialCloseLiquidate__factory.connect(
-      workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR,
-      deployer
-    );
-    await partialCloseLiquidateStrat.setWorkersOk([cakeMaxiWorker02.address], true, { nonce: nonce++ });
-    const partialCloseMinimizeStrat =
-      PancakeswapV2RestrictedSingleAssetStrategyPartialCloseMinimizeTrading__factory.connect(
-        workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR,
+    const allOkStrats = [workerInfos[i].ADD_STRAT_ADDR, workerInfos[i].LIQ_STRAT_ADDR, ...okStrats];
+
+    for (const stratAddress of allOkStrats) {
+      // NOTE: all PancakeswapV2RestrictedSingleAssetStrategy have the same signature of func setWorkersOk.
+      //       then we can use any PancakeswapV2RestrictedSingleAssetStrategy factory for all PancakeswapV2RestrictedSingleAssetStrategy addresses
+      const contractFactory = PancakeswapV2RestrictedSingleAssetStrategyAddBaseTokenOnly__factory.connect(
+        stratAddress,
         deployer
       );
-    await partialCloseMinimizeStrat.setWorkersOk([cakeMaxiWorker02.address], true, { nonce: nonce++ });
+      await contractFactory.setWorkersOk([cakeMaxiWorker02.address], true, { nonce: nonce++ });
+    }
     console.log("✅ Done");
 
-    const timelock = Timelock__factory.connect(config.Timelock, deployer);
+    const workerConfig = WorkerConfig__factory.connect(workerInfos[i].WORKER_CONFIG_ADDR, deployer);
+    const vaultConfig = ConfigurableInterestVaultConfig__factory.connect(workerInfos[i].VAULT_CONFIG_ADDR, deployer);
 
-    console.log(">> Timelock: Setting WorkerConfig via Timelock");
-    const setConfigsTx = await timelock.queueTransaction(
-      workerInfos[i].WORKER_CONFIG_ADDR,
-      "0",
-      "setConfigs(address[],(bool,uint64,uint64,uint64)[])",
-      ethers.utils.defaultAbiCoder.encode(
+    const timelock = Timelock__factory.connect(workerInfos[i].TIMELOCK, deployer);
+
+    const [workerOwnerAddress, vaultOwnerAddress] = await Promise.all([workerConfig.owner(), vaultConfig.owner()]);
+
+    if (compare(workerOwnerAddress, timelock.address)) {
+      const setConfigsTx = await TimelockService.queueTransaction(
+        `>> Queue tx on Timelock Setting WorkerConfig via Timelock at ${workerInfos[i].WORKER_CONFIG_ADDR} for ${cakeMaxiWorker02.address} ETA ${workerInfos[i].EXACT_ETA}`,
+        workerInfos[i].WORKER_CONFIG_ADDR,
+        "0",
+        "setConfigs(address[],(bool,uint64,uint64,uint64)[])",
         ["address[]", "(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]"],
         [
           [cakeMaxiWorker02.address],
@@ -263,36 +249,90 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
               maxPriceDiff: workerInfos[i].MAX_PRICE_DIFF,
             },
           ],
-        ]
-      ),
-      workerInfos[i].EXACT_ETA,
-      { nonce: nonce++ }
-    );
-    console.log(`queue setConfigs at: ${setConfigsTx.hash}`);
-    console.log("generate timelock.executeTransaction:");
-    console.log(
-      `await timelock.executeTransaction('${workerInfos[i].WORKER_CONFIG_ADDR}', '0', 'setConfigs(address[],(bool,uint64,uint64,uint64)[])', ethers.utils.defaultAbiCoder.encode(['address[]','(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]'],[['${cakeMaxiWorker02.address}'], [{acceptDebt: true, workFactor: ${workerInfos[i].WORK_FACTOR}, killFactor: ${workerInfos[i].KILL_FACTOR}, maxPriceDiff: ${workerInfos[i].MAX_PRICE_DIFF}}]]), ${workerInfos[i].EXACT_ETA})`
-    );
-    console.log("✅ Done");
+        ],
+        workerInfos[i].EXACT_ETA,
+        { gasPrice: ethers.utils.parseUnits("15", "gwei"), nonce: nonce++ }
+      );
+      console.log(`queue setConfigs at: ${setConfigsTx.queuedAt}`);
+      console.log("generate timelock.executeTransaction:");
+      console.log(
+        `await timelock.executeTransaction('${workerInfos[i].WORKER_CONFIG_ADDR}', '0', 'setConfigs(address[],(bool,uint64,uint64,uint64)[])', ethers.utils.defaultAbiCoder.encode(['address[]','(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]'],[['${cakeMaxiWorker02.address}'], [{acceptDebt: true, workFactor: ${workerInfos[i].WORK_FACTOR}, killFactor: ${workerInfos[i].KILL_FACTOR}, maxPriceDiff: ${workerInfos[i].MAX_PRICE_DIFF}}]]), ${workerInfos[i].EXACT_ETA})`
+      );
+      timelockTransactions.push(setConfigsTx);
+      fileService.writeJson(executeFileTitle, timelockTransactions);
+      console.log("✅ Done");
+    } else {
+      console.log(">> Setting WorkerConfig");
+      (
+        await workerConfig.setConfigs(
+          [cakeMaxiWorker02.address],
+          [
+            {
+              acceptDebt: true,
+              workFactor: workerInfos[i].WORK_FACTOR,
+              killFactor: workerInfos[i].KILL_FACTOR,
+              maxPriceDiff: workerInfos[i].MAX_PRICE_DIFF,
+            },
+          ],
+          { nonce: nonce++ }
+        )
+      ).wait(3);
+      console.log("✅ Done");
+    }
 
-    console.log(">> Timelock: Linking VaultConfig with WorkerConfig via Timelock");
-    const setWorkersTx = await timelock.queueTransaction(
-      workerInfos[i].VAULT_CONFIG_ADDR,
-      "0",
-      "setWorkers(address[],address[])",
-      ethers.utils.defaultAbiCoder.encode(
+    if (compare(vaultOwnerAddress, timelock.address)) {
+      const setWorkersTx = await TimelockService.queueTransaction(
+        `>> Queue tx on Timelock Linking VaultConfig with WorkerConfig via Timelock for ${workerInfos[i].VAULT_CONFIG_ADDR}`,
+        workerInfos[i].VAULT_CONFIG_ADDR,
+        "0",
+        "setWorkers(address[],address[])",
         ["address[]", "address[]"],
-        [[cakeMaxiWorker02.address], [workerInfos[i].WORKER_CONFIG_ADDR]]
-      ),
-      workerInfos[i].EXACT_ETA,
-      { nonce: nonce++ }
-    );
-    console.log(`queue setWorkers at: ${setWorkersTx.hash}`);
-    console.log("generate timelock.executeTransaction:");
-    console.log(
-      `await timelock.executeTransaction('${workerInfos[i].VAULT_CONFIG_ADDR}', '0','setWorkers(address[],address[])', ethers.utils.defaultAbiCoder.encode(['address[]','address[]'],[['${cakeMaxiWorker02.address}'], ['${workerInfos[i].WORKER_CONFIG_ADDR}']]), ${workerInfos[i].EXACT_ETA})`
-    );
-    console.log("✅ Done");
+        [[cakeMaxiWorker02.address], [workerInfos[i].WORKER_CONFIG_ADDR]],
+        workerInfos[i].EXACT_ETA,
+        { gasPrice: ethers.utils.parseUnits("15", "gwei"), nonce: nonce++ }
+      );
+
+      console.log(`queue setWorkers at: ${setWorkersTx.queuedAt}`);
+      console.log("generate timelock.executeTransaction:");
+      console.log(
+        `await timelock.executeTransaction('${workerInfos[i].VAULT_CONFIG_ADDR}', '0','setWorkers(address[],address[])', ethers.utils.defaultAbiCoder.encode(['address[]','address[]'],[['${cakeMaxiWorker02.address}'], ['${workerInfos[i].WORKER_CONFIG_ADDR}']]), ${workerInfos[i].EXACT_ETA})`
+      );
+      timelockTransactions.push(setWorkersTx);
+      fileService.writeJson(executeFileTitle, timelockTransactions);
+      console.log("✅ Done");
+    } else {
+      console.log(">> Linking VaultConfig with WorkerConfig");
+      (
+        await vaultConfig.setWorkers([cakeMaxiWorker02.address], [workerInfos[i].WORKER_CONFIG_ADDR], {
+          nonce: nonce++,
+        })
+      ).wait(3);
+      console.log("✅ Done");
+    }
+
+    const lpPoolAddress = config.YieldSources.Biswap!.pools.find(
+      (pool) => pool.pId === workerInfos[i].POOL_ID
+    )!.address;
+
+    const biswapWorkersEntity: WorkersEntity = {
+      name: workerInfos[i].WORKER_NAME,
+      address: cakeMaxiWorker02.address,
+      deployedBlock: deployedBlock,
+      config: workerInfos[i].WORKER_CONFIG_ADDR,
+      pId: workerInfos[i].POOL_ID,
+      stakingToken: lpPoolAddress,
+      stakingTokenAt: workerInfos[i].MASTER_CHEF_ADDR,
+      strategies: {
+        StrategyAddAllBaseToken: workerInfos[i].ADD_STRAT_ADDR,
+        StrategyLiquidate: workerInfos[i].LIQ_STRAT_ADDR,
+        StrategyAddTwoSidesOptimal: workerInfos[i].ADD_BASE_WITH_FARM_STRAT_ADDR,
+        StrategyWithdrawMinimizeTrading: workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR,
+        StrategyPartialCloseLiquidate: workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR,
+        StrategyPartialCloseMinimizeTrading: workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR,
+      },
+    };
+
+    config = configFileHelper.addOrSetVaultWorker(workerInfos[i].VAULT_ADDR, biswapWorkersEntity);
   }
 };
 
