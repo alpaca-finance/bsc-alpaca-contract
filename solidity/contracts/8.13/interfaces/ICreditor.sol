@@ -13,6 +13,6 @@ Alpaca Fin Corporation
 
 pragma solidity 0.8.13;
 
-interface Creditor {
+interface ICreditor {
   function getUserCredit(address _user) external view returns (uint256);
 }

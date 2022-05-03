@@ -16,8 +16,9 @@ pragma solidity 0.8.13;
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 import { IxALPACA } from "./interfaces/IxALPACA.sol";
+import { ICreditor } from "./interfaces/ICreditor.sol";
 
-contract xALPACACreditor is OwnableUpgradeable {
+contract xALPACACreditor is OwnableUpgradeable, ICreditor {
   /// @notice Events
   event Log_SetValuePerxALPACA(address indexed _caller, uint256 _oldValuePerxALPACA, uint256 _newValuePerxALPACA);
 
