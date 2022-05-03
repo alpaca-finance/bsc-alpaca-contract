@@ -17,6 +17,4 @@ interface xALPACACreditorLike {
   function getUserCredit(address _user) external view returns (uint256);
 
   function setValuePerxALPACA(uint256 _newValuePerxALPACA) external;
-
-  function owner() external view returns (address);
 }
