@@ -408,7 +408,17 @@
     "mainnet-fork": "hardhat node --show-stack-traces --config hardhat.config.8.10.forking.ts",
     "forge:build": "forge build --sizes --force",
     "forge:test": "forge test",
-    "forge:watch": "forge test -w"
+    "forge:watch": "forge test -w",
+    "abi-to-sol": "yarn run abi-to-sol:NFTStaking && yarn run abi-to-sol:DebtToken && yarn run abi-to-sol:MockErc20 && yarn run abi-to-sol:MockNFT && yarn run abi-to-sol:MockPancakeswapV2Worker && yarn run abi-to-sol:NFTBoostedLeverageController && yarn run abi-to-sol:ProxyAdmin && yarn run abi-to-sol:SimpleVaultConfig && yarn run abi-to-sol:Vault",
+    "abi-to-sol:NFTStaking": "jq '.abi' ./artifacts/solidity/contracts/8.13/nft-staking/NFTStaking.sol/NFTStaking.json | abi-to-sol --solidity-version=^0.8.4 --validate NFTStakingLike > ./solidity/tests/interfaces/NFTStakingLike.sol",
+    "abi-to-sol:DebtToken": "jq '.abi' ./artifacts/solidity/contracts/6/protocol/DebtToken.sol/DebtToken.json | abi-to-sol --solidity-version='>=0.8.4 <0.9.0' --validate DebtTokenLike > ./solidity/tests/interfaces/DebtTokenLike.sol",
+    "abi-to-sol:MockErc20": "jq '.abi' ./artifacts/solidity/contracts/6/protocol/mock/MockErc20.sol/MockErc20.json | abi-to-sol --solidity-version='>=0.8.4 <0.9.0' --validate MockErc20Like > ./solidity/tests/interfaces/MockErc20Like.sol",
+    "abi-to-sol:MockNFT": "jq '.abi' ./artifacts/solidity/contracts/8.13/mocks/MockNFT.sol/MockNFT.json | abi-to-sol --solidity-version=^0.8.4 --validate MockNFTLike > ./solidity/tests/interfaces/MockNFTLike.sol",
+    "abi-to-sol:MockPancakeswapV2Worker": "jq '.abi' ./artifacts/solidity/contracts/6/protocol/Mock/MockPancakeswapV2Worker.sol/MockPancakeswapV2Worker.json | abi-to-sol --solidity-version=^0.8.4 --validate MockPancakeswapV2WorkerLike > ./solidity/tests/interfaces/MockPancakeswapV2WorkerLike.sol",
+    "abi-to-sol:NFTBoostedLeverageController": "jq '.abi' ./artifacts/solidity/contracts/8.13/nft-staking/NFTBoostedLeverageController.sol/NFTBoostedLeverageController.json | abi-to-sol --solidity-version=^0.8.4 --validate NFTBoostedLeverageControllerLike > ./solidity/tests/interfaces/NFTBoostedLeverageControllerLike.sol",
+    "abi-to-sol:ProxyAdmin": "jq '.abi' ./artifacts/solidity/contracts/6/upgradeable/ProxyAdmin.sol/ProxyAdmin.json | abi-to-sol --solidity-version='>=0.7.0 <0.9.0' --validate ProxyAdminLike > ./solidity/tests/interfaces/ProxyAdminLike.sol",
+    "abi-to-sol:SimpleVaultConfig": "jq '.abi' ./artifacts/solidity/contracts/6/protocol/SimpleVaultConfig.sol/SimpleVaultConfig.json | abi-to-sol --solidity-version='>=0.8.4 <0.9.0' --validate SimpleVaultConfigLike > ./solidity/tests/interfaces/SimpleVaultConfigLike.sol",
+    "abi-to-sol:Vault": "jq '.abi' ./artifacts/solidity/contracts/6/protocol/Vault.sol/Vault.json | abi-to-sol --solidity-version='>=0.7.0 <0.9.0' --validate VaultLike > ./solidity/tests/interfaces/VaultLike.sol"
   },
   "devDependencies": {
     "@chainlink/contracts": "^0.1.7",

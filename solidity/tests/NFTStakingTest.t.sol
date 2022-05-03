@@ -48,10 +48,11 @@ contract NFTStakingTest is BaseTest {
     nftStaking.stakeNFT(poolId1, 1, 20);
     vm.stopPrank();
 
-    (bool isExist, uint256 nftTokenId, uint256 lockPeriod) = nftStaking.userStakingNFT(poolId1, ALICE, 1);
-    assertEq(nftTokenId, 1);
-    assertEq(lockPeriod, 20);
+    bytes32 depositeId = keccak256(abi.encodePacked(poolId1, ALICE, uint256(1)));
+    (bool isExist, uint256 lockPeriod) = nftStaking.userStakingNFT(depositeId);
     assertTrue(isExist);
+    assertEq(lockPeriod, 20);
+
     assertEq(mockNFT1.balanceOf(ALICE), 1);
     assertEq(mockNFT1.balanceOf(address(nftStaking)), 1);
     assertTrue(nftStaking.isStaked(poolId1, ALICE, 1));
@@ -171,6 +172,28 @@ contract NFTStakingTest is BaseTest {
     mockNFT1.approve(address(nftStaking), 0);
     vm.expectRevert(bytes("ERC721: operator query for nonexistent token"));
     nftStaking.stakeNFT(poolId1, 1, 20);
+    vm.stopPrank();
+  }
+
+  function testStakeNFT_lockPeriodLessThanMinLockPeriod() external {
+    nftStaking.addPool(poolId1, 100, 50, 200);
+    vm.startPrank(ALICE, ALICE);
+    mockNFT1.mint(1);
+    mockNFT1.approve(address(nftStaking), 0);
+    assertEq(mockNFT1.balanceOf(ALICE), 1);
+    vm.expectRevert(NFTStakingLike.NFTStaking_InvalidLockPeriod.selector);
+    nftStaking.stakeNFT(poolId1, 0, 20);
+    vm.stopPrank();
+  }
+
+  function testStakeNFT_lockPeriodMoreThanMaxLockPeriod() external {
+    nftStaking.addPool(poolId1, 100, 50, 200);
+    vm.startPrank(ALICE, ALICE);
+    mockNFT1.mint(1);
+    mockNFT1.approve(address(nftStaking), 0);
+    assertEq(mockNFT1.balanceOf(ALICE), 1);
+    vm.expectRevert(NFTStakingLike.NFTStaking_InvalidLockPeriod.selector);
+    nftStaking.stakeNFT(poolId1, 0, 250);
     vm.stopPrank();
   }
 

@@ -45,8 +45,8 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
   }
 
   struct NFTStakingInfo {
-    uint256 lockPeriod;
     bool isExist;
+    uint256 lockPeriod;
   }
 
   // NFT address (PoolId) => PoolInfo
@@ -99,9 +99,12 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
     uint256 _nftTokenId,
     uint256 _lockPeriod
   ) external nonReentrant onlyEOA {
+    if (!poolInfo[_poolId].isInit) revert NFTStaking_PoolNotExist();
     bytes32 _depositId = keccak256(abi.encodePacked(_poolId, msg.sender, _nftTokenId));
     if (userStakingNFT[_depositId].lockPeriod > 0) revert NFTStaking_NFTAlreadyStaked();
-
+    if (_lockPeriod < poolInfo[_poolId].minLockPeriod) revert NFTStaking_InvalidLockPeriod();
+    if (_lockPeriod > poolInfo[_poolId].maxLockPeriod) revert NFTStaking_InvalidLockPeriod();
+    
     userStakingNFT[_depositId] = NFTStakingInfo({ lockPeriod: _lockPeriod, isExist: true });
 
     if (poolInfo[userHighestWeightPoolId[msg.sender]].poolWeight < poolInfo[_poolId].poolWeight) {
