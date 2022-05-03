@@ -174,11 +174,14 @@ contract BaseTest is DSTest {
     return xALPACACreditorLike(_proxy);
   }
 
-  function _setupxAutomatedVaultController(address _creditor) internal returns (AutomatedVaultControllerLike) {
+  function _setupxAutomatedVaultController(address[] memory _creditors)
+    internal
+    returns (AutomatedVaultControllerLike)
+  {
     bytes memory _logicBytecode = abi.encodePacked(
       vm.getCode("./out/AutomatedVaultController.sol/AutomatedVaultController.json")
     );
-    bytes memory _initializer = abi.encodeWithSelector(bytes4(keccak256("initialize(address)")), _creditor);
+    bytes memory _initializer = abi.encodeWithSelector(bytes4(keccak256("initialize(address[])")), _creditors);
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
     return AutomatedVaultControllerLike(_proxy);
   }

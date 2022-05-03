@@ -14,5 +14,5 @@ Alpaca Fin Corporation
 pragma solidity >=0.8.4 <0.9.0;
 
 interface AutomatedVaultControllerLike {
-  function outstandingCredit(address _user) external view returns (uint256);
+  function totalCredit(address _user) external view returns (uint256);
 }

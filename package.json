@@ -404,7 +404,8 @@
     "forge:build": "forge build --sizes --force",
     "forge:test": "forge test",
     "forge:watch": "forge test -w",
-    "test:xalpaca-creditor": "forge test --match-path solidity/tests/protocol/private-automated-vault/xALPACACreditor.t.sol"
+    "test:xalpaca-creditor": "forge test --match-path solidity/tests/protocol/private-automated-vault/xALPACACreditor.t.sol",
+    "test:av-controller": "forge test --match-path solidity/tests/protocol/private-automated-vault/AutomatedVaultController.t.sol"
   },
   "devDependencies": {
     "@chainlink/contracts": "^0.1.7",

@@ -24,17 +24,23 @@ contract AutomatedVaultController is OwnableUpgradeable {
 
   // --- State Variables ---
 
-  ICreditor public creditor;
+  ICreditor[] public creditors;
 
-  function initialize(ICreditor _creditor) external initializer {
+  function initialize(ICreditor[] memory _creditors) external initializer {
     // sanity check
-    _creditor.getUserCredit(address(0));
+    for (uint8 _i = 0; _i < _creditors.length; _i++) {
+      _creditors[_i].getUserCredit(address(0));
+    }
 
     OwnableUpgradeable.__Ownable_init();
-    creditor = _creditor;
+    creditors = _creditors;
   }
 
-  function outstandingCredit(address _user) external returns (uint256) {
-    return creditor.getUserCredit(_user);
+  function totalCredit(address _user) external view returns (uint256) {
+    uint256 _total = 0;
+    for (uint8 _i = 0; _i < creditors.length; _i++) {
+      _total = _total + creditors[_i].getUserCredit(_user);
+    }
+    return _total;
   }
 }

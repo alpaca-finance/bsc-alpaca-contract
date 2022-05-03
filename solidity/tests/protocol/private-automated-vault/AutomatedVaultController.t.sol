@@ -19,12 +19,16 @@ contract AutomatedVaultController_Test is BaseTest {
     _creditor = ICreditor(address(new MockContract()));
     // prevent sanity check during initialize
     _creditor.getUserCredit.mockv(address(0), 2 ether);
-    _controller = _setupxAutomatedVaultController(address(_creditor));
+
+    // deploy av controller
+    address[] memory _creditors = new address[](1);
+    _creditors[0] = address(_creditor);
+    _controller = _setupxAutomatedVaultController(_creditors);
   }
 
   function testCorrectness_onDeposit() external {
     _creditor.getUserCredit.mockv(ALICE, 2 ether);
     assertEq(_creditor.getUserCredit(ALICE), 2 ether);
-    assertEq(_controller.outstandingCredit(ALICE), 2 ether);
+    assertEq(_controller.totalCredit(ALICE), 2 ether);
   }
 }
