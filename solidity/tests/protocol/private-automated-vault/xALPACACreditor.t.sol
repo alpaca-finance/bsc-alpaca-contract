@@ -39,7 +39,7 @@ contract xAlpacaCreditor_Test is BaseTest {
 
   function testCannotSetValuePerXalpacaMoreThanThreshold() external {
     vm.expectRevert(abi.encodeWithSignature("xALPACACreditor_ValueTooHigh()"));
-    _creditor.setValuePerxALPACA(10000e18);
+    _creditor.setValuePerxALPACA(10000 ether);
   }
 
   function testCanSetValuePerXalpacaLessThanThreshold(uint256 _value) external {
