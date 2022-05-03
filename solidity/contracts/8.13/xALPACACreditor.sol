@@ -29,9 +29,10 @@ contract xALPACACreditor is OwnableUpgradeable {
   uint256 public valuePerxALPACA;
 
   function initialize(IxALPACA _xALPACA, uint256 _valuePerxALPACA) external initializer {
-    // sainity check
+    // sanity check
     _xALPACA.epoch();
 
+    OwnableUpgradeable.__Ownable_init();
     xALPACA = IxALPACA(_xALPACA);
     valuePerxALPACA = _valuePerxALPACA;
   }
@@ -40,7 +41,7 @@ contract xALPACACreditor is OwnableUpgradeable {
     return (xALPACA.balanceOf(_user) * valuePerxALPACA) / 1e18;
   }
 
-  function setValuePerxALPACA(uint256 _newValuePerxALPACA) external {
+  function setValuePerxALPACA(uint256 _newValuePerxALPACA) external onlyOwner {
     if (_newValuePerxALPACA > 1000 * 1e18) {
       revert xALPACACreditor_ValueTooHigh();
     }

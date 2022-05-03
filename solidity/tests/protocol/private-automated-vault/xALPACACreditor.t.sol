@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4 <0.9.0;
 
-import { BaseTest, console, xALPACACreditorLike } from "../../base/BaseTest.sol";
+import { BaseTest, console, xALPACACreditorLike, console } from "../../base/BaseTest.sol";
 
 import { xALPACACreditor } from "../../../contracts/8.13/xALPACACreditor.sol";
 import { IxALPACA } from "../../../contracts/8.13/interfaces/IxALPACA.sol";
@@ -39,7 +39,14 @@ contract xAlpacaCreditor_Test is BaseTest {
 
   function testCannotSetValuePerXalpacaMoreThanThreshold() external {
     vm.expectRevert(abi.encodeWithSignature("xALPACACreditor_ValueTooHigh()"));
+
     _creditor.setValuePerxALPACA(10000 ether);
+  }
+
+  function testCannotSetValuePerXalpacaIfNotOwner() external {
+    vm.expectRevert("Ownable: caller is not the owner");
+    vm.prank(ALICE);
+    _creditor.setValuePerxALPACA(100 ether);
   }
 
   function testCanSetValuePerXalpacaLessThanThreshold(uint256 _value) external {
