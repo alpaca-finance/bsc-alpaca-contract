@@ -214,28 +214,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       workerInfos[i].REINVEST_THRESHOLD,
     ]);
 
-    const lpPoolAddress = config.YieldSources.Biswap!.pools.find(
-      (pool) => pool.pId === workerInfos[i].POOL_ID
-    )!.address;
-
-    const biswapWorkersEntity: WorkersEntity = {
-      name: workerInfos[i].WORKER_NAME,
-      address: biswapWorker03.address,
-      deployedBlock: deployedBlock,
-      config: workerInfos[i].WORKER_CONFIG_ADDR,
-      pId: workerInfos[i].POOL_ID,
-      stakingToken: lpPoolAddress,
-      stakingTokenAt: workerInfos[i].MASTER_CHEF_ADDR,
-      strategies: {
-        StrategyAddAllBaseToken: workerInfos[i].ADD_STRAT_ADDR,
-        StrategyLiquidate: workerInfos[i].LIQ_STRAT_ADDR,
-        StrategyAddTwoSidesOptimal: workerInfos[i].TWO_SIDES_STRAT_ADDR,
-        StrategyWithdrawMinimizeTrading: workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR,
-        StrategyPartialCloseLiquidate: workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR,
-        StrategyPartialCloseMinimizeTrading: workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR,
-      },
-    };
-
     let nonce = await deployer.getTransactionCount();
 
     console.log(`>> Adding REINVEST_BOT`);
@@ -256,8 +234,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(`>> Whitelisting a worker on ok strats`);
     const allOkStrats = [workerInfos[i].ADD_STRAT_ADDR, workerInfos[i].LIQ_STRAT_ADDR, ...okStrats];
 
-    for (let idx = 0; idx < allOkStrats.length; idx++) {
-      const stratAddress = allOkStrats[idx];
+    for (const stratAddress of allOkStrats) {
       // NOTE: all BiswapStrategy have the same signature of func setWorkersOk.
       //       then we can use any BiswapStrategy factory for all BiswapStrategy addresses
       const contractFactory = BiswapStrategyAddBaseTokenOnly__factory.connect(stratAddress, deployer);
@@ -360,6 +337,28 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       ).wait(3);
       console.log("✅ Done");
     }
+
+    const lpPoolAddress = config.YieldSources.Biswap!.pools.find(
+      (pool) => pool.pId === workerInfos[i].POOL_ID
+    )!.address;
+
+    const biswapWorkersEntity: WorkersEntity = {
+      name: workerInfos[i].WORKER_NAME,
+      address: biswapWorker03.address,
+      deployedBlock: deployedBlock,
+      config: workerInfos[i].WORKER_CONFIG_ADDR,
+      pId: workerInfos[i].POOL_ID,
+      stakingToken: lpPoolAddress,
+      stakingTokenAt: workerInfos[i].MASTER_CHEF_ADDR,
+      strategies: {
+        StrategyAddAllBaseToken: workerInfos[i].ADD_STRAT_ADDR,
+        StrategyLiquidate: workerInfos[i].LIQ_STRAT_ADDR,
+        StrategyAddTwoSidesOptimal: workerInfos[i].TWO_SIDES_STRAT_ADDR,
+        StrategyWithdrawMinimizeTrading: workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR,
+        StrategyPartialCloseLiquidate: workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR,
+        StrategyPartialCloseMinimizeTrading: workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR,
+      },
+    };
 
     config = configFileHelper.addOrSetVaultWorker(workerInfos[i].VAULT_ADDR, biswapWorkersEntity);
   }

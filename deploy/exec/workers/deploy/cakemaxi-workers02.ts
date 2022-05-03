@@ -310,11 +310,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       console.log("✅ Done");
     }
 
-    const lpPoolAddress = config.YieldSources.Biswap!.pools.find(
+    // TODO: check yeild source again
+    const lpPoolAddress = config.YieldSources.Pancakeswap!.pools.find(
       (pool) => pool.pId === workerInfos[i].POOL_ID
     )!.address;
 
-    const biswapWorkersEntity: WorkersEntity = {
+    const workersEntity: WorkersEntity = {
       name: workerInfos[i].WORKER_NAME,
       address: cakeMaxiWorker02.address,
       deployedBlock: deployedBlock,
@@ -332,7 +333,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       },
     };
 
-    config = configFileHelper.addOrSetVaultWorker(workerInfos[i].VAULT_ADDR, biswapWorkersEntity);
+    config = configFileHelper.addOrSetVaultWorker(workerInfos[i].VAULT_ADDR, workersEntity);
   }
 };
 
