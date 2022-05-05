@@ -2,11 +2,10 @@
 pragma solidity >=0.8.4 <0.9.0;
 
 import { BaseTest, xALPACACreditorLike } from "../../base/BaseTest.sol";
-
-import { IxALPACA } from "../../../contracts/8.13/interfaces/IxALPACA.sol";
-
 import { mocking } from "../../utils/mocking.sol";
 import { MockContract } from "../../utils/MockContract.sol";
+
+import { IxALPACA } from "../../../contracts/8.13/interfaces/IxALPACA.sol";
 
 // solhint-disable func-name-mixedcase
 // solhint-disable contract-name-camelcase
