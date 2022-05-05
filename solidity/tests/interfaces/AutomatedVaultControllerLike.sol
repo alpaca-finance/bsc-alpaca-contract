@@ -17,4 +17,12 @@ interface AutomatedVaultControllerLike {
   function totalCredit(address _user) external view returns (uint256);
 
   function usedCredit(address _user) external view returns (uint256);
+
+  function onDeposit(address _user, uint256 _shareAmount) external;
+
+  function onWithdraw(address _user, uint256 _shareAmount) external;
+
+  function userVaultShares(address, address) external view returns (uint256);
+
+  function setPrivateVaults(address[] memory) external;
 }
