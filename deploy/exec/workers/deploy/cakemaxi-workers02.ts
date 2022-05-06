@@ -254,10 +254,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         { gasPrice: ethers.utils.parseUnits("15", "gwei"), nonce: nonce++ }
       );
       console.log(`queue setConfigs at: ${setConfigsTx.queuedAt}`);
-      console.log("generate timelock.executeTransaction:");
-      console.log(
-        `await timelock.executeTransaction('${workerInfos[i].WORKER_CONFIG_ADDR}', '0', 'setConfigs(address[],(bool,uint64,uint64,uint64)[])', ethers.utils.defaultAbiCoder.encode(['address[]','(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]'],[['${cakeMaxiWorker02.address}'], [{acceptDebt: true, workFactor: ${workerInfos[i].WORK_FACTOR}, killFactor: ${workerInfos[i].KILL_FACTOR}, maxPriceDiff: ${workerInfos[i].MAX_PRICE_DIFF}}]]), ${workerInfos[i].EXACT_ETA})`
-      );
       timelockTransactions.push(setConfigsTx);
       fileService.writeJson(executeFileTitle, timelockTransactions);
       console.log("✅ Done");
@@ -293,10 +289,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       );
 
       console.log(`queue setWorkers at: ${setWorkersTx.queuedAt}`);
-      console.log("generate timelock.executeTransaction:");
-      console.log(
-        `await timelock.executeTransaction('${workerInfos[i].VAULT_CONFIG_ADDR}', '0','setWorkers(address[],address[])', ethers.utils.defaultAbiCoder.encode(['address[]','address[]'],[['${cakeMaxiWorker02.address}'], ['${workerInfos[i].WORKER_CONFIG_ADDR}']]), ${workerInfos[i].EXACT_ETA})`
-      );
       timelockTransactions.push(setWorkersTx);
       fileService.writeJson(executeFileTitle, timelockTransactions);
       console.log("✅ Done");
