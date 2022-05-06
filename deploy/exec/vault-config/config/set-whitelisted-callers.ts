@@ -30,20 +30,25 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "mainnet_3x_delta_neutral_set_whitelisted_callers";
+  const TITLE = "mainnet_whitelist_swt_potato";
   const TARGETED_VAULT_CONFIG: Array<IInput> = [
     {
-      VAULT_SYMBOL: "ibFTM",
-      WHITELISTED_CALLERS: ["0xF052D626743Ad2F3b38A99DD9F3C946c2A12E843"],
+      VAULT_SYMBOL: "ibBUSD",
+      WHITELISTED_CALLERS: ["0x99CEF3E3dBe3B08616E0a08F5275305f678b3Cf9"],
       IS_ENABLE: true,
     },
     {
-      VAULT_SYMBOL: "ibUSDC",
-      WHITELISTED_CALLERS: ["0xF052D626743Ad2F3b38A99DD9F3C946c2A12E843"],
+      VAULT_SYMBOL: "ibUSDT",
+      WHITELISTED_CALLERS: ["0x28C50b629b97c7aea156460F4B0917E25599A006"],
+      IS_ENABLE: true,
+    },
+    {
+      VAULT_SYMBOL: "ibWBNB",
+      WHITELISTED_CALLERS: ["0x99CEF3E3dBe3B08616E0a08F5275305f678b3Cf9", "0x28C50b629b97c7aea156460F4B0917E25599A006"],
       IS_ENABLE: true,
     },
   ];
-  const EXACT_ETA = "1647667800"; //FTM DO NOT HAVE TIMELOCK LEAVE THIS VALUE
+  const EXACT_ETA = "1651910400";
 
   const config = getConfig();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];

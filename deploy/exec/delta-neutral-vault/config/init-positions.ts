@@ -68,11 +68,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const initPositionInputs: IInitPositionInputs[] = [
     {
-      symbol: "n3x-BNBUSDT-BS1",
-      stableVaultSymbol: "ibUSDT",
-      assetVaultSymbol: "ibWBNB",
-      stableSymbol: "USDT",
-      assetSymbol: "WBNB",
+      symbol: "n3x-FTMUSDC-SPK2",
+      stableVaultSymbol: "ibUSDC",
+      assetVaultSymbol: "ibFTM",
+      stableSymbol: "USDC",
+      assetSymbol: "WFTM",
       stableAmount: "300",
       leverage: 3,
     },
@@ -249,7 +249,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       await deltaNeutralVault.initPositions(stableAmount, assetAmount, minSharesReceive, data, {
         value: assetAmount,
         nonce: nonce++,
-        // gasLimit: 20000000,
+        gasLimit: 8000000,
       })
     ).wait(3);
     console.log(">> initTx: ", initTx.transactionHash);

@@ -93,6 +93,7 @@
     "deploy:mainnet:delta-neutral-oracle:deploy:delta-neutral-oracle": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralOracle",
     "deploy:mainnet:delta-neutral-vault-config:deploy:delta-neutral-vault-config": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralVaultConfig",
     "deploy:mainnet:delta-neutral-vault:deploy:delta-neutral-vault": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralVault",
+    "deploy:mainnet:delta-neutral-vault:upgrade:delta-neutral-vault": "hardhat --network mainnet deploy --no-compile --reset --tags UpgradeDeltaNeutralVault",
     "deploy:mainnet:delta-neutral-vault:deploy:biswap:delta-neutral-vault": "hardhat --network mainnet deploy --no-compile --reset --tags BiswapDeltaNeutralVault",
     "deploy:mainnet:delta-neutral-vault:config:init-positions": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralVaultInitPositions",
     "deploy:mainnet:delta-neutral-worker:deploy:delta-neutral-pcs-worker": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralPCSWorker02",

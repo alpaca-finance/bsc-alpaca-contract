@@ -16,17 +16,24 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "downgrade_vaults_to_normal_vault";
-  const VAULT_VERSION = "Vault";
-  const TARGETED_VAULTS = ["ibWBNB", "ibBUSD", "ibETH", "ibALPACA", "ibUSDT", "ibBTCB", "ibTUSD", "ibUSDC"];
-  const EXACT_ETA = "1649232000";
+  const TITLE = "upgrade_delta_neutral_vault";
+  const DELTA_NEUTRAL_VAULT = "DeltaNeutralVault";
+  const TARGETED_VAULTS = [
+    "n3x-BNBUSDT-PCS1",
+    "n8x-BNBUSDT-PCS1",
+    "n8x-BNBUSDT-PCS2",
+    "n3x-BNBBUSD-PCS1",
+    "n3x-BNBUSDT-PCS2",
+    "n3x-BNBBUSD-PCS2",
+  ];
+  const EXACT_ETA = "1651893300";
 
   const config = getConfig();
 
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   const deployer = await getDeployer();
   const toBeUpgradedVaults = TARGETED_VAULTS.map((tv) => {
-    const vault = config.Vaults.find((v) => tv == v.symbol);
+    const vault = config.DeltaNeutralVaults.find((v) => tv == v.symbol);
     if (vault === undefined) {
       throw `error: not found vault with ${tv} symbol`;
     }
@@ -40,9 +47,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   for (const vault of toBeUpgradedVaults) {
     console.log("------------------");
-    console.log(`> Upgrading Vault at ${vault.symbol} through Timelock + ProxyAdmin`);
+    console.log(`> Upgrading DeltaNeutralVault at ${vault.symbol} through Timelock + ProxyAdmin`);
     console.log("> Prepare upgrade & deploy if needed a new IMPL automatically.");
-    const NewVault = await ethers.getContractFactory(VAULT_VERSION);
+    const NewVault = await ethers.getContractFactory(DELTA_NEUTRAL_VAULT);
     const preparedNewVault = await upgrades.prepareUpgrade(vault.address, NewVault);
     console.log(`> Implementation address: ${preparedNewVault}`);
     console.log("✅ Done");
@@ -61,8 +68,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     );
   }
 
-  fileService.writeJson(TITLE, timelockTransactions);
+  const timestamp = Math.floor(Date.now() / 1000);
+  fileService.writeJson(`${timestamp}_${TITLE}`, timelockTransactions);
 };
 
 export default func;
-func.tags = ["UpgradeVault"];
+func.tags = ["UpgradeDeltaNeutralVault"];

@@ -598,8 +598,8 @@
       "stableDeltaWorker": "0xBF94404D6ad9986532d25950585e5855b4c30d2c",
       "oracle": "0x0C372D369aBd6ab047a0da3181cB69280a3C2126",
       "gateway": "0x39429D11a8F91A8a8AF2A8454A9133D3e3eec280",
-      "assetVaultPosId": "0",
-      "stableVaultPosId": "0"
+      "assetVaultPosId": "3042",
+      "stableVaultPosId": "1983"
     }
   ]
 }

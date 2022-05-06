@@ -256,7 +256,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         "0",
         "setWorkers(address[],address[])",
         ["address[]", "address[]"],
-        [[pancakeswapV2Worker02.address], [workerInfos[i].VAULT_ADDR]],
+        [[pancakeswapV2Worker02.address], [workerInfos[i].WORKER_CONFIG_ADDR]],
         workerInfos[i].EXACT_ETA,
         { nonce: nonce++ }
       )
