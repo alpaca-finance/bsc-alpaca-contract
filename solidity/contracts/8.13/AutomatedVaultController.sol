@@ -30,7 +30,7 @@ contract AutomatedVaultController is OwnableUpgradeable {
   // list of private vault
   IDeltaNeutralVault[] public privateVaults;
   // User.deltavault.share
-  mapping(address => mapping(address => uint256)) public userVaultShares;
+  mapping(bytes32 => uint256) public userVaultShares;
 
   function initialize(ICreditor[] memory _creditors, IDeltaNeutralVault[] memory _privateVaults) external initializer {
     // sanity check
@@ -58,7 +58,7 @@ contract AutomatedVaultController is OwnableUpgradeable {
   function usedCredit(address _user) public view returns (uint256) {
     uint256 _totalUsed = 0;
     for (uint8 _i = 0; _i < privateVaults.length; _i++) {
-      uint256 _share = userVaultShares[_user][address(privateVaults[_i])];
+      uint256 _share = userVaultShares[getId(_user, address(privateVaults[_i]))];
       if (_share != 0) _totalUsed += privateVaults[_i].shareToValue(_share);
     }
 
@@ -77,12 +77,17 @@ contract AutomatedVaultController is OwnableUpgradeable {
 
   function onDeposit(address _user, uint256 _shareAmount) external {
     // expected delta vault to be the caller
-    userVaultShares[_user][msg.sender] += _shareAmount;
+    userVaultShares[getId(_user, msg.sender)] += _shareAmount;
   }
 
   function onWithdraw(address _user, uint256 _shareAmount) external {
-    userVaultShares[_user][msg.sender] = userVaultShares[_user][msg.sender] <= _shareAmount
+    bytes32 _userVaultId = getId(_user, msg.sender);
+    userVaultShares[_userVaultId] = userVaultShares[_userVaultId] <= _shareAmount
       ? 0
-      : userVaultShares[_user][msg.sender] - _shareAmount;
+      : userVaultShares[_userVaultId] - _shareAmount;
+  }
+
+  function getId(address _user, address _vault) public pure returns (bytes32) {
+    return keccak256(abi.encodePacked(_user, _vault));
   }
 }
