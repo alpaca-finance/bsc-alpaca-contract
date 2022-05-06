@@ -1,20 +1,12 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
-import {
-  ConfigurableInterestVaultConfig__factory,
-  PancakeswapV2RestrictedStrategyLiquidate__factory,
-  PancakeswapV2Worker02,
-  Timelock__factory,
-  WorkerConfig__factory,
-} from "../../../../typechain";
-import { TimelockEntity } from "../../../entities";
-import { getDeployer } from "../../../../utils/deployer-helper";
-import { ConfigFileHelper } from "../../../helper";
+import { PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory } from "../../../../typechain";
+import { ConfigEntity, TimelockEntity } from "../../../entities";
 import { UpgradeableContractDeployer } from "../../../deployer";
+import { fileService, TimelockService } from "../../../services";
+import { ConfigFileHelper } from "../../../helper";
 import { WorkersEntity } from "../../../interfaces/config";
-import { compare } from "../../../../utils/address";
-import { TimelockService, fileService } from "../../../services";
 
 interface IBeneficialVaultInput {
   BENEFICIAL_VAULT_BPS: string;
@@ -74,34 +66,33 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const executeFileTitle = "pancakeswap-v2-workers02";
+  const executeFileTitle = "tinc-wbnb-pool";
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
-
+  
   const shortWorkerInfos: IPancakeswapWorkerInput[] = [
     {
-      VAULT_SYMBOL: "ibUSDC",
-      WORKER_NAME: "XWG-USDC PancakeswapWorker",
+      VAULT_SYMBOL: "ibWBNB",
+      WORKER_NAME: "TINC-WBNB PancakeswapWorker",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 472,
+      POOL_ID: 91,
       REINVEST_BOUNTY_BPS: "900",
-      REINVEST_PATH: ["CAKE", "BUSD", "USDC"],
+      REINVEST_PATH: ["CAKE", "WBNB"],
       REINVEST_THRESHOLD: "1",
       WORK_FACTOR: "5200",
       KILL_FACTOR: "7000",
       MAX_PRICE_DIFF: "11000",
       BENEFICIAL_VAULT: {
         BENEFICIAL_VAULT_BPS: "5555",
-        BENEFICIAL_VAULT_ADDRESS: "0x44B3868cbba5fbd2c5D8d1445BDB14458806B3B4",
-        REWARD_PATH: ["CAKE", "BUSD", "ALPACA"],
+        BENEFICIAL_VAULT_ADDRESS: "0x08B5A95cb94f926a8B620E87eE92e675b35afc7E",
+        REWARD_PATH: ["CAKE", "BUSD"],
       },
-      EXACT_ETA: "1647246600",
+      EXACT_ETA: "1651482000",
     },
   ];
 
-  const deployer = await getDeployer();
-
+  const [deployer] = await ethers.getSigners();
   const configFileHelper = new ConfigFileHelper();
-  let config = configFileHelper.getConfig();
+  let config = ConfigEntity.getConfig();
 
   const workerInfos: IPancakeswapWorkerInfo[] = shortWorkerInfos.map((n) => {
     const vault = config.Vaults.find((v) => v.symbol === n.VAULT_SYMBOL);
@@ -137,8 +128,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       POOL_ID: n.POOL_ID,
       VAULT_ADDR: vault.address,
       BASE_TOKEN_ADDR: vault.baseToken,
-      MASTER_CHEF_ADDR: config.YieldSources.Pancakeswap!.MasterChef,
-      PANCAKESWAP_ROUTER_ADDR: config.YieldSources.Pancakeswap!.RouterV2,
+      MASTER_CHEF_ADDR: config.YieldSources.PancakeswapMasterChefV2!.MasterChefV2,
+      PANCAKESWAP_ROUTER_ADDR: config.YieldSources.PancakeswapMasterChefV2!.RouterV2,
       ADD_STRAT_ADDR: config.SharedStrategies.Pancakeswap!.StrategyAddBaseTokenOnly,
       LIQ_STRAT_ADDR: config.SharedStrategies.Pancakeswap!.StrategyLiquidate,
       TWO_SIDES_STRAT_ADDR: vault.StrategyAddTwoSidesOptimal.Pancakeswap!,
@@ -156,15 +147,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       EXACT_ETA: n.EXACT_ETA,
     };
   });
+  const timelockTransactions: Array<TimelockEntity.Transaction> = [];
+  const timestamp = Math.floor(Date.now() / 1000);
 
   for (let i = 0; i < workerInfos.length; i++) {
-    const contractDeployer = new UpgradeableContractDeployer<PancakeswapV2Worker02>(
+    const pancakeswapV2Worker02MCv2Deployer = new UpgradeableContractDeployer(
       deployer,
-      "PancakeswapV2Worker02",
+      "PancakeswapV2MCV2Worker02",
       workerInfos[i].WORKER_NAME
     );
 
-    const { contract: pancakeswapV2Worker02, deployedBlock } = await contractDeployer.deploy([
+    const { contract: pancakeswapV2Worker02, deployedBlock } = await pancakeswapV2Worker02MCv2Deployer.deploy([
       workerInfos[i].VAULT_ADDR,
       workerInfos[i].BASE_TOKEN_ADDR,
       workerInfos[i].MASTER_CHEF_ADDR,
@@ -191,17 +184,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR,
       workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR,
     ];
-
     await pancakeswapV2Worker02.setStrategyOk(okStrats, true, { nonce: nonce++ });
     console.log("✅ Done");
 
-    console.log(`>> Whitelisting a worker on ok strats`);
+    console.log(`>> Whitelisting a worker on strats`);
     const allOkStrats = [workerInfos[i].ADD_STRAT_ADDR, workerInfos[i].LIQ_STRAT_ADDR, ...okStrats];
-
-    for (const stratAddress of allOkStrats) {
-      // NOTE: all PancakeswapV2RestrictedStrategy have the same signature of func setWorkersOk.
-      //       then we can use any PancakeswapV2RestrictedStrategy factory for all PancakeswapV2RestrictedStrategy addresses
-      const contractFactory = PancakeswapV2RestrictedStrategyLiquidate__factory.connect(stratAddress, deployer);
+    for (let idx = 0; idx < allOkStrats.length; idx++) {
+      const stratAddress = allOkStrats[idx];
+      // NOTE: all BiswapStrategy have the same signature of func setWorkersOk.
+      //       then we can use any BiswapStrategy factory for all BiswapStrategy addresses
+      const contractFactory = PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory.connect(stratAddress, deployer);
       await contractFactory.setWorkersOk([pancakeswapV2Worker02.address], true, { nonce: nonce++ });
     }
     console.log("✅ Done");
