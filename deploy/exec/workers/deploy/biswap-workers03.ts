@@ -65,7 +65,6 @@ interface IBiswapWorkerInfo {
 }
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-  const executeFileTitle = "biswap-worker03";
   /*
   ░██╗░░░░░░░██╗░█████╗░██████╗░███╗░░██╗██╗███╗░░██╗░██████╗░
   ░██║░░██╗░░██║██╔══██╗██╔══██╗████╗░██║██║████╗░██║██╔════╝░
@@ -132,6 +131,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     },
   ];
 
+  const executeFileTitle = "biswap-worker03";
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
 
   const deployer = await getDeployer();
@@ -214,28 +214,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       workerInfos[i].REINVEST_THRESHOLD,
     ]);
 
-    const lpPoolAddress = config.YieldSources.Biswap!.pools.find(
-      (pool) => pool.pId === workerInfos[i].POOL_ID
-    )!.address;
-
-    const biswapWorkersEntity: WorkersEntity = {
-      name: workerInfos[i].WORKER_NAME,
-      address: biswapWorker03.address,
-      deployedBlock: deployedBlock,
-      config: workerInfos[i].WORKER_CONFIG_ADDR,
-      pId: workerInfos[i].POOL_ID,
-      stakingToken: lpPoolAddress,
-      stakingTokenAt: workerInfos[i].MASTER_CHEF_ADDR,
-      strategies: {
-        StrategyAddAllBaseToken: workerInfos[i].ADD_STRAT_ADDR,
-        StrategyLiquidate: workerInfos[i].LIQ_STRAT_ADDR,
-        StrategyAddTwoSidesOptimal: workerInfos[i].TWO_SIDES_STRAT_ADDR,
-        StrategyWithdrawMinimizeTrading: workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR,
-        StrategyPartialCloseLiquidate: workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR,
-        StrategyPartialCloseMinimizeTrading: workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR,
-      },
-    };
-
     let nonce = await deployer.getTransactionCount();
 
     console.log(`>> Adding REINVEST_BOT`);
@@ -256,8 +234,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(`>> Whitelisting a worker on ok strats`);
     const allOkStrats = [workerInfos[i].ADD_STRAT_ADDR, workerInfos[i].LIQ_STRAT_ADDR, ...okStrats];
 
-    for (let idx = 0; idx < allOkStrats.length; idx++) {
-      const stratAddress = allOkStrats[idx];
+    for (const stratAddress of allOkStrats) {
       // NOTE: all BiswapStrategy have the same signature of func setWorkersOk.
       //       then we can use any BiswapStrategy factory for all BiswapStrategy addresses
       const contractFactory = BiswapStrategyAddBaseTokenOnly__factory.connect(stratAddress, deployer);
@@ -304,11 +281,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         workerInfos[i].EXACT_ETA,
         { gasPrice: ethers.utils.parseUnits("15", "gwei"), nonce: nonce++ }
       );
-      console.log(`queue setConfigs at: ${setConfigsTx.queuedAt}`);
-      console.log("generate timelock.executeTransaction:");
-      console.log(
-        `await timelock.executeTransaction('${workerInfos[i].WORKER_CONFIG_ADDR}', '0', 'setConfigs(address[],(bool,uint64,uint64,uint64)[])', ethers.utils.defaultAbiCoder.encode(['address[]','(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]'],[['${biswapWorker03.address}'], [{acceptDebt: true, workFactor: ${workerInfos[i].WORK_FACTOR}, killFactor: ${workerInfos[i].KILL_FACTOR}, maxPriceDiff: ${workerInfos[i].MAX_PRICE_DIFF}}]]), ${workerInfos[i].EXACT_ETA})`
-      );
       timelockTransactions.push(setConfigsTx);
       fileService.writeJson(executeFileTitle, timelockTransactions);
       console.log("✅ Done");
@@ -342,12 +314,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         workerInfos[i].EXACT_ETA,
         { gasPrice: ethers.utils.parseUnits("15", "gwei"), nonce: nonce++ }
       );
-
-      console.log(`queue setWorkers at: ${setWorkersTx.queuedAt}`);
-      console.log("generate timelock.executeTransaction:");
-      console.log(
-        `await timelock.executeTransaction('${workerInfos[i].VAULT_CONFIG_ADDR}', '0','setWorkers(address[],address[])', ethers.utils.defaultAbiCoder.encode(['address[]','address[]'],[['${biswapWorker03.address}'], ['${workerInfos[i].WORKER_CONFIG_ADDR}']]), ${workerInfos[i].EXACT_ETA})`
-      );
       timelockTransactions.push(setWorkersTx);
       fileService.writeJson(executeFileTitle, timelockTransactions);
       console.log("✅ Done");
@@ -360,6 +326,28 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       ).wait(3);
       console.log("✅ Done");
     }
+
+    const lpPoolAddress = config.YieldSources.Biswap!.pools.find(
+      (pool) => pool.pId === workerInfos[i].POOL_ID
+    )!.address;
+
+    const biswapWorkersEntity: WorkersEntity = {
+      name: workerInfos[i].WORKER_NAME,
+      address: biswapWorker03.address,
+      deployedBlock: deployedBlock,
+      config: workerInfos[i].WORKER_CONFIG_ADDR,
+      pId: workerInfos[i].POOL_ID,
+      stakingToken: lpPoolAddress,
+      stakingTokenAt: workerInfos[i].MASTER_CHEF_ADDR,
+      strategies: {
+        StrategyAddAllBaseToken: workerInfos[i].ADD_STRAT_ADDR,
+        StrategyLiquidate: workerInfos[i].LIQ_STRAT_ADDR,
+        StrategyAddTwoSidesOptimal: workerInfos[i].TWO_SIDES_STRAT_ADDR,
+        StrategyWithdrawMinimizeTrading: workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR,
+        StrategyPartialCloseLiquidate: workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR,
+        StrategyPartialCloseMinimizeTrading: workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR,
+      },
+    };
 
     config = configFileHelper.addOrSetVaultWorker(workerInfos[i].VAULT_ADDR, biswapWorkersEntity);
   }
