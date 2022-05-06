@@ -260,7 +260,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         workerInfos[i].EXACT_ETA,
         { gasPrice: ethers.utils.parseUnits("15", "gwei"), nonce: nonce++ }
       );
-      console.log(`queue setConfigs at: ${setConfigsTx.queuedAt}`);
       timelockTransactions.push(setConfigsTx);
       fileService.writeJson(executeFileTitle, timelockTransactions);
       console.log("✅ Done");
@@ -294,8 +293,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         workerInfos[i].EXACT_ETA,
         { gasPrice: ethers.utils.parseUnits("15", "gwei"), nonce: nonce++ }
       );
-
-      console.log(`queue setWorkers at: ${setWorkersTx.queuedAt}`);
       timelockTransactions.push(setWorkersTx);
       fileService.writeJson(executeFileTitle, timelockTransactions);
       console.log("✅ Done");
