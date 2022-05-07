@@ -177,9 +177,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   });
 
   for (let i = 0; i < workerInfos.length; i++) {
-    console.log("===================================================================================");
-    console.log(`>> Deploying an upgradable SpookyWorker contract for ${workerInfos[i].WORKER_NAME}`);
-
     const deltaNeutralWorkerDeployer = new UpgradeableContractDeployer<DeltaNeutralBiswapWorker03>(
       deployer,
       "DeltaNeutralBiswapWorker03",

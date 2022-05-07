@@ -150,7 +150,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     },
   ];
 
-  const executeFileTitle = "biswap-worker03";
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
 
   const deployer = await getDeployer();

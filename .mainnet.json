@@ -1301,7 +1301,8 @@
     "n3x-BNBBUSD-PCS1": "0x9fE96180AB2ADfaEBc735336f9213F26Bca99aa1",
     "n3x-BNBUSDT-PCS2": "0x96C607E34008630dC8132F517A33Be2772835f9c",
     "n3x-BUBBUSD-PCS2": "0xD14ED91dcD2E06ED72F536008cCd581DA73adDB5",
-    "TINC": "0x05aD6E30A855BE07AfA57e08a4f30d00810a402e"
+    "TINC": "0x05aD6E30A855BE07AfA57e08a4f30d00810a402e",
+    "n3x-BNBUSDT-PCS3": "0xd1464C0D4424a353C4F243A11C806BdCbd783092"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x1099C2E6Ed6ebA95099c205b599B409305783E43",
@@ -2239,6 +2240,23 @@
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 91,
           "stakingToken": "0x0d5b9A0f4315a4bcE36D1Ea7d6B6d3123167aFAa",
+          "stakingTokenAt": "0xa5f8C5Dbd5F286960b9d90548680aE5ebFf07652",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+            "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+            "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
+            "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
+          }
+        },
+        {
+          "name": "USDT-WBNB 3x PCS3 DeltaNeutralPancakeswapWorker",
+          "address": "0x79A499228e3A2ae0168f3fbD2019EeF991A43B41",
+          "deployedBlock": 17584944,
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 13,
+          "stakingToken": "0x16b9a82891338f9bA80E2D6970FddA79D1eb0daE",
           "stakingTokenAt": "0xa5f8C5Dbd5F286960b9d90548680aE5ebFf07652",
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
@@ -3565,6 +3583,23 @@
             "StrategyPartialCloseLiquidate": "0xba7156E07995cAD7837Ef08EC5bA936DaB2B000B",
             "StrategyPartialCloseMinimizeTrading": "0x3739d1E01104b019Ff105B3A8F57BC6ed62F18a4"
           }
+        },
+        {
+          "name": "WBNB-USDT 3x PCS3 DeltaNeutralPancakeswapWorker",
+          "address": "0x9638A202B9Ae27650e7c40153590D666F67fFceF",
+          "deployedBlock": 17584981,
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 13,
+          "stakingToken": "0x16b9a82891338f9bA80E2D6970FddA79D1eb0daE",
+          "stakingTokenAt": "0xa5f8C5Dbd5F286960b9d90548680aE5ebFf07652",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+            "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+            "StrategyAddTwoSidesOptimal": "0x5f94f61095731b669b30ed1f3f4586BBb51f4001",
+            "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
+          }
         }
       ]
     },
@@ -4034,6 +4069,23 @@
       "oracle": "0x08EA5fB66EA41f236E3001d2655e43A1E735787F",
       "assetVaultPosId": "46492",
       "stableVaultPosId": "53401"
+    },
+    {
+      "name": "Market Neutral 3x BNB-USDT PCS3",
+      "symbol": "n3x-BNBUSDT-PCS3",
+      "address": "0xd1464C0D4424a353C4F243A11C806BdCbd783092",
+      "deployedBlock": 17585252,
+      "config": "0xB16CB8AA0F55Ac6f250D7506c396b32B6ED061Bc",
+      "assetToken": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+      "stableToken": "0x55d398326f99059ff775485246999027b3197955",
+      "assetVault": "0xd7D069493685A581d27824Fc46EdA46B7EfC0063",
+      "stableVault": "0x158Da805682BdC8ee32d52833aD41E74bb951E59",
+      "assetDeltaWorker": "0x79A499228e3A2ae0168f3fbD2019EeF991A43B41",
+      "stableDeltaWorker": "0x9638A202B9Ae27650e7c40153590D666F67fFceF",
+      "oracle": "0x08EA5fB66EA41f236E3001d2655e43A1E735787F",
+      "gateway": "0x925e454726355ca5CdCb06C210660FfC69Cf1a46",
+      "assetVaultPosId": "0",
+      "stableVaultPosId": "0"
     }
   ]
 }
