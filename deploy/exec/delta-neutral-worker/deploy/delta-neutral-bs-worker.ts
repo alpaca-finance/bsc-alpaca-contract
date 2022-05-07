@@ -82,13 +82,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const shortWorkerInfos: IDeltaNeutralBSWorkerInput[] = [
     {
-      VAULT_SYMBOL: "ibWBNB",
-      WORKER_NAME: "USDT-WBNB 3x BS1 DeltaNeutralBiswapWorker",
+      VAULT_SYMBOL: "ibETH",
+      WORKER_NAME: "USDT-ETH 3x BSW1 DeltaNeutralBiswapWorker",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 2,
+      POOL_ID: 5,
       REINVEST_BOUNTY_BPS: "1500",
-      REINVEST_PATH: ["BSW", "WBNB"],
-      REINVEST_THRESHOLD: "10000",
+      REINVEST_PATH: ["BSW", "USDT", "ETH"],
+      REINVEST_THRESHOLD: "0",
       BENEFICIAL_VAULT: {
         BENEFICIAL_VAULT_BPS: "5333",
         BENEFICIAL_VAULT_ADDRESS: "0x08B5A95cb94f926a8B620E87eE92e675b35afc7E",
@@ -100,12 +100,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     },
     {
       VAULT_SYMBOL: "ibUSDT",
-      WORKER_NAME: "WBNB-USDT 3x BS1 DeltaNeutralBiswapWorker",
+      WORKER_NAME: "ETH-USDT 3x BSW1 DeltaNeutralBiswapWorker",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 2,
+      POOL_ID: 5,
       REINVEST_BOUNTY_BPS: "1500",
       REINVEST_PATH: ["BSW", "USDT"],
-      REINVEST_THRESHOLD: "10000",
+      REINVEST_THRESHOLD: "0",
       BENEFICIAL_VAULT: {
         BENEFICIAL_VAULT_BPS: "5333",
         BENEFICIAL_VAULT_ADDRESS: "0x08B5A95cb94f926a8B620E87eE92e675b35afc7E",
@@ -116,10 +116,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       MAX_PRICE_DIFF: "10500",
     },
   ];
-  const TIMELOCK_FILE_NAME = "mainnet_n3x_BNBUSDT_bs1_worker";
-  const EXACT_ETA = "1651583600";
+  const TITLE = "mainnet_n3x_ethusdt_bsw1_worker";
+  const EXACT_ETA = "1651980600";
 
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
+  const ts = Math.floor(Date.now() / 1000);
   const gasPriceService = new BlockScanGasPrice(network.name);
   const gasPrice = await gasPriceService.getFastGasPrice();
   const workerInfos: IDeltaNeutralBSWorkerInfo[] = shortWorkerInfos.map((n) => {
@@ -272,7 +273,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         )
       );
 
-      fileService.writeJson(TIMELOCK_FILE_NAME, timelockTransactions);
+      fileService.writeJson(`${ts}_${TITLE}`, timelockTransactions);
       console.log("✅ Done");
     } else {
       console.log(">> Setting WorkerConfig");
@@ -306,7 +307,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
           { gasPrice, nonce: nonce++ }
         )
       );
-      fileService.writeJson(TIMELOCK_FILE_NAME, timelockTransactions);
+      fileService.writeJson(`${ts}_${TITLE}`, timelockTransactions);
       console.log("✅ Done");
     } else {
       console.log(">> Linking VaultConfig with WorkerConfig");

@@ -38,21 +38,19 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   let config = configFileHelper.getConfig();
 
   // prepare variable
-  const POOL_ID = 13;
-  const LP_POOL_ADDRESS = config.YieldSources.PancakeswapMasterChefV2!.pools.find(
-    (pool) => pool.pId === POOL_ID
-  )!.address;
+  const POOL_ID = 5;
+  const LP_POOL_ADDRESS = config.YieldSources.Biswap!.pools.find((pool) => pool.pId === POOL_ID)!.address;
   if (!LP_POOL_ADDRESS) throw new Error("LP_POOL_ADDRESS is not defined");
   const deltaVaultInputs: IDeltaNeutralVaultInput[] = [
     {
-      name: "Market Neutral 3x BNB-USDT PCS3",
-      symbol: "n3x-BNBUSDT-PCS3",
+      name: "Market Neutral 3x ETH-USDT BSW1",
+      symbol: "n3x-ETHUSDT-BSW1",
       stableVaultSymbol: "ibUSDT",
-      assetVaultSymbol: "ibWBNB",
+      assetVaultSymbol: "ibETH",
       stableSymbol: "USDT",
-      assetSymbol: "WBNB",
-      stableDeltaWorkerName: "WBNB-USDT 3x PCS3 DeltaNeutralPancakeswapWorker", // Address of stable deltaneutral worker
-      assetDeltaWorkerName: "USDT-WBNB 3x PCS3 DeltaNeutralPancakeswapWorker", // Address of asset deltaneutral worker
+      assetSymbol: "ETH",
+      stableDeltaWorkerName: "ETH-USDT 3x BSW1 DeltaNeutralBiswapWorker", // Address of stable deltaneutral worker
+      assetDeltaWorkerName: "USDT-ETH 3x BSW1 DeltaNeutralBiswapWorker", // Address of asset deltaneutral worker
       lpAddress: LP_POOL_ADDRESS,
     },
   ];

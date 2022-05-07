@@ -21,7 +21,6 @@ interface IBeneficialVaultInput {
 interface IDeltaNeutralPCSWorkerInput {
   VAULT_SYMBOL: string;
   WORKER_NAME: string;
-  TREASURY_ADDRESS: string;
   REINVEST_BOT: string;
   POOL_ID: number;
   REINVEST_BOUNTY_BPS: string;
@@ -77,7 +76,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     {
       VAULT_SYMBOL: "ibWBNB",
       WORKER_NAME: "USDT-WBNB 3x PCS3 DeltaNeutralPancakeswapWorker",
-      TREASURY_ADDRESS: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
       POOL_ID: 13,
       REINVEST_BOUNTY_BPS: "1500",
@@ -95,7 +93,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     {
       VAULT_SYMBOL: "ibUSDT",
       WORKER_NAME: "WBNB-USDT 3x PCS3 DeltaNeutralPancakeswapWorker",
-      TREASURY_ADDRESS: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
       POOL_ID: 13,
       REINVEST_BOUNTY_BPS: "1500",
