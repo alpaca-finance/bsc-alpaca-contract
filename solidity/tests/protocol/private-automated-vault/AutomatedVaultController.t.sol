@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4 <0.9.0;
 
-import { BaseTest, AutomatedVaultControllerLike, console } from "../../base/BaseTest.sol";
+import { BaseTest, AutomatedVaultControllerLike } from "../../base/BaseTest.sol";
 import { mocking } from "../../utils/mocking.sol";
 import { MockContract } from "../../utils/MockContract.sol";
 
