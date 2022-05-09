@@ -27,6 +27,10 @@ contract AutomatedVaultController_Test is BaseTest {
     _deltaVault1.shareToValue.mockv(1 ether, 1 ether);
     _deltaVault2.shareToValue.mockv(1 ether, 1 ether);
 
+    // 0 share = 0 usd
+    _deltaVault1.shareToValue.mockv(0 ether, 0 ether);
+    _deltaVault2.shareToValue.mockv(0 ether, 0 ether);
+
     // prevent sanity check fail during initialize
     _creditor.getUserCredit.mockv(address(0), 2 ether);
 
@@ -45,6 +49,15 @@ contract AutomatedVaultController_Test is BaseTest {
     address[] memory _deltaVaults = new address[](1);
     _deltaVaults[0] = address(_deltaVault1);
 
+    _controller.setPrivateVaults(_deltaVaults);
+  }
+
+  function testRevert_setPrivateVaultFromNonOwner() external {
+    address[] memory _deltaVaults = new address[](1);
+    _deltaVaults[0] = address(_deltaVault1);
+
+    vm.expectRevert("Ownable: caller is not the owner");
+    vm.prank(ALICE);
     _controller.setPrivateVaults(_deltaVaults);
   }
 
@@ -131,5 +144,28 @@ contract AutomatedVaultController_Test is BaseTest {
 
     // used credit should be 0 since user's currently has no share in private vault
     assertEq(_controller.usedCredit(ALICE), 0 ether);
+  }
+
+  function testCorrectness_getAvailableCredit() external {
+    _creditor.getUserCredit.mockv(ALICE, 2 ether);
+    assertEq(_controller.totalCredit(ALICE), 2 ether);
+    assertEq(_controller.availableCredit(ALICE), 2 ether);
+
+    // Used credit < total credit
+    vm.prank(address(_deltaVault1));
+    _controller.onDeposit(ALICE, 1 ether);
+    // mock deltavault1 share price, 1 share = 2 usd
+    _deltaVault1.shareToValue.mockv(1 ether, 1 ether);
+    assertEq(_controller.availableCredit(ALICE), 1 ether);
+
+    // Used credit > total credit
+    // mock deltavault1 share price, 1 share = 3 usd
+    _deltaVault1.shareToValue.mockv(1 ether, 3 ether);
+    assertEq(_controller.availableCredit(ALICE), 0 ether);
+
+    // Used credit == total credit
+    // mock deltavault1 share price, 1 share = 3 usd
+    _deltaVault1.shareToValue.mockv(1 ether, 2 ether);
+    assertEq(_controller.availableCredit(ALICE), 0 ether);
   }
 }
