@@ -18,6 +18,7 @@ import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/O
 import { ICreditor } from "./interfaces/ICreditor.sol";
 import { IDeltaNeutralVault } from "./interfaces/IDeltaNeutralVault.sol";
 
+/// @title AutomatedVaultController - Controller how much investor can invest in the private automated vault
 contract AutomatedVaultController is OwnableUpgradeable {
   // --- Events ---
   event LogSetPrivateVaults(address indexed _caller, IDeltaNeutralVault[] _vaults);
@@ -30,6 +31,9 @@ contract AutomatedVaultController is OwnableUpgradeable {
   // User.deltavault.share
   mapping(address => mapping(address => uint256)) public userVaultShares;
 
+  /// @notice Initialize Automated Vault Controller
+  /// @param _creditors list of credit sources
+  /// @param _privateVaults list of private automated vaults
   function initialize(ICreditor[] memory _creditors, IDeltaNeutralVault[] memory _privateVaults) external initializer {
     // sanity check
     for (uint8 _i = 0; _i < _creditors.length; _i++) {
@@ -45,6 +49,9 @@ contract AutomatedVaultController is OwnableUpgradeable {
     privateVaults = _privateVaults;
   }
 
+  /// @notice Get total credit for this user
+  /// @param _user address of user.
+  /// @return _total user's credit in USD value
   function totalCredit(address _user) public view returns (uint256) {
     uint256 _total = 0;
     for (uint8 _i = 0; _i < creditors.length; _i++) {
@@ -53,6 +60,9 @@ contract AutomatedVaultController is OwnableUpgradeable {
     return _total;
   }
 
+  /// @notice Get used credit for this user
+  /// @param _user address of user.
+  /// @return _total user's used credit in USD value from depositing into private automated vaults
   function usedCredit(address _user) public view returns (uint256) {
     uint256 _total = 0;
     for (uint8 _i = 0; _i < privateVaults.length; _i++) {
@@ -63,12 +73,17 @@ contract AutomatedVaultController is OwnableUpgradeable {
     return _total;
   }
 
+  /// @notice Get availableCredit credit for this user
+  /// @param _user address of user.
+  /// @return _total remaining credit of this user
   function availableCredit(address _user) public view returns (uint256) {
     uint256 _total = totalCredit(_user);
     uint256 _used = usedCredit(_user);
     return _total > _used ? _total - _used : 0;
   }
 
+  /// @notice set private automated vaults
+  /// @param _newPrivateVaults list of private automated vaults
   function setPrivateVaults(IDeltaNeutralVault[] memory _newPrivateVaults) external onlyOwner {
     // sanity check
     for (uint8 _i = 0; _i < _newPrivateVaults.length; _i++) {
@@ -81,11 +96,17 @@ contract AutomatedVaultController is OwnableUpgradeable {
     emit LogSetPrivateVaults(msg.sender, _newPrivateVaults);
   }
 
+  /// @notice record user's automated vault's share from deposit
+  /// @param _user share owner
+  /// @param _shareAmount amount of automated vault's share
   function onDeposit(address _user, uint256 _shareAmount) external {
     // expected delta vault to be the caller
     userVaultShares[_user][msg.sender] += _shareAmount;
   }
 
+  /// @notice update user's automated vault's share from withdrawal
+  /// @param _user share owner
+  /// @param _shareAmount amount of automated vault's share withdrawn
   function onWithdraw(address _user, uint256 _shareAmount) external {
     userVaultShares[_user][msg.sender] = userVaultShares[_user][msg.sender] <= _shareAmount
       ? 0
