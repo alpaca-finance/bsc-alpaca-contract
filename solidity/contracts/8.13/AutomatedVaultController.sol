@@ -22,6 +22,7 @@ import { IDeltaNeutralVault } from "./interfaces/IDeltaNeutralVault.sol";
 contract AutomatedVaultController is OwnableUpgradeable {
   // --- Events ---
   event LogSetPrivateVaults(address indexed _caller, IDeltaNeutralVault[] _vaults);
+  event LogSetCreditors(address indexed _caller, ICreditor[] _creditors);
 
   // --- State Variables ---
   // list of creditors
@@ -94,6 +95,20 @@ contract AutomatedVaultController is OwnableUpgradeable {
     privateVaults = _newPrivateVaults;
 
     emit LogSetPrivateVaults(msg.sender, _newPrivateVaults);
+  }
+
+  /// @notice set private automated vaults
+  /// @param _newCreditors list of credit sources
+  function setCreditors(ICreditor[] memory _newCreditors) external onlyOwner {
+    // sanity check
+    for (uint8 _i = 0; _i < _newCreditors.length; _i++) {
+      _newCreditors[_i].getUserCredit(address(0));
+    }
+
+    // effect
+    creditors = _newCreditors;
+
+    emit LogSetCreditors(msg.sender, _newCreditors);
   }
 
   /// @notice record user's automated vault's share from deposit
