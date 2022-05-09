@@ -61,6 +61,22 @@ contract AutomatedVaultController_Test is BaseTest {
     _controller.setPrivateVaults(_deltaVaults);
   }
 
+  function testCorrectness_setCreditors() external {
+    address[] memory _creditors = new address[](1);
+    _creditors[0] = address(_creditor);
+
+    _controller.setCreditors(_creditors);
+  }
+
+  function testRevert_setCreditorsFromNonOwner() external {
+    address[] memory _creditors = new address[](1);
+    _creditors[0] = address(_creditor);
+
+    vm.expectRevert("Ownable: caller is not the owner");
+    vm.prank(ALICE);
+    _controller.setCreditors(_creditors);
+  }
+
   function testFail_setPrivateVaultWithNonDeltaVault() external {
     address[] memory _deltaVaults = new address[](2);
     _deltaVaults[0] = address(_deltaVault1);
