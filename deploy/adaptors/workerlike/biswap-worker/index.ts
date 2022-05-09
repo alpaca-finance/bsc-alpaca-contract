@@ -1,12 +1,12 @@
 import { expect } from "chai";
 import { ethers } from "ethers";
-import { CakeMaxiWorker02MCV2, CakeMaxiWorker02MCV2__factory } from "../../../../typechain";
+import { BiswapWorker03, BiswapWorker03__factory } from "../../../../typechain";
 import { WorkersEntity } from "../../../interfaces/config";
 import { IMultiCallService } from "../../../services/multicall/interfaces";
 import { IWorkerLike } from "../IWorkerLike";
 
-export class CakeMaxiWorkerAdaptor implements IWorkerLike {
-  private _worker: CakeMaxiWorker02MCV2;
+export class BiswapWorkerAdaptor implements IWorkerLike {
+  private _worker: BiswapWorker03;
   private _multiCallService: IMultiCallService;
 
   constructor(
@@ -14,7 +14,7 @@ export class CakeMaxiWorkerAdaptor implements IWorkerLike {
     _multiCallService: IMultiCallService,
     _signerOrProvider: ethers.Signer | ethers.providers.Provider
   ) {
-    this._worker = CakeMaxiWorker02MCV2__factory.connect(_workerAddress, _signerOrProvider);
+    this._worker = BiswapWorker03__factory.connect(_workerAddress, _signerOrProvider);
     this._multiCallService = _multiCallService;
   }
 
@@ -27,11 +27,10 @@ export class CakeMaxiWorkerAdaptor implements IWorkerLike {
     try {
       const [
         workerOperator,
-        workerFarmingToken,
+        workerLpToken,
         workerPid,
-        workerCakePool,
+        workerMasterChef,
         workerRouter,
-        workerFee,
         workerFeeDenom,
         workerBaseToken,
         workerAddBaseTokenOk,
@@ -41,29 +40,13 @@ export class CakeMaxiWorkerAdaptor implements IWorkerLike {
         workerPartialCloseLiqOk,
         workerPartialCloseMinimizeOk,
       ] = await this._multiCallService.multiContractCall<
-        [
-          string,
-          string,
-          string,
-          string,
-          string,
-          string,
-          string,
-          string,
-          boolean,
-          boolean,
-          boolean,
-          boolean,
-          boolean,
-          boolean
-        ]
+        [string, string, string, string, string, string, string, boolean, boolean, boolean, boolean, boolean, boolean]
       >([
         { contract: this._worker, functionName: "operator" },
-        { contract: this._worker, functionName: "farmingToken" },
+        { contract: this._worker, functionName: "lpToken" },
         { contract: this._worker, functionName: "pid" },
-        { contract: this._worker, functionName: "cakePool" },
+        { contract: this._worker, functionName: "biswapMasterChef" },
         { contract: this._worker, functionName: "router" },
-        { contract: this._worker, functionName: "fee" },
         { contract: this._worker, functionName: "feeDenom" },
         { contract: this._worker, functionName: "baseToken" },
         { contract: this._worker, functionName: "okStrats", params: [workerInfo.strategies.StrategyAddAllBaseToken] },
@@ -99,21 +82,18 @@ export class CakeMaxiWorkerAdaptor implements IWorkerLike {
       ]);
 
       expect(workerOperator).to.be.eq(vaultAddress, "operator mis-config");
-      expect(workerFarmingToken).to.be.eq(workerInfo.stakingToken, "stakingToken mis-config");
+      expect(workerLpToken.toLowerCase()).to.be.eq(workerInfo.stakingToken.toLowerCase(), "stakingToken mis-config");
       expect(workerPid).to.be.eq(workerInfo.pId, "pool id mis-config");
-      expect(workerCakePool).to.be.eq(workerInfo.stakingTokenAt, "cakePool mis-config");
-      expect(workerRouter).to.be.eq(routerAddress, "router mis-config");
-      expect(workerFee).to.be.eq("9975");
-      expect(workerFeeDenom).to.be.eq("10000");
-      expect(workerBaseToken).to.be.eq(vaultToken, "baseToken mis-config");
+      expect(workerMasterChef.toLowerCase()).to.be.eq(workerInfo.stakingTokenAt.toLowerCase(), "masterChef mis-config");
+      expect(workerRouter.toLowerCase()).to.be.eq(routerAddress.toLowerCase(), "router mis-config");
+      expect(workerFeeDenom).to.be.eq("1000");
+      expect(workerBaseToken.toLowerCase()).to.be.eq(vaultToken.toLowerCase(), "baseToken mis-config");
       expect(workerAddBaseTokenOk).to.be.eq(true, "mis-config on add base token only strat");
       expect(workerLiqOk).to.be.eq(true, "mis-config on liquidate strat");
       expect(workerTwoSidesOk).to.be.eq(true, "mis-config on add two sides strat");
       expect(workerMinimizeOk).to.be.eq(true, "mis-config on minimize trading strat");
-      if (workerInfo.strategies.StrategyPartialCloseLiquidate !== "")
-        expect(workerPartialCloseLiqOk).to.be.eq(true, "mis-config on partial close liquidate strat");
-      if (workerInfo.strategies.StrategyPartialCloseMinimizeTrading !== "")
-        expect(workerPartialCloseMinimizeOk).to.be.eq(true, "mis-config on partial close minimize");
+      expect(workerPartialCloseLiqOk).to.be.eq(true, "mis-config on partial close liquidate strat");
+      expect(workerPartialCloseMinimizeOk).to.be.eq(true, "mis-config on partial close minimize");
 
       console.log(`> ✅ done validated ${workerInfo.name}, no problem found`);
     } catch (e) {

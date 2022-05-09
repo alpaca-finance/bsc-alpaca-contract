@@ -10,6 +10,8 @@ import { ProxyAdminLike } from "../interfaces/ProxyAdminLike.sol";
 
 import { MockErc20Like } from "../interfaces/MockErc20Like.sol";
 
+import { TripleSlopeModelLike } from "../interfaces/TripleSlopeModelLike.sol";
+
 import { DebtTokenLike } from "../interfaces/DebtTokenLike.sol";
 import { SimpleVaultConfigLike } from "../interfaces/SimpleVaultConfigLike.sol";
 import { VaultLike } from "../interfaces/VaultLike.sol";
@@ -181,5 +183,18 @@ contract BaseTest is DSTest {
       _address := create(0, add(_bytecode, 0x20), mload(_bytecode))
     }
     return MockPancakeswapV2WorkerLike(address(_address));
+  }
+
+  function _setupTripleSlope(string memory _version) internal returns (TripleSlopeModelLike) {
+    bytes memory _bytecode = abi.encodePacked(
+      vm.getCode(
+        string(abi.encodePacked("./out/TripleSlopeModel", _version, ".sol", "/TripleSlopeModel", _version, ".json"))
+      )
+    );
+    address _address;
+    assembly {
+      _address := create(0, add(_bytecode, 0x20), mload(_bytecode))
+    }
+    return TripleSlopeModelLike(_address);
   }
 }

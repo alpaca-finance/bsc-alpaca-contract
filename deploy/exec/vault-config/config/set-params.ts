@@ -7,6 +7,7 @@ import { getConfig } from "../../../entities/config";
 import { ConfigurableInterestVaultConfig__factory } from "../../../../typechain";
 import { Multicall2Service } from "../../../services/multicall/multicall2";
 import { BigNumber, BigNumberish } from "ethers";
+import { compare } from "../../../../utils/address";
 
 interface SetParamsInput {
   VAULT_SYMBOL: string;
@@ -20,6 +21,7 @@ interface SetParamsInput {
 }
 
 interface SetParamsDerivedInput {
+  OWNER: string;
   VAULT_SYMBOL: string;
   MIN_DEBT_SIZE_WEI: BigNumberish;
   RESERVE_POOL_BPS: BigNumberish;
@@ -44,17 +46,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLTE = "update_wbnb_usdt_triple_slope_model";
+  const TITLTE = "update_wftm_usdc_tomb_interest_model";
   const NEW_PARAMS: Array<SetParamsInput> = [
     {
-      VAULT_SYMBOL: "ibWBNB",
-      INTEREST_MODEL: "0x284e25169CE75fc62c9339207de5d775F46aD406",
-      EXACT_ETA: "1649228400",
+      VAULT_SYMBOL: "ibFTM",
+      INTEREST_MODEL: "0xd36B6cf6Aa96Eb7185798ebccb8c5c5a82434067",
+      EXACT_ETA: "8888",
     },
     {
-      VAULT_SYMBOL: "ibUSDT",
-      INTEREST_MODEL: "0xcB1bF51A93fC162bFa761F18c236E39D107F6b23",
-      EXACT_ETA: "1649228400",
+      VAULT_SYMBOL: "ibUSDC",
+      INTEREST_MODEL: "0xBbf2a7FacDB318F7670cE87A5F6571Bb001d8F06",
+      EXACT_ETA: "8888",
     },
   ];
 
@@ -63,6 +65,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
   const multicallService = new Multicall2Service(config.MultiCall, deployer);
   let nonce = await deployer.getTransactionCount();
+  const ts = Math.floor(Date.now() / 1000);
 
   /// @dev derived input
   const infos: Array<SetParamsDerivedInput> = await Promise.all(
@@ -72,6 +75,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
       const vaultConfig = ConfigurableInterestVaultConfig__factory.connect(vault.config, deployer);
       const [
+        owner,
         minDebtSize,
         reservePoolBps,
         killBps,
@@ -82,8 +86,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         wnativeRelayer,
         fairlaunch,
       ] = await multicallService.multiContractCall<
-        [BigNumber, BigNumber, BigNumber, string, string, BigNumber, string, string, string]
+        [string, BigNumber, BigNumber, BigNumber, string, string, BigNumber, string, string, string]
       >([
+        { contract: vaultConfig, functionName: "owner" },
         { contract: vaultConfig, functionName: "minDebtSize" },
         { contract: vaultConfig, functionName: "getReservePoolBps" },
         { contract: vaultConfig, functionName: "getKillBps" },
@@ -96,6 +101,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       ]);
 
       return {
+        OWNER: owner,
         VAULT_SYMBOL: n.VAULT_SYMBOL,
         VAULT_CONFIG: vault.config,
         MIN_DEBT_SIZE_WEI: n.MIN_DEBT_SIZE_WEI || minDebtSize,
@@ -124,31 +130,46 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     // uint256 _getKillTreasuryBps,
     // address _treasury
     // )
-    timelockTransactions.push(
-      await TimelockService.queueTransaction(
-        `Update ${info.VAULT_SYMBOL} Vault config`,
-        info.VAULT_CONFIG,
-        "0",
-        "setParams(uint256,uint256,uint256,address,address,address,address,uint256,address)",
-        ["uint256", "uint256", "uint256", "address", "address", "address", "address", "uint256", "address"],
-        [
-          info.MIN_DEBT_SIZE_WEI,
-          info.RESERVE_POOL_BPS,
-          info.KILL_PRIZE_BPS,
-          info.INTEREST_MODEL,
-          info.WRAPPED_NATIVE,
-          info.WNATIVE_RELAYER,
-          info.FAIRLAUNCH,
-          info.TREASURY_KILL_BPS,
-          info.TREASURY_ADDR,
-        ],
-        info.EXACT_ETA,
+    if (compare(info.OWNER, config.Timelock)) {
+      timelockTransactions.push(
+        await TimelockService.queueTransaction(
+          `Update ${info.VAULT_SYMBOL} Vault config`,
+          info.VAULT_CONFIG,
+          "0",
+          "setParams(uint256,uint256,uint256,address,address,address,address,uint256,address)",
+          ["uint256", "uint256", "uint256", "address", "address", "address", "address", "uint256", "address"],
+          [
+            info.MIN_DEBT_SIZE_WEI,
+            info.RESERVE_POOL_BPS,
+            info.KILL_PRIZE_BPS,
+            info.INTEREST_MODEL,
+            info.WRAPPED_NATIVE,
+            info.WNATIVE_RELAYER,
+            info.FAIRLAUNCH,
+            info.TREASURY_KILL_BPS,
+            info.TREASURY_ADDR,
+          ],
+          info.EXACT_ETA,
+          { nonce: nonce++ }
+        )
+      );
+      fileService.writeJson(`${ts}_${TITLTE}`, timelockTransactions);
+    } else {
+      const vaultConfig = ConfigurableInterestVaultConfig__factory.connect(info.VAULT_CONFIG, deployer);
+      await vaultConfig.setParams(
+        info.MIN_DEBT_SIZE_WEI,
+        info.RESERVE_POOL_BPS,
+        info.KILL_PRIZE_BPS,
+        info.INTEREST_MODEL,
+        info.WRAPPED_NATIVE,
+        info.WNATIVE_RELAYER,
+        info.FAIRLAUNCH,
+        info.TREASURY_KILL_BPS,
+        info.TREASURY_ADDR,
         { nonce: nonce++ }
-      )
-    );
+      );
+    }
   }
-
-  fileService.writeJson(TITLTE, timelockTransactions);
 };
 
 export default func;

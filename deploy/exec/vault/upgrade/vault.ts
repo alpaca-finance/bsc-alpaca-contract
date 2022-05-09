@@ -52,7 +52,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         `> Queue tx to upgrade ${vault.symbol}`,
         config.ProxyAdmin,
         "0",
-        "upgrade(address,adress)",
+        "upgrade(address,address)",
         ["address", "address"],
         [vault.address, preparedNewVault],
         EXACT_ETA,

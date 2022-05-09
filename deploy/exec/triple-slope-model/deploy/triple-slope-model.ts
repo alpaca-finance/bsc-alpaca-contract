@@ -3,7 +3,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-  const SLOPE_VERSION = "TripleSlopeModel5";
+  const SLOPE_VERSION = "TripleSlopeModel6";
 
   const [deployer] = await ethers.getSigners();
 

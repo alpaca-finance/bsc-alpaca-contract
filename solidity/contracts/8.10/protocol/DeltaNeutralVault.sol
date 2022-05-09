@@ -465,22 +465,21 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
 
     // 1.  claim reward from fairlaunch
     uint256 _equityBefore = totalEquityValue();
-    uint256 _alpacaBefore = IERC20Upgradeable(alpacaToken).balanceOf(address(this));
 
     address _fairLaunchAddress = config.fairLaunchAddr();
     IFairLaunch(_fairLaunchAddress).harvest(IVault(stableVault).fairLaunchPoolId());
     IFairLaunch(_fairLaunchAddress).harvest(IVault(assetVault).fairLaunchPoolId());
-    uint256 _alpacaAfter = IERC20Upgradeable(alpacaToken).balanceOf(address(this));
+    uint256 _alpacaAmount = IERC20Upgradeable(alpacaToken).balanceOf(address(this));
 
     // 2. collect alpaca bounty & distribute to ALPACA beneficiary
-    uint256 _bounty = ((_alpacaBountyBps) * (_alpacaAfter - _alpacaBefore)) / MAX_BPS;
+    uint256 _bounty = (_alpacaBountyBps * _alpacaAmount) / MAX_BPS;
     uint256 _beneficiaryShare = (_bounty * _alpacaBeneficiaryBps) / MAX_BPS;
     if (_beneficiaryShare > 0)
       IERC20Upgradeable(alpacaToken).safeTransfer(config.alpacaBeneficiary(), _beneficiaryShare);
     IERC20Upgradeable(alpacaToken).safeTransfer(config.alpacaReinvestFeeTreasury(), _bounty - _beneficiaryShare);
 
     // 3. swap alpaca
-    uint256 _rewardAmount = _alpacaAfter - _bounty;
+    uint256 _rewardAmount = _alpacaAmount - _bounty;
     ISwapRouter _router = ISwapRouter(config.getSwapRouter());
     IERC20Upgradeable(alpacaToken).approve(address(_router), _rewardAmount);
     _router.swapExactTokensForTokens(_rewardAmount, _minTokenReceive, reinvestPath, address(this), block.timestamp);

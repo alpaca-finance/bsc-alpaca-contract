@@ -1,20 +1,10 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 import { getConfig } from "../../../entities/config";
 import { TimelockEntity } from "../../../entities";
 import { fileService, TimelockService } from "../../../services";
-
-interface IUpdate {
-  STAKING_TOKEN: string;
-  ALLOC_POINT: number;
-}
-
-interface IInput {
-  pId: number;
-  stakingPool: string;
-  allocPoint: number;
-}
+import { getDeployer } from "../../../../utils/deployer-helper";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -26,55 +16,61 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "set_ibTUSD_alloc_point";
-  const UPDATES: Array<IUpdate> = [
-    {
-      STAKING_TOKEN: "ibTUSD",
-      ALLOC_POINT: 15,
-    },
+  const TITLE = "upgrade_delta_neutral_vault";
+  const DELTA_NEUTRAL_VAULT = "DeltaNeutralVault";
+  const TARGETED_VAULTS = [
+    "n3x-BNBUSDT-PCS1",
+    "n8x-BNBUSDT-PCS1",
+    "n8x-BNBUSDT-PCS2",
+    "n3x-BNBBUSD-PCS1",
+    "n3x-BNBUSDT-PCS2",
+    "n3x-BNBBUSD-PCS2",
   ];
-  const EXACT_ETA = "1650876300";
+  const EXACT_ETA = "1651893300";
 
   const config = getConfig();
-  const inputs: Array<IInput> = [];
 
-  /// @dev derived input
-  for (let i = 0; i < UPDATES.length; i++) {
-    const pool = config.FairLaunch!.pools.find((p) => p.stakingToken == UPDATES[i].STAKING_TOKEN);
-    if (pool !== undefined) {
-      inputs.push({
-        pId: pool.id,
-        stakingPool: pool.stakingToken,
-        allocPoint: UPDATES[i].ALLOC_POINT,
-      });
-    } else {
-      throw new Error(`not found ${UPDATES[i].STAKING_TOKEN}`);
-    }
-  }
-
-  const deployer = (await ethers.getSigners())[0];
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
+  const deployer = await getDeployer();
+  const toBeUpgradedVaults = TARGETED_VAULTS.map((tv) => {
+    const vault = config.DeltaNeutralVaults.find((v) => tv == v.symbol);
+    if (vault === undefined) {
+      throw `error: not found vault with ${tv} symbol`;
+    }
+    if (vault.config === "") {
+      throw `error: not found config address`;
+    }
+
+    return vault;
+  });
   let nonce = await deployer.getTransactionCount();
 
-  for (const input of inputs) {
-    console.log(`>> Timelock: Set pool for ${input.stakingPool} via Timelock`);
+  for (const vault of toBeUpgradedVaults) {
+    console.log("------------------");
+    console.log(`> Upgrading DeltaNeutralVault at ${vault.symbol} through Timelock + ProxyAdmin`);
+    console.log("> Prepare upgrade & deploy if needed a new IMPL automatically.");
+    const NewVault = await ethers.getContractFactory(DELTA_NEUTRAL_VAULT);
+    const preparedNewVault = await upgrades.prepareUpgrade(vault.address, NewVault);
+    console.log(`> Implementation address: ${preparedNewVault}`);
+    console.log("✅ Done");
+
     timelockTransactions.push(
       await TimelockService.queueTransaction(
-        `>> Timelock: Set pool for ${input.stakingPool} via Timelock`,
-        config.Shield!,
+        `> Queue tx to upgrade ${vault.symbol}`,
+        config.ProxyAdmin,
         "0",
-        "setPool(uint256,uint256,bool)",
-        ["uint256", "uint256", "bool"],
-        [input.pId, input.allocPoint, true],
+        "upgrade(address,address)",
+        ["address", "address"],
+        [vault.address, preparedNewVault],
         EXACT_ETA,
         { nonce: nonce++ }
       )
     );
   }
 
-  const ts = Math.floor(Date.now() / 1000);
-  fileService.writeJson(`${ts}_${TITLE}`, timelockTransactions);
+  const timestamp = Math.floor(Date.now() / 1000);
+  fileService.writeJson(`${timestamp}_${TITLE}`, timelockTransactions);
 };
 
 export default func;
-func.tags = ["TimelockSetPool"];
+func.tags = ["UpgradeDeltaNeutralVault"];

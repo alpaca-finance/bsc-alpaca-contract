@@ -37,7 +37,7 @@ export class SwapHelper {
   private fee: BigNumber;
   private feeDenom: BigNumber;
 
-  private reserves: Array<IReserve>;
+  public reserves: Array<IReserve>;
 
   constructor(
     _factoryAddress: string,
@@ -155,6 +155,7 @@ export class SwapHelper {
       if (reserveIdx === -1) {
         throw new Error("computeSwapExactTokensForTokens: not found reserve");
       }
+
       const isReverse = (await currLp.token0()) != path[i];
       const [rOut, rIn] = isReverse
         ? [this.reserves[reserveIdx].r1, this.reserves[reserveIdx].r0]

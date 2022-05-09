@@ -1,9 +1,6 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, network } from "hardhat";
-import { Timelock__factory } from "../../../../typechain";
-import MainnetConfig from "../../../../.mainnet.json";
-import TestnetConfig from "../../../../.testnet.json";
 import { TimelockEntity } from "../../../entities";
 import { fileService, TimelockService } from "../../../services";
 import { getConfig } from "../../../entities/config";
@@ -30,45 +27,50 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "mainnet_mdex_set_approved_add_strategies";
+  const TITLE = "mainnet_bsw_set_approved_add_strategies";
   const TARGETED_VAULT_CONFIG: Array<IInput> = [
     {
       VAULT_SYMBOL: "ibWBNB",
-      ADD_STRATEGIES: ["0x632e03943Dd4c5c509486233b345FAE86cD5517a", "0xD8A128e5712D9b240811a0D55D3F9CA8E6599B7A"],
+      ADD_STRATEGIES: ["0xaAEF721098a4f123353495d75604fA921C7CE323", "0x87d0BEaF4124a72F99ECDF350a8aD4Ed732A9C48"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibBUSD",
-      ADD_STRATEGIES: ["0x632e03943Dd4c5c509486233b345FAE86cD5517a", "0x632188A1b2f3a2636B59a1c400835e2C5EA40214"],
+      ADD_STRATEGIES: ["0xaAEF721098a4f123353495d75604fA921C7CE323", "0x36b1FB077bD0185a64FF0b5E9249F700cA7C5290"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibETH",
-      ADD_STRATEGIES: ["0x632e03943Dd4c5c509486233b345FAE86cD5517a", "0xB16912cbb98C7ef7aAD30268bDC5602dBb5833f9"],
+      ADD_STRATEGIES: ["0xaAEF721098a4f123353495d75604fA921C7CE323", "0x8D9fEC1B16708F0Fa64877b54ac82e2c50Db3E73"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibALPACA",
-      ADD_STRATEGIES: ["0x632e03943Dd4c5c509486233b345FAE86cD5517a", "0x090ff57ffD64593111b0Aa7f2D664b1Aa3066137"],
+      ADD_STRATEGIES: ["0xaAEF721098a4f123353495d75604fA921C7CE323", "0x082eb6de59CC80107ed2c15C7c08c79F2B6b9720"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibUSDT",
-      ADD_STRATEGIES: ["0x632e03943Dd4c5c509486233b345FAE86cD5517a", "0x0768EF9E891725C4c65f3E0fB671aBCD66FC6bee"],
+      ADD_STRATEGIES: ["0xaAEF721098a4f123353495d75604fA921C7CE323", "0xf4B38789212E997C1603E08C4Ec27A962A626E36"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibBTCB",
-      ADD_STRATEGIES: ["0x632e03943Dd4c5c509486233b345FAE86cD5517a", "0x34Cce22a47C5f020A5cc4fCc63d231D46577415a"],
+      ADD_STRATEGIES: ["0xaAEF721098a4f123353495d75604fA921C7CE323", "0x8cAFA07aa8cFd60DD3D45Dbc544EeaB958305F0e"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibTUSD",
-      ADD_STRATEGIES: ["0x632e03943Dd4c5c509486233b345FAE86cD5517a", "0xC9B12a6900c53A9d0eaEd911c1f46f6A1CC8E7Ad"],
+      ADD_STRATEGIES: ["0xaAEF721098a4f123353495d75604fA921C7CE323", "0x559B79aDaBe0da4BE806B788eb5e63fD95FaaD0a"],
+      IS_ENABLE: true,
+    },
+    {
+      VAULT_SYMBOL: "ibUSDC",
+      ADD_STRATEGIES: ["0xaAEF721098a4f123353495d75604fA921C7CE323", "0xf7e7c056B7F47a51264374d68C02F77d5c8dC32b"],
       IS_ENABLE: true,
     },
   ];
-  const EXACT_ETA = "1632903300";
+  const EXACT_ETA = "1651057200";
 
   const config = getConfig();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
@@ -104,7 +106,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     );
   }
 
-  fileService.writeJson(TITLE, timelockTransactions);
+  const ts = Math.floor(new Date().getTime() / 1000);
+  fileService.writeJson(`${ts}_${TITLE}`, timelockTransactions);
 };
 
 export default func;

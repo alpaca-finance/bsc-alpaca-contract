@@ -1,13 +1,10 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers, upgrades } from "hardhat";
-import {
-  DeltaNeutralVaultConfig__factory,
-  DeltaNeutralVaultGateway,
-  DeltaNeutralVaultGateway__factory,
-} from "../../../../typechain";
+import { DeltaNeutralVaultConfig__factory, DeltaNeutralVaultGateway } from "../../../../typechain";
 import { getConfig } from "../../../entities/config";
 import { getDeployer } from "../../../../utils/deployer-helper";
+import { UpgradeableContractDeployer } from "../../../deployer";
+import { ConfigFileHelper } from "../../../helper";
 
 interface IDeltaVaultInput {
   name: string;
@@ -29,14 +26,18 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
     Check all variables below before execute the deployment script
     */
+  // state
+  const deployer = await getDeployer();
+
+  const configFileHelper = new ConfigFileHelper();
+  let config = configFileHelper.getConfig();
+
+  // prepare
   const deltaVaultInputs: IDeltaVaultInput[] = [
     {
-      name: "Market Neutral 3x BNB-BUSD PCS1",
+      name: "Market Neutral 3x FTM-USDC SPK2",
     },
   ];
-
-  const config = getConfig();
-  const deployer = await getDeployer();
 
   const deltaVaultInfos: IDeltaVaultInfo[] = deltaVaultInputs.map((input) => {
     const deltaVaultInfo = config.DeltaNeutralVaults.find((deltaVault) => input.name === deltaVault.name);
@@ -51,28 +52,21 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   });
 
   for (let i = 0; i < deltaVaultInfos.length; i++) {
-    console.log("===================================================================================");
-    console.log(`>> Deploying a DeltaNeutralVaultGateway for ${deltaVaultInputs[i].name}`);
-    const DeltaNeutralVaultGateway = (await ethers.getContractFactory(
+    const deltaVaultInfo = deltaVaultInfos[i];
+    const deltaVaultGWDeployer = new UpgradeableContractDeployer<DeltaNeutralVaultGateway>(
+      deployer,
       "DeltaNeutralVaultGateway",
-      deployer
-    )) as DeltaNeutralVaultGateway__factory;
+      deltaVaultInputs[i].name
+    );
 
-    const deltaNeutralVaultGateway = (await upgrades.deployProxy(DeltaNeutralVaultGateway, [
-      deltaVaultInfos[i].address,
-    ])) as DeltaNeutralVaultGateway;
-    const deployTxReceipt = await deltaNeutralVaultGateway.deployTransaction.wait(3);
-    console.log(`>> Deployed at ${deltaNeutralVaultGateway.address}`);
-    console.log(`>> Deployed block ${deployTxReceipt.blockNumber}`);
-    console.log("✅ Done");
+    const { contract: deltaNeutralVaultGateway } = await deltaVaultGWDeployer.deploy([deltaVaultInfo.address]);
 
     console.log(`>> Setting DeltaNeutralConfig's WhitelistCallers for DeltaNeutralVaultGateway`);
-    const deltaNeutralVaultConfig = DeltaNeutralVaultConfig__factory.connect(
-      deltaVaultInfos[i].deltaVaultConfig,
-      deployer
-    );
+    const deltaNeutralVaultConfig = DeltaNeutralVaultConfig__factory.connect(deltaVaultInfo.deltaVaultConfig, deployer);
     await deltaNeutralVaultConfig.setWhitelistedCallers([deltaNeutralVaultGateway.address], true);
     console.log("✅ Done");
+
+    config = configFileHelper.setDeltaNeutralGateway(deltaVaultInfo.name, deltaNeutralVaultGateway.address);
   }
 };
 

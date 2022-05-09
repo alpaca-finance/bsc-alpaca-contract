@@ -30,65 +30,25 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "mainnet_n3x_BNBBUSD_set_whitelisted_callers";
+  const TITLE = "mainnet_whitelist_swt_potato";
   const TARGETED_VAULT_CONFIG: Array<IInput> = [
     {
-      VAULT_SYMBOL: "ibWBNB",
-      WHITELISTED_CALLERS: ["0x9fE96180AB2ADfaEBc735336f9213F26Bca99aa1"],
+      VAULT_SYMBOL: "ibBUSD",
+      WHITELISTED_CALLERS: ["0x99CEF3E3dBe3B08616E0a08F5275305f678b3Cf9"],
       IS_ENABLE: true,
     },
     {
-      VAULT_SYMBOL: "ibBUSD",
-      WHITELISTED_CALLERS: ["0x9fE96180AB2ADfaEBc735336f9213F26Bca99aa1"],
+      VAULT_SYMBOL: "ibUSDT",
+      WHITELISTED_CALLERS: ["0x28C50b629b97c7aea156460F4B0917E25599A006"],
       IS_ENABLE: true,
     },
-    // {
-    //   VAULT_SYMBOL: "ibETH",
-    //   WHITELISTED_CALLERS: ["0x158B8236529B0f2cf670891AD32a4bBa27090C2f"],
-    //   IS_ENABLE: true,
-    // },
-    // {
-    //   VAULT_SYMBOL: "ibALPACA",
-    //   WHITELISTED_CALLERS: ["0x158B8236529B0f2cf670891AD32a4bBa27090C2f"],
-    //   IS_ENABLE: true,
-    // },
-    // {
-    //   VAULT_SYMBOL: "ibUSDT",
-    //   WHITELISTED_CALLERS: ["0x158B8236529B0f2cf670891AD32a4bBa27090C2f"],
-    //   IS_ENABLE: true,
-    // },
-    // {
-    //   VAULT_SYMBOL: "ibBTCB",
-    //   WHITELISTED_CALLERS: ["0x158B8236529B0f2cf670891AD32a4bBa27090C2f"],
-    //   IS_ENABLE: true,
-    // },
-    // {
-    //   VAULT_SYMBOL: "ibTUSD",
-    //   WHITELISTED_CALLERS: ["0x158B8236529B0f2cf670891AD32a4bBa27090C2f"],
-    //   IS_ENABLE: true,
-    // },
-    // {
-    //   VAULT_SYMBOL: "ibFTM",
-    //   WHITELISTED_CALLERS: ["0x18a9853102b51Bb228E277BeE25625874f184398"],
-    //   IS_ENABLE: true,
-    // },
-    // {
-    //   VAULT_SYMBOL: "ibUSDC",
-    //   WHITELISTED_CALLERS: ["0x18a9853102b51Bb228E277BeE25625874f184398"],
-    //   IS_ENABLE: true,
-    // },
-    // {
-    //   VAULT_SYMBOL: "ibTOMB",
-    //   WHITELISTED_CALLERS: ["0x158B8236529B0f2cf670891AD32a4bBa27090C2f"],
-    //   IS_ENABLE: true,
-    // },
-    // {
-    //   VAULT_SYMBOL: "ibALPACA",
-    //   WHITELISTED_CALLERS: ["0x158B8236529B0f2cf670891AD32a4bBa27090C2f"],
-    //   IS_ENABLE: true,
-    // },
+    {
+      VAULT_SYMBOL: "ibWBNB",
+      WHITELISTED_CALLERS: ["0x99CEF3E3dBe3B08616E0a08F5275305f678b3Cf9", "0x28C50b629b97c7aea156460F4B0917E25599A006"],
+      IS_ENABLE: true,
+    },
   ];
-  const EXACT_ETA = "1649145600";
+  const EXACT_ETA = "1651910400";
 
   const config = getConfig();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
@@ -148,7 +108,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   }
 
   if (isTimeLockExecuted) {
-    fileService.writeJson(TITLE, timelockTransactions);
+    const ts = Math.floor(Date.now() / 1000);
+    fileService.writeJson(`${ts}_${TITLE}`, timelockTransactions);
   }
 };
 
