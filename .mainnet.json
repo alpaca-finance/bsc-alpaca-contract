@@ -1217,6 +1217,11 @@
           "pId": 8,
           "name": "BTCB-WBNB LP",
           "address": "0xC7e9d76ba11099AF3F330ff829c5F442d571e057"
+        },
+        {
+          "pId": 107,
+          "name": "BUSD-GQ LP",
+          "address": "0xB4c88543Bd95617Fb61F3d031B8E8E19aF33201E"
         }
       ]
     }
@@ -1310,10 +1315,13 @@
     "n8x-BNBUSDT-PCS2": "0xC57876a95A4f31a0A4FDB0329Fc78e00B092cC94",
     "n3x-BNBBUSD-PCS1": "0x9fE96180AB2ADfaEBc735336f9213F26Bca99aa1",
     "n3x-BNBUSDT-PCS2": "0x96C607E34008630dC8132F517A33Be2772835f9c",
-    "n3x-BUBBUSD-PCS2": "0xD14ED91dcD2E06ED72F536008cCd581DA73adDB5",
+    "n3x-BNBBUSD-PCS2": "0xD14ED91dcD2E06ED72F536008cCd581DA73adDB5",
     "TINC": "0x05aD6E30A855BE07AfA57e08a4f30d00810a402e",
     "n3x-BNBUSDT-PCS3": "0xd1464C0D4424a353C4F243A11C806BdCbd783092",
-    "n3x-ETHUSDT-BSW1": "0xf8130b2B4717ABB7F23A0433E634AAc1BB6aBE22"
+    "n3x-ETHUSDT-BSW1": "0xf8130b2B4717ABB7F23A0433E634AAc1BB6aBE22",
+    "BTH": "0x57bc18f6177cdaffb34ace048745bc913a1b1b54",
+    "GQ": "0xf700d4c708c2be1463e355f337603183d20e0808",
+    "L3x-USDTETH-BSW1": "0xB8d7B5A245f0080814f19dFE58037072315B7d19"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x1099C2E6Ed6ebA95099c205b599B409305783E43",
@@ -1366,7 +1374,7 @@
     "TripleSlope4": "0x284e25169CE75fc62c9339207de5d775F46aD406",
     "TripleSlope5": "0xcB1bF51A93fC162bFa761F18c236E39D107F6b23",
     "TripleSlope6": "0xc51d25a2C2d49eE2508B822829d43b9961deCB44",
-    "TripleSlope7": "",
+    "TripleSlope7": "0x50102793FCD018b479CC90887b49888D0B4c7AbA",
     "WNativeRelayer": "0xE1D2CA01bc88F325fF7266DD2165944f3CAf0D3D",
     "WorkerConfig": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
     "PancakeswapSingleAssetWorkerConfig": "0x6d203f081367Cfa2968bD62dC3122274f735378C"
@@ -2841,6 +2849,23 @@
             "StrategyPartialCloseLiquidate": "0xba7156E07995cAD7837Ef08EC5bA936DaB2B000B",
             "StrategyPartialCloseMinimizeTrading": "0x3739d1E01104b019Ff105B3A8F57BC6ed62F18a4"
           }
+        },
+        {
+          "name": "GQ-BUSD BiswapWorker",
+          "address": "0xa15665BedecbEa17D8c0C21067743Db6fDD343F4",
+          "deployedBlock": 17648531,
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 107,
+          "stakingToken": "0xB4c88543Bd95617Fb61F3d031B8E8E19aF33201E",
+          "stakingTokenAt": "0xdbc1a13490deef9c3c12b44fe77b503c1b061739",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0xaAEF721098a4f123353495d75604fA921C7CE323",
+            "StrategyLiquidate": "0x3414C2C8d02F57D9f5844C97a71dE70eA81c751E",
+            "StrategyAddTwoSidesOptimal": "0x36b1FB077bD0185a64FF0b5E9249F700cA7C5290",
+            "StrategyWithdrawMinimizeTrading": "0xD2d1318beA3FBAcbeC1C6b7583DbA74De5d9455c",
+            "StrategyPartialCloseLiquidate": "0xba7156E07995cAD7837Ef08EC5bA936DaB2B000B",
+            "StrategyPartialCloseMinimizeTrading": "0x3739d1E01104b019Ff105B3A8F57BC6ed62F18a4"
+          }
         }
       ]
     },
@@ -3140,6 +3165,23 @@
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 12,
           "stakingToken": "0x5bf6941f029424674bb93A43b79fc46bF4A67c21",
+          "stakingTokenAt": "0xdbc1a13490deef9c3c12b44fe77b503c1b061739",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0xaAEF721098a4f123353495d75604fA921C7CE323",
+            "StrategyLiquidate": "0x3414C2C8d02F57D9f5844C97a71dE70eA81c751E",
+            "StrategyAddTwoSidesOptimal": "0x8D9fEC1B16708F0Fa64877b54ac82e2c50Db3E73",
+            "StrategyWithdrawMinimizeTrading": "0xD2d1318beA3FBAcbeC1C6b7583DbA74De5d9455c",
+            "StrategyPartialCloseLiquidate": "0xba7156E07995cAD7837Ef08EC5bA936DaB2B000B",
+            "StrategyPartialCloseMinimizeTrading": "0x3739d1E01104b019Ff105B3A8F57BC6ed62F18a4"
+          }
+        },
+        {
+          "name": "USDT-ETH L3x BSW1 DeltaNeutralBiswapWorker",
+          "address": "0xe3bD3d71C87fC21427458ea90c0FceD155A486D9",
+          "deployedBlock": 17648782,
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 5,
+          "stakingToken": "0x63b30de1A998e9E64FD58A21F68D323B9BcD8F85",
           "stakingTokenAt": "0xdbc1a13490deef9c3c12b44fe77b503c1b061739",
           "strategies": {
             "StrategyAddAllBaseToken": "0xaAEF721098a4f123353495d75604fA921C7CE323",
@@ -3697,6 +3739,23 @@
             "StrategyPartialCloseLiquidate": "0xba7156E07995cAD7837Ef08EC5bA936DaB2B000B",
             "StrategyPartialCloseMinimizeTrading": "0x3739d1E01104b019Ff105B3A8F57BC6ed62F18a4"
           }
+        },
+        {
+          "name": "ETH-USDT L3x BSW1 DeltaNeutralBiswapWorker",
+          "address": "0xE5747D8fa3418FD4E0097E526D98daf08Ff40A01",
+          "deployedBlock": 17648808,
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 5,
+          "stakingToken": "0x63b30de1A998e9E64FD58A21F68D323B9BcD8F85",
+          "stakingTokenAt": "0xdbc1a13490deef9c3c12b44fe77b503c1b061739",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0xaAEF721098a4f123353495d75604fA921C7CE323",
+            "StrategyLiquidate": "0x3414C2C8d02F57D9f5844C97a71dE70eA81c751E",
+            "StrategyAddTwoSidesOptimal": "0xf4B38789212E997C1603E08C4Ec27A962A626E36",
+            "StrategyWithdrawMinimizeTrading": "0xD2d1318beA3FBAcbeC1C6b7583DbA74De5d9455c",
+            "StrategyPartialCloseLiquidate": "0xba7156E07995cAD7837Ef08EC5bA936DaB2B000B",
+            "StrategyPartialCloseMinimizeTrading": "0x3739d1E01104b019Ff105B3A8F57BC6ed62F18a4"
+          }
         }
       ]
     },
@@ -4215,6 +4274,23 @@
       "stableDeltaWorker": "0x4DD4CAc8FA9B8032A1205b0dd0b81b7a3cA89BE7",
       "oracle": "0x08EA5fB66EA41f236E3001d2655e43A1E735787F",
       "gateway": "0x1710EEdD286f1529b23Db32bbdf46C3487955023",
+      "assetVaultPosId": "0",
+      "stableVaultPosId": "0"
+    },
+    {
+      "name": "Long 3x USDT-ETH BSW1",
+      "symbol": "L3x-USDTETH-BSW1",
+      "address": "0xB8d7B5A245f0080814f19dFE58037072315B7d19",
+      "deployedBlock": 17648871,
+      "config": "0xb8b370B9d1b2696bAD146643144BE9ca81c59f7b",
+      "assetToken": "0x55d398326f99059ff775485246999027b3197955",
+      "stableToken": "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
+      "assetVault": "0x158Da805682BdC8ee32d52833aD41E74bb951E59",
+      "stableVault": "0xbfF4a34A4644a113E8200D7F1D79b3555f723AfE",
+      "assetDeltaWorker": "0xE5747D8fa3418FD4E0097E526D98daf08Ff40A01",
+      "stableDeltaWorker": "0xe3bD3d71C87fC21427458ea90c0FceD155A486D9",
+      "oracle": "0x08EA5fB66EA41f236E3001d2655e43A1E735787F",
+      "gateway": "0x1c5bAFbdeCa41c28Ee6A44d2B33866C5F0c299F2",
       "assetVaultPosId": "0",
       "stableVaultPosId": "0"
     }

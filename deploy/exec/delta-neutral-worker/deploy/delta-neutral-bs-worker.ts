@@ -83,7 +83,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const shortWorkerInfos: IDeltaNeutralBSWorkerInput[] = [
     {
       VAULT_SYMBOL: "ibETH",
-      WORKER_NAME: "USDT-ETH 3x BSW1 DeltaNeutralBiswapWorker",
+      WORKER_NAME: "USDT-ETH L3x BSW1 DeltaNeutralBiswapWorker",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
       POOL_ID: 5,
       REINVEST_BOUNTY_BPS: "1500",
@@ -100,7 +100,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     },
     {
       VAULT_SYMBOL: "ibUSDT",
-      WORKER_NAME: "ETH-USDT 3x BSW1 DeltaNeutralBiswapWorker",
+      WORKER_NAME: "ETH-USDT L3x BSW1 DeltaNeutralBiswapWorker",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
       POOL_ID: 5,
       REINVEST_BOUNTY_BPS: "1500",
@@ -116,8 +116,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       MAX_PRICE_DIFF: "10500",
     },
   ];
-  const TITLE = "mainnet_n3x_ethusdt_bsw1_worker";
-  const EXACT_ETA = "1651980600";
+  const TITLE = "mainnet_L3x_usdteth_bsw1_worker";
+  const EXACT_ETA = "1652171400";
 
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   const ts = Math.floor(Date.now() / 1000);

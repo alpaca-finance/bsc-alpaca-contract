@@ -38,20 +38,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   let config = configFileHelper.getConfig();
 
   // prepare variable
-  const POOL_ID = 5;
-  const LP_POOL_ADDRESS = config.YieldSources.Biswap!.pools.find((pool) => pool.pId === POOL_ID)!.address;
-  if (!LP_POOL_ADDRESS) throw new Error("LP_POOL_ADDRESS is not defined");
   const deltaVaultInputs: IDeltaNeutralVaultInput[] = [
     {
-      name: "Market Neutral 3x ETH-USDT BSW1",
-      symbol: "n3x-ETHUSDT-BSW1",
-      stableVaultSymbol: "ibUSDT",
-      assetVaultSymbol: "ibETH",
-      stableSymbol: "USDT",
-      assetSymbol: "ETH",
-      stableDeltaWorkerName: "ETH-USDT 3x BSW1 DeltaNeutralBiswapWorker", // Address of stable deltaneutral worker
-      assetDeltaWorkerName: "USDT-ETH 3x BSW1 DeltaNeutralBiswapWorker", // Address of asset deltaneutral worker
-      lpAddress: LP_POOL_ADDRESS,
+      name: "Long 3x USDT-ETH BSW1",
+      symbol: "L3x-USDTETH-BSW1",
+      stableVaultSymbol: "ibETH",
+      assetVaultSymbol: "ibUSDT",
+      stableSymbol: "ETH",
+      assetSymbol: "USDT",
+      stableDeltaWorkerName: "USDT-ETH L3x BSW1 DeltaNeutralBiswapWorker", // Address of stable deltaneutral worker
+      assetDeltaWorkerName: "ETH-USDT L3x BSW1 DeltaNeutralBiswapWorker", // Address of asset deltaneutral worker
+      lpAddress: "0x63b30de1A998e9E64FD58A21F68D323B9BcD8F85",
     },
   ];
 
