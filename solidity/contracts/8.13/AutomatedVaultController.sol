@@ -56,16 +56,22 @@ contract AutomatedVaultController is OwnableUpgradeable {
   }
 
   function usedCredit(address _user) public view returns (uint256) {
-    uint256 _totalUsed = 0;
+    uint256 _total = 0;
     for (uint8 _i = 0; _i < privateVaults.length; _i++) {
       uint256 _share = userVaultShares[_user][address(privateVaults[_i])];
-      if (_share != 0) _totalUsed += privateVaults[_i].shareToValue(_share);
+      if (_share != 0) _total += privateVaults[_i].shareToValue(_share);
     }
 
-    return _totalUsed;
+    return _total;
   }
 
-  function setPrivateVaults(IDeltaNeutralVault[] memory _newPrivateVaults) external {
+  function availableCredit(address _user) public view returns (uint256) {
+    uint256 _total = totalCredit(_user);
+    uint256 _used = usedCredit(_user);
+    return _total > _used ? _total - _used : 0;
+  }
+
+  function setPrivateVaults(IDeltaNeutralVault[] memory _newPrivateVaults) external onlyOwner {
     // sanity check
     for (uint8 _i = 0; _i < _newPrivateVaults.length; _i++) {
       _newPrivateVaults[_i].shareToValue(1e18);
