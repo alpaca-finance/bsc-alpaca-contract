@@ -20,11 +20,9 @@ import { IDeltaNeutralVault } from "./interfaces/IDeltaNeutralVault.sol";
 
 contract AutomatedVaultController is OwnableUpgradeable {
   // --- Events ---
-
-  // --- Errors ---
+  event LogSetPrivateVaults(address indexed _caller, IDeltaNeutralVault[] _vaults);
 
   // --- State Variables ---
-
   // list of creditors
   ICreditor[] public creditors;
   // list of private vault
@@ -79,6 +77,8 @@ contract AutomatedVaultController is OwnableUpgradeable {
 
     // effect
     privateVaults = _newPrivateVaults;
+
+    emit LogSetPrivateVaults(msg.sender, _newPrivateVaults);
   }
 
   function onDeposit(address _user, uint256 _shareAmount) external {
