@@ -21,7 +21,7 @@ import { ICreditor } from "./interfaces/ICreditor.sol";
 /// @title xALPACACreditor - Assess credit of user per xALPACA that user's holding
 contract xALPACACreditor is OwnableUpgradeable, ICreditor {
   // --- Events ---
-  event Log_SetValuePerxALPACA(address indexed _caller, uint256 _oldValuePerxALPACA, uint256 _newValuePerxALPACA);
+  event LogSetValuePerxALPACA(address indexed _caller, uint256 _oldValuePerxALPACA, uint256 _newValuePerxALPACA);
 
   // --- Errors ---
   error xALPACACreditor_ValueTooHigh();
@@ -59,6 +59,6 @@ contract xALPACACreditor is OwnableUpgradeable, ICreditor {
     uint256 _oldValuePerxALPACA = valuePerxALPACA;
     valuePerxALPACA = _newValuePerxALPACA;
 
-    emit Log_SetValuePerxALPACA(msg.sender, _oldValuePerxALPACA, _newValuePerxALPACA);
+    emit LogSetValuePerxALPACA(msg.sender, _oldValuePerxALPACA, _newValuePerxALPACA);
   }
 }
