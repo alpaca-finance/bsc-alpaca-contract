@@ -74,12 +74,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const shortWorkerInfos: IDeltaNeutralPCSWorkerInput[] = [
     {
-      VAULT_SYMBOL: "ibWBNB",
-      WORKER_NAME: "USDT-WBNB 3x PCS3 DeltaNeutralPancakeswapWorker",
+      VAULT_SYMBOL: "ibBTCB",
+      WORKER_NAME: "BUSD-BTCB L3x PCS1 DeltaNeutralPancakeswapWorker",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 13,
+      POOL_ID: 36,
       REINVEST_BOUNTY_BPS: "1500",
-      REINVEST_PATH: ["CAKE", "WBNB"],
+      REINVEST_PATH: ["CAKE", "WBNB", "BTCB"],
       REINVEST_THRESHOLD: "0",
       BENEFICIAL_VAULT: {
         BENEFICIAL_VAULT_BPS: "5333",
@@ -91,12 +91,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       MAX_PRICE_DIFF: "10500",
     },
     {
-      VAULT_SYMBOL: "ibUSDT",
-      WORKER_NAME: "WBNB-USDT 3x PCS3 DeltaNeutralPancakeswapWorker",
+      VAULT_SYMBOL: "ibBUSD",
+      WORKER_NAME: "BTCB-BUSD L3x PCS1 DeltaNeutralPancakeswapWorker",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 13,
+      POOL_ID: 36,
       REINVEST_BOUNTY_BPS: "1500",
-      REINVEST_PATH: ["CAKE", "USDT"],
+      REINVEST_PATH: ["CAKE", "BUSD"],
       REINVEST_THRESHOLD: "0",
       BENEFICIAL_VAULT: {
         BENEFICIAL_VAULT_BPS: "5333",
@@ -108,8 +108,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       MAX_PRICE_DIFF: "10500",
     },
   ];
-  const TITLE = "mainnet_n3x_wbnbusdt_pcs3_worker";
-  const EXACT_ETA = "1651980600";
+  const TITLE = "mainnet_L3x_busdbtcb_pcs1_worker";
+  const EXACT_ETA = "1652173200";
 
   const deployer = (await ethers.getSigners())[0];
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
@@ -172,7 +172,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   for (let i = 0; i < workerInfos.length; i++) {
     const deltaNeutralWorkerDeployer = new UpgradeableContractDeployer<DeltaNeutralPancakeWorker02>(
       deployer,
-      "DeltaNeutralPancakeWorker02",
+      "DeltaNeutralPancakeMCV2Worker02",
       workerInfos[i].WORKER_NAME
     );
     const { contract: deltaNeutralWorker, deployedBlock } = await deltaNeutralWorkerDeployer.deploy([

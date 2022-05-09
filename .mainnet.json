@@ -1321,7 +1321,8 @@
     "n3x-ETHUSDT-BSW1": "0xf8130b2B4717ABB7F23A0433E634AAc1BB6aBE22",
     "BTH": "0x57bc18f6177cdaffb34ace048745bc913a1b1b54",
     "GQ": "0xf700d4c708c2be1463e355f337603183d20e0808",
-    "L3x-USDTETH-BSW1": "0xB8d7B5A245f0080814f19dFE58037072315B7d19"
+    "L3x-USDTETH-BSW1": "0xB8d7B5A245f0080814f19dFE58037072315B7d19",
+    "L3x-BUSDBTCB-PCS1": "0x4eE770919aB741cC84bBE8cD83C21d79785f37E9"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x1099C2E6Ed6ebA95099c205b599B409305783E43",
@@ -2866,6 +2867,23 @@
             "StrategyPartialCloseLiquidate": "0xba7156E07995cAD7837Ef08EC5bA936DaB2B000B",
             "StrategyPartialCloseMinimizeTrading": "0x3739d1E01104b019Ff105B3A8F57BC6ed62F18a4"
           }
+        },
+        {
+          "name": "BTCB-BUSD L3x PCS1 DeltaNeutralPancakeswapWorker",
+          "address": "0x100aBb8EF81470F5A83A078c76B1cA74d33e4b92",
+          "deployedBlock": 17649238,
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 36,
+          "stakingToken": "0xF45cd219aEF8618A92BAa7aD848364a158a24F33",
+          "stakingTokenAt": "0xa5f8C5Dbd5F286960b9d90548680aE5ebFf07652",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+            "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+            "StrategyAddTwoSidesOptimal": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
+            "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
+          }
         }
       ]
     },
@@ -3979,6 +3997,23 @@
             "StrategyPartialCloseLiquidate": "0xba7156E07995cAD7837Ef08EC5bA936DaB2B000B",
             "StrategyPartialCloseMinimizeTrading": "0x3739d1E01104b019Ff105B3A8F57BC6ed62F18a4"
           }
+        },
+        {
+          "name": "BUSD-BTCB L3x PCS1 DeltaNeutralPancakeswapWorker",
+          "address": "0x93269F1600C19FeD0a378b242B698f647E48A6ed",
+          "deployedBlock": 17649211,
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 36,
+          "stakingToken": "0xF45cd219aEF8618A92BAa7aD848364a158a24F33",
+          "stakingTokenAt": "0xa5f8C5Dbd5F286960b9d90548680aE5ebFf07652",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+            "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+            "StrategyAddTwoSidesOptimal": "0xe862D45abdF7ea38F75dd0c7164B19FaEd057130",
+            "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
+          }
         }
       ]
     },
@@ -4291,6 +4326,23 @@
       "stableDeltaWorker": "0xe3bD3d71C87fC21427458ea90c0FceD155A486D9",
       "oracle": "0x08EA5fB66EA41f236E3001d2655e43A1E735787F",
       "gateway": "0x1c5bAFbdeCa41c28Ee6A44d2B33866C5F0c299F2",
+      "assetVaultPosId": "0",
+      "stableVaultPosId": "0"
+    },
+    {
+      "name": "Long 3x BUSD-BTCB PCS1",
+      "symbol": "L3x-BUSDBTCB-PCS1",
+      "address": "0x4eE770919aB741cC84bBE8cD83C21d79785f37E9",
+      "deployedBlock": 17649290,
+      "config": "0xd7EA89daa5CAa105126387B84E787a10Fa6c4f72",
+      "assetToken": "0xe9e7cea3dedca5984780bafc599bd69add087d56",
+      "stableToken": "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c",
+      "assetVault": "0x7C9e73d4C71dae564d41F78d56439bB4ba87592f",
+      "stableVault": "0x08FC9Ba2cAc74742177e0afC3dC8Aed6961c24e7",
+      "assetDeltaWorker": "0x100aBb8EF81470F5A83A078c76B1cA74d33e4b92",
+      "stableDeltaWorker": "0x93269F1600C19FeD0a378b242B698f647E48A6ed",
+      "oracle": "0x08EA5fB66EA41f236E3001d2655e43A1E735787F",
+      "gateway": "0xa943D10A0839d947877621b277b0bd5DeD6BEEEC",
       "assetVaultPosId": "0",
       "stableVaultPosId": "0"
     }
