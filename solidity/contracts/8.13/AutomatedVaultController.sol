@@ -25,11 +25,8 @@ contract AutomatedVaultController is OwnableUpgradeable {
   event LogSetCreditors(address indexed _caller, ICreditor[] _creditors);
 
   // --- State Variables ---
-  // list of creditors
   ICreditor[] public creditors;
-  // list of private vault
   IDeltaNeutralVault[] public privateVaults;
-  // User.deltavault.share
   mapping(bytes32 => uint256) public userVaultShares;
 
   /// @notice Initialize Automated Vault Controller
