@@ -1187,9 +1187,7 @@ describe("DeltaNeutralVaultGateway", () => {
   describe("#setRouter", async () => {
     context("when owner set invalid address", async () => {
       it("should revert", async () => {
-        await expect(deltaVaultGateway.setRouter(ethers.constants.AddressZero)).to.be.revertedWith(
-          "DeltaNeutralVaultGateway_InvalidRouter()"
-        );
+        await expect(deltaVaultGateway.setRouter(ethers.constants.AddressZero)).to.be.reverted;
       });
     });
 

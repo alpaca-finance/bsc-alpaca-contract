@@ -48,7 +48,6 @@ contract DeltaNeutralVaultGateway is ReentrancyGuardUpgradeable, OwnableUpgradea
     uint256 _minStableAmount,
     uint256 _minAssetAmount
   );
-  error DeltaNeutralVaultGateway_InvalidRouter();
 
   /// @dev constants
   uint64 private constant MAX_BPS = 10000;
@@ -57,6 +56,9 @@ contract DeltaNeutralVaultGateway is ReentrancyGuardUpgradeable, OwnableUpgradea
   ISwapRouter public router;
 
   function initialize(address _deltaNeutralVault, ISwapRouter _router) external initializer {
+    // sanity check
+    _router.factory();
+
     OwnableUpgradeable.__Ownable_init();
     ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
 
@@ -263,8 +265,11 @@ contract DeltaNeutralVaultGateway is ReentrancyGuardUpgradeable, OwnableUpgradea
   /// @notice Set new router address.
   /// @param _newRouter router address.
   function setRouter(ISwapRouter _newRouter) external onlyOwner {
-    if (address(_newRouter) == address(0)) revert DeltaNeutralVaultGateway_InvalidRouter();
+    // sanity check
+    _newRouter.factory();
+
     router = _newRouter;
+
     emit LogSetRouter(msg.sender, address(_newRouter));
   }
 
