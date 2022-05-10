@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4 <0.9.0;
 
-import { BaseTest, console, xALPACACreditorLike, console } from "../../base/BaseTest.sol";
-
-import { xALPACACreditor } from "../../../contracts/8.13/xALPACACreditor.sol";
-import { IxALPACA } from "../../../contracts/8.13/interfaces/IxALPACA.sol";
-
+import { BaseTest, xALPACACreditorLike } from "../../base/BaseTest.sol";
 import { mocking } from "../../utils/mocking.sol";
 import { MockContract } from "../../utils/MockContract.sol";
+
+import { IxALPACA } from "../../../contracts/8.13/interfaces/IxALPACA.sol";
 
 // solhint-disable func-name-mixedcase
 // solhint-disable contract-name-camelcase

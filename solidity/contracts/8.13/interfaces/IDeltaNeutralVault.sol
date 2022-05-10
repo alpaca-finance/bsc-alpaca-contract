@@ -13,6 +13,6 @@ Alpaca Fin Corporation
 
 pragma solidity 0.8.13;
 
-interface ICreditor {
-  function getUserCredit(address _user) external view returns (uint256);
+interface IDeltaNeutralVault {
+  function shareToValue(uint256 _shareAmount) external view returns (uint256);
 }
