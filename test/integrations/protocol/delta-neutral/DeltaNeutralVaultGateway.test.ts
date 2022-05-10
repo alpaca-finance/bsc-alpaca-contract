@@ -1,3 +1,4 @@
+import { zeroAddress } from "ethereumjs-util";
 import { ethers, network, upgrades, waffle } from "hardhat";
 import { constants, BigNumber } from "ethers";
 import chai from "chai";
@@ -387,6 +388,7 @@ describe("DeltaNeutralVaultGateway", () => {
     // Setup Delta Neutral Gateway
     deltaVaultGateway = await deployHelper.deployDeltaNeutralGateway({
       deltaVault: deltaVault.address,
+      router: routerV2.address,
     });
     // allow deltaVaultGateway as whitelisted to call delta neutral vault
     await deltaVaultConfig.setWhitelistedCallers([deltaVaultGateway.address], true);
@@ -1178,6 +1180,31 @@ describe("DeltaNeutralVaultGateway", () => {
           const aliceNativeAfter = await alice.getBalance();
           expect(aliceNativeAfter.sub(aliceNativeBefore)).to.be.eq(depositedAmount);
         });
+      });
+    });
+  });
+
+  describe("#setRouter", async () => {
+    context("when owner set invalid address", async () => {
+      it("should revert", async () => {
+        await expect(deltaVaultGateway.setRouter(ethers.constants.AddressZero)).to.be.revertedWith(
+          "DeltaNeutralVaultGateway_InvalidRouter()"
+        );
+      });
+    });
+
+    context("when owner set new router", async () => {
+      it("should work", async () => {
+        const deployHelper = new DeployHelper(deployer);
+        [, routerV2, , ,] = await deployHelper.deployPancakeV2(wbnb, CAKE_REWARD_PER_BLOCK, [
+          { address: deployerAddress, amount: ethers.utils.parseEther("100") },
+        ]);
+
+        const newRouterAddress = routerV2.address;
+
+        await expect(deltaVaultGateway.setRouter(newRouterAddress))
+          .to.emit(deltaVaultGateway, "LogSetRouter")
+          .withArgs(deployerAddress, newRouterAddress);
       });
     });
   });
