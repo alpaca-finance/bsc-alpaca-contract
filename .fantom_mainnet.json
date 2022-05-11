@@ -68,16 +68,56 @@
       "SpookyRouter": "0xF491e7B69E4244ad4002BC14e878a34207E38c29",
       "SpookyMasterChef": "0x2b2929E785374c651a81A63878Ab22742656DcDd",
       "pools": [
-        { "pId": 2, "name": "WFTM-USDC LP", "address": "0x2b4C76d0dc16BE1C31D4C1DC53bF9B45987Fc75c" },
-        { "pId": 0, "name": "BOO-WFTM LP", "address": "0xEc7178F4C41f346b2721907F5cF7628E388A7a58" },
-        { "pId": 5, "name": "WFTM-ETH LP", "address": "0xf0702249F4D3A25cD3DED7859a165693685Ab577" },
-        { "pId": 4, "name": "WFTM-BTC LP", "address": "0xFdb9Ab8B9513Ad9E419Cf19530feE49d412C3Ee3" },
-        { "pId": 45, "name": "TUSD-USDC LP", "address": "0x12692B3bf8dd9Aa1d2E721d1a79efD0C244d7d96" },
-        { "pId": 1, "name": "WFTM-fUSDT LP", "address": "0x5965E53aa80a0bcF1CD6dbDd72e6A9b2AA047410" },
-        { "pId": 3, "name": "WFTM-DAI LP", "address": "0xe120ffBDA0d14f3Bb6d6053E90E63c572A66a428" },
-        { "pId": 24, "name": "WFTM-MIM LP", "address": "0x6f86e65b255c9111109d2D2325ca2dFc82456efc" },
-        { "pId": 63, "name": "ALPACA-WFTM LP", "address": "0xF66D2bf736c05723b62E833A5DD747E24855ff99" },
-        { "pId": 69, "name": "BOO-USDC LP", "address": "0xf8Cb2980120469d79958151daa45Eb937c6E1eD6" }
+        {
+          "pId": 2,
+          "name": "WFTM-USDC LP",
+          "address": "0x2b4C76d0dc16BE1C31D4C1DC53bF9B45987Fc75c"
+        },
+        {
+          "pId": 0,
+          "name": "BOO-WFTM LP",
+          "address": "0xEc7178F4C41f346b2721907F5cF7628E388A7a58"
+        },
+        {
+          "pId": 5,
+          "name": "WFTM-ETH LP",
+          "address": "0xf0702249F4D3A25cD3DED7859a165693685Ab577"
+        },
+        {
+          "pId": 4,
+          "name": "WFTM-BTC LP",
+          "address": "0xFdb9Ab8B9513Ad9E419Cf19530feE49d412C3Ee3"
+        },
+        {
+          "pId": 45,
+          "name": "TUSD-USDC LP",
+          "address": "0x12692B3bf8dd9Aa1d2E721d1a79efD0C244d7d96"
+        },
+        {
+          "pId": 1,
+          "name": "WFTM-fUSDT LP",
+          "address": "0x5965E53aa80a0bcF1CD6dbDd72e6A9b2AA047410"
+        },
+        {
+          "pId": 3,
+          "name": "WFTM-DAI LP",
+          "address": "0xe120ffBDA0d14f3Bb6d6053E90E63c572A66a428"
+        },
+        {
+          "pId": 24,
+          "name": "WFTM-MIM LP",
+          "address": "0x6f86e65b255c9111109d2D2325ca2dFc82456efc"
+        },
+        {
+          "pId": 63,
+          "name": "ALPACA-WFTM LP",
+          "address": "0xF66D2bf736c05723b62E833A5DD747E24855ff99"
+        },
+        {
+          "pId": 69,
+          "name": "BOO-USDC LP",
+          "address": "0xf8Cb2980120469d79958151daa45Eb937c6E1eD6"
+        }
       ]
     },
     "TombFinance": {
@@ -85,8 +125,16 @@
       "SpookyRouter": "0xF491e7B69E4244ad4002BC14e878a34207E38c29",
       "TShareRewardPool": "0xcc0a87F7e7c693042a9Cc703661F5060c80ACb43",
       "pools": [
-        { "pId": 0, "name": "TOMB-WFTM LP", "address": "0x2A651563C9d3Af67aE0388a5c8F89b867038089e" },
-        { "pId": 1, "name": "TSHARE-WFTM LP", "address": "0x4733bc45eF91cF7CcEcaeeDb794727075fB209F2" }
+        {
+          "pId": 0,
+          "name": "TOMB-WFTM LP",
+          "address": "0x2A651563C9d3Af67aE0388a5c8F89b867038089e"
+        },
+        {
+          "pId": 1,
+          "name": "TSHARE-WFTM LP",
+          "address": "0x4733bc45eF91cF7CcEcaeeDb794727075fB209F2"
+        }
       ]
     }
   },
@@ -104,7 +152,8 @@
     "TOMB": "0x6c021ae822bea943b2e66552bde1d2696a53fbb7",
     "TSHARE": "0x4cdf39285d7ca8eb3f090fda0c069ba5f4145b37",
     "USD": "0x115dffFFfffffffffFFFffffFFffFfFfFFFFfFff",
-    "n3x-FTM-USDC-SPK1": "0x18a9853102b51Bb228E277BeE25625874f184398"
+    "n3x-FTM-USDC-SPK1": "0x18a9853102b51Bb228E277BeE25625874f184398",
+    "n3x-FTMUSDC-SPK2": "0xF052D626743Ad2F3b38A99DD9F3C946c2A12E843"
   },
   "SharedStrategies": {
     "SpookySwap": {
@@ -332,6 +381,23 @@
             "StrategyPartialCloseLiquidate": "0x311a522e43C035244e72247895F5C17e46CAB000",
             "StrategyPartialCloseMinimizeTrading": "0x540247c00645E85fA548064039493beD4a0c522C"
           }
+        },
+        {
+          "name": "USDC-WFTM 3x SPK2 DeltaNeutralSpookyWorker",
+          "address": "0x0e807E2F50dfe8616636083Ba5ecef97280338cf",
+          "deployedBlock": 37315300,
+          "config": "0xca1Cf7C64481B8C095828d380922505E5942C60D",
+          "pId": 2,
+          "stakingToken": "0x2b4C76d0dc16BE1C31D4C1DC53bF9B45987Fc75c",
+          "stakingTokenAt": "0x2b2929E785374c651a81A63878Ab22742656DcDd",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0xD50aAb6B210fe049B6c5262f5A7676204699AB8E",
+            "StrategyLiquidate": "0x65Cc57347bA3761358Eb175540E9e5D39CbceFd8",
+            "StrategyAddTwoSidesOptimal": "0x11288Ceee9C12C9d2b1A80a4Df10d5c18F0429e8",
+            "StrategyWithdrawMinimizeTrading": "0x07DE1F788Fa7E0C215AA772d4429f47902640ef5",
+            "StrategyPartialCloseLiquidate": "0x311a522e43C035244e72247895F5C17e46CAB000",
+            "StrategyPartialCloseMinimizeTrading": "0x540247c00645E85fA548064039493beD4a0c522C"
+          }
         }
       ]
     },
@@ -406,6 +472,23 @@
           "config": "0xca1Cf7C64481B8C095828d380922505E5942C60D",
           "pId": 69,
           "stakingToken": "0xf8Cb2980120469d79958151daa45Eb937c6E1eD6",
+          "stakingTokenAt": "0x2b2929E785374c651a81A63878Ab22742656DcDd",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0xD50aAb6B210fe049B6c5262f5A7676204699AB8E",
+            "StrategyLiquidate": "0x65Cc57347bA3761358Eb175540E9e5D39CbceFd8",
+            "StrategyAddTwoSidesOptimal": "0xe9eF08a1eA08e5145547815e496bAE265D4A85Bf",
+            "StrategyWithdrawMinimizeTrading": "0x07DE1F788Fa7E0C215AA772d4429f47902640ef5",
+            "StrategyPartialCloseLiquidate": "0x311a522e43C035244e72247895F5C17e46CAB000",
+            "StrategyPartialCloseMinimizeTrading": "0x540247c00645E85fA548064039493beD4a0c522C"
+          }
+        },
+        {
+          "name": "WFTM-USDC 3x SPK2 DeltaNeutralSpookyWorker",
+          "address": "0xBF94404D6ad9986532d25950585e5855b4c30d2c",
+          "deployedBlock": 37315531,
+          "config": "0xca1Cf7C64481B8C095828d380922505E5942C60D",
+          "pId": 2,
+          "stakingToken": "0x2b4C76d0dc16BE1C31D4C1DC53bF9B45987Fc75c",
           "stakingTokenAt": "0x2b2929E785374c651a81A63878Ab22742656DcDd",
           "strategies": {
             "StrategyAddAllBaseToken": "0xD50aAb6B210fe049B6c5262f5A7676204699AB8E",
@@ -500,6 +583,23 @@
       "oracle": "0x0C372D369aBd6ab047a0da3181cB69280a3C2126",
       "assetVaultPosId": "2729",
       "stableVaultPosId": "1924"
+    },
+    {
+      "name": "Market Neutral 3x FTM-USDC SPK2",
+      "symbol": "n3x-FTMUSDC-SPK2",
+      "address": "0xF052D626743Ad2F3b38A99DD9F3C946c2A12E843",
+      "deployedBlock": 37315696,
+      "config": "0x0608498e622073220818e27036c0147d10F6744d",
+      "assetToken": "0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83",
+      "stableToken": "0x04068da6c83afcfa0e13ba15a6696662335d5b75",
+      "assetVault": "0xc1018f4Bba361A1Cc60407835e156595e92EF7Ad",
+      "stableVault": "0x831332f94C4A0092040b28ECe9377AfEfF34B25a",
+      "assetDeltaWorker": "0x0e807E2F50dfe8616636083Ba5ecef97280338cf",
+      "stableDeltaWorker": "0xBF94404D6ad9986532d25950585e5855b4c30d2c",
+      "oracle": "0x0C372D369aBd6ab047a0da3181cB69280a3C2126",
+      "gateway": "0x39429D11a8F91A8a8AF2A8454A9133D3e3eec280",
+      "assetVaultPosId": "3042",
+      "stableVaultPosId": "1983"
     }
   ]
 }

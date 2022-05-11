@@ -2932,6 +2932,8 @@ describe("CakeMaxiWorker02MCV2", () => {
       );
       // Apply performance fee
       cakeEarned = cakeEarned.sub(cakeEarned.mul(performanceFee).div(10000));
+      // Apply reinvest fee
+      cakeEarned = cakeEarned.sub(cakeEarned.mul(REINVEST_BOUNTY_BPS).div(10000));
       totalBalance = totalBalance.add(cakeEarned);
       // Compute liquidate
       amtsOut = await swapHelper.computeSwapExactTokensForTokens(totalBalance, reversePath, true);
@@ -3113,7 +3115,19 @@ describe("CakeMaxiWorker02MCV2", () => {
           );
           // Apply performance fee
           cakeEarned = cakeEarned.sub(cakeEarned.mul(performanceFee).div(10000));
+          // Apply reinvest fee
+          reinvestFee = cakeEarned.mul(REINVEST_BOUNTY_BPS).div(10000);
+          cakeForBeneficialVault = reinvestFee.mul(BENEFICIALVAULT_BOUNTY_BPS).div(10000);
+          beneficialVaultReceivedAmts = await swapHelper.computeSwapExactTokensForTokens(
+            cakeForBeneficialVault,
+            rewardPath,
+            true
+          );
+          cakeEarned = cakeEarned.sub(reinvestFee);
           totalBalance = totalBalance.add(cakeEarned);
+          accumBuybackAmount = accumBuybackAmount.add(
+            beneficialVaultReceivedAmts[beneficialVaultReceivedAmts.length - 1]
+          );
           // Compute liquidate
           amtsOut = await swapHelper.computeSwapExactTokensForTokens(totalBalance, reversePath, true);
           const liquidationBounty = amtsOut[amtsOut.length - 1].mul(KILL_PRIZE_BPS).div(10000);
@@ -3349,6 +3363,15 @@ describe("CakeMaxiWorker02MCV2", () => {
           );
           // Apply performance fee
           cakeEarned = cakeEarned.sub(cakeEarned.mul(performanceFee).div(10000));
+          // Apply reinvest fee
+          reinvestFee = cakeEarned.mul(REINVEST_BOUNTY_BPS).div(10000);
+          cakeForBeneficialVault = reinvestFee.mul(BENEFICIALVAULT_BOUNTY_BPS).div(10000);
+          beneficialVaultReceivedAmts = await swapHelper.computeSwapExactTokensForTokens(
+            cakeForBeneficialVault,
+            rewardPath,
+            true
+          );
+          cakeEarned = cakeEarned.sub(reinvestFee);
           totalBalance = totalBalance.add(cakeEarned);
           // Compute liquidate
           amtsOut = await swapHelper.computeSwapExactTokensForTokens(totalBalance, reversePath, true);
@@ -3647,6 +3670,8 @@ describe("CakeMaxiWorker02MCV2", () => {
         );
         // Apply performance fee
         cakeEarned = cakeEarned.sub(cakeEarned.mul(performanceFee).div(10000));
+        // Apply reinvest fee
+        cakeEarned = cakeEarned.sub(cakeEarned.mul(REINVEST_BOUNTY_BPS).div(10000));
         totalBalance = totalBalance.add(cakeEarned);
         // Apply withdrawal fee
         const withdrawableAmount = totalBalance.mul(invertedWithdrawalFee).div(10000);

@@ -21,6 +21,7 @@ interface IDexRouter {
   waultswap: string;
   mdex: string;
   spooky: string;
+  biswap: string;
 }
 
 interface IStrategyRouterInfo {
@@ -62,12 +63,12 @@ async function validateTwoSidesStrategies(
 
   const results = await multiCallService.multiContractCall<Array<string>>(calls);
   for (let i = 0; i < results.length; i += 2) {
-    expect(results[i]).to.be.eq(
-      twoSidesVaultRouterInfos[i / 2].expectedVault,
+    expect(results[i].toLowerCase()).to.be.eq(
+      twoSidesVaultRouterInfos[i / 2].expectedVault.toLowerCase(),
       `vault mis-config on ${twoSidesVaultRouterInfos[i / 2].strategyAddress} strat`
     );
-    expect(results[i + 1]).to.be.eq(
-      twoSidesVaultRouterInfos[i / 2].expectedRouter,
+    expect(results[i + 1].toLowerCase()).to.be.eq(
+      twoSidesVaultRouterInfos[i / 2].expectedRouter.toLowerCase(),
       `router mis-config on ${twoSidesVaultRouterInfos[i / 2].strategyAddress} strat`
     );
   }
@@ -85,8 +86,8 @@ async function validateStrategies(
   });
   const results = await multiCallService.multiContractCall<Array<string>>(calls);
   for (let i = 0; i < strategyRouterInfos.length; i++)
-    expect(results[i]).to.be.eq(
-      strategyRouterInfos[i].expectedRouter,
+    expect(results[i].toLowerCase()).to.be.eq(
+      strategyRouterInfos[i].expectedRouter.toLowerCase(),
       `router mis-config on ${strategyRouterInfos[i].strategyAddress} strat`
     );
 }
@@ -158,6 +159,14 @@ async function validateWorker(
       ethers.provider
     );
     await workerLike.validateConfig(vault.address, await vault.token(), routers.spooky, workerInfo);
+  } else if (workerInfo.name.includes("BiswapWorker")) {
+    const workerLike = WorkerLikeFactory.newWorkerLike(
+      WorkerLike.biswap,
+      workerInfo.address,
+      multiCallService,
+      ethers.provider
+    );
+    await workerLike.validateConfig(vault.address, await vault.token(), routers.biswap, workerInfo);
   }
 }
 
@@ -276,6 +285,26 @@ async function main() {
           strategyAddress: config.SharedStrategies.Mdex!.StrategyPartialCloseMinimizeTrading,
           expectedRouter: config.YieldSources.Mdex!.MdexRouter,
         },
+        {
+          strategyAddress: config.SharedStrategies.Biswap!.StrategyAddBaseTokenOnly,
+          expectedRouter: config.YieldSources.Biswap!.BiswapRouterV2,
+        },
+        {
+          strategyAddress: config.SharedStrategies.Biswap!.StrategyLiquidate,
+          expectedRouter: config.YieldSources.Biswap!.BiswapRouterV2,
+        },
+        {
+          strategyAddress: config.SharedStrategies.Biswap!.StrategyWithdrawMinimizeTrading,
+          expectedRouter: config.YieldSources.Biswap!.BiswapRouterV2,
+        },
+        {
+          strategyAddress: config.SharedStrategies.Biswap!.StrategyPartialCloseLiquidate,
+          expectedRouter: config.YieldSources.Biswap!.BiswapRouterV2,
+        },
+        {
+          strategyAddress: config.SharedStrategies.Biswap!.StrategyPartialCloseMinimizeTrading,
+          expectedRouter: config.YieldSources.Biswap!.BiswapRouterV2,
+        },
       ]);
       console.log("> ✅ done");
     } catch (e) {
@@ -343,6 +372,11 @@ async function main() {
             expectedVault: vault.address,
             expectedRouter: config.YieldSources.Mdex!.MdexRouter,
           },
+          {
+            strategyAddress: config.Vaults[i].StrategyAddTwoSidesOptimal.Biswap!,
+            expectedVault: vault.address,
+            expectedRouter: config.YieldSources.Biswap!.BiswapRouterV2,
+          },
         ]);
 
         await validateApproveAddStrategies(multiCall2Service, vaultConfig, [
@@ -352,6 +386,8 @@ async function main() {
           config.Vaults[i].StrategyAddTwoSidesOptimal.PancakeswapSingleAsset!,
           config.SharedStrategies.Mdex!.StrategyAddBaseTokenOnly,
           config.Vaults[i].StrategyAddTwoSidesOptimal.Mdex!,
+          config.SharedStrategies.Biswap!.StrategyAddBaseTokenOnly,
+          config.Vaults[i].StrategyAddTwoSidesOptimal.Biswap!,
         ]);
         console.log("> ✅ done, no problem found");
       } catch (e) {
@@ -386,11 +422,13 @@ async function main() {
       waultswap: ethers.constants.AddressZero,
       mdex: ethers.constants.AddressZero,
       spooky: ethers.constants.AddressZero,
+      biswap: ethers.constants.AddressZero,
     };
     if (chainId === 56 || chainId === 97) {
       dexRouters.pancakeswap = config.YieldSources.Pancakeswap!.RouterV2;
       dexRouters.waultswap = config.YieldSources.Waultswap!.WaultswapRouter;
       dexRouters.mdex = config.YieldSources.Mdex!.MdexRouter;
+      dexRouters.biswap = config.YieldSources.Biswap!.BiswapRouterV2;
     }
     if (chainId === 4002 || chainId == 250) {
       dexRouters.spooky = config.YieldSources.SpookySwap!.SpookyRouter;

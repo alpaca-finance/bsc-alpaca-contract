@@ -66,18 +66,23 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const fileName = "upgrade-pcs-cakemaxi-cakepool-final";
+  const fileName = "upgrade-pcs-cakemaxi-cakepool-totalBalance";
   const factories: Array<FactoryMap> = [
     {
-      workerType: "DeltaNeutralPancakeswapWorker",
-      newVersion: "DeltaNeutralPancakeMCV2Worker02",
+      workerType: "CakeMaxiWorker",
+      newVersion: "CakeMaxiWorker02MCV2",
     },
   ];
   const workerInputs: IWorkerInputs = [
-    "BUSD-WBNB 3x PCS1 DeltaNeutralPancakeswapWorker",
-    "WBNB-BUSD 3x PCS1 DeltaNeutralPancakeswapWorker",
+    "WBNB CakeMaxiWorker",
+    "BUSD CakeMaxiWorker",
+    "ETH CakeMaxiWorker",
+    "USDT CakeMaxiWorker",
+    "BTCB CakeMaxiWorker",
+    "TUSD CakeMaxiWorker",
+    "USDC CakeMaxiWorker",
   ];
-  const EXACT_ETA = "1650445200";
+  const EXACT_ETA = "1651233600";
 
   const config = ConfigEntity.getConfig();
   const ts = Math.floor(new Date().getTime() / 1000);

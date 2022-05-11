@@ -30,20 +30,25 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "mainnet_n3x_wbnbbusd_pcs2_whitelisted_callers";
+  const TITLE = "mainnet_whitelist_swt_potato";
   const TARGETED_VAULT_CONFIG: Array<IInput> = [
     {
-      VAULT_SYMBOL: "ibWBNB",
-      WHITELISTED_CALLERS: ["0xD14ED91dcD2E06ED72F536008cCd581DA73adDB5"], // Address of DeltaNeutralVault
+      VAULT_SYMBOL: "ibBUSD",
+      WHITELISTED_CALLERS: ["0x99CEF3E3dBe3B08616E0a08F5275305f678b3Cf9"],
       IS_ENABLE: true,
     },
     {
-      VAULT_SYMBOL: "ibBUSD",
-      WHITELISTED_CALLERS: ["0xD14ED91dcD2E06ED72F536008cCd581DA73adDB5"], // Address of DeltaNeutralVault
+      VAULT_SYMBOL: "ibUSDT",
+      WHITELISTED_CALLERS: ["0x28C50b629b97c7aea156460F4B0917E25599A006"],
+      IS_ENABLE: true,
+    },
+    {
+      VAULT_SYMBOL: "ibWBNB",
+      WHITELISTED_CALLERS: ["0x99CEF3E3dBe3B08616E0a08F5275305f678b3Cf9", "0x28C50b629b97c7aea156460F4B0917E25599A006"],
       IS_ENABLE: true,
     },
   ];
-  const EXACT_ETA = "1650875400";
+  const EXACT_ETA = "1651910400";
 
   const config = getConfig();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];

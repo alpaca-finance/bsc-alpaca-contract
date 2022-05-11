@@ -100,6 +100,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
   /// --- This variable will keep track of the amount of accumulated CAKE bounty that has not been reinvested ---
   uint256 public accumulatedBounty;
   uint256 public lastCakePoolActionTime;
+  uint256 public lastReinvestTime;
 
   function initialize(
     address _operator,
@@ -192,7 +193,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
   /// @param share The number of shares to be converted to farming tokens.
   function shareToBalance(uint256 share) public view returns (uint256) {
     if (totalShare == 0) return share; // When there's no share, 1 share = 1 balance.
-    uint256 totalBalance = totalBalance();
+    uint256 totalBalance = totalBalance(true);
     return share.mul(totalBalance).div(totalShare);
   }
 
@@ -200,7 +201,7 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
   /// @param balance the balance of farming token to be converted to shares.
   function balanceToShare(uint256 balance) public view returns (uint256) {
     if (totalShare == 0) return balance; // When there's no share, 1 share = 1 balance.
-    uint256 totalBalance = totalBalance();
+    uint256 totalBalance = totalBalance(true);
     return balance.mul(totalShare).div(totalBalance);
   }
 
@@ -223,9 +224,10 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
     uint256 _callerBalance,
     uint256 _reinvestThreshold
   ) internal {
-    // 1. reset all reward balance since all rewards will be reinvested
+    // 1. reset all reward balance since all rewards will be reinvested and update lastReinvestAt
     rewardBalance = 0;
-    uint256 _currentTotalBalance = totalBalance();
+    lastReinvestTime = block.timestamp;
+    uint256 _currentTotalBalance = totalBalance(false);
 
     // 2. Calculate the profit since cakeAtLastUserAction with the current CAKE balance
     (, , uint256 _cakeAtLastUserAction, uint256 _lastUserActionTime, , , , , ) = cakePool.userInfo(address(this));
@@ -400,11 +402,13 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
   /// @notice Liquidate the given position by converting it to BaseToken and return back to caller.
   /// @param id The position ID to perform liquidation
   function liquidate(uint256 id) external override onlyOperator nonReentrant {
-    // 1. Remove shares on this position back to farming tokens
+    // 1. Pull out performance fee to prevent leftover performance fee
+    _reinvest(treasuryAccount, treasuryBountyBps, actualBaseTokenBalance(), 0);
+    // 2. Remove shares on this position back to farming tokens
     _removeShare(id);
     farmingToken.safeTransfer(address(liqStrat), actualFarmingTokenBalance());
     liqStrat.execute(address(0), 0, abi.encode(0));
-    // 2. Return all available base token back to the operator.
+    // 3. Return all available base token back to the operator.
     uint256 liquidatedAmount = actualBaseTokenBalance();
     baseToken.safeTransfer(msg.sender, liquidatedAmount);
     emit Liquidate(id, liquidatedAmount);
@@ -641,14 +645,21 @@ contract CakeMaxiWorker02MCV2 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe,
 
   /// @notice Return the current balance that is owned by users.
   /// @dev Balance should deduct the fee.
-  function totalBalance() internal view returns (uint256 _totalBalance) {
-    (uint256 _shares, , , , , , , , ) = cakePool.userInfo(address(this));
+  function totalBalance(bool _withAlpacaPerformanceFee) public view returns (uint256 _totalBalance) {
+    (uint256 _shares, , uint256 _cakeAtLastUserAction, , , , , , ) = cakePool.userInfo(address(this));
     _totalBalance = cakePool.totalShares() == 0
       ? 0
       : _shares.mul(cakePool.balanceOf().add(cakePool.calculateTotalPendingCakeRewards())).div(cakePool.totalShares());
     _totalBalance = _totalBalance.sub(accumulatedBounty);
     uint256 _cakePoolPerformanceFee = cakePool.calculatePerformanceFee(address(this));
     _totalBalance = _totalBalance.sub(_cakePoolPerformanceFee);
+
+    if (_withAlpacaPerformanceFee && block.timestamp > lastReinvestTime) {
+      // Deduct pending Alpaca's performance fee
+      _cakeAtLastUserAction = _cakeAtLastUserAction.sub(accumulatedBounty);
+      uint256 _currentProfit = _totalBalance.sub(_cakeAtLastUserAction);
+      _totalBalance = _totalBalance.sub(_currentProfit.mul(treasuryBountyBps) / 10000);
+    }
   }
 
   /// @notice Return the expected withdrawal amount if fee is applied.
