@@ -358,7 +358,7 @@ const _getTokenInput = (
   const denumerator = leverage.mul(2).sub(2);
 
   const borrowMultiplier = leverage.sub(1);
-  const farmingDecimalMultiplier = farmingDecimal > baseDecimal ? 10 ** (farmingDecimal - baseDecimal) : 1;
+  const farmingDecimalMultiplier = 10 ** (baseDecimal - farmingDecimal);
 
   const principalAmount = baseDepositAmount.mul(numerator).div(denumerator);
   const farmingAmount = farmingDepositAmount.mul(numerator).div(denumerator);
