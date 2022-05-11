@@ -84,4 +84,8 @@ contract MockSwapRouter is ISwapRouter {
     }
     return amounts;
   }
+
+  function factory() public pure returns (address) {
+    return address(0);
+  }
 }
