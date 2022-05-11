@@ -12,6 +12,7 @@ import { getDeployer } from "../../../../utils/deployer-helper";
 import { ConfigFileHelper } from "../../../helper";
 import { formatEther } from "ethers/lib/utils";
 import { compare } from "../../../../utils/address";
+import { Tokens, VaultsEntity } from "../../../interfaces/config";
 
 enum DeltaVaultNeutralDepositSide {
   Long = "Long",
@@ -84,7 +85,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       shortDepositAmount: 300,
       leverage: 3,
 
-      expectedLongVaultSymbol: "ibBTCB",
+      expectedLongVaultSymbol: "ibBUSD",
       expectedLongTokenSymbol: "BTCB",
 
       expectedShortVaultSymbol: "ibBUSD",
@@ -101,7 +102,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   for (const initPositionInput of initPositionInputs) {
     console.log("===================================================================================");
-    console.log(`>> Validating parameters`);
+    console.log(`>> Validating input`);
 
     if (
       initPositionInput.longDepositAmount < 0 ||
@@ -116,53 +117,32 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if (!deltaNeutralVaultEntity)
       throw new Error(`error: unable to find delta neutral vault info for ${initPositionInput.symbol}`);
 
-    const longVaultAddress = deltaNeutralVaultEntity.stableVault;
-    const shortVaultAddress = deltaNeutralVaultEntity.assetVault;
-    const longVault = config.Vaults.find((v) => compare(v.address, longVaultAddress));
-    const shortVault = config.Vaults.find((v) => compare(v.address, shortVaultAddress));
+    console.log(`>> Validating Long Vault input`);
+    const longVault = _validateDeltaNeutralVaultBySymbol(
+      config.Vaults,
+      deltaNeutralVaultEntity.stableVault,
+      initPositionInput.expectedLongVaultSymbol
+    );
+    console.log(`>> Validating Short Vault input`);
+    const shortVault = _validateDeltaNeutralVaultBySymbol(
+      config.Vaults,
+      deltaNeutralVaultEntity.assetVault,
+      initPositionInput.expectedShortVaultSymbol
+    );
 
-    if (!longVault) {
-      throw new Error(`error: unable to find vault address ${longVaultAddress}`);
-    }
-    if (!!initPositionInput.expectedLongVaultSymbol && longVault.symbol !== initPositionInput.expectedLongVaultSymbol) {
-      throw new Error(
-        `error: symbol mismatched from DeltaVault is ${longVault.symbol} but input is ${initPositionInput.expectedLongVaultSymbol}`
-      );
-    }
-    if (!shortVault) {
-      throw new Error(`error: unable to find vault address ${shortVaultAddress}`);
-    }
-    if (
-      !!initPositionInput.expectedShortVaultSymbol &&
-      shortVault.symbol !== initPositionInput.expectedShortVaultSymbol
-    ) {
-      throw new Error(
-        `error: symbol mismatched from DeltaVault is ${shortVault.symbol} but input is ${initPositionInput.expectedShortVaultSymbol}`
-      );
-    }
+    console.log(`>> Validating Long Token input`);
+    const longTokenAddress = _validateDeltaNeutralTokenBySymbol(
+      tokenLists,
+      deltaNeutralVaultEntity.stableToken,
+      initPositionInput.expectedLongTokenSymbol as keyof Tokens
+    );
 
-    const longTokenAddress = deltaNeutralVaultEntity.stableToken;
-    const shortTokenAddress = deltaNeutralVaultEntity.assetToken;
-
-    const longTokenAddressFromConfig = !!initPositionInput.expectedLongTokenSymbol
-      ? tokenLists[initPositionInput.expectedLongTokenSymbol]
-      : undefined;
-    const shortTokenAddressFromConfig = !!initPositionInput.expectedShortTokenSymbol
-      ? tokenLists[initPositionInput.expectedShortTokenSymbol]
-      : undefined;
-
-    if (!!longTokenAddressFromConfig && !compare(longTokenAddressFromConfig, longTokenAddress)) {
-      `error: wrong token address for long side (${initPositionInput.expectedLongTokenSymbol})[${longTokenAddressFromConfig}] != ${longTokenAddress}`;
-    }
-    if (!compare(longVault.baseToken, longTokenAddress)) {
-      `error: token addresses are mismatched on long side [Vault][${longVault.baseToken}] != [DeltaNeutral]${longTokenAddress}`;
-    }
-    if (!!shortTokenAddressFromConfig && !compare(shortTokenAddressFromConfig, shortTokenAddress)) {
-      `error: wrong token address for short side (${initPositionInput.expectedShortTokenSymbol})[${shortTokenAddressFromConfig}] != ${shortTokenAddress}`;
-    }
-    if (!compare(shortVault.baseToken, shortTokenAddress)) {
-      `error: token addresses are mismatched on short side [Vault][${shortVault.baseToken}] != [DeltaNeutral]${shortTokenAddress}`;
-    }
+    console.log(`>> Validating Short Token input`);
+    const shortTokenAddress = _validateDeltaNeutralTokenBySymbol(
+      tokenLists,
+      deltaNeutralVaultEntity.assetToken,
+      initPositionInput.expectedShortTokenSymbol as keyof Tokens
+    );
 
     const longTokenAsDeployer = BEP20__factory.connect(longTokenAddress, deployer);
     const shortTokenAsDeployer = BEP20__factory.connect(shortTokenAddress, deployer);
@@ -173,10 +153,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     ]);
 
     if (longTokenDecimal > 18) {
-      throw new Error(`error:not supported stableTokenDecimal > 18, value ${longTokenDecimal}`);
+      throw new Error(`error:not supported Long Token Decimal > 18, value ${longTokenDecimal}`);
     }
     if (shortTokenDecimal > 18) {
-      throw new Error(`error:not supported assetDecimal > 18, value ${shortTokenDecimal}`);
+      throw new Error(`error:not supported Short Token Decimal > 18, value ${shortTokenDecimal}`);
     }
 
     // append this when have new swap integration
@@ -238,6 +218,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       initPositionInput.shortDepositAmount.toString(),
       shortTokenDecimal
     );
+
+    console.log(longTokenAddress);
+    console.log(shortTokenAddress);
 
     const [[longTokenPrice], [shortTokenPrice]] = await Promise.all([
       deltaNeutralOracle.getTokenPrice(longTokenAddress),
@@ -357,7 +340,55 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   }
 };
 
-const _getTokenInput = (
+function _validateDeltaNeutralVaultBySymbol(
+  vaultsList: VaultsEntity[],
+  targetAddress: string,
+  expectedVaultSymbol?: string
+): VaultsEntity {
+  const vault = vaultsList.find((v) => compare(v.address, targetAddress));
+  if (!vault) throw new Error(`error: unable to find vault address ${targetAddress}`);
+  if (!expectedVaultSymbol) {
+    console.log(
+      `>> ✅ [WARNING] use vault from delta neutral config address: ${targetAddress}, symbol: ${vault.symbol}`
+    );
+    return vault;
+  }
+  if (expectedVaultSymbol !== vault.symbol)
+    throw new Error(`error: vault symbol mismatched actual: ${vault.symbol}, expect: ${expectedVaultSymbol}`);
+
+  console.log(">> ✅ Passed");
+  return vault;
+}
+
+function _validateDeltaNeutralTokenBySymbol(
+  tokensList: Tokens,
+  targetAddress: string,
+  expectedTokenSymbol?: keyof Tokens
+): string {
+  const tokensSymbolWithAddress = Object.entries(tokensList);
+  const targetToken = tokensSymbolWithAddress.find((d) => compare(d[1], targetAddress));
+  if (!targetToken) throw new Error(`error: token not found, address: ${targetAddress}`);
+
+  const targetTokenSymbol = targetToken[0];
+  if (!expectedTokenSymbol) {
+    console.log(
+      `>> ✅ [WARNING] use token from delta neutral config address: ${targetAddress}, symbol: ${targetTokenSymbol}`
+    );
+    return targetAddress;
+  }
+  const expectedToken = tokensList[expectedTokenSymbol];
+  if (!expectedToken) throw new Error(`error: expected token not found, symbol: ${expectedTokenSymbol}`);
+  if (targetTokenSymbol !== expectedTokenSymbol)
+    throw new Error(`error: token symbol mismatched actual: ${targetTokenSymbol}, expect: ${expectedTokenSymbol}`);
+  if (!compare(targetAddress, expectedToken)) {
+    throw new Error(`error: token address mismatched actual: ${targetAddress}, expect: ${expectedToken}`);
+  }
+
+  console.log(">> ✅ Passed");
+  return targetAddress;
+}
+
+function _getTokenInput(
   depositSide: DeltaVaultNeutralDepositSide,
   depositTokensAmount: [BigNumber, BigNumber],
   leverage: BigNumber,
@@ -367,7 +398,7 @@ const _getTokenInput = (
   principalAmount: BigNumber;
   farmingAmount: BigNumber;
   borrowAmount: BigNumber;
-} => {
+} {
   const [baseTokenPrice, farmingTokenPrice] = tokenPrices;
   const [baseDepositAmount, farmingDepositAmount] = depositTokensAmount;
   const [baseDecimal, farmingDecimal] = decimals;
@@ -396,7 +427,7 @@ const _getTokenInput = (
       .add(principalAmount) // combined with additional principal amount
       .mul(borrowMultiplier), // multiply by borrow factor
   };
-};
+}
 
 export default func;
 func.tags = ["DeltaNeutralVaultInitPositionsV2"];
