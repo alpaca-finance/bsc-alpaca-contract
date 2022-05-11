@@ -380,4 +380,4 @@ const _getTokenInput = (
 };
 
 export default func;
-func.tags = ["DeltaNeutralVaultInitPositions2"];
+func.tags = ["DeltaNeutralVaultInitPositionsV2"];
