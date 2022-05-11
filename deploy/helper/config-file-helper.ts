@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import { network } from "hardhat";
+import { ethers, network } from "hardhat";
 import { compare } from "../../utils/address";
 import { getConfig } from "../entities/config";
 import {
@@ -8,6 +8,8 @@ import {
   SharedStrategies,
   StrategyAddTwoSidesOptimal,
   WorkersEntity,
+  DeltaNeutralVaultsEntity,
+  Tokens,
 } from "../interfaces/config";
 
 export class ConfigFileHelper {
@@ -28,10 +30,10 @@ export class ConfigFileHelper {
           this.filePath = `.testnet.json`;
           break;
         case "fantom_mainnet":
+        case "fantom_mainnetfork":
           this.filePath = `.fantom_mainnet.json`;
           break;
         case "fantom_testnet":
-        case "fantom_mainnetfork":
           this.filePath = `.fantom_testnet.json`;
           break;
         default:
@@ -41,6 +43,24 @@ export class ConfigFileHelper {
   }
 
   public getConfig(): Config {
+    return this.config;
+  }
+
+  // Tokens
+  public addOrSetToken(key: keyof Tokens, address: string): Config {
+    console.log(`>> Updating config on Tokens > ${key}, address: ${address}`);
+    const token = this.config.Tokens[key];
+
+    if (!token) {
+      this.config.Tokens[key] = address;
+      console.log(`>> Added Tokens.${key}, address: ${address}`);
+    } else {
+      this.config.Tokens[key] = address;
+      console.log(`>> Updated Tokens.${key}, address: ${address}`);
+    }
+    console.log("✅ Done");
+
+    this._writeConfigFile(this.config);
     return this.config;
   }
 
@@ -104,6 +124,91 @@ export class ConfigFileHelper {
     return this.config;
   }
 
+  // DeltaNeutralVaults
+  // NOTE: should use symbol as a key because delta vault config always deploy before delta vault.
+  public addOrSetDeltaNeutralVaultsConfig(symbol: string, value: string) {
+    console.log(`>> Updating config on DeltaNeutralVaults[${symbol}] > config`);
+    const idx = this.config.DeltaNeutralVaults.findIndex((dv) => dv.symbol === symbol);
+    if (idx === -1) {
+      this.config.DeltaNeutralVaults = [
+        ...this.config.DeltaNeutralVaults,
+        {
+          ...defaultDeltaNeutralVaultsEntity,
+          symbol,
+          config: value,
+        } as DeltaNeutralVaultsEntity,
+      ];
+      console.log(`>> Added DeltaNeutralVault[${symbol}] > config address: ${value}`);
+    } else {
+      const deltaVault = this.config.DeltaNeutralVaults[idx];
+      this.config.DeltaNeutralVaults[idx] = {
+        ...deltaVault,
+        config: value,
+      };
+      console.log(`>> Updated DeltaNeutralVault[${symbol}] > config address: ${value}`);
+    }
+    console.log("✅ Done");
+
+    this._writeConfigFile(this.config);
+    return this.config;
+  }
+
+  // NOTE: should use symbol as a key to work with delta neutral config deployment script.
+  public addOrSetDeltaNeutralVaults(symbol: string, value: DeltaNeutralVaultsEntity) {
+    console.log(`>> Updating config on DeltaNeutralVaults address: ${value.address}`);
+    const idx = this.config.DeltaNeutralVaults.findIndex((dv) => dv.symbol === symbol);
+    if (idx === -1) {
+      this.config.DeltaNeutralVaults = [...this.config.DeltaNeutralVaults, value];
+      console.log(`>> Added DeltaNeutralVault ${value.name} address: ${value.address}`);
+    } else {
+      this.config.DeltaNeutralVaults[idx] = value;
+      console.log(`>> Updated DeltaNeutralVault ${value.name} address: ${value.address}`);
+    }
+    console.log("✅ Done");
+
+    this._writeConfigFile(this.config);
+    return this.config;
+  }
+
+  public setDeltaNeutralGateway(nameOrSymbolOrAddress: string, value: string) {
+    console.log(`>> Updating config on DeltaNeutralVaults > gateway address: ${value}`);
+    const idx = this._findDeltaNeurtralVaultIdxByNameOrSymbolOrAddress(nameOrSymbolOrAddress);
+    if (idx === -1)
+      throw Error(
+        `[ConfigFileHelper::setDeltaNeutralGateway]: DeltaNeutralVaults not found [${nameOrSymbolOrAddress}]`
+      );
+
+    this.config.DeltaNeutralVaults[idx].gateway = value;
+    console.log("✅ Done");
+
+    this._writeConfigFile(this.config);
+    return this.config;
+  }
+
+  public setDeltaNeutralVaultsInitPositionIds(
+    nameOrSymbolOrAddress: string,
+    vaultPositionIds: {
+      stableVaultPosId: string;
+      assetVaultPosId: string;
+    }
+  ) {
+    console.log(
+      `>> Updating config on DeltaNeutralVaults > { assetVaultPosId: ${vaultPositionIds.assetVaultPosId}, stableVaultPosId: ${vaultPositionIds.stableVaultPosId} }`
+    );
+    const idx = this._findDeltaNeurtralVaultIdxByNameOrSymbolOrAddress(nameOrSymbolOrAddress);
+    if (idx === -1)
+      throw Error(
+        `[ConfigFileHelper::setDeltaNeutralVaultsInitPositionIds]: DeltaNeutralVaults not found [${nameOrSymbolOrAddress}]`
+      );
+
+    this.config.DeltaNeutralVaults[idx].stableVaultPosId = vaultPositionIds.stableVaultPosId;
+    this.config.DeltaNeutralVaults[idx].assetVaultPosId = vaultPositionIds.assetVaultPosId;
+    console.log("✅ Done");
+
+    this._writeConfigFile(this.config);
+    return this.config;
+  }
+
   private _writeConfigFile(config: Config) {
     console.log(`>> Writing ${this.filePath}`);
     fs.writeFileSync(this.filePath, JSON.stringify(config, null, 2));
@@ -118,4 +223,31 @@ export class ConfigFileHelper {
         compare(v.address, nameOrSymbolOrAddress)
     );
   }
+
+  private _findDeltaNeurtralVaultIdxByNameOrSymbolOrAddress(nameOrSymbolOrAddress: string): number {
+    return this.config.DeltaNeutralVaults.findIndex(
+      (v) =>
+        v.name === nameOrSymbolOrAddress ||
+        v.symbol === nameOrSymbolOrAddress ||
+        compare(v.address, nameOrSymbolOrAddress)
+    );
+  }
 }
+
+const defaultDeltaNeutralVaultsEntity: DeltaNeutralVaultsEntity = {
+  name: "",
+  symbol: "",
+  address: ethers.constants.AddressZero,
+  deployedBlock: 0,
+  config: ethers.constants.AddressZero,
+  assetToken: ethers.constants.AddressZero,
+  stableToken: ethers.constants.AddressZero,
+  assetVault: ethers.constants.AddressZero,
+  stableVault: ethers.constants.AddressZero,
+  assetDeltaWorker: ethers.constants.AddressZero,
+  stableDeltaWorker: ethers.constants.AddressZero,
+  gateway: ethers.constants.AddressZero,
+  oracle: ethers.constants.AddressZero,
+  assetVaultPosId: "0",
+  stableVaultPosId: "0",
+};

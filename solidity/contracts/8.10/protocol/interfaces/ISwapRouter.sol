@@ -50,4 +50,6 @@ interface ISwapRouter {
   function getAmountsIn(uint256 amountOut, address[] memory path) external view returns (uint256[] memory amounts);
 
   function getAmountsOut(uint256 amountIn, address[] memory path) external view returns (uint256[] memory amounts);
+
+  function factory() external view returns (address);
 }

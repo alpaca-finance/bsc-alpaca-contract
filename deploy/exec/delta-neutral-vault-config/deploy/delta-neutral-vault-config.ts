@@ -1,9 +1,11 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers, upgrades } from "hardhat";
-import { DeltaNeutralVaultConfig, DeltaNeutralVaultConfig__factory } from "../../../../typechain";
-import { ConfigEntity } from "../../../entities";
+import { ethers, network } from "hardhat";
+import { DeltaNeutralVaultConfig } from "../../../../typechain";
 import { getDeployer } from "../../../../utils/deployer-helper";
+import { UpgradeableContractDeployer } from "../../../deployer";
+import { ConfigFileHelper } from "../../../helper";
+import { BlockScanGasPrice } from "../../../services/gas-price/blockscan";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -15,8 +17,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
     Check all variables below before execute the deployment script
     */
-  const config = ConfigEntity.getConfig();
 
+  const deployer = await getDeployer();
+
+  const configFileHelper = new ConfigFileHelper();
+  let config = configFileHelper.getConfig();
+
+  // use to write config file
+  const DELTA_VAULT_SYMBOL = "n3x-FTMUSDC-SPK2";
   const REBALANCE_FACTOR = "6800";
   const POSITION_VALUE_TOLERANCE_BPS = "100";
   const DEBT_RATIO_TOLERANCE_BPS = "30";
@@ -25,27 +33,26 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const LEVERAGE_LEVEL = 3;
   const WHITELIST_REBALANCE = ["0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De"];
   const WHITELIST_REINVEST = ["0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De"];
-  const REINVEST_PATH = ["ALPACA", "BUSD"];
-  const SWAP_ROUTER_ADDR = config.YieldSources.Pancakeswap!.RouterV2;
-  const VALUE_LIMIT = "25000000";
+  const REINVEST_PATH = ["ALPACA", "WFTM"];
+  const SWAP_ROUTER_ADDR = config.YieldSources.SpookySwap!.SpookyRouter;
+  const VALUE_LIMIT = "2000000";
   const DEPOSIT_FEE_TREASURY = "0x417D3e491cbAaD07B2433781e50Bc6Cd09641BC0";
   const DEPOSIT_FEE_BPS = "0";
   const WITHDRAWAL_FEE_TREASURY = "0x417D3e491cbAaD07B2433781e50Bc6Cd09641BC0";
   const WITHDRAWAL_FEE_BPS = "20";
   const MANAGEMENT_TREASURY = "0x7E2308437c2f4C8934214663dc8476037625a270";
   const MANAGEMENT_FEE_PER_SEC = "634195840";
-  const ALPACA_BENEFICIARY = "0x44B3868cbba5fbd2c5D8d1445BDB14458806B3B4";
+  const ALPACA_BENEFICIARY = "0xe32840F950F709148fdB9Ff22712083Ac40033A0";
   const ALPACA_BENEFICIARY_FEE_BPS = "5333";
-  const FAIR_LAUNCH_ADDR = config.FairLaunch!.address;
-  const WRAP_NATIVE_ADDR = config.Tokens.WBNB;
-
-  const deployer = await getDeployer();
+  const FAIR_LAUNCH_ADDR = config.MiniFL!.address;
+  const WRAP_NATIVE_ADDR = config.Tokens.WFTM;
   const WNATIVE_RELAYER = config.SharedConfig.WNativeRelayer;
-
-  console.log(">> Deploying an upgradable DeltaNeutralVaultConfig contract");
 
   const alpacaTokenAddress = config.Tokens.ALPACA;
   const tokenList: any = config.Tokens;
+  const gasPriceService = new BlockScanGasPrice(network.name);
+  const fastGasPrice = await gasPriceService.getFastGasPrice();
+  // validate reinvest tokens
   const reinvestPath: Array<string> = REINVEST_PATH.map((p) => {
     const addr = tokenList[p];
     if (addr === undefined) {
@@ -54,12 +61,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     return addr;
   });
 
-  const DeltaNeutralVaultConfig = (await ethers.getContractFactory(
-    "DeltaNeutralVaultConfig",
-    deployer
-  )) as DeltaNeutralVaultConfig__factory;
+  const deltaNeutralVaultConfigDeployer = new UpgradeableContractDeployer<DeltaNeutralVaultConfig>(
+    deployer,
+    "DeltaNeutralVaultConfig"
+  );
 
-  const deltaNeutralVaultConfig = (await upgrades.deployProxy(DeltaNeutralVaultConfig, [
+  const { contract: deltaNeutralVaultConfig } = await deltaNeutralVaultConfigDeployer.deploy([
     WRAP_NATIVE_ADDR,
     WNATIVE_RELAYER,
     FAIR_LAUNCH_ADDR,
@@ -70,37 +77,43 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     MANAGEMENT_TREASURY,
     WITHDRAWAL_FEE_TREASURY,
     alpacaTokenAddress,
-  ])) as DeltaNeutralVaultConfig;
-  await deltaNeutralVaultConfig.deployTransaction.wait(3);
-
-  console.log(`>> Deployed at ${deltaNeutralVaultConfig.address}`);
-  console.log("✅ Done");
+  ]);
 
   let nonce = await deployer.getTransactionCount();
 
   console.log(`>> Setting Value limit`);
   const limitValue = ethers.utils.parseEther(VALUE_LIMIT);
-  await deltaNeutralVaultConfig.setValueLimit(limitValue, { nonce: nonce++ });
+  await deltaNeutralVaultConfig.setValueLimit(limitValue, { nonce: nonce++, gasPrice: fastGasPrice });
   console.log("✅ Done");
 
   console.log(`>> Setting Leverage Level`);
-  await deltaNeutralVaultConfig.setLeverageLevel(LEVERAGE_LEVEL, { nonce: nonce++ });
+  await deltaNeutralVaultConfig.setLeverageLevel(LEVERAGE_LEVEL, { nonce: nonce++, gasPrice: fastGasPrice });
   console.log("✅ Done");
 
   console.log(`>> Setting Whitelist Rebalance`);
-  await deltaNeutralVaultConfig.setWhitelistedRebalancer(WHITELIST_REBALANCE, true, { nonce: nonce++ });
+  await deltaNeutralVaultConfig.setWhitelistedRebalancer(WHITELIST_REBALANCE, true, {
+    nonce: nonce++,
+    gasPrice: fastGasPrice,
+  });
   console.log("✅ Done");
 
   console.log(`>> Setting Whitelist Reinvest`);
-  await deltaNeutralVaultConfig.setwhitelistedReinvestors(WHITELIST_REINVEST, true, { nonce: nonce++ });
+  await deltaNeutralVaultConfig.setwhitelistedReinvestors(WHITELIST_REINVEST, true, {
+    nonce: nonce++,
+    gasPrice: fastGasPrice,
+  });
   console.log("✅ Done");
 
   console.log(`>> Setting Reinvest Path`);
-  await deltaNeutralVaultConfig.setReinvestPath(reinvestPath, { nonce: nonce++, gasLimit: 1000000 });
+  await deltaNeutralVaultConfig.setReinvestPath(reinvestPath, {
+    nonce: nonce++,
+    gasLimit: 1000000,
+    gasPrice: fastGasPrice,
+  });
   console.log("✅ Done");
 
   console.log(`>> Setting Swap Router`);
-  await deltaNeutralVaultConfig.setSwapRouter(SWAP_ROUTER_ADDR, { nonce: nonce++ });
+  await deltaNeutralVaultConfig.setSwapRouter(SWAP_ROUTER_ADDR, { nonce: nonce++, gasPrice: fastGasPrice });
   console.log("✅ Done");
 
   console.log(`>> Setting Fees`);
@@ -111,28 +124,27 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     WITHDRAWAL_FEE_BPS,
     MANAGEMENT_TREASURY,
     MANAGEMENT_FEE_PER_SEC,
-    { nonce: nonce++ }
-  );
-  console.log("✅ Done");
-
-  console.log(`>> Setting fee exemptions`);
-  await deltaNeutralVaultConfig.setFeeExemptedCallers(
-    [DEPOSIT_FEE_TREASURY, WITHDRAWAL_FEE_TREASURY, MANAGEMENT_TREASURY],
-    true,
-    { nonce: nonce++ }
+    { nonce: nonce++, gasPrice: fastGasPrice }
   );
   console.log("✅ Done");
 
   console.log(">> Setting ALPACA bounty");
   await deltaNeutralVaultConfig.setAlpacaBountyConfig(ALPACA_REINVEST_FEE_TREASURY, ALPACA_BOUNTY_BPS, {
     nonce: nonce++,
+    gasPrice: fastGasPrice,
   });
   console.log("✅ Done");
 
   console.log(">> Setting ALPACA beneficiacy");
   await deltaNeutralVaultConfig.setAlpacaBeneficiaryConfig(ALPACA_BENEFICIARY, ALPACA_BENEFICIARY_FEE_BPS, {
     nonce: nonce++,
+    gasPrice: fastGasPrice,
   });
+
+  if (DELTA_VAULT_SYMBOL) {
+    // if not force DELTA_VAULT_SYMBOL config address should set in delta neutral vault deployment script
+    config = configFileHelper.addOrSetDeltaNeutralVaultsConfig(DELTA_VAULT_SYMBOL, deltaNeutralVaultConfig.address);
+  }
 };
 
 export default func;

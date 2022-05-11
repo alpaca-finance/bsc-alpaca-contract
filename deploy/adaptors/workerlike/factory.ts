@@ -1,6 +1,7 @@
 import { ethers } from "ethers";
 import { WorkerLike } from "../../entities/worker-like";
 import { IMultiCallService } from "../../services/multicall/interfaces";
+import { BiswapWorkerAdaptor } from "./biswap-worker";
 import { CakeMaxiWorkerAdaptor } from "./cakemaxi-worker";
 import { DeltaNeutralPancakeWorkerAdaptor } from "./deltaneutral-pancake-worker";
 import { IWorkerLike } from "./IWorkerLike";
@@ -26,6 +27,7 @@ export class WorkerLikeFactory {
     if (_which === WorkerLike.tomb) return new TombWorkerAdaptor(_address, _multiCallService, _signerOrProvider);
     if (_which === WorkerLike.deltaNeutralPancake)
       return new DeltaNeutralPancakeWorkerAdaptor(_address, _multiCallService, _signerOrProvider);
+    if (_which === WorkerLike.biswap) return new BiswapWorkerAdaptor(_address, _multiCallService, _signerOrProvider);
 
     throw new Error("Unknown WorkerLike");
   }
