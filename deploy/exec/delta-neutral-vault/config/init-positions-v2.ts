@@ -19,7 +19,6 @@ enum DeltaVaultNeutralDepositSide {
   Short = "Short",
 }
 
-// NOTE: support only to deposit with principle amount on one side
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
       ░██╗░░░░░░░██╗░█████╗░██████╗░███╗░░██╗██╗███╗░░██╗░██████╗░
