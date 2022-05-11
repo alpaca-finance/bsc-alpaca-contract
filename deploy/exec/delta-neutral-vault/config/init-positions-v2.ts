@@ -36,11 +36,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     shortDepositAmount: number;
     leverage: number;
 
-    expectedLongVaultSymbol?: string; // if leave this empty that means we belief address from DeltaNuetralVault config
-    expectedLongTokenSymbol?: string; // if leave this empty that means we belief address from DeltaNuetralVault config
+    expectedLongVaultSymbol?: string; // if leave this empty that means we believe address from DeltaNuetralVault config
+    expectedLongTokenSymbol?: string; // if leave this empty that means we believe address from DeltaNuetralVault config
 
-    expectedShortVaultSymbol?: string; // if leave this empty that means we belief address from DeltaNuetralVault config
-    expectedShortTokenSymbol?: string; // if leave this empty that means we belief address from DeltaNuetralVault config
+    expectedShortVaultSymbol?: string; // if leave this empty that means we believe address from DeltaNuetralVault config
+    expectedShortTokenSymbol?: string; // if leave this empty that means we believe address from DeltaNuetralVault config
   }
 
   interface IDepositWorkByte {
