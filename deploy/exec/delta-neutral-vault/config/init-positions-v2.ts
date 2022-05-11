@@ -1,7 +1,12 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
-import { BEP20__factory, DeltaNeutralVault__factory, DeltaNeutralOracle__factory } from "../../../../typechain";
+import {
+  BEP20__factory,
+  DeltaNeutralVault__factory,
+  DeltaNeutralOracle__factory,
+  DeltaNeutralVaultConfig__factory,
+} from "../../../../typechain";
 import { BigNumber } from "ethers";
 import { getDeployer } from "../../../../utils/deployer-helper";
 import { ConfigFileHelper } from "../../../helper";
@@ -311,12 +316,26 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     );
 
     const deltaNeutralVaultAsDeployer = DeltaNeutralVault__factory.connect(deltaNeutralVaultAddress, deployer);
+    const deltaNeutralVaultConfigAsDeployer = DeltaNeutralVaultConfig__factory.connect(
+      deltaNeutralVaultEntity.config,
+      deployer
+    );
 
     console.log(">> Calling openPosition");
+
+    let nativeTokenAmount = BigNumber.from(0);
+    const nativeTokenAddress = await deltaNeutralVaultConfigAsDeployer.getWrappedNativeAddr();
+    if (compare(nativeTokenAddress, deltaNeutralVaultEntity.stableToken)) {
+      nativeTokenAmount = longDepositAmount;
+    }
+    if (compare(nativeTokenAddress, deltaNeutralVaultEntity.assetDeltaWorker)) {
+      nativeTokenAmount = shortDepositAmount;
+    }
 
     const minSharesReceive = ethers.utils.parseEther("0");
     const initTx = await (
       await deltaNeutralVaultAsDeployer.initPositions(longDepositAmount, shortDepositAmount, minSharesReceive, data, {
+        value: nativeTokenAmount,
         nonce: nonce++,
         gasLimit: 8000000,
       })
@@ -362,7 +381,7 @@ const _getTokenInput = (
 
   const principalAmount = baseDepositAmount.mul(numerator).div(denumerator);
   const farmingAmount = farmingDepositAmount.mul(numerator).div(denumerator);
-  // barrow amount calculatation
+  // barrow amount calculation
   // farmingValue = farmingAmount * farmingTokenPrice
   // convertedPrincipalAmount = farmingValue / baseTokenPrice
   // actualPrincipalAmount = principalAmount + convertedPrincipalAmount
