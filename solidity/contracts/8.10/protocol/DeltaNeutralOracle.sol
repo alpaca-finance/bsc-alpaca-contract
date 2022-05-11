@@ -26,8 +26,12 @@ import "../utils/AlpacaMath.sol";
 contract DeltaNeutralOracle is IDeltaNeutralOracle, Initializable, OwnableUpgradeable {
   using AlpacaMath for uint256;
 
+  /// @dev Events
+  event DeltaNeutralOracle_SetOracle(address _newOracle);
+
   /// @dev Errors
   error DeltaNeutralOracle_InvalidLPAddress();
+  error DeltaNeutralOracle_InvalidOracleAddress();
 
   /// @notice An address of chainlink usd token
   address public usd;
@@ -70,6 +74,15 @@ contract DeltaNeutralOracle is IDeltaNeutralOracle, Initializable, OwnableUpgrad
   function getTokenPrice(address _tokenAddress) public view returns (uint256, uint256) {
     (uint256 _price, uint256 _lastTimestamp) = chainLinkPriceOracle.getPrice(_tokenAddress, usd);
     return (_price, _lastTimestamp);
+  }
+
+  /// @notice Set oracle
+  /// @dev Set oracle address. Must be called by owner.
+  /// @param _oracle oracle address
+  function setOracle(address _oracle) external onlyOwner {
+    if (_oracle == address(0)) revert DeltaNeutralOracle_InvalidOracleAddress();
+    chainLinkPriceOracle = IChainLinkPriceOracle(_oracle);
+    emit DeltaNeutralOracle_SetOracle(_oracle);
   }
 
   /// @notice get LP price using internal only, return value in 1e18 format

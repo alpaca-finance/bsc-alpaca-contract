@@ -30,6 +30,7 @@ const FOREVER = "2000000000";
 
 // Accounts
 let deployer: Signer;
+let alice: Signer;
 
 /// Mdex-related instance(s)
 let factoryV2: MdexFactory;
@@ -53,6 +54,7 @@ let decimals9Token: MockERC20;
 
 let chainLinkOracle: ChainLinkPriceOracle;
 let chainLinkOracleAsDeployer: ChainLinkPriceOracle;
+let chainLinkOracleAsAlice: ChainLinkPriceOracle;
 
 let mockAggregatorV3T0UsdToken: MockAggregatorV3;
 let mockAggregatorV3BtcbUsdToken: MockAggregatorV3;
@@ -61,13 +63,14 @@ let mockAggregatorV3Decimals8Token: MockAggregatorV3;
 let mockAggregatorV3Decimals9Token: MockAggregatorV3;
 
 let priceOracle: DeltaNeutralOracle;
+let priceOracleAsAlice: DeltaNeutralOracle;
 
 let casesData: any[] = [];
 describe("DeltaNeutralOracle", () => {
   async function fixture() {
-    [deployer] = await ethers.getSigners();
+    [deployer, alice] = await ethers.getSigners();
 
-    const deployerAddress = await deployer.getAddress();
+    const [deployerAddress] = await Promise.all([deployer.getAddress()]);
 
     // PREPARE ORACLE
     const ERC20 = (await ethers.getContractFactory("MockERC20", deployer)) as MockERC20__factory;
@@ -302,6 +305,8 @@ describe("DeltaNeutralOracle", () => {
     ])) as DeltaNeutralOracle;
     await priceOracle.deployed();
 
+    priceOracleAsAlice = DeltaNeutralOracle__factory.connect(priceOracle.address, alice);
+
     casesData = [
       //fairPrice= 2* sqrt(r0 * r1) * sqrt(p0 * p1) / totalSupply
       //  (bnb-busd)
@@ -519,6 +524,30 @@ describe("DeltaNeutralOracle", () => {
       it("should return 0 when no LP amount", async () => {
         const [lpResult] = await priceOracle.dollarToLp(ethers.constants.Zero, lpV2Token0Stable0.address);
         expect(lpResult).to.be.eq(ethers.constants.Zero);
+      });
+    });
+  });
+
+  describe("#setOracle", async () => {
+    context("when owner try set new price oracle", async () => {
+      it("should correct", async () => {
+        await expect(priceOracle.setOracle("0x166f56F2EDa9817cAB77118AE4FCAA0002A17eC7"))
+          .to.be.emit(priceOracle, "DeltaNeutralOracle_SetOracle")
+          .withArgs("0x166f56F2EDa9817cAB77118AE4FCAA0002A17eC7");
+      });
+
+      it("should revert when set zero address", async () => {
+        await expect(priceOracle.setOracle(ethers.constants.AddressZero)).to.be.revertedWith(
+          "DeltaNeutralOracle_InvalidOracleAddress()"
+        );
+      });
+    });
+
+    context("when other try set new price oracle address", async () => {
+      it("should revert", async () => {
+        await expect(priceOracleAsAlice.setOracle("0x166f56F2EDa9817cAB77118AE4FCAA0002A17eC7")).to.be.revertedWith(
+          "Ownable: caller is not the owner"
+        );
       });
     });
   });
