@@ -218,9 +218,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       shortTokenDecimal
     );
 
-    console.log(longTokenAddress);
-    console.log(shortTokenAddress);
-
     const [[longTokenPrice], [shortTokenPrice]] = await Promise.all([
       deltaNeutralOracle.getTokenPrice(longTokenAddress),
       deltaNeutralOracle.getTokenPrice(shortTokenAddress),
