@@ -247,7 +247,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const {
       principalAmount: longPositionPrincipalAmount,
       farmingAmount: longPositionFarmingTokenAmount,
-      barrowAmount: longPositionBarrowAmount,
+      borrowAmount: longPositionBorrowAmount,
     } = _getTokenInput(
       DeltaVaultNeutralDepositSide.Long,
       [longDepositAmount, shortDepositAmount],
@@ -258,7 +258,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const {
       principalAmount: shortPositionPrincipalAmount,
       farmingAmount: shortPositionFarmingTokenAmount,
-      barrowAmount: shortPositionBarrowAmount,
+      borrowAmount: shortPositionBorrowAmount,
     } = _getTokenInput(
       DeltaVaultNeutralDepositSide.Short,
       [shortDepositAmount, longDepositAmount],
@@ -270,13 +270,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(`>> [Long] TokenAmount: ${longDepositAmount}`);
     console.log(`>> [Long] PrincipalAmount: ${formatEther(longPositionPrincipalAmount)}`);
     console.log(`>> [Long] FarmingTokenAmount: ${longPositionFarmingTokenAmount}`);
-    console.log(`>> [Long] BarrowAmount: ${formatEther(longPositionBarrowAmount)}`);
+    console.log(`>> [Long] BorrowAmount: ${formatEther(longPositionBorrowAmount)}`);
     console.log(`>> [Long] TokenPrice: ${formatEther(longTokenPrice)}`);
 
     console.log(`>> [Short] TokenAmount: ${shortDepositAmount}`);
     console.log(`>> [Short] PrincipalAmount: ${formatEther(shortPositionPrincipalAmount)}`);
     console.log(`>> [Short] FarmingTokenAmount: ${formatEther(shortPositionFarmingTokenAmount)}`);
-    console.log(`>> [Short] BarrowAmount: ${formatEther(shortPositionBarrowAmount)}`);
+    console.log(`>> [Short] BorrowAmount: ${formatEther(shortPositionBorrowAmount)}`);
     console.log(`>> [Short] TokenPrice: ${formatEther(shortTokenPrice)}`);
 
     const longPositionWorkByteInput: IDepositWorkByte = {
@@ -285,7 +285,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       workerAddress: deltaNeutralVaultEntity.stableDeltaWorker,
       twoSidesStrat: longTwoSidesStrat,
       principalAmount: longPositionPrincipalAmount,
-      borrowAmount: longPositionBarrowAmount,
+      borrowAmount: longPositionBorrowAmount,
       farmingTokenAmount: longPositionFarmingTokenAmount,
       maxReturn: BigNumber.from(0),
       minLpReceive: BigNumber.from(0),
@@ -297,7 +297,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       workerAddress: deltaNeutralVaultEntity.assetDeltaWorker,
       twoSidesStrat: shortTwoSidesStrat,
       principalAmount: shortPositionPrincipalAmount,
-      borrowAmount: shortPositionBarrowAmount,
+      borrowAmount: shortPositionBorrowAmount,
       farmingTokenAmount: shortPositionFarmingTokenAmount,
       maxReturn: BigNumber.from(0),
       minLpReceive: BigNumber.from(0),
@@ -328,7 +328,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if (compare(nativeTokenAddress, deltaNeutralVaultEntity.stableToken)) {
       nativeTokenAmount = longDepositAmount;
     }
-    if (compare(nativeTokenAddress, deltaNeutralVaultEntity.assetDeltaWorker)) {
+    if (compare(nativeTokenAddress, deltaNeutralVaultEntity.assetToken)) {
       nativeTokenAmount = shortDepositAmount;
     }
 
@@ -366,7 +366,7 @@ const _getTokenInput = (
 ): {
   principalAmount: BigNumber;
   farmingAmount: BigNumber;
-  barrowAmount: BigNumber;
+  borrowAmount: BigNumber;
 } => {
   const [baseTokenPrice, farmingTokenPrice] = tokenPrices;
   const [baseDepositAmount, farmingDepositAmount] = depositTokensAmount;
@@ -375,22 +375,22 @@ const _getTokenInput = (
   // principal amount formula for short equity amount = depositAmount * (lev) / (2lev - 2)
   const numerator = depositSide === DeltaVaultNeutralDepositSide.Long ? leverage.sub(2) : leverage;
   const denumerator = leverage.mul(2).sub(2);
-
   const borrowMultiplier = leverage.sub(1);
-  const farmingDecimalMultiplier = 10 ** (baseDecimal - farmingDecimal);
+  const decimalDiff = baseDecimal - farmingDecimal;
 
   const principalAmount = baseDepositAmount.mul(numerator).div(denumerator);
   const farmingAmount = farmingDepositAmount.mul(numerator).div(denumerator);
-  // barrow amount calculation
+  const convertedDecimalFarmingValue =
+    decimalDiff > 0 ? farmingAmount.mul(10 ** decimalDiff) : farmingAmount.div(10 ** Math.abs(decimalDiff));
+  // borrow amount calculation
   // farmingValue = farmingAmount * farmingTokenPrice
   // convertedPrincipalAmount = farmingValue / baseTokenPrice
   // actualPrincipalAmount = principalAmount + convertedPrincipalAmount
-  // barrowAmount = actualPrincipalAmount * borrowMultiplier
+  // borrowAmount = actualPrincipalAmount * borrowMultiplier
   return {
     principalAmount,
     farmingAmount,
-    barrowAmount: farmingAmount
-      .mul(farmingDecimalMultiplier) // converted to same with base decimal
+    borrowAmount: convertedDecimalFarmingValue
       .mul(farmingTokenPrice) // multiply by price to find value
       .div(baseTokenPrice) // divide by base token price to convert to base token amount
       .add(principalAmount) // combined with additional principal amount
