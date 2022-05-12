@@ -532,8 +532,8 @@ describe("DeltaNeutralOracle", () => {
     context("when owner try set new price oracle", async () => {
       it("should correct", async () => {
         await expect(priceOracle.setOracle("0x166f56F2EDa9817cAB77118AE4FCAA0002A17eC7"))
-          .to.be.emit(priceOracle, "DeltaNeutralOracle_SetOracle")
-          .withArgs("0x166f56F2EDa9817cAB77118AE4FCAA0002A17eC7");
+          .to.be.emit(priceOracle, "LogSetOracle")
+          .withArgs(await deployer.getAddress(), "0x166f56F2EDa9817cAB77118AE4FCAA0002A17eC7");
       });
 
       it("should revert when set zero address", async () => {

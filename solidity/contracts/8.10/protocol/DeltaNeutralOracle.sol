@@ -27,7 +27,7 @@ contract DeltaNeutralOracle is IDeltaNeutralOracle, Initializable, OwnableUpgrad
   using AlpacaMath for uint256;
 
   /// @dev Events
-  event DeltaNeutralOracle_SetOracle(address _newOracle);
+  event LogSetOracle(address indexed _caller, address _newOracle);
 
   /// @dev Errors
   error DeltaNeutralOracle_InvalidLPAddress();
@@ -81,8 +81,10 @@ contract DeltaNeutralOracle is IDeltaNeutralOracle, Initializable, OwnableUpgrad
   /// @param _oracle oracle address
   function setOracle(address _oracle) external onlyOwner {
     if (_oracle == address(0)) revert DeltaNeutralOracle_InvalidOracleAddress();
+
     chainLinkPriceOracle = IChainLinkPriceOracle(_oracle);
-    emit DeltaNeutralOracle_SetOracle(_oracle);
+
+    emit LogSetOracle(msg.sender, _oracle);
   }
 
   /// @notice get LP price using internal only, return value in 1e18 format
