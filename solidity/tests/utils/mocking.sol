@@ -78,6 +78,17 @@ library mocking {
     );
   }
 
+  // func () view => uint8
+  function mockv(function () external view returns (uint8) f, uint8  returned1)
+    internal
+  {
+    vm.mockCall(
+      f.address,
+      abi.encodeWithSelector(f.selector),
+      abi.encode(returned1)
+    );
+  }
+
   // func (uint256) view => uint256
   function mockv(function (uint256) external view returns (uint256) f, uint256 num1, uint256  returned1)
     internal
@@ -86,6 +97,29 @@ library mocking {
       f.address,
       abi.encodeWithSelector(f.selector, num1),
       abi.encode(returned1)
+    );
+  }
+
+    // func (address, uint256) view => (uint256, uint256)
+  function mockv(function (uint256,address) external view returns (uint256, uint256) f, uint256 num1, address addr1, uint256  returned1, uint256 returned2)
+    internal
+  {
+    vm.mockCall(
+      f.address,
+      abi.encodeWithSelector(f.selector, num1, addr1),
+      abi.encode(returned1,returned2)
+    );
+  }
+
+
+    // func (address) view => (uint256, uint256)
+  function mockv(function (address) external view returns (uint256, uint256) f, address addr1, uint256  returned1, uint256 returned2)
+    internal
+  {
+    vm.mockCall(
+      f.address,
+      abi.encodeWithSelector(f.selector, addr1),
+      abi.encode(returned1,returned2)
     );
   }
 }
