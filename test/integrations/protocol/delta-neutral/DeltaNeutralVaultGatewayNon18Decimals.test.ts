@@ -395,6 +395,7 @@ describe("DeltaNeutralVaultGateway", () => {
     // Setup Delta Neutral Gateway
     deltaVaultGateway = await deployHelper.deployDeltaNeutralGateway({
       deltaVault: deltaVault.address,
+      router: routerV2.address,
     });
     // allow deltaVaultGateway as whitelisted to call delta neutral vault
     await deltaVaultConfig.setWhitelistedCallers([deltaVaultGateway.address], true);

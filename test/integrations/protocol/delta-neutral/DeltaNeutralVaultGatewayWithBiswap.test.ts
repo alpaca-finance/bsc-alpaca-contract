@@ -384,6 +384,7 @@ describe("DeltaNeutralVaultGatewayWithBiswap", () => {
     // Setup Delta Neutral Gateway
     deltaVaultGateway = await deployHelper.deployDeltaNeutralGateway({
       deltaVault: deltaVault.address,
+      router: router.address,
     });
 
     // allow deltaVaultGateway as whitelisted to call delta neutral vault

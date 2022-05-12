@@ -95,6 +95,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const [deployer] = await ethers.getSigners();
   const configFileHelper = new ConfigFileHelper();
+  const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   let config = ConfigEntity.getConfig();
 
   const workerInfos: IPancakeswapWorkerInfo[] = shortWorkerInfos.map((n) => {
@@ -150,8 +151,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       EXACT_ETA: n.EXACT_ETA,
     };
   });
-  const timelockTransactions: Array<TimelockEntity.Transaction> = [];
-  const timestamp = Math.floor(Date.now() / 1000);
 
   for (let i = 0; i < workerInfos.length; i++) {
     const pancakeswapV2Worker02MCv2Deployer = new UpgradeableContractDeployer(
