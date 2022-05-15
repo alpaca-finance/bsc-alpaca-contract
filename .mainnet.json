@@ -4326,8 +4326,8 @@
       "stableDeltaWorker": "0xe3bD3d71C87fC21427458ea90c0FceD155A486D9",
       "oracle": "0x08EA5fB66EA41f236E3001d2655e43A1E735787F",
       "gateway": "0x1c5bAFbdeCa41c28Ee6A44d2B33866C5F0c299F2",
-      "assetVaultPosId": "0",
-      "stableVaultPosId": "0"
+      "assetVaultPosId": "27074",
+      "stableVaultPosId": "5789"
     },
     {
       "name": "Long 3x BUSD-BTCB PCS1",
@@ -4343,8 +4343,8 @@
       "stableDeltaWorker": "0x93269F1600C19FeD0a378b242B698f647E48A6ed",
       "oracle": "0x08EA5fB66EA41f236E3001d2655e43A1E735787F",
       "gateway": "0xa943D10A0839d947877621b277b0bd5DeD6BEEEC",
-      "assetVaultPosId": "0",
-      "stableVaultPosId": "0"
+      "assetVaultPosId": "54056",
+      "stableVaultPosId": "5568"
     }
   ]
 }

@@ -17212,12 +17212,12 @@
           {
             "contract": "DeltaNeutralVaultGateway",
             "label": "deltaNeutralVault",
-            "type": "t_contract(IDeltaNeutralVault)6111",
+            "type": "t_contract(IDeltaNeutralVault)7277",
             "src": "contracts/8.10/protocol/DeltaNeutralVaultGateway.sol:56"
           }
         ],
         "types": {
-          "t_contract(IDeltaNeutralVault)6111": {
+          "t_contract(IDeltaNeutralVault)7277": {
             "label": "contract IDeltaNeutralVault"
           },
           "t_address": {
@@ -22046,12 +22046,12 @@
           {
             "contract": "DeltaNeutralVaultGateway",
             "label": "deltaNeutralVault",
-            "type": "t_contract(IDeltaNeutralVault)10707",
+            "type": "t_contract(IDeltaNeutralVault)10691",
             "src": "solidity/contracts/8.10/protocol/DeltaNeutralVaultGateway.sol:56"
           }
         ],
         "types": {
-          "t_contract(IDeltaNeutralVault)10707": {
+          "t_contract(IDeltaNeutralVault)10691": {
             "label": "contract IDeltaNeutralVault"
           },
           "t_address": {
@@ -23734,6 +23734,91 @@
           },
           "t_array(t_uint256)50_storage": {
             "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "9d0624182272529c065e7312f68068601a02ca3ee79d74d1688510354d109679": {
+      "address": "0xcEEb0c6b4386D112bCA3Eb7d8A31764E5f1FbDf4",
+      "txHash": "0x8042c6aa51dec15957fba8666f745d733d4431bac9b18d6eb92ea666c962617a",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:74"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+          },
+          {
+            "contract": "DeltaNeutralVaultGateway",
+            "label": "deltaNeutralVault",
+            "type": "t_contract(IDeltaNeutralVault)10731",
+            "src": "solidity/contracts/8.10/protocol/DeltaNeutralVaultGateway.sol:56"
+          },
+          {
+            "contract": "DeltaNeutralVaultGateway",
+            "label": "router",
+            "type": "t_contract(ISwapRouter)13410",
+            "src": "solidity/contracts/8.10/protocol/DeltaNeutralVaultGateway.sol:58"
+          }
+        ],
+        "types": {
+          "t_contract(IDeltaNeutralVault)10731": {
+            "label": "contract IDeltaNeutralVault"
+          },
+          "t_contract(ISwapRouter)13410": {
+            "label": "contract ISwapRouter"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_bool": {
+            "label": "bool"
           }
         }
       }
