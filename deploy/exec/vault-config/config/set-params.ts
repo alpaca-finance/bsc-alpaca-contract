@@ -46,17 +46,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLTE = "update_wftm_usdc_tomb_interest_model";
+  const TITLTE = "update_usdt_eth_triple_slope_model";
   const NEW_PARAMS: Array<SetParamsInput> = [
     {
-      VAULT_SYMBOL: "ibFTM",
-      INTEREST_MODEL: "0xd36B6cf6Aa96Eb7185798ebccb8c5c5a82434067",
-      EXACT_ETA: "8888",
+      VAULT_SYMBOL: "ibUSDT",
+      INTEREST_MODEL: "0xc51d25a2C2d49eE2508B822829d43b9961deCB44",
+      EXACT_ETA: "1651984200",
     },
     {
-      VAULT_SYMBOL: "ibUSDC",
-      INTEREST_MODEL: "0xBbf2a7FacDB318F7670cE87A5F6571Bb001d8F06",
-      EXACT_ETA: "8888",
+      VAULT_SYMBOL: "ibETH",
+      INTEREST_MODEL: "0x50102793FCD018b479CC90887b49888D0B4c7AbA",
+      EXACT_ETA: "1651984200",
     },
   ];
 

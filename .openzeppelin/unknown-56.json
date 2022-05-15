@@ -789,6 +789,141 @@
       "address": "0xf8EE10951021F606cDe1eB700Fe910d90903121e",
       "txHash": "0x4ee81b22af66c2d1cb797c2cd589bf2d2e16108e8e125b28b9cf60b71627d99c",
       "kind": "transparent"
+    },
+    {
+      "address": "0xB16CB8AA0F55Ac6f250D7506c396b32B6ED061Bc",
+      "txHash": "0xfef2a90a15bbfc68761b4148c0e1700e532058ac20f966492065ca3b354e3bd5",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x79A499228e3A2ae0168f3fbD2019EeF991A43B41",
+      "txHash": "0x21575a49a626cc94c6ef3bb33a887e8372a6f4de7f8c74d42b5268c55dde1722",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x9638A202B9Ae27650e7c40153590D666F67fFceF",
+      "txHash": "0x9a9af2523af9ac4631e7469508af234504545c32694fd2c0ffd4ac61f1676a17",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xd1464C0D4424a353C4F243A11C806BdCbd783092",
+      "txHash": "0xab8b7ff6279c390f9e5e0a0afeec06ae85e23bfb5ff806c5c30f60621813b579",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x925e454726355ca5CdCb06C210660FfC69Cf1a46",
+      "txHash": "0x850cd8ad7d4df2655fc2c4f30818aad67e1737debd74384c84ce180bc0b256ac",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x287999499B3A3F1Accf3feF8ed8bC4DB2ae8DC35",
+      "txHash": "0x713b102a8887058bfa903b8a7208bd5c987f1693f0566a907d1e92a3dc881d01",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x63D0eF9F8e26ddc8371B64F2Fd326a5eC1637f12",
+      "txHash": "0x9272cf2542259ba60a2846e919aced1d5e263198b6a38a6c890ad36c3e29e346",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x4DD4CAc8FA9B8032A1205b0dd0b81b7a3cA89BE7",
+      "txHash": "0xc98df3084b0251879a3ec5ba98b6c3b836e9d9838590d7b80ba5fe348c1ffd5b",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xf8130b2B4717ABB7F23A0433E634AAc1BB6aBE22",
+      "txHash": "0x9928b5113fbfac001a99e992168071444b60b3d7c9b983639f2ba4d712ea026a",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x1710EEdD286f1529b23Db32bbdf46C3487955023",
+      "txHash": "0xb2d74ccd0cec962183262033eef4b533f65551017275815b931047ee5a0109b5",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xCFC4EcB52B9af518F2f4Ec12F67664aD58a2b080",
+      "txHash": "0x5e9d5114933db1a0cb097a086cb615e9fc55b29533f23b709e1b11b92fb2d9f5",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x27ce02547D55ADd70ceB78cea260f5155C8823ee",
+      "txHash": "0x63140af6382dfd639ade72e0878a19f5e7b18f817094414bcc55c1b87085d108",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x11873b84BcAeaec816f41c8DD46ED529D85daD45",
+      "txHash": "0x73565b25b2d03b7b7c1e3f52ba6e1a3756c567a21f2710a17e5e4d5da348f505",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x50657a0395bCC066dcEAc86152208c000D994a46",
+      "txHash": "0x777b7c8f19569811c89b951ab6035f37a0a9296b742c76e0be129f7e1dd6dd4e",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x12aa5b890a125010Ec58337b2aA975e2A1295cDf",
+      "txHash": "0x18f6cdf3dd41f229006d24ace09ee700d6033563415b230bbdeed79b200b41db",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xE3CADBF72F99eDD1f0eE0d97c0e395C312b5b07E",
+      "txHash": "0xd1cf638fe641eff444bcb4b13dba204df9a1dbc4b0ff66ea92b097184271f6ae",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xa15665BedecbEa17D8c0C21067743Db6fDD343F4",
+      "txHash": "0xa62b1d2198858685030e182a92a4d93cf104f3cdffee7534b98d41bcea74f88a",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xb8b370B9d1b2696bAD146643144BE9ca81c59f7b",
+      "txHash": "0xfda265955a8a62b33edc3d1627483ced1f99aa6682bd18dae7bac9bce98ced02",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xe3bD3d71C87fC21427458ea90c0FceD155A486D9",
+      "txHash": "0x9e1765e499a13adcd9d2c0a831403c5db8ccb05e1d96a1daeec137d602499b72",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xE5747D8fa3418FD4E0097E526D98daf08Ff40A01",
+      "txHash": "0xa8d5680d90d1bfebfe9167c366f50a2728d3a442641e9cc0673e4e7ae1b35264",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xB8d7B5A245f0080814f19dFE58037072315B7d19",
+      "txHash": "0xc482c7eaf23caaf447c388abaf9f024bc989cc7146bb39eecc2f773cc5d464bf",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x1c5bAFbdeCa41c28Ee6A44d2B33866C5F0c299F2",
+      "txHash": "0x6fb43661bf14da53e0a54baa10bc52886fbc9c58b054ad41875ea6ccf6d4842f",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xd7EA89daa5CAa105126387B84E787a10Fa6c4f72",
+      "txHash": "0xdc89aea282bf196d68daa78ab2d4747a7724571af0f83597e4d6121722357ec3",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x93269F1600C19FeD0a378b242B698f647E48A6ed",
+      "txHash": "0x00106ba9e46f6fcf359906a19f6308bb4f73ca64855a3c5bd1f900be7b1f45a4",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x100aBb8EF81470F5A83A078c76B1cA74d33e4b92",
+      "txHash": "0x1726c0001d8792df8d2d5c39811e8b7198c8d175db61abce5318f8475d2d5229",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x4eE770919aB741cC84bBE8cD83C21d79785f37E9",
+      "txHash": "0x74b893138fffd4bad561e1308e475f033c157eb302e724ea6533e13f388b7251",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xa943D10A0839d947877621b277b0bd5DeD6BEEEC",
+      "txHash": "0xae72bc0da24b1b1014562192af24972412c1de761fd463008916759f49a4efe7",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -17077,12 +17212,12 @@
           {
             "contract": "DeltaNeutralVaultGateway",
             "label": "deltaNeutralVault",
-            "type": "t_contract(IDeltaNeutralVault)6111",
+            "type": "t_contract(IDeltaNeutralVault)7277",
             "src": "contracts/8.10/protocol/DeltaNeutralVaultGateway.sol:56"
           }
         ],
         "types": {
-          "t_contract(IDeltaNeutralVault)6111": {
+          "t_contract(IDeltaNeutralVault)7277": {
             "label": "contract IDeltaNeutralVault"
           },
           "t_address": {
@@ -21911,12 +22046,12 @@
           {
             "contract": "DeltaNeutralVaultGateway",
             "label": "deltaNeutralVault",
-            "type": "t_contract(IDeltaNeutralVault)10707",
+            "type": "t_contract(IDeltaNeutralVault)10691",
             "src": "solidity/contracts/8.10/protocol/DeltaNeutralVaultGateway.sol:56"
           }
         ],
         "types": {
-          "t_contract(IDeltaNeutralVault)10707": {
+          "t_contract(IDeltaNeutralVault)10691": {
             "label": "contract IDeltaNeutralVault"
           },
           "t_address": {
@@ -23343,6 +23478,341 @@
           },
           "t_array(t_uint256)45_storage": {
             "label": "uint256[45]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_bool": {
+            "label": "bool"
+          }
+        }
+      }
+    },
+    "2eb7f670f296c2f426a1a5b4bbf2b742ca0e9d9e0b3551e83fcc470e7b48e501": {
+      "address": "0xeF5a7e234abBeE2c4e14e0E4aeb8f176B21A3Cb5",
+      "txHash": "0xb26549d1aef391818cb9ceda6b65a4c7b0438c4d00d394c0252b99ee02d76d12",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:74"
+          },
+          {
+            "contract": "DeltaNeutralBiswapWorker03",
+            "label": "biswapMasterChef",
+            "type": "t_contract(IBiswapMasterChef)10584",
+            "src": "solidity/contracts/8.10/protocol/workers/DeltaNeutralBiswapWorker03.sol:89"
+          },
+          {
+            "contract": "DeltaNeutralBiswapWorker03",
+            "label": "factory",
+            "type": "t_contract(ISwapFactoryLike)13027",
+            "src": "solidity/contracts/8.10/protocol/workers/DeltaNeutralBiswapWorker03.sol:91"
+          },
+          {
+            "contract": "DeltaNeutralBiswapWorker03",
+            "label": "router",
+            "type": "t_contract(ISwapRouter02Like)13761",
+            "src": "solidity/contracts/8.10/protocol/workers/DeltaNeutralBiswapWorker03.sol:91"
+          },
+          {
+            "contract": "DeltaNeutralBiswapWorker03",
+            "label": "lpToken",
+            "type": "t_contract(ISwapPairLike)13269",
+            "src": "solidity/contracts/8.10/protocol/workers/DeltaNeutralBiswapWorker03.sol:92"
+          },
+          {
+            "contract": "DeltaNeutralBiswapWorker03",
+            "label": "priceOracle",
+            "type": "t_contract(IDeltaNeutralOracle)10651",
+            "src": "solidity/contracts/8.10/protocol/workers/DeltaNeutralBiswapWorker03.sol:94"
+          },
+          {
+            "contract": "DeltaNeutralBiswapWorker03",
+            "label": "wNative",
+            "type": "t_address",
+            "src": "solidity/contracts/8.10/protocol/workers/DeltaNeutralBiswapWorker03.sol:95"
+          },
+          {
+            "contract": "DeltaNeutralBiswapWorker03",
+            "label": "baseToken",
+            "type": "t_address",
+            "src": "solidity/contracts/8.10/protocol/workers/DeltaNeutralBiswapWorker03.sol:95"
+          },
+          {
+            "contract": "DeltaNeutralBiswapWorker03",
+            "label": "farmingToken",
+            "type": "t_address",
+            "src": "solidity/contracts/8.10/protocol/workers/DeltaNeutralBiswapWorker03.sol:97"
+          },
+          {
+            "contract": "DeltaNeutralBiswapWorker03",
+            "label": "bsw",
+            "type": "t_address",
+            "src": "solidity/contracts/8.10/protocol/workers/DeltaNeutralBiswapWorker03.sol:100"
+          },
+          {
+            "contract": "DeltaNeutralBiswapWorker03",
+            "label": "operator",
+            "type": "t_address",
+            "src": "solidity/contracts/8.10/protocol/workers/DeltaNeutralBiswapWorker03.sol:100"
+          },
+          {
+            "contract": "DeltaNeutralBiswapWorker03",
+            "label": "pid",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.10/protocol/workers/DeltaNeutralBiswapWorker03.sol:101"
+          },
+          {
+            "contract": "DeltaNeutralBiswapWorker03",
+            "label": "okStrats",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "solidity/contracts/8.10/protocol/workers/DeltaNeutralBiswapWorker03.sol:104"
+          },
+          {
+            "contract": "DeltaNeutralBiswapWorker03",
+            "label": "addStrat",
+            "type": "t_contract(IStrategy)12785",
+            "src": "solidity/contracts/8.10/protocol/workers/DeltaNeutralBiswapWorker03.sol:106"
+          },
+          {
+            "contract": "DeltaNeutralBiswapWorker03",
+            "label": "reinvestBountyBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.10/protocol/workers/DeltaNeutralBiswapWorker03.sol:106"
+          },
+          {
+            "contract": "DeltaNeutralBiswapWorker03",
+            "label": "maxReinvestBountyBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.10/protocol/workers/DeltaNeutralBiswapWorker03.sol:107"
+          },
+          {
+            "contract": "DeltaNeutralBiswapWorker03",
+            "label": "okReinvestors",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "solidity/contracts/8.10/protocol/workers/DeltaNeutralBiswapWorker03.sol:108"
+          },
+          {
+            "contract": "DeltaNeutralBiswapWorker03",
+            "label": "whitelistCallers",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "solidity/contracts/8.10/protocol/workers/DeltaNeutralBiswapWorker03.sol:110"
+          },
+          {
+            "contract": "DeltaNeutralBiswapWorker03",
+            "label": "reinvestThreshold",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.10/protocol/workers/DeltaNeutralBiswapWorker03.sol:112"
+          },
+          {
+            "contract": "DeltaNeutralBiswapWorker03",
+            "label": "reinvestPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "solidity/contracts/8.10/protocol/workers/DeltaNeutralBiswapWorker03.sol:113"
+          },
+          {
+            "contract": "DeltaNeutralBiswapWorker03",
+            "label": "treasuryAccount",
+            "type": "t_address",
+            "src": "solidity/contracts/8.10/protocol/workers/DeltaNeutralBiswapWorker03.sol:114"
+          },
+          {
+            "contract": "DeltaNeutralBiswapWorker03",
+            "label": "treasuryBountyBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.10/protocol/workers/DeltaNeutralBiswapWorker03.sol:115"
+          },
+          {
+            "contract": "DeltaNeutralBiswapWorker03",
+            "label": "beneficialVault",
+            "type": "t_contract(IVault)13835",
+            "src": "solidity/contracts/8.10/protocol/workers/DeltaNeutralBiswapWorker03.sol:115"
+          },
+          {
+            "contract": "DeltaNeutralBiswapWorker03",
+            "label": "beneficialVaultBountyBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.10/protocol/workers/DeltaNeutralBiswapWorker03.sol:116"
+          },
+          {
+            "contract": "DeltaNeutralBiswapWorker03",
+            "label": "rewardPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "solidity/contracts/8.10/protocol/workers/DeltaNeutralBiswapWorker03.sol:118"
+          },
+          {
+            "contract": "DeltaNeutralBiswapWorker03",
+            "label": "buybackAmount",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.10/protocol/workers/DeltaNeutralBiswapWorker03.sol:120"
+          },
+          {
+            "contract": "DeltaNeutralBiswapWorker03",
+            "label": "totalLpBalance",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.10/protocol/workers/DeltaNeutralBiswapWorker03.sol:121"
+          }
+        ],
+        "types": {
+          "t_contract(IBiswapMasterChef)10584": {
+            "label": "contract IBiswapMasterChef"
+          },
+          "t_contract(ISwapFactoryLike)13027": {
+            "label": "contract ISwapFactoryLike"
+          },
+          "t_contract(ISwapRouter02Like)13761": {
+            "label": "contract ISwapRouter02Like"
+          },
+          "t_contract(ISwapPairLike)13269": {
+            "label": "contract ISwapPairLike"
+          },
+          "t_contract(IDeltaNeutralOracle)10651": {
+            "label": "contract IDeltaNeutralOracle"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_contract(IStrategy)12785": {
+            "label": "contract IStrategy"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]"
+          },
+          "t_contract(IVault)13835": {
+            "label": "contract IVault"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "9d0624182272529c065e7312f68068601a02ca3ee79d74d1688510354d109679": {
+      "address": "0xcEEb0c6b4386D112bCA3Eb7d8A31764E5f1FbDf4",
+      "txHash": "0x8042c6aa51dec15957fba8666f745d733d4431bac9b18d6eb92ea666c962617a",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:74"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+          },
+          {
+            "contract": "DeltaNeutralVaultGateway",
+            "label": "deltaNeutralVault",
+            "type": "t_contract(IDeltaNeutralVault)10731",
+            "src": "solidity/contracts/8.10/protocol/DeltaNeutralVaultGateway.sol:56"
+          },
+          {
+            "contract": "DeltaNeutralVaultGateway",
+            "label": "router",
+            "type": "t_contract(ISwapRouter)13410",
+            "src": "solidity/contracts/8.10/protocol/DeltaNeutralVaultGateway.sol:58"
+          }
+        ],
+        "types": {
+          "t_contract(IDeltaNeutralVault)10731": {
+            "label": "contract IDeltaNeutralVault"
+          },
+          "t_contract(ISwapRouter)13410": {
+            "label": "contract ISwapRouter"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_uint256": {
+            "label": "uint256"
           },
           "t_array(t_uint256)50_storage": {
             "label": "uint256[50]"

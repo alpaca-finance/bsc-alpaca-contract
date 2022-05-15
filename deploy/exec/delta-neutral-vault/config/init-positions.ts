@@ -69,12 +69,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const initPositionInputs: IInitPositionInputs[] = [
     {
-      symbol: "n3x-FTMUSDC-SPK2",
-      stableVaultSymbol: "ibUSDC",
-      assetVaultSymbol: "ibFTM",
-      stableSymbol: "USDC",
-      assetSymbol: "WFTM",
-      stableAmount: "300",
+      symbol: "n3x-ETHUSDT-BSW1",
+      stableVaultSymbol: "ibUSDT",
+      assetVaultSymbol: "ibETH",
+      stableSymbol: "USDT",
+      assetSymbol: "ETH",
+      stableAmount: "300", // stable token amount to open the positions
       leverage: 3,
     },
   ];

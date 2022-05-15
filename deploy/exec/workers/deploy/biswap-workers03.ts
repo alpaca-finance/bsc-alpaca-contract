@@ -7,6 +7,9 @@ import {
   BiswapWorker03,
   Timelock__factory,
   WorkerConfig__factory,
+  BiswapMasterChef__factory,
+  MockERC20__factory,
+  ISwapPairLike__factory,
 } from "../../../../typechain";
 import { TimelockEntity } from "../../../entities";
 import { WorkersEntity } from "../../../interfaces/config";
@@ -74,79 +77,25 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const executeFileTitle = "biswap-pool3";
+  const executeFileTitle = "biswap-gqbusd-pool";
   const shortWorkerInfos: IBiswapWorkerInput[] = [
     {
-      VAULT_SYMBOL: "ibUSDT",
-      WORKER_NAME: "ETH-USDT BiswapWorker",
+      VAULT_SYMBOL: "ibBUSD",
+      WORKER_NAME: "GQ-BUSD BiswapWorker",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 5,
+      POOL_ID: 107,
       REINVEST_BOUNTY_BPS: "900",
-      REINVEST_PATH: ["BSW", "USDT"],
+      REINVEST_PATH: ["BSW", "USDT", "BUSD"],
       REINVEST_THRESHOLD: "0",
       BENEFICIAL_VAULT: {
         BENEFICIAL_VAULT_ADDRESS: "0x08B5A95cb94f926a8B620E87eE92e675b35afc7E",
         REWARD_PATH: ["BSW", "USDT", "BUSD"],
         BENEFICIAL_VAULT_BPS: "5555",
       },
-      WORK_FACTOR: "7000",
-      KILL_FACTOR: "8333",
-      MAX_PRICE_DIFF: "10500",
-      EXACT_ETA: "1651482000",
-    },
-    {
-      VAULT_SYMBOL: "ibETH",
-      WORKER_NAME: "USDT-ETH BiswapWorker",
-      REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 5,
-      REINVEST_BOUNTY_BPS: "900",
-      REINVEST_PATH: ["BSW", "USDT", "ETH"],
-      REINVEST_THRESHOLD: "0",
-      BENEFICIAL_VAULT: {
-        BENEFICIAL_VAULT_ADDRESS: "0x08B5A95cb94f926a8B620E87eE92e675b35afc7E",
-        REWARD_PATH: ["BSW", "USDT", "BUSD"],
-        BENEFICIAL_VAULT_BPS: "5555",
-      },
-      WORK_FACTOR: "7000",
-      KILL_FACTOR: "8333",
-      MAX_PRICE_DIFF: "10500",
-      EXACT_ETA: "1651482000",
-    },
-    {
-      VAULT_SYMBOL: "ibUSDT",
-      WORKER_NAME: "BTCB-USDT BiswapWorker",
-      REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 6,
-      REINVEST_BOUNTY_BPS: "900",
-      REINVEST_PATH: ["BSW", "USDT"],
-      REINVEST_THRESHOLD: "0",
-      BENEFICIAL_VAULT: {
-        BENEFICIAL_VAULT_ADDRESS: "0x08B5A95cb94f926a8B620E87eE92e675b35afc7E",
-        REWARD_PATH: ["BSW", "USDT", "BUSD"],
-        BENEFICIAL_VAULT_BPS: "5555",
-      },
-      WORK_FACTOR: "7000",
-      KILL_FACTOR: "8333",
-      MAX_PRICE_DIFF: "10500",
-      EXACT_ETA: "1651482000",
-    },
-    {
-      VAULT_SYMBOL: "ibBTCB",
-      WORKER_NAME: "USDT-BTCB BiswapWorker",
-      REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 6,
-      REINVEST_BOUNTY_BPS: "900",
-      REINVEST_PATH: ["BSW", "USDT", "BTCB"],
-      REINVEST_THRESHOLD: "0",
-      BENEFICIAL_VAULT: {
-        BENEFICIAL_VAULT_ADDRESS: "0x08B5A95cb94f926a8B620E87eE92e675b35afc7E",
-        REWARD_PATH: ["BSW", "USDT", "BUSD"],
-        BENEFICIAL_VAULT_BPS: "5555",
-      },
-      WORK_FACTOR: "7000",
-      KILL_FACTOR: "8333",
-      MAX_PRICE_DIFF: "10500",
-      EXACT_ETA: "1651482000",
+      WORK_FACTOR: "4500",
+      KILL_FACTOR: "7000",
+      MAX_PRICE_DIFF: "11000",
+      EXACT_ETA: "1652171400",
     },
   ];
 
@@ -346,9 +295,24 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       console.log("✅ Done");
     }
 
-    const lpPoolAddress = config.YieldSources.Biswap!.pools.find(
-      (pool) => pool.pId === workerInfos[i].POOL_ID
-    )!.address;
+    const biswapMasterChef = BiswapMasterChef__factory.connect(workerInfos[i].MASTER_CHEF_ADDR, deployer);
+    const poolInfo = await biswapMasterChef.poolInfo(workerInfos[i].POOL_ID);
+
+    if (config.YieldSources.Biswap!.pools.find((pool) => pool.pId === workerInfos[i].POOL_ID) === undefined) {
+      const token0 = MockERC20__factory.connect(
+        await ISwapPairLike__factory.connect(poolInfo.lpToken, deployer).token0(),
+        deployer
+      );
+      const token1 = MockERC20__factory.connect(
+        await ISwapPairLike__factory.connect(poolInfo.lpToken, deployer).token1(),
+        deployer
+      );
+      config = configFileHelper.addOrSetYielPool("Biswap", {
+        pId: workerInfos[i].POOL_ID,
+        name: `${await token0.symbol()}-${await token1.symbol()} LP`,
+        address: poolInfo.lpToken,
+      });
+    }
 
     const biswapWorkersEntity: WorkersEntity = {
       name: workerInfos[i].WORKER_NAME,
@@ -356,7 +320,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       deployedBlock: deployedBlock,
       config: workerInfos[i].WORKER_CONFIG_ADDR,
       pId: workerInfos[i].POOL_ID,
-      stakingToken: lpPoolAddress,
+      stakingToken: poolInfo.lpToken,
       stakingTokenAt: workerInfos[i].MASTER_CHEF_ADDR,
       strategies: {
         StrategyAddAllBaseToken: workerInfos[i].ADD_STRAT_ADDR,
