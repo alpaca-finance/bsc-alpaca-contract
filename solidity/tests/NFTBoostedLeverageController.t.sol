@@ -24,10 +24,10 @@ contract NFTBoostedLeverageControllerTest is BaseTest {
   MockPancakeswapV2WorkerLike private mockWorker2;
   MockPancakeswapV2WorkerLike private mockWorker3;
 
-  // PoolID
-  address private poolId1;
-  address private poolId2;
-  address private poolId3;
+  // nftAddress
+  address private nftAddress1;
+  address private nftAddress2;
+  address private nftAddress3;
 
   // mockWorker address
   address private mockWorker1Address;
@@ -36,7 +36,7 @@ contract NFTBoostedLeverageControllerTest is BaseTest {
 
   uint256[] private workFactors;
   uint256[] private killFactors;
-  address[] private poolIds;
+  address[] private nftAddresss;
   address[] private mockWorkers;
 
   function setUp() external {
@@ -46,9 +46,9 @@ contract NFTBoostedLeverageControllerTest is BaseTest {
     mockNFT1 = _setupMockNFT();
     mockNFT2 = _setupMockNFT();
     mockNFT3 = _setupMockNFT();
-    poolId1 = address(mockNFT1);
-    poolId2 = address(mockNFT2);
-    poolId3 = address(mockNFT3);
+    nftAddress1 = address(mockNFT1);
+    nftAddress2 = address(mockNFT2);
+    nftAddress3 = address(mockNFT3);
 
     nftBoostedController = _setupNFTBoostedLeverageController(address(nftStaking));
 
@@ -64,101 +64,101 @@ contract NFTBoostedLeverageControllerTest is BaseTest {
   function testSetBoostedLeverage_goodParams() external {
     workFactors = [34, 56, 76];
     killFactors = [50, 60, 80];
-    poolIds = [poolId1, poolId2, poolId3];
+    nftAddresss = [nftAddress1, nftAddress2, nftAddress3];
     mockWorkers = [mockWorker1Address, mockWorker2Address, mockWorker3Address];
-    nftStaking.addPool(poolId1, 100, 0, 200);
-    nftStaking.addPool(poolId2, 100, 0, 200);
-    nftStaking.addPool(poolId3, 100, 0, 200);
-    nftBoostedController.setBoosted(poolIds, mockWorkers, workFactors, killFactors);
+    nftStaking.addPool(nftAddress1, 100, 0, 200);
+    nftStaking.addPool(nftAddress2, 100, 0, 200);
+    nftStaking.addPool(nftAddress3, 100, 0, 200);
+    nftBoostedController.setBoosted(nftAddresss, mockWorkers, workFactors, killFactors);
   }
 
   function testSetBoostedLeverage_badParams() external {
     workFactors = [34, 56, 76];
     killFactors = [50, 60, 80];
-    poolIds = [poolId1, poolId2, poolId3];
+    nftAddresss = [nftAddress1, nftAddress2, nftAddress3];
     mockWorkers = [mockWorker1Address, mockWorker2Address];
-    nftStaking.addPool(poolId1, 100, 0, 200);
-    nftStaking.addPool(poolId2, 100, 0, 200);
-    nftStaking.addPool(poolId3, 100, 0, 200);
+    nftStaking.addPool(nftAddress1, 100, 0, 200);
+    nftStaking.addPool(nftAddress2, 100, 0, 200);
+    nftStaking.addPool(nftAddress3, 100, 0, 200);
     vm.expectRevert(NFTBoostedLeverageControllerLike.NFTBoostedLeverageController_BadParamsLength.selector);
-    nftBoostedController.setBoosted(poolIds, mockWorkers, workFactors, killFactors);
+    nftBoostedController.setBoosted(nftAddresss, mockWorkers, workFactors, killFactors);
   }
 
   function testGetBoostedWorkFactor_success() external {
     workFactors = [34, 56, 76];
     killFactors = [50, 60, 80];
-    poolIds = [poolId1, poolId2, poolId3];
+    nftAddresss = [nftAddress1, nftAddress2, nftAddress3];
     mockWorkers = [mockWorker1Address, mockWorker2Address, mockWorker3Address];
 
-    nftStaking.addPool(poolId1, 100, 0, 200);
-    nftStaking.addPool(poolId2, 100, 0, 200);
-    nftStaking.addPool(poolId3, 100, 0, 200);
+    nftStaking.addPool(nftAddress1, 100, 0, 200);
+    nftStaking.addPool(nftAddress2, 100, 0, 200);
+    nftStaking.addPool(nftAddress3, 100, 0, 200);
 
     vm.startPrank(ALICE, ALICE);
     mockNFT1.mint(1);
     mockNFT1.approve(address(nftStaking), 0);
     assertEq(mockNFT1.balanceOf(ALICE), 1);
-    nftStaking.stakeNFT(poolId1, 0, 20);
+    nftStaking.stakeNFT(nftAddress1, 0, 20);
     vm.stopPrank();
-    nftBoostedController.setBoosted(poolIds, mockWorkers, workFactors, killFactors);
+    nftBoostedController.setBoosted(nftAddresss, mockWorkers, workFactors, killFactors);
     assertEq(nftBoostedController.getBoostedWorkFactor(ALICE, mockWorker1Address, 0), 34);
   }
 
   function testGetBoostedWorkFactor_noNFTStake() external {
     workFactors = [34, 56, 76];
     killFactors = [50, 60, 80];
-    poolIds = [poolId1, poolId2, poolId3];
+    nftAddresss = [nftAddress1, nftAddress2, nftAddress3];
     mockWorkers = [mockWorker1Address, mockWorker2Address, mockWorker3Address];
 
-    nftStaking.addPool(poolId1, 100, 0, 200);
-    nftStaking.addPool(poolId2, 100, 0, 200);
-    nftStaking.addPool(poolId3, 100, 0, 200);
+    nftStaking.addPool(nftAddress1, 100, 0, 200);
+    nftStaking.addPool(nftAddress2, 100, 0, 200);
+    nftStaking.addPool(nftAddress3, 100, 0, 200);
 
     vm.startPrank(ALICE, ALICE);
     mockNFT1.mint(1);
     mockNFT1.approve(address(nftStaking), 0);
     assertEq(mockNFT1.balanceOf(ALICE), 1);
     vm.stopPrank();
-    nftBoostedController.setBoosted(poolIds, mockWorkers, workFactors, killFactors);
+    nftBoostedController.setBoosted(nftAddresss, mockWorkers, workFactors, killFactors);
     assertEq(nftBoostedController.getBoostedWorkFactor(ALICE, mockWorker1Address, 0), 0);
   }
 
   function testGetBoostedKillFactor_success() external {
     workFactors = [34, 56, 76];
     killFactors = [50, 60, 80];
-    poolIds = [poolId1, poolId2, poolId3];
+    nftAddresss = [nftAddress1, nftAddress2, nftAddress3];
     mockWorkers = [mockWorker1Address, mockWorker2Address, mockWorker3Address];
 
-    nftStaking.addPool(poolId1, 100, 0, 200);
-    nftStaking.addPool(poolId2, 100, 0, 200);
-    nftStaking.addPool(poolId3, 100, 0, 200);
+    nftStaking.addPool(nftAddress1, 100, 0, 200);
+    nftStaking.addPool(nftAddress2, 100, 0, 200);
+    nftStaking.addPool(nftAddress3, 100, 0, 200);
 
     vm.startPrank(ALICE, ALICE);
     mockNFT1.mint(1);
     mockNFT1.approve(address(nftStaking), 0);
     assertEq(mockNFT1.balanceOf(ALICE), 1);
-    nftStaking.stakeNFT(poolId1, 0, 20);
+    nftStaking.stakeNFT(nftAddress1, 0, 20);
     vm.stopPrank();
-    nftBoostedController.setBoosted(poolIds, mockWorkers, workFactors, killFactors);
+    nftBoostedController.setBoosted(nftAddresss, mockWorkers, workFactors, killFactors);
     assertEq(nftBoostedController.getBoostedKillFactor(ALICE, mockWorker1Address, 0), 50);
   }
 
     function testGetBoostedKillFactor_noNFTSstake() external {
     workFactors = [34, 56, 76];
     killFactors = [50, 60, 80];
-    poolIds = [poolId1, poolId2, poolId3];
+    nftAddresss = [nftAddress1, nftAddress2, nftAddress3];
     mockWorkers = [mockWorker1Address, mockWorker2Address, mockWorker3Address];
 
-    nftStaking.addPool(poolId1, 100, 0, 200);
-    nftStaking.addPool(poolId2, 100, 0, 200);
-    nftStaking.addPool(poolId3, 100, 0, 200);
+    nftStaking.addPool(nftAddress1, 100, 0, 200);
+    nftStaking.addPool(nftAddress2, 100, 0, 200);
+    nftStaking.addPool(nftAddress3, 100, 0, 200);
 
     vm.startPrank(ALICE, ALICE);
     mockNFT1.mint(1);
     mockNFT1.approve(address(nftStaking), 0);
     assertEq(mockNFT1.balanceOf(ALICE), 1);
     vm.stopPrank();
-    nftBoostedController.setBoosted(poolIds, mockWorkers, workFactors, killFactors);
+    nftBoostedController.setBoosted(nftAddresss, mockWorkers, workFactors, killFactors);
     assertEq(nftBoostedController.getBoostedKillFactor(ALICE, mockWorker1Address, 0), 0);
   }
 

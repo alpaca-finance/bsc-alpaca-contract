@@ -44,19 +44,8 @@ contract SingleAssetWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
     uint64 maxPriceDiff
   );
   event SetGovernor(address indexed caller, address indexed governor);
-  event SetBoostedLeverage(
-    address indexed caller,
-    address indexed worker,
-    uint256 allowBoost,
-    uint256 boostedWorkFactor
-  );
-  event SetBoostedKillFactor(
-    address indexed caller,
-    address indexed worker,
-    uint256 allowBoost,
-    uint256 boostedKillFactor
-  );
-
+  event LogSetNFTBoostedLeverageController(address oldAddress, address newAddress, address caller);
+  
   /// @notice state variables
   struct Config {
     bool acceptDebt;
@@ -81,14 +70,14 @@ contract SingleAssetWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
 
   /// @dev Check if the msg.sender is the governor.
   modifier onlyGovernor() {
-    require(_msgSender() == governor, "SingleAssetWorkerConfig::onlyGovernor:: msg.sender not governor");
+    require(msg.sender == governor, "SingleAssetWorkerConfig::onlyGovernor:: msg.sender not governor");
     _;
   }
 
   /// @dev Set oracle address. Must be called by owner.
   function setOracle(PriceOracle _oracle) external onlyOwner {
     oracle = _oracle;
-    emit SetOracle(_msgSender(), address(oracle));
+    emit SetOracle(msg.sender, address(oracle));
   }
 
   /// @dev Set worker configurations. Must be called by owner.
@@ -103,7 +92,7 @@ contract SingleAssetWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
         maxPriceDiff: configs[idx].maxPriceDiff
       });
       emit SetConfig(
-        _msgSender(),
+        msg.sender,
         addrs[idx],
         workers[addrs[idx]].acceptDebt,
         workers[addrs[idx]].workFactor,
@@ -186,7 +175,6 @@ contract SingleAssetWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
   /// @dev Return the work factor for the worker + BaseToken debt, using 1e4 as denom.
   /// Also check for boosted leverage from NFT staking
   function workFactor(
-    address nftStaking,
     address worker,
     uint256, /* debt */
     address positionOwner
@@ -213,7 +201,6 @@ contract SingleAssetWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
   }
 
   function killFactor(
-    address nftStaking,
     address worker,
     uint256, /* debt */
     address positionOwner
@@ -239,7 +226,6 @@ contract SingleAssetWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
   }
 
   function rawKillFactor(
-    address nftStaking,
     address worker,
     uint256, /* debt */
     address positionOwner
@@ -258,7 +244,7 @@ contract SingleAssetWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
   /// @dev Set governor address. OnlyOwner can set governor.
   function setGovernor(address newGovernor) external onlyOwner {
     governor = newGovernor;
-    emit SetGovernor(_msgSender(), governor);
+    emit SetGovernor(msg.sender, governor);
   }
 
   /// @dev EMERGENCY ONLY. Disable accept new position without going through Timelock in case of emergency.
@@ -267,7 +253,7 @@ contract SingleAssetWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
     for (uint256 idx = 0; idx < len; idx++) {
       workers[addrs[idx]].acceptDebt = isAcceptDebt;
       emit SetConfig(
-        _msgSender(),
+        msg.sender,
         addrs[idx],
         workers[addrs[idx]].acceptDebt,
         workers[addrs[idx]].workFactor,
@@ -283,7 +269,9 @@ contract SingleAssetWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
   {
     // Sanity check
     _newNFTBoostedLeverageController.getBoostedWorkFactor(address(0), address(0));
-
+    INFTBoostedLeverageController oldNFTBoostedLeverageController = nftBoostedLeverageController;
     nftBoostedLeverageController = _newNFTBoostedLeverageController;
+
+    emit LogSetNFTBoostedLeverageController(address(oldNFTBoostedLeverageController), address(_newNFTBoostedLeverageController), msg.sender);
   }
 }

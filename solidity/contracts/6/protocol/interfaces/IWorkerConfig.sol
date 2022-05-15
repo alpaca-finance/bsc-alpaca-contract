@@ -22,7 +22,6 @@ interface IWorkerConfig {
 
   /// @dev Return the work factor for the worker + debt, using 1e4 as denom.
   function workFactor(
-    address nftStaking,
     address worker,
     uint256 debt,
     address positionOwner
@@ -33,7 +32,6 @@ interface IWorkerConfig {
 
   /// @dev Return the kill factor for the worker + debt, using 1e4 as denom.
   function killFactor(
-    address nftStaking,
     address worker,
     uint256 debt,
     address positionOwner
@@ -44,7 +42,6 @@ interface IWorkerConfig {
 
   /// @dev Return the kill factor for the worker + debt without checking isStable, using 1e4 as denom.
   function rawKillFactor(
-    address nftStaking,
     address worker,
     uint256 debt,
     address positionOwner

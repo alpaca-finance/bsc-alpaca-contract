@@ -23,9 +23,10 @@ contract NFTBoostedLeverageController is INFTBoostedLeverageController, OwnableU
   error NFTBoostedLeverageController_NoPool();
   error NFTBoostedLeverageController_PoolAlreadyListed();
   error NFTBoostedLeverageController_BadParamsLength();
+  error NFTBoostedLeverageController_ExceedMaxBoosted();
 
   /// ------ States ------
-  // poolIds => worker => boostNumber
+  // nftAddresss => worker => boostNumber
   mapping(address => mapping(address => uint256)) public boostedWorkFactors;
   mapping(address => mapping(address => uint256)) public boostedKillFactors;
 
@@ -39,33 +40,37 @@ contract NFTBoostedLeverageController is INFTBoostedLeverageController, OwnableU
     nftStaking = _nftStaking;
   }
 
-  function getBoostedWorkFactor(address _owner, address _worker, uint256 _nftTokenId) external view override returns (uint256) {
-    address poolId = nftStaking.userHighestWeightPoolId(_owner);
-    if (INFTStaking(nftStaking).isStaked(poolId, _owner, _nftTokenId)) {
-      return boostedWorkFactors[poolId][_worker];
+  function getBoostedWorkFactor(address _owner, address _worker) external view override returns (uint256) {
+    address nftAddress = nftStaking.userHighestWeightnftAddress(_owner);
+    if (nftAddress != address(0)) {
+      return boostedWorkFactors[nftAddress][_worker];
     }
     return 0;
   }
 
-  function getBoostedKillFactor(address _owner, address _worker, uint256 _nftTokenId) external view override returns (uint256) {
-    address poolId = nftStaking.userHighestWeightPoolId(_owner);
-    if (INFTStaking(nftStaking).isStaked(poolId, _owner, _nftTokenId)) {
-      return boostedKillFactors[poolId][_worker];
+  function getBoostedKillFactor(address _owner, address _worker) external view override returns (uint256) {
+    address nftAddress = nftStaking.userHighestWeightnftAddress(_owner);
+    if (nftAddress != address(0)) {
+      return boostedKillFactors[nftAddress][_worker];
     }
     return 0;
   }
 
   function setBoosted(
-    address[] calldata _poolIds,
+    address[] calldata _nftAddresss,
     address[] calldata _workers,
     uint256[] calldata _workFactors,
     uint256[] calldata _killFactors
   ) external onlyOwner {
-    if ((_poolIds.length != _workers.length) || (_poolIds.length != _workFactors.length) || (_workers.length != _killFactors.length)) 
-      revert NFTBoostedLeverageController_BadParamsLength();
+    if (
+      (_nftAddresss.length != _workers.length) ||
+      (_nftAddresss.length != _workFactors.length) ||
+      (_workers.length != _killFactors.length)
+    ) revert NFTBoostedLeverageController_BadParamsLength();
     for (uint256 _i; _i < _workers.length; _i++) {
-      boostedWorkFactors[_poolIds[_i]][_workers[_i]] = _workFactors[_i];
-      boostedKillFactors[_poolIds[_i]][_workers[_i]] = _killFactors[_i];
+      if (_workFactors[_i] > 10000 || _killFactors[_i] > 10000) revert NFTBoostedLeverageController_ExceedMaxBoosted();
+      boostedWorkFactors[_nftAddresss[_i]][_workers[_i]] = _workFactors[_i];
+      boostedKillFactors[_nftAddresss[_i]][_workers[_i]] = _killFactors[_i];
     }
     emit LogSetBoosted(_workers, _workFactors, _killFactors);
   }

@@ -220,7 +220,7 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     address positionOwner
   ) external view override returns (uint256) {
     if (nftStaking != address(0)) {
-      return workers[worker].workFactor(nftStaking, worker, debt, positionOwner);
+      return workers[worker].workFactor(worker, debt, positionOwner);
     } else {
       return workers[worker].workFactor(worker, debt);
     }
@@ -237,7 +237,7 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     address positionOwner
   ) external view override returns (uint256) {
     if (nftStaking != address(0)) {
-      return workers[worker].killFactor(nftStaking, worker, debt, positionOwner);
+      return workers[worker].killFactor(worker, debt, positionOwner);
     } else {
       return workers[worker].killFactor(worker, debt);
     }
@@ -254,7 +254,7 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     address positionOwner
   ) external view override returns (uint256) {
     if (nftStaking != address(0)) {
-      return workers[worker].rawKillFactor(nftStaking, worker, debt, positionOwner);
+      return workers[worker].rawKillFactor(worker, debt, positionOwner);
     } else {
       return workers[worker].rawKillFactor(worker, debt);
     }

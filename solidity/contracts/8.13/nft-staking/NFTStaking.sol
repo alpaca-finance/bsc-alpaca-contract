@@ -33,6 +33,8 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
   error NFTStaking_BadParamsLength();
   error NFTStaking_NFTAlreadyStaked();
   error NFTStaking_NoNFTStaked();
+  error NFTStaking_InvalidPoolAddress();
+  error NFTStaking_NFTNotStaked();
 
   /// ------ States ------
   // Info of each pool.
@@ -47,26 +49,42 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
   struct NFTStakingInfo {
     bool isExist;
     uint256 lockPeriod;
+    uint256 lockUntil;
   }
 
-  // NFT address (PoolId) => PoolInfo
+  // NFT address (nftAddress) => PoolInfo
   mapping(address => PoolInfo) public poolInfo;
-  // Deposit Id (poolId + userAddress + nftTokenId) => LockPeriod
+  // Deposit Id (nftAddress + userAddress + nftTokenId) => LockPeriod
   mapping(bytes32 => NFTStakingInfo) public userStakingNFT;
-  mapping(address => address) public userHighestWeightPoolId;
+  mapping(address => address) public userHighestWeightnftAddress;
+  // User address => NFTaddress => count
+  mapping(address => mapping(address => uint256)) public userNFTInStakingPool;
   mapping(address => EnumerableSetUpgradeable.AddressSet) private userStakingPool;
 
   /// ------ Events ------
-  event LogStakeNFT(address indexed _staker, address indexed _poolId, uint256 _nftTokenId, uint256 _lockPeriod);
-  event LogUnstakeNFT(address indexed _staker, address indexed _poolId, uint256 _nftTokenId);
+  event LogStakeNFT(
+    address indexed _staker,
+    address indexed _nftAddress,
+    uint256 _nftTokenId,
+    uint256 _lockPeriod,
+    uint256 _lockUntil
+  );
+  event LogExtendLockPeriod(
+    address indexed _staker,
+    address indexed _nftAddress,
+    uint256 _nftTokenId,
+    uint256 _lockPeriod,
+    uint256 _lockUntil
+  );
+  event LogUnstakeNFT(address indexed _staker, address indexed _nftAddress, uint256 _nftTokenId);
   event LogAddPool(
     address indexed _caller,
-    address indexed _poolId,
+    address indexed _nftAddress,
     uint256 _poolWeight,
     uint256 _minLockPeriod,
     uint256 _maxLockPeriod
   );
-  event LogSetStakeNFTToken(address indexed _caller, address indexed _poolId);
+  event LogSetStakeNFTToken(address indexed _caller, address indexed _nftAddress);
 
   modifier onlyEOA() {
     if (msg.sender != tx.origin) revert NFTStaking_Unauthorize();
@@ -79,84 +97,102 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
   }
 
   function addPool(
-    address _poolId,
+    address _nftAddress,
     uint256 _poolWeight,
     uint256 _minLockPeriod,
     uint256 _maxLockPeriod
   ) external onlyOwner {
-    if (poolInfo[_poolId].isInit) revert NFTStaking_PoolAlreadyExist();
+    if (_nftAddress == address(0)) revert NFTStaking_InvalidPoolAddress();
+    if (poolInfo[_nftAddress].isInit) revert NFTStaking_PoolAlreadyExist();
     if (_minLockPeriod > _maxLockPeriod) revert NFTStaking_InvalidLockPeriod();
-    poolInfo[_poolId].isInit = true;
-    poolInfo[_poolId].poolWeight = _poolWeight;
-    poolInfo[_poolId].minLockPeriod = _minLockPeriod;
-    poolInfo[_poolId].maxLockPeriod = _maxLockPeriod;
+    poolInfo[_nftAddress].isInit = true;
+    poolInfo[_nftAddress].poolWeight = _poolWeight;
+    poolInfo[_nftAddress].minLockPeriod = _minLockPeriod;
+    poolInfo[_nftAddress].maxLockPeriod = _maxLockPeriod;
 
-    emit LogAddPool(msg.sender, _poolId, _poolWeight, _minLockPeriod, _maxLockPeriod);
+    emit LogAddPool(msg.sender, _nftAddress, _poolWeight, _minLockPeriod, _maxLockPeriod);
   }
 
   function stakeNFT(
-    address _poolId,
+    address _nftAddress,
     uint256 _nftTokenId,
     uint256 _lockPeriod
   ) external nonReentrant onlyEOA {
-    if (!poolInfo[_poolId].isInit) revert NFTStaking_PoolNotExist();
-    bytes32 _depositId = keccak256(abi.encodePacked(_poolId, msg.sender, _nftTokenId));
-    if (userStakingNFT[_depositId].lockPeriod > 0) revert NFTStaking_NFTAlreadyStaked();
-    if (_lockPeriod < poolInfo[_poolId].minLockPeriod) revert NFTStaking_InvalidLockPeriod();
-    if (_lockPeriod > poolInfo[_poolId].maxLockPeriod) revert NFTStaking_InvalidLockPeriod();
-    
-    userStakingNFT[_depositId] = NFTStakingInfo({ lockPeriod: _lockPeriod, isExist: true });
+    if (_nftAddress == address(0)) revert NFTStaking_InvalidPoolAddress();
+    if (!poolInfo[_nftAddress].isInit) revert NFTStaking_PoolNotExist();
+    bytes32 _depositId = keccak256(abi.encodePacked(_nftAddress, msg.sender, _nftTokenId));
+    if (!userStakingNFT[_depositId].isExist) revert NFTStaking_NFTAlreadyStaked();
+    if (_lockPeriod < poolInfo[_nftAddress].minLockPeriod) revert NFTStaking_InvalidLockPeriod();
+    if (_lockPeriod > poolInfo[_nftAddress].maxLockPeriod) revert NFTStaking_InvalidLockPeriod();
+    uint256 _lockUntil = block.timestamp + _lockPeriod;
+    userStakingNFT[_depositId] = NFTStakingInfo({ isExist: true, lockPeriod: _lockPeriod, lockUntil: _lockUntil });
 
-    if (poolInfo[userHighestWeightPoolId[msg.sender]].poolWeight < poolInfo[_poolId].poolWeight) {
-      userHighestWeightPoolId[msg.sender] = _poolId;
+    if (poolInfo[userHighestWeightnftAddress[msg.sender]].poolWeight < poolInfo[_nftAddress].poolWeight) {
+      userHighestWeightnftAddress[msg.sender] = _nftAddress;
     }
-    IERC721Upgradeable(_poolId).safeTransferFrom(msg.sender, address(this), _nftTokenId);
-    userStakingPool[msg.sender].add(_poolId);
-    if (_poolId == address(0)) {
-      IERC721Upgradeable(_poolId).safeTransferFrom(address(this), msg.sender, _nftTokenId);
-      userStakingPool[msg.sender].remove(_poolId);
-    }
+    userStakingPool[msg.sender].add(_nftAddress);
+    userNFTInStakingPool[msg.sender][_nftAddress] += 1;
+    IERC721Upgradeable(_nftAddress).transferFrom(msg.sender, address(this), _nftTokenId);
 
-    emit LogStakeNFT(msg.sender, _poolId, _nftTokenId, _lockPeriod);
+    emit LogStakeNFT(msg.sender, _nftAddress, _nftTokenId, _lockPeriod, _lockUntil);
   }
 
-  function unstakeNFT(address _poolId, uint256 _nftTokenId) external nonReentrant onlyEOA {
-    bytes32 _depositId = keccak256(abi.encodePacked(_poolId, msg.sender, _nftTokenId));
+  function extendLockPeriod(
+    address _nftAddress,
+    uint256 _nftTokenId,
+    uint256 _lockPeriod
+  ) external nonReentrant onlyEOA {
+    if (_nftAddress == address(0)) revert NFTStaking_InvalidPoolAddress();
+    if (!poolInfo[_nftAddress].isInit) revert NFTStaking_PoolNotExist();
+    bytes32 _depositId = keccak256(abi.encodePacked(_nftAddress, msg.sender, _nftTokenId));
+    if (userStakingNFT[_depositId].isExist) revert NFTStaking_NFTNotStaked();
+    uint256 _newLockPeriod = userStakingNFT[_depositId].lockPeriod + _lockPeriod;
+    if (_newLockPeriod < poolInfo[_nftAddress].minLockPeriod) revert NFTStaking_InvalidLockPeriod();
+    if (_newLockPeriod > poolInfo[_nftAddress].maxLockPeriod) revert NFTStaking_InvalidLockPeriod();
+    uint256 _newLockUntil = userStakingNFT[_depositId].lockUntil + _newLockPeriod;
+    userStakingNFT[_depositId].lockPeriod = _newLockPeriod;
+    userStakingNFT[_depositId].lockUntil = _newLockUntil;
+    emit LogExtendLockPeriod(msg.sender, _nftAddress, _nftTokenId, _newLockPeriod, _newLockUntil);
+  }
+
+  function unstakeNFT(address _nftAddress, uint256 _nftTokenId) external nonReentrant onlyEOA {
+    bytes32 _depositId = keccak256(abi.encodePacked(_nftAddress, msg.sender, _nftTokenId));
     NFTStakingInfo memory _toBeSentBackNFT = userStakingNFT[_depositId];
     if (!_toBeSentBackNFT.isExist) revert NFTStaking_NoNFTStaked();
-    userStakingNFT[_depositId] = NFTStakingInfo({ isExist: false, lockPeriod: 0 });
-
-    IERC721Upgradeable(_poolId).safeTransferFrom(address(this), msg.sender, _nftTokenId);
+    if (userStakingNFT[_depositId].lockUntil < block.timestamp) revert NFTStaking_IsNotExpired();
+    userStakingNFT[_depositId] = NFTStakingInfo({ isExist: false, lockPeriod: 0, lockUntil: 0 });
 
     // Reset highest pool weight
-    userHighestWeightPoolId[msg.sender] = address(0x00);
+    userHighestWeightnftAddress[msg.sender] = address(0x00);
     // Remove pool from user
-    userStakingPool[msg.sender].remove(_poolId);
+    userStakingPool[msg.sender].remove(_nftAddress);
 
     // Find new highest weight
     for (uint256 i = 0; i < userStakingPool[msg.sender].length(); i++) {
       if (
-        poolInfo[userHighestWeightPoolId[msg.sender]].poolWeight <
+        poolInfo[userHighestWeightnftAddress[msg.sender]].poolWeight <
         poolInfo[userStakingPool[msg.sender].at(i)].poolWeight
       ) {
-        userHighestWeightPoolId[msg.sender] = userStakingPool[msg.sender].at(i);
+        userHighestWeightnftAddress[msg.sender] = userStakingPool[msg.sender].at(i);
       }
     }
+    userNFTInStakingPool[msg.sender][_nftAddress] -= 1;
+    IERC721Upgradeable(_nftAddress).transferFrom(address(this), msg.sender, _nftTokenId);
 
-    emit LogUnstakeNFT(msg.sender, _poolId, _nftTokenId);
+    emit LogUnstakeNFT(msg.sender, _nftAddress, _nftTokenId);
   }
 
   function isStaked(
-    address _poolId,
+    address _nftAddress,
     address _user,
     uint256 _nftTokenId
   ) external view override returns (bool) {
-    bytes32 _depositId = keccak256(abi.encodePacked(_poolId, _user, _nftTokenId));
-    return isPoolExist(_poolId) && userStakingNFT[_depositId].isExist;
+    bytes32 _depositId = keccak256(abi.encodePacked(_nftAddress, _user, _nftTokenId));
+    return isPoolExist(_nftAddress) && userStakingNFT[_depositId].isExist;
   }
 
-  function isPoolExist(address _poolId) public view returns (bool) {
-    return poolInfo[_poolId].isInit;
+  function isPoolExist(address _nftAddress) public view returns (bool) {
+    return poolInfo[_nftAddress].isInit;
   }
 
   /// @dev when doing a safeTransferFrom, the caller needs to implement this, for safety reason
