@@ -33,6 +33,8 @@ import "./utils/FixedPointMathLib.sol";
 import "./utils/Math.sol";
 import "./utils/FullMath.sol";
 
+import "../../tests/utils/console.sol";
+
 /// @title DeltaNeutralVault02 is designed to take a long and short position in an asset at the same time
 /// to cancel out the effect on the out-standing portfolio when the asset’s price moves.
 /// Moreover, DeltaNeutralVault02 support credit-dependent limit access
@@ -227,10 +229,8 @@ contract DeltaNeutralVault02 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
     }
 
     OPENING = 1;
-
     stableVaultPosId = IVault(stableVault).nextPositionID();
     assetVaultPosId = IVault(assetVault).nextPositionID();
-
     deposit(_stableTokenAmount, _assetTokenAmount, msg.sender, _minShareReceive, _data);
 
     OPENING = 0;
@@ -296,11 +296,9 @@ contract DeltaNeutralVault02 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
     PositionInfo memory _positionInfoBefore = positionInfo();
     Outstanding memory _outstandingBefore = _outstanding();
     _outstandingBefore.nativeAmount = _outstandingBefore.nativeAmount - msg.value;
-
     // 1. transfer tokens from user to vault
     _transferTokenToVault(stableToken, _stableTokenAmount);
     _transferTokenToVault(assetToken, _assetTokenAmount);
-
     {
       // 2. call execute to do more work.
       // Perform the actual work, using a new scope to avoid stack-too-deep errors.
@@ -310,7 +308,6 @@ contract DeltaNeutralVault02 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
       );
       _execute(_actions, _values, _datas);
     }
-
     // 3. mint share for shareReceiver
     PositionInfo memory _positionInfoAfter = positionInfo();
     uint256 _depositValue = _calculateEquityChange(_positionInfoAfter, _positionInfoBefore);
@@ -324,7 +321,6 @@ contract DeltaNeutralVault02 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
     if (_sharesToUser < _minShareReceive) {
       revert DeltaNeutralVault_InsufficientShareReceived(_minShareReceive, _sharesToUser);
     }
-
     _mint(_shareReceiver, _sharesToUser);
 
     // 4. sanity check
@@ -689,6 +685,7 @@ contract DeltaNeutralVault02 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
     uint256 _assetPositionValue = _lpToValue(_assetLpAmount);
     uint256 _stableDebtValue = _positionDebtValue(stableVault, stableVaultPosId, stableTo18ConversionFactor);
     uint256 _assetDebtValue = _positionDebtValue(assetVault, assetVaultPosId, assetTo18ConversionFactor);
+
     return
       PositionInfo({
         stablePositionEquity: _stablePositionValue > _stableDebtValue ? _stablePositionValue - _stableDebtValue : 0,

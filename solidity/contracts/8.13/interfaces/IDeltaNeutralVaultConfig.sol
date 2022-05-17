@@ -49,7 +49,7 @@ interface IDeltaNeutralVaultConfig {
   function withdrawalFeeBps() external returns (uint256);
 
   /// @dev Return management fee treasury
-  function managementFeeTreasury() external returns (address);
+  function managementFeeTreasury() external view returns (address);
 
   /// @dev Return management fee per sec.
   function managementFeePerSec() external view returns (uint256);
