@@ -153,7 +153,6 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
     feeDenom = 10000;
 
     // 7. Check if critical parameters are config properly
-    require(baseToken != cake, "PancakeswapV2MCV2Worker02::initialize:: base token cannot be a reward token");
     require(
       reinvestBountyBps <= maxReinvestBountyBps,
       "PancakeswapV2MCV2Worker02::initialize:: reinvestBountyBps exceeded maxReinvestBountyBps"
@@ -224,8 +223,9 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
   ) internal {
     require(_treasuryAccount != address(0), "PancakeswapV2MCV2Worker02::_reinvest:: bad treasury account");
     // 1. Withdraw all the rewards. Return if reward <= _reinvestThreshold.
+    uint256 _cakeBefore = cake.balanceOf(address(this));
     masterChefV2.withdraw(pid, 0);
-    uint256 reward = cake.balanceOf(address(this));
+    uint256 reward = cake.balanceOf(address(this)) - _cakeBefore;
     if (reward <= _reinvestThreshold) return;
 
     // 2. Approve tokens
@@ -241,7 +241,9 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
     }
 
     // 4. Convert all the remaining rewards to BaseToken according to config path.
-    router.swapExactTokensForTokens(reward.sub(bounty), 0, getReinvestPath(), address(this), now);
+    if (baseToken != cake) {
+      router.swapExactTokensForTokens(reward.sub(bounty), 0, getReinvestPath(), address(this), now);
+    }
 
     // 5. Use add Token strategy to convert all BaseToken without both caller balance and buyback amount to LP tokens.
     baseToken.safeTransfer(address(addStrat), actualBaseTokenBalance().sub(_callerBalance));
@@ -460,7 +462,12 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
       _reinvestBountyBps <= maxReinvestBountyBps,
       "PancakeswapV2MCV2Worker02::setReinvestConfig:: _reinvestBountyBps exceeded maxReinvestBountyBps"
     );
-    require(_reinvestPath.length >= 2, "PancakeswapV2MCV2Worker02::setReinvestConfig:: _reinvestPath length must >= 2");
+    if (baseToken != cake) {
+      require(
+        _reinvestPath.length >= 2,
+        "PancakeswapV2MCV2Worker02::setReinvestConfig:: _reinvestPath length must >= 2"
+      );
+    }
     require(
       _reinvestPath[0] == cake && _reinvestPath[_reinvestPath.length - 1] == baseToken,
       "PancakeswapV2MCV2Worker02::setReinvestConfig:: _reinvestPath must start with CAKE, end with BTOKEN"
