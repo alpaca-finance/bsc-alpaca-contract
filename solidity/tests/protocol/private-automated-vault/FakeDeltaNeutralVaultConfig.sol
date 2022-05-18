@@ -273,7 +273,7 @@ contract FakeDeltaNeutralVaultConfig {
   /// @notice Return if vault can accept new position value.
   function isVaultSizeAcceptable(
     uint256 /*_totalPositionValue*/
-  ) external view returns (bool) {
+  ) external pure returns (bool) {
     return true;
   }
 

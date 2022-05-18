@@ -62,6 +62,8 @@ contract DeltaNeutralVault02_Test is BaseTest {
 
     _stableToken.mint(address(this), 10000 ether);
     _assetToken.mint(address(this), 10000 ether);
+    _stableToken.mint(address(_deltaVault), 10000 ether);
+    _assetToken.mint(address(_deltaVault), 10000 ether);
 
     _stableToken.approve(address(_deltaVault), 10000 ether);
     _assetToken.approve(address(_deltaVault), 10000 ether);
@@ -70,9 +72,15 @@ contract DeltaNeutralVault02_Test is BaseTest {
     _config.setLeverageLevel(3);
     _config.setParams(address(1), address(2), address(3), 6800, 100, 100);
     _config.setFees(address(this), 0, address(this), 0, address(this), 0);
+
+    initPosition();
   }
 
-  function testCorrectness_initPositions() external {
+  function testCorrectness_DepositShouldWorkIfCreditIsSuffice() external {
+    assert(true);
+  }
+
+  function initPosition() internal {
     uint8[] memory _actions = new uint8[](2);
     uint256[] memory _values = new uint256[](2);
     bytes[] memory _workDatas = new bytes[](2);
@@ -105,28 +113,16 @@ contract DeltaNeutralVault02_Test is BaseTest {
 
     bytes memory _data = abi.encode(_actions, _values, _workDatas);
 
-    console.log("begin init");
+    // 3x Position
     _deltaVault.initPositions(25 ether, 75 ether, 0, _data);
-    logPositionInfo();
-    console.log("stableToken balance @ delta", _stableToken.balanceOf(address(_deltaVault)));
-    console.log("stableToken balance @ vault", _stableToken.balanceOf(address(_stableVault)));
-  }
 
-  function logPositionInfo() internal {
-    (
-      uint256 _longEquity,
-      uint256 _longDebt,
-      uint256 _longLpAmount,
-      uint256 _shortEquity,
-      uint256 _shortDebt,
-      uint256 _shortLpAmount
-    ) = _deltaVault.positionInfo();
-    console.log("Long Equity", _longEquity);
-    console.log("Long Debt", _longDebt);
-    console.log("Long LP Amount", _longLpAmount);
+    (uint256 _longEquity, uint256 _longDebt, , uint256 _shortEquity, uint256 _shortDebt, ) = _deltaVault.positionInfo();
 
-    console.log("short Equity", _shortEquity);
-    console.log("short Debt", _shortDebt);
-    console.log("short LP Amount", _shortLpAmount);
+    assertEq(_longEquity, 25 ether);
+    assertEq(_longDebt, 50 ether);
+    assertEq(_shortEquity, 75 ether);
+    assertEq(_shortDebt, 150 ether);
+
+    assertEq(_deltaVault.balanceOf(address(this)), 100 ether);
   }
 }
