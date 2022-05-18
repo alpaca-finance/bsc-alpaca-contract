@@ -76,7 +76,7 @@ contract NFTStakingTest is BaseTest {
     assertTrue(nftStaking.isStaked(nftAddress1, ALICE, 0));
     assertEq(mockNFT1.balanceOf(ALICE), 0);
     (bool isInit, uint256 poolWeight, uint256 minLockPeriod, uint256 maxLockPeriod) = nftStaking.poolInfo(
-      nftStaking.userHighestWeightnftAddress(ALICE)
+      nftStaking.userHighestWeightNftAddress(ALICE)
     );
     assertTrue(isInit);
     assertEq(poolWeight, 100);
@@ -87,7 +87,7 @@ contract NFTStakingTest is BaseTest {
     nftStaking.stakeNFT(nftAddress2, 0, 20);
     assertTrue(nftStaking.isStaked(nftAddress2, ALICE, 0));
     assertEq(mockNFT2.balanceOf(ALICE), 0);
-    (isInit, poolWeight, minLockPeriod, maxLockPeriod) = nftStaking.poolInfo(nftStaking.userHighestWeightnftAddress(ALICE));
+    (isInit, poolWeight, minLockPeriod, maxLockPeriod) = nftStaking.poolInfo(nftStaking.userHighestWeightNftAddress(ALICE));
     // Highest weight should now be the nftAddress2
     assertTrue(isInit);
     assertEq(poolWeight, 140);
@@ -113,7 +113,7 @@ contract NFTStakingTest is BaseTest {
     assertTrue(nftStaking.isStaked(nftAddress2, ALICE, 0));
     assertEq(mockNFT2.balanceOf(ALICE), 0);
     (bool isInit, uint256 poolWeight, uint256 minLockPeriod, uint256 maxLockPeriod) = nftStaking.poolInfo(
-      nftStaking.userHighestWeightnftAddress(ALICE)
+      nftStaking.userHighestWeightNftAddress(ALICE)
     );
     assertTrue(isInit);
     assertEq(poolWeight, 140);
@@ -124,7 +124,7 @@ contract NFTStakingTest is BaseTest {
     nftStaking.stakeNFT(nftAddress1, 0, 20);
     assertTrue(nftStaking.isStaked(nftAddress1, ALICE, 0));
     assertEq(mockNFT1.balanceOf(ALICE), 0);
-    (isInit, poolWeight, minLockPeriod, maxLockPeriod) = nftStaking.poolInfo(nftStaking.userHighestWeightnftAddress(ALICE));
+    (isInit, poolWeight, minLockPeriod, maxLockPeriod) = nftStaking.poolInfo(nftStaking.userHighestWeightNftAddress(ALICE));
     // The weight should be the same
     assertTrue(isInit);
     assertEq(poolWeight, 140);
@@ -229,7 +229,7 @@ contract NFTStakingTest is BaseTest {
     assertTrue(nftStaking.isStaked(nftAddress1, ALICE, 0));
     assertEq(mockNFT1.balanceOf(ALICE), 0);
     (bool isInit, uint256 poolWeight, uint256 minLockPeriod, uint256 maxLockPeriod) = nftStaking.poolInfo(
-      nftStaking.userHighestWeightnftAddress(ALICE)
+      nftStaking.userHighestWeightNftAddress(ALICE)
     );
     assertTrue(isInit);
     assertEq(poolWeight, 100);
@@ -240,7 +240,7 @@ contract NFTStakingTest is BaseTest {
     nftStaking.stakeNFT(nftAddress2, 0, 20);
     assertTrue(nftStaking.isStaked(nftAddress2, ALICE, 0));
     assertEq(mockNFT2.balanceOf(ALICE), 0);
-    (isInit, poolWeight, minLockPeriod, maxLockPeriod) = nftStaking.poolInfo(nftStaking.userHighestWeightnftAddress(ALICE));
+    (isInit, poolWeight, minLockPeriod, maxLockPeriod) = nftStaking.poolInfo(nftStaking.userHighestWeightNftAddress(ALICE));
     // Highest weight should now be the nftAddress2
     assertTrue(isInit);
     assertEq(poolWeight, 140);
@@ -250,7 +250,7 @@ contract NFTStakingTest is BaseTest {
     // Unstake second NFT which has higher weight
     nftStaking.unstakeNFT(nftAddress2, 0);
     // Should update highest weight to nftAddress1
-    (isInit, poolWeight, minLockPeriod, maxLockPeriod) = nftStaking.poolInfo(nftStaking.userHighestWeightnftAddress(ALICE));
+    (isInit, poolWeight, minLockPeriod, maxLockPeriod) = nftStaking.poolInfo(nftStaking.userHighestWeightNftAddress(ALICE));
     assertTrue(isInit);
     assertEq(poolWeight, 100);
     assertEq(minLockPeriod, 0);

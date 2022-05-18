@@ -41,7 +41,7 @@ contract NFTBoostedLeverageController is INFTBoostedLeverageController, OwnableU
   }
 
   function getBoostedWorkFactor(address _owner, address _worker) external view override returns (uint256) {
-    address nftAddress = nftStaking.userHighestWeightnftAddress(_owner);
+    address nftAddress = nftStaking.userHighestWeightNftAddress(_owner);
     if (nftAddress != address(0)) {
       return boostedWorkFactors[nftAddress][_worker];
     }
@@ -49,7 +49,7 @@ contract NFTBoostedLeverageController is INFTBoostedLeverageController, OwnableU
   }
 
   function getBoostedKillFactor(address _owner, address _worker) external view override returns (uint256) {
-    address nftAddress = nftStaking.userHighestWeightnftAddress(_owner);
+    address nftAddress = nftStaking.userHighestWeightNftAddress(_owner);
     if (nftAddress != address(0)) {
       return boostedKillFactors[nftAddress][_worker];
     }
