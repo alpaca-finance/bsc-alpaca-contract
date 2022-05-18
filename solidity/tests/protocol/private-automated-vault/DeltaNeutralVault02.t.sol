@@ -77,7 +77,50 @@ contract DeltaNeutralVault02_Test is BaseTest {
   }
 
   function testCorrectness_DepositShouldWorkIfCreditIsSuffice() external {
-    assert(true);
+    uint8[] memory _actions = new uint8[](2);
+    uint256[] memory _values = new uint256[](2);
+    bytes[] memory _workDatas = new bytes[](2);
+
+    _actions[0] = 1;
+    _values[0] = 0;
+    _workDatas[0] = abi.encode(
+      //address payable _vault,uint256 _posId,address _worker,uint256 _principalAmount,uint256 _borrowAmount,uint256 _maxReturn, bytes stratData
+      address(_stableVault),
+      1,
+      address(_stableVaultWorker),
+      25 ether,
+      50 ether,
+      0,
+      abi.encode(1) // ignore strat bytes here
+    );
+
+    _actions[1] = 1;
+    _values[1] = 0;
+    _workDatas[1] = abi.encode(
+      //address payable _vault,uint256 _posId,address _worker,uint256 _principalAmount,uint256 _borrowAmount,uint256 _maxReturn, bytes stratData
+      address(_assetVault),
+      1,
+      address(_assetVaultWorker),
+      75 ether,
+      150 ether,
+      0,
+      abi.encode(1) // ignore strat bytes here
+    );
+
+    bytes memory _data = abi.encode(_actions, _values, _workDatas);
+
+    // 3x Position
+
+    _deltaVault.deposit(25 ether, 75 ether, address(this), 0, _data);
+
+    (uint256 _longEquity, uint256 _longDebt, , uint256 _shortEquity, uint256 _shortDebt, ) = _deltaVault.positionInfo();
+
+    assertEq(_longEquity, 50 ether);
+    assertEq(_longDebt, 100 ether);
+    assertEq(_shortEquity, 150 ether);
+    assertEq(_shortDebt, 300 ether);
+
+    assertEq(_deltaVault.balanceOf(address(this)), 200 ether);
   }
 
   function initPosition() internal {

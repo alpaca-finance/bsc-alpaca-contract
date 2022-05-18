@@ -74,7 +74,7 @@ contract FakeVault {
     // Set the LP amount of worker to simulate work
     // todo: distinquish addTwoSide or PartialClose
     uint256 _lpBalance = ((principalAmount + borrowAmount) * 1e18) / lpPrice;
-    FakeDeltaWorker(worker).setTotalLpBalance(_lpBalance);
+    FakeDeltaWorker(worker).setTotalLpBalance(FakeDeltaWorker(worker).totalLpBalance() + _lpBalance);
 
     // debt share always = debt value
     vaultDebtShare += borrowAmount;
