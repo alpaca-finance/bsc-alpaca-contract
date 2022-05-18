@@ -13,6 +13,10 @@ Alpaca Fin Corporation
 
 pragma solidity 0.8.13;
 
+import "../../interfaces/MockErc20Like.sol";
+import { FakeDeltaWorker } from "./FakeDeltaWorker.sol";
+import "../../utils/console.sol";
+
 /// @title FakeDeltaWorker : A fake worker used for unit testing
 contract FakeVault {
   // token()
@@ -27,8 +31,12 @@ contract FakeVault {
   // vaultDebtVal()
   uint256 public vaultDebtVal;
 
-  constructor(address _token) {
+  // need this for convienience
+  uint256 public lpPrice;
+
+  constructor(address _token, uint256 _lpPrice) {
     token = _token;
+    lpPrice = _lpPrice;
   }
 
   function pendingInterest(
@@ -37,6 +45,7 @@ contract FakeVault {
     return 0;
   }
 
+  // only one position in the fake vault
   function positions(
     uint256 /*posID*/
   )
@@ -48,6 +57,27 @@ contract FakeVault {
       uint256 debtShare
     )
   {
-    return (worker, owner, 0);
+    return (worker, owner, vaultDebtShare);
+  }
+
+  function work(
+    uint256 id,
+    address worker,
+    uint256 principalAmount,
+    uint256 borrowAmount,
+    uint256 maxReturn,
+    bytes calldata data
+  ) external payable {
+    // Move funds from caller
+    MockErc20Like(token).transferFrom(msg.sender, address(this), principalAmount);
+
+    // Set the LP amount of worker to simulate work
+    // todo: distinquish addTwoSide or PartialClose
+    uint256 _lpBalance = ((principalAmount + borrowAmount) * 1e18) / lpPrice;
+    FakeDeltaWorker(worker).setTotalLpBalance(_lpBalance);
+
+    // debt share always = debt value
+    vaultDebtShare += borrowAmount;
+    vaultDebtVal += borrowAmount;
   }
 }
