@@ -99,6 +99,7 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
   uint256 public buybackAmount;
 
   IPancakeMasterChefV2 public masterChefV2;
+  uint256 public pendingCake;
 
   function initialize(
     address _operator,
@@ -223,9 +224,8 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
   ) internal {
     require(_treasuryAccount != address(0), "PancakeswapV2MCV2Worker02::_reinvest:: bad treasury account");
     // 1. Withdraw all the rewards. Return if reward <= _reinvestThreshold.
-    uint256 _cakeBefore = cake.balanceOf(address(this));
-    masterChefV2.withdraw(pid, 0);
-    uint256 reward = cake.balanceOf(address(this)) - _cakeBefore;
+    _masterChefV2Withdraw(0);
+    uint256 reward = pendingCake;
     if (reward <= _reinvestThreshold) return;
 
     // 2. Approve tokens
@@ -250,11 +250,14 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
     addStrat.execute(address(0), 0, abi.encode(0));
 
     // 6. Stake LPs for more rewards
-    masterChefV2.deposit(pid, lpToken.balanceOf(address(this)));
+    _masterChefV2Deposit(lpToken.balanceOf(address(this)));
 
     // 7. Reset approval
     cake.safeApprove(address(router), 0);
     address(lpToken).safeApprove(address(masterChefV2), 0);
+
+    // 8. update pendingCake
+    pendingCake = pendingCake.sub(reward);
 
     emit Reinvest(_treasuryAccount, reward, bounty);
   }
@@ -388,8 +391,8 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
       address(lpToken).safeApprove(address(masterChefV2), uint256(-1));
       // 2. Convert balance to share
       uint256 share = balanceToShare(balance);
-      // 3. Deposit balance to PancakeMasterChef
-      masterChefV2.deposit(pid, balance);
+      // 3. Deposit balance to PancakeMasterChef and update pendingCake
+      _masterChefV2Deposit(balance);
       // 4. Update shares
       shares[id] = shares[id].add(share);
       totalShare = totalShare.add(share);
@@ -404,7 +407,7 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
     uint256 share = shares[id];
     if (share > 0) {
       uint256 balance = shareToBalance(share);
-      masterChefV2.withdraw(pid, balance);
+      _masterChefV2Withdraw(balance);
       totalShare = totalShare.sub(share);
       shares[id] = 0;
       emit RemoveShare(id, share);
@@ -589,5 +592,21 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
     rewardPath = _rewardPath;
 
     emit SetBeneficialVaultConfig(msg.sender, _beneficialVaultBountyBps, _beneficialVault, _rewardPath);
+  }
+
+  /// @dev Deposit lp to masterChef and update pendingCake
+  /// @param _balance - Lp amount to deposit.
+  function _masterChefV2Deposit(uint256 _balance) internal {
+    uint256 _cakeBefore = cake.balanceOf(address(this));
+    masterChefV2.deposit(pid, _balance);
+    pendingCake = pendingCake.add(cake.balanceOf(address(this)).sub(_cakeBefore));
+  }
+
+  /// @dev Withdraw lp from masterChef and update pendingCake
+  /// @param _balance - Lp amount to withdraw.
+  function _masterChefV2Withdraw(uint256 _balance) internal {
+    uint256 _cakeBefore = cake.balanceOf(address(this));
+    masterChefV2.withdraw(pid, _balance);
+    pendingCake = pendingCake.add(cake.balanceOf(address(this)).sub(_cakeBefore));
   }
 }
