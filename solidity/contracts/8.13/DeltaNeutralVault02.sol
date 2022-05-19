@@ -339,7 +339,7 @@ contract DeltaNeutralVault02 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
     _depositHealthCheck(_depositValue, _positionInfoBefore, _positionInfoAfter);
     _outstandingCheck(_outstandingBefore, _outstanding());
 
-    IController(config.controller()).onDeposit(_shareReceiver, _sharesToUser);
+    if (config.controller() != address(0)) IController(config.controller()).onDeposit(_shareReceiver, _sharesToUser);
 
     emit LogDeposit(msg.sender, _shareReceiver, _sharesToUser, _stableTokenAmount, _assetTokenAmount);
     return _sharesToUser;
@@ -429,7 +429,7 @@ contract DeltaNeutralVault02 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
     _transferTokenToShareOwner(msg.sender, stableToken, _stableTokenBack);
     _transferTokenToShareOwner(msg.sender, assetToken, _assetTokenBack);
 
-    IController(config.controller()).onWithdraw(msg.sender, _shareAmount);
+    if (config.controller() != address(0)) IController(config.controller()).onWithdraw(msg.sender, _shareAmount);
 
     emit LogWithdraw(msg.sender, _stableTokenBack, _assetTokenBack);
 
