@@ -80,4 +80,8 @@ interface IDeltaNeutralVaultConfig {
 
   /// @dev Return reinvest path
   function getReinvestPath() external view returns (address[] memory);
+
+  function controller() external view returns (address);
+
+  function setController(address _controller) external;
 }

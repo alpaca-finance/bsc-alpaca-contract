@@ -27,6 +27,7 @@ import "./interfaces/IWNativeRelayer.sol";
 import "./interfaces/IDeltaNeutralVaultConfig.sol";
 import "./interfaces/IFairLaunch.sol";
 import "./interfaces/ISwapRouter.sol";
+import "./interfaces/IController.sol";
 
 import "./utils/SafeToken.sol";
 import "./utils/FixedPointMathLib.sol";
@@ -40,11 +41,11 @@ import "../../tests/utils/console.sol";
 /// Moreover, DeltaNeutralVault02 support credit-dependent limit access
 // solhint-disable max-states-count
 contract DeltaNeutralVault02 is ERC20Upgradeable, ReentrancyGuardUpgradeable, OwnableUpgradeable {
-  /// @notice Libraries
+  // --- Libraries ---
   using FixedPointMathLib for uint256;
   using SafeERC20Upgradeable for IERC20Upgradeable;
 
-  /// @dev Events
+  // --- Events ---
   event LogInitializePositions(address indexed _from, uint256 _stableVaultPosId, uint256 _assetVaultPosId);
   event LogDeposit(
     address indexed _from,
@@ -59,7 +60,7 @@ contract DeltaNeutralVault02 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
   event LogSetDeltaNeutralOracle(address indexed _caller, address _priceOracle);
   event LogSetDeltaNeutralVaultConfig(address indexed _caller, address _config);
 
-  /// @dev Errors
+  // --- Errors ---
   error DeltaNeutralVault_BadReinvestPath();
   error DeltaNeutralVault_BadActionSize();
   error DeltaNeutralVault_Unauthorized(address _caller);
@@ -82,6 +83,7 @@ contract DeltaNeutralVault02 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
   error DeltaNeutralVault_InvalidInitializedAddress();
   error DeltaNeutralVault_UnsupportedDecimals(uint256 _decimals);
   error DeltaNeutralVault_InvalidShareAmount();
+  error DeltaNeutralVault_ExceedCredit();
 
   struct Outstanding {
     uint256 stableAmount;
@@ -98,11 +100,13 @@ contract DeltaNeutralVault02 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
     uint256 assetLpAmount;
   }
 
-  /// @dev constants
+  // --- Constants ---
   uint64 private constant MAX_BPS = 10000;
 
   uint8 private constant ACTION_WORK = 1;
   uint8 private constant ACTION_WRAP = 2;
+
+  // --- States ---
 
   uint256 public stableTo18ConversionFactor;
   uint256 public assetTo18ConversionFactor;
@@ -127,7 +131,7 @@ contract DeltaNeutralVault02 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
 
   IDeltaNeutralVaultConfig public config;
 
-  /// @dev mutable
+  // --- Mutable ---
   uint8 private OPENING;
 
   /// @dev Require that the caller must be an EOA account if not whitelisted.
@@ -312,6 +316,14 @@ contract DeltaNeutralVault02 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
     PositionInfo memory _positionInfoAfter = positionInfo();
     uint256 _depositValue = _calculateEquityChange(_positionInfoAfter, _positionInfoBefore);
 
+    // For private vault, deposit value should not exeed credit
+    if (
+      config.controller() != address(0) &&
+      _depositValue > IController(config.controller()).availableCredit(_shareReceiver)
+    ) {
+      revert DeltaNeutralVault_ExceedCredit();
+    }
+
     // Calculate share from the value gain against the total equity before execution of actions
     uint256 _sharesToUser = _valueToShare(
       _depositValue,
@@ -326,6 +338,8 @@ contract DeltaNeutralVault02 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
     // 4. sanity check
     _depositHealthCheck(_depositValue, _positionInfoBefore, _positionInfoAfter);
     _outstandingCheck(_outstandingBefore, _outstanding());
+
+    IController(config.controller()).onDeposit(_shareReceiver, _sharesToUser);
 
     emit LogDeposit(msg.sender, _shareReceiver, _sharesToUser, _stableTokenAmount, _assetTokenAmount);
     return _sharesToUser;
@@ -365,6 +379,25 @@ contract DeltaNeutralVault02 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
       _execute(actions, values, _datas);
     }
 
+    return
+      _checkAndTransfer(
+        _shareAmount,
+        _minStableTokenAmount,
+        _minAssetTokenAmount,
+        _withdrawShareValue,
+        _positionInfoBefore,
+        _outstandingBefore
+      );
+  }
+
+  function _checkAndTransfer(
+    uint256 _shareAmount,
+    uint256 _minStableTokenAmount,
+    uint256 _minAssetTokenAmount,
+    uint256 _withdrawShareValue,
+    PositionInfo memory _positionInfoBefore,
+    Outstanding memory _outstandingBefore
+  ) internal returns (uint256) {
     PositionInfo memory _positionInfoAfter = positionInfo();
     Outstanding memory _outstandingAfter = _outstanding();
 
@@ -396,7 +429,10 @@ contract DeltaNeutralVault02 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
     _transferTokenToShareOwner(msg.sender, stableToken, _stableTokenBack);
     _transferTokenToShareOwner(msg.sender, assetToken, _assetTokenBack);
 
+    IController(config.controller()).onWithdraw(msg.sender, _shareAmount);
+
     emit LogWithdraw(msg.sender, _stableTokenBack, _assetTokenBack);
+
     return _withdrawValue;
   }
 

@@ -7,6 +7,7 @@ import { MockContract } from "../../utils/MockContract.sol";
 
 import { IDeltaNeutralOracle } from "../../../contracts/8.13/interfaces/IDeltaNeutralOracle.sol";
 import { IDeltaNeutralVaultConfig } from "../../../contracts/8.13/interfaces/IDeltaNeutralVaultConfig.sol";
+import { IController } from "../../../contracts/8.13/interfaces/IController.sol";
 
 import { FakeDeltaWorker } from "./FakeDeltaWorker.sol";
 import { FakeDeltaNeutralOracle } from "./FakeDeltaNeutralOracle.sol";
@@ -18,6 +19,7 @@ import { FakeDeltaNeutralVaultConfig } from "./FakeDeltaNeutralVaultConfig.sol";
 contract DeltaNeutralVault02_Test is BaseTest {
   using mocking for *;
   DeltaNeutralVault02Like private _deltaVault;
+  IController private _controller;
 
   FakeVault private _stableVault;
   FakeVault private _assetVault;
@@ -33,6 +35,7 @@ contract DeltaNeutralVault02_Test is BaseTest {
   function setUp() external {
     _priceOracle = new FakeDeltaNeutralOracle();
     _config = new FakeDeltaNeutralVaultConfig();
+    _controller = IController(address(new MockContract()));
     _lpToken = _setupToken("LP TOKEN", "LP", 18);
     _alpacaToken = _setupToken("ALPACA", "ALPACA", 18);
     _stableToken = _setupToken("USDT", "USDT", 18);
@@ -72,11 +75,14 @@ contract DeltaNeutralVault02_Test is BaseTest {
     _config.setLeverageLevel(3);
     _config.setParams(address(1), address(2), address(3), 6800, 100, 100);
     _config.setFees(address(this), 0, address(this), 0, address(this), 0);
+    _config.setController(address(_controller));
 
     initPosition();
   }
 
   function testCorrectness_DepositShouldWorkIfCreditIsSuffice() external {
+    _controller.availableCredit.mockv(address(this), 100 ether);
+
     uint8[] memory _actions = new uint8[](2);
     uint256[] memory _values = new uint256[](2);
     bytes[] memory _workDatas = new bytes[](2);
@@ -121,6 +127,46 @@ contract DeltaNeutralVault02_Test is BaseTest {
     assertEq(_shortDebt, 300 ether);
 
     assertEq(_deltaVault.balanceOf(address(this)), 200 ether);
+  }
+
+  function testRevert_CantDepositIfNoCredit() external {
+    _controller.availableCredit.mockv(address(this), 0 ether);
+
+    uint8[] memory _actions = new uint8[](2);
+    uint256[] memory _values = new uint256[](2);
+    bytes[] memory _workDatas = new bytes[](2);
+
+    _actions[0] = 1;
+    _values[0] = 0;
+    _workDatas[0] = abi.encode(
+      //address payable _vault,uint256 _posId,address _worker,uint256 _principalAmount,uint256 _borrowAmount,uint256 _maxReturn, bytes stratData
+      address(_stableVault),
+      1,
+      address(_stableVaultWorker),
+      25 ether,
+      50 ether,
+      0,
+      abi.encode(1) // Fake Vault Deposit Action
+    );
+
+    _actions[1] = 1;
+    _values[1] = 0;
+    _workDatas[1] = abi.encode(
+      //address payable _vault,uint256 _posId,address _worker,uint256 _principalAmount,uint256 _borrowAmount,uint256 _maxReturn, bytes stratData
+      address(_assetVault),
+      1,
+      address(_assetVaultWorker),
+      75 ether,
+      150 ether,
+      0,
+      abi.encode(1) // Fake Vault Deposit Action
+    );
+
+    bytes memory _data = abi.encode(_actions, _values, _workDatas);
+
+    // 3x Position
+    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault_ExceedCredit()"));
+    _deltaVault.deposit(25 ether, 75 ether, address(this), 0, _data);
   }
 
   function testCorrectness_WithdrawShouldWork() external {
@@ -171,6 +217,7 @@ contract DeltaNeutralVault02_Test is BaseTest {
   }
 
   function initPosition() internal {
+    _controller.availableCredit.mockv(address(this), 100 ether);
     uint8[] memory _actions = new uint8[](2);
     uint256[] memory _values = new uint256[](2);
     bytes[] memory _workDatas = new bytes[](2);
