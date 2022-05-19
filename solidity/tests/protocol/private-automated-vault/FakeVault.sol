@@ -19,6 +19,8 @@ import "../../utils/console.sol";
 
 /// @title FakeDeltaWorker : A fake worker used for unit testing
 contract FakeVault {
+  uint8 public immutable DEPOSIT_ACTION = 1;
+  uint8 public immutable WITHDRAW_ACTION = 2;
   // token()
   address public token;
 
@@ -73,11 +75,30 @@ contract FakeVault {
 
     // Set the LP amount of worker to simulate work
     // todo: distinquish addTwoSide or PartialClose
-    uint256 _lpBalance = ((principalAmount + borrowAmount) * 1e18) / lpPrice;
-    FakeDeltaWorker(worker).setTotalLpBalance(FakeDeltaWorker(worker).totalLpBalance() + _lpBalance);
 
-    // debt share always = debt value
-    vaultDebtShare += borrowAmount;
-    vaultDebtVal += borrowAmount;
+    uint8 _action = abi.decode(data, (uint8));
+    if (_action == DEPOSIT_ACTION) {
+      uint256 _lpBalance = ((principalAmount + borrowAmount) * 1e18) / lpPrice;
+      FakeDeltaWorker(worker).setTotalLpBalance(FakeDeltaWorker(worker).totalLpBalance() + _lpBalance);
+
+      // debt share always = debt value
+      vaultDebtShare += borrowAmount;
+      vaultDebtVal += borrowAmount;
+    }
+
+    if (_action == WITHDRAW_ACTION) {
+      uint256 _lpBalance = ((maxReturn) * 1e18) / lpPrice;
+      uint256 _currentLpBalance = FakeDeltaWorker(worker).totalLpBalance();
+      uint256 _lpToWithdraw = (_lpBalance * 3) / 2;
+
+      // Assuming that the leverage level = 3;
+      // The amount lp to deduct would be = (maxReturn * 3) / 2
+      uint256 _newLpBalance = _currentLpBalance > _lpToWithdraw ? _currentLpBalance - _lpToWithdraw : 0;
+      FakeDeltaWorker(worker).setTotalLpBalance(_newLpBalance);
+
+      // debt share always = debt value
+      vaultDebtShare -= maxReturn;
+      vaultDebtVal -= maxReturn;
+    }
   }
 }

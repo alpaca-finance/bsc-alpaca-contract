@@ -91,7 +91,7 @@ contract DeltaNeutralVault02_Test is BaseTest {
       25 ether,
       50 ether,
       0,
-      abi.encode(1) // ignore strat bytes here
+      abi.encode(1) // Fake Vault Deposit Action
     );
 
     _actions[1] = 1;
@@ -104,7 +104,7 @@ contract DeltaNeutralVault02_Test is BaseTest {
       75 ether,
       150 ether,
       0,
-      abi.encode(1) // ignore strat bytes here
+      abi.encode(1) // Fake Vault Deposit Action
     );
 
     bytes memory _data = abi.encode(_actions, _values, _workDatas);
@@ -123,6 +123,53 @@ contract DeltaNeutralVault02_Test is BaseTest {
     assertEq(_deltaVault.balanceOf(address(this)), 200 ether);
   }
 
+  function testCorrectness_WithdrawShouldWork() external {
+    uint8[] memory _actions = new uint8[](2);
+    uint256[] memory _values = new uint256[](2);
+    bytes[] memory _workDatas = new bytes[](2);
+
+    _actions[0] = 1;
+    _values[0] = 0;
+    _workDatas[0] = abi.encode(
+      //address payable _vault,uint256 _posId,address _worker,uint256 _principalAmount,uint256 _borrowAmount,uint256 _maxReturn, bytes stratData
+      address(_stableVault),
+      1,
+      address(_stableVaultWorker),
+      0,
+      0,
+      50 ether,
+      abi.encode(2) // ignore strat bytes here
+    );
+
+    _actions[1] = 1;
+    _values[1] = 0;
+    _workDatas[1] = abi.encode(
+      //address payable _vault,uint256 _posId,address _worker,uint256 _principalAmount,uint256 _borrowAmount,uint256 _maxReturn, bytes stratData
+      address(_assetVault),
+      1,
+      address(_assetVaultWorker),
+      0,
+      0,
+      150 ether,
+      abi.encode(2) // ignore strat bytes here
+    );
+
+    bytes memory _data = abi.encode(_actions, _values, _workDatas);
+
+    // withdraw 3x Position
+
+    _deltaVault.withdraw(100 ether, 0, 0, _data);
+
+    (uint256 _longEquity, uint256 _longDebt, , uint256 _shortEquity, uint256 _shortDebt, ) = _deltaVault.positionInfo();
+
+    assertEq(_longEquity, 0 ether);
+    assertEq(_longDebt, 0 ether);
+    assertEq(_shortEquity, 0 ether);
+    assertEq(_shortDebt, 0 ether);
+
+    assertEq(_deltaVault.balanceOf(address(this)), 0 ether);
+  }
+
   function initPosition() internal {
     uint8[] memory _actions = new uint8[](2);
     uint256[] memory _values = new uint256[](2);
@@ -138,7 +185,7 @@ contract DeltaNeutralVault02_Test is BaseTest {
       25 ether,
       50 ether,
       0,
-      abi.encode(1) // ignore strat bytes here
+      abi.encode(1) // Fake Vault Deposit Action
     );
 
     _actions[1] = 1;
@@ -151,7 +198,7 @@ contract DeltaNeutralVault02_Test is BaseTest {
       75 ether,
       150 ether,
       0,
-      abi.encode(1) // ignore strat bytes here
+      abi.encode(1) // Fake Vault Deposit Action
     );
 
     bytes memory _data = abi.encode(_actions, _values, _workDatas);
