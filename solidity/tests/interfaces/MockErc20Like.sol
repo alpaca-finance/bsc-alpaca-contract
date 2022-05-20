@@ -46,6 +46,4 @@ interface MockErc20Like {
   ) external returns (bool);
 
   function transferOwnership(address newOwner) external;
-
-  receive() external payable;
 }
