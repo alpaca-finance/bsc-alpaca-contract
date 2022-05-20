@@ -34,7 +34,6 @@ import "./utils/FixedPointMathLib.sol";
 import "./utils/Math.sol";
 import "./utils/FullMath.sol";
 
-import "../../tests/utils/console.sol";
 
 /// @title DeltaNeutralVault02 is designed to take a long and short position in an asset at the same time
 /// to cancel out the effect on the out-standing portfolio when the asset’s price moves.
