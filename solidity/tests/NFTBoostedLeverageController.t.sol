@@ -83,6 +83,30 @@ contract NFTBoostedLeverageControllerTest is BaseTest {
     vm.expectRevert(NFTBoostedLeverageControllerLike.NFTBoostedLeverageController_BadParamsLength.selector);
     nftBoostedController.setBoosted(nftAddresss, mockWorkers, workFactors, killFactors);
   }
+  
+  function testSetBoostedLeverage_workExceedMaxBoosted() external {
+    workFactors = [34, 20000, 76];
+    killFactors = [50, 300, 80];
+    nftAddresss = [nftAddress1, nftAddress2, nftAddress3];
+    mockWorkers = [mockWorker1Address, mockWorker2Address, mockWorker3Address];
+    nftStaking.addPool(nftAddress1, 100, 0, 200);
+    nftStaking.addPool(nftAddress2, 100, 0, 200);
+    nftStaking.addPool(nftAddress3, 100, 0, 200);
+    vm.expectRevert(NFTBoostedLeverageControllerLike.NFTBoostedLeverageController_ExceedMaxBoosted.selector);
+    nftBoostedController.setBoosted(nftAddresss, mockWorkers, workFactors, killFactors);
+  }
+
+  function testSetBoostedLeverage_killExceedMaxBoosted() external {
+    workFactors = [34, 400, 76];
+    killFactors = [50, 30000, 80];
+    nftAddresss = [nftAddress1, nftAddress2, nftAddress3];
+    mockWorkers = [mockWorker1Address, mockWorker2Address, mockWorker3Address];
+    nftStaking.addPool(nftAddress1, 100, 0, 200);
+    nftStaking.addPool(nftAddress2, 100, 0, 200);
+    nftStaking.addPool(nftAddress3, 100, 0, 200);
+    vm.expectRevert(NFTBoostedLeverageControllerLike.NFTBoostedLeverageController_ExceedMaxBoosted.selector);
+    nftBoostedController.setBoosted(nftAddresss, mockWorkers, workFactors, killFactors);
+  }
 
   function testGetBoostedWorkFactor_success() external {
     workFactors = [34, 56, 76];
@@ -101,7 +125,7 @@ contract NFTBoostedLeverageControllerTest is BaseTest {
     nftStaking.stakeNFT(nftAddress1, 0, 20);
     vm.stopPrank();
     nftBoostedController.setBoosted(nftAddresss, mockWorkers, workFactors, killFactors);
-    assertEq(nftBoostedController.getBoostedWorkFactor(ALICE, mockWorker1Address, 0), 34);
+    assertEq(nftBoostedController.getBoostedWorkFactor(ALICE, mockWorker1Address), 34);
   }
 
   function testGetBoostedWorkFactor_noNFTStake() external {
@@ -120,7 +144,7 @@ contract NFTBoostedLeverageControllerTest is BaseTest {
     assertEq(mockNFT1.balanceOf(ALICE), 1);
     vm.stopPrank();
     nftBoostedController.setBoosted(nftAddresss, mockWorkers, workFactors, killFactors);
-    assertEq(nftBoostedController.getBoostedWorkFactor(ALICE, mockWorker1Address, 0), 0);
+    assertEq(nftBoostedController.getBoostedWorkFactor(ALICE, mockWorker1Address), 0);
   }
 
   function testGetBoostedKillFactor_success() external {
@@ -140,7 +164,7 @@ contract NFTBoostedLeverageControllerTest is BaseTest {
     nftStaking.stakeNFT(nftAddress1, 0, 20);
     vm.stopPrank();
     nftBoostedController.setBoosted(nftAddresss, mockWorkers, workFactors, killFactors);
-    assertEq(nftBoostedController.getBoostedKillFactor(ALICE, mockWorker1Address, 0), 50);
+    assertEq(nftBoostedController.getBoostedKillFactor(ALICE, mockWorker1Address), 50);
   }
 
     function testGetBoostedKillFactor_noNFTSstake() external {
@@ -159,7 +183,7 @@ contract NFTBoostedLeverageControllerTest is BaseTest {
     assertEq(mockNFT1.balanceOf(ALICE), 1);
     vm.stopPrank();
     nftBoostedController.setBoosted(nftAddresss, mockWorkers, workFactors, killFactors);
-    assertEq(nftBoostedController.getBoostedKillFactor(ALICE, mockWorker1Address, 0), 0);
+    assertEq(nftBoostedController.getBoostedKillFactor(ALICE, mockWorker1Address), 0);
   }
 
 }

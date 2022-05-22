@@ -58,6 +58,7 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
   mapping(address => address) public userHighestWeightNftAddress;
   // User address => NFTaddress => count
   mapping(address => mapping(address => uint256)) public userNFTInStakingPool;
+  // User address => NFTAddress[]
   mapping(address => EnumerableSetUpgradeable.AddressSet) private userStakingPool;
 
   /// ------ Events ------
@@ -114,7 +115,6 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
     if (!poolInfo[_nftAddress].isInit) revert NFTStaking_PoolNotExist();
     bytes32 _depositId = keccak256(abi.encodePacked(_nftAddress, msg.sender, _nftTokenId));
     if (userStakingNFT[_depositId].lockUntil != 0) revert NFTStaking_NFTAlreadyStaked();
-    if (_lockUntil < userStakingNFT[_depositId].lockUntil) revert NFTStaking_InvalidLockPeriod();
     if (_lockUntil < block.timestamp) revert NFTStaking_InvalidLockPeriod();
     uint256 _lockPeriod = _lockUntil - block.timestamp;
     if (poolInfo[_nftAddress].minLockPeriod != 0) {
@@ -159,6 +159,11 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
     // Reset highest pool weight
     userHighestWeightNftAddress[msg.sender] = address(0x00);
    
+   userNFTInStakingPool[msg.sender][_nftAddress] -= 1;
+     // Remove pool from user if no NFT stake
+    if (userNFTInStakingPool[msg.sender][_nftAddress] == 0) {
+      userStakingPool[msg.sender].remove(_nftAddress);
+    }
 
     // Find new highest weight
     uint256 _length = userStakingPool[msg.sender].length();
@@ -170,11 +175,7 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
         userHighestWeightNftAddress[msg.sender] = userStakingPool[msg.sender].at(i);
       }
     }
-    userNFTInStakingPool[msg.sender][_nftAddress] -= 1;
-     // Remove pool from user if no NFT stake
-    if (userNFTInStakingPool[msg.sender][_nftAddress] == 0) {
-      userStakingPool[msg.sender].remove(_nftAddress);
-    }
+ 
     IERC721Upgradeable(_nftAddress).transferFrom(address(this), msg.sender, _nftTokenId);
 
     emit LogUnstakeNFT(msg.sender, _nftAddress, _nftTokenId);
