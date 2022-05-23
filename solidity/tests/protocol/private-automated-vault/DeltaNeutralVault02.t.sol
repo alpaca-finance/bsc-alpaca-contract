@@ -6,13 +6,12 @@ import { mocking } from "../../utils/mocking.sol";
 import { MockContract } from "../../utils/MockContract.sol";
 
 import { IDeltaNeutralOracle } from "../../../contracts/8.13/interfaces/IDeltaNeutralOracle.sol";
-import { IDeltaNeutralVaultConfig } from "../../../contracts/8.13/interfaces/IDeltaNeutralVaultConfig.sol";
 import { IController } from "../../../contracts/8.13/interfaces/IController.sol";
 
 import { FakeDeltaWorker } from "./FakeDeltaWorker.sol";
 import { FakeDeltaNeutralOracle } from "./FakeDeltaNeutralOracle.sol";
 import { FakeVault } from "./FakeVault.sol";
-import { FakeDeltaNeutralVaultConfig } from "./FakeDeltaNeutralVaultConfig.sol";
+import { FakeDeltaNeutralVaultConfig02 } from "./FakeDeltaNeutralVaultConfig02.sol";
 
 // solhint-disable func-name-mixedcase
 // solhint-disable contract-name-camelcase
@@ -26,7 +25,7 @@ contract DeltaNeutralVault02_Test is BaseTest {
   FakeDeltaWorker private _stableVaultWorker;
   FakeDeltaWorker private _assetVaultWorker;
   FakeDeltaNeutralOracle private _priceOracle;
-  FakeDeltaNeutralVaultConfig private _config;
+  FakeDeltaNeutralVaultConfig02 private _config;
   MockErc20Like private _lpToken;
   MockErc20Like private _alpacaToken;
   MockErc20Like private _stableToken;
@@ -34,7 +33,7 @@ contract DeltaNeutralVault02_Test is BaseTest {
 
   function setUp() external {
     _priceOracle = new FakeDeltaNeutralOracle();
-    _config = new FakeDeltaNeutralVaultConfig();
+    _config = new FakeDeltaNeutralVaultConfig02();
     _controller = IController(address(new MockContract()));
     _lpToken = _setupToken("LP TOKEN", "LP", 18);
     _alpacaToken = _setupToken("ALPACA", "ALPACA", 18);

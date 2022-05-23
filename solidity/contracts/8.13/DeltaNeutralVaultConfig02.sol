@@ -15,12 +15,12 @@ pragma solidity 0.8.13;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-import "./interfaces/IDeltaNeutralVaultConfig.sol";
+import "./interfaces/IDeltaNeutralVaultConfig02.sol";
 import "./interfaces/IController.sol";
 
-/// @title DeltaNeutralVaultConfig - A place where you can find all delta neutral vault config
+/// @title DeltaNeutralVaultConfig02 - A place where you can find all delta neutral vault config
 // solhint-disable max-states-count
-contract DeltaNeutralVaultConfig is IDeltaNeutralVaultConfig, OwnableUpgradeable {
+contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgradeable {
   // --- Events ---
   event LogSetParams(
     address indexed _caller,

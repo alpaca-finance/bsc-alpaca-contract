@@ -24,7 +24,7 @@ import "./interfaces/IVault.sol";
 import "./interfaces/IWorker02.sol";
 import "./interfaces/IWETH.sol";
 import "./interfaces/IWNativeRelayer.sol";
-import "./interfaces/IDeltaNeutralVaultConfig.sol";
+import "./interfaces/IDeltaNeutralVaultConfig02.sol";
 import "./interfaces/IFairLaunch.sol";
 import "./interfaces/ISwapRouter.sol";
 import "./interfaces/IController.sol";
@@ -33,7 +33,6 @@ import "./utils/SafeToken.sol";
 import "./utils/FixedPointMathLib.sol";
 import "./utils/Math.sol";
 import "./utils/FullMath.sol";
-
 
 /// @title DeltaNeutralVault02 is designed to take a long and short position in an asset at the same time
 /// to cancel out the effect on the out-standing portfolio when the asset’s price moves.
@@ -128,7 +127,7 @@ contract DeltaNeutralVault02 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
 
   IDeltaNeutralOracle public priceOracle;
 
-  IDeltaNeutralVaultConfig public config;
+  IDeltaNeutralVaultConfig02 public config;
 
   // --- Mutable ---
   uint8 private OPENING;
@@ -180,7 +179,7 @@ contract DeltaNeutralVault02 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
     address _lpToken,
     address _alpacaToken,
     IDeltaNeutralOracle _priceOracle,
-    IDeltaNeutralVaultConfig _config
+    IDeltaNeutralVaultConfig02 _config
   ) external initializer {
     OwnableUpgradeable.__Ownable_init();
     ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
@@ -774,7 +773,7 @@ contract DeltaNeutralVault02 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
 
   /// @notice Set new DeltaNeutralVaultConfig.
   /// @param _newVaultConfig New deltaNeutralOracle address.
-  function setDeltaNeutralVaultConfig(IDeltaNeutralVaultConfig _newVaultConfig) external onlyOwner {
+  function setDeltaNeutralVaultConfig(IDeltaNeutralVaultConfig02 _newVaultConfig) external onlyOwner {
     // sanity call
     _newVaultConfig.positionValueTolerance();
 

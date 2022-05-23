@@ -15,7 +15,7 @@ pragma solidity 0.8.13;
 
 /// @title FakeDeltaNeutralVaultConfig - Simpler Variance of the original contract
 // solhint-disable max-states-count
-contract FakeDeltaNeutralVaultConfig {
+contract FakeDeltaNeutralVaultConfig02 {
   // --- Errors ---
   error DeltaNeutralVaultConfig_LeverageLevelTooLow();
   error DeltaNeutralVaultConfig_TooMuchFee(uint256 _depositFeeBps, uint256 _withdrawalFeeBps, uint256 _mangementFeeBps);

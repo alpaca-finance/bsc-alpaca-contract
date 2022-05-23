@@ -13,7 +13,7 @@ Alpaca Fin Corporation
 
 pragma solidity 0.8.13;
 
-interface IDeltaNeutralVaultConfig {
+interface IDeltaNeutralVaultConfig02 {
   function getWrappedNativeAddr() external view returns (address);
 
   function getWNativeRelayer() external view returns (address);
