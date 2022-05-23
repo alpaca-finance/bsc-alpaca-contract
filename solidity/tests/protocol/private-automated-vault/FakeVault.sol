@@ -74,8 +74,6 @@ contract FakeVault {
     MockErc20Like(token).transferFrom(msg.sender, address(this), principalAmount);
 
     // Set the LP amount of worker to simulate work
-    // todo: distinquish addTwoSide or PartialClose
-
     uint8 _action = abi.decode(data, (uint8));
     if (_action == DEPOSIT_ACTION) {
       uint256 _lpBalance = ((principalAmount + borrowAmount) * 1e18) / lpPrice;
