@@ -30,25 +30,20 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "mainnet_whitelist_swt_potato";
+  const TITLE = "mainnet_L3x_busdbtcb_pcs1_whitelisted_callers";
   const TARGETED_VAULT_CONFIG: Array<IInput> = [
     {
       VAULT_SYMBOL: "ibBUSD",
-      WHITELISTED_CALLERS: ["0x99CEF3E3dBe3B08616E0a08F5275305f678b3Cf9"],
+      WHITELISTED_CALLERS: ["0x4eE770919aB741cC84bBE8cD83C21d79785f37E9"], // Address of DeltaNeutralVault
       IS_ENABLE: true,
     },
     {
-      VAULT_SYMBOL: "ibUSDT",
-      WHITELISTED_CALLERS: ["0x28C50b629b97c7aea156460F4B0917E25599A006"],
-      IS_ENABLE: true,
-    },
-    {
-      VAULT_SYMBOL: "ibWBNB",
-      WHITELISTED_CALLERS: ["0x99CEF3E3dBe3B08616E0a08F5275305f678b3Cf9", "0x28C50b629b97c7aea156460F4B0917E25599A006"],
+      VAULT_SYMBOL: "ibBTCB",
+      WHITELISTED_CALLERS: ["0x4eE770919aB741cC84bBE8cD83C21d79785f37E9"], // Address of DeltaNeutralVault
       IS_ENABLE: true,
     },
   ];
-  const EXACT_ETA = "1651910400";
+  const EXACT_ETA = "1652173200";
 
   const config = getConfig();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];

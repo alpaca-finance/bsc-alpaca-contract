@@ -10,6 +10,9 @@ import {
   WorkersEntity,
   DeltaNeutralVaultsEntity,
   Tokens,
+  PoolsEntity,
+  YieldPoolsEntity,
+  YieldSources,
 } from "../interfaces/config";
 
 export class ConfigFileHelper {
@@ -204,6 +207,17 @@ export class ConfigFileHelper {
     this.config.DeltaNeutralVaults[idx].stableVaultPosId = vaultPositionIds.stableVaultPosId;
     this.config.DeltaNeutralVaults[idx].assetVaultPosId = vaultPositionIds.assetVaultPosId;
     console.log("✅ Done");
+
+    this._writeConfigFile(this.config);
+    return this.config;
+  }
+
+  public addOrSetYielPool(yieldSource: keyof YieldSources, pool: YieldPoolsEntity) {
+    console.log(`>> Adding a new pool to YieldPools > ${yieldSource}`);
+    if (this.config.YieldSources[yieldSource] === undefined)
+      throw new Error("[ConfigFileHelper::addOrSetYieldPool]: YieldSource not found");
+
+    this.config.YieldSources[yieldSource]!.pools = [...this.config.YieldSources[yieldSource]!.pools, pool];
 
     this._writeConfigFile(this.config);
     return this.config;

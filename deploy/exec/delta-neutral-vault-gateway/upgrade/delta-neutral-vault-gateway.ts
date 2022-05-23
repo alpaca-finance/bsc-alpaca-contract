@@ -16,8 +16,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "upgrade_delta_neutral_vault";
-  const DELTA_NEUTRAL_VAULT = "DeltaNeutralVault";
+  const TITLE = "upgrade_delta_neutral_vault_gateway";
+  const DELTA_NEUTRAL_VAULT_GATEWAY_VERSION = "DeltaNeutralVaultGateway";
   const TARGETED_VAULTS = [
     "n3x-BNBUSDT-PCS1",
     "n8x-BNBUSDT-PCS1",
@@ -30,13 +30,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "L3x-USDTETH-BSW1",
     "L3x-BUSDBTCB-PCS1",
   ];
-  const EXACT_ETA = "1652860800";
+  const EXACT_ETA = "1653116400";
 
   const config = getConfig();
 
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   const deployer = await getDeployer();
-  const toBeUpgradedVaults = TARGETED_VAULTS.map((tv) => {
+  const toBeUpgradedAvInfos = TARGETED_VAULTS.map((tv) => {
     const vault = config.DeltaNeutralVaults.find((v) => tv == v.symbol);
     if (vault === undefined) {
       throw `error: not found vault with ${tv} symbol`;
@@ -49,23 +49,23 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   });
   let nonce = await deployer.getTransactionCount();
 
-  for (const vault of toBeUpgradedVaults) {
+  for (const automatedAvInfo of toBeUpgradedAvInfos) {
     console.log("------------------");
-    console.log(`> Upgrading DeltaNeutralVault at ${vault.symbol} through Timelock + ProxyAdmin`);
+    console.log(`> Upgrading DeltaNeutralVaultGateway for ${automatedAvInfo.symbol} through Timelock + ProxyAdmin`);
     console.log("> Prepare upgrade & deploy if needed a new IMPL automatically.");
-    const NewVault = await ethers.getContractFactory(DELTA_NEUTRAL_VAULT);
-    // const preparedNewVault = await upgrades.prepareUpgrade(vault.address, NewVault);
-    console.log(`> Implementation address: ${"0xDb7ba1805b8284b1Ad662F03eF4259e4919DC1c5"}`);
+    const NewImpl = await ethers.getContractFactory(DELTA_NEUTRAL_VAULT_GATEWAY_VERSION);
+    const preparedNewVault = await upgrades.prepareUpgrade(automatedAvInfo.gateway, NewImpl);
+    console.log(`> Implementation address: ${preparedNewVault}`);
     console.log("✅ Done");
 
     timelockTransactions.push(
       await TimelockService.queueTransaction(
-        `> Queue tx to upgrade ${vault.symbol}`,
+        `> Queue tx to upgrade ${automatedAvInfo.symbol} gateway`,
         config.ProxyAdmin,
         "0",
         "upgrade(address,address)",
         ["address", "address"],
-        [vault.address, "0xDb7ba1805b8284b1Ad662F03eF4259e4919DC1c5"],
+        [automatedAvInfo.gateway, preparedNewVault],
         EXACT_ETA,
         { nonce: nonce++ }
       )
@@ -77,4 +77,4 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 };
 
 export default func;
-func.tags = ["UpgradeDeltaNeutralVault"];
+func.tags = ["UpgradeDeltaNeutralVaultGateway"];

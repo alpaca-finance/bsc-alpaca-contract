@@ -7,6 +7,7 @@ import {
 } from "../../../../../typechain";
 import MainnetConfig from "../../../../../.mainnet.json";
 import TestnetConfig from "../../../../../.testnet.json";
+import { getConfig } from "../../../../entities/config";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -21,12 +22,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const NEW_PARAMS = [
     {
-      VAULT_SYMBOL: "ibUSDC",
+      VAULT_SYMBOL: "ibCAKE",
       WHITELIST_WORKERS: [],
     },
   ];
 
-  const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
+  const config = getConfig();
+  const deployer = (await ethers.getSigners())[0];
 
   for (let i = 0; i < NEW_PARAMS.length; i++) {
     const targetedVault = config.Vaults.find((v) => v.symbol === NEW_PARAMS[i].VAULT_SYMBOL);
@@ -40,12 +42,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(">> Deploying an upgradable Restricted StrategyAddTwoSidesOptimalV2 contract");
     const StrategyRestrictedAddTwoSidesOptimal = (await ethers.getContractFactory(
       "PancakeswapV2RestrictedStrategyAddTwoSidesOptimal",
-      (
-        await ethers.getSigners()
-      )[0]
+      deployer
     )) as PancakeswapV2RestrictedStrategyAddTwoSidesOptimal__factory;
     const strategyRestrictedAddTwoSidesOptimal = (await upgrades.deployProxy(StrategyRestrictedAddTwoSidesOptimal, [
-      config.YieldSources.Pancakeswap.RouterV2,
+      config.YieldSources.Pancakeswap!.RouterV2,
       targetedVault.address,
     ])) as PancakeswapV2RestrictedStrategyAddTwoSidesOptimal;
     await strategyRestrictedAddTwoSidesOptimal.deployed();

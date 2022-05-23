@@ -38,21 +38,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   let config = configFileHelper.getConfig();
 
   // prepare variable
-  const POOL_ID = 2;
-  const LP_POOL_ADDRESS = config.YieldSources.SpookySwap!.pools.find((pool) => pool.pId === POOL_ID)!.address;
-  if (!LP_POOL_ADDRESS) throw new Error("LP_POOL_ADDRESS is not defined");
   const deltaVaultInputs: IDeltaNeutralVaultInput[] = [
     {
-      name: "Market Neutral 3x FTM-USDC SPK2",
-      symbol: "n3x-FTMUSDC-SPK2",
-      stableVaultSymbol: "ibUSDC",
-      assetVaultSymbol: "ibFTM",
-      stableSymbol: "USDC",
-      assetSymbol: "WFTM",
-      stableDeltaWorkerName: "WFTM-USDC 3x SPK2 DeltaNeutralSpookyWorker", // Address of stable deltaneutral worker
-      assetDeltaWorkerName: "USDC-WFTM 3x SPK2 DeltaNeutralSpookyWorker", // Address of asset deltaneutral worker
-      lpAddress: LP_POOL_ADDRESS,
-      // deltaNeutralVaultConfig: "FORCE_DELTA_NEUTRAL_VAULT_CONFIG_ADDRESS", uncomment to force config address to write to config file
+      name: "Long 3x BUSD-BTCB PCS1",
+      symbol: "L3x-BUSDBTCB-PCS1",
+      stableVaultSymbol: "ibBTCB",
+      assetVaultSymbol: "ibBUSD",
+      stableSymbol: "BTCB",
+      assetSymbol: "BUSD",
+      stableDeltaWorkerName: "BUSD-BTCB L3x PCS1 DeltaNeutralPancakeswapWorker", // Address of stable deltaneutral worker
+      assetDeltaWorkerName: "BTCB-BUSD L3x PCS1 DeltaNeutralPancakeswapWorker", // Address of asset deltaneutral worker
+      lpAddress: "0xf45cd219aef8618a92baa7ad848364a158a24f33",
     },
   ];
 
