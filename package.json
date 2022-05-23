@@ -10,8 +10,9 @@
     "compile6.12": "hardhat typechain --config hardhat.config.6.12.ts",
     "compile8.10": "hardhat typechain --config hardhat.config.8.10.ts",
     "compile8.11": "hardhat typechain --config hardhat.config.8.11.ts",
+    "compile8.13": "hardhat typechain --config hardhat.config.8.13.ts",
     "compilevy2.11": "hardhat typechain --config hardhat.config.vyper.2.11.ts --show-stack-traces",
-    "compile": "yarn run compile5 && yarn run compile6 && yarn run compile6.12 && yarn run compile8.10 && yarn run compile8.11",
+    "compile": "yarn run compile5 && yarn run compile6 && yarn run compile6.12 && yarn run compile8.10 && yarn run compile8.11 && yarn run compile8.13",
     "deploy:mainnet:001": "hardhat --network mainnet deploy --no-compile --reset --tags TimeLock",
     "deploy:mainnet:002": "hardhat --network mainnet deploy --no-compile --reset --tags FairLaunch",
     "deploy:mainnet:003": "hardhat --network mainnet deploy --no-compile --reset --tags ShareStrategies",
@@ -416,7 +417,8 @@
     "forge:test": "forge test",
     "forge:watch": "forge test -w",
     "test:xalpaca-creditor": "forge test --match-path solidity/tests/protocol/private-automated-vault/xALPACACreditor.t.sol",
-    "test:av-controller": "forge test --match-path solidity/tests/protocol/private-automated-vault/AutomatedVaultController.t.sol"
+    "test:av-controller": "forge test --match-path solidity/tests/protocol/private-automated-vault/AutomatedVaultController.t.sol",
+    "test:delta02": "forge test --match-path solidity/tests/protocol/private-automated-vault/DeltaNeutralVault02.t.sol"
   },
   "devDependencies": {
     "@chainlink/contracts": "^0.1.7",
