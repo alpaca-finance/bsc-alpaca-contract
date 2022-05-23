@@ -63,7 +63,7 @@ contract FakeVault {
   }
 
   function work(
-    uint256 id,
+    uint256, /*id*/
     address worker,
     uint256 principalAmount,
     uint256 borrowAmount,
