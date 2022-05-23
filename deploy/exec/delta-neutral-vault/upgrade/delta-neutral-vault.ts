@@ -25,8 +25,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "n3x-BNBBUSD-PCS1",
     "n3x-BNBUSDT-PCS2",
     "n3x-BNBBUSD-PCS2",
+    "n3x-BNBUSDT-PCS3",
+    "n3x-ETHUSDT-BSW1",
+    "L3x-USDTETH-BSW1",
+    "L3x-BUSDBTCB-PCS1",
   ];
-  const EXACT_ETA = "1651893300";
+  const EXACT_ETA = "1652860800";
 
   const config = getConfig();
 
@@ -50,8 +54,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(`> Upgrading DeltaNeutralVault at ${vault.symbol} through Timelock + ProxyAdmin`);
     console.log("> Prepare upgrade & deploy if needed a new IMPL automatically.");
     const NewVault = await ethers.getContractFactory(DELTA_NEUTRAL_VAULT);
-    const preparedNewVault = await upgrades.prepareUpgrade(vault.address, NewVault);
-    console.log(`> Implementation address: ${preparedNewVault}`);
+    // const preparedNewVault = await upgrades.prepareUpgrade(vault.address, NewVault);
+    console.log(`> Implementation address: ${"0xDb7ba1805b8284b1Ad662F03eF4259e4919DC1c5"}`);
     console.log("✅ Done");
 
     timelockTransactions.push(
@@ -61,7 +65,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         "0",
         "upgrade(address,address)",
         ["address", "address"],
-        [vault.address, preparedNewVault],
+        [vault.address, "0xDb7ba1805b8284b1Ad662F03eF4259e4919DC1c5"],
         EXACT_ETA,
         { nonce: nonce++ }
       )
