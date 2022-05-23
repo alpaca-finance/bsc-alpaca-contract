@@ -13,6 +13,7 @@ import {
   PoolsEntity,
   YieldPoolsEntity,
   YieldSources,
+  Creditor,
 } from "../interfaces/config";
 
 export class ConfigFileHelper {
@@ -245,6 +246,39 @@ export class ConfigFileHelper {
         v.symbol === nameOrSymbolOrAddress ||
         compare(v.address, nameOrSymbolOrAddress)
     );
+  }
+
+  // AutomatedVaultController
+  public setAVController(address: string) {
+    console.log(`>> SET Creditors to file > ${address}`);
+    this.config.AutomatedVaultController = {
+      address,
+      creditors: [],
+    };
+    this._writeConfigFile(this.config);
+  }
+
+  public setCreditToAVController(creditors: string[]) {
+    console.log(`>> SET Creditors to AVController > ${creditors}`);
+
+    const avControllerObj = this.config.AutomatedVaultController;
+    if (!avControllerObj) {
+      throw new Error(">> Error Please Deploy AVController first");
+    }
+
+    avControllerObj.creditors = creditors;
+    this._writeConfigFile(this.config);
+  }
+
+  // Creditors
+  public addOrSetCreditors(creditor: Creditor) {
+    console.log(`>> Adding Creditors to file> ${JSON.stringify(creditor)}`);
+    if (this.config.Creditors === undefined) {
+      this.config.Creditors = [creditor];
+    } else {
+      this.config.Creditors = [...this.config.Creditors, creditor];
+    }
+    this._writeConfigFile(this.config);
   }
 }
 

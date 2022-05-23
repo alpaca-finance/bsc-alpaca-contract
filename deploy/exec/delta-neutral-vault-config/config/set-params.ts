@@ -4,10 +4,11 @@ import { ethers } from "hardhat";
 import { TimelockEntity } from "../../../entities";
 import { fileService, TimelockService } from "../../../services";
 import { getConfig } from "../../../entities/config";
-import { DeltaNeutralVaultConfig__factory } from "../../../../typechain";
+import { DeltaNeutralVaultConfig02__factory, DeltaNeutralVaultConfig__factory } from "../../../../typechain";
 import { Multicall2Service } from "../../../services/multicall/multicall2";
 import { BigNumber, BigNumberish } from "ethers";
 import { compare } from "../../../../utils/address";
+import { getDeployer } from "../../../../utils/deployer-helper";
 
 interface SetParamsInput {
   VAULT_SYMBOL: string;
@@ -43,20 +44,18 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const TITLTE = "update_rebalance_factor";
   const NEW_PARAMS: Array<SetParamsInput> = [
     {
-      VAULT_SYMBOL: "n3x-BNBUSDT-PCS1",
-      REBALANCE_FACTOR: "6669",
-      EXACT_ETA: "1651984200",
-    },
-    {
-      VAULT_SYMBOL: "n8x-BNBUSDT-PCS1",
-      REBALANCE_FACTOR: "8750",
+      VAULT_SYMBOL: "n8x-BNBUSDT-PCS2",
+      REBALANCE_FACTOR: "9000",
+      DEBT_RATIO_TOLERANCE: "30",
+      POSITION_VALUE_TOLERANCE: "120",
       EXACT_ETA: "1651984200",
     },
   ];
 
   const config = getConfig();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
-  const deployer = (await ethers.getSigners())[0];
+  const deployer = await getDeployer();
+  console.log("deployer", deployer.address);
   const multicallService = new Multicall2Service(config.MultiCall, deployer);
   let nonce = await deployer.getTransactionCount();
   const ts = Math.floor(Date.now() / 1000);
@@ -66,8 +65,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     NEW_PARAMS.map(async (n) => {
       const automatedVault = config.DeltaNeutralVaults.find((v) => v.symbol === n.VAULT_SYMBOL);
       if (automatedVault === undefined) throw new Error(`error: unable to map ${n.VAULT_SYMBOL} to any vault`);
-
-      const vaultConfig = DeltaNeutralVaultConfig__factory.connect(automatedVault.config, deployer);
+      console.log("automatedVault.config", automatedVault.config);
+      const vaultConfig = DeltaNeutralVaultConfig02__factory.connect(automatedVault.config, deployer);
       const [
         owner,
         wrappedNative,
@@ -136,7 +135,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       console.log(`> Apply set params for ${info.VAULT_SYMBOL}`);
       console.log(`> params:`);
       console.log(info);
-      const vaultConfig = DeltaNeutralVaultConfig__factory.connect(info.VAULT_CONFIG, deployer);
+      const vaultConfig = DeltaNeutralVaultConfig02__factory.connect(info.VAULT_CONFIG, deployer);
       const setParamsTx = await vaultConfig.setParams(
         info.WRAPPED_NATIVE_ADDRESS,
         info.WNATIVE_RELAYER_ADDRESS,
@@ -144,7 +143,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         info.REBALANCE_FACTOR,
         info.POSITION_VALUE_TOLERANCE,
         info.DEBT_RATIO_TOLERANCE,
-        { nonce: nonce++ }
+        { nonce: nonce++, gasLimit: 200000000 }
       );
       console.log("> ⛓ Tx hash:", setParamsTx.hash);
     }
