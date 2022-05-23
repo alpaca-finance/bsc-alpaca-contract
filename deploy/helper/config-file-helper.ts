@@ -250,7 +250,7 @@ export class ConfigFileHelper {
 
   // AutomatedVaultController
   public setAVController(address: string) {
-    console.log(`>> SET Creditors to file > ${address}`);
+    console.log(`>> SET AVController to file > ${address}`);
     this.config.AutomatedVaultController = {
       address,
       creditors: [],

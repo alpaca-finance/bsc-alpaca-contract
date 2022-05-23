@@ -17,7 +17,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const CREDITOR_ADDRS: string[] = ["0xe259B3057fCd601E01eF9AB5D2F933D6779663bD"];
+  const CREDITOR_ADDRS: string[] = ["0xBCbA5F83f450a9e358964B4e306339d1F64B630e"];
   const PRIVATE_VAULT_ADDRS: string[] = ["0xC57876a95A4f31a0A4FDB0329Fc78e00B092cC94"];
 
   const deployer = await getDeployer();
