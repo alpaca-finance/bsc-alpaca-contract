@@ -16,14 +16,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const config = ConfigEntity.getConfig();
 
-  const MIN_DEBT_SIZE = ethers.utils.parseEther("50");
+  const MIN_DEBT_SIZE = ethers.utils.parseEther("33");
   const RESERVE_POOL_BPS = "1900";
   const KILL_PRIZE_BPS = "100";
   const TREASURY_KILL_BPS = "400";
   const TREASURY_ADDR = "0x0FfA891ab6f410bbd7403b709e7d38D7a812125B";
-  const TRIPLE_SLOPE_MODEL = config.SharedConfig.TwoSlopeModel!;
-  const WNATIVE = config.Tokens.WFTM!;
-  const FAIR_LAUNCH = config.MiniFL!.address;
+  const TRIPLE_SLOPE_MODEL = "0x8d657683437bf1B2f8274515B237A2Db0F233a2d";
+  const WNATIVE = config.Tokens.WBNB!;
+  const FAIR_LAUNCH = config.FairLaunch!.address;
 
   console.log(">> Deploying an upgradable configurableInterestVaultConfig contract");
   const ConfigurableInterestVaultConfig = (await ethers.getContractFactory(

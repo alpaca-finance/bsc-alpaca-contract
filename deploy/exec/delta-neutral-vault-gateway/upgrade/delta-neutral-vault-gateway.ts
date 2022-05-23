@@ -30,13 +30,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "L3x-USDTETH-BSW1",
     "L3x-BUSDBTCB-PCS1",
   ];
-  const EXACT_ETA = "1652511600";
+  const EXACT_ETA = "1653116400";
 
   const config = getConfig();
 
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   const deployer = await getDeployer();
-  const toBeUpgradedVaults = TARGETED_VAULTS.map((tv) => {
+  const toBeUpgradedAvInfos = TARGETED_VAULTS.map((tv) => {
     const vault = config.DeltaNeutralVaults.find((v) => tv == v.symbol);
     if (vault === undefined) {
       throw `error: not found vault with ${tv} symbol`;
@@ -49,23 +49,23 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   });
   let nonce = await deployer.getTransactionCount();
 
-  for (const vault of toBeUpgradedVaults) {
+  for (const automatedAvInfo of toBeUpgradedAvInfos) {
     console.log("------------------");
-    console.log(`> Upgrading DeltaNeutralVaultGateway for ${vault.symbol} through Timelock + ProxyAdmin`);
+    console.log(`> Upgrading DeltaNeutralVaultGateway for ${automatedAvInfo.symbol} through Timelock + ProxyAdmin`);
     console.log("> Prepare upgrade & deploy if needed a new IMPL automatically.");
     const NewImpl = await ethers.getContractFactory(DELTA_NEUTRAL_VAULT_GATEWAY_VERSION);
-    const preparedNewVault = await upgrades.prepareUpgrade(vault.gateway, NewImpl);
+    const preparedNewVault = await upgrades.prepareUpgrade(automatedAvInfo.gateway, NewImpl);
     console.log(`> Implementation address: ${preparedNewVault}`);
     console.log("✅ Done");
 
     timelockTransactions.push(
       await TimelockService.queueTransaction(
-        `> Queue tx to upgrade ${vault.symbol} gateway`,
+        `> Queue tx to upgrade ${automatedAvInfo.symbol} gateway`,
         config.ProxyAdmin,
         "0",
         "upgrade(address,address)",
         ["address", "address"],
-        [vault.address, preparedNewVault],
+        [automatedAvInfo.gateway, preparedNewVault],
         EXACT_ETA,
         { nonce: nonce++ }
       )

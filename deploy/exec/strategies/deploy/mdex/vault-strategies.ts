@@ -5,8 +5,7 @@ import {
   MdexRestrictedStrategyAddTwoSidesOptimal,
   MdexRestrictedStrategyAddTwoSidesOptimal__factory,
 } from "../../../../../typechain";
-import MainnetConfig from "../../../../../.mainnet.json";
-import TestnetConfig from "../../../../../.testnet.json";
+import { getConfig } from "../../../../entities/config";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -21,12 +20,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const NEW_PARAMS = [
     {
-      VAULT_SYMBOL: "ibUSDC",
+      VAULT_SYMBOL: "ibCAKE",
       WHITELIST_WORKERS: [],
     },
   ];
 
-  const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
+  const config = getConfig();
 
   for (let i = 0; i < NEW_PARAMS.length; i++) {
     const targetedVault = config.Vaults.find((v) => v.symbol === NEW_PARAMS[i].VAULT_SYMBOL);
@@ -47,7 +46,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       )[0]
     )) as MdexRestrictedStrategyAddTwoSidesOptimal__factory;
     const strategyRestrictedAddTwoSidesOptimal = (await upgrades.deployProxy(MdexRestrictedStrategyAddTwoSidesOptimal, [
-      config.YieldSources.Mdex.MdexRouter,
+      config.YieldSources.Mdex!.MdexRouter,
       targetedVault.address,
       config.Tokens.MDX,
     ])) as MdexRestrictedStrategyAddTwoSidesOptimal;

@@ -412,6 +412,16 @@
         "id": 26,
         "stakingToken": "FTM_EMISSION_PROXY_TOKEN",
         "address": "0xC4Ed268754DD3CbCA82A6eE743ACAd2D355D938b"
+      },
+      {
+        "id": 27,
+        "stakingToken": "debtIbCAKE V2",
+        "address": "0xD2E855f8c3A69323fd4a46444C97c9813134268D"
+      },
+      {
+        "id": 28,
+        "stakingToken": "ibCAKE",
+        "address": "0xfF693450dDa65df7DD6F45B4472655A986b147Eb"
       }
     ]
   },
@@ -4173,6 +4183,24 @@
           }
         }
       ]
+    },
+    {
+      "name": "Interest Bearing CAKE",
+      "symbol": "ibCAKE",
+      "address": "0xfF693450dDa65df7DD6F45B4472655A986b147Eb",
+      "deployedBlock": 17870362,
+      "baseToken": "0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82",
+      "debtToken": "0xD2E855f8c3A69323fd4a46444C97c9813134268D",
+      "config": "0xFAb0925a64AFDf8bc2C4F065524b5b1BF4B7534a",
+      "tripleSlopeModel": "0x8d657683437bf1B2f8274515B237A2Db0F233a2d",
+      "StrategyAddTwoSidesOptimal": {
+        "Pancakeswap": "0x696b728dA2C78A210Ddc632E98437327Dd8f5E3B",
+        "Waultswap": "",
+        "PancakeswapSingleAsset": "0xDA1365fd9103148b645B1BE105A6832eF344d316",
+        "Mdex": "0x22A2BB73AEa19828100D1C4361eE0f3A4499E3e3",
+        "Biswap": "0x11139a27Ea773d1Ebf506aB4d7cB4e4D9FcF59bf"
+      },
+      "workers": []
     }
   ],
   "DeltaNeutralVaults": [
