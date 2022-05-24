@@ -140,17 +140,17 @@ contract PancakeswapV2RestrictedDnxStrategyAddTwoSidesOptimal is
         baseTokenReserve,
         farmingTokenReserve
       );
-    }
-    // 4. Convert between BaseToken and farming tokens
-    address[] memory path = new address[](2);
-    (path[0], path[1]) = isReversed ? (farmingToken, baseToken) : (baseToken, farmingToken);
-    // 5. Swap according to path
-    if (swapAmt > 0) {
-      (uint256 reserveIn, uint256 reserveOut) = isReversed
-        ? (farmingTokenReserve, baseTokenReserve)
-        : (baseTokenReserve, farmingTokenReserve);
-      uint256 amountOut = router.getAmountOut(swapAmt, reserveIn, reserveOut);
-      if (amountOut > 0) router.swapExactTokensForTokens(swapAmt, 0, path, address(this), now);
+      // 4. Convert between BaseToken and farming tokens
+      address[] memory path = new address[](2);
+      (path[0], path[1]) = isReversed ? (farmingToken, baseToken) : (baseToken, farmingToken);
+      // 5. Swap according to path
+      if (swapAmt > 0) {
+        (uint256 reserveIn, uint256 reserveOut) = isReversed
+          ? (farmingTokenReserve, baseTokenReserve)
+          : (baseTokenReserve, farmingTokenReserve);
+        uint256 amountOut = router.getAmountOut(swapAmt, reserveIn, reserveOut);
+        if (amountOut > 0) router.swapExactTokensForTokens(swapAmt, 0, path, address(this), now);
+      }
     }
     // 6. Mint more LP tokens and return all LP tokens to the sender.
     (, , uint256 moreLPAmount) = router.addLiquidity(
