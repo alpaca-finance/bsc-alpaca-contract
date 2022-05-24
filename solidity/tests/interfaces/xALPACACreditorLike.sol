@@ -18,5 +18,5 @@ interface xALPACACreditorLike {
 
   function setValuePerxALPACA(uint256 _newValuePerxALPACA) external;
 
-  function setValueSetter(address _valueSetter) external;
+  function setValueSetter(address _newValueSetter) external;
 }

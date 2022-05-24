@@ -26,7 +26,7 @@ contract xALPACACreditor is OwnableUpgradeable, ICreditor {
 
   // --- Errors ---
   error xALPACACreditor_ValueTooHigh();
-  error xALPACACreditor_SenderIsNotValueSetter();
+  error xALPACACreditor_Unauthorize();
 
   // --- States ---
   IxALPACA public xALPACA;
@@ -53,16 +53,16 @@ contract xALPACACreditor is OwnableUpgradeable, ICreditor {
   }
 
   /// @notice set the value setter
-  function setValueSetter(address _valueSetter) external onlyOwner {
-    valueSetter = _valueSetter;
-    emit LogSetValueSetter(msg.sender, _valueSetter);
+  function setValueSetter(address _newValueSetter) external onlyOwner {
+    valueSetter = _newValueSetter;
+    emit LogSetValueSetter(msg.sender, _newValueSetter);
   }
 
   /// @notice Set the value per xALPACA
   /// @param _newValuePerxALPACA new value to be set.
   function setValuePerxALPACA(uint256 _newValuePerxALPACA) external {
     if (msg.sender != valueSetter) {
-      revert xALPACACreditor_SenderIsNotValueSetter();
+      revert xALPACACreditor_Unauthorize();
     }
     if (_newValuePerxALPACA > 1000 * 1e18) {
       revert xALPACACreditor_ValueTooHigh();

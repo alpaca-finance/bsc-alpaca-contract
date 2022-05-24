@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4 <0.9.0;
 
-import { BaseTest, xALPACACreditorLike, console } from "../../base/BaseTest.sol";
+import { BaseTest, xALPACACreditorLike } from "../../base/BaseTest.sol";
 import { mocking } from "../../utils/mocking.sol";
 import { MockContract } from "../../utils/MockContract.sol";
 
@@ -56,7 +56,7 @@ contract xAlpacaCreditor_Test is BaseTest {
   }
 
   function testCannotSetValuePerXalpacaIfNotValueSetter() external {
-    vm.expectRevert(abi.encodeWithSignature("xALPACACreditor_SenderIsNotValueSetter()"));
+    vm.expectRevert(abi.encodeWithSignature("xALPACACreditor_Unauthorize()"));
     vm.prank(BOB);
     _creditor.setValuePerxALPACA(10 ether);
   }
