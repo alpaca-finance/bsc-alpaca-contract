@@ -24,7 +24,7 @@ import "./interfaces/IVault.sol";
 import "./interfaces/IWorker02.sol";
 import "./interfaces/IWETH.sol";
 import "./interfaces/IWNativeRelayer.sol";
-import "./interfaces/IDeltaNeutralVaultConfig.sol";
+import "./interfaces/IDeltaNeutralVaultConfig03.sol";
 import "./interfaces/IFairLaunch.sol";
 import "./interfaces/ISwapRouter.sol";
 import "./interfaces/IExecutor.sol";
@@ -37,7 +37,7 @@ import "../utils/FullMath.sol";
 /// @title Delta Neutral Vault is designed to take a long and short position in an asset at the same time
 /// to cancel out the effect on the out-standing portfolio when the asset’s price moves.
 // solhint-disable max-states-count
-contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, OwnableUpgradeable {
+contract DeltaNeutralVault03 is ERC20Upgradeable, ReentrancyGuardUpgradeable, OwnableUpgradeable {
   /// @notice Libraries
   using FixedPointMathLib for uint256;
   using SafeERC20Upgradeable for IERC20Upgradeable;
@@ -124,11 +124,6 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   IDeltaNeutralOracle public priceOracle;
 
   IDeltaNeutralVaultConfig public config;
-
-  address public depositExecutor;
-  address public withdrawExecutor;
-  address public rebalanceExecutor;
-  address public reinvestExecutor;
 
   /// @dev mutable
   uint8 private OPENING;
@@ -306,19 +301,10 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     _transferTokenToVault(stableToken, _stableTokenAmount);
     _transferTokenToVault(assetToken, _assetTokenAmount);
 
-    {
-      // 2. call execute to do more work.
-      // Perform the actual work, using a new scope to avoid stack-too-deep errors.
-      (uint8[] memory _actions, uint256[] memory _values, bytes[] memory _datas) = abi.decode(
-        _data,
-        (uint8[], uint256[], bytes[])
-      );
-      if (depositExecutor != address(0)) {
-        IExecutor(depositExecutor).exec(_datas);
-      } else {
-        _execute(_actions, _values, _datas);
-      }
-    }
+    // 2. call execute to do more work.
+    // Perform the actual work, using a new scope to avoid stack-too-deep errors.
+
+    IExecutor(config.depositExecutor()).exec(_data);
 
     // 3. mint share for shareReceiver
     PositionInfo memory _positionInfoAfter = positionInfo();
@@ -370,18 +356,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     // mint shares equal to withdrawal fee to treasury.
     _mint(config.withdrawalFeeTreasury(), _shareAmount - _shareToWithdraw);
 
-    {
-      (uint8[] memory actions, uint256[] memory values, bytes[] memory _datas) = abi.decode(
-        _data,
-        (uint8[], uint256[], bytes[])
-      );
-
-      if (withdrawExecutor != address(0)) {
-        IExecutor(withdrawExecutor).exec(_datas);
-      } else {
-        _execute(actions, values, _datas);
-      }
-    }
+    IExecutor(config.withdrawExecutor()).exec(_data);
 
     return
       _checkAndTransfer(
@@ -439,14 +414,8 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   }
 
   /// @notice Rebalance stable and asset positions.
-  /// @param _actions List of actions to execute.
-  /// @param _values Native token amount.
-  /// @param _datas The calldata to pass along for more working context.
-  function rebalance(
-    uint8[] memory _actions,
-    uint256[] memory _values,
-    bytes[] memory _datas
-  ) external onlyRebalancers collectFee {
+  /// @param _data The calldata to pass along for more working context.
+  function rebalance(bytes memory _data) external onlyRebalancers collectFee {
     PositionInfo memory _positionInfoBefore = positionInfo();
     Outstanding memory _outstandingBefore = _outstanding();
     uint256 _stablePositionValue = _positionInfoBefore.stablePositionEquity +
@@ -464,11 +433,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     }
 
     // 2. execute rebalance
-    if (rebalanceExecutor != address(0)) {
-      IExecutor(rebalanceExecutor).exec(_datas);
-    } else {
-      _execute(_actions, _values, _datas);
-    }
+    IExecutor(config.rebalanceExecutor()).exec(_data);
 
     // 3. sanity check
     // check if position in a healthy state after rebalancing
@@ -482,16 +447,9 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
   }
 
   /// @notice Reinvest fund to stable and asset positions.
-  /// @param _actions List of actions to execute.
-  /// @param _values Native token amount.
-  /// @param _datas The calldata to pass along for more working context.
+  /// @param _data The calldata to pass along for more working context.
   /// @param _minTokenReceive Minimum token received when swap reward.
-  function reinvest(
-    uint8[] memory _actions,
-    uint256[] memory _values,
-    bytes[] memory _datas,
-    uint256 _minTokenReceive
-  ) external onlyReinvestors {
+  function reinvest(bytes memory _data, uint256 _minTokenReceive) external onlyReinvestors {
     address[] memory reinvestPath = config.getReinvestPath();
     uint256 _alpacaBountyBps = config.alpacaBountyBps();
     uint256 _alpacaBeneficiaryBps = config.alpacaBeneficiaryBps();
@@ -522,13 +480,7 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     _router.swapExactTokensForTokens(_rewardAmount, _minTokenReceive, reinvestPath, address(this), block.timestamp);
 
     // 4. execute reinvest
-    {
-      if (reinvestExecutor != address(0)) {
-        IExecutor(reinvestExecutor).exec(_datas);
-      } else {
-        _execute(_actions, _values, _datas);
-      }
-    }
+    IExecutor(config.reinvestExecutor()).exec(_data);
 
     // 5. sanity check
     uint256 _equityAfter = totalEquityValue();
@@ -866,6 +818,9 @@ contract DeltaNeutralVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Owna
     uint256 _value,
     bytes memory _data
   ) external {
+    if (!config.isExecutor(msg.sender)) {
+      revert DeltaNeutralVault_Unauthorized(msg.sender);
+    }
     if (_action == ACTION_WORK) {
       _doWork(_data);
     }

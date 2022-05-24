@@ -14,5 +14,5 @@ Alpaca Fin Corporation
 pragma solidity 0.8.10;
 
 interface IExecutor {
-  function exec(bytes[] memory _datas) external;
+  function exec(bytes memory _data) external;
 }
