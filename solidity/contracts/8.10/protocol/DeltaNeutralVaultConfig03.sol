@@ -57,7 +57,7 @@ contract DeltaNeutralVaultConfig03 is IDeltaNeutralVaultConfig, OwnableUpgradeab
   );
   event LogSetSwapRouter(address indexed _caller, address _swapRouter);
   event LogSetReinvestPath(address indexed _caller, address[] _reinvestPath);
-  event LogSetExcutor(
+  event LogSetExecutor(
     address indexed _caller,
     address _depositExecutor,
     address _withdrawExecutor,
@@ -84,7 +84,7 @@ contract DeltaNeutralVaultConfig03 is IDeltaNeutralVaultConfig, OwnableUpgradeab
   uint8 private constant MIN_LEVERAGE_LEVEL = 3;
   uint256 private constant MAX_DEPOSIT_FEE_BPS = 1000;
   uint256 private constant MAX_WITHDRAWAL_FEE_BPS = 1000;
-  uint256 private constant MAX_MANGEMENT_FEE_PER_SEC = 3170979198;
+  uint256 private constant MAX_MANAGEMENT_FEE_PER_SEC = 3170979198;
   uint256 private constant MAX_ALPACA_BOUNTY_BPS = 2500;
   uint256 private constant MAX_ALPACA_BENEFICIARY_BPS = 6000;
 
@@ -242,7 +242,7 @@ contract DeltaNeutralVaultConfig03 is IDeltaNeutralVaultConfig, OwnableUpgradeab
   /// @dev Must only be called by owner.
   /// @param _callers addresses to be whitelisted.
   /// @param _ok The new ok flag for callers.
-  function setwhitelistedReinvestors(address[] calldata _callers, bool _ok) external onlyOwner {
+  function setWhitelistedReinvestors(address[] calldata _callers, bool _ok) external onlyOwner {
     for (uint256 _idx = 0; _idx < _callers.length; _idx++) {
       whitelistedReinvestors[_callers[_idx]] = _ok;
       emit LogSetWhitelistedReinvestors(msg.sender, _callers[_idx], _ok);
@@ -287,7 +287,7 @@ contract DeltaNeutralVaultConfig03 is IDeltaNeutralVaultConfig, OwnableUpgradeab
     if (
       _newDepositFeeBps > MAX_DEPOSIT_FEE_BPS ||
       _newWithdrawalFeeBps > MAX_WITHDRAWAL_FEE_BPS ||
-      _newManagementFeePerSec > MAX_MANGEMENT_FEE_PER_SEC
+      _newManagementFeePerSec > MAX_MANAGEMENT_FEE_PER_SEC
     ) {
       revert DeltaNeutralVaultConfig_TooMuchFee(_newDepositFeeBps, _newWithdrawalFeeBps, _newManagementFeePerSec);
     }
@@ -393,21 +393,17 @@ contract DeltaNeutralVaultConfig03 is IDeltaNeutralVaultConfig, OwnableUpgradeab
     rebalanceExecutor = _rebalanceExecutor;
     reinvestExecutor = _reinvestExecutor;
 
-    emit LogSetExcutor(msg.sender, _depositExecutor, _withdrawExecutor, _rebalanceExecutor, _reinvestExecutor);
+    emit LogSetExecutor(msg.sender, _depositExecutor, _withdrawExecutor, _rebalanceExecutor, _reinvestExecutor);
   }
 
   /// @notice Return if caller is executor.
   /// @param _caller caller.
   function isExecutor(address _caller) external view returns (bool) {
-    if (
+    return
       _caller == depositExecutor ||
       _caller == withdrawExecutor ||
       _caller == rebalanceExecutor ||
-      _caller == reinvestExecutor
-    ) {
-      return true;
-    }
-    return false;
+      _caller == reinvestExecutor;
   }
 
   function setSwapConfig(uint256 _swapFee, uint256 _swapFeeDenom) external onlyOwner {
