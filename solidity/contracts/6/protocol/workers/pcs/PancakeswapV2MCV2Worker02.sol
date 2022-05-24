@@ -246,6 +246,7 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
     }
 
     // 5. Use add Token strategy to convert all BaseToken without both caller balance and buyback amount to LP tokens.
+
     baseToken.safeTransfer(address(addStrat), actualBaseTokenBalance().sub(_callerBalance));
     addStrat.execute(address(0), 0, abi.encode(0));
 
@@ -378,8 +379,11 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
   }
 
   /// @dev since buybackAmount variable has been created to collect a buyback balance when during the reinvest within the work method,
-  /// thus the actualBaseTokenBalance exists to differentiate an actual base token balance balance without taking buy back amount into account
+  /// thus the actualBaseTokenBalance exists to differentiate an actual base token balance balance without taking buy back amount and pending reward into account
   function actualBaseTokenBalance() internal view returns (uint256) {
+    if (baseToken == cake) {
+      return baseToken.myBalance().sub(pendingCake).sub(buybackAmount);
+    }
     return baseToken.myBalance().sub(buybackAmount);
   }
 

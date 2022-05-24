@@ -16,6 +16,10 @@ import { DebtTokenLike } from "../interfaces/DebtTokenLike.sol";
 import { SimpleVaultConfigLike } from "../interfaces/SimpleVaultConfigLike.sol";
 import { VaultLike } from "../interfaces/VaultLike.sol";
 
+import { PancakeswapV2MCV2Worker02Like } from "../interfaces/PancakeswapV2MCV2Worker02Like.sol";
+import { PancakeswapV2RestrictedStrategyAddBaseTokenOnlyLike } from "../interfaces/PancakeswapV2RestrictedStrategyAddBaseTokenOnlyLike.sol";
+import { PancakeswapV2RestrictedStrategyLiquidateLike } from "../interfaces/PancakeswapV2RestrictedStrategyLiquidateLike.sol";
+
 // solhint-disable const-name-snakecase
 // solhint-disable no-inline-assembly
 contract BaseTest is DSTest {
@@ -159,5 +163,71 @@ contract BaseTest is DSTest {
       _address := create(0, add(_bytecode, 0x20), mload(_bytecode))
     }
     return TripleSlopeModelLike(_address);
+  }
+
+  function _setPancakeswapV2MCV2Worker02(
+    address _operator,
+    address _baseToken,
+    address _masterChefV2,
+    address _router,
+    uint256 _pid,
+    address _addStrat,
+    address _liqStrat,
+    uint256 _reinvestBountyBps,
+    address _treasuryAccount,
+    address[] calldata _reinvestPath,
+    uint256 _reinvestThreshold
+  ) internal returns (PancakeswapV2MCV2Worker02Like) {
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/PancakeswapV2MCV2Worker02_Test.sol/PancakeswapV2MCV2Worker02_Test.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(
+        keccak256(
+          "initialize(address,address ,address ,address ,uint256 ,address ,address ,uint256 ,address ,address,uint256)"
+        )
+      ),
+      _operator,
+      _baseToken,
+      _masterChefV2,
+      _router,
+      _pid,
+      _addStrat,
+      _liqStrat,
+      _reinvestBountyBps,
+      _treasuryAccount,
+      _reinvestPath,
+      _reinvestThreshold
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return PancakeswapV2MCV2Worker02Like(_proxy);
+  }
+
+  function _setUpPancakeswapV2RestrictedStrategyAddBaseTokenOnly(address _router)
+    internal
+    returns (PancakeswapV2RestrictedStrategyAddBaseTokenOnlyLike)
+  {
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode(
+        "./out/PancakeswapV2RestrictedStrategyAddBaseTokenOnly.sol/PancakeswapV2RestrictedStrategyAddBaseTokenOnly.json"
+      )
+    );
+
+    bytes memory _initializer = abi.encodeWithSelector(bytes4(keccak256("initialize(address)")), _router);
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return PancakeswapV2RestrictedStrategyAddBaseTokenOnlyLike(_proxy);
+  }
+
+  function _setUpPancakeswapV2RestrictedStrategyLiquidate(address _router)
+    internal
+    returns (PancakeswapV2RestrictedStrategyLiquidateLike)
+  {
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/PancakeswapV2RestrictedStrategyLiquidate.sol/PancakeswapV2RestrictedStrategyLiquidate.json")
+    );
+
+    bytes memory _initializer = abi.encodeWithSelector(bytes4(keccak256("initialize(address)")), _router);
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return PancakeswapV2RestrictedStrategyLiquidateLike(_proxy);
   }
 }
