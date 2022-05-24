@@ -38,7 +38,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const configFile = new ConfigFileHelper();
 
   configFile.addOrSetCreditors({
-    name: "xAlpacaCreditors",
+    name: "xAlpacaCreditor",
     address: xalpacaCreditor.address,
   });
 };

@@ -65,7 +65,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     NEW_PARAMS.map(async (n) => {
       const automatedVault = config.DeltaNeutralVaults.find((v) => v.symbol === n.VAULT_SYMBOL);
       if (automatedVault === undefined) throw new Error(`error: unable to map ${n.VAULT_SYMBOL} to any vault`);
-      console.log("automatedVault.config", automatedVault.config);
+
       const vaultConfig = DeltaNeutralVaultConfig02__factory.connect(automatedVault.config, deployer);
       const [
         owner,
@@ -143,7 +143,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         info.REBALANCE_FACTOR,
         info.POSITION_VALUE_TOLERANCE,
         info.DEBT_RATIO_TOLERANCE,
-        { nonce: nonce++, gasLimit: 200000000 }
+        { nonce: nonce++ }
       );
       console.log("> ⛓ Tx hash:", setParamsTx.hash);
     }

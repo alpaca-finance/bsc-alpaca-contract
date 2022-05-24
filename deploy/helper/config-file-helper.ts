@@ -258,15 +258,15 @@ export class ConfigFileHelper {
     this._writeConfigFile(this.config);
   }
 
-  public setCreditToAVController(creditors: string[]) {
-    console.log(`>> SET Creditors to AVController > ${creditors}`);
+  public setCreditToAVController(creditorAddrs: string[]) {
+    console.log(`>> SET Creditors to AVController > ${creditorAddrs}`);
 
     const avControllerObj = this.config.AutomatedVaultController;
     if (!avControllerObj) {
       throw new Error(">> Error Please Deploy AVController first");
     }
 
-    avControllerObj.creditors = creditors;
+    avControllerObj.creditors = creditorAddrs;
     this._writeConfigFile(this.config);
   }
 
