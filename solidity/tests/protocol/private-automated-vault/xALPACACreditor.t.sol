@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4 <0.9.0;
 
-import { BaseTest, xALPACACreditorLike } from "../../base/BaseTest.sol";
+import { BaseTest, xALPACACreditorLike, console } from "../../base/BaseTest.sol";
 import { mocking } from "../../utils/mocking.sol";
 import { MockContract } from "../../utils/MockContract.sol";
 
@@ -24,6 +24,7 @@ contract xAlpacaCreditor_Test is BaseTest {
     _xALPACA.balanceOf.mockv(_userAddress, 1 ether);
 
     _creditor = _setupxALPACACreditor(address(_xALPACA), VALUE_PER_XALPACA);
+    _creditor.setValueSetter(ALICE);
   }
 
   function testCorrectness_getUserCredit() external {
@@ -31,24 +32,33 @@ contract xAlpacaCreditor_Test is BaseTest {
   }
 
   function testCorrectness_afterUpdateValuePerxALPACA() external {
+    vm.prank(ALICE);
     _creditor.setValuePerxALPACA(4 ether);
     assertEq(_creditor.getUserCredit(_userAddress), 4 ether);
   }
 
-  function testCannotSetValuePerXalpacaMoreThanThreshold() external {
-    vm.expectRevert(abi.encodeWithSignature("xALPACACreditor_ValueTooHigh()"));
-
-    _creditor.setValuePerxALPACA(10000 ether);
-  }
-
-  function testCannotSetValuePerXalpacaIfNotOwner() external {
+  function testCannotSetValueSetterIfNotOwner() external {
     vm.expectRevert("Ownable: caller is not the owner");
     vm.prank(ALICE);
-    _creditor.setValuePerxALPACA(100 ether);
+    _creditor.setValueSetter(BOB);
+  }
+
+  function testCannotSetValuePerXalpacaMoreThanThreshold() external {
+    vm.expectRevert(abi.encodeWithSignature("xALPACACreditor_ValueTooHigh()"));
+    vm.prank(ALICE);
+    _creditor.setValuePerxALPACA(10000 ether);
   }
 
   function testCanSetValuePerXalpacaLessThanThreshold(uint256 _value) external {
     vm.assume(_value < 1000 ether);
+    vm.prank(ALICE);
     _creditor.setValuePerxALPACA(_value);
   }
+
+  function testCannotSetValuePerXalpacaIfNotValueSetter() external {
+    vm.expectRevert(abi.encodeWithSignature("xALPACACreditor_SenderIsNotValueSetter()"));
+    vm.prank(BOB);
+    _creditor.setValuePerxALPACA(10 ether);
+  }
+
 }
