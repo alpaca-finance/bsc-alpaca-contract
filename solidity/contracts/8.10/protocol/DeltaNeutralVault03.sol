@@ -301,9 +301,7 @@ contract DeltaNeutralVault03 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
     _transferTokenToVault(stableToken, _stableTokenAmount);
     _transferTokenToVault(assetToken, _assetTokenAmount);
 
-    // 2. call execute to do more work.
-    // Perform the actual work, using a new scope to avoid stack-too-deep errors.
-
+    // 2. deposit executor exec
     IExecutor(config.depositExecutor()).exec(_data);
 
     // 3. mint share for shareReceiver
@@ -356,6 +354,7 @@ contract DeltaNeutralVault03 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
     // mint shares equal to withdrawal fee to treasury.
     _mint(config.withdrawalFeeTreasury(), _shareAmount - _shareToWithdraw);
 
+    // withdraw executor exec
     IExecutor(config.withdrawExecutor()).exec(_data);
 
     return
@@ -432,7 +431,7 @@ contract DeltaNeutralVault03 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
       revert DeltaNeutralVault_PositionsIsHealthy();
     }
 
-    // 2. execute rebalance
+    // 2. rebalance executor exec
     IExecutor(config.rebalanceExecutor()).exec(_data);
 
     // 3. sanity check
@@ -479,7 +478,7 @@ contract DeltaNeutralVault03 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
     IERC20Upgradeable(alpacaToken).approve(address(_router), _rewardAmount);
     _router.swapExactTokensForTokens(_rewardAmount, _minTokenReceive, reinvestPath, address(this), block.timestamp);
 
-    // 4. execute reinvest
+    // 4. reinvest executor exec
     IExecutor(config.reinvestExecutor()).exec(_data);
 
     // 5. sanity check
@@ -785,28 +784,6 @@ contract DeltaNeutralVault03 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
       (_lesserPosition.stablePositionDebtValue + _lesserPosition.assetPositionDebtValue);
 
     return _lpToValue(_lpChange) - _debtChange;
-  }
-
-  /// @notice Proxy function for calling internal action.
-  /// @param _actions List of actions to execute.
-  /// @param _values Native token amount.
-  /// @param _datas The calldata to pass along for more working context.
-  function _execute(
-    uint8[] memory _actions,
-    uint256[] memory _values,
-    bytes[] memory _datas
-  ) internal {
-    if (_actions.length != _values.length || _actions.length != _datas.length) revert DeltaNeutralVault_BadActionSize();
-
-    for (uint256 i = 0; i < _actions.length; i++) {
-      uint8 _action = _actions[i];
-      if (_action == ACTION_WORK) {
-        _doWork(_datas[i]);
-      }
-      if (_action == ACTION_WRAP) {
-        IWETH(config.getWrappedNativeAddr()).deposit{ value: _values[i] }();
-      }
-    }
   }
 
   /// @notice Proxy function for calling internal action.
