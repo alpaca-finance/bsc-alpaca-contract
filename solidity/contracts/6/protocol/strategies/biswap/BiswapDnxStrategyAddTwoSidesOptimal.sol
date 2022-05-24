@@ -21,7 +21,7 @@ import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 
 import "../../interfaces/ISwapFactoryLike.sol";
 import "../../interfaces/IBiswapLiquidityPair.sol";
-import "../../interfaces/ISwapRouter02Like.sol";
+import "../../interfaces/IBiswapRouter02.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IVault.sol";
 import "../../interfaces/IWorker03.sol";
@@ -36,7 +36,7 @@ contract BiswapDnxStrategyAddTwoSidesOptimal is OwnableUpgradeSafe, ReentrancyGu
   event LogSetWorkerOk(address[] indexed workers, bool isOk);
 
   ISwapFactoryLike public factory;
-  ISwapRouter02Like public router;
+  IBiswapRouter02 public router;
   IVault public vault;
 
   mapping(address => bool) public okWorkers;
@@ -49,7 +49,7 @@ contract BiswapDnxStrategyAddTwoSidesOptimal is OwnableUpgradeSafe, ReentrancyGu
 
   /// @dev Create a new add two-side optimal strategy instance.
   /// @param _router The WaultSwap Router smart contract.
-  function initialize(ISwapRouter02Like _router, IVault _vault) external initializer {
+  function initialize(IBiswapRouter02 _router, IVault _vault) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
     factory = ISwapFactoryLike(_router.factory());
@@ -139,18 +139,19 @@ contract BiswapDnxStrategyAddTwoSidesOptimal is OwnableUpgradeSafe, ReentrancyGu
         farmingTokenReserve,
         fee
       );
+      // 4. Convert between BaseToken and farming tokens
+      address[] memory path = new address[](2);
+      (path[0], path[1]) = isReversed ? (farmingToken, baseToken) : (baseToken, farmingToken);
+      // 5. Swap according to path
+      if (swapAmt > 0) {
+        (uint256 reserveIn, uint256 reserveOut) = isReversed
+          ? (farmingTokenReserve, baseTokenReserve)
+          : (baseTokenReserve, farmingTokenReserve);
+        uint256 amountOut = router.getAmountOut(swapAmt, reserveIn, reserveOut, fee);
+        if (amountOut > 0) router.swapExactTokensForTokens(swapAmt, 0, path, address(this), now);
+      }
     }
-    // 4. Convert between BaseToken and farming tokens
-    address[] memory path = new address[](2);
-    (path[0], path[1]) = isReversed ? (farmingToken, baseToken) : (baseToken, farmingToken);
-    // 5. Swap according to path
-    if (swapAmt > 0) {
-      (uint256 reserveIn, uint256 reserveOut) = isReversed
-        ? (farmingTokenReserve, baseTokenReserve)
-        : (baseTokenReserve, farmingTokenReserve);
-      uint256 amountOut = router.getAmountOut(swapAmt, reserveIn, reserveOut);
-      if (amountOut > 0) router.swapExactTokensForTokens(swapAmt, 0, path, address(this), now);
-    }
+
     // 6. Mint more LP tokens and return all LP tokens to the sender.
     (, , uint256 moreLPAmount) = router.addLiquidity(
       baseToken,
