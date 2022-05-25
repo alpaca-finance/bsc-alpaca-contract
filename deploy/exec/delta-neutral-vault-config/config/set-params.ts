@@ -8,6 +8,7 @@ import { DeltaNeutralVaultConfig__factory } from "../../../../typechain";
 import { Multicall2Service } from "../../../services/multicall/multicall2";
 import { BigNumber, BigNumberish } from "ethers";
 import { compare } from "../../../../utils/address";
+import { getDeployer } from "../../../../utils/deployer-helper";
 
 interface SetParamsInput {
   VAULT_SYMBOL: string;
@@ -56,7 +57,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const config = getConfig();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
-  const deployer = (await ethers.getSigners())[0];
+  const deployer = await getDeployer();
   const multicallService = new Multicall2Service(config.MultiCall, deployer);
   let nonce = await deployer.getTransactionCount();
   const ts = Math.floor(Date.now() / 1000);

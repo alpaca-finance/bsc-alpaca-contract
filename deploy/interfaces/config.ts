@@ -15,8 +15,19 @@ export interface Config {
   Oracle: Oracle;
   Vaults: VaultsEntity[];
   DeltaNeutralVaults: DeltaNeutralVaultsEntity[];
+  AutomatedVaultController?: AutomateVaultController;
+  Creditors?: Creditor[];
 }
 
+export interface AutomateVaultController {
+  address: string;
+  creditors: string[];
+}
+
+export interface Creditor {
+  name: string;
+  address: string;
+}
 export interface MerkleDistributor {
   "ITAM-week-1": string;
   "ITAM-week-2": string;
