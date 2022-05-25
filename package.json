@@ -417,6 +417,7 @@
     "forge:test": "forge test",
     "forge:watch": "forge test -w",
     "test:xalpaca-creditor": "forge test --match-path solidity/tests/protocol/private-automated-vault/xALPACACreditor.t.sol",
+    "test:xalpaca-price-setter": "forge test --match-path solidity/tests/protocol/private-automated-vault/xALPACAPriceSetter.t.sol",
     "test:av-controller": "forge test --match-path solidity/tests/protocol/private-automated-vault/AutomatedVaultController.t.sol",
     "test:delta02": "forge test --match-path solidity/tests/protocol/private-automated-vault/DeltaNeutralVault02.t.sol"
   },
