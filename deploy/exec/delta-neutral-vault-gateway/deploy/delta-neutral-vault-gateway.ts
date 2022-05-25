@@ -8,11 +8,13 @@ import { ConfigFileHelper } from "../../../helper";
 
 interface IDeltaVaultInput {
   name: string;
+  swapRouterAddress: string;
 }
 
 interface IDeltaVaultInfo {
   name: string;
   address: string;
+  swapRouterAddress: string;
   deltaVaultConfig: string;
 }
 
@@ -35,7 +37,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   // prepare
   const deltaVaultInputs: IDeltaVaultInput[] = [
     {
-      name: "Long 3x BUSD-BTCB PCS1",
+      name: "Long 3x BUSD-BTCB PCS2",
+      swapRouterAddress: config.YieldSources.PancakeswapMasterChefV2!.RouterV2,
     },
   ];
 
@@ -47,6 +50,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     return {
       name: deltaVaultInfo.name,
       address: deltaVaultInfo.address,
+      swapRouterAddress: input.swapRouterAddress,
       deltaVaultConfig: deltaVaultInfo.config,
     };
   });
@@ -59,7 +63,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       deltaVaultInputs[i].name
     );
 
-    const { contract: deltaNeutralVaultGateway } = await deltaVaultGWDeployer.deploy([deltaVaultInfo.address]);
+    const { contract: deltaNeutralVaultGateway } = await deltaVaultGWDeployer.deploy([
+      deltaVaultInfo.address,
+      deltaVaultInfo.swapRouterAddress,
+    ]);
 
     console.log(`>> Setting DeltaNeutralConfig's WhitelistCallers for DeltaNeutralVaultGateway`);
     const deltaNeutralVaultConfig = DeltaNeutralVaultConfig__factory.connect(deltaVaultInfo.deltaVaultConfig, deployer);
