@@ -6,6 +6,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, upgrades } from "hardhat";
 import { getDeployer } from "../../../../utils/deployer-helper";
 import { ConfigFileHelper } from "../../../helper";
+import { UpgradeableContractDeployer } from "../../../deployer";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -28,12 +29,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   console.log(">> Deploying an upgradable XALPACACreditor contract");
 
-  const XALPACACreditor = (await ethers.getContractFactory("xALPACACreditor", deployer)) as XALPACACreditor__factory;
-  const xalpacaCreditor = (await upgrades.deployProxy(XALPACACreditor, [
-    XALPACA_ADDRESS,
-    VALUE_PER_XALPACA,
-  ])) as XALPACACreditor;
-  console.log(`>> Deployed at ${xalpacaCreditor.address}`);
+  const xalpacaCreditorDeployer = new UpgradeableContractDeployer<XALPACACreditor>(deployer, "xALPACACreditor");
+
+  const { contract: xalpacaCreditor } = await xalpacaCreditorDeployer.deploy([XALPACA_ADDRESS, VALUE_PER_XALPACA]);
 
   const configFile = new ConfigFileHelper();
 

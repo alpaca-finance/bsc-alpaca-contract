@@ -1,8 +1,9 @@
+import { BigNumber } from "@ethersproject/bignumber";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers, upgrades } from "hardhat";
 import { Contract } from "ethers";
 
-type ParamData = string | number | string[] | undefined;
+type ParamData = string | number | string[] | BigNumber | undefined;
 
 interface DeployResponse<C> {
   contract: C;

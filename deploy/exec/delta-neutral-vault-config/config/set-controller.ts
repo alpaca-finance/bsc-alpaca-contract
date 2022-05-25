@@ -3,7 +3,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { getConfig } from "../../../entities/config";
 import { getDeployer, isFork } from "../../../../utils/deployer-helper";
 import { DeltaNeutralVaultConfig02__factory } from "../../../../typechain";
-import { compare } from "../../../../utils/address";
+import { Converter } from "../../../helper";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -23,13 +23,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const CONTROLLER = config.AutomatedVaultController!.address;
 
   // VALIDATING ALL DLTA_VAULT_SYMBOL
-  const configs = DELTA_VAULT_SYMBOL.map((inputVaultSymbol) => {
-    const deltaVaultConfig = config.DeltaNeutralVaults.find((o) => compare(o.symbol, inputVaultSymbol));
-    if (!deltaVaultConfig) {
-      throw new Error(`ERROR : DELTA_VAULT_SYMBOL is INVALID : ${inputVaultSymbol}`);
-    }
-    return deltaVaultConfig.config;
-  });
+  const converter = new Converter();
+  const configs = converter.convertDeltaSymbolToAddress(DELTA_VAULT_SYMBOL, "config");
 
   console.log(">> Set controller to DeltaNeutralVaultConfig contract");
   let nonce = await deployer.getTransactionCount();
