@@ -22,13 +22,16 @@ import { ITWAPOracle } from "./interfaces/ITWAPOracle.sol";
 contract xALPACAPriceSetter is OwnableUpgradeable {
   // --- Events ---
   event LogSetValueFromTWAP(address indexed _caller, uint256 _xALPACAValue);
+  event LogSetPriceSetter(address indexed _caller, address indexed _priceSetter);
 
   // --- Errors ---
+  error xALPACAPriceSetter_Unauthorize();
 
   // --- States ---
   IxALPACACreditor public xALPACACreditor;
   ITWAPOracle public TWAPOracle;
   address public alpaca;
+  address public priceSetter;
   
   /// @notice Initialize xALPACAPriceSetter
   /// @param _xALPACACreditor xALPACreditor
@@ -42,8 +45,17 @@ contract xALPACAPriceSetter is OwnableUpgradeable {
     alpaca = _alpaca;
   }
 
+  function setPriceSetter(address _priceSetter) external onlyOwner {
+    priceSetter = _priceSetter;
+    emit LogSetPriceSetter(msg.sender, _priceSetter);
+  }
+
   /// @notice Set ALPACA Value (TWAP) as xALPACA Value
-  function setValueFromTWAP() external onlyOwner {
+  function setValueFromTWAP() external {
+    if (msg.sender != priceSetter) {
+      revert xALPACAPriceSetter_Unauthorize();
+    }
+
     uint256 _xALPACAValue = TWAPOracle.getPrice(alpaca);
     xALPACACreditor.setValuePerxALPACA(_xALPACAValue);
 

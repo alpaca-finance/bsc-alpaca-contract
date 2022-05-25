@@ -28,16 +28,24 @@ contract xAlpacaPriceSetter_Test is BaseTest {
     _setter = _setupxALPACAPriceSetter(address(_creditor), address(_twapOracle), _alpacaAddress);
 
     _creditor.setValueSetter(address(_setter));
+    _setter.setPriceSetter(ALICE);
   }
 
   function testCorrectness_afterSetValueFromTWAP() external {
+    vm.prank(ALICE);
     _setter.setValueFromTWAP();
     assertEq(_creditor.valuePerxALPACA(), 2 ether);
   }
 
-  function testCannotSetValueFromTWAP() external {
+  function testCannotSetPriceSetter() external {
     vm.expectRevert("Ownable: caller is not the owner");
     vm.prank(ALICE);
+    _setter.setPriceSetter(ALICE);
+  }
+
+  function testCannotSetValueFromTWAP() external {
+    vm.expectRevert(abi.encodeWithSignature("xALPACAPriceSetter_Unauthorize()"));
+    vm.prank(BOB);
     _setter.setValueFromTWAP();
   }
 }
