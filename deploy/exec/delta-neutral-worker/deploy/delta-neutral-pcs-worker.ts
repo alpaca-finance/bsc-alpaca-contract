@@ -75,7 +75,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const shortWorkerInfos: IDeltaNeutralPCSWorkerInput[] = [
     {
       VAULT_SYMBOL: "ibBTCB",
-      WORKER_NAME: "BUSD-BTCB L3x PCS1 DeltaNeutralPancakeswapWorker",
+      WORKER_NAME: "BUSD-BTCB L3x PCS2 DeltaNeutralPancakeswapWorker",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
       POOL_ID: 36,
       REINVEST_BOUNTY_BPS: "1500",
@@ -92,7 +92,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     },
     {
       VAULT_SYMBOL: "ibBUSD",
-      WORKER_NAME: "BTCB-BUSD L3x PCS1 DeltaNeutralPancakeswapWorker",
+      WORKER_NAME: "BTCB-BUSD L3x PCS2 DeltaNeutralPancakeswapWorker",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
       POOL_ID: 36,
       REINVEST_BOUNTY_BPS: "1500",
@@ -108,8 +108,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       MAX_PRICE_DIFF: "10500",
     },
   ];
-  const TITLE = "mainnet_L3x_busdbtcb_pcs1_worker";
-  const EXACT_ETA = "1652173200";
+  const TITLE = "mainnet_L3x_busdbtcb_pcs2_worker";
+  const EXACT_ETA = "1653368400";
 
   const deployer = (await ethers.getSigners())[0];
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
