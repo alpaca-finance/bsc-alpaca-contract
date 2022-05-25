@@ -4,7 +4,7 @@ import { ethers } from "hardhat";
 import { TimelockEntity } from "../../../entities";
 import { fileService, TimelockService } from "../../../services";
 import { getConfig } from "../../../entities/config";
-import { DeltaNeutralVaultConfig02__factory, DeltaNeutralVaultConfig__factory } from "../../../../typechain";
+import { DeltaNeutralVaultConfig__factory } from "../../../../typechain";
 import { Multicall2Service } from "../../../services/multicall/multicall2";
 import { BigNumber, BigNumberish } from "ethers";
 import { compare } from "../../../../utils/address";
@@ -44,10 +44,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const TITLTE = "update_rebalance_factor";
   const NEW_PARAMS: Array<SetParamsInput> = [
     {
-      VAULT_SYMBOL: "n8x-BNBUSDT-PCS2",
-      REBALANCE_FACTOR: "9000",
-      DEBT_RATIO_TOLERANCE: "30",
-      POSITION_VALUE_TOLERANCE: "120",
+      VAULT_SYMBOL: "n3x-BNBUSDT-PCS1",
+      REBALANCE_FACTOR: "6669",
+      EXACT_ETA: "1651984200",
+    },
+    {
+      VAULT_SYMBOL: "n8x-BNBUSDT-PCS1",
+      REBALANCE_FACTOR: "8750",
       EXACT_ETA: "1651984200",
     },
   ];
@@ -65,7 +68,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       const automatedVault = config.DeltaNeutralVaults.find((v) => v.symbol === n.VAULT_SYMBOL);
       if (automatedVault === undefined) throw new Error(`error: unable to map ${n.VAULT_SYMBOL} to any vault`);
 
-      const vaultConfig = DeltaNeutralVaultConfig02__factory.connect(automatedVault.config, deployer);
+      const vaultConfig = DeltaNeutralVaultConfig__factory.connect(automatedVault.config, deployer);
       const [
         owner,
         wrappedNative,
@@ -134,7 +137,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       console.log(`> Apply set params for ${info.VAULT_SYMBOL}`);
       console.log(`> params:`);
       console.log(info);
-      const vaultConfig = DeltaNeutralVaultConfig02__factory.connect(info.VAULT_CONFIG, deployer);
+      const vaultConfig = DeltaNeutralVaultConfig__factory.connect(info.VAULT_CONFIG, deployer);
       const setParamsTx = await vaultConfig.setParams(
         info.WRAPPED_NATIVE_ADDRESS,
         info.WNATIVE_RELAYER_ADDRESS,
