@@ -26,7 +26,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const configs = DELTA_VAULT_SYMBOL.map((inputVaultSymbol) => {
     const deltaVaultConfig = config.DeltaNeutralVaults.find((o) => compare(o.symbol, inputVaultSymbol));
     if (!deltaVaultConfig) {
-      throw new Error(`ERROR : DLTA_VAULT_SYMBOL is INVALID : ${inputVaultSymbol}`);
+      throw new Error(`ERROR : DELTA_VAULT_SYMBOL is INVALID : ${inputVaultSymbol}`);
     }
     return deltaVaultConfig.config;
   });
