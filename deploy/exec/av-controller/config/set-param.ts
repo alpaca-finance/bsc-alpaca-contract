@@ -5,8 +5,6 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { getDeployer, isFork } from "../../../../utils/deployer-helper";
 import { getConfig } from "../../../entities/config";
-import { compare } from "../../../../utils/address";
-import { Config } from "../../../interfaces/config";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
