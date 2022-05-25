@@ -37,6 +37,7 @@ contract DeltaNeutralVaultGateway is ReentrancyGuardUpgradeable, OwnableUpgradea
     uint256 _minWithdrawAssetTokenAmount
   );
   event LogTransfer(address _token, address _to, uint256 _amount);
+  event LogSetRouter(address indexed _caller, address _router);
 
   /// @dev Errors
   error DeltaNeutralVaultGateway_ReturnBpsExceed(uint64 _stableReturnBps);
@@ -51,13 +52,18 @@ contract DeltaNeutralVaultGateway is ReentrancyGuardUpgradeable, OwnableUpgradea
   /// @dev constants
   uint64 private constant MAX_BPS = 10000;
 
-  IDeltaNeutralVault deltaNeutralVault;
+  IDeltaNeutralVault public deltaNeutralVault;
+  ISwapRouter public router;
 
-  function initialize(address _deltaNeutralVault) external initializer {
+  function initialize(address _deltaNeutralVault, ISwapRouter _router) external initializer {
+    // sanity check
+    _router.factory();
+
     OwnableUpgradeable.__Ownable_init();
     ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
 
     deltaNeutralVault = IDeltaNeutralVault(_deltaNeutralVault);
+    router = _router;
   }
 
   /// @notice Withdraw from delta neutral vault.
@@ -212,7 +218,6 @@ contract DeltaNeutralVaultGateway is ReentrancyGuardUpgradeable, OwnableUpgradea
   /// @param _swapAmount token amount to swap.
   function _swap(address _token, uint256 _swapAmount) internal {
     IDeltaNeutralVaultConfig config = IDeltaNeutralVaultConfig(deltaNeutralVault.config());
-    ISwapRouter _router = ISwapRouter(config.getSwapRouter());
 
     address _stableToken = deltaNeutralVault.stableToken();
     address _assetToken = deltaNeutralVault.assetToken();
@@ -226,16 +231,16 @@ contract DeltaNeutralVaultGateway is ReentrancyGuardUpgradeable, OwnableUpgradea
 
     if (_token0 == _nativeToken || _token1 == _nativeToken) {
       if (_token0 == _nativeToken) {
-        _router.swapExactETHForTokens{ value: _swapAmount }(0, _path, address(this), block.timestamp);
+        router.swapExactETHForTokens{ value: _swapAmount }(0, _path, address(this), block.timestamp);
       } else {
-        IERC20Upgradeable(_token).approve(address(_router), _swapAmount);
+        IERC20Upgradeable(_token).approve(address(router), _swapAmount);
 
-        _router.swapExactTokensForETH(_swapAmount, 0, _path, address(this), block.timestamp);
+        router.swapExactTokensForETH(_swapAmount, 0, _path, address(this), block.timestamp);
       }
     } else {
-      IERC20Upgradeable(_token).approve(address(_router), _swapAmount);
+      IERC20Upgradeable(_token).approve(address(router), _swapAmount);
 
-      _router.swapExactTokensForTokens(_swapAmount, 0, _path, address(this), block.timestamp);
+      router.swapExactTokensForTokens(_swapAmount, 0, _path, address(this), block.timestamp);
     }
   }
 
@@ -255,6 +260,17 @@ contract DeltaNeutralVaultGateway is ReentrancyGuardUpgradeable, OwnableUpgradea
     }
 
     emit LogTransfer(_token, _to, _amount);
+  }
+
+  /// @notice Set new router address.
+  /// @param _newRouter router address.
+  function setRouter(ISwapRouter _newRouter) external onlyOwner {
+    // sanity check
+    _newRouter.factory();
+
+    router = _newRouter;
+
+    emit LogSetRouter(msg.sender, address(_newRouter));
   }
 
   /// @dev Fallback function to accept BNB.

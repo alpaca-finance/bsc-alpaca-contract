@@ -1,12 +1,17 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
-import { PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory } from "../../../../typechain";
+import {
+  ConfigurableInterestVaultConfig__factory,
+  PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory,
+  WorkerConfig__factory,
+} from "../../../../typechain";
 import { ConfigEntity, TimelockEntity } from "../../../entities";
 import { UpgradeableContractDeployer } from "../../../deployer";
 import { fileService, TimelockService } from "../../../services";
 import { ConfigFileHelper } from "../../../helper";
 import { WorkersEntity } from "../../../interfaces/config";
+import { compare } from "../../../../utils/address";
 
 interface IBeneficialVaultInput {
   BENEFICIAL_VAULT_BPS: string;
@@ -67,8 +72,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
   const executeFileTitle = "tinc-wbnb-pool";
-  const timelockTransactions: Array<TimelockEntity.Transaction> = [];
-  
   const shortWorkerInfos: IPancakeswapWorkerInput[] = [
     {
       VAULT_SYMBOL: "ibWBNB",
@@ -92,6 +95,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const [deployer] = await ethers.getSigners();
   const configFileHelper = new ConfigFileHelper();
+  const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   let config = ConfigEntity.getConfig();
 
   const workerInfos: IPancakeswapWorkerInfo[] = shortWorkerInfos.map((n) => {
@@ -147,8 +151,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       EXACT_ETA: n.EXACT_ETA,
     };
   });
-  const timelockTransactions: Array<TimelockEntity.Transaction> = [];
-  const timestamp = Math.floor(Date.now() / 1000);
 
   for (let i = 0; i < workerInfos.length; i++) {
     const pancakeswapV2Worker02MCv2Deployer = new UpgradeableContractDeployer(
@@ -211,11 +213,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const workerConfig = WorkerConfig__factory.connect(workerInfos[i].WORKER_CONFIG_ADDR, deployer);
     const vaultConfig = ConfigurableInterestVaultConfig__factory.connect(workerInfos[i].VAULT_CONFIG_ADDR, deployer);
 
-    const timelock = Timelock__factory.connect(workerInfos[i].TIMELOCK, deployer);
-
     const [workerOwnerAddress, vaultOwnerAddress] = await Promise.all([workerConfig.owner(), vaultConfig.owner()]);
 
-    if (compare(workerOwnerAddress, timelock.address)) {
+    if (compare(workerOwnerAddress, config.Timelock)) {
       const setConfigsTx = await TimelockService.queueTransaction(
         `>> Queue tx on Timelock Setting WorkerConfig via Timelock at ${workerInfos[i].WORKER_CONFIG_ADDR} for ${pancakeswapV2Worker02.address} ETA ${workerInfos[i].EXACT_ETA}`,
         workerInfos[i].WORKER_CONFIG_ADDR,
@@ -258,7 +258,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       console.log("✅ Done");
     }
 
-    if (compare(vaultOwnerAddress, timelock.address)) {
+    if (compare(vaultOwnerAddress, config.Timelock)) {
       const setWorkersTx = await TimelockService.queueTransaction(
         `>> Queue tx on Timelock Linking VaultConfig with WorkerConfig via Timelock for ${workerInfos[i].VAULT_CONFIG_ADDR}`,
         workerInfos[i].VAULT_CONFIG_ADDR,

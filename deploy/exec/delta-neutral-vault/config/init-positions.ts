@@ -12,6 +12,7 @@ import { getDeployer } from "../../../../utils/deployer-helper";
 import { ConfigFileHelper } from "../../../helper";
 import { formatEther } from "ethers/lib/utils";
 
+// WARING: this version is deprecated, please use init-positions-v2
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
       ░██╗░░░░░░░██╗░█████╗░██████╗░███╗░░██╗██╗███╗░░██╗░██████╗░
@@ -68,12 +69,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const initPositionInputs: IInitPositionInputs[] = [
     {
-      symbol: "n3x-FTMUSDC-SPK2",
-      stableVaultSymbol: "ibUSDC",
-      assetVaultSymbol: "ibFTM",
-      stableSymbol: "USDC",
-      assetSymbol: "WFTM",
-      stableAmount: "300",
+      symbol: "L3x-BUSDBTCB-PCS2",
+      stableVaultSymbol: "ibUSDT",
+      assetVaultSymbol: "ibETH",
+      stableSymbol: "USDT",
+      assetSymbol: "ETH",
+      stableAmount: "300", // stable token amount to open the positions
       leverage: 3,
     },
   ];

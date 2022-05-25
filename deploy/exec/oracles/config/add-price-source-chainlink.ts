@@ -14,9 +14,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TOKEN0_SYMBOLS = ["WBNB"];
-  const TOKEN1_SYMBOLS = ["BUSD"];
-  const AGGREGATORV3S = ["0x87Ea38c9F24264Ec1Fff41B04ec94a97Caf99941"];
+  const TOKEN0_SYMBOLS = ["BTCB"];
+  const TOKEN1_SYMBOLS = ["USD"];
+  const AGGREGATORV3S = ["0x264990fbd0A4796A3E3d8E37C4d5F87a3aCa5Ebf"];
 
   const config = getConfig();
   const tokenList: any = config.Tokens;

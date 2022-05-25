@@ -24,8 +24,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   let config = configFileHelper.getConfig();
 
   // use to write config file
-  const DELTA_VAULT_SYMBOL = "n3x-FTMUSDC-SPK2";
-  const REBALANCE_FACTOR = "6800";
+  const DELTA_VAULT_SYMBOL = "L3x-BUSDBTCB-PCS2";
+  const REBALANCE_FACTOR = "7000";
   const POSITION_VALUE_TOLERANCE_BPS = "100";
   const DEBT_RATIO_TOLERANCE_BPS = "30";
   const ALPACA_REINVEST_FEE_TREASURY = "0x417D3e491cbAaD07B2433781e50Bc6Cd09641BC0";
@@ -33,19 +33,19 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const LEVERAGE_LEVEL = 3;
   const WHITELIST_REBALANCE = ["0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De"];
   const WHITELIST_REINVEST = ["0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De"];
-  const REINVEST_PATH = ["ALPACA", "WFTM"];
-  const SWAP_ROUTER_ADDR = config.YieldSources.SpookySwap!.SpookyRouter;
-  const VALUE_LIMIT = "2000000";
+  const REINVEST_PATH = ["ALPACA", "BUSD"];
+  const SWAP_ROUTER_ADDR = config.YieldSources.Pancakeswap!.RouterV2;
+  const VALUE_LIMIT = "5000000";
   const DEPOSIT_FEE_TREASURY = "0x417D3e491cbAaD07B2433781e50Bc6Cd09641BC0";
   const DEPOSIT_FEE_BPS = "0";
   const WITHDRAWAL_FEE_TREASURY = "0x417D3e491cbAaD07B2433781e50Bc6Cd09641BC0";
   const WITHDRAWAL_FEE_BPS = "20";
   const MANAGEMENT_TREASURY = "0x7E2308437c2f4C8934214663dc8476037625a270";
   const MANAGEMENT_FEE_PER_SEC = "634195840";
-  const ALPACA_BENEFICIARY = "0xe32840F950F709148fdB9Ff22712083Ac40033A0";
+  const ALPACA_BENEFICIARY = "0x44B3868cbba5fbd2c5D8d1445BDB14458806B3B4";
   const ALPACA_BENEFICIARY_FEE_BPS = "5333";
-  const FAIR_LAUNCH_ADDR = config.MiniFL!.address;
-  const WRAP_NATIVE_ADDR = config.Tokens.WFTM;
+  const FAIR_LAUNCH_ADDR = config.FairLaunch!.address;
+  const WRAP_NATIVE_ADDR = config.Tokens.WBNB;
   const WNATIVE_RELAYER = config.SharedConfig.WNativeRelayer;
 
   const alpacaTokenAddress = config.Tokens.ALPACA;

@@ -1,19 +1,16 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers, network, upgrades } from "hardhat";
+import { ethers, network } from "hardhat";
 import {
   DeltaNeutralPancakeWorker02,
-  DeltaNeutralPancakeWorker02__factory,
   PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory,
-  PancakeswapV2RestrictedStrategyAddTwoSidesOptimal__factory,
-  PancakeswapV2RestrictedStrategyLiquidate__factory,
-  PancakeswapV2RestrictedStrategyPartialCloseLiquidate__factory,
-  PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading__factory,
-  PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading__factory,
 } from "../../../../typechain";
 import { ConfigEntity, TimelockEntity } from "../../../entities";
 import { fileService, TimelockService } from "../../../services";
 import { BlockScanGasPrice } from "../../../services/gas-price/blockscan";
+import { UpgradeableContractDeployer } from "../../../deployer";
+import { WorkersEntity } from "../../../interfaces/config";
+import { ConfigFileHelper } from "../../../helper";
 
 interface IBeneficialVaultInput {
   BENEFICIAL_VAULT_BPS: string;
@@ -24,7 +21,6 @@ interface IBeneficialVaultInput {
 interface IDeltaNeutralPCSWorkerInput {
   VAULT_SYMBOL: string;
   WORKER_NAME: string;
-  TREASURY_ADDRESS: string;
   REINVEST_BOT: string;
   POOL_ID: number;
   REINVEST_BOUNTY_BPS: string;
@@ -73,17 +69,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
     Check all variables below before execute the deployment script
   */
-  const config = ConfigEntity.getConfig();
+  const configFileHelper = new ConfigFileHelper();
+  let config = ConfigEntity.getConfig();
 
   const shortWorkerInfos: IDeltaNeutralPCSWorkerInput[] = [
     {
-      VAULT_SYMBOL: "ibWBNB",
-      WORKER_NAME: "BUSD-WBNB 3x PCS2 DeltaNeutralPancakeswapWorker",
-      TREASURY_ADDRESS: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
+      VAULT_SYMBOL: "ibBTCB",
+      WORKER_NAME: "BUSD-BTCB L3x PCS2 DeltaNeutralPancakeswapWorker",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 3,
+      POOL_ID: 36,
       REINVEST_BOUNTY_BPS: "1500",
-      REINVEST_PATH: ["CAKE", "WBNB"],
+      REINVEST_PATH: ["CAKE", "WBNB", "BTCB"],
       REINVEST_THRESHOLD: "0",
       BENEFICIAL_VAULT: {
         BENEFICIAL_VAULT_BPS: "5333",
@@ -96,10 +92,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     },
     {
       VAULT_SYMBOL: "ibBUSD",
-      WORKER_NAME: "WBNB-BUSD 3x PCS2 DeltaNeutralPancakeswapWorker",
-      TREASURY_ADDRESS: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
+      WORKER_NAME: "BTCB-BUSD L3x PCS2 DeltaNeutralPancakeswapWorker",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 3,
+      POOL_ID: 36,
       REINVEST_BOUNTY_BPS: "1500",
       REINVEST_PATH: ["CAKE", "BUSD"],
       REINVEST_THRESHOLD: "0",
@@ -113,11 +108,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       MAX_PRICE_DIFF: "10500",
     },
   ];
-  const TITLE = "mainnet_n3x_wbnbbusd_pcs2_worker";
-  const EXACT_ETA = "1650875400";
+  const TITLE = "mainnet_L3x_busdbtcb_pcs2_worker";
+  const EXACT_ETA = "1653368400";
 
   const deployer = (await ethers.getSigners())[0];
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
+  const ts = Math.floor(Date.now() / 1000);
   const gasPriceService = new BlockScanGasPrice(network.name);
   const gasPrice = await gasPriceService.getFastGasPrice();
   const workerInfos: IDeltaNeutralPCSWorkerInfo[] = shortWorkerInfos.map((n) => {
@@ -174,16 +170,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     };
   });
   for (let i = 0; i < workerInfos.length; i++) {
-    console.log("===================================================================================");
-    console.log(
-      `>> Deploying an upgradable DeltaNeutralPancakeMCV2Worker02 contract for ${workerInfos[i].WORKER_NAME}`
-    );
-    const DeltaNeutralPancakeWorker02 = (await ethers.getContractFactory(
+    const deltaNeutralWorkerDeployer = new UpgradeableContractDeployer<DeltaNeutralPancakeWorker02>(
+      deployer,
       "DeltaNeutralPancakeMCV2Worker02",
-      deployer
-    )) as DeltaNeutralPancakeWorker02__factory;
-
-    const deltaNeutralWorker = (await upgrades.deployProxy(DeltaNeutralPancakeWorker02, [
+      workerInfos[i].WORKER_NAME
+    );
+    const { contract: deltaNeutralWorker, deployedBlock } = await deltaNeutralWorkerDeployer.deploy([
       workerInfos[i].VAULT_ADDR,
       workerInfos[i].BASE_TOKEN_ADDR,
       workerInfos[i].MASTER_CHEF,
@@ -195,10 +187,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       workerInfos[i].REINVEST_PATH,
       workerInfos[i].REINVEST_THRESHOLD,
       workerInfos[i].DELTA_NEUTRAL_ORACLE,
-    ])) as DeltaNeutralPancakeWorker02;
-    const deployTxReceipt = await deltaNeutralWorker.deployTransaction.wait(3);
-    console.log(`>> Deployed at ${deltaNeutralWorker.address}`);
-    console.log(`>> Deployed block: ${deployTxReceipt.blockNumber}`);
+    ]);
 
     let nonce = await deployer.getTransactionCount();
 
@@ -218,52 +207,19 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       workerInfos[i].LIQ_STRAT_ADDR,
       workerInfos[i].TWO_SIDES_STRAT_ADDR,
       workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR,
+      workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR,
+      workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR,
     ];
-    if (workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR != "") {
-      okStrats.push(workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR);
-    }
-    if (workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR != "") {
-      okStrats.push(workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR);
-    }
 
     await deltaNeutralWorker.setStrategyOk(okStrats, true, { gasPrice, nonce: nonce++ });
     console.log("✅ Done");
 
     console.log(`>> Whitelisting a worker on strats`);
-    const addStrat = PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory.connect(
-      workerInfos[i].ADD_STRAT_ADDR,
-      deployer
-    );
-    await addStrat.setWorkersOk([deltaNeutralWorker.address], true, { gasPrice, nonce: nonce++ });
-    const liqStrat = PancakeswapV2RestrictedStrategyLiquidate__factory.connect(workerInfos[i].LIQ_STRAT_ADDR, deployer);
-    await liqStrat.setWorkersOk([deltaNeutralWorker.address], true, { gasPrice, nonce: nonce++ });
-    const twoSidesStrat = PancakeswapV2RestrictedStrategyAddTwoSidesOptimal__factory.connect(
-      workerInfos[i].TWO_SIDES_STRAT_ADDR,
-      deployer
-    );
-    await twoSidesStrat.setWorkersOk([deltaNeutralWorker.address], true, { gasPrice, nonce: nonce++ });
-    const minimizeStrat = PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading__factory.connect(
-      workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR,
-      deployer
-    );
-    await minimizeStrat.setWorkersOk([deltaNeutralWorker.address], true, { gasPrice, nonce: nonce++ });
-
-    if (workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR != "") {
-      console.log(">> partial close liquidate is deployed");
-      const partialCloseLiquidate = PancakeswapV2RestrictedStrategyPartialCloseLiquidate__factory.connect(
-        workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR,
-        deployer
-      );
-      await partialCloseLiquidate.setWorkersOk([deltaNeutralWorker.address], true, { gasPrice, nonce: nonce++ });
-    }
-
-    if (workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR != "") {
-      console.log(">> partial close minimize is deployed");
-      const partialCloseMinimize = PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading__factory.connect(
-        workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR,
-        deployer
-      );
-      await partialCloseMinimize.setWorkersOk([deltaNeutralWorker.address], true, { gasPrice, nonce: nonce++ });
+    const allOkStrats = [workerInfos[i].ADD_STRAT_ADDR, ...okStrats];
+    for (let idx = 0; idx < allOkStrats.length; idx++) {
+      const stratAddress = allOkStrats[idx];
+      const contractFactory = PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory.connect(stratAddress, deployer);
+      await contractFactory.setWorkersOk([deltaNeutralWorker.address], true, { nonce: nonce++ });
     }
     console.log("✅ Done");
 
@@ -275,6 +231,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         workerInfos[i].BENEFICIAL_VAULT!.REWARD_PATH,
         { gasPrice, nonce: nonce++ }
       );
+      console.log("✅ Done");
     }
 
     console.log(">> Timelock");
@@ -301,6 +258,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       )
     );
     console.log("✅ Done");
+    fileService.writeJson(`${ts}_${TITLE}`, timelockTransactions);
 
     timelockTransactions.push(
       await TimelockService.queueTransaction(
@@ -315,10 +273,33 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       )
     );
     console.log("✅ Done");
-  }
+    fileService.writeJson(`${ts}_${TITLE}`, timelockTransactions);
 
-  const ts = Math.floor(Date.now() / 1000);
-  fileService.writeJson(`${ts}_${TITLE}`, timelockTransactions);
+    // update config file
+    const lpPoolAddress = config.YieldSources.PancakeswapMasterChefV2!.pools.find(
+      (pool) => pool.pId === workerInfos[i].POOL_ID
+    )!.address;
+
+    const pcsWorkersEntity: WorkersEntity = {
+      name: workerInfos[i].WORKER_NAME,
+      address: deltaNeutralWorker.address,
+      deployedBlock,
+      config: workerInfos[i].WORKER_CONFIG_ADDR,
+      pId: workerInfos[i].POOL_ID,
+      stakingToken: lpPoolAddress,
+      stakingTokenAt: workerInfos[i].MASTER_CHEF,
+      strategies: {
+        StrategyAddAllBaseToken: workerInfos[i].ADD_STRAT_ADDR,
+        StrategyLiquidate: workerInfos[i].LIQ_STRAT_ADDR,
+        StrategyAddTwoSidesOptimal: workerInfos[i].TWO_SIDES_STRAT_ADDR,
+        StrategyWithdrawMinimizeTrading: workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR,
+        StrategyPartialCloseLiquidate: workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR,
+        StrategyPartialCloseMinimizeTrading: workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR,
+      },
+    };
+
+    config = configFileHelper.addOrSetVaultWorker(workerInfos[i].VAULT_ADDR, pcsWorkersEntity);
+  }
 };
 
 export default func;
