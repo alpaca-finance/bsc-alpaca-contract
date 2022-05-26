@@ -22,13 +22,16 @@ import { ICreditor } from "./interfaces/ICreditor.sol";
 contract xALPACACreditor is OwnableUpgradeable, ICreditor {
   // --- Events ---
   event LogSetValuePerxALPACA(address indexed _caller, uint256 _oldValuePerxALPACA, uint256 _newValuePerxALPACA);
+  event LogSetValueSetter(address indexed _caller, address indexed _valueSetter);
 
   // --- Errors ---
   error xALPACACreditor_ValueTooHigh();
+  error xALPACACreditor_Unauthorize();
 
   // --- States ---
   IxALPACA public xALPACA;
   uint256 public valuePerxALPACA;
+  address public valueSetter;
 
   /// @notice Initialize xALPACACreditor
   /// @param _xALPACA xALPACA.
@@ -49,9 +52,18 @@ contract xALPACACreditor is OwnableUpgradeable, ICreditor {
     return (xALPACA.balanceOf(_user) * valuePerxALPACA) / 1e18;
   }
 
+  /// @notice set the value setter
+  function setValueSetter(address _newValueSetter) external onlyOwner {
+    valueSetter = _newValueSetter;
+    emit LogSetValueSetter(msg.sender, _newValueSetter);
+  }
+
   /// @notice Set the value per xALPACA
   /// @param _newValuePerxALPACA new value to be set.
-  function setValuePerxALPACA(uint256 _newValuePerxALPACA) external onlyOwner {
+  function setValuePerxALPACA(uint256 _newValuePerxALPACA) external {
+    if (msg.sender != valueSetter) {
+      revert xALPACACreditor_Unauthorize();
+    }
     if (_newValuePerxALPACA > 1000 * 1e18) {
       revert xALPACACreditor_ValueTooHigh();
     }

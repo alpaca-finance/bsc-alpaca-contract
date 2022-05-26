@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL
 /**
   ∩~~~~∩ 
   ξ ･×･ ξ 
@@ -11,9 +11,9 @@
 Alpaca Fin Corporation
 */
 
-pragma solidity >=0.8.4 <0.9.0;
+pragma solidity 0.8.13;
 
-interface xALPACACreditorLike {
+interface IxALPACACreditor {
   function getUserCredit(address _user) external view returns (uint256);
 
   function setValuePerxALPACA(uint256 _newValuePerxALPACA) external;

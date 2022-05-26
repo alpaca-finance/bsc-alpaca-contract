@@ -16,6 +16,7 @@ import { DebtTokenLike } from "../interfaces/DebtTokenLike.sol";
 import { SimpleVaultConfigLike } from "../interfaces/SimpleVaultConfigLike.sol";
 import { VaultLike } from "../interfaces/VaultLike.sol";
 import { xALPACACreditorLike } from "../interfaces/xALPACACreditorLike.sol";
+import { xALPACAPriceSetterLike } from "../interfaces/xALPACAPriceSetterLike.sol";
 import { AutomatedVaultControllerLike } from "../interfaces/AutomatedVaultControllerLike.sol";
 import { DeltaNeutralVault02Like } from "../interfaces/DeltaNeutralVault02Like.sol";
 
@@ -173,6 +174,18 @@ contract BaseTest is DSTest {
     );
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
     return xALPACACreditorLike(_proxy);
+  }
+
+  function _setupxALPACAPriceSetter(address _xALPACACreditor, address _TWAPOracle, address _alpacaAddress) internal returns (xALPACAPriceSetterLike) {
+    bytes memory _logicBytecode = abi.encodePacked(vm.getCode("./out/xALPACAPriceSetter.sol/xALPACAPriceSetter.json"));
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize(address,address,address)")),
+      _xALPACACreditor,
+      _TWAPOracle,
+      _alpacaAddress
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return xALPACAPriceSetterLike(_proxy);
   }
 
   function _setupxAutomatedVaultController(address[] memory _creditors, address[] memory _deltaVaults)
