@@ -1,3 +1,4 @@
+import { DeltaNeutralVaultsEntity } from "./../../../interfaces/config";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, upgrades } from "hardhat";
@@ -17,8 +18,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "upgrade_delta_neutral_vault";
-  const DELTA_NEUTRAL_VAULT = "DeltaNeutralVault02";
+  const TITLE = "upgrade_delta_neutral_vault_config";
+  const DELTA_NEUTRAL_VAULT = "DeltaNeutralVaultConfig02";
   const TARGETED_VAULTS = [
     "n3x-BNBUSDT-PCS1",
     "n8x-BNBUSDT-PCS1",
@@ -39,14 +40,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   const deployer = await getDeployer();
-
   const converter = new Converter();
-  const toBeUpgradedVaults = converter.convertDeltaSymboltoObj(TARGETED_VAULTS);
+  const tobeUpgradeVaultConfigs = converter.convertDeltaSymboltoObj(TARGETED_VAULTS);
   let nonce = await deployer.getTransactionCount();
 
-  for (const vault of toBeUpgradedVaults) {
+  for (const vault of tobeUpgradeVaultConfigs) {
     console.log("------------------");
-    console.log(`> Upgrading DeltaNeutralVault at ${vault.symbol} through Timelock + ProxyAdmin`);
+    console.log(`> Upgrading DeltaNeutralVaultConfig at ${vault} through Timelock + ProxyAdmin`);
     console.log("> Prepare upgrade & deploy if needed a new IMPL automatically.");
     const NewVault = await ethers.getContractFactory(DELTA_NEUTRAL_VAULT);
     const preparedNewVault = await upgrades.prepareUpgrade(vault.address, NewVault);
