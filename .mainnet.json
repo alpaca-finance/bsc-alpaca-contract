@@ -1333,8 +1333,7 @@
     "GQ": "0xf700d4c708c2be1463e355f337603183d20e0808",
     "L3x-USDTETH-BSW1": "0xB8d7B5A245f0080814f19dFE58037072315B7d19",
     "L3x-BUSDBTCB-PCS1": "0x4eE770919aB741cC84bBE8cD83C21d79785f37E9",
-    "L3x-BUSDBTCB-PCS2": "0xA1679223b7585725aFb425a6F59737a05e085C40",
-    "L3x-BUSDBNB-PCS1": "0xcC125BBaFF77De472f236255DE6be0a3B4323064"
+    "L3x-BUSDBTCB-PCS2": "0xA1679223b7585725aFb425a6F59737a05e085C40"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x1099C2E6Ed6ebA95099c205b599B409305783E43",
@@ -2930,23 +2929,6 @@
             "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
             "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
-        },
-        {
-          "name": "WBNB-BUSD L3x PCS1 DeltaNeutralPancakeswapWorker",
-          "address": "0xdAa4D6FfF2055Fa2A3936190EA4FcC682Dc46898",
-          "deployedBlock": 18098511,
-          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
-          "pId": 3,
-          "stakingToken": "0x58F876857a02D6762E0101bb5C46A8c1ED44Dc16",
-          "stakingTokenAt": "0xa5f8C5Dbd5F286960b9d90548680aE5ebFf07652",
-          "strategies": {
-            "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
-            "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
-            "StrategyAddTwoSidesOptimal": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
-            "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
-            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
-            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
-          }
         }
       ]
     },
@@ -4460,23 +4442,6 @@
       "gateway": "0x0256E784f73391797f80a9902c0fD05a718a812a",
       "assetVaultPosId": "54752",
       "stableVaultPosId": "5630"
-    },
-    {
-      "name": "Long 3x BUSD-BNB PCS1",
-      "symbol": "L3x-BUSDBNB-PCS1",
-      "address": "0xcC125BBaFF77De472f236255DE6be0a3B4323064",
-      "deployedBlock": 18098596,
-      "config": "0x212376a0A782bC6287FbaFc9986c28154c83ac03",
-      "assetToken": "0xe9e7cea3dedca5984780bafc599bd69add087d56",
-      "stableToken": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
-      "assetVault": "0x7C9e73d4C71dae564d41F78d56439bB4ba87592f",
-      "stableVault": "0xd7D069493685A581d27824Fc46EdA46B7EfC0063",
-      "assetDeltaWorker": "0xdAa4D6FfF2055Fa2A3936190EA4FcC682Dc46898",
-      "stableDeltaWorker": "0xBbFACE35322D6d04E0Cf911626Fa54B55ADf8fB8",
-      "oracle": "0x08EA5fB66EA41f236E3001d2655e43A1E735787F",
-      "gateway": "0x10b25ee3A2358363915F73D3923c785AfE575672",
-      "assetVaultPosId": "54794",
-      "stableVaultPosId": "47353"
     }
   ]
 }

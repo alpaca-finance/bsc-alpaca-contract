@@ -1,6 +1,6 @@
 {
   "name": "@alpaca-finance/alpaca-contract",
-  "version": "1.2.31",
+  "version": "1.2.32",
   "scripts": {
     "prepublish": "yarn build",
     "build": "yarn run build:cjs",
