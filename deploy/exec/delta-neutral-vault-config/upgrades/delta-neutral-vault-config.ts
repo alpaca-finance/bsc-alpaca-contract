@@ -65,7 +65,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
           "0",
           "upgrade(address,address)",
           ["address", "address"],
-          [vault.config, "0xDb7ba1805b8284b1Ad662F03eF4259e4919DC1c5"],
+          [vault.config, preparedNewVaultConfig],
           EXACT_ETA,
           ops
         )
