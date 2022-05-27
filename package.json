@@ -114,6 +114,7 @@
     "deploy:mainnet:strategies:deploy:biswap:share-strategies": "hardhat --network mainnet deploy --no-compile --reset --tags BiswapShareStrategies",
     "deploy:mainnet:strategies:deploy:biswap:vault-strategies": "hardhat --network mainnet deploy --no-compile --reset --tags BiswapVaultStrategies",
     "deploy:mainnet:delta-neutral-vault-config:deploy:delta-neutral-vault-config02": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralVaultConfig02",
+    "deploy:mainnet:delta-neutral-vault:deploy:delta-neutral-vault02": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralVault02",
     "deploy:mainnet:XAlpacaCreditor": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags XAlpacaCreditor",
     "deploy:mainnet:AVController": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags AVController",
     "deploy:mainnet:config:set-params:AVController": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags AVControllerSetParams",
