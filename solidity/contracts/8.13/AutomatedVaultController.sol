@@ -51,7 +51,7 @@ contract AutomatedVaultController is OwnableUpgradeable {
   /// @param _user address of user.
   /// @return _total user's credit in USD value
   function totalCredit(address _user) public view returns (uint256) {
-    uint256 _total = 0;
+    uint256 _total;
     for (uint8 _i = 0; _i < creditors.length; ) {
       _total = _total + creditors[_i].getUserCredit(_user);
       // uncheck overflow to save gas
@@ -66,7 +66,7 @@ contract AutomatedVaultController is OwnableUpgradeable {
   /// @param _user address of user.
   /// @return _total user's used credit in USD value from depositing into private automated vaults
   function usedCredit(address _user) public view returns (uint256) {
-    uint256 _total = 0;
+    uint256 _total;
     for (uint8 _i = 0; _i < privateVaults.length; ) {
       uint256 _share = userVaultShares[_user][address(privateVaults[_i])];
       if (_share != 0) _total += privateVaults[_i].shareToValue(_share);
