@@ -2314,57 +2314,6 @@ describe("Vault - PancakeswapV2MCV2Worker02", () => {
         });
       });
 
-      context("When the treasury Account and treasury bounty bps haven't been set", async () => {
-        it("should not auto reinvest", async () => {
-          await pancakeswapV2Worker.setTreasuryConfig(constants.AddressZero, 0);
-          // Deployer deposits 3 BTOKEN to the bank
-          const deposit = ethers.utils.parseEther("3");
-          await baseToken.approve(vault.address, deposit);
-          await vault.deposit(deposit);
-
-          // Now Alice can take 1 BTOKEN loan + 1 BTOKEN of her to create a new position
-          const loan = ethers.utils.parseEther("1");
-          await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
-          await vaultAsAlice.work(
-            0,
-            pancakeswapV2Worker.address,
-            ethers.utils.parseEther("1"),
-            loan,
-            "0",
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "bytes"],
-              [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-            )
-          );
-
-          // Her position should have ~2 NATIVE health (minus some small trading fee)
-          expect(await pancakeswapV2Worker.shares(1)).to.eq(ethers.utils.parseEther("0.231205137369691323"));
-          expect(await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(1))).to.eq(
-            ethers.utils.parseEther("0.231205137369691323")
-          );
-
-          // Alice opens another position.
-          await baseTokenAsAlice.approve(vault.address, ethers.utils.parseEther("1"));
-          await vaultAsAlice.work(
-            0,
-            pancakeswapV2Worker.address,
-            ethers.utils.parseEther("1"),
-            loan,
-            "0",
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "bytes"],
-              [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
-            )
-          );
-
-          // Her LP under that 1st position must still remain the same
-          expect(await pancakeswapV2Worker.shares(1)).to.eq(ethers.utils.parseEther("0.231205137369691323"));
-          expect(await pancakeswapV2Worker.shareToBalance(await pancakeswapV2Worker.shares(1))).to.eq(
-            ethers.utils.parseEther("0.231205137369691323")
-          );
-        });
-      });
-
       context("#addCollateral", async () => {
         const deposit = ethers.utils.parseEther("3");
         const borrowedAmount = ethers.utils.parseEther("1");

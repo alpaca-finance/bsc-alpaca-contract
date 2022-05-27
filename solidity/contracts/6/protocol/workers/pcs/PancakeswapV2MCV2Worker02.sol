@@ -142,12 +142,10 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
     okStrats[address(liqStrat)] = true;
 
     // 5. Assign Re-invest parameters
-    reinvestBountyBps = _reinvestBountyBps;
-    reinvestThreshold = _reinvestThreshold;
-    reinvestPath = _reinvestPath;
     treasuryAccount = _treasuryAccount;
     treasuryBountyBps = _reinvestBountyBps;
     maxReinvestBountyBps = 900;
+    setReinvestConfig(_reinvestBountyBps, _reinvestThreshold, _reinvestPath);
 
     // 6. Set PancakeswapV2 swap fees
     fee = 9975;
@@ -155,17 +153,9 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
 
     // 7. Check if critical parameters are config properly
     require(
-      reinvestBountyBps <= maxReinvestBountyBps,
-      "PancakeswapV2MCV2Worker02::initialize:: reinvestBountyBps exceeded maxReinvestBountyBps"
-    );
-    require(
       (farmingToken == lpToken.token0() || farmingToken == lpToken.token1()) &&
         (baseToken == lpToken.token0() || baseToken == lpToken.token1()),
       "PancakeswapV2MCV2Worker02::initialize:: LP underlying not match with farm & base token"
-    );
-    require(
-      reinvestPath[0] == cake && reinvestPath[reinvestPath.length - 1] == baseToken,
-      "PancakeswapV2MCV2Worker02::initialize:: reinvestPath must start with CAKE, end with BTOKEN"
     );
   }
 
@@ -222,7 +212,6 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
     uint256 _callerBalance,
     uint256 _reinvestThreshold
   ) internal {
-    require(_treasuryAccount != address(0), "PancakeswapV2MCV2Worker02::_reinvest:: bad treasury account");
     // 1. Withdraw all the rewards. Return if reward <= _reinvestThreshold.
     _masterChefV2Withdraw(0);
     uint256 reward = pendingCake;
@@ -278,8 +267,7 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
     bytes calldata data
   ) external override onlyOperator nonReentrant {
     // 1. If a treasury configs are not ready. Not reinvest.
-    if (treasuryAccount != address(0) && treasuryBountyBps != 0)
-      _reinvest(treasuryAccount, treasuryBountyBps, actualBaseTokenBalance(), reinvestThreshold);
+    _reinvest(treasuryAccount, treasuryBountyBps, actualBaseTokenBalance(), reinvestThreshold);
     // 2. Convert this position back to LP tokens.
     _removeShare(id);
     // 3. Perform the worker strategy; sending LP tokens + BaseToken; expecting LP tokens + BaseToken.
@@ -466,13 +454,18 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
   function setReinvestConfig(
     uint256 _reinvestBountyBps,
     uint256 _reinvestThreshold,
-    address[] calldata _reinvestPath
-  ) external onlyOwner {
+    address[] memory _reinvestPath
+  ) public onlyOwner {
     require(
       _reinvestBountyBps <= maxReinvestBountyBps,
       "PancakeswapV2MCV2Worker02::setReinvestConfig:: _reinvestBountyBps exceeded maxReinvestBountyBps"
     );
-    if (baseToken != cake) {
+    if (baseToken == cake) {
+      require(
+        _reinvestPath.length == 1,
+        "PancakeswapV2MCV2Worker02:: _reinvestPath length must == 1, if baseToken == reward"
+      );
+    } else {
       require(
         _reinvestPath.length >= 2,
         "PancakeswapV2MCV2Worker02::setReinvestConfig:: _reinvestPath length must >= 2"
