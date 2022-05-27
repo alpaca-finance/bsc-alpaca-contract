@@ -26,6 +26,8 @@ interface AutomatedVaultControllerLike {
 
   function userVaultShares(bytes32) external view returns (uint256);
 
+  function getUserVaultShares(address _user, address _vault) external view returns (uint256);
+
   function getId(address, address) external view returns (bytes32);
 
   function setPrivateVaults(address[] memory) external;
