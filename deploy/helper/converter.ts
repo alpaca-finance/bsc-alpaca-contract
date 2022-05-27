@@ -22,9 +22,9 @@ export class Converter {
     return symbols.map((s) => this._convertDeltaSymbol(s) as DeltaNeutralVaultsEntity);
   }
 
-  public convertDeltaSymbolToAddress(symbols: string[], fieldResult: keyof DeltaNeutralVaultsEntity) {
+  public convertDeltaSymbolToAddress(symbols: string[], fieldResult: keyof DeltaNeutralVaultsEntity): string[] {
     this._validateDeltaSymbol(symbols);
-    return symbols.map((s) => this._convertDeltaSymbol(s, fieldResult));
+    return symbols.map((s) => this._convertDeltaSymbol(s, fieldResult) as string);
   }
 
   private _validateCreditorName(names: string[]) {
@@ -65,8 +65,15 @@ export class Converter {
       return deltaVaultObj;
     }
 
-    return typeof deltaVaultObj[fieldName] === "number"
-      ? deltaVaultObj[fieldName].toString()
-      : (deltaVaultObj[fieldName] as string);
+    switch (typeof deltaVaultObj[fieldName]) {
+      case "number": // for case blockNumber
+        return deltaVaultObj[fieldName].toString();
+
+      case "string":
+        return deltaVaultObj[fieldName] as string;
+
+      default:
+        throw new Error(`NOT SUPPORT KEY of key ${fieldName}`);
+    }
   }
 }

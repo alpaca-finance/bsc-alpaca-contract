@@ -4,8 +4,10 @@ import { ethers, upgrades } from "hardhat";
 import { getConfig } from "../../../entities/config";
 import { TimelockEntity } from "../../../entities";
 import { fileService, TimelockService } from "../../../services";
-import { getDeployer } from "../../../../utils/deployer-helper";
+import { getDeployer, isFork } from "../../../../utils/deployer-helper";
 import { Converter } from "../../../helper";
+import { ProxyAdmin__factory } from "../../../../typechain";
+import { compare } from "../../../../utils/address";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -31,7 +33,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "L3x-USDTETH-BSW1",
     "L3x-BUSDBTCB-PCS1",
   ];
-  const EXACT_ETA = "1652860800";
+  const EXACT_ETA = "1653696000";
 
   const config = getConfig();
 
@@ -53,18 +55,26 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(`> Implementation address: ${preparedNewVault}`);
     console.log("✅ Done");
 
-    timelockTransactions.push(
-      await TimelockService.queueTransaction(
-        `> Queue tx to upgrade ${vault.symbol}`,
-        config.ProxyAdmin,
-        "0",
-        "upgrade(address,address)",
-        ["address", "address"],
-        [vault.address, "0xDb7ba1805b8284b1Ad662F03eF4259e4919DC1c5"],
-        EXACT_ETA,
-        { nonce: nonce++ }
-      )
-    );
+    const proxyAdmin = ProxyAdmin__factory.connect(config.ProxyAdmin, deployer);
+
+    const ops = isFork() ? { nonce: nonce++, gasLimit: 2000000 } : { nonce: nonce++ };
+    if (compare(await proxyAdmin.owner(), config.Timelock)) {
+      timelockTransactions.push(
+        await TimelockService.queueTransaction(
+          `> Queue tx to upgrade ${vault.symbol}`,
+          config.ProxyAdmin,
+          "0",
+          "upgrade(address,address)",
+          ["address", "address"],
+          [vault.address, preparedNewVault],
+          EXACT_ETA,
+          ops
+        )
+      );
+    } else {
+      console.log("> Execute upgrade contract without Timelock");
+      await proxyAdmin.upgrade(vault.address, preparedNewVault, ops);
+    }
   }
 
   const timestamp = Math.floor(Date.now() / 1000);

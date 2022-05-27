@@ -1,3 +1,4 @@
+import { ProxyAdmin__factory } from "./../../../../typechain/factories/ProxyAdmin__factory";
 import { DeltaNeutralVaultsEntity } from "./../../../interfaces/config";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
@@ -5,8 +6,9 @@ import { ethers, upgrades } from "hardhat";
 import { getConfig } from "../../../entities/config";
 import { TimelockEntity } from "../../../entities";
 import { fileService, TimelockService } from "../../../services";
-import { getDeployer } from "../../../../utils/deployer-helper";
+import { getDeployer, isFork } from "../../../../utils/deployer-helper";
 import { Converter } from "../../../helper";
+import { compare } from "../../../../utils/address";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -19,7 +21,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
   const TITLE = "upgrade_delta_neutral_vault_config";
-  const DELTA_NEUTRAL_VAULT = "DeltaNeutralVaultConfig02";
+  const DELTA_NEUTRAL_VAULT_CONFIG = "DeltaNeutralVaultConfig02";
   const TARGETED_VAULTS = [
     "n3x-BNBUSDT-PCS1",
     "n8x-BNBUSDT-PCS1",
@@ -31,12 +33,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "n3x-ETHUSDT-BSW1",
     "L3x-USDTETH-BSW1",
     "L3x-BUSDBTCB-PCS1",
+    "L3x-BUSDBTCB-PCS2",
   ];
-  const EXACT_ETA = "1652860800";
+  const EXACT_ETA = "1653696000";
 
   const config = getConfig();
-
-  config.DeltaNeutralVaults.map((av) => console.log(av.symbol));
 
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   const deployer = await getDeployer();
@@ -46,25 +47,33 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   for (const vault of tobeUpgradeVaultConfigs) {
     console.log("------------------");
-    console.log(`> Upgrading DeltaNeutralVaultConfig at ${vault} through Timelock + ProxyAdmin`);
+    console.log(`> Upgrading DeltaNeutralVaultConfig at ${vault.symbol} through Timelock + ProxyAdmin`);
     console.log("> Prepare upgrade & deploy if needed a new IMPL automatically.");
-    const NewVault = await ethers.getContractFactory(DELTA_NEUTRAL_VAULT);
-    const preparedNewVault = await upgrades.prepareUpgrade(vault.address, NewVault);
-    console.log(`> Implementation address: ${preparedNewVault}`);
+    const NewVaultConfig = await ethers.getContractFactory(DELTA_NEUTRAL_VAULT_CONFIG);
+    const preparedNewVaultConfig = await upgrades.prepareUpgrade(vault.config, NewVaultConfig);
+    console.log(`> Implementation address: ${preparedNewVaultConfig}`);
     console.log("✅ Done");
 
-    timelockTransactions.push(
-      await TimelockService.queueTransaction(
-        `> Queue tx to upgrade ${vault.symbol}`,
-        config.ProxyAdmin,
-        "0",
-        "upgrade(address,address)",
-        ["address", "address"],
-        [vault.address, "0xDb7ba1805b8284b1Ad662F03eF4259e4919DC1c5"],
-        EXACT_ETA,
-        { nonce: nonce++ }
-      )
-    );
+    const proxyAdmin = ProxyAdmin__factory.connect(config.ProxyAdmin, deployer);
+
+    const ops = isFork() ? { nonce: nonce++, gasLimit: 2000000 } : { nonce: nonce++ };
+    if (compare(await proxyAdmin.owner(), config.Timelock)) {
+      timelockTransactions.push(
+        await TimelockService.queueTransaction(
+          `> Queue tx to upgrade ${vault.symbol}`,
+          config.ProxyAdmin,
+          "0",
+          "upgrade(address,address)",
+          ["address", "address"],
+          [vault.config, "0xDb7ba1805b8284b1Ad662F03eF4259e4919DC1c5"],
+          EXACT_ETA,
+          ops
+        )
+      );
+    } else {
+      console.log("> Execute upgrade contract without Timelock");
+      await proxyAdmin.upgrade(vault.config, preparedNewVaultConfig, ops);
+    }
   }
 
   const timestamp = Math.floor(Date.now() / 1000);
@@ -72,4 +81,4 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 };
 
 export default func;
-func.tags = ["UpgradeDeltaNeutralVault"];
+func.tags = ["UpgradeDeltaNeutralVaultConfig"];
