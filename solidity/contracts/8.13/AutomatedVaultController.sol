@@ -52,8 +52,12 @@ contract AutomatedVaultController is OwnableUpgradeable {
   /// @return _total user's credit in USD value
   function totalCredit(address _user) public view returns (uint256) {
     uint256 _total = 0;
-    for (uint8 _i = 0; _i < creditors.length; _i++) {
+    for (uint8 _i = 0; _i < creditors.length; ) {
       _total = _total + creditors[_i].getUserCredit(_user);
+      // uncheck overflow to save gas
+      unchecked {
+        _i++;
+      }
     }
     return _total;
   }
@@ -63,9 +67,13 @@ contract AutomatedVaultController is OwnableUpgradeable {
   /// @return _total user's used credit in USD value from depositing into private automated vaults
   function usedCredit(address _user) public view returns (uint256) {
     uint256 _total = 0;
-    for (uint8 _i = 0; _i < privateVaults.length; _i++) {
+    for (uint8 _i = 0; _i < privateVaults.length; ) {
       uint256 _share = userVaultShares[_user][address(privateVaults[_i])];
       if (_share != 0) _total += privateVaults[_i].shareToValue(_share);
+      // uncheck overflow to save gas
+      unchecked {
+        _i++;
+      }
     }
 
     return _total;
@@ -84,8 +92,12 @@ contract AutomatedVaultController is OwnableUpgradeable {
   /// @param _newPrivateVaults list of private automated vaults
   function setPrivateVaults(IDeltaNeutralVault[] memory _newPrivateVaults) external onlyOwner {
     // sanity check
-    for (uint8 _i = 0; _i < _newPrivateVaults.length; _i++) {
+    for (uint8 _i = 0; _i < _newPrivateVaults.length; ) {
       _newPrivateVaults[_i].shareToValue(1e18);
+      // uncheck overflow to save gas
+      unchecked {
+        _i++;
+      }
     }
 
     // effect
@@ -98,8 +110,12 @@ contract AutomatedVaultController is OwnableUpgradeable {
   /// @param _newCreditors list of credit sources
   function setCreditors(ICreditor[] memory _newCreditors) external onlyOwner {
     // sanity check
-    for (uint8 _i = 0; _i < _newCreditors.length; _i++) {
+    for (uint8 _i = 0; _i < _newCreditors.length; ) {
       _newCreditors[_i].getUserCredit(address(0));
+      // uncheck overflow to save gas
+      unchecked {
+        _i++;
+      }
     }
 
     // effect
