@@ -27,7 +27,7 @@ contract AutomatedVaultController is OwnableUpgradeable {
   // --- State Variables ---
   ICreditor[] public creditors;
   IDeltaNeutralVault[] public privateVaults;
-  mapping(bytes32 => uint256) public userVaultShares;
+  mapping(address => mapping(address => uint256)) public userVaultShares;
 
   /// @notice Initialize Automated Vault Controller
   /// @param _creditors list of credit sources
@@ -52,8 +52,12 @@ contract AutomatedVaultController is OwnableUpgradeable {
   /// @return _total user's credit in USD value
   function totalCredit(address _user) public view returns (uint256) {
     uint256 _total = 0;
-    for (uint8 _i = 0; _i < creditors.length; _i++) {
+    for (uint8 _i = 0; _i < creditors.length; ) {
       _total = _total + creditors[_i].getUserCredit(_user);
+      // uncheck overflow to save gas
+      unchecked {
+        _i++;
+      }
     }
     return _total;
   }
@@ -63,9 +67,13 @@ contract AutomatedVaultController is OwnableUpgradeable {
   /// @return _total user's used credit in USD value from depositing into private automated vaults
   function usedCredit(address _user) public view returns (uint256) {
     uint256 _total = 0;
-    for (uint8 _i = 0; _i < privateVaults.length; _i++) {
-      uint256 _share = userVaultShares[getId(_user, address(privateVaults[_i]))];
+    for (uint8 _i = 0; _i < privateVaults.length; ) {
+      uint256 _share = userVaultShares[_user][address(privateVaults[_i])];
       if (_share != 0) _total += privateVaults[_i].shareToValue(_share);
+      // uncheck overflow to save gas
+      unchecked {
+        _i++;
+      }
     }
 
     return _total;
@@ -84,8 +92,12 @@ contract AutomatedVaultController is OwnableUpgradeable {
   /// @param _newPrivateVaults list of private automated vaults
   function setPrivateVaults(IDeltaNeutralVault[] memory _newPrivateVaults) external onlyOwner {
     // sanity check
-    for (uint8 _i = 0; _i < _newPrivateVaults.length; _i++) {
+    for (uint8 _i = 0; _i < _newPrivateVaults.length; ) {
       _newPrivateVaults[_i].shareToValue(1e18);
+      // uncheck overflow to save gas
+      unchecked {
+        _i++;
+      }
     }
 
     // effect
@@ -98,8 +110,12 @@ contract AutomatedVaultController is OwnableUpgradeable {
   /// @param _newCreditors list of credit sources
   function setCreditors(ICreditor[] memory _newCreditors) external onlyOwner {
     // sanity check
-    for (uint8 _i = 0; _i < _newCreditors.length; _i++) {
+    for (uint8 _i = 0; _i < _newCreditors.length; ) {
       _newCreditors[_i].getUserCredit(address(0));
+      // uncheck overflow to save gas
+      unchecked {
+        _i++;
+      }
     }
 
     // effect
@@ -113,20 +129,22 @@ contract AutomatedVaultController is OwnableUpgradeable {
   /// @param _shareAmount amount of automated vault's share
   function onDeposit(address _user, uint256 _shareAmount) external {
     // expected delta vault to be the caller
-    userVaultShares[getId(_user, msg.sender)] += _shareAmount;
+    userVaultShares[_user][msg.sender] += _shareAmount;
   }
 
   /// @notice update user's automated vault's share from withdrawal
   /// @param _user share owner
   /// @param _shareAmount amount of automated vault's share withdrawn
   function onWithdraw(address _user, uint256 _shareAmount) external {
-    bytes32 _userVaultId = getId(_user, msg.sender);
-    userVaultShares[_userVaultId] = userVaultShares[_userVaultId] <= _shareAmount
+    userVaultShares[_user][msg.sender] = userVaultShares[_user][msg.sender] <= _shareAmount
       ? 0
-      : userVaultShares[_userVaultId] - _shareAmount;
+      : userVaultShares[_user][msg.sender] - _shareAmount;
   }
 
-  function getId(address _user, address _vault) public pure returns (bytes32) {
-    return keccak256(abi.encodePacked(_user, _vault));
+  /// @notice Return share of user of given vault
+  /// @param _user share owner
+  /// @param _vault delta vault
+  function getUserVaultShares(address _user, address _vault) external view returns (uint256) {
+    return userVaultShares[_user][_vault];
   }
 }

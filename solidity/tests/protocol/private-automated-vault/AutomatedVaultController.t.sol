@@ -95,11 +95,9 @@ contract AutomatedVaultController_Test is BaseTest {
     vm.startPrank(address(_deltaVault1));
     _controller.onDeposit(ALICE, 1 ether);
 
-    bytes32 _aliceVaultId = _controller.getId(ALICE, address(_deltaVault1));
-
-    assertEq(_controller.userVaultShares(_aliceVaultId), 1 ether);
+    assertEq(_controller.getUserVaultShares(ALICE, address(_deltaVault1)), 1 ether);
     _controller.onDeposit(ALICE, 1 ether);
-    assertEq(_controller.userVaultShares(_aliceVaultId), 2 ether);
+    assertEq(_controller.getUserVaultShares(ALICE, address(_deltaVault1)), 2 ether);
   }
 
   function testCorrectness_onWithdraw() external {
@@ -108,19 +106,17 @@ contract AutomatedVaultController_Test is BaseTest {
     // Deposit 1, withdraw 0.5 twice. Remaining share should be 0
     _controller.onDeposit(ALICE, 1 ether);
 
-    bytes32 _aliceVaultId = _controller.getId(ALICE, address(_deltaVault1));
-
-    assertEq(_controller.userVaultShares(_aliceVaultId), 1 ether);
+    assertEq(_controller.getUserVaultShares(ALICE, address(_deltaVault1)), 1 ether);
     _controller.onWithdraw(ALICE, 0.5 ether);
-    assertEq(_controller.userVaultShares(_aliceVaultId), 0.5 ether);
+    assertEq(_controller.getUserVaultShares(ALICE, address(_deltaVault1)), 0.5 ether);
     _controller.onWithdraw(ALICE, 0.5 ether);
-    assertEq(_controller.userVaultShares(_aliceVaultId), 0 ether);
+    assertEq(_controller.getUserVaultShares(ALICE, address(_deltaVault1)), 0 ether);
 
     // Deposit 1, withdraw 2 twice. Remaining share should be 0
     _controller.onDeposit(ALICE, 1 ether);
-    assertEq(_controller.userVaultShares(_aliceVaultId), 1 ether);
+    assertEq(_controller.getUserVaultShares(ALICE, address(_deltaVault1)), 1 ether);
     _controller.onWithdraw(ALICE, 2 ether);
-    assertEq(_controller.userVaultShares(_aliceVaultId), 0 ether);
+    assertEq(_controller.getUserVaultShares(ALICE, address(_deltaVault1)), 0 ether);
 
     // cleanup impersonation
     vm.stopPrank();
