@@ -31,7 +31,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const converter = new Converter();
 
   const creditorAddrs = converter.convertCreditorNameToAddress(CREDITOR_NAMES);
-  const pvAddrs = converter.convertDeltaSymbolToAddress(PRIVATE_VAULT_SYMBOLS, "config");
+  const pvAddrs = converter.convertDeltaSymbolToAddress(PRIVATE_VAULT_SYMBOLS, "address");
 
   console.log(">> Set param AutomatedVaultController contract");
   let nonce = await deployer.getTransactionCount();
