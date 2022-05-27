@@ -29,6 +29,8 @@ contract AutomatedVaultController is OwnableUpgradeable {
   IDeltaNeutralVault[] public privateVaults;
   mapping(address => mapping(address => uint256)) public userVaultShares;
 
+  constructor() initializer {}
+
   /// @notice Initialize Automated Vault Controller
   /// @param _creditors list of credit sources
   /// @param _privateVaults list of private automated vaults

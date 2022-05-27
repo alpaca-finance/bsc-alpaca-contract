@@ -158,6 +158,8 @@ contract DeltaNeutralVault02 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
     _;
   }
 
+  constructor() initializer {}
+
   /// @notice Initialize Delta Neutral vault.
   /// @param _name Name.
   /// @param _symbol Symbol.
