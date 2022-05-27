@@ -241,13 +241,16 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
     }
 
     // 4. Convert all the remaining rewards to BaseToken according to config path.
-    if (baseToken != cake) {
+    uint256 _reinvestAmount;
+    if (baseToken == cake) {
+      _reinvestAmount = reward.sub(bounty);
+    } else {
       router.swapExactTokensForTokens(reward.sub(bounty), 0, getReinvestPath(), address(this), now);
+      _reinvestAmount = actualBaseTokenBalance().sub(_callerBalance);
     }
 
     // 5. Use add Token strategy to convert all BaseToken without both caller balance and buyback amount to LP tokens.
-
-    baseToken.safeTransfer(address(addStrat), actualBaseTokenBalance().sub(_callerBalance));
+    baseToken.safeTransfer(address(addStrat), _reinvestAmount);
     addStrat.execute(address(0), 0, abi.encode(0));
 
     // 6. Stake LPs for more rewards
@@ -257,8 +260,8 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
     cake.safeApprove(address(router), 0);
     address(lpToken).safeApprove(address(masterChefV2), 0);
 
-    // 8. update pendingCake
-    pendingCake = pendingCake.sub(reward);
+    // 8. reset pendingCake
+    pendingCake = 0;
 
     emit Reinvest(_treasuryAccount, reward, bounty);
   }
