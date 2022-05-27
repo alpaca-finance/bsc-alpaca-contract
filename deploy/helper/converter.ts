@@ -17,9 +17,14 @@ export class Converter {
     });
   }
 
-  public convertDeltaSymbolToAddress(symbols: string[], fieldResult: keyof DeltaNeutralVaultsEntity) {
+  public convertDeltaSymboltoObj(symbols: string[]): DeltaNeutralVaultsEntity[] {
     this._validateDeltaSymbol(symbols);
-    return symbols.map((s) => this._convertDeltaSymbolToAddr(s, fieldResult));
+    return symbols.map((s) => this._convertDeltaSymbol(s) as DeltaNeutralVaultsEntity);
+  }
+
+  public convertDeltaSymbolToAddress(symbols: string[], fieldResult: keyof DeltaNeutralVaultsEntity): string[] {
+    this._validateDeltaSymbol(symbols);
+    return symbols.map((s) => this._convertDeltaSymbol(s, fieldResult) as string);
   }
 
   private _validateCreditorName(names: string[]) {
@@ -47,14 +52,28 @@ export class Converter {
     });
   }
 
-  private _convertDeltaSymbolToAddr(symbol: string, fieldName: keyof DeltaNeutralVaultsEntity): string {
-    const deltaVaultConfig = this.config.DeltaNeutralVaults.find((o) => compare(o.symbol, symbol));
-    if (!deltaVaultConfig) {
+  private _convertDeltaSymbol(
+    symbol: string,
+    fieldName?: keyof DeltaNeutralVaultsEntity
+  ): string | DeltaNeutralVaultsEntity {
+    const deltaVaultObj = this.config.DeltaNeutralVaults.find((o) => compare(o.symbol, symbol));
+    if (!deltaVaultObj) {
       throw new Error(`ERROR : DELTA_VAULT_SYMBOL is INVALID : ${symbol}`);
     }
 
-    return typeof deltaVaultConfig[fieldName] === "number"
-      ? deltaVaultConfig[fieldName].toString()
-      : (deltaVaultConfig[fieldName] as string);
+    if (!fieldName) {
+      return deltaVaultObj;
+    }
+
+    switch (typeof deltaVaultObj[fieldName]) {
+      case "number": // for case blockNumber
+        return deltaVaultObj[fieldName].toString();
+
+      case "string":
+        return deltaVaultObj[fieldName] as string;
+
+      default:
+        throw new Error(`NOT SUPPORT KEY of key ${fieldName}`);
+    }
   }
 }

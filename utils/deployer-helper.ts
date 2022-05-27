@@ -19,11 +19,9 @@ export async function getDeployer(): Promise<SignerWithAddress> {
 }
 
 export function isFork() {
-  switch (network.name) {
-    case "mainnetfork":
-    case "fantom_mainnetfork":
-      return true;
-    default:
-      return false;
+  const networkUrl = (network.config as HttpNetworkUserConfig).url;
+  if (networkUrl) {
+    return networkUrl.indexOf("https://rpc.tenderly.co/fork/") !== -1;
   }
+  throw new Error("invalid Network Url");
 }
