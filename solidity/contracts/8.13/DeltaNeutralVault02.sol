@@ -337,7 +337,7 @@ contract DeltaNeutralVault02 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
     _depositHealthCheck(_depositValue, _positionInfoBefore, _positionInfoAfter);
     _outstandingCheck(_outstandingBefore, _outstanding());
 
-    // Deduct credit from msg.sender regardless of whomever are _shareReceiver
+    // Deduct credit from msg.sender regardless of the _shareReceiver.
     if (config.controller() != address(0)) IController(config.controller()).onDeposit(msg.sender, _sharesToUser);
 
     emit LogDeposit(msg.sender, _shareReceiver, _sharesToUser, _stableTokenAmount, _assetTokenAmount);
