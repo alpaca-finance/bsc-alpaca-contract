@@ -83,7 +83,9 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
     if (msg.sender != tx.origin) revert NFTStaking_Unauthorize();
     _;
   }
-constructor() initializer {}
+
+  constructor() initializer {}
+
   function initialize() external initializer {
     OwnableUpgradeable.__Ownable_init();
     ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
@@ -117,7 +119,8 @@ constructor() initializer {}
     if (userStakingNFT[_depositId].lockUntil != 0) revert NFTStaking_NFTAlreadyStaked();
     if (_lockUntil < block.timestamp) revert NFTStaking_InvalidLockPeriod();
     uint256 _lockPeriod = _lockUntil - block.timestamp;
-      if (_lockPeriod < poolInfo[_nftAddress].minLockPeriod || _lockPeriod > poolInfo[_nftAddress].maxLockPeriod) revert NFTStaking_InvalidLockPeriod();
+    if (_lockPeriod < poolInfo[_nftAddress].minLockPeriod || _lockPeriod > poolInfo[_nftAddress].maxLockPeriod)
+      revert NFTStaking_InvalidLockPeriod();
     userStakingNFT[_depositId] = NFTStakingInfo({ lockUntil: _lockUntil });
 
     if (poolInfo[userHighestWeightNftAddress[msg.sender]].poolWeight < poolInfo[_nftAddress].poolWeight) {
@@ -141,7 +144,8 @@ constructor() initializer {}
     if (_newLockUntil < userStakingNFT[_depositId].lockUntil) revert NFTStaking_InvalidLockPeriod();
     if (userStakingNFT[_depositId].lockUntil == 0) revert NFTStaking_NFTNotStaked();
     uint256 _lockPeriod = _newLockUntil - block.timestamp;
-      if (_lockPeriod < poolInfo[_nftAddress].minLockPeriod || _lockPeriod > poolInfo[_nftAddress].maxLockPeriod) revert NFTStaking_InvalidLockPeriod();
+    if (_lockPeriod < poolInfo[_nftAddress].minLockPeriod || _lockPeriod > poolInfo[_nftAddress].maxLockPeriod)
+      revert NFTStaking_InvalidLockPeriod();
     userStakingNFT[_depositId].lockUntil = _newLockUntil;
     emit LogExtendLockPeriod(msg.sender, _nftAddress, _nftTokenId, _newLockUntil);
   }
@@ -154,9 +158,9 @@ constructor() initializer {}
     userStakingNFT[_depositId] = NFTStakingInfo({ lockUntil: 0 });
     // Reset highest pool weight
     userHighestWeightNftAddress[msg.sender] = address(0x00);
-   
-   userNFTInStakingPool[msg.sender][_nftAddress] -= 1;
-     // Remove pool from user if no NFT stake
+
+    userNFTInStakingPool[msg.sender][_nftAddress] -= 1;
+    // Remove pool from user if no NFT stake
     if (userNFTInStakingPool[msg.sender][_nftAddress] == 0) {
       userStakingPool[msg.sender].remove(_nftAddress);
     }
@@ -171,7 +175,7 @@ constructor() initializer {}
         userHighestWeightNftAddress[msg.sender] = userStakingPool[msg.sender].at(i);
       }
     }
- 
+
     IERC721Upgradeable(_nftAddress).transferFrom(address(this), msg.sender, _nftTokenId);
 
     emit LogUnstakeNFT(msg.sender, _nftAddress, _nftTokenId);
