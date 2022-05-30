@@ -7,14 +7,14 @@ import { getConfig } from "../../../entities/config";
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const config = getConfig();
 
-  const TOKEN_ADDRESS = config.Tokens.BUSD!;
-  const GRASSHOUSE_ADDRESS = "0x6Fee87f744FC612948001b09B2808c87B91dDC3c";
-  const VAULT_ADDRESS = "0x158Da805682BdC8ee32d52833aD41E74bb951E59";
-  const ROUTER_ADDRESS = config.YieldSources.Pancakeswap!.RouterV2;
-  const REMAINING = ethers.utils.parseEther("12088.267308562178360325");
+  const TOKEN_ADDRESS = config.Tokens.WFTM!;
+  const GRASSHOUSE_ADDRESS = "0xaa2dd961c36c3FC057be8c3d1A3675BB0941bDF9";
+  const VAULT_ADDRESS = "0xc1018f4Bba361A1Cc60407835e156595e92EF7Ad";
+  const ROUTER_ADDRESS = config.YieldSources.SpookySwap!.SpookyRouter;
+  const REMAINING = ethers.utils.parseEther("62471.062297587444765624");
   const SPLITBPS = "5000";
-  const REWARD_PATH: string[] = [config.Tokens.BUSD!, config.Tokens.ALPACA!];
-  const VAULT_SWAP_PATH = [config.Tokens.BUSD!, config.Tokens.USDT!] as string[];
+  const REWARD_PATH: string[] = [config.Tokens.WFTM!, config.Tokens.ALPACA!];
+  const VAULT_SWAP_PATH: string[] = [config.Tokens.WFTM!];
 
   const deployer = (await ethers.getSigners())[0];
 

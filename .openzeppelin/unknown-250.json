@@ -469,6 +469,16 @@
       "address": "0x39429D11a8F91A8a8AF2A8454A9133D3e3eec280",
       "txHash": "0x07f840689efd6739cb80fc66e8ed62a412b24deff56d5e9679af05e544bfa8d1",
       "kind": "transparent"
+    },
+    {
+      "address": "0xe44895e4F318Beec7ee43bdd75d25c3067deB13C",
+      "txHash": "0x2e720816f87a47967150a6cd0d864f9b921e504b5cdc3a456c10c26dac22d792",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x795997Ad55AcFc27148E86408355eC08cA1424A0",
+      "txHash": "0x760d3926389e1a96f64d47b1f8cd83b873f5be4262290bc1fa93f7c87720ce34",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -5793,6 +5803,139 @@
           },
           "t_array(t_uint256)45_storage": {
             "label": "uint256[45]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_bool": {
+            "label": "bool"
+          }
+        }
+      }
+    },
+    "aefbf11f45e4887e11cbe41e3e829cd92134ca03eb708dfa0448babcd73fcc33": {
+      "address": "0x3413961742684bb36Aa753671dE2cF97A4Ca6EC0",
+      "txHash": "0x22e165bc89f91a4afa9b208f71096aae28dfbcebdee651c3e99b3f387c925824",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:74"
+          },
+          {
+            "contract": "RevenueTreasury",
+            "label": "token",
+            "type": "t_address",
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:42"
+          },
+          {
+            "contract": "RevenueTreasury",
+            "label": "grasshouseToken",
+            "type": "t_address",
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:45"
+          },
+          {
+            "contract": "RevenueTreasury",
+            "label": "router",
+            "type": "t_contract(ISwapRouter)13450",
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:48"
+          },
+          {
+            "contract": "RevenueTreasury",
+            "label": "grassHouse",
+            "type": "t_contract(IGrassHouse)11139",
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:51"
+          },
+          {
+            "contract": "RevenueTreasury",
+            "label": "vault",
+            "type": "t_contract(IVault)13920",
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:54"
+          },
+          {
+            "contract": "RevenueTreasury",
+            "label": "rewardPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:57"
+          },
+          {
+            "contract": "RevenueTreasury",
+            "label": "vaultSwapPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:60"
+          },
+          {
+            "contract": "RevenueTreasury",
+            "label": "remaining",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:63"
+          },
+          {
+            "contract": "RevenueTreasury",
+            "label": "splitBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:67"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address"
+          },
+          "t_contract(ISwapRouter)13450": {
+            "label": "contract ISwapRouter"
+          },
+          "t_contract(IGrassHouse)11139": {
+            "label": "contract IGrassHouse"
+          },
+          "t_contract(IVault)13920": {
+            "label": "contract IVault"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
           },
           "t_array(t_uint256)50_storage": {
             "label": "uint256[50]"
