@@ -207,11 +207,7 @@ contract SingleAssetWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
       positionOwner,
       worker
     );
-    if (_boostedKillFactor > 0) {
-      return _boostedKillFactor;
-    } else {
-      return uint256(workers[worker].killFactor);
-    }
+    return _boostedKillFactor > 0 ? _boostedKillFactor : uint256(workers[worker].killFactor);
   }
 
   /// @dev Return the kill factor for the worker + BaseToken debt, using 1e4 as denom.
