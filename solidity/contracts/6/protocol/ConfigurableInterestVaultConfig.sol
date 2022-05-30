@@ -255,9 +255,9 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   ) external view override returns (uint256) {
     if (nftStaking != address(0)) {
       return workers[worker].rawKillFactor(worker, debt, positionOwner);
-    } else {
-      return workers[worker].rawKillFactor(worker, debt);
     }
+    return workers[worker].rawKillFactor(worker, debt);
+    
   }
 
   /// @dev Return if worker is stable.
