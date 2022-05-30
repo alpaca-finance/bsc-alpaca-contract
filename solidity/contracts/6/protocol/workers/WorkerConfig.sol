@@ -188,7 +188,7 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
       positionOwner,
       worker
     );
-    return _boostedKillFactor > 0 ? _boostedKillFactor: uint256(workers[worker].killFactor);
+    return _boostedKillFactor > 0 ? _boostedKillFactor : uint256(workers[worker].killFactor);
   }
 
   /// @dev Return the kill factor for the worker + BaseToken debt, using 1e4 as denom.
@@ -208,7 +208,7 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
       positionOwner,
       worker
     );
-    return _boostedKillFactor > 0 ? _boostedKillFactor : return uint256(workers[worker].killFactor);
+    return _boostedKillFactor > 0 ? _boostedKillFactor : uint256(workers[worker].killFactor);
   }
 
   /// @dev Set governor address. OnlyOwner can set governor.
@@ -242,6 +242,10 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
     INFTBoostedLeverageController oldNFTBoostedLeverageController = nftBoostedLeverageController;
     nftBoostedLeverageController = _newNFTBoostedLeverageController;
 
-    emit LogSetNFTBoostedLeverageController(address(oldNFTBoostedLeverageController), address(_newNFTBoostedLeverageController), msg.sender);
+    emit LogSetNFTBoostedLeverageController(
+      address(oldNFTBoostedLeverageController),
+      address(_newNFTBoostedLeverageController),
+      msg.sender
+    );
   }
 }
