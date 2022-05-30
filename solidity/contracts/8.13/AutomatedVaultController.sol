@@ -29,15 +29,20 @@ contract AutomatedVaultController is OwnableUpgradeable {
   IDeltaNeutralVault[] public privateVaults;
   mapping(address => mapping(address => uint256)) public userVaultShares;
 
+  constructor() initializer {}
+
   /// @notice Initialize Automated Vault Controller
   /// @param _creditors list of credit sources
   /// @param _privateVaults list of private automated vaults
   function initialize(ICreditor[] memory _creditors, IDeltaNeutralVault[] memory _privateVaults) external initializer {
     // sanity check
-    for (uint8 _i = 0; _i < _creditors.length; _i++) {
+    uint256 _creditorLength = _creditors.length;
+    for (uint8 _i = 0; _i < _creditorLength; _i++) {
       _creditors[_i].getUserCredit(address(0));
     }
-    for (uint8 _i = 0; _i < _privateVaults.length; _i++) {
+
+    uint256 _privateVaultLength = _privateVaults.length;
+    for (uint8 _i = 0; _i < _privateVaultLength; _i++) {
       _privateVaults[_i].shareToValue(1e18);
     }
 
@@ -51,8 +56,9 @@ contract AutomatedVaultController is OwnableUpgradeable {
   /// @param _user address of user.
   /// @return _total user's credit in USD value
   function totalCredit(address _user) public view returns (uint256) {
-    uint256 _total = 0;
-    for (uint8 _i = 0; _i < creditors.length; ) {
+    uint256 _total;
+    uint256 _creditorLength = creditors.length;
+    for (uint8 _i = 0; _i < _creditorLength; ) {
       _total = _total + creditors[_i].getUserCredit(_user);
       // uncheck overflow to save gas
       unchecked {
@@ -66,8 +72,9 @@ contract AutomatedVaultController is OwnableUpgradeable {
   /// @param _user address of user.
   /// @return _total user's used credit in USD value from depositing into private automated vaults
   function usedCredit(address _user) public view returns (uint256) {
-    uint256 _total = 0;
-    for (uint8 _i = 0; _i < privateVaults.length; ) {
+    uint256 _total;
+    uint256 _privateVaultLength = privateVaults.length;
+    for (uint8 _i = 0; _i < _privateVaultLength; ) {
       uint256 _share = userVaultShares[_user][address(privateVaults[_i])];
       if (_share != 0) _total += privateVaults[_i].shareToValue(_share);
       // uncheck overflow to save gas
@@ -92,7 +99,8 @@ contract AutomatedVaultController is OwnableUpgradeable {
   /// @param _newPrivateVaults list of private automated vaults
   function setPrivateVaults(IDeltaNeutralVault[] memory _newPrivateVaults) external onlyOwner {
     // sanity check
-    for (uint8 _i = 0; _i < _newPrivateVaults.length; ) {
+    uint256 _newPrivateVaultLength = _newPrivateVaults.length;
+    for (uint8 _i = 0; _i < _newPrivateVaultLength; ) {
       _newPrivateVaults[_i].shareToValue(1e18);
       // uncheck overflow to save gas
       unchecked {
@@ -110,7 +118,8 @@ contract AutomatedVaultController is OwnableUpgradeable {
   /// @param _newCreditors list of credit sources
   function setCreditors(ICreditor[] memory _newCreditors) external onlyOwner {
     // sanity check
-    for (uint8 _i = 0; _i < _newCreditors.length; ) {
+    uint256 _newCreditorLength = _newCreditors.length;
+    for (uint8 _i = 0; _i < _newCreditorLength; ) {
       _newCreditors[_i].getUserCredit(address(0));
       // uncheck overflow to save gas
       unchecked {

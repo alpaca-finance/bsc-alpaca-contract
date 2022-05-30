@@ -158,6 +158,8 @@ contract DeltaNeutralVault02 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
     _;
   }
 
+  constructor() initializer {}
+
   /// @notice Initialize Delta Neutral vault.
   /// @param _name Name.
   /// @param _symbol Symbol.
@@ -310,15 +312,34 @@ contract DeltaNeutralVault02 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
       );
       _execute(_actions, _values, _datas);
     }
+    return
+      _checkAndMint(
+        _stableTokenAmount,
+        _assetTokenAmount,
+        _shareReceiver,
+        _minShareReceive,
+        _positionInfoBefore,
+        _outstandingBefore
+      );
+  }
+
+  function _checkAndMint(
+    uint256 _stableTokenAmount,
+    uint256 _assetTokenAmount,
+    address _shareReceiver,
+    uint256 _minShareReceive,
+    PositionInfo memory _positionInfoBefore,
+    Outstanding memory _outstandingBefore
+  ) internal returns (uint256) {
+    // continued from deposit as we're getting stack too deep
     // 3. mint share for shareReceiver
     PositionInfo memory _positionInfoAfter = positionInfo();
     uint256 _depositValue = _calculateEquityChange(_positionInfoAfter, _positionInfoBefore);
 
     // For private vault, deposit value should not exeed credit
     // Check availableCredit from msg.sender since user interact with contract directly
-    if (
-      config.controller() != address(0) && _depositValue > IController(config.controller()).availableCredit(msg.sender)
-    ) {
+    IController _controller = IController(config.controller());
+    if (address(_controller) != address(0) && _depositValue > _controller.availableCredit(msg.sender)) {
       revert DeltaNeutralVault_ExceedCredit();
     }
 
@@ -338,7 +359,7 @@ contract DeltaNeutralVault02 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
     _outstandingCheck(_outstandingBefore, _outstanding());
 
     // Deduct credit from msg.sender regardless of the _shareReceiver.
-    if (config.controller() != address(0)) IController(config.controller()).onDeposit(msg.sender, _sharesToUser);
+    if (address(_controller) != address(0)) _controller.onDeposit(msg.sender, _sharesToUser);
 
     emit LogDeposit(msg.sender, _shareReceiver, _sharesToUser, _stableTokenAmount, _assetTokenAmount);
     return _sharesToUser;
@@ -429,7 +450,8 @@ contract DeltaNeutralVault02 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
     _transferTokenToShareOwner(msg.sender, assetToken, _assetTokenBack);
 
     // on withdraw increase credit to tx.origin since user can withdraw from DN Gateway -> DN Vault
-    if (config.controller() != address(0)) IController(config.controller()).onWithdraw(tx.origin, _shareAmount);
+    IController _controller = IController(config.controller());
+    if (address(_controller) != address(0)) _controller.onWithdraw(tx.origin, _shareAmount);
 
     emit LogWithdraw(msg.sender, _stableTokenBack, _assetTokenBack);
 
