@@ -34,7 +34,7 @@ contract NFTBoostedLeverageController is INFTBoostedLeverageController, OwnableU
 
   /// ------ Events ------
   event LogSetBoosted(address[] _workers, uint256[] _workFactors, uint256[] _killFactors);
-
+constructor() initializer {}
   function initialize(INFTStaking _nftStaking) external initializer {
     OwnableUpgradeable.__Ownable_init();
     nftStaking = _nftStaking;
