@@ -25,8 +25,9 @@ import "../interfaces/IWorker02.sol";
 import "../apis/pancake/IPancakeRouter02.sol";
 import "../interfaces/IWorkerConfig.sol";
 import "../interfaces/IPriceOracle.sol";
-import "../../utils/SafeToken.sol";
 import "../interfaces/INFTBoostedLeverageController.sol";
+
+import "../../utils/SafeToken.sol";
 
 contract SingleAssetWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
   /// @notice Using libraries
