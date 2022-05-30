@@ -60,6 +60,21 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
   event LogSetReinvestPath(address indexed _caller, address[] _reinvestPath);
   event LogSetController(address indexed _caller, address _controller);
 
+  event LogSetExecutor(
+    address indexed _caller,
+    address _depositExecutor,
+    address _withdrawExecutor,
+    address _rebalanceExecutor,
+    address _reinvestExecutor
+  );
+  event LogSetSwapConfig(address indexed _caller, uint256 swapFee, uint256 swapFeeDenom);
+  event LogSetStrategies(
+    address indexed _caller,
+    address partialCloseMinimizeStrategy,
+    address stableAddTwoSideStrategy,
+    address assetAddTwoSideStrategy
+  );
+
   // --- Errors ---
   error DeltaNeutralVaultConfig_LeverageLevelTooLow();
   error DeltaNeutralVaultConfig_TooMuchFee(uint256 _depositFeeBps, uint256 _withdrawalFeeBps, uint256 _mangementFeeBps);
@@ -139,6 +154,21 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
 
   // Automated Vault Controller
   address public override controller;
+
+  /// Executor
+  address public depositExecutor;
+  address public withdrawExecutor;
+  address public rebalanceExecutor;
+  address public reinvestExecutor;
+
+  /// swap config
+  uint256 public swapFee;
+  uint256 public swapFeeDenom;
+
+  /// Strategies
+  address public partialCloseMinimizeStrategy;
+  address public stableAddTwoSideStrategy;
+  address public assetAddTwoSideStrategy;
 
   function initialize(
     address _getWrappedNativeAddr,
@@ -366,5 +396,53 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
     controller = _controller;
 
     emit LogSetController(msg.sender, _controller);
+  }
+
+  function setExecutor(
+    address _depositExecutor,
+    address _withdrawExecutor,
+    address _rebalanceExecutor,
+    address _reinvestExecutor
+  ) external onlyOwner {
+    depositExecutor = _depositExecutor;
+    withdrawExecutor = _withdrawExecutor;
+    rebalanceExecutor = _rebalanceExecutor;
+    reinvestExecutor = _reinvestExecutor;
+
+    emit LogSetExecutor(msg.sender, _depositExecutor, _withdrawExecutor, _rebalanceExecutor, _reinvestExecutor);
+  }
+
+  /// @notice Return if caller is executor.
+  /// @param _caller caller.
+  function isExecutor(address _caller) external view returns (bool) {
+    return
+      _caller == depositExecutor ||
+      _caller == withdrawExecutor ||
+      _caller == rebalanceExecutor ||
+      _caller == reinvestExecutor;
+  }
+
+  function setSwapConfig(uint256 _swapFee, uint256 _swapFeeDenom) external onlyOwner {
+    swapFee = _swapFee;
+    swapFeeDenom = _swapFeeDenom;
+
+    emit LogSetSwapConfig(msg.sender, _swapFee, _swapFeeDenom);
+  }
+
+  function setStrategies(
+    address _partialCloseMinimizeStrategy,
+    address _stableAddTwoSideStrategy,
+    address _assetAddTwoSideStrategy
+  ) external onlyOwner {
+    partialCloseMinimizeStrategy = _partialCloseMinimizeStrategy;
+    stableAddTwoSideStrategy = _stableAddTwoSideStrategy;
+    assetAddTwoSideStrategy = _assetAddTwoSideStrategy;
+
+    emit LogSetStrategies(
+      msg.sender,
+      _partialCloseMinimizeStrategy,
+      _stableAddTwoSideStrategy,
+      _assetAddTwoSideStrategy
+    );
   }
 }
