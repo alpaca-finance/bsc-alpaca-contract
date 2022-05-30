@@ -22,7 +22,7 @@ export async function set(timeStamp: BigNumber) {
 export async function increase(duration: BigNumber) {
   if (duration.isNegative()) throw Error(`Cannot increase time by a negative amount (${duration})`);
 
-  await ethers.provider.send("evm_increaseTime", [duration.toNumber()]);
+  await ethers.provider.send("evm_increaseTime", [duration.toHexString()]);
 
   await advanceBlock();
 }

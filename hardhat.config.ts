@@ -23,6 +23,12 @@ module.exports = {
         accountsBalance: "100000000000000000000000000000000000",
       },
     },
+    anvil: {
+      url: "http://localhost:8545",
+      accounts: {
+        mnemonic: "test test test test test test test test test test test junk",
+      },
+    },
     testnet: {
       url: "https://data-seed-prebsc-1-s1.binance.org:8545/",
       accounts: [process.env.BSC_TESTNET_PRIVATE_KEY],

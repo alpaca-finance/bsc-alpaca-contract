@@ -74,12 +74,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const shortWorkerInfos: IDeltaNeutralPCSWorkerInput[] = [
     {
-      VAULT_SYMBOL: "ibBTCB",
-      WORKER_NAME: "BUSD-BTCB L3x PCS2 DeltaNeutralPancakeswapWorker",
+      VAULT_SYMBOL: "ibWBNB",
+      WORKER_NAME: "BUSD-WBNB L3x PCS1 DeltaNeutralPancakeswapWorker",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 36,
+      POOL_ID: 3,
       REINVEST_BOUNTY_BPS: "1500",
-      REINVEST_PATH: ["CAKE", "WBNB", "BTCB"],
+      REINVEST_PATH: ["CAKE", "WBNB"],
       REINVEST_THRESHOLD: "0",
       BENEFICIAL_VAULT: {
         BENEFICIAL_VAULT_BPS: "5333",
@@ -92,9 +92,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     },
     {
       VAULT_SYMBOL: "ibBUSD",
-      WORKER_NAME: "BTCB-BUSD L3x PCS2 DeltaNeutralPancakeswapWorker",
+      WORKER_NAME: "WBNB-BUSD L3x PCS1 DeltaNeutralPancakeswapWorker",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 36,
+      POOL_ID: 3,
       REINVEST_BOUNTY_BPS: "1500",
       REINVEST_PATH: ["CAKE", "BUSD"],
       REINVEST_THRESHOLD: "0",
@@ -108,8 +108,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       MAX_PRICE_DIFF: "10500",
     },
   ];
-  const TITLE = "mainnet_L3x_busdbtcb_pcs2_worker";
-  const EXACT_ETA = "1653368400";
+  const TITLE = "mainnet_L3x_busdwbnb_pcs1_worker";
+  const EXACT_ETA = "1653537600";
 
   const deployer = (await ethers.getSigners())[0];
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];

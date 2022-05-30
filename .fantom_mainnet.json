@@ -62,6 +62,7 @@
       }
     ]
   },
+  "RevenueTreasury": "0x795997Ad55AcFc27148E86408355eC08cA1424A0",
   "YieldSources": {
     "SpookySwap": {
       "SpookyFactory": "0x152eE697f2E276fA89E96742e9bB9aB1F2E61bE3",
