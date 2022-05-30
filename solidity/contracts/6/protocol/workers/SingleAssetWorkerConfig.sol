@@ -227,11 +227,7 @@ contract SingleAssetWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
       positionOwner,
       worker
     );
-    if (_boostedKillFactor > 0) {
-      return _boostedKillFactor;
-    } else {
-      return uint256(workers[worker].killFactor);
-    }
+    return _boostedKillFactor > 0 ? _boostedKillFactor : uint256(workers[worker].killFactor);
   }
 
   /// @dev Set governor address. OnlyOwner can set governor.
