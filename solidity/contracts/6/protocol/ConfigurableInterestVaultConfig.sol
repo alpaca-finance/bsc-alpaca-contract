@@ -186,10 +186,10 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     }
   }
 
-  function setNftStaking(address _nftStaking) external onlyOwner {
-    nftStaking = _nftStaking;
+  function setNftStaking(address newNftStaking) external onlyOwner {
+    nftStaking = newNftStaking;
 
-    emit SetNFTStaking(_msgSender(), _nftStaking);
+    emit SetNFTStaking(_msgSender(), newNftStaking);
   }
 
   /// @dev Return the interest rate per second, using 1e18 as denom.
