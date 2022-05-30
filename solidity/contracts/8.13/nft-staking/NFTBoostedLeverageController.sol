@@ -47,10 +47,7 @@ contract NFTBoostedLeverageController is INFTBoostedLeverageController, OwnableU
 
   function getBoostedKillFactor(address _owner, address _worker) external view override returns (uint256) {
     address nftAddress = nftStaking.userHighestWeightNftAddress(_owner);
-    if (nftAddress != address(0)) {
-      return boostedKillFactors[nftAddress][_worker];
-    }
-    return 0;
+    return nftAddress != address(0) ? boostedKillFactors[nftAddress][_worker] : 0;
   }
 
   function setBoosted(
