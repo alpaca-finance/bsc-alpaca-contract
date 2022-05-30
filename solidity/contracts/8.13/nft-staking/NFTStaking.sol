@@ -83,7 +83,7 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
     if (msg.sender != tx.origin) revert NFTStaking_Unauthorize();
     _;
   }
-
+constructor() initializer {}
   function initialize() external initializer {
     OwnableUpgradeable.__Ownable_init();
     ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
