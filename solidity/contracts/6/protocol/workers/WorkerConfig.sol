@@ -166,11 +166,7 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
       positionOwner,
       worker
     );
-    if (_boostedWorkFactor > 0) {
-      return _boostedWorkFactor;
-    } else {
-      return uint256(workers[worker].workFactor);
-    }
+    return _boostedWorkFactor > 0 ? _boostedWorkFactor : uint256(workers[worker].workFactor);
   }
 
   /// @dev Return the kill factor for the worker + BaseToken debt, using 1e4 as denom.
