@@ -238,9 +238,9 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   ) external view override returns (uint256) {
     if (nftStaking != address(0)) {
       return workers[worker].killFactor(worker, debt, positionOwner);
-    } else {
-      return workers[worker].killFactor(worker, debt);
     }
+    return workers[worker].killFactor(worker, debt);
+    
   }
 
   /// @dev Return the kill factor for the worker + BaseToken debt, using 1e4 as denom.
