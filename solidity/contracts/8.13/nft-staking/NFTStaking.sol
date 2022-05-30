@@ -141,8 +141,7 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
     if (_newLockUntil < userStakingNFT[_depositId].lockUntil) revert NFTStaking_InvalidLockPeriod();
     if (userStakingNFT[_depositId].lockUntil == 0) revert NFTStaking_NFTNotStaked();
     uint256 _lockPeriod = _newLockUntil - block.timestamp;
-    if (_lockPeriod < poolInfo[_nftAddress].minLockPeriod) revert NFTStaking_InvalidLockPeriod();
-    if (_lockPeriod > poolInfo[_nftAddress].maxLockPeriod) revert NFTStaking_InvalidLockPeriod();
+      if (_lockPeriod < poolInfo[_nftAddress].minLockPeriod || _lockPeriod > poolInfo[_nftAddress].maxLockPeriod) revert NFTStaking_InvalidLockPeriod();
     userStakingNFT[_depositId].lockUntil = _newLockUntil;
     emit LogExtendLockPeriod(msg.sender, _nftAddress, _nftTokenId, _newLockUntil);
   }
