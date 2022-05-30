@@ -42,6 +42,31 @@ contract NFTStakingTest is BaseTest {
     nftStaking.addPool(nftAddress1, 100, 0, 200);
   }
 
+  function testSetPool_correctParams() external {
+    // Add pool for nftAddress1
+    nftStaking.addPool(nftAddress1, 100, 0, 200);
+    (bool isInit, uint256 poolWeight, uint256 minLockPeriod, uint256 maxLockPeriod) = nftStaking.poolInfo(nftAddress1);
+    assertTrue(isInit);
+    assertEq(poolWeight, 100);
+    assertEq(minLockPeriod, 0);
+    assertEq(maxLockPeriod, 200);
+    assertTrue(nftStaking.isPoolExist(nftAddress1));
+
+    // Set new params for pool nftAddress1
+    nftStaking.setPool(nftAddress1, 700, 1, 900);
+    (isInit, poolWeight, minLockPeriod, maxLockPeriod) = nftStaking.poolInfo(nftAddress1);
+    assertTrue(isInit);
+    assertEq(poolWeight, 700);
+    assertEq(minLockPeriod, 1);
+    assertEq(maxLockPeriod, 900);
+    assertTrue(nftStaking.isPoolExist(nftAddress1));
+  }
+
+  function testSetPool_poolNotExist() external {
+    vm.expectRevert(NFTStakingLike.NFTStaking_PoolNotExist.selector);
+    nftStaking.setPool(nftAddress1, 100, 0, 200);
+  }
+
   function testStakeNFT_eligibleNFT() external {
     nftStaking.addPool(nftAddress1, 100, 0, 2000);
     vm.warp(1641070800);

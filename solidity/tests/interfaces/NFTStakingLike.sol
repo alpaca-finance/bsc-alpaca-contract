@@ -38,6 +38,13 @@ interface NFTStakingLike {
     uint256 _maxLockPeriod
   ) external;
 
+  function setPool(
+    address _nftAddress,
+    uint256 _poolWeight,
+    uint256 _minLockPeriod,
+    uint256 _maxLockPeriod
+  ) external;
+
   function extendLockPeriod(
     address _nftAddress,
     uint256 _nftTokenId,

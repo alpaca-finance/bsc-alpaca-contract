@@ -77,6 +77,13 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
     uint256 _minLockPeriod,
     uint256 _maxLockPeriod
   );
+  event LogSetPool(
+    address indexed _caller,
+    address indexed _nftAddress,
+    uint256 _poolWeight,
+    uint256 _minLockPeriod,
+    uint256 _maxLockPeriod
+  );
   event LogSetStakeNFTToken(address indexed _caller, address indexed _nftAddress);
 
   modifier onlyEOA() {
@@ -108,12 +115,27 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
     emit LogAddPool(msg.sender, _nftAddress, _poolWeight, _minLockPeriod, _maxLockPeriod);
   }
 
+  function setPool(
+    address _nftAddress,
+    uint256 _poolWeight,
+    uint256 _minLockPeriod,
+    uint256 _maxLockPeriod
+  ) external onlyOwner {
+    if (_nftAddress == address(0)) revert NFTStaking_InvalidPoolAddress();
+    if (!poolInfo[_nftAddress].isInit) revert NFTStaking_PoolNotExist();
+    if (_minLockPeriod > _maxLockPeriod) revert NFTStaking_InvalidLockPeriod();
+    poolInfo[_nftAddress].poolWeight = _poolWeight;
+    poolInfo[_nftAddress].minLockPeriod = _minLockPeriod;
+    poolInfo[_nftAddress].maxLockPeriod = _maxLockPeriod;
+
+    emit LogSetPool(msg.sender, _nftAddress, _poolWeight, _minLockPeriod, _maxLockPeriod);
+  }
+
   function stakeNFT(
     address _nftAddress,
     uint256 _nftTokenId,
     uint256 _lockUntil
   ) external nonReentrant onlyEOA {
-    if (_nftAddress == address(0)) revert NFTStaking_InvalidPoolAddress();
     if (!poolInfo[_nftAddress].isInit) revert NFTStaking_PoolNotExist();
     bytes32 _depositId = keccak256(abi.encodePacked(_nftAddress, msg.sender, _nftTokenId));
     if (userStakingNFT[_depositId].lockUntil != 0) revert NFTStaking_NFTAlreadyStaked();
@@ -138,7 +160,6 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
     uint256 _nftTokenId,
     uint256 _newLockUntil
   ) external nonReentrant onlyEOA {
-    if (_nftAddress == address(0)) revert NFTStaking_InvalidPoolAddress();
     if (!poolInfo[_nftAddress].isInit) revert NFTStaking_PoolNotExist();
     bytes32 _depositId = keccak256(abi.encodePacked(_nftAddress, msg.sender, _nftTokenId));
     if (_newLockUntil < userStakingNFT[_depositId].lockUntil) revert NFTStaking_InvalidLockPeriod();
