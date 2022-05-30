@@ -46,7 +46,7 @@ contract SingleAssetWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
   );
   event SetGovernor(address indexed caller, address indexed governor);
   event LogSetNFTBoostedLeverageController(address oldAddress, address newAddress, address caller);
-  
+
   /// @notice state variables
   struct Config {
     bool acceptDebt;
@@ -261,6 +261,10 @@ contract SingleAssetWorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
     INFTBoostedLeverageController oldNFTBoostedLeverageController = nftBoostedLeverageController;
     nftBoostedLeverageController = _newNFTBoostedLeverageController;
 
-    emit LogSetNFTBoostedLeverageController(address(oldNFTBoostedLeverageController), address(_newNFTBoostedLeverageController), msg.sender);
+    emit LogSetNFTBoostedLeverageController(
+      address(oldNFTBoostedLeverageController),
+      address(_newNFTBoostedLeverageController),
+      msg.sender
+    );
   }
 }

@@ -83,7 +83,7 @@ contract NFTBoostedLeverageControllerTest is BaseTest {
     vm.expectRevert(NFTBoostedLeverageControllerLike.NFTBoostedLeverageController_BadParamsLength.selector);
     nftBoostedController.setBoosted(nftAddresss, mockWorkers, workFactors, killFactors);
   }
-  
+
   function testSetBoostedLeverage_workExceedMaxBoosted() external {
     workFactors = [34, 20000, 76];
     killFactors = [50, 300, 80];
@@ -167,7 +167,7 @@ contract NFTBoostedLeverageControllerTest is BaseTest {
     assertEq(nftBoostedController.getBoostedKillFactor(ALICE, mockWorker1Address), 50);
   }
 
-    function testGetBoostedKillFactor_noNFTSstake() external {
+  function testGetBoostedKillFactor_noNFTSstake() external {
     workFactors = [34, 56, 76];
     killFactors = [50, 60, 80];
     nftAddresss = [nftAddress1, nftAddress2, nftAddress3];
@@ -185,5 +185,4 @@ contract NFTBoostedLeverageControllerTest is BaseTest {
     nftBoostedController.setBoosted(nftAddresss, mockWorkers, workFactors, killFactors);
     assertEq(nftBoostedController.getBoostedKillFactor(ALICE, mockWorker1Address), 0);
   }
-
 }

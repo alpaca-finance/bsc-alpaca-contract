@@ -34,17 +34,25 @@ contract NFTBoostedLeverageController is INFTBoostedLeverageController, OwnableU
 
   /// ------ Events ------
   event LogSetBoosted(address[] _workers, uint256[] _workFactors, uint256[] _killFactors);
-constructor() initializer {}
+
+  constructor() initializer {}
+
   function initialize(INFTStaking _nftStaking) external initializer {
     OwnableUpgradeable.__Ownable_init();
     nftStaking = _nftStaking;
   }
 
+  /// @dev Get the Boosted Work Factor from the specified Worker by checking if the position owner is eligible
+  /// @param _owner position owner address
+  /// @param _worker worker address
   function getBoostedWorkFactor(address _owner, address _worker) external view override returns (uint256) {
     address nftAddress = nftStaking.userHighestWeightNftAddress(_owner);
     return nftAddress != address(0) ? boostedWorkFactors[nftAddress][_worker] : 0;
   }
 
+  /// @dev Get the Boosted Kill Factor from the specified Worker by checking if the position owner is eligible
+  /// @param _owner position owner address
+  /// @param _worker worker address
   function getBoostedKillFactor(address _owner, address _worker) external view override returns (uint256) {
     address nftAddress = nftStaking.userHighestWeightNftAddress(_owner);
     return nftAddress != address(0) ? boostedKillFactors[nftAddress][_worker] : 0;

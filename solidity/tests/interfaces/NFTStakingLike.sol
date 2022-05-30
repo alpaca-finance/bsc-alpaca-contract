@@ -3,114 +3,93 @@
 pragma solidity ^0.8.4;
 
 interface NFTStakingLike {
-    error NFTStaking_BadParamsLength();
-    error NFTStaking_InvalidLockPeriod();
-    error NFTStaking_InvalidPoolAddress();
-    error NFTStaking_IsNotExpired();
-    error NFTStaking_NFTAlreadyStaked();
-    error NFTStaking_NFTNotStaked();
-    error NFTStaking_NoNFTStaked();
-    error NFTStaking_PoolAlreadyExist();
-    error NFTStaking_PoolNotExist();
-    error NFTStaking_Unauthorize();
-    event LogAddPool(
-        address indexed _caller,
-        address indexed _nftAddress,
-        uint256 _poolWeight,
-        uint256 _minLockPeriod,
-        uint256 _maxLockPeriod
+  error NFTStaking_BadParamsLength();
+  error NFTStaking_InvalidLockPeriod();
+  error NFTStaking_InvalidPoolAddress();
+  error NFTStaking_IsNotExpired();
+  error NFTStaking_NFTAlreadyStaked();
+  error NFTStaking_NFTNotStaked();
+  error NFTStaking_NoNFTStaked();
+  error NFTStaking_PoolAlreadyExist();
+  error NFTStaking_PoolNotExist();
+  error NFTStaking_Unauthorize();
+  event LogAddPool(
+    address indexed _caller,
+    address indexed _nftAddress,
+    uint256 _poolWeight,
+    uint256 _minLockPeriod,
+    uint256 _maxLockPeriod
+  );
+  event LogExtendLockPeriod(
+    address indexed _staker,
+    address indexed _nftAddress,
+    uint256 _nftTokenId,
+    uint256 _lockUntil
+  );
+  event LogSetStakeNFTToken(address indexed _caller, address indexed _nftAddress);
+  event LogStakeNFT(address indexed _staker, address indexed _nftAddress, uint256 _nftTokenId, uint256 _lockUntil);
+  event LogUnstakeNFT(address indexed _staker, address indexed _nftAddress, uint256 _nftTokenId);
+  event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+
+  function addPool(
+    address _nftAddress,
+    uint256 _poolWeight,
+    uint256 _minLockPeriod,
+    uint256 _maxLockPeriod
+  ) external;
+
+  function extendLockPeriod(
+    address _nftAddress,
+    uint256 _nftTokenId,
+    uint256 _newLockUntil
+  ) external;
+
+  function initialize() external;
+
+  function isPoolExist(address _nftAddress) external view returns (bool);
+
+  function isStaked(
+    address _nftAddress,
+    address _user,
+    uint256 _nftTokenId
+  ) external view returns (bool);
+
+  function onERC721Received(
+    address,
+    address,
+    uint256,
+    bytes memory
+  ) external pure returns (bytes4);
+
+  function owner() external view returns (address);
+
+  function poolInfo(address)
+    external
+    view
+    returns (
+      bool isInit,
+      uint256 poolWeight,
+      uint256 minLockPeriod,
+      uint256 maxLockPeriod
     );
-    event LogExtendLockPeriod(
-        address indexed _staker,
-        address indexed _nftAddress,
-        uint256 _nftTokenId,
-        uint256 _lockUntil
-    );
-    event LogSetStakeNFTToken(
-        address indexed _caller,
-        address indexed _nftAddress
-    );
-    event LogStakeNFT(
-        address indexed _staker,
-        address indexed _nftAddress,
-        uint256 _nftTokenId,
-        uint256 _lockUntil
-    );
-    event LogUnstakeNFT(
-        address indexed _staker,
-        address indexed _nftAddress,
-        uint256 _nftTokenId
-    );
-    event OwnershipTransferred(
-        address indexed previousOwner,
-        address indexed newOwner
-    );
 
-    function addPool(
-        address _nftAddress,
-        uint256 _poolWeight,
-        uint256 _minLockPeriod,
-        uint256 _maxLockPeriod
-    ) external;
+  function renounceOwnership() external;
 
-    function extendLockPeriod(
-        address _nftAddress,
-        uint256 _nftTokenId,
-        uint256 _newLockUntil
-    ) external;
+  function stakeNFT(
+    address _nftAddress,
+    uint256 _nftTokenId,
+    uint256 _lockUntil
+  ) external;
 
-    function initialize() external;
+  function transferOwnership(address newOwner) external;
 
-    function isPoolExist(address _nftAddress) external view returns (bool);
+  function unstakeNFT(address _nftAddress, uint256 _nftTokenId) external;
 
-    function isStaked(
-        address _nftAddress,
-        address _user,
-        uint256 _nftTokenId
-    ) external view returns (bool);
+  function userHighestWeightNftAddress(address) external view returns (address);
 
-    function onERC721Received(
-        address,
-        address,
-        uint256,
-        bytes memory
-    ) external pure returns (bytes4);
+  function userNFTInStakingPool(address, address) external view returns (uint256);
 
-    function owner() external view returns (address);
-
-    function poolInfo(address)
-        external
-        view
-        returns (
-            bool isInit,
-            uint256 poolWeight,
-            uint256 minLockPeriod,
-            uint256 maxLockPeriod
-        );
-
-    function renounceOwnership() external;
-
-    function stakeNFT(
-        address _nftAddress,
-        uint256 _nftTokenId,
-        uint256 _lockUntil
-    ) external;
-
-    function transferOwnership(address newOwner) external;
-
-    function unstakeNFT(address _nftAddress, uint256 _nftTokenId) external;
-
-    function userHighestWeightNftAddress(address)
-        external
-        view
-        returns (address);
-
-    function userNFTInStakingPool(address, address)
-        external
-        view
-        returns (uint256);
-
-    function userStakingNFT(bytes32) external view returns (uint256 lockUntil);
+  function userStakingNFT(bytes32) external view returns (uint256 lockUntil);
 }
 
 // THIS FILE WAS AUTOGENERATED FROM THE FOLLOWING ABI JSON:

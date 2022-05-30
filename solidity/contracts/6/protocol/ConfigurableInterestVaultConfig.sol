@@ -221,9 +221,8 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   ) external view override returns (uint256) {
     if (nftStaking != address(0)) {
       return workers[worker].workFactor(worker, debt, positionOwner);
-    } 
+    }
     return workers[worker].workFactor(worker, debt);
-    
   }
 
   /// @dev Return the kill factor for the worker + debt, using 1e4 as denom. Revert on non-worker.
@@ -240,7 +239,6 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
       return workers[worker].killFactor(worker, debt, positionOwner);
     }
     return workers[worker].killFactor(worker, debt);
-    
   }
 
   /// @dev Return the kill factor for the worker + BaseToken debt, using 1e4 as denom.
@@ -257,7 +255,6 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
       return workers[worker].rawKillFactor(worker, debt, positionOwner);
     }
     return workers[worker].rawKillFactor(worker, debt);
-    
   }
 
   /// @dev Return if worker is stable.

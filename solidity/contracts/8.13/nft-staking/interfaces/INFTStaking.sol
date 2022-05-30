@@ -16,5 +16,9 @@ pragma solidity 0.8.13;
 interface INFTStaking {
   function userHighestWeightNftAddress(address _user) external view returns (address);
 
-  function isStaked(address _nftAddress, address _user, uint256 _nftTokenId) external view returns (bool);
+  function isStaked(
+    address _nftAddress,
+    address _user,
+    uint256 _nftTokenId
+  ) external view returns (bool);
 }

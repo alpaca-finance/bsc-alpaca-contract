@@ -15,7 +15,6 @@ pragma solidity 0.8.13;
 
 import { ERC721Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 
-
 contract MockNFT is ERC721Upgradeable {
   uint256 public totalSupply;
 

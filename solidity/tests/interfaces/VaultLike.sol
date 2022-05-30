@@ -3,161 +3,140 @@
 pragma solidity >=0.7.0 <0.9.0;
 
 interface VaultLike {
-    event AddCollateral(
-        uint256 indexed id,
-        uint256 amount,
-        uint256 healthBefore,
-        uint256 healthAfter
+  event AddCollateral(uint256 indexed id, uint256 amount, uint256 healthBefore, uint256 healthAfter);
+  event AddDebt(uint256 indexed id, uint256 debtShare);
+  event Approval(address indexed owner, address indexed spender, uint256 value);
+  event Kill(
+    uint256 indexed id,
+    address indexed killer,
+    address owner,
+    uint256 posVal,
+    uint256 debt,
+    uint256 prize,
+    uint256 left
+  );
+  event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+  event RemoveDebt(uint256 indexed id, uint256 debtShare);
+  event Transfer(address indexed from, address indexed to, uint256 value);
+  event Work(uint256 indexed id, uint256 loan);
+
+  function POSITION_ID() external view returns (uint256);
+
+  function STRATEGY() external view returns (address);
+
+  function _IN_EXEC_LOCK() external view returns (uint256);
+
+  function addCollateral(
+    uint256 id,
+    uint256 amount,
+    bool goRogue,
+    bytes memory data
+  ) external payable;
+
+  function allowance(address owner, address spender) external view returns (uint256);
+
+  function approve(address spender, uint256 amount) external returns (bool);
+
+  function balanceOf(address account) external view returns (uint256);
+
+  function config() external view returns (address);
+
+  function debtShareToVal(uint256 debtShare) external view returns (uint256);
+
+  function debtToken() external view returns (address);
+
+  function debtValToShare(uint256 debtVal) external view returns (uint256);
+
+  function decimals() external view returns (uint8);
+
+  function decreaseAllowance(address spender, uint256 subtractedValue) external returns (bool);
+
+  function deposit(uint256 amountToken) external payable;
+
+  function fairLaunchPoolId() external view returns (uint256);
+
+  function increaseAllowance(address spender, uint256 addedValue) external returns (bool);
+
+  function initialize(
+    address _config,
+    address _token,
+    string memory _name,
+    string memory _symbol,
+    uint8 _decimals,
+    address _debtToken
+  ) external;
+
+  function kill(uint256 id) external;
+
+  function lastAccrueTime() external view returns (uint256);
+
+  function name() external view returns (string memory);
+
+  function nextPositionID() external view returns (uint256);
+
+  function owner() external view returns (address);
+
+  function pendingInterest(uint256 value) external view returns (uint256);
+
+  function positionInfo(uint256 id) external view returns (uint256, uint256);
+
+  function positions(uint256)
+    external
+    view
+    returns (
+      address worker,
+      address owner,
+      uint256 debtShare
     );
-    event AddDebt(uint256 indexed id, uint256 debtShare);
-    event Approval(
-        address indexed owner,
-        address indexed spender,
-        uint256 value
-    );
-    event Kill(
-        uint256 indexed id,
-        address indexed killer,
-        address owner,
-        uint256 posVal,
-        uint256 debt,
-        uint256 prize,
-        uint256 left
-    );
-    event OwnershipTransferred(
-        address indexed previousOwner,
-        address indexed newOwner
-    );
-    event RemoveDebt(uint256 indexed id, uint256 debtShare);
-    event Transfer(address indexed from, address indexed to, uint256 value);
-    event Work(uint256 indexed id, uint256 loan);
 
-    function POSITION_ID() external view returns (uint256);
+  function reduceReserve(uint256 value) external;
 
-    function STRATEGY() external view returns (address);
+  function renounceOwnership() external;
 
-    function _IN_EXEC_LOCK() external view returns (uint256);
+  function requestFunds(address targetedToken, uint256 amount) external;
 
-    function addCollateral(
-        uint256 id,
-        uint256 amount,
-        bool goRogue,
-        bytes memory data
-    ) external payable;
+  function reservePool() external view returns (uint256);
 
-    function allowance(address owner, address spender)
-        external
-        view
-        returns (uint256);
+  function setFairLaunchPoolId(uint256 _poolId) external;
 
-    function approve(address spender, uint256 amount) external returns (bool);
+  function symbol() external view returns (string memory);
 
-    function balanceOf(address account) external view returns (uint256);
+  function token() external view returns (address);
 
-    function config() external view returns (address);
+  function totalSupply() external view returns (uint256);
 
-    function debtShareToVal(uint256 debtShare) external view returns (uint256);
+  function totalToken() external view returns (uint256);
 
-    function debtToken() external view returns (address);
+  function transfer(address recipient, uint256 amount) external returns (bool);
 
-    function debtValToShare(uint256 debtVal) external view returns (uint256);
+  function transferFrom(
+    address sender,
+    address recipient,
+    uint256 amount
+  ) external returns (bool);
 
-    function decimals() external view returns (uint8);
+  function transferOwnership(address newOwner) external;
 
-    function decreaseAllowance(address spender, uint256 subtractedValue)
-        external
-        returns (bool);
+  function updateConfig(address _config) external;
 
-    function deposit(uint256 amountToken) external payable;
+  function vaultDebtShare() external view returns (uint256);
 
-    function fairLaunchPoolId() external view returns (uint256);
+  function vaultDebtVal() external view returns (uint256);
 
-    function increaseAllowance(address spender, uint256 addedValue)
-        external
-        returns (bool);
+  function withdraw(uint256 share) external;
 
-    function initialize(
-        address _config,
-        address _token,
-        string memory _name,
-        string memory _symbol,
-        uint8 _decimals,
-        address _debtToken
-    ) external;
+  function withdrawReserve(address to, uint256 value) external;
 
-    function kill(uint256 id) external;
+  function work(
+    uint256 id,
+    address worker,
+    uint256 principalAmount,
+    uint256 borrowAmount,
+    uint256 maxReturn,
+    bytes memory data
+  ) external payable;
 
-    function lastAccrueTime() external view returns (uint256);
-
-    function name() external view returns (string memory);
-
-    function nextPositionID() external view returns (uint256);
-
-    function owner() external view returns (address);
-
-    function pendingInterest(uint256 value) external view returns (uint256);
-
-    function positionInfo(uint256 id) external view returns (uint256, uint256);
-
-    function positions(uint256)
-        external
-        view
-        returns (
-            address worker,
-            address owner,
-            uint256 debtShare
-        );
-
-    function reduceReserve(uint256 value) external;
-
-    function renounceOwnership() external;
-
-    function requestFunds(address targetedToken, uint256 amount) external;
-
-    function reservePool() external view returns (uint256);
-
-    function setFairLaunchPoolId(uint256 _poolId) external;
-
-    function symbol() external view returns (string memory);
-
-    function token() external view returns (address);
-
-    function totalSupply() external view returns (uint256);
-
-    function totalToken() external view returns (uint256);
-
-    function transfer(address recipient, uint256 amount)
-        external
-        returns (bool);
-
-    function transferFrom(
-        address sender,
-        address recipient,
-        uint256 amount
-    ) external returns (bool);
-
-    function transferOwnership(address newOwner) external;
-
-    function updateConfig(address _config) external;
-
-    function vaultDebtShare() external view returns (uint256);
-
-    function vaultDebtVal() external view returns (uint256);
-
-    function withdraw(uint256 share) external;
-
-    function withdrawReserve(address to, uint256 value) external;
-
-    function work(
-        uint256 id,
-        address worker,
-        uint256 principalAmount,
-        uint256 borrowAmount,
-        uint256 maxReturn,
-        bytes memory data
-    ) external payable;
-
-    receive() external payable;
+  receive() external payable;
 }
 
 // THIS FILE WAS AUTOGENERATED FROM THE FOLLOWING ABI JSON:
