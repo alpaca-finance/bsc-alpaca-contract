@@ -81,7 +81,39 @@ interface IDeltaNeutralVaultConfig02 {
   /// @dev Return reinvest path
   function getReinvestPath() external view returns (address[] memory);
 
+  /// @dev Return controller address
   function controller() external view returns (address);
 
+  /// @dev Set a new controller
   function setController(address _controller) external;
+
+  /// @dev Return deposit executor
+  function depositExecutor() external view returns (address);
+
+  /// @dev Return withdraw executor
+  function withdrawExecutor() external view returns (address);
+
+  /// @dev Return rebalance executor
+  function rebalanceExecutor() external view returns (address);
+
+  /// @dev Return reinvest executor
+  function reinvestExecutor() external view returns (address);
+
+  /// @dev Return if caller is executor.
+  function isExecutor(address _caller) external view returns (bool);
+
+  /// @dev Return Partial close minimize strategy address
+  function partialCloseMinimizeStrategy() external view returns (address);
+
+  /// @dev Return Stable add two side strategy address
+  function stableAddTwoSideStrategy() external view returns (address);
+
+  /// @dev Return Asset add two side strategy address
+  function assetAddTwoSideStrategy() external view returns (address);
+
+  /// @dev Return swap fee
+  function swapFee() external view returns (uint256);
+
+  /// @dev Return swap fee denom
+  function swapFeeDenom() external view returns (uint256);
 }
