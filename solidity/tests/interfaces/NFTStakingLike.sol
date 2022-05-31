@@ -16,9 +16,9 @@ interface NFTStakingLike {
   event LogAddPool(
     address indexed _caller,
     address indexed _nftAddress,
-    uint256 _poolWeight,
-    uint256 _minLockPeriod,
-    uint256 _maxLockPeriod
+    uint32 _poolWeight,
+    uint32 _minLockPeriod,
+    uint32 _maxLockPeriod
   );
   event LogExtendLockPeriod(
     address indexed _staker,
@@ -33,16 +33,16 @@ interface NFTStakingLike {
 
   function addPool(
     address _nftAddress,
-    uint256 _poolWeight,
-    uint256 _minLockPeriod,
-    uint256 _maxLockPeriod
+    uint32 _poolWeight,
+    uint32 _minLockPeriod,
+    uint32 _maxLockPeriod
   ) external;
 
   function setPool(
     address _nftAddress,
-    uint256 _poolWeight,
-    uint256 _minLockPeriod,
-    uint256 _maxLockPeriod
+    uint32 _poolWeight,
+    uint32 _minLockPeriod,
+    uint32 _maxLockPeriod
   ) external;
 
   function extendLockPeriod(

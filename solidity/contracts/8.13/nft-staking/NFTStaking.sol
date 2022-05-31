@@ -41,9 +41,9 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
   // Info of each pool.
   // Mapping of NFT token addresses that are allowed to stake in this pool
   struct PoolInfo {
-    uint256 poolWeight;
-    uint256 minLockPeriod;
-    uint256 maxLockPeriod;
+    uint32 poolWeight;
+    uint32 minLockPeriod;
+    uint32 maxLockPeriod;
   }
 
   // NFT address (nftAddress) => PoolInfo
@@ -106,9 +106,9 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
 
   function addPool(
     address _nftAddress,
-    uint256 _poolWeight,
-    uint256 _minLockPeriod,
-    uint256 _maxLockPeriod
+    uint32 _poolWeight,
+    uint32 _minLockPeriod,
+    uint32 _maxLockPeriod
   ) external onlyOwner {
     if (_nftAddress == address(0)) revert NFTStaking_InvalidPoolAddress();
     if (poolInfo[_nftAddress].poolWeight > 0) revert NFTStaking_PoolAlreadyExist();
@@ -123,9 +123,9 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
 
   function setPool(
     address _nftAddress,
-    uint256 _poolWeight,
-    uint256 _minLockPeriod,
-    uint256 _maxLockPeriod
+    uint32 _poolWeight,
+    uint32 _minLockPeriod,
+    uint32 _maxLockPeriod
   ) external onlyOwner {
     if (_nftAddress == address(0)) revert NFTStaking_InvalidPoolAddress();
     if (poolInfo[_nftAddress].poolWeight == 0) revert NFTStaking_PoolNotExist();
