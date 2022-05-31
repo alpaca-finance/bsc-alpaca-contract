@@ -156,7 +156,9 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
       userHighestWeightNftAddress[msg.sender] = _nftAddress;
     }
     userStakingPool[msg.sender].add(_nftAddress);
-    userNFTInStakingPool[msg.sender][_nftAddress] += 1;
+    unchecked {
+      userNFTInStakingPool[msg.sender][_nftAddress] += 1;
+    }
     IERC721Upgradeable(_nftAddress).transferFrom(msg.sender, address(this), _nftTokenId);
 
     emit LogStakeNFT(msg.sender, _depositId, _nftAddress, _nftTokenId, _lockUntil);
@@ -187,7 +189,10 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
     // Reset highest pool weight
     userHighestWeightNftAddress[msg.sender] = address(0x00);
 
-    userNFTInStakingPool[msg.sender][_nftAddress] -= 1;
+    unchecked {
+      userNFTInStakingPool[msg.sender][_nftAddress] -= 1;
+    }
+
     // Remove pool from user if no NFT stake
     if (userNFTInStakingPool[msg.sender][_nftAddress] == 0) {
       userStakingPool[msg.sender].remove(_nftAddress);
