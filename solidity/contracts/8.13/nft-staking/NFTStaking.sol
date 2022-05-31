@@ -35,12 +35,12 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
   error NFTStaking_NoNFTStaked();
   error NFTStaking_InvalidPoolAddress();
   error NFTStaking_NFTNotStaked();
+  error NFTStaking_WrongPoolWeight();
 
   /// ------ States ------
   // Info of each pool.
   // Mapping of NFT token addresses that are allowed to stake in this pool
   struct PoolInfo {
-    bool isInit;
     uint256 poolWeight;
     uint256 minLockPeriod;
     uint256 maxLockPeriod;
@@ -111,9 +111,9 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
     uint256 _maxLockPeriod
   ) external onlyOwner {
     if (_nftAddress == address(0)) revert NFTStaking_InvalidPoolAddress();
-    if (poolInfo[_nftAddress].isInit) revert NFTStaking_PoolAlreadyExist();
+    if (poolInfo[_nftAddress].poolWeight > 0) revert NFTStaking_PoolAlreadyExist();
     if (_minLockPeriod > _maxLockPeriod) revert NFTStaking_InvalidLockPeriod();
-    poolInfo[_nftAddress].isInit = true;
+    if (_poolWeight == 0) revert NFTStaking_WrongPoolWeight();
     poolInfo[_nftAddress].poolWeight = _poolWeight;
     poolInfo[_nftAddress].minLockPeriod = _minLockPeriod;
     poolInfo[_nftAddress].maxLockPeriod = _maxLockPeriod;
@@ -128,8 +128,9 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
     uint256 _maxLockPeriod
   ) external onlyOwner {
     if (_nftAddress == address(0)) revert NFTStaking_InvalidPoolAddress();
-    if (!poolInfo[_nftAddress].isInit) revert NFTStaking_PoolNotExist();
+    if (poolInfo[_nftAddress].poolWeight == 0) revert NFTStaking_PoolNotExist();
     if (_minLockPeriod > _maxLockPeriod) revert NFTStaking_InvalidLockPeriod();
+    if (_poolWeight == 0) revert NFTStaking_WrongPoolWeight();
     poolInfo[_nftAddress].poolWeight = _poolWeight;
     poolInfo[_nftAddress].minLockPeriod = _minLockPeriod;
     poolInfo[_nftAddress].maxLockPeriod = _maxLockPeriod;
@@ -142,7 +143,7 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
     uint256 _nftTokenId,
     uint256 _lockUntil
   ) external nonReentrant onlyEOA {
-    if (!poolInfo[_nftAddress].isInit) revert NFTStaking_PoolNotExist();
+    if (poolInfo[_nftAddress].poolWeight == 0) revert NFTStaking_PoolNotExist();
     bytes32 _depositId = keccak256(abi.encodePacked(_nftAddress, msg.sender, _nftTokenId));
     if (userStakingNFTLockUntil[_depositId] != 0) revert NFTStaking_NFTAlreadyStaked();
     if (_lockUntil < block.timestamp) revert NFTStaking_InvalidLockPeriod();
@@ -166,7 +167,7 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
     uint256 _nftTokenId,
     uint256 _newLockUntil
   ) external nonReentrant onlyEOA {
-    if (!poolInfo[_nftAddress].isInit) revert NFTStaking_PoolNotExist();
+    if (poolInfo[_nftAddress].poolWeight == 0) revert NFTStaking_PoolNotExist();
     bytes32 _depositId = keccak256(abi.encodePacked(_nftAddress, msg.sender, _nftTokenId));
     if (_newLockUntil < userStakingNFTLockUntil[_depositId]) revert NFTStaking_InvalidLockPeriod();
     if (userStakingNFTLockUntil[_depositId] == 0) revert NFTStaking_NFTNotStaked();
@@ -218,7 +219,7 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
   }
 
   function isPoolExist(address _nftAddress) public view returns (bool) {
-    return poolInfo[_nftAddress].isInit;
+    return poolInfo[_nftAddress].poolWeight > 0;
   }
 
   /// @dev when doing a safeTransferFrom, the caller needs to implement this, for safety reason

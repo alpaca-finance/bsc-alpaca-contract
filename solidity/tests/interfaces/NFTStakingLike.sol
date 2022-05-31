@@ -74,7 +74,6 @@ interface NFTStakingLike {
     external
     view
     returns (
-      bool isInit,
       uint256 poolWeight,
       uint256 minLockPeriod,
       uint256 maxLockPeriod
