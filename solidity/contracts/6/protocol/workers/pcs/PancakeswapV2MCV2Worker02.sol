@@ -99,6 +99,7 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
   uint256 public buybackAmount;
 
   IPancakeMasterChefV2 public masterChefV2;
+  uint256 public pendingCake;
 
   function initialize(
     address _operator,
@@ -141,31 +142,20 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
     okStrats[address(liqStrat)] = true;
 
     // 5. Assign Re-invest parameters
-    reinvestBountyBps = _reinvestBountyBps;
-    reinvestThreshold = _reinvestThreshold;
-    reinvestPath = _reinvestPath;
     treasuryAccount = _treasuryAccount;
     treasuryBountyBps = _reinvestBountyBps;
     maxReinvestBountyBps = 900;
+    setReinvestConfig(_reinvestBountyBps, _reinvestThreshold, _reinvestPath);
 
     // 6. Set PancakeswapV2 swap fees
     fee = 9975;
     feeDenom = 10000;
 
     // 7. Check if critical parameters are config properly
-    require(baseToken != cake, "PancakeswapV2MCV2Worker02::initialize:: base token cannot be a reward token");
-    require(
-      reinvestBountyBps <= maxReinvestBountyBps,
-      "PancakeswapV2MCV2Worker02::initialize:: reinvestBountyBps exceeded maxReinvestBountyBps"
-    );
     require(
       (farmingToken == lpToken.token0() || farmingToken == lpToken.token1()) &&
         (baseToken == lpToken.token0() || baseToken == lpToken.token1()),
       "PancakeswapV2MCV2Worker02::initialize:: LP underlying not match with farm & base token"
-    );
-    require(
-      reinvestPath[0] == cake && reinvestPath[reinvestPath.length - 1] == baseToken,
-      "PancakeswapV2MCV2Worker02::initialize:: reinvestPath must start with CAKE, end with BTOKEN"
     );
   }
 
@@ -222,10 +212,9 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
     uint256 _callerBalance,
     uint256 _reinvestThreshold
   ) internal {
-    require(_treasuryAccount != address(0), "PancakeswapV2MCV2Worker02::_reinvest:: bad treasury account");
     // 1. Withdraw all the rewards. Return if reward <= _reinvestThreshold.
-    masterChefV2.withdraw(pid, 0);
-    uint256 reward = cake.balanceOf(address(this));
+    _masterChefV2Withdraw(0);
+    uint256 reward = pendingCake;
     if (reward <= _reinvestThreshold) return;
 
     // 2. Approve tokens
@@ -241,18 +230,27 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
     }
 
     // 4. Convert all the remaining rewards to BaseToken according to config path.
-    router.swapExactTokensForTokens(reward.sub(bounty), 0, getReinvestPath(), address(this), now);
+    uint256 _reinvestAmount;
+    if (baseToken == cake) {
+      _reinvestAmount = reward.sub(bounty);
+    } else {
+      router.swapExactTokensForTokens(reward.sub(bounty), 0, getReinvestPath(), address(this), now);
+      _reinvestAmount = actualBaseTokenBalance().sub(_callerBalance);
+    }
 
     // 5. Use add Token strategy to convert all BaseToken without both caller balance and buyback amount to LP tokens.
-    baseToken.safeTransfer(address(addStrat), actualBaseTokenBalance().sub(_callerBalance));
+    baseToken.safeTransfer(address(addStrat), _reinvestAmount);
     addStrat.execute(address(0), 0, abi.encode(0));
 
     // 6. Stake LPs for more rewards
-    masterChefV2.deposit(pid, lpToken.balanceOf(address(this)));
+    _masterChefV2Deposit(lpToken.balanceOf(address(this)));
 
     // 7. Reset approval
     cake.safeApprove(address(router), 0);
     address(lpToken).safeApprove(address(masterChefV2), 0);
+
+    // 8. reset pendingCake
+    pendingCake = 0;
 
     emit Reinvest(_treasuryAccount, reward, bounty);
   }
@@ -269,8 +267,7 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
     bytes calldata data
   ) external override onlyOperator nonReentrant {
     // 1. If a treasury configs are not ready. Not reinvest.
-    if (treasuryAccount != address(0) && treasuryBountyBps != 0)
-      _reinvest(treasuryAccount, treasuryBountyBps, actualBaseTokenBalance(), reinvestThreshold);
+    _reinvest(treasuryAccount, treasuryBountyBps, actualBaseTokenBalance(), reinvestThreshold);
     // 2. Convert this position back to LP tokens.
     _removeShare(id);
     // 3. Perform the worker strategy; sending LP tokens + BaseToken; expecting LP tokens + BaseToken.
@@ -373,8 +370,11 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
   }
 
   /// @dev since buybackAmount variable has been created to collect a buyback balance when during the reinvest within the work method,
-  /// thus the actualBaseTokenBalance exists to differentiate an actual base token balance balance without taking buy back amount into account
+  /// thus the actualBaseTokenBalance exists to differentiate an actual base token balance balance without taking buy back amount and pending reward into account
   function actualBaseTokenBalance() internal view returns (uint256) {
+    if (baseToken == cake) {
+      return baseToken.myBalance().sub(pendingCake).sub(buybackAmount);
+    }
     return baseToken.myBalance().sub(buybackAmount);
   }
 
@@ -386,8 +386,8 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
       address(lpToken).safeApprove(address(masterChefV2), uint256(-1));
       // 2. Convert balance to share
       uint256 share = balanceToShare(balance);
-      // 3. Deposit balance to PancakeMasterChef
-      masterChefV2.deposit(pid, balance);
+      // 3. Deposit balance to PancakeMasterChef and update pendingCake
+      _masterChefV2Deposit(balance);
       // 4. Update shares
       shares[id] = shares[id].add(share);
       totalShare = totalShare.add(share);
@@ -402,7 +402,7 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
     uint256 share = shares[id];
     if (share > 0) {
       uint256 balance = shareToBalance(share);
-      masterChefV2.withdraw(pid, balance);
+      _masterChefV2Withdraw(balance);
       totalShare = totalShare.sub(share);
       shares[id] = 0;
       emit RemoveShare(id, share);
@@ -454,13 +454,23 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
   function setReinvestConfig(
     uint256 _reinvestBountyBps,
     uint256 _reinvestThreshold,
-    address[] calldata _reinvestPath
-  ) external onlyOwner {
+    address[] memory _reinvestPath
+  ) public onlyOwner {
     require(
       _reinvestBountyBps <= maxReinvestBountyBps,
       "PancakeswapV2MCV2Worker02::setReinvestConfig:: _reinvestBountyBps exceeded maxReinvestBountyBps"
     );
-    require(_reinvestPath.length >= 2, "PancakeswapV2MCV2Worker02::setReinvestConfig:: _reinvestPath length must >= 2");
+    if (baseToken == cake) {
+      require(
+        _reinvestPath.length == 1,
+        "PancakeswapV2MCV2Worker02:: _reinvestPath length must == 1, if baseToken == reward"
+      );
+    } else {
+      require(
+        _reinvestPath.length >= 2,
+        "PancakeswapV2MCV2Worker02::setReinvestConfig:: _reinvestPath length must >= 2"
+      );
+    }
     require(
       _reinvestPath[0] == cake && _reinvestPath[_reinvestPath.length - 1] == baseToken,
       "PancakeswapV2MCV2Worker02::setReinvestConfig:: _reinvestPath must start with CAKE, end with BTOKEN"
@@ -582,5 +592,21 @@ contract PancakeswapV2MCV2Worker02 is OwnableUpgradeSafe, ReentrancyGuardUpgrade
     rewardPath = _rewardPath;
 
     emit SetBeneficialVaultConfig(msg.sender, _beneficialVaultBountyBps, _beneficialVault, _rewardPath);
+  }
+
+  /// @dev Deposit lp to masterChef and update pendingCake
+  /// @param _balance - Lp amount to deposit.
+  function _masterChefV2Deposit(uint256 _balance) internal {
+    uint256 _cakeBefore = cake.balanceOf(address(this));
+    masterChefV2.deposit(pid, _balance);
+    pendingCake = pendingCake.add(cake.balanceOf(address(this)).sub(_cakeBefore));
+  }
+
+  /// @dev Withdraw lp from masterChef and update pendingCake
+  /// @param _balance - Lp amount to withdraw.
+  function _masterChefV2Withdraw(uint256 _balance) internal {
+    uint256 _cakeBefore = cake.balanceOf(address(this));
+    masterChefV2.withdraw(pid, _balance);
+    pendingCake = pendingCake.add(cake.balanceOf(address(this)).sub(_cakeBefore));
   }
 }
