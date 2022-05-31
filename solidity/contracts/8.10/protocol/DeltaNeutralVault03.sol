@@ -355,7 +355,7 @@ contract DeltaNeutralVault03 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
     _mint(config.withdrawalFeeTreasury(), _shareAmount - _shareToWithdraw);
 
     // withdraw executor exec
-    IExecutor(config.withdrawExecutor()).exec(bytes.concat(abi.encode(_shareToWithdraw), _data));
+    IExecutor(config.withdrawExecutor()).exec(bytes.concat(abi.encode(_withdrawShareValue), _data));
 
     return
       _checkAndTransfer(
