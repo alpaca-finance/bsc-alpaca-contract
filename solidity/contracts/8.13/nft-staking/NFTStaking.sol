@@ -57,14 +57,25 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
   mapping(address => EnumerableSetUpgradeable.AddressSet) private userStakingPool;
 
   /// ------ Events ------
-  event LogStakeNFT(address indexed _staker, address indexed _nftAddress, uint256 _nftTokenId, uint256 _lockUntil);
+  event LogStakeNFT(
+    address indexed _staker,
+    bytes32 indexed _depositId,
+    address indexed _nftAddress,
+    uint256 _nftTokenId,
+    uint256 _lockUntil
+  );
   event LogExtendLockPeriod(
     address indexed _staker,
     address indexed _nftAddress,
     uint256 _nftTokenId,
     uint256 _lockUntil
   );
-  event LogUnstakeNFT(address indexed _staker, address indexed _nftAddress, uint256 _nftTokenId);
+  event LogUnstakeNFT(
+    address indexed _staker,
+    bytes32 indexed _depositId,
+    address indexed _nftAddress,
+    uint256 _nftTokenId
+  );
   event LogAddPool(
     address indexed _caller,
     address indexed _nftAddress,
@@ -147,7 +158,7 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
     userNFTInStakingPool[msg.sender][_nftAddress] += 1;
     IERC721Upgradeable(_nftAddress).transferFrom(msg.sender, address(this), _nftTokenId);
 
-    emit LogStakeNFT(msg.sender, _nftAddress, _nftTokenId, _lockUntil);
+    emit LogStakeNFT(msg.sender, _depositId, _nftAddress, _nftTokenId, _lockUntil);
   }
 
   function extendLockPeriod(
@@ -194,7 +205,7 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
 
     IERC721Upgradeable(_nftAddress).transferFrom(address(this), msg.sender, _nftTokenId);
 
-    emit LogUnstakeNFT(msg.sender, _nftAddress, _nftTokenId);
+    emit LogUnstakeNFT(msg.sender, _depositId, _nftAddress, _nftTokenId);
   }
 
   function isStaked(
