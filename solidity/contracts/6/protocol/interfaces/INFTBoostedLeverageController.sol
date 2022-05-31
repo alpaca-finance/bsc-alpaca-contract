@@ -14,7 +14,7 @@ Alpaca Fin Corporation
 pragma solidity 0.6.6;
 
 interface INFTBoostedLeverageController {
-  function getBoostedWorkFactor(address owner, address worker) external view returns (uint256);
+  function getBoostedWorkFactor(address owner, address worker) external view returns (uint64);
 
-  function getBoostedKillFactor(address owner, address worker) external view returns (uint256);
+  function getBoostedKillFactor(address owner, address worker) external view returns (uint64);
 }

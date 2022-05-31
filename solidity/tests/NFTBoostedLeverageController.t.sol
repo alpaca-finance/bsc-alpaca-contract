@@ -34,8 +34,8 @@ contract NFTBoostedLeverageControllerTest is BaseTest {
   address private mockWorker2Address;
   address private mockWorker3Address;
 
-  uint256[] private workFactors;
-  uint256[] private killFactors;
+  uint64[] private workFactors;
+  uint64[] private killFactors;
   address[] private nftAddresss;
   address[] private mockWorkers;
 

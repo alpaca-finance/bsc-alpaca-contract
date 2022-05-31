@@ -10,13 +10,11 @@ interface NFTBoostedLeverageControllerLike {
   event LogSetBoosted(address[] _workers, uint256[] _workFactors, uint256[] _killFactors);
   event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
-  function boostedKillFactors(address, address) external view returns (uint256);
+  function boostedConfig(address, address) external view returns (uint64, uint64);
 
-  function boostedWorkFactors(address, address) external view returns (uint256);
+  function getBoostedKillFactor(address _owner, address _worker) external view returns (uint64);
 
-  function getBoostedKillFactor(address _owner, address _worker) external view returns (uint256);
-
-  function getBoostedWorkFactor(address _owner, address _worker) external view returns (uint256);
+  function getBoostedWorkFactor(address _owner, address _worker) external view returns (uint64);
 
   function initialize(address _nftStaking) external;
 
@@ -29,8 +27,8 @@ interface NFTBoostedLeverageControllerLike {
   function setBoosted(
     address[] memory _nftAddresss,
     address[] memory _workers,
-    uint256[] memory _workFactors,
-    uint256[] memory _killFactors
+    uint64[] memory _workFactors,
+    uint64[] memory _killFactors
   ) external;
 
   function transferOwnership(address newOwner) external;
