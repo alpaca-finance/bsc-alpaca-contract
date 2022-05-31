@@ -78,8 +78,8 @@ contract NFTStakingTest is BaseTest {
     nftStaking.stakeNFT(nftAddress1, 1, mockLockUntil);
     vm.stopPrank();
 
-    bytes32 depositeId = keccak256(abi.encodePacked(nftAddress1, ALICE, uint256(1)));
-    uint256 lockUntil = nftStaking.userStakingNFT(depositeId);
+    bytes32 depositId = keccak256(abi.encodePacked(nftAddress1, ALICE, uint256(1)));
+    uint256 lockUntil = nftStaking.userStakingNFTLockUntil(depositId);
     assertEq(nftStaking.userNFTInStakingPool(ALICE, nftAddress1), 1);
     assertEq(lockUntil, mockLockUntil);
 
@@ -101,8 +101,8 @@ contract NFTStakingTest is BaseTest {
     nftStaking.stakeNFT(nftAddress1, 1, 1641070800);
     vm.stopPrank();
 
-    bytes32 depositeId = keccak256(abi.encodePacked(nftAddress1, ALICE, uint256(1)));
-    uint256 lockUntil = nftStaking.userStakingNFT(depositeId);
+    bytes32 depositId = keccak256(abi.encodePacked(nftAddress1, ALICE, uint256(1)));
+    uint256 lockUntil = nftStaking.userStakingNFTLockUntil(depositId);
     assertEq(nftStaking.userNFTInStakingPool(ALICE, nftAddress1), 1);
     assertEq(lockUntil, 1641070800);
 
