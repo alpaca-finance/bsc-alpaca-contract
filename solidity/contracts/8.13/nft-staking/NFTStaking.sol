@@ -212,12 +212,15 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
 
     // Find new highest weight
     uint256 _length = userStakingPool[msg.sender].length();
-    for (uint256 i = 0; i < _length; i++) {
+    for (uint256 i = 0; i < _length; ) {
       if (
         poolInfo[userHighestWeightNftAddress[msg.sender]].poolWeight <
         poolInfo[userStakingPool[msg.sender].at(i)].poolWeight
       ) {
         userHighestWeightNftAddress[msg.sender] = userStakingPool[msg.sender].at(i);
+      }
+      unchecked {
+        ++i;
       }
     }
 
