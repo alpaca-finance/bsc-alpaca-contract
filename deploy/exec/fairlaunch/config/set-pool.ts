@@ -57,7 +57,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   let nonce = await deployer.getTransactionCount();
 
   for (const input of inputs) {
-    console.log(`>> Timelock: Set pool for ${input.stakingPool} via Timelock`);
     timelockTransactions.push(
       await TimelockService.queueTransaction(
         `>> Timelock: Set pool for ${input.stakingPool} via Timelock`,
