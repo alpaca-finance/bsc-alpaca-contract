@@ -1,4 +1,4 @@
-import { MiniFL__factory } from "./../../../../typechain/factories/MiniFL__factory";
+import { MiniFL__factory } from "../../../../typechain/factories/MiniFL__factory";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { getConfig } from "../../../entities/config";
@@ -32,8 +32,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const UPDATES: Array<IUpdate> = [
     {
-      STAKING_TOKEN: "fdALPACA",
-      ALLOC_POINT: 125,
+      STAKING_TOKEN: "ibTOMB",
+      ALLOC_POINT: 0,
+      OVERWRITE: false,
+      WITH_UPDATE: true,
+    },
+    {
+      STAKING_TOKEN: "debtIbTOMB_V2",
+      ALLOC_POINT: 0,
       OVERWRITE: false,
       WITH_UPDATE: true,
     },
@@ -63,7 +69,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   }
 
   for (const input of inputs) {
-    console.log(`>> >> MiniFL: set ${input.stakingPool} with ${input.allocPoint}`);
+    console.log(`>> MiniFL: set ${input.stakingPool} with ${input.allocPoint}`);
     await miniFL.setPool(input.pId, input.allocPoint, input.rewarder, input.overwrite, input.withUpdate, {
       nonce: nonce++,
     });

@@ -7,6 +7,7 @@ import { Multicall2Service } from "../../../services/multicall/multicall2";
 import { BigNumber, BigNumberish } from "ethers";
 import { TimelockEntity } from "../../../entities";
 import { fileService, TimelockService } from "../../../services";
+import { compare } from "../../../../utils/address";
 
 interface SetConfigInput {
   WORKER: string;
@@ -18,6 +19,7 @@ interface SetConfigInput {
 
 interface SetConfigDerivedInput {
   workerName: string;
+  ownerAddress: string;
   workerAddress: string;
   workerConfigAddress: string;
   acceptDebt: boolean;
@@ -39,8 +41,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const TITLE = "adjust_BUSD-ALPACA_kill_factor";
   const UPDATES: Array<SetConfigInput> = [
     {
-      WORKER: "BUSD-ALPACA PancakeswapWorker",
-      KILL_FACTOR: "8333",
+      WORKER: "WFTM-TOMB TombWorker",
+      ACCEPT_DEBT: false,
+    },
+    {
+      WORKER: "TOMB-WFTM TombWorker",
+      ACCEPT_DEBT: false,
+    },
+    {
+      WORKER: "TSHARE-WFTM TombWorker",
+      ACCEPT_DEBT: false,
     },
   ];
   const EXACT_ETA = "1648535400";
@@ -57,21 +67,26 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       const workerInfo = config.Vaults[j].workers.find((w) => w.name == UPDATES[i].WORKER);
       if (workerInfo !== undefined) {
         const workerConfig = WorkerConfig__factory.connect(workerInfo.config, deployer);
-        const [currentConfig] = await multicallService.multiContractCall<
-          [{ acceptDebt: boolean; workFactor: BigNumber; killFactor: BigNumber; maxPriceDiff: BigNumber }]
+        const [currentConfig, ownerAddress] = await multicallService.multiContractCall<
+          [{ acceptDebt: boolean; workFactor: BigNumber; killFactor: BigNumber; maxPriceDiff: BigNumber }, string]
         >([
           {
             contract: workerConfig,
             functionName: "workers",
             params: [workerInfo.address],
           },
+          {
+            contract: workerConfig,
+            functionName: "owner",
+          },
         ]);
 
         inputs.push({
           workerName: UPDATES[i].WORKER,
           workerAddress: workerInfo.address,
+          ownerAddress,
           workerConfigAddress: workerInfo.config,
-          acceptDebt: UPDATES[i].ACCEPT_DEBT || currentConfig.acceptDebt,
+          acceptDebt: UPDATES[i].ACCEPT_DEBT !== undefined ? UPDATES[i].ACCEPT_DEBT! : currentConfig.acceptDebt,
           workFactor: UPDATES[i].WORK_FACTOR || currentConfig.workFactor,
           killFactor: UPDATES[i].KILL_FACTOR || currentConfig.killFactor,
           maxPriceDiff: UPDATES[i].MAX_PRICE_DIFF || currentConfig.maxPriceDiff,
@@ -87,28 +102,47 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   let nonce = await deployer.getTransactionCount();
   for (const input of inputs) {
-    timelockTransactions.push(
-      await TimelockService.queueTransaction(
-        `>> Timelock: Setting WorkerConfig for ${input.workerName} via Timelock`,
-        input.workerConfigAddress,
-        "0",
-        "setConfigs(address[],(bool,uint64,uint64,uint64)[])",
-        ["address[]", "(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]"],
-        [
-          [input.workerAddress],
+    if (compare(config.Timelock, input.ownerAddress)) {
+      timelockTransactions.push(
+        await TimelockService.queueTransaction(
+          `>> Timelock: Setting WorkerConfig for ${input.workerName} via Timelock`,
+          input.workerConfigAddress,
+          "0",
+          "setConfigs(address[],(bool,uint64,uint64,uint64)[])",
+          ["address[]", "(bool acceptDebt,uint64 workFactor,uint64 killFactor,uint64 maxPriceDiff)[]"],
           [
-            {
-              acceptDebt: input.acceptDebt,
-              workFactor: input.workFactor,
-              killFactor: input.killFactor,
-              maxPriceDiff: input.maxPriceDiff,
-            },
+            [input.workerAddress],
+            [
+              {
+                acceptDebt: input.acceptDebt,
+                workFactor: input.workFactor,
+                killFactor: input.killFactor,
+                maxPriceDiff: input.maxPriceDiff,
+              },
+            ],
           ],
-        ],
-        EXACT_ETA,
-        { nonce: nonce++ }
-      )
-    );
+          EXACT_ETA,
+          { nonce: nonce++ }
+        )
+      );
+    } else {
+      console.log("----------------");
+      console.log("> Setting risk parameters for", input.workerName);
+      const workerConfig = WorkerConfig__factory.connect(input.workerConfigAddress, deployer);
+      const tx = await workerConfig.setConfigs(
+        [input.workerAddress],
+        [
+          {
+            acceptDebt: input.acceptDebt,
+            workFactor: input.workFactor,
+            killFactor: input.killFactor,
+            maxPriceDiff: input.maxPriceDiff,
+          },
+        ]
+      );
+      await tx.wait(3);
+      console.log(">> Transaction Hash:", tx.hash);
+    }
   }
 
   fileService.writeJson(TITLE, timelockTransactions);
