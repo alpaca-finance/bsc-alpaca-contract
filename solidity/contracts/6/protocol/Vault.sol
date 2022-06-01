@@ -316,7 +316,7 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     else require(config.isWorkerReserveConsistent(worker), "reserve !consistent");
     require(back == 0, "back !0");
     require(healthAfter > healthBefore, "health !increase");
-    uint256 killFactor = config.rawKillFactor(pos.worker, debt);
+    uint256 killFactor = config.rawKillFactor(pos.worker, debt, pos.owner);
     require(debt.mul(10000) <= healthAfter.mul(killFactor.sub(100)), "debtRatio > killFactor margin");
     // 7. Release execution scope
     POSITION_ID = _NO_ID;
@@ -379,7 +379,7 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     if (debt > 0) {
       require(debt >= config.minDebtSize(), "too small debt size");
       uint256 health = IWorker(worker).health(id);
-      uint256 workFactor = config.workFactor(worker, debt);
+      uint256 workFactor = config.workFactor(worker, debt, msg.sender);
       require(health.mul(workFactor) >= debt.mul(10000), "bad work factor");
       _addDebt(id, debt);
       _fairLaunchDeposit(id, pos.debtShare);
@@ -404,7 +404,7 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     _fairLaunchWithdraw(id);
     uint256 debt = _removeDebt(id);
     uint256 health = IWorker(pos.worker).health(id);
-    uint256 killFactor = config.killFactor(pos.worker, debt);
+    uint256 killFactor = config.killFactor(pos.worker, debt, pos.owner);
     require(health.mul(killFactor) < debt.mul(10000), "can't liquidate");
     // 3. Perform liquidation and compute the amount of token received.
     uint256 beforeToken = SafeToken.myBalance(token);
