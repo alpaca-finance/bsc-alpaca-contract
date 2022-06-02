@@ -33,8 +33,6 @@ contract xALPACACreditor is OwnableUpgradeable, ICreditor {
   uint256 public valuePerxALPACA;
   address public valueSetter;
 
-  constructor() initializer {}
-
   /// @notice Initialize xALPACACreditor
   /// @param _xALPACA xALPACA.
   /// @param _valuePerxALPACA USD value per 1 xALPACA
