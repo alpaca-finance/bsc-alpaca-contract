@@ -32,7 +32,7 @@ const { expect } = chai;
 
 describe("BiswapStrategyAddTwoSideOptimal", () => {
   const FOREVER = "2000000000";
-  const MAX_ROUNDING_ERROR = Number("15");
+  const MAX_ROUNDING_ERROR = Number("50");
   const mdxPerBlock = "51600000000000000000";
 
   /// Mdex-related instance(s)
@@ -279,6 +279,7 @@ describe("BiswapStrategyAddTwoSideOptimal", () => {
       );
       expect(await lp.balanceOf(mockMdexWorker.address)).to.above(stratLPBalance);
       expect(await farmingToken.balanceOf(addRestrictedStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
+      expect(await baseToken.balanceOf(addRestrictedStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
     });
 
     it("should convert some BTOKEN and some FTOKEN to LP tokens at best rate (fee 20 bps)", async () => {
@@ -328,6 +329,7 @@ describe("BiswapStrategyAddTwoSideOptimal", () => {
       Assert.assertAlmostEqual(stratLPBalance.toString(), ethers.utils.parseEther("0.354395980615881993").toString());
       expect(stratLPBalance).to.above(ethers.utils.parseEther("0"));
       expect(await farmingToken.balanceOf(addRestrictedStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
+      expect(await baseToken.balanceOf(addRestrictedStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
 
       // Now Alice leverage 2x on her 0.1 BTOKEN.
       // So totally Alice will take 0.1 BTOKEN from the pool and 0.1 BTOKEN from her pocket to
@@ -362,6 +364,7 @@ describe("BiswapStrategyAddTwoSideOptimal", () => {
       );
       expect(await lp.balanceOf(mockMdexWorker.address)).to.above(stratLPBalance);
       expect(await farmingToken.balanceOf(addRestrictedStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
+      expect(await baseToken.balanceOf(addRestrictedStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
     });
 
     it("should convert some BTOKEN and some FTOKEN to LP tokens at best rate (fee 25)", async () => {
@@ -411,6 +414,7 @@ describe("BiswapStrategyAddTwoSideOptimal", () => {
       Assert.assertAlmostEqual(stratLPBalance.toString(), ethers.utils.parseEther("0.352110106781969922").toString());
       expect(stratLPBalance).to.above(ethers.utils.parseEther("0"));
       expect(await farmingToken.balanceOf(addRestrictedStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
+      expect(await baseToken.balanceOf(addRestrictedStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
 
       // Now Alice leverage 2x on her 0.1 BTOKEN.
       // So totally Alice will take 0.1 BTOKEN from the pool and 0.1 BTOKEN from her pocket to
@@ -445,6 +449,7 @@ describe("BiswapStrategyAddTwoSideOptimal", () => {
       );
       expect(await lp.balanceOf(mockMdexWorker.address)).to.above(stratLPBalance);
       expect(await farmingToken.balanceOf(addRestrictedStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
+      expect(await baseToken.balanceOf(addRestrictedStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
     });
 
     it("shouldn't convert some BTOKEN to LP tokens at best rate when some dust BTOKEN", async () => {
@@ -492,6 +497,7 @@ describe("BiswapStrategyAddTwoSideOptimal", () => {
       Assert.assertAlmostEqual(stratLPBalance.toString(), ethers.utils.parseEther("0.31622776601683792").toString());
       expect(stratLPBalance).to.above(ethers.utils.parseEther("0"));
       expect(await farmingToken.balanceOf(addRestrictedStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
+      expect(await baseToken.balanceOf(addRestrictedStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
     });
 
     it("shouldn't convert some FTOKEN to LP tokens at best rate when some dust FTOKEN", async () => {
@@ -540,6 +546,7 @@ describe("BiswapStrategyAddTwoSideOptimal", () => {
       Assert.assertAlmostEqual(stratLPBalance.toString(), ethers.utils.parseEther("0.31622776601683792").toString());
       expect(stratLPBalance).to.above(ethers.utils.parseEther("0"));
       expect(await farmingToken.balanceOf(addRestrictedStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
+      expect(await baseToken.balanceOf(addRestrictedStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
     });
   });
 

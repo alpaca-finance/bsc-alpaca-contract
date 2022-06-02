@@ -54,7 +54,7 @@ const { expect } = chai;
 
 describe("Pancakeswapv2RestrictedDnxStrategyAddTwoSideOptimal", () => {
   const FOREVER = "2000000000";
-  const MAX_ROUNDING_ERROR = Number("15");
+  const MAX_ROUNDING_ERROR = Number("50");
 
   /// Pancakeswap-related instance(s)
   let factoryV2: PancakeFactory;
@@ -294,6 +294,7 @@ describe("Pancakeswapv2RestrictedDnxStrategyAddTwoSideOptimal", () => {
       Assert.assertAlmostEqual(stratLPBalance.toString(), ethers.utils.parseEther("0.23120513736969137").toString());
       expect(stratLPBalance).to.above(ethers.utils.parseEther("0"));
       expect(await farmingToken.balanceOf(addRestrictedStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
+      expect(await baseToken.balanceOf(addRestrictedStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
 
       // Now Alice leverage 2x on her 0.1 BTOKEN.
       // So totally Alice will take 0.1 BTOKEN from the pool and 0.1 BTOKEN from her pocket to
@@ -323,6 +324,7 @@ describe("Pancakeswapv2RestrictedDnxStrategyAddTwoSideOptimal", () => {
       );
       expect(await lpV2.balanceOf(mockPancakeswapV2Worker.address)).to.above(stratLPBalance);
       expect(await farmingToken.balanceOf(addRestrictedStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
+      expect(await baseToken.balanceOf(addRestrictedStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
     });
 
     it("should convert some BTOKEN and some FTOKEN to LP tokens at best rate", async () => {
@@ -370,6 +372,7 @@ describe("Pancakeswapv2RestrictedDnxStrategyAddTwoSideOptimal", () => {
       Assert.assertAlmostEqual(stratLPBalance.toString(), ethers.utils.parseEther("0.354346766435591663").toString());
       expect(stratLPBalance).to.above(ethers.utils.parseEther("0"));
       expect(await farmingToken.balanceOf(addRestrictedStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
+      expect(await baseToken.balanceOf(addRestrictedStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
 
       // Now Alice leverage 2x on her 0.1 BTOKEN.
       // So totally Alice will take 0.1 BTOKEN from the pool and 0.1 BTOKEN from her pocket to
@@ -404,6 +407,7 @@ describe("Pancakeswapv2RestrictedDnxStrategyAddTwoSideOptimal", () => {
       );
       expect(await lpV2.balanceOf(mockPancakeswapV2Worker.address)).to.above(stratLPBalance);
       expect(await farmingToken.balanceOf(addRestrictedStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
+      expect(await baseToken.balanceOf(addRestrictedStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
     });
 
     it("shouldn't convert some BTOKEN to LP tokens at best rate when some dust BTOKEN", async () => {
@@ -454,6 +458,7 @@ describe("Pancakeswapv2RestrictedDnxStrategyAddTwoSideOptimal", () => {
       Assert.assertAlmostEqual(stratLPBalance.toString(), ethers.utils.parseEther("0.31622776601683792").toString());
       expect(stratLPBalance).to.above(ethers.utils.parseEther("0"));
       expect(await farmingToken.balanceOf(addRestrictedStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
+      expect(await baseToken.balanceOf(addRestrictedStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
     });
 
     it("shouldn't convert some FTOKEN to LP tokens at best rate when some dust FTOKEN", async () => {
@@ -504,6 +509,7 @@ describe("Pancakeswapv2RestrictedDnxStrategyAddTwoSideOptimal", () => {
       Assert.assertAlmostEqual(stratLPBalance.toString(), ethers.utils.parseEther("0.31622776601683792").toString());
       expect(stratLPBalance).to.above(ethers.utils.parseEther("0"));
       expect(await farmingToken.balanceOf(addRestrictedStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
+      expect(await baseToken.balanceOf(addRestrictedStrat.address)).to.be.below(MAX_ROUNDING_ERROR);
     });
   });
 
