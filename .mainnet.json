@@ -4309,7 +4309,59 @@
         "Mdex": "0x22A2BB73AEa19828100D1C4361eE0f3A4499E3e3",
         "Biswap": "0x11139a27Ea773d1Ebf506aB4d7cB4e4D9FcF59bf"
       },
-      "workers": []
+      "workers": [
+        {
+          "name": "BUSD-CAKE PancakeswapWorker",
+          "address": "0xBEd0673c5795367Afa01BB294DE505B573fa5a29",
+          "deployedBlock": 18300394,
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 39,
+          "stakingToken": "0x804678fa97d91B974ec2af3c843270886528a9E6",
+          "stakingTokenAt": "0xa5f8C5Dbd5F286960b9d90548680aE5ebFf07652",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+            "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+            "StrategyAddTwoSidesOptimal": "0x696b728dA2C78A210Ddc632E98437327Dd8f5E3B",
+            "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
+          }
+        },
+        {
+          "name": "WBNB-CAKE PancakeswapWorker",
+          "address": "0x676f1A2D354c6f11C23183E18DDd06B317331453",
+          "deployedBlock": 18300413,
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 2,
+          "stakingToken": "0x0eD7e52944161450477ee417DE9Cd3a859b14fD0",
+          "stakingTokenAt": "0xa5f8C5Dbd5F286960b9d90548680aE5ebFf07652",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+            "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+            "StrategyAddTwoSidesOptimal": "0x696b728dA2C78A210Ddc632E98437327Dd8f5E3B",
+            "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
+          }
+        },
+        {
+          "name": "USDT-CAKE PancakeswapWorker",
+          "address": "0x3Afc9A1B8A42C77aE7d23463c6FED26615827291",
+          "deployedBlock": 18300431,
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 47,
+          "stakingToken": "0xA39Af17CE4a8eb807E076805Da1e2B8EA7D0755b",
+          "stakingTokenAt": "0xa5f8C5Dbd5F286960b9d90548680aE5ebFf07652",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+            "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+            "StrategyAddTwoSidesOptimal": "0x696b728dA2C78A210Ddc632E98437327Dd8f5E3B",
+            "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
+          }
+        }
+      ]
     }
   ],
   "DeltaNeutralVaults": [
