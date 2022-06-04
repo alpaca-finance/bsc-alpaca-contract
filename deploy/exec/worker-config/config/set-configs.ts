@@ -38,22 +38,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "adjust_BUSD-ALPACA_kill_factor";
+  const TITLE = "adjust_CAKEUSDT_max_lev";
   const UPDATES: Array<SetConfigInput> = [
     {
-      WORKER: "WFTM-TOMB TombWorker",
-      ACCEPT_DEBT: false,
-    },
-    {
-      WORKER: "TOMB-WFTM TombWorker",
-      ACCEPT_DEBT: false,
-    },
-    {
-      WORKER: "TSHARE-WFTM TombWorker",
-      ACCEPT_DEBT: false,
+      WORKER: "CAKE-USDT PancakeswapWorker",
+      WORK_FACTOR: 7000,
+      KILL_FACTOR: 8333,
     },
   ];
-  const EXACT_ETA = "1648535400";
+  const EXACT_ETA = "1654253100";
 
   const config = getConfig();
   const [deployer] = await ethers.getSigners();
@@ -145,7 +138,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     }
   }
 
-  fileService.writeJson(TITLE, timelockTransactions);
+  const ts = Math.floor(new Date().getTime() / 1000);
+  fileService.writeJson(`${ts}_${TITLE}`, timelockTransactions);
 };
 
 export default func;

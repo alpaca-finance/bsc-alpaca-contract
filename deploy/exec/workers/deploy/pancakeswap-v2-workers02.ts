@@ -3,6 +3,9 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 import {
   ConfigurableInterestVaultConfig__factory,
+  ISwapPairLike__factory,
+  MasterChefV2__factory,
+  MockERC20__factory,
   PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory,
   WorkerConfig__factory,
 } from "../../../../typechain";
@@ -71,25 +74,61 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const executeFileTitle = "tinc-wbnb-pool";
+  const executeFileTitle = "pcs-cake-pools";
   const shortWorkerInfos: IPancakeswapWorkerInput[] = [
     {
-      VAULT_SYMBOL: "ibWBNB",
-      WORKER_NAME: "TINC-WBNB PancakeswapWorker",
+      VAULT_SYMBOL: "ibCAKE",
+      WORKER_NAME: "BUSD-CAKE PancakeswapWorker",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 91,
+      POOL_ID: 39,
       REINVEST_BOUNTY_BPS: "900",
-      REINVEST_PATH: ["CAKE", "WBNB"],
-      REINVEST_THRESHOLD: "1",
-      WORK_FACTOR: "5200",
-      KILL_FACTOR: "7000",
-      MAX_PRICE_DIFF: "11000",
+      REINVEST_PATH: ["CAKE"],
+      REINVEST_THRESHOLD: "0",
       BENEFICIAL_VAULT: {
-        BENEFICIAL_VAULT_BPS: "5555",
         BENEFICIAL_VAULT_ADDRESS: "0x08B5A95cb94f926a8B620E87eE92e675b35afc7E",
         REWARD_PATH: ["CAKE", "BUSD"],
+        BENEFICIAL_VAULT_BPS: "5555",
       },
-      EXACT_ETA: "1651482000",
+      WORK_FACTOR: "7000",
+      KILL_FACTOR: "8333",
+      MAX_PRICE_DIFF: "10500",
+      EXACT_ETA: "1654146900",
+    },
+    {
+      VAULT_SYMBOL: "ibCAKE",
+      WORKER_NAME: "WBNB-CAKE PancakeswapWorker",
+      REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
+      POOL_ID: 2,
+      REINVEST_BOUNTY_BPS: "900",
+      REINVEST_PATH: ["CAKE"],
+      REINVEST_THRESHOLD: "0",
+      BENEFICIAL_VAULT: {
+        BENEFICIAL_VAULT_ADDRESS: "0x08B5A95cb94f926a8B620E87eE92e675b35afc7E",
+        REWARD_PATH: ["CAKE", "BUSD"],
+        BENEFICIAL_VAULT_BPS: "5555",
+      },
+      WORK_FACTOR: "7000",
+      KILL_FACTOR: "8333",
+      MAX_PRICE_DIFF: "10500",
+      EXACT_ETA: "1654146900",
+    },
+    {
+      VAULT_SYMBOL: "ibCAKE",
+      WORKER_NAME: "USDT-CAKE PancakeswapWorker",
+      REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
+      POOL_ID: 47,
+      REINVEST_BOUNTY_BPS: "900",
+      REINVEST_PATH: ["CAKE"],
+      REINVEST_THRESHOLD: "0",
+      BENEFICIAL_VAULT: {
+        BENEFICIAL_VAULT_ADDRESS: "0x08B5A95cb94f926a8B620E87eE92e675b35afc7E",
+        REWARD_PATH: ["CAKE", "BUSD"],
+        BENEFICIAL_VAULT_BPS: "5555",
+      },
+      WORK_FACTOR: "7000",
+      KILL_FACTOR: "8333",
+      MAX_PRICE_DIFF: "10500",
+      EXACT_ETA: "1654146900",
     },
   ];
 
@@ -282,9 +321,27 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       console.log("✅ Done");
     }
 
-    const lpPoolAddress = config.YieldSources.Pancakeswap!.pools.find(
-      (pool) => pool.pId === workerInfos[i].POOL_ID
-    )!.address;
+    const masterChef = MasterChefV2__factory.connect(workerInfos[i].MASTER_CHEF_ADDR, deployer);
+    const lpTokenAddress = await masterChef.lpToken(workerInfos[i].POOL_ID);
+
+    if (
+      config.YieldSources.PancakeswapMasterChefV2!.pools.find((pool) => pool.pId === workerInfos[i].POOL_ID) ===
+      undefined
+    ) {
+      const token0 = MockERC20__factory.connect(
+        await ISwapPairLike__factory.connect(lpTokenAddress, deployer).token0(),
+        deployer
+      );
+      const token1 = MockERC20__factory.connect(
+        await ISwapPairLike__factory.connect(lpTokenAddress, deployer).token1(),
+        deployer
+      );
+      config = configFileHelper.addOrSetYielPool("PancakeswapMasterChefV2", {
+        pId: workerInfos[i].POOL_ID,
+        name: `${await token0.symbol()}-${await token1.symbol()} LP`,
+        address: lpTokenAddress,
+      });
+    }
 
     const workersEntity: WorkersEntity = {
       name: workerInfos[i].WORKER_NAME,
@@ -292,7 +349,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       deployedBlock: deployedBlock,
       config: workerInfos[i].WORKER_CONFIG_ADDR,
       pId: workerInfos[i].POOL_ID,
-      stakingToken: lpPoolAddress,
+      stakingToken: lpTokenAddress,
       stakingTokenAt: workerInfos[i].MASTER_CHEF_ADDR,
       strategies: {
         StrategyAddAllBaseToken: workerInfos[i].ADD_STRAT_ADDR,

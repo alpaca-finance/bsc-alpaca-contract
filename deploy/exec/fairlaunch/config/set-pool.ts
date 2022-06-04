@@ -26,14 +26,18 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "set_ibTUSD_alloc_point";
+  const TITLE = "set_CAKE_Vault_alloc";
   const UPDATES: Array<IUpdate> = [
     {
-      STAKING_TOKEN: "ibTUSD",
-      ALLOC_POINT: 15,
+      STAKING_TOKEN: "debtIbCAKE V2",
+      ALLOC_POINT: 25,
+    },
+    {
+      STAKING_TOKEN: "ibCAKE",
+      ALLOC_POINT: 50,
     },
   ];
-  const EXACT_ETA = "1650876300";
+  const EXACT_ETA = "1654146000";
 
   const config = getConfig();
   const inputs: Array<IInput> = [];
