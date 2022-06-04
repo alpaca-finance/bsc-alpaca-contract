@@ -30,20 +30,20 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "mainnet_L3x_busdbnb_pcs1_whitelisted_callers";
+  const TITLE = "mainnet_n8x_bnbusdt_bsw1_whitelisted_callers";
   const TARGETED_VAULT_CONFIG: Array<IInput> = [
     {
-      VAULT_SYMBOL: "ibBUSD",
-      WHITELISTED_CALLERS: ["0xcC125BBaFF77De472f236255DE6be0a3B4323064"], // Address of DeltaNeutralVault
+      VAULT_SYMBOL: "ibWBNB",
+      WHITELISTED_CALLERS: ["0x6407bB0B0de04539Cd7bac7cd11f57303e625678"], // Address of DeltaNeutralVault
       IS_ENABLE: true,
     },
     {
-      VAULT_SYMBOL: "ibWBNB",
-      WHITELISTED_CALLERS: ["0xcC125BBaFF77De472f236255DE6be0a3B4323064"], // Address of DeltaNeutralVault
+      VAULT_SYMBOL: "ibUSDT",
+      WHITELISTED_CALLERS: ["0x6407bB0B0de04539Cd7bac7cd11f57303e625678"], // Address of DeltaNeutralVault
       IS_ENABLE: true,
     },
   ];
-  const EXACT_ETA = "1653537600";
+  const EXACT_ETA = "1654421400";
 
   const config = getConfig();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];

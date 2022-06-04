@@ -1,5 +1,5 @@
-import { Converter } from "./../../../helper/converter";
-import { ConfigFileHelper } from "./../../../helper/config-file-helper";
+import { Converter } from "../../../helper/converter";
+import { ConfigFileHelper } from "../../../helper/config-file-helper";
 import { AutomatedVaultController__factory } from "../../../../typechain/factories/AutomatedVaultController__factory";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
@@ -17,8 +17,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const CREDITOR_NAMES: string[] = ["xAlpacaCreditor"];
-  const PRIVATE_VAULT_SYMBOLS: string[] = ["n8x-BNBUSDT-PCS2"];
+  const CREDITOR_NAMES: string[] = ["xALPACACreditor"];
+  const PRIVATE_VAULT_SYMBOLS: string[] = ["n8x-BNBUSDT-BSW1"];
 
   const deployer = await getDeployer();
   const config = getConfig();
@@ -35,19 +35,19 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   console.log(">> Set param AutomatedVaultController contract");
   let nonce = await deployer.getTransactionCount();
-  const ops = isFork() ? { nonce: nonce++, gasLimit: 2000000 } : { nonce: nonce++ };
+  const ops = isFork() ? { gasLimit: 2000000 } : {};
 
   const avController = AutomatedVaultController__factory.connect(config.AutomatedVaultController!.address, deployer);
   console.log(`>> AVController :${avController.address}`);
 
   if (creditorAddrs.length > 0) {
     console.log(`>> Set CREDITORS TO : ${creditorAddrs}`);
-    await avController.setCreditors(creditorAddrs, ops);
+    await avController.setCreditors(creditorAddrs, { ...ops, nonce: nonce++ });
   }
 
   if (pvAddrs.length > 0) {
     console.log(`>> Set PRIVATEVAULT TO : ${pvAddrs}`);
-    await avController.setPrivateVaults(pvAddrs, ops);
+    await avController.setPrivateVaults(pvAddrs, { ...ops, nonce: nonce++ });
   }
 
   const cfh = new ConfigFileHelper();
