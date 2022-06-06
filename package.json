@@ -1,6 +1,6 @@
 {
   "name": "@alpaca-finance/alpaca-contract",
-  "version": "1.2.32",
+  "version": "1.2.34",
   "scripts": {
     "prepublish": "yarn build && rm ./typechain/index.*",
     "build": "yarn run build:cjs",
@@ -472,6 +472,7 @@
     "@types/mocha": "^8.2.0",
     "@types/node": "^14.14.28",
     "@uniswap/v2-core": "^1.0.1",
+    "abi-to-sol": "^0.5.2",
     "chai": "^4.3.6",
     "chai-bn": "^0.2.1",
     "dotenv": "^8.2.0",
@@ -529,7 +530,6 @@
   "dependencies": {
     "@nomiclabs/hardhat-vyper": "^2.0.1",
     "@openzeppelin/contracts-upgradeable": "^4.5.1",
-    "@rari-capital/solmate": "^6.2.0",
-    "abi-to-sol": "^0.5.2"
+    "@rari-capital/solmate": "^6.2.0"
   }
 }
