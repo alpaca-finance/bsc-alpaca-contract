@@ -158,7 +158,6 @@ contract DeltaNeutralVault02 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
     _;
   }
 
-
   /// @notice Initialize Delta Neutral vault.
   /// @param _name Name.
   /// @param _symbol Symbol.
@@ -357,6 +356,7 @@ contract DeltaNeutralVault02 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
     // Deduct credit from msg.sender regardless of the _shareReceiver.
     if (address(_controller) != address(0)) {
       _controller.onDeposit(msg.sender, _sharesToUser);
+      // in case after deduction, it violated the credit available, revert the transaction
       if (_controller.totalCredit(msg.sender) < _controller.usedCredit(msg.sender)) {
         revert DeltaNeutralVault_ExceedCredit();
       }
