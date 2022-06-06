@@ -1340,7 +1340,8 @@
     "L3x-BUSDBTCB-PCS1": "0x4eE770919aB741cC84bBE8cD83C21d79785f37E9",
     "L3x-BUSDBTCB-PCS2": "0xA1679223b7585725aFb425a6F59737a05e085C40",
     "L3x-BUSDBNB-PCS1": "0xcC125BBaFF77De472f236255DE6be0a3B4323064",
-    "n8x-BNBUSDT-BSW1": "0x6407bB0B0de04539Cd7bac7cd11f57303e625678"
+    "n8x-BNBUSDT-BSW1": "0x6407bB0B0de04539Cd7bac7cd11f57303e625678",
+    "n8x-BNBUSDT-PCS3": "0x3756b184d647EC3690Ce47ec3C182Db046ef8B2e"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x1099C2E6Ed6ebA95099c205b599B409305783E43",
@@ -2389,6 +2390,23 @@
             "StrategyWithdrawMinimizeTrading": "0xD2d1318beA3FBAcbeC1C6b7583DbA74De5d9455c",
             "StrategyPartialCloseLiquidate": "0xba7156E07995cAD7837Ef08EC5bA936DaB2B000B",
             "StrategyPartialCloseMinimizeTrading": "0x3739d1E01104b019Ff105B3A8F57BC6ed62F18a4"
+          }
+        },
+        {
+          "name": "USDT-WBNB 8x PCS3 DeltaNeutralPancakeswapWorker",
+          "address": "0xE0e4e9F91d26647265Be902d012C6fDc0f4fd4e5",
+          "deployedBlock": 18390968,
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 13,
+          "stakingToken": "0x16b9a82891338f9bA80E2D6970FddA79D1eb0daE",
+          "stakingTokenAt": "0xa5f8C5Dbd5F286960b9d90548680aE5ebFf07652",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+            "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+            "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
+            "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
           }
         }
       ]
@@ -3894,6 +3912,23 @@
             "StrategyPartialCloseLiquidate": "0xba7156E07995cAD7837Ef08EC5bA936DaB2B000B",
             "StrategyPartialCloseMinimizeTrading": "0x3739d1E01104b019Ff105B3A8F57BC6ed62F18a4"
           }
+        },
+        {
+          "name": "WBNB-USDT 8x PCS3 DeltaNeutralPancakeswapWorker",
+          "address": "0xf58f039B76F4094cA324eEA291bE56838789BB56",
+          "deployedBlock": 18390993,
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 13,
+          "stakingToken": "0x16b9a82891338f9bA80E2D6970FddA79D1eb0daE",
+          "stakingTokenAt": "0xa5f8C5Dbd5F286960b9d90548680aE5ebFf07652",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+            "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+            "StrategyAddTwoSidesOptimal": "0x5f94f61095731b669b30ed1f3f4586BBb51f4001",
+            "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
+          }
         }
       ]
     },
@@ -4618,6 +4653,23 @@
       "stableDeltaWorker": "0x7DE458Db800eFF41Daa1e3c67B5fA8689EF2908e",
       "oracle": "0x08EA5fB66EA41f236E3001d2655e43A1E735787F",
       "gateway": "0xfE4E320986F8f573847a46627FEbB6a46663E6AB",
+      "assetVaultPosId": "0",
+      "stableVaultPosId": "0"
+    },
+    {
+      "name": "Market Neutral 8x BNB-USDT PCS3",
+      "symbol": "n8x-BNBUSDT-PCS3",
+      "address": "0x3756b184d647EC3690Ce47ec3C182Db046ef8B2e",
+      "deployedBlock": 18391052,
+      "config": "0x1595f7C7A8C5f040d02aec68cd488326fe7713E2",
+      "assetToken": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+      "stableToken": "0x55d398326f99059ff775485246999027b3197955",
+      "assetVault": "0xd7D069493685A581d27824Fc46EdA46B7EfC0063",
+      "stableVault": "0x158Da805682BdC8ee32d52833aD41E74bb951E59",
+      "assetDeltaWorker": "0xE0e4e9F91d26647265Be902d012C6fDc0f4fd4e5",
+      "stableDeltaWorker": "0xf58f039B76F4094cA324eEA291bE56838789BB56",
+      "oracle": "0x08EA5fB66EA41f236E3001d2655e43A1E735787F",
+      "gateway": "0x2498F560F672d1cF008Fcad890CAd6C8610abc42",
       "assetVaultPosId": "0",
       "stableVaultPosId": "0"
     }

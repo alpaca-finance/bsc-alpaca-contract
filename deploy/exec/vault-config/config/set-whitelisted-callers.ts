@@ -30,16 +30,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "mainnet_n8x_bnbusdt_bsw1_whitelisted_callers";
+  const TITLE = "mainnet_n8x_bnbusdt_pcs3_whitelisted_callers";
   const TARGETED_VAULT_CONFIG: Array<IInput> = [
     {
       VAULT_SYMBOL: "ibWBNB",
-      WHITELISTED_CALLERS: ["0x6407bB0B0de04539Cd7bac7cd11f57303e625678"], // Address of DeltaNeutralVault
+      WHITELISTED_CALLERS: ["0x3756b184d647EC3690Ce47ec3C182Db046ef8B2e"], // Address of DeltaNeutralVault
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibUSDT",
-      WHITELISTED_CALLERS: ["0x6407bB0B0de04539Cd7bac7cd11f57303e625678"], // Address of DeltaNeutralVault
+      WHITELISTED_CALLERS: ["0x3756b184d647EC3690Ce47ec3C182Db046ef8B2e"], // Address of DeltaNeutralVault
       IS_ENABLE: true,
     },
   ];
