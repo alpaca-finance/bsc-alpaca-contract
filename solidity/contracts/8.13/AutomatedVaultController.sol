@@ -34,6 +34,8 @@ contract AutomatedVaultController is OwnableUpgradeable {
   // --- State Variables ---
   ICreditor[] public creditors;
   LinkList.List public privateVaults;
+
+  mapping(address => LinkList.List) public userVaults;
   mapping(address => mapping(address => uint256)) public userVaultShares;
 
   /// @notice Initialize Automated Vault Controller
@@ -85,12 +87,16 @@ contract AutomatedVaultController is OwnableUpgradeable {
   /// @return _total user's used credit in USD value from depositing into private automated vaults
   function usedCredit(address _user) public view returns (uint256) {
     uint256 _total;
-    uint256 _privateVaultLength = privateVaults.length();
-    address _curVault = privateVaults.getNextOf(LinkList.start);
-    for (uint8 _i = 0; _i < _privateVaultLength; ) {
+    LinkList.List storage _userVaults = userVaults[_user];
+    uint256 _length = _userVaults.length();
+
+    if (_length == 0) return 0;
+
+    address _curVault = _userVaults.getNextOf(LinkList.start);
+    for (uint8 _i = 0; _i < _length; ) {
       uint256 _share = userVaultShares[_user][_curVault];
       if (_share != 0) _total += IDeltaNeutralVault(_curVault).shareToValue(_share);
-      _curVault = privateVaults.getNextOf(_curVault);
+      _curVault = _userVaults.getNextOf(_curVault);
       // uncheck overflow to save gas
       unchecked {
         _i++;
@@ -171,15 +177,16 @@ contract AutomatedVaultController is OwnableUpgradeable {
 
     // expected delta vault to be the caller
     userVaultShares[_user][msg.sender] += _shareAmount;
+
+    // set user's state
+    LinkList.List storage _userVaults = userVaults[_user];
+    _userVaults.add(msg.sender);
   }
 
   /// @notice update user's automated vault's share from withdrawal
   /// @param _user share owner
   /// @param _shareAmount amount of automated vault's share withdrawn
   function onWithdraw(address _user, uint256 _shareAmount) external {
-    // Check
-    if (!privateVaults.has(msg.sender)) revert AutomatedVaultController_Unauthorized();
-
     userVaultShares[_user][msg.sender] = userVaultShares[_user][msg.sender] <= _shareAmount
       ? 0
       : userVaultShares[_user][msg.sender] - _shareAmount;

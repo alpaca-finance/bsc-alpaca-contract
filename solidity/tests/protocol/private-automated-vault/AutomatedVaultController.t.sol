@@ -139,6 +139,12 @@ contract AutomatedVaultController_Test is BaseTest {
     assertEq(_controller.getUserVaultShares(ALICE, address(_deltaVault1)), 2 ether);
   }
 
+  function testRevert_onDepositWithNonAuthorizeVault() external {
+    vm.expectRevert(abi.encodeWithSignature("AutomatedVaultController_Unauthorized()"));
+    vm.startPrank(EVE);
+    _controller.onDeposit(ALICE, 1 ether);
+  }
+
   function testCorrectness_onWithdraw() external {
     // impersonate as delta vault #1
     vm.startPrank(address(_deltaVault1));
@@ -182,18 +188,6 @@ contract AutomatedVaultController_Test is BaseTest {
 
     // usedCredit should be equal to 2(vault#1) + 5(vault#2) = 7 ether
     assertEq(_controller.usedCredit(ALICE), 7 ether);
-  }
-
-  function testCorrectness_getUsedCreditShouldTrackOnlyPrivateVault() external {
-    // Deposit 1 share of some random vault
-    vm.prank(address(1));
-    _controller.onDeposit(ALICE, 1 ether);
-
-    // mock share price, 1 share = 2 usd
-    _deltaVault1.shareToValue.mockv(1 ether, 2 ether);
-
-    // used credit should be 0 since user's currently has no share in private vault
-    assertEq(_controller.usedCredit(ALICE), 0 ether);
   }
 
   function testCorrectness_getAvailableCredit() external {
