@@ -23,7 +23,11 @@ contract FakeAutomateVaultController {
     revertOnDeposit = _shouldRevert;
   }
 
-  function onDeposit(address _user, uint256 _shareAmount) external {
+  function onDeposit(
+    address _user,
+    uint256 _shareAmount,
+    uint256 _shareValue
+  ) external {
     if (revertOnDeposit) revert AutomatedVaultController_InsufficientCredit();
   }
 

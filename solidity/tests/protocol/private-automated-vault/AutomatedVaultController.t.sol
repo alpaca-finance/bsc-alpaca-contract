@@ -133,25 +133,25 @@ contract AutomatedVaultController_Test is BaseTest {
   function testCorrectness_onDeposit() external {
     _creditor.getUserCredit.mockv(ALICE, 100 ether);
     vm.startPrank(address(_deltaVault1));
-    _controller.onDeposit(ALICE, 1 ether);
+    _controller.onDeposit(ALICE, 1 ether, 1 ether);
 
     assertEq(_controller.getUserVaultShares(ALICE, address(_deltaVault1)), 1 ether);
     _deltaVault1.shareToValue.mockv(2 ether, 2 ether);
-    _controller.onDeposit(ALICE, 1 ether);
+    _controller.onDeposit(ALICE, 1 ether, 1 ether);
     assertEq(_controller.getUserVaultShares(ALICE, address(_deltaVault1)), 2 ether);
   }
 
   function testRevert_onDepositWithNonAuthorizeVault() external {
     vm.expectRevert(abi.encodeWithSignature("AutomatedVaultController_Unauthorized()"));
     vm.startPrank(EVE);
-    _controller.onDeposit(ALICE, 1 ether);
+    _controller.onDeposit(ALICE, 1 ether, 1 ether);
   }
 
   function testRevert_onDepositInsufficientCredit() external {
-    _creditor.getUserCredit.mockv(ALICE, 0 ether);
+    _creditor.getUserCredit.mockv(ALICE, 1 ether);
     vm.startPrank(address(_deltaVault1));
     vm.expectRevert(abi.encodeWithSignature("AutomatedVaultController_InsufficientCredit()"));
-    _controller.onDeposit(ALICE, 1 ether);
+    _controller.onDeposit(ALICE, 1 ether, 2 ether);
   }
 
   function testCorrectness_onWithdraw() external {
@@ -159,7 +159,7 @@ contract AutomatedVaultController_Test is BaseTest {
     // impersonate as delta vault #1
     vm.startPrank(address(_deltaVault1));
     // Deposit 1, withdraw 0.5 twice. Remaining share should be 0
-    _controller.onDeposit(ALICE, 1 ether);
+    _controller.onDeposit(ALICE, 1 ether, 1 ether);
 
     assertEq(_controller.getUserVaultShares(ALICE, address(_deltaVault1)), 1 ether);
     _controller.onWithdraw(ALICE, 0.5 ether);
@@ -168,7 +168,7 @@ contract AutomatedVaultController_Test is BaseTest {
     assertEq(_controller.getUserVaultShares(ALICE, address(_deltaVault1)), 0 ether);
 
     // Deposit 1, withdraw 2 twice. Remaining share should be 0
-    _controller.onDeposit(ALICE, 1 ether);
+    _controller.onDeposit(ALICE, 1 ether, 1 ether);
     assertEq(_controller.getUserVaultShares(ALICE, address(_deltaVault1)), 1 ether);
     _controller.onWithdraw(ALICE, 2 ether);
     assertEq(_controller.getUserVaultShares(ALICE, address(_deltaVault1)), 0 ether);
@@ -192,10 +192,10 @@ contract AutomatedVaultController_Test is BaseTest {
 
     // Deposit 1 vault#1 share
     vm.prank(address(_deltaVault1));
-    _controller.onDeposit(ALICE, 1 ether);
+    _controller.onDeposit(ALICE, 1 ether, 1 ether);
     // Deposit 2 vault#2 share
     vm.prank(address(_deltaVault2));
-    _controller.onDeposit(ALICE, 2 ether);
+    _controller.onDeposit(ALICE, 2 ether, 2 ether);
 
     // usedCredit should be equal to 2(vault#1) + 5(vault#2) = 7 ether
     assertEq(_controller.usedCredit(ALICE), 7 ether);
@@ -208,7 +208,7 @@ contract AutomatedVaultController_Test is BaseTest {
 
     // Used credit < total credit
     vm.prank(address(_deltaVault1));
-    _controller.onDeposit(ALICE, 1 ether);
+    _controller.onDeposit(ALICE, 1 ether, 1 ether);
     // mock deltavault1 share price, 1 share = 2 usd
     _deltaVault1.shareToValue.mockv(1 ether, 1 ether);
     assertEq(_controller.availableCredit(ALICE), 1 ether);

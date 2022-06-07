@@ -353,7 +353,7 @@ contract DeltaNeutralVault02 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
     if (address(_controller) != address(0)) {
       // in case after deduction and it violated the credit available,
       // the controller should revert the transaction
-      _controller.onDeposit(msg.sender, _sharesToUser);
+      _controller.onDeposit(msg.sender, _sharesToUser, _depositValue);
     }
 
     emit LogDeposit(msg.sender, _shareReceiver, _sharesToUser, _stableTokenAmount, _assetTokenAmount);

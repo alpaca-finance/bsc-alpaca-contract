@@ -173,18 +173,21 @@ contract AutomatedVaultController is OwnableUpgradeable {
   /// @notice record user's automated vault's share from deposit
   /// @param _user share owner
   /// @param _shareAmount amount of automated vault's share
-  function onDeposit(address _user, uint256 _shareAmount) external {
+  function onDeposit(
+    address _user,
+    uint256 _shareAmount,
+    uint256 _shareValue
+  ) external {
     // Check
     if (!privateVaults.has(msg.sender)) revert AutomatedVaultController_Unauthorized();
+
+    if (totalCredit(_user) < (usedCredit(_user) + _shareValue)) revert AutomatedVaultController_InsufficientCredit();
 
     // expected delta vault to be the caller
     userVaultShares[_user][msg.sender] += _shareAmount;
 
     // set user's state
     _initOrInsertUserVaults(_user, msg.sender);
-
-    // check available credit
-    if (totalCredit(_user) < usedCredit(_user)) revert AutomatedVaultController_InsufficientCredit();
   }
 
   /// @notice update user's automated vault's share from withdrawal
