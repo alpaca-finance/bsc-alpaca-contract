@@ -80,7 +80,8 @@ contract DeltaNeutralVault02_Test is BaseTest {
   }
 
   function testCorrectness_DepositShouldWorkIfCreditIsSuffice() external {
-    _controller.availableCredit.mockv(address(this), 100 ether);
+    _controller.totalCredit.mockv(address(this), 100 ether);
+    _controller.usedCredit.mockv(address(this), 100 ether);
 
     uint8[] memory _actions = new uint8[](2);
     uint256[] memory _values = new uint256[](2);
@@ -178,7 +179,8 @@ contract DeltaNeutralVault02_Test is BaseTest {
   }
 
   function testRevert_CantDepositIfNoCredit() external {
-    _controller.availableCredit.mockv(address(this), 0 ether);
+    _controller.totalCredit.mockv(address(this), 0 ether);
+    _controller.usedCredit.mockv(address(this), 100 ether);
 
     uint8[] memory _actions = new uint8[](2);
     uint256[] memory _values = new uint256[](2);
@@ -265,7 +267,8 @@ contract DeltaNeutralVault02_Test is BaseTest {
   }
 
   function initPosition() internal {
-    _controller.availableCredit.mockv(address(this), 100 ether);
+    _controller.totalCredit.mockv(address(this), 100 ether);
+    _controller.usedCredit.mockv(address(this), 0 ether);
     uint8[] memory _actions = new uint8[](2);
     uint256[] memory _values = new uint256[](2);
     bytes[] memory _workDatas = new bytes[](2);

@@ -158,7 +158,6 @@ contract DeltaNeutralVault02 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
     _;
   }
 
-
   /// @notice Initialize Delta Neutral vault.
   /// @param _name Name.
   /// @param _symbol Symbol.
@@ -335,13 +334,6 @@ contract DeltaNeutralVault02 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
     PositionInfo memory _positionInfoAfter = positionInfo();
     uint256 _depositValue = _calculateEquityChange(_positionInfoAfter, _positionInfoBefore);
 
-    // For private vault, deposit value should not exeed credit
-    // Check availableCredit from msg.sender since user interact with contract directly
-    IController _controller = IController(config.controller());
-    if (address(_controller) != address(0) && _depositValue > _controller.availableCredit(msg.sender)) {
-      revert DeltaNeutralVault_ExceedCredit();
-    }
-
     // Calculate share from the value gain against the total equity before execution of actions
     uint256 _sharesToUser = _valueToShare(
       _depositValue,
@@ -358,7 +350,14 @@ contract DeltaNeutralVault02 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
     _outstandingCheck(_outstandingBefore, _outstanding());
 
     // Deduct credit from msg.sender regardless of the _shareReceiver.
-    if (address(_controller) != address(0)) _controller.onDeposit(msg.sender, _sharesToUser);
+    IController _controller = IController(config.controller());
+    if (address(_controller) != address(0)) {
+      _controller.onDeposit(msg.sender, _sharesToUser);
+      // in case after deduction, it violated the credit available, revert the transaction
+      if (_controller.totalCredit(msg.sender) < _controller.usedCredit(msg.sender)) {
+        revert DeltaNeutralVault_ExceedCredit();
+      }
+    }
 
     emit LogDeposit(msg.sender, _shareReceiver, _sharesToUser, _stableTokenAmount, _assetTokenAmount);
     return _sharesToUser;
