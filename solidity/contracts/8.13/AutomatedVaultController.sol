@@ -31,6 +31,7 @@ contract AutomatedVaultController is OwnableUpgradeable {
   // --- Errors ---
   error AutomatedVaultController_Unauthorized();
   error AutomatedVaultController_OutstandingCredit();
+  error AutomatedVaultController_InsufficientCredit();
 
   // --- State Variables ---
   ICreditor[] public creditors;
@@ -172,9 +173,16 @@ contract AutomatedVaultController is OwnableUpgradeable {
   /// @notice record user's automated vault's share from deposit
   /// @param _user share owner
   /// @param _shareAmount amount of automated vault's share
-  function onDeposit(address _user, uint256 _shareAmount) external {
+  /// @param _shareValue value of automated vault's share that will be deposited
+  function onDeposit(
+    address _user,
+    uint256 _shareAmount,
+    uint256 _shareValue
+  ) external {
     // Check
     if (!privateVaults.has(msg.sender)) revert AutomatedVaultController_Unauthorized();
+
+    if (totalCredit(_user) < (usedCredit(_user) + _shareValue)) revert AutomatedVaultController_InsufficientCredit();
 
     // expected delta vault to be the caller
     userVaultShares[_user][msg.sender] += _shareAmount;

@@ -81,7 +81,6 @@ contract DeltaNeutralVault02 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
   error DeltaNeutralVault_InvalidInitializedAddress();
   error DeltaNeutralVault_UnsupportedDecimals(uint256 _decimals);
   error DeltaNeutralVault_InvalidShareAmount();
-  error DeltaNeutralVault_ExceedCredit();
 
   struct Outstanding {
     uint256 stableAmount;
@@ -352,11 +351,9 @@ contract DeltaNeutralVault02 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
     // Deduct credit from msg.sender regardless of the _shareReceiver.
     IController _controller = IController(config.controller());
     if (address(_controller) != address(0)) {
-      _controller.onDeposit(msg.sender, _sharesToUser);
-      // in case after deduction, it violated the credit available, revert the transaction
-      if (_controller.totalCredit(msg.sender) < _controller.usedCredit(msg.sender)) {
-        revert DeltaNeutralVault_ExceedCredit();
-      }
+      // in case after deduction and it violated the credit available,
+      // the controller should revert the transaction
+      _controller.onDeposit(msg.sender, _sharesToUser, _depositValue);
     }
 
     emit LogDeposit(msg.sender, _shareReceiver, _sharesToUser, _stableTokenAmount, _assetTokenAmount);
