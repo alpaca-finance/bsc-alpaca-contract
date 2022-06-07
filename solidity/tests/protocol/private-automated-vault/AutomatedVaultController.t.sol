@@ -161,6 +161,12 @@ contract AutomatedVaultController_Test is BaseTest {
     _controller.disableCreditForVault(address(_deltaVault1));
   }
 
+  function testRevert_enableCreditForVaultWithNonPrivateVault() external {
+    vm.expectRevert(abi.encodeWithSignature("AutomatedVaultController_Unauthorized()"));
+    vm.prank(ALICE);
+    _controller.enableCreditForVault(address(_deltaVault2));
+  }
+
   function testRevert_onDepositWithNonAuthorizeVault() external {
     vm.expectRevert(abi.encodeWithSignature("AutomatedVaultController_Unauthorized()"));
     vm.startPrank(EVE);
