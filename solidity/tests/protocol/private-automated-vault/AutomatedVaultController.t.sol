@@ -68,12 +68,28 @@ contract AutomatedVaultController_Test is BaseTest {
     _controller.addPrivateVaults(_deltaVaults);
   }
 
+  function testRevert_addDuplicatePrivateVault() external {
+    address[] memory _deltaVaults = new address[](1);
+    _deltaVaults[0] = address(_deltaVault1);
+
+    vm.expectRevert("existed");
+    _controller.addPrivateVaults(_deltaVaults);
+  }
+
   function testRevert_removePrivateVaultFromNonOwner() external {
     address[] memory _deltaVaults = new address[](1);
     _deltaVaults[0] = address(_deltaVault1);
 
     vm.expectRevert("Ownable: caller is not the owner");
     vm.prank(ALICE);
+    _controller.removePrivateVaults(_deltaVaults);
+  }
+
+  function testRevert_removeNonExistPrivateVault() external {
+    address[] memory _deltaVaults = new address[](1);
+    _deltaVaults[0] = address(_deltaVault2);
+
+    vm.expectRevert("!exist");
     _controller.removePrivateVaults(_deltaVaults);
   }
 
