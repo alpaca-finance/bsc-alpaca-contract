@@ -30,6 +30,7 @@ contract AutomatedVaultController is OwnableUpgradeable {
 
   // --- Errors ---
   error AutomatedVaultController_Unauthorized();
+  error AutomatedVaultController_OutstandingCredit();
 
   // --- State Variables ---
   ICreditor[] public creditors;
@@ -179,8 +180,7 @@ contract AutomatedVaultController is OwnableUpgradeable {
     userVaultShares[_user][msg.sender] += _shareAmount;
 
     // set user's state
-    LinkList.List storage _userVaults = userVaults[_user];
-    _userVaults.add(msg.sender);
+    _initOrInsert(_user, msg.sender);
   }
 
   /// @notice update user's automated vault's share from withdrawal
@@ -197,5 +197,32 @@ contract AutomatedVaultController is OwnableUpgradeable {
   /// @param _vault delta vault
   function getUserVaultShares(address _user, address _vault) external view returns (uint256) {
     return userVaultShares[_user][_vault];
+  }
+
+  function enableCreditForVault(address _vault) external {
+    if (!privateVaults.has(_vault)) revert AutomatedVaultController_Unauthorized();
+
+    _initOrInsert(msg.sender, _vault);
+  }
+
+  function disableCreditForVault(address _vault) external {
+    // set user's state
+    LinkList.List storage _userVaults = userVaults[msg.sender];
+    if (_userVaults.getNextOf(LinkList.start) != LinkList.empty) {
+      if (userVaultShares[msg.sender][_vault] != 0) revert AutomatedVaultController_OutstandingCredit();
+
+      _userVaults.remove(_vault, _userVaults.getPreviousOf(_vault));
+    }
+  }
+
+  function _initOrInsert(address _user, address _vault) internal {
+    // set user's state
+    LinkList.List storage _userVaults = userVaults[_user];
+    if (_userVaults.getNextOf(LinkList.start) == LinkList.empty) {
+      _userVaults.init();
+    }
+    if (!_userVaults.has(_vault)) {
+      _userVaults.add(_vault);
+    }
   }
 }

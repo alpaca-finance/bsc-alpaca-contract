@@ -35,4 +35,8 @@ interface AutomatedVaultControllerLike {
   function removePrivateVaults(address[] memory) external;
 
   function setCreditors(address[] memory) external;
+
+  function disableCreditForVault(address _vault) external;
+
+  function enableCreditForVault(address _vault) external;
 }

@@ -139,6 +139,28 @@ contract AutomatedVaultController_Test is BaseTest {
     assertEq(_controller.getUserVaultShares(ALICE, address(_deltaVault1)), 2 ether);
   }
 
+  function testRevert_disableCreditForVaultWhileOutstanding() external {
+    vm.prank(address(_deltaVault1));
+    _controller.onDeposit(ALICE, 1 ether);
+
+    vm.expectRevert(abi.encodeWithSignature("AutomatedVaultController_OutstandingCredit()"));
+    vm.prank(ALICE);
+    _controller.disableCreditForVault(address(_deltaVault1));
+  }
+
+  function testCorrectness_disableCreditForVault() external {
+    vm.startPrank(address(_deltaVault1));
+    _controller.onDeposit(ALICE, 1 ether);
+    _controller.onWithdraw(ALICE, 1 ether);
+    vm.stopPrank();
+
+    vm.startPrank(ALICE);
+    _controller.disableCreditForVault(address(_deltaVault1));
+
+    _controller.enableCreditForVault(address(_deltaVault1));
+    _controller.disableCreditForVault(address(_deltaVault1));
+  }
+
   function testRevert_onDepositWithNonAuthorizeVault() external {
     vm.expectRevert(abi.encodeWithSignature("AutomatedVaultController_Unauthorized()"));
     vm.startPrank(EVE);
