@@ -46,8 +46,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   }
 
   if (pvAddrs.length > 0) {
-    console.log(`>> Set PRIVATEVAULT TO : ${pvAddrs}`);
-    await avController.setPrivateVaults(pvAddrs, ops);
+    console.log(`>> Add PRIVATEVAULT TO : ${pvAddrs}`);
+    await avController.addPrivateVaults(pvAddrs, ops);
   }
 
   const cfh = new ConfigFileHelper();
