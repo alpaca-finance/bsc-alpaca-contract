@@ -173,6 +173,7 @@ contract AutomatedVaultController is OwnableUpgradeable {
   /// @notice record user's automated vault's share from deposit
   /// @param _user share owner
   /// @param _shareAmount amount of automated vault's share
+  /// @param _shareValue value of automated vault's share that will be deposited
   function onDeposit(
     address _user,
     uint256 _shareAmount,
