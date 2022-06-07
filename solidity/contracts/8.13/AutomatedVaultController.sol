@@ -86,10 +86,11 @@ contract AutomatedVaultController is OwnableUpgradeable {
   function usedCredit(address _user) public view returns (uint256) {
     uint256 _total;
     uint256 _privateVaultLength = privateVaults.length();
-    address[] memory _privateVaultsArray = privateVaults.getAll();
+    address _curVault = privateVaults.getNextOf(LinkList.start);
     for (uint8 _i = 0; _i < _privateVaultLength; ) {
-      uint256 _share = userVaultShares[_user][address(_privateVaultsArray[_i])];
-      if (_share != 0) _total += IDeltaNeutralVault(_privateVaultsArray[_i]).shareToValue(_share);
+      uint256 _share = userVaultShares[_user][_curVault];
+      if (_share != 0) _total += IDeltaNeutralVault(_curVault).shareToValue(_share);
+      _curVault = privateVaults.getNextOf(_curVault);
       // uncheck overflow to save gas
       unchecked {
         _i++;
