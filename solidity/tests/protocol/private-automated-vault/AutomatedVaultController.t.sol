@@ -131,10 +131,12 @@ contract AutomatedVaultController_Test is BaseTest {
   }
 
   function testCorrectness_onDeposit() external {
+    _creditor.getUserCredit.mockv(ALICE, 100 ether);
     vm.startPrank(address(_deltaVault1));
     _controller.onDeposit(ALICE, 1 ether);
 
     assertEq(_controller.getUserVaultShares(ALICE, address(_deltaVault1)), 1 ether);
+    _deltaVault1.shareToValue.mockv(2 ether, 2 ether);
     _controller.onDeposit(ALICE, 1 ether);
     assertEq(_controller.getUserVaultShares(ALICE, address(_deltaVault1)), 2 ether);
   }
@@ -146,6 +148,7 @@ contract AutomatedVaultController_Test is BaseTest {
   }
 
   function testCorrectness_onWithdraw() external {
+    _creditor.getUserCredit.mockv(ALICE, 100 ether);
     // impersonate as delta vault #1
     vm.startPrank(address(_deltaVault1));
     // Deposit 1, withdraw 0.5 twice. Remaining share should be 0
@@ -168,11 +171,17 @@ contract AutomatedVaultController_Test is BaseTest {
   }
 
   function testCorrectness_getUsedCredit() external {
+    _creditor.getUserCredit.mockv(ALICE, 100 ether);
     // set up private vaults
     address[] memory _deltaVaults = new address[](1);
     _deltaVaults[0] = address(_deltaVault2);
 
     _controller.addPrivateVaults(_deltaVaults);
+
+    // mock deltavault1 share price, 1 share = 2 usd
+    _deltaVault1.shareToValue.mockv(1 ether, 2 ether);
+    // mock deltavault2 share price, 2 share = 5 usd
+    _deltaVault2.shareToValue.mockv(2 ether, 5 ether);
 
     // Deposit 1 vault#1 share
     vm.prank(address(_deltaVault1));
@@ -180,11 +189,6 @@ contract AutomatedVaultController_Test is BaseTest {
     // Deposit 2 vault#2 share
     vm.prank(address(_deltaVault2));
     _controller.onDeposit(ALICE, 2 ether);
-
-    // mock deltavault1 share price, 1 share = 2 usd
-    _deltaVault1.shareToValue.mockv(1 ether, 2 ether);
-    // mock deltavault2 share price, 2 share = 5 usd
-    _deltaVault2.shareToValue.mockv(2 ether, 5 ether);
 
     // usedCredit should be equal to 2(vault#1) + 5(vault#2) = 7 ether
     assertEq(_controller.usedCredit(ALICE), 7 ether);

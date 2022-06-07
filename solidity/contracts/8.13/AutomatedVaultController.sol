@@ -31,6 +31,7 @@ contract AutomatedVaultController is OwnableUpgradeable {
   // --- Errors ---
   error AutomatedVaultController_Unauthorized();
   error AutomatedVaultController_OutstandingCredit();
+  error AutomatedVaultController_InsufficientCredit();
 
   // --- State Variables ---
   ICreditor[] public creditors;
@@ -181,6 +182,9 @@ contract AutomatedVaultController is OwnableUpgradeable {
 
     // set user's state
     _initOrInsertUserVaults(_user, msg.sender);
+
+    // check available credit
+    if (totalCredit(_user) < usedCredit(_user)) revert AutomatedVaultController_InsufficientCredit();
   }
 
   /// @notice update user's automated vault's share from withdrawal
