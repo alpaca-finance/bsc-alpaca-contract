@@ -147,6 +147,13 @@ contract AutomatedVaultController_Test is BaseTest {
     _controller.onDeposit(ALICE, 1 ether);
   }
 
+  function testRevert_onDepositInsufficientCredit() external {
+    _creditor.getUserCredit.mockv(ALICE, 0 ether);
+    vm.startPrank(address(_deltaVault1));
+    vm.expectRevert(abi.encodeWithSignature("AutomatedVaultController_InsufficientCredit()"));
+    _controller.onDeposit(ALICE, 1 ether);
+  }
+
   function testCorrectness_onWithdraw() external {
     _creditor.getUserCredit.mockv(ALICE, 100 ether);
     // impersonate as delta vault #1
