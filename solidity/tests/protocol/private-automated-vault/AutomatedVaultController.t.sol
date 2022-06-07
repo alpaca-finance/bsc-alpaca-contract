@@ -45,20 +45,36 @@ contract AutomatedVaultController_Test is BaseTest {
     _controller = _setupxAutomatedVaultController(_creditors, _deltaVaults);
   }
 
-  function testCorrectness_setPrivateVault() external {
+  function testCorrectness_addPrivateVault() external {
+    address[] memory _deltaVaults = new address[](1);
+    _deltaVaults[0] = address(_deltaVault2);
+
+    _controller.addPrivateVaults(_deltaVaults);
+  }
+
+  function testCorrectness_removePrivateVault() external {
     address[] memory _deltaVaults = new address[](1);
     _deltaVaults[0] = address(_deltaVault1);
 
-    _controller.setPrivateVaults(_deltaVaults);
+    _controller.removePrivateVaults(_deltaVaults);
   }
 
-  function testRevert_setPrivateVaultFromNonOwner() external {
+  function testRevert_addPrivateVaultFromNonOwner() external {
     address[] memory _deltaVaults = new address[](1);
     _deltaVaults[0] = address(_deltaVault1);
 
     vm.expectRevert("Ownable: caller is not the owner");
     vm.prank(ALICE);
-    _controller.setPrivateVaults(_deltaVaults);
+    _controller.addPrivateVaults(_deltaVaults);
+  }
+
+  function testRevert_removePrivateVaultFromNonOwner() external {
+    address[] memory _deltaVaults = new address[](1);
+    _deltaVaults[0] = address(_deltaVault1);
+
+    vm.expectRevert("Ownable: caller is not the owner");
+    vm.prank(ALICE);
+    _controller.removePrivateVaults(_deltaVaults);
   }
 
   function testCorrectness_setCreditors() external {
@@ -77,12 +93,19 @@ contract AutomatedVaultController_Test is BaseTest {
     _controller.setCreditors(_creditors);
   }
 
-  function testFail_setPrivateVaultWithNonDeltaVault() external {
+  function testFail_addPrivateVaultWithNonDeltaVault() external {
     address[] memory _deltaVaults = new address[](2);
     _deltaVaults[0] = address(_deltaVault1);
     _deltaVaults[1] = address(0);
 
-    _controller.setPrivateVaults(_deltaVaults);
+    _controller.addPrivateVaults(_deltaVaults);
+  }
+
+  function testFail_removePrivateVaultWithNonExistingDeltaVault() external {
+    address[] memory _deltaVaults = new address[](1);
+    _deltaVaults[0] = address(_deltaVault2);
+
+    _controller.removePrivateVaults(_deltaVaults);
   }
 
   function testCorrectness_getTotalCredit() external {
@@ -124,11 +147,10 @@ contract AutomatedVaultController_Test is BaseTest {
 
   function testCorrectness_getUsedCredit() external {
     // set up private vaults
-    address[] memory _deltaVaults = new address[](2);
-    _deltaVaults[0] = address(_deltaVault1);
-    _deltaVaults[1] = address(_deltaVault2);
+    address[] memory _deltaVaults = new address[](1);
+    _deltaVaults[0] = address(_deltaVault2);
 
-    _controller.setPrivateVaults(_deltaVaults);
+    _controller.addPrivateVaults(_deltaVaults);
 
     // Deposit 1 vault#1 share
     vm.prank(address(_deltaVault1));

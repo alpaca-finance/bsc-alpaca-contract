@@ -17,18 +17,24 @@ import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/O
 
 import { ICreditor } from "./interfaces/ICreditor.sol";
 import { IDeltaNeutralVault } from "./interfaces/IDeltaNeutralVault.sol";
+import { LinkList } from "./utils/LinkList.sol";
 
 /// @title AutomatedVaultController - Controller how much investor can invest in the private automated vault
 contract AutomatedVaultController is OwnableUpgradeable {
+  using LinkList for LinkList.List;
+
   // --- Events ---
-  event LogSetPrivateVaults(address indexed _caller, IDeltaNeutralVault[] _vaults);
+  event LogAddPrivateVaults(address indexed _caller, IDeltaNeutralVault[] _vaults);
+  event LogRemovePrivateVaults(address indexed _caller, address[] _vaults);
   event LogSetCreditors(address indexed _caller, ICreditor[] _creditors);
+
+  // --- Errors ---
+  error AutomatedVaultController_Unauthorized();
 
   // --- State Variables ---
   ICreditor[] public creditors;
-  IDeltaNeutralVault[] public privateVaults;
+  LinkList.List public privateVaults;
   mapping(address => mapping(address => uint256)) public userVaultShares;
-
 
   /// @notice Initialize Automated Vault Controller
   /// @param _creditors list of credit sources
@@ -48,7 +54,14 @@ contract AutomatedVaultController is OwnableUpgradeable {
     // effect
     OwnableUpgradeable.__Ownable_init();
     creditors = _creditors;
-    privateVaults = _privateVaults;
+
+    privateVaults.init();
+    for (uint8 _i = 0; _i < _privateVaults.length; ) {
+      privateVaults.add(address(_privateVaults[_i]));
+      unchecked {
+        _i++;
+      }
+    }
   }
 
   /// @notice Get total credit for this user
@@ -72,10 +85,11 @@ contract AutomatedVaultController is OwnableUpgradeable {
   /// @return _total user's used credit in USD value from depositing into private automated vaults
   function usedCredit(address _user) public view returns (uint256) {
     uint256 _total;
-    uint256 _privateVaultLength = privateVaults.length;
+    uint256 _privateVaultLength = privateVaults.length();
+    address[] memory _privateVaultsArray = privateVaults.getAll();
     for (uint8 _i = 0; _i < _privateVaultLength; ) {
-      uint256 _share = userVaultShares[_user][address(privateVaults[_i])];
-      if (_share != 0) _total += privateVaults[_i].shareToValue(_share);
+      uint256 _share = userVaultShares[_user][address(_privateVaultsArray[_i])];
+      if (_share != 0) _total += IDeltaNeutralVault(_privateVaultsArray[_i]).shareToValue(_share);
       // uncheck overflow to save gas
       unchecked {
         _i++;
@@ -94,23 +108,38 @@ contract AutomatedVaultController is OwnableUpgradeable {
     return _total > _used ? _total - _used : 0;
   }
 
-  /// @notice set private automated vaults
+  /// @notice add private automated vaults
   /// @param _newPrivateVaults list of private automated vaults
-  function setPrivateVaults(IDeltaNeutralVault[] memory _newPrivateVaults) external onlyOwner {
+  function addPrivateVaults(IDeltaNeutralVault[] memory _newPrivateVaults) external onlyOwner {
     // sanity check
     uint256 _newPrivateVaultLength = _newPrivateVaults.length;
     for (uint8 _i = 0; _i < _newPrivateVaultLength; ) {
       _newPrivateVaults[_i].shareToValue(1e18);
+
+      privateVaults.add(address(_newPrivateVaults[_i]));
       // uncheck overflow to save gas
       unchecked {
         _i++;
       }
     }
 
-    // effect
-    privateVaults = _newPrivateVaults;
+    emit LogAddPrivateVaults(msg.sender, _newPrivateVaults);
+  }
 
-    emit LogSetPrivateVaults(msg.sender, _newPrivateVaults);
+  /// @notice remove private automated vaults
+  /// @param _privateVaultAddresses list of private automated vaults
+  function removePrivateVaults(address[] memory _privateVaultAddresses) external onlyOwner {
+    // sanity check
+    uint256 _newPrivateVaultLength = _privateVaultAddresses.length;
+    for (uint8 _i = 0; _i < _newPrivateVaultLength; ) {
+      privateVaults.remove(_privateVaultAddresses[_i], privateVaults.getPreviousOf(_privateVaultAddresses[_i]));
+      // uncheck overflow to save gas
+      unchecked {
+        _i++;
+      }
+    }
+
+    emit LogRemovePrivateVaults(msg.sender, _privateVaultAddresses);
   }
 
   /// @notice set private automated vaults
@@ -136,6 +165,9 @@ contract AutomatedVaultController is OwnableUpgradeable {
   /// @param _user share owner
   /// @param _shareAmount amount of automated vault's share
   function onDeposit(address _user, uint256 _shareAmount) external {
+    // Check
+    if (!privateVaults.has(msg.sender)) revert AutomatedVaultController_Unauthorized();
+
     // expected delta vault to be the caller
     userVaultShares[_user][msg.sender] += _shareAmount;
   }
@@ -144,6 +176,9 @@ contract AutomatedVaultController is OwnableUpgradeable {
   /// @param _user share owner
   /// @param _shareAmount amount of automated vault's share withdrawn
   function onWithdraw(address _user, uint256 _shareAmount) external {
+    // Check
+    if (!privateVaults.has(msg.sender)) revert AutomatedVaultController_Unauthorized();
+
     userVaultShares[_user][msg.sender] = userVaultShares[_user][msg.sender] <= _shareAmount
       ? 0
       : userVaultShares[_user][msg.sender] - _shareAmount;
