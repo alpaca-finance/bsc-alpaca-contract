@@ -180,7 +180,7 @@ contract AutomatedVaultController is OwnableUpgradeable {
     userVaultShares[_user][msg.sender] += _shareAmount;
 
     // set user's state
-    _initOrInsert(_user, msg.sender);
+    _initOrInsertUserVaults(_user, msg.sender);
   }
 
   /// @notice update user's automated vault's share from withdrawal
@@ -211,7 +211,7 @@ contract AutomatedVaultController is OwnableUpgradeable {
     return userVaultShares[_user][_vault];
   }
 
-  function _initOrInsert(address _user, address _vault) internal {
+  function _initOrInsertUserVaults(address _user, address _vault) internal {
     // set user's state
     LinkList.List storage _userVaults = userVaults[_user];
     if (_userVaults.getNextOf(LinkList.start) == LinkList.empty) {
