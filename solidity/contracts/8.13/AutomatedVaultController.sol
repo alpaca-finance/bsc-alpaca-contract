@@ -211,12 +211,6 @@ contract AutomatedVaultController is OwnableUpgradeable {
     return userVaultShares[_user][_vault];
   }
 
-  function enableCreditForVault(address _vault) external {
-    if (!privateVaults.has(_vault)) revert AutomatedVaultController_Unauthorized();
-
-    _initOrInsert(msg.sender, _vault);
-  }
-
   function _initOrInsert(address _user, address _vault) internal {
     // set user's state
     LinkList.List storage _userVaults = userVaults[_user];
