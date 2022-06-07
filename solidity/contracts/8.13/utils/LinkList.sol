@@ -3,9 +3,9 @@
 pragma solidity >=0.6.12 <0.9.0;
 
 library LinkList {
-  address public constant start = address(1);
-  address public constant end = address(1);
-  address public constant empty = address(0);
+  address internal constant start = address(1);
+  address internal constant end = address(1);
+  address internal constant empty = address(0);
 
   struct List {
     uint256 llSize;

@@ -187,9 +187,21 @@ contract AutomatedVaultController is OwnableUpgradeable {
   /// @param _user share owner
   /// @param _shareAmount amount of automated vault's share withdrawn
   function onWithdraw(address _user, uint256 _shareAmount) external {
-    userVaultShares[_user][msg.sender] = userVaultShares[_user][msg.sender] <= _shareAmount
+    uint256 _updatedShare = userVaultShares[_user][msg.sender] <= _shareAmount
       ? 0
       : userVaultShares[_user][msg.sender] - _shareAmount;
+
+    userVaultShares[_user][msg.sender] = _updatedShare;
+
+    // automatically remove vault from the list
+    if (_updatedShare == 0) {
+      LinkList.List storage _userVaults = userVaults[_user];
+      if (_userVaults.getNextOf(LinkList.start) != LinkList.empty) {
+        if (_userVaults.has(msg.sender)) {
+          _userVaults.remove(msg.sender, _userVaults.getPreviousOf(msg.sender));
+        }
+      }
+    }
   }
 
   /// @notice Return share of user of given vault
@@ -203,16 +215,6 @@ contract AutomatedVaultController is OwnableUpgradeable {
     if (!privateVaults.has(_vault)) revert AutomatedVaultController_Unauthorized();
 
     _initOrInsert(msg.sender, _vault);
-  }
-
-  function disableCreditForVault(address _vault) external {
-    // set user's state
-    LinkList.List storage _userVaults = userVaults[msg.sender];
-    if (_userVaults.getNextOf(LinkList.start) != LinkList.empty) {
-      if (userVaultShares[msg.sender][_vault] != 0) revert AutomatedVaultController_OutstandingCredit();
-
-      _userVaults.remove(_vault, _userVaults.getPreviousOf(_vault));
-    }
   }
 
   function _initOrInsert(address _user, address _vault) internal {
