@@ -21,7 +21,7 @@ export interface Config {
 }
 
 export interface Nft {
-  AlpiesStaking: string;
+  NFTStaking: string;
 }
 export interface AutomateVaultController {
   address: string;
