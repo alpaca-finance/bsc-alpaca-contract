@@ -17,11 +17,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const CREDITOR_NAMES: string[] = ["xALPACACreditor"];
-  const PRIVATE_VAULT_SYMBOLS: string[] = ["n8x-BNBUSDT-PCS3"];
+  const CREDITOR_NAMES: string[] = [];
+  const PRIVATE_VAULT_SYMBOLS: string[] = ["L8x-BUSDBTCB-PCS1"];
 
   const deployer = await getDeployer();
   const config = getConfig();
+  const cfh = new ConfigFileHelper();
 
   // VALIDATING CREDITORS
   if (!config.AutomatedVaultController?.address) {
@@ -38,20 +39,18 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const ops = isFork() ? { gasLimit: 2000000 } : {};
 
   const avController = AutomatedVaultController__factory.connect(config.AutomatedVaultController!.address, deployer);
-  console.log(`>> AVController :${avController.address}`);
+  console.log(`>> AVController: ${avController.address}`);
 
   if (creditorAddrs.length > 0) {
-    console.log(`>> Set CREDITORS TO : ${creditorAddrs}`);
+    console.log(`>> Set creditors: ${creditorAddrs}`);
     await avController.setCreditors(creditorAddrs, { ...ops, nonce: nonce++ });
+    cfh.setCreditToAVController(creditorAddrs);
   }
 
   if (pvAddrs.length > 0) {
-    console.log(`>> Add PRIVATEVAULT TO : ${pvAddrs}`);
-    await avController.addPrivateVaults(pvAddrs, ops);
+    console.log(`>> Add the following private vaults: ${pvAddrs}`);
+    await avController.addPrivateVaults(pvAddrs, { ...ops, nonce: nonce++, gasLimit: 2000000 });
   }
-
-  const cfh = new ConfigFileHelper();
-  cfh.setCreditToAVController(creditorAddrs);
 };
 
 export default func;
