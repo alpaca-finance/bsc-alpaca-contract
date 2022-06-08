@@ -1,3 +1,4 @@
+import { Nft } from "./../interfaces/config";
 import * as fs from "fs";
 import { ethers, network } from "hardhat";
 import { compare } from "../../utils/address";
@@ -277,6 +278,19 @@ export class ConfigFileHelper {
       this.config.Creditors = [creditor];
     } else {
       this.config.Creditors = [...this.config.Creditors, creditor];
+    }
+    this._writeConfigFile(this.config);
+  }
+
+  // NFtStaking
+  public addAlpiesStaking(alpiesStaking: string) {
+    console.log(`>> Adding AlpiesStaking to file > ${alpiesStaking}`);
+    if (this.config.NFT === undefined) {
+      this.config.NFT = {
+        AlpiesStaking: alpiesStaking,
+      } as Nft;
+    } else {
+      this.config.NFT.AlpiesStaking = alpiesStaking;
     }
     this._writeConfigFile(this.config);
   }
