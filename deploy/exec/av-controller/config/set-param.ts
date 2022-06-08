@@ -45,10 +45,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await avController.setCreditors(creditorAddrs, ops);
   }
 
-  // if (pvAddrs.length > 0) {
-  //   console.log(`>> Add PRIVATEVAULT TO : ${pvAddrs}`);
-  //   await avController.addPrivateVaults(pvAddrs, ops);
-  // }
+  if (pvAddrs.length > 0) {
+    console.log(`>> Add PRIVATEVAULT TO : ${pvAddrs}`);
+    await avController.addPrivateVaults(pvAddrs, ops);
+  }
 
   const cfh = new ConfigFileHelper();
   cfh.setCreditToAVController(creditorAddrs);
