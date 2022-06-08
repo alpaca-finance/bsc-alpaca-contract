@@ -5,10 +5,8 @@ import { BaseTest, DeltaNeutralVault02Like, MockErc20Like, console } from "../..
 import { mocking } from "../../utils/mocking.sol";
 import { MockContract } from "../../utils/MockContract.sol";
 
-import { IDeltaNeutralOracle } from "../../../contracts/8.13/interfaces/IDeltaNeutralOracle.sol";
-import { IController } from "../../../contracts/8.13/interfaces/IController.sol";
-
 import { FakeDeltaWorker } from "./FakeDeltaWorker.sol";
+import { FakeAutomateVaultController } from "./FakeAutomateVaultController.sol";
 import { FakeDeltaNeutralOracle } from "./FakeDeltaNeutralOracle.sol";
 import { FakeVault } from "./FakeVault.sol";
 import { FakeDeltaNeutralVaultConfig02 } from "./FakeDeltaNeutralVaultConfig02.sol";
@@ -18,14 +16,15 @@ import { FakeDeltaNeutralVaultConfig02 } from "./FakeDeltaNeutralVaultConfig02.s
 contract DeltaNeutralVault02_Test is BaseTest {
   using mocking for *;
   DeltaNeutralVault02Like private _deltaVault;
-  IController private _controller;
 
+  FakeAutomateVaultController private _controller;
   FakeVault private _stableVault;
   FakeVault private _assetVault;
   FakeDeltaWorker private _stableVaultWorker;
   FakeDeltaWorker private _assetVaultWorker;
   FakeDeltaNeutralOracle private _priceOracle;
   FakeDeltaNeutralVaultConfig02 private _config;
+
   MockErc20Like private _lpToken;
   MockErc20Like private _alpacaToken;
   MockErc20Like private _stableToken;
@@ -34,7 +33,7 @@ contract DeltaNeutralVault02_Test is BaseTest {
   function setUp() external {
     _priceOracle = new FakeDeltaNeutralOracle();
     _config = new FakeDeltaNeutralVaultConfig02();
-    _controller = IController(address(new MockContract()));
+    _controller = new FakeAutomateVaultController();
     _lpToken = _setupToken("LP TOKEN", "LP", 18);
     _alpacaToken = _setupToken("ALPACA", "ALPACA", 18);
     _stableToken = _setupToken("USDT", "USDT", 18);
@@ -80,8 +79,6 @@ contract DeltaNeutralVault02_Test is BaseTest {
   }
 
   function testCorrectness_DepositShouldWorkIfCreditIsSuffice() external {
-    _controller.availableCredit.mockv(address(this), 100 ether);
-
     uint8[] memory _actions = new uint8[](2);
     uint256[] memory _values = new uint256[](2);
     bytes[] memory _workDatas = new bytes[](2);
@@ -178,7 +175,7 @@ contract DeltaNeutralVault02_Test is BaseTest {
   }
 
   function testRevert_CantDepositIfNoCredit() external {
-    _controller.availableCredit.mockv(address(this), 0 ether);
+    _controller.setRevertOnDeposit(true);
 
     uint8[] memory _actions = new uint8[](2);
     uint256[] memory _values = new uint256[](2);
@@ -213,7 +210,7 @@ contract DeltaNeutralVault02_Test is BaseTest {
     bytes memory _data = abi.encode(_actions, _values, _workDatas);
 
     // 3x Position
-    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault_ExceedCredit()"));
+    vm.expectRevert(abi.encodeWithSignature("AutomatedVaultController_InsufficientCredit()"));
     _deltaVault.deposit(25 ether, 75 ether, address(this), 0, _data);
   }
 
@@ -265,7 +262,6 @@ contract DeltaNeutralVault02_Test is BaseTest {
   }
 
   function initPosition() internal {
-    _controller.availableCredit.mockv(address(this), 100 ether);
     uint8[] memory _actions = new uint8[](2);
     uint256[] memory _values = new uint256[](2);
     bytes[] memory _workDatas = new bytes[](2);

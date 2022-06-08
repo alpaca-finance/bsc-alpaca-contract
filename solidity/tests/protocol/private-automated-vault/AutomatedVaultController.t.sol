@@ -45,20 +45,52 @@ contract AutomatedVaultController_Test is BaseTest {
     _controller = _setupxAutomatedVaultController(_creditors, _deltaVaults);
   }
 
-  function testCorrectness_setPrivateVault() external {
+  function testCorrectness_addPrivateVault() external {
+    address[] memory _deltaVaults = new address[](1);
+    _deltaVaults[0] = address(_deltaVault2);
+
+    _controller.addPrivateVaults(_deltaVaults);
+  }
+
+  function testCorrectness_removePrivateVault() external {
     address[] memory _deltaVaults = new address[](1);
     _deltaVaults[0] = address(_deltaVault1);
 
-    _controller.setPrivateVaults(_deltaVaults);
+    _controller.removePrivateVaults(_deltaVaults);
   }
 
-  function testRevert_setPrivateVaultFromNonOwner() external {
+  function testRevert_addPrivateVaultFromNonOwner() external {
     address[] memory _deltaVaults = new address[](1);
     _deltaVaults[0] = address(_deltaVault1);
 
     vm.expectRevert("Ownable: caller is not the owner");
     vm.prank(ALICE);
-    _controller.setPrivateVaults(_deltaVaults);
+    _controller.addPrivateVaults(_deltaVaults);
+  }
+
+  function testRevert_addDuplicatePrivateVault() external {
+    address[] memory _deltaVaults = new address[](1);
+    _deltaVaults[0] = address(_deltaVault1);
+
+    vm.expectRevert("existed");
+    _controller.addPrivateVaults(_deltaVaults);
+  }
+
+  function testRevert_removePrivateVaultFromNonOwner() external {
+    address[] memory _deltaVaults = new address[](1);
+    _deltaVaults[0] = address(_deltaVault1);
+
+    vm.expectRevert("Ownable: caller is not the owner");
+    vm.prank(ALICE);
+    _controller.removePrivateVaults(_deltaVaults);
+  }
+
+  function testRevert_removeNonExistPrivateVault() external {
+    address[] memory _deltaVaults = new address[](1);
+    _deltaVaults[0] = address(_deltaVault2);
+
+    vm.expectRevert("!exist");
+    _controller.removePrivateVaults(_deltaVaults);
   }
 
   function testCorrectness_setCreditors() external {
@@ -77,12 +109,19 @@ contract AutomatedVaultController_Test is BaseTest {
     _controller.setCreditors(_creditors);
   }
 
-  function testFail_setPrivateVaultWithNonDeltaVault() external {
+  function testFail_addPrivateVaultWithNonDeltaVault() external {
     address[] memory _deltaVaults = new address[](2);
     _deltaVaults[0] = address(_deltaVault1);
     _deltaVaults[1] = address(0);
 
-    _controller.setPrivateVaults(_deltaVaults);
+    _controller.addPrivateVaults(_deltaVaults);
+  }
+
+  function testFail_removePrivateVaultWithNonExistingDeltaVault() external {
+    address[] memory _deltaVaults = new address[](1);
+    _deltaVaults[0] = address(_deltaVault2);
+
+    _controller.removePrivateVaults(_deltaVaults);
   }
 
   function testCorrectness_getTotalCredit() external {
@@ -92,19 +131,35 @@ contract AutomatedVaultController_Test is BaseTest {
   }
 
   function testCorrectness_onDeposit() external {
+    _creditor.getUserCredit.mockv(ALICE, 100 ether);
     vm.startPrank(address(_deltaVault1));
-    _controller.onDeposit(ALICE, 1 ether);
+    _controller.onDeposit(ALICE, 1 ether, 1 ether);
 
     assertEq(_controller.getUserVaultShares(ALICE, address(_deltaVault1)), 1 ether);
-    _controller.onDeposit(ALICE, 1 ether);
+    _deltaVault1.shareToValue.mockv(2 ether, 2 ether);
+    _controller.onDeposit(ALICE, 1 ether, 1 ether);
     assertEq(_controller.getUserVaultShares(ALICE, address(_deltaVault1)), 2 ether);
   }
 
+  function testRevert_onDepositWithNonAuthorizeVault() external {
+    vm.expectRevert(abi.encodeWithSignature("AutomatedVaultController_Unauthorized()"));
+    vm.startPrank(EVE);
+    _controller.onDeposit(ALICE, 1 ether, 1 ether);
+  }
+
+  function testRevert_onDepositInsufficientCredit() external {
+    _creditor.getUserCredit.mockv(ALICE, 1 ether);
+    vm.startPrank(address(_deltaVault1));
+    vm.expectRevert(abi.encodeWithSignature("AutomatedVaultController_InsufficientCredit()"));
+    _controller.onDeposit(ALICE, 1 ether, 2 ether);
+  }
+
   function testCorrectness_onWithdraw() external {
+    _creditor.getUserCredit.mockv(ALICE, 100 ether);
     // impersonate as delta vault #1
     vm.startPrank(address(_deltaVault1));
     // Deposit 1, withdraw 0.5 twice. Remaining share should be 0
-    _controller.onDeposit(ALICE, 1 ether);
+    _controller.onDeposit(ALICE, 1 ether, 1 ether);
 
     assertEq(_controller.getUserVaultShares(ALICE, address(_deltaVault1)), 1 ether);
     _controller.onWithdraw(ALICE, 0.5 ether);
@@ -113,7 +168,7 @@ contract AutomatedVaultController_Test is BaseTest {
     assertEq(_controller.getUserVaultShares(ALICE, address(_deltaVault1)), 0 ether);
 
     // Deposit 1, withdraw 2 twice. Remaining share should be 0
-    _controller.onDeposit(ALICE, 1 ether);
+    _controller.onDeposit(ALICE, 1 ether, 1 ether);
     assertEq(_controller.getUserVaultShares(ALICE, address(_deltaVault1)), 1 ether);
     _controller.onWithdraw(ALICE, 2 ether);
     assertEq(_controller.getUserVaultShares(ALICE, address(_deltaVault1)), 0 ether);
@@ -123,39 +178,27 @@ contract AutomatedVaultController_Test is BaseTest {
   }
 
   function testCorrectness_getUsedCredit() external {
+    _creditor.getUserCredit.mockv(ALICE, 100 ether);
     // set up private vaults
-    address[] memory _deltaVaults = new address[](2);
-    _deltaVaults[0] = address(_deltaVault1);
-    _deltaVaults[1] = address(_deltaVault2);
+    address[] memory _deltaVaults = new address[](1);
+    _deltaVaults[0] = address(_deltaVault2);
 
-    _controller.setPrivateVaults(_deltaVaults);
-
-    // Deposit 1 vault#1 share
-    vm.prank(address(_deltaVault1));
-    _controller.onDeposit(ALICE, 1 ether);
-    // Deposit 2 vault#2 share
-    vm.prank(address(_deltaVault2));
-    _controller.onDeposit(ALICE, 2 ether);
+    _controller.addPrivateVaults(_deltaVaults);
 
     // mock deltavault1 share price, 1 share = 2 usd
     _deltaVault1.shareToValue.mockv(1 ether, 2 ether);
     // mock deltavault2 share price, 2 share = 5 usd
     _deltaVault2.shareToValue.mockv(2 ether, 5 ether);
 
+    // Deposit 1 vault#1 share
+    vm.prank(address(_deltaVault1));
+    _controller.onDeposit(ALICE, 1 ether, 1 ether);
+    // Deposit 2 vault#2 share
+    vm.prank(address(_deltaVault2));
+    _controller.onDeposit(ALICE, 2 ether, 2 ether);
+
     // usedCredit should be equal to 2(vault#1) + 5(vault#2) = 7 ether
     assertEq(_controller.usedCredit(ALICE), 7 ether);
-  }
-
-  function testCorrectness_getUsedCreditShouldTrackOnlyPrivateVault() external {
-    // Deposit 1 share of some random vault
-    vm.prank(address(1));
-    _controller.onDeposit(ALICE, 1 ether);
-
-    // mock share price, 1 share = 2 usd
-    _deltaVault1.shareToValue.mockv(1 ether, 2 ether);
-
-    // used credit should be 0 since user's currently has no share in private vault
-    assertEq(_controller.usedCredit(ALICE), 0 ether);
   }
 
   function testCorrectness_getAvailableCredit() external {
@@ -165,7 +208,7 @@ contract AutomatedVaultController_Test is BaseTest {
 
     // Used credit < total credit
     vm.prank(address(_deltaVault1));
-    _controller.onDeposit(ALICE, 1 ether);
+    _controller.onDeposit(ALICE, 1 ether, 1 ether);
     // mock deltavault1 share price, 1 share = 2 usd
     _deltaVault1.shareToValue.mockv(1 ether, 1 ether);
     assertEq(_controller.availableCredit(ALICE), 1 ether);

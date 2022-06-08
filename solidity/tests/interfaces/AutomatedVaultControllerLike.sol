@@ -20,7 +20,11 @@ interface AutomatedVaultControllerLike {
 
   function availableCredit(address _user) external view returns (uint256);
 
-  function onDeposit(address _user, uint256 _shareAmount) external;
+  function onDeposit(
+    address _user,
+    uint256 _shareAmount,
+    uint256 _shareValue
+  ) external;
 
   function onWithdraw(address _user, uint256 _shareAmount) external;
 
@@ -30,7 +34,9 @@ interface AutomatedVaultControllerLike {
 
   function getId(address, address) external view returns (bytes32);
 
-  function setPrivateVaults(address[] memory) external;
+  function addPrivateVaults(address[] memory) external;
+
+  function removePrivateVaults(address[] memory) external;
 
   function setCreditors(address[] memory) external;
 }

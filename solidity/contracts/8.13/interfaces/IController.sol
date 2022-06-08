@@ -20,7 +20,11 @@ interface IController {
 
   function availableCredit(address _user) external view returns (uint256);
 
-  function onDeposit(address _user, uint256 _shareAmount) external;
+  function onDeposit(
+    address _user,
+    uint256 _shareAmount,
+    uint256 _shareValue
+  ) external;
 
   function onWithdraw(address _user, uint256 _shareAmount) external;
 }
