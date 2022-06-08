@@ -1342,7 +1342,8 @@
     "L3x-BUSDBNB-PCS1": "0xcC125BBaFF77De472f236255DE6be0a3B4323064",
     "n8x-BNBUSDT-BSW1": "0x6407bB0B0de04539Cd7bac7cd11f57303e625678",
     "n8x-BNBUSDT-PCS3": "0x3756b184d647EC3690Ce47ec3C182Db046ef8B2e",
-    "L8x-BUSDBTCB-PCS1": "0x98a7D8C26D5925d69F6D685E7b723F81325Fa035"
+    "L8x-BUSDBTCB-PCS1": "0x98a7D8C26D5925d69F6D685E7b723F81325Fa035",
+    "L8x-USDTBNB-PCS1": "0xB7da7edcb1C0fE56E0124fCc22b26dB0111135a9"
   },
   "LpTokens": {
     "ALPACA-WBNB": "0x1099C2E6Ed6ebA95099c205b599B409305783E43",
@@ -2140,8 +2141,8 @@
         },
         {
           "name": "USDT-WBNB 8x PCS1 DeltaNeutralPancakeswapWorker",
-          "address": "0x83A5d5c54Ad83bBeA8667B3B95d7610E16e52723",
-          "deployedBlock": 16158215,
+          "address": "0xd60f6bb9e2a1e6C44Bd1Df3946d76cBd79C9636F",
+          "deployedBlock": 18502444,
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 13,
           "stakingToken": "0x16b9a82891338f9bA80E2D6970FddA79D1eb0daE",
@@ -3746,8 +3747,8 @@
         },
         {
           "name": "WBNB-USDT 8x PCS1 DeltaNeutralPancakeswapWorker",
-          "address": "0x4b70c41F514FBBEa718234Ac72f36c1b077a4162",
-          "deployedBlock": 16158228,
+          "address": "0x4acFecBbe2965119DB6c9d539e4aF4A1DA9bD43B",
+          "deployedBlock": 18502410,
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 13,
           "stakingToken": "0x16b9a82891338f9bA80E2D6970FddA79D1eb0daE",
@@ -4724,6 +4725,23 @@
       "gateway": "0x327FfCae89Da52c7311C238B6acb32b402D7A430",
       "assetVaultPosId": "0",
       "stableVaultPosId": "0"
+    },
+    {
+      "name": "Long 8x USDT-BNB PCS1",
+      "symbol": "L8x-USDTBNB-PCS1",
+      "address": "0xB7da7edcb1C0fE56E0124fCc22b26dB0111135a9",
+      "deployedBlock": 18502509,
+      "config": "0x4783Ce77e2330eC58EdFE183f5D7dd1D44fE57b5",
+      "assetToken": "0x55d398326f99059ff775485246999027b3197955",
+      "stableToken": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+      "assetVault": "0x158Da805682BdC8ee32d52833aD41E74bb951E59",
+      "stableVault": "0xd7D069493685A581d27824Fc46EdA46B7EfC0063",
+      "assetDeltaWorker": "0x4acFecBbe2965119DB6c9d539e4aF4A1DA9bD43B",
+      "stableDeltaWorker": "0xd60f6bb9e2a1e6C44Bd1Df3946d76cBd79C9636F",
+      "oracle": "0x08EA5fB66EA41f236E3001d2655e43A1E735787F",
+      "gateway": "0x0d0D4d050585C8fa3A3D64f2c38AC5737260028f",
+      "assetVaultPosId": "0",
+      "stableVaultPosId": "0"
     }
   ],
   "Creditors": [
@@ -4734,6 +4752,8 @@
   ],
   "AutomatedVaultController": {
     "address": "0xfd0694a29871Ee629D51cF4079842382368f1e15",
-    "creditors": ["0xeDdD248FEe5ff98e532c3A4087C83F6e376eEDa7"]
+    "creditors": [
+      "0xeDdD248FEe5ff98e532c3A4087C83F6e376eEDa7"
+    ]
   }
 }
