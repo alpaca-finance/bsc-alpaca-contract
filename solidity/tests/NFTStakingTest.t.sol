@@ -286,7 +286,7 @@ contract NFTStakingTest is BaseTest {
     mockNFT1.approve(address(nftStaking), 0);
     assertEq(mockNFT1.balanceOf(ALICE), 1);
     // Stake NFT
-    nftStaking.stakeNFT(nftAddress1, 0, 20);
+    nftStaking.stakeNFT(nftAddress1, 0, 0);
     assertEq(nftStaking.userNFTInStakingPool(ALICE, nftAddress1), 1);
     assertTrue(nftStaking.isStaked(nftAddress1, ALICE, 0));
     // Unstake NFT
@@ -298,8 +298,7 @@ contract NFTStakingTest is BaseTest {
 
   function testUnstakeNFT_updateHighestWeight() external {
     nftStaking.addPool(nftAddress1, 100, 0, 2000);
-    nftStaking.addPool(nftAddress2, 140, 20, 2200);
-    vm.warp(1641070800);
+    nftStaking.addPool(nftAddress2, 140, 0, 2200);
     vm.startPrank(ALICE, ALICE);
     mockNFT1.mint(1);
     mockNFT2.mint(1);
@@ -309,25 +308,22 @@ contract NFTStakingTest is BaseTest {
     assertEq(mockNFT2.balanceOf(ALICE), 1);
 
     // Staking first NFT
-    nftStaking.stakeNFT(nftAddress1, 0, mockLockUntil);
+    nftStaking.stakeNFT(nftAddress1, 0, 0);
     assertTrue(nftStaking.isStaked(nftAddress1, ALICE, 0));
     assertEq(mockNFT1.balanceOf(ALICE), 0);
-    (uint256 poolWeight, uint256 minLockPeriod, uint256 maxLockPeriod) = nftStaking.poolInfo(
-      nftStaking.userHighestWeightNftAddress(ALICE)
-    );
-    assertEq(poolWeight, 100);
-    assertEq(minLockPeriod, 0);
-    assertEq(maxLockPeriod, 2000);
+
+    // Highest weight should now be the nftAddress1
+    assertEq(nftStaking.userHighestWeightNftAddress(ALICE), nftAddress1);
 
     // Staking second NFT
-    nftStaking.stakeNFT(nftAddress2, 0, mockLockUntil);
+    nftStaking.stakeNFT(nftAddress2, 0, 0);
     assertTrue(nftStaking.isStaked(nftAddress2, ALICE, 0));
     assertEq(mockNFT2.balanceOf(ALICE), 0);
-    (poolWeight, minLockPeriod, maxLockPeriod) = nftStaking.poolInfo(nftStaking.userHighestWeightNftAddress(ALICE));
+
     // Highest weight should now be the nftAddress2
-    assertEq(poolWeight, 140);
-    assertEq(minLockPeriod, 20);
-    assertEq(maxLockPeriod, 2200);
+    assertEq(nftStaking.userHighestWeightNftAddress(ALICE), nftAddress2);
+
+    // Assert Staking NFT address amount
     assertEq(nftStaking.userNFTInStakingPool(ALICE, nftAddress1), 1);
     assertEq(nftStaking.userNFTInStakingPool(ALICE, nftAddress2), 1);
 
@@ -335,11 +331,9 @@ contract NFTStakingTest is BaseTest {
     nftStaking.unstakeNFT(nftAddress2, 0);
 
     // Should update highest weight to nftAddress1
-    (poolWeight, minLockPeriod, maxLockPeriod) = nftStaking.poolInfo(nftStaking.userHighestWeightNftAddress(ALICE));
-    assertEq(poolWeight, 100);
-    assertEq(minLockPeriod, 0);
-    assertEq(maxLockPeriod, 2000);
+    assertEq(nftStaking.userHighestWeightNftAddress(ALICE), nftAddress1);
 
+    // Assert Staking NFT address amount after unstake nftAddress2
     assertEq(nftStaking.userNFTInStakingPool(ALICE, nftAddress1), 1);
     assertEq(nftStaking.userNFTInStakingPool(ALICE, nftAddress2), 0);
 
@@ -352,6 +346,23 @@ contract NFTStakingTest is BaseTest {
     mockNFT1.mint(1);
     mockNFT1.approve(address(nftStaking), 0);
     vm.expectRevert(NFTStakingLike.NFTStaking_NoNFTStaked.selector);
+    nftStaking.unstakeNFT(nftAddress1, 0);
+    vm.stopPrank();
+  }
+
+  function testUnstakeNFT_unstakeNFTIsNotExpired() external {
+    nftStaking.addPool(nftAddress1, 100, 0, 1000);
+    vm.warp(1641070800);
+    vm.startPrank(ALICE, ALICE);
+    mockNFT1.mint(1);
+    mockNFT1.approve(address(nftStaking), 0);
+    assertEq(mockNFT1.balanceOf(ALICE), 1);
+    // Stake NFT
+    nftStaking.stakeNFT(nftAddress1, 0, mockLockUntil);
+    assertEq(nftStaking.userNFTInStakingPool(ALICE, nftAddress1), 1);
+    assertTrue(nftStaking.isStaked(nftAddress1, ALICE, 0));
+    // Unstake NFT
+    vm.expectRevert(NFTStakingLike.NFTStaking_IsNotExpired.selector);
     nftStaking.unstakeNFT(nftAddress1, 0);
     vm.stopPrank();
   }

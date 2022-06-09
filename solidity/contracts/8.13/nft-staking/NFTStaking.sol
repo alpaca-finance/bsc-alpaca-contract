@@ -144,6 +144,7 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
     uint256 _lockUntil
   ) external nonReentrant onlyEOA {
     // Check
+    _lockUntil = _lockUntil < block.timestamp ? block.timestamp : _lockUntil;
     if (poolInfo[_nftAddress].poolWeight == 0) revert NFTStaking_PoolNotExist();
     bytes32 _depositId = keccak256(abi.encodePacked(_nftAddress, msg.sender, _nftTokenId));
     if (userStakingNFTLockUntil[_depositId] != 0) revert NFTStaking_NFTAlreadyStaked();
@@ -194,7 +195,7 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
     bytes32 _depositId = keccak256(abi.encodePacked(_nftAddress, msg.sender, _nftTokenId));
     uint256 _lockUntil = userStakingNFTLockUntil[_depositId];
     if (_lockUntil == 0) revert NFTStaking_NoNFTStaked();
-    if (userStakingNFTLockUntil[_depositId] < block.timestamp) revert NFTStaking_IsNotExpired();
+    if (userStakingNFTLockUntil[_depositId] > block.timestamp) revert NFTStaking_IsNotExpired();
     userStakingNFTLockUntil[_depositId] = 0;
 
     // Effect
