@@ -30,20 +30,20 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "mainnet_L8x_usdtbnb_pcs1_whitelisted_callers";
+  const TITLE = "mainnet_tranching_whitelisted_callers";
   const TARGETED_VAULT_CONFIG: Array<IInput> = [
     {
-      VAULT_SYMBOL: "ibUSDT",
-      WHITELISTED_CALLERS: ["0xB7da7edcb1C0fE56E0124fCc22b26dB0111135a9"],
+      VAULT_SYMBOL: "ibBUSD",
+      WHITELISTED_CALLERS: ["0x86AeBc703D893737ACF15DDFD4C9538c79cC43d2"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibWBNB",
-      WHITELISTED_CALLERS: ["0xB7da7edcb1C0fE56E0124fCc22b26dB0111135a9"],
+      WHITELISTED_CALLERS: ["0x86AeBc703D893737ACF15DDFD4C9538c79cC43d2"],
       IS_ENABLE: true,
     },
   ];
-  const EXACT_ETA = "1654757100";
+  const EXACT_ETA = "1654833600";
 
   const config = getConfig();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];

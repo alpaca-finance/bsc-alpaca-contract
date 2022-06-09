@@ -18,7 +18,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
 
   const CREDITOR_NAMES: string[] = [];
-  const PRIVATE_VAULT_SYMBOLS: string[] = ["L8x-USDTBNB-PCS1"];
+  const PRIVATE_VAULT_SYMBOLS: string[] = ["n8x-BNBUSDT-PCS1", "n8x-BNBUSDT-PCS2", "n8x-BNBUSDT-BSW1"];
 
   const deployer = await getDeployer();
   const config = getConfig();

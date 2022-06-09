@@ -2141,8 +2141,8 @@
         },
         {
           "name": "USDT-WBNB 8x PCS1 DeltaNeutralPancakeswapWorker",
-          "address": "0xd60f6bb9e2a1e6C44Bd1Df3946d76cBd79C9636F",
-          "deployedBlock": 18502444,
+          "address": "0x83A5d5c54Ad83bBeA8667B3B95d7610E16e52723",
+          "deployedBlock": 16158215,
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 13,
           "stakingToken": "0x16b9a82891338f9bA80E2D6970FddA79D1eb0daE",
@@ -2398,6 +2398,23 @@
           "name": "USDT-WBNB 8x PCS3 DeltaNeutralPancakeswapWorker",
           "address": "0xE0e4e9F91d26647265Be902d012C6fDc0f4fd4e5",
           "deployedBlock": 18390968,
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 13,
+          "stakingToken": "0x16b9a82891338f9bA80E2D6970FddA79D1eb0daE",
+          "stakingTokenAt": "0xa5f8C5Dbd5F286960b9d90548680aE5ebFf07652",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+            "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+            "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
+            "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
+          }
+        },
+        {
+          "name": "USDT-WBNB L8x PCS1 DeltaNeutralPancakeswapWorker",
+          "address": "0xd60f6bb9e2a1e6C44Bd1Df3946d76cBd79C9636F",
+          "deployedBlock": 18502444,
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 13,
           "stakingToken": "0x16b9a82891338f9bA80E2D6970FddA79D1eb0daE",
@@ -3009,7 +3026,7 @@
           }
         },
         {
-          "name": "BTCB-BUSD 8x PCS1 DeltaNeutralPancakeswapWorker",
+          "name": "BTCB-BUSD L8x PCS1 DeltaNeutralPancakeswapWorker",
           "address": "0x287705baa115e927998eE8D1941397C9977ebd89",
           "deployedBlock": 18502172,
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
@@ -3747,8 +3764,8 @@
         },
         {
           "name": "WBNB-USDT 8x PCS1 DeltaNeutralPancakeswapWorker",
-          "address": "0x4acFecBbe2965119DB6c9d539e4aF4A1DA9bD43B",
-          "deployedBlock": 18502410,
+          "address": "0x4b70c41F514FBBEa718234Ac72f36c1b077a4162",
+          "deployedBlock": 16158228,
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 13,
           "stakingToken": "0x16b9a82891338f9bA80E2D6970FddA79D1eb0daE",
@@ -3936,6 +3953,23 @@
           "name": "WBNB-USDT 8x PCS3 DeltaNeutralPancakeswapWorker",
           "address": "0xf58f039B76F4094cA324eEA291bE56838789BB56",
           "deployedBlock": 18390993,
+          "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
+          "pId": 13,
+          "stakingToken": "0x16b9a82891338f9bA80E2D6970FddA79D1eb0daE",
+          "stakingTokenAt": "0xa5f8C5Dbd5F286960b9d90548680aE5ebFf07652",
+          "strategies": {
+            "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
+            "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
+            "StrategyAddTwoSidesOptimal": "0x5f94f61095731b669b30ed1f3f4586BBb51f4001",
+            "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
+            "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
+          }
+        },
+        {
+          "name": "WBNB-USDT L8x PCS1 DeltaNeutralPancakeswapWorker",
+          "address": "0x4acFecBbe2965119DB6c9d539e4aF4A1DA9bD43B",
+          "deployedBlock": 18502410,
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
           "pId": 13,
           "stakingToken": "0x16b9a82891338f9bA80E2D6970FddA79D1eb0daE",
@@ -4207,7 +4241,7 @@
           }
         },
         {
-          "name": "BUSD-BTCB 8x PCS1 DeltaNeutralPancakeswapWorker",
+          "name": "BUSD-BTCB L8x PCS1 DeltaNeutralPancakeswapWorker",
           "address": "0x63AA720547385e9a3f4E240A13C3007F94664f72",
           "deployedBlock": 18502143,
           "config": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
@@ -4689,8 +4723,8 @@
       "stableDeltaWorker": "0x7DE458Db800eFF41Daa1e3c67B5fA8689EF2908e",
       "oracle": "0x08EA5fB66EA41f236E3001d2655e43A1E735787F",
       "gateway": "0xfE4E320986F8f573847a46627FEbB6a46663E6AB",
-      "assetVaultPosId": "0",
-      "stableVaultPosId": "0"
+      "assetVaultPosId": "47577",
+      "stableVaultPosId": "27523"
     },
     {
       "name": "Market Neutral 8x BNB-USDT PCS3",
@@ -4706,8 +4740,8 @@
       "stableDeltaWorker": "0xf58f039B76F4094cA324eEA291bE56838789BB56",
       "oracle": "0x08EA5fB66EA41f236E3001d2655e43A1E735787F",
       "gateway": "0x2498F560F672d1cF008Fcad890CAd6C8610abc42",
-      "assetVaultPosId": "0",
-      "stableVaultPosId": "0"
+      "assetVaultPosId": "47578",
+      "stableVaultPosId": "27524"
     },
     {
       "name": "Long 8x BUSD-BTCB PCS1",
@@ -4723,8 +4757,8 @@
       "stableDeltaWorker": "0x63AA720547385e9a3f4E240A13C3007F94664f72",
       "oracle": "0x08EA5fB66EA41f236E3001d2655e43A1E735787F",
       "gateway": "0x327FfCae89Da52c7311C238B6acb32b402D7A430",
-      "assetVaultPosId": "0",
-      "stableVaultPosId": "0"
+      "assetVaultPosId": "54960",
+      "stableVaultPosId": "5681"
     },
     {
       "name": "Long 8x USDT-BNB PCS1",
@@ -4740,8 +4774,8 @@
       "stableDeltaWorker": "0xd60f6bb9e2a1e6C44Bd1Df3946d76cBd79C9636F",
       "oracle": "0x08EA5fB66EA41f236E3001d2655e43A1E735787F",
       "gateway": "0x0d0D4d050585C8fa3A3D64f2c38AC5737260028f",
-      "assetVaultPosId": "0",
-      "stableVaultPosId": "0"
+      "assetVaultPosId": "27525",
+      "stableVaultPosId": "47579"
     }
   ],
   "Creditors": [
@@ -4752,8 +4786,6 @@
   ],
   "AutomatedVaultController": {
     "address": "0xfd0694a29871Ee629D51cF4079842382368f1e15",
-    "creditors": [
-      "0xeDdD248FEe5ff98e532c3A4087C83F6e376eEDa7"
-    ]
+    "creditors": ["0xeDdD248FEe5ff98e532c3A4087C83F6e376eEDa7"]
   }
 }
