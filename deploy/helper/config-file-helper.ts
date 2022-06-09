@@ -283,14 +283,14 @@ export class ConfigFileHelper {
   }
 
   // NFtStaking
-  public addAlpiesStaking(alpiesStaking: string) {
-    console.log(`>> Adding AlpiesStaking to file > ${alpiesStaking}`);
+  public addNFTStaking(nftStaking: string) {
+    console.log(`>> Adding NFTStaking to file > ${nftStaking}`);
     if (this.config.NFT === undefined) {
       this.config.NFT = {
-        AlpiesStaking: alpiesStaking,
+        NFTStaking: nftStaking,
       } as Nft;
     } else {
-      this.config.NFT.AlpiesStaking = alpiesStaking;
+      this.config.NFT.NFTStaking = nftStaking;
     }
     this._writeConfigFile(this.config);
   }
