@@ -46,8 +46,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const config = configFileHelper.getConfig();
 
   console.log(">> Start Add Pool for NFTStaking");
-  if (!config.NFT?.AlpiesStaking) throw Error("NFT contract address not found");
-  const NFTStaking = NFTStaking__factory.connect(config.NFT.AlpiesStaking, deployer);
+  if (!config.NFT?.NFTStaking) throw Error("NFT contract address not found");
+  const NFTStaking = NFTStaking__factory.connect(config.NFT.NFTStaking, deployer);
 
   for (const input of nftContractConfigsInput) {
     console.log(`>> Adding Pool NFTStaking contract [${input.address}]`);
