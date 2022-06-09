@@ -43,7 +43,6 @@ import { parseEther } from "ethers/lib/utils";
 import { DeployHelper } from "../../../../helpers/deploy";
 import { SwapHelper } from "../../../../helpers/swap";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { ContractDeployer } from "../../../../../deploy/deployer";
 
 chai.use(solidity);
 const { expect } = chai;
@@ -111,7 +110,6 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
 
   // Accounts
   let deployer: SignerWithAddress;
-  let deltaNetDeployer: SignerWithAddress;
   let deltaNet: SignerWithAddress;
   let bob: SignerWithAddress;
   let eve: SignerWithAddress;
@@ -134,7 +132,6 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
   let pancakeMasterChefAsBob: MasterChefV2;
 
   let deltaNeutralWorkerAsDeployer: DeltaNeutralPancakeMCV2Worker02;
-  let deltaNeutralWorkerAsRealDeployer: DeltaNeutralPancakeMCV2Worker02;
   let deltaNeutralWorkerAsBob: DeltaNeutralPancakeMCV2Worker02;
   let deltaNeutralWorkerAsEve: DeltaNeutralPancakeMCV2Worker02;
 
@@ -151,12 +148,6 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
   let deployHelper: DeployHelper;
 
   async function fixture() {
-    // await network.provider.request({
-    //   method: "hardhat_impersonateAccount",
-    //   params: [DEPLOYER],
-    // });
-    // deployer = await ethers.getSigner(DEPLOYER);
-
     [deployer, deltaNet, bob, eve] = await ethers.getSigners();
     deltaNet = deltaNet;
     [deployerAddress, deltaNetAddress, bobAddress, eveAddress] = await Promise.all([
@@ -166,7 +157,6 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
       eve.getAddress(),
     ]);
     deltaNetAddress = deltaNetAddress;
-    // await bob.sendTransaction({ value: ethers.utils.parseEther("100"), to: deployerAddress });
     deployHelper = new DeployHelper(deployer);
 
     // Setup MockContractContext
@@ -339,10 +329,7 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
       deltaNeutralWorker.address,
       deployer
     );
-    deltaNeutralWorkerAsRealDeployer = DeltaNeutralPancakeMCV2Worker02__factory.connect(
-      deltaNeutralWorker.address,
-      deltaNetDeployer
-    );
+
     deltaNeutralWorkerAsBob = DeltaNeutralPancakeMCV2Worker02__factory.connect(deltaNeutralWorker.address, bob);
     deltaNeutralWorkerAsEve = DeltaNeutralPancakeMCV2Worker02__factory.connect(deltaNeutralWorker.address, eve);
   }
@@ -1334,7 +1321,7 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
             // new reserve after swap will be 4.587061715703192586 0.021843151027158060
             // based on optimal swap formula, BTOKEN-FTOKEN to be added into the LP will be 16.412938284296807414 BTOKEN - 0.078156848972841940 FTOKEN
             // new reserve after adding liquidity 21.000000000000000000 BTOKEN - 0.100000000000000000 FTOKEN
-            // lp amount from adding liquidity will be 1.131492691639043045 LP
+            // lp amount from adding liquidity will be 1.148247437622632684 LP
             let [workerLPBefore] = await masterChefV2.userInfo(POOL_ID, deltaNeutralWorker.address);
             const borrowedAmount = ethers.utils.parseEther("10");
             const principalAmount = ethers.utils.parseEther("10");
@@ -1354,7 +1341,6 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
             await deltaNeutralWorkerAsEve.reinvest();
 
             let [workerLPAfter] = await masterChefV2.userInfo(POOL_ID, deltaNeutralWorker.address);
-            // expect(workerLPAfter.sub(workerLPBefore)).to.eq(parseEther("1.131492691639043045"));
             expect(workerLPAfter.sub(workerLPBefore)).to.eq(parseEther("1.148247437622632684"));
             // DeltaNet think he made enough. He now wants to close position partially.
             // He close 50% of his position and return all debt
@@ -1375,10 +1361,13 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
             // new reserve after adding liquidity receiving from `_reinvest()` is 21.299557528330150526 BTOKEN - 0.100000000000000000 FTOKEN
             // more LP amount after executing add strategy will be 0.010276168801924356 LP
             // accumulated LP of the worker will be 1.148247437622632684 + 0.010276168801924356 = 1.15852360642455704 LP
+
             // DeltaNet close 50% of his position, thus he will close 1.148247437622632684 * (1.148247437622632684 / (1.148247437622632684)) =~ 1.148247437622632684 / 2 = 0.5657463458195215 LP
             // 0.5657463458195215 LP will be converted into 8.264866063854500749 BTOKEN - 0.038802994160144191 FTOKEN
             // 0.038802994160144191 FTOKEN will be converted into (0.038802994160144191 * 0.9975 * 13.034691464475649777) / (0.061197005839855809 + 0.038802994160144191 * 0.9975) = 5.050104921127982573 BTOKEN
             // thus, DeltaNet will receive 8.264866063854500749 + 5.050104921127982573 = 13.314970984982483322 BTOKEN
+
+            // thus, DeltaNet will receive 8.264866063854500749 + 5.050104921127982573 = 13.53869698649802368 BTOKEN
             await vaultAsDeltaNet.work(
               1,
               deltaNeutralWorker.address,
@@ -1394,7 +1383,7 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
                     [
                       lpUnderPosition.div(2),
                       ethers.utils.parseEther("5000000000"),
-                      ethers.utils.parseEther("3.314970984982483322"),
+                      ethers.utils.parseEther("3.53869698649802368"),
                     ]
                   ),
                 ]
@@ -1402,15 +1391,14 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
             );
             const deltaNetAfter = await baseToken.balanceOf(deltaNetAddress);
             // After DeltaNet liquidate half of his position which worth
-            // 13.314970984982483322 BTOKEN (price impact+trading fee included)
+            // 13.53869698649802368 BTOKEN (price impact+trading fee included)
             // DeltaNet wish to return 5,000,000,000 BTOKEN (when maxReturn > debt, return all debt)
             // The following criteria must be stratified:
-            // - DeltaNet should get 13.314970984982483322 - 10 = 3.314970984982483322 BTOKEN back.
+            // - DeltaNet should get 13.53869698649802368 - 10 = 3.53869698649802368 BTOKEN back.
             // - DeltaNet's position debt must be 0
             // "Expect BTOKEN in Bob's account after close position to increase by ~3.32 BTOKEN"
             AssertHelpers.assertAlmostEqual(
-              // deltaNetBefore.add(ethers.utils.parseEther("3.314970984982483322")).toString(),
-              ethers.utils.parseEther("983.538696986498023689").toString(),
+              deltaNetBefore.add(ethers.utils.parseEther("3.53869698649802368")).toString(),
               deltaNetAfter.toString()
             );
             // Check Bob position info
@@ -1424,7 +1412,6 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
             // base token price =  1.0
             // lp balance in dollar / base token price
             // 16.316386161517946552 / 1.0 = 16.316386161517946552
-            // expect(deltaNetHealth).to.be.eq(ethers.utils.parseEther("16.503445477019198213"));
             expect(deltaNetHealth).to.be.eq(ethers.utils.parseEther("16.262771949732886476"));
             // DeltaNet's debt should be 0 BTOKEN due he said he wants to return at max 5,000,000,000 BTOKEN (> debt, return all debt)
             expect(deltaNetDebtVal).to.be.eq("0");
@@ -1432,10 +1419,10 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
             [workerLPAfter] = await masterChefV2.userInfo(POOL_ID, deltaNeutralWorker.address);
             // LP tokens + LP tokens from reinvest of worker should be decreased by lpUnderBobPosition/2
             // due to DeltaNet execute StrategyClosePartialLiquidate
+
             AssertHelpers.assertAlmostEqual(
               workerLPAfter.toString(),
-              // workerLPBefore.add(parseEther("0.01687799")).sub(lpUnderPosition.div(2)).toString()
-              ethers.utils.parseEther("0.574123718811316342").toString()
+              workerLPBefore.sub(lpUnderPosition.div(2)).toString()
             );
           });
         });
