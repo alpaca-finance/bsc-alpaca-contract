@@ -221,7 +221,7 @@ contract NFTStakingTest is BaseTest {
     mockNFT1.approve(address(nftStaking), 0);
     assertEq(mockNFT1.balanceOf(ALICE), 1);
     vm.expectRevert(NFTStakingLike.NFTStaking_InvalidLockPeriod.selector);
-    nftStaking.stakeNFT(nftAddress1, 0, 2000);
+    nftStaking.stakeNFT(nftAddress1, 0, 1641072801);
     vm.stopPrank();
   }
 
