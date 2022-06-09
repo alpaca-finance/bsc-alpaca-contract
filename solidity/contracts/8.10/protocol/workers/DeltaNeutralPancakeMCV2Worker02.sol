@@ -162,25 +162,16 @@ contract DeltaNeutralPancakeMCV2Worker02 is OwnableUpgradeable, ReentrancyGuardU
     okStrats[address(addStrat)] = true;
 
     // 5. Assign Re-invest parameters
-    reinvestBountyBps = _reinvestBountyBps;
-    reinvestThreshold = _reinvestThreshold;
-    reinvestPath = _reinvestPath;
     treasuryAccount = _treasuryAccount;
     treasuryBountyBps = _reinvestBountyBps;
     maxReinvestBountyBps = 2000;
+    setReinvestConfig(_reinvestBountyBps, _reinvestThreshold, _reinvestPath);
 
     // 6. Check if critical parameters are config properly
-    if (baseToken == cake) revert DeltaNeutralPancakeMCV2Worker02_InvalidRewardToken();
-
-    if (reinvestBountyBps > maxReinvestBountyBps) revert DeltaNeutralPancakeMCV2Worker02_ExceedReinvestBounty();
-
     if (
       !((farmingToken == lpToken.token0() || farmingToken == lpToken.token1()) &&
         (baseToken == lpToken.token0() || baseToken == lpToken.token1()))
     ) revert DeltaNeutralPancakeMCV2Worker02_InvalidTokens();
-
-    if (reinvestPath[0] != cake || reinvestPath[reinvestPath.length - 1] != baseToken)
-      revert DeltaNeutralPancakeMCV2Worker02_InvalidReinvestPath();
   }
 
   /// @dev Require that the caller must be an EOA account to avoid flash loans.
@@ -430,11 +421,13 @@ contract DeltaNeutralPancakeMCV2Worker02 is OwnableUpgradeable, ReentrancyGuardU
   function setReinvestConfig(
     uint256 _reinvestBountyBps,
     uint256 _reinvestThreshold,
-    address[] calldata _reinvestPath
-  ) external onlyOwner {
+    address[] memory _reinvestPath
+  ) public onlyOwner {
     if (_reinvestBountyBps > maxReinvestBountyBps) revert DeltaNeutralPancakeMCV2Worker02_ExceedReinvestBounty();
 
-    if (baseToken != cake) {
+    if (baseToken == cake) {
+      if (_reinvestPath.length != 1) revert DeltaNeutralPancakeMCV2Worker02_InvalidReinvestPathLength();
+    } else {
       if (_reinvestPath.length < 2) revert DeltaNeutralPancakeMCV2Worker02_InvalidReinvestPathLength();
     }
 

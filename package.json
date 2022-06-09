@@ -404,6 +404,7 @@
     "test:deltaneutral:spookyworker": "hardhat test --no-compile ./test/integrations/protocol/workers/delta-neutral/Vault_DeltaNeutralSpookyWorker03.test.ts",
     "test:deltaneutral:pancakeworker-migrate": "hardhat test --no-compile ./test/integrations/protocol/workers/delta-neutral/Vault_DeltaNeutralPancakeWorker02_Migrate.test.ts",
     "test:deltaneutral:pancakeworker-mcv2": "hardhat test --no-compile ./test/integrations/protocol/workers/delta-neutral/Vault_DeltaNeutralPancakeWorker02MCV2.test.ts",
+    "test:deltaneutral:pancakeworker-mcv2:cake-vault": "hardhat test --no-compile ./test/integrations/protocol/workers/delta-neutral/Vault_DeltaNeutralPancakeWorker02MCV2_Cake.test.ts",
     "test:deltaneutral:biswapworker": "hardhat test --no-compile ./test/integrations/protocol/workers/delta-neutral/Vault_DeltaNeutralBiswapWorker03.test.ts",
     "test:deltaneutraloracle": "hardhat test --no-compile ./test/integrations/protocol/DeltaNeutralOracle.test.ts",
     "test:chainlinkPriceOracle2": "hardhat test --no-compile ./test/integrations/protocol/price-oracle/ChainlinkPriceOracle2.test.ts",
