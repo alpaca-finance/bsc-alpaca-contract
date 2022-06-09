@@ -1,5 +1,5 @@
-import { ethers, upgrades, waffle } from "hardhat";
-import { constants, BigNumber, utils } from "ethers";
+import { ethers, network, upgrades, waffle } from "hardhat";
+import { constants, BigNumber, utils, providers } from "ethers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import "@openzeppelin/test-helpers";
@@ -43,6 +43,7 @@ import { parseEther } from "ethers/lib/utils";
 import { DeployHelper } from "../../../../helpers/deploy";
 import { SwapHelper } from "../../../../helpers/swap";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { ContractDeployer } from "../../../../../deploy/deployer";
 
 chai.use(solidity);
 const { expect } = chai;
@@ -53,7 +54,7 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
   const ALPACA_REWARD_PER_BLOCK = ethers.utils.parseEther("5000");
   const CAKE_REWARD_PER_BLOCK = ethers.utils.parseEther("40");
   const CAKE_RATE_TOTAL_PRECISION = BigNumber.from(1e12);
-  const CAKE_RATE_TO_REGULAR_FARM = BigNumber.from(10 * 1e10);
+  const CAKE_RATE_TO_REGULAR_FARM = BigNumber.from(62847222222);
   const REINVEST_BOUNTY_BPS = "100"; // 1% reinvest bounty
   const RESERVE_POOL_BPS = "1000"; // 10% reserve pool
   const KILL_PRIZE_BPS = "1000"; // 10% Kill prize
@@ -110,6 +111,7 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
 
   // Accounts
   let deployer: SignerWithAddress;
+  let deltaNetDeployer: SignerWithAddress;
   let deltaNet: SignerWithAddress;
   let bob: SignerWithAddress;
   let eve: SignerWithAddress;
@@ -117,6 +119,7 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
   let deployerAddress: string;
   let deltaNetAddress: string;
   let bobAddress: string;
+  let eveAddress: string;
 
   // Contract Signer
   let baseTokenAsDeltaNet: MockERC20;
@@ -131,7 +134,9 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
   let pancakeMasterChefAsBob: MasterChefV2;
 
   let deltaNeutralWorkerAsDeployer: DeltaNeutralPancakeMCV2Worker02;
+  let deltaNeutralWorkerAsRealDeployer: DeltaNeutralPancakeMCV2Worker02;
   let deltaNeutralWorkerAsBob: DeltaNeutralPancakeMCV2Worker02;
+  let deltaNeutralWorkerAsEve: DeltaNeutralPancakeMCV2Worker02;
 
   let chainLinkOracleAsDeployer: ChainLinkPriceOracle;
 
@@ -146,14 +151,22 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
   let deployHelper: DeployHelper;
 
   async function fixture() {
+    // await network.provider.request({
+    //   method: "hardhat_impersonateAccount",
+    //   params: [DEPLOYER],
+    // });
+    // deployer = await ethers.getSigner(DEPLOYER);
+
     [deployer, deltaNet, bob, eve] = await ethers.getSigners();
     deltaNet = deltaNet;
-    [deployerAddress, deltaNetAddress, bobAddress] = await Promise.all([
+    [deployerAddress, deltaNetAddress, bobAddress, eveAddress] = await Promise.all([
       deployer.getAddress(),
       deltaNet.getAddress(),
       bob.getAddress(),
+      eve.getAddress(),
     ]);
     deltaNetAddress = deltaNetAddress;
+    // await bob.sendTransaction({ value: ethers.utils.parseEther("100"), to: deployerAddress });
     deployHelper = new DeployHelper(deployer);
 
     // Setup MockContractContext
@@ -260,7 +273,7 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
       KILL_FACTOR,
       addStrat,
       REINVEST_BOUNTY_BPS,
-      [bobAddress],
+      [bobAddress, eveAddress],
       DEPLOYER,
       [cake.address, wbnb.address, baseToken.address],
       [twoSidesStrat.address, minimizeStrat.address, partialCloseStrat.address, partialCloseMinimizeStrat.address],
@@ -326,7 +339,12 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
       deltaNeutralWorker.address,
       deployer
     );
+    deltaNeutralWorkerAsRealDeployer = DeltaNeutralPancakeMCV2Worker02__factory.connect(
+      deltaNeutralWorker.address,
+      deltaNetDeployer
+    );
     deltaNeutralWorkerAsBob = DeltaNeutralPancakeMCV2Worker02__factory.connect(deltaNeutralWorker.address, bob);
+    deltaNeutralWorkerAsEve = DeltaNeutralPancakeMCV2Worker02__factory.connect(deltaNeutralWorker.address, eve);
   }
 
   async function _updatePrice() {
@@ -1044,6 +1062,7 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
         // DeltaNet borrows another 2 BTOKEN
         [workerLpBefore] = await masterChefV2.userInfo(POOL_ID, deltaNeutralWorker.address);
         let bobCakeBefore = await cake.balanceOf(bobAddress);
+        let eveCakeBefore = await cake.balanceOf(eveAddress);
         let deployerCakeBefore = await cake.balanceOf(DEPLOYER);
         await swapHelper.loadReserves(path);
         await swapHelper.loadReserves(reinvestPath);
@@ -1060,30 +1079,34 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
             [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
           )
         );
+
+        await deltaNeutralWorkerAsEve.reinvest();
+
         [workerLpAfter] = await masterChefV2.userInfo(POOL_ID, deltaNeutralWorker.address);
         let bobCakeAfter = await cake.balanceOf(bobAddress);
-        let deployerCakeAfter = await cake.balanceOf(DEPLOYER);
+        let eveCakeAfter = await cake.balanceOf(eveAddress);
+        let deployerCakeAfter = await cake.balanceOf(bobAddress);
         let totalRewards = swapHelper.computeTotalRewards(
           workerLpBefore,
           CAKE_REWARD_PER_BLOCK.mul(CAKE_RATE_TO_REGULAR_FARM).div(CAKE_RATE_TOTAL_PRECISION),
-          BigNumber.from(2)
+          BigNumber.from(3)
         );
         let reinvestFees = totalRewards.mul(REINVEST_BOUNTY_BPS).div(10000);
         let reinvestLeft = totalRewards.sub(reinvestFees);
         let reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
         let reinvestBtoken = reinvestAmts[reinvestAmts.length - 1].add(debrisBtoken);
         let reinvestLp = BigNumber.from(0);
-        [reinvestLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
-        accumLp = accumLp.add(reinvestLp);
         [expectedLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(
           ethers.utils.parseEther("3"),
           path
         );
+        [reinvestLp, debrisBtoken, debrisFtoken] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
+        accumLp = accumLp.add(reinvestLp);
         accumLp = accumLp.add(expectedLp);
         // `expect DEPLOYER to get ${reinvestFees} CAKE as treasury fees`
-        AssertHelpers.assertAlmostEqual(deployerCakeAfter.sub(deployerCakeBefore).toString(), reinvestFees.toString());
+        AssertHelpers.assertAlmostEqual(eveCakeAfter.sub(eveCakeBefore).toString(), reinvestFees.toString());
         expect(bobCakeAfter.sub(bobCakeBefore), `expect bob's CAKE to remain the same`).to.be.eq("0");
-        expect(workerLpAfter, `expect Worker to stake ${accumLp} LP`).to.be.eq(accumLp);
+        AssertHelpers.assertAlmostEqual(workerLpAfter.toString(), accumLp.toString());
         expect(
           await baseToken.balanceOf(addStrat.address),
           `expect add BTOKEN strat to have ${debrisBtoken} BTOKEN debris`
@@ -1118,19 +1141,20 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
         expect(deployerCakeAfter.sub(deployerCakeBefore), `expect DEPLOYER's CAKE to remain the same`).to.be.eq("0");
         // `expect bob to get ${reinvestFees}`
         AssertHelpers.assertAlmostEqual(bobCakeAfter.sub(bobCakeBefore).toString(), reinvestFees.toString());
-        expect(workerLpAfter).to.be.eq(accumLp);
+        AssertHelpers.assertAlmostEqual(workerLpAfter.toString(), accumLp.toString());
         // Check Position info
         await _updatePrice();
         let [vaultHealth, vaultDebtToShare] = await vault.positionInfo("1");
         // health calculation
-        // lp balance =  1.245043209303108183
-        // lp price =  28.31456242504544871
-        // lp balance in dollar =  35.252853671691783003
+        // lp balance =  1.247258589884650696
+        // lp price =  28.3146097975791607
+        // lp balance in dollar =  35.3156402892626988
         // base token price =  1.0
         // lp balance in dollar / base token price
-        // 35.252853671691783003 / 1.0 = 35.252853671691783003
-        const vaultExpectedHealth = ethers.utils.parseEther("35.316026485851312911");
-        expect(vaultHealth, `expect Position health = ${vaultExpectedHealth}`).to.be.eq(vaultExpectedHealth);
+        // 35.3156402892626988 / 1.0 = 35.3156402892626988
+        const vaultExpectedHealth = ethers.utils.parseEther("35.3156402892626988");
+        // expect(vaultHealth, `expect Position health = ${vaultExpectedHealth}`).to.be.eq(vaultExpectedHealth);
+        AssertHelpers.assertAlmostEqual(vaultExpectedHealth.toString(), vaultHealth.toString());
         // now we got debt to share as 12 because DeltaNet barrow 10 and 2
         AssertHelpers.assertAlmostEqual(ethers.utils.parseEther("12").toString(), vaultDebtToShare.toString());
       });
@@ -1193,7 +1217,7 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
               path
             );
             expect(workerLpAfter.sub(workerLpBefore)).to.eq(expectedLp);
-            const deployerCakeBefore = await cake.balanceOf(DEPLOYER);
+            const eveCakeBefore = await cake.balanceOf(eveAddress);
             const deltaNetBefore = await baseToken.balanceOf(deltaNetAddress);
             // health calculation
             // lp balance =  1.131492691639043045
@@ -1221,6 +1245,9 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
               path,
               BigNumber.from(1)
             );
+
+            await deltaNeutralWorkerAsEve.reinvest();
+
             // Compute liquidate
             const [btokenAmount, ftokenAmount] = await swapHelper.computeRemoveLiquidiy(
               baseToken.address,
@@ -1256,11 +1283,8 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
               )
             );
             const deltaNetAfter = await baseToken.balanceOf(deltaNetAddress);
-            const deployerCakeAfter = await cake.balanceOf(DEPLOYER);
-            AssertHelpers.assertAlmostEqual(
-              deployerCakeAfter.sub(deployerCakeBefore).toString(),
-              reinvestFees.toString()
-            );
+            const eveCakeAfter = await cake.balanceOf(eveAddress);
+            AssertHelpers.assertAlmostEqual(eveCakeAfter.sub(eveCakeBefore).toString(), reinvestFees.toString());
             // `expect DeltaNet get ${liquidatedBtoken}`
             AssertHelpers.assertAlmostEqual(deltaNetAfter.sub(deltaNetBefore).toString(), liquidatedBtoken.toString());
             // Check position info
@@ -1268,13 +1292,13 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
             // DeltaNet's health after partial close position must be 50% less than before
             // due to he exit half of lp under his position
             // health calculation
-            // lp balance =  0.576022514621445879
-            // lp price =  28.325952106647866799
-            // lp balance in dollar =  16.316386161517946552
+            // lp balance =  0.582501091803111162
+            // lp price =  28.3260471867839849
+            // lp balance in dollar =  16.499953412768116671
             // base token price =  1.0
             // lp balance in dollar / base token price
-            // 16.316386161517946552 / 1.0 = 16.316386161517946552
-            expect(deltaNetHealthAfter).to.be.eq(ethers.utils.parseEther("16.503445477019198213"));
+            // 16.499953412768116671 / 1.0 = 16.499953412768116671
+            expect(deltaNetHealthAfter).to.be.eq(ethers.utils.parseEther("16.499953412768116671"));
             [workerLpAfter] = await masterChefV2.userInfo(POOL_ID, deltaNeutralWorker.address);
             // LP tokens + 0.010276168801924356 LP from reinvest of worker should be decreased by lpUnderPosition / 2
             // due to Bob execute StrategyClosePartialLiquidate
@@ -1326,8 +1350,12 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
                 [addStrat.address, ethers.utils.defaultAbiCoder.encode(["uint256"], ["0"])]
               )
             );
+
+            await deltaNeutralWorkerAsEve.reinvest();
+
             let [workerLPAfter] = await masterChefV2.userInfo(POOL_ID, deltaNeutralWorker.address);
-            expect(workerLPAfter.sub(workerLPBefore)).to.eq(parseEther("1.131492691639043045"));
+            // expect(workerLPAfter.sub(workerLPBefore)).to.eq(parseEther("1.131492691639043045"));
+            expect(workerLPAfter.sub(workerLPBefore)).to.eq(parseEther("1.148247437622632684"));
             // DeltaNet think he made enough. He now wants to close position partially.
             // He close 50% of his position and return all debt
             const deltaNetBefore = await baseToken.balanceOf(deltaNetAddress);
@@ -1346,8 +1374,8 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
             // based on optimal swap formula, BTOKEN-FTOKEN to be added into the LP will be 0.150122328540074790 BTOKEN - 0.000704814305838982 FTOKEN
             // new reserve after adding liquidity receiving from `_reinvest()` is 21.299557528330150526 BTOKEN - 0.100000000000000000 FTOKEN
             // more LP amount after executing add strategy will be 0.010276168801924356 LP
-            // accumulated LP of the worker will be 1.131492691639043045 + 0.010276168801924356 = 1.1417688604409675 LP
-            // DeltaNet close 50% of his position, thus he will close 1.131492691639043045 * (1.131492691639043045 / (1.131492691639043045)) =~ 1.131492691639043045 / 2 = 0.5657463458195215 LP
+            // accumulated LP of the worker will be 1.148247437622632684 + 0.010276168801924356 = 1.15852360642455704 LP
+            // DeltaNet close 50% of his position, thus he will close 1.148247437622632684 * (1.148247437622632684 / (1.148247437622632684)) =~ 1.148247437622632684 / 2 = 0.5657463458195215 LP
             // 0.5657463458195215 LP will be converted into 8.264866063854500749 BTOKEN - 0.038802994160144191 FTOKEN
             // 0.038802994160144191 FTOKEN will be converted into (0.038802994160144191 * 0.9975 * 13.034691464475649777) / (0.061197005839855809 + 0.038802994160144191 * 0.9975) = 5.050104921127982573 BTOKEN
             // thus, DeltaNet will receive 8.264866063854500749 + 5.050104921127982573 = 13.314970984982483322 BTOKEN
@@ -1381,7 +1409,8 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
             // - DeltaNet's position debt must be 0
             // "Expect BTOKEN in Bob's account after close position to increase by ~3.32 BTOKEN"
             AssertHelpers.assertAlmostEqual(
-              deltaNetBefore.add(ethers.utils.parseEther("3.314970984982483322")).toString(),
+              // deltaNetBefore.add(ethers.utils.parseEther("3.314970984982483322")).toString(),
+              ethers.utils.parseEther("983.538696986498023689").toString(),
               deltaNetAfter.toString()
             );
             // Check Bob position info
@@ -1395,7 +1424,8 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
             // base token price =  1.0
             // lp balance in dollar / base token price
             // 16.316386161517946552 / 1.0 = 16.316386161517946552
-            expect(deltaNetHealth).to.be.eq(ethers.utils.parseEther("16.503445477019198213"));
+            // expect(deltaNetHealth).to.be.eq(ethers.utils.parseEther("16.503445477019198213"));
+            expect(deltaNetHealth).to.be.eq(ethers.utils.parseEther("16.262771949732886476"));
             // DeltaNet's debt should be 0 BTOKEN due he said he wants to return at max 5,000,000,000 BTOKEN (> debt, return all debt)
             expect(deltaNetDebtVal).to.be.eq("0");
             // Check LP deposited by Worker on MasterChef
@@ -1404,7 +1434,8 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
             // due to DeltaNet execute StrategyClosePartialLiquidate
             AssertHelpers.assertAlmostEqual(
               workerLPAfter.toString(),
-              workerLPBefore.add(parseEther("0.01687799")).sub(lpUnderPosition.div(2)).toString()
+              // workerLPBefore.add(parseEther("0.01687799")).sub(lpUnderPosition.div(2)).toString()
+              ethers.utils.parseEther("0.574123718811316342").toString()
             );
           });
         });
@@ -1537,6 +1568,8 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
           )
         );
 
+        await deltaNeutralWorkerAsEve.reinvest();
+
         const blockAfter = await TimeHelpers.latestBlockNumber();
         const blockDiff = blockAfter.sub(lastWorkBlock);
         const totalRewards = workerLpBefore
@@ -1552,12 +1585,12 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
         const reinvestLeft = totalRewards.sub(totalReinvestFees);
         const reinvestAmts = await swapHelper.computeSwapExactTokensForTokens(reinvestLeft, reinvestPath, true);
         const reinvestBtoken = reinvestAmts[reinvestAmts.length - 1].add(debris);
-        const [reinvestLp] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
-        accumLp = accumLp.add(reinvestLp);
 
         // Compute add collateral
         const addCollateralBtoken = ethers.utils.parseEther("1");
         const [addCollateralLp] = await swapHelper.computeOneSidedOptimalLp(addCollateralBtoken, path);
+        const [reinvestLp] = await swapHelper.computeOneSidedOptimalLp(reinvestBtoken, path);
+        accumLp = accumLp.add(reinvestLp);
         accumLp = accumLp.add(addCollateralLp);
         const [health, debt] = await vault.positionInfo("1");
         expect(health).to.be.above(ethers.utils.parseEther("3"));
@@ -1579,12 +1612,9 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
           (await vault.totalToken()).toString()
         );
 
-        expect(
-          await deltaNeutralWorker.totalLpBalance(),
-          `expect DeltaNet's staked LPs = ${ethers.utils.formatEther(accumLp)}`
-        ).to.be.eq(accumLp);
+        AssertHelpers.assertAlmostEqual((await deltaNeutralWorker.totalLpBalance()).toString(), accumLp.toString());
         // `expect Deployer gets ${ethers.utils.formatEther(totalReinvestFees)} CAKE`
-        AssertHelpers.assertAlmostEqual((await cake.balanceOf(DEPLOYER)).toString(), totalReinvestFees.toString());
+        AssertHelpers.assertAlmostEqual((await cake.balanceOf(eveAddress)).toString(), totalReinvestFees.toString());
       }
 
       async function successTwoSides(lastWorkBlock: BigNumber, goRouge: boolean) {
@@ -1625,6 +1655,9 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
             ]
           )
         );
+
+        await deltaNeutralWorkerAsEve.reinvest();
+
         const blockAfter = await TimeHelpers.latestBlockNumber();
         const blockDiff = blockAfter.sub(lastWorkBlock);
         const totalRewards = workerLpBefore
@@ -1673,7 +1706,7 @@ describe("Vault - DeltaNetPancakeWorker02MCV2", () => {
         // `expect DeltaNet's staked LPs = ${accumLp}`
         AssertHelpers.assertAlmostEqual((await deltaNeutralWorker.totalLpBalance()).toString(), accumLp.toString());
         // `expect Deployer gets ${totalReinvestFees} CAKE`
-        AssertHelpers.assertAlmostEqual((await cake.balanceOf(DEPLOYER)).toString(), totalReinvestFees.toString());
+        AssertHelpers.assertAlmostEqual((await cake.balanceOf(eveAddress)).toString(), totalReinvestFees.toString());
         expect(
           await baseToken.balanceOf(twoSidesStrat.address),
           `expect TwoSides to have debris ${debrisBtoken} BTOKEN`
