@@ -144,10 +144,12 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
     uint256 _lockUntil
   ) external nonReentrant onlyEOA {
     // Check
+    // reset _lockUntil to be current block timestamp
+    // in case caller want to send current timestamp but less than timestamp with block timestamp.
+    _lockUntil = _lockUntil < block.timestamp ? block.timestamp : _lockUntil;
     if (poolInfo[_nftAddress].poolWeight == 0) revert NFTStaking_PoolNotExist();
     bytes32 _depositId = keccak256(abi.encodePacked(_nftAddress, msg.sender, _nftTokenId));
     if (userStakingNFTLockUntil[_depositId] != 0) revert NFTStaking_NFTAlreadyStaked();
-    if (_lockUntil < block.timestamp) revert NFTStaking_InvalidLockPeriod();
     uint256 _lockPeriod = _lockUntil - block.timestamp;
     if (_lockPeriod < poolInfo[_nftAddress].minLockPeriod || _lockPeriod > poolInfo[_nftAddress].maxLockPeriod)
       revert NFTStaking_InvalidLockPeriod();
@@ -194,7 +196,7 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
     bytes32 _depositId = keccak256(abi.encodePacked(_nftAddress, msg.sender, _nftTokenId));
     uint256 _lockUntil = userStakingNFTLockUntil[_depositId];
     if (_lockUntil == 0) revert NFTStaking_NoNFTStaked();
-    if (userStakingNFTLockUntil[_depositId] < block.timestamp) revert NFTStaking_IsNotExpired();
+    if (userStakingNFTLockUntil[_depositId] > block.timestamp) revert NFTStaking_IsNotExpired();
     userStakingNFTLockUntil[_depositId] = 0;
 
     // Effect
