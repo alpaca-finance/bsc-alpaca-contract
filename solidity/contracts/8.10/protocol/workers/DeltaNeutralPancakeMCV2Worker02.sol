@@ -360,7 +360,9 @@ contract DeltaNeutralPancakeMCV2Worker02 is OwnableUpgradeable, ReentrancyGuardU
     uint256 balance = lpToken.balanceOf(address(this));
     if (balance > 0) {
       address(lpToken).safeApprove(address(masterChefV2), type(uint256).max);
+      uint256 _cakeBefore = cake.myBalance();
       _masterChefV2Deposit(balance);
+      pendingCake = pendingCake + cake.myBalance() - _cakeBefore;
       totalLpBalance = totalLpBalance + balance;
       address(lpToken).safeApprove(address(masterChefV2), 0);
       emit MasterChefDeposit(balance);
@@ -370,8 +372,10 @@ contract DeltaNeutralPancakeMCV2Worker02 is OwnableUpgradeable, ReentrancyGuardU
   /// @dev Internal function to withdraw all outstanding LP tokens.
   function _masterChefWithdraw() internal {
     uint256 _totalLpBalance = totalLpBalance;
+    uint256 _cakeBefore = cake.myBalance();
     _masterChefV2Withdraw(_totalLpBalance);
     totalLpBalance = 0;
+    pendingCake = pendingCake + cake.myBalance() - _cakeBefore;
     emit MasterChefWithdraw(_totalLpBalance);
   }
 
@@ -554,16 +558,12 @@ contract DeltaNeutralPancakeMCV2Worker02 is OwnableUpgradeable, ReentrancyGuardU
   /// @dev Deposit lp to masterChef and update pendingCake
   /// @param _balance - Lp amount to deposit.
   function _masterChefV2Deposit(uint256 _balance) internal {
-    uint256 _cakeBefore = cake.myBalance();
     masterChefV2.deposit(pid, _balance);
-    pendingCake = pendingCake + cake.myBalance() - _cakeBefore;
   }
 
   /// @dev Withdraw lp from masterChef and update pendingCake
   /// @param _balance - Lp amount to withdraw.
   function _masterChefV2Withdraw(uint256 _balance) internal {
-    uint256 _cakeBefore = cake.myBalance();
     masterChefV2.withdraw(pid, _balance);
-    pendingCake = pendingCake + cake.myBalance() - _cakeBefore;
   }
 }
