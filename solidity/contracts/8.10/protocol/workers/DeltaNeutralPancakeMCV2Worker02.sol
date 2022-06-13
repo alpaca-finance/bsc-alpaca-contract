@@ -31,7 +31,6 @@ import "../interfaces/IVault.sol";
 
 import "../../utils/SafeToken.sol";
 import "../../utils/FixedPointMathLib.sol";
-import "../../../../../solidity/tests/utils/console.sol";
 
 /// @title DeltaNeutralPancakeMCV2Worker02 is a PancakeswapV2Worker with reinvest-optimized and beneficial vault buyback functionalities
 contract DeltaNeutralPancakeMCV2Worker02 is OwnableUpgradeable, ReentrancyGuardUpgradeable, IWorker02 {
