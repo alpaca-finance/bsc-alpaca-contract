@@ -271,7 +271,6 @@ contract DeltaNeutralPancakeMCV2Worker02 is OwnableUpgradeable, ReentrancyGuardU
   ) external override onlyWhitelistedCaller(user) onlyOperator nonReentrant {
     // 1. Withdraw all LP tokens.
     _masterChefWithdraw(totalLpBalance);
-    totalLpBalance = 0;
 
     // 2. Perform the worker strategy; sending LP tokens + BaseToken; expecting LP tokens + BaseToken.
     (address strat, bytes memory ext) = abi.decode(data, (address, bytes));
@@ -376,6 +375,7 @@ contract DeltaNeutralPancakeMCV2Worker02 is OwnableUpgradeable, ReentrancyGuardU
   function _masterChefWithdraw(uint256 _balance) internal {
     uint256 _cakeBefore = cake.myBalance();
     masterChefV2.withdraw(pid, _balance);
+    totalLpBalance = totalLpBalance - _balance;
     pendingCake = pendingCake + cake.myBalance() - _cakeBefore;
     emit MasterChefWithdraw(_balance);
   }
