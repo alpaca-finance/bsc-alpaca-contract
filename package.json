@@ -372,6 +372,7 @@
     "test:mdexrestrictedpartialcloseminimize": "hardhat test --no-compile ./test/Mdex_Restricted_StrategyPartialCloseMinimizeTrading.test.ts",
     "test:mdex02": "hardhat test --no-compile ./test/Vault_MdexWorker02.test.ts",
     "test:spookyadd": "hardhat test --no-compile ./test/integrations/protocol/strategies/spookyswap/Spookyswap_AddBaseTokenOnly.test.ts",
+    "test:spookydnxtwosides": "hardhat test --no-compile ./test/integrations/protocol/strategies/spookyswap/Spookyswap_Dnx_AddTwoSidesOptimal.test.ts",
     "test:spookytwosides": "hardhat test --no-compile ./test/integrations/protocol/strategies/spookyswap/Spookyswap_AddTwoSidesOptimal.test.ts",
     "test:spookyliquidate": "hardhat test --no-compile ./test/integrations/protocol/strategies/spookyswap/Spookyswap_Liquidate.test.ts",
     "test:spookyminimize": "hardhat test --no-compile ./test/integrations/protocol/strategies/spookyswap/Spookyswap_Minimize.test.ts",
