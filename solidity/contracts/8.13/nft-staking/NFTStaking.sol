@@ -97,6 +97,7 @@ contract NFTStaking is INFTStaking, OwnableUpgradeable, ReentrancyGuardUpgradeab
     _;
   }
 
+  /// @custom:oz-upgrades-unsafe-allow constructor
   constructor() initializer {}
 
   function initialize() external initializer {
