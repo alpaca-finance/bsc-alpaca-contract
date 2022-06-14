@@ -1,5 +1,5 @@
-import { Converter } from "./../../../helper/converter";
-import { ConfigFileHelper } from "./../../../helper/config-file-helper";
+import { Converter } from "../../../helper/converter";
+import { ConfigFileHelper } from "../../../helper/config-file-helper";
 import { AutomatedVaultController__factory } from "../../../../typechain/factories/AutomatedVaultController__factory";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
@@ -17,11 +17,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const CREDITOR_NAMES: string[] = ["xAlpacaCreditor"];
-  const PRIVATE_VAULT_SYMBOLS: string[] = ["n8x-BNBUSDT-PCS2"];
+  const CREDITOR_NAMES: string[] = [];
+  const PRIVATE_VAULT_SYMBOLS: string[] = ["n8x-BNBUSDT-PCS1", "n8x-BNBUSDT-PCS2", "n8x-BNBUSDT-BSW1"];
 
   const deployer = await getDeployer();
   const config = getConfig();
+  const cfh = new ConfigFileHelper();
 
   // VALIDATING CREDITORS
   if (!config.AutomatedVaultController?.address) {
@@ -35,23 +36,21 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   console.log(">> Set param AutomatedVaultController contract");
   let nonce = await deployer.getTransactionCount();
-  const ops = isFork() ? { nonce: nonce++, gasLimit: 2000000 } : { nonce: nonce++ };
+  const ops = isFork() ? { gasLimit: 2000000 } : {};
 
   const avController = AutomatedVaultController__factory.connect(config.AutomatedVaultController!.address, deployer);
-  console.log(`>> AVController :${avController.address}`);
+  console.log(`>> AVController: ${avController.address}`);
 
   if (creditorAddrs.length > 0) {
-    console.log(`>> Set CREDITORS TO : ${creditorAddrs}`);
-    await avController.setCreditors(creditorAddrs, ops);
+    console.log(`>> Set creditors: ${creditorAddrs}`);
+    await avController.setCreditors(creditorAddrs, { ...ops, nonce: nonce++ });
+    cfh.setCreditToAVController(creditorAddrs);
   }
 
   if (pvAddrs.length > 0) {
-    console.log(`>> Add PRIVATEVAULT TO : ${pvAddrs}`);
-    await avController.addPrivateVaults(pvAddrs, ops);
+    console.log(`>> Add the following private vaults: ${pvAddrs}`);
+    await avController.addPrivateVaults(pvAddrs, { ...ops, nonce: nonce++, gasLimit: 2000000 });
   }
-
-  const cfh = new ConfigFileHelper();
-  cfh.setCreditToAVController(creditorAddrs);
 };
 
 export default func;

@@ -1,10 +1,12 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { network, ethers } from "hardhat";
-import MainnetConfig from "../../../../.mainnet.json";
-import TestnetConfig from "../../../../.testnet.json";
+import { ethers } from "hardhat";
 import { TimelockEntity } from "../../../entities";
 import { fileService, TimelockService } from "../../../services";
+import { ConfigurableInterestVaultConfig__factory } from "../../../../typechain";
+import { compare } from "../../../../utils/address";
+import { getConfig } from "../../../entities/config";
+import { getDeployer } from "../../../../utils/deployer-helper";
 
 interface IInput {
   VAULT_SYMBOL: string;
@@ -28,49 +30,59 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "roberto";
+  const TITLE = "marcin";
   const TARGETED_VAULT_CONFIG: Array<IInput> = [
     {
       VAULT_SYMBOL: "ibWBNB",
-      WHITELISTED_LIQUIDATORS: ["0x9b75e85DAA209D25EbF205eAb89bf0B86f9f2D3e"],
+      WHITELISTED_LIQUIDATORS: ["0x2e3419E9fdF65C7089DACA30184345B343Abff30"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibBUSD",
-      WHITELISTED_LIQUIDATORS: ["0x9b75e85DAA209D25EbF205eAb89bf0B86f9f2D3e"],
+      WHITELISTED_LIQUIDATORS: ["0x2e3419E9fdF65C7089DACA30184345B343Abff30"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibETH",
-      WHITELISTED_LIQUIDATORS: ["0x9b75e85DAA209D25EbF205eAb89bf0B86f9f2D3e"],
+      WHITELISTED_LIQUIDATORS: ["0x2e3419E9fdF65C7089DACA30184345B343Abff30"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibALPACA",
-      WHITELISTED_LIQUIDATORS: ["0x9b75e85DAA209D25EbF205eAb89bf0B86f9f2D3e"],
+      WHITELISTED_LIQUIDATORS: ["0x2e3419E9fdF65C7089DACA30184345B343Abff30"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibUSDT",
-      WHITELISTED_LIQUIDATORS: ["0x9b75e85DAA209D25EbF205eAb89bf0B86f9f2D3e"],
+      WHITELISTED_LIQUIDATORS: ["0x2e3419E9fdF65C7089DACA30184345B343Abff30"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibBTCB",
-      WHITELISTED_LIQUIDATORS: ["0x9b75e85DAA209D25EbF205eAb89bf0B86f9f2D3e"],
+      WHITELISTED_LIQUIDATORS: ["0x2e3419E9fdF65C7089DACA30184345B343Abff30"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibTUSD",
-      WHITELISTED_LIQUIDATORS: ["0x9b75e85DAA209D25EbF205eAb89bf0B86f9f2D3e"],
+      WHITELISTED_LIQUIDATORS: ["0x2e3419E9fdF65C7089DACA30184345B343Abff30"],
+      IS_ENABLE: true,
+    },
+    {
+      VAULT_SYMBOL: "ibUSDC",
+      WHITELISTED_LIQUIDATORS: ["0x2e3419E9fdF65C7089DACA30184345B343Abff30"],
+      IS_ENABLE: true,
+    },
+    {
+      VAULT_SYMBOL: "ibCAKE",
+      WHITELISTED_LIQUIDATORS: ["0x2e3419E9fdF65C7089DACA30184345B343Abff30"],
       IS_ENABLE: true,
     },
   ];
-  const EXACT_ETA = "1638935400";
+  const EXACT_ETA = "1655269200";
 
-  const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
+  const config = getConfig();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
-  const deployer = (await ethers.getSigners())[0];
+  const deployer = await getDeployer();
   let nonce = await deployer.getTransactionCount();
 
   const inputs: Array<IDerivedInput> = TARGETED_VAULT_CONFIG.map((tv) => {
@@ -90,22 +102,34 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   });
 
   for (const i of inputs) {
-    timelockTransactions.push(
-      await TimelockService.queueTransaction(
-        `>> Queue tx on Timelock to setWhitelistedLiquidators for ${i.configAddress}`,
-        i.configAddress,
-        "0",
-        "setWhitelistedLiquidators(address[],bool)",
-        ["address[]", "bool"],
-        [i.whitelistedLiquidators, i.isEnable],
-        EXACT_ETA,
-        { gasPrice: ethers.utils.parseUnits("20", "gwei"), nonce }
-      )
-    );
-    nonce++;
+    const vaultConfig = ConfigurableInterestVaultConfig__factory.connect(i.configAddress, deployer);
+    const owner = await vaultConfig.owner();
+
+    if (compare(owner, config.Timelock)) {
+      timelockTransactions.push(
+        await TimelockService.queueTransaction(
+          `> Queue tx on Timelock to setWhitelistedLiquidators for ${i.configAddress}`,
+          i.configAddress,
+          "0",
+          "setWhitelistedLiquidators(address[],bool)",
+          ["address[]", "bool"],
+          [i.whitelistedLiquidators, i.isEnable],
+          EXACT_ETA,
+          { gasPrice: ethers.utils.parseUnits("20", "gwei"), nonce: nonce++ }
+        )
+      );
+    } else {
+      console.log("-----------");
+      console.log("> Set whitelistedLiquidators for", i.configAddress);
+      const tx = await vaultConfig.setWhitelistedLiquidators(i.whitelistedLiquidators, i.isEnable);
+      console.log(`> ⛓ Tx hash: ${tx.hash}`);
+    }
   }
 
-  fileService.writeJson(TITLE, timelockTransactions);
+  if (timelockTransactions.length > 0) {
+    const timestamp = Math.floor(Date.now() / 1000);
+    fileService.writeJson(`${timestamp}_${TITLE}`, timelockTransactions);
+  }
 };
 
 export default func;

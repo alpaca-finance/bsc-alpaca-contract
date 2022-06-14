@@ -1,5 +1,5 @@
-import { Converter } from "./../../../helper/converter";
-import { XALPACACreditor__factory } from "./../../../../typechain";
+import { Converter } from "../../../helper/converter";
+import { XALPACACreditor__factory } from "../../../../typechain";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { getDeployer, isFork } from "../../../../utils/deployer-helper";
@@ -15,7 +15,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       Check all variables below before execute the deployment script
       */
 
-  const SETTER_ADDRESS = "0xe45216ac4816a5ec5378b1d13de8aa9f262ce9de";
+  const SETTER_ADDRESS = "0x02b5a4c9c6A2D267B8fF4cFE62b6C8A8e7d74a6f";
 
   if (!SETTER_ADDRESS) {
     throw new Error("ERROR NO SETTER ADDRESS");

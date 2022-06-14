@@ -19,7 +19,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const VALUE_PER_XALPACA = ethers.utils.parseEther("2");
+  const VALUE_PER_XALPACA = ethers.utils.parseEther("1");
 
   //XALPACA bsc 0xB7d85Ab25b9D478961face285fa3D8AAecAd24a9
   //XALPACA ftm 0x9e698f779Cec7F42663B051Ff8176A55FCb8d471

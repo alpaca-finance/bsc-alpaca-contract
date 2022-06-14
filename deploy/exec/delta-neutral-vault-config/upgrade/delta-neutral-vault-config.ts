@@ -1,5 +1,5 @@
-import { ProxyAdmin__factory } from "./../../../../typechain/factories/ProxyAdmin__factory";
-import { DeltaNeutralVaultsEntity } from "./../../../interfaces/config";
+import { ProxyAdmin__factory } from "../../../../typechain/factories/ProxyAdmin__factory";
+import { DeltaNeutralVaultsEntity } from "../../../interfaces/config";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, upgrades } from "hardhat";
@@ -34,8 +34,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "L3x-USDTETH-BSW1",
     "L3x-BUSDBTCB-PCS1",
     "L3x-BUSDBTCB-PCS2",
+    "L3x-BUSDBNB-PCS1",
   ];
-  const EXACT_ETA = "1653757200";
+  const EXACT_ETA = "1654414200";
 
   const config = getConfig();
 
@@ -60,7 +61,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if (compare(await proxyAdmin.owner(), config.Timelock)) {
       timelockTransactions.push(
         await TimelockService.queueTransaction(
-          `> Queue tx to upgrade ${vault.symbol}`,
+          `> Queue tx to upgrade ${vault.symbol} config`,
           config.ProxyAdmin,
           "0",
           "upgrade(address,address)",
