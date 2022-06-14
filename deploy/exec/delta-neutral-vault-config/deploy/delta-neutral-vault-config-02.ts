@@ -24,7 +24,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   let config = configFileHelper.getConfig();
 
   // use to write config file
-  const DELTA_VAULT_SYMBOL = "n8x-BNBUSDT-PCS2";
+  const DELTA_VAULT_SYMBOL = "n8x-BNBUSDT-PCS3";
   const REBALANCE_FACTOR = "9000";
   const POSITION_VALUE_TOLERANCE_BPS = "120";
   const DEBT_RATIO_TOLERANCE_BPS = "30";
