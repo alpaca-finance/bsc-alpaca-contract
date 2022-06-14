@@ -122,6 +122,8 @@
     "deploy:mainnet:delta-neutral-vault-config:set-controller": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags DeltaNeutralVaultConfigSetController",
     "deploy:mainnet:nft-staking:deploy:nft-staking": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags NFTStaking",
     "deploy:mainnet:nft-staking:config:add-pool": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags NFTStakingAddPool",
+    "deploy:mainnet:nft-boosted-leverage-controller:deploy:nft-boosted-leverage-controller": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags NFTBoostedLeverageController",
+    "deploy:mainnet:nft-boosted-leverage-controller:config:set-boosted": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags NFTBoostedLeverageControllerSetBoosted",
     "deploy:testnet:000": "hardhat --network testnet deploy --no-compile --reset --tags Testnet",
     "deploy:testnet:000:panV2": "hardhat --network testnet deploy --no-compile --reset --tags PancakeswapV2",
     "deploy:testnet:000:waultswap": "hardhat --network testnet deploy --no-compile --reset --tags WaultSwap",
