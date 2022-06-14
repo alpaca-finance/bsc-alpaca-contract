@@ -17,8 +17,12 @@ export interface Config {
   DeltaNeutralVaults: DeltaNeutralVaultsEntity[];
   AutomatedVaultController?: AutomateVaultController;
   Creditors?: Creditor[];
+  NFT?: Nft;
 }
 
+export interface Nft {
+  NFTStaking: string;
+}
 export interface AutomateVaultController {
   address: string;
   creditors: string[];
