@@ -44,13 +44,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const TITLTE = "update_rebalance_factor";
   const NEW_PARAMS: Array<SetParamsInput> = [
     {
-      VAULT_SYMBOL: "n3x-BNBUSDT-PCS1",
-      REBALANCE_FACTOR: "6669",
+      VAULT_SYMBOL: "L8x-BUSDBTCB-PCS1",
+      REBALANCE_FACTOR: "9100",
       EXACT_ETA: "1651984200",
     },
     {
-      VAULT_SYMBOL: "n8x-BNBUSDT-PCS1",
-      REBALANCE_FACTOR: "8750",
+      VAULT_SYMBOL: "L8x-USDTBNB-PCS1",
+      REBALANCE_FACTOR: "9200",
       EXACT_ETA: "1651984200",
     },
   ];
