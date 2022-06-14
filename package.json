@@ -231,6 +231,8 @@
     "deploy:mainnetfork:AVController": "hardhat --network mainnetfork deploy --config hardhat.config.ts --no-compile --reset --tags AVController",
     "deploy:mainnetfork:config:set-params:AVController": "hardhat --network mainnetfork deploy --config hardhat.config.ts --no-compile --reset --tags AVControllerSetParams",
     "deploy:mainnetfork:delta-neutral-vault-config:set-controller": "hardhat --network mainnetfork deploy --config hardhat.config.ts --no-compile --reset --tags DeltaNeutralVaultConfigSetController",
+    "deploy:mainnetfork:strategies:deploy:biswap:dnx-vault-strategies": "hardhat --network mainnetfork deploy --config hardhat.config.ts --no-compile --reset --tags BiswapDnxVaultStrategies",
+    "deploy:mainnetfork:strategies:deploy:pcs:dnx-vault-strategies": "hardhat --network mainnetfork deploy --config hardhat.config.ts --no-compile --reset --tags PancakeswapDnxVaultStrategies",
     "deploy:fantom_testnet:wftm:deploy:wftm": "hardhat --network fantom_testnet deploy --no-compile --reset --tags WFTM",
     "deploy:fantom_testnet:spooky:deploy:spookyswap": "hardhat --network fantom_testnet deploy --no-compile --reset --tags SpookySwap",
     "deploy:fantom_testnet:tomb:deploy:tshare-reward-pool": "hardhat --network fantom_testnet deploy --no-compile --reset --tags TShareRewardPool",
