@@ -1,4 +1,4 @@
-import { Nft } from "./../interfaces/config";
+import { NFT } from "./../interfaces/config";
 import * as fs from "fs";
 import { ethers, network } from "hardhat";
 import { compare } from "../../utils/address";
@@ -282,15 +282,29 @@ export class ConfigFileHelper {
     this._writeConfigFile(this.config);
   }
 
-  // NFtStaking
-  public addNFTStaking(nftStaking: string) {
-    console.log(`>> Adding NFTStaking to file > ${nftStaking}`);
+  // NFT
+  public addOrSetNFTStaking(nftStaking: string) {
     if (this.config.NFT === undefined) {
+      console.log(`>> Adding config on NFT > NFTStaking as ${nftStaking}`);
       this.config.NFT = {
         NFTStaking: nftStaking,
-      } as Nft;
+      } as NFT;
     } else {
+      console.log(`>> Updating config on NFT > NFTStaking as ${nftStaking}`);
       this.config.NFT.NFTStaking = nftStaking;
+    }
+    this._writeConfigFile(this.config);
+  }
+
+  public addOrSetNFTBoostedLeverageContoller(address: string) {
+    if (this.config.NFT === undefined) {
+      console.log(`>> Adding config on NFT > NFTBoostedLeverageController as ${address}`);
+      this.config.NFT = {
+        NFTBoostedLeverageController: address,
+      } as NFT;
+    } else {
+      console.log(`>> Updating config on NFT > NFTBoostedLeverageController as ${address}`);
+      this.config.NFT.NFTBoostedLeverageController = address;
     }
     this._writeConfigFile(this.config);
   }
