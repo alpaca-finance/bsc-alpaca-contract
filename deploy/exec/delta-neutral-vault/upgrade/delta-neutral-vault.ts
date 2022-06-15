@@ -23,9 +23,23 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const DELTA_NEUTRAL_VAULT = "DeltaNeutralVault03";
   const TARGETED_VAULTS = [
     "n3x-BNBUSDT-PCS1",
+    "n3x-BNBUSDT-PCS2",
+    "n3x-BNBUSDT-PCS3",
+    "n3x-BNBBUSD-PCS1",
+    "n3x-BNBBUSD-PCS2",
+    "n3x-ETHUSDT-BSW1",
+    "n8x-BNBUSDT-PCS1",
+    "n8x-BNBUSDT-PCS2",
+    "n8x-BNBUSDT-PCS3",
+    "n8x-BNBUSDT-BSW1",
+    "L3x-BUSDBNB-PCS1",
+    "L3x-BUSDBTCB-PCS1",
+    "L3x-BUSDBTCB-PCS2",
+    "L3x-ETHUSDT-BSW1",
+    "L8x-USDTBNB-PCS1",
     "L8x-BUSDBTCB-PCS1",
   ];
-  const EXACT_ETA = "1655434363";
+  const EXACT_ETA = "1654750800";
 
   const config = getConfig();
 
