@@ -43,8 +43,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       executors.reinvest,
       ops
     );
+    console.log("✅ Done");
   }
-  console.log("✅ Done");
 };
 
 export default func;
