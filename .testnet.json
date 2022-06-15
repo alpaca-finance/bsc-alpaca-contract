@@ -3187,5 +3187,12 @@
       "assetVaultPosId": "180",
       "stableVaultPosId": "370"
     }
-  ]
+  ],
+
+  "AutomatedVaultExecutor" : {
+    "deposit":"",
+    "withdraw":"",
+    "reinvest":"",
+    "rebalance":""
+  }
 }

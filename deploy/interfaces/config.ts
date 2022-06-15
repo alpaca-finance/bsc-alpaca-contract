@@ -16,6 +16,7 @@ export interface Config {
   Vaults: VaultsEntity[];
   DeltaNeutralVaults: DeltaNeutralVaultsEntity[];
   AutomatedVaultController?: AutomateVaultController;
+  AutomatedVaultExecutor?: AutomatedVaultExecutor;
   Creditors?: Creditor[];
   NFT?: Nft;
 }
@@ -293,4 +294,11 @@ export interface DeltaNeutralVaultsEntity {
   oracle: string;
   assetVaultPosId: string;
   stableVaultPosId: string;
+}
+
+export interface AutomatedVaultExecutor {
+  deposit: string;
+  withdraw: string;
+  reinvest: string;
+  rebalance: string;
 }
