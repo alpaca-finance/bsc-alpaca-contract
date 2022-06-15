@@ -1,4 +1,4 @@
-import { BiswapDnxStrategyAddTwoSidesOptimal } from "./../../../../../typechain/BiswapDnxStrategyAddTwoSidesOptimal";
+import { BiswapDnxStrategyAddTwoSidesOptimal } from "./../../../../../typechain";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { getDeployer } from "../../../../../utils/deployer-helper";

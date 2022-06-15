@@ -1,4 +1,4 @@
-import { PancakeswapV2RestrictedDnxStrategyAddTwoSidesOptimal } from "./../../../../../typechain/PancakeswapV2RestrictedDnxStrategyAddTwoSidesOptimal.d";
+import { PancakeswapV2RestrictedDnxStrategyAddTwoSidesOptimal } from "./../../../../../typechain";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { getDeployer } from "../../../../../utils/deployer-helper";
