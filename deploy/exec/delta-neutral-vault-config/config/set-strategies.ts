@@ -56,14 +56,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         assetWorker!.strategies.StrategyAddTwoSidesOptimal
       } for config: ${configs[i]}`
     );
-    deltaVaultConfig.setStrategies(
+    await deltaVaultConfig.setStrategies(
       stableWorker!.strategies.StrategyPartialCloseMinimizeTrading,
       stableWorker!.strategies.StrategyAddTwoSidesOptimal,
       assetWorker!.strategies.StrategyAddTwoSidesOptimal,
       ops
     );
+    console.log("✅ Done");
   }
-  console.log("✅ Done");
 };
 
 export default func;

@@ -131,6 +131,8 @@
     "deploy:mainnet:nft-boosted-leverage-controller:config:set-boosted": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags NFTBoostedLeverageControllerSetBoosted ",
     "deploy:mainnet:strategies:deploy:biswap:dnx-vault-strategies": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags BiswapDnxVaultStrategies",
     "deploy:mainnet:strategies:deploy:pcs:dnx-vault-strategies": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags PancakeswapDnxVaultStrategies",
+    "deploy:mainnet:delta-neutral-vault-config:config:set-strategies": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags DeltaNeutralVaultConfigSetStrategies",
+    "deploy:mainnet:delta-neutral-vault-config:config:set-executor": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags DeltaNeutralVaultConfigSetExecutor",
     "deploy:testnet:000": "hardhat --network testnet deploy --no-compile --reset --tags Testnet",
     "deploy:testnet:000:panV2": "hardhat --network testnet deploy --no-compile --reset --tags PancakeswapV2",
     "deploy:testnet:000:waultswap": "hardhat --network testnet deploy --no-compile --reset --tags WaultSwap",
