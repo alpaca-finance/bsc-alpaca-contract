@@ -316,7 +316,6 @@
     "deploy:fantom_mainnet:revenue-treasury:deploy:revenue-treasury": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags RevenueTreasury",
     "deploy:mainnetfork": "hardhat --network mainnetfork deploy --no-compile --reset",
     "deploy:fantom_mainnetfork": "hardhat --network fantom_mainnetfork deploy --no-compile --reset",
-    "deploy:fantom_mainnetfork:delta-neutral-vault:upgrade:delta-neutral-vault": "hardhat --network fantom_mainnetfork deploy --no-compile --reset --tags UpgradeDeltaNeutralVaultFTM",
     "deploy:fantom_mainnet:vault-config:config:set-params": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags TimelockSetParamsVaultConfig",
     "fork": "hardhat console --no-compile --network fantom_mainnetfork",
     "mainnet": "hardhat console --no-compile --network mainnet",
