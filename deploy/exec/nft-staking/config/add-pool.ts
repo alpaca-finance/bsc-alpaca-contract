@@ -14,7 +14,7 @@ interface AddPoolConfig {
   maxPeriod: number;
 }
 
-const _buildInput = (address: string, poolWeigth: number, minPeriod: number, maxPeriod: number) => {
+const _buildInput = (address: string, poolWeigth: number, minPeriod: number, maxPeriod: number): AddPoolConfig => {
   return {
     address,
     poolWeigth,

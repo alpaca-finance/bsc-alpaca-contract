@@ -18,11 +18,12 @@ export interface Config {
   AutomatedVaultController?: AutomateVaultController;
   AutomatedVaultExecutor?: AutomatedVaultExecutor;
   Creditors?: Creditor[];
-  NFT?: Nft;
+  NFT?: NFT;
 }
 
-export interface Nft {
-  NFTStaking: string;
+export interface NFT {
+  NFTStaking?: string;
+  NFTBoostedLeverageController?: string;
 }
 export interface AutomateVaultController {
   address: string;
@@ -254,11 +255,14 @@ export interface VaultsEntity {
 }
 export interface StrategyAddTwoSidesOptimal {
   Pancakeswap?: string;
+  PancakeswapDnx?: string;
   Waultswap?: string;
   PancakeswapSingleAsset?: string;
   Mdex?: string;
   SpookySwap?: string;
+  SpookySwapDnx?: string;
   Biswap?: string;
+  BiswapDnx?: string;
 }
 export interface WorkersEntity {
   name: string;

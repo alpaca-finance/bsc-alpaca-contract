@@ -21,7 +21,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const { contract: nftStaking } = await NftStaking.deploy([]);
   const cfh = new ConfigFileHelper();
-  cfh.addNFTStaking(nftStaking.address);
+  cfh.addOrSetNFTStaking(nftStaking.address);
 };
 
 export default func;
