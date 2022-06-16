@@ -27,37 +27,29 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const configs = converter.convertDeltaSymbolToAddress(DELTA_VAULT_SYMBOL, "config");
   const stableWorkers = converter.convertDeltaSymbolToAddress(DELTA_VAULT_SYMBOL, "stableDeltaWorker");
   const assetWorkers = converter.convertDeltaSymbolToAddress(DELTA_VAULT_SYMBOL, "assetDeltaWorker");
-  const stableVaults = converter.convertDeltaSymbolToAddress(DELTA_VAULT_SYMBOL, "stableVault");
-  const assetVaults = converter.convertDeltaSymbolToAddress(DELTA_VAULT_SYMBOL, "assetVault");
+  const stableWorkersEntity = converter.convertAddressesToWorkers(stableWorkers);
+  const assetWorkersEntity = converter.convertAddressesToWorkers(assetWorkers);
 
   console.log(">> Set Strategies to DeltaNeutralVaultConfig03 contract");
   let nonce = await deployer.getTransactionCount();
   const ops = isFork() ? { nonce: nonce++, gasLimit: 2000000 } : { nonce: nonce++ };
   for (let i: number = 0; i < configs.length; i++) {
-    const stableVault = config.Vaults.find((v) => compare(v.address, stableVaults[i]));
-    const assetVault = config.Vaults.find((v) => compare(v.address, assetVaults[i]));
-    const stableWorker = stableVault?.workers.find((w) => compare(w.address, stableWorkers[i]));
-    const assetWorker = assetVault?.workers.find((w) => compare(w.address, assetWorkers[i]));
+    const stableWorker = stableWorkersEntity[i];
+    const assetWorker = assetWorkersEntity[i];
     const deltaVaultConfig = DeltaNeutralVaultConfig03__factory.connect(configs[i], deployer);
     console.log(
-      `>> Set StrategyPartialCloseMinimizeTrading: ${
-        stableWorker!.strategies.StrategyPartialCloseMinimizeTrading
-      } for config: ${configs[i]}`
+      `>> Set StrategyPartialCloseMinimizeTrading: ${stableWorker.strategies.StrategyPartialCloseMinimizeTrading} for config: ${configs[i]}`
     );
     console.log(
-      `>> Set StableStrategyAddTwoSidesOptimal: ${stableWorker!.strategies.StrategyAddTwoSidesOptimal} for config: ${
-        configs[i]
-      }`
+      `>> Set StableStrategyAddTwoSidesOptimal: ${stableWorker.strategies.StrategyAddTwoSidesOptimal} for config: ${configs[i]}`
     );
     console.log(
-      `>> Set AssetStrategyPartialCloseMinimizeTrading: ${
-        assetWorker!.strategies.StrategyAddTwoSidesOptimal
-      } for config: ${configs[i]}`
+      `>> Set AssetStrategyPartialCloseMinimizeTrading: ${assetWorker.strategies.StrategyAddTwoSidesOptimal} for config: ${configs[i]}`
     );
     await deltaVaultConfig.setStrategies(
-      stableWorker!.strategies.StrategyPartialCloseMinimizeTrading,
-      stableWorker!.strategies.StrategyAddTwoSidesOptimal,
-      assetWorker!.strategies.StrategyAddTwoSidesOptimal,
+      stableWorker.strategies.StrategyPartialCloseMinimizeTrading,
+      stableWorker.strategies.StrategyAddTwoSidesOptimal,
+      assetWorker.strategies.StrategyAddTwoSidesOptimal,
       ops
     );
     console.log("✅ Done");
