@@ -59,17 +59,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const stableVault = config.Vaults.find((v) => v.symbol === deltaVaultInput.stableVaultSymbol);
     const assetVault = config.Vaults.find((v) => v.symbol === deltaVaultInput.assetVaultSymbol);
     if (stableVault === undefined) {
-      throw `error: unable to find vault from ${deltaVaultInput.stableVaultSymbol}`;
+      throw new Error(`error: unable to find vault from ${deltaVaultInput.stableVaultSymbol}`);
     }
     if (assetVault === undefined) {
-      throw `error: unable to find vault from ${deltaVaultInput.assetVaultSymbol}`;
+      throw new Error(`error: unable to find vault from ${deltaVaultInput.assetVaultSymbol}`);
     }
 
     if (!deltaVaultInput.deltaNeutralVaultConfig) {
       const deltaVault = config.DeltaNeutralVaults.find((dv) => dv.symbol === deltaVaultInput.symbol);
       if (!deltaVault) throw Error(`Couldn't find DeltaNeutralVaults[${deltaVaultInput.symbol}]`);
       if (!validateAddress(deltaVault.config))
-        throw Error(`DeltaNeutralVaults[${deltaVaultInput.symbol}] > config (${deltaVault.config}) address is invalid`);
+        throw new Error(`DeltaNeutralVaults[${deltaVaultInput.symbol}] > config (${deltaVault.config}) address is invalid`);
       deltaVaultInput.deltaNeutralVaultConfig = deltaVault.config;
     }
 
@@ -78,13 +78,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       (worker) => worker.name === deltaVaultInput.stableDeltaWorkerName
     )?.address;
     if (!stableWorkerAddress || !validateAddress(stableWorkerAddress)) {
-      throw `error: unable to find worker ${deltaVaultInput.stableDeltaWorkerName} from ${deltaVaultInput.stableVaultSymbol} workers`;
+      throw new Error(`error: unable to find worker ${deltaVaultInput.stableDeltaWorkerName} from ${deltaVaultInput.stableVaultSymbol} workers`);
     }
     const assetWorkerAddress = assetVault.workers.find(
       (worker) => worker.name === deltaVaultInput.assetDeltaWorkerName
     )?.address;
     if (!assetWorkerAddress || !validateAddress(assetWorkerAddress)) {
-      throw `error: unable to find worker ${deltaVaultInput.assetDeltaWorkerName} from ${deltaVaultInput.assetVaultSymbol} workers`;
+      throw new Error(`error: unable to find worker ${deltaVaultInput.assetDeltaWorkerName} from ${deltaVaultInput.assetVaultSymbol} workers`);
     }
 
     const deltaVaultDeployer = new UpgradeableContractDeployer<DeltaNeutralVault03>(
