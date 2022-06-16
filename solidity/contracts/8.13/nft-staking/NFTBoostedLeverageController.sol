@@ -38,6 +38,7 @@ contract NFTBoostedLeverageController is INFTBoostedLeverageController, OwnableU
   /// ------ Events ------
   event LogSetBoosted(address[] _workers, uint64[] _workFactors, uint64[] _killFactors);
 
+  /// @custom:oz-upgrades-unsafe-allow constructor
   constructor() initializer {}
 
   function initialize(INFTStaking _nftStaking) external initializer {
