@@ -35,7 +35,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "L3x-BUSDBNB-PCS1",
     "L3x-BUSDBTCB-PCS1",
     "L3x-BUSDBTCB-PCS2",
-    "L3x-ETHUSDT-BSW1",
+    "L3x-USDTETH-BSW1",
     "L8x-USDTBNB-PCS1",
     "L8x-BUSDBTCB-PCS1",
   ];
