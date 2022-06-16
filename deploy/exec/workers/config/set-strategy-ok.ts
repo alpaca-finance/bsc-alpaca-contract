@@ -1,9 +1,12 @@
+import { DeltaNeutralPancakeMCV2Worker02__factory } from "./../../../../typechain/factories/DeltaNeutralPancakeMCV2Worker02__factory";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { mapWorkers } from "../../../entities/worker";
 import { fileService, TimelockService } from "../../../services";
 import { TimelockEntity, WorkerEntity } from "../../../entities";
-import { getDeployer } from "../../../../utils/deployer-helper";
+import { getDeployer, isFork } from "../../../../utils/deployer-helper";
+import { compare } from "../../../../utils/address";
+import { getConfig } from "../../../entities/config";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -15,41 +18,18 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "waultswap_allow_oracle_minimize_and_liquidate";
+  const TITLE = "set_ibUSDT_BiswapDnxStrategyAddTwoSidesOptimal_ok";
   const ADD_STRAT = "";
   const LIQ_STRAT = "";
 
   const OK_FLAG = true;
-  const STRATEGY = ["0x82573b46630cA335A7cA68a0AE42d0eE6a02df68", "0x3DA8c388cd5e5a7011EBd084D3708a117067eBbc"];
+  const STRATEGY = ["0x73a7C4dBd87d512dC9B474cDB1ec89C9f5DCE77d"];
   const WORKERS = [
-    "WEX-WBNB WaultswapWorker",
-    "BUSD-WBNB WaultswapWorker",
-    "ALPACA-WBNB WaultswapWorker",
-    "WAULTx-WBNB WaultswapWorker",
-    "ETH-BUSD WaultswapWorker",
-    "WBNB-BUSD WaultswapWorker",
-    "USDT-BUSD WaultswapWorker",
-    "BTCB-BUSD WaultswapWorker",
-    "WUSD-BUSD WaultswapWorker",
-    "BUSD-ETH WaultswapWorker",
-    "BTCB-ETH WaultswapWorker",
-    "BETH-ETH WaultswapWorker",
-    "USDT-ETH WaultswapWorker",
-    "USDT-ALPACA WaultswapWorker",
-    "WBNB-ALPACA WaultswapWorker",
-    "ALPACA-USDT WaultswapWorker",
-    "WEX-USDT WaultswapWorker",
-    "BUSD-USDT WaultswapWorker",
-    "BTCB-USDT WaultswapWorker",
-    "ETH-USDT WaultswapWorker",
-    "MATIC-USDT WaultswapWorker",
-    "TUSD-USDT WaultswapWorker",
-    "ETH-BTCB WaultswapWorker",
-    "USDT-BTCB WaultswapWorker",
-    "BUSD-BTCB WaultswapWorker",
-    "USDT-TUSD WaultswapWorker",
+    "ETH-USDT 3x BSW1 DeltaNeutralBiswapWorker",
+    "ETH-USDT L3x BSW1 DeltaNeutralBiswapWorker",
+    "WBNB-USDT 8x BSW1 DeltaNeutralBiswapWorker",
   ];
-  const EXACT_ETA = "1649233800";
+  const EXACT_ETA = "0";
 
   const miniWorkers: Array<WorkerEntity.IMiniWorker> = mapWorkers(WORKERS).map((w) => {
     return {
@@ -58,37 +38,47 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     };
   });
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
+  const config = getConfig();
   const deployer = await getDeployer();
   let nonce = await deployer.getTransactionCount();
 
   for (const miniWorker of miniWorkers) {
-    if (ADD_STRAT != "" && LIQ_STRAT != "") {
+    const worker = DeltaNeutralPancakeMCV2Worker02__factory.connect(miniWorker.address, deployer);
+    const owner = await worker.owner();
+    const ops = isFork() ? { nonce: nonce++, gasLimit: 2000000 } : { nonce: nonce++ };
+    if (compare(owner, config.Timelock)) {
+      if (ADD_STRAT != "" && LIQ_STRAT != "") {
+        timelockTransactions.push(
+          await TimelockService.queueTransaction(
+            `Setting critical strats for ${miniWorker.name}`,
+            miniWorker.address,
+            "0",
+            "setCriticalStrategies(address,address)",
+            ["address", "address"],
+            [ADD_STRAT, LIQ_STRAT],
+            EXACT_ETA,
+            ops
+          )
+        );
+      }
+
       timelockTransactions.push(
         await TimelockService.queueTransaction(
-          `Setting critical strats for ${miniWorker.name}`,
+          `set strategy for ${miniWorker.name}`,
           miniWorker.address,
           "0",
-          "setCriticalStrategies(address,address)",
-          ["address", "address"],
-          [ADD_STRAT, LIQ_STRAT],
+          "setStrategyOk(address[],bool)",
+          ["address[]", "bool"],
+          [STRATEGY, OK_FLAG],
           EXACT_ETA,
-          { nonce: nonce++ }
+          ops
         )
       );
+    } else {
+      console.log(`>> Set strategy for ${miniWorker.name}`);
+      await worker.setStrategyOk(STRATEGY, OK_FLAG, { nonce: nonce++, gasLimit: 2000000 });
+      console.log("✅ Done");
     }
-
-    timelockTransactions.push(
-      await TimelockService.queueTransaction(
-        `set strategy for ${miniWorker.name}`,
-        miniWorker.address,
-        "0",
-        "setStrategyOk(address[],bool)",
-        ["address[]", "bool"],
-        [STRATEGY, OK_FLAG],
-        EXACT_ETA,
-        { nonce: nonce++ }
-      )
-    );
   }
 
   fileService.writeJson(TITLE, timelockTransactions);
