@@ -44,7 +44,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       `>> Set StableStrategyAddTwoSidesOptimal: ${stableWorker.strategies.StrategyAddTwoSidesOptimal} for config: ${configs[i]}`
     );
     console.log(
-      `>> Set AssetStrategyPartialCloseMinimizeTrading: ${assetWorker.strategies.StrategyAddTwoSidesOptimal} for config: ${configs[i]}`
+      `>> Set AssetStrategyAddTwoSidesOptimal: ${assetWorker.strategies.StrategyAddTwoSidesOptimal} for config: ${configs[i]}`
     );
     await deltaVaultConfig.setStrategies(
       stableWorker.strategies.StrategyPartialCloseMinimizeTrading,
