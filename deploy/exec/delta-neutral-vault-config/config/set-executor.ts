@@ -2,7 +2,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { getConfig } from "../../../entities/config";
 import { getDeployer, isFork } from "../../../../utils/deployer-helper";
-import { DeltaNeutralVaultConfig03__factory } from "../../../../typechain";
+import { DeltaNeutralVaultConfig02__factory } from "../../../../typechain";
 import { Converter } from "../../../helper";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -34,7 +34,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(`>> Set Withdraw Executor : ${executors.withdraw} for config : ${config}`);
     console.log(`>> Set Rebalance Executor : ${executors.rebalance} for config : ${config}`);
     console.log(`>> Set Reinvest Executor : ${executors.reinvest} for config : ${config}`);
-    const deltaVaultConfig = DeltaNeutralVaultConfig03__factory.connect(config, deployer);
+    const deltaVaultConfig = DeltaNeutralVaultConfig02__factory.connect(config, deployer);
 
     await deltaVaultConfig.setExecutor(
       executors.deposit,

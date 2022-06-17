@@ -2,7 +2,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { getConfig } from "../../../entities/config";
 import { getDeployer, isFork } from "../../../../utils/deployer-helper";
-import { DeltaNeutralVaultConfig03__factory } from "../../../../typechain";
+import { DeltaNeutralVaultConfig02__factory } from "../../../../typechain";
 import { Converter } from "../../../helper";
 import { compare } from "../../../../utils/address";
 
@@ -32,7 +32,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const ops = isFork() ? { nonce: nonce++, gasLimit: 2000000 } : { nonce: nonce++ };
   for (const config of configs) {
     console.log(`>> Set SwapFee to ${swapFee} SwapFeeDenom to ${swapFeeDenom} for config : ${config}`);
-    const deltaVaultConfig = DeltaNeutralVaultConfig03__factory.connect(config, deployer);
+    const deltaVaultConfig = DeltaNeutralVaultConfig02__factory.connect(config, deployer);
 
     await deltaVaultConfig.setSwapConfig(swapFee, swapFeeDenom, ops);
     console.log("✅ Done");

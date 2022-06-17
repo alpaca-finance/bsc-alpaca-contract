@@ -2,7 +2,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { getConfig } from "../../../entities/config";
 import { getDeployer, isFork } from "../../../../utils/deployer-helper";
-import { DeltaNeutralVaultConfig03__factory } from "../../../../typechain";
+import { DeltaNeutralVaultConfig02__factory } from "../../../../typechain";
 import { Converter } from "../../../helper";
 import { compare } from "../../../../utils/address";
 
@@ -36,7 +36,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   for (let i: number = 0; i < configs.length; i++) {
     const stableWorker = stableWorkersEntity[i];
     const assetWorker = assetWorkersEntity[i];
-    const deltaVaultConfig = DeltaNeutralVaultConfig03__factory.connect(configs[i], deployer);
+    const deltaVaultConfig = DeltaNeutralVaultConfig02__factory.connect(configs[i], deployer);
     console.log(
       `>> Set StrategyPartialCloseMinimizeTrading: ${stableWorker.strategies.StrategyPartialCloseMinimizeTrading} for config: ${configs[i]}`
     );
