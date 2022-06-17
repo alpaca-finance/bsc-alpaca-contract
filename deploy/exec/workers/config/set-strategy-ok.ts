@@ -18,16 +18,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "set_ibUSDT_BiswapDnxStrategyAddTwoSidesOptimal_ok";
+  const TITLE = "set_ibBTCB_PancakeswapV2RestrictedDnxStrategyAddTwoSidesOptimal_ok";
   const ADD_STRAT = "";
   const LIQ_STRAT = "";
 
   const OK_FLAG = true;
-  const STRATEGY = ["0x73a7C4dBd87d512dC9B474cDB1ec89C9f5DCE77d"];
+  const STRATEGY = ["0x49f488E4606687a1Ed67AD5E6A9255C08d334334"]; //update ibBTCB PancakeswapDnx StrategyAddTwoSidesOptimal
   const WORKERS = [
-    "ETH-USDT 3x BSW1 DeltaNeutralBiswapWorker",
-    "ETH-USDT L3x BSW1 DeltaNeutralBiswapWorker",
-    "WBNB-USDT 8x BSW1 DeltaNeutralBiswapWorker",
+    "BUSD-BTCB L3x PCS1 DeltaNeutralPancakeswapWorker",
+    "BUSD-BTCB L3x PCS2 DeltaNeutralPancakeswapWorker",
+    "BUSD-BTCB L8x PCS1 DeltaNeutralPancakeswapWorker",
   ];
   const EXACT_ETA = "0";
 
@@ -76,7 +76,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       );
     } else {
       console.log(`>> Set strategy for ${miniWorker.name}`);
-      await worker.setStrategyOk(STRATEGY, OK_FLAG, { nonce: nonce++, gasLimit: 2000000 });
+      await worker.setStrategyOk(STRATEGY, OK_FLAG, ops);
       console.log("✅ Done");
     }
   }
