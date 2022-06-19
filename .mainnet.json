@@ -4786,6 +4786,12 @@
   ],
   "AutomatedVaultController": {
     "address": "0xfd0694a29871Ee629D51cF4079842382368f1e15",
-    "creditors": ["0xeDdD248FEe5ff98e532c3A4087C83F6e376eEDa7"]
+    "creditors": [
+      "0xeDdD248FEe5ff98e532c3A4087C83F6e376eEDa7"
+    ]
+  },
+  "NFT": {
+    "NFTStaking": "0xe5d84fFB55f3276345f8C1F6EE17bf06935867f2",
+    "NFTBoostedLeverageController": "0x257611F5dEF16Ff0e9AF16B5c10130211CEd7B66"
   }
 }
