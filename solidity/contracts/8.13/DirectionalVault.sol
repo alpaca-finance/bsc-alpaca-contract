@@ -424,16 +424,12 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
   /// @notice Rebalance stable and asset positions.
   /// @param _data The calldata to pass along for more working context.
   function rebalance(bytes memory _data) external onlyRebalancers collectFee {
-    PositionInfo memory _positionInfoBefore = positionInfo();
     Outstanding memory _outstandingBefore = _outstanding();
-    uint256 _stablePositionValue = _positionInfoBefore.positionEquity + _positionInfoBefore.positionDebtValue;
-    uint256 _equityBefore = _positionInfoBefore.positionEquity;
-    uint256 _rebalanceFactor = config.rebalanceFactor(); // bps
-
-    // 2. rebalance executor exec
+    uint256 _equityBefore = totalEquityValue();
+    // 1. rebalance executor exec
     IExecutor(config.rebalanceExecutor()).exec(_data);
 
-    // 3. sanity check
+    // 2. sanity check
     // check if position in a healthy state after rebalancing
     uint256 _equityAfter = totalEquityValue();
     if (!Math.almostEqual(_equityAfter, _equityBefore, config.positionValueTolerance())) {
