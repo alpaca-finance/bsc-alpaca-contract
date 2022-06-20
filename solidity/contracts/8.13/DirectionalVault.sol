@@ -76,6 +76,7 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
   error DeltaNeutralVault_PositionValueExceedLimit();
   error DeltaNeutralVault_WithdrawValueExceedShareValue(uint256 _withdrawValue, uint256 _shareValue);
   error DeltaNeutralVault_IncorrectNativeAmountDeposit();
+  error DeltaNeutralVault_InvalidLpToken();
   error DeltaNeutralVault_InvalidInitializedAddress();
   error DeltaNeutralVault_UnsupportedDecimals(uint256 _decimals);
   error DeltaNeutralVault_InvalidShareAmount();
@@ -165,10 +166,16 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
     address _stableVaultWorker,
     address _lpToken,
     address _alpacaToken,
-    address _assetTOken,
+    address _assetToken,
     IDeltaNeutralOracle _priceOracle,
     IDeltaNeutralVaultConfig02 _config
   ) external initializer {
+    // check if parameters config properly
+    if (_lpToken != address(IWorker(_stableVaultWorker).lpToken())) revert DeltaNeutralVault_InvalidLpToken();
+    if (address(_alpacaToken) == address(0)) revert DeltaNeutralVault_InvalidInitializedAddress();
+    if (address(_priceOracle) == address(0)) revert DeltaNeutralVault_InvalidInitializedAddress();
+    if (address(_config) == address(0)) revert DeltaNeutralVault_InvalidInitializedAddress();
+
     OwnableUpgradeable.__Ownable_init();
     ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
     ERC20Upgradeable.__ERC20_init(_name, _symbol);
@@ -187,11 +194,6 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
     config = _config;
 
     stableTo18ConversionFactor = _to18ConversionFactor(stableToken);
-
-    // check if parameters config properly
-    if (address(alpacaToken) == address(0)) revert DeltaNeutralVault_InvalidInitializedAddress();
-    if (address(priceOracle) == address(0)) revert DeltaNeutralVault_InvalidInitializedAddress();
-    if (address(config) == address(0)) revert DeltaNeutralVault_InvalidInitializedAddress();
   }
 
   /// @notice initialize delta neutral vault positions.
@@ -506,9 +508,9 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
     }
 
     // 2. check Debt value change
-    uint256 _expectedStableDebtChange = (_depositValue * (_leverageLevel - 1));
+    uint256 _expectedDebtChange = (_depositValue * (_leverageLevel - 1));
 
-    if (!Math.almostEqual(_actualStableDebtChange, _expectedStableDebtChange, _toleranceBps)) {
+    if (!Math.almostEqual(_depositValue, _expectedDebtChange, _toleranceBps)) {
       revert DeltaNeutralVault_UnsafeDebtValue();
     }
   }
@@ -529,15 +531,15 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
     uint256 _stableLpWithdrawValue = _lpToValue(_positionInfoBefore.lpAmount - _positionInfoAfter.lpAmount);
 
     // // debt ratio check to prevent closing all out the debt but the equity stay healthy
-    uint256 _totalStablePositionBefore = _positionInfoBefore.positionEquity + _positionInfoBefore.positionDebtValue;
-    uint256 _totalStablePositionAfter = _positionInfoAfter.positionEquity + _positionInfoAfter.positionDebtValue;
+    uint256 _totalPositionValueBefore = _positionInfoBefore.positionEquity + _positionInfoBefore.positionDebtValue;
+    uint256 _totalPositionValueAfter = _positionInfoAfter.positionEquity + _positionInfoAfter.positionDebtValue;
     // debt ratio = debt / position
     // debt after / position after ~= debt b4 / position b4
     // position b4 * debt after = position after * debt b4
     if (
       !Math.almostEqual(
-        _totalStablePositionBefore * _positionInfoAfter.positionDebtValue,
-        _totalStablePositionAfter * _positionInfoBefore.positionDebtValue,
+        _totalPositionValueBefore * _positionInfoAfter.positionDebtValue,
+        _totalPositionValueAfter * _positionInfoBefore.positionDebtValue,
         _debtRationTolerance
       )
     ) {
