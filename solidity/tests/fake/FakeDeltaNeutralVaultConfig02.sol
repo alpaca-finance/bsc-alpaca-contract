@@ -72,14 +72,8 @@ contract FakeDeltaNeutralVaultConfig02 {
   // The path to be used for reinvesting
   address[] public reinvestPath;
 
-  // Mapping of whitelisted rebalancers
-  mapping(address => bool) public whitelistedRebalancers;
-
   // list of exempted callers.
   mapping(address => bool) public feeExemptedCallers;
-
-  // list of reinvestors
-  mapping(address => bool) public whitelistedReinvestors;
 
   // ALPACA treausry
   address public alpacaReinvestFeeTreasury;
@@ -122,26 +116,6 @@ contract FakeDeltaNeutralVaultConfig02 {
     rebalanceFactor = _rebalanceFactor;
     positionValueTolerance = _positionValueTolerance;
     debtRatioTolerance = _debtRatioTolerance;
-  }
-
-  /// @notice Set whitelisted rebalancers.
-  /// @dev Must only be called by owner.
-  /// @param _callers addresses to be whitelisted.
-  /// @param _ok The new ok flag for callers.
-  function setWhitelistedRebalancer(address[] calldata _callers, bool _ok) external {
-    for (uint256 _idx = 0; _idx < _callers.length; _idx++) {
-      whitelistedRebalancers[_callers[_idx]] = _ok;
-    }
-  }
-
-  /// @notice Set whitelisted reinvestors.
-  /// @dev Must only be called by owner.
-  /// @param _callers addresses to be whitelisted.
-  /// @param _ok The new ok flag for callers.
-  function setwhitelistedReinvestors(address[] calldata _callers, bool _ok) external {
-    for (uint256 _idx = 0; _idx < _callers.length; _idx++) {
-      whitelistedReinvestors[_callers[_idx]] = _ok;
-    }
   }
 
   /// @notice Set leverage level.
@@ -259,6 +233,18 @@ contract FakeDeltaNeutralVaultConfig02 {
 
   /// @dev everyone can call
   function whitelistedCallers(
+    address /*_address*/
+  ) external pure returns (bool) {
+    return true;
+  }
+
+  function whitelistedRebalancers(
+    address /*_address*/
+  ) external pure returns (bool) {
+    return true;
+  }
+
+  function whitelistedReinvestors(
     address /*_address*/
   ) external pure returns (bool) {
     return true;

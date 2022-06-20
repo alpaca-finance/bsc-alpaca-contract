@@ -79,18 +79,9 @@ interface DirectionalVaultLike {
 
   function priceOracle() external view returns (address);
 
-  function rebalance(
-    uint8[] memory _actions,
-    uint256[] memory _values,
-    bytes[] memory _datas
-  ) external;
+  function rebalance(bytes memory _data) external;
 
-  function reinvest(
-    uint8[] memory _actions,
-    uint256[] memory _values,
-    bytes[] memory _datas,
-    uint256 _minTokenReceive
-  ) external;
+  function reinvest(bytes memory _data, uint256 _minTokenReceive) external;
 
   function renounceOwnership() external;
 
