@@ -93,7 +93,7 @@ contract DirectionalVault_Test is BaseTest {
     _stableToken.mint(address(_router), 10000 ether);
     _assetToken.mint(address(_router), 10000 ether);
     _alpacaToken.mint(address(_router), 10000 ether);
-    
+
     _stableToken.mint(address(_withdrawExecutor), 10000 ether);
 
     _stableToken.approve(address(_directionalVault), 10000 ether);
@@ -103,7 +103,7 @@ contract DirectionalVault_Test is BaseTest {
     _config.setLeverageLevel(3);
     _config.setParams(address(1), address(2), address(3), 6800, 100, 100);
     _config.setFees(address(this), 0, address(this), 0, address(this), 0);
-    _config.setSwapRouter(address(_router);
+    _config.setSwapRouter(address(_router));
     // _config.setController(address(_controller));
     _config.setExecutor(
       address(_depositExecutor),
