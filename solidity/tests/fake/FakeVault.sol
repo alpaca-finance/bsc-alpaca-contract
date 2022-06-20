@@ -98,4 +98,9 @@ contract FakeVault {
       vaultDebtVal -= maxReturn;
     }
   }
+
+  function setDebt(uint256 _debtShare, uint256 _debtValue) external {
+    vaultDebtShare = _debtShare;
+    vaultDebtVal = _debtValue;
+  }
 }

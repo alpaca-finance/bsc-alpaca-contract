@@ -273,13 +273,11 @@ contract FakeDeltaNeutralVaultConfig02 {
     address _withdrawExecutor,
     address _rebalanceExecutor,
     address _reinvestExecutor
-  ) external onlyOwner {
+  ) external {
     depositExecutor = _depositExecutor;
     withdrawExecutor = _withdrawExecutor;
     rebalanceExecutor = _rebalanceExecutor;
     reinvestExecutor = _reinvestExecutor;
-
-    emit LogSetExecutor(msg.sender, _depositExecutor, _withdrawExecutor, _rebalanceExecutor, _reinvestExecutor);
   }
 
   /// @notice Return if caller is executor.
@@ -292,27 +290,18 @@ contract FakeDeltaNeutralVaultConfig02 {
       _caller == reinvestExecutor;
   }
 
-  function setSwapConfig(uint256 _swapFee, uint256 _swapFeeDenom) external onlyOwner {
+  function setSwapConfig(uint256 _swapFee, uint256 _swapFeeDenom) external {
     swapFee = _swapFee;
     swapFeeDenom = _swapFeeDenom;
-
-    emit LogSetSwapConfig(msg.sender, _swapFee, _swapFeeDenom);
   }
 
   function setStrategies(
     address _partialCloseMinimizeStrategy,
     address _stableAddTwoSideStrategy,
     address _assetAddTwoSideStrategy
-  ) external onlyOwner {
+  ) external {
     partialCloseMinimizeStrategy = _partialCloseMinimizeStrategy;
     stableAddTwoSideStrategy = _stableAddTwoSideStrategy;
     assetAddTwoSideStrategy = _assetAddTwoSideStrategy;
-
-    emit LogSetStrategies(
-      msg.sender,
-      _partialCloseMinimizeStrategy,
-      _stableAddTwoSideStrategy,
-      _assetAddTwoSideStrategy
-    );
   }
 }

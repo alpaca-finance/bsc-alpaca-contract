@@ -10,6 +10,7 @@ import { FakeAutomateVaultController } from "../../fake/FakeAutomateVaultControl
 import { FakeDeltaNeutralOracle } from "../../fake/FakeDeltaNeutralOracle.sol";
 import { FakeVault } from "../../fake/FakeVault.sol";
 import { FakeDeltaNeutralVaultConfig02 } from "../../fake/FakeDeltaNeutralVaultConfig02.sol";
+import { FakeDepositExecutor } from "../../fake/FakeDepositExecutor.sol";
 
 // solhint-disable func-name-mixedcase
 // solhint-disable contract-name-camelcase
@@ -24,6 +25,7 @@ contract DirectionalVault_Test is BaseTest {
   FakeDeltaWorker private _assetVaultWorker;
   FakeDeltaNeutralOracle private _priceOracle;
   FakeDeltaNeutralVaultConfig02 private _config;
+  FakeDepositExecutor private _depositExecutor;
 
   MockErc20Like private _lpToken;
   MockErc20Like private _alpacaToken;
@@ -34,6 +36,7 @@ contract DirectionalVault_Test is BaseTest {
     _priceOracle = new FakeDeltaNeutralOracle();
     _config = new FakeDeltaNeutralVaultConfig02();
     _controller = new FakeAutomateVaultController();
+
     _lpToken = _setupToken("LP TOKEN", "LP", 18);
     _alpacaToken = _setupToken("ALPACA", "ALPACA", 18);
     _stableToken = _setupToken("USDT", "USDT", 18);
@@ -44,8 +47,9 @@ contract DirectionalVault_Test is BaseTest {
     _assetVault = new FakeVault(address(_assetToken), _lpPrice);
 
     _stableVaultWorker = new FakeDeltaWorker(address(_lpToken));
-    _assetVaultWorker = new FakeDeltaWorker(address(_lpToken));
 
+    _depositExecutor = new FakeDepositExecutor(address(_stableVault), address(_stableVaultWorker), _lpPrice);
+    console.log("before setup");
     _directionalVault = _setupDirectionalVault(
       "TEST VAULT",
       "TV",
@@ -53,9 +57,11 @@ contract DirectionalVault_Test is BaseTest {
       address(_stableVaultWorker),
       address(_lpToken),
       address(_alpacaToken),
+      address(_assetToken),
       address(_priceOracle),
       address(_config)
     );
+    console.log("after setup");
     assertEq(_directionalVault.stableToken(), address(_stableToken));
     assertEq(_directionalVault.assetToken(), address(_assetToken));
 
@@ -72,9 +78,29 @@ contract DirectionalVault_Test is BaseTest {
     _config.setParams(address(1), address(2), address(3), 6800, 100, 100);
     _config.setFees(address(this), 0, address(this), 0, address(this), 0);
     // _config.setController(address(_controller));
+    _config.setExecutor(
+      address(_depositExecutor),
+      address(_depositExecutor),
+      address(_depositExecutor),
+      address(_depositExecutor)
+    );
 
     // initPosition();
   }
 
-  function initPosition() internal {}
+  function testCorrectness_InitPosition() external {
+    initPosition();
+  }
+
+  function initPosition() internal {
+    _depositExecutor.setExecutionValue(100 ether, 200 ether);
+    // 3x Position
+    _directionalVault.initPositions(25 ether, 75 ether, 0, abi.encode(0));
+
+    (uint256 _positionEquity, uint256 _positionDebt, ) = _directionalVault.positionInfo();
+
+    assertEq(_positionEquity, 100 ether);
+    assertEq(_positionDebt, 200 ether);
+    assertEq(_directionalVault.balanceOf(address(this)), 100 ether);
+  }
 }

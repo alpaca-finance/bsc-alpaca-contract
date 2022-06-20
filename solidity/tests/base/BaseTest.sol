@@ -285,18 +285,20 @@ contract BaseTest is DSTest {
     address _stableVaultWorker,
     address _lpToken,
     address _alpacaToken,
+    address _assetToken,
     address _priceOracle,
     address _config
   ) internal returns (DirectionalVaultLike) {
     bytes memory _logicBytecode = abi.encodePacked(vm.getCode("./out/DirectionalVault.sol/DirectionalVault.json"));
     bytes memory _initializer = abi.encodeWithSelector(
-      bytes4(keccak256("initialize(string,string,addressaddress,address,address,address,address)")),
+      bytes4(keccak256("initialize(string,string,address,address,address,address,address,address,address)")),
       _name,
       _symbol,
       _stableVault,
       _stableVaultWorker,
       _lpToken,
       _alpacaToken,
+      _assetToken,
       _priceOracle,
       _config
     );
