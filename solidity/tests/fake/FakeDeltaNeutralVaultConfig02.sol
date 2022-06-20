@@ -72,14 +72,8 @@ contract FakeDeltaNeutralVaultConfig02 {
   // The path to be used for reinvesting
   address[] public reinvestPath;
 
-  // Mapping of whitelisted rebalancers
-  mapping(address => bool) public whitelistedRebalancers;
-
   // list of exempted callers.
   mapping(address => bool) public feeExemptedCallers;
-
-  // list of reinvestors
-  mapping(address => bool) public whitelistedReinvestors;
 
   // ALPACA treausry
   address public alpacaReinvestFeeTreasury;
@@ -92,6 +86,21 @@ contract FakeDeltaNeutralVaultConfig02 {
 
   // Automated vault controller
   address public controller;
+
+  /// Executor
+  address public depositExecutor;
+  address public withdrawExecutor;
+  address public rebalanceExecutor;
+  address public reinvestExecutor;
+
+  /// swap config
+  uint256 public swapFee;
+  uint256 public swapFeeDenom;
+
+  /// Strategies
+  address public partialCloseMinimizeStrategy;
+  address public stableAddTwoSideStrategy;
+  address public assetAddTwoSideStrategy;
 
   function setParams(
     address _getWrappedNativeAddr,
@@ -107,26 +116,6 @@ contract FakeDeltaNeutralVaultConfig02 {
     rebalanceFactor = _rebalanceFactor;
     positionValueTolerance = _positionValueTolerance;
     debtRatioTolerance = _debtRatioTolerance;
-  }
-
-  /// @notice Set whitelisted rebalancers.
-  /// @dev Must only be called by owner.
-  /// @param _callers addresses to be whitelisted.
-  /// @param _ok The new ok flag for callers.
-  function setWhitelistedRebalancer(address[] calldata _callers, bool _ok) external {
-    for (uint256 _idx = 0; _idx < _callers.length; _idx++) {
-      whitelistedRebalancers[_callers[_idx]] = _ok;
-    }
-  }
-
-  /// @notice Set whitelisted reinvestors.
-  /// @dev Must only be called by owner.
-  /// @param _callers addresses to be whitelisted.
-  /// @param _ok The new ok flag for callers.
-  function setwhitelistedReinvestors(address[] calldata _callers, bool _ok) external {
-    for (uint256 _idx = 0; _idx < _callers.length; _idx++) {
-      whitelistedReinvestors[_callers[_idx]] = _ok;
-    }
   }
 
   /// @notice Set leverage level.
@@ -230,10 +219,6 @@ contract FakeDeltaNeutralVaultConfig02 {
   /// @dev Set the reinvest path.
   /// @param _reinvestPath - The reinvest path to update.
   function setReinvestPath(address[] calldata _reinvestPath) external {
-    if (_reinvestPath.length < 2) revert DeltaNeutralVaultConfig_InvalidReinvestPathLength();
-
-    if (_reinvestPath[0] != alpacaToken) revert DeltaNeutralVaultConfig_InvalidReinvestPath();
-
     reinvestPath = _reinvestPath;
   }
 
@@ -249,7 +234,56 @@ contract FakeDeltaNeutralVaultConfig02 {
     return true;
   }
 
+  function whitelistedRebalancers(
+    address /*_address*/
+  ) external pure returns (bool) {
+    return true;
+  }
+
+  function whitelistedReinvestors(
+    address /*_address*/
+  ) external pure returns (bool) {
+    return true;
+  }
+
   function setController(address _controller) external {
     controller = _controller;
+  }
+
+  function setExecutor(
+    address _depositExecutor,
+    address _withdrawExecutor,
+    address _rebalanceExecutor,
+    address _reinvestExecutor
+  ) external {
+    depositExecutor = _depositExecutor;
+    withdrawExecutor = _withdrawExecutor;
+    rebalanceExecutor = _rebalanceExecutor;
+    reinvestExecutor = _reinvestExecutor;
+  }
+
+  /// @notice Return if caller is executor.
+  /// @param _caller caller.
+  function isExecutor(address _caller) external view returns (bool) {
+    return
+      _caller == depositExecutor ||
+      _caller == withdrawExecutor ||
+      _caller == rebalanceExecutor ||
+      _caller == reinvestExecutor;
+  }
+
+  function setSwapConfig(uint256 _swapFee, uint256 _swapFeeDenom) external {
+    swapFee = _swapFee;
+    swapFeeDenom = _swapFeeDenom;
+  }
+
+  function setStrategies(
+    address _partialCloseMinimizeStrategy,
+    address _stableAddTwoSideStrategy,
+    address _assetAddTwoSideStrategy
+  ) external {
+    partialCloseMinimizeStrategy = _partialCloseMinimizeStrategy;
+    stableAddTwoSideStrategy = _stableAddTwoSideStrategy;
+    assetAddTwoSideStrategy = _assetAddTwoSideStrategy;
   }
 }
