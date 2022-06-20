@@ -524,11 +524,7 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
     PositionInfo memory _positionInfoBefore,
     PositionInfo memory _positionInfoAfter
   ) internal view {
-    uint256 _positionValueTolerance = config.positionValueTolerance();
     uint256 _debtRationTolerance = config.debtRatioTolerance();
-
-    uint256 _totalEquityBefore = _positionInfoBefore.positionEquity;
-    uint256 _stableLpWithdrawValue = _lpToValue(_positionInfoBefore.lpAmount - _positionInfoAfter.lpAmount);
 
     // // debt ratio check to prevent closing all out the debt but the equity stay healthy
     uint256 _totalPositionValueBefore = _positionInfoBefore.positionEquity + _positionInfoBefore.positionDebtValue;
