@@ -57,7 +57,7 @@ contract DirectionalVault_Test is BaseTest {
       _lpPrice,
       address(_stableToken)
     );
-    console.log("before setup");
+
     _directionalVault = _setupDirectionalVault(
       "TEST VAULT",
       "TV",
@@ -69,7 +69,7 @@ contract DirectionalVault_Test is BaseTest {
       address(_priceOracle),
       address(_config)
     );
-    console.log("after setup");
+
     assertEq(_directionalVault.stableToken(), address(_stableToken));
     assertEq(_directionalVault.assetToken(), address(_assetToken));
 
