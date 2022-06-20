@@ -11,6 +11,7 @@ import { FakeDeltaNeutralOracle } from "../../fake/FakeDeltaNeutralOracle.sol";
 import { FakeVault } from "../../fake/FakeVault.sol";
 import { FakeDeltaNeutralVaultConfig02 } from "../../fake/FakeDeltaNeutralVaultConfig02.sol";
 import { FakeDepositExecutor } from "../../fake/FakeDepositExecutor.sol";
+import { FakeWithdrawExecutor } from "../../fake/FakeWithdrawExecutor.sol";
 
 // solhint-disable func-name-mixedcase
 // solhint-disable contract-name-camelcase
@@ -26,6 +27,7 @@ contract DirectionalVault_Test is BaseTest {
   FakeDeltaNeutralOracle private _priceOracle;
   FakeDeltaNeutralVaultConfig02 private _config;
   FakeDepositExecutor private _depositExecutor;
+  FakeWithdrawExecutor private _withdrawExecutor;
 
   MockErc20Like private _lpToken;
   MockErc20Like private _alpacaToken;
@@ -49,6 +51,12 @@ contract DirectionalVault_Test is BaseTest {
     _stableVaultWorker = new FakeDeltaWorker(address(_lpToken));
 
     _depositExecutor = new FakeDepositExecutor(address(_stableVault), address(_stableVaultWorker), _lpPrice);
+    _withdrawExecutor = new FakeWithdrawExecutor(
+      address(_stableVault),
+      address(_stableVaultWorker),
+      _lpPrice,
+      address(_stableToken)
+    );
     console.log("before setup");
     _directionalVault = _setupDirectionalVault(
       "TEST VAULT",
@@ -69,6 +77,7 @@ contract DirectionalVault_Test is BaseTest {
     _assetToken.mint(address(this), 10000 ether);
     _stableToken.mint(address(_directionalVault), 10000 ether);
     _assetToken.mint(address(_directionalVault), 10000 ether);
+    _stableToken.mint(address(_withdrawExecutor), 10000 ether);
 
     _stableToken.approve(address(_directionalVault), 10000 ether);
     _assetToken.approve(address(_directionalVault), 10000 ether);
@@ -80,22 +89,16 @@ contract DirectionalVault_Test is BaseTest {
     // _config.setController(address(_controller));
     _config.setExecutor(
       address(_depositExecutor),
-      address(_depositExecutor),
+      address(_withdrawExecutor),
       address(_depositExecutor),
       address(_depositExecutor)
     );
 
-    initPosition();
+    _initPosition();
   }
 
   function testCorrectness_depositShouldWorkIfBorrowAmountIsCorrect() external {
-    uint256 _depositValue = 100 ether;
-    uint256 _borrowValue = _depositValue * 2; // 3x leverage
-
-    _depositExecutor.setExecutionValue(_depositValue, _borrowValue);
-    _directionalVault.deposit(100 ether, 0, ALICE, 100 ether, abi.encode(0));
-
-    assertEq(_directionalVault.balanceOf(ALICE), 100 ether);
+    _depositForAlice();
   }
 
   function testRevert_depositShouldRevertIfBorrowValueIsOff() external {
@@ -114,7 +117,37 @@ contract DirectionalVault_Test is BaseTest {
     _directionalVault.deposit(100 ether, 0, ALICE, 100 ether, abi.encode(0));
   }
 
-  function initPosition() internal {
+  function testCorrectness_withdrawShouldWork() external {
+    _depositForAlice();
+
+    uint256 _withdrawValue = 100 ether;
+    uint256 _repayDebtValue = _withdrawValue * 2; // 3x leverage
+
+    _withdrawExecutor.setExecutionValue(_withdrawValue, _repayDebtValue);
+
+    vm.prank(ALICE);
+    // Withdraw executor will always return stable
+    _directionalVault.withdraw(100 ether, 100, 0, abi.encode(0));
+
+    assertEq(_directionalVault.balanceOf(ALICE), 0 ether);
+    assertEq(_stableToken.balanceOf(ALICE), 100 ether);
+  }
+
+  function testRevert_withdrawShouldRevertIfDebtRatioIsOff() external {
+    _depositForAlice();
+
+    uint256 _withdrawValue = 100 ether;
+    uint256 _repayDebtValue = _withdrawValue * 1; // 3x leverage
+
+    _withdrawExecutor.setExecutionValue(_withdrawValue, _repayDebtValue);
+
+    vm.prank(ALICE);
+    // Withdraw executor will always return stable
+    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault_UnsafeDebtRatio()"));
+    _directionalVault.withdraw(100 ether, 100, 0, abi.encode(0));
+  }
+
+  function _initPosition() internal {
     _depositExecutor.setExecutionValue(100 ether, 200 ether);
     // 3x Position
     _directionalVault.initPositions(25 ether, 75 ether, 0, abi.encode(0));
@@ -124,5 +157,15 @@ contract DirectionalVault_Test is BaseTest {
     assertEq(_positionEquity, 100 ether);
     assertEq(_positionDebt, 200 ether);
     assertEq(_directionalVault.balanceOf(address(this)), 100 ether);
+  }
+
+  function _depositForAlice() internal {
+    uint256 _depositValue = 100 ether;
+    uint256 _borrowValue = _depositValue * 2; // 3x leverage
+
+    _depositExecutor.setExecutionValue(_depositValue, _borrowValue);
+    _directionalVault.deposit(100 ether, 0, ALICE, 100 ether, abi.encode(0));
+
+    assertEq(_directionalVault.balanceOf(ALICE), 100 ether);
   }
 }
