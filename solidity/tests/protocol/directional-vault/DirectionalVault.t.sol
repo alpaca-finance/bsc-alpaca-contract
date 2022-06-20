@@ -85,11 +85,33 @@ contract DirectionalVault_Test is BaseTest {
       address(_depositExecutor)
     );
 
-    // initPosition();
+    initPosition();
   }
 
-  function testCorrectness_InitPosition() external {
-    initPosition();
+  function testCorrectness_depositShouldWorkIfBorrowAmountIsCorrect() external {
+    uint256 _depositValue = 100 ether;
+    uint256 _borrowValue = _depositValue * 2; // 3x leverage
+
+    _depositExecutor.setExecutionValue(_depositValue, _borrowValue);
+    _directionalVault.deposit(100 ether, 0, ALICE, 100 ether, abi.encode(0));
+
+    assertEq(_directionalVault.balanceOf(ALICE), 100 ether);
+  }
+
+  function testRevert_depositShouldRevertIfBorrowValueIsOff() external {
+    uint256 _depositValue = 100 ether;
+    uint256 _borrowValue = _depositValue * 3; // 4x leverage
+
+    _depositExecutor.setExecutionValue(_depositValue, _borrowValue);
+
+    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault_UnsafeDebtValue()"));
+    _directionalVault.deposit(100 ether, 0, ALICE, 100 ether, abi.encode(0));
+
+    _borrowValue = _depositValue * 1; // 1x leverage
+    _depositExecutor.setExecutionValue(_depositValue, _borrowValue);
+
+    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault_UnsafeDebtValue()"));
+    _directionalVault.deposit(100 ether, 0, ALICE, 100 ether, abi.encode(0));
   }
 
   function initPosition() internal {
