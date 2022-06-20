@@ -104,7 +104,7 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
   uint256 public stableTo18ConversionFactor;
   uint256 public assetTo18ConversionFactor;
 
-  address private lpToken;
+  address public lpToken;
   address public stableVault;
 
   address public stableVaultWorker;
