@@ -61,7 +61,6 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
 
   // --- Errors ---
   error DeltaNeutralVault_BadReinvestPath();
-  error DeltaNeutralVault_BadActionSize();
   error DeltaNeutralVault_Unauthorized(address _caller);
   error DeltaNeutralVault_PositionsAlreadyInitialized();
   error DeltaNeutralVault_PositionsNotInitialized();
@@ -71,14 +70,12 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
   error DeltaNeutralVault_UnsafeDebtValue();
   error DeltaNeutralVault_UnsafeDebtRatio();
   error DeltaNeutralVault_UnsafeOutstanding(address _token, uint256 _amountBefore, uint256 _amountAfter);
-  error DeltaNeutralVault_PositionsIsHealthy();
   error DeltaNeutralVault_InsufficientTokenReceived(address _token, uint256 _requiredAmount, uint256 _receivedAmount);
   error DeltaNeutralVault_InsufficientShareReceived(uint256 _requiredAmount, uint256 _receivedAmount);
   error DeltaNeutralVault_UnTrustedPrice();
   error DeltaNeutralVault_PositionValueExceedLimit();
   error DeltaNeutralVault_WithdrawValueExceedShareValue(uint256 _withdrawValue, uint256 _shareValue);
   error DeltaNeutralVault_IncorrectNativeAmountDeposit();
-  error DeltaNeutralVault_InvalidLpToken();
   error DeltaNeutralVault_InvalidInitializedAddress();
   error DeltaNeutralVault_UnsupportedDecimals(uint256 _decimals);
   error DeltaNeutralVault_InvalidShareAmount();
