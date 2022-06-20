@@ -13,9 +13,8 @@ Alpaca Fin Corporation
 
 pragma solidity 0.8.13;
 
-import "../../interfaces/MockErc20Like.sol";
+import "../interfaces/MockErc20Like.sol";
 import { FakeDeltaWorker } from "./FakeDeltaWorker.sol";
-import "../../utils/console.sol";
 
 /// @title FakeDeltaWorker : A fake worker used for unit testing
 contract FakeVault {
