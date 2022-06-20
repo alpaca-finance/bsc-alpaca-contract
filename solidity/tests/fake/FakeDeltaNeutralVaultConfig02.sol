@@ -93,6 +93,21 @@ contract FakeDeltaNeutralVaultConfig02 {
   // Automated vault controller
   address public controller;
 
+  /// Executor
+  address public depositExecutor;
+  address public withdrawExecutor;
+  address public rebalanceExecutor;
+  address public reinvestExecutor;
+
+  /// swap config
+  uint256 public swapFee;
+  uint256 public swapFeeDenom;
+
+  /// Strategies
+  address public partialCloseMinimizeStrategy;
+  address public stableAddTwoSideStrategy;
+  address public assetAddTwoSideStrategy;
+
   function setParams(
     address _getWrappedNativeAddr,
     address _getWNativeRelayer,
@@ -251,5 +266,53 @@ contract FakeDeltaNeutralVaultConfig02 {
 
   function setController(address _controller) external {
     controller = _controller;
+  }
+
+  function setExecutor(
+    address _depositExecutor,
+    address _withdrawExecutor,
+    address _rebalanceExecutor,
+    address _reinvestExecutor
+  ) external onlyOwner {
+    depositExecutor = _depositExecutor;
+    withdrawExecutor = _withdrawExecutor;
+    rebalanceExecutor = _rebalanceExecutor;
+    reinvestExecutor = _reinvestExecutor;
+
+    emit LogSetExecutor(msg.sender, _depositExecutor, _withdrawExecutor, _rebalanceExecutor, _reinvestExecutor);
+  }
+
+  /// @notice Return if caller is executor.
+  /// @param _caller caller.
+  function isExecutor(address _caller) external view returns (bool) {
+    return
+      _caller == depositExecutor ||
+      _caller == withdrawExecutor ||
+      _caller == rebalanceExecutor ||
+      _caller == reinvestExecutor;
+  }
+
+  function setSwapConfig(uint256 _swapFee, uint256 _swapFeeDenom) external onlyOwner {
+    swapFee = _swapFee;
+    swapFeeDenom = _swapFeeDenom;
+
+    emit LogSetSwapConfig(msg.sender, _swapFee, _swapFeeDenom);
+  }
+
+  function setStrategies(
+    address _partialCloseMinimizeStrategy,
+    address _stableAddTwoSideStrategy,
+    address _assetAddTwoSideStrategy
+  ) external onlyOwner {
+    partialCloseMinimizeStrategy = _partialCloseMinimizeStrategy;
+    stableAddTwoSideStrategy = _stableAddTwoSideStrategy;
+    assetAddTwoSideStrategy = _assetAddTwoSideStrategy;
+
+    emit LogSetStrategies(
+      msg.sender,
+      _partialCloseMinimizeStrategy,
+      _stableAddTwoSideStrategy,
+      _assetAddTwoSideStrategy
+    );
   }
 }
