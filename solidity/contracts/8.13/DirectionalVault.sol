@@ -510,7 +510,9 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
     // 2. check Debt value change
     uint256 _expectedDebtChange = (_depositValue * (_leverageLevel - 1));
 
-    if (!Math.almostEqual(_depositValue, _expectedDebtChange, _toleranceBps)) {
+    uint256 _actualDebtChange = _positionInfoAfter.positionDebtValue - _positionInfoBefore.positionDebtValue;
+
+    if (!Math.almostEqual(_actualDebtChange, _expectedDebtChange, _toleranceBps)) {
       revert DeltaNeutralVault_UnsafeDebtValue();
     }
   }
