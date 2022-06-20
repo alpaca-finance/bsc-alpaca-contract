@@ -35,6 +35,8 @@ contract FakeVault {
   // need this for convienience
   uint256 public lpPrice;
 
+  uint256 public fairLaunchPoolId;
+
   constructor(address _token, uint256 _lpPrice) {
     token = _token;
     lpPrice = _lpPrice;

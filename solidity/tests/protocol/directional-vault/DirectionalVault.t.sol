@@ -13,7 +13,9 @@ import { FakeDeltaNeutralVaultConfig02 } from "../../fake/FakeDeltaNeutralVaultC
 import { FakeDepositExecutor } from "../../fake/FakeDepositExecutor.sol";
 import { FakeWithdrawExecutor } from "../../fake/FakeWithdrawExecutor.sol";
 import { FakeRebalanceExecutor } from "../../fake/FakeRebalanceExecutor.sol";
+import { FakeReinvestExecutor } from "../../fake/FakeReinvestExecutor.sol";
 import { FakeRouter } from "../../fake/FakeRouter.sol";
+import { FakeFairLaunch } from "../../fake/FakeFairLaunch.sol";
 
 // solhint-disable func-name-mixedcase
 // solhint-disable contract-name-camelcase
@@ -31,7 +33,9 @@ contract DirectionalVault_Test is BaseTest {
   FakeDepositExecutor private _depositExecutor;
   FakeWithdrawExecutor private _withdrawExecutor;
   FakeRebalanceExecutor private _rebalanceExecutor;
+  FakeReinvestExecutor private _reinvestExecutor;
   FakeRouter private _router;
+  FakeFairLaunch private _fairLaunch;
 
   MockErc20Like private _lpToken;
   MockErc20Like private _alpacaToken;
@@ -65,8 +69,11 @@ contract DirectionalVault_Test is BaseTest {
     );
 
     _rebalanceExecutor = new FakeRebalanceExecutor(address(_stableVault), address(_stableVaultWorker), _lpPrice);
+    _reinvestExecutor = new FakeReinvestExecutor(address(_stableVault), address(_stableVaultWorker), _lpPrice);
 
     _router = new FakeRouter();
+
+    _fairLaunch = new FakeFairLaunch();
     // Setup Directional Vault
 
     _directionalVault = _setupDirectionalVault(
@@ -101,15 +108,22 @@ contract DirectionalVault_Test is BaseTest {
 
     // Config: set important config
     _config.setLeverageLevel(3);
-    _config.setParams(address(1), address(2), address(3), 6800, 100, 100);
+    _config.setParams(address(1), address(2), address(_fairLaunch), 6800, 100, 100);
     _config.setFees(address(this), 0, address(this), 0, address(this), 0);
     _config.setSwapRouter(address(_router));
+    _config.setAlpacaBountyConfig(address(this), 0);
+
+    address[] memory _reinvestPath = new address[](2);
+    _reinvestPath[0] = address(_alpacaToken);
+    _reinvestPath[1] = address(_stableToken);
+
+    _config.setReinvestPath(_reinvestPath);
     // _config.setController(address(_controller));
     _config.setExecutor(
       address(_depositExecutor),
       address(_withdrawExecutor),
       address(_rebalanceExecutor),
-      address(_depositExecutor)
+      address(_reinvestExecutor)
     );
 
     _initPosition();
@@ -165,7 +179,7 @@ contract DirectionalVault_Test is BaseTest {
     _directionalVault.withdraw(100 ether, 100, 0, abi.encode(0));
   }
 
-  function testCorrectness_RebalanceShouldWorkIfEquityIsNotLoss() external {
+  function testCorrectness_RebalanceShouldWorkIfEquityIsNotLost() external {
     _stableVault.setDebt(100 ether, 100 ether);
 
     _rebalanceExecutor.setExecutionValue(600 ether, 400 ether);
@@ -179,6 +193,21 @@ contract DirectionalVault_Test is BaseTest {
     _rebalanceExecutor.setExecutionValue(500 ether, 400 ether);
     vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault_UnsafePositionValue()"));
     _directionalVault.rebalance(abi.encode(0));
+  }
+
+  function testCorrectness_ReinvestShouldWorkIfEquityIsNotLost() external {
+    _alpacaToken.mint(address(_directionalVault), 100 ether);
+    _reinvestExecutor.setExecutionValue(600 ether, 400 ether);
+
+    _directionalVault.reinvest(abi.encode(0), 0);
+  }
+
+  function testRevert_ReinvestShouldRevertIfEquityIsLost() external {
+    _alpacaToken.mint(address(_directionalVault), 100 ether);
+    _reinvestExecutor.setExecutionValue(300 ether, 250 ether);
+
+    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault_UnsafePositionEquity()"));
+    _directionalVault.reinvest(abi.encode(0), 0);
   }
 
   function _initPosition() internal {

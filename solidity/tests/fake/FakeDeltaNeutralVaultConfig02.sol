@@ -219,10 +219,6 @@ contract FakeDeltaNeutralVaultConfig02 {
   /// @dev Set the reinvest path.
   /// @param _reinvestPath - The reinvest path to update.
   function setReinvestPath(address[] calldata _reinvestPath) external {
-    if (_reinvestPath.length < 2) revert DeltaNeutralVaultConfig_InvalidReinvestPathLength();
-
-    if (_reinvestPath[0] != alpacaToken) revert DeltaNeutralVaultConfig_InvalidReinvestPath();
-
     reinvestPath = _reinvestPath;
   }
 
