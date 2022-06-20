@@ -168,6 +168,7 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
     address _stableVaultWorker,
     address _lpToken,
     address _alpacaToken,
+    address _assetTOken,
     IDeltaNeutralOracle _priceOracle,
     IDeltaNeutralVaultConfig02 _config
   ) external initializer {
@@ -178,6 +179,7 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
     stableVault = _stableVault;
 
     stableToken = IVault(_stableVault).token();
+    assetToken = _assetToken;
     alpacaToken = _alpacaToken;
 
     stableVaultWorker = _stableVaultWorker;
@@ -506,19 +508,7 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
       revert DeltaNeutralVault_PositionValueExceedLimit();
     }
 
-    // 2. check equity change
-    // _expectedStableEqChange = _depositValue;
-
-    uint256 _actualStableDebtChange = _positionInfoAfter.positionDebtValue - _positionInfoBefore.positionDebtValue;
-
-    uint256 _actualStableEqChange = _lpToValue(_positionInfoAfter.lpAmount - _positionInfoBefore.lpAmount) -
-      _actualStableDebtChange;
-
-    if (!Math.almostEqual(_actualStableEqChange, _depositValue, _toleranceBps)) {
-      revert DeltaNeutralVault_UnsafePositionEquity();
-    }
-
-    // 3. check Debt value
+    // 2. check Debt value change
     uint256 _expectedStableDebtChange = (_depositValue * (_leverageLevel - 1));
 
     if (!Math.almostEqual(_actualStableDebtChange, _expectedStableDebtChange, _toleranceBps)) {
