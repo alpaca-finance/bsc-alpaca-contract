@@ -406,7 +406,7 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
     }
 
     // sanity check
-    _withdrawHealthCheck(_withdrawShareValue, _positionInfoBefore, _positionInfoAfter);
+    _withdrawHealthCheck(_positionInfoBefore, _positionInfoAfter);
     _outstandingCheck(_outstandingBefore, _outstandingAfter);
 
     _transferTokenToShareOwner(msg.sender, stableToken, _stableTokenBack);
@@ -518,14 +518,12 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
   }
 
   /// @notice Check if position equity and debt ratio are healthy after withdraw.
-  /// @param _withdrawValue Withdraw value in usd.
   /// @param _positionInfoBefore Position equity and debt before deposit.
   /// @param _positionInfoAfter Position equity and debt after deposit.
-  function _withdrawHealthCheck(
-    uint256 _withdrawValue,
-    PositionInfo memory _positionInfoBefore,
-    PositionInfo memory _positionInfoAfter
-  ) internal view {
+  function _withdrawHealthCheck(PositionInfo memory _positionInfoBefore, PositionInfo memory _positionInfoAfter)
+    internal
+    view
+  {
     uint256 _debtRationTolerance = config.debtRatioTolerance();
 
     // // debt ratio check to prevent closing all out the debt but the equity stay healthy
