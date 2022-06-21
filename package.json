@@ -315,6 +315,7 @@
     "deploy:fantom_mainnet:delta-neutral-worker:config:set-whitelist-callers": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags DeltaNeutralWorkerSetWhitelistCallers",
     "deploy:fantom_mainnet:vault-config:config:set-whitelisted-callers": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags SetWhitelistedCallers",
     "deploy:fantom_mainnet:delta-neutral-vault:config:init-positions": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags DeltaNeutralVaultInitPositions",
+    "deploy:fantom_mainnet:delta-neutral-vault:upgrade:delta-neutral-vault": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags UpgradeDeltaNeutralVault",
     "deploy:fantom_mainnet:revenue-treasury:deploy:revenue-treasury": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags RevenueTreasury",
     "deploy:mainnetfork": "hardhat --network mainnetfork deploy --no-compile --reset",
     "deploy:fantom_mainnetfork": "hardhat --network fantom_mainnetfork deploy --no-compile --reset",
