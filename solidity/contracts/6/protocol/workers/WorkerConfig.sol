@@ -162,10 +162,8 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
     address positionOwner
   ) external view override returns (uint256) {
     require(isStable(worker), "WorkerConfig::workFactor:: !stable");
-    uint256 _boostedWorkFactor = INFTBoostedLeverageController(nftBoostedLeverageController).getBoostedWorkFactor(
-      positionOwner,
-      worker
-    );
+    if (address(nftBoostedLeverageController) == address(0)) return uint256(workers[worker].workFactor);
+    uint256 _boostedWorkFactor = nftBoostedLeverageController.getBoostedWorkFactor(positionOwner, worker);
     return _boostedWorkFactor > 0 ? _boostedWorkFactor : uint256(workers[worker].workFactor);
   }
 
@@ -184,10 +182,8 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
     address positionOwner
   ) external view override returns (uint256) {
     require(isStable(worker), "WorkerConfig::killFactor:: !stable");
-    uint256 _boostedKillFactor = INFTBoostedLeverageController(nftBoostedLeverageController).getBoostedKillFactor(
-      positionOwner,
-      worker
-    );
+    if (address(nftBoostedLeverageController) == address(0)) return uint256(workers[worker].killFactor);
+    uint256 _boostedKillFactor = nftBoostedLeverageController.getBoostedKillFactor(positionOwner, worker);
     return _boostedKillFactor > 0 ? _boostedKillFactor : uint256(workers[worker].killFactor);
   }
 
@@ -204,10 +200,8 @@ contract WorkerConfig is OwnableUpgradeSafe, IWorkerConfig {
     uint256, /* debt */
     address positionOwner
   ) external view override returns (uint256) {
-    uint256 _boostedKillFactor = INFTBoostedLeverageController(nftBoostedLeverageController).getBoostedKillFactor(
-      positionOwner,
-      worker
-    );
+    if (address(nftBoostedLeverageController) == address(0)) return uint256(workers[worker].killFactor);
+    uint256 _boostedKillFactor = nftBoostedLeverageController.getBoostedKillFactor(positionOwner, worker);
     return _boostedKillFactor > 0 ? _boostedKillFactor : uint256(workers[worker].killFactor);
   }
 
