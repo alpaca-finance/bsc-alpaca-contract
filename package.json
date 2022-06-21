@@ -1,6 +1,6 @@
 {
   "name": "@alpaca-finance/alpaca-contract",
-  "version": "1.2.34",
+  "version": "1.2.36",
   "scripts": {
     "prepublish": "yarn build && rm ./typechain/index.*",
     "build": "yarn run build:cjs",
@@ -115,6 +115,7 @@
     "deploy:mainnet:strategies:deploy:biswap:vault-strategies": "hardhat --network mainnet deploy --no-compile --reset --tags BiswapVaultStrategies",
     "deploy:mainnet:delta-neutral-vault-config:deploy:delta-neutral-vault-config02": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralVaultConfig02",
     "deploy:mainnet:delta-neutral-vault:deploy:delta-neutral-vault02": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralVault02",
+    "deploy:mainnet:delta-neutral-vault:deploy:delta-neutral-vault03": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralVault03",
     "deploy:mainnet:creditor:deploy:xalpaca-creditor": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags XAlpacaCreditor",
     "deploy:mainnet:creditor:config:xalpaca-creditor-set-param": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags XAlpacaCreditorSetParam",
     "deploy:mainnet:av-controller:deploy:av-controller": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags AVController",
@@ -239,6 +240,8 @@
     "deploy:mainnetfork:delta-neutral:configs:worker:set-whitelist-caller": "hardhat --network mainnetfork deploy --config hardhat.config.8.10.forking.ts --no-compile --reset --tags DeltaNeutralWorkerSetWhitelistCallers",
     "deploy:mainnetfork:vault-config:config:set-whitelisted-callers": "hardhat --network mainnetfork deploy --config hardhat.config.8.10.forking.ts --no-compile --reset --tags SetWhitelistedCallers",
     "deploy:mainnetfork:delta-neutral-vault-config:deploy:delta-neutral-vault-config02": "hardhat --network mainnetfork deploy --no-compile --reset --tags DeltaNeutralVaultConfig02",
+    "deploy:mainnetfork:delta-neutral-vault-03:deploy:delta-neutral-vault-03": "hardhat --network mainnetfork deploy --no-compile --reset --tags DeltaNeutralVault03",
+    "deploy:mainnetfork:delta-neutral-vault:upgrade:delta-neutral-vault": "hardhat --network mainnetfork deploy --no-compile --reset --tags UpgradeDeltaNeutralVault",
     "deploy:mainnetfork:XAlpacaCreditor": "hardhat --network mainnetfork deploy --config hardhat.config.ts --no-compile --reset --tags XAlpacaCreditor",
     "deploy:mainnetfork:AVController": "hardhat --network mainnetfork deploy --config hardhat.config.ts --no-compile --reset --tags AVController",
     "deploy:mainnetfork:config:set-params:AVController": "hardhat --network mainnetfork deploy --config hardhat.config.ts --no-compile --reset --tags AVControllerSetParams",
@@ -319,6 +322,7 @@
     "deploy:fantom_mainnet:delta-neutral-worker:config:set-whitelist-callers": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags DeltaNeutralWorkerSetWhitelistCallers",
     "deploy:fantom_mainnet:vault-config:config:set-whitelisted-callers": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags SetWhitelistedCallers",
     "deploy:fantom_mainnet:delta-neutral-vault:config:init-positions": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags DeltaNeutralVaultInitPositions",
+    "deploy:fantom_mainnet:delta-neutral-vault:upgrade:delta-neutral-vault": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags UpgradeDeltaNeutralVault",
     "deploy:fantom_mainnet:revenue-treasury:deploy:revenue-treasury": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags RevenueTreasury",
     "deploy:fantom_mainnet:strategies:deploy:spookyswap:dnx-vault-strategies": "hardhat --network fantom_mainnet deploy --config --no-compile --reset --tags SpookySwapDnxVaultStrategies",
     "deploy:fantom_mainnet:delta-neutral-vault-config:upgrade:delta-neutral-vault-config": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags UpgradeDeltaNeutralVaultConfig",
