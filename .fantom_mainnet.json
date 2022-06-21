@@ -606,5 +606,12 @@
       "assetVaultPosId": "3042",
       "stableVaultPosId": "1983"
     }
-  ]
+  ],
+
+  "AutomatedVaultExecutor" : {
+    "deposit":"",
+    "withdraw":"",
+    "reinvest":"",
+    "rebalance":""
+  }
 }

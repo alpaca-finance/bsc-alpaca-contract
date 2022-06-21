@@ -4796,14 +4796,23 @@
       "stableVaultPosId": "47579"
     }
   ],
+  
   "Creditors": [
     {
       "name": "xALPACACreditor",
       "address": "0xeDdD248FEe5ff98e532c3A4087C83F6e376eEDa7"
     }
   ],
+
   "AutomatedVaultController": {
     "address": "0xfd0694a29871Ee629D51cF4079842382368f1e15",
     "creditors": ["0xeDdD248FEe5ff98e532c3A4087C83F6e376eEDa7"]
+  },
+
+  "AutomatedVaultExecutor" : {
+    "deposit":"",
+    "withdraw":"",
+    "reinvest":"",
+    "rebalance":""
   }
 }
