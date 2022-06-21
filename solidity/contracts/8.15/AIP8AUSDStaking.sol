@@ -19,6 +19,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
 import { IFairLaunch } from "./interfaces/IFairLaunch.sol";
+import { console } from "../../tests/utils/console.sol";
 
 /// @title AIP8AUSDStaking is a staking contract for users to stake AUSD-3EPS LP Token to obtain
 /// the allocation for Private Automated Vaults of Alpaca Finance. This contract is implemented as part of the AIP-8.
@@ -66,9 +67,8 @@ contract AIP8AUSDStaking is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     // Perform first deposit to AUSD3EPS pool at Alpaca's Fairlaunch
     fairlaunch.deposit(address(this), pid, 0);
 
-    // Update current `accAlpacaPerShare`
-    (, , , uint256 _accAlpacaPerShare, ) = fairlaunch.poolInfo(pid);
-    accAlpacaPerShare = _accAlpacaPerShare;
+    // Set initial `accAlpacaPerShare`
+    accAlpacaPerShare = 0;
 
     // Approve max allowance to Fairlaunch
     stakingToken.approve(address(fairlaunch), type(uint256).max);
@@ -94,13 +94,14 @@ contract AIP8AUSDStaking is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     }
 
     // EFFECT
-    // 2. Update UserInfo
-    _userInfo.stakingAmount += _amount;
-    _userInfo.lockUntil = _lockUntil;
+    // 2. Harvest from Fairlaunch
+    _harvest();
+    // 3. Update UserInfo
+    userInfo[msg.sender].stakingAmount += _amount;
+    userInfo[msg.sender].lockUntil = _lockUntil;
+    userInfo[msg.sender].alpacaRewardDebt = (userInfo[msg.sender].stakingAmount * accAlpacaPerShare) / 1e12;
 
     // INTERACTION
-    // 3. Harvest from Fairlaunch and update user's reward debt
-    _harvest();
     if (_amount > 0) {
       // 4. Request AUSD3EPS from user
       stakingToken.safeTransferFrom(msg.sender, address(this), _amount);
@@ -139,16 +140,22 @@ contract AIP8AUSDStaking is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     uint256 _alpacaBalanceBefore = alpaca.balanceOf(address(this));
     fairlaunch.deposit(address(this), pid, 0);
     uint256 _alpacaBalanceAfter = alpaca.balanceOf(address(this)) - _alpacaBalanceBefore;
+    console.log("_alpacaBalanceAfter", _alpacaBalanceAfter);
+    console.log("block.number", block.number);
 
     // 2. Update `accAlpacaPerShare`
     (uint256 _totalAmountInFairlaunch, , , ) = fairlaunch.userInfo(pid, address(this));
-    accAlpacaPerShare += (_alpacaBalanceAfter * 1e12) / _totalAmountInFairlaunch;
+    console.log("_totalAmountInFairlaunch", _totalAmountInFairlaunch);
+    console.log("previousAccAlpacaPerShare", accAlpacaPerShare);
+    uint256 _newAlpacaRewardPerShare = _totalAmountInFairlaunch > 0
+      ? (_alpacaBalanceAfter * 1e12) / _totalAmountInFairlaunch
+      : 0;
+    accAlpacaPerShare += _newAlpacaRewardPerShare;
+    console.log("accAlpacaPerShare", accAlpacaPerShare);
 
     // 3. Calculate pending ALPACA to be received for user
     UserInfo memory _userInfo = userInfo[msg.sender];
-    uint256 _pendingAlpaca = (_userInfo.stakingAmount * accAlpacaPerShare) / 1e12 - _userInfo.alpacaRewardDebt;
-    // 4. Update user reward debt
-    _userInfo.alpacaRewardDebt = (_userInfo.stakingAmount * accAlpacaPerShare) / 1e12;
+    uint256 _pendingAlpaca = ((_userInfo.stakingAmount * accAlpacaPerShare) / 1e12) - _userInfo.alpacaRewardDebt;
 
     // 5. Send ALPACA to user
     if (alpaca.balanceOf(address(this)) < _pendingAlpaca)
