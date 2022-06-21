@@ -325,6 +325,7 @@
     "deploy:fantom_mainnet:delta-neutral-vault-config:config:set-strategies": "hardhat --network fantom_mainnet deploy --config hardhat.config.ts --no-compile --reset --tags DeltaNeutralVaultConfigSetStrategies",
     "deploy:fantom_mainnet:delta-neutral-vault-config:config:set-executor": "hardhat --network fantom_mainnet deploy --config hardhat.config.ts --no-compile --reset --tags DeltaNeutralVaultConfigSetExecutor",
     "deploy:fantom_mainnet:delta-neutral-vault-config:config:set-swap-fee": "hardhat --network fantom_mainnet deploy --config hardhat.config.ts --no-compile --reset --tags DeltaNeutralVaultConfigSetSwapFee",
+    "deploy:fantom_mainnet:workers:config:set-strategy-ok": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags TimelockUpdateAddStratWorkers",
     "deploy:mainnetfork": "hardhat --network mainnetfork deploy --no-compile --reset",
     "deploy:fantom_mainnetfork": "hardhat --network fantom_mainnetfork deploy --no-compile --reset",
     "deploy:fantom_mainnet:vault-config:config:set-params": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags TimelockSetParamsVaultConfig",

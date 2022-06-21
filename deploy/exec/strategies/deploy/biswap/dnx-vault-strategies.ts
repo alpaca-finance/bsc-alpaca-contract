@@ -1,8 +1,8 @@
-import { BiswapDnxStrategyAddTwoSidesOptimal } from "./../../../../../typechain/BiswapDnxStrategyAddTwoSidesOptimal";
+import { BiswapDnxStrategyAddTwoSidesOptimal } from "./../../../../../typechain";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { getDeployer } from "../../../../../utils/deployer-helper";
-import { validateAddress } from "../../../../../utils/address";
+import { compare, validateAddress } from "../../../../../utils/address";
 import { UpgradeableContractDeployer } from "../../../../deployer";
 import { ConfigFileHelper } from "../../../../helper";
 
@@ -40,7 +40,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   let config = configFileHelper.getConfig();
 
   for (let i = 0; i < NEW_PARAMS.length; i++) {
-    const targetedVaultIdx = config.Vaults.findIndex((v) => v.symbol === NEW_PARAMS[i].VAULT_SYMBOL);
+    const targetedVaultIdx = config.Vaults.findIndex((v) => compare(v.symbol, NEW_PARAMS[i].VAULT_SYMBOL));
     if (targetedVaultIdx === -1) {
       throw `error: not found vault based on ${NEW_PARAMS[i].VAULT_SYMBOL}`;
     }
@@ -72,8 +72,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       console.log("✅ Done at: ", tx.hash);
 
       for (let j = 0; j < NEW_PARAMS[i].WHITELIST_WORKERS.length; j++) {
-        const targetWorkerIdx = targetedVault.workers.findIndex(
-          (w) => w.address === NEW_PARAMS[i].WHITELIST_WORKERS[j]
+        const targetWorkerIdx = targetedVault.workers.findIndex((w) =>
+          compare(w.address, NEW_PARAMS[i].WHITELIST_WORKERS[j])
         );
         if (targetWorkerIdx === -1) {
           throw `error: not found worker based on ${NEW_PARAMS[i].WHITELIST_WORKERS[j]}`;
