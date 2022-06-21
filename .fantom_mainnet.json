@@ -193,7 +193,8 @@
       "config": "0x95bBd366FaA1D7F29484Cc33Cd5c89905fd29a12",
       "tripleSlopeModel": "0xd36B6cf6Aa96Eb7185798ebccb8c5c5a82434067",
       "StrategyAddTwoSidesOptimal": {
-        "SpookySwap": "0x11288Ceee9C12C9d2b1A80a4Df10d5c18F0429e8"
+        "SpookySwap": "0x11288Ceee9C12C9d2b1A80a4Df10d5c18F0429e8",
+        "SpookySwapDnx": "0x"
       },
       "workers": [
         {
@@ -412,7 +413,8 @@
       "config": "0xE986679b06E9D4c72C5B504c86Eb64d546710Aa6",
       "tripleSlopeModel": "0xBbf2a7FacDB318F7670cE87A5F6571Bb001d8F06",
       "StrategyAddTwoSidesOptimal": {
-        "SpookySwap": "0xe9eF08a1eA08e5145547815e496bAE265D4A85Bf"
+        "SpookySwap": "0xe9eF08a1eA08e5145547815e496bAE265D4A85Bf",
+        "SpookySwapDnx": "0x"
       },
       "workers": [
         {
@@ -512,7 +514,8 @@
       "config": "0x23ff13d43702cA95a6369736dBFf6Ea718b5F0b0",
       "tripleSlopeModel": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
       "StrategyAddTwoSidesOptimal": {
-        "SpookySwap": "0x4b0e0D158e6a272295e404A4C06C937d4947093C"
+        "SpookySwap": "0x4b0e0D158e6a272295e404A4C06C937d4947093C",
+        "SpookySwapDnx": "0x"
       },
       "workers": [
         {
@@ -544,7 +547,8 @@
       "config": "0x83875cB3B520275183c5c383C8745199293Cd89C",
       "tripleSlopeModel": "0xbA7A1e40A555135BE83F6B19E2efeA5332a0fa3B",
       "StrategyAddTwoSidesOptimal": {
-        "SpookySwap": "0x4F34511e604a1795E854aEF9D872cb9c9836F1dF"
+        "SpookySwap": "0x4F34511e604a1795E854aEF9D872cb9c9836F1dF",
+        "SpookySwapDnx": "0x"
       },
       "workers": [
         {
@@ -602,5 +606,12 @@
       "assetVaultPosId": "3042",
       "stableVaultPosId": "1983"
     }
-  ]
+  ],
+
+  "AutomatedVaultExecutor" : {
+    "deposit":"",
+    "withdraw":"",
+    "reinvest":"",
+    "rebalance":""
+  }
 }

@@ -952,6 +952,8 @@
       "config": "0x037F4b0d074B83d075EC3B955F69BaB9977bdb05",
       "tripleSlopeModel": "0x111ae8da53D0998260DfdfA2172d4f88f969d386",
       "StrategyAddTwoSidesOptimal": {
+        "PancakeswapDnx": "",
+        "BiswapDnx": "",
         "Pancakeswap": "0x0A5515aEdc275b9fF19d11Cd74465e83067f6D40",
         "Waultswap": "0xC01390eea9A7e27199e03dA5053C2dd63A5169ff",
         "PancakeswapSingleAsset": "0x821154e5F621F534060E56871bC614Aa43528356",
@@ -1702,6 +1704,8 @@
       "config": "0xbC6d2dfe97A557Bd793d07ebB0df3ea80cc990Fc",
       "tripleSlopeModel": "0x111ae8da53D0998260DfdfA2172d4f88f969d386",
       "StrategyAddTwoSidesOptimal": {
+        "PancakeswapDnx": "",
+        "BiswapDnx": "",
         "Pancakeswap": "0x22fC6110d5d9b122f3C2d4715C24566342161a12",
         "Waultswap": "0xFfA12222e3ccEF58684Af20aaa4D5bf13c8faC10",
         "PancakeswapSingleAsset": "0x030652c0C544c0c195584Cb60AE1e331A1D3E9C8",
@@ -2197,6 +2201,8 @@
       "config": "0x6Eebe002C224490A800eFC6BC3f1B28816Bf6164",
       "tripleSlopeModel": "0x111ae8da53D0998260DfdfA2172d4f88f969d386",
       "StrategyAddTwoSidesOptimal": {
+        "PancakeswapDnx": "",
+        "BiswapDnx": "",
         "Pancakeswap": "0xD8916928Cd542016E319Ad0c816EF01310462BEa",
         "Waultswap": "0xeBfda6D0232335a067aE6a3e5E470D8cDcb22f53",
         "PancakeswapSingleAsset": "0xf327b3Af3b1691f52F434D71289f1Ae628aab5e8",
@@ -2454,6 +2460,8 @@
       "config": "0x06d0c5B027C8e1BFce561B8af34B87A2A3Ff005d",
       "tripleSlopeModel": "0x111ae8da53D0998260DfdfA2172d4f88f969d386",
       "StrategyAddTwoSidesOptimal": {
+        "PancakeswapDnx": "",
+        "BiswapDnx": "",
         "Pancakeswap": "0xdA6031c074d41A28dF8827B3cF6B66352eA3Ba7A",
         "Waultswap": "0xbc61195af997e06EfbF4a0991b58c890E33e0642",
         "PancakeswapSingleAsset": "0xa8abDAF399721383A397Fd543687E2983173f54a",
@@ -2524,6 +2532,8 @@
       "config": "0x4155538832c1937832b9db279CEEA61Bbae5eF96",
       "tripleSlopeModel": "0x111ae8da53D0998260DfdfA2172d4f88f969d386",
       "StrategyAddTwoSidesOptimal": {
+        "PancakeswapDnx": "",
+        "BiswapDnx": "",
         "Pancakeswap": "0x4D71d66e598e6dCaAb9a3a96890f60169d968212",
         "Waultswap": "0x48393b82Abac4Fbb807A927E60008eFaf5f79Cf7",
         "PancakeswapSingleAsset": "0x44aC65498E51948C79cCF0842Ab505949BC7085B",
@@ -2832,6 +2842,8 @@
       "config": "0x442545909DB59E658ADC9a79430Ea3aEDBDfee5B",
       "tripleSlopeModel": "0x111ae8da53D0998260DfdfA2172d4f88f969d386",
       "StrategyAddTwoSidesOptimal": {
+        "PancakeswapDnx": "",
+        "BiswapDnx": "",
         "Pancakeswap": "0x453a9A2500947d2F730068E77C5294D3feb5DA67",
         "Waultswap": "0x29a8B6f3c9F79314a82f3092EA065F9f15371dB8",
         "PancakeswapSingleAsset": "0xF3Cad8B2215DCC7067F2655F78A50f86e2dF724D",
@@ -3021,6 +3033,8 @@
       "config": "0x436F523d778dAa6a32DAf64CdEdDC55c35509949",
       "tripleSlopeModel": "0x038cd7a6A397d7f5D07a0c76A4610a7Ca64eb7d3",
       "StrategyAddTwoSidesOptimal": {
+        "PancakeswapDnx": "",
+        "BiswapDnx": "",
         "Pancakeswap": "0xDB399666fc696f9FF7114609fBd891a71944FA05",
         "Waultswap": "0x20449871E328BEf6eCCBC39458EeF42c340b195f",
         "PancakeswapSingleAsset": "0x7aDaE260f5135Ef1050Fee880d8A8d02C410dFA7",
@@ -3091,6 +3105,8 @@
       "config": "0xDBF13eB90b81014D192c7e9749d607d6DC533459",
       "tripleSlopeModel": "0x111ae8da53D0998260DfdfA2172d4f88f969d386",
       "StrategyAddTwoSidesOptimal": {
+        "PancakeswapDnx": "",
+        "BiswapDnx": "",
         "Pancakeswap": "0x60CB025B3B97fEf74E3b3Ad80CDaB4F3F864B6eB",
         "Waultswap": "",
         "PancakeswapSingleAsset": "0xAbfb541BB209F7b106dD12C83Eb347B9eD2dd8f3",
@@ -3187,5 +3203,12 @@
       "assetVaultPosId": "180",
       "stableVaultPosId": "370"
     }
-  ]
+  ],
+
+  "AutomatedVaultExecutor" : {
+    "deposit":"",
+    "withdraw":"",
+    "reinvest":"",
+    "rebalance":""
+  }
 }
