@@ -3,23 +3,9 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 import { WorkerConfig__factory } from "../../../../typechain";
 import { getConfig } from "../../../entities/config";
-import { Multicall2Service } from "../../../services/multicall/multicall2";
-import { BigNumber, BigNumberish } from "ethers";
 import { TimelockEntity } from "../../../entities";
 import { fileService, TimelockService } from "../../../services";
 import { compare } from "../../../../utils/address";
-
-interface SetConfigInput {
-  WORKER: string;
-  NFT_BOOSTED_LEVERAGE_CONTROLLER_ADDRESS: string;
-}
-
-interface SetConfigDerivedInput {
-  workerName: string;
-  ownerAddress: string;
-  workerAddress: string;
-  nftBoostedLeverageControllerAddress: string;
-}
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -39,7 +25,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const EXACT_ETA = "1655753400";
 
   const [deployer] = await ethers.getSigners();
-  const inputs: Array<SetConfigDerivedInput> = [];
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
 
   /// @dev derived input
