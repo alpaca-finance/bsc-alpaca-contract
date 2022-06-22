@@ -30,7 +30,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "ibUSDC",
     "ibCAKE",
   ];
-  const EXACT_ETA = "1655751600";
+  const EXACT_ETA = "1655953200";
 
   const config = getConfig();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
