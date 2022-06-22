@@ -13,9 +13,8 @@ Alpaca Fin Corporation
 
 pragma solidity 0.8.13;
 
-import "../../interfaces/MockErc20Like.sol";
+import "../interfaces/MockErc20Like.sol";
 import { FakeDeltaWorker } from "./FakeDeltaWorker.sol";
-import "../../utils/console.sol";
 
 /// @title FakeDeltaWorker : A fake worker used for unit testing
 contract FakeVault {
@@ -35,6 +34,8 @@ contract FakeVault {
 
   // need this for convienience
   uint256 public lpPrice;
+
+  uint256 public fairLaunchPoolId;
 
   constructor(address _token, uint256 _lpPrice) {
     token = _token;
@@ -98,5 +99,10 @@ contract FakeVault {
       vaultDebtShare -= maxReturn;
       vaultDebtVal -= maxReturn;
     }
+  }
+
+  function setDebt(uint256 _debtShare, uint256 _debtValue) external {
+    vaultDebtShare = _debtShare;
+    vaultDebtVal = _debtValue;
   }
 }

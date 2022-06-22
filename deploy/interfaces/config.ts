@@ -16,6 +16,7 @@ export interface Config {
   Vaults: VaultsEntity[];
   DeltaNeutralVaults: DeltaNeutralVaultsEntity[];
   AutomatedVaultController?: AutomateVaultController;
+  AutomatedVaultExecutor?: AutomatedVaultExecutor;
   Creditors?: Creditor[];
   NFT?: NFT;
 }
@@ -254,11 +255,14 @@ export interface VaultsEntity {
 }
 export interface StrategyAddTwoSidesOptimal {
   Pancakeswap?: string;
+  PancakeswapDnx?: string;
   Waultswap?: string;
   PancakeswapSingleAsset?: string;
   Mdex?: string;
   SpookySwap?: string;
+  SpookySwapDnx?: string;
   Biswap?: string;
+  BiswapDnx?: string;
 }
 export interface WorkersEntity {
   name: string;
@@ -294,4 +298,11 @@ export interface DeltaNeutralVaultsEntity {
   oracle: string;
   assetVaultPosId: string;
   stableVaultPosId: string;
+}
+
+export interface AutomatedVaultExecutor {
+  deposit: string;
+  withdraw: string;
+  reinvest: string;
+  rebalance: string;
 }

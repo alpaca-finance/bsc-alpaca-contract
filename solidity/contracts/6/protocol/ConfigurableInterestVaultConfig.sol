@@ -40,7 +40,6 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   event SetMaxKillBps(address indexed caller, uint256 maxKillBps);
   event SetWhitelistedLiquidator(address indexed caller, address indexed addr, bool ok);
   event SetApprovedAddStrategy(address indexed caller, address addStrat, bool ok);
-  event SetNFTStaking(address indexed caller, address nftStaking);
 
   /// The minimum debt size per position.
   uint256 public override minDebtSize;
@@ -70,7 +69,6 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   mapping(address => bool) public override approvedAddStrategies;
   // list of whitelisted liquidators
   mapping(address => bool) public override whitelistedLiquidators;
-  address public nftStaking;
 
   function initialize(
     uint256 _minDebtSize,
@@ -186,12 +184,6 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     }
   }
 
-  function setNftStaking(address newNftStaking) external onlyOwner {
-    nftStaking = newNftStaking;
-
-    emit SetNFTStaking(_msgSender(), newNftStaking);
-  }
-
   /// @dev Return the interest rate per second, using 1e18 as denom.
   function getInterestRate(uint256 debt, uint256 floating) external view override returns (uint256) {
     return interestModel.getInterestRate(debt, floating);
@@ -219,10 +211,7 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     uint256 debt,
     address positionOwner
   ) external view override returns (uint256) {
-    if (nftStaking != address(0)) {
-      return workers[worker].workFactor(worker, debt, positionOwner);
-    }
-    return workers[worker].workFactor(worker, debt);
+    return workers[worker].workFactor(worker, debt, positionOwner);
   }
 
   /// @dev Return the kill factor for the worker + debt, using 1e4 as denom. Revert on non-worker.
@@ -235,10 +224,7 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     uint256 debt,
     address positionOwner
   ) external view override returns (uint256) {
-    if (nftStaking != address(0)) {
-      return workers[worker].killFactor(worker, debt, positionOwner);
-    }
-    return workers[worker].killFactor(worker, debt);
+    return workers[worker].killFactor(worker, debt, positionOwner);
   }
 
   /// @dev Return the kill factor for the worker + BaseToken debt, using 1e4 as denom.
@@ -251,10 +237,7 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     uint256 debt,
     address positionOwner
   ) external view override returns (uint256) {
-    if (nftStaking != address(0)) {
-      return workers[worker].rawKillFactor(worker, debt, positionOwner);
-    }
-    return workers[worker].rawKillFactor(worker, debt);
+    return workers[worker].rawKillFactor(worker, debt, positionOwner);
   }
 
   /// @dev Return if worker is stable.

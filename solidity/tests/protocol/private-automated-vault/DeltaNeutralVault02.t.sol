@@ -5,11 +5,11 @@ import { BaseTest, DeltaNeutralVault02Like, MockErc20Like, console } from "../..
 import { mocking } from "../../utils/mocking.sol";
 import { MockContract } from "../../utils/MockContract.sol";
 
-import { FakeDeltaWorker } from "./FakeDeltaWorker.sol";
-import { FakeAutomateVaultController } from "./FakeAutomateVaultController.sol";
-import { FakeDeltaNeutralOracle } from "./FakeDeltaNeutralOracle.sol";
-import { FakeVault } from "./FakeVault.sol";
-import { FakeDeltaNeutralVaultConfig02 } from "./FakeDeltaNeutralVaultConfig02.sol";
+import { FakeDeltaWorker } from "../../fake/FakeDeltaWorker.sol";
+import { FakeAutomateVaultController } from "../../fake/FakeAutomateVaultController.sol";
+import { FakeDeltaNeutralOracle } from "../../fake/FakeDeltaNeutralOracle.sol";
+import { FakeVault } from "../../fake/FakeVault.sol";
+import { FakeDeltaNeutralVaultConfig02 } from "../../fake/FakeDeltaNeutralVaultConfig02.sol";
 
 // solhint-disable func-name-mixedcase
 // solhint-disable contract-name-camelcase

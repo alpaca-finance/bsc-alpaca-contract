@@ -431,5 +431,12 @@
       ]
     }
   ],
-  "DeltaNeutralVaults": []
+  "DeltaNeutralVaults": [],
+  
+  "AutomatedVaultExecutor" : {
+    "deposit":"",
+    "withdraw":"",
+    "reinvest":"",
+    "rebalance":""
+  }
 }
