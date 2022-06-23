@@ -20,6 +20,12 @@ struct UserInfo {
 }
 
 interface AIP8AUSDStakingLike {
+  error AIP8AUSDStaking_ViolateMinimumLockPeriod(uint256 inputLockUntil);
+  error AIP8AUSDStaking_ViolateMaximumLockPeriod(uint256 inputLockUntil);
+  error AIP8AUSDStaking_ViolatePreviousLockPeriod(uint256 inputLockUntil);
+  error AIP8AUSDStaking_NotEnoughAlpacaReward(uint256 wantAmount, uint256 actualAmount);
+  error AIP8AUSDStaking_StillInLockPeriod();
+
   function WEEK() external view returns (uint256);
 
   function MAX_LOCK() external view returns (uint256);
