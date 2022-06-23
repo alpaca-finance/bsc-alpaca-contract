@@ -18,16 +18,23 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "set_ibBTCB_PancakeswapV2RestrictedDnxStrategyAddTwoSidesOptimal_ok";
+  const TITLE = "set_ibWBNB_PancakeswapV2RestrictedDnxStrategyAddTwoSidesOptimal_ok";
   const ADD_STRAT = "";
   const LIQ_STRAT = "";
 
-  const OK_FLAG = true;
-  const STRATEGY = ["0x49f488E4606687a1Ed67AD5E6A9255C08d334334"]; //update ibBTCB PancakeswapDnx StrategyAddTwoSidesOptimal
+  const OK_FLAG = false;
+  const STRATEGY = ["0x"]; //update ibWBNB PancakeswapDnx StrategyAddTwoSidesOptimal
   const WORKERS = [
-    "BUSD-BTCB L3x PCS1 DeltaNeutralPancakeswapWorker",
-    "BUSD-BTCB L3x PCS2 DeltaNeutralPancakeswapWorker",
-    "BUSD-BTCB L8x PCS1 DeltaNeutralPancakeswapWorker",
+    "USDT-WBNB 3x DeltaNeutralPancakeswapWorker",
+    "USDT-WBNB 8x PCS1 DeltaNeutralPancakeswapWorker",
+    "USDT-WBNB 8x PCS2 DeltaNeutralPancakeswapWorker",
+    "BUSD-WBNB 3x PCS1 DeltaNeutralPancakeswapWorker",
+    "USDT-WBNB 3x PCS2 DeltaNeutralPancakeswapWorker",
+    "BUSD-WBNB 3x PCS2 DeltaNeutralPancakeswapWorker",
+    "USDT-WBNB 3x PCS3 DeltaNeutralPancakeswapWorker",
+    "BUSD-WBNB L3x PCS1 DeltaNeutralPancakeswapWorker",
+    "USDT-WBNB 8x PCS3 DeltaNeutralPancakeswapWorker",
+    "USDT-WBNB L8x PCS1 DeltaNeutralPancakeswapWorker",
   ];
   const EXACT_ETA = "0";
 

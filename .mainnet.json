@@ -1419,8 +1419,8 @@
       "config": "0x53dbb71303ad0F9AFa184B8f7147F9f12Bb5Dc01",
       "tripleSlopeModel": "0xc51d25a2C2d49eE2508B822829d43b9961deCB44",
       "StrategyAddTwoSidesOptimal": {
-        "PancakeswapDnx": "0x",
-        "BiswapDnx": "0x",
+        "PancakeswapDnx": "0x57cEc659f0355054A37c36eaF4855AE9CCE7aeB5",
+        "BiswapDnx": "0x609a5F07143d6aCd97803Ac987165617Ab035726",
         "Pancakeswap": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
         "Waultswap": "0xA7559bB0235a1c6003D0E48d2cFa89a6C8748439",
         "PancakeswapSingleAsset": "0xB0951EB5eCd9948AAA8Eb76D1061361F592BA029",
@@ -2136,7 +2136,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
-            "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
+            "StrategyAddTwoSidesOptimal": "0x57cEc659f0355054A37c36eaF4855AE9CCE7aeB5",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
             "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
             "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
@@ -2153,7 +2153,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
-            "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
+            "StrategyAddTwoSidesOptimal": "0x57cEc659f0355054A37c36eaF4855AE9CCE7aeB5",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
             "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
             "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
@@ -2170,7 +2170,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
-            "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
+            "StrategyAddTwoSidesOptimal": "0x57cEc659f0355054A37c36eaF4855AE9CCE7aeB5",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
             "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
             "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
@@ -2187,7 +2187,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
-            "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
+            "StrategyAddTwoSidesOptimal": "0x57cEc659f0355054A37c36eaF4855AE9CCE7aeB5",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
             "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
             "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
@@ -2204,7 +2204,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
-            "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
+            "StrategyAddTwoSidesOptimal": "0x57cEc659f0355054A37c36eaF4855AE9CCE7aeB5",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
             "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
             "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
@@ -2221,7 +2221,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
-            "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
+            "StrategyAddTwoSidesOptimal": "0x57cEc659f0355054A37c36eaF4855AE9CCE7aeB5",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
             "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
             "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
@@ -2306,7 +2306,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
-            "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
+            "StrategyAddTwoSidesOptimal": "0x57cEc659f0355054A37c36eaF4855AE9CCE7aeB5",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
             "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
             "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
@@ -2357,7 +2357,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
-            "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
+            "StrategyAddTwoSidesOptimal": "0x57cEc659f0355054A37c36eaF4855AE9CCE7aeB5",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
             "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
             "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
@@ -2391,7 +2391,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0xaAEF721098a4f123353495d75604fA921C7CE323",
             "StrategyLiquidate": "0x3414C2C8d02F57D9f5844C97a71dE70eA81c751E",
-            "StrategyAddTwoSidesOptimal": "0x87d0BEaF4124a72F99ECDF350a8aD4Ed732A9C48",
+            "StrategyAddTwoSidesOptimal": "0x609a5F07143d6aCd97803Ac987165617Ab035726",
             "StrategyWithdrawMinimizeTrading": "0xD2d1318beA3FBAcbeC1C6b7583DbA74De5d9455c",
             "StrategyPartialCloseLiquidate": "0xba7156E07995cAD7837Ef08EC5bA936DaB2B000B",
             "StrategyPartialCloseMinimizeTrading": "0x3739d1E01104b019Ff105B3A8F57BC6ed62F18a4"
@@ -2408,7 +2408,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
-            "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
+            "StrategyAddTwoSidesOptimal": "0x57cEc659f0355054A37c36eaF4855AE9CCE7aeB5",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
             "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
             "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
@@ -2425,7 +2425,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
-            "StrategyAddTwoSidesOptimal": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
+            "StrategyAddTwoSidesOptimal": "0x57cEc659f0355054A37c36eaF4855AE9CCE7aeB5",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
             "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
             "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
@@ -2443,7 +2443,7 @@
       "config": "0xd7b805E88c5F52EDE71a9b93F7048c8d632DBEd4",
       "tripleSlopeModel": "0x4eCa08e4f2eD826dba5Bea2Ec133036fE60d30b6",
       "StrategyAddTwoSidesOptimal": {
-        "PancakeswapDnx": "0x",
+        "PancakeswapDnx": "0xcD2829293fd320Dc3bEDcd998743ab9Fe067E5C5",
         "BiswapDnx": "0x",
         "Pancakeswap": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
         "Waultswap": "0x61e58dE669d842C2d77288Df629af031b3283c81",
@@ -2922,7 +2922,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
-            "StrategyAddTwoSidesOptimal": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
+            "StrategyAddTwoSidesOptimal": "0xcD2829293fd320Dc3bEDcd998743ab9Fe067E5C5",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
             "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
             "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
@@ -2939,7 +2939,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
-            "StrategyAddTwoSidesOptimal": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
+            "StrategyAddTwoSidesOptimal": "0xcD2829293fd320Dc3bEDcd998743ab9Fe067E5C5",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
             "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
             "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
@@ -2990,7 +2990,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
-            "StrategyAddTwoSidesOptimal": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
+            "StrategyAddTwoSidesOptimal": "0xcD2829293fd320Dc3bEDcd998743ab9Fe067E5C5",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
             "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
             "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
@@ -3007,7 +3007,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
-            "StrategyAddTwoSidesOptimal": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
+            "StrategyAddTwoSidesOptimal": "0xcD2829293fd320Dc3bEDcd998743ab9Fe067E5C5",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
             "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
             "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
@@ -3024,7 +3024,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
-            "StrategyAddTwoSidesOptimal": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
+            "StrategyAddTwoSidesOptimal": "0xcD2829293fd320Dc3bEDcd998743ab9Fe067E5C5",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
             "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
             "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
@@ -3041,7 +3041,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
-            "StrategyAddTwoSidesOptimal": "0x3fC149995021f1d7AEc54D015Dad3c7Abc952bf0",
+            "StrategyAddTwoSidesOptimal": "0xcD2829293fd320Dc3bEDcd998743ab9Fe067E5C5",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
             "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
             "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
@@ -3060,7 +3060,7 @@
       "tripleSlopeModel": "0x50102793FCD018b479CC90887b49888D0B4c7AbA",
       "StrategyAddTwoSidesOptimal": {
         "PancakeswapDnx": "0x",
-        "BiswapDnx": "0x",
+        "BiswapDnx": "0xFC07B87FeD57Bba2E8Ee3fCA9Ae86217D48b349d",
         "Pancakeswap": "0xCB459b4504d10445760095C59c394EA45715d7a5",
         "Waultswap": "0xD58b9626d941cA2d31b55a43045d34A87B32cEd3",
         "PancakeswapSingleAsset": "0x86547E01b7F1BAc1F4cE80A4964829009D2dE1Cc",
@@ -3334,7 +3334,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0xaAEF721098a4f123353495d75604fA921C7CE323",
             "StrategyLiquidate": "0x3414C2C8d02F57D9f5844C97a71dE70eA81c751E",
-            "StrategyAddTwoSidesOptimal": "0x8D9fEC1B16708F0Fa64877b54ac82e2c50Db3E73",
+            "StrategyAddTwoSidesOptimal": "0xFC07B87FeD57Bba2E8Ee3fCA9Ae86217D48b349d",
             "StrategyWithdrawMinimizeTrading": "0xD2d1318beA3FBAcbeC1C6b7583DbA74De5d9455c",
             "StrategyPartialCloseLiquidate": "0xba7156E07995cAD7837Ef08EC5bA936DaB2B000B",
             "StrategyPartialCloseMinimizeTrading": "0x3739d1E01104b019Ff105B3A8F57BC6ed62F18a4"
@@ -3368,7 +3368,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0xaAEF721098a4f123353495d75604fA921C7CE323",
             "StrategyLiquidate": "0x3414C2C8d02F57D9f5844C97a71dE70eA81c751E",
-            "StrategyAddTwoSidesOptimal": "0x8D9fEC1B16708F0Fa64877b54ac82e2c50Db3E73",
+            "StrategyAddTwoSidesOptimal": "0xFC07B87FeD57Bba2E8Ee3fCA9Ae86217D48b349d",
             "StrategyWithdrawMinimizeTrading": "0xD2d1318beA3FBAcbeC1C6b7583DbA74De5d9455c",
             "StrategyPartialCloseLiquidate": "0xba7156E07995cAD7837Ef08EC5bA936DaB2B000B",
             "StrategyPartialCloseMinimizeTrading": "0x3739d1E01104b019Ff105B3A8F57BC6ed62F18a4"
@@ -3458,8 +3458,8 @@
       "config": "0x709b102EF4b605197C75CfEA45F455A4e7ce065B",
       "tripleSlopeModel": "0xc51d25a2C2d49eE2508B822829d43b9961deCB44",
       "StrategyAddTwoSidesOptimal": {
-        "PancakeswapDnx": "0x",
-        "BiswapDnx": "0x",
+        "PancakeswapDnx": "0xC4d07C82657315A49948F1e3efbd40397EbE1a45",
+        "BiswapDnx": "0x0963d18D9039279e157f0f12651efA7d8ED5b64e",
         "Pancakeswap": "0x5f94f61095731b669b30ed1f3f4586BBb51f4001",
         "Waultswap": "0xcE37fD1Ff0A6cb4A6A59cd46CCf55D5Dc70ec585",
         "PancakeswapSingleAsset": "0x50380Ac8DA73D73719785F0A4433192F4e0E6c90",
@@ -3767,7 +3767,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
-            "StrategyAddTwoSidesOptimal": "0x5f94f61095731b669b30ed1f3f4586BBb51f4001",
+            "StrategyAddTwoSidesOptimal": "0xC4d07C82657315A49948F1e3efbd40397EbE1a45",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
             "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
             "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
@@ -3784,7 +3784,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
-            "StrategyAddTwoSidesOptimal": "0x5f94f61095731b669b30ed1f3f4586BBb51f4001",
+            "StrategyAddTwoSidesOptimal": "0xC4d07C82657315A49948F1e3efbd40397EbE1a45",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
             "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
             "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
@@ -3801,7 +3801,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
-            "StrategyAddTwoSidesOptimal": "0x5f94f61095731b669b30ed1f3f4586BBb51f4001",
+            "StrategyAddTwoSidesOptimal": "0xC4d07C82657315A49948F1e3efbd40397EbE1a45",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
             "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
             "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
@@ -3818,7 +3818,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
-            "StrategyAddTwoSidesOptimal": "0x5f94f61095731b669b30ed1f3f4586BBb51f4001",
+            "StrategyAddTwoSidesOptimal": "0xC4d07C82657315A49948F1e3efbd40397EbE1a45",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
             "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
             "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
@@ -3903,7 +3903,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
-            "StrategyAddTwoSidesOptimal": "0x5f94f61095731b669b30ed1f3f4586BBb51f4001",
+            "StrategyAddTwoSidesOptimal": "0xC4d07C82657315A49948F1e3efbd40397EbE1a45",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
             "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
             "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
@@ -3920,7 +3920,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0xaAEF721098a4f123353495d75604fA921C7CE323",
             "StrategyLiquidate": "0x3414C2C8d02F57D9f5844C97a71dE70eA81c751E",
-            "StrategyAddTwoSidesOptimal": "0xf4B38789212E997C1603E08C4Ec27A962A626E36",
+            "StrategyAddTwoSidesOptimal": "0x0963d18D9039279e157f0f12651efA7d8ED5b64e",
             "StrategyWithdrawMinimizeTrading": "0xD2d1318beA3FBAcbeC1C6b7583DbA74De5d9455c",
             "StrategyPartialCloseLiquidate": "0xba7156E07995cAD7837Ef08EC5bA936DaB2B000B",
             "StrategyPartialCloseMinimizeTrading": "0x3739d1E01104b019Ff105B3A8F57BC6ed62F18a4"
@@ -3937,7 +3937,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0xaAEF721098a4f123353495d75604fA921C7CE323",
             "StrategyLiquidate": "0x3414C2C8d02F57D9f5844C97a71dE70eA81c751E",
-            "StrategyAddTwoSidesOptimal": "0xf4B38789212E997C1603E08C4Ec27A962A626E36",
+            "StrategyAddTwoSidesOptimal": "0x0963d18D9039279e157f0f12651efA7d8ED5b64e",
             "StrategyWithdrawMinimizeTrading": "0xD2d1318beA3FBAcbeC1C6b7583DbA74De5d9455c",
             "StrategyPartialCloseLiquidate": "0xba7156E07995cAD7837Ef08EC5bA936DaB2B000B",
             "StrategyPartialCloseMinimizeTrading": "0x3739d1E01104b019Ff105B3A8F57BC6ed62F18a4"
@@ -3954,7 +3954,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0xaAEF721098a4f123353495d75604fA921C7CE323",
             "StrategyLiquidate": "0x3414C2C8d02F57D9f5844C97a71dE70eA81c751E",
-            "StrategyAddTwoSidesOptimal": "0xf4B38789212E997C1603E08C4Ec27A962A626E36",
+            "StrategyAddTwoSidesOptimal": "0x0963d18D9039279e157f0f12651efA7d8ED5b64e",
             "StrategyWithdrawMinimizeTrading": "0xD2d1318beA3FBAcbeC1C6b7583DbA74De5d9455c",
             "StrategyPartialCloseLiquidate": "0xba7156E07995cAD7837Ef08EC5bA936DaB2B000B",
             "StrategyPartialCloseMinimizeTrading": "0x3739d1E01104b019Ff105B3A8F57BC6ed62F18a4"
@@ -3971,7 +3971,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
-            "StrategyAddTwoSidesOptimal": "0x5f94f61095731b669b30ed1f3f4586BBb51f4001",
+            "StrategyAddTwoSidesOptimal": "0xC4d07C82657315A49948F1e3efbd40397EbE1a45",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
             "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
             "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
@@ -3988,7 +3988,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
-            "StrategyAddTwoSidesOptimal": "0x5f94f61095731b669b30ed1f3f4586BBb51f4001",
+            "StrategyAddTwoSidesOptimal": "0xC4d07C82657315A49948F1e3efbd40397EbE1a45",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
             "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
             "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
@@ -4006,7 +4006,7 @@
       "config": "0x6cc80Df354415fA0FfeF78555a06C1DdE7549FB8",
       "tripleSlopeModel": "0xADcfBf2e8470493060FbE0A0aFAC66d2cB028e9c",
       "StrategyAddTwoSidesOptimal": {
-        "PancakeswapDnx": "0x",
+        "PancakeswapDnx": "0xcF118aD851880031F3d7e513ff6AD2f9b5c3470F",
         "BiswapDnx": "0x",
         "Pancakeswap": "0xe862D45abdF7ea38F75dd0c7164B19FaEd057130",
         "Waultswap": "0xaC712F4Fc61ab96Aa9A1AdF3977b808789aA6682",
@@ -4230,7 +4230,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
-            "StrategyAddTwoSidesOptimal": "0xe862D45abdF7ea38F75dd0c7164B19FaEd057130",
+            "StrategyAddTwoSidesOptimal": "0xcF118aD851880031F3d7e513ff6AD2f9b5c3470F",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
             "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
             "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
@@ -4247,7 +4247,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
-            "StrategyAddTwoSidesOptimal": "0xe862D45abdF7ea38F75dd0c7164B19FaEd057130",
+            "StrategyAddTwoSidesOptimal": "0xcF118aD851880031F3d7e513ff6AD2f9b5c3470F",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
             "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
             "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
@@ -4264,7 +4264,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0x4c7a420142ec69c7Df5c6C673D862b9E030743bf",
             "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
-            "StrategyAddTwoSidesOptimal": "0xe862D45abdF7ea38F75dd0c7164B19FaEd057130",
+            "StrategyAddTwoSidesOptimal": "0xcF118aD851880031F3d7e513ff6AD2f9b5c3470F",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
             "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
             "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
@@ -4797,26 +4797,26 @@
       "stableVaultPosId": "47579"
     }
   ],
-
   "Creditors": [
     {
       "name": "xALPACACreditor",
       "address": "0xeDdD248FEe5ff98e532c3A4087C83F6e376eEDa7"
     }
   ],
-
   "AutomatedVaultController": {
     "address": "0xfd0694a29871Ee629D51cF4079842382368f1e15",
-    "creditors": ["0xeDdD248FEe5ff98e532c3A4087C83F6e376eEDa7"]
+    "creditors": [
+      "0xeDdD248FEe5ff98e532c3A4087C83F6e376eEDa7"
+    ]
   },
   "NFT": {
     "NFTStaking": "0xe5d84fFB55f3276345f8C1F6EE17bf06935867f2",
     "NFTBoostedLeverageController": "0x257611F5dEF16Ff0e9AF16B5c10130211CEd7B66"
   },
   "AutomatedVaultExecutor": {
-    "deposit": "",
-    "withdraw": "",
-    "reinvest": "",
-    "rebalance": ""
+    "deposit": "0x5eb6F3aC715A2F184CC2baAC3675F237d565F1aC",
+    "withdraw": "0xceC88d723aC8cb1D7887BcFcDF0E59B5091bBE37",
+    "reinvest": "0x7C60e6530170b44867187d6413A8fd9AC77c3EaB",
+    "rebalance": "0x379A75Ab34C359f9Cd1d00dF958656Ea30e20e66"
   }
 }

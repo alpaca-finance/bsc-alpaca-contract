@@ -39,7 +39,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "L8x-USDTBNB-PCS1",
     "L8x-BUSDBTCB-PCS1",
   ];
-  const EXACT_ETA = "1655506192";
+  const EXACT_ETA = "1655960400";
 
   const config = getConfig();
 

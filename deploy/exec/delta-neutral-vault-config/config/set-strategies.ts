@@ -17,7 +17,24 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     Check all variables below before execute the deployment script
     */
 
-  const DELTA_VAULT_SYMBOL = ["n8x-BNBUSDT-PCS2", "n8x-BNBUSDT-PCS1", "n3x-BNBBUSD-PCS1"];
+  const DELTA_VAULT_SYMBOL = [
+    "n3x-BNBUSDT-PCS1",
+    "n8x-BNBUSDT-PCS1",
+    "n8x-BNBUSDT-PCS2",
+    "n3x-BNBBUSD-PCS1",
+    "n3x-BNBUSDT-PCS2",
+    "n3x-BNBBUSD-PCS2",
+    "n3x-BNBUSDT-PCS3",
+    "L3x-BUSDBTCB-PCS1",
+    "L3x-BUSDBTCB-PCS2",
+    "L3x-BUSDBNB-PCS1",
+    "n8x-BNBUSDT-PCS3",
+    "L8x-USDTBNB-PCS1",
+    "L8x-BUSDBTCB-PCS1",
+    "n3x-ETHUSDT-BSW1",
+    "L3x-USDTETH-BSW1",
+    "n8x-BNBUSDT-BSW1",
+  ];
 
   const deployer = await getDeployer();
   const config = getConfig();
@@ -32,7 +49,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   console.log(">> Set Strategies to DeltaNeutralVaultConfig03 contract");
   let nonce = await deployer.getTransactionCount();
-  const ops = isFork() ? { nonce: nonce++, gasLimit: 2000000 } : { nonce: nonce++ };
+  const ops = isFork() ? { nonce: nonce++, gasLimit: 2000000 } : {};
   for (let i: number = 0; i < configs.length; i++) {
     const stableWorker = stableWorkersEntity[i];
     const assetWorker = assetWorkersEntity[i];
@@ -50,7 +67,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       stableWorker.strategies.StrategyPartialCloseMinimizeTrading,
       stableWorker.strategies.StrategyAddTwoSidesOptimal,
       assetWorker.strategies.StrategyAddTwoSidesOptimal,
-      ops
+      { ...ops, nonce: nonce++ }
     );
     console.log("✅ Done");
   }
