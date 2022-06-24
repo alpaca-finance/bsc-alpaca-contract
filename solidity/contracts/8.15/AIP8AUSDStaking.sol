@@ -19,7 +19,6 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
 import { IFairLaunch } from "./interfaces/IFairLaunch.sol";
-import { console } from "../../tests/utils/console.sol";
 
 /// @title AIP8AUSDStaking is a staking contract for users to stake AUSD-3EPS LP Token to obtain
 /// the allocation for Private Automated Vaults of Alpaca Finance. This contract is implemented as part of the AIP-8.
