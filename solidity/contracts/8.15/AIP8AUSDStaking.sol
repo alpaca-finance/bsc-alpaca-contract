@@ -81,7 +81,7 @@ contract AIP8AUSDStaking is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   }
 
   function lock(uint256 _amount, uint256 _lockUntil) external nonReentrant {
-    UserInfo memory _userInfo = userInfo[msg.sender];
+    UserInfo storage _userInfo = userInfo[msg.sender];
 
     // CHECK
     // 1. Validate `_lockUntil`
@@ -99,9 +99,9 @@ contract AIP8AUSDStaking is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     // 2. Harvest from Fairlaunch
     _harvest();
     // 3. Update UserInfo
-    userInfo[msg.sender].stakingAmount += _amount;
-    userInfo[msg.sender].lockUntil = _lockUntil;
-    userInfo[msg.sender].alpacaRewardDebt = (userInfo[msg.sender].stakingAmount * accAlpacaPerShare) / 1e12;
+    _userInfo.stakingAmount += _amount;
+    _userInfo.lockUntil = _lockUntil;
+    _userInfo.alpacaRewardDebt = (_userInfo.stakingAmount * accAlpacaPerShare) / 1e12;
 
     // INTERACTION
     if (_amount > 0) {
@@ -113,7 +113,7 @@ contract AIP8AUSDStaking is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   }
 
   function unlock() external nonReentrant {
-    UserInfo memory _userInfo = userInfo[msg.sender];
+    UserInfo storage _userInfo = userInfo[msg.sender];
     uint256 _userStakingAmount = _userInfo.stakingAmount;
 
     // CHECK
