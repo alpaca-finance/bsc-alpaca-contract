@@ -142,6 +142,7 @@ contract AIP8AUSDStaking is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   function _harvest() internal {
     // 1. Get harvested ALPACA balance from Fairlaunch
     uint256 _alpacaBalanceBefore = alpaca.balanceOf(address(this));
+    // We use `Fairlaunch.deposit()` here instead of `Fairlaunch.harvest()` to prevent revert
     fairlaunch.deposit(address(this), pid, 0);
     uint256 _alpacaBalanceAfter = alpaca.balanceOf(address(this)) - _alpacaBalanceBefore;
 
