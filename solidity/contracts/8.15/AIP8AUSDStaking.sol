@@ -124,7 +124,9 @@ contract AIP8AUSDStaking is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     // 2. Harvest from Fairlaunch and distribute ALPACA reward to user
     _harvest();
     // 3. Clear state of UserInfo
-    userInfo[msg.sender] = UserInfo({ stakingAmount: 0, lockUntil: 0, alpacaRewardDebt: 0 });
+    _userInfo.stakingAmount = 0;
+    _userInfo.lockUntil = 0;
+    _userInfo.alpacaRewardDebt = 0;
 
     // INTERACTION
     // 4. Withdraw AUSD3EPS from Fairlaunch
