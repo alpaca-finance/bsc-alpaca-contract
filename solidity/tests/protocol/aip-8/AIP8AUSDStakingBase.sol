@@ -15,6 +15,8 @@ contract AIP8AUSDStakingBase is BaseTest {
   address constant fairlaunchAddress = 0xA625AB01B08ce023B2a342Dbb12a16f2C8489A8F;
   address constant _ALICE = 0x52Af1571D431842cc16073021bAF700aeAAa8146;
   address constant _BOB = 0x7a33e32547602e8bafc6392F4cb8f48918415522;
+  address constant _CHARLIE = 0x62d51Fa08B15411D9429133aE5F224abf3867729;
+  address constant _DAVID = 0x922c1a5007E8B091b2a5B12caff5cEFbc9133540;
   address constant AUSD3EPS = 0xae70E3f6050d6AB05E03A50c655309C2148615bE;
   address constant ALPACA = 0x8F0528cE5eF7B51152A59745bEfDD91D97091d2F;
 
@@ -49,6 +51,12 @@ contract AIP8AUSDStakingBase is BaseTest {
   function _unlockFor(address _actor) internal {
     vm.startPrank(_actor);
     aip8AUSDStaking.unlock();
+    vm.stopPrank();
+  }
+
+  function _harvestFor(address _actor) internal {
+    vm.startPrank(_actor);
+    aip8AUSDStaking.harvest();
     vm.stopPrank();
   }
 }

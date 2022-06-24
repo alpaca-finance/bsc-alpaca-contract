@@ -52,7 +52,9 @@ interface AIP8AUSDStakingLike {
 
   function harvest() external;
 
-  function balanceOf(address _user) external view;
+  function balanceOf(address _user) external view returns (uint256);
 
-  function pendingAlpaca(address _user) external view;
+  function pendingAlpaca(address _user) external view returns (uint256);
+
+  function owner() external view returns (address);
 }

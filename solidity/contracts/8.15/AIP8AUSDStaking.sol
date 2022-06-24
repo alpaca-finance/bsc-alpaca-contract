@@ -58,6 +58,9 @@ contract AIP8AUSDStaking is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   mapping(address => UserInfo) public userInfo; // the mapping of user's address and its user staking info
 
   function initialize(IFairLaunch _fairlaunch, uint256 _pid) external initializer {
+    OwnableUpgradeable.__Ownable_init();
+    ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
+
     (address _stakingToken, , , , ) = _fairlaunch.poolInfo(_pid);
     alpaca = IERC20Upgradeable(_fairlaunch.alpaca());
     fairlaunch = _fairlaunch;
@@ -133,6 +136,8 @@ contract AIP8AUSDStaking is ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
   function harvest() external nonReentrant {
     _harvest();
+
+    userInfo[msg.sender].alpacaRewardDebt = (userInfo[msg.sender].stakingAmount * accAlpacaPerShare) / 1e12;
   }
 
   function _harvest() internal {
@@ -140,24 +145,19 @@ contract AIP8AUSDStaking is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     uint256 _alpacaBalanceBefore = alpaca.balanceOf(address(this));
     fairlaunch.deposit(address(this), pid, 0);
     uint256 _alpacaBalanceAfter = alpaca.balanceOf(address(this)) - _alpacaBalanceBefore;
-    console.log("_alpacaBalanceAfter", _alpacaBalanceAfter);
-    console.log("block.number", block.number);
 
     // 2. Update `accAlpacaPerShare`
     (uint256 _totalAmountInFairlaunch, , , ) = fairlaunch.userInfo(pid, address(this));
-    console.log("_totalAmountInFairlaunch", _totalAmountInFairlaunch);
-    console.log("previousAccAlpacaPerShare", accAlpacaPerShare);
     uint256 _newAlpacaRewardPerShare = _totalAmountInFairlaunch > 0
       ? (_alpacaBalanceAfter * 1e12) / _totalAmountInFairlaunch
       : 0;
     accAlpacaPerShare += _newAlpacaRewardPerShare;
-    console.log("accAlpacaPerShare", accAlpacaPerShare);
 
     // 3. Calculate pending ALPACA to be received for user
     UserInfo memory _userInfo = userInfo[msg.sender];
     uint256 _pendingAlpaca = ((_userInfo.stakingAmount * accAlpacaPerShare) / 1e12) - _userInfo.alpacaRewardDebt;
 
-    // 5. Send ALPACA to user
+    // 4. Send ALPACA to user
     if (alpaca.balanceOf(address(this)) < _pendingAlpaca)
       revert AIP8AUSDStaking_NotEnoughAlpacaReward(_pendingAlpaca, alpaca.balanceOf(address(this)));
     alpaca.safeTransfer(msg.sender, _pendingAlpaca);
@@ -165,7 +165,7 @@ contract AIP8AUSDStaking is ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
   function balanceOf(address _user) external view returns (uint256) {
     UserInfo memory _userInfo = userInfo[_user];
-    uint256 _lockPeriod = _userInfo.lockUntil - block.timestamp;
+    uint256 _lockPeriod = _userInfo.lockUntil > block.timestamp ? _userInfo.lockUntil - block.timestamp : 0;
     return (_userInfo.stakingAmount * _lockPeriod) / MAX_LOCK;
   }
 

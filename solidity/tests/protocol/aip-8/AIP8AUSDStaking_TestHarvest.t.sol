@@ -84,4 +84,48 @@ contract AIP8AUSDStaking_TestHarvest is AIP8AUSDStakingBase {
     //                       = 84392348000000
     assertEq(_alpacaRewardHarvested, 84392348000000, "Bob should harvest 84392348000000 wei ALPACA");
   }
+
+  function test_harvest_multipleUsers_shouldNeverRunOutOfAlpaca() external {
+    _lockFor(_ALICE, 1 ether, block.timestamp + WEEK);
+    vm.roll(10);
+    vm.warp(block.timestamp + 10);
+    _lockFor(_BOB, 2 ether, block.timestamp + WEEK);
+    vm.roll(10);
+    vm.warp(block.timestamp + 10);
+    _lockFor(_CHARLIE, 5 ether, block.timestamp + WEEK);
+    vm.roll(10);
+    vm.warp(block.timestamp + 10);
+    _lockFor(_DAVID, 5 ether, block.timestamp + WEEK);
+    vm.roll(1000);
+    vm.warp(block.timestamp + 1000);
+    _lockFor(_ALICE, 15 ether, block.timestamp + WEEK);
+    vm.roll(10);
+    vm.warp(block.timestamp + 10);
+    _harvestFor(_ALICE);
+    vm.roll(10);
+    vm.warp(block.timestamp + 10);
+    _harvestFor(_BOB);
+    vm.roll(10);
+    vm.warp(block.timestamp + 10);
+    _harvestFor(_CHARLIE);
+    vm.roll(10);
+    vm.warp(block.timestamp + 10);
+    _harvestFor(_DAVID);
+
+    // Unlock all
+    vm.warp(block.timestamp + WEEK);
+
+    vm.roll(10);
+    vm.warp(block.timestamp + 10);
+    _unlockFor(_ALICE);
+    vm.roll(10);
+    vm.warp(block.timestamp + 10);
+    _unlockFor(_BOB);
+    vm.roll(10);
+    vm.warp(block.timestamp + 10);
+    _unlockFor(_CHARLIE);
+    vm.roll(10);
+    vm.warp(block.timestamp + 10);
+    _unlockFor(_DAVID);
+  }
 }

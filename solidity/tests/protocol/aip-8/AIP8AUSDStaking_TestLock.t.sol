@@ -94,4 +94,43 @@ contract AIP8AUSDStaking_TestLock is AIP8AUSDStakingBase {
     assertEq(_expectedStakingAmountAlice + _expectedStakingAmountBob, _fairlaunchAmount);
     assertEq(address(aip8AUSDStaking), _fundedBy);
   }
+
+  function test_lock_aliceLockOneYear_shouldGetBalanceOfCorrectly() external {
+    uint256 _expectedStakingAmount = 1 ether;
+    uint256 _expectedLockUntil = block.timestamp + aip8AUSDStaking.MAX_LOCK();
+
+    _lockFor(_ALICE, _expectedStakingAmount, _expectedLockUntil); // BLOCK IS NOT MINED HERE
+
+    uint256 _aliceBalance = aip8AUSDStaking.balanceOf(_ALICE);
+    assertEq(
+      _aliceBalance,
+      _expectedStakingAmount,
+      "Alice locked for the maximum period should receive full balance at the start."
+    );
+
+    // Half of MAX_LOCK passed
+    vm.warp(block.timestamp + (aip8AUSDStaking.MAX_LOCK() / 2));
+    _aliceBalance = aip8AUSDStaking.balanceOf(_ALICE);
+    assertCloseBps(_aliceBalance, _expectedStakingAmount / 2, 100);
+
+    // Another half of MAX_LOCK passed
+    vm.warp(block.timestamp + (aip8AUSDStaking.MAX_LOCK() / 2) + 1);
+    _aliceBalance = aip8AUSDStaking.balanceOf(_ALICE);
+    assertEq(_aliceBalance, 0, "Alice should not have any balance left.");
+  }
+
+  function test_refreshAllowance_shouldWork() external {
+    uint256 _expectedStakingAmount = 1 ether;
+    uint256 _expectedLockUntil = block.timestamp + WEEK;
+
+    IERC20Upgradeable _stakingToken = IERC20Upgradeable(aip8AUSDStaking.stakingToken());
+    uint256 _stakingTokenAllowance = _stakingToken.allowance(address(aip8AUSDStaking), fairlaunchAddress);
+    assertEq(_stakingTokenAllowance, type(uint256).max);
+
+    _lockFor(_ALICE, _expectedStakingAmount, _expectedLockUntil); // BLOCK IS NOT MINED HERE
+
+    aip8AUSDStaking.refreshAllowance();
+    _stakingTokenAllowance = _stakingToken.allowance(address(aip8AUSDStaking), fairlaunchAddress);
+    assertEq(_stakingTokenAllowance, type(uint256).max);
+  }
 }
