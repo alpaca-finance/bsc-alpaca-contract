@@ -18,24 +18,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "set_ibWBNB_PancakeswapV2RestrictedDnxStrategyAddTwoSidesOptimal_ok";
+  const TITLE = "set_ibUSDC_SpookySwapDnxStrategyAddTwoSidesOptimal_ok";
   const ADD_STRAT = "";
   const LIQ_STRAT = "";
 
-  const OK_FLAG = false;
-  const STRATEGY = ["0x"]; //update ibWBNB PancakeswapDnx StrategyAddTwoSidesOptimal
-  const WORKERS = [
-    "USDT-WBNB 3x DeltaNeutralPancakeswapWorker",
-    "USDT-WBNB 8x PCS1 DeltaNeutralPancakeswapWorker",
-    "USDT-WBNB 8x PCS2 DeltaNeutralPancakeswapWorker",
-    "BUSD-WBNB 3x PCS1 DeltaNeutralPancakeswapWorker",
-    "USDT-WBNB 3x PCS2 DeltaNeutralPancakeswapWorker",
-    "BUSD-WBNB 3x PCS2 DeltaNeutralPancakeswapWorker",
-    "USDT-WBNB 3x PCS3 DeltaNeutralPancakeswapWorker",
-    "BUSD-WBNB L3x PCS1 DeltaNeutralPancakeswapWorker",
-    "USDT-WBNB 8x PCS3 DeltaNeutralPancakeswapWorker",
-    "USDT-WBNB L8x PCS1 DeltaNeutralPancakeswapWorker",
-  ];
+  const OK_FLAG = true;
+  const STRATEGY = ["0x292E51830185BAb540c7E3f9aA2918e2B8F07d08"]; //update ibUSDC SpookySwapDnx StrategyAddTwoSidesOptimal
+  const WORKERS = ["WFTM-USDC 3x SPK1 DeltaNeutralSpookyWorker", "WFTM-USDC 3x SPK2 DeltaNeutralSpookyWorker"];
   const EXACT_ETA = "0";
 
   const miniWorkers: Array<WorkerEntity.IMiniWorker> = mapWorkers(WORKERS).map((w) => {

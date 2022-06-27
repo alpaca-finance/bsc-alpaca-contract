@@ -17,9 +17,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     Check all variables below before execute the deployment script
     */
 
-  const swapFee = 10;
+  const swapFee = 20;
   const swapFeeDenom = 10000;
-  const DELTA_VAULT_SYMBOL = ["n3x-ETHUSDT-BSW1", "L3x-USDTETH-BSW1", "n8x-BNBUSDT-BSW1"];
+  const DELTA_VAULT_SYMBOL = ["n3x-FTMUSDC-SPK1", "n3x-FTMUSDC-SPK2"];
 
   const deployer = await getDeployer();
 
