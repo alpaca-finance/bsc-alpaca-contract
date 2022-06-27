@@ -13,10 +13,8 @@ Alpaca Fin Corporation
 
 pragma solidity 0.8.13;
 
-interface IAUSD {
+interface IAUSDStaking {
   function balanceOf(address _user) external view returns (uint256);
 
   function balanceOfAt(address _user, uint256 _blockNumber) external view returns (uint256);
-
-  function epoch() external view returns (uint256);
 }

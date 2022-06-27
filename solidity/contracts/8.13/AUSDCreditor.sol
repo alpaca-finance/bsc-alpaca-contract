@@ -15,41 +15,42 @@ pragma solidity 0.8.13;
 
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-import { IAUSD } from "./interfaces/IAUSD.sol";
+import { IAUSDStaking } from "./interfaces/IAUSDStaking.sol";
 import { ICreditor } from "./interfaces/ICreditor.sol";
 
-/// @title AUSDCreditor - Assess credit of user per AUSD-3EPS LP that user's locking
-contract AUSDCreditor is OwnableUpgradeable, ICreditor {
+/// @title AUSDStakingCreditor - Assess credit of user per AUSD-3EPS LP that user's locking
+contract AUSDStakingCreditor is OwnableUpgradeable, ICreditor {
   // --- Events ---
-  event LogSetValuePerAUSD(address indexed _caller, uint256 _oldValuePerAUSD, uint256 _newValuePerAUSD);
+  event LogSetValuePerAUSDStaking(
+    address indexed _caller,
+    uint256 _oldValuePerAUSDStaking,
+    uint256 _newValuePerAUSDStaking
+  );
   event LogSetValueSetter(address indexed _caller, address indexed _valueSetter);
 
   // --- Errors ---
-  error AUSDCreditor_ValueTooHigh();
-  error AUSDCreditor_Unauthorize();
+  error AUSDStakingCreditor_ValueTooHigh();
+  error AUSDStakingCreditor_Unauthorize();
 
   // --- States ---
-  IAUSD public ausd;
-  uint256 public valuePerAusd;
+  IAUSDStaking public AUSDStaking;
+  uint256 public valuePerAUSDStaking;
   address public valueSetter;
 
-  /// @notice Initialize AusdCreditor
-  /// @param _AUSD AUSD-3EPS.
-  /// @param _valuePerAUSD USD value per 1 AUSD-3EPS LP
-  function initialize(IAUSD _AUSD, uint256 _valuePerAUSD) external initializer {
-    // sanity check
-    // _xALPACA.epoch();
-
+  /// @notice Initialize AUSDStakingCreditor
+  /// @param _AUSDStaking AUSD-3EPS.
+  /// @param _valuePerAUSDStaking USD value per 1 AUSD-3EPS LP
+  function initialize(IAUSDStaking _AUSDStaking, uint256 _valuePerAUSDStaking) external initializer {
     OwnableUpgradeable.__Ownable_init();
-    ausd = IAUSD(_AUSD);
-    valuePerAusd = _valuePerAUSD;
+    AUSDStaking = IAUSDStaking(_AUSDStaking);
+    valuePerAUSDStaking = _valuePerAUSDStaking;
   }
 
   /// @notice Get user's credit in USD value
   /// @param _user address of user.
   /// @return user's credit in USD value
   function getUserCredit(address _user) external view returns (uint256) {
-    return (ausd.balanceOf(_user) * valuePerAusd) / 1e18;
+    return (AUSDStaking.balanceOf(_user) * valuePerAUSDStaking) / 1e18;
   }
 
   /// @notice set the value setter
@@ -58,19 +59,19 @@ contract AUSDCreditor is OwnableUpgradeable, ICreditor {
     emit LogSetValueSetter(msg.sender, _newValueSetter);
   }
 
-  /// @notice Set the value per AUSD
-  /// @param _newValuePerAUSD new value to be set.
-  function setValuePerAUSD(uint256 _newValuePerAUSD) external {
+  /// @notice Set the value per AUSDStaking
+  /// @param _newValuePerAUSDStaking new value to be set.
+  function setValuePerAUSDStaking(uint256 _newValuePerAUSDStaking) external {
     if (msg.sender != valueSetter) {
-      revert AUSDCreditor_Unauthorize();
+      revert AUSDStakingCreditor_Unauthorize();
     }
-    if (_newValuePerAUSD > 1000 * 1e18) {
-      revert AUSDCreditor_ValueTooHigh();
+    if (_newValuePerAUSDStaking > 1000 * 1e18) {
+      revert AUSDStakingCreditor_ValueTooHigh();
     }
 
-    uint256 _oldValuePerAUSD = valuePerAusd;
-    valuePerAusd = _newValuePerAUSD;
+    uint256 _oldValuePerAUSDStaking = valuePerAUSDStaking;
+    valuePerAUSDStaking = _newValuePerAUSDStaking;
 
-    emit LogSetValuePerAusd(msg.sender, _oldValuePerAusd, _newValuePerAusd);
+    emit LogSetValuePerAUSDStaking(msg.sender, _oldValuePerAUSDStaking, _newValuePerAUSDStaking);
   }
 }
