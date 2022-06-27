@@ -13,12 +13,12 @@ Alpaca Fin Corporation
 
 pragma solidity >=0.8.4 <0.9.0;
 
-interface AUSDCreditorLike {
+interface AUSDStakingCreditorLike {
   function getUserCredit(address _user) external view returns (uint256);
 
-  function setValuePerAUSD(uint256 _newValuePerAUSD) external;
+  function setValuePerAUSDStaking(uint256 _newValuePerAUSD) external;
 
   function setValueSetter(address _newValueSetter) external;
 
-  function valuePerAUSD() external view returns (uint256);
+  function valuePerAUSDStaking() external view returns (uint256);
 }

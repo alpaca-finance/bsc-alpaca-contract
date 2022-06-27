@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4 <0.9.0;
 
-import { BaseTest, AUSDCreditorLike } from "../../base/BaseTest.sol";
+import { BaseTest, AUSDStakingCreditorLike } from "../../base/BaseTest.sol";
 import { mocking } from "../../utils/mocking.sol";
 import { MockContract } from "../../utils/MockContract.sol";
 
@@ -9,11 +9,11 @@ import { IAUSDStaking } from "../../../contracts/8.13/interfaces/IAUSDStaking.so
 
 // solhint-disable func-name-mixedcase
 // solhint-disable contract-name-camelcase
-contract AUSDCreditor_Test is BaseTest {
+contract AUSDStakingCreditor_Test is BaseTest {
   using mocking for *;
   uint64 private constant VALUE_PER_AUSD_STAKING = 2 ether;
 
-  AUSDCreditorLike private _creditor;
+  AUSDStakingCreditorLike private _creditor;
   IAUSDStaking private _AUSDStaking;
 
   address private _userAddress = address(1);
@@ -22,7 +22,7 @@ contract AUSDCreditor_Test is BaseTest {
     _AUSDStaking = IAUSDStaking(address(new MockContract()));
     _AUSDStaking.balanceOf.mockv(_userAddress, 1 ether);
 
-    _creditor = _setupAUSDCreditor(address(_AUSDStaking), VALUE_PER_AUSD_STAKING);
+    _creditor = _setupAUSDStakingCreditor(address(_AUSDStaking), VALUE_PER_AUSD_STAKING);
     _creditor.setValueSetter(ALICE);
   }
 
@@ -30,9 +30,9 @@ contract AUSDCreditor_Test is BaseTest {
     assertEq(_creditor.getUserCredit(_userAddress), 2 ether);
   }
 
-  function testCorrectness_afterUpdateValuePerxALPACA() external {
+  function testCorrectness_afterUpdateValuePerAUSDStaking() external {
     vm.prank(ALICE);
-    _creditor.setValuePerxALPACA(4 ether);
+    _creditor.setValuePerAUSDStaking(4 ether);
     assertEq(_creditor.getUserCredit(_userAddress), 4 ether);
   }
 
@@ -42,21 +42,21 @@ contract AUSDCreditor_Test is BaseTest {
     _creditor.setValueSetter(BOB);
   }
 
-  function testCannotSetValuePerXalpacaMoreThanThreshold() external {
-    vm.expectRevert(abi.encodeWithSignature("xALPACACreditor_ValueTooHigh()"));
+  function testCannotSetValuePerAUSDStakingMoreThanThreshold() external {
+    vm.expectRevert(abi.encodeWithSignature("AUSDStakingCreditor_ValueTooHigh()"));
     vm.prank(ALICE);
-    _creditor.setValuePerxALPACA(10000 ether);
+    _creditor.setValuePerAUSDStaking(10000 ether);
   }
 
-  function testCanSetValuePerXalpacaLessThanThreshold(uint256 _value) external {
+  function testCanSetValuePerAUSDStakingLessThanThreshold(uint256 _value) external {
     vm.assume(_value < 1000 ether);
     vm.prank(ALICE);
-    _creditor.setValuePerxALPACA(_value);
+    _creditor.setValuePerAUSDStaking(_value);
   }
 
-  function testCannotSetValuePerXalpacaIfNotValueSetter() external {
-    vm.expectRevert(abi.encodeWithSignature("xALPACACreditor_Unauthorize()"));
+  function testCannotSetValuePerAUSDStakingIfNotValueSetter() external {
+    vm.expectRevert(abi.encodeWithSignature("AUSDStakingCreditor_Unauthorize()"));
     vm.prank(BOB);
-    _creditor.setValuePerxALPACA(10 ether);
+    _creditor.setValuePerAUSDStaking(10 ether);
   }
 }

@@ -476,6 +476,7 @@
     "abi-to-sol:SimpleVaultConfig": "jq '.abi' ./artifacts/solidity/contracts/6/protocol/SimpleVaultConfig.sol/SimpleVaultConfig.json | abi-to-sol --solidity-version='>=0.8.4 <0.9.0' --validate SimpleVaultConfigLike > ./solidity/tests/interfaces/SimpleVaultConfigLike.sol",
     "abi-to-sol:Vault": "jq '.abi' ./artifacts/solidity/contracts/6/protocol/Vault.sol/Vault.json | abi-to-sol --solidity-version='>=0.7.0 <0.9.0' --validate VaultLike > ./solidity/tests/interfaces/VaultLike.sol",
     "test:xalpaca-creditor": "forge test --match-path solidity/tests/protocol/private-automated-vault/xALPACACreditor.t.sol",
+    "test:ausd-staking-creditor": "forge test --match-path solidity/tests/protocol/private-automated-vault/AUSDStakingCreditor.t.sol",
     "test:xalpaca-price-setter": "forge test --match-path solidity/tests/protocol/private-automated-vault/xALPACAPriceSetter.t.sol",
     "test:av-controller": "forge test --match-path solidity/tests/protocol/private-automated-vault/AutomatedVaultController.t.sol",
     "test:delta02": "forge test --match-path solidity/tests/protocol/private-automated-vault/DeltaNeutralVault02.t.sol",
