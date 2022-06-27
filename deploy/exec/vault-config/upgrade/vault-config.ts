@@ -4,6 +4,9 @@ import { ethers, upgrades, network } from "hardhat";
 import { ConfigurableInterestVaultConfig__factory, Timelock__factory } from "../../../../typechain";
 import MainnetConfig from "../../../../.mainnet.json";
 import TestnetConfig from "../../../../.testnet.json";
+import { getConfig } from "../../../entities/config";
+import { TimelockEntity } from "../../../entities";
+import { fileService, TimelockService } from "../../../services";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -15,20 +18,24 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TARGETED_VAULT_CONFIG = ["ibWBNB", "ibBUSD", "ibETH", "ibALPACA", "ibUSDT", "ibBTCB", "ibTUSD"];
-  const EXACT_ETA = "1629957600";
+  const TITLE = "upgrade_vault_config_for_nft_staking";
+  const TARGETED_VAULT_CONFIG = [
+    "ibWBNB",
+    "ibBUSD",
+    "ibETH",
+    "ibALPACA",
+    "ibUSDT",
+    "ibBTCB",
+    "ibTUSD",
+    "ibUSDC",
+    "ibCAKE",
+  ];
+  const EXACT_ETA = "1655953200";
 
-  /*
+  const config = getConfig();
+  const timelockTransactions: Array<TimelockEntity.Transaction> = [];
+  const deployer = (await ethers.getSigners())[0];
 
-
-
-
-  
-  */
-
-  const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
-
-  const timelock = Timelock__factory.connect(config.Timelock, (await ethers.getSigners())[0]);
   const toBeUpgradedVaults = TARGETED_VAULT_CONFIG.map((tv) => {
     const vault = config.Vaults.find((v) => tv == v.symbol);
     if (vault === undefined) {
@@ -43,33 +50,33 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   console.log(`>> Prepare upgrade vault config through Timelock + ProxyAdmin`);
 
+  let nonce = await deployer.getTransactionCount();
+
   for (const toBeUpgradedVault of toBeUpgradedVaults) {
     console.log(">> Prepare upgrade a new IMPL. (It should return the same impl address)");
     const NewVaultConfig = (await ethers.getContractFactory(
       "ConfigurableInterestVaultConfig"
     )) as ConfigurableInterestVaultConfig__factory;
-    const preparedNewVaultConfig = await upgrades.prepareUpgrade(toBeUpgradedVaults[0].config, NewVaultConfig, {
-      unsafeAllowRenames: true,
-    });
+    const preparedNewVaultConfig = await upgrades.prepareUpgrade(toBeUpgradedVaults[0].config, NewVaultConfig);
     console.log(`>> Implementation deployed at: ${preparedNewVaultConfig}`);
     console.log("✅ Done");
 
-    console.log(`>> Queue tx on Timelock to upgrade the implementation of ${toBeUpgradedVault.symbol} VaultConfig`);
-    await timelock.queueTransaction(
-      config.ProxyAdmin,
-      "0",
-      "upgrade(address,address)",
-      ethers.utils.defaultAbiCoder.encode(["address", "address"], [toBeUpgradedVault.config, preparedNewVaultConfig]),
-      EXACT_ETA
+    timelockTransactions.push(
+      await TimelockService.queueTransaction(
+        `Upgrade ${toBeUpgradedVault.symbol} Vault Config`,
+        config.ProxyAdmin,
+        "0",
+        "upgrade(address,address)",
+        ["address", "address"],
+        [toBeUpgradedVault.config, preparedNewVaultConfig],
+        EXACT_ETA,
+        { nonce: nonce++ }
+      )
     );
-    console.log("✅ Done");
-
-    console.log(`>> Generate executeTransaction:`);
-    console.log(
-      `await timelock.executeTransaction('${config.ProxyAdmin}', '0', 'upgrade(address,address)', ethers.utils.defaultAbiCoder.encode(['address','address'], ['${toBeUpgradedVault.config}','${preparedNewVaultConfig}']), ${EXACT_ETA})`
-    );
-    console.log("✅ Done");
   }
+
+  const timestamp = Math.floor(Date.now() / 1000);
+  fileService.writeJson(`${timestamp}_${TITLE}`, timelockTransactions);
 };
 
 export default func;

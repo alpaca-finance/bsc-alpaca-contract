@@ -18,10 +18,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "upgrade_vault";
-  const VAULT_VERSION = "VaultAip42";
-  const TARGETED_VAULTS = ["ibTOMB", "ibFTM"];
-  const EXACT_ETA = "1649232000";
+  const TITLE = "upgrade_all_vaults_support_nftstaking";
+  const VAULT_VERSION = "Vault";
+  const TARGETED_VAULTS = ["ibWBNB", "ibBUSD", "ibETH", "ibALPACA", "ibUSDT", "ibBTCB", "ibTUSD", "ibUSDC", "ibCAKE"];
+  const EXACT_ETA = "1655753400";
 
   const config = getConfig();
 
@@ -81,7 +81,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   if (timelockTransactions.length > 0) {
     const timestamp = Math.floor(new Date().getTime() / 1000);
-    fileService.writeJson(TITLE, `${timestamp}_${timelockTransactions}`);
+    fileService.writeJson(`${timestamp}_${TITLE}`, timelockTransactions);
   }
 };
 

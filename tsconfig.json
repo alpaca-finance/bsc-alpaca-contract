@@ -10,7 +10,7 @@
     "module": "commonjs",
     "lib": ["es6", "es2017", "dom"],
     "target": "es5",
-    "types": ["@types/node", "@types/chai", "@types/mocha", "truffle-typings"],
+    "types": ["@types/node", "@types/chai", "@types/mocha"],
     "typeRoots": ["./node_modules/@types", "./types"],
   },
   "include": [
