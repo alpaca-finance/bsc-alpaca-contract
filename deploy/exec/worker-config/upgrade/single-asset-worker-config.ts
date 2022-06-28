@@ -8,6 +8,8 @@ import {
   WorkerConfig__factory,
 } from "../../../../typechain";
 import { getConfig } from "../../../entities/config";
+import { TimelockEntity } from "../../../entities";
+import { fileService, TimelockService } from "../../../services";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const config = getConfig();
@@ -20,19 +22,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
+  const TITLE = "upgrade_singleasset_worker_config";
   const TO_BE_UPGRADE_WORKER_CONFIG = config.SharedConfig.PancakeswapSingleAssetWorkerConfig!;
-  const EXACT_ETA = "1629549000";
+  const EXACT_ETA = "1655751600";
 
-  /*
-
-
-
-
-  
-  */
-
-  const timelock = Timelock__factory.connect(config.Timelock, (await ethers.getSigners())[0]);
-
+  const deployer = (await ethers.getSigners())[0];
   console.log(`>> Upgrading Worker at ${TO_BE_UPGRADE_WORKER_CONFIG} through Timelock + ProxyAdmin`);
   const NewSingleAssetWorkerConfig = (await ethers.getContractFactory(
     "SingleAssetWorkerConfig"
@@ -44,25 +38,24 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log(`>> New implementation deployed at: ${preparedNewSingleAssetWorkerConfig}`);
   console.log("✅ Done");
 
-  console.log(`>> Queue tx on Timelock to upgrade the implementation`);
-  await timelock.queueTransaction(
-    config.ProxyAdmin,
-    "0",
-    "upgrade(address,address)",
-    ethers.utils.defaultAbiCoder.encode(
-      ["address", "address"],
-      [TO_BE_UPGRADE_WORKER_CONFIG, preparedNewSingleAssetWorkerConfig]
-    ),
-    EXACT_ETA,
-    { gasPrice: 100000000000 }
-  );
-  console.log("✅ Done");
+  let nonce = await deployer.getTransactionCount();
+  const timelockTransactions: Array<TimelockEntity.Transaction> = [];
 
-  console.log(`>> Generate executeTransaction:`);
-  console.log(
-    `await timelock.executeTransaction('${config.ProxyAdmin}', '0', 'upgrade(address,address)', ethers.utils.defaultAbiCoder.encode(['address','address'], ['${TO_BE_UPGRADE_WORKER_CONFIG}','${preparedNewSingleAssetWorkerConfig}']), ${EXACT_ETA})`
+  timelockTransactions.push(
+    await TimelockService.queueTransaction(
+      "Upgrading single asset worker config",
+      config.ProxyAdmin,
+      "0",
+      "upgrade(address,address)",
+      ["address", "address"],
+      [TO_BE_UPGRADE_WORKER_CONFIG, preparedNewSingleAssetWorkerConfig],
+      EXACT_ETA,
+      { nonce: nonce++ }
+    )
   );
-  console.log("✅ Done");
+
+  const timestamp = Math.floor(Date.now() / 1000);
+  fileService.writeJson(`${timestamp}_${TITLE}`, timelockTransactions);
 };
 
 export default func;

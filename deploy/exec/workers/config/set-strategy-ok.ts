@@ -18,17 +18,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "set_ibBTCB_PancakeswapV2RestrictedDnxStrategyAddTwoSidesOptimal_ok";
+  const TITLE = "set_ibUSDC_SpookySwapDnxStrategyAddTwoSidesOptimal_ok";
   const ADD_STRAT = "";
   const LIQ_STRAT = "";
 
   const OK_FLAG = true;
-  const STRATEGY = ["0x49f488E4606687a1Ed67AD5E6A9255C08d334334"]; //update ibBTCB PancakeswapDnx StrategyAddTwoSidesOptimal
-  const WORKERS = [
-    "BUSD-BTCB L3x PCS1 DeltaNeutralPancakeswapWorker",
-    "BUSD-BTCB L3x PCS2 DeltaNeutralPancakeswapWorker",
-    "BUSD-BTCB L8x PCS1 DeltaNeutralPancakeswapWorker",
-  ];
+  const STRATEGY = ["0x292E51830185BAb540c7E3f9aA2918e2B8F07d08"]; //update ibUSDC SpookySwapDnx StrategyAddTwoSidesOptimal
+  const WORKERS = ["WFTM-USDC 3x SPK1 DeltaNeutralSpookyWorker", "WFTM-USDC 3x SPK2 DeltaNeutralSpookyWorker"];
   const EXACT_ETA = "0";
 
   const miniWorkers: Array<WorkerEntity.IMiniWorker> = mapWorkers(WORKERS).map((w) => {

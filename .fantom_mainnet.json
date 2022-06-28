@@ -194,7 +194,7 @@
       "tripleSlopeModel": "0xd36B6cf6Aa96Eb7185798ebccb8c5c5a82434067",
       "StrategyAddTwoSidesOptimal": {
         "SpookySwap": "0x11288Ceee9C12C9d2b1A80a4Df10d5c18F0429e8",
-        "SpookySwapDnx": "0x"
+        "SpookySwapDnx": "0x9FC56db8Edcf528C3dfc1CE6cE10c7a29e56dD08"
       },
       "workers": [
         {
@@ -378,7 +378,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0xD50aAb6B210fe049B6c5262f5A7676204699AB8E",
             "StrategyLiquidate": "0x65Cc57347bA3761358Eb175540E9e5D39CbceFd8",
-            "StrategyAddTwoSidesOptimal": "0x11288Ceee9C12C9d2b1A80a4Df10d5c18F0429e8",
+            "StrategyAddTwoSidesOptimal": "0x9FC56db8Edcf528C3dfc1CE6cE10c7a29e56dD08",
             "StrategyWithdrawMinimizeTrading": "0x07DE1F788Fa7E0C215AA772d4429f47902640ef5",
             "StrategyPartialCloseLiquidate": "0x311a522e43C035244e72247895F5C17e46CAB000",
             "StrategyPartialCloseMinimizeTrading": "0x540247c00645E85fA548064039493beD4a0c522C"
@@ -395,7 +395,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0xD50aAb6B210fe049B6c5262f5A7676204699AB8E",
             "StrategyLiquidate": "0x65Cc57347bA3761358Eb175540E9e5D39CbceFd8",
-            "StrategyAddTwoSidesOptimal": "0x11288Ceee9C12C9d2b1A80a4Df10d5c18F0429e8",
+            "StrategyAddTwoSidesOptimal": "0x9FC56db8Edcf528C3dfc1CE6cE10c7a29e56dD08",
             "StrategyWithdrawMinimizeTrading": "0x07DE1F788Fa7E0C215AA772d4429f47902640ef5",
             "StrategyPartialCloseLiquidate": "0x311a522e43C035244e72247895F5C17e46CAB000",
             "StrategyPartialCloseMinimizeTrading": "0x540247c00645E85fA548064039493beD4a0c522C"
@@ -414,7 +414,7 @@
       "tripleSlopeModel": "0xBbf2a7FacDB318F7670cE87A5F6571Bb001d8F06",
       "StrategyAddTwoSidesOptimal": {
         "SpookySwap": "0xe9eF08a1eA08e5145547815e496bAE265D4A85Bf",
-        "SpookySwapDnx": "0x"
+        "SpookySwapDnx": "0x292E51830185BAb540c7E3f9aA2918e2B8F07d08"
       },
       "workers": [
         {
@@ -462,7 +462,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0xD50aAb6B210fe049B6c5262f5A7676204699AB8E",
             "StrategyLiquidate": "0x65Cc57347bA3761358Eb175540E9e5D39CbceFd8",
-            "StrategyAddTwoSidesOptimal": "0xe9eF08a1eA08e5145547815e496bAE265D4A85Bf",
+            "StrategyAddTwoSidesOptimal": "0x292E51830185BAb540c7E3f9aA2918e2B8F07d08",
             "StrategyWithdrawMinimizeTrading": "0x07DE1F788Fa7E0C215AA772d4429f47902640ef5",
             "StrategyPartialCloseLiquidate": "0x311a522e43C035244e72247895F5C17e46CAB000",
             "StrategyPartialCloseMinimizeTrading": "0x540247c00645E85fA548064039493beD4a0c522C"
@@ -496,7 +496,7 @@
           "strategies": {
             "StrategyAddAllBaseToken": "0xD50aAb6B210fe049B6c5262f5A7676204699AB8E",
             "StrategyLiquidate": "0x65Cc57347bA3761358Eb175540E9e5D39CbceFd8",
-            "StrategyAddTwoSidesOptimal": "0xe9eF08a1eA08e5145547815e496bAE265D4A85Bf",
+            "StrategyAddTwoSidesOptimal": "0x292E51830185BAb540c7E3f9aA2918e2B8F07d08",
             "StrategyWithdrawMinimizeTrading": "0x07DE1F788Fa7E0C215AA772d4429f47902640ef5",
             "StrategyPartialCloseLiquidate": "0x311a522e43C035244e72247895F5C17e46CAB000",
             "StrategyPartialCloseMinimizeTrading": "0x540247c00645E85fA548064039493beD4a0c522C"
@@ -607,11 +607,10 @@
       "stableVaultPosId": "1983"
     }
   ],
-
-  "AutomatedVaultExecutor" : {
-    "deposit":"",
-    "withdraw":"",
-    "reinvest":"",
-    "rebalance":""
+  "AutomatedVaultExecutor": {
+    "deposit": "0xCf7252Fe8BA4DB3D98F9605C3F014F9AB4efBcc8",
+    "withdraw": "0x735F8AaBc94aBF36843956ee2101C5fB8A943a70",
+    "reinvest": "0xAe9b637f1585eD66B40232f2d1A72bec61fc3944",
+    "rebalance": "0xAE81990764605be12857Ac7A39A3a8A56Fe41b81"
   }
 }
