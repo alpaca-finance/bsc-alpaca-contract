@@ -19,13 +19,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const VALUE_PER_AUSD_STAKING = ethers.utils.parseEther("1");
 
-  //AUSDStaking bsc 0x
-  //AUSDStaking ftm 0x
-  const AUSD_STAKING_ADDRESS = "0x201994a052781A133b425E4EB5655541A4DEE081";
+  const configFile = new ConfigFileHelper();
+  const AUSD_STAKING_ADDRESS = configFile.getConfig().AUSDStaking;
+
+  if (!AUSD_STAKING_ADDRESS) {
+    throw new Error("ERROR NO AUSD STAKING ADDRESS");
+  }
 
   const deployer = await getDeployer();
-
-  console.log(">> Deploying an upgradable AUSDStakingCreditor contract");
 
   const ausdStakingCreditorDeployer = new UpgradeableContractDeployer<AUSDStakingCreditor>(
     deployer,
@@ -36,8 +37,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     AUSD_STAKING_ADDRESS,
     VALUE_PER_AUSD_STAKING,
   ]);
-
-  const configFile = new ConfigFileHelper();
 
   configFile.addOrSetCreditors({
     name: "AUSDStakingCreditor",

@@ -3,7 +3,7 @@ import { AIP8AUSDStaking__factory } from "./../../../../typechain/factories/AIP8
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { getDeployer } from "../../../../utils/deployer-helper";
-import { ConfigFileHelper } from "../../../helper";
+import { ConfigFileHelper, Converter } from "../../../helper";
 import { UpgradeableContractDeployer } from "../../../deployer";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -18,17 +18,18 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
 
   const PID = 25;
-  const FAIR_LUNCH_ADDRESS = "0xa625ab01b08ce023b2a342dbb12a16f2c8489a8f";
+
+  const configFile = new ConfigFileHelper();
+  const FAIR_LUNCH_ADDRESS = configFile.getConfig().FairLaunch?.address;
+
+  if (!FAIR_LUNCH_ADDRESS) {
+    throw new Error("ERROR NO FAIR LUNCH ADDRESS");
+  }
 
   const deployer = await getDeployer();
 
-  console.log(">> Deploying an upgradable AIP8AUSDStaking contract");
-
   const AUSDStakingDeployer = new UpgradeableContractDeployer<AIP8AUSDStaking>(deployer, "AIP8AUSDStaking");
-
   const { contract: AIP8AUSDStaking } = await AUSDStakingDeployer.deploy([FAIR_LUNCH_ADDRESS, PID]);
-
-  const configFile = new ConfigFileHelper();
 
   configFile.setAUSDStaking(AIP8AUSDStaking.address);
 };

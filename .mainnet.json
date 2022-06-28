@@ -3,7 +3,7 @@
   "Timelock": "0x2D5408f2287BF9F9B05404794459a846651D0a59",
   "Shield": "0x1963f84395C8cf464E5483dE7f2f434c3F1b4656",
   "MultiCall": "0x41263cba59eb80dc200f3e2544eda4ed6a90e76c",
-  "AUSDStaking": "0x201994a052781A133b425E4EB5655541A4DEE081",
+  "AUSDStaking": "",
   "MerkleDistributor": {
     "ITAM-week-1": "0xD193b38C87C8FAF7cB2F6C592d3ae885AE21c4bf",
     "ITAM-week-2": "0x63c60b840933e62E43D8eFc1dfDe31A32CDC4412",
@@ -4803,10 +4803,6 @@
     {
       "name": "xALPACACreditor",
       "address": "0xeDdD248FEe5ff98e532c3A4087C83F6e376eEDa7"
-    },
-    {
-      "name": "AUSDStakingCreditor",
-      "address": "0xCeAb511b79CC339a0F14F74f758C8b1033A7f5F0"
     }
   ],
   "AutomatedVaultController": {
