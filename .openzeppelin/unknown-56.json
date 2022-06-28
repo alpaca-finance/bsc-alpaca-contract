@@ -1169,6 +1169,21 @@
       "address": "0x0d0D4d050585C8fa3A3D64f2c38AC5737260028f",
       "txHash": "0xebbdef1e1644bec1627291e2b1aedffe47b2cd0aff135604bb9b234ff4f8bc82",
       "kind": "transparent"
+    },
+    {
+      "address": "0xbe20788A50C7462E363383FaA19429432e1E3d99",
+      "txHash": "0xec24e7411a50fa00d8627dd066f044ecaf54e68cbc62133fab022f4cb84d8f30",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x7AEb59DA7ABa769Eb9Fa294c45004f77906502f7",
+      "txHash": "0xb44beed121bca34ceb6b14301f6219df0e8e485077ec42e0dad459955ec897ce",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xC937782805f254b6a99A0eBF136511b2e646c1c4",
+      "txHash": "0x4958bef778286266679e534a14533fa3bbe4a6c60a003d968c4ef25476eb0038",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -25804,6 +25819,211 @@
           },
           "t_array(t_uint256)45_storage": {
             "label": "uint256[45]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_bool": {
+            "label": "bool"
+          }
+        }
+      }
+    },
+    "d3f90daacd1999f92ed57ceab6568a0295041439386e40ca41864506c8822e17": {
+      "address": "0x038325D9a6f5654ae941E2DCAFae89ed5c579E3E",
+      "txHash": "0x2bbbc32a4d6adce21f7e8f8e15794cfac304d37716e53175ffe53b45a3cdc461",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:74"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+          },
+          {
+            "contract": "AIP8AUSDStaking",
+            "label": "stakingToken",
+            "type": "t_contract(IERC20Upgradeable)334",
+            "src": "solidity/contracts/8.15/AIP8AUSDStaking.sol:53"
+          },
+          {
+            "contract": "AIP8AUSDStaking",
+            "label": "alpaca",
+            "type": "t_contract(IERC20Upgradeable)334",
+            "src": "solidity/contracts/8.15/AIP8AUSDStaking.sol:53"
+          },
+          {
+            "contract": "AIP8AUSDStaking",
+            "label": "fairlaunch",
+            "type": "t_contract(IFairLaunch)1558",
+            "src": "solidity/contracts/8.15/AIP8AUSDStaking.sol:54"
+          },
+          {
+            "contract": "AIP8AUSDStaking",
+            "label": "pid",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.15/AIP8AUSDStaking.sol:55"
+          },
+          {
+            "contract": "AIP8AUSDStaking",
+            "label": "accAlpacaPerShare",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.15/AIP8AUSDStaking.sol:56"
+          },
+          {
+            "contract": "AIP8AUSDStaking",
+            "label": "userInfo",
+            "type": "t_mapping(t_address,t_struct(UserInfo)893_storage)",
+            "src": "solidity/contracts/8.15/AIP8AUSDStaking.sol:57"
+          }
+        ],
+        "types": {
+          "t_contract(IERC20Upgradeable)334": {
+            "label": "contract IERC20Upgradeable"
+          },
+          "t_contract(IFairLaunch)1558": {
+            "label": "contract IFairLaunch"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_address,t_struct(UserInfo)893_storage)": {
+            "label": "mapping(address => struct AIP8AUSDStaking.UserInfo)"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_struct(UserInfo)893_storage": {
+            "label": "struct AIP8AUSDStaking.UserInfo",
+            "members": [
+              {
+                "label": "stakingAmount",
+                "type": "t_uint256"
+              },
+              {
+                "label": "lockUntil",
+                "type": "t_uint256"
+              },
+              {
+                "label": "alpacaRewardDebt",
+                "type": "t_uint256"
+              }
+            ]
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_bool": {
+            "label": "bool"
+          }
+        }
+      }
+    },
+    "f7593c4f6353255c82e96df02d5f9924f79379b6a826c69777c60d8683b82b39": {
+      "address": "0x31AAA568e12F63215D8c2fc13BB57a5a8cCE1f0d",
+      "txHash": "0xa11de3b726cb9024f5b504299999052a966eafbda07cd11bd6a622e545284a06",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+          },
+          {
+            "contract": "AUSDStakingCreditor",
+            "label": "AUSDStaking",
+            "type": "t_contract(IAUSDStaking)12599",
+            "src": "solidity/contracts/8.13/AUSDStakingCreditor.sol:37"
+          },
+          {
+            "contract": "AUSDStakingCreditor",
+            "label": "valuePerAUSDStaking",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.13/AUSDStakingCreditor.sol:40"
+          },
+          {
+            "contract": "AUSDStakingCreditor",
+            "label": "valueSetter",
+            "type": "t_address",
+            "src": "solidity/contracts/8.13/AUSDStakingCreditor.sol:40"
+          }
+        ],
+        "types": {
+          "t_contract(IAUSDStaking)12599": {
+            "label": "contract IAUSDStaking"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
           },
           "t_array(t_uint256)50_storage": {
             "label": "uint256[50]"

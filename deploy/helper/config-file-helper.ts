@@ -249,6 +249,13 @@ export class ConfigFileHelper {
     );
   }
 
+  // AUSD Staking
+  public setAUSDStaking(address: string) {
+    console.log(`>> SET AUSD Staking to file > ${address}`);
+    this.config.AUSDStaking = address;
+    this._writeConfigFile(this.config);
+  }
+
   // AutomatedVaultController
   public setAVController(address: string) {
     console.log(`>> SET AVController to file > ${address}`);
