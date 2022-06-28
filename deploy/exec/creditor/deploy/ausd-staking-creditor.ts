@@ -21,7 +21,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   //AUSDStaking bsc 0x
   //AUSDStaking ftm 0x
-  const AUSD_STAKING_ADDRESS = "0xbe20788A50C7462E363383FaA19429432e1E3d99";
+  const AUSD_STAKING_ADDRESS = "0x201994a052781A133b425E4EB5655541A4DEE081";
 
   const deployer = await getDeployer();
 
