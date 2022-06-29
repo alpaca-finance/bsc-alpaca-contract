@@ -2,6 +2,7 @@ export interface Config {
   ProxyAdmin: string;
   Timelock: string;
   MultiCall: string;
+  AUSDStaking?: string;
   Shield?: string;
   MerkleDistributor?: MerkleDistributor;
   GrazingRange?: GrazingRange;

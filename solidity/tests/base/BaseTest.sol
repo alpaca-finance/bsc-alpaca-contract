@@ -19,6 +19,7 @@ import { NFTBoostedLeverageControllerLike } from "../interfaces/NFTBoostedLevera
 import { NFTStakingLike } from "../interfaces/NFTStakingLike.sol";
 import { MockNFTLike } from "../interfaces/MockNFTLike.sol";
 import { MockPancakeswapV2WorkerLike } from "../interfaces/MockPancakeswapV2WorkerLike.sol";
+import { AUSDStakingCreditorLike } from "../interfaces/AUSDStakingCreditorLike.sol";
 import { xALPACACreditorLike } from "../interfaces/xALPACACreditorLike.sol";
 import { xALPACAPriceSetterLike } from "../interfaces/xALPACAPriceSetterLike.sol";
 import { AutomatedVaultControllerLike } from "../interfaces/AutomatedVaultControllerLike.sol";
@@ -201,6 +202,22 @@ contract BaseTest is DSTest {
       _address := create(0, add(_bytecode, 0x20), mload(_bytecode))
     }
     return TripleSlopeModelLike(_address);
+  }
+
+  function _setupAUSDStakingCreditor(address _AUSDStaking, uint256 _valuePerAUSDStaking)
+    internal
+    returns (AUSDStakingCreditorLike)
+  {
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/AUSDStakingCreditor.sol/AUSDStakingCreditor.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize(address,uint256)")),
+      _AUSDStaking,
+      _valuePerAUSDStaking
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return AUSDStakingCreditorLike(_proxy);
   }
 
   function _setupxALPACACreditor(address _xALPACA, uint256 _valuePerxALPACA) internal returns (xALPACACreditorLike) {
