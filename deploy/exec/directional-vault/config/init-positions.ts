@@ -31,12 +31,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const initPositionInputs: IInitPositionV2Inputs[] = [
     {
-      symbol: "bull6x-BUSDBTCB-PCS1",
-      longDepositAmount: 100,
+      symbol: "bull6x-BNBUSDT-PCS1",
+      longDepositAmount: 300,
       shortDepositAmount: 0,
-
-      expectedLongTokenSymbol: "BUSD",
-      expectedShortTokenSymbol: "BTCB",
+      expectedLongTokenSymbol: "USDT",
+      expectedShortTokenSymbol: "WBNB",
     },
   ];
   const deployer = await getDeployer();

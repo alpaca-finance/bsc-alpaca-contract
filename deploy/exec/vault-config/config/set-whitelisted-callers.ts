@@ -30,11 +30,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "mainnet_bull6x_busdbtcb_pcs1_whitelisted_callers";
+  const TITLE = "mainnet_bull6x_bnbusdt_pcs1_whitelisted_callers";
   const TARGETED_VAULT_CONFIG: Array<IInput> = [
     {
-      VAULT_SYMBOL: "ibBUSD",
-      WHITELISTED_CALLERS: ["0x5e4BcC43208bb4D3b205eB80C67263F845b0b228"], // update
+      VAULT_SYMBOL: "ibUSDT",
+      WHITELISTED_CALLERS: ["UPDATE"], // update
       IS_ENABLE: true,
     },
   ];

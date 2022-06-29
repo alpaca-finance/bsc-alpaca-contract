@@ -19,7 +19,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const swapFee = 25;
   const swapFeeDenom = 10000;
-  const DELTA_VAULT_SYMBOL = ["bull6x-BUSDBTCB-PCS1"];
+  const DELTA_VAULT_SYMBOL = ["bull6x-BNBUSDT-PCS1"];
 
   const deployer = await getDeployer();
 

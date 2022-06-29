@@ -44,14 +44,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   // prepare variable
   const vaultInputs: IDirectionalVaultInput[] = [
     {
-      name: "Bull 6x BUSD-BTCB PCS1",
-      symbol: "bull6x-BUSDBTCB-PCS1",
-      stableVaultSymbol: "ibBUSD",
-      stableSymbol: "BUSD",
-      assetSymbol: "BTCB",
-      stableVaultWorkerName: "BTCB-BUSD 6x PCS1 DeltaNeutralPancakeswapWorker", // Address of stable vault worker
-      lpAddress: "0xf45cd219aef8618a92baa7ad848364a158a24f33",
-      assetTokenAddress: "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c",
+      name: "Bull 6x BNB-USDT PCS1",
+      symbol: "bull6x-BNBUSDT-PCS1",
+      stableVaultSymbol: "ibUSDT",
+      stableSymbol: "USDT",
+      assetSymbol: "WBNB",
+      stableVaultWorkerName: "WBNB-USDT 6x PCS1 DirectionalPancakeswapWorker", // Address of stable vault worker
+      lpAddress: "0x16b9a82891338f9bA80E2D6970FddA79D1eb0daE",
+      assetTokenAddress: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
     },
   ];
 
