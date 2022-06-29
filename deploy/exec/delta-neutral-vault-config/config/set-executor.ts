@@ -16,17 +16,18 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const DELTA_VAULT_SYMBOL = ["n3x-FTMUSDC-SPK1", "n3x-FTMUSDC-SPK2"];
-
   const deployer = await getDeployer();
   const config = getConfig();
-  const executors = config.AutomatedVaultExecutor!;
+
+  // update
+  const DELTA_VAULT_SYMBOL = ["bull6x-BUSDBTCB-PCS1"];
+  const executors = config.DirectionalVaultExecutor!;
 
   // VALIDATING ALL DELTA_VAULT_SYMBOL
   const converter = new Converter();
   const configs = converter.convertDeltaSymbolToAddress(DELTA_VAULT_SYMBOL, "config");
 
-  console.log(">> Set Executor to DeltaNeutralVaultConfig03 contract");
+  console.log(">> Set Executor to DeltaNeutralVaultConfig02 contract");
   let nonce = await deployer.getTransactionCount();
   const ops = isFork() ? { gasLimit: 2000000 } : {};
   for (const config of configs) {
