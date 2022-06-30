@@ -85,7 +85,7 @@ contract AIP8AUSDStaking is ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
     // CHECK
     // 1. Validate `_lockUntil`
-    if (_lockUntil < block.timestamp + WEEK) {
+    if (_lockUntil < block.timestamp) {
       revert AIP8AUSDStaking_ViolateMinimumLockPeriod(_lockUntil);
     }
     if (_lockUntil > block.timestamp + MAX_LOCK) {
