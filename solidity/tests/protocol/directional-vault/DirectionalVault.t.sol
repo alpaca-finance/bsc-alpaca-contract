@@ -139,13 +139,13 @@ contract DirectionalVault_Test is BaseTest {
 
     _depositExecutor.setExecutionValue(_depositValue, _borrowValue);
 
-    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault_UnsafeDebtValue()"));
+    vm.expectRevert(abi.encodeWithSignature("DirectionalVault_UnsafeDebtValue()"));
     _directionalVault.deposit(100 ether, 0, ALICE, 100 ether, abi.encode(0));
 
     _borrowValue = _depositValue * 1; // 1x leverage
     _depositExecutor.setExecutionValue(_depositValue, _borrowValue);
 
-    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault_UnsafeDebtValue()"));
+    vm.expectRevert(abi.encodeWithSignature("DirectionalVault_UnsafeDebtValue()"));
     _directionalVault.deposit(100 ether, 0, ALICE, 100 ether, abi.encode(0));
   }
 
@@ -175,7 +175,7 @@ contract DirectionalVault_Test is BaseTest {
 
     vm.prank(ALICE);
     // Withdraw executor will always return stable
-    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault_UnsafeDebtRatio()"));
+    vm.expectRevert(abi.encodeWithSignature("DirectionalVault_UnsafeDebtRatio()"));
     _directionalVault.withdraw(100 ether, 100, 0, abi.encode(0));
   }
 
@@ -191,7 +191,7 @@ contract DirectionalVault_Test is BaseTest {
     _stableVault.setDebt(100 ether, 100 ether);
 
     _rebalanceExecutor.setExecutionValue(500 ether, 400 ether);
-    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault_UnsafePositionValue()"));
+    vm.expectRevert(abi.encodeWithSignature("DirectionalVault_UnsafePositionValue()"));
     _directionalVault.rebalance(abi.encode(0));
   }
 
@@ -206,7 +206,7 @@ contract DirectionalVault_Test is BaseTest {
     _alpacaToken.mint(address(_directionalVault), 100 ether);
     _reinvestExecutor.setExecutionValue(300 ether, 250 ether);
 
-    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault_UnsafePositionEquity()"));
+    vm.expectRevert(abi.encodeWithSignature("DirectionalVault_UnsafePositionEquity()"));
     _directionalVault.reinvest(abi.encode(0), 0);
   }
 
