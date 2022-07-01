@@ -85,13 +85,13 @@ contract AIP8AUSDStaking is ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
     // CHECK
     // 1. Validate `_lockUntil`
-    if (_lockUntil < block.timestamp + WEEK) {
+    if (_lockUntil < block.timestamp) {
       revert AIP8AUSDStaking_ViolateMinimumLockPeriod(_lockUntil);
     }
     if (_lockUntil > block.timestamp + MAX_LOCK) {
       revert AIP8AUSDStaking_ViolateMaximumLockPeriod(_lockUntil);
     }
-    if (_userInfo.stakingAmount > 0 && _lockUntil <= _userInfo.lockUntil) {
+    if (_userInfo.stakingAmount > 0 && _lockUntil < _userInfo.lockUntil) {
       revert AIP8AUSDStaking_ViolatePreviousLockPeriod(_lockUntil);
     }
 
@@ -172,9 +172,10 @@ contract AIP8AUSDStaking is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   }
 
   function pendingAlpaca(address _user) external view returns (uint256) {
+    (uint256 _totalAmountInFairlaunch, , , ) = fairlaunch.userInfo(pid, address(this));
+    if (_totalAmountInFairlaunch == 0) return 0;
     uint256 _currentAccAlpacaPerShare = accAlpacaPerShare;
     uint256 _pendingAlpacaOfThisContract = fairlaunch.pendingAlpaca(pid, address(this));
-    (uint256 _totalAmountInFairlaunch, , , ) = fairlaunch.userInfo(pid, address(this));
     uint256 _newAccAlpacaPerShare = _currentAccAlpacaPerShare +
       ((_pendingAlpacaOfThisContract * 1e12) / _totalAmountInFairlaunch);
 
