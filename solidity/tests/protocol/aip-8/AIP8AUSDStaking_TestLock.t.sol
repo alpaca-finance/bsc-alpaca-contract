@@ -67,9 +67,10 @@ contract AIP8AUSDStaking_TestLock is AIP8AUSDStakingBase {
     assertEq(_firstStakingAmount + _secendStakingAmount, _fairlaunchAmount2);
     assertEq(address(aip8AUSDStaking), _fundedBy2);
 
+    vm.startPrank(_ALICE);
     vm.expectRevert(abi.encodeWithSelector(AIP8AUSDStakingLike.AIP8AUSDStaking_ViolateMinimumLockPeriod.selector, 0));
-    revert AIP8AUSDStakingLike.AIP8AUSDStaking_ViolateMinimumLockPeriod(0); // TODO: MUST FIND THE REVERT METHOD WITH ARGUMENT
-    _lockFor(_ALICE, 1 ether, 0);
+    aip8AUSDStaking.lock(_expectedStakingAmount, 0);
+    vm.stopPrank();
   }
 
   function test_lock_aliceAndBobLock_shouldSuccess() external {
