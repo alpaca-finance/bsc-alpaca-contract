@@ -140,6 +140,8 @@
     "deploy:mainnet:delta-neutral-vault-config:config:set-strategies": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags DeltaNeutralVaultConfigSetStrategies",
     "deploy:mainnet:delta-neutral-vault-config:config:set-executor": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags DeltaNeutralVaultConfigSetExecutor",
     "deploy:mainnet:delta-neutral-vault-config:config:set-swap-fee": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags DeltaNeutralVaultConfigSetSwapFee",
+    "deploy:mainnet:directional-vault:deploy:directional-vault": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags DirectionalVault",
+    "deploy:mainnet:directional-vault:config:init-positions": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags DirectionalVaultInitPositions",
     "deploy:testnet:000": "hardhat --network testnet deploy --no-compile --reset --tags Testnet",
     "deploy:testnet:000:panV2": "hardhat --network testnet deploy --no-compile --reset --tags PancakeswapV2",
     "deploy:testnet:000:waultswap": "hardhat --network testnet deploy --no-compile --reset --tags WaultSwap",

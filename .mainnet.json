@@ -4818,5 +4818,11 @@
     "withdraw": "0xceC88d723aC8cb1D7887BcFcDF0E59B5091bBE37",
     "reinvest": "0x7C60e6530170b44867187d6413A8fd9AC77c3EaB",
     "rebalance": "0x379A75Ab34C359f9Cd1d00dF958656Ea30e20e66"
+  },
+  "DirectionalVaultExecutor": {
+    "deposit": "",
+    "withdraw": "",
+    "reinvest": "",
+    "rebalance": ""
   }
 }

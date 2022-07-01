@@ -6,7 +6,7 @@ import { fileService, TimelockService } from "../../../services";
 import { getConfig } from "../../../entities/config";
 import { Multicall2Service } from "../../../services/multicall/multicall2";
 import { ConfigurableInterestVaultConfig, ConfigurableInterestVaultConfig__factory } from "../../../../typechain";
-import { getDeployer } from "../../../../utils/deployer-helper";
+import { getDeployer, isFork } from "../../../../utils/deployer-helper";
 
 interface IInput {
   VAULT_SYMBOL: string;
@@ -30,26 +30,22 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "mainnet_tranching_whitelisted_callers";
+  const TITLE = "mainnet_bull6x_bnbusdt_pcs1_whitelisted_callers";
   const TARGETED_VAULT_CONFIG: Array<IInput> = [
     {
-      VAULT_SYMBOL: "ibBUSD",
-      WHITELISTED_CALLERS: ["0x86AeBc703D893737ACF15DDFD4C9538c79cC43d2"],
-      IS_ENABLE: true,
-    },
-    {
-      VAULT_SYMBOL: "ibWBNB",
-      WHITELISTED_CALLERS: ["0x86AeBc703D893737ACF15DDFD4C9538c79cC43d2"],
+      VAULT_SYMBOL: "ibUSDT",
+      WHITELISTED_CALLERS: ["UPDATE"], // update
       IS_ENABLE: true,
     },
   ];
-  const EXACT_ETA = "1654833600";
+  const EXACT_ETA = "1656568233";
 
   const config = getConfig();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   const deployer = await getDeployer();
   const multiCall2Service = new Multicall2Service(config.MultiCall, deployer);
   let nonce = await deployer.getTransactionCount();
+  const ops = isFork() ? { gasLimit: 2000000 } : {};
 
   const inputs: Array<IDerivedInput> = TARGETED_VAULT_CONFIG.map((tv) => {
     const vault = config.Vaults.find((v) => tv.VAULT_SYMBOL == v.symbol);
@@ -91,13 +87,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
           ["address[]", "bool"],
           [i.whitelistedCallers, i.isEnable],
           EXACT_ETA,
-          { gasPrice: ethers.utils.parseUnits("15", "gwei"), nonce: nonce++ }
+          { gasPrice: ethers.utils.parseUnits("15", "gwei"), ...ops, nonce: nonce++ }
         )
       );
       continue;
     } else {
       console.log(`>> setWhitelistedCaller for ${i.vaultConfig.address}`);
-      await i.vaultConfig.setWhitelistedCallers(i.whitelistedCallers, i.isEnable, { nonce: nonce++ });
+      await i.vaultConfig.setWhitelistedCallers(i.whitelistedCallers, i.isEnable, {
+        ...ops,
+        nonce: nonce++,
+      });
       console.log(`>> ✅ Done`);
     }
   }

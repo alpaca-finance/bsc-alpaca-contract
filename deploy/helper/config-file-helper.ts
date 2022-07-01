@@ -194,7 +194,7 @@ export class ConfigFileHelper {
     nameOrSymbolOrAddress: string,
     vaultPositionIds: {
       stableVaultPosId: string;
-      assetVaultPosId: string;
+      assetVaultPosId?: string;
     }
   ) {
     console.log(
@@ -207,7 +207,7 @@ export class ConfigFileHelper {
       );
 
     this.config.DeltaNeutralVaults[idx].stableVaultPosId = vaultPositionIds.stableVaultPosId;
-    this.config.DeltaNeutralVaults[idx].assetVaultPosId = vaultPositionIds.assetVaultPosId;
+    this.config.DeltaNeutralVaults[idx].assetVaultPosId = vaultPositionIds.assetVaultPosId || "";
     console.log("✅ Done");
 
     this._writeConfigFile(this.config);
