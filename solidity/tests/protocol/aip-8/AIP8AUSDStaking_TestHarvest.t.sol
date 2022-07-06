@@ -128,4 +128,58 @@ contract AIP8AUSDStaking_TestHarvest is AIP8AUSDStakingBase {
     vm.warp(block.timestamp + 10);
     _unlockFor(_DAVID);
   }
+
+  function test_harvest_aliceLock_aliceHarvestTwice_accAlpacaPerShare_shouldNotChangeOnSecondHarvest() external {
+    uint256 _expectedStakingAmountAlice = 1 ether;
+    uint256 _expectedLockUntilAlice = block.timestamp + WEEK;
+
+    _lockFor(_ALICE, _expectedStakingAmountAlice, _expectedLockUntilAlice);
+    vm.roll(block.number + 1000);
+
+    uint256 _alpacaBalanceBefore = IERC20Upgradeable(ALPACA).balanceOf(_ALICE);
+    vm.prank(_ALICE);
+    aip8AUSDStaking.harvest();
+
+    uint256 _alpacaRewardHarvested = IERC20Upgradeable(ALPACA).balanceOf(_ALICE) - _alpacaBalanceBefore;
+    uint256 _accAlpacaPerShare = aip8AUSDStaking.accAlpacaPerShare();
+    // pendingAlpaca = 42196193000000 (from console.log)
+    // totalStakingTokenAmount (before Bob lock) = 1e18
+    // previousAccAlpacaPerShare = 0
+    // accAlpacaPerShare = previousAccAlpacaPerShare + ((pendingAlpaca * 1e12) / totalStakingTokenAmount)
+    //                   = 0 + ((42196193000000 * 1e12) / 1e18)
+    //                   = 42196193
+    // alpacaRewardHarvested = (stakingTokenAmount * accAlpacaPerShare / 1e12) - rewardDebt
+    //                       = (1e18 * 42196193 / 1e12) - 0
+    //                       = 42196193000000
+    assertEq(_alpacaRewardHarvested, 42196193000000, "Alice should harvest 42196193000000 wei ALPACA");
+    assertEq(aip8AUSDStaking.accAlpacaPerShare(), 42196193, "accAlpacaPerShare should be 42196193");
+
+    vm.prank(_ALICE);
+    aip8AUSDStaking.harvest();
+
+    assertEq(_accAlpacaPerShare - aip8AUSDStaking.accAlpacaPerShare(), 0, "accAlpacaPerShare should not change");
+  }
+
+  function test_harvest_aliceHavestWithoutLock_shouldSuccessWithNoReward() external {
+    uint256 _alpacaBalanceBefore = IERC20Upgradeable(ALPACA).balanceOf(_ALICE);
+
+    vm.prank(_ALICE);
+    aip8AUSDStaking.harvest();
+
+    uint256 _accAlpacaPerShare = aip8AUSDStaking.accAlpacaPerShare();
+    uint256 _alpacaRewardHarvested = IERC20Upgradeable(ALPACA).balanceOf(_ALICE) - _alpacaBalanceBefore;
+
+    assertEq(_alpacaRewardHarvested, 0, "Alice should harvest 0 ALPACA");
+    assertEq(_accAlpacaPerShare, 0, "accAlpacaPerShare should not change");
+  }
+
+  function test_harvest_aliceHavest_WhenAIP8Stopped_shouldFail() external {
+    // owner set EmergencyWithdraw
+    vm.prank(aip8AUSDStaking.owner());
+    aip8AUSDStaking.enableEmergencyWithdraw();
+
+    vm.prank(_ALICE);
+    vm.expectRevert(abi.encodeWithSelector(AIP8AUSDStakingLike.AIP8AUSDStaking_Stopped.selector));
+    aip8AUSDStaking.harvest();
+  }
 }

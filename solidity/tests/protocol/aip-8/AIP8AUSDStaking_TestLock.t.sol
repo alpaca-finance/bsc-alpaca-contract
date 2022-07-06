@@ -176,4 +176,33 @@ contract AIP8AUSDStaking_TestLock is AIP8AUSDStakingBase {
     _stakingTokenAllowance = _stakingToken.allowance(address(aip8AUSDStaking), fairlaunchAddress);
     assertEq(_stakingTokenAllowance, type(uint256).max);
   }
+
+  function test_lock_aliceLock_extendLock_invalidTime_shouldFail() external {
+    uint256 _expectedStakingAmount = 1 ether;
+    uint256 _expectedLockUntil = block.timestamp + WEEK;
+
+    // Alice lock for the first time
+    _lockFor(_ALICE, _expectedStakingAmount, _expectedLockUntil);
+
+    uint256 _newLockUntil = _expectedLockUntil - 1;
+    vm.expectRevert(
+      abi.encodeWithSelector(AIP8AUSDStakingLike.AIP8AUSDStaking_ViolatePreviousLockPeriod.selector, _newLockUntil)
+    );
+    vm.prank(_ALICE);
+    // Alice try to game the contract by passing _newLockUntil less than previous _lockUntil
+    aip8AUSDStaking.lock(_expectedStakingAmount, _newLockUntil);
+  }
+
+  function test_lock_aliceLock_WhenAIP8Stopped_shouldFail() external {
+    uint256 _expectedStakingAmount = 1 ether;
+    uint256 _expectedLockUntil = block.timestamp + WEEK;
+
+    // owner set EmergencyWithdraw
+    vm.prank(aip8AUSDStaking.owner());
+    aip8AUSDStaking.enableEmergencyWithdraw();
+
+    vm.prank(_ALICE);
+    vm.expectRevert(abi.encodeWithSelector(AIP8AUSDStakingLike.AIP8AUSDStaking_Stopped.selector));
+    aip8AUSDStaking.lock(_expectedStakingAmount, _expectedLockUntil);
+  }
 }

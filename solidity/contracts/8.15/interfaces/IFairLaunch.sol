@@ -72,4 +72,6 @@ interface IFairLaunch {
       uint256,
       address
     );
+
+  function emergencyWithdraw(uint256 _pid) external;
 }

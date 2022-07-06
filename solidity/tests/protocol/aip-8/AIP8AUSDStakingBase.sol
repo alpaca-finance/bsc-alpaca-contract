@@ -59,4 +59,10 @@ contract AIP8AUSDStakingBase is BaseTest {
     aip8AUSDStaking.harvest();
     vm.stopPrank();
   }
+
+  function _emergencyWithdrawFor(address _actor) internal {
+    vm.startPrank(_actor);
+    aip8AUSDStaking.emergencyWithdraw();
+    vm.stopPrank();
+  }
 }
