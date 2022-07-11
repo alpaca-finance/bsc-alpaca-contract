@@ -2,6 +2,7 @@ export interface Config {
   ProxyAdmin: string;
   Timelock: string;
   MultiCall: string;
+  AUSDStaking?: string;
   Shield?: string;
   MerkleDistributor?: MerkleDistributor;
   GrazingRange?: GrazingRange;
@@ -17,6 +18,7 @@ export interface Config {
   DeltaNeutralVaults: DeltaNeutralVaultsEntity[];
   AutomatedVaultController?: AutomateVaultController;
   AutomatedVaultExecutor?: AutomatedVaultExecutor;
+  DirectionalVaultExecutor?: AutomatedVaultExecutor;
   Creditors?: Creditor[];
   NFT?: NFT;
 }

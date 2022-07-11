@@ -60,26 +60,26 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
   event LogSetDeltaNeutralVaultConfig(address indexed _caller, address _config);
 
   // --- Errors ---
-  error DeltaNeutralVault_BadReinvestPath();
-  error DeltaNeutralVault_Unauthorized(address _caller);
-  error DeltaNeutralVault_PositionsAlreadyInitialized();
-  error DeltaNeutralVault_PositionsNotInitialized();
-  error DeltaNeutralVault_InvalidPositions(address _vault, uint256 _positionId);
-  error DeltaNeutralVault_UnsafePositionEquity();
-  error DeltaNeutralVault_UnsafePositionValue();
-  error DeltaNeutralVault_UnsafeDebtValue();
-  error DeltaNeutralVault_UnsafeDebtRatio();
-  error DeltaNeutralVault_UnsafeOutstanding(address _token, uint256 _amountBefore, uint256 _amountAfter);
-  error DeltaNeutralVault_InsufficientTokenReceived(address _token, uint256 _requiredAmount, uint256 _receivedAmount);
-  error DeltaNeutralVault_InsufficientShareReceived(uint256 _requiredAmount, uint256 _receivedAmount);
-  error DeltaNeutralVault_UnTrustedPrice();
-  error DeltaNeutralVault_PositionValueExceedLimit();
-  error DeltaNeutralVault_WithdrawValueExceedShareValue(uint256 _withdrawValue, uint256 _shareValue);
-  error DeltaNeutralVault_IncorrectNativeAmountDeposit();
-  error DeltaNeutralVault_InvalidLpToken();
-  error DeltaNeutralVault_InvalidInitializedAddress();
-  error DeltaNeutralVault_UnsupportedDecimals(uint256 _decimals);
-  error DeltaNeutralVault_InvalidShareAmount();
+  error DirectionalVault_BadReinvestPath();
+  error DirectionalVault_Unauthorized(address _caller);
+  error DirectionalVault_PositionsAlreadyInitialized();
+  error DirectionalVault_PositionsNotInitialized();
+  error DirectionalVault_InvalidPositions(address _vault, uint256 _positionId);
+  error DirectionalVault_UnsafePositionEquity();
+  error DirectionalVault_UnsafePositionValue();
+  error DirectionalVault_UnsafeDebtValue();
+  error DirectionalVault_UnsafeDebtRatio();
+  error DirectionalVault_UnsafeOutstanding(address _token, uint256 _amountBefore, uint256 _amountAfter);
+  error DirectionalVault_InsufficientTokenReceived(address _token, uint256 _requiredAmount, uint256 _receivedAmount);
+  error DirectionalVault_InsufficientShareReceived(uint256 _requiredAmount, uint256 _receivedAmount);
+  error DirectionalVault_UnTrustedPrice();
+  error DirectionalVault_PositionValueExceedLimit();
+  error DirectionalVault_WithdrawValueExceedShareValue(uint256 _withdrawValue, uint256 _shareValue);
+  error DirectionalVault_IncorrectNativeAmountDeposit();
+  error DirectionalVault_InvalidLpToken();
+  error DirectionalVault_InvalidInitializedAddress();
+  error DirectionalVault_UnsupportedDecimals(uint256 _decimals);
+  error DirectionalVault_InvalidShareAmount();
 
   struct Outstanding {
     uint256 stableAmount;
@@ -126,20 +126,20 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
   /// @dev Require that the caller must be an EOA account if not whitelisted.
   modifier onlyEOAorWhitelisted() {
     if (msg.sender != tx.origin && !config.whitelistedCallers(msg.sender)) {
-      revert DeltaNeutralVault_Unauthorized(msg.sender);
+      revert DirectionalVault_Unauthorized(msg.sender);
     }
     _;
   }
 
   /// @dev Require that the caller must be a rebalancer account.
   modifier onlyRebalancers() {
-    if (!config.whitelistedRebalancers(msg.sender)) revert DeltaNeutralVault_Unauthorized(msg.sender);
+    if (!config.whitelistedRebalancers(msg.sender)) revert DirectionalVault_Unauthorized(msg.sender);
     _;
   }
 
   /// @dev Require that the caller must be a reinvestor account.
   modifier onlyReinvestors() {
-    if (!config.whitelistedReinvestors(msg.sender)) revert DeltaNeutralVault_Unauthorized(msg.sender);
+    if (!config.whitelistedReinvestors(msg.sender)) revert DirectionalVault_Unauthorized(msg.sender);
     _;
   }
 
@@ -170,10 +170,10 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
     IDeltaNeutralVaultConfig02 _config
   ) external initializer {
     // check if parameters config properly
-    if (_lpToken != address(IWorker(_stableVaultWorker).lpToken())) revert DeltaNeutralVault_InvalidLpToken();
-    if (address(_alpacaToken) == address(0)) revert DeltaNeutralVault_InvalidInitializedAddress();
-    if (address(_priceOracle) == address(0)) revert DeltaNeutralVault_InvalidInitializedAddress();
-    if (address(_config) == address(0)) revert DeltaNeutralVault_InvalidInitializedAddress();
+    if (_lpToken != address(IWorker(_stableVaultWorker).lpToken())) revert DirectionalVault_InvalidLpToken();
+    if (address(_alpacaToken) == address(0)) revert DirectionalVault_InvalidInitializedAddress();
+    if (address(_priceOracle) == address(0)) revert DirectionalVault_InvalidInitializedAddress();
+    if (address(_config) == address(0)) revert DirectionalVault_InvalidInitializedAddress();
 
     OwnableUpgradeable.__Ownable_init();
     ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
@@ -207,7 +207,7 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
     bytes calldata _data
   ) external payable onlyOwner {
     if (stableVaultPosId != 0) {
-      revert DeltaNeutralVault_PositionsAlreadyInitialized();
+      revert DirectionalVault_PositionsAlreadyInitialized();
     }
 
     OPENING = 1;
@@ -225,7 +225,7 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
   function _transferTokenToVault(address _token, uint256 _amount) internal {
     if (_token == config.getWrappedNativeAddr()) {
       if (msg.value != _amount) {
-        revert DeltaNeutralVault_IncorrectNativeAmountDeposit();
+        revert DirectionalVault_IncorrectNativeAmountDeposit();
       }
       IWETH(_token).deposit{ value: _amount }();
     } else {
@@ -312,7 +312,7 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
     uint256 _sharesToUser = _valueToShare(_depositValue, _positionInfoBefore.positionEquity);
 
     if (_sharesToUser < _minShareReceive) {
-      revert DeltaNeutralVault_InsufficientShareReceived(_minShareReceive, _sharesToUser);
+      revert DirectionalVault_InsufficientShareReceived(_minShareReceive, _sharesToUser);
     }
     _mint(_shareReceiver, _sharesToUser);
 
@@ -343,7 +343,7 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
     uint256 _minAssetTokenAmount,
     bytes calldata _data
   ) external onlyEOAorWhitelisted collectFee nonReentrant returns (uint256) {
-    if (_shareAmount == 0) revert DeltaNeutralVault_InvalidShareAmount();
+    if (_shareAmount == 0) revert DirectionalVault_InvalidShareAmount();
 
     PositionInfo memory _positionInfoBefore = positionInfo();
     Outstanding memory _outstandingBefore = _outstanding();
@@ -392,16 +392,16 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
       : _outstandingAfter.assetAmount - _outstandingBefore.assetAmount;
 
     if (_stableTokenBack < _minStableTokenAmount) {
-      revert DeltaNeutralVault_InsufficientTokenReceived(stableToken, _minStableTokenAmount, _stableTokenBack);
+      revert DirectionalVault_InsufficientTokenReceived(stableToken, _minStableTokenAmount, _stableTokenBack);
     }
     if (_assetTokenBack < _minAssetTokenAmount) {
-      revert DeltaNeutralVault_InsufficientTokenReceived(assetToken, _minAssetTokenAmount, _assetTokenBack);
+      revert DirectionalVault_InsufficientTokenReceived(assetToken, _minAssetTokenAmount, _assetTokenBack);
     }
 
     uint256 _withdrawValue = _calculateEquityChange(_positionInfoBefore, _positionInfoAfter);
 
     if (_withdrawShareValue < _withdrawValue) {
-      revert DeltaNeutralVault_WithdrawValueExceedShareValue(_withdrawValue, _withdrawShareValue);
+      revert DirectionalVault_WithdrawValueExceedShareValue(_withdrawValue, _withdrawShareValue);
     }
 
     // sanity check
@@ -432,7 +432,7 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
     // check if position in a healthy state after rebalancing
     uint256 _equityAfter = totalEquityValue();
     if (!Math.almostEqual(_equityAfter, _equityBefore, config.positionValueTolerance())) {
-      revert DeltaNeutralVault_UnsafePositionValue();
+      revert DirectionalVault_UnsafePositionValue();
     }
     _outstandingCheck(_outstandingBefore, _outstanding());
 
@@ -448,7 +448,7 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
     uint256 _alpacaBeneficiaryBps = config.alpacaBeneficiaryBps();
 
     if (reinvestPath.length == 0) {
-      revert DeltaNeutralVault_BadReinvestPath();
+      revert DirectionalVault_BadReinvestPath();
     }
 
     // 1.  claim reward from fairlaunch
@@ -477,7 +477,7 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
     // 5. sanity check
     uint256 _equityAfter = totalEquityValue();
     if (_equityAfter <= _equityBefore) {
-      revert DeltaNeutralVault_UnsafePositionEquity();
+      revert DirectionalVault_UnsafePositionEquity();
     }
 
     emit LogReinvest(_equityBefore, _equityAfter);
@@ -499,7 +499,7 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
 
     // 1. check if vault accept new total position value
     if (!config.isVaultSizeAcceptable(_positionValueAfter)) {
-      revert DeltaNeutralVault_PositionValueExceedLimit();
+      revert DirectionalVault_PositionValueExceedLimit();
     }
 
     // 2. check Debt value change
@@ -508,7 +508,7 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
     uint256 _actualDebtChange = _positionInfoAfter.positionDebtValue - _positionInfoBefore.positionDebtValue;
 
     if (!Math.almostEqual(_actualDebtChange, _expectedDebtChange, _toleranceBps)) {
-      revert DeltaNeutralVault_UnsafeDebtValue();
+      revert DirectionalVault_UnsafeDebtValue();
     }
   }
 
@@ -534,7 +534,7 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
         _debtRationTolerance
       )
     ) {
-      revert DeltaNeutralVault_UnsafeDebtRatio();
+      revert DirectionalVault_UnsafeDebtRatio();
     }
   }
 
@@ -546,21 +546,21 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
     view
   {
     if (_outstandingAfter.stableAmount < _outstandingBefore.stableAmount) {
-      revert DeltaNeutralVault_UnsafeOutstanding(
+      revert DirectionalVault_UnsafeOutstanding(
         stableToken,
         _outstandingBefore.stableAmount,
         _outstandingAfter.stableAmount
       );
     }
     if (_outstandingAfter.assetAmount < _outstandingBefore.assetAmount) {
-      revert DeltaNeutralVault_UnsafeOutstanding(
+      revert DirectionalVault_UnsafeOutstanding(
         assetToken,
         _outstandingBefore.assetAmount,
         _outstandingAfter.assetAmount
       );
     }
     if (_outstandingAfter.nativeAmount < _outstandingBefore.nativeAmount) {
-      revert DeltaNeutralVault_UnsafeOutstanding(
+      revert DirectionalVault_UnsafeOutstanding(
         address(0),
         _outstandingBefore.nativeAmount,
         _outstandingAfter.nativeAmount
@@ -663,7 +663,7 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
   /// @param _lpAmount Amount of lp.
   function _lpToValue(uint256 _lpAmount) internal view returns (uint256) {
     (uint256 _lpValue, uint256 _lastUpdated) = priceOracle.lpToDollar(_lpAmount, lpToken);
-    if (block.timestamp - _lastUpdated > 86400) revert DeltaNeutralVault_UnTrustedPrice();
+    if (block.timestamp - _lastUpdated > 86400) revert DirectionalVault_UnTrustedPrice();
     return _lpValue;
   }
 
@@ -692,7 +692,7 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
     bytes memory _data
   ) external {
     if (!config.isExecutor(msg.sender)) {
-      revert DeltaNeutralVault_Unauthorized(msg.sender);
+      revert DirectionalVault_Unauthorized(msg.sender);
     }
     if (_action == ACTION_WORK) {
       _doWork(_data);
@@ -706,7 +706,7 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
   /// @param _data The calldata to pass along to the vault for more working context.
   function _doWork(bytes memory _data) internal {
     if (stableVaultPosId == 0) {
-      revert DeltaNeutralVault_PositionsNotInitialized();
+      revert DirectionalVault_PositionsNotInitialized();
     }
 
     // 1. Decode data
@@ -722,7 +722,7 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
 
     // OPENING for initializing positions
     if (OPENING != 1 && !(_vault == stableVault && _posId == stableVaultPosId)) {
-      revert DeltaNeutralVault_InvalidPositions({ _vault: _vault, _positionId: _posId });
+      revert DirectionalVault_InvalidPositions({ _vault: _vault, _positionId: _posId });
     }
 
     // 2. approve vault
@@ -741,7 +741,7 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
   function _getTokenPrice(address _token) internal view returns (uint256) {
     (uint256 _price, uint256 _lastUpdated) = priceOracle.getTokenPrice(_token);
     // _lastUpdated > 1 day revert
-    if (block.timestamp - _lastUpdated > 86400) revert DeltaNeutralVault_UnTrustedPrice();
+    if (block.timestamp - _lastUpdated > 86400) revert DirectionalVault_UnTrustedPrice();
     return _price;
   }
 
@@ -758,7 +758,7 @@ contract DirectionalVault is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ownab
   /// @param _token token to convert.
   function _to18ConversionFactor(address _token) internal view returns (uint256) {
     uint256 _decimals = ERC20Upgradeable(_token).decimals();
-    if (_decimals > 18) revert DeltaNeutralVault_UnsupportedDecimals(_decimals);
+    if (_decimals > 18) revert DirectionalVault_UnsupportedDecimals(_decimals);
     if (_decimals == 18) return 1;
     uint256 _conversionFactor = 10**(18 - _decimals);
     return _conversionFactor;

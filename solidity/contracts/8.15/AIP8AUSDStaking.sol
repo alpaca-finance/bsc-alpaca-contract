@@ -29,6 +29,8 @@ contract AIP8AUSDStaking is ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
   // --- Events ---
   event LogInitializePositions(address indexed _from, uint256 _stableVaultPosId);
+  event LogEmergencyWithdraw(address indexed _owner, uint256 _amount);
+  event LogEnableEmergencyWithdraw(address indexed _owner);
 
   // --- Errors ---
   error AIP8AUSDStaking_ViolateMinimumLockPeriod(uint256 inputLockUntil);
@@ -36,6 +38,8 @@ contract AIP8AUSDStaking is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   error AIP8AUSDStaking_ViolatePreviousLockPeriod(uint256 inputLockUntil);
   error AIP8AUSDStaking_NotEnoughAlpacaReward(uint256 wantAmount, uint256 actualAmount);
   error AIP8AUSDStaking_StillInLockPeriod();
+  error AIP8AUSDStaking_NotStopped();
+  error AIP8AUSDStaking_Stopped();
 
   // --- Structs ---
   struct UserInfo {
@@ -55,6 +59,21 @@ contract AIP8AUSDStaking is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   uint256 public pid; // Pool Id of AUSD3EPS at Alpaca's Fairlaunch Staking Contract
   uint256 public accAlpacaPerShare; // `accAlpacaPerShare` of AUSD3EPS pool for reward distribution
   mapping(address => UserInfo) public userInfo; // the mapping of user's address and its user staking info
+  bool public stopped;
+
+  modifier whenStopped() {
+    if (!stopped) {
+      revert AIP8AUSDStaking_NotStopped();
+    }
+    _;
+  }
+
+  modifier whenNotStopped() {
+    if (stopped) {
+      revert AIP8AUSDStaking_Stopped();
+    }
+    _;
+  }
 
   function initialize(IFairLaunch _fairlaunch, uint256 _pid) external initializer {
     OwnableUpgradeable.__Ownable_init();
@@ -80,18 +99,18 @@ contract AIP8AUSDStaking is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     stakingToken.approve(address(fairlaunch), type(uint256).max);
   }
 
-  function lock(uint256 _amount, uint256 _lockUntil) external nonReentrant {
+  function lock(uint256 _amount, uint256 _lockUntil) external nonReentrant whenNotStopped {
     UserInfo storage _userInfo = userInfo[msg.sender];
 
     // CHECK
     // 1. Validate `_lockUntil`
-    if (_lockUntil < block.timestamp + WEEK) {
+    if (_lockUntil < block.timestamp) {
       revert AIP8AUSDStaking_ViolateMinimumLockPeriod(_lockUntil);
     }
     if (_lockUntil > block.timestamp + MAX_LOCK) {
       revert AIP8AUSDStaking_ViolateMaximumLockPeriod(_lockUntil);
     }
-    if (_userInfo.stakingAmount > 0 && _lockUntil <= _userInfo.lockUntil) {
+    if (_userInfo.stakingAmount > 0 && _lockUntil < _userInfo.lockUntil) {
       revert AIP8AUSDStaking_ViolatePreviousLockPeriod(_lockUntil);
     }
 
@@ -112,7 +131,7 @@ contract AIP8AUSDStaking is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     }
   }
 
-  function unlock() external nonReentrant {
+  function unlock() external nonReentrant whenNotStopped {
     UserInfo storage _userInfo = userInfo[msg.sender];
     uint256 _userStakingAmount = _userInfo.stakingAmount;
 
@@ -135,7 +154,7 @@ contract AIP8AUSDStaking is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     stakingToken.safeTransfer(msg.sender, _userStakingAmount);
   }
 
-  function harvest() external nonReentrant {
+  function harvest() external nonReentrant whenNotStopped {
     _harvest();
 
     userInfo[msg.sender].alpacaRewardDebt = (userInfo[msg.sender].stakingAmount * accAlpacaPerShare) / 1e12;
@@ -172,13 +191,36 @@ contract AIP8AUSDStaking is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   }
 
   function pendingAlpaca(address _user) external view returns (uint256) {
+    (uint256 _totalAmountInFairlaunch, , , ) = fairlaunch.userInfo(pid, address(this));
+    if (_totalAmountInFairlaunch == 0) return 0;
     uint256 _currentAccAlpacaPerShare = accAlpacaPerShare;
     uint256 _pendingAlpacaOfThisContract = fairlaunch.pendingAlpaca(pid, address(this));
-    (uint256 _totalAmountInFairlaunch, , , ) = fairlaunch.userInfo(pid, address(this));
     uint256 _newAccAlpacaPerShare = _currentAccAlpacaPerShare +
       ((_pendingAlpacaOfThisContract * 1e12) / _totalAmountInFairlaunch);
 
     UserInfo memory _userInfo = userInfo[_user];
     return ((_userInfo.stakingAmount * _newAccAlpacaPerShare) / 1e12) - _userInfo.alpacaRewardDebt;
+  }
+
+  function emergencyWithdraw() external whenStopped nonReentrant {
+    UserInfo storage _userInfo = userInfo[msg.sender];
+    uint256 _userStakingAmount = _userInfo.stakingAmount;
+
+    // 1. Clear state of UserInfo
+    _userInfo.stakingAmount = 0;
+    _userInfo.lockUntil = 0;
+    _userInfo.alpacaRewardDebt = 0;
+
+    // 2. Transfer AUSD3EPS back to user
+    stakingToken.safeTransfer(msg.sender, _userStakingAmount);
+
+    emit LogEmergencyWithdraw(msg.sender, _userStakingAmount);
+  }
+
+  function enableEmergencyWithdraw() external onlyOwner {
+    fairlaunch.emergencyWithdraw(pid);
+    stopped = true;
+
+    emit LogEnableEmergencyWithdraw(msg.sender);
   }
 }

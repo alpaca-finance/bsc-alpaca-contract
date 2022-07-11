@@ -11,6 +11,7 @@ import { BlockScanGasPrice } from "../../../services/gas-price/blockscan";
 import { UpgradeableContractDeployer } from "../../../deployer";
 import { WorkersEntity } from "../../../interfaces/config";
 import { ConfigFileHelper } from "../../../helper";
+import { getDeployer, isFork } from "../../../../utils/deployer-helper";
 
 interface IBeneficialVaultInput {
   BENEFICIAL_VAULT_BPS: string;
@@ -75,7 +76,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const shortWorkerInfos: IDeltaNeutralPCSWorkerInput[] = [
     {
       VAULT_SYMBOL: "ibUSDT",
-      WORKER_NAME: "WBNB-USDT 8x PCS1 DeltaNeutralPancakeswapWorker",
+      WORKER_NAME: "WBNB-USDT 6x PCS1 DirectionalPancakeswapWorker",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
       POOL_ID: 13,
       REINVEST_BOUNTY_BPS: "1500",
@@ -86,36 +87,20 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         BENEFICIAL_VAULT_ADDRESS: "0x08B5A95cb94f926a8B620E87eE92e675b35afc7E",
         REWARD_PATH: ["CAKE", "BUSD"],
       },
-      WORK_FACTOR: "9500",
-      KILL_FACTOR: "0",
-      MAX_PRICE_DIFF: "10500",
-    },
-    {
-      VAULT_SYMBOL: "ibWBNB",
-      WORKER_NAME: "USDT-WBNB 8x PCS1 DeltaNeutralPancakeswapWorker",
-      REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 13,
-      REINVEST_BOUNTY_BPS: "1500",
-      REINVEST_PATH: ["CAKE", "WBNB"],
-      REINVEST_THRESHOLD: "0",
-      BENEFICIAL_VAULT: {
-        BENEFICIAL_VAULT_BPS: "5333",
-        BENEFICIAL_VAULT_ADDRESS: "0x08B5A95cb94f926a8B620E87eE92e675b35afc7E",
-        REWARD_PATH: ["CAKE", "BUSD"],
-      },
-      WORK_FACTOR: "9500",
+      WORK_FACTOR: "9000",
       KILL_FACTOR: "0",
       MAX_PRICE_DIFF: "10500",
     },
   ];
-  const TITLE = "mainnet_L8x_usdtbnb_pcs1_worker";
-  const EXACT_ETA = "1654756200";
+  const TITLE = "mainnet_bull6x_wbnbusdt_pcs1_worker";
+  const EXACT_ETA = "1656568233";
 
-  const deployer = (await ethers.getSigners())[0];
+  const deployer = await getDeployer();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   const ts = Math.floor(Date.now() / 1000);
   const gasPriceService = new BlockScanGasPrice(network.name);
   const gasPrice = await gasPriceService.getFastGasPrice();
+  const ops = isFork() ? { gasLimit: 2000000 } : { gasPrice: gasPrice };
   const workerInfos: IDeltaNeutralPCSWorkerInfo[] = shortWorkerInfos.map((n) => {
     const vault = config.Vaults.find((v) => v.symbol === n.VAULT_SYMBOL);
     if (vault === undefined) {
@@ -155,7 +140,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       PCS_ROUTER_ADDR: config.YieldSources.PancakeswapMasterChefV2!.RouterV2,
       ADD_STRAT_ADDR: config.SharedStrategies.Pancakeswap!.StrategyAddBaseTokenOnly,
       LIQ_STRAT_ADDR: config.SharedStrategies.Pancakeswap!.StrategyLiquidate,
-      TWO_SIDES_STRAT_ADDR: vault.StrategyAddTwoSidesOptimal.Pancakeswap!,
+      TWO_SIDES_STRAT_ADDR: vault.StrategyAddTwoSidesOptimal.PancakeswapDnx!,
       PARTIAL_CLOSE_LIQ_STRAT_ADDR: config.SharedStrategies.Pancakeswap!.StrategyPartialCloseLiquidate,
       PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR: config.SharedStrategies.Pancakeswap!.StrategyPartialCloseMinimizeTrading,
       MINIMIZE_TRADE_STRAT_ADDR: config.SharedStrategies.Pancakeswap!.StrategyWithdrawMinimizeTrading,
@@ -192,12 +177,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     let nonce = await deployer.getTransactionCount();
 
     console.log(`>> Adding REINVEST_BOT`);
-    await deltaNeutralWorker.setReinvestorOk([workerInfos[i].REINVEST_BOT], true, { gasPrice, nonce: nonce++ });
+    await deltaNeutralWorker.setReinvestorOk([workerInfos[i].REINVEST_BOT], true, { ...ops, nonce: nonce++ });
     console.log("✅ Done");
 
     console.log(`>> Adding Treasuries`);
     await deltaNeutralWorker.setTreasuryConfig(workerInfos[i].REINVEST_BOT, workerInfos[i].REINVEST_BOUNTY_BPS, {
-      gasPrice,
+      ...ops,
       nonce: nonce++,
     });
     console.log("✅ Done");
@@ -211,7 +196,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR,
     ];
 
-    await deltaNeutralWorker.setStrategyOk(okStrats, true, { gasPrice, nonce: nonce++ });
+    await deltaNeutralWorker.setStrategyOk(okStrats, true, { ...ops, nonce: nonce++ });
     console.log("✅ Done");
 
     console.log(`>> Whitelisting a worker on strats`);
@@ -219,7 +204,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     for (let idx = 0; idx < allOkStrats.length; idx++) {
       const stratAddress = allOkStrats[idx];
       const contractFactory = PancakeswapV2RestrictedStrategyAddBaseTokenOnly__factory.connect(stratAddress, deployer);
-      await contractFactory.setWorkersOk([deltaNeutralWorker.address], true, { nonce: nonce++ });
+      await contractFactory.setWorkersOk([deltaNeutralWorker.address], true, { ...ops, nonce: nonce++ });
     }
     console.log("✅ Done");
 
@@ -229,7 +214,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         workerInfos[i].BENEFICIAL_VAULT!.BENEFICIAL_VAULT_BPS,
         workerInfos[i].BENEFICIAL_VAULT!.BENEFICIAL_VAULT_ADDRESS,
         workerInfos[i].BENEFICIAL_VAULT!.REWARD_PATH,
-        { gasPrice, nonce: nonce++ }
+        { ...ops, nonce: nonce++ }
       );
       console.log("✅ Done");
     }
@@ -254,7 +239,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
           ],
         ],
         EXACT_ETA,
-        { gasPrice, nonce: nonce++ }
+        { ...ops, nonce: nonce++ }
       )
     );
     console.log("✅ Done");
@@ -269,7 +254,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         ["address[]", "address[]"],
         [[deltaNeutralWorker.address], [workerInfos[i].WORKER_CONFIG_ADDR]],
         EXACT_ETA,
-        { gasPrice, nonce: nonce++ }
+        { ...ops, nonce: nonce++ }
       )
     );
     console.log("✅ Done");

@@ -95,4 +95,19 @@ contract AIP8AUSDStaking_TestUnlock is AIP8AUSDStakingBase {
     //                       = 84392348000000
     assertEq(_alpacaRewardHarvested, 84392348000000, "Bob should harvest 84392348000000 wei ALPACA");
   }
+
+  function test_unlock_aliceUnlock_WhenAIP8Stopped_shouldFail() external {
+    uint256 _expectedStakingAmountAlice = 1 ether;
+    uint256 _expectedLockUntilAlice = block.timestamp + WEEK;
+
+    _lockFor(_ALICE, _expectedStakingAmountAlice, _expectedLockUntilAlice);
+
+    // owner set EmergencyWithdraw
+    vm.prank(aip8AUSDStaking.owner());
+    aip8AUSDStaking.enableEmergencyWithdraw();
+
+    vm.prank(_ALICE);
+    vm.expectRevert(abi.encodeWithSelector(AIP8AUSDStakingLike.AIP8AUSDStaking_Stopped.selector));
+    aip8AUSDStaking.unlock();
+  }
 }
