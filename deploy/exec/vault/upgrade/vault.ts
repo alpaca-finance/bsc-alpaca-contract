@@ -19,8 +19,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
   const TITLE = "upgrade_all_vaults_support_nftstaking";
-  const VAULT_VERSION = "Vault";
-  const TARGETED_VAULTS = ["ibWBNB", "ibBUSD", "ibETH", "ibALPACA", "ibUSDT", "ibBTCB", "ibTUSD", "ibUSDC", "ibCAKE"];
+  const VAULT_VERSION = "VaultAip42";
+  const TARGETED_VAULTS = ["ibTOMB"];
   const EXACT_ETA = "1655753400";
 
   const config = getConfig();
