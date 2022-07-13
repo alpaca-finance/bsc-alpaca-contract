@@ -101,6 +101,7 @@ contract SpookyMCV2Worker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, I
   ISpookyMasterChefV2 public spookyMasterChefV2;
   mapping(address => address[]) public rewardTokenReinvestPaths;
   mapping(address => address[]) public rewardTokenRevSharePaths;
+  IERC20[] private cachedRewardTokens;
 
   function initialize(
     address _operator,
@@ -219,10 +220,10 @@ contract SpookyMCV2Worker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, I
     uint256 _reinvestThreshold
   ) internal {
     // 1. Getting all reward tokens
-    IERC20[] memory rewardTokens;
+    cachedRewardTokens.push(IERC20(boo));
     ISpookyRewarder rewarder = spookyMasterChefV2.rewarder(pid);
     if (address(rewarder) != address(0)) {
-      (rewardTokens, ) = rewarder.pendingTokens(pid, address(this), 0);
+      (cachedRewardTokens, ) = rewarder.pendingTokens(pid, address(this), 0);
     }
 
     // 2. Withdraw all the rewards. Return if reward <= _reinvestThershold.
@@ -230,28 +231,30 @@ contract SpookyMCV2Worker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, I
     uint256 reward = boo.balanceOf(address(this));
     if (reward <= _reinvestThreshold) return;
 
-    // 3. Clean up rewards from rewarder (if any)
+    // 3. Sweep all rewards
     uint256 rewardTokenBalance;
     uint256 reinvestFee;
     uint256 reinvestRevShare;
-    for (uint256 i = 0; i < rewardTokens.length; i++) {
-      address(rewardTokens[i]).safeApprove(address(router), uint256(-1));
-      rewardTokenBalance = rewardTokens[i].balanceOf(address(this));
+    for (uint256 i = 0; i < cachedRewardTokens.length; i++) {
+      // SLOAD
+      address rewardToken = address(cachedRewardTokens[i]);
+      rewardToken.safeApprove(address(router), uint256(-1));
+      rewardTokenBalance = IERC20(rewardToken).balanceOf(address(this));
 
       // 3.1. Send reward token's reinvest fee to the _treasuryAccount
       reinvestFee = rewardTokenBalance.mul(_treasuryBountyBps) / 10000;
       if (reinvestFee > 0) {
         reinvestRevShare = reinvestFee.mul(beneficialVaultBountyBps) / 10000;
         if (reinvestRevShare > 0)
-          _rewardToBeneficialVault(reinvestRevShare, getRevSharePath(address(rewardTokens[i])), _callerBalance);
-        address(rewardTokens[i]).safeTransfer(_treasuryAccount, reinvestFee.sub(reinvestRevShare));
+          _rewardToBeneficialVault(reinvestRevShare, getRevSharePath(rewardToken), _callerBalance);
+        rewardToken.safeTransfer(_treasuryAccount, reinvestFee.sub(reinvestRevShare));
       }
 
       // 3.2. Convert all the remainings to BTOKEN.
       router.swapExactTokensForTokens(
         rewardTokenBalance.sub(reinvestFee),
         0,
-        getReinvestPath(address(rewardTokens[i])),
+        getReinvestPath(rewardToken),
         address(this),
         block.timestamp
       );
@@ -266,7 +269,8 @@ contract SpookyMCV2Worker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, I
     spookyMasterChefV2.deposit(pid, lpToken.balanceOf(address(this)));
     address(lpToken).safeApprove(address(spookyMasterChefV2), 0);
 
-    emit Reinvest(_treasuryAccount, reward, bounty);
+    // 7. delete cachedRewardTokens
+    delete cachedRewardTokens;
   }
 
   /// @dev Work on the given position. Must be called by the operator.
