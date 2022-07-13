@@ -456,6 +456,8 @@
     "test:vault42_wault": "hardhat test --no-compile ./test/integrations/protocol/workers/waultswap/VaultAip42_WaultSwapWorker02.test.ts",
     "test:spookymigrate": "hardhat test --no-compile ./test/integrations/protocol/workers/spookyswap/Vault_SpookyWorker03_Migrate.test.ts",
     "test:spookymcv2": "hardhat test --no-compile ./test/integrations/protocol/workers/spookyswap/Vault_SpookyMCV2Worker03.test.ts",
+    "test:deltaspookymigrate": "hardhat test --no-compile ./test/integrations/protocol/workers/delta-neutral/Vault_DeltaNeutralSpookyWorker03_Migrate.test.ts",
+    "test:deltaspookymcv2": "hardhat test --no-compile ./test/integrations/protocol/workers/spookyswap/Vault_SpookyMCV2Worker03.test.ts",
     "test": "hardhat test --no-compile",
     "testnet": "hardhat console --no-compile --network testnet",
     "fantom_testnet": "hardhat console --no-compile --network fantom_testnet",

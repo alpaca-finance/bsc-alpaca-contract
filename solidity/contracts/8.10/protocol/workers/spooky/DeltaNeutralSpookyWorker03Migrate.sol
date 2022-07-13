@@ -33,7 +33,7 @@ import "../../../utils/SafeToken.sol";
 import "../../../utils/FixedPointMathLib.sol";
 
 /// @title DeltaNeutralSpookyWorker03 is a SpookyWorker03 worker with reinvest-optimized and beneficial vault buyback functionalities
-contract DeltaNeutralSpookyWorker03 is OwnableUpgradeable, ReentrancyGuardUpgradeable, IWorker03 {
+contract DeltaNeutralSpookyWorker03Migrate is OwnableUpgradeable, ReentrancyGuardUpgradeable, IWorker03 {
   /// @notice Libraries
   using SafeToken for address;
   using FixedPointMathLib for uint256;
@@ -372,6 +372,9 @@ contract DeltaNeutralSpookyWorker03 is OwnableUpgradeable, ReentrancyGuardUpgrad
   /// @dev Internal function to withdraw all outstanding LP tokens.
   function _spookyMasterChefWithdraw() internal {
     uint256 _totalLpBalance = totalLpBalance;
+    if (address(spookyMasterChefV2) != address(0)) {
+      spookyMasterChefV2.harvestFromMasterChef();
+    }
     activeMasterChef().withdraw(pid, _totalLpBalance);
     totalLpBalance = 0;
     emit SpookyMasterChefWithdraw(_totalLpBalance);
