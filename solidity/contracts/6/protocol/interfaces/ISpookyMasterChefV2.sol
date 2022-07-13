@@ -47,4 +47,7 @@ contract ISpookyMasterChefV2 {
 
   // Query pending BOO
   function pendingBOO(uint256 _pid, address _user) external returns (uint256) {}
+
+  // Harvest from MCV1
+  function harvestFromMasterChef() external {}
 }

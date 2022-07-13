@@ -220,13 +220,14 @@ contract SpookyMCV2Worker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, I
     uint256 _reinvestThreshold
   ) internal {
     // 1. Getting all reward tokens
-    cachedRewardTokens.push(IERC20(boo));
     ISpookyRewarder rewarder = spookyMasterChefV2.rewarder(pid);
     if (address(rewarder) != address(0)) {
       (cachedRewardTokens, ) = rewarder.pendingTokens(pid, address(this), 0);
     }
+    cachedRewardTokens.push(IERC20(boo));
 
     // 2. Withdraw all the rewards. Return if reward <= _reinvestThershold.
+    spookyMasterChefV2.harvestFromMasterChef();
     spookyMasterChefV2.withdraw(pid, 0);
     uint256 reward = boo.balanceOf(address(this));
     if (reward <= _reinvestThreshold) return;
@@ -241,7 +242,10 @@ contract SpookyMCV2Worker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, I
       rewardToken.safeApprove(address(router), uint256(-1));
       rewardTokenBalance = IERC20(rewardToken).balanceOf(address(this));
 
-      // 3.1. Send reward token's reinvest fee to the _treasuryAccount
+      // 3.1. If balance is zero, just skip it.
+      if (rewardTokenBalance == 0) continue;
+
+      // 3.2. Send reward token's reinvest fee to the _treasuryAccount
       reinvestFee = rewardTokenBalance.mul(_treasuryBountyBps) / 10000;
       if (reinvestFee > 0) {
         reinvestRevShare = reinvestFee.mul(beneficialVaultBountyBps) / 10000;
@@ -250,7 +254,7 @@ contract SpookyMCV2Worker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, I
         rewardToken.safeTransfer(_treasuryAccount, reinvestFee.sub(reinvestRevShare));
       }
 
-      // 3.2. Convert all the remainings to BTOKEN.
+      // 3.3. Convert all the remainings to BTOKEN.
       router.swapExactTokensForTokens(
         rewardTokenBalance.sub(reinvestFee),
         0,

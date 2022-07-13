@@ -454,6 +454,8 @@
     "test:pancakev202mcv2": "hardhat test --no-compile ./test/integrations/protocol/workers/pcs/Vault_PancakeswapV2MCV2Worker02.test.ts",
     "test:pancakev202mcv2:cake-vault": "hardhat test --no-compile ./test/integrations/protocol/workers/pcs/Vault_PancakeswapV2MCV2Worker02_Cake.test.ts",
     "test:vault42_wault": "hardhat test --no-compile ./test/integrations/protocol/workers/waultswap/VaultAip42_WaultSwapWorker02.test.ts",
+    "test:spookymigrate": "hardhat test --no-compile ./test/integrations/protocol/workers/spookyswap/Vault_SpookyWorker03_Migrate.test.ts",
+    "test:spookymcv2": "hardhat test --no-compile ./test/integrations/protocol/workers/spookyswap/Vault_SpookyMCV2Worker03.test.ts",
     "test": "hardhat test --no-compile",
     "testnet": "hardhat console --no-compile --network testnet",
     "fantom_testnet": "hardhat console --no-compile --network fantom_testnet",

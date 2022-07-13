@@ -216,6 +216,11 @@ contract SpookyWorker03Migrate is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe
     uint256 _reinvestThreshold
   ) internal {
     // 1. Withdraw all the rewards. Return if reward <= _reinvestThershold.
+    // If spookyMasterChefV2 is live, then call harvest from MCV1 to make sure
+    // there is BOO liquidity
+    if (address(spookyMasterChefV2) != address(0)) {
+      spookyMasterChefV2.harvestFromMasterChef();
+    }
     activeMasterChef().withdraw(pid, 0);
     uint256 reward = boo.balanceOf(address(this));
     if (reward <= _reinvestThreshold) return;
