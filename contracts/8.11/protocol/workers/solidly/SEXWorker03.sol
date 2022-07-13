@@ -11,32 +11,25 @@
 Alpaca Fin Corporation
 */
 
-pragma solidity 0.6.6;
+pragma solidity 0.8.11;
 
-import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 import "../../interfaces/ISwapFactoryLike.sol";
 import "../../interfaces/ISwapPairLike.sol";
-import "../../interfaces/ISwapRouter02Like.sol";
+import "../../interfaces/IBaseV1Router01.sol";
 import "../../interfaces/IStrategy.sol";
-import "../../interfaces/IWorker03.sol";
-import "../../interfaces/ISpookyMasterChef.sol";
-import "../../interfaces/ISpookyMasterChefV2.sol";
-import "../../interfaces/ISpookyRewarder.sol";
+import "../../interfaces/IMultiRewardWorker03.sol";
 import "../../interfaces/IVault.sol";
+import "../../apis/solidex/ILpDepositor.sol";
 
 import "../../../utils/SafeToken.sol";
 
-/// @title SpookyWorker03 is a worker with reinvest-optimized and beneficial vault buyback functionalities
-contract SpookyMCV2Worker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IWorker03 {
+/// @title SEXWorker03 is a worker with reinvest-optimized and beneficial vault buyback functionalities
+contract SEXWorker03 is OwnableUpgradeable, ReentrancyGuardUpgradeable, IMultiRewardWorker03 {
   /// @notice Libraries
   using SafeToken for address;
-  using SafeMath for uint256;
-
   /// @notice Events
   event Reinvest(address indexed caller, uint256 reward, uint256 bounty);
   event AddShare(uint256 indexed id, uint256 share);
@@ -61,21 +54,16 @@ contract SpookyMCV2Worker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, I
     uint256 reinvestThreshold,
     address[] reinvestPath
   );
-  event SetRewardTokenReinvestPaths(address caller, address rewardToken, address[] reinvestPath);
-  event SetRewardTokenRevSharePaths(address caller, address rewardToken, address[] revSharePath);
-
   /// @notice Immutable variables
-  ISpookyMasterChef public spookyMasterChef;
+  ILpDepositor public lpDepositor;
   ISwapFactoryLike public factory;
-  ISwapRouter02Like public router;
+  IBaseV1Router01 public router;
   ISwapPairLike public override lpToken;
   address public wNative;
   address public override baseToken;
   address public override farmingToken;
-  address public boo;
+  address[] public rewardTokens;
   address public operator;
-  uint256 public pid;
-
   /// @notice Mutable state variables
   // mapping between positionId and its share
   mapping(uint256 => uint256) public shares;
@@ -88,81 +76,62 @@ contract SpookyMCV2Worker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, I
   mapping(address => bool) public okReinvestors;
   uint256 public fee;
   uint256 public feeDenom;
-
-  uint256 public reinvestThreshold;
-  address[] public reinvestPath;
+  mapping(address => uint256) public reinvestThresholds;
+  mapping(address => address[]) public reinvestPaths;
   address public treasuryAccount;
   uint256 public treasuryBountyBps;
   IVault public beneficialVault;
   uint256 public beneficialVaultBountyBps;
-  address[] public rewardPath;
+  mapping(address => address[]) public rewardPaths;
   uint256 public buybackAmount;
-
-  ISpookyMasterChefV2 public spookyMasterChefV2;
-  mapping(address => address[]) public rewardTokenReinvestPaths;
-  mapping(address => address[]) public rewardTokenRevSharePaths;
 
   function initialize(
     address _operator,
     address _baseToken,
-    ISpookyMasterChefV2 _spookyMasterChefV2,
-    ISwapRouter02Like _router,
-    uint256 _pid,
+    ILpDepositor _lpDepositor,
+    ISwapPairLike _lpToken,
+    IBaseV1Router01 _router,
     IStrategy _addStrat,
     IStrategy _liqStrat,
     uint256 _reinvestBountyBps,
-    address _treasuryAccount,
-    address[] calldata _reinvestPath,
-    uint256 _reinvestThreshold
+    address _treasuryAccount
   ) external initializer {
     // 1. Initialized imported library
-    OwnableUpgradeSafe.__Ownable_init();
-    ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
-
+    OwnableUpgradeable.__Ownable_init();
+    ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
     // 2. Assign dependency contracts
     operator = _operator;
-    wNative = _router.WETH();
-    spookyMasterChefV2 = _spookyMasterChefV2;
+    wNative = _router.wftm();
+    lpDepositor = _lpDepositor;
     router = _router;
     factory = ISwapFactoryLike(_router.factory());
-
     // 3. Assign tokens state variables
     baseToken = _baseToken;
-    pid = _pid;
-    IERC20 _lpToken = spookyMasterChefV2.lpToken(_pid);
-    lpToken = ISwapPairLike(address(_lpToken));
+    lpToken = _lpToken;
     address token0 = lpToken.token0();
     address token1 = lpToken.token1();
     farmingToken = token0 == baseToken ? token1 : token0;
-    boo = address(spookyMasterChefV2.BOO());
-
+    rewardTokens.push(_lpDepositor.SEX());
+    rewardTokens.push(_lpDepositor.SOLID());
     // 4. Assign critical strategy contracts
     addStrat = _addStrat;
     liqStrat = _liqStrat;
     okStrats[address(addStrat)] = true;
     okStrats[address(liqStrat)] = true;
-
     // 5. Assign Re-invest parameters
     reinvestBountyBps = _reinvestBountyBps;
-    reinvestThreshold = _reinvestThreshold;
-    reinvestPath = _reinvestPath;
     treasuryAccount = _treasuryAccount;
     treasuryBountyBps = _reinvestBountyBps;
     maxReinvestBountyBps = 900;
-
     // 6. Set swap fees
-    fee = 998;
-    feeDenom = 1000;
-
-    require(baseToken != boo, "baseToken must !boo");
+    fee = 9999;
+    feeDenom = 10000;
     require(reinvestBountyBps <= maxReinvestBountyBps, "exceeded maxReinvestBountyBps");
     require(
       (farmingToken == lpToken.token0() || farmingToken == lpToken.token1()) &&
         (baseToken == lpToken.token0() || baseToken == lpToken.token1()),
       "bad baseToken or farmingToken"
     );
-    require(reinvestPath.length >= 2, "_reinvestPath length must >= 2");
-    require(reinvestPath[0] == boo && reinvestPath[reinvestPath.length - 1] == baseToken, "bad reinvest path");
   }
 
   /// @dev Require that the caller must be an EOA account to avoid flash loans.
@@ -170,13 +139,11 @@ contract SpookyMCV2Worker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, I
     require(msg.sender == tx.origin, "not eoa");
     _;
   }
-
   /// @dev Require that the caller must be the operator.
   modifier onlyOperator() {
     require(msg.sender == operator, "not operator");
     _;
   }
-
   //// @dev Require that the caller must be ok reinvestor.
   modifier onlyReinvestor() {
     require(okReinvestors[msg.sender], "not reinvestor");
@@ -187,21 +154,21 @@ contract SpookyMCV2Worker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, I
   /// @param share The number of shares to be converted to LP balance.
   function shareToBalance(uint256 share) public view returns (uint256) {
     if (totalShare == 0) return share; // When there's no share, 1 share = 1 balance.
-    (uint256 totalBalance, ) = spookyMasterChefV2.userInfo(pid, address(this));
-    return share.mul(totalBalance).div(totalShare);
+    uint256 totalBalance = lpDepositor.userBalances(address(this), address(lpToken));
+    return (share * totalBalance) / totalShare;
   }
 
   /// @dev Return the number of shares to receive if staking the given LP tokens.
   /// @param balance the number of LP tokens to be converted to shares.
   function balanceToShare(uint256 balance) public view returns (uint256) {
     if (totalShare == 0) return balance; // When there's no share, 1 share = 1 balance.
-    (uint256 totalBalance, ) = spookyMasterChefV2.userInfo(pid, address(this));
-    return balance.mul(totalShare).div(totalBalance);
+    uint256 totalBalance = lpDepositor.userBalances(address(this), address(lpToken));
+    return (balance * totalShare) / (totalBalance);
   }
 
   /// @dev Re-invest whatever this worker has earned back to staked LP tokens.
   function reinvest() external override onlyEOA onlyReinvestor nonReentrant {
-    _reinvest(msg.sender, reinvestBountyBps, 0, 0);
+    _reinvest(msg.sender, reinvestBountyBps, 0);
     // in case of beneficial vault equals to operator vault, call buyback to transfer some buyback amount back to the vault
     // This can't be called within the _reinvest statement since _reinvest is called within the `work` as well
     _buyback();
@@ -211,62 +178,48 @@ contract SpookyMCV2Worker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, I
   /// @param _treasuryAccount - The account that the reinvest bounty will be sent.
   /// @param _treasuryBountyBps - The bounty bps deducted from the reinvest reward.
   /// @param _callerBalance - The balance that is owned by the msg.sender within the execution scope.
-  /// @param _reinvestThreshold - The threshold to be reinvested if reward pass over.
   function _reinvest(
     address _treasuryAccount,
     uint256 _treasuryBountyBps,
-    uint256 _callerBalance,
-    uint256 _reinvestThreshold
+    uint256 _callerBalance
   ) internal {
-    // 1. Getting all reward tokens
-    IERC20[] memory rewardTokens;
-    ISpookyRewarder rewarder = spookyMasterChefV2.rewarder(pid);
-    if (address(rewarder) != address(0)) {
-      (rewardTokens, ) = rewarder.pendingTokens(pid, address(this), 0);
-    }
-
-    // 2. Withdraw all the rewards. Return if reward <= _reinvestThershold.
-    spookyMasterChefV2.withdraw(pid, 0);
-    uint256 reward = boo.balanceOf(address(this));
-    if (reward <= _reinvestThreshold) return;
-
-    // 3. Clean up rewards from rewarder (if any)
-    uint256 rewardTokenBalance;
-    uint256 reinvestFee;
-    uint256 reinvestRevShare;
+    // 1. Withdraw all the rewards. Return if reward <= _reinvestThershold.
+    address[] memory pools = new address[](1);
+    pools[0] = address(lpToken);
+    lpDepositor.getReward(pools);
     for (uint256 i = 0; i < rewardTokens.length; i++) {
-      address(rewardTokens[i]).safeApprove(address(router), uint256(-1));
-      rewardTokenBalance = rewardTokens[i].balanceOf(address(this));
-
-      // 3.1. Send reward token's reinvest fee to the _treasuryAccount
-      reinvestFee = rewardTokenBalance.mul(_treasuryBountyBps) / 10000;
-      if (reinvestFee > 0) {
-        reinvestRevShare = reinvestFee.mul(beneficialVaultBountyBps) / 10000;
-        if (reinvestRevShare > 0)
-          _rewardToBeneficialVault(reinvestRevShare, getRevSharePath(address(rewardTokens[i])), _callerBalance);
-        address(rewardTokens[i]).safeTransfer(_treasuryAccount, reinvestFee.sub(reinvestRevShare));
+      address _rewardToken = rewardTokens[i];
+      uint256 reward = _rewardToken.myBalance();
+      if (reward <= reinvestThresholds[_rewardToken]) return;
+      // 2. Approve tokens
+      _rewardToken.safeApprove(address(router), type(uint256).max);
+      // 3. Send the reward bounty to the _treasuryAccount.
+      uint256 bounty = (reward * _treasuryBountyBps) / 10000;
+      if (bounty > 0) {
+        uint256 beneficialVaultBounty = (bounty * beneficialVaultBountyBps) / 10000;
+        if (beneficialVaultBounty > 0)
+          _rewardToBeneficialVault(beneficialVaultBounty, _callerBalance, convertToRoute(rewardPaths[_rewardToken]));
+        _rewardToken.safeTransfer(_treasuryAccount, bounty - beneficialVaultBounty);
       }
-
-      // 3.2. Convert all the remainings to BTOKEN.
+      // 4. Convert all the remaining rewards to BTOKEN.
       router.swapExactTokensForTokens(
-        rewardTokenBalance.sub(reinvestFee),
+        reward - bounty,
         0,
-        getReinvestPath(address(rewardTokens[i])),
+        convertToRoute(getReinvestPath(_rewardToken)),
         address(this),
         block.timestamp
       );
+      _rewardToken.safeApprove(address(router), 0);
+      emit Reinvest(_treasuryAccount, reward, bounty);
     }
-
-    // 4. Use add Token strategy to convert all BTOKEN without both caller balance and buyback amount to LP tokens.
-    baseToken.safeTransfer(address(addStrat), actualBaseTokenBalance().sub(_callerBalance));
+    // 5. Use add Token strategy to convert all BaseToken without both caller balance and buyback amount to LP tokens.
+    baseToken.safeTransfer(address(addStrat), actualBaseTokenBalance() - _callerBalance);
     addStrat.execute(address(0), 0, abi.encode(0));
-
     // 6. Stake LPs for more rewards
-    address(lpToken).safeApprove(address(spookyMasterChefV2), uint256(-1));
-    spookyMasterChefV2.deposit(pid, lpToken.balanceOf(address(this)));
-    address(lpToken).safeApprove(address(spookyMasterChefV2), 0);
-
-    emit Reinvest(_treasuryAccount, reward, bounty);
+    address(lpToken).safeApprove(address(lpDepositor), type(uint256).max);
+    lpDepositor.deposit(address(lpToken), lpToken.balanceOf(address(this)));
+    // 7. Reset approvals
+    address(lpToken).safeApprove(address(lpDepositor), 0);
   }
 
   /// @dev Work on the given position. Must be called by the operator.
@@ -281,7 +234,7 @@ contract SpookyMCV2Worker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, I
     bytes calldata data
   ) external override onlyOperator nonReentrant {
     // 1. If a treasury configs are not ready. Not reinvest.
-    _reinvest(treasuryAccount, treasuryBountyBps, actualBaseTokenBalance(), reinvestThreshold);
+    _reinvest(treasuryAccount, treasuryBountyBps, actualBaseTokenBalance());
     // 2. Convert this position back to LP tokens.
     _removeShare(id);
     // 3. Perform the worker strategy; sending LP tokens + BaseToken; expecting LP tokens + BaseToken.
@@ -307,9 +260,9 @@ contract SpookyMCV2Worker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, I
   ) public view returns (uint256) {
     if (aIn == 0) return 0;
     require(rIn > 0 && rOut > 0, "bad reserve values");
-    uint256 aInWithFee = aIn.mul(fee);
-    uint256 numerator = aInWithFee.mul(rOut);
-    uint256 denominator = rIn.mul(feeDenom).add(aInWithFee);
+    uint256 aInWithFee = aIn * fee;
+    uint256 numerator = aInWithFee * rOut;
+    uint256 denominator = (rIn * feeDenom) + aInWithFee;
     return numerator / denominator;
   }
 
@@ -323,12 +276,12 @@ contract SpookyMCV2Worker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, I
     (uint256 r0, uint256 r1, ) = lpToken.getReserves();
     (uint256 totalBaseToken, uint256 totalFarmingToken) = lpToken.token0() == baseToken ? (r0, r1) : (r1, r0);
     // 3. Convert the position's LP tokens to the underlying assets.
-    uint256 userBaseToken = lpBalance.mul(totalBaseToken).div(lpSupply);
-    uint256 userFarmingToken = lpBalance.mul(totalFarmingToken).div(lpSupply);
+    uint256 userBaseToken = (lpBalance * totalBaseToken) / (lpSupply);
+    uint256 userFarmingToken = (lpBalance * totalFarmingToken) / lpSupply;
     // 4. Convert all FarmingToken to BaseToken and return total BaseToken.
     return
-      getMktSellAmount(userFarmingToken, totalFarmingToken.sub(userFarmingToken), totalBaseToken.sub(userBaseToken))
-        .add(userBaseToken);
+      getMktSellAmount(userFarmingToken, totalFarmingToken - userFarmingToken, totalBaseToken - userBaseToken) +
+      userBaseToken;
   }
 
   /// @dev Liquidate the given position by converting it to BaseToken and return back to caller.
@@ -344,18 +297,25 @@ contract SpookyMCV2Worker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, I
     emit Liquidate(id, liquidatedAmount);
   }
 
+  /// @dev Some portion of a bounty from reinvest will be sent to beneficialVault to increase the size of totalToken.
+  /// @param _beneficialVaultBounty - The amount of BOO to be swapped to BTOKEN & send back to the Vault.
+  /// @param _callerBalance - The balance that is owned by the msg.sender within the execution scope.
   function _rewardToBeneficialVault(
-    uint256 _amount,
-    address[] memory path,
-    uint256 _callerBalance
+    uint256 _beneficialVaultBounty,
+    uint256 _callerBalance,
+    IBaseV1Router01.route[] memory _rewardPath
   ) internal {
-    // 1. SLOAD base token from beneficialVault
+    /// 1. read base token from beneficialVault
     address beneficialVaultToken = beneficialVault.token();
-
-    // 2. Swap reward token to beneficialVaultToken
-    uint256[] memory amounts = router.swapExactTokensForTokens(_amount, 0, path, address(this), block.timestamp);
-
-    /// 3. If beneficialvault token not equal to baseToken regardless of a caller balance, can directly transfer to beneficial vault
+    /// 2. swap reward token to beneficialVaultToken
+    uint256[] memory amounts = router.swapExactTokensForTokens(
+      _beneficialVaultBounty,
+      0,
+      _rewardPath,
+      address(this),
+      block.timestamp
+    );
+    /// 3.if beneficialvault token not equal to baseToken regardless of a caller balance, can directly transfer to beneficial vault
     /// otherwise, need to keep it as a buybackAmount,
     /// since beneficial vault is the same as the calling vault, it will think of this reward as a `back` amount to paydebt/ sending back to a position owner
     if (beneficialVaultToken != baseToken) {
@@ -363,7 +323,7 @@ contract SpookyMCV2Worker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, I
       beneficialVaultToken.safeTransfer(address(beneficialVault), beneficialVaultToken.myBalance());
       emit BeneficialVaultTokenBuyback(msg.sender, beneficialVault, amounts[amounts.length - 1]);
     } else {
-      buybackAmount = beneficialVaultToken.myBalance().sub(_callerBalance);
+      buybackAmount = beneficialVaultToken.myBalance() - _callerBalance;
     }
   }
 
@@ -380,26 +340,26 @@ contract SpookyMCV2Worker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, I
   /// @dev since buybackAmount variable has been created to collect a buyback balance when during the reinvest within the work method,
   /// thus the actualBaseTokenBalance exists to differentiate an actual base token balance balance without taking buy back amount into account
   function actualBaseTokenBalance() internal view returns (uint256) {
-    return baseToken.myBalance().sub(buybackAmount);
+    return baseToken.myBalance() - buybackAmount;
   }
 
   /// @dev Internal function to stake all outstanding LP tokens to the given position ID.
   function _addShare(uint256 id) internal {
     uint256 balance = lpToken.balanceOf(address(this));
     if (balance > 0) {
-      // 1. Approve token to be spend by Spooky's MasterChef
-      address(lpToken).safeApprove(address(spookyMasterChefV2), uint256(-1));
+      // 1. Approve token to be spend by Solidly's MasterChef
+      address(lpToken).safeApprove(address(lpDepositor), type(uint256).max);
       // 2. Convert balance to share
       uint256 share = balanceToShare(balance);
       require(share > 0, "no zero share");
-      // 3. Deposit balance to Spooky's MasterChef
-      // and also force reward claim, to mimic the behaviour of Spooky's MasterChef
-      spookyMasterChefV2.deposit(pid, balance);
+      // 3. Deposit balance to Solidly's MasterChef
+      // and also force reward claim, to mimic the behaviour of Solidly's MasterChef
+      lpDepositor.deposit(address(lpToken), balance);
       // 4. Update shares
-      shares[id] = shares[id].add(share);
-      totalShare = totalShare.add(share);
+      shares[id] = shares[id] + share;
+      totalShare = totalShare + share;
       // 5. Reset approve token
-      address(lpToken).safeApprove(address(spookyMasterChefV2), 0);
+      address(lpToken).safeApprove(address(lpDepositor), 0);
       emit AddShare(id, share);
     }
   }
@@ -409,8 +369,8 @@ contract SpookyMCV2Worker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, I
     uint256 share = shares[id];
     if (share > 0) {
       uint256 balance = shareToBalance(share);
-      spookyMasterChefV2.withdraw(pid, balance);
-      totalShare = totalShare.sub(share);
+      lpDepositor.withdraw(address(lpToken), balance);
+      totalShare = totalShare - share;
       shares[id] = 0;
       emit RemoveShare(id, share);
     }
@@ -433,38 +393,26 @@ contract SpookyMCV2Worker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, I
   }
 
   /// @dev Return the path that the work is using for convert reward token to beneficial vault token.
-  function getRewardPath() external view override returns (address[] memory) {
-    return rewardPath;
+  function getRewardPath(address _rewardToken) external view override returns (address[] memory) {
+    return rewardPaths[_rewardToken];
   }
 
-  /// @notice Return BOO->BTOKEN reinvest path.
-  /// @dev Route through wNative if reinvestPath not set.
-  function getReinvestPath() public view returns (address[] memory) {
-    if (reinvestPath.length != 0) return reinvestPath;
+  /// @dev Internal function to get reinvest path.
+  /// Return route through WFTM if reinvestPath not set.
+  function getReinvestPath(address _rewardToken) public view returns (address[] memory) {
+    if (reinvestPaths[_rewardToken].length != 0) return reinvestPaths[_rewardToken];
     address[] memory path;
     if (baseToken == wNative) {
       path = new address[](2);
-      path[0] = address(boo);
+      path[0] = address(_rewardToken);
       path[1] = address(wNative);
     } else {
       path = new address[](3);
-      path[0] = address(boo);
+      path[0] = address(_rewardToken);
       path[1] = address(wNative);
       path[2] = address(baseToken);
     }
     return path;
-  }
-
-  /// @notice Return RTOKEN->BTOKEN
-  function getReinvestPath(address _rewardToken) public view returns (address[] memory) {
-    if (_rewardToken == address(boo)) return getReinvestPath();
-    else return rewardTokenReinvestPaths[_rewardToken];
-  }
-
-  /// @notice Return RTOKEN->VAULT_TOKEN
-  function getRevSharePath(address _rewardToken) public view returns (address[] memory) {
-    if (_rewardToken == address(boo)) return rewardPath;
-    else return rewardTokenRevSharePaths[_rewardToken];
   }
 
   /// @dev Set the reinvest configuration.
@@ -474,16 +422,18 @@ contract SpookyMCV2Worker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, I
   function setReinvestConfig(
     uint256 _reinvestBountyBps,
     uint256 _reinvestThreshold,
+    address _rewardToken,
     address[] calldata _reinvestPath
   ) external onlyOwner {
     require(_reinvestBountyBps <= maxReinvestBountyBps, "exceeded maxReinvestBountyBps");
     require(_reinvestPath.length >= 2, "_reinvestPath length must >= 2");
-    require(_reinvestPath[0] == boo && _reinvestPath[_reinvestPath.length - 1] == baseToken, "bad _reinvestPath");
-
+    require(
+      _reinvestPath[0] == _rewardToken && _reinvestPath[_reinvestPath.length - 1] == baseToken,
+      "bad _reinvestPath"
+    );
     reinvestBountyBps = _reinvestBountyBps;
-    reinvestThreshold = _reinvestThreshold;
-    reinvestPath = _reinvestPath;
-
+    reinvestThresholds[_rewardToken] = _reinvestThreshold;
+    reinvestPaths[_rewardToken] = _reinvestPath;
     emit SetReinvestConfig(msg.sender, _reinvestBountyBps, _reinvestThreshold, _reinvestPath);
   }
 
@@ -492,9 +442,7 @@ contract SpookyMCV2Worker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, I
   function setMaxReinvestBountyBps(uint256 _maxReinvestBountyBps) external onlyOwner {
     require(_maxReinvestBountyBps >= reinvestBountyBps, "lower than reinvestBountyBps");
     require(_maxReinvestBountyBps <= 3000, "exceeded 30%");
-
     maxReinvestBountyBps = _maxReinvestBountyBps;
-
     emit SetMaxReinvestBountyBps(msg.sender, maxReinvestBountyBps);
   }
 
@@ -522,12 +470,13 @@ contract SpookyMCV2Worker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, I
 
   /// @dev Set a new reward path. In case that the liquidity of the reward path is changed.
   /// @param _rewardPath The new reward path.
-  function setRewardPath(address[] calldata _rewardPath) external onlyOwner {
+  function setRewardPath(address _rewardToken, address[] calldata _rewardPath) external onlyOwner {
     require(_rewardPath.length >= 2, "_rewardPath length must be >= 2");
-    require(_rewardPath[0] == boo && _rewardPath[_rewardPath.length - 1] == beneficialVault.token(), "bad _rewardPath");
-
-    rewardPath = _rewardPath;
-
+    require(
+      _rewardPath[0] == _rewardToken && _rewardPath[_rewardPath.length - 1] == beneficialVault.token(),
+      "bad _rewardPath"
+    );
+    rewardPaths[_rewardToken] = _rewardPath;
     emit SetRewardPath(msg.sender, _rewardPath);
   }
 
@@ -537,7 +486,6 @@ contract SpookyMCV2Worker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, I
   function setCriticalStrategies(IStrategy _addStrat, IStrategy _liqStrat) external onlyOwner {
     addStrat = _addStrat;
     liqStrat = _liqStrat;
-
     emit SetCriticalStrategy(msg.sender, addStrat, liqStrat);
   }
 
@@ -547,61 +495,47 @@ contract SpookyMCV2Worker03 is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, I
   function setTreasuryConfig(address _treasuryAccount, uint256 _treasuryBountyBps) external onlyOwner {
     require(_treasuryAccount != address(0), "bad _treasuryAccount");
     require(_treasuryBountyBps <= maxReinvestBountyBps, "exceeded maxReinvestBountyBps");
-
     treasuryAccount = _treasuryAccount;
     treasuryBountyBps = _treasuryBountyBps;
-
     emit SetTreasuryConfig(msg.sender, treasuryAccount, treasuryBountyBps);
   }
 
   /// @dev Set beneficial vault related data including beneficialVaultBountyBps, beneficialVaultAddress, and rewardPath
   /// @param _beneficialVaultBountyBps - The bounty value to update.
   /// @param _beneficialVault - beneficialVaultAddress
-  /// @param _rewardPath - reward token path from rewardToken to beneficialVaultToken
+  /// @param _rewardTokens - list of reward token addresses to set
+  /// @param _rewardPaths - reward token path from reward token to beneficialVaultToken
   function setBeneficialVaultConfig(
     uint256 _beneficialVaultBountyBps,
     IVault _beneficialVault,
-    address[] calldata _rewardPath
+    address[] calldata _rewardTokens,
+    address[][] calldata _rewardPaths
   ) external onlyOwner {
     require(_beneficialVaultBountyBps <= 10000, "exceeds 100%");
-    require(_rewardPath.length >= 2, "_rewardPath length must >= 2");
-    require(
-      _rewardPath[0] == boo && _rewardPath[_rewardPath.length - 1] == _beneficialVault.token(),
-      "bad _rewardPath"
-    );
-
+    require(_rewardTokens.length == _rewardPaths.length, "length mismatch");
     _buyback();
-
     beneficialVaultBountyBps = _beneficialVaultBountyBps;
     beneficialVault = _beneficialVault;
-    rewardPath = _rewardPath;
-
-    emit SetBeneficialVaultConfig(msg.sender, _beneficialVaultBountyBps, _beneficialVault, _rewardPath);
+    for (uint256 i = 0; i < _rewardTokens.length; i++) {
+      address _rewardToken = _rewardTokens[i];
+      address[] memory _rewardPath = _rewardPaths[i];
+      require(_rewardPath.length >= 2, "_rewardPath length must >= 2");
+      require(
+        _rewardPath[0] == _rewardToken && _rewardPath[_rewardPath.length - 1] == _beneficialVault.token(),
+        "bad _rewardPath"
+      );
+      rewardPaths[_rewardToken] = _rewardPath;
+      emit SetBeneficialVaultConfig(msg.sender, _beneficialVaultBountyBps, _beneficialVault, _rewardPath);
+    }
   }
 
-  function setRewardTokenReinvestPaths(address _rewardToken, address[] calldata _reinvestPath) external onlyOwner {
-    require(_rewardToken != address(0), "bad _rewardToken");
-    require(_reinvestPath.length >= 2, "_reinvestPath length must >= 2");
-    require(
-      _reinvestPath[0] == _rewardToken && _reinvestPath[_reinvestPath.length - 1] == baseToken,
-      "bad _reinvestPath"
-    );
-
-    rewardTokenReinvestPaths[_rewardToken] = _reinvestPath;
-
-    emit SetRewardTokenReinvestPaths(msg.sender, _rewardToken, _reinvestPath);
-  }
-
-  function setRewardTokenRevSharePaths(address _rewardToken, address[] calldata _revSharePath) external onlyOwner {
-    require(_rewardToken != address(0), "bad _rewardToken");
-    require(_revSharePath.length >= 2, "_revSharePath length must >= 2");
-    require(
-      _revSharePath[0] == _rewardToken && _revSharePath[_revSharePath.length - 1] == beneficialVault.token(),
-      "bad _reinvestPath"
-    );
-
-    rewardTokenRevSharePaths[_rewardToken] = _revSharePath;
-
-    emit SetRewardTokenRevSharePaths(msg.sender, _rewardToken, _revSharePath);
+  function convertToRoute(address[] memory _path) internal pure returns (IBaseV1Router01.route[] memory _routes) {
+    _routes = new IBaseV1Router01.route[](_path.length - 1);
+    for (uint256 i = 0; i < _path.length - 1; i++) {
+      _routes[i].from = _path[i];
+      _routes[i].to = _path[i + 1];
+      _routes[i].stable = false;
+    }
+    return _routes;
   }
 }
