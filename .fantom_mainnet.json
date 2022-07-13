@@ -62,15 +62,14 @@
       }
     ]
   },
-  "RevenueTreasury": "0x795997Ad55AcFc27148E86408355eC08cA1424A0",
   "YieldSources": {
     "SpookySwap": {
       "SpookyFactory": "0x152eE697f2E276fA89E96742e9bB9aB1F2E61bE3",
       "SpookyRouter": "0xF491e7B69E4244ad4002BC14e878a34207E38c29",
-      "SpookyMasterChef": "0x2b2929E785374c651a81A63878Ab22742656DcDd",
+      "SpookyMasterChef": "0x18b4f774fdC7BF685daeeF66c2990b1dDd9ea6aD",
       "pools": [
         {
-          "pId": 2,
+          "pId": 10,
           "name": "WFTM-USDC LP",
           "address": "0x2b4C76d0dc16BE1C31D4C1DC53bF9B45987Fc75c"
         },
@@ -80,42 +79,42 @@
           "address": "0xEc7178F4C41f346b2721907F5cF7628E388A7a58"
         },
         {
-          "pId": 5,
+          "pId": 13,
           "name": "WFTM-ETH LP",
           "address": "0xf0702249F4D3A25cD3DED7859a165693685Ab577"
         },
         {
-          "pId": 4,
+          "pId": 12,
           "name": "WFTM-BTC LP",
           "address": "0xFdb9Ab8B9513Ad9E419Cf19530feE49d412C3Ee3"
         },
         {
-          "pId": 45,
+          "pId": 29,
           "name": "TUSD-USDC LP",
           "address": "0x12692B3bf8dd9Aa1d2E721d1a79efD0C244d7d96"
         },
         {
-          "pId": 1,
+          "pId": 9,
           "name": "WFTM-fUSDT LP",
           "address": "0x5965E53aa80a0bcF1CD6dbDd72e6A9b2AA047410"
         },
         {
-          "pId": 3,
+          "pId": 11,
           "name": "WFTM-DAI LP",
           "address": "0xe120ffBDA0d14f3Bb6d6053E90E63c572A66a428"
         },
         {
-          "pId": 24,
+          "pId": 19,
           "name": "WFTM-MIM LP",
           "address": "0x6f86e65b255c9111109d2D2325ca2dFc82456efc"
         },
         {
-          "pId": 63,
+          "pId": 38,
           "name": "ALPACA-WFTM LP",
           "address": "0xF66D2bf736c05723b62E833A5DD747E24855ff99"
         },
         {
-          "pId": 69,
+          "pId": 39,
           "name": "BOO-USDC LP",
           "address": "0xf8Cb2980120469d79958151daa45Eb937c6E1eD6"
         }
@@ -193,8 +192,7 @@
       "config": "0x95bBd366FaA1D7F29484Cc33Cd5c89905fd29a12",
       "tripleSlopeModel": "0xd36B6cf6Aa96Eb7185798ebccb8c5c5a82434067",
       "StrategyAddTwoSidesOptimal": {
-        "SpookySwap": "0x11288Ceee9C12C9d2b1A80a4Df10d5c18F0429e8",
-        "SpookySwapDnx": "0x9FC56db8Edcf528C3dfc1CE6cE10c7a29e56dD08"
+        "SpookySwap": "0x11288Ceee9C12C9d2b1A80a4Df10d5c18F0429e8"
       },
       "workers": [
         {
@@ -202,9 +200,9 @@
           "address": "0x29A7929520ADdC7D3000a81129d4E5Aa7a571f49",
           "deployedBlock": 30361836,
           "config": "0xca1Cf7C64481B8C095828d380922505E5942C60D",
-          "pId": 2,
+          "pId": 10,
           "stakingToken": "0x2b4C76d0dc16BE1C31D4C1DC53bF9B45987Fc75c",
-          "stakingTokenAt": "0x2b2929E785374c651a81A63878Ab22742656DcDd",
+          "stakingTokenAt": "0x18b4f774fdC7BF685daeeF66c2990b1dDd9ea6aD",
           "strategies": {
             "StrategyAddAllBaseToken": "0xD50aAb6B210fe049B6c5262f5A7676204699AB8E",
             "StrategyLiquidate": "0x65Cc57347bA3761358Eb175540E9e5D39CbceFd8",
@@ -221,7 +219,7 @@
           "config": "0xca1Cf7C64481B8C095828d380922505E5942C60D",
           "pId": 0,
           "stakingToken": "0xEc7178F4C41f346b2721907F5cF7628E388A7a58",
-          "stakingTokenAt": "0x2b2929E785374c651a81A63878Ab22742656DcDd",
+          "stakingTokenAt": "0x18b4f774fdC7BF685daeeF66c2990b1dDd9ea6aD",
           "strategies": {
             "StrategyAddAllBaseToken": "0xD50aAb6B210fe049B6c5262f5A7676204699AB8E",
             "StrategyLiquidate": "0x65Cc57347bA3761358Eb175540E9e5D39CbceFd8",
@@ -236,9 +234,9 @@
           "address": "0x1CcA30728F7a82B517Fa174a1163503946054d04",
           "deployedBlock": 30362829,
           "config": "0xca1Cf7C64481B8C095828d380922505E5942C60D",
-          "pId": 5,
+          "pId": 13,
           "stakingToken": "0xf0702249F4D3A25cD3DED7859a165693685Ab577",
-          "stakingTokenAt": "0x2b2929E785374c651a81A63878Ab22742656DcDd",
+          "stakingTokenAt": "0x18b4f774fdC7BF685daeeF66c2990b1dDd9ea6aD",
           "strategies": {
             "StrategyAddAllBaseToken": "0xD50aAb6B210fe049B6c5262f5A7676204699AB8E",
             "StrategyLiquidate": "0x65Cc57347bA3761358Eb175540E9e5D39CbceFd8",
@@ -253,9 +251,9 @@
           "address": "0xB82B93FcF1818513889c0E1F3628484Ce5017A14",
           "deployedBlock": 31162745,
           "config": "0xca1Cf7C64481B8C095828d380922505E5942C60D",
-          "pId": 63,
+          "pId": 38,
           "stakingToken": "0xF66D2bf736c05723b62E833A5DD747E24855ff99",
-          "stakingTokenAt": "0x2b2929E785374c651a81A63878Ab22742656DcDd",
+          "stakingTokenAt": "0x18b4f774fdC7BF685daeeF66c2990b1dDd9ea6aD",
           "strategies": {
             "StrategyAddAllBaseToken": "0xD50aAb6B210fe049B6c5262f5A7676204699AB8E",
             "StrategyLiquidate": "0x65Cc57347bA3761358Eb175540E9e5D39CbceFd8",
@@ -270,9 +268,9 @@
           "address": "0x871C7dBdE0a3dB46dAa552C83fD79f8Cf76D63FD",
           "deployedBlock": 31584399,
           "config": "0xca1Cf7C64481B8C095828d380922505E5942C60D",
-          "pId": 4,
+          "pId": 12,
           "stakingToken": "0xFdb9Ab8B9513Ad9E419Cf19530feE49d412C3Ee3",
-          "stakingTokenAt": "0x2b2929E785374c651a81A63878Ab22742656DcDd",
+          "stakingTokenAt": "0x18b4f774fdC7BF685daeeF66c2990b1dDd9ea6aD",
           "strategies": {
             "StrategyAddAllBaseToken": "0xD50aAb6B210fe049B6c5262f5A7676204699AB8E",
             "StrategyLiquidate": "0x65Cc57347bA3761358Eb175540E9e5D39CbceFd8",
@@ -287,9 +285,9 @@
           "address": "0xE30faE0cFD9E994179e3E63AAbCC239d32E9D6Ed",
           "deployedBlock": 31584492,
           "config": "0xca1Cf7C64481B8C095828d380922505E5942C60D",
-          "pId": 1,
+          "pId": 9,
           "stakingToken": "0x5965E53aa80a0bcF1CD6dbDd72e6A9b2AA047410",
-          "stakingTokenAt": "0x2b2929E785374c651a81A63878Ab22742656DcDd",
+          "stakingTokenAt": "0x18b4f774fdC7BF685daeeF66c2990b1dDd9ea6aD",
           "strategies": {
             "StrategyAddAllBaseToken": "0xD50aAb6B210fe049B6c5262f5A7676204699AB8E",
             "StrategyLiquidate": "0x65Cc57347bA3761358Eb175540E9e5D39CbceFd8",
@@ -304,9 +302,9 @@
           "address": "0x19f510971FD2c9d1cd6EaEACEC6DC04A3fBA51A6",
           "deployedBlock": 31584790,
           "config": "0xca1Cf7C64481B8C095828d380922505E5942C60D",
-          "pId": 3,
+          "pId": 11,
           "stakingToken": "0xe120ffBDA0d14f3Bb6d6053E90E63c572A66a428",
-          "stakingTokenAt": "0x2b2929E785374c651a81A63878Ab22742656DcDd",
+          "stakingTokenAt": "0x18b4f774fdC7BF685daeeF66c2990b1dDd9ea6aD",
           "strategies": {
             "StrategyAddAllBaseToken": "0xD50aAb6B210fe049B6c5262f5A7676204699AB8E",
             "StrategyLiquidate": "0x65Cc57347bA3761358Eb175540E9e5D39CbceFd8",
@@ -321,9 +319,9 @@
           "address": "0x20ACAA67a589e0947E11bA24EDA9D4eAc96f013C",
           "deployedBlock": 31584853,
           "config": "0xca1Cf7C64481B8C095828d380922505E5942C60D",
-          "pId": 24,
+          "pId": 19,
           "stakingToken": "0x6f86e65b255c9111109d2D2325ca2dFc82456efc",
-          "stakingTokenAt": "0x2b2929E785374c651a81A63878Ab22742656DcDd",
+          "stakingTokenAt": "0x18b4f774fdC7BF685daeeF66c2990b1dDd9ea6aD",
           "strategies": {
             "StrategyAddAllBaseToken": "0xD50aAb6B210fe049B6c5262f5A7676204699AB8E",
             "StrategyLiquidate": "0x65Cc57347bA3761358Eb175540E9e5D39CbceFd8",
@@ -372,13 +370,13 @@
           "address": "0x792E8192F2fbdBb5c1e36F312760Fe01D0d7aB92",
           "deployedBlock": 35130591,
           "config": "0xca1Cf7C64481B8C095828d380922505E5942C60D",
-          "pId": 2,
+          "pId": 10,
           "stakingToken": "0x2b4C76d0dc16BE1C31D4C1DC53bF9B45987Fc75c",
-          "stakingTokenAt": "0x2b2929E785374c651a81A63878Ab22742656DcDd",
+          "stakingTokenAt": "0x18b4f774fdC7BF685daeeF66c2990b1dDd9ea6aD",
           "strategies": {
             "StrategyAddAllBaseToken": "0xD50aAb6B210fe049B6c5262f5A7676204699AB8E",
             "StrategyLiquidate": "0x65Cc57347bA3761358Eb175540E9e5D39CbceFd8",
-            "StrategyAddTwoSidesOptimal": "0x9FC56db8Edcf528C3dfc1CE6cE10c7a29e56dD08",
+            "StrategyAddTwoSidesOptimal": "0x11288Ceee9C12C9d2b1A80a4Df10d5c18F0429e8",
             "StrategyWithdrawMinimizeTrading": "0x07DE1F788Fa7E0C215AA772d4429f47902640ef5",
             "StrategyPartialCloseLiquidate": "0x311a522e43C035244e72247895F5C17e46CAB000",
             "StrategyPartialCloseMinimizeTrading": "0x540247c00645E85fA548064039493beD4a0c522C"
@@ -389,13 +387,13 @@
           "address": "0x0e807E2F50dfe8616636083Ba5ecef97280338cf",
           "deployedBlock": 37315300,
           "config": "0xca1Cf7C64481B8C095828d380922505E5942C60D",
-          "pId": 2,
+          "pId": 10,
           "stakingToken": "0x2b4C76d0dc16BE1C31D4C1DC53bF9B45987Fc75c",
-          "stakingTokenAt": "0x2b2929E785374c651a81A63878Ab22742656DcDd",
+          "stakingTokenAt": "0x18b4f774fdC7BF685daeeF66c2990b1dDd9ea6aD",
           "strategies": {
             "StrategyAddAllBaseToken": "0xD50aAb6B210fe049B6c5262f5A7676204699AB8E",
             "StrategyLiquidate": "0x65Cc57347bA3761358Eb175540E9e5D39CbceFd8",
-            "StrategyAddTwoSidesOptimal": "0x9FC56db8Edcf528C3dfc1CE6cE10c7a29e56dD08",
+            "StrategyAddTwoSidesOptimal": "0x11288Ceee9C12C9d2b1A80a4Df10d5c18F0429e8",
             "StrategyWithdrawMinimizeTrading": "0x07DE1F788Fa7E0C215AA772d4429f47902640ef5",
             "StrategyPartialCloseLiquidate": "0x311a522e43C035244e72247895F5C17e46CAB000",
             "StrategyPartialCloseMinimizeTrading": "0x540247c00645E85fA548064039493beD4a0c522C"
@@ -413,8 +411,7 @@
       "config": "0xE986679b06E9D4c72C5B504c86Eb64d546710Aa6",
       "tripleSlopeModel": "0xBbf2a7FacDB318F7670cE87A5F6571Bb001d8F06",
       "StrategyAddTwoSidesOptimal": {
-        "SpookySwap": "0xe9eF08a1eA08e5145547815e496bAE265D4A85Bf",
-        "SpookySwapDnx": "0x292E51830185BAb540c7E3f9aA2918e2B8F07d08"
+        "SpookySwap": "0xe9eF08a1eA08e5145547815e496bAE265D4A85Bf"
       },
       "workers": [
         {
@@ -422,9 +419,9 @@
           "address": "0xabE59308AC72f04b1a2D04175d5247ba981075a6",
           "deployedBlock": 30361530,
           "config": "0xca1Cf7C64481B8C095828d380922505E5942C60D",
-          "pId": 2,
+          "pId": 10,
           "stakingToken": "0x2b4C76d0dc16BE1C31D4C1DC53bF9B45987Fc75c",
-          "stakingTokenAt": "0x2b2929E785374c651a81A63878Ab22742656DcDd",
+          "stakingTokenAt": "0x18b4f774fdC7BF685daeeF66c2990b1dDd9ea6aD",
           "strategies": {
             "StrategyAddAllBaseToken": "0xD50aAb6B210fe049B6c5262f5A7676204699AB8E",
             "StrategyLiquidate": "0x65Cc57347bA3761358Eb175540E9e5D39CbceFd8",
@@ -439,9 +436,9 @@
           "address": "0x26e2f780247C895b466F63e0412c5b449E881c33",
           "deployedBlock": 30363305,
           "config": "0xca1Cf7C64481B8C095828d380922505E5942C60D",
-          "pId": 45,
+          "pId": 29,
           "stakingToken": "0x12692B3bf8dd9Aa1d2E721d1a79efD0C244d7d96",
-          "stakingTokenAt": "0x2b2929E785374c651a81A63878Ab22742656DcDd",
+          "stakingTokenAt": "0x18b4f774fdC7BF685daeeF66c2990b1dDd9ea6aD",
           "strategies": {
             "StrategyAddAllBaseToken": "0xD50aAb6B210fe049B6c5262f5A7676204699AB8E",
             "StrategyLiquidate": "0x65Cc57347bA3761358Eb175540E9e5D39CbceFd8",
@@ -456,13 +453,13 @@
           "address": "0xceCD803b048b66a75bc64f8AA8139cAB97c421C8",
           "deployedBlock": 35130945,
           "config": "0xca1Cf7C64481B8C095828d380922505E5942C60D",
-          "pId": 2,
+          "pId": 10,
           "stakingToken": "0x2b4C76d0dc16BE1C31D4C1DC53bF9B45987Fc75c",
-          "stakingTokenAt": "0x2b2929E785374c651a81A63878Ab22742656DcDd",
+          "stakingTokenAt": "0x18b4f774fdC7BF685daeeF66c2990b1dDd9ea6aD",
           "strategies": {
             "StrategyAddAllBaseToken": "0xD50aAb6B210fe049B6c5262f5A7676204699AB8E",
             "StrategyLiquidate": "0x65Cc57347bA3761358Eb175540E9e5D39CbceFd8",
-            "StrategyAddTwoSidesOptimal": "0x292E51830185BAb540c7E3f9aA2918e2B8F07d08",
+            "StrategyAddTwoSidesOptimal": "0xe9eF08a1eA08e5145547815e496bAE265D4A85Bf",
             "StrategyWithdrawMinimizeTrading": "0x07DE1F788Fa7E0C215AA772d4429f47902640ef5",
             "StrategyPartialCloseLiquidate": "0x311a522e43C035244e72247895F5C17e46CAB000",
             "StrategyPartialCloseMinimizeTrading": "0x540247c00645E85fA548064039493beD4a0c522C"
@@ -473,9 +470,9 @@
           "address": "0x5875796B385caCC467C2BFdD794e1B43bAC78f7a",
           "deployedBlock": 35768665,
           "config": "0xca1Cf7C64481B8C095828d380922505E5942C60D",
-          "pId": 69,
+          "pId": 39,
           "stakingToken": "0xf8Cb2980120469d79958151daa45Eb937c6E1eD6",
-          "stakingTokenAt": "0x2b2929E785374c651a81A63878Ab22742656DcDd",
+          "stakingTokenAt": "0x18b4f774fdC7BF685daeeF66c2990b1dDd9ea6aD",
           "strategies": {
             "StrategyAddAllBaseToken": "0xD50aAb6B210fe049B6c5262f5A7676204699AB8E",
             "StrategyLiquidate": "0x65Cc57347bA3761358Eb175540E9e5D39CbceFd8",
@@ -490,13 +487,13 @@
           "address": "0xBF94404D6ad9986532d25950585e5855b4c30d2c",
           "deployedBlock": 37315531,
           "config": "0xca1Cf7C64481B8C095828d380922505E5942C60D",
-          "pId": 2,
+          "pId": 10,
           "stakingToken": "0x2b4C76d0dc16BE1C31D4C1DC53bF9B45987Fc75c",
-          "stakingTokenAt": "0x2b2929E785374c651a81A63878Ab22742656DcDd",
+          "stakingTokenAt": "0x18b4f774fdC7BF685daeeF66c2990b1dDd9ea6aD",
           "strategies": {
             "StrategyAddAllBaseToken": "0xD50aAb6B210fe049B6c5262f5A7676204699AB8E",
             "StrategyLiquidate": "0x65Cc57347bA3761358Eb175540E9e5D39CbceFd8",
-            "StrategyAddTwoSidesOptimal": "0x292E51830185BAb540c7E3f9aA2918e2B8F07d08",
+            "StrategyAddTwoSidesOptimal": "0xe9eF08a1eA08e5145547815e496bAE265D4A85Bf",
             "StrategyWithdrawMinimizeTrading": "0x07DE1F788Fa7E0C215AA772d4429f47902640ef5",
             "StrategyPartialCloseLiquidate": "0x311a522e43C035244e72247895F5C17e46CAB000",
             "StrategyPartialCloseMinimizeTrading": "0x540247c00645E85fA548064039493beD4a0c522C"
@@ -514,8 +511,7 @@
       "config": "0x23ff13d43702cA95a6369736dBFf6Ea718b5F0b0",
       "tripleSlopeModel": "0xADaBC5FC5da42c85A84e66096460C769a151A8F8",
       "StrategyAddTwoSidesOptimal": {
-        "SpookySwap": "0x4b0e0D158e6a272295e404A4C06C937d4947093C",
-        "SpookySwapDnx": "0x"
+        "SpookySwap": "0x4b0e0D158e6a272295e404A4C06C937d4947093C"
       },
       "workers": [
         {
@@ -523,9 +519,9 @@
           "address": "0x66C293f55f06DC556B961240184902C07d25C1f2",
           "deployedBlock": 31163065,
           "config": "0xca1Cf7C64481B8C095828d380922505E5942C60D",
-          "pId": 63,
+          "pId": 38,
           "stakingToken": "0xF66D2bf736c05723b62E833A5DD747E24855ff99",
-          "stakingTokenAt": "0x2b2929E785374c651a81A63878Ab22742656DcDd",
+          "stakingTokenAt": "0x18b4f774fdC7BF685daeeF66c2990b1dDd9ea6aD",
           "strategies": {
             "StrategyAddAllBaseToken": "0xD50aAb6B210fe049B6c5262f5A7676204699AB8E",
             "StrategyLiquidate": "0x65Cc57347bA3761358Eb175540E9e5D39CbceFd8",
@@ -547,8 +543,7 @@
       "config": "0x83875cB3B520275183c5c383C8745199293Cd89C",
       "tripleSlopeModel": "0xbA7A1e40A555135BE83F6B19E2efeA5332a0fa3B",
       "StrategyAddTwoSidesOptimal": {
-        "SpookySwap": "0x4F34511e604a1795E854aEF9D872cb9c9836F1dF",
-        "SpookySwapDnx": "0x"
+        "SpookySwap": "0x4F34511e604a1795E854aEF9D872cb9c9836F1dF"
       },
       "workers": [
         {
