@@ -66,7 +66,7 @@ contract DeltaNeutralVault04 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
   error DeltaNeutralVault_PositionsAlreadyInitialized();
   error DeltaNeutralVault_PositionsNotInitialized();
   error DeltaNeutralVault_InvalidPositions(address _vault, uint256 _positionId);
-  error DeltaNeutralVault_UnsafePositionEquity();
+  error DeltaNeutralVault_UnsafePositionEquity(); //FIXME remove?
   error DeltaNeutralVault_UnsafePositionValue();
   error DeltaNeutralVault_UnsafeDebtValue();
   error DeltaNeutralVault_UnsafeDebtRatio();
