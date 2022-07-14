@@ -16,21 +16,10 @@ pragma solidity 0.8.13;
 import "./interfaces/IDeltaNeutralOracle.sol";
 import "./interfaces/IDeltaNeutralVault04HealthChecker.sol";
 import "./interfaces/IDeltaNeutralStruct.sol";
-
-// import "./interfaces/IVault.sol";
-// import "./interfaces/IWorker02.sol";
-// import "./interfaces/IWETH.sol";
-// import "./interfaces/IWNativeRelayer.sol";
-// import "./interfaces/IFairLaunch.sol";
-// import "./interfaces/ISwapRouter.sol";
-// import "./interfaces/IController.sol";
-// import "./interfaces/IExecutor.sol";
 import "./interfaces/IDeltaNeutralVaultConfig02.sol";
 
-import "./utils/SafeToken.sol";
 import "./utils/FixedPointMathLib.sol";
 import "./utils/Math.sol";
-import "./utils/FullMath.sol";
 
 /// @title DeltaNeutralVault04HealthChecker is a spin-off contract from DeltaNeutralVault03
 /// Health check functions were moved to the health checker while the rest of the logic
