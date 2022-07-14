@@ -72,7 +72,6 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
   error DeltaNeutralVault_UnsafePositionEquity();
   error DeltaNeutralVault_UnsafePositionValue();
   error DeltaNeutralVault_UnsafeDebtRatio();
-  error DeltaNeutralVault_UnsafeOutstanding(address _token, uint256 _amountBefore, uint256 _amountAfter);
   error DeltaNeutralVault_PositionsIsHealthy();
   error DeltaNeutralVault_InsufficientTokenReceived(address _token, uint256 _requiredAmount, uint256 _receivedAmount);
   error DeltaNeutralVault_InsufficientShareReceived(uint256 _requiredAmount, uint256 _receivedAmount);
@@ -332,7 +331,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
 
     // 4. sanity check
     checker.depositHealthCheck(_depositValue, lpToken, _positionInfoBefore, _positionInfoAfter, priceOracle, config);
-    _outstandingCheck(_outstandingBefore, _outstanding());
+    checker.outstandingCheck(_outstandingBefore, _outstanding());
 
     // Deduct credit from msg.sender regardless of the _shareReceiver.
     IController _controller = IController(config.controller());
@@ -420,7 +419,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
 
     // sanity check
     _withdrawHealthCheck(_withdrawShareValue, _positionInfoBefore, _positionInfoAfter);
-    _outstandingCheck(_outstandingBefore, _outstandingAfter);
+    checker.outstandingCheck(_outstandingBefore, _outstandingAfter);
 
     _transferTokenToShareOwner(msg.sender, stableToken, _stableTokenBack);
     _transferTokenToShareOwner(msg.sender, assetToken, _assetTokenBack);
@@ -462,7 +461,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     if (!Math.almostEqual(_equityAfter, _equityBefore, config.positionValueTolerance())) {
       revert DeltaNeutralVault_UnsafePositionValue();
     }
-    _outstandingCheck(_outstandingBefore, _outstanding());
+    checker.outstandingCheck(_outstandingBefore, _outstanding());
 
     emit LogRebalance(_equityBefore, _equityAfter);
   }
@@ -592,36 +591,6 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
       )
     ) {
       revert DeltaNeutralVault_UnsafeDebtRatio();
-    }
-  }
-
-  /// @notice Compare Delta neutral vault tokens' balance before and afrer.
-  /// @param _outstandingBefore Tokens' balance before.
-  /// @param _outstandingAfter Tokens' balance after.
-  function _outstandingCheck(Outstanding memory _outstandingBefore, Outstanding memory _outstandingAfter)
-    internal
-    view
-  {
-    if (_outstandingAfter.stableAmount < _outstandingBefore.stableAmount) {
-      revert DeltaNeutralVault_UnsafeOutstanding(
-        stableToken,
-        _outstandingBefore.stableAmount,
-        _outstandingAfter.stableAmount
-      );
-    }
-    if (_outstandingAfter.assetAmount < _outstandingBefore.assetAmount) {
-      revert DeltaNeutralVault_UnsafeOutstanding(
-        assetToken,
-        _outstandingBefore.assetAmount,
-        _outstandingAfter.assetAmount
-      );
-    }
-    if (_outstandingAfter.nativeAmount < _outstandingBefore.nativeAmount) {
-      revert DeltaNeutralVault_UnsafeOutstanding(
-        address(0),
-        _outstandingBefore.nativeAmount,
-        _outstandingAfter.nativeAmount
-      );
     }
   }
 

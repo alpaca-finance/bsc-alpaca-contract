@@ -27,4 +27,6 @@ interface IDeltaNeutralVault04HealthChecker is IDeltaNeutralStruct {
     IDeltaNeutralOracle _oracle,
     IDeltaNeutralVaultConfig02 _config
   ) external view;
+
+  function outstandingCheck(Outstanding memory _outstandingBefore, Outstanding memory _outstandingAfter) external view;
 }
