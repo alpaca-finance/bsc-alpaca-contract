@@ -75,7 +75,6 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
   error DeltaNeutralVault_InsufficientTokenReceived(address _token, uint256 _requiredAmount, uint256 _receivedAmount);
   error DeltaNeutralVault_InsufficientShareReceived(uint256 _requiredAmount, uint256 _receivedAmount);
   error DeltaNeutralVault_UnTrustedPrice();
-  error DeltaNeutralVault_PositionValueExceedLimit();
   error DeltaNeutralVault_WithdrawValueExceedShareValue(uint256 _withdrawValue, uint256 _shareValue);
   error DeltaNeutralVault_IncorrectNativeAmountDeposit();
   error DeltaNeutralVault_InvalidLpToken();
