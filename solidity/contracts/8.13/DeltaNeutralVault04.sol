@@ -132,6 +132,8 @@ contract DeltaNeutralVault04 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
   // --- Mutable ---
   uint8 private OPENING;
 
+  // --- Checker ---
+
   /// @dev Require that the caller must be an EOA account if not whitelisted.
   modifier onlyEOAorWhitelisted() {
     if (msg.sender != tx.origin && !config.whitelistedCallers(msg.sender)) {

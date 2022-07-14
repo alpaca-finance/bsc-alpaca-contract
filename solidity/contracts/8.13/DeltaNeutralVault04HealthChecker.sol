@@ -14,6 +14,7 @@ Alpaca Fin Corporation
 pragma solidity 0.8.13;
 
 import "./interfaces/IDeltaNeutralOracle.sol";
+import "./interfaces/IDeltaNeutralVault04HealthChecker.sol";
 // import "./interfaces/IVault.sol";
 // import "./interfaces/IWorker02.sol";
 // import "./interfaces/IWETH.sol";
@@ -33,7 +34,7 @@ import "./utils/FullMath.sol";
 /// Health check functions were moved to the health checker while the rest of the logic
 /// were kept the same
 // solhint-disable max-states-count
-contract DeltaNeutralVault04HealthChecker {
+contract DeltaNeutralVault04HealthChecker is IDeltaNeutralVault04HealthChecker {
   // --- Libraries ---
   using FixedPointMathLib for uint256;
 
@@ -42,15 +43,6 @@ contract DeltaNeutralVault04HealthChecker {
   error DeltaNeutralVault04HealthChecker_UnsafePositionEquity();
   error DeltaNeutralVault04HealthChecker_UnsafeDebtValue();
   error DeltaNeutralVault04HealthChecker_UnTrustedPrice();
-
-  struct PositionInfo {
-    uint256 stablePositionEquity;
-    uint256 stablePositionDebtValue;
-    uint256 stableLpAmount;
-    uint256 assetPositionEquity;
-    uint256 assetPositionDebtValue;
-    uint256 assetLpAmount;
-  }
 
   /// @notice Return value of given lp amount
   /// @param _oracle oracle contract
