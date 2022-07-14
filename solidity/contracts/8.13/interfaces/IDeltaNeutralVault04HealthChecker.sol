@@ -15,9 +15,9 @@ pragma solidity 0.8.13;
 
 import "./IDeltaNeutralOracle.sol";
 import "./IDeltaNeutralVaultConfig02.sol";
-import "./IDeltaNeutralPositionInfo.sol";
+import "./IDeltaNeutralStruct.sol";
 
-interface IDeltaNeutralVault04HealthChecker is IDeltaNeutralPositionInfo {
+interface IDeltaNeutralVault04HealthChecker is IDeltaNeutralStruct {
   /// @dev Return value of given token in USD.
   function depositHealthCheck(
     uint256 _depositValue,

@@ -15,7 +15,7 @@ pragma solidity 0.8.13;
 
 import "./interfaces/IDeltaNeutralOracle.sol";
 import "./interfaces/IDeltaNeutralVault04HealthChecker.sol";
-import "./interfaces/IDeltaNeutralPositionInfo.sol";
+import "./interfaces/IDeltaNeutralStruct.sol";
 
 // import "./interfaces/IVault.sol";
 // import "./interfaces/IWorker02.sol";

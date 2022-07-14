@@ -13,7 +13,7 @@ Alpaca Fin Corporation
 
 pragma solidity 0.8.13;
 
-interface IDeltaNeutralPositionInfo {
+interface IDeltaNeutralStruct {
   struct PositionInfo {
     uint256 stablePositionEquity;
     uint256 stablePositionDebtValue;

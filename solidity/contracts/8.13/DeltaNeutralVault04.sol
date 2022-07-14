@@ -20,7 +20,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
 import "./interfaces/IDeltaNeutralOracle.sol";
-import "./interfaces/IDeltaNeutralPositionInfo.sol";
+import "./interfaces/IDeltaNeutralStruct.sol";
 import "./interfaces/IDeltaNeutralVault04HealthChecker.sol";
 import "./interfaces/IVault.sol";
 import "./interfaces/IWorker02.sol";
@@ -41,12 +41,7 @@ import "./utils/FullMath.sol";
 /// to cancel out the effect on the out-standing portfolio when the asset’s price moves.
 /// Moreover, DeltaNeutralVault04 support credit-dependent limit access and executor
 // solhint-disable max-states-count
-contract DeltaNeutralVault04 is
-  IDeltaNeutralPositionInfo,
-  ERC20Upgradeable,
-  ReentrancyGuardUpgradeable,
-  OwnableUpgradeable
-{
+contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, ReentrancyGuardUpgradeable, OwnableUpgradeable {
   // --- Libraries ---
   using FixedPointMathLib for uint256;
   using SafeERC20Upgradeable for IERC20Upgradeable;
