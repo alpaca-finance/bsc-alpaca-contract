@@ -13,12 +13,6 @@ Alpaca Fin Corporation
 
 pragma solidity 0.8.13;
 
-import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
-
 import "./interfaces/IDeltaNeutralOracle.sol";
 // import "./interfaces/IVault.sol";
 // import "./interfaces/IWorker02.sol";
@@ -35,19 +29,19 @@ import "./utils/FixedPointMathLib.sol";
 import "./utils/Math.sol";
 import "./utils/FullMath.sol";
 
-/// @title DeltaNeutralVault04 is designed to take a long and short position in an asset at the same time
-/// to cancel out the effect on the out-standing portfolio when the asset’s price moves.
-/// Moreover, DeltaNeutralVault04 support credit-dependent limit access and executor
+/// @title DeltaNeutralVault04HealthChecker is a spin-off contract from DeltaNeutralVault03
+/// Health check functions were moved to the health checker while the rest of the logic
+/// were kept the same
 // solhint-disable max-states-count
-contract DeltaNeutralVaultHealthCheck is ReentrancyGuardUpgradeable, OwnableUpgradeable {
+contract DeltaNeutralVault04HealthChecker {
   // --- Libraries ---
   using FixedPointMathLib for uint256;
 
   // --- Errors ---
-  error DeltaNeutralVault_PositionValueExceedLimit();
-  error DeltaNeutralVault_UnsafePositionEquity();
-  error DeltaNeutralVault_UnsafeDebtValue();
-  error DeltaNeutralVault_UnTrustedPrice();
+  error DeltaNeutralVault04HealthChecker_PositionValueExceedLimit();
+  error DeltaNeutralVault04HealthChecker_UnsafePositionEquity();
+  error DeltaNeutralVault04HealthChecker_UnsafeDebtValue();
+  error DeltaNeutralVault04HealthChecker_UnTrustedPrice();
 
   struct PositionInfo {
     uint256 stablePositionEquity;
@@ -58,29 +52,34 @@ contract DeltaNeutralVaultHealthCheck is ReentrancyGuardUpgradeable, OwnableUpgr
     uint256 assetLpAmount;
   }
 
-  /// @notice Return value of given lp amount.
-  /// @param _lpAmount Amount of lp.
+  /// @notice Return value of given lp amount
+  /// @param _oracle oracle contract
+  /// @param _lpAmount Amount of lp token
+  /// @param _lpToken address of the lp token
   function _lpToValue(
     IDeltaNeutralOracle _oracle,
     uint256 _lpAmount,
     address _lpToken
   ) internal view returns (uint256) {
     (uint256 _lpValue, uint256 _lastUpdated) = _oracle.lpToDollar(_lpAmount, _lpToken);
-    if (block.timestamp - _lastUpdated > 86400) revert DeltaNeutralVault_UnTrustedPrice();
+    if (block.timestamp - _lastUpdated > 86400) revert DeltaNeutralVault04HealthChecker_UnTrustedPrice();
     return _lpValue;
   }
 
   /// @notice check if position equity and debt are healthy after deposit. LEVERAGE_LEVEL must be >= 3
   /// @param _depositValue deposit value in usd.
+  /// @param _lpToken address of lp
   /// @param _positionInfoBefore position equity and debt before deposit.
   /// @param _positionInfoAfter position equity and debt after deposit.
+  /// @param _oracle Delta neutral oracle contract
+  /// @param _config Delta Neutral config contract
   function depositHealthCheck(
     uint256 _depositValue,
+    address _lpToken,
     PositionInfo memory _positionInfoBefore,
     PositionInfo memory _positionInfoAfter,
     IDeltaNeutralOracle _oracle,
-    IDeltaNeutralVaultConfig02 _config,
-    address _lpToken
+    IDeltaNeutralVaultConfig02 _config
   ) external view {
     //FIXME validate oracle and config and lpToken
     uint256 _toleranceBps = _config.positionValueTolerance();
@@ -88,7 +87,7 @@ contract DeltaNeutralVaultHealthCheck is ReentrancyGuardUpgradeable, OwnableUpgr
 
     // 1. check if vault accept new total position value
     if (!_isVaultSizeAcceptable(_positionInfoAfter, _config)) {
-      revert DeltaNeutralVault_PositionValueExceedLimit();
+      revert DeltaNeutralVault04HealthChecker_PositionValueExceedLimit();
     }
     // 2. check equity allocation
 
@@ -108,7 +107,7 @@ contract DeltaNeutralVaultHealthCheck is ReentrancyGuardUpgradeable, OwnableUpgr
         _lpToken
       )
     ) {
-      revert DeltaNeutralVault_UnsafePositionEquity();
+      revert DeltaNeutralVault04HealthChecker_UnsafePositionEquity();
     }
 
     // 3. check Debt value
@@ -126,7 +125,7 @@ contract DeltaNeutralVaultHealthCheck is ReentrancyGuardUpgradeable, OwnableUpgr
         _toleranceBps
       )
     ) {
-      revert DeltaNeutralVault_UnsafeDebtValue();
+      revert DeltaNeutralVault04HealthChecker_UnsafeDebtValue();
     }
   }
 
