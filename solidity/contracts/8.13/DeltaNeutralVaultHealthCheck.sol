@@ -61,11 +61,11 @@ contract DeltaNeutralVaultHealthCheck is ReentrancyGuardUpgradeable, OwnableUpgr
   /// @notice Return value of given lp amount.
   /// @param _lpAmount Amount of lp.
   function _lpToValue(
-    address _oracle,
+    IDeltaNeutralOracle _oracle,
     uint256 _lpAmount,
     address _lpToken
   ) internal view returns (uint256) {
-    (uint256 _lpValue, uint256 _lastUpdated) = IDeltaNeutralOracle(_oracle).lpToDollar(_lpAmount, _lpToken);
+    (uint256 _lpValue, uint256 _lastUpdated) = _oracle.lpToDollar(_lpAmount, _lpToken);
     if (block.timestamp - _lastUpdated > 86400) revert DeltaNeutralVault_UnTrustedPrice();
     return _lpValue;
   }
@@ -74,34 +74,84 @@ contract DeltaNeutralVaultHealthCheck is ReentrancyGuardUpgradeable, OwnableUpgr
   /// @param _depositValue deposit value in usd.
   /// @param _positionInfoBefore position equity and debt before deposit.
   /// @param _positionInfoAfter position equity and debt after deposit.
-  function _depositHealthCheck(
+  function depositHealthCheck(
     uint256 _depositValue,
     PositionInfo memory _positionInfoBefore,
     PositionInfo memory _positionInfoAfter,
-    address _oracle,
-    address _config,
+    IDeltaNeutralOracle _oracle,
+    IDeltaNeutralVaultConfig02 _config,
     address _lpToken
   ) external view {
     //FIXME validate oracle and config and lpToken
-    uint256 _toleranceBps = IDeltaNeutralVaultConfig02(config).positionValueTolerance();
-    uint8 _leverageLevel = IDeltaNeutralVaultConfig02(config).leverageLevel();
-
-    uint256 _positionValueAfter = _positionInfoAfter.stablePositionEquity +
-      _positionInfoAfter.stablePositionDebtValue +
-      _positionInfoAfter.assetPositionEquity +
-      _positionInfoAfter.assetPositionDebtValue;
+    uint256 _toleranceBps = _config.positionValueTolerance();
+    uint8 _leverageLevel = _config.leverageLevel();
 
     // 1. check if vault accept new total position value
-    if (!IDeltaNeutralVaultConfig02(config).isVaultSizeAcceptable(_positionValueAfter)) {
+    if (!_isVaultSizeAcceptable(_positionInfoAfter, _config)) {
       revert DeltaNeutralVault_PositionValueExceedLimit();
     }
+    // 2. check equity allocation
 
-    // 2. check position value
     // The equity allocation of long side should be equal to _depositValue * (_leverageLevel - 2) / ((2*_leverageLevel) - 2)
     uint256 _expectedStableEqChange = (_depositValue * (_leverageLevel - 2)) / ((2 * _leverageLevel) - 2);
     // The equity allocation of short side should be equal to _depositValue * _leverageLevel / ((2*_leverageLevel) - 2)
     uint256 _expectedAssetEqChange = (_depositValue * _leverageLevel) / ((2 * _leverageLevel) - 2);
 
+    if (
+      !_isEquityHealthy(
+        _positionInfoBefore,
+        _positionInfoAfter,
+        _expectedStableEqChange,
+        _expectedAssetEqChange,
+        _toleranceBps,
+        _oracle,
+        _lpToken
+      )
+    ) {
+      revert DeltaNeutralVault_UnsafePositionEquity();
+    }
+
+    // 3. check Debt value
+    // The debt allocation of long side should be equal to _expectedStableEqChange * (_leverageLevel - 1)
+    uint256 _expectedStableDebtChange = (_expectedStableEqChange * (_leverageLevel - 1));
+    // The debt allocation of short side should be equal to _expectedAssetEqChange * (_leverageLevel - 1)
+    uint256 _expectedAssetDebtChange = (_expectedAssetEqChange * (_leverageLevel - 1));
+
+    if (
+      !_isDebtHealthy(
+        _positionInfoBefore,
+        _positionInfoAfter,
+        _expectedStableDebtChange,
+        _expectedAssetDebtChange,
+        _toleranceBps
+      )
+    ) {
+      revert DeltaNeutralVault_UnsafeDebtValue();
+    }
+  }
+
+  function _isVaultSizeAcceptable(PositionInfo memory _positionInfoAfter, IDeltaNeutralVaultConfig02 _config)
+    internal
+    view
+    returns (bool)
+  {
+    uint256 _positionValueAfter = _positionInfoAfter.stablePositionEquity +
+      _positionInfoAfter.stablePositionDebtValue +
+      _positionInfoAfter.assetPositionEquity +
+      _positionInfoAfter.assetPositionDebtValue;
+
+    return _config.isVaultSizeAcceptable(_positionValueAfter);
+  }
+
+  function _isEquityHealthy(
+    PositionInfo memory _positionInfoBefore,
+    PositionInfo memory _positionInfoAfter,
+    uint256 _expectedStableEqChange,
+    uint256 _expectedAssetEqChange,
+    uint256 _toleranceBps,
+    IDeltaNeutralOracle _oracle,
+    address _lpToken
+  ) internal view returns (bool) {
     uint256 _actualStableDebtChange = _positionInfoAfter.stablePositionDebtValue -
       _positionInfoBefore.stablePositionDebtValue;
     uint256 _actualAssetDebtChange = _positionInfoAfter.assetPositionDebtValue -
@@ -118,24 +168,25 @@ contract DeltaNeutralVaultHealthCheck is ReentrancyGuardUpgradeable, OwnableUpgr
       _lpToken
     ) - _actualAssetDebtChange;
 
-    if (
-      !Math.almostEqual(_actualStableEqChange, _expectedStableEqChange, _toleranceBps) ||
-      !Math.almostEqual(_actualAssetEqChange, _expectedAssetEqChange, _toleranceBps)
-    ) {
-      revert DeltaNeutralVault_UnsafePositionEquity();
-    }
+    return
+      Math.almostEqual(_actualStableEqChange, _expectedStableEqChange, _toleranceBps) &&
+      Math.almostEqual(_actualAssetEqChange, _expectedAssetEqChange, _toleranceBps);
+  }
 
-    // 3. check Debt value
-    // The debt allocation of long side should be equal to _expectedStableEqChange * (_leverageLevel - 1)
-    uint256 _expectedStableDebtChange = (_expectedStableEqChange * (_leverageLevel - 1));
-    // The debt allocation of short side should be equal to _expectedAssetEqChange * (_leverageLevel - 1)
-    uint256 _expectedAssetDebtChange = (_expectedAssetEqChange * (_leverageLevel - 1));
+  function _isDebtHealthy(
+    PositionInfo memory _positionInfoBefore,
+    PositionInfo memory _positionInfoAfter,
+    uint256 _expectedStableDebtChange,
+    uint256 _expectedAssetDebtChange,
+    uint256 _toleranceBps
+  ) internal view returns (bool) {
+    uint256 _actualStableDebtChange = _positionInfoAfter.stablePositionDebtValue -
+      _positionInfoBefore.stablePositionDebtValue;
+    uint256 _actualAssetDebtChange = _positionInfoAfter.assetPositionDebtValue -
+      _positionInfoBefore.assetPositionDebtValue;
 
-    if (
-      !Math.almostEqual(_actualStableDebtChange, _expectedStableDebtChange, _toleranceBps) ||
-      !Math.almostEqual(_actualAssetDebtChange, _expectedAssetDebtChange, _toleranceBps)
-    ) {
-      revert DeltaNeutralVault_UnsafeDebtValue();
-    }
+    return
+      Math.almostEqual(_actualStableDebtChange, _expectedStableDebtChange, _toleranceBps) &&
+      Math.almostEqual(_actualAssetDebtChange, _expectedAssetDebtChange, _toleranceBps);
   }
 }
