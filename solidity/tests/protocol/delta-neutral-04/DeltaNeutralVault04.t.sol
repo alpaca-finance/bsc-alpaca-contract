@@ -232,26 +232,8 @@ contract DeltaNeutralVault04_Test is BaseTest {
     _alpacaToken.mint(address(_deltaNeutralVault), 100 ether);
     _reinvestExecutor.setExecutionValue(100 ether, 200 ether);
 
-    (
-      uint256 stablePositionEquity2,
-      uint256 stablePositionDebtValue2,
-      uint256 stableLpAmount2,
-      uint256 assetPositionEquity2,
-      uint256 assetPositionDebtValue2,
-      uint256 assetLpAmount2
-    ) = _deltaNeutralVault.positionInfo();
-
     vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault_UnsafePositionEquity()"));
     _deltaNeutralVault.reinvest(abi.encode(0), 0);
-
-    (
-      uint256 stablePositionEquity3,
-      uint256 stablePositionDebtValue3,
-      uint256 stableLpAmount3,
-      uint256 assetPositionEquity3,
-      uint256 assetPositionDebtValue3,
-      uint256 assetLpAmount3
-    ) = _deltaNeutralVault.positionInfo();
   }
 
   function _initPosition() internal {
@@ -272,6 +254,8 @@ contract DeltaNeutralVault04_Test is BaseTest {
     assertEq(assetPositionEquity, 75 ether);
     assertEq(stablePositionDebtValue, 50 ether);
     assertEq(assetPositionDebtValue, 150 ether);
+    assertEq(stableLpAmount, 37.5 ether);
+    assertEq(assetLpAmount, 112.5 ether);
     assertEq(_deltaNeutralVault.balanceOf(address(this)), 100 ether);
   }
 

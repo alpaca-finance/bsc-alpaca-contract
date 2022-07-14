@@ -217,7 +217,7 @@ contract DeltaNeutralVault04HealthChecker is IDeltaNeutralVault04HealthChecker {
   /// @notice Compare Delta neutral vault tokens' balance before and afrer.
   /// @param _outstandingBefore Tokens' balance before.
   /// @param _outstandingAfter Tokens' balance after.
-  function outstandingCheck(Outstanding memory _outstandingBefore, Outstanding memory _outstandingAfter) external view {
+  function outstandingCheck(Outstanding memory _outstandingBefore, Outstanding memory _outstandingAfter) external pure {
     if (_outstandingAfter.stableAmount < _outstandingBefore.stableAmount) {
       revert DeltaNeutralVault04HealthChecker_UnsafeStableTokenOutstanding(
         _outstandingBefore.stableAmount,
@@ -287,7 +287,7 @@ contract DeltaNeutralVault04HealthChecker is IDeltaNeutralVault04HealthChecker {
     uint256 _expectedStableDebtChange,
     uint256 _expectedAssetDebtChange,
     uint256 _toleranceBps
-  ) internal view returns (bool) {
+  ) internal pure returns (bool) {
     uint256 _actualStableDebtChange = _positionInfoAfter.stablePositionDebtValue -
       _positionInfoBefore.stablePositionDebtValue;
     uint256 _actualAssetDebtChange = _positionInfoAfter.assetPositionDebtValue -
