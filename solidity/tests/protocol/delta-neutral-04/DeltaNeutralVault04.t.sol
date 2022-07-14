@@ -203,7 +203,7 @@ contract DeltaNeutralVault04_Test is BaseTest {
 
     vm.prank(ALICE);
     // Withdraw executor will always return stable
-    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault_UnsafeDebtRatio()"));
+    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault04HealthChecker_UnsafeDebtRatio()"));
     _deltaNeutralVault.withdraw(100 ether, 100, 0, abi.encode(0));
   }
 

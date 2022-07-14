@@ -43,7 +43,9 @@ contract DeltaNeutralVault04HealthChecker is IDeltaNeutralVault04HealthChecker {
   // --- Errors ---
   error DeltaNeutralVault04HealthChecker_PositionValueExceedLimit();
   error DeltaNeutralVault04HealthChecker_UnsafePositionEquity();
+  error DeltaNeutralVault04HealthChecker_UnsafeDebtRatio();
   error DeltaNeutralVault04HealthChecker_UnsafeDebtValue();
+  error DeltaNeutralVault04HealthChecker_UnsafePositionValue();
   error DeltaNeutralVault04HealthChecker_UnTrustedPrice();
   error DeltaNeutralVault04HealthChecker_UnsafeStableTokenOutstanding(uint256 _amountBefore, uint256 _amountAfter);
   error DeltaNeutralVault04HealthChecker_UnsafeAssetTokenOutstanding(uint256 _amountBefore, uint256 _amountAfter);
@@ -68,7 +70,7 @@ contract DeltaNeutralVault04HealthChecker is IDeltaNeutralVault04HealthChecker {
   /// @param _lpToken address of lp
   /// @param _positionInfoBefore position equity and debt before deposit.
   /// @param _positionInfoAfter position equity and debt after deposit.
-  /// @param _oracle Delta neutral oracle contract
+  /// @param _oracle Delta Neutral oracle contract
   /// @param _config Delta Neutral config contract
   function depositHealthCheck(
     uint256 _depositValue,
@@ -123,6 +125,103 @@ contract DeltaNeutralVault04HealthChecker is IDeltaNeutralVault04HealthChecker {
       )
     ) {
       revert DeltaNeutralVault04HealthChecker_UnsafeDebtValue();
+    }
+  }
+
+  /// @notice Check if position equity and debt ratio are healthy after withdraw.
+  /// @param _withdrawValue Withdraw value in usd
+  /// @param _lpToken address of lp
+  /// @param _positionInfoBefore Position equity and debt before deposit
+  /// @param _positionInfoAfter Position equity and debt after deposit
+  /// @param _oracle Delta Neutral oracle contract
+  /// @param _config Delta Neutral config contract
+  function withdrawHealthCheck(
+    uint256 _withdrawValue,
+    address _lpToken,
+    PositionInfo memory _positionInfoBefore,
+    PositionInfo memory _positionInfoAfter,
+    IDeltaNeutralOracle _oracle,
+    IDeltaNeutralVaultConfig02 _config
+  ) external view {
+    uint256 _positionValueTolerance = _config.positionValueTolerance();
+    uint256 _debtRatioTolerance = _config.debtRatioTolerance();
+
+    uint256 _totalEquityBefore = _positionInfoBefore.stablePositionEquity + _positionInfoBefore.assetPositionEquity;
+    uint256 _stableLpWithdrawValue = _lpToValue(
+      _oracle,
+      _positionInfoBefore.stableLpAmount - _positionInfoAfter.stableLpAmount,
+      _lpToken
+    );
+
+    // This will force the equity loss in stable vault stay within the expectation
+    // Given that the expectation is equity loss in stable vault will not alter the stable equity to total equity ratio
+    // _stableExpectedWithdrawValue = _withdrawValue * _positionInfoBefore.stablePositionEquity / _totalEquityBefore
+    // _stableActualWithdrawValue should be almost equal to _stableExpectedWithdrawValue
+    if (
+      !Math.almostEqual(
+        (_stableLpWithdrawValue -
+          (_positionInfoBefore.stablePositionDebtValue - _positionInfoAfter.stablePositionDebtValue)) *
+          _totalEquityBefore,
+        _withdrawValue * _positionInfoBefore.stablePositionEquity,
+        _positionValueTolerance
+      )
+    ) {
+      revert DeltaNeutralVault04HealthChecker_UnsafePositionValue();
+    }
+
+    uint256 _assetLpWithdrawValue = _lpToValue(
+      _oracle,
+      _positionInfoBefore.assetLpAmount - _positionInfoAfter.assetLpAmount,
+      _lpToken
+    );
+
+    // This will force the equity loss in asset vault stay within the expectation
+    // Given that the expectation is equity loss in asset vault will not alter the asset equity to total equity ratio
+    // _assetExpectedWithdrawValue = _withdrawValue * _positionInfoBefore.assetPositionEquity / _totalEquityBefore
+    // _assetActualWithdrawValue should be almost equal to _assetExpectedWithdrawValue
+    if (
+      !Math.almostEqual(
+        (_assetLpWithdrawValue -
+          (_positionInfoBefore.assetPositionDebtValue - _positionInfoAfter.assetPositionDebtValue)) *
+          _totalEquityBefore,
+        _withdrawValue * _positionInfoBefore.assetPositionEquity,
+        _positionValueTolerance
+      )
+    ) {
+      revert DeltaNeutralVault04HealthChecker_UnsafePositionValue();
+    }
+
+    // // debt ratio check to prevent closing all out the debt but the equity stay healthy
+    uint256 _totalStablePositionBefore = _positionInfoBefore.stablePositionEquity +
+      _positionInfoBefore.stablePositionDebtValue;
+    uint256 _totalStablePositionAfter = _positionInfoAfter.stablePositionEquity +
+      _positionInfoAfter.stablePositionDebtValue;
+    // debt ratio = debt / position
+    // debt after / position after ~= debt b4 / position b4
+    // position b4 * debt after = position after * debt b4
+    if (
+      !Math.almostEqual(
+        _totalStablePositionBefore * _positionInfoAfter.stablePositionDebtValue,
+        _totalStablePositionAfter * _positionInfoBefore.stablePositionDebtValue,
+        _debtRatioTolerance
+      )
+    ) {
+      revert DeltaNeutralVault04HealthChecker_UnsafeDebtRatio();
+    }
+
+    uint256 _totalassetPositionBefore = _positionInfoBefore.assetPositionEquity +
+      _positionInfoBefore.assetPositionDebtValue;
+    uint256 _totalassetPositionAfter = _positionInfoAfter.assetPositionEquity +
+      _positionInfoAfter.assetPositionDebtValue;
+
+    if (
+      !Math.almostEqual(
+        _totalassetPositionBefore * _positionInfoAfter.assetPositionDebtValue,
+        _totalassetPositionAfter * _positionInfoBefore.assetPositionDebtValue,
+        _debtRatioTolerance
+      )
+    ) {
+      revert DeltaNeutralVault04HealthChecker_UnsafeDebtRatio();
     }
   }
 

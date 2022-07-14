@@ -418,7 +418,14 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     }
 
     // sanity check
-    _withdrawHealthCheck(_withdrawShareValue, _positionInfoBefore, _positionInfoAfter);
+    checker.withdrawHealthCheck(
+      _withdrawShareValue,
+      lpToken,
+      _positionInfoBefore,
+      _positionInfoAfter,
+      priceOracle,
+      config
+    );
     checker.outstandingCheck(_outstandingBefore, _outstandingAfter);
 
     _transferTokenToShareOwner(msg.sender, stableToken, _stableTokenBack);
@@ -509,89 +516,6 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     }
 
     emit LogReinvest(_equityBefore, _equityAfter);
-  }
-
-  /// @notice Check if position equity and debt ratio are healthy after withdraw.
-  /// @param _withdrawValue Withdraw value in usd.
-  /// @param _positionInfoBefore Position equity and debt before deposit.
-  /// @param _positionInfoAfter Position equity and debt after deposit.
-  function _withdrawHealthCheck(
-    uint256 _withdrawValue,
-    PositionInfo memory _positionInfoBefore,
-    PositionInfo memory _positionInfoAfter
-  ) internal view {
-    uint256 _positionValueTolerance = config.positionValueTolerance();
-    uint256 _debtRationTolerance = config.debtRatioTolerance();
-
-    uint256 _totalEquityBefore = _positionInfoBefore.stablePositionEquity + _positionInfoBefore.assetPositionEquity;
-    uint256 _stableLpWithdrawValue = _lpToValue(_positionInfoBefore.stableLpAmount - _positionInfoAfter.stableLpAmount);
-
-    // This will force the equity loss in stable vault stay within the expectation
-    // Given that the expectation is equity loss in stable vault will not alter the stable equity to total equity ratio
-    // _stableExpectedWithdrawValue = _withdrawValue * _positionInfoBefore.stablePositionEquity / _totalEquityBefore
-    // _stableActualWithdrawValue should be almost equal to _stableExpectedWithdrawValue
-    if (
-      !Math.almostEqual(
-        (_stableLpWithdrawValue -
-          (_positionInfoBefore.stablePositionDebtValue - _positionInfoAfter.stablePositionDebtValue)) *
-          _totalEquityBefore,
-        _withdrawValue * _positionInfoBefore.stablePositionEquity,
-        _positionValueTolerance
-      )
-    ) {
-      revert DeltaNeutralVault_UnsafePositionValue();
-    }
-
-    uint256 _assetLpWithdrawValue = _lpToValue(_positionInfoBefore.assetLpAmount - _positionInfoAfter.assetLpAmount);
-
-    // This will force the equity loss in asset vault stay within the expectation
-    // Given that the expectation is equity loss in asset vault will not alter the asset equity to total equity ratio
-    // _assetExpectedWithdrawValue = _withdrawValue * _positionInfoBefore.assetPositionEquity / _totalEquityBefore
-    // _assetActualWithdrawValue should be almost equal to _assetExpectedWithdrawValue
-    if (
-      !Math.almostEqual(
-        (_assetLpWithdrawValue -
-          (_positionInfoBefore.assetPositionDebtValue - _positionInfoAfter.assetPositionDebtValue)) *
-          _totalEquityBefore,
-        _withdrawValue * _positionInfoBefore.assetPositionEquity,
-        _positionValueTolerance
-      )
-    ) {
-      revert DeltaNeutralVault_UnsafePositionValue();
-    }
-
-    // // debt ratio check to prevent closing all out the debt but the equity stay healthy
-    uint256 _totalStablePositionBefore = _positionInfoBefore.stablePositionEquity +
-      _positionInfoBefore.stablePositionDebtValue;
-    uint256 _totalStablePositionAfter = _positionInfoAfter.stablePositionEquity +
-      _positionInfoAfter.stablePositionDebtValue;
-    // debt ratio = debt / position
-    // debt after / position after ~= debt b4 / position b4
-    // position b4 * debt after = position after * debt b4
-    if (
-      !Math.almostEqual(
-        _totalStablePositionBefore * _positionInfoAfter.stablePositionDebtValue,
-        _totalStablePositionAfter * _positionInfoBefore.stablePositionDebtValue,
-        _debtRationTolerance
-      )
-    ) {
-      revert DeltaNeutralVault_UnsafeDebtRatio();
-    }
-
-    uint256 _totalassetPositionBefore = _positionInfoBefore.assetPositionEquity +
-      _positionInfoBefore.assetPositionDebtValue;
-    uint256 _totalassetPositionAfter = _positionInfoAfter.assetPositionEquity +
-      _positionInfoAfter.assetPositionDebtValue;
-
-    if (
-      !Math.almostEqual(
-        _totalassetPositionBefore * _positionInfoAfter.assetPositionDebtValue,
-        _totalassetPositionAfter * _positionInfoBefore.assetPositionDebtValue,
-        _debtRationTolerance
-      )
-    ) {
-      revert DeltaNeutralVault_UnsafeDebtRatio();
-    }
   }
 
   /// @notice Return stable token, asset token and native token balance.
