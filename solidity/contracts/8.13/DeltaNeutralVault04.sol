@@ -85,12 +85,6 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
   error DeltaNeutralVault_UnsupportedDecimals(uint256 _decimals);
   error DeltaNeutralVault_InvalidShareAmount();
 
-  struct Outstanding {
-    uint256 stableAmount;
-    uint256 assetAmount;
-    uint256 nativeAmount;
-  }
-
   // --- Constants ---
   uint64 private constant MAX_BPS = 10000;
 

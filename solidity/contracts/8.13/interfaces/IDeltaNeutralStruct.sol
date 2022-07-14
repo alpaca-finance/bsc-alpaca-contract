@@ -22,4 +22,10 @@ interface IDeltaNeutralStruct {
     uint256 assetPositionDebtValue;
     uint256 assetLpAmount;
   }
+
+  struct Outstanding {
+    uint256 stableAmount;
+    uint256 assetAmount;
+    uint256 nativeAmount;
+  }
 }
