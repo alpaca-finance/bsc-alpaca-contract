@@ -11,7 +11,7 @@ import { FakeAutomateVaultController } from "../../fake/FakeAutomateVaultControl
 import { FakeDeltaNeutralOracle } from "../../fake/FakeDeltaNeutralOracle.sol";
 import { FakeVault } from "../../fake/FakeVault.sol";
 import { FakeDeltaNeutralVaultConfig02 } from "../../fake/FakeDeltaNeutralVaultConfig02.sol";
-import { FakeDepositExecutorDeltaNeutral } from "../../fake/FakeDepositExecutorDeltaNeutral.sol";
+import { FakeDeltaNeutralDepositExecutor } from "../../fake/FakeDeltaNeutralDepositExecutor.sol";
 import { FakeWithdrawExecutorDeltaNeutral } from "../../fake/FakeWithdrawExecutorDeltaNeutral.sol";
 import { FakeRebalanceExecutorDeltaNeutral } from "../../fake/FakeRebalanceExecutorDeltaNeutral.sol";
 import { FakeReinvestExecutorDeltaNeutral } from "../../fake/FakeReinvestExecutorDeltaNeutral.sol";
@@ -32,7 +32,7 @@ contract DeltaNeutralVault04_Test is BaseTest {
   FakeDeltaWorker private _assetVaultWorker;
   FakeDeltaNeutralOracle private _priceOracle;
   FakeDeltaNeutralVaultConfig02 private _config;
-  FakeDepositExecutorDeltaNeutral private _depositExecutor;
+  FakeDeltaNeutralDepositExecutor private _depositExecutor;
   FakeWithdrawExecutorDeltaNeutral private _withdrawExecutor;
   FakeRebalanceExecutorDeltaNeutral private _rebalanceExecutor;
   FakeReinvestExecutorDeltaNeutral private _reinvestExecutor;
@@ -64,7 +64,7 @@ contract DeltaNeutralVault04_Test is BaseTest {
     _stableVaultWorker = new FakeDeltaWorker(address(_lpToken));
     _assetVaultWorker = new FakeDeltaWorker(address(_lpToken));
 
-    _depositExecutor = new FakeDepositExecutorDeltaNeutral(
+    _depositExecutor = new FakeDeltaNeutralDepositExecutor(
       address(_stableVault),
       address(_assetVault),
       address(_stableVaultWorker),

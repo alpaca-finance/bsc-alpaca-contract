@@ -18,8 +18,8 @@ import { FakeDeltaWorker } from "./FakeDeltaWorker.sol";
 import { FakeVault } from "./FakeVault.sol";
 import { console } from "../utils/console.sol";
 
-/// @title FakeDepositExecutorDeltaNeutral : A fake executor used for manipulating underlying LYF position
-contract FakeDepositExecutorDeltaNeutral {
+/// @title FakeDeltaNeutralDepositExecutor : A fake executor used for manipulating underlying LYF position
+contract FakeDeltaNeutralDepositExecutor {
   FakeDeltaWorker public stableWorker;
   FakeDeltaWorker public assetWorker;
   FakeVault public stableVault;
