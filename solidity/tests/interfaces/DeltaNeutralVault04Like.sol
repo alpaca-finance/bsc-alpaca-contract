@@ -144,6 +144,8 @@ interface DeltaNeutralVault04Like {
 
   function setDeltaNeutralVaultConfig(address _newVaultConfig) external;
 
+  function setDeltaNeutralVaultHealthChecker(address _checker) external;
+
   function shareToValue(uint256 _shareAmount) external view returns (uint256);
 
   function stableTo18ConversionFactor() external view returns (uint256);

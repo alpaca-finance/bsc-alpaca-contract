@@ -15,17 +15,9 @@ pragma solidity 0.8.13;
 
 import "./IDeltaNeutralOracle.sol";
 import "./IDeltaNeutralVaultConfig02.sol";
+import "./IDeltaNeutralPositionInfo.sol";
 
-interface IDeltaNeutralVault04HealthChecker {
-  struct PositionInfo {
-    uint256 stablePositionEquity;
-    uint256 stablePositionDebtValue;
-    uint256 stableLpAmount;
-    uint256 assetPositionEquity;
-    uint256 assetPositionDebtValue;
-    uint256 assetLpAmount;
-  }
-
+interface IDeltaNeutralVault04HealthChecker is IDeltaNeutralPositionInfo {
   /// @dev Return value of given token in USD.
   function depositHealthCheck(
     uint256 _depositValue,

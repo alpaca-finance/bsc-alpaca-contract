@@ -20,6 +20,8 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
 import "./interfaces/IDeltaNeutralOracle.sol";
+import "./interfaces/IDeltaNeutralPositionInfo.sol";
+import "./interfaces/IDeltaNeutralVault04HealthChecker.sol";
 import "./interfaces/IVault.sol";
 import "./interfaces/IWorker02.sol";
 import "./interfaces/IWETH.sol";
@@ -39,7 +41,12 @@ import "./utils/FullMath.sol";
 /// to cancel out the effect on the out-standing portfolio when the asset’s price moves.
 /// Moreover, DeltaNeutralVault04 support credit-dependent limit access and executor
 // solhint-disable max-states-count
-contract DeltaNeutralVault04 is ERC20Upgradeable, ReentrancyGuardUpgradeable, OwnableUpgradeable {
+contract DeltaNeutralVault04 is
+  IDeltaNeutralPositionInfo,
+  ERC20Upgradeable,
+  ReentrancyGuardUpgradeable,
+  OwnableUpgradeable
+{
   // --- Libraries ---
   using FixedPointMathLib for uint256;
   using SafeERC20Upgradeable for IERC20Upgradeable;
@@ -58,6 +65,7 @@ contract DeltaNeutralVault04 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
   event LogReinvest(uint256 _equityBefore, uint256 _equityAfter);
   event LogSetDeltaNeutralOracle(address indexed _caller, address _priceOracle);
   event LogSetDeltaNeutralVaultConfig(address indexed _caller, address _config);
+  event LogSetDeltaNeutralVaultHealthChecker(address indexed _caller, address _checker);
 
   // --- Errors ---
   error DeltaNeutralVault_BadReinvestPath();
@@ -66,9 +74,8 @@ contract DeltaNeutralVault04 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
   error DeltaNeutralVault_PositionsAlreadyInitialized();
   error DeltaNeutralVault_PositionsNotInitialized();
   error DeltaNeutralVault_InvalidPositions(address _vault, uint256 _positionId);
-  error DeltaNeutralVault_UnsafePositionEquity(); //FIXME remove?
+  error DeltaNeutralVault_UnsafePositionEquity();
   error DeltaNeutralVault_UnsafePositionValue();
-  error DeltaNeutralVault_UnsafeDebtValue();
   error DeltaNeutralVault_UnsafeDebtRatio();
   error DeltaNeutralVault_UnsafeOutstanding(address _token, uint256 _amountBefore, uint256 _amountAfter);
   error DeltaNeutralVault_PositionsIsHealthy();
@@ -87,15 +94,6 @@ contract DeltaNeutralVault04 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
     uint256 stableAmount;
     uint256 assetAmount;
     uint256 nativeAmount;
-  }
-
-  struct PositionInfo {
-    uint256 stablePositionEquity;
-    uint256 stablePositionDebtValue;
-    uint256 stableLpAmount;
-    uint256 assetPositionEquity;
-    uint256 assetPositionDebtValue;
-    uint256 assetLpAmount;
   }
 
   // --- Constants ---
@@ -133,6 +131,7 @@ contract DeltaNeutralVault04 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
   uint8 private OPENING;
 
   // --- Checker ---
+  IDeltaNeutralVault04HealthChecker public checker;
 
   /// @dev Require that the caller must be an EOA account if not whitelisted.
   modifier onlyEOAorWhitelisted() {
@@ -343,7 +342,7 @@ contract DeltaNeutralVault04 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
     _mint(_shareReceiver, _sharesToUser);
 
     // 4. sanity check
-    _depositHealthCheck(_depositValue, _positionInfoBefore, _positionInfoAfter);
+    checker.depositHealthCheck(_depositValue, lpToken, _positionInfoBefore, _positionInfoAfter, priceOracle, config);
     _outstandingCheck(_outstandingBefore, _outstanding());
 
     // Deduct credit from msg.sender regardless of the _shareReceiver.
@@ -522,65 +521,6 @@ contract DeltaNeutralVault04 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
     }
 
     emit LogReinvest(_equityBefore, _equityAfter);
-  }
-
-  /// @notice check if position equity and debt are healthy after deposit. LEVERAGE_LEVEL must be >= 3
-  /// @param _depositValue deposit value in usd.
-  /// @param _positionInfoBefore position equity and debt before deposit.
-  /// @param _positionInfoAfter position equity and debt after deposit.
-  function _depositHealthCheck(
-    uint256 _depositValue,
-    PositionInfo memory _positionInfoBefore,
-    PositionInfo memory _positionInfoAfter
-  ) internal view {
-    uint256 _toleranceBps = config.positionValueTolerance();
-    uint8 _leverageLevel = config.leverageLevel();
-
-    uint256 _positionValueAfter = _positionInfoAfter.stablePositionEquity +
-      _positionInfoAfter.stablePositionDebtValue +
-      _positionInfoAfter.assetPositionEquity +
-      _positionInfoAfter.assetPositionDebtValue;
-
-    // 1. check if vault accept new total position value
-    if (!config.isVaultSizeAcceptable(_positionValueAfter)) {
-      revert DeltaNeutralVault_PositionValueExceedLimit();
-    }
-
-    // 2. check position value
-    // The equity allocation of long side should be equal to _depositValue * (_leverageLevel - 2) / ((2*_leverageLevel) - 2)
-    uint256 _expectedStableEqChange = (_depositValue * (_leverageLevel - 2)) / ((2 * _leverageLevel) - 2);
-    // The equity allocation of short side should be equal to _depositValue * _leverageLevel / ((2*_leverageLevel) - 2)
-    uint256 _expectedAssetEqChange = (_depositValue * _leverageLevel) / ((2 * _leverageLevel) - 2);
-
-    uint256 _actualStableDebtChange = _positionInfoAfter.stablePositionDebtValue -
-      _positionInfoBefore.stablePositionDebtValue;
-    uint256 _actualAssetDebtChange = _positionInfoAfter.assetPositionDebtValue -
-      _positionInfoBefore.assetPositionDebtValue;
-
-    uint256 _actualStableEqChange = _lpToValue(_positionInfoAfter.stableLpAmount - _positionInfoBefore.stableLpAmount) -
-      _actualStableDebtChange;
-    uint256 _actualAssetEqChange = _lpToValue(_positionInfoAfter.assetLpAmount - _positionInfoBefore.assetLpAmount) -
-      _actualAssetDebtChange;
-
-    if (
-      !Math.almostEqual(_actualStableEqChange, _expectedStableEqChange, _toleranceBps) ||
-      !Math.almostEqual(_actualAssetEqChange, _expectedAssetEqChange, _toleranceBps)
-    ) {
-      revert DeltaNeutralVault_UnsafePositionEquity();
-    }
-
-    // 3. check Debt value
-    // The debt allocation of long side should be equal to _expectedStableEqChange * (_leverageLevel - 1)
-    uint256 _expectedStableDebtChange = (_expectedStableEqChange * (_leverageLevel - 1));
-    // The debt allocation of short side should be equal to _expectedAssetEqChange * (_leverageLevel - 1)
-    uint256 _expectedAssetDebtChange = (_expectedAssetEqChange * (_leverageLevel - 1));
-
-    if (
-      !Math.almostEqual(_actualStableDebtChange, _expectedStableDebtChange, _toleranceBps) ||
-      !Math.almostEqual(_actualAssetDebtChange, _expectedAssetDebtChange, _toleranceBps)
-    ) {
-      revert DeltaNeutralVault_UnsafeDebtValue();
-    }
   }
 
   /// @notice Check if position equity and debt ratio are healthy after withdraw.
@@ -765,6 +705,15 @@ contract DeltaNeutralVault04 is ERC20Upgradeable, ReentrancyGuardUpgradeable, Ow
 
     priceOracle = _newPriceOracle;
     emit LogSetDeltaNeutralOracle(msg.sender, address(_newPriceOracle));
+  }
+
+  /// @notice Set new DeltaNeutralOracle.
+  /// @param _checker New deltaNeutralOracle address.
+  function setDeltaNeutralVaultHealthChecker(IDeltaNeutralVault04HealthChecker _checker) external onlyOwner {
+    // todo: sanity call
+
+    checker = _checker;
+    emit LogSetDeltaNeutralVaultHealthChecker(msg.sender, address(_checker));
   }
 
   /// @notice Set new DeltaNeutralVaultConfig.

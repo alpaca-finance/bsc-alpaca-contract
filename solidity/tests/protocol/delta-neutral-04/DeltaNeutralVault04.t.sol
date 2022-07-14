@@ -5,6 +5,7 @@ import { BaseTest, DeltaNeutralVault04Like, MockErc20Like, console } from "../..
 import { mocking } from "../../utils/mocking.sol";
 import { MockContract } from "../../utils/MockContract.sol";
 
+import { DeltaNeutralVault04HealthChecker } from "../../../contracts/8.13/DeltaNeutralVault04HealthChecker.sol";
 import { FakeDeltaWorker } from "../../fake/FakeDeltaWorker.sol";
 import { FakeAutomateVaultController } from "../../fake/FakeAutomateVaultController.sol";
 import { FakeDeltaNeutralOracle } from "../../fake/FakeDeltaNeutralOracle.sol";
@@ -22,6 +23,7 @@ import { FakeFairLaunch } from "../../fake/FakeFairLaunch.sol";
 contract DeltaNeutralVault04_Test is BaseTest {
   using mocking for *;
   DeltaNeutralVault04Like private _deltaNeutralVault;
+  DeltaNeutralVault04HealthChecker private _checker;
 
   FakeAutomateVaultController private _controller;
   FakeVault private _stableVault;
@@ -46,6 +48,7 @@ contract DeltaNeutralVault04_Test is BaseTest {
     _priceOracle = new FakeDeltaNeutralOracle();
     _config = new FakeDeltaNeutralVaultConfig02();
     _controller = new FakeAutomateVaultController();
+    _checker = new DeltaNeutralVault04HealthChecker();
 
     _lpToken = _setupToken("LP TOKEN", "LP", 18);
     _alpacaToken = _setupToken("ALPACA", "ALPACA", 18);
@@ -111,6 +114,8 @@ contract DeltaNeutralVault04_Test is BaseTest {
       address(_config)
     );
 
+    _deltaNeutralVault.setDeltaNeutralVaultHealthChecker(address(_checker));
+
     assertEq(_deltaNeutralVault.stableToken(), address(_stableToken));
     assertEq(_deltaNeutralVault.assetToken(), address(_assetToken));
 
@@ -162,13 +167,13 @@ contract DeltaNeutralVault04_Test is BaseTest {
 
     _depositExecutor.setExecutionValue(_depositValue, _borrowValue);
 
-    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault_UnsafeDebtValue()"));
+    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault04HealthChecker_UnsafeDebtValue()"));
     _deltaNeutralVault.deposit(100 ether, 0, ALICE, 100 ether, abi.encode(0));
 
     _borrowValue = _depositValue * 1; // 1x leverage
     _depositExecutor.setExecutionValue(_depositValue, _borrowValue);
 
-    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault_UnsafeDebtValue()"));
+    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault04HealthChecker_UnsafeDebtValue()"));
     _deltaNeutralVault.deposit(100 ether, 0, ALICE, 100 ether, abi.encode(0));
   }
 
