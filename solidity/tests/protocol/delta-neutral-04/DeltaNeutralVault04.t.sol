@@ -14,7 +14,7 @@ import { FakeDeltaNeutralVaultConfig02 } from "../../fake/FakeDeltaNeutralVaultC
 import { FakeDeltaNeutralDepositExecutor } from "../../fake/FakeDeltaNeutralDepositExecutor.sol";
 import { FakeDeltaNeutralWithdrawExecutor } from "../../fake/FakeDeltaNeutralWithdrawExecutor.sol";
 import { FakeDeltaNeutralRebalanceExecutor } from "../../fake/FakeDeltaNeutralRebalanceExecutor.sol";
-import { FakeReinvestExecutorDeltaNeutral } from "../../fake/FakeReinvestExecutorDeltaNeutral.sol";
+import { FakeDeltaNeutralReinvestExecutor } from "../../fake/FakeDeltaNeutralReinvestExecutor.sol";
 import { FakeRouter } from "../../fake/FakeRouter.sol";
 import { FakeFairLaunch } from "../../fake/FakeFairLaunch.sol";
 
@@ -35,7 +35,7 @@ contract DeltaNeutralVault04_Test is BaseTest {
   FakeDeltaNeutralDepositExecutor private _depositExecutor;
   FakeDeltaNeutralWithdrawExecutor private _withdrawExecutor;
   FakeDeltaNeutralRebalanceExecutor private _rebalanceExecutor;
-  FakeReinvestExecutorDeltaNeutral private _reinvestExecutor;
+  FakeDeltaNeutralReinvestExecutor private _reinvestExecutor;
   FakeRouter private _router;
   FakeFairLaunch private _fairLaunch;
 
@@ -89,7 +89,7 @@ contract DeltaNeutralVault04_Test is BaseTest {
       address(_assetVaultWorker),
       _lpPrice
     );
-    _reinvestExecutor = new FakeReinvestExecutorDeltaNeutral(
+    _reinvestExecutor = new FakeDeltaNeutralReinvestExecutor(
       address(_stableVault),
       address(_assetVault),
       address(_stableVaultWorker),
