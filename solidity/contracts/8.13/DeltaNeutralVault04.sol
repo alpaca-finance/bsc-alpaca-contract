@@ -64,7 +64,6 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
 
   // --- Errors ---
   error DeltaNeutralVault04_BadReinvestPath();
-  error DeltaNeutralVault04_BadActionSize();
   error DeltaNeutralVault04_Unauthorized(address _caller);
   error DeltaNeutralVault04_PositionsAlreadyInitialized();
   error DeltaNeutralVault04_PositionsNotInitialized();
