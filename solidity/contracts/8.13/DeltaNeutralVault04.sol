@@ -63,24 +63,24 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
   event LogSetDeltaNeutralVaultHealthChecker(address indexed _caller, address _checker);
 
   // --- Errors ---
-  error DeltaNeutralVault_BadReinvestPath();
-  error DeltaNeutralVault_BadActionSize();
-  error DeltaNeutralVault_Unauthorized(address _caller);
-  error DeltaNeutralVault_PositionsAlreadyInitialized();
-  error DeltaNeutralVault_PositionsNotInitialized();
-  error DeltaNeutralVault_InvalidPositions(address _vault, uint256 _positionId);
-  error DeltaNeutralVault_UnsafePositionEquity();
-  error DeltaNeutralVault_UnsafePositionValue();
-  error DeltaNeutralVault_PositionsIsHealthy();
-  error DeltaNeutralVault_InsufficientTokenReceived(address _token, uint256 _requiredAmount, uint256 _receivedAmount);
-  error DeltaNeutralVault_InsufficientShareReceived(uint256 _requiredAmount, uint256 _receivedAmount);
-  error DeltaNeutralVault_UnTrustedPrice();
-  error DeltaNeutralVault_WithdrawValueExceedShareValue(uint256 _withdrawValue, uint256 _shareValue);
-  error DeltaNeutralVault_IncorrectNativeAmountDeposit();
-  error DeltaNeutralVault_InvalidLpToken();
-  error DeltaNeutralVault_InvalidInitializedAddress();
-  error DeltaNeutralVault_UnsupportedDecimals(uint256 _decimals);
-  error DeltaNeutralVault_InvalidShareAmount();
+  error DeltaNeutralVault04_BadReinvestPath();
+  error DeltaNeutralVault04_BadActionSize();
+  error DeltaNeutralVault04_Unauthorized(address _caller);
+  error DeltaNeutralVault04_PositionsAlreadyInitialized();
+  error DeltaNeutralVault04_PositionsNotInitialized();
+  error DeltaNeutralVault04_InvalidPositions(address _vault, uint256 _positionId);
+  error DeltaNeutralVault04_UnsafePositionEquity();
+  error DeltaNeutralVault04_UnsafePositionValue();
+  error DeltaNeutralVault04_PositionsIsHealthy();
+  error DeltaNeutralVault04_InsufficientTokenReceived(address _token, uint256 _requiredAmount, uint256 _receivedAmount);
+  error DeltaNeutralVault04_InsufficientShareReceived(uint256 _requiredAmount, uint256 _receivedAmount);
+  error DeltaNeutralVault04_UnTrustedPrice();
+  error DeltaNeutralVault04_WithdrawValueExceedShareValue(uint256 _withdrawValue, uint256 _shareValue);
+  error DeltaNeutralVault04_IncorrectNativeAmountDeposit();
+  error DeltaNeutralVault04_InvalidLpToken();
+  error DeltaNeutralVault04_InvalidInitializedAddress();
+  error DeltaNeutralVault04_UnsupportedDecimals(uint256 _decimals);
+  error DeltaNeutralVault04_InvalidShareAmount();
 
   // --- Constants ---
   uint64 private constant MAX_BPS = 10000;
@@ -122,20 +122,20 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
   /// @dev Require that the caller must be an EOA account if not whitelisted.
   modifier onlyEOAorWhitelisted() {
     if (msg.sender != tx.origin && !config.whitelistedCallers(msg.sender)) {
-      revert DeltaNeutralVault_Unauthorized(msg.sender);
+      revert DeltaNeutralVault04_Unauthorized(msg.sender);
     }
     _;
   }
 
   /// @dev Require that the caller must be a rebalancer account.
   modifier onlyRebalancers() {
-    if (!config.whitelistedRebalancers(msg.sender)) revert DeltaNeutralVault_Unauthorized(msg.sender);
+    if (!config.whitelistedRebalancers(msg.sender)) revert DeltaNeutralVault04_Unauthorized(msg.sender);
     _;
   }
 
   /// @dev Require that the caller must be a reinvestor account.
   modifier onlyReinvestors() {
-    if (!config.whitelistedReinvestors(msg.sender)) revert DeltaNeutralVault_Unauthorized(msg.sender);
+    if (!config.whitelistedReinvestors(msg.sender)) revert DeltaNeutralVault04_Unauthorized(msg.sender);
     _;
   }
 
@@ -195,11 +195,11 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
       lpToken != address(IWorker(assetVaultWorker).lpToken()) ||
       lpToken != address(IWorker(stableVaultWorker).lpToken())
     ) {
-      revert DeltaNeutralVault_InvalidLpToken();
+      revert DeltaNeutralVault04_InvalidLpToken();
     }
-    if (address(alpacaToken) == address(0)) revert DeltaNeutralVault_InvalidInitializedAddress();
-    if (address(priceOracle) == address(0)) revert DeltaNeutralVault_InvalidInitializedAddress();
-    if (address(config) == address(0)) revert DeltaNeutralVault_InvalidInitializedAddress();
+    if (address(alpacaToken) == address(0)) revert DeltaNeutralVault04_InvalidInitializedAddress();
+    if (address(priceOracle) == address(0)) revert DeltaNeutralVault04_InvalidInitializedAddress();
+    if (address(config) == address(0)) revert DeltaNeutralVault04_InvalidInitializedAddress();
   }
 
   /// @notice initialize delta neutral vault positions.
@@ -214,7 +214,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     bytes calldata _data
   ) external payable onlyOwner {
     if (stableVaultPosId != 0 || assetVaultPosId != 0) {
-      revert DeltaNeutralVault_PositionsAlreadyInitialized();
+      revert DeltaNeutralVault04_PositionsAlreadyInitialized();
     }
 
     OPENING = 1;
@@ -233,7 +233,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
   function _transferTokenToVault(address _token, uint256 _amount) internal {
     if (_token == config.getWrappedNativeAddr()) {
       if (msg.value != _amount) {
-        revert DeltaNeutralVault_IncorrectNativeAmountDeposit();
+        revert DeltaNeutralVault04_IncorrectNativeAmountDeposit();
       }
       IWETH(_token).deposit{ value: _amount }();
     } else {
@@ -323,7 +323,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     );
 
     if (_sharesToUser < _minShareReceive) {
-      revert DeltaNeutralVault_InsufficientShareReceived(_minShareReceive, _sharesToUser);
+      revert DeltaNeutralVault04_InsufficientShareReceived(_minShareReceive, _sharesToUser);
     }
     _mint(_shareReceiver, _sharesToUser);
 
@@ -354,7 +354,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     uint256 _minAssetTokenAmount,
     bytes calldata _data
   ) external onlyEOAorWhitelisted collectFee nonReentrant returns (uint256) {
-    if (_shareAmount == 0) revert DeltaNeutralVault_InvalidShareAmount();
+    if (_shareAmount == 0) revert DeltaNeutralVault04_InvalidShareAmount();
 
     PositionInfo memory _positionInfoBefore = positionInfo();
     Outstanding memory _outstandingBefore = _outstanding();
@@ -403,16 +403,16 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
       : _outstandingAfter.assetAmount - _outstandingBefore.assetAmount;
 
     if (_stableTokenBack < _minStableTokenAmount) {
-      revert DeltaNeutralVault_InsufficientTokenReceived(stableToken, _minStableTokenAmount, _stableTokenBack);
+      revert DeltaNeutralVault04_InsufficientTokenReceived(stableToken, _minStableTokenAmount, _stableTokenBack);
     }
     if (_assetTokenBack < _minAssetTokenAmount) {
-      revert DeltaNeutralVault_InsufficientTokenReceived(assetToken, _minAssetTokenAmount, _assetTokenBack);
+      revert DeltaNeutralVault04_InsufficientTokenReceived(assetToken, _minAssetTokenAmount, _assetTokenBack);
     }
 
     uint256 _withdrawValue = _calculateEquityChange(_positionInfoBefore, _positionInfoAfter);
 
     if (_withdrawShareValue < _withdrawValue) {
-      revert DeltaNeutralVault_WithdrawValueExceedShareValue(_withdrawValue, _withdrawShareValue);
+      revert DeltaNeutralVault04_WithdrawValueExceedShareValue(_withdrawValue, _withdrawShareValue);
     }
 
     // sanity check
@@ -454,7 +454,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
       _stablePositionValue * _rebalanceFactor >= _positionInfoBefore.stablePositionDebtValue * MAX_BPS &&
       _assetPositionValue * _rebalanceFactor >= _positionInfoBefore.assetPositionDebtValue * MAX_BPS
     ) {
-      revert DeltaNeutralVault_PositionsIsHealthy();
+      revert DeltaNeutralVault04_PositionsIsHealthy();
     }
 
     // 2. rebalance executor exec
@@ -464,7 +464,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     // check if position in a healthy state after rebalancing
     uint256 _equityAfter = totalEquityValue();
     if (!Math.almostEqual(_equityAfter, _equityBefore, config.positionValueTolerance())) {
-      revert DeltaNeutralVault_UnsafePositionValue();
+      revert DeltaNeutralVault04_UnsafePositionValue();
     }
     checker.outstandingCheck(_outstandingBefore, _outstanding());
 
@@ -480,7 +480,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     uint256 _alpacaBeneficiaryBps = config.alpacaBeneficiaryBps();
 
     if (reinvestPath.length == 0) {
-      revert DeltaNeutralVault_BadReinvestPath();
+      revert DeltaNeutralVault04_BadReinvestPath();
     }
 
     // 1.  claim reward from fairlaunch
@@ -510,7 +510,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     // 5. sanity check
     uint256 _equityAfter = totalEquityValue();
     if (_equityAfter <= _equityBefore) {
-      revert DeltaNeutralVault_UnsafePositionEquity();
+      revert DeltaNeutralVault04_UnsafePositionEquity();
     }
 
     emit LogReinvest(_equityBefore, _equityAfter);
@@ -590,9 +590,11 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
   /// @notice Set new DeltaNeutralOracle.
   /// @param _checker New deltaNeutralOracle address.
   function setDeltaNeutralVaultHealthChecker(IDeltaNeutralVault04HealthChecker _checker) external onlyOwner {
-    // todo: sanity call
-
+    if (address(_checker) == address(0)) {
+      revert DeltaNeutralVault04_InvalidInitializedAddress();
+    }
     checker = _checker;
+
     emit LogSetDeltaNeutralVaultHealthChecker(msg.sender, address(_checker));
   }
 
@@ -629,7 +631,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
   /// @param _lpAmount Amount of lp.
   function _lpToValue(uint256 _lpAmount) internal view returns (uint256) {
     (uint256 _lpValue, uint256 _lastUpdated) = priceOracle.lpToDollar(_lpAmount, lpToken);
-    if (block.timestamp - _lastUpdated > 86400) revert DeltaNeutralVault_UnTrustedPrice();
+    if (block.timestamp - _lastUpdated > 86400) revert DeltaNeutralVault04_UnTrustedPrice();
     return _lpValue;
   }
 
@@ -660,7 +662,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     bytes memory _data
   ) external {
     if (!config.isExecutor(msg.sender)) {
-      revert DeltaNeutralVault_Unauthorized(msg.sender);
+      revert DeltaNeutralVault04_Unauthorized(msg.sender);
     }
     if (_action == ACTION_WORK) {
       _doWork(_data);
@@ -674,7 +676,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
   /// @param _data The calldata to pass along to the vault for more working context.
   function _doWork(bytes memory _data) internal {
     if (stableVaultPosId == 0 || assetVaultPosId == 0) {
-      revert DeltaNeutralVault_PositionsNotInitialized();
+      revert DeltaNeutralVault04_PositionsNotInitialized();
     }
 
     // 1. Decode data
@@ -693,7 +695,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
       OPENING != 1 &&
       !((_vault == stableVault && _posId == stableVaultPosId) || (_vault == assetVault && _posId == assetVaultPosId))
     ) {
-      revert DeltaNeutralVault_InvalidPositions({ _vault: _vault, _positionId: _posId });
+      revert DeltaNeutralVault04_InvalidPositions({ _vault: _vault, _positionId: _posId });
     }
 
     // 2. approve vault
@@ -712,7 +714,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
   function _getTokenPrice(address _token) internal view returns (uint256) {
     (uint256 _price, uint256 _lastUpdated) = priceOracle.getTokenPrice(_token);
     // _lastUpdated > 1 day revert
-    if (block.timestamp - _lastUpdated > 86400) revert DeltaNeutralVault_UnTrustedPrice();
+    if (block.timestamp - _lastUpdated > 86400) revert DeltaNeutralVault04_UnTrustedPrice();
     return _price;
   }
 
@@ -729,7 +731,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
   /// @param _token token to convert.
   function _to18ConversionFactor(address _token) internal view returns (uint256) {
     uint256 _decimals = ERC20Upgradeable(_token).decimals();
-    if (_decimals > 18) revert DeltaNeutralVault_UnsupportedDecimals(_decimals);
+    if (_decimals > 18) revert DeltaNeutralVault04_UnsupportedDecimals(_decimals);
     if (_decimals == 18) return 1;
     uint256 _conversionFactor = 10**(18 - _decimals);
     return _conversionFactor;

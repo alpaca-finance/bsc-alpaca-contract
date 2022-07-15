@@ -217,7 +217,7 @@ contract DeltaNeutralVault04_Test is BaseTest {
     _stableVault.setDebt(100 ether, 100 ether);
 
     _rebalanceExecutor.setExecutionValue(500 ether, 400 ether);
-    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault_UnsafePositionValue()"));
+    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault04_UnsafePositionValue()"));
     _deltaNeutralVault.rebalance(abi.encode(0));
   }
 
@@ -232,7 +232,7 @@ contract DeltaNeutralVault04_Test is BaseTest {
     _alpacaToken.mint(address(_deltaNeutralVault), 100 ether);
     _reinvestExecutor.setExecutionValue(100 ether, 200 ether);
 
-    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault_UnsafePositionEquity()"));
+    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault04_UnsafePositionEquity()"));
     _deltaNeutralVault.reinvest(abi.encode(0), 0);
   }
 

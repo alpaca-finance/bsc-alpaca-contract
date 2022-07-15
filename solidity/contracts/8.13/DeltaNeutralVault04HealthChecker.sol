@@ -69,7 +69,7 @@ contract DeltaNeutralVault04HealthChecker is IDeltaNeutralVault04HealthChecker {
     IDeltaNeutralOracle _oracle,
     IDeltaNeutralVaultConfig02 _config
   ) external view {
-    //FIXME validate oracle and config and lpToken
+    _healthCheckValidate(_lpToken, _oracle, _config);
     uint256 _toleranceBps = _config.positionValueTolerance();
     uint8 _leverageLevel = _config.leverageLevel();
 
@@ -132,6 +132,7 @@ contract DeltaNeutralVault04HealthChecker is IDeltaNeutralVault04HealthChecker {
     IDeltaNeutralOracle _oracle,
     IDeltaNeutralVaultConfig02 _config
   ) external view {
+    _healthCheckValidate(_lpToken, _oracle, _config);
     uint256 _positionValueTolerance = _config.positionValueTolerance();
     uint256 _debtRatioTolerance = _config.debtRatioTolerance();
 
@@ -296,5 +297,14 @@ contract DeltaNeutralVault04HealthChecker is IDeltaNeutralVault04HealthChecker {
     return
       Math.almostEqual(_actualStableDebtChange, _expectedStableDebtChange, _toleranceBps) &&
       Math.almostEqual(_actualAssetDebtChange, _expectedAssetDebtChange, _toleranceBps);
+  }
+
+  function _healthCheckValidate(
+    address _lpToken,
+    IDeltaNeutralOracle _oracle,
+    IDeltaNeutralVaultConfig02 _config
+  ) internal view {
+    _oracle.lpToDollar(1e18, _lpToken);
+    _config.positionValueTolerance();
   }
 }

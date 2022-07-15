@@ -129,78 +129,62 @@ contract DirectionalVault_Test is BaseTest {
     _initPosition();
   }
 
-  // function testCorrectness_depositShouldWorkIfBorrowAmountIsCorrect() external {
-  //   _depositForAlice();
-  // }
+  function testCorrectness_depositShouldWorkIfBorrowAmountIsCorrect() external {
+    _depositForAlice();
+  }
 
-  // function testRevert_depositShouldRevertIfBorrowValueIsOff() external {
-  //   uint256 _depositValue = 100 ether;
-  //   uint256 _borrowValue = _depositValue * 3; // 4x leverage
+  function testRevert_depositShouldRevertIfBorrowValueIsOff() external {
+    uint256 _depositValue = 100 ether;
+    uint256 _borrowValue = _depositValue * 3; // 4x leverage
 
-  //   _depositExecutor.setExecutionValue(_depositValue, _borrowValue);
+    _depositExecutor.setExecutionValue(_depositValue, _borrowValue);
 
-  //   vm.expectRevert(abi.encodeWithSignature("DirectionalVault_UnsafeDebtValue()"));
-  //   _directionalVault.deposit(100 ether, 0, ALICE, 100 ether, abi.encode(0));
+    vm.expectRevert(abi.encodeWithSignature("DirectionalVault_UnsafeDebtValue()"));
+    _directionalVault.deposit(100 ether, 0, ALICE, 100 ether, abi.encode(0));
 
-  //   _borrowValue = _depositValue * 1; // 1x leverage
-  //   _depositExecutor.setExecutionValue(_depositValue, _borrowValue);
+    _borrowValue = _depositValue * 1; // 1x leverage
+    _depositExecutor.setExecutionValue(_depositValue, _borrowValue);
 
-  //   vm.expectRevert(abi.encodeWithSignature("DirectionalVault_UnsafeDebtValue()"));
-  //   _directionalVault.deposit(100 ether, 0, ALICE, 100 ether, abi.encode(0));
-  // }
+    vm.expectRevert(abi.encodeWithSignature("DirectionalVault_UnsafeDebtValue()"));
+    _directionalVault.deposit(100 ether, 0, ALICE, 100 ether, abi.encode(0));
+  }
 
-  // function testCorrectness_withdrawShouldWork() external {
-  //   _depositForAlice();
+  function testCorrectness_withdrawShouldWork() external {
+    _depositForAlice();
 
-  //   uint256 _withdrawValue = 100 ether;
-  //   uint256 _repayDebtValue = _withdrawValue * 2; // 3x leverage
+    uint256 _withdrawValue = 100 ether;
+    uint256 _repayDebtValue = _withdrawValue * 2; // 3x leverage
 
-  //   _withdrawExecutor.setExecutionValue(_withdrawValue, _repayDebtValue);
+    _withdrawExecutor.setExecutionValue(_withdrawValue, _repayDebtValue);
 
-  //   vm.prank(ALICE);
-  //   // Withdraw executor will always return stable
-  //   _directionalVault.withdraw(100 ether, 100, 0, abi.encode(0));
+    vm.prank(ALICE);
+    // Withdraw executor will always return stable
+    _directionalVault.withdraw(100 ether, 100, 0, abi.encode(0));
 
-  //   assertEq(_directionalVault.balanceOf(ALICE), 0 ether);
-  //   assertEq(_stableToken.balanceOf(ALICE), 100 ether);
-  // }
+    assertEq(_directionalVault.balanceOf(ALICE), 0 ether);
+    assertEq(_stableToken.balanceOf(ALICE), 100 ether);
+  }
 
-  // function testRevert_withdrawShouldRevertIfDebtRatioIsOff() external {
-  //   _depositForAlice();
+  function testRevert_withdrawShouldRevertIfDebtRatioIsOff() external {
+    _depositForAlice();
 
-  //   uint256 _withdrawValue = 100 ether;
-  //   uint256 _repayDebtValue = _withdrawValue * 1; // 3x leverage
+    uint256 _withdrawValue = 100 ether;
+    uint256 _repayDebtValue = _withdrawValue * 1; // 3x leverage
 
-  //   _withdrawExecutor.setExecutionValue(_withdrawValue, _repayDebtValue);
+    _withdrawExecutor.setExecutionValue(_withdrawValue, _repayDebtValue);
 
-  //   vm.prank(ALICE);
-  //   // Withdraw executor will always return stable
-  //   vm.expectRevert(abi.encodeWithSignature("DirectionalVault_UnsafeDebtRatio()"));
-  //   _directionalVault.withdraw(100 ether, 100, 0, abi.encode(0));
-  // }
+    vm.prank(ALICE);
+    // Withdraw executor will always return stable
+    vm.expectRevert(abi.encodeWithSignature("DirectionalVault_UnsafeDebtRatio()"));
+    _directionalVault.withdraw(100 ether, 100, 0, abi.encode(0));
+  }
 
   function testCorrectness_RebalanceShouldWorkIfEquityIsNotLost() external {
-    (uint256 stablePositionEquity, uint256 stablePositionDebtValue, uint256 stableLpAmount) = _directionalVault
-      .positionInfo();
-    console.log("stablePositionEquity", stablePositionEquity);
-    console.log("stablePositionDebtValue", stablePositionDebtValue);
-    console.log("stableLpAmount", stableLpAmount);
     _stableVault.setDebt(100 ether, 100 ether);
 
-    (uint256 stablePositionEquity2, uint256 stablePositionDebtValue2, uint256 stableLpAmount2) = _directionalVault
-      .positionInfo();
-    console.log("stablePositionEquity2", stablePositionEquity2);
-    console.log("stablePositionDebtValue2", stablePositionDebtValue2);
-    console.log("stableLpAmount2", stableLpAmount2);
     _rebalanceExecutor.setExecutionValue(600 ether, 400 ether);
 
     _directionalVault.rebalance(abi.encode(0));
-
-    (uint256 stablePositionEquity3, uint256 stablePositionDebtValue3, uint256 stableLpAmount3) = _directionalVault
-      .positionInfo();
-    console.log("stablePositionEquity3", stablePositionEquity3);
-    console.log("stablePositionDebtValue3", stablePositionDebtValue3);
-    console.log("stableLpAmount3", stableLpAmount3);
   }
 
   function testRevert_RebalanceShouldRevertIfEquityIsLost() external {
@@ -211,20 +195,20 @@ contract DirectionalVault_Test is BaseTest {
     _directionalVault.rebalance(abi.encode(0));
   }
 
-  // function testCorrectness_ReinvestShouldWorkIfEquityIsNotLost() external {
-  //   _alpacaToken.mint(address(_directionalVault), 100 ether);
-  //   _reinvestExecutor.setExecutionValue(600 ether, 400 ether);
+  function testCorrectness_ReinvestShouldWorkIfEquityIsNotLost() external {
+    _alpacaToken.mint(address(_directionalVault), 100 ether);
+    _reinvestExecutor.setExecutionValue(600 ether, 400 ether);
 
-  //   _directionalVault.reinvest(abi.encode(0), 0);
-  // }
+    _directionalVault.reinvest(abi.encode(0), 0);
+  }
 
-  // function testRevert_ReinvestShouldRevertIfEquityIsLost() external {
-  //   _alpacaToken.mint(address(_directionalVault), 100 ether);
-  //   _reinvestExecutor.setExecutionValue(300 ether, 250 ether);
+  function testRevert_ReinvestShouldRevertIfEquityIsLost() external {
+    _alpacaToken.mint(address(_directionalVault), 100 ether);
+    _reinvestExecutor.setExecutionValue(300 ether, 250 ether);
 
-  //   vm.expectRevert(abi.encodeWithSignature("DirectionalVault_UnsafePositionEquity()"));
-  //   _directionalVault.reinvest(abi.encode(0), 0);
-  // }
+    vm.expectRevert(abi.encodeWithSignature("DirectionalVault_UnsafePositionEquity()"));
+    _directionalVault.reinvest(abi.encode(0), 0);
+  }
 
   function _initPosition() internal {
     _depositExecutor.setExecutionValue(100 ether, 200 ether);
