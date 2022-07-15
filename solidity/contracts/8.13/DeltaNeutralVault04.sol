@@ -88,7 +88,6 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
   uint8 private constant ACTION_WRAP = 2;
 
   // --- States ---
-
   uint256 public stableTo18ConversionFactor;
   uint256 public assetTo18ConversionFactor;
 
