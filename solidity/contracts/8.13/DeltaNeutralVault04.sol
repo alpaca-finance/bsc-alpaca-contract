@@ -290,15 +290,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     // 2. deposit executor exec
     IExecutor(config.depositExecutor()).exec(bytes.concat(abi.encode(_stableTokenAmount, _assetTokenAmount), _data));
 
-    return
-      _checkAndMint(
-        _stableTokenAmount,
-        _assetTokenAmount,
-        _shareReceiver,
-        _minShareReceive,
-        _positionInfoBefore,
-        _outstandingBefore
-      );
+    return _checkAndMint(_stableTokenAmount, _assetTokenAmount, _shareReceiver, _minShareReceive, _positionInfoBefore);
   }
 
   function _checkAndMint(
@@ -306,8 +298,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     uint256 _assetTokenAmount,
     address _shareReceiver,
     uint256 _minShareReceive,
-    PositionInfo memory _positionInfoBefore,
-    Outstanding memory _outstandingBefore
+    PositionInfo memory _positionInfoBefore
   ) internal returns (uint256) {
     // continued from deposit as we're getting stack too deep
     // 3. mint share for shareReceiver
@@ -327,7 +318,6 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
 
     // 4. sanity check
     checker.depositHealthCheck(_depositValue, lpToken, _positionInfoBefore, _positionInfoAfter, priceOracle, config);
-    checker.outstandingCheck(_outstandingBefore, _outstanding());
 
     // Deduct credit from msg.sender regardless of the _shareReceiver.
     IController _controller = IController(config.controller());
@@ -422,7 +412,6 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
       priceOracle,
       config
     );
-    checker.outstandingCheck(_outstandingBefore, _outstandingAfter);
 
     _transferTokenToShareOwner(msg.sender, stableToken, _stableTokenBack);
     _transferTokenToShareOwner(msg.sender, assetToken, _assetTokenBack);
@@ -440,7 +429,6 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
   /// @param _data The calldata to pass along for more working context.
   function rebalance(bytes memory _data) external onlyRebalancers collectFee {
     PositionInfo memory _positionInfoBefore = positionInfo();
-    Outstanding memory _outstandingBefore = _outstanding();
     uint256 _stablePositionValue = _positionInfoBefore.stablePositionEquity +
       _positionInfoBefore.stablePositionDebtValue;
     uint256 _assetPositionValue = _positionInfoBefore.assetPositionEquity + _positionInfoBefore.assetPositionDebtValue;
@@ -464,7 +452,6 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     if (!Math.almostEqual(_equityAfter, _equityBefore, config.positionValueTolerance())) {
       revert DeltaNeutralVault04_UnsafePositionValue();
     }
-    checker.outstandingCheck(_outstandingBefore, _outstanding());
 
     emit LogRebalance(_equityBefore, _equityAfter);
   }

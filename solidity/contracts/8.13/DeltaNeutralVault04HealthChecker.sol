@@ -36,9 +36,6 @@ contract DeltaNeutralVault04HealthChecker is IDeltaNeutralVault04HealthChecker {
   error DeltaNeutralVault04HealthChecker_UnsafeDebtValue();
   error DeltaNeutralVault04HealthChecker_UnsafePositionValue();
   error DeltaNeutralVault04HealthChecker_UnTrustedPrice();
-  error DeltaNeutralVault04HealthChecker_UnsafeStableTokenOutstanding(uint256 _amountBefore, uint256 _amountAfter);
-  error DeltaNeutralVault04HealthChecker_UnsafeAssetTokenOutstanding(uint256 _amountBefore, uint256 _amountAfter);
-  error DeltaNeutralVault04HealthChecker_UnsafeNativeTokenOutstanding(uint256 _amountBefore, uint256 _amountAfter);
 
   /// @notice Return value of given lp amount
   /// @param _oracle oracle contract
@@ -69,7 +66,6 @@ contract DeltaNeutralVault04HealthChecker is IDeltaNeutralVault04HealthChecker {
     IDeltaNeutralOracle _oracle,
     IDeltaNeutralVaultConfig02 _config
   ) external view {
-    _healthCheckValidate(_lpToken, _oracle, _config);
     uint256 _toleranceBps = _config.positionValueTolerance();
     uint8 _leverageLevel = _config.leverageLevel();
 
@@ -132,7 +128,6 @@ contract DeltaNeutralVault04HealthChecker is IDeltaNeutralVault04HealthChecker {
     IDeltaNeutralOracle _oracle,
     IDeltaNeutralVaultConfig02 _config
   ) external view {
-    _healthCheckValidate(_lpToken, _oracle, _config);
     uint256 _positionValueTolerance = _config.positionValueTolerance();
     uint256 _debtRatioTolerance = _config.debtRatioTolerance();
 
@@ -215,30 +210,6 @@ contract DeltaNeutralVault04HealthChecker is IDeltaNeutralVault04HealthChecker {
     }
   }
 
-  /// @notice Compare Delta neutral vault tokens' balance before and afrer.
-  /// @param _outstandingBefore Tokens' balance before.
-  /// @param _outstandingAfter Tokens' balance after.
-  function outstandingCheck(Outstanding memory _outstandingBefore, Outstanding memory _outstandingAfter) external pure {
-    if (_outstandingAfter.stableAmount < _outstandingBefore.stableAmount) {
-      revert DeltaNeutralVault04HealthChecker_UnsafeStableTokenOutstanding(
-        _outstandingBefore.stableAmount,
-        _outstandingAfter.stableAmount
-      );
-    }
-    if (_outstandingAfter.assetAmount < _outstandingBefore.assetAmount) {
-      revert DeltaNeutralVault04HealthChecker_UnsafeAssetTokenOutstanding(
-        _outstandingBefore.assetAmount,
-        _outstandingAfter.assetAmount
-      );
-    }
-    if (_outstandingAfter.nativeAmount < _outstandingBefore.nativeAmount) {
-      revert DeltaNeutralVault04HealthChecker_UnsafeNativeTokenOutstanding(
-        _outstandingBefore.nativeAmount,
-        _outstandingAfter.nativeAmount
-      );
-    }
-  }
-
   function _isVaultSizeAcceptable(PositionInfo memory _positionInfoAfter, IDeltaNeutralVaultConfig02 _config)
     internal
     view
@@ -297,14 +268,5 @@ contract DeltaNeutralVault04HealthChecker is IDeltaNeutralVault04HealthChecker {
     return
       Math.almostEqual(_actualStableDebtChange, _expectedStableDebtChange, _toleranceBps) &&
       Math.almostEqual(_actualAssetDebtChange, _expectedAssetDebtChange, _toleranceBps);
-  }
-
-  function _healthCheckValidate(
-    address _lpToken,
-    IDeltaNeutralOracle _oracle,
-    IDeltaNeutralVaultConfig02 _config
-  ) internal view {
-    _oracle.lpToDollar(1e18, _lpToken);
-    _config.positionValueTolerance();
   }
 }
