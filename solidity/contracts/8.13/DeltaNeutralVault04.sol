@@ -281,8 +281,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     bytes calldata _data
   ) public payable onlyEOAorWhitelisted collectFee nonReentrant returns (uint256) {
     PositionInfo memory _positionInfoBefore = positionInfo();
-    Outstanding memory _outstandingBefore = _outstanding();
-    _outstandingBefore.nativeAmount = _outstandingBefore.nativeAmount - msg.value;
+
     // 1. transfer tokens from user to vault
     _transferTokenToVault(stableToken, _stableTokenAmount);
     _transferTokenToVault(assetToken, _assetTokenAmount);
