@@ -110,6 +110,8 @@
     "deploy:mainnet:delta-neutral-vault-gateway:config:set-swap-router": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralVaultGatewaySetSwapRouter",
     "deploy:mainnet:delta-neutral-vault-gateway:deploy:delta-neutral-vault-gateway": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralVaultGateway",
     "deploy:mainnet:delta-neutral-vault-gateway:upgrade:delta-neutral-vault-gateway": "hardhat --network mainnet deploy --no-compile --reset --tags UpgradeDeltaNeutralVaultGateway",
+    "deploy:mainnet:delta-neutral-vault-health-checker:deploy:delta-neutral-vault-health-checker":"hardhat --network mainnet deploy --no-compile --reset --tags deltaNeutralVaultHealthChecker",
+    "deploy:mainnet:delta-neutral-vault:config:set-health-checker":"hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralVaultSetHealthChecker",
     "deploy:mainnet:proxy-token:deploy:proxy-token": "hardhat --network mainnet deploy --no-compile --reset --tags ProxyToken",
     "deploy:mainnet:revenue-treasury:deploy:revenue-treasury": "hardhat --network mainnet deploy --no-compile --reset --tags RevenueTreasury",
     "deploy:mainnet:emission-forwarder:deploy:emission-forwarder": "hardhat --network mainnet deploy --no-compile --reset --tags EmissionForwarder",

@@ -315,6 +315,12 @@ export class ConfigFileHelper {
     }
     this._writeConfigFile(this.config);
   }
+
+  public setDeltaNeutralHealthChecker(address: string) {
+    console.log(`>> Adding config on DeltaNeutralVaultHealthChecker as ${address}`);
+    this.config.DeltaNeutralVaultHealthChecker = address;
+    this._writeConfigFile(this.config);
+  }
 }
 
 const defaultDeltaNeutralVaultsEntity: DeltaNeutralVaultsEntity = {
