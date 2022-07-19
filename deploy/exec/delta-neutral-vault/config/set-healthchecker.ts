@@ -37,7 +37,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const converter = new Converter();
   const deployer = await getDeployer();
 
-  const tobeSetParamVaults = converter.convertDeltaSymboltoObj(TARGETED_VAULTS);
+  const vaults = converter.convertDeltaSymboltoObj(TARGETED_VAULTS);
   let nonce = await deployer.getTransactionCount();
 
   const config = getConfig();
@@ -45,9 +45,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     throw new Error(`Invalid address DeltaNeutralVaultHealthChecker`);
   }
 
-  for (const vault of tobeSetParamVaults) {
+  for (const vault of vaults) {
     console.log("------------------");
-    console.log(`> Upgrading ${vault.symbol} setDeltaNeutralVaultHealthChecker`);
+    console.log(`> Setting Config ${vault.symbol} setDeltaNeutralVaultHealthChecker`);
     const deltaNeutralVault04 = DeltaNeutralVault04__factory.connect(vault.address, deployer);
     const ops = isFork() ? { nonce: nonce++, gasLimit: 2000000 } : { nonce: nonce++ };
     const tx = await deltaNeutralVault04.setDeltaNeutralVaultHealthChecker(config.DeltaNeutralVaultHealthChecker, ops);
