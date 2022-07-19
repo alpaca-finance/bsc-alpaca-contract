@@ -25,6 +25,7 @@ import { xALPACAPriceSetterLike } from "../interfaces/xALPACAPriceSetterLike.sol
 import { AutomatedVaultControllerLike } from "../interfaces/AutomatedVaultControllerLike.sol";
 import { DeltaNeutralVault02Like } from "../interfaces/DeltaNeutralVault02Like.sol";
 import { DirectionalVaultLike } from "../interfaces/DirectionalVaultLike.sol";
+import { DeltaNeutralVault04Like } from "../interfaces/DeltaNeutralVault04Like.sol";
 
 // solhint-disable const-name-snakecase
 // solhint-disable no-inline-assembly
@@ -321,5 +322,37 @@ contract BaseTest is DSTest {
     );
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
     return DirectionalVaultLike(payable(_proxy));
+  }
+
+  function _setupDeltaNeutralVault04(
+    string memory _name,
+    string memory _symbol,
+    address _stableVault,
+    address _assetVault,
+    address _stableVaultWorker,
+    address _assetVaultWorker,
+    address _lpToken,
+    address _alpacaToken,
+    address _priceOracle,
+    address _config
+  ) internal returns (DeltaNeutralVault04Like) {
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/DeltaNeutralVault04.sol/DeltaNeutralVault04.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize(string,string,address,address,address,address,address,address,address,address)")),
+      _name,
+      _symbol,
+      _stableVault,
+      _assetVault,
+      _stableVaultWorker,
+      _assetVaultWorker,
+      _lpToken,
+      _alpacaToken,
+      _priceOracle,
+      _config
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return DeltaNeutralVault04Like(payable(_proxy));
   }
 }

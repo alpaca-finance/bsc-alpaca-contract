@@ -27,7 +27,7 @@ contract FakeAutomateVaultController {
     address, /*_user*/
     uint256, /*_shareAmount*/
     uint256 /*_shareValue*/
-  ) external {
+  ) external view {
     if (revertOnDeposit) revert AutomatedVaultController_InsufficientCredit();
   }
 
