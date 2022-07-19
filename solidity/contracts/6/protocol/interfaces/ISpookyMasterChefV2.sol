@@ -14,8 +14,9 @@ Alpaca Fin Corporation
 pragma solidity 0.6.6;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol";
+import "./ISpookyRewarder.sol";
 
-contract ISpookyMasterChef {
+contract ISpookyMasterChefV2 {
   // Info of each user.
   struct UserInfo {
     uint256 amount; // How many LP tokens the user has provided.
@@ -24,18 +25,19 @@ contract ISpookyMasterChef {
 
   // Info of each pool.
   struct PoolInfo {
-    IERC20 lpToken; // Address of LP token contract.
-    uint256 allocPoint; // How many allocation points assigned to this pool. BOOs to distribute per block.
-    uint256 lastRewardBlock; // Last block number that BOOs distribution occurs.
-    uint256 accBOOPerShare; // Accumulated BOOs per share, times 1e12. See below.
+    uint128 accBooPerShare;
+    uint64 lastRewardTime;
+    uint64 allocPoint;
   }
 
-  // the reward token like CAKE, in this case, it's called BOO
-  address public boo;
+  address public MASTER_CHEF;
+  IERC20 public BOO;
 
   // Info of each user that stakes LP tokens.
   mapping(uint256 => PoolInfo) public poolInfo;
   mapping(uint256 => mapping(address => UserInfo)) public userInfo;
+  mapping(uint256 => IERC20) public lpToken;
+  mapping(uint256 => ISpookyRewarder) public rewarder;
 
   // Deposit LP tokens to MasterChef for BOO allocation.
   function deposit(uint256 _pid, uint256 _amount) external {}
@@ -45,4 +47,7 @@ contract ISpookyMasterChef {
 
   // Query pending BOO
   function pendingBOO(uint256 _pid, address _user) external returns (uint256) {}
+
+  // Harvest from MCV1
+  function harvestFromMasterChef() external {}
 }

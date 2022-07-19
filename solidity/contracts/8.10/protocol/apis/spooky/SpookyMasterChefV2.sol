@@ -6,7 +6,7 @@ import "../../interfaces/IERC20.sol";
 import "./SafeERC20.sol";
 import "./Ownable.sol";
 import "../../interfaces/ISpookyRewarder.sol";
-import "../../interfaces/ISpookyMasterChefV2.sol";
+import "../../interfaces/ISpookyMasterChefV1.sol";
 
 /// @notice The (older) MasterChef contract gives out a constant number of BOO tokens per second.
 /// It is the only address with minting rights for BOO.
@@ -34,7 +34,7 @@ contract SpookyMasterChefV2 is Ownable {
   }
 
   /// @notice Address of MCV1 contract.
-  ISpookyMasterChefV2 public immutable MASTER_CHEF;
+  ISpookyMasterChefV1 public immutable MASTER_CHEF;
   /// @notice Address of BOO contract.
   IERC20 public immutable BOO;
   /// @notice The index of MCV2 master pool in MCV1.
@@ -82,7 +82,7 @@ contract SpookyMasterChefV2 is Ownable {
   /// @param _boo The BOO token contract address.
   /// @param _MASTER_PID The pool ID of the dummy token on the base MCV1 contract.
   constructor(
-    ISpookyMasterChefV2 _MASTER_CHEF,
+    ISpookyMasterChefV1 _MASTER_CHEF,
     IERC20 _boo,
     uint256 _MASTER_PID
   ) {
