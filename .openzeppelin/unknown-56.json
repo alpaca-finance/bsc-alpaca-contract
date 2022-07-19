@@ -1214,6 +1214,16 @@
       "address": "0x0963d18D9039279e157f0f12651efA7d8ED5b64e",
       "txHash": "0xbe17c0112643fb4049cfdc8a4b49e57f6729c0c776147e9c3963ffcdd7f55e75",
       "kind": "transparent"
+    },
+    {
+      "address": "0x6F523Eb78B4493f7682B2Fed979821716E866507",
+      "txHash": "0xe31003e25f6a3f16cff541a4d2c0ca92dbaa9c867e2eafa66088cd19ab3ca221",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xbd2A1cE2f31622664BdfA5e31b94dB97be051E24",
+      "txHash": "0x5c0d3e59f3915d024b6b5a28e32c37221ccf5371bfd16af250b3c08301cac36b",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -27344,6 +27354,217 @@
           },
           "t_array(t_uint256)45_storage": {
             "label": "uint256[45]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_bool": {
+            "label": "bool"
+          }
+        }
+      }
+    },
+    "f008e5a08d8e038487158a347ff2feea34bbc3ad8ecc19404f6b5e376f659f70": {
+      "address": "0x613cCe68B0Fa2225CC3c205144a3E9D4745eE40b",
+      "txHash": "0x6a2e55bafc636bd5a7f3a85cabf695fdc9ebb06afb07bd0c8dbe95176ad1f61e",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:74"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+          },
+          {
+            "contract": "AIP8AUSDStaking",
+            "label": "stakingToken",
+            "type": "t_contract(IERC20Upgradeable)334",
+            "src": "solidity/contracts/8.15/AIP8AUSDStaking.sol:57"
+          },
+          {
+            "contract": "AIP8AUSDStaking",
+            "label": "alpaca",
+            "type": "t_contract(IERC20Upgradeable)334",
+            "src": "solidity/contracts/8.15/AIP8AUSDStaking.sol:57"
+          },
+          {
+            "contract": "AIP8AUSDStaking",
+            "label": "fairlaunch",
+            "type": "t_contract(IFairLaunch)1684",
+            "src": "solidity/contracts/8.15/AIP8AUSDStaking.sol:58"
+          },
+          {
+            "contract": "AIP8AUSDStaking",
+            "label": "pid",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.15/AIP8AUSDStaking.sol:59"
+          },
+          {
+            "contract": "AIP8AUSDStaking",
+            "label": "accAlpacaPerShare",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.15/AIP8AUSDStaking.sol:60"
+          },
+          {
+            "contract": "AIP8AUSDStaking",
+            "label": "userInfo",
+            "type": "t_mapping(t_address,t_struct(UserInfo)907_storage)",
+            "src": "solidity/contracts/8.15/AIP8AUSDStaking.sol:61"
+          },
+          {
+            "contract": "AIP8AUSDStaking",
+            "label": "stopped",
+            "type": "t_bool",
+            "src": "solidity/contracts/8.15/AIP8AUSDStaking.sol:66"
+          }
+        ],
+        "types": {
+          "t_contract(IERC20Upgradeable)334": {
+            "label": "contract IERC20Upgradeable"
+          },
+          "t_contract(IFairLaunch)1684": {
+            "label": "contract IFairLaunch"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_address,t_struct(UserInfo)907_storage)": {
+            "label": "mapping(address => struct AIP8AUSDStaking.UserInfo)"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_struct(UserInfo)907_storage": {
+            "label": "struct AIP8AUSDStaking.UserInfo",
+            "members": [
+              {
+                "label": "stakingAmount",
+                "type": "t_uint256"
+              },
+              {
+                "label": "lockUntil",
+                "type": "t_uint256"
+              },
+              {
+                "label": "alpacaRewardDebt",
+                "type": "t_uint256"
+              }
+            ]
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "f7593c4f6353255c82e96df02d5f9924f79379b6a826c69777c60d8683b82b39": {
+      "address": "0x27De2b5b1cF624b4D51c7f40AFdC3100D0F07405",
+      "txHash": "0x3183f01405359f96976f59c3362837d90689f2b60e13b8bb4eae7d735895fb68",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+          },
+          {
+            "contract": "AUSDStakingCreditor",
+            "label": "AUSDStaking",
+            "type": "t_contract(IAUSDStaking)12590",
+            "src": "solidity/contracts/8.13/AUSDStakingCreditor.sol:37"
+          },
+          {
+            "contract": "AUSDStakingCreditor",
+            "label": "valuePerAUSDStaking",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.13/AUSDStakingCreditor.sol:40"
+          },
+          {
+            "contract": "AUSDStakingCreditor",
+            "label": "valueSetter",
+            "type": "t_address",
+            "src": "solidity/contracts/8.13/AUSDStakingCreditor.sol:40"
+          }
+        ],
+        "types": {
+          "t_contract(IAUSDStaking)12590": {
+            "label": "contract IAUSDStaking"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
           },
           "t_array(t_uint256)50_storage": {
             "label": "uint256[50]"

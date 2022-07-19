@@ -1,6 +1,6 @@
 {
   "name": "@alpaca-finance/alpaca-contract",
-  "version": "1.2.37",
+  "version": "1.2.38",
   "scripts": {
     "prepublish": "yarn build && rm ./typechain/index.*",
     "build": "yarn run build:cjs",
@@ -68,6 +68,7 @@
     "deploy:mainnet:worker-config:config:set-configs": "hardhat --network mainnet deploy --no-compile --reset --tags TimelockUpdateWorkerWorkerConfigParams",
     "deploy:mainnet:worker-config:config:set-nft-boosted-leverage-controller": "hardhat --network mainnet deploy --no-compile --reset --tags SetNftBoostedLeverageController",
     "deploy:mainnet:workers:config:set-strategy-ok": "hardhat --network mainnet deploy --no-compile --reset --tags TimelockUpdateAddStratWorkers",
+    "deploy:mainnet:workers:config:set-reinvestor-ok": "hardhat --network mainnet deploy --no-compile --reset --tags WorkerSetReinvestorOk",
     "deploy:mainnet:timelock:deploy:timelock": "hardhat --network mainnet deploy --no-compile --reset --tags Timelock",
     "deploy:mainnet:s014": "hardhat --network mainnet deploy --no-compile --reset --tags UpgradeWorkers",
     "deploy:mainnet:s015": "hardhat --network mainnet deploy --no-compile --reset --tags TimelockWorkersMigrateLP",

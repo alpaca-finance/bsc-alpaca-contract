@@ -43,8 +43,163 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     {
       workerName: "WBNB-USDT PancakeswapWorker",
       workFactor: 8000,
-      killFactor: 9000,
-    }
+      killFactor: 8500,
+    },
+    {
+      workerName: "USDT-WBNB PancakeswapWorker",
+      workFactor: 8000,
+      killFactor: 8500,
+    },
+    {
+      workerName: "WBNB-BUSD PancakeswapWorker",
+      workFactor: 8000,
+      killFactor: 8500,
+    },
+    {
+      workerName: "BUSD-WBNB PancakeswapWorker",
+      workFactor: 8000,
+      killFactor: 8500,
+    },
+    {
+      workerName: "BTCB-BUSD PancakeswapWorker",
+      workFactor: 8000,
+      killFactor: 8500,
+    },
+    {
+      workerName: "BUSD-BTCB PancakeswapWorker",
+      workFactor: 8000,
+      killFactor: 8500,
+    },
+    {
+      workerName: "ETH-USDC PancakeswapWorker",
+      workFactor: 8000,
+      killFactor: 8500,
+    },
+    {
+      workerName: "USDC-ETH PancakeswapWorker",
+      workFactor: 8000,
+      killFactor: 8500,
+    },
+    {
+      workerName: "ETH-WBNB PancakeswapWorker",
+      workFactor: 8000,
+      killFactor: 8500,
+    },
+    {
+      workerName: "WBNB-ETH PancakeswapWorker",
+      workFactor: 8000,
+      killFactor: 8500,
+    },
+    {
+      workerName: "BTCB-WBNB PancakeswapWorker",
+      workFactor: 8000,
+      killFactor: 8500,
+    },
+    {
+      workerName: "WBNB-BTCB PancakeswapWorker",
+      workFactor: 8000,
+      killFactor: 8500,
+    },
+    {
+      workerName: "CAKE-WBNB PancakeswapWorker",
+      workFactor: 8000,
+      killFactor: 8500,
+    },
+    {
+      workerName: "WBNB-CAKE PancakeswapWorker",
+      workFactor: 8000,
+      killFactor: 8500,
+    },
+    {
+      workerName: "CAKE-BUSD PancakeswapWorker",
+      workFactor: 8000,
+      killFactor: 8500,
+    },
+    {
+      workerName: "BUSD-CAKE PancakeswapWorker",
+      workFactor: 8000,
+      killFactor: 8500,
+    },
+    {
+      workerName: "CAKE-USDT PancakeswapWorker",
+      workFactor: 8000,
+      killFactor: 8500,
+    },
+    {
+      workerName: "USDT-CAKE PancakeswapWorker",
+      workFactor: 8000,
+      killFactor: 8500,
+    },
+    {
+      workerName: "WBNB-USDT BiswapWorker",
+      workFactor: 8000,
+      killFactor: 8500,
+    },
+    {
+      workerName: "USDT-WBNB BiswapWorker",
+      workFactor: 8000,
+      killFactor: 8500,
+    },
+    {
+      workerName: "WBNB-BUSD BiswapWorker",
+      workFactor: 8000,
+      killFactor: 8500,
+    },
+    {
+      workerName: "BUSD-WBNB BiswapWorker",
+      workFactor: 8000,
+      killFactor: 8500,
+    },
+    {
+      workerName: "BTCB-USDT BiswapWorker",
+      workFactor: 8000,
+      killFactor: 8500,
+    },
+    {
+      workerName: "USDT-BTCB BiswapWorker",
+      workFactor: 8000,
+      killFactor: 8500,
+    },
+    {
+      workerName: "WBNB-USDC BiswapWorker",
+      workFactor: 8000,
+      killFactor: 8500,
+    },
+    {
+      workerName: "USDC-WBNB BiswapWorker",
+      workFactor: 8000,
+      killFactor: 8500,
+    },
+    {
+      workerName: "ETH-USDT BiswapWorker",
+      workFactor: 8000,
+      killFactor: 8500,
+    },
+    {
+      workerName: "USDT-ETH BiswapWorker",
+      workFactor: 8000,
+      killFactor: 8500,
+    },
+    {
+      workerName: "BTCB-USDT MdexWorker",
+      workFactor: 8000,
+      killFactor: 8500,
+    },
+    {
+      workerName: "USDT-BTCB MdexWorker",
+      workFactor: 8000,
+      killFactor: 8500,
+    },
+    {
+      workerName: "ETH-USDT MdexWorker",
+      workFactor: 8000,
+      killFactor: 8500,
+    },
+    {
+      workerName: "USDT-ETH MdexWorker",
+      workFactor: 8000,
+      killFactor: 8500,
+    },
   ];
 
   const boostedInputs: BoostedConfigInput[] = [];

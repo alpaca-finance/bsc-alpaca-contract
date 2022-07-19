@@ -30,55 +30,58 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "marcin";
+  const TITLE = "wei";
   const TARGETED_VAULT_CONFIG: Array<IInput> = [
-    {
-      VAULT_SYMBOL: "ibWBNB",
-      WHITELISTED_LIQUIDATORS: ["0x2e3419E9fdF65C7089DACA30184345B343Abff30"],
-      IS_ENABLE: true,
-    },
-    {
-      VAULT_SYMBOL: "ibBUSD",
-      WHITELISTED_LIQUIDATORS: ["0x2e3419E9fdF65C7089DACA30184345B343Abff30"],
-      IS_ENABLE: true,
-    },
-    {
-      VAULT_SYMBOL: "ibETH",
-      WHITELISTED_LIQUIDATORS: ["0x2e3419E9fdF65C7089DACA30184345B343Abff30"],
-      IS_ENABLE: true,
-    },
-    {
-      VAULT_SYMBOL: "ibALPACA",
-      WHITELISTED_LIQUIDATORS: ["0x2e3419E9fdF65C7089DACA30184345B343Abff30"],
-      IS_ENABLE: true,
-    },
-    {
-      VAULT_SYMBOL: "ibUSDT",
-      WHITELISTED_LIQUIDATORS: ["0x2e3419E9fdF65C7089DACA30184345B343Abff30"],
-      IS_ENABLE: true,
-    },
-    {
-      VAULT_SYMBOL: "ibBTCB",
-      WHITELISTED_LIQUIDATORS: ["0x2e3419E9fdF65C7089DACA30184345B343Abff30"],
-      IS_ENABLE: true,
-    },
-    {
-      VAULT_SYMBOL: "ibTUSD",
-      WHITELISTED_LIQUIDATORS: ["0x2e3419E9fdF65C7089DACA30184345B343Abff30"],
-      IS_ENABLE: true,
-    },
+    // {
+    //   VAULT_SYMBOL: "ibWBNB",
+    //   WHITELISTED_LIQUIDATORS: ["0x2e3419E9fdF65C7089DACA30184345B343Abff30"],
+    //   IS_ENABLE: true,
+    // },
+    // {
+    //   VAULT_SYMBOL: "ibBUSD",
+    //   WHITELISTED_LIQUIDATORS: ["0x2e3419E9fdF65C7089DACA30184345B343Abff30"],
+    //   IS_ENABLE: true,
+    // },
+    // {
+    //   VAULT_SYMBOL: "ibETH",
+    //   WHITELISTED_LIQUIDATORS: ["0x2e3419E9fdF65C7089DACA30184345B343Abff30"],
+    //   IS_ENABLE: true,
+    // },
+    // {
+    //   VAULT_SYMBOL: "ibALPACA",
+    //   WHITELISTED_LIQUIDATORS: ["0x2e3419E9fdF65C7089DACA30184345B343Abff30"],
+    //   IS_ENABLE: true,
+    // },
+    // {
+    //   VAULT_SYMBOL: "ibUSDT",
+    //   WHITELISTED_LIQUIDATORS: ["0x2e3419E9fdF65C7089DACA30184345B343Abff30"],
+    //   IS_ENABLE: true,
+    // },
+    // {
+    //   VAULT_SYMBOL: "ibBTCB",
+    //   WHITELISTED_LIQUIDATORS: ["0x2e3419E9fdF65C7089DACA30184345B343Abff30"],
+    //   IS_ENABLE: true,
+    // },
+    // {
+    //   VAULT_SYMBOL: "ibTUSD",
+    //   WHITELISTED_LIQUIDATORS: ["0x2e3419E9fdF65C7089DACA30184345B343Abff30"],
+    //   IS_ENABLE: true,
+    // },
     {
       VAULT_SYMBOL: "ibUSDC",
-      WHITELISTED_LIQUIDATORS: ["0x2e3419E9fdF65C7089DACA30184345B343Abff30"],
+      WHITELISTED_LIQUIDATORS: [
+        "0x3De172bA52A8E3B2287E3FAf1E6c54B8d7Dc7C71",
+        "0x103943818B4F972C36e187De07b68D28E699E4c7",
+      ],
       IS_ENABLE: true,
     },
-    {
-      VAULT_SYMBOL: "ibCAKE",
-      WHITELISTED_LIQUIDATORS: ["0x2e3419E9fdF65C7089DACA30184345B343Abff30"],
-      IS_ENABLE: true,
-    },
+    // {
+    //   VAULT_SYMBOL: "ibCAKE",
+    //   WHITELISTED_LIQUIDATORS: ["0x2e3419E9fdF65C7089DACA30184345B343Abff30"],
+    //   IS_ENABLE: true,
+    // },
   ];
-  const EXACT_ETA = "1655269200";
+  const EXACT_ETA = "1657009800";
 
   const config = getConfig();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
