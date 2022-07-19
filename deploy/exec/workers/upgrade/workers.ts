@@ -4,6 +4,9 @@ import { ethers, upgrades } from "hardhat";
 import { ContractFactory } from "ethers";
 import { ConfigEntity, TimelockEntity } from "../../../entities";
 import { fileService, TimelockService } from "../../../services";
+import { ProxyAdmin__factory } from "../../../../typechain";
+import { getDeployer } from "../../../../utils/deployer-helper";
+import { compare } from "../../../../utils/address";
 
 interface IWorker {
   WORKER_NAME: string;
@@ -28,6 +31,11 @@ interface FactoryMap {
  * @return {*}  {ContractFactory}
  */
 async function getFactory(workerName: string, factories: Array<FactoryMap>): Promise<ContractFactory> {
+  if (workerName.includes("DeltaNeutralSpookyWorker")) {
+    const factory = factories.find((f) => f.workerType == "DeltaNeutralSpookyWorker");
+    if (!factory) throw new Error("not found new DeltaNeutralSpookyWorker factory");
+    return await ethers.getContractFactory(factory.newVersion);
+  }
   if (workerName.includes("DeltaNeutralPancakeswapWorker")) {
     const factory = factories.find((f) => f.workerType == "DeltaNeutralPancakeswapWorker");
     if (!factory) throw new Error("not found new DeltaNeutralPancakeswapWorker factory");
@@ -46,6 +54,11 @@ async function getFactory(workerName: string, factories: Array<FactoryMap>): Pro
   if (workerName.includes("MdexWorker")) {
     const factory = factories.find((f) => f.workerType === "MdexWorker");
     if (!factory) throw new Error("not found new MdexWorker factory");
+    return await ethers.getContractFactory(factory.newVersion);
+  }
+  if (workerName.includes("SpookyWorker")) {
+    const factory = factories.find((f) => f.workerType === "SpookyWorker");
+    if (!factory) throw new Error("not found new SpookyWorker factory");
     return await ethers.getContractFactory(factory.newVersion);
   }
 
@@ -68,24 +81,48 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const fileName = "upgrade-pcs-cakemaxi-cakepool-totalBalance";
   const factories: Array<FactoryMap> = [
+    // {
+    //   workerType: "SpookyWorker",
+    //   newVersion: "SpookyWorker03Migrate",
+    // },
+    // {
+    //   workerType: "DeltaNeutralSpookyWorker",
+    //   newVersion: "DeltaNeutralSpookyWorker03Migrate",
+    // },
     {
-      workerType: "CakeMaxiWorker",
-      newVersion: "CakeMaxiWorker02MCV2",
+      workerType: "SpookyWorker",
+      newVersion: "SpookyMCV2Worker03",
+    },
+    {
+      workerType: "DeltaNeutralSpookyWorker",
+      newVersion: "DeltaNeutralSpookyMCV2Worker03",
     },
   ];
   const workerInputs: IWorkerInputs = [
-    "WBNB CakeMaxiWorker",
-    "BUSD CakeMaxiWorker",
-    "ETH CakeMaxiWorker",
-    "USDT CakeMaxiWorker",
-    "BTCB CakeMaxiWorker",
-    "TUSD CakeMaxiWorker",
-    "USDC CakeMaxiWorker",
+    // "USDC-WFTM SpookyWorker",
+    // "BOO-WFTM SpookyWorker",
+    // "ETH-WFTM SpookyWorker",
+    // "ALPACA-WFTM SpookyWorker",
+    // "BTC-WFTM SpookyWorker",
+    // "fUSDT-WFTM SpookyWorker",
+    // "DAI-WFTM SpookyWorker",
+    // "MIM-WFTM SpookyWorker",
+    "USDC-WFTM 3x SPK1 DeltaNeutralSpookyWorker",
+    "USDC-WFTM 3x SPK2 DeltaNeutralSpookyWorker",
+    "WFTM-USDC SpookyWorker",
+    "TUSD-USDC SpookyWorker",
+    "WFTM-USDC 3x SPK1 DeltaNeutralSpookyWorker",
+    "BOO-USDC SpookyWorker",
+    "WFTM-USDC 3x SPK2 DeltaNeutralSpookyWorker",
+    "WFTM-ALPACA SpookyWorker",
   ];
   const EXACT_ETA = "1651233600";
 
   const config = ConfigEntity.getConfig();
   const ts = Math.floor(new Date().getTime() / 1000);
+  const deployer = await getDeployer();
+  const proxyAdmin = ProxyAdmin__factory.connect(config.ProxyAdmin, deployer);
+
   const allWorkers: IWorkers = config.Vaults.reduce((accum, vault) => {
     return accum.concat(
       vault.workers.map((worker) => {
@@ -116,6 +153,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     contractFactories.push(await getFactory(TO_BE_UPGRADE_WORKERS[i].WORKER_NAME, factories));
   }
 
+  const proxyAdminOwner = await proxyAdmin.owner();
+
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   for (let i = 0; i < TO_BE_UPGRADE_WORKERS.length; i++) {
     console.log("-------");
@@ -126,20 +165,26 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(`>> New implementation deployed at: ${preparedNewWorker}`);
     console.log("✅ Done");
 
-    timelockTransactions.push(
-      await TimelockService.queueTransaction(
-        `upgrade ${TO_BE_UPGRADE_WORKERS[i].WORKER_NAME}`,
-        config.ProxyAdmin,
-        "0",
-        "upgrade(address,address)",
-        ["address", "address"],
-        [TO_BE_UPGRADE_WORKERS[i].ADDRESS, preparedNewWorker],
-        EXACT_ETA,
-        { gasPrice: ethers.utils.parseUnits("20", "gwei") }
-      )
-    );
+    if (compare(proxyAdminOwner, config.Timelock)) {
+      timelockTransactions.push(
+        await TimelockService.queueTransaction(
+          `upgrade ${TO_BE_UPGRADE_WORKERS[i].WORKER_NAME}`,
+          config.ProxyAdmin,
+          "0",
+          "upgrade(address,address)",
+          ["address", "address"],
+          [TO_BE_UPGRADE_WORKERS[i].ADDRESS, preparedNewWorker],
+          EXACT_ETA,
+          { gasPrice: ethers.utils.parseUnits("20", "gwei") }
+        )
+      );
 
-    fileService.writeJson(`${ts}_${fileName}`, timelockTransactions);
+      fileService.writeJson(`${ts}_${fileName}`, timelockTransactions);
+    } else {
+      console.log(">> Upgrade rightaway");
+      await upgrades.upgradeProxy(TO_BE_UPGRADE_WORKERS[i].ADDRESS, NewWorkerFactory);
+      console.log(">> ✅ Done");
+    }
   }
 };
 

@@ -2469,25 +2469,25 @@
           {
             "contract": "SpookyWorker03",
             "label": "spookyMasterChef",
-            "type": "t_contract(ISpookyMasterChef)30924",
+            "type": "t_contract(ISpookyMasterChef)30509",
             "src": "contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:65"
           },
           {
             "contract": "SpookyWorker03",
             "label": "factory",
-            "type": "t_contract(ISwapFactoryLike)31179",
+            "type": "t_contract(ISwapFactoryLike)30764",
             "src": "contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:67"
           },
           {
             "contract": "SpookyWorker03",
             "label": "router",
-            "type": "t_contract(ISwapRouter02Like)31817",
+            "type": "t_contract(ISwapRouter02Like)31402",
             "src": "contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:67"
           },
           {
             "contract": "SpookyWorker03",
             "label": "lpToken",
-            "type": "t_contract(ISwapPairLike)31421",
+            "type": "t_contract(ISwapPairLike)31006",
             "src": "contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:69"
           },
           {
@@ -2547,13 +2547,13 @@
           {
             "contract": "SpookyWorker03",
             "label": "addStrat",
-            "type": "t_contract(IStrategy)30937",
+            "type": "t_contract(IStrategy)30522",
             "src": "contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:82"
           },
           {
             "contract": "SpookyWorker03",
             "label": "liqStrat",
-            "type": "t_contract(IStrategy)30937",
+            "type": "t_contract(IStrategy)30522",
             "src": "contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:83"
           },
           {
@@ -2613,7 +2613,7 @@
           {
             "contract": "SpookyWorker03",
             "label": "beneficialVault",
-            "type": "t_contract(IVault)31852",
+            "type": "t_contract(IVault)31437",
             "src": "contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:93"
           },
           {
@@ -2636,16 +2636,16 @@
           }
         ],
         "types": {
-          "t_contract(ISpookyMasterChef)30924": {
+          "t_contract(ISpookyMasterChef)30509": {
             "label": "contract ISpookyMasterChef"
           },
-          "t_contract(ISwapFactoryLike)31179": {
+          "t_contract(ISwapFactoryLike)30764": {
             "label": "contract ISwapFactoryLike"
           },
-          "t_contract(ISwapRouter02Like)31817": {
+          "t_contract(ISwapRouter02Like)31402": {
             "label": "contract ISwapRouter02Like"
           },
-          "t_contract(ISwapPairLike)31421": {
+          "t_contract(ISwapPairLike)31006": {
             "label": "contract ISwapPairLike"
           },
           "t_address": {
@@ -2663,13 +2663,13 @@
           "t_bool": {
             "label": "bool"
           },
-          "t_contract(IStrategy)30937": {
+          "t_contract(IStrategy)30522": {
             "label": "contract IStrategy"
           },
           "t_array(t_address)dyn_storage": {
             "label": "address[]"
           },
-          "t_contract(IVault)31852": {
+          "t_contract(IVault)31437": {
             "label": "contract IVault"
           },
           "t_array(t_uint256)49_storage": {
@@ -4763,174 +4763,174 @@
           {
             "contract": "DeltaNeutralSpookyWorker03",
             "label": "spookyMasterChef",
-            "type": "t_contract(ISpookyMasterChef)9172",
-            "src": "contracts/8.10/protocol/workers/DeltaNeutralSpookyWorker03.sol:89"
+            "type": "t_contract(ISpookyMasterChef)15179",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03.sol:89"
           },
           {
             "contract": "DeltaNeutralSpookyWorker03",
             "label": "factory",
-            "type": "t_contract(ISwapFactoryLike)9427",
-            "src": "contracts/8.10/protocol/workers/DeltaNeutralSpookyWorker03.sol:91"
+            "type": "t_contract(ISwapFactoryLike)15600",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03.sol:91"
           },
           {
             "contract": "DeltaNeutralSpookyWorker03",
             "label": "router",
-            "type": "t_contract(ISwapRouter02Like)10161",
-            "src": "contracts/8.10/protocol/workers/DeltaNeutralSpookyWorker03.sol:91"
+            "type": "t_contract(ISwapRouter02Like)16339",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03.sol:91"
           },
           {
             "contract": "DeltaNeutralSpookyWorker03",
             "label": "lpToken",
-            "type": "t_contract(ISwapPairLike)9669",
-            "src": "contracts/8.10/protocol/workers/DeltaNeutralSpookyWorker03.sol:92"
+            "type": "t_contract(ISwapPairLike)15842",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03.sol:92"
           },
           {
             "contract": "DeltaNeutralSpookyWorker03",
             "label": "priceOracle",
-            "type": "t_contract(IDeltaNeutralOracle)7191",
-            "src": "contracts/8.10/protocol/workers/DeltaNeutralSpookyWorker03.sol:94"
+            "type": "t_contract(IDeltaNeutralOracle)13017",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03.sol:94"
           },
           {
             "contract": "DeltaNeutralSpookyWorker03",
             "label": "wNative",
             "type": "t_address",
-            "src": "contracts/8.10/protocol/workers/DeltaNeutralSpookyWorker03.sol:95"
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03.sol:95"
           },
           {
             "contract": "DeltaNeutralSpookyWorker03",
             "label": "baseToken",
             "type": "t_address",
-            "src": "contracts/8.10/protocol/workers/DeltaNeutralSpookyWorker03.sol:95"
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03.sol:95"
           },
           {
             "contract": "DeltaNeutralSpookyWorker03",
             "label": "farmingToken",
             "type": "t_address",
-            "src": "contracts/8.10/protocol/workers/DeltaNeutralSpookyWorker03.sol:97"
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03.sol:97"
           },
           {
             "contract": "DeltaNeutralSpookyWorker03",
             "label": "boo",
             "type": "t_address",
-            "src": "contracts/8.10/protocol/workers/DeltaNeutralSpookyWorker03.sol:100"
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03.sol:100"
           },
           {
             "contract": "DeltaNeutralSpookyWorker03",
             "label": "operator",
             "type": "t_address",
-            "src": "contracts/8.10/protocol/workers/DeltaNeutralSpookyWorker03.sol:100"
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03.sol:100"
           },
           {
             "contract": "DeltaNeutralSpookyWorker03",
             "label": "pid",
             "type": "t_uint256",
-            "src": "contracts/8.10/protocol/workers/DeltaNeutralSpookyWorker03.sol:101"
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03.sol:101"
           },
           {
             "contract": "DeltaNeutralSpookyWorker03",
             "label": "okStrats",
             "type": "t_mapping(t_address,t_bool)",
-            "src": "contracts/8.10/protocol/workers/DeltaNeutralSpookyWorker03.sol:104"
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03.sol:102"
           },
           {
             "contract": "DeltaNeutralSpookyWorker03",
             "label": "addStrat",
-            "type": "t_contract(IStrategy)9185",
-            "src": "contracts/8.10/protocol/workers/DeltaNeutralSpookyWorker03.sol:106"
+            "type": "t_contract(IStrategy)15358",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03.sol:104"
           },
           {
             "contract": "DeltaNeutralSpookyWorker03",
             "label": "reinvestBountyBps",
             "type": "t_uint256",
-            "src": "contracts/8.10/protocol/workers/DeltaNeutralSpookyWorker03.sol:106"
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03.sol:104"
           },
           {
             "contract": "DeltaNeutralSpookyWorker03",
             "label": "maxReinvestBountyBps",
             "type": "t_uint256",
-            "src": "contracts/8.10/protocol/workers/DeltaNeutralSpookyWorker03.sol:107"
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03.sol:105"
           },
           {
             "contract": "DeltaNeutralSpookyWorker03",
             "label": "okReinvestors",
             "type": "t_mapping(t_address,t_bool)",
-            "src": "contracts/8.10/protocol/workers/DeltaNeutralSpookyWorker03.sol:108"
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03.sol:106"
           },
           {
             "contract": "DeltaNeutralSpookyWorker03",
             "label": "whitelistCallers",
             "type": "t_mapping(t_address,t_bool)",
-            "src": "contracts/8.10/protocol/workers/DeltaNeutralSpookyWorker03.sol:110"
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03.sol:108"
           },
           {
             "contract": "DeltaNeutralSpookyWorker03",
             "label": "reinvestThreshold",
             "type": "t_uint256",
-            "src": "contracts/8.10/protocol/workers/DeltaNeutralSpookyWorker03.sol:112"
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03.sol:110"
           },
           {
             "contract": "DeltaNeutralSpookyWorker03",
             "label": "reinvestPath",
             "type": "t_array(t_address)dyn_storage",
-            "src": "contracts/8.10/protocol/workers/DeltaNeutralSpookyWorker03.sol:113"
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03.sol:111"
           },
           {
             "contract": "DeltaNeutralSpookyWorker03",
             "label": "treasuryAccount",
             "type": "t_address",
-            "src": "contracts/8.10/protocol/workers/DeltaNeutralSpookyWorker03.sol:114"
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03.sol:112"
           },
           {
             "contract": "DeltaNeutralSpookyWorker03",
             "label": "treasuryBountyBps",
             "type": "t_uint256",
-            "src": "contracts/8.10/protocol/workers/DeltaNeutralSpookyWorker03.sol:115"
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03.sol:113"
           },
           {
             "contract": "DeltaNeutralSpookyWorker03",
             "label": "beneficialVault",
-            "type": "t_contract(IVault)10218",
-            "src": "contracts/8.10/protocol/workers/DeltaNeutralSpookyWorker03.sol:115"
+            "type": "t_contract(IVault)16413",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03.sol:113"
           },
           {
             "contract": "DeltaNeutralSpookyWorker03",
             "label": "beneficialVaultBountyBps",
             "type": "t_uint256",
-            "src": "contracts/8.10/protocol/workers/DeltaNeutralSpookyWorker03.sol:116"
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03.sol:114"
           },
           {
             "contract": "DeltaNeutralSpookyWorker03",
             "label": "rewardPath",
             "type": "t_array(t_address)dyn_storage",
-            "src": "contracts/8.10/protocol/workers/DeltaNeutralSpookyWorker03.sol:118"
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03.sol:116"
           },
           {
             "contract": "DeltaNeutralSpookyWorker03",
             "label": "buybackAmount",
             "type": "t_uint256",
-            "src": "contracts/8.10/protocol/workers/DeltaNeutralSpookyWorker03.sol:120"
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03.sol:118"
           },
           {
             "contract": "DeltaNeutralSpookyWorker03",
             "label": "totalLpBalance",
             "type": "t_uint256",
-            "src": "contracts/8.10/protocol/workers/DeltaNeutralSpookyWorker03.sol:121"
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03.sol:119"
           }
         ],
         "types": {
-          "t_contract(ISpookyMasterChef)9172": {
+          "t_contract(ISpookyMasterChef)15179": {
             "label": "contract ISpookyMasterChef"
           },
-          "t_contract(ISwapFactoryLike)9427": {
+          "t_contract(ISwapFactoryLike)15600": {
             "label": "contract ISwapFactoryLike"
           },
-          "t_contract(ISwapRouter02Like)10161": {
+          "t_contract(ISwapRouter02Like)16339": {
             "label": "contract ISwapRouter02Like"
           },
-          "t_contract(ISwapPairLike)9669": {
+          "t_contract(ISwapPairLike)15842": {
             "label": "contract ISwapPairLike"
           },
-          "t_contract(IDeltaNeutralOracle)7191": {
+          "t_contract(IDeltaNeutralOracle)13017": {
             "label": "contract IDeltaNeutralOracle"
           },
           "t_address": {
@@ -4945,13 +4945,13 @@
           "t_bool": {
             "label": "bool"
           },
-          "t_contract(IStrategy)9185": {
+          "t_contract(IStrategy)15358": {
             "label": "contract IStrategy"
           },
           "t_array(t_address)dyn_storage": {
             "label": "address[]"
           },
-          "t_contract(IVault)10218": {
+          "t_contract(IVault)16413": {
             "label": "contract IVault"
           },
           "t_array(t_uint256)49_storage": {
@@ -5268,19 +5268,19 @@
             "contract": "Initializable",
             "label": "initialized",
             "type": "t_bool",
-            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:21"
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:20"
           },
           {
             "contract": "Initializable",
             "label": "initializing",
             "type": "t_bool",
-            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:26"
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:25"
           },
           {
             "contract": "Initializable",
             "label": "______gap",
             "type": "t_array(t_uint256)50_storage",
-            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:61"
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:60"
           },
           {
             "contract": "ContextUpgradeSafe",
@@ -5315,183 +5315,183 @@
           {
             "contract": "SpookyWorker03",
             "label": "spookyMasterChef",
-            "type": "t_contract(ISpookyMasterChef)33010",
-            "src": "contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:65"
+            "type": "t_contract(ISpookyMasterChef)34117",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:65"
           },
           {
             "contract": "SpookyWorker03",
             "label": "factory",
-            "type": "t_contract(ISwapFactoryLike)33265",
-            "src": "contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:67"
+            "type": "t_contract(ISwapFactoryLike)34475",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:67"
           },
           {
             "contract": "SpookyWorker03",
             "label": "router",
-            "type": "t_contract(ISwapRouter02Like)33903",
-            "src": "contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:67"
+            "type": "t_contract(ISwapRouter02Like)35113",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:67"
           },
           {
             "contract": "SpookyWorker03",
             "label": "lpToken",
-            "type": "t_contract(ISwapPairLike)33507",
-            "src": "contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:69"
+            "type": "t_contract(ISwapPairLike)34717",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:69"
           },
           {
             "contract": "SpookyWorker03",
             "label": "wNative",
             "type": "t_address",
-            "src": "contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:70"
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:70"
           },
           {
             "contract": "SpookyWorker03",
             "label": "baseToken",
             "type": "t_address",
-            "src": "contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:70"
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:70"
           },
           {
             "contract": "SpookyWorker03",
             "label": "farmingToken",
             "type": "t_address",
-            "src": "contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:72"
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:72"
           },
           {
             "contract": "SpookyWorker03",
             "label": "boo",
             "type": "t_address",
-            "src": "contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:75"
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:75"
           },
           {
             "contract": "SpookyWorker03",
             "label": "operator",
             "type": "t_address",
-            "src": "contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:75"
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:75"
           },
           {
             "contract": "SpookyWorker03",
             "label": "pid",
             "type": "t_uint256",
-            "src": "contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:76"
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:76"
           },
           {
             "contract": "SpookyWorker03",
             "label": "shares",
             "type": "t_mapping(t_uint256,t_uint256)",
-            "src": "contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:78"
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:78"
           },
           {
             "contract": "SpookyWorker03",
             "label": "okStrats",
             "type": "t_mapping(t_address,t_bool)",
-            "src": "contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:79"
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:79"
           },
           {
             "contract": "SpookyWorker03",
             "label": "totalShare",
             "type": "t_uint256",
-            "src": "contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:81"
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:81"
           },
           {
             "contract": "SpookyWorker03",
             "label": "addStrat",
-            "type": "t_contract(IStrategy)33023",
-            "src": "contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:82"
+            "type": "t_contract(IStrategy)34233",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:82"
           },
           {
             "contract": "SpookyWorker03",
             "label": "liqStrat",
-            "type": "t_contract(IStrategy)33023",
-            "src": "contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:83"
+            "type": "t_contract(IStrategy)34233",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:83"
           },
           {
             "contract": "SpookyWorker03",
             "label": "reinvestBountyBps",
             "type": "t_uint256",
-            "src": "contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:83"
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:83"
           },
           {
             "contract": "SpookyWorker03",
             "label": "maxReinvestBountyBps",
             "type": "t_uint256",
-            "src": "contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:84"
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:84"
           },
           {
             "contract": "SpookyWorker03",
             "label": "okReinvestors",
             "type": "t_mapping(t_address,t_bool)",
-            "src": "contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:86"
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:86"
           },
           {
             "contract": "SpookyWorker03",
             "label": "fee",
             "type": "t_uint256",
-            "src": "contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:88"
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:88"
           },
           {
             "contract": "SpookyWorker03",
             "label": "feeDenom",
             "type": "t_uint256",
-            "src": "contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:89"
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:89"
           },
           {
             "contract": "SpookyWorker03",
             "label": "reinvestThreshold",
             "type": "t_uint256",
-            "src": "contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:90"
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:90"
           },
           {
             "contract": "SpookyWorker03",
             "label": "reinvestPath",
             "type": "t_array(t_address)dyn_storage",
-            "src": "contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:91"
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:91"
           },
           {
             "contract": "SpookyWorker03",
             "label": "treasuryAccount",
             "type": "t_address",
-            "src": "contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:92"
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:92"
           },
           {
             "contract": "SpookyWorker03",
             "label": "treasuryBountyBps",
             "type": "t_uint256",
-            "src": "contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:93"
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:93"
           },
           {
             "contract": "SpookyWorker03",
             "label": "beneficialVault",
-            "type": "t_contract(IVault)33993",
-            "src": "contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:93"
+            "type": "t_contract(IVault)35203",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:93"
           },
           {
             "contract": "SpookyWorker03",
             "label": "beneficialVaultBountyBps",
             "type": "t_uint256",
-            "src": "contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:94"
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:94"
           },
           {
             "contract": "SpookyWorker03",
             "label": "rewardPath",
             "type": "t_array(t_address)dyn_storage",
-            "src": "contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:97"
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:97"
           },
           {
             "contract": "SpookyWorker03",
             "label": "buybackAmount",
             "type": "t_uint256",
-            "src": "contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:98"
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03.sol:98"
           }
         ],
         "types": {
-          "t_contract(ISpookyMasterChef)33010": {
+          "t_contract(ISpookyMasterChef)34117": {
             "label": "contract ISpookyMasterChef"
           },
-          "t_contract(ISwapFactoryLike)33265": {
+          "t_contract(ISwapFactoryLike)34475": {
             "label": "contract ISwapFactoryLike"
           },
-          "t_contract(ISwapRouter02Like)33903": {
+          "t_contract(ISwapRouter02Like)35113": {
             "label": "contract ISwapRouter02Like"
           },
-          "t_contract(ISwapPairLike)33507": {
+          "t_contract(ISwapPairLike)34717": {
             "label": "contract ISwapPairLike"
           },
           "t_address": {
@@ -5509,13 +5509,13 @@
           "t_bool": {
             "label": "bool"
           },
-          "t_contract(IStrategy)33023": {
+          "t_contract(IStrategy)34233": {
             "label": "contract IStrategy"
           },
           "t_array(t_address)dyn_storage": {
             "label": "address[]"
           },
-          "t_contract(IVault)33993": {
+          "t_contract(IVault)35203": {
             "label": "contract IVault"
           },
           "t_array(t_uint256)49_storage": {
@@ -6786,6 +6786,1132 @@
           },
           "t_bool": {
             "label": "bool"
+          }
+        }
+      }
+    },
+    "dbdc2cdb6b2f81fe44e876dafd81b1d4a2f5911daf0930ea93ecff1c3a4aaa5a": {
+      "address": "0xd163EeEAC018e0002f1aBB148dC8cCa6D939932d",
+      "txHash": "0x2975046a9ab0acd968d444c6a4a02fbfcd13a63912e609de52ecb0ab33c7dff0",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:20"
+          },
+          {
+            "contract": "Initializable",
+            "label": "initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:25"
+          },
+          {
+            "contract": "Initializable",
+            "label": "______gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:60"
+          },
+          {
+            "contract": "ContextUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol:37"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:18"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:78"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "_notEntered",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:21"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:63"
+          },
+          {
+            "contract": "SpookyWorker03Migrate",
+            "label": "spookyMasterChef",
+            "type": "t_contract(ISpookyMasterChef)34117",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03Migrate.sol:68"
+          },
+          {
+            "contract": "SpookyWorker03Migrate",
+            "label": "factory",
+            "type": "t_contract(ISwapFactoryLike)34475",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03Migrate.sol:70"
+          },
+          {
+            "contract": "SpookyWorker03Migrate",
+            "label": "router",
+            "type": "t_contract(ISwapRouter02Like)35113",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03Migrate.sol:70"
+          },
+          {
+            "contract": "SpookyWorker03Migrate",
+            "label": "lpToken",
+            "type": "t_contract(ISwapPairLike)34717",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03Migrate.sol:72"
+          },
+          {
+            "contract": "SpookyWorker03Migrate",
+            "label": "wNative",
+            "type": "t_address",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03Migrate.sol:73"
+          },
+          {
+            "contract": "SpookyWorker03Migrate",
+            "label": "baseToken",
+            "type": "t_address",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03Migrate.sol:73"
+          },
+          {
+            "contract": "SpookyWorker03Migrate",
+            "label": "farmingToken",
+            "type": "t_address",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03Migrate.sol:75"
+          },
+          {
+            "contract": "SpookyWorker03Migrate",
+            "label": "boo",
+            "type": "t_address",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03Migrate.sol:78"
+          },
+          {
+            "contract": "SpookyWorker03Migrate",
+            "label": "operator",
+            "type": "t_address",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03Migrate.sol:78"
+          },
+          {
+            "contract": "SpookyWorker03Migrate",
+            "label": "pid",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03Migrate.sol:79"
+          },
+          {
+            "contract": "SpookyWorker03Migrate",
+            "label": "shares",
+            "type": "t_mapping(t_uint256,t_uint256)",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03Migrate.sol:81"
+          },
+          {
+            "contract": "SpookyWorker03Migrate",
+            "label": "okStrats",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03Migrate.sol:82"
+          },
+          {
+            "contract": "SpookyWorker03Migrate",
+            "label": "totalShare",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03Migrate.sol:84"
+          },
+          {
+            "contract": "SpookyWorker03Migrate",
+            "label": "addStrat",
+            "type": "t_contract(IStrategy)34233",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03Migrate.sol:85"
+          },
+          {
+            "contract": "SpookyWorker03Migrate",
+            "label": "liqStrat",
+            "type": "t_contract(IStrategy)34233",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03Migrate.sol:86"
+          },
+          {
+            "contract": "SpookyWorker03Migrate",
+            "label": "reinvestBountyBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03Migrate.sol:86"
+          },
+          {
+            "contract": "SpookyWorker03Migrate",
+            "label": "maxReinvestBountyBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03Migrate.sol:87"
+          },
+          {
+            "contract": "SpookyWorker03Migrate",
+            "label": "okReinvestors",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03Migrate.sol:89"
+          },
+          {
+            "contract": "SpookyWorker03Migrate",
+            "label": "fee",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03Migrate.sol:91"
+          },
+          {
+            "contract": "SpookyWorker03Migrate",
+            "label": "feeDenom",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03Migrate.sol:92"
+          },
+          {
+            "contract": "SpookyWorker03Migrate",
+            "label": "reinvestThreshold",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03Migrate.sol:93"
+          },
+          {
+            "contract": "SpookyWorker03Migrate",
+            "label": "reinvestPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03Migrate.sol:94"
+          },
+          {
+            "contract": "SpookyWorker03Migrate",
+            "label": "treasuryAccount",
+            "type": "t_address",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03Migrate.sol:95"
+          },
+          {
+            "contract": "SpookyWorker03Migrate",
+            "label": "treasuryBountyBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03Migrate.sol:96"
+          },
+          {
+            "contract": "SpookyWorker03Migrate",
+            "label": "beneficialVault",
+            "type": "t_contract(IVault)35203",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03Migrate.sol:96"
+          },
+          {
+            "contract": "SpookyWorker03Migrate",
+            "label": "beneficialVaultBountyBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03Migrate.sol:97"
+          },
+          {
+            "contract": "SpookyWorker03Migrate",
+            "label": "rewardPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03Migrate.sol:100"
+          },
+          {
+            "contract": "SpookyWorker03Migrate",
+            "label": "buybackAmount",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03Migrate.sol:100"
+          },
+          {
+            "contract": "SpookyWorker03Migrate",
+            "label": "spookyMasterChefV2",
+            "type": "t_contract(ISpookyMasterChefV2)34186",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyWorker03Migrate.sol:102"
+          }
+        ],
+        "types": {
+          "t_contract(ISpookyMasterChef)34117": {
+            "label": "contract ISpookyMasterChef"
+          },
+          "t_contract(ISwapFactoryLike)34475": {
+            "label": "contract ISwapFactoryLike"
+          },
+          "t_contract(ISwapRouter02Like)35113": {
+            "label": "contract ISwapRouter02Like"
+          },
+          "t_contract(ISwapPairLike)34717": {
+            "label": "contract ISwapPairLike"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_uint256,t_uint256)": {
+            "label": "mapping(uint256 => uint256)"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_contract(IStrategy)34233": {
+            "label": "contract IStrategy"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]"
+          },
+          "t_contract(IVault)35203": {
+            "label": "contract IVault"
+          },
+          "t_contract(ISpookyMasterChefV2)34186": {
+            "label": "contract ISpookyMasterChefV2"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "e9636d25c2870a2b942e14998ed4b2b8bcef1eff8a7eecce7ce2016554af259b": {
+      "address": "0x041505102f3ECE25bece5D3AA2744Af9f70C8F8A",
+      "txHash": "0x66030181c5781a4166468c6dd49e00f2397b6251edb89ac3309af6554fa1a7b4",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:74"
+          },
+          {
+            "contract": "DeltaNeutralSpookyWorker03Migrate",
+            "label": "spookyMasterChef",
+            "type": "t_contract(ISpookyMasterChef)15179",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03Migrate.sol:92"
+          },
+          {
+            "contract": "DeltaNeutralSpookyWorker03Migrate",
+            "label": "factory",
+            "type": "t_contract(ISwapFactoryLike)15600",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03Migrate.sol:94"
+          },
+          {
+            "contract": "DeltaNeutralSpookyWorker03Migrate",
+            "label": "router",
+            "type": "t_contract(ISwapRouter02Like)16339",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03Migrate.sol:94"
+          },
+          {
+            "contract": "DeltaNeutralSpookyWorker03Migrate",
+            "label": "lpToken",
+            "type": "t_contract(ISwapPairLike)15842",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03Migrate.sol:95"
+          },
+          {
+            "contract": "DeltaNeutralSpookyWorker03Migrate",
+            "label": "priceOracle",
+            "type": "t_contract(IDeltaNeutralOracle)13017",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03Migrate.sol:97"
+          },
+          {
+            "contract": "DeltaNeutralSpookyWorker03Migrate",
+            "label": "wNative",
+            "type": "t_address",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03Migrate.sol:98"
+          },
+          {
+            "contract": "DeltaNeutralSpookyWorker03Migrate",
+            "label": "baseToken",
+            "type": "t_address",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03Migrate.sol:98"
+          },
+          {
+            "contract": "DeltaNeutralSpookyWorker03Migrate",
+            "label": "farmingToken",
+            "type": "t_address",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03Migrate.sol:100"
+          },
+          {
+            "contract": "DeltaNeutralSpookyWorker03Migrate",
+            "label": "boo",
+            "type": "t_address",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03Migrate.sol:103"
+          },
+          {
+            "contract": "DeltaNeutralSpookyWorker03Migrate",
+            "label": "operator",
+            "type": "t_address",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03Migrate.sol:103"
+          },
+          {
+            "contract": "DeltaNeutralSpookyWorker03Migrate",
+            "label": "pid",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03Migrate.sol:104"
+          },
+          {
+            "contract": "DeltaNeutralSpookyWorker03Migrate",
+            "label": "okStrats",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03Migrate.sol:105"
+          },
+          {
+            "contract": "DeltaNeutralSpookyWorker03Migrate",
+            "label": "addStrat",
+            "type": "t_contract(IStrategy)15358",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03Migrate.sol:107"
+          },
+          {
+            "contract": "DeltaNeutralSpookyWorker03Migrate",
+            "label": "reinvestBountyBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03Migrate.sol:107"
+          },
+          {
+            "contract": "DeltaNeutralSpookyWorker03Migrate",
+            "label": "maxReinvestBountyBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03Migrate.sol:108"
+          },
+          {
+            "contract": "DeltaNeutralSpookyWorker03Migrate",
+            "label": "okReinvestors",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03Migrate.sol:109"
+          },
+          {
+            "contract": "DeltaNeutralSpookyWorker03Migrate",
+            "label": "whitelistCallers",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03Migrate.sol:111"
+          },
+          {
+            "contract": "DeltaNeutralSpookyWorker03Migrate",
+            "label": "reinvestThreshold",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03Migrate.sol:113"
+          },
+          {
+            "contract": "DeltaNeutralSpookyWorker03Migrate",
+            "label": "reinvestPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03Migrate.sol:114"
+          },
+          {
+            "contract": "DeltaNeutralSpookyWorker03Migrate",
+            "label": "treasuryAccount",
+            "type": "t_address",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03Migrate.sol:115"
+          },
+          {
+            "contract": "DeltaNeutralSpookyWorker03Migrate",
+            "label": "treasuryBountyBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03Migrate.sol:116"
+          },
+          {
+            "contract": "DeltaNeutralSpookyWorker03Migrate",
+            "label": "beneficialVault",
+            "type": "t_contract(IVault)16413",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03Migrate.sol:116"
+          },
+          {
+            "contract": "DeltaNeutralSpookyWorker03Migrate",
+            "label": "beneficialVaultBountyBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03Migrate.sol:117"
+          },
+          {
+            "contract": "DeltaNeutralSpookyWorker03Migrate",
+            "label": "rewardPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03Migrate.sol:119"
+          },
+          {
+            "contract": "DeltaNeutralSpookyWorker03Migrate",
+            "label": "buybackAmount",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03Migrate.sol:121"
+          },
+          {
+            "contract": "DeltaNeutralSpookyWorker03Migrate",
+            "label": "totalLpBalance",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03Migrate.sol:121"
+          },
+          {
+            "contract": "DeltaNeutralSpookyWorker03Migrate",
+            "label": "spookyMasterChefV2",
+            "type": "t_contract(ISpookyMasterChefV2)15312",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyWorker03Migrate.sol:123"
+          }
+        ],
+        "types": {
+          "t_contract(ISpookyMasterChef)15179": {
+            "label": "contract ISpookyMasterChef"
+          },
+          "t_contract(ISwapFactoryLike)15600": {
+            "label": "contract ISwapFactoryLike"
+          },
+          "t_contract(ISwapRouter02Like)16339": {
+            "label": "contract ISwapRouter02Like"
+          },
+          "t_contract(ISwapPairLike)15842": {
+            "label": "contract ISwapPairLike"
+          },
+          "t_contract(IDeltaNeutralOracle)13017": {
+            "label": "contract IDeltaNeutralOracle"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_contract(IStrategy)15358": {
+            "label": "contract IStrategy"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]"
+          },
+          "t_contract(IVault)16413": {
+            "label": "contract IVault"
+          },
+          "t_contract(ISpookyMasterChefV2)15312": {
+            "label": "contract ISpookyMasterChefV2"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "b6cb34cc082fe47f1183301dde9fc268025aa7c97167958178d4ea6ca442b09c": {
+      "address": "0x8EEB147202a36c70Ba33618df279bb5437A711e0",
+      "txHash": "0x0fc2a455247ab783c3ad9f054facba3cfa6e11585067fb2d5edbfc416293d35a",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:20"
+          },
+          {
+            "contract": "Initializable",
+            "label": "initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:25"
+          },
+          {
+            "contract": "Initializable",
+            "label": "______gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:60"
+          },
+          {
+            "contract": "ContextUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol:37"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:18"
+          },
+          {
+            "contract": "OwnableUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:78"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "_notEntered",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:21"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:63"
+          },
+          {
+            "contract": "SpookyMCV2Worker03",
+            "label": "spookyMasterChef",
+            "type": "t_contract(ISpookyMasterChef)34117",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyMCV2Worker03.sol:69"
+          },
+          {
+            "contract": "SpookyMCV2Worker03",
+            "label": "factory",
+            "type": "t_contract(ISwapFactoryLike)34475",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyMCV2Worker03.sol:71"
+          },
+          {
+            "contract": "SpookyMCV2Worker03",
+            "label": "router",
+            "type": "t_contract(ISwapRouter02Like)35113",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyMCV2Worker03.sol:71"
+          },
+          {
+            "contract": "SpookyMCV2Worker03",
+            "label": "lpToken",
+            "type": "t_contract(ISwapPairLike)34717",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyMCV2Worker03.sol:73"
+          },
+          {
+            "contract": "SpookyMCV2Worker03",
+            "label": "wNative",
+            "type": "t_address",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyMCV2Worker03.sol:74"
+          },
+          {
+            "contract": "SpookyMCV2Worker03",
+            "label": "baseToken",
+            "type": "t_address",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyMCV2Worker03.sol:74"
+          },
+          {
+            "contract": "SpookyMCV2Worker03",
+            "label": "farmingToken",
+            "type": "t_address",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyMCV2Worker03.sol:76"
+          },
+          {
+            "contract": "SpookyMCV2Worker03",
+            "label": "boo",
+            "type": "t_address",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyMCV2Worker03.sol:79"
+          },
+          {
+            "contract": "SpookyMCV2Worker03",
+            "label": "operator",
+            "type": "t_address",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyMCV2Worker03.sol:79"
+          },
+          {
+            "contract": "SpookyMCV2Worker03",
+            "label": "pid",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyMCV2Worker03.sol:80"
+          },
+          {
+            "contract": "SpookyMCV2Worker03",
+            "label": "shares",
+            "type": "t_mapping(t_uint256,t_uint256)",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyMCV2Worker03.sol:82"
+          },
+          {
+            "contract": "SpookyMCV2Worker03",
+            "label": "okStrats",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyMCV2Worker03.sol:83"
+          },
+          {
+            "contract": "SpookyMCV2Worker03",
+            "label": "totalShare",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyMCV2Worker03.sol:85"
+          },
+          {
+            "contract": "SpookyMCV2Worker03",
+            "label": "addStrat",
+            "type": "t_contract(IStrategy)34233",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyMCV2Worker03.sol:86"
+          },
+          {
+            "contract": "SpookyMCV2Worker03",
+            "label": "liqStrat",
+            "type": "t_contract(IStrategy)34233",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyMCV2Worker03.sol:87"
+          },
+          {
+            "contract": "SpookyMCV2Worker03",
+            "label": "reinvestBountyBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyMCV2Worker03.sol:87"
+          },
+          {
+            "contract": "SpookyMCV2Worker03",
+            "label": "maxReinvestBountyBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyMCV2Worker03.sol:88"
+          },
+          {
+            "contract": "SpookyMCV2Worker03",
+            "label": "okReinvestors",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyMCV2Worker03.sol:90"
+          },
+          {
+            "contract": "SpookyMCV2Worker03",
+            "label": "fee",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyMCV2Worker03.sol:92"
+          },
+          {
+            "contract": "SpookyMCV2Worker03",
+            "label": "feeDenom",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyMCV2Worker03.sol:93"
+          },
+          {
+            "contract": "SpookyMCV2Worker03",
+            "label": "reinvestThreshold",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyMCV2Worker03.sol:94"
+          },
+          {
+            "contract": "SpookyMCV2Worker03",
+            "label": "reinvestPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyMCV2Worker03.sol:95"
+          },
+          {
+            "contract": "SpookyMCV2Worker03",
+            "label": "treasuryAccount",
+            "type": "t_address",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyMCV2Worker03.sol:96"
+          },
+          {
+            "contract": "SpookyMCV2Worker03",
+            "label": "treasuryBountyBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyMCV2Worker03.sol:97"
+          },
+          {
+            "contract": "SpookyMCV2Worker03",
+            "label": "beneficialVault",
+            "type": "t_contract(IVault)35203",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyMCV2Worker03.sol:97"
+          },
+          {
+            "contract": "SpookyMCV2Worker03",
+            "label": "beneficialVaultBountyBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyMCV2Worker03.sol:98"
+          },
+          {
+            "contract": "SpookyMCV2Worker03",
+            "label": "rewardPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyMCV2Worker03.sol:101"
+          },
+          {
+            "contract": "SpookyMCV2Worker03",
+            "label": "buybackAmount",
+            "type": "t_uint256",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyMCV2Worker03.sol:101"
+          },
+          {
+            "contract": "SpookyMCV2Worker03",
+            "label": "spookyMasterChefV2",
+            "type": "t_contract(ISpookyMasterChefV2)34186",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyMCV2Worker03.sol:102"
+          },
+          {
+            "contract": "SpookyMCV2Worker03",
+            "label": "rewardTokenReinvestPaths",
+            "type": "t_mapping(t_address,t_array(t_address)dyn_storage)",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyMCV2Worker03.sol:103"
+          },
+          {
+            "contract": "SpookyMCV2Worker03",
+            "label": "rewardTokenRevSharePaths",
+            "type": "t_mapping(t_address,t_array(t_address)dyn_storage)",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyMCV2Worker03.sol:104"
+          },
+          {
+            "contract": "SpookyMCV2Worker03",
+            "label": "cachedRewardTokens",
+            "type": "t_array(t_contract(IERC20)1174)dyn_storage",
+            "src": "solidity/contracts/6/protocol/workers/spookyswap/SpookyMCV2Worker03.sol:107"
+          }
+        ],
+        "types": {
+          "t_contract(ISpookyMasterChef)34117": {
+            "label": "contract ISpookyMasterChef"
+          },
+          "t_contract(ISwapFactoryLike)34475": {
+            "label": "contract ISwapFactoryLike"
+          },
+          "t_contract(ISwapRouter02Like)35113": {
+            "label": "contract ISwapRouter02Like"
+          },
+          "t_contract(ISwapPairLike)34717": {
+            "label": "contract ISwapPairLike"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_uint256,t_uint256)": {
+            "label": "mapping(uint256 => uint256)"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_contract(IStrategy)34233": {
+            "label": "contract IStrategy"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]"
+          },
+          "t_contract(IVault)35203": {
+            "label": "contract IVault"
+          },
+          "t_contract(ISpookyMasterChefV2)34186": {
+            "label": "contract ISpookyMasterChefV2"
+          },
+          "t_mapping(t_address,t_array(t_address)dyn_storage)": {
+            "label": "mapping(address => address[])"
+          },
+          "t_array(t_contract(IERC20)1174)dyn_storage": {
+            "label": "contract IERC20[]"
+          },
+          "t_contract(IERC20)1174": {
+            "label": "contract IERC20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "44f23cb7782cc83c4e4af6d3ae8a690c04c137d9099a8a8a13debb3baa20de3c": {
+      "address": "0x402cE8dB87F16aDdc9923590490E7f9B49d69F35",
+      "txHash": "0xb68153f41a8bb7424f5261b04257a51ecf29eeb6c2a80935b3dd52052d9cbfaa",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:74"
+          },
+          {
+            "contract": "DeltaNeutralSpookyMCV2Worker03",
+            "label": "spookyMasterChef",
+            "type": "t_contract(ISpookyMasterChef)15179",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyMCV2Worker03.sol:93"
+          },
+          {
+            "contract": "DeltaNeutralSpookyMCV2Worker03",
+            "label": "factory",
+            "type": "t_contract(ISwapFactoryLike)15600",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyMCV2Worker03.sol:95"
+          },
+          {
+            "contract": "DeltaNeutralSpookyMCV2Worker03",
+            "label": "router",
+            "type": "t_contract(ISwapRouter02Like)16339",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyMCV2Worker03.sol:95"
+          },
+          {
+            "contract": "DeltaNeutralSpookyMCV2Worker03",
+            "label": "lpToken",
+            "type": "t_contract(ISwapPairLike)15842",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyMCV2Worker03.sol:96"
+          },
+          {
+            "contract": "DeltaNeutralSpookyMCV2Worker03",
+            "label": "priceOracle",
+            "type": "t_contract(IDeltaNeutralOracle)13017",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyMCV2Worker03.sol:98"
+          },
+          {
+            "contract": "DeltaNeutralSpookyMCV2Worker03",
+            "label": "wNative",
+            "type": "t_address",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyMCV2Worker03.sol:99"
+          },
+          {
+            "contract": "DeltaNeutralSpookyMCV2Worker03",
+            "label": "baseToken",
+            "type": "t_address",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyMCV2Worker03.sol:99"
+          },
+          {
+            "contract": "DeltaNeutralSpookyMCV2Worker03",
+            "label": "farmingToken",
+            "type": "t_address",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyMCV2Worker03.sol:101"
+          },
+          {
+            "contract": "DeltaNeutralSpookyMCV2Worker03",
+            "label": "boo",
+            "type": "t_address",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyMCV2Worker03.sol:104"
+          },
+          {
+            "contract": "DeltaNeutralSpookyMCV2Worker03",
+            "label": "operator",
+            "type": "t_address",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyMCV2Worker03.sol:104"
+          },
+          {
+            "contract": "DeltaNeutralSpookyMCV2Worker03",
+            "label": "pid",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyMCV2Worker03.sol:105"
+          },
+          {
+            "contract": "DeltaNeutralSpookyMCV2Worker03",
+            "label": "okStrats",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyMCV2Worker03.sol:106"
+          },
+          {
+            "contract": "DeltaNeutralSpookyMCV2Worker03",
+            "label": "addStrat",
+            "type": "t_contract(IStrategy)15358",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyMCV2Worker03.sol:108"
+          },
+          {
+            "contract": "DeltaNeutralSpookyMCV2Worker03",
+            "label": "reinvestBountyBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyMCV2Worker03.sol:108"
+          },
+          {
+            "contract": "DeltaNeutralSpookyMCV2Worker03",
+            "label": "maxReinvestBountyBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyMCV2Worker03.sol:109"
+          },
+          {
+            "contract": "DeltaNeutralSpookyMCV2Worker03",
+            "label": "okReinvestors",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyMCV2Worker03.sol:110"
+          },
+          {
+            "contract": "DeltaNeutralSpookyMCV2Worker03",
+            "label": "whitelistCallers",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyMCV2Worker03.sol:112"
+          },
+          {
+            "contract": "DeltaNeutralSpookyMCV2Worker03",
+            "label": "reinvestThreshold",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyMCV2Worker03.sol:114"
+          },
+          {
+            "contract": "DeltaNeutralSpookyMCV2Worker03",
+            "label": "reinvestPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyMCV2Worker03.sol:115"
+          },
+          {
+            "contract": "DeltaNeutralSpookyMCV2Worker03",
+            "label": "treasuryAccount",
+            "type": "t_address",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyMCV2Worker03.sol:116"
+          },
+          {
+            "contract": "DeltaNeutralSpookyMCV2Worker03",
+            "label": "treasuryBountyBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyMCV2Worker03.sol:117"
+          },
+          {
+            "contract": "DeltaNeutralSpookyMCV2Worker03",
+            "label": "beneficialVault",
+            "type": "t_contract(IVault)16413",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyMCV2Worker03.sol:117"
+          },
+          {
+            "contract": "DeltaNeutralSpookyMCV2Worker03",
+            "label": "beneficialVaultBountyBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyMCV2Worker03.sol:118"
+          },
+          {
+            "contract": "DeltaNeutralSpookyMCV2Worker03",
+            "label": "rewardPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyMCV2Worker03.sol:120"
+          },
+          {
+            "contract": "DeltaNeutralSpookyMCV2Worker03",
+            "label": "buybackAmount",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyMCV2Worker03.sol:122"
+          },
+          {
+            "contract": "DeltaNeutralSpookyMCV2Worker03",
+            "label": "totalLpBalance",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyMCV2Worker03.sol:122"
+          },
+          {
+            "contract": "DeltaNeutralSpookyMCV2Worker03",
+            "label": "spookyMasterChefV2",
+            "type": "t_contract(ISpookyMasterChefV2)15312",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyMCV2Worker03.sol:123"
+          },
+          {
+            "contract": "DeltaNeutralSpookyMCV2Worker03",
+            "label": "rewardTokenReinvestPaths",
+            "type": "t_mapping(t_address,t_array(t_address)dyn_storage)",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyMCV2Worker03.sol:124"
+          },
+          {
+            "contract": "DeltaNeutralSpookyMCV2Worker03",
+            "label": "rewardTokenRevSharePaths",
+            "type": "t_mapping(t_address,t_array(t_address)dyn_storage)",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyMCV2Worker03.sol:125"
+          },
+          {
+            "contract": "DeltaNeutralSpookyMCV2Worker03",
+            "label": "cachedRewardTokens",
+            "type": "t_array(t_contract(IERC20)13284)dyn_storage",
+            "src": "solidity/contracts/8.10/protocol/workers/spooky/DeltaNeutralSpookyMCV2Worker03.sol:128"
+          }
+        ],
+        "types": {
+          "t_contract(ISpookyMasterChef)15179": {
+            "label": "contract ISpookyMasterChef"
+          },
+          "t_contract(ISwapFactoryLike)15600": {
+            "label": "contract ISwapFactoryLike"
+          },
+          "t_contract(ISwapRouter02Like)16339": {
+            "label": "contract ISwapRouter02Like"
+          },
+          "t_contract(ISwapPairLike)15842": {
+            "label": "contract ISwapPairLike"
+          },
+          "t_contract(IDeltaNeutralOracle)13017": {
+            "label": "contract IDeltaNeutralOracle"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_contract(IStrategy)15358": {
+            "label": "contract IStrategy"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]"
+          },
+          "t_contract(IVault)16413": {
+            "label": "contract IVault"
+          },
+          "t_contract(ISpookyMasterChefV2)15312": {
+            "label": "contract ISpookyMasterChefV2"
+          },
+          "t_mapping(t_address,t_array(t_address)dyn_storage)": {
+            "label": "mapping(address => address[])"
+          },
+          "t_array(t_contract(IERC20)13284)dyn_storage": {
+            "label": "contract IERC20[]"
+          },
+          "t_contract(IERC20)13284": {
+            "label": "contract IERC20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
           }
         }
       }

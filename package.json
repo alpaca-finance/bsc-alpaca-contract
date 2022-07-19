@@ -299,6 +299,7 @@
     "deploy:fantom_mainnet:strategies:deploy:spookyswap:vault-strategies": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags SpookySwapRestrictedVaultStrategies",
     "deploy:fantom_mainnet:workers:deploy:spookyswap-workers03": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags SpookyWorkers03",
     "deploy:fantom_mainnet:workers:deploy:tomb-workers03": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags TombWorkers03",
+    "deploy:fantom_mainnet:workers:upgrade:workers": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags UpgradeWorkers",
     "deploy:fantom_mainnet:timelock:deploy:timelock": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags Timelock",
     "deploy:fantom_mainnet:minifl:deploy:minifl": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags MiniFL",
     "deploy:fantom_mainnet:rewarder1:deploy:rewarder1": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags Rewarder1",
