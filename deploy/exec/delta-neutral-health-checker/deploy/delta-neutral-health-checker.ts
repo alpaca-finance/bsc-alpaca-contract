@@ -22,7 +22,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     deployer,
     "DeltaNeutralVault04HealthChecker"
   );
-
   const { contract: deltaHealthchecker } = await deltaNeutralVault04HealthChecker.deploy([]);
 
   configFileHelper.setDeltaNeutralHealthChecker(deltaHealthchecker.address);
