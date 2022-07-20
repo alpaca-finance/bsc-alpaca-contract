@@ -59,6 +59,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       console.log(`Checking FAILED ${vault.symbol}`);
     }
   }
+  console.log("------------------");
   console.log("✅ Done");
 };
 
