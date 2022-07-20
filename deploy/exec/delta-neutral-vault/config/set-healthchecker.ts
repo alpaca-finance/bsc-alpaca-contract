@@ -47,14 +47,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   for (const vault of vaults) {
     console.log("------------------");
-    console.log(`> Setting Config ${vault.symbol} setDeltaNeutralVaultHealthChecker`);
+    console.log(
+      `> setDeltaNeutralVaultHealthChecker ${vault.symbol} checkerAddress: ${config.DeltaNeutralVaultHealthChecker}`
+    );
     const deltaNeutralVault04 = DeltaNeutralVault04__factory.connect(vault.address, deployer);
     const ops = isFork() ? { nonce: nonce++, gasLimit: 2000000 } : { nonce: nonce++ };
     const tx = await deltaNeutralVault04.setDeltaNeutralVaultHealthChecker(config.DeltaNeutralVaultHealthChecker, ops);
     await tx.wait(3);
     const checker = await deltaNeutralVault04.checker();
     if (compare(checker, config.DeltaNeutralVaultHealthChecker)) {
-      console.log(`✅ Checking Done  ${vault.symbol}`);
+      console.log(`✅ Checking DONE`);
     } else {
       console.log(`Checking FAILED ${vault.symbol}`);
     }
