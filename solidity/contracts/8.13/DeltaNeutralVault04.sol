@@ -83,6 +83,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
   error DeltaNeutralVault04_InvalidInitializedAddress();
   error DeltaNeutralVault04_UnsupportedDecimals(uint256 _decimals);
   error DeltaNeutralVault04_InvalidShareAmount();
+  error DeltaNeutralVault04_InvalidRepurchaseTokenIn();
 
   // --- Constants ---
   uint64 private constant MAX_BPS = 10000;
@@ -508,7 +509,12 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     uint256 _amountIn,
     uint256 _minAmountOut
   ) external nonReentrant returns (uint256 amountIn, uint256 amountOut) {
-    return (1e20, 1e20);
+    int256 _assetExposure = getExposure();
+    if (_assetExposure > 0) {
+      if (_tokenIn != stableToken) revert DeltaNeutralVault04_InvalidRepurchaseTokenIn();
+    } else {
+      if (_tokenIn != assetToken) revert DeltaNeutralVault04_InvalidRepurchaseTokenIn();
+    }
   }
 
   /// @notice Return stable token, asset token and native token balance.

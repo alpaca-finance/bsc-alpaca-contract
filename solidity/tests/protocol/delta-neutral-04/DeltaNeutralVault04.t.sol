@@ -228,9 +228,7 @@ contract DeltaNeutralVault04_Test is BaseTest {
     _deltaNeutralVault.reinvest(abi.encode(0), 0);
   }
 
-  function testCorrectness_GetExposureShouldWork() external {
-    console.log("_stableVaultWorker", _stableVaultWorker.totalLpBalance());
-    console.log("_assetVaultWorker", _assetVaultWorker.totalLpBalance());
+  function testCorrectness_GetPositiveExposureShouldWork() external {
     _assetVault.setDebt(20 ether, 20 ether);
     _lpToken.totalSupply.mockv(200 ether);
     _lpToken.getReserves.mockv(100 ether, 100 ether, uint32(block.timestamp));
@@ -239,17 +237,68 @@ contract DeltaNeutralVault04_Test is BaseTest {
     assertEq(_exposure, 55 ether);
   }
 
-  function testCorrectness_RepurchaseShouldWork() external {
+  function testCorrectness_GetNegativeExposureShouldWork() external {
+    _assetVault.setDebt(100 ether, 100 ether);
+    _lpToken.totalSupply.mockv(200 ether);
+    _lpToken.getReserves.mockv(100 ether, 100 ether, uint32(block.timestamp));
+    _lpToken.token0.mockv(address(_stableToken));
+    int256 _exposure = _deltaNeutralVault.getExposure();
+    assertEq(_exposure, -25 ether);
+  }
+
+  function testCorrectness_GetZeroExposureShouldWork() external {
+    _assetVault.setDebt(75 ether, 75 ether);
+    _lpToken.totalSupply.mockv(200 ether);
+    _lpToken.getReserves.mockv(100 ether, 100 ether, uint32(block.timestamp));
+    _lpToken.token0.mockv(address(_stableToken));
+    int256 _exposure = _deltaNeutralVault.getExposure();
+    assertEq(_exposure, 0 ether);
+  }
+
+  function testRevert_RepurchaseWithStableTokenWhileExposureIsNegativeShouldRevert() external {
+    _assetVault.setDebt(100 ether, 100 ether);
+    _lpToken.totalSupply.mockv(200 ether);
+    _lpToken.getReserves.mockv(100 ether, 100 ether, uint32(block.timestamp));
+    _lpToken.token0.mockv(address(_stableToken));
+
     uint256 _amountToPurchase = 100 ether;
     uint256 _minReceiveAmount = 100 ether;
-    (uint256 _amountIn, uint256 _amountOut) = _deltaNeutralVault.repurchase(
-      address(_stableToken),
-      _amountToPurchase,
-      _minReceiveAmount
-    );
+    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault04_InvalidRepurchaseTokenIn()"));
+    _deltaNeutralVault.repurchase(address(_stableToken), _amountToPurchase, _minReceiveAmount);
+  }
 
-    assertEq(_amountIn, 100 ether);
-    assertEq(_amountOut, 100 ether);
+  function testRevert_RepurchaseWithAssetTokenWhileExposureIsPositiveShouldRevert() external {
+    _assetVault.setDebt(25 ether, 25 ether);
+    _lpToken.totalSupply.mockv(200 ether);
+    _lpToken.getReserves.mockv(100 ether, 100 ether, uint32(block.timestamp));
+    _lpToken.token0.mockv(address(_stableToken));
+
+    uint256 _amountToPurchase = 100 ether;
+    uint256 _minReceiveAmount = 100 ether;
+    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault04_InvalidRepurchaseTokenIn()"));
+    _deltaNeutralVault.repurchase(address(_assetToken), _amountToPurchase, _minReceiveAmount);
+  }
+
+  function testCorrectness_RepurchaseWithStableTokenWhileExposureIsPositiveShouldWork() external {
+    _assetVault.setDebt(25 ether, 25 ether);
+    _lpToken.totalSupply.mockv(200 ether);
+    _lpToken.getReserves.mockv(100 ether, 100 ether, uint32(block.timestamp));
+    _lpToken.token0.mockv(address(_stableToken));
+
+    uint256 _amountToPurchase = 100 ether;
+    uint256 _minReceiveAmount = 100 ether;
+    _deltaNeutralVault.repurchase(address(_stableToken), _amountToPurchase, _minReceiveAmount);
+  }
+
+  function testCorrectness_RepurchaseWithAssetTokenWhileExposureIsNegativeShouldWork() external {
+    _assetVault.setDebt(100 ether, 100 ether);
+    _lpToken.totalSupply.mockv(200 ether);
+    _lpToken.getReserves.mockv(100 ether, 100 ether, uint32(block.timestamp));
+    _lpToken.token0.mockv(address(_stableToken));
+
+    uint256 _amountToPurchase = 100 ether;
+    uint256 _minReceiveAmount = 100 ether;
+    _deltaNeutralVault.repurchase(address(_assetToken), _amountToPurchase, _minReceiveAmount);
   }
 
   function testRevert_ReinvestShouldRevertIfEquityIsLost() external {
