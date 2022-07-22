@@ -4,6 +4,7 @@ export interface Config {
   MultiCall: string;
   AUSDStaking?: string;
   Shield?: string;
+  DeltaNeutralVaultHealthChecker?: string;
   MerkleDistributor?: MerkleDistributor;
   GrazingRange?: GrazingRange;
   FairLaunch?: FairLaunch;
