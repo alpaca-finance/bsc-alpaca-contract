@@ -527,6 +527,8 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     // todo: check min amount out
 
     // todo: check equity sanity
+
+    // todo: emit event
   }
 
   /// @notice Return stable token, asset token and native token balance.
