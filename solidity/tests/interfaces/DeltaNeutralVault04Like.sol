@@ -138,6 +138,12 @@ interface DeltaNeutralVault04Like {
 
   function reinvest(bytes memory _data, uint256 _minTokenReceive) external;
 
+  function repurchase(
+    address _tokenIn,
+    uint256 _amountIn,
+    uint256 _minAmountOut
+  ) external returns (uint256 amountIn, uint256 amountOut);
+
   function renounceOwnership() external;
 
   function setDeltaNeutralOracle(address _newPriceOracle) external;

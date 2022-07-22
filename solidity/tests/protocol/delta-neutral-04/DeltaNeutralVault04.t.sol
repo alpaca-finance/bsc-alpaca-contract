@@ -228,6 +228,19 @@ contract DeltaNeutralVault04_Test is BaseTest {
     _deltaNeutralVault.reinvest(abi.encode(0), 0);
   }
 
+  function testCorrectness_RepurchaseShouldWork() external {
+    uint256 _amountToPurchase = 100 ether;
+    uint256 _minReceiveAmount = 100 ether;
+    (uint256 _amountIn, uint256 _amountOut) = _deltaNeutralVault.repurchase(
+      address(_stableToken),
+      _amountToPurchase,
+      _minReceiveAmount
+    );
+
+    assertEq(_amountIn, 100 ether);
+    assertEq(_amountOut, 100 ether);
+  }
+
   function testRevert_ReinvestShouldRevertIfEquityIsLost() external {
     _alpacaToken.mint(address(_deltaNeutralVault), 100 ether);
     _reinvestExecutor.setExecutionValue(100 ether, 200 ether);

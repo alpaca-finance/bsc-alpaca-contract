@@ -500,6 +500,14 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     emit LogReinvest(_equityBefore, _equityAfter);
   }
 
+  function repurchase(
+    address _tokenIn,
+    uint256 _amountIn,
+    uint256 _minAmountOut
+  ) external nonReentrant returns (uint256 amountIn, uint256 amountOut) {
+    return (1e20, 1e20);
+  }
+
   /// @notice Return stable token, asset token and native token balance.
   function _outstanding() internal view returns (Outstanding memory) {
     return
