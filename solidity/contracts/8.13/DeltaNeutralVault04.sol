@@ -515,6 +515,16 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     } else {
       if (_tokenIn != assetToken) revert DeltaNeutralVault04_InvalidRepurchaseTokenIn();
     }
+
+    // todo: check min amount in
+
+    // todo: discount amount in per discount calculation
+
+    // todo: send to executor
+
+    // todo: check min amount out
+
+    // todo: check equity sanity
   }
 
   /// @notice Return stable token, asset token and native token balance.
