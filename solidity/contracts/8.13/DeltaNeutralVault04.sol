@@ -37,6 +37,8 @@ import "./utils/FixedPointMathLib.sol";
 import "./utils/Math.sol";
 import "./utils/FullMath.sol";
 
+import "../../tests/utils/console.sol";
+
 /// @title DeltaNeutralVault04 is designed to take a long and short position in an asset at the same time
 /// to cancel out the effect on the out-standing portfolio when the asset’s price moves.
 /// Moreover, DeltaNeutralVault04 support credit-dependent limit access and executor
@@ -524,8 +526,8 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     uint256 _assetLpAmount = IWorker02(assetVaultWorker).totalLpBalance();
     uint256 _stablePositionValue = _lpToValue(_stableLpAmount);
     uint256 _assetPositionValue = _lpToValue(_assetLpAmount);
-    uint256 _stableDebtValue = _positionDebtValue(stableVault, stableVaultPosId, stableTo18ConversionFactor);
-    uint256 _assetDebtValue = _positionDebtValue(assetVault, assetVaultPosId, assetTo18ConversionFactor);
+    (, uint256 _stableDebtValue) = _positionDebt(stableVault, stableVaultPosId, stableTo18ConversionFactor);
+    (, uint256 _assetDebtValue) = _positionDebt(assetVault, assetVaultPosId, assetTo18ConversionFactor);
 
     return
       PositionInfo({
@@ -560,8 +562,11 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     uint256 _totalPositionValue = _lpToValue(
       IWorker02(stableVaultWorker).totalLpBalance() + IWorker02(assetVaultWorker).totalLpBalance()
     );
-    uint256 _totalDebtValue = _positionDebtValue(stableVault, stableVaultPosId, stableTo18ConversionFactor) +
-      _positionDebtValue(assetVault, assetVaultPosId, assetTo18ConversionFactor);
+    (, uint256 _stablePositionDebt) = _positionDebt(stableVault, stableVaultPosId, stableTo18ConversionFactor);
+    (, uint256 _assetPositionDebt) = _positionDebt(assetVault, assetVaultPosId, assetTo18ConversionFactor);
+
+    uint256 _totalDebtValue = _stablePositionDebt + _assetPositionDebt;
+
     if (_totalPositionValue < _totalDebtValue) {
       return 0;
     }
@@ -603,20 +608,24 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
   /// @notice Return position debt + pending interest value.
   /// @param _vault Vault addrss.
   /// @param _posId Position id.
-  function _positionDebtValue(
+  function _positionDebt(
     address _vault,
     uint256 _posId,
     uint256 _18ConversionFactor
-  ) internal view returns (uint256) {
+  ) internal view returns (uint256 debtAmount, uint256 debtValue) {
+    console.log("enter _positionDebt");
     (, , uint256 _positionDebtShare) = IVault(_vault).positions(_posId);
     address _token = IVault(_vault).token();
     uint256 _vaultDebtShare = IVault(_vault).vaultDebtShare();
     if (_vaultDebtShare == 0) {
-      return (_positionDebtShare * _18ConversionFactor).mulWadDown(_getTokenPrice(_token));
+      debtAmount = _positionDebtShare;
+      debtValue = (_positionDebtShare * _18ConversionFactor).mulWadDown(_getTokenPrice(_token));
+    } else {
+      uint256 _vaultDebtValue = IVault(_vault).vaultDebtVal() + IVault(_vault).pendingInterest(0);
+
+      debtAmount = FullMath.mulDiv(_positionDebtShare, _vaultDebtValue, _vaultDebtShare);
+      debtValue = (debtAmount * _18ConversionFactor).mulWadDown(_getTokenPrice(_token));
     }
-    uint256 _vaultDebtValue = IVault(_vault).vaultDebtVal() + IVault(_vault).pendingInterest(0);
-    uint256 _debtAmount = FullMath.mulDiv(_positionDebtShare, _vaultDebtValue, _vaultDebtShare);
-    return (_debtAmount * _18ConversionFactor).mulWadDown(_getTokenPrice(_token));
   }
 
   /// @notice Return value of given lp amount.
