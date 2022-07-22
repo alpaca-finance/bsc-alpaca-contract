@@ -520,6 +520,8 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
 
     // todo: discount amount in per discount calculation
 
+    // todo: safeTrasnfer from user to address(this)
+
     // todo: send to executor
 
     // todo: check min amount out
