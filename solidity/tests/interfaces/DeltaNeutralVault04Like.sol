@@ -189,6 +189,8 @@ interface DeltaNeutralVault04Like {
     bytes memory _data
   ) external returns (uint256);
 
+  function getExposure() external view returns (int256);
+
   receive() external payable;
 }
 

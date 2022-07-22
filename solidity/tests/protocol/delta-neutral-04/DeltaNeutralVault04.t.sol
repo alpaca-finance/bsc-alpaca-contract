@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4 <0.9.0;
 
-import { BaseTest, DeltaNeutralVault04Like, MockErc20Like, console } from "../../base/BaseTest.sol";
+import { BaseTest, DeltaNeutralVault04Like, MockErc20Like, MockLpErc20Like, console } from "../../base/BaseTest.sol";
 import { mocking } from "../../utils/mocking.sol";
 import { MockContract } from "../../utils/MockContract.sol";
 
@@ -39,7 +39,7 @@ contract DeltaNeutralVault04_Test is BaseTest {
   FakeRouter private _router;
   FakeFairLaunch private _fairLaunch;
 
-  MockErc20Like private _lpToken;
+  MockLpErc20Like private _lpToken;
   MockErc20Like private _alpacaToken;
   MockErc20Like private _stableToken;
   MockErc20Like private _assetToken;
@@ -50,7 +50,7 @@ contract DeltaNeutralVault04_Test is BaseTest {
     _controller = new FakeAutomateVaultController();
     _checker = new DeltaNeutralVault04HealthChecker();
 
-    _lpToken = _setupToken("LP TOKEN", "LP", 18);
+    _lpToken = _setupLpToken("LP TOKEN", "LP", 18);
     _alpacaToken = _setupToken("ALPACA", "ALPACA", 18);
     _stableToken = _setupToken("USDT", "USDT", 18);
     _assetToken = _setupToken("WNATIVE", "WNATIVE", 18);
@@ -226,6 +226,17 @@ contract DeltaNeutralVault04_Test is BaseTest {
     _reinvestExecutor.setExecutionValue(200 ether, 400 ether);
 
     _deltaNeutralVault.reinvest(abi.encode(0), 0);
+  }
+
+  function testCorrectness_GetExposureShouldWork() external {
+    console.log("_stableVaultWorker", _stableVaultWorker.totalLpBalance());
+    console.log("_assetVaultWorker", _assetVaultWorker.totalLpBalance());
+    _assetVault.setDebt(20 ether, 20 ether);
+    _lpToken.totalSupply.mockv(200 ether);
+    _lpToken.getReserves.mockv(100 ether, 100 ether, uint32(block.timestamp));
+    _lpToken.token0.mockv(address(_stableToken));
+    int256 _exposure = _deltaNeutralVault.getExposure();
+    assertEq(_exposure, 55 ether);
   }
 
   function testCorrectness_RepurchaseShouldWork() external {

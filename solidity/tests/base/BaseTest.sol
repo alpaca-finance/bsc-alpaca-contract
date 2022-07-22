@@ -9,6 +9,7 @@ import { console } from "../utils/console.sol";
 import { ProxyAdminLike } from "../interfaces/ProxyAdminLike.sol";
 
 import { MockErc20Like } from "../interfaces/MockErc20Like.sol";
+import { MockLpErc20Like } from "../interfaces/MockLpErc20Like.sol";
 
 import { TripleSlopeModelLike } from "../interfaces/TripleSlopeModelLike.sol";
 
@@ -88,6 +89,22 @@ contract BaseTest is DSTest {
     );
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
     return MockErc20Like(payable(_proxy));
+  }
+
+  function _setupLpToken(
+    string memory _name,
+    string memory _symbol,
+    uint8 _decimals
+  ) internal returns (MockLpErc20Like) {
+    bytes memory _logicBytecode = abi.encodePacked(vm.getCode("./out/MockERC20.sol/MockERC20.json"));
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize(string,string,uint8)")),
+      _name,
+      _symbol,
+      _decimals
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return MockLpErc20Like(payable(_proxy));
   }
 
   function _setupDebtToken(

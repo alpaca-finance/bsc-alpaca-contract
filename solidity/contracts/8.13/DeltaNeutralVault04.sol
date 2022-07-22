@@ -31,6 +31,7 @@ import "./interfaces/IFairLaunch.sol";
 import "./interfaces/ISwapRouter.sol";
 import "./interfaces/IController.sol";
 import "./interfaces/IExecutor.sol";
+import "./interfaces/ISwapPairLike.sol";
 
 import "./utils/SafeToken.sol";
 import "./utils/FixedPointMathLib.sol";
@@ -613,7 +614,6 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     uint256 _posId,
     uint256 _18ConversionFactor
   ) internal view returns (uint256 debtAmount, uint256 debtValue) {
-    console.log("enter _positionDebt");
     (, , uint256 _positionDebtShare) = IVault(_vault).positions(_posId);
     address _token = IVault(_vault).token();
     uint256 _vaultDebtShare = IVault(_vault).vaultDebtShare();
@@ -736,6 +736,16 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     if (_decimals == 18) return 1;
     uint256 _conversionFactor = 10**(18 - _decimals);
     return _conversionFactor;
+  }
+
+  function getExposure() public view returns (int256 _exposure) {
+    uint256 _totalLpAmount = IWorker02(stableVaultWorker).totalLpBalance() +
+      IWorker02(assetVaultWorker).totalLpBalance();
+    uint256 _lpTotalSupply = ISwapPairLike(lpToken).totalSupply();
+    (uint256 _r0, uint256 _r1, ) = ISwapPairLike(lpToken).getReserves();
+    uint256 _assetReserve = stableToken == ISwapPairLike(lpToken).token0() ? _r1 : _r0;
+    (uint256 _assetDebtAmount, ) = _positionDebt(assetVault, assetVaultPosId, assetTo18ConversionFactor);
+    _exposure = int256((_totalLpAmount * _assetReserve) / _lpTotalSupply) - int256(_assetDebtAmount);
   }
 
   /// @dev Fallback function to accept BNB.
