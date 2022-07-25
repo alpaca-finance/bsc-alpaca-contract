@@ -516,7 +516,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     address _tokenIn,
     uint256 _amountIn,
     uint256 _minAmountOut
-  ) external nonReentrant returns (uint256 _discountedAmountIn, uint256 _amountOut) {
+  ) external payable nonReentrant returns (uint256 _discountedAmountIn, uint256 _amountOut) {
     int256 _assetExposure = getExposure();
     if (_assetExposure > 0) {
       if (_tokenIn != stableToken) revert DeltaNeutralVault04_InvalidRepurchaseTokenIn();
@@ -787,13 +787,14 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
   function getExposure() public view returns (int256 _exposure) {
     uint256 _totalLpAmount = IWorker02(stableVaultWorker).totalLpBalance() +
       IWorker02(assetVaultWorker).totalLpBalance();
-    uint256 _lpTotalSupply = ISwapPairLike(lpToken).totalSupply();
     (uint256 _r0, uint256 _r1, ) = ISwapPairLike(lpToken).getReserves();
     uint256 _assetReserve = stableToken == ISwapPairLike(lpToken).token0() ? _r1 : _r0;
     (uint256 _assetDebtAmount, ) = _positionDebt(assetVault, assetVaultPosId, assetTo18ConversionFactor);
 
     // exposure return in the original decimal and not normalized
-    _exposure = int256((_totalLpAmount * _assetReserve) / _lpTotalSupply) - int256(_assetDebtAmount);
+    _exposure =
+      int256((_totalLpAmount * _assetReserve) / ISwapPairLike(lpToken).totalSupply()) -
+      int256(_assetDebtAmount);
   }
 
   /// @dev Fallback function to accept BNB.

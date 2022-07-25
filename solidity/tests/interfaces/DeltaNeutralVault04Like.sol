@@ -142,7 +142,7 @@ interface DeltaNeutralVault04Like {
     address _tokenIn,
     uint256 _amountIn,
     uint256 _minAmountOut
-  ) external returns (uint256 amountIn, uint256 amountOut);
+  ) external payable returns (uint256 amountIn, uint256 amountOut);
 
   function renounceOwnership() external;
 
