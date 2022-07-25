@@ -100,4 +100,30 @@ contract DeltaNeutralVault04_RepurchaseTest is DeltaNeutralVault04Base_Test {
     uint256 _minReceiveAmount = 25 ether;
     _deltaNeutralVault.repurchase(address(_assetToken), _amountToPurchase, _minReceiveAmount);
   }
+
+  function testRevert_RepurchaseMoreThanExposureWhileExposureIsPositiveShouldRevert() external {
+    _assetVault.setDebt(100 ether, 100 ether);
+    _lpToken.totalSupply.mockv(200 ether);
+    _lpToken.getReserves.mockv(100 ether, 100 ether, uint32(block.timestamp));
+    _lpToken.token0.mockv(address(_stableToken));
+
+    uint256 _amountToPurchase = 30 ether;
+    uint256 _minReceiveAmount = 30 ether;
+
+    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault04_NotEnoughExposure()"));
+    _deltaNeutralVault.repurchase(address(_assetToken), _amountToPurchase, _minReceiveAmount);
+  }
+
+  function testRevert_RepurchaseMoreThanExposureWhileExposureIsNegativeShouldRevert() external {
+    _assetVault.setDebt(50 ether, 50 ether);
+    _lpToken.totalSupply.mockv(200 ether);
+    _lpToken.getReserves.mockv(100 ether, 100 ether, uint32(block.timestamp));
+    _lpToken.token0.mockv(address(_stableToken));
+
+    uint256 _amountToPurchase = 30 ether;
+    uint256 _minReceiveAmount = 30 ether;
+
+    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault04_NotEnoughExposure()"));
+    _deltaNeutralVault.repurchase(address(_stableToken), _amountToPurchase, _minReceiveAmount);
+  }
 }
