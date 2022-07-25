@@ -84,6 +84,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
   error DeltaNeutralVault04_UnsupportedDecimals(uint256 _decimals);
   error DeltaNeutralVault04_InvalidShareAmount();
   error DeltaNeutralVault04_InvalidRepurchaseTokenIn();
+  error DeltaNeutralVault04_NotEnoughExposure();
 
   // --- Constants ---
   uint64 private constant MAX_BPS = 10000;
@@ -518,18 +519,19 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
 
     address _tokenOut = _tokenIn == stableToken ? assetToken : stableToken;
 
-    // todo: check min amount in
-
     // todo: discount amount in per discount calculation
     uint256 _amountOut = FullMath.mulDiv(
       _amountIn,
       FullMath.mulDiv(_getTokenPrice(_tokenOut), 1e18, _getTokenPrice(_tokenIn)),
       1e18
     );
+
+    if (_amountOut > uint256(_assetExposure >= 0 ? _assetExposure : (_assetExposure * -1)))
+      revert DeltaNeutralVault04_NotEnoughExposure();
+
     uint256 _discountedAmountIn = FullMath.mulDiv(_amountIn, (MAX_BPS - 15), MAX_BPS);
 
-    // todo: safeTrasnfer from user to address(this)
-    _transferTokenToVault(_tokenIn, _discountedAmountIn);
+    // _transferTokenToVault(_tokenIn, _discountedAmountIn);
 
     // todo: send to executor
 
@@ -776,6 +778,8 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     (uint256 _r0, uint256 _r1, ) = ISwapPairLike(lpToken).getReserves();
     uint256 _assetReserve = stableToken == ISwapPairLike(lpToken).token0() ? _r1 : _r0;
     (uint256 _assetDebtAmount, ) = _positionDebt(assetVault, assetVaultPosId, assetTo18ConversionFactor);
+
+    // exposure return in the original decimal and not normalized
     _exposure = int256((_totalLpAmount * _assetReserve) / _lpTotalSupply) - int256(_assetDebtAmount);
   }
 
