@@ -61,6 +61,13 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
   event LogWithdraw(address indexed _shareOwner, uint256 _minStableTokenAmount, uint256 _minAssetTokenAmount);
   event LogRebalance(uint256 _equityBefore, uint256 _equityAfter);
   event LogReinvest(uint256 _equityBefore, uint256 _equityAfter);
+  event LogRepurchase(
+    address indexed _caller,
+    address _tokenIn,
+    uint256 _amountIn,
+    address _tokenOut,
+    uint256 _amountOut
+  );
   event LogSetDeltaNeutralOracle(address indexed _caller, address _priceOracle);
   event LogSetDeltaNeutralVaultConfig(address indexed _caller, address _config);
   event LogSetDeltaNeutralVaultHealthChecker(address indexed _caller, address _checker);
@@ -529,20 +536,26 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     if (_amountOut > uint256(_assetExposure >= 0 ? _assetExposure : (_assetExposure * -1)))
       revert DeltaNeutralVault04_NotEnoughExposure();
 
+    // todo: min purchase should go here
     if (_amountOut < _minAmountOut)
       revert DeltaNeutralVault04_InsufficientTokenReceived(_tokenOut, _minAmountOut, _amountOut);
 
     uint256 _discountedAmountIn = FullMath.mulDiv(_amountIn, (MAX_BPS - 15), MAX_BPS);
 
-    // _transferTokenToVault(_tokenIn, _discountedAmountIn);
+    _transferTokenToVault(_tokenIn, _discountedAmountIn);
+
+    uint256 _equityBefore = totalEquityValue();
 
     // todo: send to executor
-
-    // todo: check min amount out
     // IExecutor(config.repurchaseExecutor()).exec(abi.encode(_discountedAmountIn, _amountOut));
-    // todo: check equity sanity
 
-    // todo: transfer token out
+    // todo: check equity sanity
+    // uint256 _equityAfter = totalEquityValue();
+    // if (!Math.almostEqual(_equityAfter, _equityBefore, config.positionValueTolerance())) {
+    //   revert DeltaNeutralVault04_UnsafePositionValue();
+    // }
+
+    IERC20Upgradeable(_tokenOut).safeTransfer(msg.sender, _amountOut);
 
     // todo: emit event
   }
