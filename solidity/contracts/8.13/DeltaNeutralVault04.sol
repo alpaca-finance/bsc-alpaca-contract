@@ -526,7 +526,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
 
     address _tokenOut = _tokenIn == stableToken ? assetToken : stableToken;
 
-    uint256 _amountOut = FullMath.mulDiv(
+    _amountOut = FullMath.mulDiv(
       _amountIn,
       FullMath.mulDiv(_getTokenPrice(_tokenOut), 1e18, _getTokenPrice(_tokenIn)),
       1e18

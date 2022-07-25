@@ -133,6 +133,21 @@ contract DeltaNeutralVault04_RepurchaseTest is DeltaNeutralVault04Base_Test {
     assertEq(_actualAmountOut, 25 ether);
   }
 
+  function testRevert_RepurchaseResultInChangesInEquityShouldRevert() external {
+    _assetVault.setDebt(25 ether, 25 ether);
+    _lpToken.totalSupply.mockv(200 ether);
+    _lpToken.getReserves.mockv(100 ether, 100 ether, uint32(block.timestamp));
+    _lpToken.token0.mockv(address(_stableToken));
+
+    uint256 _amountToPurchase = 50 ether;
+    uint256 _minReceiveAmount = 50 ether;
+
+    _repurchaseExecutor.setExecutionValue(50 ether, 75 ether);
+
+    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault04_UnsafePositionValue()"));
+    _deltaNeutralVault.repurchase(address(_stableToken), _amountToPurchase, _minReceiveAmount);
+  }
+
   function testRevert_RepurchaseMoreThanExposureWhileExposureIsPositiveShouldRevert() external {
     _assetVault.setDebt(100 ether, 100 ether);
     _lpToken.totalSupply.mockv(200 ether);
