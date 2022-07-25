@@ -516,7 +516,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     address _tokenIn,
     uint256 _amountIn,
     uint256 _minAmountOut
-  ) external nonReentrant returns (uint256 amountIn, uint256 amountOut) {
+  ) external nonReentrant returns (uint256 _discountedAmountIn, uint256 _amountOut) {
     int256 _assetExposure = getExposure();
     if (_assetExposure > 0) {
       if (_tokenIn != stableToken) revert DeltaNeutralVault04_InvalidRepurchaseTokenIn();
@@ -526,7 +526,6 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
 
     address _tokenOut = _tokenIn == stableToken ? assetToken : stableToken;
 
-    // todo: discount amount in per discount calculation
     uint256 _amountOut = FullMath.mulDiv(
       _amountIn,
       FullMath.mulDiv(_getTokenPrice(_tokenOut), 1e18, _getTokenPrice(_tokenIn)),
@@ -540,24 +539,22 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     if (_amountOut < _minAmountOut)
       revert DeltaNeutralVault04_InsufficientTokenReceived(_tokenOut, _minAmountOut, _amountOut);
 
-    uint256 _discountedAmountIn = FullMath.mulDiv(_amountIn, (MAX_BPS - 15), MAX_BPS);
+    // todo: discount amount in per discount calculation
+    _discountedAmountIn = FullMath.mulDiv(_amountIn, (MAX_BPS - 15), MAX_BPS);
 
     _transferTokenToVault(_tokenIn, _discountedAmountIn);
 
     uint256 _equityBefore = totalEquityValue();
 
-    // todo: send to executor
-    // IExecutor(config.repurchaseExecutor()).exec(abi.encode(_discountedAmountIn, _amountOut));
+    IExecutor(config.repurchaseExecutor()).exec(abi.encode(_tokenIn, _discountedAmountIn, _amountOut));
 
-    // todo: check equity sanity
-    // uint256 _equityAfter = totalEquityValue();
-    // if (!Math.almostEqual(_equityAfter, _equityBefore, config.positionValueTolerance())) {
-    //   revert DeltaNeutralVault04_UnsafePositionValue();
-    // }
+    if (!Math.almostEqual(totalEquityValue(), _equityBefore, config.positionValueTolerance())) {
+      revert DeltaNeutralVault04_UnsafePositionValue();
+    }
 
     IERC20Upgradeable(_tokenOut).safeTransfer(msg.sender, _amountOut);
 
-    // todo: emit event
+    emit LogRepurchase(msg.sender, _tokenIn, _discountedAmountIn, _tokenOut, _amountOut);
   }
 
   /// @notice Return stable token, asset token and native token balance.
