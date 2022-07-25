@@ -65,8 +65,10 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
     address _depositExecutor,
     address _withdrawExecutor,
     address _rebalanceExecutor,
-    address _reinvestExecutor
+    address _reinvestExecutor,
+    address _repurchaseExecutor
   );
+
   event LogSetSwapConfig(address indexed _caller, uint256 swapFee, uint256 swapFeeDenom);
   event LogSetStrategies(
     address indexed _caller,
@@ -169,6 +171,9 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
   address public partialCloseMinimizeStrategy;
   address public stableAddTwoSideStrategy;
   address public assetAddTwoSideStrategy;
+
+  /// Repurchase
+  address public repurchaseExecutor;
 
   function initialize(
     address _getWrappedNativeAddr,
@@ -402,14 +407,23 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
     address _depositExecutor,
     address _withdrawExecutor,
     address _rebalanceExecutor,
-    address _reinvestExecutor
+    address _reinvestExecutor,
+    address _repurchaseExecutor
   ) external onlyOwner {
     depositExecutor = _depositExecutor;
     withdrawExecutor = _withdrawExecutor;
     rebalanceExecutor = _rebalanceExecutor;
     reinvestExecutor = _reinvestExecutor;
+    repurchaseExecutor = _repurchaseExecutor;
 
-    emit LogSetExecutor(msg.sender, _depositExecutor, _withdrawExecutor, _rebalanceExecutor, _reinvestExecutor);
+    emit LogSetExecutor(
+      msg.sender,
+      _depositExecutor,
+      _withdrawExecutor,
+      _rebalanceExecutor,
+      _reinvestExecutor,
+      _repurchaseExecutor
+    );
   }
 
   /// @notice Return if caller is executor.
@@ -419,7 +433,8 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
       _caller == depositExecutor ||
       _caller == withdrawExecutor ||
       _caller == rebalanceExecutor ||
-      _caller == reinvestExecutor;
+      _caller == reinvestExecutor ||
+      _caller == repurchaseExecutor;
   }
 
   function setSwapConfig(uint256 _swapFee, uint256 _swapFeeDenom) external onlyOwner {

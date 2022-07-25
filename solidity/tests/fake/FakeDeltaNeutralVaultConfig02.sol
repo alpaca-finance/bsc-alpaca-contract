@@ -102,6 +102,9 @@ contract FakeDeltaNeutralVaultConfig02 {
   address public stableAddTwoSideStrategy;
   address public assetAddTwoSideStrategy;
 
+  /// Repurchase
+  address public repurchaseExecutor;
+
   function setParams(
     address _getWrappedNativeAddr,
     address _getWNativeRelayer,
@@ -254,12 +257,14 @@ contract FakeDeltaNeutralVaultConfig02 {
     address _depositExecutor,
     address _withdrawExecutor,
     address _rebalanceExecutor,
-    address _reinvestExecutor
+    address _reinvestExecutor,
+    address _repurchaseExecutor
   ) external {
     depositExecutor = _depositExecutor;
     withdrawExecutor = _withdrawExecutor;
     rebalanceExecutor = _rebalanceExecutor;
     reinvestExecutor = _reinvestExecutor;
+    repurchaseExecutor = _repurchaseExecutor;
   }
 
   /// @notice Return if caller is executor.
@@ -269,7 +274,8 @@ contract FakeDeltaNeutralVaultConfig02 {
       _caller == depositExecutor ||
       _caller == withdrawExecutor ||
       _caller == rebalanceExecutor ||
-      _caller == reinvestExecutor;
+      _caller == reinvestExecutor ||
+      _caller == repurchaseExecutor;
   }
 
   function setSwapConfig(uint256 _swapFee, uint256 _swapFeeDenom) external {

@@ -99,6 +99,9 @@ interface IDeltaNeutralVaultConfig02 {
   /// @dev Return reinvest executor
   function reinvestExecutor() external view returns (address);
 
+  /// @dev Return repurchase executor
+  function repurchaseExecutor() external view returns (address);
+
   /// @dev Return if caller is executor.
   function isExecutor(address _caller) external view returns (bool);
 
