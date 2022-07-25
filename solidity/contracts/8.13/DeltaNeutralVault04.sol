@@ -516,17 +516,28 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
       if (_tokenIn != assetToken) revert DeltaNeutralVault04_InvalidRepurchaseTokenIn();
     }
 
+    address _tokenOut = _tokenIn == stableToken ? assetToken : stableToken;
+
     // todo: check min amount in
 
     // todo: discount amount in per discount calculation
+    uint256 _amountOut = FullMath.mulDiv(
+      _amountIn,
+      FullMath.mulDiv(_getTokenPrice(_tokenOut), 1e18, _getTokenPrice(_tokenIn)),
+      1e18
+    );
+    uint256 _discountedAmountIn = FullMath.mulDiv(_amountIn, (MAX_BPS - 15), MAX_BPS);
 
     // todo: safeTrasnfer from user to address(this)
+    _transferTokenToVault(_tokenIn, _discountedAmountIn);
 
     // todo: send to executor
 
     // todo: check min amount out
-
+    // IExecutor(config.repurchaseExecutor()).exec(abi.encode(_discountedAmountIn, _amountOut));
     // todo: check equity sanity
+
+    // todo: transfer token out
 
     // todo: emit event
   }
