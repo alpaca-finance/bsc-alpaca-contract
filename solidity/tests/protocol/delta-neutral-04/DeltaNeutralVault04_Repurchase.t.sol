@@ -79,32 +79,32 @@ contract DeltaNeutralVault04_RepurchaseTest is DeltaNeutralVault04Base_Test {
     _deltaNeutralVault.repurchase(address(_assetToken), _amountToPurchase, _minReceiveAmount);
   }
 
-  // function testCorrectness_RepurchaseWithStableTokenWhileExposureIsPositiveShouldWork() external {
-  //   _assetVault.setDebt(25 ether, 25 ether);
-  //   _lpToken.totalSupply.mockv(200 ether);
-  //   _lpToken.getReserves.mockv(100 ether, 100 ether, uint32(block.timestamp));
-  //   _lpToken.token0.mockv(address(_stableToken));
+  function testCorrectness_RepurchaseWithStableTokenWhileExposureIsPositiveShouldWork() external {
+    _assetVault.setDebt(25 ether, 25 ether);
+    _lpToken.totalSupply.mockv(200 ether);
+    _lpToken.getReserves.mockv(100 ether, 100 ether, uint32(block.timestamp));
+    _lpToken.token0.mockv(address(_stableToken));
 
-  //   uint256 _amountToPurchase = 50 ether;
-  //   uint256 _minReceiveAmount = 50 ether;
+    uint256 _amountToPurchase = 50 ether;
+    uint256 _minReceiveAmount = 50 ether;
 
-  //   uint256 _stableBalance = _stableToken.balanceOf(address(this));
-  //   uint256 _assetBalance = _assetToken.balanceOf(address(this));
+    uint256 _stableBalance = _stableToken.balanceOf(address(this));
+    uint256 _assetBalance = _assetToken.balanceOf(address(this));
 
-  //   // current debt stable : 50, asset : 25
-  //   // target debt stable: 0, asset : 75
-  //   _repurchaseExecutor.setExecutionValue(0, 75 ether);
+    // current debt stable : 50, asset : 25
+    // target debt stable: 0, asset : 75
+    _repurchaseExecutor.setExecutionValue(0, 75 ether);
 
-  //   _deltaNeutralVault.repurchase(address(_stableToken), _amountToPurchase, _minReceiveAmount);
+    _deltaNeutralVault.repurchase(address(_stableToken), _amountToPurchase, _minReceiveAmount);
 
-  //   uint256 _actualAmountInAfterDiscount = _stableBalance - _stableToken.balanceOf(address(this));
-  //   uint256 _actualAmountOut = _assetToken.balanceOf(address(this)) - _assetBalance;
+    uint256 _actualAmountInAfterDiscount = _stableBalance - _stableToken.balanceOf(address(this));
+    uint256 _actualAmountOut = _assetToken.balanceOf(address(this)) - _assetBalance;
 
-  //   // 15 bps discount hardcoded in the contract
-  //   assertEq(_actualAmountInAfterDiscount, (_amountToPurchase * 9985) / 10000);
-  //   // check amount out
-  //   assertEq(_actualAmountOut, 50 ether);
-  // }
+    // 15 bps discount hardcoded in the contract
+    assertEq(_actualAmountInAfterDiscount, (_amountToPurchase * 9985) / 10000);
+    // check amount out
+    assertEq(_actualAmountOut, 50 ether);
+  }
 
   function testCorrectness_RepurchaseWithAssetTokenWhileExposureIsNegativeShouldWork() external {
     _assetVault.setDebt(100 ether, 100 ether);
