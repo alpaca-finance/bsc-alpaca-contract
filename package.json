@@ -498,7 +498,7 @@
     "test:av-controller": "forge test --match-path solidity/tests/protocol/private-automated-vault/AutomatedVaultController.t.sol",
     "test:delta02": "forge test --match-path solidity/tests/protocol/private-automated-vault/DeltaNeutralVault02.t.sol",
     "test:directional-vault": "forge test --match-path solidity/tests/protocol/directional-vault/DirectionalVault.t.sol",
-    "test:delta04": "forge test --match-path solidity/tests/protocol/delta-neutral-04/DeltaNeutralVault04.t.sol"
+    "test:delta04": "forge test --match-contract DeltaNeutralVault04"
   },
   "devDependencies": {
     "@chainlink/contracts": "^0.1.7",
