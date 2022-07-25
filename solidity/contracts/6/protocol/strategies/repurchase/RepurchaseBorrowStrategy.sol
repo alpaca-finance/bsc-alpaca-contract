@@ -19,11 +19,13 @@ import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 
 import "../../interfaces/IPancakePair.sol";
-import "../../apis/pancake/IPancakeRouter02.sol";
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IVault.sol";
-import "../../../utils/SafeToken.sol";
 import "../../interfaces/IWorker.sol";
+
+import "../../apis/pancake/IPancakeRouter02.sol";
+
+import "../../../utils/SafeToken.sol";
 
 contract RepurchaseBorrowStrategy is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeToken for address;
@@ -59,9 +61,9 @@ contract RepurchaseBorrowStrategy is OwnableUpgradeSafe, ReentrancyGuardUpgradeS
     IWorker worker = IWorker(msg.sender);
     address baseToken = worker.baseToken();
     IPancakePair lpToken = worker.lpToken();
-    uint256 baseTokenBalance = baseToken.myBalance();
 
-    baseToken.safeTransfer(_deltaNeutralVault, baseTokenBalance);
+    // There should already be a base token from borrowing sent to this strategy
+    baseToken.safeTransfer(_deltaNeutralVault, baseToken.myBalance());
     require(
       lpToken.transfer(msg.sender, lpToken.balanceOf(address(this))),
       "RepurchaseBorrowStrategy::execute:: failed to transfer LP token to msg.sender"
