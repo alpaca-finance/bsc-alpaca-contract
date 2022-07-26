@@ -650,7 +650,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     emit LogSetDeltaNeutralVaultConfig(msg.sender, address(_newVaultConfig));
   }
 
-  /// @notice Return position debt + pending interest value.
+  /// @notice Return position debt amount and debt + pending interest value.
   /// @param _vault Vault addrss.
   /// @param _posId Position id.
   function _positionDebt(
