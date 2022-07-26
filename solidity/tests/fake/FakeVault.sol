@@ -37,6 +37,8 @@ contract FakeVault {
 
   uint256 public fairLaunchPoolId;
 
+  address public positionOwner;
+
   constructor(address _token, uint256 _lpPrice) {
     token = _token;
     lpPrice = _lpPrice;
@@ -104,5 +106,13 @@ contract FakeVault {
   function setDebt(uint256 _debtShare, uint256 _debtValue) external {
     vaultDebtShare = _debtShare;
     vaultDebtVal = _debtValue;
+  }
+
+  function setPositionOwner(address _owner) external {
+    positionOwner = _owner;
+  }
+
+  function requestFunds(address targetedToken, uint256 amount) external {
+    MockErc20Like(targetedToken).transferFrom(positionOwner, msg.sender, amount);
   }
 }
