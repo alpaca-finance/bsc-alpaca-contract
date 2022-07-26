@@ -657,18 +657,18 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     address _vault,
     uint256 _posId,
     uint256 _18ConversionFactor
-  ) internal view returns (uint256 debtAmount, uint256 debtValue) {
+  ) internal view returns (uint256 _debtAmount, uint256 _debtValue) {
     (, , uint256 _positionDebtShare) = IVault(_vault).positions(_posId);
     address _token = IVault(_vault).token();
     uint256 _vaultDebtShare = IVault(_vault).vaultDebtShare();
     if (_vaultDebtShare == 0) {
-      debtAmount = _positionDebtShare;
-      debtValue = (_positionDebtShare * _18ConversionFactor).mulWadDown(_getTokenPrice(_token));
+      _debtAmount = _positionDebtShare;
+      _debtValue = (_positionDebtShare * _18ConversionFactor).mulWadDown(_getTokenPrice(_token));
     } else {
       uint256 _vaultDebtValue = IVault(_vault).vaultDebtVal() + IVault(_vault).pendingInterest(0);
 
-      debtAmount = FullMath.mulDiv(_positionDebtShare, _vaultDebtValue, _vaultDebtShare);
-      debtValue = (debtAmount * _18ConversionFactor).mulWadDown(_getTokenPrice(_token));
+      _debtAmount = FullMath.mulDiv(_positionDebtShare, _vaultDebtValue, _vaultDebtShare);
+      _debtValue = (_debtAmount * _18ConversionFactor).mulWadDown(_getTokenPrice(_token));
     }
   }
 
