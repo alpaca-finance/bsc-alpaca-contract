@@ -23,8 +23,6 @@ import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IVault.sol";
 import "../../interfaces/IWorker.sol";
 
-import "../../apis/pancake/IPancakeRouter02.sol";
-
 import "../../../utils/SafeToken.sol";
 
 contract RepurchaseBorrowStrategy is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
