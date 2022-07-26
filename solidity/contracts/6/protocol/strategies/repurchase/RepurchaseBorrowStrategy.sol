@@ -37,7 +37,7 @@ contract RepurchaseBorrowStrategy is OwnableUpgradeSafe, ReentrancyGuardUpgradeS
     _;
   }
 
-  /// @dev Create a new add two-side optimal strategy instance.
+  /// @dev Create a new repurchase borrow strategy instance.
   function initialize() external initializer {
     OwnableUpgradeSafe.__Ownable_init();
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
