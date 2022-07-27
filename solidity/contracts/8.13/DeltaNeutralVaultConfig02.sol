@@ -74,7 +74,9 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
     address indexed _caller,
     address partialCloseMinimizeStrategy,
     address stableAddTwoSideStrategy,
-    address assetAddTwoSideStrategy
+    address assetAddTwoSideStrategy,
+    address repurchaseBorrowStrategy,
+    address repurchaseRepayStrategy
   );
 
   // --- Errors ---
@@ -174,6 +176,8 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
 
   /// Repurchase
   address public repurchaseExecutor;
+  address public repurchaseBorrowStrategy;
+  address public repurchaseRepayStrategy;
 
   function initialize(
     address _getWrappedNativeAddr,
@@ -447,17 +451,23 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
   function setStrategies(
     address _partialCloseMinimizeStrategy,
     address _stableAddTwoSideStrategy,
-    address _assetAddTwoSideStrategy
+    address _assetAddTwoSideStrategy,
+    address _repurchaseBorrowStrategy,
+    address _repurchaseRepayStrategy
   ) external onlyOwner {
     partialCloseMinimizeStrategy = _partialCloseMinimizeStrategy;
     stableAddTwoSideStrategy = _stableAddTwoSideStrategy;
     assetAddTwoSideStrategy = _assetAddTwoSideStrategy;
+    repurchaseBorrowStrategy = _repurchaseBorrowStrategy;
+    repurchaseRepayStrategy = _repurchaseRepayStrategy;
 
     emit LogSetStrategies(
       msg.sender,
       _partialCloseMinimizeStrategy,
       _stableAddTwoSideStrategy,
-      _assetAddTwoSideStrategy
+      _assetAddTwoSideStrategy,
+      _repurchaseBorrowStrategy,
+      _repurchaseRepayStrategy
     );
   }
 }
