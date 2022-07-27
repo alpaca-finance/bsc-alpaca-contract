@@ -524,14 +524,11 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
 
     address _tokenOut = _tokenIn == stableToken ? assetToken : stableToken;
 
-    _amountOut = FullMath.mulDiv(
-      _amountIn,
-      FullMath.mulDiv(_getTokenPrice(_tokenOut), 1e18, _getTokenPrice(_tokenIn)),
-      1e18
-    );
-
-    if (_amountOut > uint256(_assetExposure >= 0 ? _assetExposure : (_assetExposure * -1)))
-      revert DeltaNeutralVault04_NotEnoughExposure();
+    // _amountOut = TokenOutPrice/TokenInPrice * amountIn
+    // need to adjust the decimal to tokenOut's decimal
+    _amountOut =
+      (FullMath.mulDiv(_amountIn, FullMath.mulDiv(_getTokenPrice(_tokenOut), 1e18, _getTokenPrice(_tokenIn)), 1e18)) *
+      10**(ERC20Upgradeable(_tokenOut).decimals() - ERC20Upgradeable(_tokenIn).decimals());
 
     // todo: min purchase should go here
     if (_amountOut < _minAmountOut)
@@ -539,6 +536,11 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
 
     // todo: discount amount in per discount calculation
     _discountedAmountIn = FullMath.mulDiv(_amountIn, (MAX_BPS - 15), MAX_BPS);
+
+    if (
+      (_tokenOut == assetToken ? _amountOut : _discountedAmountIn) >
+      uint256(_assetExposure >= 0 ? _assetExposure : (_assetExposure * -1))
+    ) revert DeltaNeutralVault04_NotEnoughExposure();
 
     _transferTokenToVault(_tokenIn, _discountedAmountIn);
 
