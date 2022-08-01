@@ -515,6 +515,9 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     uint256 _amountIn,
     uint256 _minAmountOut
   ) external payable nonReentrant returns (uint256 _discountedAmountIn, uint256 _amountOut) {
+    if (msg.sender != tx.origin) {
+      revert DeltaNeutralVault04_Unauthorized(msg.sender);
+    }
     int256 _assetExposure = getExposure();
     if (_assetExposure > 0) {
       if (_tokenIn != stableToken) revert DeltaNeutralVault04_InvalidRepurchaseTokenIn();
