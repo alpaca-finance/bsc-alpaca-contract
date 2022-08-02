@@ -31,7 +31,6 @@ import "./interfaces/IFairLaunch.sol";
 import "./interfaces/ISwapRouter.sol";
 import "./interfaces/IController.sol";
 import "./interfaces/IExecutor.sol";
-import "./interfaces/ISwapPairLike.sol";
 
 import "./utils/SafeToken.sol";
 import "./utils/FixedPointMathLib.sol";
@@ -518,6 +517,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     if (msg.sender != tx.origin) {
       revert DeltaNeutralVault04_Unauthorized(msg.sender);
     }
+
     int256 _assetExposure = getExposure();
     if (_assetExposure > 0) {
       if (_tokenIn != stableToken) revert DeltaNeutralVault04_InvalidRepurchaseTokenIn();
@@ -530,7 +530,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     // _amountOut = TokenOutPrice/TokenInPrice * amountIn
     // need to adjust the decimal to tokenOut's decimal
     _amountOut =
-      (FullMath.mulDiv(_amountIn, FullMath.mulDiv(_getTokenPrice(_tokenOut), 1e18, _getTokenPrice(_tokenIn)), 1e18)) *
+      (FullMath.mulDiv(_amountIn, FullMath.mulDiv(_getTokenPrice(_tokenIn), 1e18, _getTokenPrice(_tokenOut)), 1e18)) *
       10**(ERC20Upgradeable(_tokenOut).decimals() - ERC20Upgradeable(_tokenIn).decimals());
 
     // todo: min purchase should go here
@@ -788,16 +788,8 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
   }
 
   function getExposure() public view returns (int256 _exposure) {
-    uint256 _totalLpAmount = IWorker02(stableVaultWorker).totalLpBalance() +
-      IWorker02(assetVaultWorker).totalLpBalance();
-    (uint256 _r0, uint256 _r1, ) = ISwapPairLike(lpToken).getReserves();
-    uint256 _assetReserve = stableToken == ISwapPairLike(lpToken).token0() ? _r1 : _r0;
     (uint256 _assetDebtAmount, ) = _positionDebt(assetVault, assetVaultPosId, assetTo18ConversionFactor);
-
-    // exposure return in the original decimal and not normalized
-    _exposure =
-      int256((_totalLpAmount * _assetReserve) / ISwapPairLike(lpToken).totalSupply()) -
-      int256(_assetDebtAmount);
+    _exposure = checker.getExposure(stableVaultWorker, assetVaultWorker, assetToken, lpToken, _assetDebtAmount);
   }
 
   /// @dev Fallback function to accept BNB.

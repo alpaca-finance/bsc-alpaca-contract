@@ -17,6 +17,8 @@ import "./interfaces/IDeltaNeutralOracle.sol";
 import "./interfaces/IDeltaNeutralVault04HealthChecker.sol";
 import "./interfaces/IDeltaNeutralStruct.sol";
 import "./interfaces/IDeltaNeutralVaultConfig02.sol";
+import "./interfaces/IWorker02.sol";
+import "./interfaces/ISwapPairLike.sol";
 
 import "./utils/FixedPointMathLib.sol";
 import "./utils/Math.sol";
@@ -208,6 +210,24 @@ contract DeltaNeutralVault04HealthChecker is IDeltaNeutralVault04HealthChecker {
     ) {
       revert DeltaNeutralVault04HealthChecker_UnsafeDebtRatio();
     }
+  }
+
+  function getExposure(
+    address _stableVaultWorker,
+    address _assetVaultWorker,
+    address _assetToken,
+    address _lpToken,
+    uint256 _assetDebtAmount
+  ) external view returns (int256 _exposure) {
+    uint256 _totalLpAmount = IWorker02(_stableVaultWorker).totalLpBalance() +
+      IWorker02(_assetVaultWorker).totalLpBalance();
+    (uint256 _r0, uint256 _r1, ) = ISwapPairLike(_lpToken).getReserves();
+    uint256 _assetReserve = _assetToken == ISwapPairLike(_lpToken).token0() ? _r0 : _r1;
+
+    // exposure return in the original decimal and not normalized
+    _exposure =
+      int256((_totalLpAmount * _assetReserve) / ISwapPairLike(_lpToken).totalSupply()) -
+      int256(_assetDebtAmount);
   }
 
   function _isVaultSizeAcceptable(PositionInfo memory _positionInfoAfter, IDeltaNeutralVaultConfig02 _config)

@@ -36,4 +36,12 @@ interface IDeltaNeutralVault04HealthChecker is IDeltaNeutralStruct {
     IDeltaNeutralOracle _oracle,
     IDeltaNeutralVaultConfig02 _config
   ) external view;
+
+  function getExposure(
+    address _stableVaultWorker,
+    address _assetVaultWorker,
+    address _assetToken,
+    address _lpToken,
+    uint256 _assetDebtAmount
+  ) external view returns (int256 _exposure);
 }
