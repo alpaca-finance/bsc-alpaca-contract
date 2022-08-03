@@ -120,13 +120,12 @@ contract DeltaNeutralVault04_RepurchaseTest is DeltaNeutralVault04Base_Test {
     vm.prank(address(this), address(this));
     _deltaNeutralVault.repurchase(address(_stableToken), _amountToPurchase, _minReceiveAmount);
 
-    uint256 _actualAmountInAfterDiscount = _stableBalance - _stableToken.balanceOf(address(this));
+    uint256 _actualAmountIn = _stableBalance - _stableToken.balanceOf(address(this));
     uint256 _actualAmountOut = _assetToken.balanceOf(address(this)) - _assetBalance;
 
-    // 15 bps discount hardcoded in the contract
-    assertEq(_actualAmountInAfterDiscount, (_amountToPurchase * 9985) / 10000);
-    // check amount out
-    assertEq(_actualAmountOut, 50 ether);
+    assertEq(_actualAmountIn, _amountToPurchase);
+    // amount should have bonus 15 bps hardcoded in contract
+    assertEq(_actualAmountOut, (50 ether * 10015) / 10000);
   }
 
   function testCorrectness_RepurchaseWithAssetTokenWhileExposureIsNegativeShouldWork() external {
@@ -149,13 +148,12 @@ contract DeltaNeutralVault04_RepurchaseTest is DeltaNeutralVault04Base_Test {
     vm.prank(address(this), address(this));
     _deltaNeutralVault.repurchase(address(_assetToken), _amountToPurchase, _minReceiveAmount);
 
-    uint256 _actualAmountInAfterDiscount = _assetBalance - _assetToken.balanceOf(address(this));
+    uint256 _actualAmountIn = _assetBalance - _assetToken.balanceOf(address(this));
     uint256 _actualAmountOut = _stableToken.balanceOf(address(this)) - _stableBalance;
 
-    // 15 bps discount hardcoded in the contract
-    assertEq(_actualAmountInAfterDiscount, (_amountToPurchase * 9985) / 10000);
-    // check amount out
-    assertEq(_actualAmountOut, 25 ether);
+    assertEq(_actualAmountIn, _amountToPurchase);
+    // amount should have bonus 15 bps hardcoded in contract
+    assertEq(_actualAmountOut, (25 ether * 10015) / 10000);
   }
 
   function testRevert_RepurchaseResultInChangesInEquityShouldRevert() external {

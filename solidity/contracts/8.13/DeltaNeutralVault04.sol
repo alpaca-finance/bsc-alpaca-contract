@@ -513,7 +513,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     address _tokenIn,
     uint256 _amountIn,
     uint256 _minAmountOut
-  ) external payable nonReentrant returns (uint256 _discountedAmountIn, uint256 _amountOut) {
+  ) external payable nonReentrant returns (uint256 _amountOut) {
     if (msg.sender != tx.origin) {
       revert DeltaNeutralVault04_Unauthorized(msg.sender);
     }
@@ -527,29 +527,30 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
 
     address _tokenOut = _tokenIn == stableToken ? assetToken : stableToken;
 
-    // _amountOut = TokenOutPrice/TokenInPrice * amountIn
+    // _amountOutBeforeBonus = TokenOutPrice/TokenInPrice * amountIn
     // need to adjust the decimal to tokenOut's decimal
-    _amountOut =
-      (FullMath.mulDiv(_amountIn, FullMath.mulDiv(_getTokenPrice(_tokenIn), 1e18, _getTokenPrice(_tokenOut)), 1e18)) *
-      10**(ERC20Upgradeable(_tokenOut).decimals() - ERC20Upgradeable(_tokenIn).decimals());
-
-    // todo: min purchase should go here
-    if (_amountOut < _minAmountOut)
-      revert DeltaNeutralVault04_InsufficientTokenReceived(_tokenOut, _minAmountOut, _amountOut);
-
-    // todo: discount amount in per discount calculation
-    _discountedAmountIn = FullMath.mulDiv(_amountIn, (MAX_BPS - 15), MAX_BPS);
+    uint256 _amountOutBeforeBonus = (
+      FullMath.mulDiv(_amountIn, FullMath.mulDiv(_getTokenPrice(_tokenIn), 1e18, _getTokenPrice(_tokenOut)), 1e18)
+    ) * 10**(ERC20Upgradeable(_tokenOut).decimals() - ERC20Upgradeable(_tokenIn).decimals());
 
     if (
-      (_tokenOut == assetToken ? _amountOut : _discountedAmountIn) >
+      (_tokenOut == assetToken ? _amountOutBeforeBonus : _amountIn) >
       uint256(_assetExposure >= 0 ? _assetExposure : (_assetExposure * -1))
     ) revert DeltaNeutralVault04_NotEnoughExposure();
 
-    _transferTokenToVault(_tokenIn, _discountedAmountIn);
+    // todo: dynamic bonus rate
+    // 15 BPS bonus
+    _amountOut = (_amountOutBeforeBonus * (MAX_BPS + 15)) / MAX_BPS;
+
+    // todo: min purchase should go here
+    if (_amountOutBeforeBonus < _minAmountOut)
+      revert DeltaNeutralVault04_InsufficientTokenReceived(_tokenOut, _minAmountOut, _amountOut);
+
+    _transferTokenToVault(_tokenIn, _amountIn);
 
     uint256 _equityBefore = totalEquityValue();
 
-    IExecutor(config.repurchaseExecutor()).exec(abi.encode(_tokenIn, _discountedAmountIn, _amountOut));
+    IExecutor(config.repurchaseExecutor()).exec(abi.encode(_tokenIn, _amountIn, _amountOut));
 
     if (!Math.almostEqual(totalEquityValue(), _equityBefore, config.positionValueTolerance())) {
       revert DeltaNeutralVault04_UnsafePositionValue();
@@ -557,7 +558,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
 
     IERC20Upgradeable(_tokenOut).safeTransfer(msg.sender, _amountOut);
 
-    emit LogRepurchase(msg.sender, _tokenIn, _discountedAmountIn, _tokenOut, _amountOut);
+    emit LogRepurchase(msg.sender, _tokenIn, _amountIn, _tokenOut, _amountOut);
   }
 
   /// @notice Return stable token, asset token and native token balance.
