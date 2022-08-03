@@ -55,6 +55,23 @@ contract DeltaNeutralVault04_RepurchaseTest is DeltaNeutralVault04Base_Test {
     assertEq(_exposure, 0 ether);
   }
 
+  function testRevert_RepurchaseWithNonEOAShouldRevert() external {
+    _assetVault.setDebt(100 ether, 100 ether);
+    _lpToken.totalSupply.mockv(200 ether);
+    _lpToken.getReserves.mockv(100 ether, 100 ether, uint32(block.timestamp));
+    _lpToken.token0.mockv(address(_stableToken));
+
+    uint256 _amountToPurchase = 100 ether;
+    uint256 _minReceiveAmount = 100 ether;
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        DeltaNeutralVault04Like.DeltaNeutralVault04_Unauthorized.selector,
+        0xb4c79daB8f259C7Aee6E5b2Aa729821864227e84
+      )
+    );
+    _deltaNeutralVault.repurchase(address(_stableToken), _amountToPurchase, _minReceiveAmount);
+  }
+
   function testRevert_RepurchaseWithStableTokenWhileExposureIsNegativeShouldRevert() external {
     _assetVault.setDebt(100 ether, 100 ether);
     _lpToken.totalSupply.mockv(200 ether);
@@ -63,6 +80,8 @@ contract DeltaNeutralVault04_RepurchaseTest is DeltaNeutralVault04Base_Test {
 
     uint256 _amountToPurchase = 100 ether;
     uint256 _minReceiveAmount = 100 ether;
+    // avoid EOA check
+    vm.prank(address(this), address(this));
     vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault04_InvalidRepurchaseTokenIn()"));
     _deltaNeutralVault.repurchase(address(_stableToken), _amountToPurchase, _minReceiveAmount);
   }
@@ -75,6 +94,8 @@ contract DeltaNeutralVault04_RepurchaseTest is DeltaNeutralVault04Base_Test {
 
     uint256 _amountToPurchase = 100 ether;
     uint256 _minReceiveAmount = 100 ether;
+    // avoid EOA check
+    vm.prank(address(this), address(this));
     vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault04_InvalidRepurchaseTokenIn()"));
     _deltaNeutralVault.repurchase(address(_assetToken), _amountToPurchase, _minReceiveAmount);
   }
@@ -95,6 +116,8 @@ contract DeltaNeutralVault04_RepurchaseTest is DeltaNeutralVault04Base_Test {
     // target debt stable: 0, asset : 75
     _repurchaseExecutor.setExecutionValue(0, 75 ether);
 
+    // avoid EOA check
+    vm.prank(address(this), address(this));
     _deltaNeutralVault.repurchase(address(_stableToken), _amountToPurchase, _minReceiveAmount);
 
     uint256 _actualAmountInAfterDiscount = _stableBalance - _stableToken.balanceOf(address(this));
@@ -120,8 +143,10 @@ contract DeltaNeutralVault04_RepurchaseTest is DeltaNeutralVault04Base_Test {
 
     // current debt stable : 50, asset : 100
     // target debt stable: 75, asset : 75
-    _repurchaseExecutor.setExecutionValue(75 ether, 75 ether);
 
+    _repurchaseExecutor.setExecutionValue(75 ether, 75 ether);
+    // avoid EOA check
+    vm.prank(address(this), address(this));
     _deltaNeutralVault.repurchase(address(_assetToken), _amountToPurchase, _minReceiveAmount);
 
     uint256 _actualAmountInAfterDiscount = _assetBalance - _assetToken.balanceOf(address(this));
@@ -145,6 +170,9 @@ contract DeltaNeutralVault04_RepurchaseTest is DeltaNeutralVault04Base_Test {
     _repurchaseExecutor.setExecutionValue(50 ether, 75 ether);
 
     vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault04_UnsafePositionValue()"));
+
+    // avoid EOA check
+    vm.prank(address(this), address(this));
     _deltaNeutralVault.repurchase(address(_stableToken), _amountToPurchase, _minReceiveAmount);
   }
 
@@ -158,6 +186,9 @@ contract DeltaNeutralVault04_RepurchaseTest is DeltaNeutralVault04Base_Test {
     uint256 _minReceiveAmount = 30 ether;
 
     vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault04_NotEnoughExposure()"));
+
+    // avoid EOA check
+    vm.prank(address(this), address(this));
     _deltaNeutralVault.repurchase(address(_assetToken), _amountToPurchase, _minReceiveAmount);
   }
 
@@ -171,6 +202,9 @@ contract DeltaNeutralVault04_RepurchaseTest is DeltaNeutralVault04Base_Test {
     uint256 _minReceiveAmount = 30 ether;
 
     vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault04_NotEnoughExposure()"));
+
+    // avoid EOA check
+    vm.prank(address(this), address(this));
     _deltaNeutralVault.repurchase(address(_stableToken), _amountToPurchase, _minReceiveAmount);
   }
 }
