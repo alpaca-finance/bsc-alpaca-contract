@@ -1389,6 +1389,15 @@
       "StrategyWithdrawMinimizeTrading": "0xD2d1318beA3FBAcbeC1C6b7583DbA74De5d9455c",
       "StrategyPartialCloseLiquidate": "0xba7156E07995cAD7837Ef08EC5bA936DaB2B000B",
       "StrategyPartialCloseMinimizeTrading": "0x3739d1E01104b019Ff105B3A8F57BC6ed62F18a4"
+    },
+    "All": {
+      "StrategyAddBaseTokenOnly": "",
+      "StrategyLiquidate": "",
+      "StrategyWithdrawMinimizeTrading": "",
+      "StrategyPartialCloseLiquidate": "",
+      "StrategyPartialCloseMinimizeTrading": "",
+      "StrategyRepurchaseBorrow": "",
+      "StrategyRepurchaseRepay": ""
     }
   },
   "SharedConfig": {
@@ -1422,7 +1431,7 @@
       "config": "0x53dbb71303ad0F9AFa184B8f7147F9f12Bb5Dc01",
       "tripleSlopeModel": "0xc51d25a2C2d49eE2508B822829d43b9961deCB44",
       "StrategyAddTwoSidesOptimal": {
-        "PancakeswapDnx": "0x57cEc659f0355054A37c36eaF4855AE9CCE7aeB5",
+        "PancakeswapDnx": "0x4fFC880070E7c234ccB2c746A1E8f02B7d9E79Ee",
         "BiswapDnx": "0x609a5F07143d6aCd97803Ac987165617Ab035726",
         "Pancakeswap": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
         "Waultswap": "0xA7559bB0235a1c6003D0E48d2cFa89a6C8748439",
@@ -4825,7 +4834,8 @@
     "deposit": "0x5eb6F3aC715A2F184CC2baAC3675F237d565F1aC",
     "withdraw": "0xceC88d723aC8cb1D7887BcFcDF0E59B5091bBE37",
     "reinvest": "0x7C60e6530170b44867187d6413A8fd9AC77c3EaB",
-    "rebalance": "0x379A75Ab34C359f9Cd1d00dF958656Ea30e20e66"
+    "rebalance": "",
+    "repurchase": ""
   },
   "DirectionalVaultExecutor": {
     "deposit": "",

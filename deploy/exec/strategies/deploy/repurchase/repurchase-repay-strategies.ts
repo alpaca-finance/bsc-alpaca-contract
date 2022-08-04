@@ -18,12 +18,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const NEW_PARAMS = [
     {
-      WHITELIST_WORKERS: ["0x42dA676116DF26EE9bb71595fFe7c18343FB2b64"],
+      WHITELIST_WORKERS: ["0x83A5d5c54Ad83bBeA8667B3B95d7610E16e52723", "0x4b70c41F514FBBEa718234Ac72f36c1b077a4162"],
     },
   ];
 
   const deployer = await getDeployer();
-  console.log(deployer);
   const configFileHelper = new ConfigFileHelper();
   let config = configFileHelper.getConfig();
 

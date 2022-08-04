@@ -18,10 +18,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     Check all variables below before execute the deployment script
     */
 
-  const DELTA_VAULT_SYMBOL = ["bull6x-BNBUSDT-PCS1"];
-  const IS_DELTA = false;
+  const DELTA_VAULT_SYMBOL = ["n8x-BNBUSDT-PCS1"];
+  const IS_DELTA = true;
 
   const deployer = await getDeployer();
+  const config = getConfig();
 
   // VALIDATING ALL DELTA_VAULT_SYMBOL
   const converter = new Converter();
@@ -53,6 +54,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       stableWorker.strategies.StrategyPartialCloseMinimizeTrading,
       stableWorker.strategies.StrategyAddTwoSidesOptimal,
       assetStrategyAddTwoSidesOptimal,
+      config.SharedStrategies.All!.StrategyRepurchaseBorrow!,
+      config.SharedStrategies.All!.StrategyRepurchaseRepay!,
       { ...ops, nonce: nonce++ }
     );
     console.log("✅ Done");

@@ -311,4 +311,5 @@ export interface AutomatedVaultExecutor {
   withdraw: string;
   reinvest: string;
   rebalance: string;
+  repurchase?: string;
 }
