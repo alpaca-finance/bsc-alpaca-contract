@@ -148,6 +148,7 @@ abstract contract DeltaNeutralVault04Base_Test is BaseTest {
     _config.setFees(address(this), 0, address(this), 0, address(this), 0);
     _config.setSwapRouter(address(_router));
     _config.setAlpacaBountyConfig(address(this), 0);
+    _config.setRepurchaseBonusBps(15);
 
     address[] memory _reinvestPath = new address[](2);
     _reinvestPath[0] = address(_alpacaToken);

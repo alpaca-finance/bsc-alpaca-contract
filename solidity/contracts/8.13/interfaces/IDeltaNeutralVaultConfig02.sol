@@ -119,4 +119,7 @@ interface IDeltaNeutralVaultConfig02 {
 
   /// @dev Return swap fee denom
   function swapFeeDenom() external view returns (uint256);
+
+  /// @dev Return swap fee denom
+  function repurchaseBonusBps() external view returns (uint64);
 }
