@@ -176,7 +176,7 @@ contract DeltaNeutralVault04_RepurchaseTest is DeltaNeutralVault04Base_Test {
     vm.prank(address(this), address(this));
     _deltaNeutralVault.repurchase(address(_assetToken), _amountToPurchase, _minReceiveAmount);
 
-    // current debt stable : 50, asset : 100
+    // current debt stable : 60, asset : 90
     // target debt stable: 70, asset : 80
 
     _repurchaseExecutor.setExecutionValue(70 ether, 80 ether);
@@ -203,15 +203,15 @@ contract DeltaNeutralVault04_RepurchaseTest is DeltaNeutralVault04Base_Test {
     uint256 _minReceiveAmount = 20 ether;
 
     // current debt stable : 50, asset : 100
-    // target debt stable: 60, asset : 90
+    // target debt stable: 70, asset : 80
 
     _repurchaseExecutor.setExecutionValue(70 ether, 80 ether);
     // avoid EOA check
     vm.prank(address(this), address(this));
     _deltaNeutralVault.repurchase(address(_assetToken), _amountToPurchase, _minReceiveAmount);
 
-    // current debt stable : 50, asset : 100
-    // target debt stable: 70, asset : 80
+    // current debt stable : 70, asset : 80
+    // target debt stable: 90, asset : 60
 
     _repurchaseExecutor.setExecutionValue(90 ether, 60 ether);
     vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault04_NotEnoughExposure()"));
