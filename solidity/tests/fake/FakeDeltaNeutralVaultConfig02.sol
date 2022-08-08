@@ -104,6 +104,9 @@ contract FakeDeltaNeutralVaultConfig02 {
 
   /// Repurchase
   address public repurchaseExecutor;
+  address public repurchaseBorrowStrategy;
+  address public repurchaseRepayStrategy;
+  uint64 public repurchaseBonusBps;
 
   function setParams(
     address _getWrappedNativeAddr,
@@ -291,5 +294,9 @@ contract FakeDeltaNeutralVaultConfig02 {
     partialCloseMinimizeStrategy = _partialCloseMinimizeStrategy;
     stableAddTwoSideStrategy = _stableAddTwoSideStrategy;
     assetAddTwoSideStrategy = _assetAddTwoSideStrategy;
+  }
+
+  function setRepurchaseBonusBps(uint64 _newRepurchaseBonusBps) external {
+    repurchaseBonusBps = _newRepurchaseBonusBps;
   }
 }

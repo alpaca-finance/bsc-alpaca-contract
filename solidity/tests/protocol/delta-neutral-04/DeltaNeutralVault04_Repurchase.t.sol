@@ -156,6 +156,70 @@ contract DeltaNeutralVault04_RepurchaseTest is DeltaNeutralVault04Base_Test {
     assertEq(_actualAmountOut, (25 ether * 10015) / 10000);
   }
 
+  function testCorrectness_PartialRepurchaseShouldWork() external {
+    _assetVault.setDebt(100 ether, 100 ether);
+    _lpToken.totalSupply.mockv(200 ether);
+    _lpToken.getReserves.mockv(100 ether, 100 ether, uint32(block.timestamp));
+    _lpToken.token0.mockv(address(_stableToken));
+
+    uint256 _stableBalance = _stableToken.balanceOf(address(this));
+    uint256 _assetBalance = _assetToken.balanceOf(address(this));
+
+    uint256 _amountToPurchase = 10 ether;
+    uint256 _minReceiveAmount = 10 ether;
+
+    // current debt stable : 50, asset : 100
+    // target debt stable: 60, asset : 90
+
+    _repurchaseExecutor.setExecutionValue(60 ether, 90 ether);
+    // avoid EOA check
+    vm.prank(address(this), address(this));
+    _deltaNeutralVault.repurchase(address(_assetToken), _amountToPurchase, _minReceiveAmount);
+
+    // current debt stable : 60, asset : 90
+    // target debt stable: 70, asset : 80
+
+    _repurchaseExecutor.setExecutionValue(70 ether, 80 ether);
+    // avoid EOA check
+    vm.prank(address(this), address(this));
+    _deltaNeutralVault.repurchase(address(_assetToken), _amountToPurchase, _minReceiveAmount);
+
+    uint256 _actualAmountIn = _assetBalance - _assetToken.balanceOf(address(this));
+    uint256 _actualAmountOut = _stableToken.balanceOf(address(this)) - _stableBalance;
+
+    // twice repurchase
+    assertEq(_actualAmountIn, _amountToPurchase * 2);
+    // amount should have bonus 15 bps hardcoded in contract
+    assertEq(_actualAmountOut, (20 ether * 10015) / 10000);
+  }
+
+  function testCorrectness_SecondRepurchaseExceedExposureShouldRevert() external {
+    _assetVault.setDebt(100 ether, 100 ether);
+    _lpToken.totalSupply.mockv(200 ether);
+    _lpToken.getReserves.mockv(100 ether, 100 ether, uint32(block.timestamp));
+    _lpToken.token0.mockv(address(_stableToken));
+
+    uint256 _amountToPurchase = 20 ether;
+    uint256 _minReceiveAmount = 20 ether;
+
+    // current debt stable : 50, asset : 100
+    // target debt stable: 70, asset : 80
+
+    _repurchaseExecutor.setExecutionValue(70 ether, 80 ether);
+    // avoid EOA check
+    vm.prank(address(this), address(this));
+    _deltaNeutralVault.repurchase(address(_assetToken), _amountToPurchase, _minReceiveAmount);
+
+    // current debt stable : 70, asset : 80
+    // target debt stable: 90, asset : 60
+
+    _repurchaseExecutor.setExecutionValue(90 ether, 60 ether);
+    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault04_NotEnoughExposure()"));
+    // avoid EOA check
+    vm.prank(address(this), address(this));
+    _deltaNeutralVault.repurchase(address(_assetToken), _amountToPurchase, _minReceiveAmount);
+  }
+
   function testRevert_RepurchaseResultInChangesInEquityShouldRevert() external {
     _assetVault.setDebt(25 ether, 25 ether);
     _lpToken.totalSupply.mockv(200 ether);

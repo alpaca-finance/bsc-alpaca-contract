@@ -79,6 +79,8 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
     address repurchaseRepayStrategy
   );
 
+  event LogSetRepurchaseBonusBps(address indexed _caller, uint64 _oldBps, uint64 _newBps);
+
   // --- Errors ---
   error DeltaNeutralVaultConfig_LeverageLevelTooLow();
   error DeltaNeutralVaultConfig_TooMuchFee(uint256 _depositFeeBps, uint256 _withdrawalFeeBps, uint256 _mangementFeeBps);
@@ -86,6 +88,7 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
   error DeltaNeutralVaultConfig_InvalidSwapRouter();
   error DeltaNeutralVaultConfig_InvalidReinvestPath();
   error DeltaNeutralVaultConfig_InvalidReinvestPathLength();
+  error DeltaNeutralVaultConfig_RepurchaseBonusBpsTooHigh();
 
   // --- Constants ---
   uint8 private constant MIN_LEVERAGE_LEVEL = 3;
@@ -178,6 +181,7 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
   address public repurchaseExecutor;
   address public repurchaseBorrowStrategy;
   address public repurchaseRepayStrategy;
+  uint64 public repurchaseBonusBps;
 
   function initialize(
     address _getWrappedNativeAddr,
@@ -469,5 +473,14 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
       _repurchaseBorrowStrategy,
       _repurchaseRepayStrategy
     );
+  }
+
+  function setRepurchaseBonusBps(uint64 _newRepurchaseBonusBps) external onlyOwner {
+    if (_newRepurchaseBonusBps > 100) revert DeltaNeutralVaultConfig_RepurchaseBonusBpsTooHigh();
+
+    uint64 _oldBps = repurchaseBonusBps;
+    repurchaseBonusBps = _newRepurchaseBonusBps;
+
+    emit LogSetRepurchaseBonusBps(msg.sender, _oldBps, _newRepurchaseBonusBps);
   }
 }
