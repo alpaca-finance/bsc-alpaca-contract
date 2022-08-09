@@ -74,61 +74,25 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const executeFileTitle = "pcs-cake-pools";
+  const executeFileTitle = "pcs-pSTAKE-BUSD-pool";
   const shortWorkerInfos: IPancakeswapWorkerInput[] = [
     {
-      VAULT_SYMBOL: "ibCAKE",
-      WORKER_NAME: "BUSD-CAKE PancakeswapWorker",
+      VAULT_SYMBOL: "ibBUSD",
+      WORKER_NAME: "pSTAKE-BUSD PancakeswapWorker",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 39,
+      POOL_ID: 113,
       REINVEST_BOUNTY_BPS: "900",
-      REINVEST_PATH: ["CAKE"],
+      REINVEST_PATH: ["CAKE", "BUSD"],
       REINVEST_THRESHOLD: "0",
       BENEFICIAL_VAULT: {
         BENEFICIAL_VAULT_ADDRESS: "0x08B5A95cb94f926a8B620E87eE92e675b35afc7E",
         REWARD_PATH: ["CAKE", "BUSD"],
         BENEFICIAL_VAULT_BPS: "5555",
       },
-      WORK_FACTOR: "7000",
-      KILL_FACTOR: "8333",
+      WORK_FACTOR: "5200",
+      KILL_FACTOR: "7000",
       MAX_PRICE_DIFF: "10500",
-      EXACT_ETA: "1654146900",
-    },
-    {
-      VAULT_SYMBOL: "ibCAKE",
-      WORKER_NAME: "WBNB-CAKE PancakeswapWorker",
-      REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 2,
-      REINVEST_BOUNTY_BPS: "900",
-      REINVEST_PATH: ["CAKE"],
-      REINVEST_THRESHOLD: "0",
-      BENEFICIAL_VAULT: {
-        BENEFICIAL_VAULT_ADDRESS: "0x08B5A95cb94f926a8B620E87eE92e675b35afc7E",
-        REWARD_PATH: ["CAKE", "BUSD"],
-        BENEFICIAL_VAULT_BPS: "5555",
-      },
-      WORK_FACTOR: "7000",
-      KILL_FACTOR: "8333",
-      MAX_PRICE_DIFF: "10500",
-      EXACT_ETA: "1654146900",
-    },
-    {
-      VAULT_SYMBOL: "ibCAKE",
-      WORKER_NAME: "USDT-CAKE PancakeswapWorker",
-      REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 47,
-      REINVEST_BOUNTY_BPS: "900",
-      REINVEST_PATH: ["CAKE"],
-      REINVEST_THRESHOLD: "0",
-      BENEFICIAL_VAULT: {
-        BENEFICIAL_VAULT_ADDRESS: "0x08B5A95cb94f926a8B620E87eE92e675b35afc7E",
-        REWARD_PATH: ["CAKE", "BUSD"],
-        BENEFICIAL_VAULT_BPS: "5555",
-      },
-      WORK_FACTOR: "7000",
-      KILL_FACTOR: "8333",
-      MAX_PRICE_DIFF: "10500",
-      EXACT_ETA: "1654146900",
+      EXACT_ETA: "1660134300",
     },
   ];
 
