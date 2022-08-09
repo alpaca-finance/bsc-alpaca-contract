@@ -269,4 +269,22 @@ contract DeltaNeutralVault04_RepurchaseTest is DeltaNeutralVault04Base_Test {
     vm.prank(address(this), address(this));
     _deltaNeutralVault.repurchase(address(_stableToken), _amountToPurchase, _minReceiveAmount);
   }
+
+  function testRevert_RepurchaseWithZeroBonusShouldRevert() external {
+    _assetVault.setDebt(25 ether, 25 ether);
+    _lpToken.totalSupply.mockv(200 ether);
+    _lpToken.getReserves.mockv(100 ether, 100 ether, uint32(block.timestamp));
+    _lpToken.token0.mockv(address(_stableToken));
+
+    uint256 _amountToPurchase = 50 ether;
+    uint256 _minReceiveAmount = 50 ether;
+
+    _config.setRepurchaseBonusBps(0);
+
+    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVaultConfig_RepurchaseDisabled()"));
+
+    // avoid EOA check
+    vm.prank(address(this), address(this));
+    _deltaNeutralVault.repurchase(address(_stableToken), _amountToPurchase, _minReceiveAmount);
+  }
 }

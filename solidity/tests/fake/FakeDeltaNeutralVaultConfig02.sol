@@ -23,6 +23,7 @@ contract FakeDeltaNeutralVaultConfig02 {
   error DeltaNeutralVaultConfig_InvalidSwapRouter();
   error DeltaNeutralVaultConfig_InvalidReinvestPath();
   error DeltaNeutralVaultConfig_InvalidReinvestPathLength();
+  error DeltaNeutralVaultConfig_RepurchaseDisabled();
 
   // --- Constants ---
   uint8 private constant MIN_LEVERAGE_LEVEL = 3;
@@ -106,7 +107,7 @@ contract FakeDeltaNeutralVaultConfig02 {
   address public repurchaseExecutor;
   address public repurchaseBorrowStrategy;
   address public repurchaseRepayStrategy;
-  uint64 public repurchaseBonusBps;
+  uint64 private _repurchaseBonusBps;
 
   function setParams(
     address _getWrappedNativeAddr,
@@ -297,6 +298,12 @@ contract FakeDeltaNeutralVaultConfig02 {
   }
 
   function setRepurchaseBonusBps(uint64 _newRepurchaseBonusBps) external {
-    repurchaseBonusBps = _newRepurchaseBonusBps;
+    _repurchaseBonusBps = _newRepurchaseBonusBps;
+  }
+
+  function repurchaseBonusBps() external view returns (uint64) {
+    if (_repurchaseBonusBps == 0) revert DeltaNeutralVaultConfig_RepurchaseDisabled();
+
+    return _repurchaseBonusBps;
   }
 }
