@@ -121,5 +121,8 @@ interface IDeltaNeutralVaultConfig02 {
   function swapFeeDenom() external view returns (uint256);
 
   /// @dev Return swap fee denom
-  function repurchaseBonusBps() external view returns (uint64);
+  function repurchaseBonusBps() external view returns (uint256);
+
+  /// @dev Used in delta neutral vault. Revert if 0
+  function getRepurchaseBonusBps() external view returns (uint256);
 }

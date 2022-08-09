@@ -69,17 +69,17 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
     address _repurchaseExecutor
   );
 
-  event LogSetSwapConfig(address indexed _caller, uint256 swapFee, uint256 swapFeeDenom);
+  event LogSetSwapConfig(address indexed _caller, uint256 _swapFee, uint256 _swapFeeDenom);
   event LogSetStrategies(
     address indexed _caller,
-    address partialCloseMinimizeStrategy,
-    address stableAddTwoSideStrategy,
-    address assetAddTwoSideStrategy,
-    address repurchaseBorrowStrategy,
-    address repurchaseRepayStrategy
+    address _partialCloseMinimizeStrategy,
+    address _stableAddTwoSideStrategy,
+    address _assetAddTwoSideStrategy,
+    address _repurchaseBorrowStrategy,
+    address _repurchaseRepayStrategy
   );
 
-  event LogSetRepurchaseBonusBps(address indexed _caller, uint64 _oldBps, uint64 _newBps);
+  event LogSetRepurchaseBonusBps(address indexed _caller, uint256 _oldBps, uint256 _newBps);
 
   // --- Errors ---
   error DeltaNeutralVaultConfig_LeverageLevelTooLow();
@@ -182,7 +182,7 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
   address public repurchaseExecutor;
   address public repurchaseBorrowStrategy;
   address public repurchaseRepayStrategy;
-  uint64 private _repurchaseBonusBps;
+  uint256 public repurchaseBonusBps;
 
   function initialize(
     address _getWrappedNativeAddr,
@@ -476,18 +476,18 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
     );
   }
 
-  function setRepurchaseBonusBps(uint64 _newRepurchaseBonusBps) external onlyOwner {
+  function setRepurchaseBonusBps(uint256 _newRepurchaseBonusBps) external onlyOwner {
     if (_newRepurchaseBonusBps > 100) revert DeltaNeutralVaultConfig_RepurchaseBonusBpsTooHigh();
 
-    uint64 _oldBps = _repurchaseBonusBps;
-    _repurchaseBonusBps = _newRepurchaseBonusBps;
+    uint256 _oldBps = repurchaseBonusBps;
+    repurchaseBonusBps = _newRepurchaseBonusBps;
 
     emit LogSetRepurchaseBonusBps(msg.sender, _oldBps, _newRepurchaseBonusBps);
   }
 
-  function repurchaseBonusBps() external view returns (uint64) {
-    if (_repurchaseBonusBps == 0) revert DeltaNeutralVaultConfig_RepurchaseDisabled();
+  function getRepurchaseBonusBps() external view returns (uint256) {
+    if (repurchaseBonusBps == 0) revert DeltaNeutralVaultConfig_RepurchaseDisabled();
 
-    return _repurchaseBonusBps;
+    return repurchaseBonusBps;
   }
 }

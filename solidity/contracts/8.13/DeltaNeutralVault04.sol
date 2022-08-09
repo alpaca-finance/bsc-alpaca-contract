@@ -545,7 +545,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
       uint256(_assetExposure >= 0 ? _assetExposure : (_assetExposure * -1))
     ) revert DeltaNeutralVault04_NotEnoughExposure();
 
-    _amountOut = (_amountOutBeforeBonus * (MAX_BPS + config.repurchaseBonusBps())) / MAX_BPS;
+    _amountOut = (_amountOutBeforeBonus * (MAX_BPS + config.getRepurchaseBonusBps())) / MAX_BPS;
 
     if (_amountOut < _minAmountOut)
       revert DeltaNeutralVault04_InsufficientTokenReceived(_tokenOut, _minAmountOut, _amountOut);
