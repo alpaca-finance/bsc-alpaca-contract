@@ -31,7 +31,6 @@ import "./interfaces/IFairLaunch.sol";
 import "./interfaces/ISwapRouter.sol";
 import "./interfaces/IController.sol";
 import "./interfaces/IExecutor.sol";
-import "./interfaces/ISwapPairLike.sol";
 
 import "./utils/SafeToken.sol";
 import "./utils/FixedPointMathLib.sol";
@@ -505,7 +504,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     address _tokenIn,
     uint256 _amountIn,
     uint256 _minAmountOut
-  ) external payable nonReentrant returns (uint256 _discountedAmountIn, uint256 _amountOut) {
+  ) external nonReentrant returns (uint256 _amountOut) {
     if (!config.whitelistedRepurchasers(msg.sender)) {
       revert DeltaNeutralVault04_Unauthorized(msg.sender);
     }
@@ -519,29 +518,34 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
 
     address _tokenOut = _tokenIn == stableToken ? assetToken : stableToken;
 
-    // _amountOut = TokenOutPrice/TokenInPrice * amountIn
+    // _amountOutBeforeBonus = TokenOutPrice/TokenInPrice * amountIn
+    uint256 _amountOutBeforeBonus = FullMath.mulDiv(
+      _amountIn,
+      FullMath.mulDiv(_getTokenPrice(_tokenIn), 1e18, _getTokenPrice(_tokenOut)),
+      1e18
+    );
+
     // need to adjust the decimal to tokenOut's decimal
-    _amountOut =
-      (FullMath.mulDiv(_amountIn, FullMath.mulDiv(_getTokenPrice(_tokenOut), 1e18, _getTokenPrice(_tokenIn)), 1e18)) *
-      10**(ERC20Upgradeable(_tokenOut).decimals() - ERC20Upgradeable(_tokenIn).decimals());
-
-    // todo: min purchase should go here
-    if (_amountOut < _minAmountOut)
-      revert DeltaNeutralVault04_InsufficientTokenReceived(_tokenOut, _minAmountOut, _amountOut);
-
-    // todo: discount amount in per discount calculation
-    _discountedAmountIn = FullMath.mulDiv(_amountIn, (MAX_BPS - 15), MAX_BPS);
+    // separate calculation in exchange of readability
+    _amountOutBeforeBonus =
+      (_amountOutBeforeBonus * (10**ERC20Upgradeable(_tokenOut).decimals())) /
+      (10**ERC20Upgradeable(_tokenIn).decimals());
 
     if (
-      (_tokenOut == assetToken ? _amountOut : _discountedAmountIn) >
+      (_tokenOut == assetToken ? _amountOutBeforeBonus : _amountIn) >
       uint256(_assetExposure >= 0 ? _assetExposure : (_assetExposure * -1))
     ) revert DeltaNeutralVault04_NotEnoughExposure();
 
-    _transferTokenToVault(_tokenIn, _discountedAmountIn);
+    _amountOut = (_amountOutBeforeBonus * (MAX_BPS + config.getRepurchaseBonusBps())) / MAX_BPS;
+
+    if (_amountOut < _minAmountOut)
+      revert DeltaNeutralVault04_InsufficientTokenReceived(_tokenOut, _minAmountOut, _amountOut);
+
+    IERC20Upgradeable(_tokenIn).safeTransferFrom(msg.sender, address(this), _amountIn);
 
     uint256 _equityBefore = totalEquityValue();
 
-    IExecutor(config.repurchaseExecutor()).exec(abi.encode(_tokenIn, _discountedAmountIn, _amountOut));
+    IExecutor(config.repurchaseExecutor()).exec(abi.encode(_tokenIn, _amountIn, _amountOut));
 
     if (!Math.almostEqual(totalEquityValue(), _equityBefore, config.positionValueTolerance())) {
       revert DeltaNeutralVault04_UnsafePositionValue();
@@ -549,7 +553,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
 
     IERC20Upgradeable(_tokenOut).safeTransfer(msg.sender, _amountOut);
 
-    emit LogRepurchase(msg.sender, _tokenIn, _discountedAmountIn, _tokenOut, _amountOut);
+    emit LogRepurchase(msg.sender, _tokenIn, _amountIn, _tokenOut, _amountOut);
   }
 
   /// @notice Return stable token, asset token and native token balance.
@@ -780,16 +784,8 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
   }
 
   function getExposure() public view returns (int256 _exposure) {
-    uint256 _totalLpAmount = IWorker02(stableVaultWorker).totalLpBalance() +
-      IWorker02(assetVaultWorker).totalLpBalance();
-    (uint256 _r0, uint256 _r1, ) = ISwapPairLike(lpToken).getReserves();
-    uint256 _assetReserve = stableToken == ISwapPairLike(lpToken).token0() ? _r1 : _r0;
     (uint256 _assetDebtAmount, ) = _positionDebt(assetVault, assetVaultPosId, assetTo18ConversionFactor);
-
-    // exposure return in the original decimal and not normalized
-    _exposure =
-      int256((_totalLpAmount * _assetReserve) / ISwapPairLike(lpToken).totalSupply()) -
-      int256(_assetDebtAmount);
+    _exposure = checker.getExposure(stableVaultWorker, assetVaultWorker, assetToken, lpToken, _assetDebtAmount);
   }
 
   /// @dev Fallback function to accept BNB.

@@ -1,15 +1,10 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { RepurchaseBorrowStrategy__factory } from "../../../../typechain";
+import { getConfig } from "../../../entities/config";
 import { getDeployer, isFork } from "../../../../utils/deployer-helper";
-
-interface ISetWhitelistedStratWorkers {
-  STRAT_NAME: string;
-  STRAT_ADDR: string;
-  WORKERS: Array<string>;
-}
-
-type ISetWhitelistedStratsWorkers = Array<ISetWhitelistedStratWorkers>;
+import { DeltaNeutralVaultConfig02__factory } from "../../../../typechain";
+import { Converter } from "../../../helper";
+import { BigNumber } from "ethers";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -21,33 +16,28 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const WHITELISTED_STRATS_WORKERS: ISetWhitelistedStratsWorkers = [
-    {
-      STRAT_NAME: "RepurchaseBorrowStrategy",
-      STRAT_ADDR: "0xdDf2715911ae70a2E7ef42ea8BD86D1c2c319F5e",
-      WORKERS: ["0x83A5d5c54Ad83bBeA8667B3B95d7610E16e52723", "0x4b70c41F514FBBEa718234Ac72f36c1b077a4162"],
-    },
-    {
-      STRAT_NAME: "RepurchaseRepayStrategy",
-      STRAT_ADDR: "0x40D23cD168F46E5B8302C690E6EA54D6dbf279D6",
-      WORKERS: ["0x83A5d5c54Ad83bBeA8667B3B95d7610E16e52723", "0x4b70c41F514FBBEa718234Ac72f36c1b077a4162"],
-    },
-  ];
+
+  const DELTA_VAULT_SYMBOL = ["n3x-BNBUSDT-PCS1", "n8x-BNBUSDT-PCS1", "L3x-USDTETH-BSW1"];
+  const REPURCHASE_BONUS = BigNumber.from(15);
 
   const deployer = await getDeployer();
+  const config = getConfig();
+
+  // VALIDATING ALL DLTA_VAULT_SYMBOL
+  const converter = new Converter();
+  const configs = converter.convertDeltaSymbolToAddress(DELTA_VAULT_SYMBOL, "config");
+
+  console.log(">> Set Repurchase Bonus to DeltaNeutralVaultConfig contract");
   let nonce = await deployer.getTransactionCount();
+  const ops = isFork() ? { gasLimit: 2000000 } : {};
+  for (const config of configs) {
+    console.log(`>> Set Repurchase Bonus : ${REPURCHASE_BONUS} for config : ${config}`);
+    const deltaVaultConfig = DeltaNeutralVaultConfig02__factory.connect(config, deployer);
 
-  for (let i = 0; i < WHITELISTED_STRATS_WORKERS.length; i++) {
-    const params = WHITELISTED_STRATS_WORKERS[i];
-    const ops = isFork() ? { nonce: nonce++, gasLimit: 2000000 } : { nonce: nonce++ };
-
-    const strat = RepurchaseBorrowStrategy__factory.connect(params.STRAT_ADDR, deployer);
-    await strat.setWorkersOk(params.WORKERS, true, ops);
-    const worker_addresses = params.WORKERS.map((worker) => `'${worker}'`);
-    console.log(`await '${params.STRAT_ADDR}'.setWorkersOk('${worker_addresses}', true)`);
-    console.log("✅ Done");
+    await deltaVaultConfig.setRepurchaseBonusBps(REPURCHASE_BONUS, { ...ops, nonce: nonce++ });
   }
+  console.log("✅ Done");
 };
 
 export default func;
-func.tags = ["SetSharedStratsWhitelistedWorkers"];
+func.tags = ["DeltaNeutralVaultConfigSetRepurchaseBonus"];

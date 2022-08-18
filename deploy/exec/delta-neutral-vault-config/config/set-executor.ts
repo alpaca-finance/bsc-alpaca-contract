@@ -20,8 +20,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const config = getConfig();
 
   // update
-  const DELTA_VAULT_SYMBOL = ["bull6x-BNBUSDT-PCS1"];
-  const executors = config.DirectionalVaultExecutor!;
+  const DELTA_VAULT_SYMBOL = ["n8x-BNBUSDT-PCS1"];
+  const executors = config.AutomatedVaultExecutor!;
 
   // VALIDATING ALL DELTA_VAULT_SYMBOL
   const converter = new Converter();
@@ -35,12 +35,19 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(`>> Set Withdraw Executor: ${executors.withdraw} for config: ${config}`);
     console.log(`>> Set Rebalance Executor: ${executors.rebalance} for config: ${config}`);
     console.log(`>> Set Reinvest Executor: ${executors.reinvest} for config: ${config}`);
+    console.log(`>> Set Repurchase Executor: ${executors.repurchase} for config: ${config}`);
     const deltaVaultConfig = DeltaNeutralVaultConfig02__factory.connect(config, deployer);
 
-    await deltaVaultConfig.setExecutor(executors.deposit, executors.withdraw, executors.rebalance, executors.reinvest, {
+    await deltaVaultConfig.setExecutor(
+      executors.deposit,
+      executors.withdraw,
+      executors.rebalance,
+      executors.reinvest,
+      executors.repurchase!, {
       ...ops,
       nonce: nonce++,
-    });
+      }
+    );
     console.log("✅ Done");
   }
 };

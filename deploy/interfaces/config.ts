@@ -220,6 +220,7 @@ export interface SharedStrategies {
   Mdex?: SharedStrategiesGroup;
   SpookySwap?: SharedStrategiesGroup;
   Biswap?: SharedStrategiesGroup;
+  All?: SharedStrategiesGroup;
 }
 export interface SharedStrategiesGroup {
   StrategyAddBaseTokenOnly: string;
@@ -227,6 +228,8 @@ export interface SharedStrategiesGroup {
   StrategyWithdrawMinimizeTrading: string;
   StrategyPartialCloseLiquidate: string;
   StrategyPartialCloseMinimizeTrading: string;
+  StrategyRepurchaseBorrow?: string;
+  StrategyRepurchaseRepay?: string;
 }
 
 export interface SharedConfig {
@@ -308,4 +311,5 @@ export interface AutomatedVaultExecutor {
   withdraw: string;
   reinvest: string;
   rebalance: string;
+  repurchase?: string;
 }

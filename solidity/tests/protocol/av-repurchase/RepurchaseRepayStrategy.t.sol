@@ -9,48 +9,48 @@ import { FakeVault } from "../../fake/FakeVault.sol";
 
 contract RepurchaseRepayStrategy_Test is BaseTest {
   using mocking for *;
-  RepurchaseRepayStrategyLike private strat;
-  MockContract private deltaNeutralVault;
-  FakeDeltaWorker private worker;
-  MockErc20Like private baseToken;
-  MockLpErc20Like private lpToken;
-  FakeVault private vault;
+  RepurchaseRepayStrategyLike private _strat;
+  MockContract private _deltaNeutralVault;
+  FakeDeltaWorker private _worker;
+  MockErc20Like private _baseToken;
+  MockLpErc20Like private _lpToken;
+  FakeVault private _vault;
 
   function setUp() external {
-    strat = _setupRepurchaseRepayStrategy();
-    deltaNeutralVault = new MockContract();
-    baseToken = _setupToken("ALPACA", "ALPACA", 18);
-    lpToken = _setupLpToken("LP TOKEN", "LP", 18);
-    worker = new FakeDeltaWorker(address(lpToken));
-    vault = new FakeVault(address(baseToken), 1 ether);
+    _strat = _setupRepurchaseRepayStrategy();
+    _deltaNeutralVault = new MockContract();
+    _baseToken = _setupToken("ALPACA", "ALPACA", 18);
+    _lpToken = _setupLpToken("LP TOKEN", "LP", 18);
+    _worker = new FakeDeltaWorker(address(_lpToken));
+    _vault = new FakeVault(address(_baseToken), 1 ether);
 
-    worker.setBaseToken(address(baseToken));
-    vault.setPositionOwner(address(deltaNeutralVault));
+    _worker.setBaseToken(address(_baseToken));
+    _vault.setPositionOwner(address(_deltaNeutralVault));
 
-    address[] memory workers = new address[](1);
-    workers[0] = address(worker);
-    strat.setWorkersOk(workers, true);
+    address[] memory _workers = new address[](1);
+    _workers[0] = address(_worker);
+    _strat.setWorkersOk(_workers, true);
   }
 
   function test_execute_shouldRepayCorrectly() external {
-    baseToken.balanceOf.mockv(address(deltaNeutralVault), 10 ether);
-    baseToken.mint(address(deltaNeutralVault), 10 ether);
+    _baseToken.balanceOf.mockv(address(_deltaNeutralVault), 10 ether);
+    _baseToken.mint(address(_deltaNeutralVault), 10 ether);
 
-    vm.prank(address(deltaNeutralVault));
-    baseToken.approve(address(vault), 10 ether);
+    vm.prank(address(_deltaNeutralVault));
+    _baseToken.approve(address(_vault), 10 ether);
 
-    vm.expectCall(address(worker), abi.encodeCall(worker.baseToken, ()));
+    vm.expectCall(address(_worker), abi.encodeCall(_worker.baseToken, ()));
     vm.expectCall(
-      address(baseToken),
-      abi.encodeCall(baseToken.transferFrom, (address(deltaNeutralVault), address(strat), 10 ether))
+      address(_baseToken),
+      abi.encodeCall(_baseToken.transferFrom, (address(_deltaNeutralVault), address(_strat), 10 ether))
     );
 
-    vm.prank(address(worker));
-    strat.execute(address(this), 0, abi.encode(address(vault), 10 ether));
+    vm.prank(address(_worker));
+    _strat.execute(address(this), 0, abi.encode(address(_vault), 10 ether));
   }
 
   function test_execute_withBadWorker_shouldFail() external {
     vm.expectRevert("RepurchaseRepayStrategy::onlyWhitelistedWorkers:: bad worker");
-    strat.execute(address(this), 0, abi.encode(address(deltaNeutralVault)));
+    _strat.execute(address(this), 0, abi.encode(address(_deltaNeutralVault)));
   }
 }

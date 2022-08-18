@@ -69,16 +69,18 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
     address _repurchaseExecutor
   );
 
-  event LogSetSwapConfig(address indexed _caller, uint256 swapFee, uint256 swapFeeDenom);
+  event LogSetSwapConfig(address indexed _caller, uint256 _swapFee, uint256 _swapFeeDenom);
   event LogSetStrategies(
     address indexed _caller,
-    address partialCloseMinimizeStrategy,
-    address stableAddTwoSideStrategy,
-    address assetAddTwoSideStrategy,
-    address repurchaseBorrowStrategy,
-    address repurchaseRepayStrategy
+    address _partialCloseMinimizeStrategy,
+    address _stableAddTwoSideStrategy,
+    address _assetAddTwoSideStrategy,
+    address _repurchaseBorrowStrategy,
+    address _repurchaseRepayStrategy
   );
   event LogSetWhitelistedRepurchasers(address indexed _caller, address indexed _address, bool _ok);
+
+  event LogSetRepurchaseBonusBps(address indexed _caller, uint256 _oldBps, uint256 _newBps);
 
   // --- Errors ---
   error DeltaNeutralVaultConfig_LeverageLevelTooLow();
@@ -87,6 +89,8 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
   error DeltaNeutralVaultConfig_InvalidSwapRouter();
   error DeltaNeutralVaultConfig_InvalidReinvestPath();
   error DeltaNeutralVaultConfig_InvalidReinvestPathLength();
+  error DeltaNeutralVaultConfig_RepurchaseBonusBpsTooHigh();
+  error DeltaNeutralVaultConfig_RepurchaseDisabled();
 
   // --- Constants ---
   uint8 private constant MIN_LEVERAGE_LEVEL = 3;
@@ -179,6 +183,7 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
   address public repurchaseExecutor;
   address public repurchaseBorrowStrategy;
   address public repurchaseRepayStrategy;
+  uint256 public repurchaseBonusBps;
 
   // list of repurchasers
   mapping(address => bool) public whitelistedRepurchasers;
@@ -484,5 +489,20 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
       _repurchaseBorrowStrategy,
       _repurchaseRepayStrategy
     );
+  }
+
+  function setRepurchaseBonusBps(uint256 _newRepurchaseBonusBps) external onlyOwner {
+    if (_newRepurchaseBonusBps > 100) revert DeltaNeutralVaultConfig_RepurchaseBonusBpsTooHigh();
+
+    uint256 _oldBps = repurchaseBonusBps;
+    repurchaseBonusBps = _newRepurchaseBonusBps;
+
+    emit LogSetRepurchaseBonusBps(msg.sender, _oldBps, _newRepurchaseBonusBps);
+  }
+
+  function getRepurchaseBonusBps() external view returns (uint256) {
+    if (repurchaseBonusBps == 0) revert DeltaNeutralVaultConfig_RepurchaseDisabled();
+
+    return repurchaseBonusBps;
   }
 }

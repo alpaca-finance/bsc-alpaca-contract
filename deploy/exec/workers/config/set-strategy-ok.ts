@@ -18,14 +18,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "set_ibUSDC_SpookySwapDnxStrategyAddTwoSidesOptimal_ok";
+  const TITLE = "worker_setStrategyOk";
   const ADD_STRAT = "";
   const LIQ_STRAT = "";
 
   const OK_FLAG = true;
-  const STRATEGY = ["0x292E51830185BAb540c7E3f9aA2918e2B8F07d08"]; //update ibUSDC SpookySwapDnx StrategyAddTwoSidesOptimal
-  const WORKERS = ["WFTM-USDC 3x SPK1 DeltaNeutralSpookyWorker", "WFTM-USDC 3x SPK2 DeltaNeutralSpookyWorker"];
-  const EXACT_ETA = "0";
+  const STRATEGY = ["0x6B38bc44F67eC63185576b60eCBd4e212D46ef59", "0x376D185a060ebf867CFdF8cD2FA34BB819912C21"]; //update ibUSDC SpookySwapDnx StrategyAddTwoSidesOptimal
+  const WORKERS = [
+    "USDT-WBNB 8x PCS1 DeltaNeutralPancakeswapWorker",
+    "WBNB-USDT 8x PCS1 DeltaNeutralPancakeswapWorker",
+  ];
+  const EXACT_ETA = "1667276500";
 
   const miniWorkers: Array<WorkerEntity.IMiniWorker> = mapWorkers(WORKERS).map((w) => {
     return {
@@ -77,7 +80,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     }
   }
 
-  fileService.writeJson(TITLE, timelockTransactions);
+  const timestamp = Math.floor(Date.now() / 1000);
+  fileService.writeJson(`${timestamp}_${TITLE}`, timelockTransactions);
 };
 
 export default func;
