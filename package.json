@@ -97,6 +97,7 @@
     "deploy:mainnet:delta-neutral-oracle:deploy:delta-neutral-oracle": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralOracle",
     "deploy:mainnet:delta-neutral-vault-config:deploy:delta-neutral-vault-config": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralVaultConfig",
     "deploy:mainnet:delta-neutral-vault-config:config:set-whitelisted-callers": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralVaultConfigSetWhitelistedCallers",
+    "deploy:mainnet:delta-neutral-vault-config:config:set-whitelisted-repurchasers": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralVaultConfigSetWhitelistedRepurchasers",
     "deploy:mainnet:delta-neutral-vault-config:config:set-params": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralVaultConfigSetParams",
     "deploy:mainnet:delta-neutral-vault-config:upgrade:delta-neutral-vault-config": "hardhat --network mainnet deploy --no-compile --reset --tags UpgradeDeltaNeutralVaultConfig",
     "deploy:mainnet:delta-neutral-vault:deploy:delta-neutral-vault": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralVault",

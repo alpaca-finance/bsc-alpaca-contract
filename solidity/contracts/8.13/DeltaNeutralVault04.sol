@@ -435,12 +435,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
   /// @notice Rebalance stable and asset positions.
   /// @param _data The calldata to pass along for more working context.
   function rebalance(bytes memory _data) external onlyRebalancers collectFee {
-    PositionInfo memory _positionInfoBefore = positionInfo();
-    uint256 _stablePositionValue = _positionInfoBefore.stablePositionEquity +
-      _positionInfoBefore.stablePositionDebtValue;
-    uint256 _assetPositionValue = _positionInfoBefore.assetPositionEquity + _positionInfoBefore.assetPositionDebtValue;
-    uint256 _equityBefore = _positionInfoBefore.stablePositionEquity + _positionInfoBefore.assetPositionEquity;
-    uint256 _rebalanceFactor = config.rebalanceFactor(); // bps
+    uint256 _equityBefore = totalEquityValue();
 
     // 1. rebalance executor exec
     IExecutor(config.rebalanceExecutor()).exec(_data);
