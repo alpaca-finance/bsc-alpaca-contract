@@ -78,7 +78,6 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
   error DeltaNeutralVault04_InvalidPositions(address _vault, uint256 _positionId);
   error DeltaNeutralVault04_UnsafePositionEquity();
   error DeltaNeutralVault04_UnsafePositionValue();
-  error DeltaNeutralVault04_PositionsIsHealthy();
   error DeltaNeutralVault04_InsufficientTokenReceived(address _token, uint256 _requiredAmount, uint256 _receivedAmount);
   error DeltaNeutralVault04_InsufficientShareReceived(uint256 _requiredAmount, uint256 _receivedAmount);
   error DeltaNeutralVault04_UnTrustedPrice();
@@ -444,18 +443,10 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     uint256 _equityBefore = _positionInfoBefore.stablePositionEquity + _positionInfoBefore.assetPositionEquity;
     uint256 _rebalanceFactor = config.rebalanceFactor(); // bps
 
-    // 1. check if positions need rebalance
-    if (
-      _stablePositionValue * _rebalanceFactor >= _positionInfoBefore.stablePositionDebtValue * MAX_BPS &&
-      _assetPositionValue * _rebalanceFactor >= _positionInfoBefore.assetPositionDebtValue * MAX_BPS
-    ) {
-      revert DeltaNeutralVault04_PositionsIsHealthy();
-    }
-
-    // 2. rebalance executor exec
+    // 1. rebalance executor exec
     IExecutor(config.rebalanceExecutor()).exec(_data);
 
-    // 3. sanity check
+    // 2. sanity check
     // check if position in a healthy state after rebalancing
     uint256 _equityAfter = totalEquityValue();
     if (!Math.almostEqual(_equityAfter, _equityBefore, config.positionValueTolerance())) {
@@ -515,6 +506,10 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     uint256 _amountIn,
     uint256 _minAmountOut
   ) external payable nonReentrant returns (uint256 _discountedAmountIn, uint256 _amountOut) {
+    if (!config.whitelistedRepurchasers(msg.sender)) {
+      revert DeltaNeutralVault04_Unauthorized(msg.sender);
+    }
+
     int256 _assetExposure = getExposure();
     if (_assetExposure > 0) {
       if (_tokenIn != stableToken) revert DeltaNeutralVault04_InvalidRepurchaseTokenIn();

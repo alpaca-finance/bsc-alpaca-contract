@@ -249,6 +249,12 @@ contract FakeDeltaNeutralVaultConfig02 {
     return true;
   }
 
+  function whitelistedRepurchasers(
+    address /*_address*/
+  ) external pure returns (bool) {
+    return true;
+  }
+
   function setController(address _controller) external {
     controller = _controller;
   }

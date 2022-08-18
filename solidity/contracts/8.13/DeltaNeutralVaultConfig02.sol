@@ -78,6 +78,7 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
     address repurchaseBorrowStrategy,
     address repurchaseRepayStrategy
   );
+  event LogSetWhitelistedRepurchasers(address indexed _caller, address indexed _address, bool _ok);
 
   // --- Errors ---
   error DeltaNeutralVaultConfig_LeverageLevelTooLow();
@@ -179,6 +180,9 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
   address public repurchaseBorrowStrategy;
   address public repurchaseRepayStrategy;
 
+  // list of repurchasers
+  mapping(address => bool) public whitelistedRepurchasers;
+
   function initialize(
     address _getWrappedNativeAddr,
     address _getWNativeRelayer,
@@ -262,6 +266,17 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
     for (uint256 _idx = 0; _idx < _callers.length; _idx++) {
       whitelistedReinvestors[_callers[_idx]] = _ok;
       emit LogSetWhitelistedReinvestors(msg.sender, _callers[_idx], _ok);
+    }
+  }
+
+  /// @notice Set whitelisted repurchasers.
+  /// @dev Must only be called by owner.
+  /// @param _callers addresses to be whitelisted.
+  /// @param _ok The new ok flag for callers.
+  function setwhitelistedRepurchasers(address[] calldata _callers, bool _ok) external onlyOwner {
+    for (uint256 _idx = 0; _idx < _callers.length; _idx++) {
+      whitelistedRepurchasers[_callers[_idx]] = _ok;
+      emit LogSetWhitelistedRepurchasers(msg.sender, _callers[_idx], _ok);
     }
   }
 

@@ -119,4 +119,7 @@ interface IDeltaNeutralVaultConfig02 {
 
   /// @dev Return swap fee denom
   function swapFeeDenom() external view returns (uint256);
+
+  /// @dev Return if the caller is whitelisted.
+  function whitelistedRepurchasers(address _caller) external view returns (bool);
 }
