@@ -1431,7 +1431,7 @@
       "config": "0x53dbb71303ad0F9AFa184B8f7147F9f12Bb5Dc01",
       "tripleSlopeModel": "0xc51d25a2C2d49eE2508B822829d43b9961deCB44",
       "StrategyAddTwoSidesOptimal": {
-        "PancakeswapDnx": "0x4fFC880070E7c234ccB2c746A1E8f02B7d9E79Ee",
+        "PancakeswapDnx": "0x57cEc659f0355054A37c36eaF4855AE9CCE7aeB5",
         "BiswapDnx": "0x609a5F07143d6aCd97803Ac987165617Ab035726",
         "Pancakeswap": "0xB9B8766B65636779C3B169B9a18e0A708F91c610",
         "Waultswap": "0xA7559bB0235a1c6003D0E48d2cFa89a6C8748439",
