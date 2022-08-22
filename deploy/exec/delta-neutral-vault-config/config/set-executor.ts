@@ -43,9 +43,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       executors.withdraw,
       executors.rebalance,
       executors.reinvest,
-      executors.repurchase, {
-      ...ops,
-      nonce: nonce++,
+      executors.repurchase!,
+      {
+        ...ops,
+        nonce: nonce++,
       }
     );
     console.log("✅ Done");
