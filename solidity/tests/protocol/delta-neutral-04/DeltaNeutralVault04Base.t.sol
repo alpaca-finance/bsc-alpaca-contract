@@ -161,7 +161,8 @@ abstract contract DeltaNeutralVault04Base_Test is BaseTest {
       address(_withdrawExecutor),
       address(_rebalanceExecutor),
       address(_reinvestExecutor),
-      address(_repurchaseExecutor)
+      address(_repurchaseExecutor),
+      address(_rebalanceExecutor)
     );
 
     _initPosition();

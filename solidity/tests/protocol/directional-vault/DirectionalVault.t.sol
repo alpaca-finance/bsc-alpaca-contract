@@ -124,6 +124,7 @@ contract DirectionalVault_Test is BaseTest {
       address(_withdrawExecutor),
       address(_rebalanceExecutor),
       address(_reinvestExecutor),
+      address(0),
       address(0)
     );
 
