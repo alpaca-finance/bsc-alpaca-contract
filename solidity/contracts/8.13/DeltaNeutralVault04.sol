@@ -435,19 +435,32 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
   /// @notice Rebalance stable and asset positions.
   /// @param _data The calldata to pass along for more working context.
   function rebalance(bytes memory _data) external onlyRebalancers collectFee {
-    uint256 _equityBefore = totalEquityValue();
+    (uint256 _equityBefore, uint256 _equityAfter) = _rebalance(IExecutor(config.rebalanceExecutor()), _data);
+    emit LogRebalance(_equityBefore, _equityAfter);
+  }
+
+  /// @notice Retarget stable and asset positions.
+  /// @param _data The calldata to pass along for more working context.
+  function retarget(bytes memory _data) external onlyRebalancers collectFee {
+    (uint256 _equityBefore, uint256 _equityAfter) = _rebalance(IExecutor(config.retargetExecutor()), _data);
+    emit LogRebalance(_equityBefore, _equityAfter);
+  }
+
+  function _rebalance(IExecutor _executor, bytes memory _data)
+    internal
+    returns (uint256 _equityBefore, uint256 _equityAfter)
+  {
+    _equityBefore = totalEquityValue();
 
     // 1. rebalance executor exec
-    IExecutor(config.rebalanceExecutor()).exec(_data);
+    _executor.exec(_data);
 
     // 2. sanity check
     // check if position in a healthy state after rebalancing
-    uint256 _equityAfter = totalEquityValue();
+    _equityAfter = totalEquityValue();
     if (!Math.almostEqual(_equityAfter, _equityBefore, config.positionValueTolerance())) {
       revert DeltaNeutralVault04_UnsafePositionValue();
     }
-
-    emit LogRebalance(_equityBefore, _equityAfter);
   }
 
   /// @notice Reinvest fund to stable and asset positions.
