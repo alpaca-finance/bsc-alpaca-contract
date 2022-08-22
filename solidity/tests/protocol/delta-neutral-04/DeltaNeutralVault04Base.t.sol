@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4 <0.9.0;
 
-import { BaseTest, DeltaNeutralVault04Like, MockErc20Like, console } from "../../base/BaseTest.sol";
-import { mocking } from "../../utils/mocking.sol";
-import { MockContract } from "../../utils/MockContract.sol";
+import { BaseTest, DeltaNeutralVault04Like, MockErc20Like, MockLpErc20Like, console } from "../../base/BaseTest.sol";
 
 import { DeltaNeutralVault04HealthChecker } from "../../../contracts/8.13/DeltaNeutralVault04HealthChecker.sol";
 import { FakeDeltaWorker } from "../../fake/FakeDeltaWorker.sol";
@@ -15,42 +13,44 @@ import { FakeDeltaNeutralDepositExecutor } from "../../fake/FakeDeltaNeutralDepo
 import { FakeDeltaNeutralWithdrawExecutor } from "../../fake/FakeDeltaNeutralWithdrawExecutor.sol";
 import { FakeDeltaNeutralRebalanceExecutor } from "../../fake/FakeDeltaNeutralRebalanceExecutor.sol";
 import { FakeDeltaNeutralReinvestExecutor } from "../../fake/FakeDeltaNeutralReinvestExecutor.sol";
+import { FakeDeltaNeutralRepurchaseExecutor } from "../../fake/FakeDeltaNeutralRepurchaseExecutor.sol";
 import { FakeRouter } from "../../fake/FakeRouter.sol";
 import { FakeFairLaunch } from "../../fake/FakeFairLaunch.sol";
 
 // solhint-disable func-name-mixedcase
 // solhint-disable contract-name-camelcase
-contract DeltaNeutralVault04_Test is BaseTest {
-  using mocking for *;
-  DeltaNeutralVault04Like private _deltaNeutralVault;
-  DeltaNeutralVault04HealthChecker private _checker;
+// solhint-disable max-states-count
+abstract contract DeltaNeutralVault04Base_Test is BaseTest {
+  DeltaNeutralVault04Like internal _deltaNeutralVault;
+  DeltaNeutralVault04HealthChecker internal _checker;
 
-  FakeAutomateVaultController private _controller;
-  FakeVault private _stableVault;
-  FakeVault private _assetVault;
-  FakeDeltaWorker private _stableVaultWorker;
-  FakeDeltaWorker private _assetVaultWorker;
-  FakeDeltaNeutralOracle private _priceOracle;
-  FakeDeltaNeutralVaultConfig02 private _config;
-  FakeDeltaNeutralDepositExecutor private _depositExecutor;
-  FakeDeltaNeutralWithdrawExecutor private _withdrawExecutor;
-  FakeDeltaNeutralRebalanceExecutor private _rebalanceExecutor;
-  FakeDeltaNeutralReinvestExecutor private _reinvestExecutor;
-  FakeRouter private _router;
-  FakeFairLaunch private _fairLaunch;
+  FakeAutomateVaultController internal _controller;
+  FakeVault internal _stableVault;
+  FakeVault internal _assetVault;
+  FakeDeltaWorker internal _stableVaultWorker;
+  FakeDeltaWorker internal _assetVaultWorker;
+  FakeDeltaNeutralOracle internal _priceOracle;
+  FakeDeltaNeutralVaultConfig02 internal _config;
+  FakeDeltaNeutralDepositExecutor internal _depositExecutor;
+  FakeDeltaNeutralWithdrawExecutor internal _withdrawExecutor;
+  FakeDeltaNeutralRebalanceExecutor internal _rebalanceExecutor;
+  FakeDeltaNeutralReinvestExecutor internal _reinvestExecutor;
+  FakeDeltaNeutralRepurchaseExecutor internal _repurchaseExecutor;
+  FakeRouter internal _router;
+  FakeFairLaunch internal _fairLaunch;
 
-  MockErc20Like private _lpToken;
-  MockErc20Like private _alpacaToken;
-  MockErc20Like private _stableToken;
-  MockErc20Like private _assetToken;
+  MockLpErc20Like internal _lpToken;
+  MockErc20Like internal _alpacaToken;
+  MockErc20Like internal _stableToken;
+  MockErc20Like internal _assetToken;
 
-  function setUp() external {
+  function setUp() public virtual {
     _priceOracle = new FakeDeltaNeutralOracle();
     _config = new FakeDeltaNeutralVaultConfig02();
     _controller = new FakeAutomateVaultController();
     _checker = new DeltaNeutralVault04HealthChecker();
 
-    _lpToken = _setupToken("LP TOKEN", "LP", 18);
+    _lpToken = _setupLpToken("LP TOKEN", "LP", 18);
     _alpacaToken = _setupToken("ALPACA", "ALPACA", 18);
     _stableToken = _setupToken("USDT", "USDT", 18);
     _assetToken = _setupToken("WNATIVE", "WNATIVE", 18);
@@ -90,6 +90,14 @@ contract DeltaNeutralVault04_Test is BaseTest {
       _lpPrice
     );
     _reinvestExecutor = new FakeDeltaNeutralReinvestExecutor(
+      address(_stableVault),
+      address(_assetVault),
+      address(_stableVaultWorker),
+      address(_assetVaultWorker),
+      _lpPrice
+    );
+
+    _repurchaseExecutor = new FakeDeltaNeutralRepurchaseExecutor(
       address(_stableVault),
       address(_assetVault),
       address(_stableVaultWorker),
@@ -140,6 +148,7 @@ contract DeltaNeutralVault04_Test is BaseTest {
     _config.setFees(address(this), 0, address(this), 0, address(this), 0);
     _config.setSwapRouter(address(_router));
     _config.setAlpacaBountyConfig(address(this), 0);
+    _config.setRepurchaseBonusBps(15);
 
     address[] memory _reinvestPath = new address[](2);
     _reinvestPath[0] = address(_alpacaToken);
@@ -151,89 +160,11 @@ contract DeltaNeutralVault04_Test is BaseTest {
       address(_depositExecutor),
       address(_withdrawExecutor),
       address(_rebalanceExecutor),
-      address(_reinvestExecutor)
+      address(_reinvestExecutor),
+      address(_repurchaseExecutor)
     );
 
     _initPosition();
-  }
-
-  function testCorrectness_depositShouldWorkIfBorrowAmountIsCorrect() external {
-    _depositForAlice();
-  }
-
-  function testRevert_depositShouldRevertIfBorrowValueIsOff() external {
-    uint256 _depositValue = 100 ether;
-    uint256 _borrowValue = _depositValue * 3; // 4x leverage
-
-    _depositExecutor.setExecutionValue(_depositValue, _borrowValue);
-
-    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault04HealthChecker_UnsafeDebtValue()"));
-    _deltaNeutralVault.deposit(100 ether, 0, ALICE, 100 ether, abi.encode(0));
-
-    _borrowValue = _depositValue * 1; // 1x leverage
-    _depositExecutor.setExecutionValue(_depositValue, _borrowValue);
-
-    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault04HealthChecker_UnsafeDebtValue()"));
-    _deltaNeutralVault.deposit(100 ether, 0, ALICE, 100 ether, abi.encode(0));
-  }
-
-  function testCorrectness_withdrawShouldWork() external {
-    _depositForAlice();
-
-    uint256 _withdrawValue = 100 ether;
-    uint256 _repayDebtValue = _withdrawValue * 2; // 3x leverage
-
-    _withdrawExecutor.setExecutionValue(_withdrawValue, _repayDebtValue);
-
-    vm.prank(ALICE);
-    // Withdraw executor will always return stable
-    _deltaNeutralVault.withdraw(100 ether, 100, 0, abi.encode(0));
-
-    assertEq(_deltaNeutralVault.balanceOf(ALICE), 0 ether);
-    assertEq(_stableToken.balanceOf(ALICE), 100 ether);
-  }
-
-  function testRevert_withdrawShouldRevertIfDebtRatioIsOff() external {
-    _depositForAlice();
-
-    uint256 _withdrawValue = 100 ether;
-    uint256 _repayDebtValue = _withdrawValue * 1; // 3x leverage
-
-    _withdrawExecutor.setExecutionValue(_withdrawValue, _repayDebtValue);
-
-    vm.prank(ALICE);
-    // Withdraw executor will always return stable
-    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault04HealthChecker_UnsafeDebtRatio()"));
-    _deltaNeutralVault.withdraw(100 ether, 100, 0, abi.encode(0));
-  }
-
-  function testCorrectness_RebalanceShouldWorkIfEquityIsNotLost() external {
-    _stableVault.setDebt(60 ether, 60 ether);
-    _rebalanceExecutor.setExecutionValue(90 ether, 180 ether);
-    _deltaNeutralVault.rebalance(abi.encode(0));
-  }
-
-  function testRevert_RebalanceShouldRevertIfEquityIsLost() external {
-    _stableVault.setDebt(100 ether, 100 ether);
-
-    _rebalanceExecutor.setExecutionValue(500 ether, 400 ether);
-    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault04_UnsafePositionValue()"));
-    _deltaNeutralVault.rebalance(abi.encode(0));
-  }
-
-  function testCorrectness_ReinvestShouldWorkIfEquityIsNotLost() external {
-    _alpacaToken.mint(address(_deltaNeutralVault), 100 ether);
-    _reinvestExecutor.setExecutionValue(200 ether, 400 ether);
-
-    _deltaNeutralVault.reinvest(abi.encode(0), 0);
-  }
-
-  function testRevert_ReinvestShouldRevertIfEquityIsLost() external {
-    _alpacaToken.mint(address(_deltaNeutralVault), 100 ether);
-    _reinvestExecutor.setExecutionValue(100 ether, 200 ether);
-
-    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault04_UnsafePositionEquity()"));
-    _deltaNeutralVault.reinvest(abi.encode(0), 0);
   }
 
   function _initPosition() internal {

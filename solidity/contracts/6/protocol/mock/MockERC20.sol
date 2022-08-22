@@ -32,6 +32,18 @@ contract MockERC20 is ERC20UpgradeSafe, OwnableUpgradeSafe {
     _mint(to, amount);
   }
 
+  function getReserves()
+    external
+    view
+    returns (
+      uint256 a,
+      uint256 b,
+      uint32 c
+    )
+  {}
+
+  function token0() external view returns (address a) {}
+
   receive() external payable {
     _mint(msg.sender, msg.value);
   }

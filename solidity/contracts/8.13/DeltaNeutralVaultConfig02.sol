@@ -65,15 +65,22 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
     address _depositExecutor,
     address _withdrawExecutor,
     address _rebalanceExecutor,
-    address _reinvestExecutor
+    address _reinvestExecutor,
+    address _repurchaseExecutor
   );
-  event LogSetSwapConfig(address indexed _caller, uint256 swapFee, uint256 swapFeeDenom);
+
+  event LogSetSwapConfig(address indexed _caller, uint256 _swapFee, uint256 _swapFeeDenom);
   event LogSetStrategies(
     address indexed _caller,
-    address partialCloseMinimizeStrategy,
-    address stableAddTwoSideStrategy,
-    address assetAddTwoSideStrategy
+    address _partialCloseMinimizeStrategy,
+    address _stableAddTwoSideStrategy,
+    address _assetAddTwoSideStrategy,
+    address _repurchaseBorrowStrategy,
+    address _repurchaseRepayStrategy
   );
+  event LogSetWhitelistedRepurchasers(address indexed _caller, address indexed _address, bool _ok);
+
+  event LogSetRepurchaseBonusBps(address indexed _caller, uint256 _oldBps, uint256 _newBps);
 
   // --- Errors ---
   error DeltaNeutralVaultConfig_LeverageLevelTooLow();
@@ -82,6 +89,8 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
   error DeltaNeutralVaultConfig_InvalidSwapRouter();
   error DeltaNeutralVaultConfig_InvalidReinvestPath();
   error DeltaNeutralVaultConfig_InvalidReinvestPathLength();
+  error DeltaNeutralVaultConfig_RepurchaseBonusBpsTooHigh();
+  error DeltaNeutralVaultConfig_RepurchaseDisabled();
 
   // --- Constants ---
   uint8 private constant MIN_LEVERAGE_LEVEL = 3;
@@ -170,6 +179,15 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
   address public stableAddTwoSideStrategy;
   address public assetAddTwoSideStrategy;
 
+  /// Repurchase
+  address public repurchaseExecutor;
+  address public repurchaseBorrowStrategy;
+  address public repurchaseRepayStrategy;
+  uint256 public repurchaseBonusBps;
+
+  // list of repurchasers
+  mapping(address => bool) public whitelistedRepurchasers;
+
   function initialize(
     address _getWrappedNativeAddr,
     address _getWNativeRelayer,
@@ -253,6 +271,17 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
     for (uint256 _idx = 0; _idx < _callers.length; _idx++) {
       whitelistedReinvestors[_callers[_idx]] = _ok;
       emit LogSetWhitelistedReinvestors(msg.sender, _callers[_idx], _ok);
+    }
+  }
+
+  /// @notice Set whitelisted repurchasers.
+  /// @dev Must only be called by owner.
+  /// @param _callers addresses to be whitelisted.
+  /// @param _ok The new ok flag for callers.
+  function setwhitelistedRepurchasers(address[] calldata _callers, bool _ok) external onlyOwner {
+    for (uint256 _idx = 0; _idx < _callers.length; _idx++) {
+      whitelistedRepurchasers[_callers[_idx]] = _ok;
+      emit LogSetWhitelistedRepurchasers(msg.sender, _callers[_idx], _ok);
     }
   }
 
@@ -402,14 +431,23 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
     address _depositExecutor,
     address _withdrawExecutor,
     address _rebalanceExecutor,
-    address _reinvestExecutor
+    address _reinvestExecutor,
+    address _repurchaseExecutor
   ) external onlyOwner {
     depositExecutor = _depositExecutor;
     withdrawExecutor = _withdrawExecutor;
     rebalanceExecutor = _rebalanceExecutor;
     reinvestExecutor = _reinvestExecutor;
+    repurchaseExecutor = _repurchaseExecutor;
 
-    emit LogSetExecutor(msg.sender, _depositExecutor, _withdrawExecutor, _rebalanceExecutor, _reinvestExecutor);
+    emit LogSetExecutor(
+      msg.sender,
+      _depositExecutor,
+      _withdrawExecutor,
+      _rebalanceExecutor,
+      _reinvestExecutor,
+      _repurchaseExecutor
+    );
   }
 
   /// @notice Return if caller is executor.
@@ -419,7 +457,8 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
       _caller == depositExecutor ||
       _caller == withdrawExecutor ||
       _caller == rebalanceExecutor ||
-      _caller == reinvestExecutor;
+      _caller == reinvestExecutor ||
+      _caller == repurchaseExecutor;
   }
 
   function setSwapConfig(uint256 _swapFee, uint256 _swapFeeDenom) external onlyOwner {
@@ -432,17 +471,38 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
   function setStrategies(
     address _partialCloseMinimizeStrategy,
     address _stableAddTwoSideStrategy,
-    address _assetAddTwoSideStrategy
+    address _assetAddTwoSideStrategy,
+    address _repurchaseBorrowStrategy,
+    address _repurchaseRepayStrategy
   ) external onlyOwner {
     partialCloseMinimizeStrategy = _partialCloseMinimizeStrategy;
     stableAddTwoSideStrategy = _stableAddTwoSideStrategy;
     assetAddTwoSideStrategy = _assetAddTwoSideStrategy;
+    repurchaseBorrowStrategy = _repurchaseBorrowStrategy;
+    repurchaseRepayStrategy = _repurchaseRepayStrategy;
 
     emit LogSetStrategies(
       msg.sender,
       _partialCloseMinimizeStrategy,
       _stableAddTwoSideStrategy,
-      _assetAddTwoSideStrategy
+      _assetAddTwoSideStrategy,
+      _repurchaseBorrowStrategy,
+      _repurchaseRepayStrategy
     );
+  }
+
+  function setRepurchaseBonusBps(uint256 _newRepurchaseBonusBps) external onlyOwner {
+    if (_newRepurchaseBonusBps > 100) revert DeltaNeutralVaultConfig_RepurchaseBonusBpsTooHigh();
+
+    uint256 _oldBps = repurchaseBonusBps;
+    repurchaseBonusBps = _newRepurchaseBonusBps;
+
+    emit LogSetRepurchaseBonusBps(msg.sender, _oldBps, _newRepurchaseBonusBps);
+  }
+
+  function getRepurchaseBonusBps() external view returns (uint256) {
+    if (repurchaseBonusBps == 0) revert DeltaNeutralVaultConfig_RepurchaseDisabled();
+
+    return repurchaseBonusBps;
   }
 }

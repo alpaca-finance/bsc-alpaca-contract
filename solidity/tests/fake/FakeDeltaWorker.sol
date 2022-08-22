@@ -20,11 +20,17 @@ contract FakeDeltaWorker {
   // lpToken();
   address public lpToken;
 
+  address public baseToken;
+
   constructor(address _lpToken) {
     lpToken = _lpToken;
   }
 
   function setTotalLpBalance(uint256 _lpBalance) external {
     totalLpBalance = _lpBalance;
+  }
+
+  function setBaseToken(address _baseToken) external {
+    baseToken = _baseToken;
   }
 }

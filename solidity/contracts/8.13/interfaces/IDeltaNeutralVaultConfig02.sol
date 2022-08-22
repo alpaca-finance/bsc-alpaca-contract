@@ -99,6 +99,9 @@ interface IDeltaNeutralVaultConfig02 {
   /// @dev Return reinvest executor
   function reinvestExecutor() external view returns (address);
 
+  /// @dev Return repurchase executor
+  function repurchaseExecutor() external view returns (address);
+
   /// @dev Return if caller is executor.
   function isExecutor(address _caller) external view returns (bool);
 
@@ -116,4 +119,13 @@ interface IDeltaNeutralVaultConfig02 {
 
   /// @dev Return swap fee denom
   function swapFeeDenom() external view returns (uint256);
+
+  /// @dev Return swap fee denom
+  function repurchaseBonusBps() external view returns (uint256);
+
+  /// @dev Used in delta neutral vault. Revert if 0
+  function getRepurchaseBonusBps() external view returns (uint256);
+
+  /// @dev Return if the caller is whitelisted.
+  function whitelistedRepurchasers(address _caller) external view returns (bool);
 }

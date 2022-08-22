@@ -1,4 +1,4 @@
-[default]
+[profile.default]
 src = 'solidity/contracts'
 out = 'out'
 libs = ['node_modules']

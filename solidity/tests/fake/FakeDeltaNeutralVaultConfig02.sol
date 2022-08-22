@@ -23,6 +23,7 @@ contract FakeDeltaNeutralVaultConfig02 {
   error DeltaNeutralVaultConfig_InvalidSwapRouter();
   error DeltaNeutralVaultConfig_InvalidReinvestPath();
   error DeltaNeutralVaultConfig_InvalidReinvestPathLength();
+  error DeltaNeutralVaultConfig_RepurchaseDisabled();
 
   // --- Constants ---
   uint8 private constant MIN_LEVERAGE_LEVEL = 3;
@@ -101,6 +102,12 @@ contract FakeDeltaNeutralVaultConfig02 {
   address public partialCloseMinimizeStrategy;
   address public stableAddTwoSideStrategy;
   address public assetAddTwoSideStrategy;
+
+  /// Repurchase
+  address public repurchaseExecutor;
+  address public repurchaseBorrowStrategy;
+  address public repurchaseRepayStrategy;
+  uint256 public repurchaseBonusBps;
 
   function setParams(
     address _getWrappedNativeAddr,
@@ -246,6 +253,12 @@ contract FakeDeltaNeutralVaultConfig02 {
     return true;
   }
 
+  function whitelistedRepurchasers(
+    address /*_address*/
+  ) external pure returns (bool) {
+    return true;
+  }
+
   function setController(address _controller) external {
     controller = _controller;
   }
@@ -254,12 +267,14 @@ contract FakeDeltaNeutralVaultConfig02 {
     address _depositExecutor,
     address _withdrawExecutor,
     address _rebalanceExecutor,
-    address _reinvestExecutor
+    address _reinvestExecutor,
+    address _repurchaseExecutor
   ) external {
     depositExecutor = _depositExecutor;
     withdrawExecutor = _withdrawExecutor;
     rebalanceExecutor = _rebalanceExecutor;
     reinvestExecutor = _reinvestExecutor;
+    repurchaseExecutor = _repurchaseExecutor;
   }
 
   /// @notice Return if caller is executor.
@@ -269,7 +284,8 @@ contract FakeDeltaNeutralVaultConfig02 {
       _caller == depositExecutor ||
       _caller == withdrawExecutor ||
       _caller == rebalanceExecutor ||
-      _caller == reinvestExecutor;
+      _caller == reinvestExecutor ||
+      _caller == repurchaseExecutor;
   }
 
   function setSwapConfig(uint256 _swapFee, uint256 _swapFeeDenom) external {
@@ -285,5 +301,15 @@ contract FakeDeltaNeutralVaultConfig02 {
     partialCloseMinimizeStrategy = _partialCloseMinimizeStrategy;
     stableAddTwoSideStrategy = _stableAddTwoSideStrategy;
     assetAddTwoSideStrategy = _assetAddTwoSideStrategy;
+  }
+
+  function setRepurchaseBonusBps(uint256 _newRepurchaseBonusBps) external {
+    repurchaseBonusBps = _newRepurchaseBonusBps;
+  }
+
+  function getRepurchaseBonusBps() external view returns (uint256) {
+    if (repurchaseBonusBps == 0) revert DeltaNeutralVaultConfig_RepurchaseDisabled();
+
+    return repurchaseBonusBps;
   }
 }

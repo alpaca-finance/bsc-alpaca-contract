@@ -13,28 +13,28 @@ Alpaca Fin Corporation
 pragma solidity ^0.8.4;
 
 interface DeltaNeutralVault04Like {
-  error DeltaNeutralVault_BadActionSize();
-  error DeltaNeutralVault_BadReinvestPath();
-  error DeltaNeutralVault_IncorrectNativeAmountDeposit();
-  error DeltaNeutralVault_InsufficientShareReceived(uint256 _requiredAmount, uint256 _receivedAmount);
-  error DeltaNeutralVault_InsufficientTokenReceived(address _token, uint256 _requiredAmount, uint256 _receivedAmount);
-  error DeltaNeutralVault_InvalidInitializedAddress();
-  error DeltaNeutralVault_InvalidLpToken();
-  error DeltaNeutralVault_InvalidPositions(address _vault, uint256 _positionId);
-  error DeltaNeutralVault_InvalidShareAmount();
-  error DeltaNeutralVault_PositionValueExceedLimit();
-  error DeltaNeutralVault_PositionsAlreadyInitialized();
-  error DeltaNeutralVault_PositionsIsHealthy();
-  error DeltaNeutralVault_PositionsNotInitialized();
-  error DeltaNeutralVault_UnTrustedPrice();
-  error DeltaNeutralVault_Unauthorized(address _caller);
-  error DeltaNeutralVault_UnsafeDebtRatio();
-  error DeltaNeutralVault_UnsafeDebtValue();
-  error DeltaNeutralVault_UnsafeOutstanding(address _token, uint256 _amountBefore, uint256 _amountAfter);
-  error DeltaNeutralVault_UnsafePositionEquity();
-  error DeltaNeutralVault_UnsafePositionValue();
-  error DeltaNeutralVault_UnsupportedDecimals(uint256 _decimals);
-  error DeltaNeutralVault_WithdrawValueExceedShareValue(uint256 _withdrawValue, uint256 _shareValue);
+  error DeltaNeutralVault04_BadActionSize();
+  error DeltaNeutralVault04_BadReinvestPath();
+  error DeltaNeutralVault04_IncorrectNativeAmountDeposit();
+  error DeltaNeutralVault04_InsufficientShareReceived(uint256 _requiredAmount, uint256 _receivedAmount);
+  error DeltaNeutralVault04_InsufficientTokenReceived(address _token, uint256 _requiredAmount, uint256 _receivedAmount);
+  error DeltaNeutralVault04_InvalidInitializedAddress();
+  error DeltaNeutralVault04_InvalidLpToken();
+  error DeltaNeutralVault04_InvalidPositions(address _vault, uint256 _positionId);
+  error DeltaNeutralVault04_InvalidShareAmount();
+  error DeltaNeutralVault04_PositionValueExceedLimit();
+  error DeltaNeutralVault04_PositionsAlreadyInitialized();
+  error DeltaNeutralVault04_PositionsIsHealthy();
+  error DeltaNeutralVault04_PositionsNotInitialized();
+  error DeltaNeutralVault04_UnTrustedPrice();
+  error DeltaNeutralVault04_Unauthorized(address _caller);
+  error DeltaNeutralVault04_UnsafeDebtRatio();
+  error DeltaNeutralVault04_UnsafeDebtValue();
+  error DeltaNeutralVault04_UnsafeOutstanding(address _token, uint256 _amountBefore, uint256 _amountAfter);
+  error DeltaNeutralVault04_UnsafePositionEquity();
+  error DeltaNeutralVault04_UnsafePositionValue();
+  error DeltaNeutralVault04_UnsupportedDecimals(uint256 _decimals);
+  error DeltaNeutralVault04_WithdrawValueExceedShareValue(uint256 _withdrawValue, uint256 _shareValue);
   event Approval(address indexed owner, address indexed spender, uint256 value);
   event LogDeposit(
     address indexed _from,
@@ -138,6 +138,12 @@ interface DeltaNeutralVault04Like {
 
   function reinvest(bytes memory _data, uint256 _minTokenReceive) external;
 
+  function repurchase(
+    address _tokenIn,
+    uint256 _amountIn,
+    uint256 _minAmountOut
+  ) external returns (uint256 amountOut);
+
   function renounceOwnership() external;
 
   function setDeltaNeutralOracle(address _newPriceOracle) external;
@@ -182,6 +188,8 @@ interface DeltaNeutralVault04Like {
     uint256 _minAssetTokenAmount,
     bytes memory _data
   ) external returns (uint256);
+
+  function getExposure() external view returns (int256);
 
   receive() external payable;
 }

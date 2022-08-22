@@ -9,6 +9,7 @@ import { console } from "../utils/console.sol";
 import { ProxyAdminLike } from "../interfaces/ProxyAdminLike.sol";
 
 import { MockErc20Like } from "../interfaces/MockErc20Like.sol";
+import { MockLpErc20Like } from "../interfaces/MockLpErc20Like.sol";
 
 import { TripleSlopeModelLike } from "../interfaces/TripleSlopeModelLike.sol";
 
@@ -26,6 +27,8 @@ import { AutomatedVaultControllerLike } from "../interfaces/AutomatedVaultContro
 import { DeltaNeutralVault02Like } from "../interfaces/DeltaNeutralVault02Like.sol";
 import { DirectionalVaultLike } from "../interfaces/DirectionalVaultLike.sol";
 import { DeltaNeutralVault04Like } from "../interfaces/DeltaNeutralVault04Like.sol";
+import { RepurchaseBorrowStrategyLike } from "../interfaces/RepurchaseBorrowStrategyLike.sol";
+import { RepurchaseRepayStrategyLike } from "../interfaces/RepurchaseRepayStrategyLike.sol";
 
 // solhint-disable const-name-snakecase
 // solhint-disable no-inline-assembly
@@ -88,6 +91,22 @@ contract BaseTest is DSTest {
     );
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
     return MockErc20Like(payable(_proxy));
+  }
+
+  function _setupLpToken(
+    string memory _name,
+    string memory _symbol,
+    uint8 _decimals
+  ) internal returns (MockLpErc20Like) {
+    bytes memory _logicBytecode = abi.encodePacked(vm.getCode("./out/MockERC20.sol/MockERC20.json"));
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize(string,string,uint8)")),
+      _name,
+      _symbol,
+      _decimals
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return MockLpErc20Like(payable(_proxy));
   }
 
   function _setupDebtToken(
@@ -354,5 +373,23 @@ contract BaseTest is DSTest {
     );
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
     return DeltaNeutralVault04Like(payable(_proxy));
+  }
+
+  function _setupRepurchaseBorrowStrategy() internal returns (RepurchaseBorrowStrategyLike) {
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/RepurchaseBorrowStrategy.sol/RepurchaseBorrowStrategy.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(bytes4(keccak256("initialize()")));
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return RepurchaseBorrowStrategyLike(payable(_proxy));
+  }
+
+  function _setupRepurchaseRepayStrategy() internal returns (RepurchaseRepayStrategyLike) {
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/RepurchaseRepayStrategy.sol/RepurchaseRepayStrategy.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(bytes4(keccak256("initialize()")));
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return RepurchaseRepayStrategyLike(payable(_proxy));
   }
 }
