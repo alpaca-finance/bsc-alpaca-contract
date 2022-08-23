@@ -66,20 +66,14 @@ contract PancakeswapV2RestrictedDnxStrategyPartialCloseNoTrading is
 
   /// @dev Execute worker strategy. Take LP tokens. Return farming token + base token.
   /// However, some base token will be deducted to pay the debt
-  /// @param user User address to withdraw liquidity.
   /// @param data Extra calldata information passed along to this strategy.
   function execute(
-    address user,
+    address, /*user*/
     uint256, /*debt*/
     bytes calldata data
   ) external override onlyWhitelistedWorkers nonReentrant {
     // 1. Decode variables from extra data & load required variables.
-    // - maxLpTokenToLiquidate -> maximum lpToken amount that user want to liquidate.
-    // - minFarmingTokenAmount -> minimum farmingToken amount that user want to receive.
-    (uint256 maxLpTokenToLiquidate, uint256 minFarmingToken, address _deltaNeutralVault) = abi.decode(
-      data,
-      (uint256, uint256, address)
-    );
+    (uint256 maxLpTokenToLiquidate, address _deltaNeutralVault) = abi.decode(data, (uint256, address));
     require(okDeltaNeutralVaults[_deltaNeutralVault], "bad target");
 
     IWorker worker = IWorker(msg.sender);
@@ -89,17 +83,18 @@ contract PancakeswapV2RestrictedDnxStrategyPartialCloseNoTrading is
     uint256 lpTokenToLiquidate = Math.min(address(lpToken).myBalance(), maxLpTokenToLiquidate);
     // 2. Approve router to do their stuffs.
     address(lpToken).safeApprove(address(router), uint256(-1));
-    farmingToken.safeApprove(address(router), uint256(-1));
+
     // 3. Remove all liquidity back to base token and farming token.
     router.removeLiquidity(baseToken, farmingToken, lpTokenToLiquidate, 0, 0, address(this), now);
+
     // 4. Return remaining LP token back to the original caller.
     address(lpToken).safeTransfer(msg.sender, lpToken.balanceOf(address(this)));
-    // 5. Return base token back to the original caller.
+
+    // 5. Return base token back to the delta neutral vault.
     baseToken.safeTransfer(_deltaNeutralVault, baseToken.myBalance());
-    // 7. Return remaining farming tokens to user.
-    uint256 remainingFarmingToken = farmingToken.myBalance();
-    require(remainingFarmingToken >= minFarmingToken, "!enough ftoken");
-    farmingToken.safeTransfer(_deltaNeutralVault, remainingFarmingToken);
+
+    // 6. Return farming token back to the delta neutral vault.
+    farmingToken.safeTransfer(_deltaNeutralVault, farmingToken.myBalance());
 
     // 8. Reset approval for safety reason.
     address(lpToken).safeApprove(address(router), 0);
