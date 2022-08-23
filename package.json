@@ -503,7 +503,8 @@
     "test:av-controller": "forge test --match-path solidity/tests/protocol/private-automated-vault/AutomatedVaultController.t.sol",
     "test:delta02": "forge test --match-path solidity/tests/protocol/private-automated-vault/DeltaNeutralVault02.t.sol",
     "test:directional-vault": "forge test --match-path solidity/tests/protocol/directional-vault/DirectionalVault.t.sol",
-    "test:delta04": "forge test --match-contract DeltaNeutralVault04"
+    "test:delta04": "forge test --match-contract DeltaNeutralVault04",
+    "test:pcs-dnx-partial-close-no-trade": "forge test --match-contract PancakeswapV2RestrictedDnxStrategyPartialCloseNoTrading"
   },
   "devDependencies": {
     "@chainlink/contracts": "^0.1.7",

@@ -39,8 +39,6 @@ contract PancakeswapV2RestrictedDnxStrategyPartialCloseNoTrading is
 
   IPancakeFactory public factory;
   IPancakeRouter02 public router;
-  IWETH public wbnb;
-  IWNativeRelayer public wNativeRelayer;
 
   mapping(address => bool) public okWorkers;
   mapping(address => bool) public okDeltaNeutralVaults;
@@ -59,19 +57,11 @@ contract PancakeswapV2RestrictedDnxStrategyPartialCloseNoTrading is
 
   /// @dev Create a new withdraw minimize trading strategy instance.
   /// @param _router The PancakeSwap Router smart contract.
-  /// @param _wbnb The wrapped BNB token.
-  /// @param _wNativeRelayer The relayer to support native transfer
-  function initialize(
-    IPancakeRouter02 _router,
-    IWETH _wbnb,
-    IWNativeRelayer _wNativeRelayer
-  ) external initializer {
+  function initialize(IPancakeRouter02 _router) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
     factory = IPancakeFactory(_router.factory());
     router = _router;
-    wbnb = _wbnb;
-    wNativeRelayer = _wNativeRelayer;
   }
 
   /// @dev Execute worker strategy. Take LP tokens. Return farming token + base token.
@@ -86,7 +76,12 @@ contract PancakeswapV2RestrictedDnxStrategyPartialCloseNoTrading is
     // 1. Decode variables from extra data & load required variables.
     // - maxLpTokenToLiquidate -> maximum lpToken amount that user want to liquidate.
     // - minFarmingTokenAmount -> minimum farmingToken amount that user want to receive.
-    (uint256 maxLpTokenToLiquidate, uint256 minFarmingToken) = abi.decode(data, (uint256, uint256));
+    (uint256 maxLpTokenToLiquidate, uint256 minFarmingToken, address _deltaNeutralVault) = abi.decode(
+      data,
+      (uint256, uint256, address)
+    );
+    require(okDeltaNeutralVaults[_deltaNeutralVault], "bad target");
+
     IWorker worker = IWorker(msg.sender);
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
@@ -126,6 +121,4 @@ contract PancakeswapV2RestrictedDnxStrategyPartialCloseNoTrading is
       okDeltaNeutralVaults[deltaNeutralVaults[idx]] = isOk;
     }
   }
-
-  receive() external payable {}
 }
