@@ -94,11 +94,9 @@ contract PancakeswapV2RestrictedDnxStrategyPartialCloseNoTrading is
     router.removeLiquidity(baseToken, farmingToken, lpTokenToLiquidate, 0, 0, address(this), now);
     // 4. Return remaining LP token back to the original caller.
     address(lpToken).safeTransfer(msg.sender, lpToken.balanceOf(address(this)));
-    // 6. Return base token back to the original caller.
-    // TODO: send base token to delta neutral vault
-    baseToken.safeTransfer(msg.sender, baseToken.myBalance());
+    // 5. Return base token back to the original caller.
+    baseToken.safeTransfer(_deltaNeutralVault, baseToken.myBalance());
     // 7. Return remaining farming tokens to user.
-    // TODO: send base token to delta neutral vault
     uint256 remainingFarmingToken = farmingToken.myBalance();
     require(remainingFarmingToken >= minFarmingToken, "!enough ftoken");
     farmingToken.safeTransfer(_deltaNeutralVault, remainingFarmingToken);
