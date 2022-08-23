@@ -101,7 +101,7 @@ contract PancakeswapV2RestrictedDnxStrategyPartialCloseNoTrading is
     // TODO: send base token to delta neutral vault
     uint256 remainingFarmingToken = farmingToken.myBalance();
     require(remainingFarmingToken >= minFarmingToken, "!enough ftoken");
-    SafeToken.safeTransfer(farmingToken, user, remainingFarmingToken);
+    farmingToken.safeTransfer(_deltaNeutralVault, remainingFarmingToken);
 
     // 8. Reset approval for safety reason.
     address(lpToken).safeApprove(address(router), 0);
