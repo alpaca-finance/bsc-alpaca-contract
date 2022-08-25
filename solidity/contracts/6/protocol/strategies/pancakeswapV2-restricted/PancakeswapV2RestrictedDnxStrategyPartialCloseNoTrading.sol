@@ -23,8 +23,6 @@ import "../../interfaces/IPancakeFactory.sol";
 import "../../interfaces/IPancakePair.sol";
 
 import "../../interfaces/IStrategy.sol";
-import "../../interfaces/IWETH.sol";
-import "../../interfaces/IWNativeRelayer.sol";
 import "../../interfaces/IWorker.sol";
 
 import "../../../utils/SafeToken.sol";
