@@ -96,7 +96,7 @@ contract PancakeswapV2RestrictedDnxStrategyPartialCloseNoTrading is
     // 6. Return farming token back to the delta neutral vault.
     farmingToken.safeTransfer(_deltaNeutralVault, farmingToken.myBalance());
 
-    // 8. Reset approval for safety reason.
+    // 7. Reset approval for safety reason.
     address(lpToken).safeApprove(address(router), 0);
     farmingToken.safeApprove(address(router), 0);
 
