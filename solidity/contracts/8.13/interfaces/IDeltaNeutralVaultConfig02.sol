@@ -133,5 +133,5 @@ interface IDeltaNeutralVaultConfig02 {
   function whitelistedRepurchasers(address _caller) external view returns (bool);
 
   /// @dev Return remove liquidity strat for retarget
-  function retargetRemoveLiquidityNotradeStrategy() external view returns (address);
+  function retargetRemoveLiquidityNoTradeStrategy() external view returns (address);
 }
