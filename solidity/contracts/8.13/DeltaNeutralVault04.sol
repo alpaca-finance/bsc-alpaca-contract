@@ -439,7 +439,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     emit LogRebalance(_equityBefore, _equityAfter);
   }
 
-  /// @notice Retarget stable and asset positions.
+  /// @notice Retarget stable and asset positions without changing exposure
   /// @param _data The calldata to pass along for more working context.
   function retarget(bytes memory _data) external onlyRebalancers collectFee {
     (uint256 _equityBefore, uint256 _equityAfter) = _rebalance(IExecutor(config.retargetExecutor()), _data);
