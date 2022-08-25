@@ -16,6 +16,7 @@ contract PancakeswapV2RestrictedDnxStrategyPartialCloseNoTrading_Test is BaseTes
   FakeRouter private _router;
   FakeFactory private _factory;
   MockErc20Like private _baseToken;
+  MockErc20Like private _farmToken;
   MockLpErc20Like private _lpToken;
 
   function setUp() external {
@@ -23,10 +24,12 @@ contract PancakeswapV2RestrictedDnxStrategyPartialCloseNoTrading_Test is BaseTes
     _router = new FakeRouter(address(_factory));
     _strat = _setupPancakeswapDnxPartialCloseNoTradingStrategy(address(_router));
     _deltaNeutralVault = new MockContract();
-    _baseToken = _setupToken("ALPACA", "ALPACA", 18);
+    _baseToken = _setupToken("WBNB", "WBNB", 18);
+    _farmToken = _setupToken("USDT", "USDT", 18);
     _lpToken = _setupLpToken("LP TOKEN", "LP", 18);
     _worker = new FakeDeltaWorker(address(_lpToken));
     _worker.setBaseToken(address(_baseToken));
+    _worker.setFarmingToken(address(_farmToken));
 
     address[] memory _workers = new address[](1);
     _workers[0] = address(_worker);
@@ -38,15 +41,22 @@ contract PancakeswapV2RestrictedDnxStrategyPartialCloseNoTrading_Test is BaseTes
 
     _factory.setLpTokenForRemoveLiquidity(address(_lpToken));
     _router.setLpTokenForRemoveLiquidity(address(_lpToken));
+
+    _baseToken.mint(address(_router), 50 ether);
+    _farmToken.mint(address(_router), 50 ether);
   }
 
   function test_execute_shouldBorrowCorrectly() external {
-    // _baseToken.balanceOf.mockv(address(_strat), 1 ether);
+    _lpToken.mint(address(_strat), 100 ether);
+    _router.setRemoveLiquidityAmountsOut(50 ether, 50 ether);
     // _baseToken.mint(address(_strat), 1 ether);
     // vm.expectCall(address(_worker), abi.encodeCall(_worker.baseToken, ()));
     // vm.expectCall(address(_baseToken), abi.encodeCall(_baseToken.transfer, (address(_deltaNeutralVault), 1 ether)));
-    // vm.prank(address(_worker));
-    // _strat.execute(address(this), 0, abi.encode(address(_deltaNeutralVault)));
+    vm.prank(address(_worker));
+    _strat.execute(address(this), 0, abi.encode(100 ether, address(_deltaNeutralVault)));
+
+    assertEq(_baseToken.balanceOf(address(_deltaNeutralVault)), 50 ether);
+    assertEq(_farmToken.balanceOf(address(_deltaNeutralVault)), 50 ether);
   }
 
   function test_execute_withBadWorker_shouldFail() external {

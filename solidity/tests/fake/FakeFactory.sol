@@ -20,4 +20,11 @@ contract FakeFactory {
   function setLpTokenForRemoveLiquidity(address _lp) external {
     lpForRemoveLiquidity = _lp;
   }
+
+  function getPair(
+    address, /*_tokenA*/
+    address /*_tokenB*/
+  ) external view returns (address) {
+    return lpForRemoveLiquidity;
+  }
 }

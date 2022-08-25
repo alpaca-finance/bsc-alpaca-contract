@@ -22,6 +22,8 @@ contract FakeDeltaWorker {
 
   address public baseToken;
 
+  address public farmingToken;
+
   constructor(address _lpToken) {
     lpToken = _lpToken;
   }
@@ -32,5 +34,9 @@ contract FakeDeltaWorker {
 
   function setBaseToken(address _baseToken) external {
     baseToken = _baseToken;
+  }
+
+  function setFarmingToken(address _farmingToken) external {
+    farmingToken = _farmingToken;
   }
 }
