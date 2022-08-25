@@ -58,6 +58,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
   event LogWithdraw(address indexed _shareOwner, uint256 _minStableTokenAmount, uint256 _minAssetTokenAmount);
   event LogRebalance(uint256 _equityBefore, uint256 _equityAfter);
   event LogReinvest(uint256 _equityBefore, uint256 _equityAfter);
+  event LogRetarget(uint256 _equityBefore, uint256 _equityAfter);
   event LogRepurchase(
     address indexed _caller,
     address _tokenIn,
@@ -443,7 +444,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
   /// @param _data The calldata to pass along for more working context.
   function retarget(bytes memory _data) external onlyRebalancers collectFee {
     (uint256 _equityBefore, uint256 _equityAfter) = _rebalance(IExecutor(config.retargetExecutor()), _data);
-    emit LogRebalance(_equityBefore, _equityAfter);
+    emit LogRetarget(_equityBefore, _equityAfter);
   }
 
   function _rebalance(IExecutor _executor, bytes memory _data)
