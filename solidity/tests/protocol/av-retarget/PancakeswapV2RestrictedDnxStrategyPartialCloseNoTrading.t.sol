@@ -6,6 +6,7 @@ import { mocking } from "../../utils/mocking.sol";
 import { MockContract } from "../../utils/MockContract.sol";
 import { FakeDeltaWorker } from "../../fake/FakeDeltaWorker.sol";
 import { FakeRouter } from "../../fake/FakeRouter.sol";
+import { FakeFactory } from "../../fake/FakeFactory.sol";
 
 contract PancakeswapV2RestrictedDnxStrategyPartialCloseNoTrading_Test is BaseTest {
   using mocking for *;
@@ -13,11 +14,13 @@ contract PancakeswapV2RestrictedDnxStrategyPartialCloseNoTrading_Test is BaseTes
   MockContract private _deltaNeutralVault;
   FakeDeltaWorker private _worker;
   FakeRouter private _router;
+  FakeFactory private _factory;
   MockErc20Like private _baseToken;
   MockLpErc20Like private _lpToken;
 
   function setUp() external {
-    _router = new FakeRouter();
+    _factory = new FakeFactory();
+    _router = new FakeRouter(address(_factory));
     _strat = _setupPancakeswapDnxPartialCloseNoTradingStrategy(address(_router));
     _deltaNeutralVault = new MockContract();
     _baseToken = _setupToken("ALPACA", "ALPACA", 18);
@@ -32,6 +35,9 @@ contract PancakeswapV2RestrictedDnxStrategyPartialCloseNoTrading_Test is BaseTes
     address[] memory _deltaNeutralVaults = new address[](1);
     _deltaNeutralVaults[0] = address(_deltaNeutralVault);
     _strat.setDeltaNeutralVaultsOk(_deltaNeutralVaults, true);
+
+    _factory.setLpTokenForRemoveLiquidity(address(_lpToken));
+    _router.setLpTokenForRemoveLiquidity(address(_lpToken));
   }
 
   function test_execute_shouldBorrowCorrectly() external {

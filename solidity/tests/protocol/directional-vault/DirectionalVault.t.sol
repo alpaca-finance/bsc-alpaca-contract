@@ -71,7 +71,7 @@ contract DirectionalVault_Test is BaseTest {
     _rebalanceExecutor = new FakeRebalanceExecutor(address(_stableVault), address(_stableVaultWorker), _lpPrice);
     _reinvestExecutor = new FakeReinvestExecutor(address(_stableVault), address(_stableVaultWorker), _lpPrice);
 
-    _router = new FakeRouter();
+    _router = new FakeRouter(address(0));
 
     _fairLaunch = new FakeFairLaunch();
     // Setup Directional Vault

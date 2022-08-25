@@ -20,6 +20,15 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 contract FakeRouter {
   using SafeERC20Upgradeable for IERC20Upgradeable;
 
+  address public factory;
+  address public lpForRemoveLiquidity;
+  uint256 public amountAout;
+  uint256 public amountBout;
+
+  constructor(address _factory) {
+    factory = _factory;
+  }
+
   function WETH() external pure returns (address) {
     return address(0);
   }
@@ -83,7 +92,28 @@ contract FakeRouter {
     return amounts;
   }
 
-  function factory() public pure returns (address) {
-    return address(0);
+  function setRemoveLiquidityAmountsOut(uint256 _amountAOut, uint256 _amountBOut) external {
+    amountAout = _amountAOut;
+    amountBout = _amountBOut;
+  }
+
+  function setLpTokenForRemoveLiquidity(address _lp) external {
+    lpForRemoveLiquidity = _lp;
+  }
+
+  function removeLiquidity(
+    address tokenA,
+    address tokenB,
+    uint256 liquidity,
+    uint256, /*amountAMin*/
+    uint256, /*amountBMin*/
+    address to,
+    uint256 /*deadline*/
+  ) public returns (uint256 amountA, uint256 amountB) {
+    amountA = amountAout;
+    amountB = amountBout;
+    IERC20Upgradeable(lpForRemoveLiquidity).safeTransferFrom(msg.sender, address(this), liquidity);
+    IERC20Upgradeable(tokenA).safeTransfer(to, amountAout);
+    IERC20Upgradeable(tokenB).safeTransfer(to, amountBout);
   }
 }

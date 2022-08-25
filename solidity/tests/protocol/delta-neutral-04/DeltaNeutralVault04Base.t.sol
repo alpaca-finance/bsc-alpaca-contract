@@ -115,7 +115,7 @@ abstract contract DeltaNeutralVault04Base_Test is BaseTest {
       _lpPrice
     );
 
-    _router = new FakeRouter();
+    _router = new FakeRouter(address(0));
 
     _fairLaunch = new FakeFairLaunch();
     // Setup DeltaNeutralVault04 Vault
