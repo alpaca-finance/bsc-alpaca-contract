@@ -18,17 +18,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "worker_setStrategyOk";
+  const TITLE = "n3x-BNBBUSD-PCS1_set_repurchase_strategy_ok";
   const ADD_STRAT = "";
   const LIQ_STRAT = "";
 
   const OK_FLAG = true;
-  const STRATEGY = ["0x6B38bc44F67eC63185576b60eCBd4e212D46ef59", "0x376D185a060ebf867CFdF8cD2FA34BB819912C21"]; //update ibUSDC SpookySwapDnx StrategyAddTwoSidesOptimal
+  const STRATEGY = ["0x699Fc9E0142aF3B8F2238095b360269D4E046eb6", "0x72db1f7B364A3c6F36C604ad05513DF68AA13B1C"];
   const WORKERS = [
-    "USDT-WBNB 8x PCS1 DeltaNeutralPancakeswapWorker",
-    "WBNB-USDT 8x PCS1 DeltaNeutralPancakeswapWorker",
+    "BUSD-WBNB 3x PCS1 DeltaNeutralPancakeswapWorker",
+    "WBNB-BUSD 3x PCS1 DeltaNeutralPancakeswapWorker",
   ];
-  const EXACT_ETA = "1667276500";
+  const EXACT_ETA = "1661241600";
 
   const miniWorkers: Array<WorkerEntity.IMiniWorker> = mapWorkers(WORKERS).map((w) => {
     return {

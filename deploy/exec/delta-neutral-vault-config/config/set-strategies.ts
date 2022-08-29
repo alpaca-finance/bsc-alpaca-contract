@@ -18,7 +18,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     Check all variables below before execute the deployment script
     */
 
-  const DELTA_VAULT_SYMBOL = ["n8x-BNBUSDT-PCS1"];
+  const DELTA_VAULT_SYMBOL = ["n3x-BNBBUSD-PCS1"];
   const IS_DELTA = true;
 
   const deployer = await getDeployer();

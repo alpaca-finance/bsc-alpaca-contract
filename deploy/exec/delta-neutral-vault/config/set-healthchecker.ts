@@ -16,7 +16,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
       Check all variables below before execute the deployment script
       */
-  const TARGETED_VAULTS = ["n8x-BNBUSDT-PCS1"];
+  const TARGETED_VAULTS = ["n3x-BNBBUSD-PCS1"];
   const converter = new Converter();
   const deployer = await getDeployer();
 
