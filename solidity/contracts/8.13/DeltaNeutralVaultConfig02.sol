@@ -467,7 +467,8 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
       _caller == withdrawExecutor ||
       _caller == rebalanceExecutor ||
       _caller == reinvestExecutor ||
-      _caller == repurchaseExecutor;
+      _caller == repurchaseExecutor ||
+      _caller == retargetExecutor;
   }
 
   function setSwapConfig(uint256 _swapFee, uint256 _swapFeeDenom) external onlyOwner {
