@@ -78,7 +78,7 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
     address _assetAddTwoSideStrategy,
     address _repurchaseBorrowStrategy,
     address _repurchaseRepayStrategy,
-    address _retargetRemoveLiquidityNoTradeStrategy
+    address _retargetRemoveLiquidityStrategy
   );
   event LogSetWhitelistedRepurchasers(address indexed _caller, address indexed _address, bool _ok);
 
@@ -192,7 +192,7 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
 
   // Retarget
   address public retargetExecutor;
-  address public retargetRemoveLiquidityNoTradeStrategy;
+  address public retargetRemoveLiquidityStrategy;
 
   function initialize(
     address _getWrappedNativeAddr,
@@ -483,14 +483,14 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
     address _assetAddTwoSideStrategy,
     address _repurchaseBorrowStrategy,
     address _repurchaseRepayStrategy,
-    address _retargetRemoveLiquidityNoTradeStrategy
+    address _retargetRemoveLiquidityStrategy
   ) external onlyOwner {
     partialCloseMinimizeStrategy = _partialCloseMinimizeStrategy;
     stableAddTwoSideStrategy = _stableAddTwoSideStrategy;
     assetAddTwoSideStrategy = _assetAddTwoSideStrategy;
     repurchaseBorrowStrategy = _repurchaseBorrowStrategy;
     repurchaseRepayStrategy = _repurchaseRepayStrategy;
-    retargetRemoveLiquidityNoTradeStrategy = _retargetRemoveLiquidityNoTradeStrategy;
+    retargetRemoveLiquidityStrategy = _retargetRemoveLiquidityStrategy;
 
     emit LogSetStrategies(
       msg.sender,
@@ -499,7 +499,7 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
       _assetAddTwoSideStrategy,
       _repurchaseBorrowStrategy,
       _repurchaseRepayStrategy,
-      _retargetRemoveLiquidityNoTradeStrategy
+      _retargetRemoveLiquidityStrategy
     );
   }
 

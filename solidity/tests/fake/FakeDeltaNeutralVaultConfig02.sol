@@ -111,6 +111,7 @@ contract FakeDeltaNeutralVaultConfig02 {
 
   /// Retarget
   address public retargetExecutor;
+  address public retargetRemoveLiquidityStrategy;
 
   function setParams(
     address _getWrappedNativeAddr,
