@@ -27,8 +27,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const WHITELISTED_STRATS_DELTA_NEUTRAL_VAULTS: ISetWhitelistedStratsDeltaNeutralVaults = [
     {
       STRAT_NAME: "RepurchaseBorrowStrategy",
-      STRAT_ADDR: "0x5F802Bc9433f37a425F20171532E74d4F277b0a9",
-      DELTA_NEUTRAL_VAULTS: ["0x8e5CfA7C06F187B56537f7F0CaBfb55611Af6F16"],
+      STRAT_ADDR: "0x699Fc9E0142aF3B8F2238095b360269D4E046eb6",
+      DELTA_NEUTRAL_VAULTS: ["0x9fE96180AB2ADfaEBc735336f9213F26Bca99aa1"],
     },
   ];
 
