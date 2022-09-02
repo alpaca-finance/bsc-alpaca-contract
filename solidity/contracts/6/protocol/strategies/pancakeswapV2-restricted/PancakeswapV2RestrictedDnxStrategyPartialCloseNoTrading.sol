@@ -96,7 +96,6 @@ contract PancakeswapV2RestrictedDnxStrategyPartialCloseNoTrading is
 
     // 7. Reset approval for safety reason.
     address(lpToken).safeApprove(address(router), 0);
-    farmingToken.safeApprove(address(router), 0);
 
     emit PancakeswapV2RestrictedDnxStrategyPartialCloseNoTradingEvent(baseToken, farmingToken, lpTokenToLiquidate);
   }
