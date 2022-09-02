@@ -49,9 +49,7 @@ contract PancakeswapV2RestrictedDnxStrategyPartialCloseNoTrading_Test is BaseTes
   function test_execute_shouldBorrowCorrectly() external {
     _lpToken.mint(address(_strat), 100 ether);
     _router.setRemoveLiquidityAmountsOut(50 ether, 50 ether);
-    // _baseToken.mint(address(_strat), 1 ether);
-    // vm.expectCall(address(_worker), abi.encodeCall(_worker.baseToken, ()));
-    // vm.expectCall(address(_baseToken), abi.encodeCall(_baseToken.transfer, (address(_deltaNeutralVault), 1 ether)));
+
     vm.prank(address(_worker));
     _strat.execute(address(this), 0, abi.encode(100 ether, address(_deltaNeutralVault)));
 

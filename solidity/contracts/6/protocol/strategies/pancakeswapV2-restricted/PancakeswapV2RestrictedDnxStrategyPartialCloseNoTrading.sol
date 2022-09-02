@@ -101,13 +101,15 @@ contract PancakeswapV2RestrictedDnxStrategyPartialCloseNoTrading is
   }
 
   function setWorkersOk(address[] calldata workers, bool isOk) external onlyOwner {
-    for (uint256 idx = 0; idx < workers.length; idx++) {
+    uint256 length = workers.length;
+    for (uint256 idx = 0; idx < length; idx++) {
       okWorkers[workers[idx]] = isOk;
     }
   }
 
   function setDeltaNeutralVaultsOk(address[] calldata deltaNeutralVaults, bool isOk) external onlyOwner {
-    for (uint256 idx = 0; idx < deltaNeutralVaults.length; idx++) {
+    uint256 length = deltaNeutralVaults.length;
+    for (uint256 idx = 0; idx < length; idx++) {
       okDeltaNeutralVaults[deltaNeutralVaults[idx]] = isOk;
     }
   }
