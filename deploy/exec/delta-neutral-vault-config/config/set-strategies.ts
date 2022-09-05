@@ -32,7 +32,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const assetWorkers = IS_DELTA ? converter.convertDeltaSymbolToAddress(DELTA_VAULT_SYMBOL, "assetDeltaWorker") : [];
   const assetWorkersEntity = converter.convertAddressesToWorkers(assetWorkers);
 
-  console.log(">> Set Strategies to DeltaNeutralVaultConfig03 contract");
+  console.log(">> Set Strategies to DeltaNeutralVaultConfig02 contract");
   let nonce = await deployer.getTransactionCount();
   const ops = isFork() ? { nonce: nonce++, gasLimit: 2000000 } : {};
   for (let i: number = 0; i < configs.length; i++) {
@@ -56,6 +56,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       assetStrategyAddTwoSidesOptimal,
       config.SharedStrategies.All!.StrategyRepurchaseBorrow!,
       config.SharedStrategies.All!.StrategyRepurchaseRepay!,
+      stableWorker.strategies.StrategyPartialCloseNoTrade!,
       { ...ops, nonce: nonce++ }
     );
     console.log("✅ Done");
