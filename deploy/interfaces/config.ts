@@ -230,6 +230,7 @@ export interface SharedStrategiesGroup {
   StrategyPartialCloseMinimizeTrading: string;
   StrategyRepurchaseBorrow?: string;
   StrategyRepurchaseRepay?: string;
+  StrategyPartialCloseNoTrade?: string;
 }
 
 export interface SharedConfig {
@@ -287,6 +288,7 @@ export interface Strategies {
   StrategyWithdrawMinimizeTrading: string;
   StrategyPartialCloseLiquidate: string;
   StrategyPartialCloseMinimizeTrading: string;
+  StrategyPartialCloseNoTrade?: string;
 }
 export interface DeltaNeutralVaultsEntity {
   name: string;
@@ -312,4 +314,5 @@ export interface AutomatedVaultExecutor {
   reinvest: string;
   rebalance: string;
   repurchase?: string;
+  retarget?: string;
 }

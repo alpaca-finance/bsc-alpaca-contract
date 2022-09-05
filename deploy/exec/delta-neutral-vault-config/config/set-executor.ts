@@ -44,6 +44,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       executors.rebalance,
       executors.reinvest,
       executors.repurchase!,
+      executors.retarget!,
       {
         ...ops,
         nonce: nonce++,
