@@ -181,7 +181,7 @@ abstract contract DeltaNeutralVault04Base_Test is BaseTest {
   function _initPosition() internal {
     _depositExecutor.setExecutionValue(100 ether, 200 ether);
     // 3x Position
-    _deltaNeutralVault.initPositions(25 ether, 75 ether, 0, abi.encode(0));
+    _deltaNeutralVault.initPositions(100 ether, 0 ether, 0, abi.encode(0));
 
     (
       uint256 stablePositionEquity,
