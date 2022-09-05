@@ -3,3 +3,4 @@ src = 'solidity/contracts'
 out = 'out'
 libs = ['node_modules']
 test = 'solidity/tests'
+fs_permissions = [{ access = "read-write", path = "./"}]
