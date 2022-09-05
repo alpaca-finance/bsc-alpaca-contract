@@ -291,6 +291,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     // In previous version, we also accept asset-side token.
     // For current version, we only accept stable-side token
     _transferTokenToVault(stableToken, _stableTokenAmount);
+    _transferTokenToVault(assetToken, _assetTokenAmount);
 
     // 2. deposit executor exec
     IExecutor(config.depositExecutor()).exec(bytes.concat(abi.encode(_stableTokenAmount, 0), _data));
