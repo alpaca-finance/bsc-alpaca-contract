@@ -45,4 +45,21 @@ contract DeltaNeutralVault04_DepositTest is DeltaNeutralVault04Base_Test {
     vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault04HealthChecker_UnsafeDebtValue()"));
     _deltaNeutralVault.deposit(100 ether, 0, ALICE, 100 ether, abi.encode(0));
   }
+
+  function testRevert_depositWithAssetTokenShouldIgnoreTheAssetToken() external {
+    uint256 _depositValue = 100 ether;
+    uint256 _borrowValue = _depositValue * 2; // 4x leverage
+
+    _depositExecutor.setExecutionValue(_depositValue, _borrowValue);
+
+    uint256 _assetTokenAmountBefore = _assetToken.balanceOf(address(this));
+
+    // Note that we put 200 asset token in but it shouldn't be used
+    _deltaNeutralVault.deposit(100 ether, 200 ether, ALICE, 0 ether, abi.encode(0));
+
+    uint256 _assetTokenAmountAfter = _assetToken.balanceOf(address(this));
+
+    assertEq(_assetTokenAmountBefore, _assetTokenAmountAfter);
+    assertEq(_deltaNeutralVault.balanceOf(ALICE), 100 ether);
+  }
 }
