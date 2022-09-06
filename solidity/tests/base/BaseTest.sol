@@ -31,6 +31,7 @@ import { RepurchaseBorrowStrategyLike } from "../interfaces/RepurchaseBorrowStra
 import { RepurchaseRepayStrategyLike } from "../interfaces/RepurchaseRepayStrategyLike.sol";
 import { RepurchaseRepayStrategyLike } from "../interfaces/RepurchaseRepayStrategyLike.sol";
 import { PancakeswapV2RestrictedDnxStrategyPartialCloseNoTradingLike } from "../interfaces/PancakeswapV2RestrictedDnxStrategyPartialCloseNoTradingLike.sol";
+import { BiswapDnxStrategyPartialCloseNoTradingLike } from "../interfaces/BiswapDnxStrategyPartialCloseNoTradingLike.sol";
 
 // solhint-disable const-name-snakecase
 // solhint-disable no-inline-assembly
@@ -407,5 +408,17 @@ contract BaseTest is DSTest {
     bytes memory _initializer = abi.encodeWithSelector(bytes4(keccak256("initialize(address)")), _router);
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
     return PancakeswapV2RestrictedDnxStrategyPartialCloseNoTradingLike(_proxy);
+  }
+
+  function _setupBiswapDnxPartialCloseNoTradingStrategy(address _router)
+    internal
+    returns (BiswapDnxStrategyPartialCloseNoTradingLike)
+  {
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/BiswapDnxStrategyPartialCloseNoTrading.sol/BiswapDnxStrategyPartialCloseNoTrading.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(bytes4(keccak256("initialize(address)")), _router);
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return BiswapDnxStrategyPartialCloseNoTradingLike(_proxy);
   }
 }
