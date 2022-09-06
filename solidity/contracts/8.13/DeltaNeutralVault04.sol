@@ -296,7 +296,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     // 2. deposit executor exec
     IExecutor(config.depositExecutor()).exec(bytes.concat(abi.encode(_stableTokenAmount, 0), _data));
 
-    return _checkAndMint(_stableTokenAmount, _shareReceiver, _minShareReceive, _positionInfoBefore);
+    return _checkAndMint(_stableTokenAmount, 0, _shareReceiver, _minShareReceive, _positionInfoBefore);
   }
 
   function _checkAndMint(
