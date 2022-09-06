@@ -52,6 +52,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const tx = await strategyDnxPartialCloseNoTrade.setWorkersOk(worker_addresses, true);
     console.log("✅ Done at: ", tx.hash);
   }
+
+  // set strategy address to whitelisted workers
+  for (const workerAddress of worker_addresses) {
+    configFileHelper.addOrSetWorkerStrategy(
+      workerAddress,
+      "StrategyPartialCloseNoTrade",
+      strategyDnxPartialCloseNoTrade.address
+    );
+  }
 };
 
 export default func;
