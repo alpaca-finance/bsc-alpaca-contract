@@ -278,28 +278,27 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
 
   /// @notice Deposit to delta neutral vault.
   /// @param _stableTokenAmount Amount of stable token transfer to vault.
-  /// @param _assetTokenAmount Amount of asset token transfer to vault.
   /// @param _shareReceiver Addresses to be receive share.
   /// @param _minShareReceive Minimum share that _shareReceiver must receive.
   /// @param _data The calldata to pass along to the proxy action for more working context.
   function deposit(
     uint256 _stableTokenAmount,
-    uint256 _assetTokenAmount,
+    uint256, /*_assetTokenAmount*/
     address _shareReceiver,
     uint256 _minShareReceive,
     bytes calldata _data
   ) public payable onlyEOAorWhitelisted collectFee nonReentrant returns (uint256) {
     PositionInfo memory _positionInfoBefore = positionInfo();
 
-    // 1. transfer tokens from user to vault
+    // 1. transfer token from user to vault
+    // In previous version, we also accept asset-side token.
+    // For current version, we only accept stable-side token
     _transferTokenToVault(stableToken, _stableTokenAmount);
-    _assetTokenAmount = 0;
-    // _transferTokenToVault(assetToken, _assetTokenAmount);
 
     // 2. deposit executor exec
-    IExecutor(config.depositExecutor()).exec(bytes.concat(abi.encode(_stableTokenAmount, _assetTokenAmount), _data));
+    IExecutor(config.depositExecutor()).exec(bytes.concat(abi.encode(_stableTokenAmount, 0), _data));
 
-    return _checkAndMint(_stableTokenAmount, _assetTokenAmount, _shareReceiver, _minShareReceive, _positionInfoBefore);
+    return _checkAndMint(_stableTokenAmount, 0, _shareReceiver, _minShareReceive, _positionInfoBefore);
   }
 
   function _checkAndMint(
