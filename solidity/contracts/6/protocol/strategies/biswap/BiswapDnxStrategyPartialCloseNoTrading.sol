@@ -82,7 +82,9 @@ contract BiswapDnxStrategyPartialCloseNoTrading is OwnableUpgradeSafe, Reentranc
     router.removeLiquidity(baseToken, farmingToken, lpTokenToLiquidate, 0, 0, address(this), now);
 
     // 4. Return remaining LP token back to the original caller.
-    address(lpToken).safeTransfer(msg.sender, lpToken.balanceOf(address(this)));
+    if (lpToken.balanceOf(address(this))) {
+      address(lpToken).safeTransfer(msg.sender, lpToken.balanceOf(address(this)));
+    }
 
     // 5. Return base token back to the delta neutral vault.
     baseToken.safeTransfer(_deltaNeutralVault, baseToken.myBalance());
