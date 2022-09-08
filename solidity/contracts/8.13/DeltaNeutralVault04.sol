@@ -436,18 +436,24 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
   /// @notice Rebalance stable and asset positions.
   /// @param _data The calldata to pass along for more working context.
   function rebalance(bytes memory _data) external onlyRebalancers collectFee {
-    (uint256 _equityBefore, uint256 _equityAfter) = _rebalance(IExecutor(config.rebalanceExecutor()), _data);
+    (uint256 _equityBefore, uint256 _equityAfter) = _executeAndReturnEquityChange(
+      IExecutor(config.rebalanceExecutor()),
+      _data
+    );
     emit LogRebalance(_equityBefore, _equityAfter);
   }
 
   /// @notice Retarget stable and asset positions without changing exposure
   /// @param _data The calldata to pass along for more working context.
   function retarget(bytes memory _data) external onlyRebalancers collectFee {
-    (uint256 _equityBefore, uint256 _equityAfter) = _rebalance(IExecutor(config.retargetExecutor()), _data);
+    (uint256 _equityBefore, uint256 _equityAfter) = _executeAndReturnEquityChange(
+      IExecutor(config.retargetExecutor()),
+      _data
+    );
     emit LogRetarget(_equityBefore, _equityAfter);
   }
 
-  function _rebalance(IExecutor _executor, bytes memory _data)
+  function _executeAndReturnEquityChange(IExecutor _executor, bytes memory _data)
     internal
     returns (uint256 _equityBefore, uint256 _equityAfter)
   {
