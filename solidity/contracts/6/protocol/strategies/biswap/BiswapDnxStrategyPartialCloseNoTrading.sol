@@ -18,30 +18,26 @@ import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard
 import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/math/Math.sol";
 
-import "../../apis/pancake/IPancakeRouter02.sol";
-import "../../interfaces/IPancakeFactory.sol";
-import "../../interfaces/IPancakePair.sol";
+import "../../interfaces/ISwapFactoryLike.sol";
+import "../../interfaces/IBiswapLiquidityPair.sol";
+import "../../interfaces/IBiswapRouter02.sol";
 
 import "../../interfaces/IStrategy.sol";
 import "../../interfaces/IWorker.sol";
 
 import "../../../utils/SafeToken.sol";
 
-contract PancakeswapV2RestrictedDnxStrategyPartialCloseNoTrading is
-  OwnableUpgradeSafe,
-  ReentrancyGuardUpgradeSafe,
-  IStrategy
-{
+contract BiswapDnxStrategyPartialCloseNoTrading is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IStrategy {
   using SafeToken for address;
   using SafeMath for uint256;
 
-  IPancakeFactory public factory;
-  IPancakeRouter02 public router;
+  ISwapFactoryLike public factory;
+  IBiswapRouter02 public router;
 
   mapping(address => bool) public okWorkers;
   mapping(address => bool) public okDeltaNeutralVaults;
 
-  event PancakeswapV2RestrictedDnxStrategyPartialCloseNoTradingEvent(
+  event BiswapDnxStrategyStrategyPartialCloseNoTradingEvent(
     address indexed baseToken,
     address indexed farmToken,
     uint256 amounToLiquidate
@@ -54,11 +50,11 @@ contract PancakeswapV2RestrictedDnxStrategyPartialCloseNoTrading is
   }
 
   /// @dev Create a new withdraw minimize trading strategy instance.
-  /// @param _router The PancakeSwap Router smart contract.
-  function initialize(IPancakeRouter02 _router) external initializer {
+  /// @param _router The Biswap Router smart contract.
+  function initialize(IBiswapRouter02 _router) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
-    factory = IPancakeFactory(_router.factory());
+    factory = ISwapFactoryLike(_router.factory());
     router = _router;
   }
 
@@ -77,7 +73,7 @@ contract PancakeswapV2RestrictedDnxStrategyPartialCloseNoTrading is
     IWorker worker = IWorker(msg.sender);
     address baseToken = worker.baseToken();
     address farmingToken = worker.farmingToken();
-    IPancakePair lpToken = IPancakePair(factory.getPair(farmingToken, baseToken));
+    IBiswapLiquidityPair lpToken = IBiswapLiquidityPair(factory.getPair(farmingToken, baseToken));
     uint256 lpTokenToLiquidate = Math.min(address(lpToken).myBalance(), maxLpTokenToLiquidate);
     // 2. Approve router to do their stuffs.
     address(lpToken).safeApprove(address(router), uint256(-1));
@@ -99,7 +95,7 @@ contract PancakeswapV2RestrictedDnxStrategyPartialCloseNoTrading is
     // 7. Reset approval for safety reason.
     address(lpToken).safeApprove(address(router), 0);
 
-    emit PancakeswapV2RestrictedDnxStrategyPartialCloseNoTradingEvent(baseToken, farmingToken, lpTokenToLiquidate);
+    emit BiswapDnxStrategyStrategyPartialCloseNoTradingEvent(baseToken, farmingToken, lpTokenToLiquidate);
   }
 
   function setWorkersOk(address[] calldata workers, bool isOk) external onlyOwner {
