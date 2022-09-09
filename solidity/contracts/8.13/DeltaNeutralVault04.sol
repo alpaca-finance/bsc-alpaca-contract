@@ -258,6 +258,9 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     uint256 _amount
   ) internal {
     if (_token == config.getWrappedNativeAddr()) {
+      address _relayer = config.getWNativeRelayer();
+      SafeToken.safeTransfer(_token, _relayer, _amount);
+      IWNativeRelayer(_relayer).withdraw(_amount);
       SafeToken.safeTransferETH(_to, _amount);
     } else {
       IERC20Upgradeable(_token).safeTransfer(_to, _amount);
