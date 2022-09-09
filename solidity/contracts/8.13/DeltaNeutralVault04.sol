@@ -48,8 +48,14 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
 
   // --- Events ---
   event LogInitializePositions(address indexed _from, uint256 _stableVaultPosId, uint256 _assetVaultPosId);
-  event LogDeposit(address indexed _from, address indexed _shareReceiver, uint256 _shares, uint256 _stableTokenAmount);
-  event LogWithdraw(address indexed _shareOwner, uint256 _minStableTokenAmount);
+  event LogDeposit(
+    address indexed _from,
+    address indexed _shareReceiver,
+    uint256 _shares,
+    uint256 _stableTokenAmount,
+    uint256 _assetTokenAmount
+  );
+  event LogWithdraw(address indexed _shareOwner, uint256 _minStableTokenAmount, uint256 _minAssetTokenAmount);
   event LogRebalance(uint256 _equityBefore, uint256 _equityAfter);
   event LogReinvest(uint256 _equityBefore, uint256 _equityAfter);
   event LogRetarget(uint256 _equityBefore, uint256 _equityAfter);
@@ -397,7 +403,16 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
       revert DeltaNeutralVault04_WithdrawValueExceedShareValue(_withdrawValue, _withdrawShareValue);
     }
 
-    // the new executor won't return any asset back
+    // sanity check
+    checker.withdrawHealthCheck(
+      _withdrawShareValue,
+      lpToken,
+      _positionInfoBefore,
+      _positionInfoAfter,
+      priceOracle,
+      config
+    );
+
     _transferTokenToShareOwner(msg.sender, stableToken, _stableTokenBack);
 
     // on withdraw increase credit to tx.origin since user can withdraw from DN Gateway -> DN Vault
