@@ -102,6 +102,9 @@ interface IDeltaNeutralVaultConfig02 {
   /// @dev Return repurchase executor
   function repurchaseExecutor() external view returns (address);
 
+  /// @dev Return retarget executor
+  function retargetExecutor() external view returns (address);
+
   /// @dev Return if caller is executor.
   function isExecutor(address _caller) external view returns (bool);
 
@@ -128,4 +131,7 @@ interface IDeltaNeutralVaultConfig02 {
 
   /// @dev Return if the caller is whitelisted.
   function whitelistedRepurchasers(address _caller) external view returns (bool);
+
+  /// @dev Return remove liquidity strat for retarget
+  function retargetRemoveLiquidityStrategy() external view returns (address);
 }

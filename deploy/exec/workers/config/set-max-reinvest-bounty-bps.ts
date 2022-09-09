@@ -1,11 +1,9 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, network } from "hardhat";
-import { Timelock__factory } from "../../../../typechain";
-import MainnetConfig from "../../../../.mainnet.json";
-import TestnetConfig from "../../../../.testnet.json";
 import { TimelockEntity } from "../../../entities";
 import { fileService, TimelockService } from "../../../services";
+import { getConfig } from "../../../entities/config";
 
 interface IWorker {
   WORKER_NAME: string;
@@ -107,7 +105,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const MAX_REINVEST_BOUNTY_BPS = "900";
   const EXACT_ETA = "1639720800";
 
-  const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
+  const config = getConfig();
   const allWorkers: IWorkers = config.Vaults.reduce((accum, vault) => {
     return accum.concat(
       vault.workers.map((worker) => {

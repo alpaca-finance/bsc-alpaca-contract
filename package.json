@@ -1,6 +1,6 @@
 {
   "name": "@alpaca-finance/alpaca-contract",
-  "version": "1.2.38",
+  "version": "1.2.39",
   "scripts": {
     "prepublish": "yarn build && rm ./typechain/index.*",
     "build": "yarn run build:cjs",
@@ -149,6 +149,8 @@
     "deploy:mainnet:directional-vault:config:init-positions": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags DirectionalVaultInitPositions",
     "deploy:mainnet:strategies:deploy:repurchase:repurchase-borrow-strategies": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags RepurchaseBorrowStrategies",
     "deploy:mainnet:strategies:deploy:repurchase:repurchase-repay-strategies": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags RepurchaseRepayStrategies",
+    "deploy:mainnet:strategies:deploy:pancakeswap-v2:dnx-partial-close-no-trade-strategies": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags PancakeswapDnxVaultStrategiesPartialCloseNoTrade",
+    "deploy:mainnet:strategies:deploy:biswap:dnx-partial-close-no-trade-strategies": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags BiswapDnxVaultStrategiesPartialCloseNoTrade",
     "deploy:mainnet:strategies:config:set-whitelisted-delta-neutral-vaults": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags TimelockSetSharedStratsWhitelistedDeltaNeutralVaults",
     "deploy:testnet:000": "hardhat --network testnet deploy --no-compile --reset --tags Testnet",
     "deploy:testnet:000:panV2": "hardhat --network testnet deploy --no-compile --reset --tags PancakeswapV2",
@@ -503,7 +505,8 @@
     "test:av-controller": "forge test --match-path solidity/tests/protocol/private-automated-vault/AutomatedVaultController.t.sol",
     "test:delta02": "forge test --match-path solidity/tests/protocol/private-automated-vault/DeltaNeutralVault02.t.sol",
     "test:directional-vault": "forge test --match-path solidity/tests/protocol/directional-vault/DirectionalVault.t.sol",
-    "test:delta04": "forge test --match-contract DeltaNeutralVault04"
+    "test:delta04": "forge test --match-contract DeltaNeutralVault04",
+    "test:pcs-dnx-partial-close-no-trade": "forge test --match-contract PancakeswapV2RestrictedDnxStrategyPartialCloseNoTrading"
   },
   "devDependencies": {
     "@chainlink/contracts": "^0.1.7",

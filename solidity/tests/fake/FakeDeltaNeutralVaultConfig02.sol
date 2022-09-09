@@ -109,6 +109,10 @@ contract FakeDeltaNeutralVaultConfig02 {
   address public repurchaseRepayStrategy;
   uint256 public repurchaseBonusBps;
 
+  /// Retarget
+  address public retargetExecutor;
+  address public retargetRemoveLiquidityStrategy;
+
   function setParams(
     address _getWrappedNativeAddr,
     address _getWNativeRelayer,
@@ -268,13 +272,15 @@ contract FakeDeltaNeutralVaultConfig02 {
     address _withdrawExecutor,
     address _rebalanceExecutor,
     address _reinvestExecutor,
-    address _repurchaseExecutor
+    address _repurchaseExecutor,
+    address _retargetExecutor
   ) external {
     depositExecutor = _depositExecutor;
     withdrawExecutor = _withdrawExecutor;
     rebalanceExecutor = _rebalanceExecutor;
     reinvestExecutor = _reinvestExecutor;
     repurchaseExecutor = _repurchaseExecutor;
+    retargetExecutor = _retargetExecutor;
   }
 
   /// @notice Return if caller is executor.

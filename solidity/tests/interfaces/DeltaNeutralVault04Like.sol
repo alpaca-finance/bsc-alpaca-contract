@@ -136,6 +136,8 @@ interface DeltaNeutralVault04Like {
 
   function rebalance(bytes memory _data) external;
 
+  function retarget(bytes memory _data) external;
+
   function reinvest(bytes memory _data, uint256 _minTokenReceive) external;
 
   function repurchase(
