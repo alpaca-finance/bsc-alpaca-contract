@@ -1,4 +1,4 @@
-import { NFT } from "./../interfaces/config";
+import { NFT, Strategies } from "./../interfaces/config";
 import * as fs from "fs";
 import { ethers, network } from "hardhat";
 import { compare } from "../../utils/address";
@@ -108,6 +108,28 @@ export class ConfigFileHelper {
 
     this._writeConfigFile(this.config);
     return this.config;
+  }
+
+  // Workers
+  public addOrSetWorkerStrategy(workerAddress: string, key: keyof Strategies, value: string) {
+    console.log(`>> Updating config on Worker[${workerAddress}] > Strategy > ${key}`);
+    let worker: WorkersEntity | undefined;
+
+    this.config.Vaults.find((vault) => {
+      const w = vault.workers.find((worker) => compare(worker.address, workerAddress));
+      if (w) {
+        worker = w;
+        return;
+      }
+    });
+
+    if (!worker) {
+      throw Error(`[ConfigFileHelper::addOrsetWorkerStrategy]: WorkerAddress [${workerAddress}] not found`);
+    }
+    worker.strategies[key] = value;
+
+    this._writeConfigFile(this.config);
+    console.log("✅ Done");
   }
 
   // SharedStategies

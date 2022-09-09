@@ -24,19 +24,30 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
+  const config = getConfig();
   const WHITELISTED_STRATS_DELTA_NEUTRAL_VAULTS: ISetWhitelistedStratsDeltaNeutralVaults = [
     {
-      STRAT_NAME: "RepurchaseBorrowStrategy",
-      STRAT_ADDR: "0x699Fc9E0142aF3B8F2238095b360269D4E046eb6",
-      DELTA_NEUTRAL_VAULTS: ["0x9fE96180AB2ADfaEBc735336f9213F26Bca99aa1"],
+      STRAT_NAME: "StrategyRepurchaseBorrow",
+      STRAT_ADDR: config.SharedStrategies.All?.StrategyRepurchaseBorrow!,
+      DELTA_NEUTRAL_VAULTS: ["0xe9Bd0B7333596d0a87DED9EE1a782AA052B711AB"],
+    },
+    // PANCAKESWAP
+    {
+      STRAT_NAME: "StrategyPartialCloseNoTrade",
+      STRAT_ADDR: config.SharedStrategies.Pancakeswap?.StrategyPartialCloseNoTrade!,
+      DELTA_NEUTRAL_VAULTS: ["0xe9Bd0B7333596d0a87DED9EE1a782AA052B711AB"],
+    },
+    // BISWAP
+    {
+      STRAT_NAME: "StrategyPartialCloseNoTrade",
+      STRAT_ADDR: config.SharedStrategies.Biswap?.StrategyPartialCloseNoTrade!,
+      DELTA_NEUTRAL_VAULTS: ["0xf8130b2B4717ABB7F23A0433E634AAc1BB6aBE22"],
     },
   ];
 
-  const TIMELOCK = "0x2D5408f2287BF9F9B05404794459a846651D0a59";
   const EXACT_ETA = "1619676000";
   const deployer = await getDeployer();
-  const timelock = Timelock__factory.connect(TIMELOCK, deployer);
-  const config = getConfig();
+  const timelock = Timelock__factory.connect(config.Timelock, deployer);
 
   for (let i = 0; i < WHITELISTED_STRATS_DELTA_NEUTRAL_VAULTS.length; i++) {
     const params = WHITELISTED_STRATS_DELTA_NEUTRAL_VAULTS[i];
