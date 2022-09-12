@@ -55,7 +55,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     uint256 _stableTokenAmount,
     uint256 _assetTokenAmount
   );
-  event LogWithdraw(address indexed _shareOwner, uint256 _minStableTokenAmount, uint256 _minAssetTokenAmount);
+  event LogWithdraw(address indexed _shareOwner, uint256 _minStableTokenAmount);
   event LogRebalance(uint256 _equityBefore, uint256 _equityAfter);
   event LogReinvest(uint256 _equityBefore, uint256 _equityAfter);
   event LogRetarget(uint256 _equityBefore, uint256 _equityAfter);
@@ -302,7 +302,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     // 2. deposit executor exec
     IExecutor(config.depositExecutor()).exec(bytes.concat(abi.encode(_stableTokenAmount, 0), _data));
 
-    return _checkAndMint(_stableTokenAmount, 0, _shareReceiver, _minShareReceive, _positionInfoBefore);
+    return _checkAndMint(_stableTokenAmount, _shareReceiver, _minShareReceive, _positionInfoBefore);
   }
 
   function _checkAndMint(
