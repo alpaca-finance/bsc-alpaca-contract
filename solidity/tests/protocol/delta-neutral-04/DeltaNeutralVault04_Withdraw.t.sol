@@ -41,18 +41,4 @@ contract DeltaNeutralVault04_WithdrawTest is DeltaNeutralVault04Base_Test {
     assertEq(_deltaNeutralVault.balanceOf(ALICE), 0 ether);
     assertEq(_stableToken.balanceOf(ALICE), 100 ether);
   }
-
-  function testRevert_withdrawShouldRevertIfDebtRatioIsOff() external {
-    _depositForAlice();
-
-    uint256 _withdrawValue = 100 ether;
-    uint256 _repayDebtValue = _withdrawValue * 1; // 3x leverage
-
-    _withdrawExecutor.setExecutionValue(_withdrawValue, _repayDebtValue);
-
-    vm.prank(ALICE);
-    // Withdraw executor will always return stable
-    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault04HealthChecker_UnsafeDebtRatio()"));
-    _deltaNeutralVault.withdraw(100 ether, 100, 0, abi.encode(0));
-  }
 }
