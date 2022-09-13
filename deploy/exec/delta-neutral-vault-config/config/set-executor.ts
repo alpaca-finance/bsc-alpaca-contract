@@ -36,6 +36,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(`>> Set Rebalance Executor: ${executors.rebalance} for config: ${config}`);
     console.log(`>> Set Reinvest Executor: ${executors.reinvest} for config: ${config}`);
     console.log(`>> Set Repurchase Executor: ${executors.repurchase} for config: ${config}`);
+    console.log(`>> Set Retarget Executor: ${executors.retarget} for config: ${config}`);
     const deltaVaultConfig = DeltaNeutralVaultConfig02__factory.connect(config, deployer);
 
     await deltaVaultConfig.setExecutor(
@@ -44,6 +45,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       executors.rebalance,
       executors.reinvest,
       executors.repurchase!,
+      executors.retarget!,
       {
         ...ops,
         nonce: nonce++,
