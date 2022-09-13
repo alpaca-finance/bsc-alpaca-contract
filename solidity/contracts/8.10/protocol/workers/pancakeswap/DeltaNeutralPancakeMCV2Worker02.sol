@@ -288,16 +288,11 @@ contract DeltaNeutralPancakeMCV2Worker02 is OwnableUpgradeable, ReentrancyGuardU
     baseToken.safeTransfer(msg.sender, actualBaseTokenBalance());
   }
 
-  /// @dev Return the amount of BaseToken to receive.
+  /// @dev Return meaningless number to bypass work factor check at vault level
   function health(
     uint256 /* id */
   ) external view override returns (uint256) {
-    (uint256 _totalBalanceInUSD, uint256 _lpPriceLastUpdate) = priceOracle.lpToDollar(totalLpBalance, address(lpToken));
-    (uint256 _tokenPrice, uint256 _tokenPricelastUpdate) = priceOracle.getTokenPrice(address(baseToken));
-    // NOTE: last updated price should not be over 1 day
-    if (block.timestamp - _lpPriceLastUpdate > 86400 || block.timestamp - _tokenPricelastUpdate > 86400)
-      revert DeltaNeutralPancakeMCV2Worker02_UnTrustedPrice();
-    return _totalBalanceInUSD.divWadDown(_tokenPrice);
+    return 1e30;
   }
 
   /// @dev Liquidate the given position by converting it to BaseToken and return back to caller.
