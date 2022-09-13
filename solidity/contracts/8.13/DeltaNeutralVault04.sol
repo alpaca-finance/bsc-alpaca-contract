@@ -403,16 +403,6 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
       revert DeltaNeutralVault04_WithdrawValueExceedShareValue(_withdrawValue, _withdrawShareValue);
     }
 
-    // sanity check
-    checker.withdrawHealthCheck(
-      _withdrawShareValue,
-      lpToken,
-      _positionInfoBefore,
-      _positionInfoAfter,
-      priceOracle,
-      config
-    );
-
     // the new executor won't return any asset back
     _transferTokenToShareOwner(msg.sender, stableToken, _stableTokenBack);
 
