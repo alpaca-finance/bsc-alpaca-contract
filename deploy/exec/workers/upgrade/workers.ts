@@ -41,6 +41,11 @@ async function getFactory(workerName: string, factories: Array<FactoryMap>): Pro
     if (!factory) throw new Error("not found new DeltaNeutralPancakeswapWorker factory");
     return await ethers.getContractFactory(factory.newVersion);
   }
+  if (workerName.includes("DeltaNeutralBiswapWorker")) {
+    const factory = factories.find((f) => f.workerType == "DeltaNeutralBiswapWorker");
+    if (!factory) throw new Error("not found new DeltaNeutralBiswapWorker factory");
+    return await ethers.getContractFactory(factory.newVersion);
+  }
   if (workerName.includes("CakeMaxiWorker")) {
     const factory = factories.find((f) => f.workerType == "CakeMaxiWorker");
     if (!factory) throw new Error("not found new CakeMaxiWorker factory");
@@ -79,44 +84,26 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const fileName = "upgrade-pcs-cakemaxi-cakepool-totalBalance";
+  const fileName = "upgrade-dnx-workers";
   const factories: Array<FactoryMap> = [
-    // {
-    //   workerType: "SpookyWorker",
-    //   newVersion: "SpookyWorker03Migrate",
-    // },
-    // {
-    //   workerType: "DeltaNeutralSpookyWorker",
-    //   newVersion: "DeltaNeutralSpookyWorker03Migrate",
-    // },
     {
-      workerType: "SpookyWorker",
-      newVersion: "SpookyMCV2Worker03",
+      workerType: "DeltaNeutralPancakeswapWorker",
+      newVersion: "DeltaNeutralPancakeMCV2Worker02",
     },
     {
-      workerType: "DeltaNeutralSpookyWorker",
-      newVersion: "DeltaNeutralSpookyMCV2Worker03",
+      workerType: "DeltaNeutralBiswapWorker",
+      newVersion: "DeltaNeutralBiswapWorker03",
     },
   ];
+
   const workerInputs: IWorkerInputs = [
-    // "USDC-WFTM SpookyWorker",
-    // "BOO-WFTM SpookyWorker",
-    // "ETH-WFTM SpookyWorker",
-    // "ALPACA-WFTM SpookyWorker",
-    // "BTC-WFTM SpookyWorker",
-    // "fUSDT-WFTM SpookyWorker",
-    // "DAI-WFTM SpookyWorker",
-    // "MIM-WFTM SpookyWorker",
-    "USDC-WFTM 3x SPK1 DeltaNeutralSpookyWorker",
-    "USDC-WFTM 3x SPK2 DeltaNeutralSpookyWorker",
-    "WFTM-USDC SpookyWorker",
-    "TUSD-USDC SpookyWorker",
-    "WFTM-USDC 3x SPK1 DeltaNeutralSpookyWorker",
-    "BOO-USDC SpookyWorker",
-    "WFTM-USDC 3x SPK2 DeltaNeutralSpookyWorker",
-    "WFTM-ALPACA SpookyWorker",
+    "USDT-WBNB 3x DeltaNeutralPancakeswapWorker",
+    "WBNB-USDT 3x DeltaNeutralPancakeswapWorker",
+
+    "USDT-WBNB 8x PCS1 DeltaNeutralPancakeswapWorker",
+    "WBNB-USDT 8x PCS1 DeltaNeutralPancakeswapWorker",
   ];
-  const EXACT_ETA = "1651233600";
+  const EXACT_ETA = "1664065889";
 
   const config = ConfigEntity.getConfig();
   const ts = Math.floor(new Date().getTime() / 1000);
