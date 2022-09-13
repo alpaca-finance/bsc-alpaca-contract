@@ -20,8 +20,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const ALPACA_PER_BLOCK = ethers.utils.parseEther("1.5");
-  const EXACT_ETA = "1648771200";
+  const ALPACA_PER_BLOCK = ethers.utils.parseEther("1");
+  const EXACT_ETA = "1661853600";
 
   const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
 
