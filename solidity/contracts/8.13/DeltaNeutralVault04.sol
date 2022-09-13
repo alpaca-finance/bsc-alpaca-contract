@@ -413,6 +413,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
       config
     );
 
+    // the new executor won't return any asset back
     _transferTokenToShareOwner(msg.sender, stableToken, _stableTokenBack);
 
     // on withdraw increase credit to tx.origin since user can withdraw from DN Gateway -> DN Vault
