@@ -4878,7 +4878,8 @@
     "withdraw": "0xceC88d723aC8cb1D7887BcFcDF0E59B5091bBE37",
     "reinvest": "0x7C60e6530170b44867187d6413A8fd9AC77c3EaB",
     "rebalance": "0x379A75Ab34C359f9Cd1d00dF958656Ea30e20e66",
-    "repurchase": "0x693E0B9d6d166fdA074693Ab52ce7e59A62FB5E1"
+    "repurchase": "0x693E0B9d6d166fdA074693Ab52ce7e59A62FB5E1",
+    "retarget": "0xAd87ED08c9125E7c4241D4a387166227Ab5A7d0C"
   },
   "DirectionalVaultExecutor": {
     "deposit": "",
