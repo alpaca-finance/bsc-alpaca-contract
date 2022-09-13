@@ -1372,35 +1372,40 @@
       "StrategyLiquidate": "0x9Da5D593d08B062063F81913a08e04594F84d438",
       "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
       "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
-      "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
+      "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2",
+      "StrategyPartialCloseNoTrade": ""
     },
     "Waultswap": {
       "StrategyAddBaseTokenOnly": "0xeBb8BA21A3703ab30187D3EEC02A3Bc62894970D",
       "StrategyLiquidate": "0xCAE15b2843A8BAFa65e82b66DFB7D68397085c28",
       "StrategyWithdrawMinimizeTrading": "0x853dCB694F74Df5fD28B8fdEC0bE10B8Ac43DCB3",
       "StrategyPartialCloseLiquidate": "0xfE49AffC3fFa7bed8346F8f33f8250d3C6fDf073",
-      "StrategyPartialCloseMinimizeTrading": "0x3FFa4Cd446F8127db0ED316b1E952876Be2E61B0"
+      "StrategyPartialCloseMinimizeTrading": "0x3FFa4Cd446F8127db0ED316b1E952876Be2E61B0",
+      "StrategyPartialCloseNoTrade": ""
     },
     "Mdex": {
       "StrategyAddBaseTokenOnly": "0x632e03943Dd4c5c509486233b345FAE86cD5517a",
       "StrategyLiquidate": "0xBD2c6BEd2b89415FE2853941a222662f12166f1D",
       "StrategyWithdrawMinimizeTrading": "0x47F1c5F505043DEe9604B98D99304f7Ad4239b72",
       "StrategyPartialCloseLiquidate": "0xDAf7205a8Afc4d77171f5BFd24808946eCCF373e",
-      "StrategyPartialCloseMinimizeTrading": "0x665a8E4b88f6bfA984b1568505Cb4545f7816Ce2"
+      "StrategyPartialCloseMinimizeTrading": "0x665a8E4b88f6bfA984b1568505Cb4545f7816Ce2",
+      "StrategyPartialCloseNoTrade": ""
     },
     "PancakeswapSingleAsset": {
       "StrategyAddBaseTokenOnly": "0x5cB454fc86068e710212FBECBC93070b90011F2B",
       "StrategyLiquidate": "0x6C0105950B1fEE24eE4ADdd1DFF346cceF75D150",
       "StrategyWithdrawMinimizeTrading": "0x94f5E884e11fC054Ca0b332e3a8773750BDBe242",
       "StrategyPartialCloseLiquidate": "0xa6b2a3Fdd415Ca304a36909a35f974B670960843",
-      "StrategyPartialCloseMinimizeTrading": "0xDD8A4302299115226676F943E01306107DD98495"
+      "StrategyPartialCloseMinimizeTrading": "0xDD8A4302299115226676F943E01306107DD98495",
+      "StrategyPartialCloseNoTrade": ""
     },
     "Biswap": {
       "StrategyAddBaseTokenOnly": "0xaAEF721098a4f123353495d75604fA921C7CE323",
       "StrategyLiquidate": "0x3414C2C8d02F57D9f5844C97a71dE70eA81c751E",
       "StrategyWithdrawMinimizeTrading": "0xD2d1318beA3FBAcbeC1C6b7583DbA74De5d9455c",
       "StrategyPartialCloseLiquidate": "0xba7156E07995cAD7837Ef08EC5bA936DaB2B000B",
-      "StrategyPartialCloseMinimizeTrading": "0x3739d1E01104b019Ff105B3A8F57BC6ed62F18a4"
+      "StrategyPartialCloseMinimizeTrading": "0x3739d1E01104b019Ff105B3A8F57BC6ed62F18a4",
+      "StrategyPartialCloseNoTrade": ""
     },
     "All": {
       "StrategyAddBaseTokenOnly": "",
@@ -2435,7 +2440,8 @@
             "StrategyAddTwoSidesOptimal": "0x57cEc659f0355054A37c36eaF4855AE9CCE7aeB5",
             "StrategyWithdrawMinimizeTrading": "0x55fCc2Dfb1a26e58b1c92a7C85bD2946037A9419",
             "StrategyPartialCloseLiquidate": "0x4362635a0b2F8dF98cDE4Cdde5F5f3bE96f45316",
-            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2"
+            "StrategyPartialCloseMinimizeTrading": "0x8dcEC5e136B6321a50F8567588c2f25738D286C2",
+            "StrategyPartialCloseNoTrade": ""
           }
         },
         {

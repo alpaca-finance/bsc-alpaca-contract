@@ -18,6 +18,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
+  const config = getConfig();
+
   const TITLE = "n3x-BNBBUSD-PCS1_set_repurchase_strategy_ok";
   const ADD_STRAT = "";
   const LIQ_STRAT = "";
@@ -37,7 +39,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     };
   });
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
-  const config = getConfig();
   const deployer = await getDeployer();
   let nonce = await deployer.getTransactionCount();
 

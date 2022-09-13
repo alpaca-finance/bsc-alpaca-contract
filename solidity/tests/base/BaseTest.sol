@@ -29,6 +29,9 @@ import { DirectionalVaultLike } from "../interfaces/DirectionalVaultLike.sol";
 import { DeltaNeutralVault04Like } from "../interfaces/DeltaNeutralVault04Like.sol";
 import { RepurchaseBorrowStrategyLike } from "../interfaces/RepurchaseBorrowStrategyLike.sol";
 import { RepurchaseRepayStrategyLike } from "../interfaces/RepurchaseRepayStrategyLike.sol";
+import { RepurchaseRepayStrategyLike } from "../interfaces/RepurchaseRepayStrategyLike.sol";
+import { PancakeswapV2RestrictedDnxStrategyPartialCloseNoTradingLike } from "../interfaces/PancakeswapV2RestrictedDnxStrategyPartialCloseNoTradingLike.sol";
+import { BiswapDnxStrategyPartialCloseNoTradingLike } from "../interfaces/BiswapDnxStrategyPartialCloseNoTradingLike.sol";
 
 // solhint-disable const-name-snakecase
 // solhint-disable no-inline-assembly
@@ -391,5 +394,31 @@ contract BaseTest is DSTest {
     bytes memory _initializer = abi.encodeWithSelector(bytes4(keccak256("initialize()")));
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
     return RepurchaseRepayStrategyLike(payable(_proxy));
+  }
+
+  function _setupPancakeswapDnxPartialCloseNoTradingStrategy(address _router)
+    internal
+    returns (PancakeswapV2RestrictedDnxStrategyPartialCloseNoTradingLike)
+  {
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode(
+        "./out/PancakeswapV2RestrictedDnxStrategyPartialCloseNoTrading.sol/PancakeswapV2RestrictedDnxStrategyPartialCloseNoTrading.json"
+      )
+    );
+    bytes memory _initializer = abi.encodeWithSelector(bytes4(keccak256("initialize(address)")), _router);
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return PancakeswapV2RestrictedDnxStrategyPartialCloseNoTradingLike(_proxy);
+  }
+
+  function _setupBiswapDnxPartialCloseNoTradingStrategy(address _router)
+    internal
+    returns (BiswapDnxStrategyPartialCloseNoTradingLike)
+  {
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/BiswapDnxStrategyPartialCloseNoTrading.sol/BiswapDnxStrategyPartialCloseNoTrading.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(bytes4(keccak256("initialize(address)")), _router);
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return BiswapDnxStrategyPartialCloseNoTradingLike(_proxy);
   }
 }

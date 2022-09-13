@@ -14,6 +14,7 @@ import { FakeDeltaNeutralWithdrawExecutor } from "../../fake/FakeDeltaNeutralWit
 import { FakeDeltaNeutralRebalanceExecutor } from "../../fake/FakeDeltaNeutralRebalanceExecutor.sol";
 import { FakeDeltaNeutralReinvestExecutor } from "../../fake/FakeDeltaNeutralReinvestExecutor.sol";
 import { FakeDeltaNeutralRepurchaseExecutor } from "../../fake/FakeDeltaNeutralRepurchaseExecutor.sol";
+import { FakeDeltaNeutralRetargetExecutor } from "../../fake/FakeDeltaNeutralRetargetExecutor.sol";
 import { FakeRouter } from "../../fake/FakeRouter.sol";
 import { FakeFairLaunch } from "../../fake/FakeFairLaunch.sol";
 
@@ -36,6 +37,7 @@ abstract contract DeltaNeutralVault04Base_Test is BaseTest {
   FakeDeltaNeutralRebalanceExecutor internal _rebalanceExecutor;
   FakeDeltaNeutralReinvestExecutor internal _reinvestExecutor;
   FakeDeltaNeutralRepurchaseExecutor internal _repurchaseExecutor;
+  FakeDeltaNeutralRetargetExecutor internal _retargetExecutor;
   FakeRouter internal _router;
   FakeFairLaunch internal _fairLaunch;
 
@@ -105,7 +107,15 @@ abstract contract DeltaNeutralVault04Base_Test is BaseTest {
       _lpPrice
     );
 
-    _router = new FakeRouter();
+    _retargetExecutor = new FakeDeltaNeutralRetargetExecutor(
+      address(_stableVault),
+      address(_assetVault),
+      address(_stableVaultWorker),
+      address(_assetVaultWorker),
+      _lpPrice
+    );
+
+    _router = new FakeRouter(address(0));
 
     _fairLaunch = new FakeFairLaunch();
     // Setup DeltaNeutralVault04 Vault
@@ -161,7 +171,8 @@ abstract contract DeltaNeutralVault04Base_Test is BaseTest {
       address(_withdrawExecutor),
       address(_rebalanceExecutor),
       address(_reinvestExecutor),
-      address(_repurchaseExecutor)
+      address(_repurchaseExecutor),
+      address(_retargetExecutor)
     );
 
     _initPosition();
