@@ -55,7 +55,7 @@ contract DeltaNeutralVault04HealthChecker02 is IDeltaNeutralVault04HealthChecker
     PositionInfo memory, /*_positionInfoAfter*/
     IDeltaNeutralOracle, /*_oracle*/
     IDeltaNeutralVaultConfig02 /*_config*/
-  ) external view {
+  ) external pure {
     revert DeltaNeutralVault04HealthChecker_Obsoleted();
   }
 
@@ -66,7 +66,7 @@ contract DeltaNeutralVault04HealthChecker02 is IDeltaNeutralVault04HealthChecker
     PositionInfo memory, /*_positionInfoAfter*/
     IDeltaNeutralOracle, /*_oracle*/
     IDeltaNeutralVaultConfig02 /*_config*/
-  ) external view {
+  ) external pure {
     revert DeltaNeutralVault04HealthChecker_Obsoleted();
   }
 
