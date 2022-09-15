@@ -30,22 +30,6 @@ contract DeltaNeutralVault04_DepositTest is DeltaNeutralVault04Base_Test {
     _depositForAlice();
   }
 
-  function testRevert_depositShouldRevertIfBorrowValueIsOff() external {
-    uint256 _depositValue = 100 ether;
-    uint256 _borrowValue = _depositValue * 3; // 4x leverage
-
-    _depositExecutor.setExecutionValue(_depositValue, _borrowValue);
-
-    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault04HealthChecker_UnsafeDebtValue()"));
-    _deltaNeutralVault.deposit(100 ether, 0, ALICE, 100 ether, abi.encode(0));
-
-    _borrowValue = _depositValue * 1; // 1x leverage
-    _depositExecutor.setExecutionValue(_depositValue, _borrowValue);
-
-    vm.expectRevert(abi.encodeWithSignature("DeltaNeutralVault04HealthChecker_UnsafeDebtValue()"));
-    _deltaNeutralVault.deposit(100 ether, 0, ALICE, 100 ether, abi.encode(0));
-  }
-
   function testRevert_depositWithAssetTokenShouldIgnoreTheAssetToken() external {
     uint256 _depositValue = 100 ether;
     uint256 _borrowValue = _depositValue * 2; // 4x leverage

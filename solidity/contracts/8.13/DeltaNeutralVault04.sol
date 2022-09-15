@@ -321,7 +321,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     _mint(_shareReceiver, _sharesToUser);
 
     // 4. sanity check
-    checker.depositHealthCheck(_depositValue, lpToken, _positionInfoBefore, _positionInfoAfter, priceOracle, config);
+    checker.depositHealthCheck(_positionInfoAfter, config);
 
     // Deduct credit from msg.sender regardless of the _shareReceiver.
     IController _controller = IController(config.controller());

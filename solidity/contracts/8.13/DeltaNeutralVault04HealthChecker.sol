@@ -289,4 +289,13 @@ contract DeltaNeutralVault04HealthChecker is IDeltaNeutralVault04HealthChecker {
       Math.almostEqual(_actualStableDebtChange, _expectedStableDebtChange, _toleranceBps) &&
       Math.almostEqual(_actualAssetDebtChange, _expectedAssetDebtChange, _toleranceBps);
   }
+
+  function depositHealthCheck(PositionInfo memory _positionInfoAfter, IDeltaNeutralVaultConfig02 _config)
+    external
+    view
+  {
+    if (!_isVaultSizeAcceptable(_positionInfoAfter, _config)) {
+      revert DeltaNeutralVault04HealthChecker_PositionValueExceedLimit();
+    }
+  }
 }
