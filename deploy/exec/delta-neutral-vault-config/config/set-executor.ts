@@ -20,7 +20,24 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const config = getConfig();
 
   // update
-  const DELTA_VAULT_SYMBOL = ["n3x-BNBBUSD-PCS1"];
+  const DELTA_VAULT_SYMBOL = [
+    "n3x-BNBUSDT-PCS1",
+    "n8x-BNBUSDT-PCS1",
+    "n8x-BNBUSDT-PCS2",
+    "n3x-BNBBUSD-PCS1",
+    "n3x-BNBUSDT-PCS2",
+    "n3x-BNBBUSD-PCS2",
+    "n3x-BNBUSDT-PCS3",
+    "n3x-ETHUSDT-BSW1",
+    "L3x-USDTETH-BSW1",
+    "L3x-BUSDBTCB-PCS1",
+    "L3x-BUSDBTCB-PCS2",
+    "L3x-BUSDBNB-PCS1",
+    "n8x-BNBUSDT-BSW1",
+    "n8x-BNBUSDT-PCS3",
+    "L8x-BUSDBTCB-PCS1",
+    "L8x-USDTBNB-PCS1",
+  ];
   const executors = config.AutomatedVaultExecutor!;
 
   // VALIDATING ALL DELTA_VAULT_SYMBOL

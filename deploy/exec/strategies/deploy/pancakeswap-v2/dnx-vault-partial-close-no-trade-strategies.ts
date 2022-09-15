@@ -18,7 +18,46 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const WHITELISTED_WORKERS = ["USDT-WBNB 3x DeltaNeutralPancakeswapWorker"];
+  const WHITELISTED_WORKERS = [
+    "USDT-WBNB 3x DeltaNeutralPancakeswapWorker",
+    "WBNB-USDT 3x DeltaNeutralPancakeswapWorker",
+
+    "USDT-WBNB 8x PCS1 DeltaNeutralPancakeswapWorker",
+    "WBNB-USDT 8x PCS1 DeltaNeutralPancakeswapWorker",
+
+    "USDT-WBNB 8x PCS2 DeltaNeutralPancakeswapWorker",
+    "WBNB-USDT 8x PCS2 DeltaNeutralPancakeswapWorker",
+
+    "WBNB-BUSD 3x PCS1 DeltaNeutralPancakeswapWorker",
+    "BUSD-WBNB 3x PCS1 DeltaNeutralPancakeswapWorker",
+
+    "USDT-WBNB 3x PCS2 DeltaNeutralPancakeswapWorker",
+    "WBNB-USDT 3x PCS2 DeltaNeutralPancakeswapWorker",
+
+    "BUSD-WBNB 3x PCS2 DeltaNeutralPancakeswapWorker",
+    "WBNB-BUSD 3x PCS2 DeltaNeutralPancakeswapWorker",
+
+    "USDT-WBNB 3x PCS3 DeltaNeutralPancakeswapWorker",
+    "WBNB-USDT 3x PCS3 DeltaNeutralPancakeswapWorker",
+
+    "BTCB-BUSD L3x PCS1 DeltaNeutralPancakeswapWorker",
+    "BUSD-BTCB L3x PCS1 DeltaNeutralPancakeswapWorker",
+
+    "BTCB-BUSD L3x PCS2 DeltaNeutralPancakeswapWorker",
+    "BUSD-BTCB L3x PCS2 DeltaNeutralPancakeswapWorker",
+
+    "WBNB-BUSD L3x PCS1 DeltaNeutralPancakeswapWorker",
+    "BUSD-WBNB L3x PCS1 DeltaNeutralPancakeswapWorker",
+
+    "USDT-WBNB 8x PCS3 DeltaNeutralPancakeswapWorker",
+    "WBNB-USDT 8x PCS3 DeltaNeutralPancakeswapWorker",
+
+    "BTCB-BUSD L8x PCS1 DeltaNeutralPancakeswapWorker",
+    "BUSD-BTCB L8x PCS1 DeltaNeutralPancakeswapWorker",
+
+    "WBNB-USDT L8x PCS1 DeltaNeutralPancakeswapWorker",
+    "USDT-WBNB L8x PCS1 DeltaNeutralPancakeswapWorker",
+  ];
 
   const miniWorkers: Array<WorkerEntity.IMiniWorker> = mapWorkers(WHITELISTED_WORKERS).map((w) => {
     return {

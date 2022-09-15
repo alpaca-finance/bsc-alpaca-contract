@@ -30,20 +30,45 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "mainnet_whitelist_ampt";
+  const TITLE = "mainnet_whitelist_multisig";
   const TARGETED_VAULT_CONFIG: Array<IInput> = [
     {
       VAULT_SYMBOL: "ibWBNB",
-      WHITELISTED_CALLERS: ["0x9a573a8C892837631Efaa3d859570052B7Ad4028", "0x380f5A02Ce07a3a5E417380Ef399663065b6D140"],
+      WHITELISTED_CALLERS: ["0x954b53Bba4DA95537738c6bb7F6FC17E24aa0F54"],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "ibBUSD",
-      WHITELISTED_CALLERS: ["0x9a573a8C892837631Efaa3d859570052B7Ad4028", "0x380f5A02Ce07a3a5E417380Ef399663065b6D140"],
+      WHITELISTED_CALLERS: ["0x954b53Bba4DA95537738c6bb7F6FC17E24aa0F54"],
+      IS_ENABLE: true,
+    },
+    {
+      VAULT_SYMBOL: "ibTUSD",
+      WHITELISTED_CALLERS: ["0x954b53Bba4DA95537738c6bb7F6FC17E24aa0F54"],
+      IS_ENABLE: true,
+    },
+    {
+      VAULT_SYMBOL: "ibUSDC",
+      WHITELISTED_CALLERS: ["0x954b53Bba4DA95537738c6bb7F6FC17E24aa0F54"],
+      IS_ENABLE: true,
+    },
+    {
+      VAULT_SYMBOL: "ibETH",
+      WHITELISTED_CALLERS: ["0x954b53Bba4DA95537738c6bb7F6FC17E24aa0F54"],
+      IS_ENABLE: true,
+    },
+    {
+      VAULT_SYMBOL: "ibCAKE",
+      WHITELISTED_CALLERS: ["0x954b53Bba4DA95537738c6bb7F6FC17E24aa0F54"],
+      IS_ENABLE: true,
+    },
+    {
+      VAULT_SYMBOL: "ibBTCB",
+      WHITELISTED_CALLERS: ["0x954b53Bba4DA95537738c6bb7F6FC17E24aa0F54"],
       IS_ENABLE: true,
     },
   ];
-  const EXACT_ETA = "1662465600";
+  const EXACT_ETA = "1663156800";
 
   const config = getConfig();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];

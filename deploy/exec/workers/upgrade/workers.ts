@@ -84,7 +84,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const fileName = "upgrade-dnx-workers";
+  const fileName = "upgrade-dnx-workers-bypass-health-check";
   const factories: Array<FactoryMap> = [
     {
       workerType: "DeltaNeutralPancakeswapWorker",
@@ -102,8 +102,51 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     "USDT-WBNB 8x PCS1 DeltaNeutralPancakeswapWorker",
     "WBNB-USDT 8x PCS1 DeltaNeutralPancakeswapWorker",
+
+    "USDT-WBNB 8x PCS2 DeltaNeutralPancakeswapWorker",
+    "WBNB-USDT 8x PCS2 DeltaNeutralPancakeswapWorker",
+
+    "BUSD-WBNB 3x PCS1 DeltaNeutralPancakeswapWorker",
+    "WBNB-BUSD 3x PCS1 DeltaNeutralPancakeswapWorker",
+
+    "USDT-WBNB 3x PCS2 DeltaNeutralPancakeswapWorker",
+    "WBNB-USDT 3x PCS2 DeltaNeutralPancakeswapWorker",
+
+    "BUSD-WBNB 3x PCS2 DeltaNeutralPancakeswapWorker",
+    "WBNB-BUSD 3x PCS2 DeltaNeutralPancakeswapWorker",
+
+    "USDT-WBNB 3x PCS3 DeltaNeutralPancakeswapWorker",
+    "WBNB-USDT 3x PCS3 DeltaNeutralPancakeswapWorker",
+
+    "BTCB-BUSD L3x PCS1 DeltaNeutralPancakeswapWorker",
+    "BUSD-BTCB L3x PCS1 DeltaNeutralPancakeswapWorker",
+
+    "BTCB-BUSD L3x PCS2 DeltaNeutralPancakeswapWorker",
+    "BUSD-BTCB L3x PCS2 DeltaNeutralPancakeswapWorker",
+
+    "WBNB-BUSD L3x PCS1 DeltaNeutralPancakeswapWorker",
+    "BUSD-WBNB L3x PCS1 DeltaNeutralPancakeswapWorker",
+
+    "USDT-WBNB 8x PCS3 DeltaNeutralPancakeswapWorker",
+    "WBNB-USDT 8x PCS3 DeltaNeutralPancakeswapWorker",
+
+    "BTCB-BUSD L8x PCS1 DeltaNeutralPancakeswapWorker",
+    "BUSD-BTCB L8x PCS1 DeltaNeutralPancakeswapWorker",
+
+    "WBNB-USDT L8x PCS1 DeltaNeutralPancakeswapWorker",
+    "USDT-WBNB L8x PCS1 DeltaNeutralPancakeswapWorker",
+
+    "USDT-ETH 3x BSW1 DeltaNeutralBiswapWorker",
+    "ETH-USDT 3x BSW1 DeltaNeutralBiswapWorker",
+
+    "ETH-USDT L3x BSW1 DeltaNeutralBiswapWorker",
+    "USDT-ETH L3x BSW1 DeltaNeutralBiswapWorker",
+
+    "USDT-WBNB 8x BSW1 DeltaNeutralBiswapWorker",
+    "WBNB-USDT 8x BSW1 DeltaNeutralBiswapWorker",
   ];
-  const EXACT_ETA = "1664065889";
+
+  const EXACT_ETA = "1663218000";
 
   const config = ConfigEntity.getConfig();
   const ts = Math.floor(new Date().getTime() / 1000);
