@@ -4,7 +4,7 @@ import { WNativeRelayer__factory } from "../../../../typechain";
 import { getConfig } from "../../../entities/config";
 import { getDeployer } from "../../../../utils/deployer-helper";
 
-interface ISetOkCallers {
+interface ISetCallerOk {
   TARGETS: Array<string>;
   OK: boolean;
 }
@@ -20,7 +20,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const inputParams: ISetOkCallers = {
+  const inputParams: ISetCallerOk = {
     TARGETS: [
       "0xe9Bd0B7333596d0a87DED9EE1a782AA052B711AB",
       "0x8e5CfA7C06F187B56537f7F0CaBfb55611Af6F16",
