@@ -41,6 +41,11 @@ async function getFactory(workerName: string, factories: Array<FactoryMap>): Pro
     if (!factory) throw new Error("not found new DeltaNeutralPancakeswapWorker factory");
     return await ethers.getContractFactory(factory.newVersion);
   }
+  if (workerName.includes("DeltaNeutralBiswapWorker")) {
+    const factory = factories.find((f) => f.workerType == "DeltaNeutralBiswapWorker");
+    if (!factory) throw new Error("not found new DeltaNeutralBiswapWorker factory");
+    return await ethers.getContractFactory(factory.newVersion);
+  }
   if (workerName.includes("CakeMaxiWorker")) {
     const factory = factories.find((f) => f.workerType == "CakeMaxiWorker");
     if (!factory) throw new Error("not found new CakeMaxiWorker factory");
@@ -79,44 +84,69 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const fileName = "upgrade-pcs-cakemaxi-cakepool-totalBalance";
+  const fileName = "upgrade-dnx-workers-bypass-health-check";
   const factories: Array<FactoryMap> = [
-    // {
-    //   workerType: "SpookyWorker",
-    //   newVersion: "SpookyWorker03Migrate",
-    // },
-    // {
-    //   workerType: "DeltaNeutralSpookyWorker",
-    //   newVersion: "DeltaNeutralSpookyWorker03Migrate",
-    // },
     {
-      workerType: "SpookyWorker",
-      newVersion: "SpookyMCV2Worker03",
+      workerType: "DeltaNeutralPancakeswapWorker",
+      newVersion: "DeltaNeutralPancakeMCV2Worker02",
     },
     {
-      workerType: "DeltaNeutralSpookyWorker",
-      newVersion: "DeltaNeutralSpookyMCV2Worker03",
+      workerType: "DeltaNeutralBiswapWorker",
+      newVersion: "DeltaNeutralBiswapWorker03",
     },
   ];
+
   const workerInputs: IWorkerInputs = [
-    // "USDC-WFTM SpookyWorker",
-    // "BOO-WFTM SpookyWorker",
-    // "ETH-WFTM SpookyWorker",
-    // "ALPACA-WFTM SpookyWorker",
-    // "BTC-WFTM SpookyWorker",
-    // "fUSDT-WFTM SpookyWorker",
-    // "DAI-WFTM SpookyWorker",
-    // "MIM-WFTM SpookyWorker",
-    "USDC-WFTM 3x SPK1 DeltaNeutralSpookyWorker",
-    "USDC-WFTM 3x SPK2 DeltaNeutralSpookyWorker",
-    "WFTM-USDC SpookyWorker",
-    "TUSD-USDC SpookyWorker",
-    "WFTM-USDC 3x SPK1 DeltaNeutralSpookyWorker",
-    "BOO-USDC SpookyWorker",
-    "WFTM-USDC 3x SPK2 DeltaNeutralSpookyWorker",
-    "WFTM-ALPACA SpookyWorker",
+    "USDT-WBNB 3x DeltaNeutralPancakeswapWorker",
+    "WBNB-USDT 3x DeltaNeutralPancakeswapWorker",
+
+    "USDT-WBNB 8x PCS1 DeltaNeutralPancakeswapWorker",
+    "WBNB-USDT 8x PCS1 DeltaNeutralPancakeswapWorker",
+
+    "USDT-WBNB 8x PCS2 DeltaNeutralPancakeswapWorker",
+    "WBNB-USDT 8x PCS2 DeltaNeutralPancakeswapWorker",
+
+    "BUSD-WBNB 3x PCS1 DeltaNeutralPancakeswapWorker",
+    "WBNB-BUSD 3x PCS1 DeltaNeutralPancakeswapWorker",
+
+    "USDT-WBNB 3x PCS2 DeltaNeutralPancakeswapWorker",
+    "WBNB-USDT 3x PCS2 DeltaNeutralPancakeswapWorker",
+
+    "BUSD-WBNB 3x PCS2 DeltaNeutralPancakeswapWorker",
+    "WBNB-BUSD 3x PCS2 DeltaNeutralPancakeswapWorker",
+
+    "USDT-WBNB 3x PCS3 DeltaNeutralPancakeswapWorker",
+    "WBNB-USDT 3x PCS3 DeltaNeutralPancakeswapWorker",
+
+    "BTCB-BUSD L3x PCS1 DeltaNeutralPancakeswapWorker",
+    "BUSD-BTCB L3x PCS1 DeltaNeutralPancakeswapWorker",
+
+    "BTCB-BUSD L3x PCS2 DeltaNeutralPancakeswapWorker",
+    "BUSD-BTCB L3x PCS2 DeltaNeutralPancakeswapWorker",
+
+    "WBNB-BUSD L3x PCS1 DeltaNeutralPancakeswapWorker",
+    "BUSD-WBNB L3x PCS1 DeltaNeutralPancakeswapWorker",
+
+    "USDT-WBNB 8x PCS3 DeltaNeutralPancakeswapWorker",
+    "WBNB-USDT 8x PCS3 DeltaNeutralPancakeswapWorker",
+
+    "BTCB-BUSD L8x PCS1 DeltaNeutralPancakeswapWorker",
+    "BUSD-BTCB L8x PCS1 DeltaNeutralPancakeswapWorker",
+
+    "WBNB-USDT L8x PCS1 DeltaNeutralPancakeswapWorker",
+    "USDT-WBNB L8x PCS1 DeltaNeutralPancakeswapWorker",
+
+    "USDT-ETH 3x BSW1 DeltaNeutralBiswapWorker",
+    "ETH-USDT 3x BSW1 DeltaNeutralBiswapWorker",
+
+    "ETH-USDT L3x BSW1 DeltaNeutralBiswapWorker",
+    "USDT-ETH L3x BSW1 DeltaNeutralBiswapWorker",
+
+    "USDT-WBNB 8x BSW1 DeltaNeutralBiswapWorker",
+    "WBNB-USDT 8x BSW1 DeltaNeutralBiswapWorker",
   ];
-  const EXACT_ETA = "1651233600";
+
+  const EXACT_ETA = "1663218000";
 
   const config = ConfigEntity.getConfig();
   const ts = Math.floor(new Date().getTime() / 1000);

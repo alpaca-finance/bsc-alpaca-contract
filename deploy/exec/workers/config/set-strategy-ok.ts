@@ -20,17 +20,28 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const config = getConfig();
 
-  const TITLE = "n3x-BNBBUSD-PCS1_set_repurchase_strategy_ok";
+  const TITLE = "retarget_bsw_rollout_set_strategy_ok";
   const ADD_STRAT = "";
   const LIQ_STRAT = "";
 
   const OK_FLAG = true;
-  const STRATEGY = ["0x699Fc9E0142aF3B8F2238095b360269D4E046eb6", "0x72db1f7B364A3c6F36C604ad05513DF68AA13B1C"];
-  const WORKERS = [
-    "BUSD-WBNB 3x PCS1 DeltaNeutralPancakeswapWorker",
-    "WBNB-BUSD 3x PCS1 DeltaNeutralPancakeswapWorker",
+  const STRATEGY = [
+    config.SharedStrategies.All?.StrategyRepurchaseBorrow!,
+    config.SharedStrategies.All?.StrategyRepurchaseRepay!,
+    config.SharedStrategies.Biswap?.StrategyPartialCloseNoTrade!,
   ];
-  const EXACT_ETA = "1661241600";
+  const WORKERS = [
+    "USDT-ETH 3x BSW1 DeltaNeutralBiswapWorker",
+    "ETH-USDT 3x BSW1 DeltaNeutralBiswapWorker",
+
+    "ETH-USDT L3x BSW1 DeltaNeutralBiswapWorker",
+    "USDT-ETH L3x BSW1 DeltaNeutralBiswapWorker",
+
+    "USDT-WBNB 8x BSW1 DeltaNeutralBiswapWorker",
+    "WBNB-USDT 8x BSW1 DeltaNeutralBiswapWorker",
+  ];
+
+  const EXACT_ETA = "1663218000";
 
   const miniWorkers: Array<WorkerEntity.IMiniWorker> = mapWorkers(WORKERS).map((w) => {
     return {
