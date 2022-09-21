@@ -3,7 +3,7 @@ pragma solidity >=0.8.4 <0.9.0;
 
 import { BaseTest, DeltaNeutralVault04Like, MockErc20Like, MockLpErc20Like, console } from "../../base/BaseTest.sol";
 
-import { DeltaNeutralVault04HealthChecker } from "../../../contracts/8.13/DeltaNeutralVault04HealthChecker.sol";
+import { DeltaNeutralVault04HealthChecker02 } from "../../../contracts/8.13/DeltaNeutralVault04HealthChecker02.sol";
 import { FakeDeltaWorker } from "../../fake/FakeDeltaWorker.sol";
 import { FakeAutomateVaultController } from "../../fake/FakeAutomateVaultController.sol";
 import { FakeDeltaNeutralOracle } from "../../fake/FakeDeltaNeutralOracle.sol";
@@ -23,7 +23,7 @@ import { FakeFairLaunch } from "../../fake/FakeFairLaunch.sol";
 // solhint-disable max-states-count
 abstract contract DeltaNeutralVault04Base_Test is BaseTest {
   DeltaNeutralVault04Like internal _deltaNeutralVault;
-  DeltaNeutralVault04HealthChecker internal _checker;
+  DeltaNeutralVault04HealthChecker02 internal _checker;
 
   FakeAutomateVaultController internal _controller;
   FakeVault internal _stableVault;
@@ -50,7 +50,7 @@ abstract contract DeltaNeutralVault04Base_Test is BaseTest {
     _priceOracle = new FakeDeltaNeutralOracle();
     _config = new FakeDeltaNeutralVaultConfig02();
     _controller = new FakeAutomateVaultController();
-    _checker = new DeltaNeutralVault04HealthChecker();
+    _checker = new DeltaNeutralVault04HealthChecker02();
 
     _lpToken = _setupLpToken("LP TOKEN", "LP", 18);
     _alpacaToken = _setupToken("ALPACA", "ALPACA", 18);
@@ -181,7 +181,7 @@ abstract contract DeltaNeutralVault04Base_Test is BaseTest {
   function _initPosition() internal {
     _depositExecutor.setExecutionValue(100 ether, 200 ether);
     // 3x Position
-    _deltaNeutralVault.initPositions(25 ether, 75 ether, 0, abi.encode(0));
+    _deltaNeutralVault.initPositions(100 ether, 0 ether, 0, abi.encode(0));
 
     (
       uint256 stablePositionEquity,

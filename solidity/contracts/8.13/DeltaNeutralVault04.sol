@@ -48,14 +48,8 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
 
   // --- Events ---
   event LogInitializePositions(address indexed _from, uint256 _stableVaultPosId, uint256 _assetVaultPosId);
-  event LogDeposit(
-    address indexed _from,
-    address indexed _shareReceiver,
-    uint256 _shares,
-    uint256 _stableTokenAmount,
-    uint256 _assetTokenAmount
-  );
-  event LogWithdraw(address indexed _shareOwner, uint256 _minStableTokenAmount, uint256 _minAssetTokenAmount);
+  event LogDeposit(address indexed _from, address indexed _shareReceiver, uint256 _shares, uint256 _stableTokenAmount);
+  event LogWithdraw(address indexed _shareOwner, uint256 _minStableTokenAmount);
   event LogRebalance(uint256 _equityBefore, uint256 _equityAfter);
   event LogReinvest(uint256 _equityBefore, uint256 _equityAfter);
   event LogRetarget(uint256 _equityBefore, uint256 _equityAfter);
@@ -258,6 +252,9 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     uint256 _amount
   ) internal {
     if (_token == config.getWrappedNativeAddr()) {
+      address _relayer = config.getWNativeRelayer();
+      SafeToken.safeTransfer(_token, _relayer, _amount);
+      IWNativeRelayer(_relayer).withdraw(_amount);
       SafeToken.safeTransferETH(_to, _amount);
     } else {
       IERC20Upgradeable(_token).safeTransfer(_to, _amount);
@@ -278,32 +275,31 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
 
   /// @notice Deposit to delta neutral vault.
   /// @param _stableTokenAmount Amount of stable token transfer to vault.
-  /// @param _assetTokenAmount Amount of asset token transfer to vault.
   /// @param _shareReceiver Addresses to be receive share.
   /// @param _minShareReceive Minimum share that _shareReceiver must receive.
   /// @param _data The calldata to pass along to the proxy action for more working context.
   function deposit(
     uint256 _stableTokenAmount,
-    uint256 _assetTokenAmount,
+    uint256, /*_assetTokenAmount*/
     address _shareReceiver,
     uint256 _minShareReceive,
     bytes calldata _data
   ) public payable onlyEOAorWhitelisted collectFee nonReentrant returns (uint256) {
     PositionInfo memory _positionInfoBefore = positionInfo();
 
-    // 1. transfer tokens from user to vault
+    // 1. transfer token from user to vault
+    // In previous version, we also accept asset-side token.
+    // For current version, we only accept stable-side token
     _transferTokenToVault(stableToken, _stableTokenAmount);
-    _transferTokenToVault(assetToken, _assetTokenAmount);
 
     // 2. deposit executor exec
-    IExecutor(config.depositExecutor()).exec(bytes.concat(abi.encode(_stableTokenAmount, _assetTokenAmount), _data));
+    IExecutor(config.depositExecutor()).exec(bytes.concat(abi.encode(_stableTokenAmount, 0), _data));
 
-    return _checkAndMint(_stableTokenAmount, _assetTokenAmount, _shareReceiver, _minShareReceive, _positionInfoBefore);
+    return _checkAndMint(_stableTokenAmount, _shareReceiver, _minShareReceive, _positionInfoBefore);
   }
 
   function _checkAndMint(
     uint256 _stableTokenAmount,
-    uint256 _assetTokenAmount,
     address _shareReceiver,
     uint256 _minShareReceive,
     PositionInfo memory _positionInfoBefore
@@ -325,7 +321,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     _mint(_shareReceiver, _sharesToUser);
 
     // 4. sanity check
-    checker.depositHealthCheck(_depositValue, lpToken, _positionInfoBefore, _positionInfoAfter, priceOracle, config);
+    checker.depositHealthCheck(_positionInfoAfter, config);
 
     // Deduct credit from msg.sender regardless of the _shareReceiver.
     IController _controller = IController(config.controller());
@@ -335,19 +331,18 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
       _controller.onDeposit(msg.sender, _sharesToUser, _depositValue);
     }
 
-    emit LogDeposit(msg.sender, _shareReceiver, _sharesToUser, _stableTokenAmount, _assetTokenAmount);
+    emit LogDeposit(msg.sender, _shareReceiver, _sharesToUser, _stableTokenAmount);
     return _sharesToUser;
   }
 
   /// @notice Withdraw from delta neutral vault.
   /// @param _shareAmount Amount of share to withdraw from vault.
   /// @param _minStableTokenAmount Minimum stable token shareOwner expect to receive.
-  /// @param _minAssetTokenAmount Minimum asset token shareOwner expect to receive.
   /// @param _data The calldata to pass along to the proxy action for more working context.
   function withdraw(
     uint256 _shareAmount,
     uint256 _minStableTokenAmount,
-    uint256 _minAssetTokenAmount,
+    uint256, /*_minAssetTokenAmount*/
     bytes calldata _data
   ) external onlyEOAorWhitelisted collectFee nonReentrant returns (uint256) {
     if (_shareAmount == 0) revert DeltaNeutralVault04_InvalidShareAmount();
@@ -372,7 +367,6 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
       _checkAndTransfer(
         _shareAmount,
         _minStableTokenAmount,
-        _minAssetTokenAmount,
         _withdrawShareValue,
         _positionInfoBefore,
         _outstandingBefore
@@ -382,7 +376,6 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
   function _checkAndTransfer(
     uint256 _shareAmount,
     uint256 _minStableTokenAmount,
-    uint256 _minAssetTokenAmount,
     uint256 _withdrawShareValue,
     PositionInfo memory _positionInfoBefore,
     Outstanding memory _outstandingBefore
@@ -391,18 +384,10 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     Outstanding memory _outstandingAfter = _outstanding();
 
     // transfer funds back to shareOwner
-    uint256 _stableTokenBack = stableToken == config.getWrappedNativeAddr()
-      ? _outstandingAfter.nativeAmount - _outstandingBefore.nativeAmount
-      : _outstandingAfter.stableAmount - _outstandingBefore.stableAmount;
-    uint256 _assetTokenBack = assetToken == config.getWrappedNativeAddr()
-      ? _outstandingAfter.nativeAmount - _outstandingBefore.nativeAmount
-      : _outstandingAfter.assetAmount - _outstandingBefore.assetAmount;
+    uint256 _stableTokenBack = _outstandingAfter.stableAmount - _outstandingBefore.stableAmount;
 
     if (_stableTokenBack < _minStableTokenAmount) {
       revert DeltaNeutralVault04_InsufficientTokenReceived(stableToken, _minStableTokenAmount, _stableTokenBack);
-    }
-    if (_assetTokenBack < _minAssetTokenAmount) {
-      revert DeltaNeutralVault04_InsufficientTokenReceived(assetToken, _minAssetTokenAmount, _assetTokenBack);
     }
 
     uint256 _withdrawValue = _calculateEquityChange(_positionInfoBefore, _positionInfoAfter);
@@ -411,24 +396,14 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
       revert DeltaNeutralVault04_WithdrawValueExceedShareValue(_withdrawValue, _withdrawShareValue);
     }
 
-    // sanity check
-    checker.withdrawHealthCheck(
-      _withdrawShareValue,
-      lpToken,
-      _positionInfoBefore,
-      _positionInfoAfter,
-      priceOracle,
-      config
-    );
-
+    // the new executor won't return any asset back
     _transferTokenToShareOwner(msg.sender, stableToken, _stableTokenBack);
-    _transferTokenToShareOwner(msg.sender, assetToken, _assetTokenBack);
 
     // on withdraw increase credit to tx.origin since user can withdraw from DN Gateway -> DN Vault
     IController _controller = IController(config.controller());
     if (address(_controller) != address(0)) _controller.onWithdraw(tx.origin, _shareAmount);
 
-    emit LogWithdraw(msg.sender, _stableTokenBack, _assetTokenBack);
+    emit LogWithdraw(msg.sender, _stableTokenBack);
 
     return _withdrawValue;
   }

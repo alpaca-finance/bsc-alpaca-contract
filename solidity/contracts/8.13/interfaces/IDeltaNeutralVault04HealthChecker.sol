@@ -28,6 +28,8 @@ interface IDeltaNeutralVault04HealthChecker is IDeltaNeutralStruct {
     IDeltaNeutralVaultConfig02 _config
   ) external view;
 
+  function depositHealthCheck(PositionInfo memory _positionInfoAfter, IDeltaNeutralVaultConfig02 _config) external view;
+
   function withdrawHealthCheck(
     uint256 _withdrawValue,
     address _lpToken,
