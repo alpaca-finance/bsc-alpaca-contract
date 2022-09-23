@@ -20,7 +20,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const DELTA_VAULT_SYMBOL = ["L3x-BUSDBNB-PCS1"];
+  const DELTA_VAULT_SYMBOL = ["L8x-USDTBNB-PCS1", "L3x-BUSDBTCB-PCS2"];
   const inputParams: WhitelistedParamsInput = {
     TARGET_ADDRESS: ["0xc43ac4cb2f241b6d652530b05c94fd3a35e4fd63"],
     OK: true,
