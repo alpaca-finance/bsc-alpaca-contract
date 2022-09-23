@@ -83,6 +83,7 @@
     "deploy:mainnet:s023": "hardhat --network mainnet deploy --no-compile --reset --tags SetMaxKillBps",
     "deploy:mainnet:oracles:config:add-price-source-chainlink": "hardhat --network mainnet deploy --no-compile --reset --tags AddSourceChainLinkPriceOracle",
     "deploy:mainnet:oracles:config:add-primary-source-oracle-medianizer": "hardhat --network mainnet deploy --no-compile --reset --tags AddSourceOracleMedianizer",
+    "deploy:mainnet:oracles:deploy:binance-oracle": "hardhat --network mainnet deploy --no-compile --reset --tags BinancePriceOracle",
     "deploy:mainnet:workers:upgrade:workers": "hardhat --network mainnet deploy --no-compile --reset --tags UpgradeWorkers",
     "deploy:mainnet:workers:config:set-treasury-config": "hardhat --network mainnet deploy --no-compile --reset --tags TimelockAddTreasuryFieldsWorkers02",
     "deploy:mainnet:workers:config:set-beneficial-vault-config": "hardhat --network mainnet deploy --no-compile --reset --tags TimelockAddBeneficialBuybackFieldsWorkers02",

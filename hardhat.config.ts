@@ -30,7 +30,7 @@ module.exports = {
       },
     },
     testnet: {
-      url: "https://rpc.tenderly.co/fork/917c151c-d3bc-4e15-b339-edb69c7e728f/",
+      url: process.env.BSC_TESTNET_RPC,
       accounts: [process.env.BSC_TESTNET_PRIVATE_KEY],
     },
     mainnet: {

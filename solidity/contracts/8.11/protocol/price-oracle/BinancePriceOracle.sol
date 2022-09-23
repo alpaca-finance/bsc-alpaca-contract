@@ -56,8 +56,12 @@ contract BinancePriceOracle is OwnableUpgradeable, IPriceOracle {
     if (token0s.length != token1s.length || token0s.length != allSources.length)
       revert BinancePriceOracle_InconsistentLength();
 
-    for (uint256 idx = 0; idx < token0s.length; idx++) {
+    for (uint256 idx = 0; idx < token0s.length; ) {
       _setPriceFeed(token0s[idx], token1s[idx], allSources[idx]);
+
+      unchecked {
+        ++idx;
+      }
     }
   }
 
@@ -76,8 +80,12 @@ contract BinancePriceOracle is OwnableUpgradeable, IPriceOracle {
 
     // Effect
     priceFeedCount[token0][token1] = sources.length;
-    for (uint256 idx = 0; idx < sources.length; idx++) {
+    for (uint256 idx = 0; idx < sources.length; ) {
       priceFeeds[token0][token1][idx] = sources[idx];
+
+      unchecked {
+        ++idx;
+      }
     }
 
     emit SetPriceFeed(token0, token1, sources);
