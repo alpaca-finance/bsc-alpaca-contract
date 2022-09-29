@@ -31,6 +31,7 @@
     "deploy:mainnet:015": "hardhat --network mainnet deploy --no-compile --reset --tags StrategyWithdrawMinimizeTrading",
     "deploy:mainnet:016": "hardhat --network mainnet deploy --no-compile --reset --tags PancakeswapWorkers",
     "deploy:mainnet:merkle-distribution:deploy:merkle-distribution": "hardhat --network mainnet deploy --no-compile --reset --tags MerkleDistributor",
+    "deploy:mainnet:merkle-distribution:config:deposit-token": "hardhat --network mainnet deploy --no-compile --reset --tags MerkleDistributorDeposit",
     "deploy:mainnet:018": "hardhat --network mainnet deploy --no-compile --reset --tags --verbose VaultStrategiesV2",
     "deploy:mainnet:019": "hardhat --network mainnet deploy --no-compile --reset --tags ShareStrategiesV2",
     "deploy:mainnet:020": "hardhat --network mainnet deploy --no-compile --reset --tags TwoSideOptimalMigrateV2",
