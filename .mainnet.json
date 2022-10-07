@@ -4,7 +4,7 @@
   "Shield": "0x1963f84395C8cf464E5483dE7f2f434c3F1b4656",
   "MultiCall": "0x41263cba59eb80dc200f3e2544eda4ed6a90e76c",
   "AUSDStaking": "0x6F523Eb78B4493f7682B2Fed979821716E866507",
-  "DeltaNeutralVaultHealthChecker": "0x9c3c74E5DDb57B13EEd4c3B7b3c119ceb3e7E68c",
+  "DeltaNeutralVaultHealthChecker": "0xbb3632Ff9C882BF09B85fd1F41df89a4853aBE4C",
   "MerkleDistributor": {
     "ITAM-week-1": "0xD193b38C87C8FAF7cB2F6C592d3ae885AE21c4bf",
     "ITAM-week-2": "0x63c60b840933e62E43D8eFc1dfDe31A32CDC4412",
@@ -4905,18 +4905,15 @@
   ],
   "AutomatedVaultController": {
     "address": "0xfd0694a29871Ee629D51cF4079842382368f1e15",
-    "creditors": [
-      "0xeDdD248FEe5ff98e532c3A4087C83F6e376eEDa7",
-      "0xbd2A1cE2f31622664BdfA5e31b94dB97be051E24"
-    ]
+    "creditors": ["0xeDdD248FEe5ff98e532c3A4087C83F6e376eEDa7", "0xbd2A1cE2f31622664BdfA5e31b94dB97be051E24"]
   },
   "NFT": {
     "NFTStaking": "0xe5d84fFB55f3276345f8C1F6EE17bf06935867f2",
     "NFTBoostedLeverageController": "0x257611F5dEF16Ff0e9AF16B5c10130211CEd7B66"
   },
   "AutomatedVaultExecutor": {
-    "deposit": "0x5eb6F3aC715A2F184CC2baAC3675F237d565F1aC",
-    "withdraw": "0xceC88d723aC8cb1D7887BcFcDF0E59B5091bBE37",
+    "deposit": "0xF76d8c8A05f5918b36f3EcDaf0c215F345206070",
+    "withdraw": "0x50F094181cC1924F704b6758531671A3c27A8c39",
     "reinvest": "0x7C60e6530170b44867187d6413A8fd9AC77c3EaB",
     "rebalance": "0x379A75Ab34C359f9Cd1d00dF958656Ea30e20e66",
     "repurchase": "0x693E0B9d6d166fdA074693Ab52ce7e59A62FB5E1",
