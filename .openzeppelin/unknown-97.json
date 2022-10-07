@@ -689,6 +689,11 @@
       "address": "0x570F86D85909be8E492F8B8026c0a9D750A70Fea",
       "txHash": "0xd7514129c7f93b61169d96685a1e6d37c0882f1ac65453fae1b159be89ac777e",
       "kind": "transparent"
+    },
+    {
+      "address": "0xF05194D4540db55F6c58DD7fa93151D202Ca8924",
+      "txHash": "0x1fb9eace5e067604e47ec9b14a702272faacb2855903648016bc638d11a9765d",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -24167,6 +24172,91 @@
           },
           "t_array(t_uint256)50_storage": {
             "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "1b4ed88483e3e07dcdbe8c280867527c965ecee727a6686f9f955f5e55a255c7": {
+      "address": "0xb8425780D3B96830a4BF2E6090879C9F599C6216",
+      "txHash": "0xcf1fcec84b1b4a431729481bfeda86c3fd7f768d730d013cccf72cab15e852a8",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+          },
+          {
+            "contract": "BinancePriceOracle",
+            "label": "priceFeeds",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_mapping(t_uint256,t_contract(AggregatorV3Interface)45)))",
+            "src": "solidity/contracts/8.11/protocol/price-oracle/BinancePriceOracle.sol:37"
+          },
+          {
+            "contract": "BinancePriceOracle",
+            "label": "priceFeedCount",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))",
+            "src": "solidity/contracts/8.11/protocol/price-oracle/BinancePriceOracle.sol:38"
+          }
+        ],
+        "types": {
+          "t_mapping(t_address,t_mapping(t_address,t_mapping(t_uint256,t_contract(AggregatorV3Interface)45)))": {
+            "label": "mapping(address => mapping(address => mapping(uint256 => contract AggregatorV3Interface)))"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_mapping(t_address,t_mapping(t_uint256,t_contract(AggregatorV3Interface)45))": {
+            "label": "mapping(address => mapping(uint256 => contract AggregatorV3Interface))"
+          },
+          "t_mapping(t_uint256,t_contract(AggregatorV3Interface)45)": {
+            "label": "mapping(uint256 => contract AggregatorV3Interface)"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_contract(AggregatorV3Interface)45": {
+            "label": "contract AggregatorV3Interface"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
+            "label": "mapping(address => mapping(address => uint256))"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_bool": {
+            "label": "bool"
           }
         }
       }

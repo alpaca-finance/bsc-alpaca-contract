@@ -42,6 +42,7 @@ export interface MerkleDistributor {
   "ITAM-week-2": string;
   "ITAM-week-3": string;
   "ITAM-week-4": string;
+  "pSTAKE-batch-1": string;
 }
 export interface GrazingRange {
   address: string;
@@ -198,6 +199,7 @@ export interface Tokens extends DeltaNeutralVaultTokens {
   TOMB?: string;
   TSHARE?: string;
   BSW?: string;
+  pSTAKE?: string;
 }
 export interface DeltaNeutralVaultTokens {
   "n3x-BNBUSDT-PCS1"?: string;
