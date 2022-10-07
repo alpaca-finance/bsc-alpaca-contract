@@ -20,7 +20,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "n3x-BNBUSDT-PCS1",
     "n8x-BNBUSDT-PCS1",
     "n8x-BNBUSDT-PCS2",
-    // "n3x-BNBBUSD-PCS1", skip
+    "n3x-BNBBUSD-PCS1",
     "n3x-BNBUSDT-PCS2",
     "n3x-BNBBUSD-PCS2",
     "n3x-BNBUSDT-PCS3",

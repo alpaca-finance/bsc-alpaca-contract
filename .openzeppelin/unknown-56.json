@@ -1259,6 +1259,11 @@
       "address": "0x7b90d39e28b283d6fC881eb02d2dF57938E945AB",
       "txHash": "0x6900bcde24ee61891655910c86908f3a43dd673d3e005645b139317c6af539ee",
       "kind": "transparent"
+    },
+    {
+      "address": "0xbb3632Ff9C882BF09B85fd1F41df89a4853aBE4C",
+      "txHash": "0x7606541c48710a1a0ddfcef9c259ff301fa44f991d1ff8ea42e55a26d38a3ac4",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -29820,6 +29825,14 @@
             "label": "bool"
           }
         }
+      }
+    },
+    "804bb54b73532846bc39476ff232ca7787b30f7ccc21c1b7a24be0d26a935e8a": {
+      "address": "0xD765b216224048E3551c50422EBc3FD95F1f619C",
+      "txHash": "0xd4e1e68db674ccec212cb578dd26fe028d9988d3dcc330c10818149f97da8b87",
+      "layout": {
+        "storage": [],
+        "types": {}
       }
     }
   }
