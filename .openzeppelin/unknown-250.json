@@ -7915,6 +7915,322 @@
           }
         }
       }
+    },
+    "e2685fa191adb42d947586aa6b2744a05f7b51cef895bdf94698a199c8b37811": {
+      "address": "0x502149D59DeC0cb4Ce773bD202b51B785956c2eA",
+      "txHash": "0x020eb5215c72b05a7a5c88710bbd42c5375528205fdfa1fea37fb4f301b789b3",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "getWrappedNativeAddr",
+            "type": "t_address",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:109"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "getWNativeRelayer",
+            "type": "t_address",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:111"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "fairLaunchAddr",
+            "type": "t_address",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:114"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "maxVaultPositionValue",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:116"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "rebalanceFactor",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:118"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "positionValueTolerance",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:120"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "debtRatioTolerance",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:123"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "depositFeeTreasury",
+            "type": "t_address",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:125"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "depositFeeBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:128"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "withdrawalFeeTreasury",
+            "type": "t_address",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:129"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "withdrawalFeeBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:131"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "managementFeeTreasury",
+            "type": "t_address",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:133"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "managementFeePerSec",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:136"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "leverageLevel",
+            "type": "t_uint8",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:140"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "alpacaToken",
+            "type": "t_address",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:141"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "getSwapRouter",
+            "type": "t_address",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:143"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "reinvestPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:147"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "whitelistedCallers",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:148"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "whitelistedRebalancers",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:151"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "feeExemptedCallers",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:154"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "whitelistedReinvestors",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:157"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "alpacaReinvestFeeTreasury",
+            "type": "t_address",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:159"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "alpacaBountyBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:161"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "alpacaBeneficiary",
+            "type": "t_address",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:164"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "alpacaBeneficiaryBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:167"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "controller",
+            "type": "t_address",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:170"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "depositExecutor",
+            "type": "t_address",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:172"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "withdrawExecutor",
+            "type": "t_address",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:173"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "rebalanceExecutor",
+            "type": "t_address",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:175"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "reinvestExecutor",
+            "type": "t_address",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:176"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "swapFee",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:179"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "swapFeeDenom",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:180"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "partialCloseMinimizeStrategy",
+            "type": "t_address",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:181"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "stableAddTwoSideStrategy",
+            "type": "t_address",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:182"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "assetAddTwoSideStrategy",
+            "type": "t_address",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:185"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "repurchaseExecutor",
+            "type": "t_address",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:186"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "repurchaseBorrowStrategy",
+            "type": "t_address",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:187"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "repurchaseRepayStrategy",
+            "type": "t_address",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:188"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "repurchaseBonusBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:191"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "whitelistedRepurchasers",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:193"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "retargetExecutor",
+            "type": "t_address",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:195"
+          },
+          {
+            "contract": "DeltaNeutralVaultConfig02",
+            "label": "retargetRemoveLiquidityStrategy",
+            "type": "t_address",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:197"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_uint8": {
+            "label": "uint8"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
     }
   }
 }
