@@ -20,16 +20,21 @@ import "solidity/contracts/8.13/utils/Ownable.sol";
 
 import { IDeltaNeutralVault } from "./interfaces/IDeltaNeutralVault.sol";
 import { IAVMigrationStruct } from "./interfaces/IAVMigrationStruct.sol";
-import { console } from "solidity/tests/utils/console.sol";
 
 contract AVMigration is IAVMigrationStruct, Ownable {
   using SafeERC20Upgradeable for IERC20Upgradeable;
 
   mapping(address => address) public vaultMap;
 
-  event LogMigration(address indexed _shareOwner, uint256 _sharesFromSrc, uint256 _sharesToDst);
+  error AVMigration_DestinationVaultDoesNotExist();
 
-  constructor() {}
+  event LogMigration(
+    address indexed _shareOwner,
+    address indexed _srcVault,
+    address indexed _dstVault,
+    uint256 _sharesFromSrc,
+    uint256 _sharesToDst
+  );
 
   function migrate(
     address srcVault,
@@ -37,7 +42,9 @@ contract AVMigration is IAVMigrationStruct, Ownable {
     uint256 _minShareReceive
   ) public {
     address dstVault = vaultMap[srcVault];
-    require(dstVault != address(0), "destination vault does not exist");
+    if (dstVault == address(0)) {
+      revert AVMigration_DestinationVaultDoesNotExist();
+    }
 
     uint256 sharesFromSrc = IERC20Upgradeable(srcVault).balanceOf(msg.sender);
     IERC20Upgradeable(srcVault).safeTransferFrom(msg.sender, address(this), sharesFromSrc);
@@ -58,7 +65,7 @@ contract AVMigration is IAVMigrationStruct, Ownable {
       abi.encode(0)
     );
 
-    emit LogMigration(msg.sender, sharesFromSrc, shareToDst);
+    emit LogMigration(msg.sender, srcVault, dstVault, sharesFromSrc, shareToDst);
   }
 
   function setMigrationPaths(VaultMigrationPath[] calldata migrationPaths) public onlyOwner {

@@ -34,7 +34,7 @@ contract AVMigration_Test is DeltaNeutralVault04Base_Test {
     _avMigration.setMigrationPaths(arr);
   }
 
-  function testCorrectness_migrateShouldWork() external {
+  function testCorrectness_MigrateShouldWork() external {
     _depositForAlice();
     vm.startPrank(ALICE);
     _deltaNeutralVault.approve(address(_avMigration), 2**256 - 1);
@@ -42,10 +42,20 @@ contract AVMigration_Test is DeltaNeutralVault04Base_Test {
     _avMigration.migrate(address(_deltaNeutralVault), 0, 0);
   }
 
-  function testFail_notOwnerSetMigrationPaths() external {
+  function testRevert_WhenCallerIsNotOwner_SetMigrationPathsShouldRevert() external {
     IAVMigrationStruct.VaultMigrationPath[] memory arr = new IAVMigrationStruct.VaultMigrationPath[](1);
     arr[0] = IAVMigrationStruct.VaultMigrationPath(address(_deltaNeutralVault), address(_deltaNeutralVaultDst));
     vm.prank(ALICE);
+    vm.expectRevert("Ownable: caller is not the owner");
     _avMigration.setMigrationPaths(arr);
+  }
+
+  function testRevert_NoDestinationVaultInPaths_MigrateShouldRevert() external {
+    _depositForAlice();
+    vm.startPrank(ALICE);
+    _deltaNeutralVault.approve(address(_avMigration), 2**256 - 1);
+
+    vm.expectRevert(AVMigration.AVMigration_DestinationVaultDoesNotExist.selector);
+    _avMigration.migrate(address(ALICE), 0, 0);
   }
 }
