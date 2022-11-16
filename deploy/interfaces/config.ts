@@ -5,6 +5,7 @@ export interface Config {
   AUSDStaking?: string;
   Shield?: string;
   DeltaNeutralVaultHealthChecker?: string;
+  AVMigration?: string;
   MerkleDistributor?: MerkleDistributor;
   GrazingRange?: GrazingRange;
   FairLaunch?: FairLaunch;

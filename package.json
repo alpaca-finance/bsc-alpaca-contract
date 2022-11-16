@@ -97,6 +97,8 @@
     "deploy:mainnet:strategies:deploy:mdex:share-strategies": "hardhat --network mainnet deploy --no-compile --reset --tags MdexShareRestrictedStrategies",
     "deploy:mainnet:strategies:deploy:mdex:vault-strategies": "hardhat --network mainnet deploy --no-compile --reset --tags MdexVaultRestrictedStrategies",
     "deploy:mainnet:delta-neutral-oracle:deploy:delta-neutral-oracle": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralOracle",
+    "deploy:mainnet:av-migration:deploy:av-migration": "hardhat --network mainnet deploy --no-compile --reset --tags AVMigration",
+    "deploy:mainnet:av-migration:config:set-params": "hardhat --network mainnet deploy --no-compile --reset --tags AVMigrationSetParams",
     "deploy:mainnet:delta-neutral-vault-config:deploy:delta-neutral-vault-config": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralVaultConfig",
     "deploy:mainnet:delta-neutral-vault-config:config:set-whitelisted-callers": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralVaultConfigSetWhitelistedCallers",
     "deploy:mainnet:delta-neutral-vault-config:config:set-whitelisted-repurchasers": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralVaultConfigSetWhitelistedRepurchasers",
