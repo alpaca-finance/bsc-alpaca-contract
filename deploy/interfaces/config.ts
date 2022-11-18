@@ -5,7 +5,6 @@ export interface Config {
   AUSDStaking?: string;
   Shield?: string;
   DeltaNeutralVaultHealthChecker?: string;
-  AVMigration?: string;
   MerkleDistributor?: MerkleDistributor;
   GrazingRange?: GrazingRange;
   FairLaunch?: FairLaunch;
@@ -318,4 +317,5 @@ export interface AutomatedVaultExecutor {
   rebalance: string;
   repurchase?: string;
   retarget?: string;
+  migrator?: string;
 }

@@ -346,7 +346,8 @@ export class ConfigFileHelper {
 
   public setAVMigration(address: string) {
     console.log(`>> SET AVMigration to file > ${address}`);
-    this.config.AVMigration = address;
+    if (!this.config.AutomatedVaultExecutor) throw new Error("AutomatedVaultExecutor is undefined");
+    this.config.AutomatedVaultExecutor.migrator = address;
     this._writeConfigFile(this.config);
   }
 }
