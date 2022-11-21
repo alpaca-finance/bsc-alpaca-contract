@@ -31,6 +31,7 @@ import "./interfaces/IFairLaunch.sol";
 import "./interfaces/ISwapRouter.sol";
 import "./interfaces/IController.sol";
 import "./interfaces/IExecutor.sol";
+import "./interfaces/ISwapPairLike.sol";
 
 import "./utils/SafeToken.sol";
 import "./utils/FixedPointMathLib.sol";
@@ -188,19 +189,13 @@ contract TerminateAV is IDeltaNeutralStruct, ERC20Upgradeable, ReentrancyGuardUp
 
     IExecutor(_terminator).exec(abi.encode(0));
 
-    uint256 _swapAmount = assetToken == config.getWrappedNativeAddr()
-      ? address(this).balance
-      : IERC20Upgradeable(assetToken).balanceOf(address(this));
+    uint256 _swapAmount = IERC20Upgradeable(assetToken).balanceOf(address(this));
 
     // swap all assetToken to stableToken
     _swap(assetToken, _swapAmount);
 
-    // do final harvest
-    address _fairLaunchAddress = config.fairLaunchAddr();
-    IFairLaunch(_fairLaunchAddress).harvest(IVault(stableVault).fairLaunchPoolId());
-    IFairLaunch(_fairLaunchAddress).harvest(IVault(assetVault).fairLaunchPoolId());
-    uint256 _alpacaAmount = IERC20Upgradeable(alpacaToken).balanceOf(address(this));
-    IERC20Upgradeable(alpacaToken).transfer(msg.sender, _alpacaAmount);
+    // transfer alpacaOut
+    IERC20Upgradeable(alpacaToken).transfer(msg.sender, IERC20Upgradeable(alpacaToken).balanceOf(address(this)));
 
     emit LogTerminated(msg.sender);
   }
@@ -210,7 +205,7 @@ contract TerminateAV is IDeltaNeutralStruct, ERC20Upgradeable, ReentrancyGuardUp
   /// @param _swapAmount token amount to swap.
   function _swap(address _token, uint256 _swapAmount) internal {
     if (_swapAmount == 0) return;
-    address _nativeToken = config.getWrappedNativeAddr();
+
     ISwapRouter router = ISwapRouter(config.getSwapRouter());
 
     address[] memory _path = new address[](2);
@@ -219,17 +214,11 @@ contract TerminateAV is IDeltaNeutralStruct, ERC20Upgradeable, ReentrancyGuardUp
     _path[0] = _token0;
     _path[1] = _token1;
 
-    if (_token0 == _nativeToken || _token1 == _nativeToken) {
-      if (_token == _nativeToken) {
-        router.swapExactETHForTokens{ value: _swapAmount }(0, _path, address(this), block.timestamp);
-      } else {
-        IERC20Upgradeable(_token).approve(address(router), _swapAmount);
+    (uint256 _r0, uint256 _r1, ) = ISwapPairLike(lpToken).getReserves();
+    (uint256 _reserveIn, uint256 _reserveOut) = ISwapPairLike(lpToken).token0() == _token0 ? (_r0, _r1) : (_r1, _r0);
 
-        router.swapExactTokensForETH(_swapAmount, 0, _path, address(this), block.timestamp);
-      }
-    } else {
+    if (router.getAmountOut(_swapAmount, _reserveIn, _reserveOut) > 0) {
       IERC20Upgradeable(_token).approve(address(router), _swapAmount);
-
       router.swapExactTokensForTokens(_swapAmount, 0, _path, address(this), block.timestamp);
     }
   }
@@ -248,7 +237,9 @@ contract TerminateAV is IDeltaNeutralStruct, ERC20Upgradeable, ReentrancyGuardUp
     _path[0] = _fromToken;
     _path[1] = _toToken;
 
+    IERC20Upgradeable(_fromToken).approve(address(router), type(uint256).max);
     router.swapTokensForExactTokens(_amountOut, type(uint256).max, _path, address(this), block.timestamp);
+    IERC20Upgradeable(_fromToken).approve(address(router), 0);
   }
 
   // ---------------------- Remaining ----------------------------------//
