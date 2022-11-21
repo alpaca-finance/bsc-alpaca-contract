@@ -212,9 +212,8 @@ contract TerminateAV is IDeltaNeutralStruct, ERC20Upgradeable, ReentrancyGuardUp
     _path[0] = _token0;
     _path[1] = _token1;
 
-    // todo: handle swapExactETHForToken
     if (_token0 == _nativeToken || _token1 == _nativeToken) {
-      if (_token0 == _nativeToken) {
+      if (_token == _nativeToken) {
         router.swapExactETHForTokens{ value: _swapAmount }(0, _path, address(this), block.timestamp);
       } else {
         IERC20Upgradeable(_token).approve(address(router), _swapAmount);
