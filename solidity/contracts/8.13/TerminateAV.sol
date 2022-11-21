@@ -149,7 +149,7 @@ contract TerminateAV is IDeltaNeutralStruct, ERC20Upgradeable, ReentrancyGuardUp
     uint256 _shareAmount,
     uint256 _minStableTokenAmount,
     uint256, /*_minAssetTokenAmount*/
-    bytes calldata _data
+    bytes calldata /*_data*/
   ) external onlyEOAorWhitelisted nonReentrant returns (uint256) {
     if (!isTerminated) revert TerminateAV_WithdrawNotReady();
     if (_shareAmount == 0) revert TerminateAV_InvalidShareAmount();
