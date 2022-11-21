@@ -193,7 +193,7 @@ contract TerminateAV is IDeltaNeutralStruct, ERC20Upgradeable, ReentrancyGuardUp
       : IERC20Upgradeable(assetToken).balanceOf(address(this));
 
     // swap all assetToken to stableToken
-    _swap(assetToken, _swapAmount, false);
+    _swap(assetToken, _swapAmount);
 
     // do final harvest
     address _fairLaunchAddress = config.fairLaunchAddr();
@@ -208,11 +208,7 @@ contract TerminateAV is IDeltaNeutralStruct, ERC20Upgradeable, ReentrancyGuardUp
   /// @notice swap token.
   /// @param _token Token for swap.
   /// @param _swapAmount token amount to swap.
-  function _swap(
-    address _token,
-    uint256 _swapAmount,
-    bool _isSwapExactOut
-  ) internal {
+  function _swap(address _token, uint256 _swapAmount) internal {
     if (_swapAmount == 0) return;
     address _nativeToken = config.getWrappedNativeAddr();
     ISwapRouter router = ISwapRouter(config.getSwapRouter());
@@ -229,28 +225,30 @@ contract TerminateAV is IDeltaNeutralStruct, ERC20Upgradeable, ReentrancyGuardUp
       } else {
         IERC20Upgradeable(_token).approve(address(router), _swapAmount);
 
-        _isSwapExactOut
-          ? router.swapTokensForExactETH(_swapAmount, type(uint256).max, _path, address(this), block.timestamp)
-          : router.swapExactTokensForETH(_swapAmount, 0, _path, address(this), block.timestamp);
+        router.swapExactTokensForETH(_swapAmount, 0, _path, address(this), block.timestamp);
       }
     } else {
       IERC20Upgradeable(_token).approve(address(router), _swapAmount);
 
-      _isSwapExactOut
-        ? router.swapTokensForExactTokens(_swapAmount, type(uint256).max, _path, address(this), block.timestamp)
-        : router.swapExactTokensForTokens(_swapAmount, 0, _path, address(this), block.timestamp);
+      router.swapExactTokensForTokens(_swapAmount, 0, _path, address(this), block.timestamp);
     }
   }
 
-  function swap(
-    address _token,
-    uint256 _swapAmount,
-    bool _isSwapExactOut
+  function terminateSwap(
+    address _fromToken,
+    address _toToken,
+    uint256 _amountOut
   ) external {
     if (msg.sender != terminateExecutor) {
       revert TerminateAV_Unauthorized(msg.sender);
     }
-    _swap(_token, _swapAmount, _isSwapExactOut);
+    ISwapRouter router = ISwapRouter(config.getSwapRouter());
+
+    address[] memory _path = new address[](2);
+    _path[0] = _fromToken;
+    _path[1] = _toToken;
+
+    router.swapTokensForExactTokens(_amountOut, type(uint256).max, _path, address(this), block.timestamp);
   }
 
   // ---------------------- Remaining ----------------------------------//
