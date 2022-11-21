@@ -144,7 +144,6 @@ contract TerminateAV is IDeltaNeutralStruct, ERC20Upgradeable, ReentrancyGuardUp
   /// @notice Withdraw from delta neutral vault.
   /// @param _shareAmount Amount of share to withdraw from vault.
   /// @param _minStableTokenAmount Minimum stable token shareOwner expect to receive.
-  /// @param _data The calldata to pass along to the proxy action for more working context.
   function withdraw(
     uint256 _shareAmount,
     uint256 _minStableTokenAmount,
@@ -185,6 +184,7 @@ contract TerminateAV is IDeltaNeutralStruct, ERC20Upgradeable, ReentrancyGuardUp
     if (isTerminated) revert TerminateAV_Terminated();
 
     terminateExecutor = _terminator;
+    isTerminated = true;
 
     IExecutor(_terminator).exec(abi.encode(0));
 
@@ -192,9 +192,15 @@ contract TerminateAV is IDeltaNeutralStruct, ERC20Upgradeable, ReentrancyGuardUp
       ? address(this).balance
       : IERC20Upgradeable(assetToken).balanceOf(address(this));
 
-    _swap(assetToken, _swapAmount);
+    // swap all assetToken to stableToken
+    _swap(assetToken, _swapAmount, false);
 
-    isTerminated = true;
+    // do final harvest
+    address _fairLaunchAddress = config.fairLaunchAddr();
+    IFairLaunch(_fairLaunchAddress).harvest(IVault(stableVault).fairLaunchPoolId());
+    IFairLaunch(_fairLaunchAddress).harvest(IVault(assetVault).fairLaunchPoolId());
+    uint256 _alpacaAmount = IERC20Upgradeable(alpacaToken).balanceOf(address(this));
+    IERC20Upgradeable(alpacaToken).transfer(msg.sender, _alpacaAmount);
 
     emit LogTerminated(msg.sender);
   }
@@ -202,7 +208,12 @@ contract TerminateAV is IDeltaNeutralStruct, ERC20Upgradeable, ReentrancyGuardUp
   /// @notice swap token.
   /// @param _token Token for swap.
   /// @param _swapAmount token amount to swap.
-  function _swap(address _token, uint256 _swapAmount) internal {
+  function _swap(
+    address _token,
+    uint256 _swapAmount,
+    bool _isSwapExactOut
+  ) internal {
+    if (_swapAmount == 0) return;
     address _nativeToken = config.getWrappedNativeAddr();
     ISwapRouter router = ISwapRouter(config.getSwapRouter());
 
@@ -218,13 +229,28 @@ contract TerminateAV is IDeltaNeutralStruct, ERC20Upgradeable, ReentrancyGuardUp
       } else {
         IERC20Upgradeable(_token).approve(address(router), _swapAmount);
 
-        router.swapExactTokensForETH(_swapAmount, 0, _path, address(this), block.timestamp);
+        _isSwapExactOut
+          ? router.swapTokensForExactETH(_swapAmount, type(uint256).max, _path, address(this), block.timestamp)
+          : router.swapExactTokensForETH(_swapAmount, 0, _path, address(this), block.timestamp);
       }
     } else {
       IERC20Upgradeable(_token).approve(address(router), _swapAmount);
 
-      router.swapExactTokensForTokens(_swapAmount, 0, _path, address(this), block.timestamp);
+      _isSwapExactOut
+        ? router.swapTokensForExactTokens(_swapAmount, type(uint256).max, _path, address(this), block.timestamp)
+        : router.swapExactTokensForTokens(_swapAmount, 0, _path, address(this), block.timestamp);
     }
+  }
+
+  function swap(
+    address _token,
+    uint256 _swapAmount,
+    bool _isSwapExactOut
+  ) external {
+    if (msg.sender != terminateExecutor) {
+      revert TerminateAV_Unauthorized(msg.sender);
+    }
+    _swap(_token, _swapAmount, _isSwapExactOut);
   }
 
   // ---------------------- Remaining ----------------------------------//
