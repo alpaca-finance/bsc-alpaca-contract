@@ -4,6 +4,8 @@ import { getDeployer, isFork } from "../../../../utils/deployer-helper";
 import { getConfig } from "../../../entities/config";
 import { AVMigration__factory } from "../../../../typechain";
 import { Converter } from "../../../helper";
+import { compare } from "../../../../utils/address";
+import { zeroAddress } from "ethereumjs-util";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -30,7 +32,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     };
   });
 
-  if (!config.AutomatedVaultExecutor?.migrator) {
+  if (!config.AutomatedVaultExecutor?.migrator || compare(config.AutomatedVaultExecutor?.migrator, zeroAddress())) {
     throw new Error(`ERROR No migrator address`);
   }
 
