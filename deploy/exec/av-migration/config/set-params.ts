@@ -3,6 +3,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { getDeployer, isFork } from "../../../../utils/deployer-helper";
 import { getConfig } from "../../../entities/config";
 import { AVMigration__factory } from "../../../../typechain";
+import { Converter } from "../../../helper";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -15,12 +16,19 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const migrationPaths = [
-    { srcVault: "0x96C607E34008630dC8132F517A33Be2772835f9c", dstVault: "0xd1464C0D4424a353C4F243A11C806BdCbd783092" },
-  ];
+  const migrationPathInputs = [{ srcVault: "n3x-BNBUSDT-PCS2", dstVault: "n3x-BNBUSDT-PCS1" }];
+
+  const config = getConfig();
 
   const deployer = await getDeployer();
-  const config = getConfig();
+  const converter = new Converter();
+
+  const migrationPaths = migrationPathInputs.map((input) => {
+    return {
+      srcVault: converter.convertDeltaSymboltoObj([input.srcVault])[0].address,
+      dstVault: converter.convertDeltaSymboltoObj([input.dstVault])[0].address,
+    };
+  });
 
   if (!config.AutomatedVaultExecutor?.migrator) {
     throw new Error(`ERROR No migrator address`);
