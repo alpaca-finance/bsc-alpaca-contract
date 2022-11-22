@@ -20,8 +20,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const TITLE = "upgrade_delta_neutral_vault_04";
-  const DELTA_NEUTRAL_VAULT = "DeltaNeutralVault04";
+  const TITLE = "upgrade_terminate_av";
+  const DELTA_NEUTRAL_VAULT = "TerminateAV";
   const TARGETED_VAULTS = [
     "n3x-BNBUSDT-PCS1",
     "n8x-BNBUSDT-PCS1",

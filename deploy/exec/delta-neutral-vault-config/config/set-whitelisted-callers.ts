@@ -30,17 +30,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
+  const config = getConfig();
+
   const TITLE = "upgrade_delta_neutral_vault_gateway";
   const INPUTS: Array<InputInterface> = [
     {
       VAULT_SYMBOL: "L3x-BUSDBTCB-PCS2",
-      WHITELISTED_CALLERS: ["0xEA724deA000b5e5206d28f4BC2dAD5f2FA1fe788"],
+      WHITELISTED_CALLERS: [config.AutomatedVaultExecutor?.migrator!],
       IS_ENABLE: true,
     },
   ];
   const EXACT_ETA = "1652511600";
-
-  const config = getConfig();
 
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   const deployer = await getDeployer();

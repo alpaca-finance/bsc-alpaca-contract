@@ -318,4 +318,5 @@ export interface AutomatedVaultExecutor {
   repurchase?: string;
   retarget?: string;
   migrator?: string;
+  terminator?: string;
 }
