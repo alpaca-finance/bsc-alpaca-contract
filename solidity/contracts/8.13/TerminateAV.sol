@@ -270,7 +270,7 @@ contract TerminateAV is IDeltaNeutralStruct, ERC20Upgradeable, ReentrancyGuardUp
     // From internal call + pendingManagementFee should be 0 as it was collected
     // at the beginning of the external contract call
     // For external call, to calculate shareToValue, pending fee shall be accounted
-    uint256 _shareSupply = totalSupply() + pendingManagementFee();
+    uint256 _shareSupply = totalSupply();
     if (_shareSupply == 0) return _shareAmount;
     return FullMath.mulDiv(_shareAmount, totalEquityValue(), _shareSupply);
   }
@@ -383,7 +383,7 @@ contract TerminateAV is IDeltaNeutralStruct, ERC20Upgradeable, ReentrancyGuardUp
   /// @param _value Value to convert
   /// @param _totalEquity Total equity at the time of calculation
   function _valueToShare(uint256 _value, uint256 _totalEquity) internal view returns (uint256) {
-    uint256 _shareSupply = totalSupply() + pendingManagementFee();
+    uint256 _shareSupply = totalSupply();
     if (_shareSupply == 0) return _value;
     return FullMath.mulDiv(_value, _shareSupply, _totalEquity);
   }
