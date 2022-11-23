@@ -28,8 +28,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   for (const vault of toBeTerminatedVaults) {
     const terminateVaultAsDeployer = TerminateAV__factory.connect(vault.address, deployer);
-    const ops = isFork() ? { nonce: nonce++, gasLimit: 2000000 } : { nonce: nonce++ };
+    const ops = isFork() ? { nonce: nonce++, gasLimit: 10000000 } : { nonce: nonce++ };
 
+    console.log("Terminating:", vault.symbol);
     const terminateTx = await terminateVaultAsDeployer.terminate(config.AutomatedVaultExecutor?.terminator!, ops);
 
     const terminateReceipt = await terminateTx.wait(3);
