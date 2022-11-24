@@ -328,7 +328,8 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     if (address(_controller) != address(0)) {
       // in case after deduction and it violated the credit available,
       // the controller should revert the transaction
-      _controller.onDeposit(msg.sender, _sharesToUser, _depositValue);
+      // on deposit duduct credit from tx.origin
+      _controller.onDeposit(tx.origin, _sharesToUser, _depositValue);
     }
 
     emit LogDeposit(msg.sender, _shareReceiver, _sharesToUser, _stableTokenAmount);
