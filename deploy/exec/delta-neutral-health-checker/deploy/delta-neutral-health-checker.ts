@@ -1,8 +1,8 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { DeltaNeutralVault04HealthChecker02 } from "../../../../typechain";
+import { DeltaNeutralVault04HealthChecker } from "../../../../typechain";
 import { getDeployer } from "../../../../utils/deployer-helper";
-import { ContractDeployer } from "../../../deployer";
+import { UpgradeableContractDeployer } from "../../../deployer";
 import { ConfigFileHelper } from "../../../helper";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -18,11 +18,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const configFileHelper = new ConfigFileHelper();
   const deployer = await getDeployer();
 
-  const deltaNeutralVault04HealthChecker02 = new ContractDeployer<DeltaNeutralVault04HealthChecker02>(
+  const deltaNeutralVault04HealthChecker = new UpgradeableContractDeployer<DeltaNeutralVault04HealthChecker>(
     deployer,
-    "DeltaNeutralVault04HealthChecker02"
+    "DeltaNeutralVault04HealthChecker"
   );
-  const { contract: deltaHealthchecker } = await deltaNeutralVault04HealthChecker02.deploy([]);
+  const { contract: deltaHealthchecker } = await deltaNeutralVault04HealthChecker.deploy([]);
 
   configFileHelper.setDeltaNeutralHealthChecker(deltaHealthchecker.address);
 };
