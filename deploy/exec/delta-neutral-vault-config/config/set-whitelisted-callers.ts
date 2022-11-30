@@ -33,12 +33,27 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const TITLE = "upgrade_delta_neutral_vault_gateway";
   const INPUTS: Array<InputInterface> = [
     {
-      VAULT_SYMBOL: "L3x-BUSDBTCB-PCS2",
-      WHITELISTED_CALLERS: ["0xEA724deA000b5e5206d28f4BC2dAD5f2FA1fe788"],
+      VAULT_SYMBOL: "L3x-BUSDBNB-PCS1",
+      WHITELISTED_CALLERS: ["0x94DFED3cEF3757D18Dd4AbeaDf4F67AEf4D772a8"],
+      IS_ENABLE: true,
+    },
+    {
+      VAULT_SYMBOL: "L3x-USDTETH-BSW1",
+      WHITELISTED_CALLERS: ["0x94DFED3cEF3757D18Dd4AbeaDf4F67AEf4D772a8"],
+      IS_ENABLE: true,
+    },
+    {
+      VAULT_SYMBOL: "n3x-ETHUSDT-BSW1",
+      WHITELISTED_CALLERS: ["0x94DFED3cEF3757D18Dd4AbeaDf4F67AEf4D772a8"],
+      IS_ENABLE: true,
+    },
+    {
+      VAULT_SYMBOL: "n3x-BNBBUSD-PCS1",
+      WHITELISTED_CALLERS: ["0x94DFED3cEF3757D18Dd4AbeaDf4F67AEf4D772a8"],
       IS_ENABLE: true,
     },
   ];
-  const EXACT_ETA = "1652511600";
+  const EXACT_ETA = "1669788000";
 
   const config = getConfig();
 
