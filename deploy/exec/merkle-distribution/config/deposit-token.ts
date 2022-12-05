@@ -21,7 +21,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = await getDeployer();
 
   const FEATURE_TOKEN_ADDRESS = config.Tokens.pSTAKE!;
-  const DEPOSIT_AMOUNT = parseEther("590748");
+  const DEPOSIT_AMOUNT = parseEther("590963");
   const merkleDistributor = MerkleDistributor__factory.connect(config.MerkleDistributor!["pSTAKE-batch-2"], deployer);
 
   console.log(">> Depositing token to Merkle distributor contract");
