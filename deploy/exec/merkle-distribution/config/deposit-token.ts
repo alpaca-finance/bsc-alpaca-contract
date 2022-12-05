@@ -18,13 +18,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     Check all variables below before execute the deployment script
     */
   const config = getConfig();
+  const deployer = await getDeployer();
 
   const FEATURE_TOKEN_ADDRESS = config.Tokens.pSTAKE!;
-  const DEPOSIT_AMOUNT = parseEther("980000");
+  const DEPOSIT_AMOUNT = parseEther("590748");
+  const merkleDistributor = MerkleDistributor__factory.connect(config.MerkleDistributor!["pSTAKE-batch-2"], deployer);
 
   console.log(">> Depositing token to Merkle distributor contract");
-  const deployer = await getDeployer();
-  const merkleDistributor = MerkleDistributor__factory.connect(config.MerkleDistributor!["pSTAKE-batch-1"], deployer);
 
   const merkleToken = await merkleDistributor.token();
 
