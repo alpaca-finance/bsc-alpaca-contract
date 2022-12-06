@@ -34,6 +34,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const config = ConfigEntity.getConfig();
   const deployer = (await ethers.getSigners())[0];
+  const chainId = await deployer.getChainId();
   const targetedVault = config.Vaults.find((v) => v.symbol === SYMBOL);
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   if (targetedVault === undefined) {
@@ -87,6 +88,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   timelockTransactions.push(
     await TimelockService.queueTransaction(
+      chainId,
       "Queue Transaction to add a debtToken pool through Timelock",
       config.Shield!,
       "0",
@@ -104,6 +106,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   timelockTransactions.push(
     await TimelockService.queueTransaction(
+      chainId,
       `>> Queue Transaction to add a ${SYMBOL} pool through Timelock`,
       config.Shield!,
       "0",

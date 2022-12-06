@@ -59,6 +59,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   const deployer = await getDeployer();
+  const chainId = await deployer.getChainId();
   const derivedInputs: Array<DerivedInputInterface> = INPUTS.map((input) => {
     const vault = config.DeltaNeutralVaults.find((v) => input.VAULT_SYMBOL == v.symbol);
     if (vault === undefined) {
@@ -83,6 +84,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if (compare(owner, config.Timelock)) {
       timelockTransactions.push(
         await TimelockService.queueTransaction(
+          chainId,
           `Queue timelock for whitelisting [${derivedInput.whitelistedCallers.join(",")}] for ${
             derivedInput.vaultSymbol
           }`,

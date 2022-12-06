@@ -29,6 +29,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   const deployer = await getDeployer();
+  const chainId = await deployer.getChainId();
   const converter = new Converter();
   const tobeUpgradeVaultConfigs = converter.convertDeltaSymboltoObj(TARGETED_VAULTS);
   let nonce = await deployer.getTransactionCount();
@@ -48,6 +49,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if (compare(await proxyAdmin.owner(), config.Timelock)) {
       timelockTransactions.push(
         await TimelockService.queueTransaction(
+          chainId,
           `> Queue tx to upgrade ${vault.symbol} config`,
           config.ProxyAdmin,
           "0",

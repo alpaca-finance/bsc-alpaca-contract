@@ -31,12 +31,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const config = getConfig();
   const deployer = (await ethers.getSigners())[0];
+  const chainId = await deployer.getChainId();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   let nonce = await deployer.getTransactionCount();
 
   for (const pool of POOLS) {
     timelockTransactions.push(
       await TimelockService.queueTransaction(
+        chainId,
         `>> Timelock: Add ${pool.STAKING_TOKEN_ADDRESS} with ${pool.ALLOC_POINT} via Timelock`,
         config.Shield!,
         "0",

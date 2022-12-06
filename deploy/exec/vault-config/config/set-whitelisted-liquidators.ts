@@ -86,6 +86,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const config = getConfig();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   const deployer = await getDeployer();
+  const chainId = await deployer.getChainId();
   let nonce = await deployer.getTransactionCount();
 
   const inputs: Array<IDerivedInput> = TARGETED_VAULT_CONFIG.map((tv) => {
@@ -111,6 +112,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if (compare(owner, config.Timelock)) {
       timelockTransactions.push(
         await TimelockService.queueTransaction(
+          chainId,
           `> Queue tx on Timelock to setWhitelistedLiquidators for ${i.configAddress}`,
           i.configAddress,
           "0",

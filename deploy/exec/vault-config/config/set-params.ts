@@ -68,6 +68,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const config = getConfig();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   const deployer = (await ethers.getSigners())[0];
+  const chainId = await deployer.getChainId();
   const multicallService = new Multicall2Service(config.MultiCall, deployer);
   let nonce = await deployer.getTransactionCount();
   const ts = Math.floor(Date.now() / 1000);
@@ -138,6 +139,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if (compare(info.OWNER, config.Timelock)) {
       timelockTransactions.push(
         await TimelockService.queueTransaction(
+          chainId,
           `Update ${info.VAULT_SYMBOL} Vault config`,
           info.VAULT_CONFIG,
           "0",
