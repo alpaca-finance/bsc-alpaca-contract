@@ -17,7 +17,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     */
   const config = getConfig();
 
-  const MERKLE_ROOT = "0x74536a7dd9ee73b0e5994a5e06a468f1cc50005130824d9dddaab8a91f3a9805";
+  const MERKLE_ROOT = "0x5e981ef0f3c75c360e70fb2e6cdba2e1ef480b3e4a7293cdf634bc1c33c5ceed";
   const FEATURE_TOKEN_ADDRESS = config.Tokens.pSTAKE!;
 
   console.log(">> Deploying a Merkle distributor contract");

@@ -43,6 +43,7 @@ export interface MerkleDistributor {
   "ITAM-week-3": string;
   "ITAM-week-4": string;
   "pSTAKE-batch-1": string;
+  "pSTAKE-batch-2": string;
 }
 export interface GrazingRange {
   address: string;
