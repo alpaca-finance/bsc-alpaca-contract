@@ -40,7 +40,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "L8x-BUSDBTCB-PCS1",
     "L8x-USDTBNB-PCS1",
   ];
-  const EXACT_ETA = "1664258400";
+  const EXACT_ETA = "1669885200";
 
   const config = getConfig();
 
@@ -50,6 +50,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const converter = new Converter();
   const toBeUpgradedVaults = converter.convertDeltaSymboltoObj(TARGETED_VAULTS);
   let nonce = await deployer.getTransactionCount();
+  const chainId = await deployer.getChainId();
 
   for (const vault of toBeUpgradedVaults) {
     console.log("------------------");
@@ -66,6 +67,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if (compare(await proxyAdmin.owner(), config.Timelock)) {
       timelockTransactions.push(
         await TimelockService.queueTransaction(
+          chainId,
           `> Queue tx to upgrade ${vault.symbol}`,
           config.ProxyAdmin,
           "0",

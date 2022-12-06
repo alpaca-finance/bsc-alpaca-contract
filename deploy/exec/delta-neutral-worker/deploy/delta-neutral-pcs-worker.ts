@@ -96,6 +96,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const EXACT_ETA = "1656568233";
 
   const deployer = await getDeployer();
+  const chainId = await deployer.getChainId();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   const ts = Math.floor(Date.now() / 1000);
   const gasPriceService = new BlockScanGasPrice(network.name);
@@ -222,6 +223,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(">> Timelock");
     timelockTransactions.push(
       await TimelockService.queueTransaction(
+        chainId,
         `>> Queue tx on Timelock Setting WorkerConfig via Timelock at ${workerInfos[i].WORKER_CONFIG_ADDR} for ${deltaNeutralWorker.address}`,
         workerInfos[i].WORKER_CONFIG_ADDR,
         "0",
@@ -247,6 +249,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     timelockTransactions.push(
       await TimelockService.queueTransaction(
+        chainId,
         `>> Queue tx on Timelock Linking VaultConfig with WorkerConfig via Timelock for ${workerInfos[i].VAULT_CONFIG_ADDR}`,
         workerInfos[i].VAULT_CONFIG_ADDR,
         "0",

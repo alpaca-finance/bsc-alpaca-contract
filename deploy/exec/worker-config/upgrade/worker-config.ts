@@ -23,6 +23,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   const deployer = (await ethers.getSigners())[0];
+  const chainId = await deployer.getChainId();
   console.log(`>> Upgrading Worker at ${TO_BE_UPGRADE_WORKER_CONFIG} through Timelock + ProxyAdmin`);
   const NewWorkerConfig = (await ethers.getContractFactory("WorkerConfig")) as WorkerConfig__factory;
   const preparedNewWorkerConfig = await upgrades.prepareUpgrade(TO_BE_UPGRADE_WORKER_CONFIG, NewWorkerConfig);
@@ -33,6 +34,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   timelockTransactions.push(
     await TimelockService.queueTransaction(
+      chainId,
       "Queue Timelock to upgrade WorkerConfig",
       config.ProxyAdmin,
       "0",

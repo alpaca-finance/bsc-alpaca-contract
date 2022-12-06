@@ -37,6 +37,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const config = getConfig();
   const [deployer] = await ethers.getSigners();
+  const chainId = await deployer.getChainId();
   const miniFL = MiniFL__factory.connect(config.MiniFL!.address, deployer);
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   const isTimelocked = (await miniFL.owner()).toLowerCase() === config.Timelock.toLowerCase();
@@ -45,6 +46,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if (isTimelocked) {
       timelockTransactions.push(
         await TimelockService.queueTransaction(
+          chainId,
           `>> Timelock: Add ${pool.STAKING_TOKEN_ADDRESS} with ${pool.ALLOC_POINT} via Timelock`,
           config.MiniFL!.address,
           "0",

@@ -5,6 +5,7 @@ import { getDeployer } from "../../utils/deployer-helper";
 import { ConfigEntity, TimelockEntity } from "../entities";
 
 export async function queueTransaction(
+  chainId: number,
   info: string,
   target: string,
   value: string,
@@ -48,6 +49,7 @@ export async function queueTransaction(
   const executionTx = `await timelock.executeTransaction('${target}', '${value}', '${signature}', ethers.utils.defaultAbiCoder.encode([${paramTypesStr}], [${paramsStr}]), '${eta}')`;
   console.log(`>> Done.`);
   return {
+    chainId,
     info: info,
     queuedAt: queueTx.hash,
     executedAt: "",
@@ -62,6 +64,7 @@ export async function queueTransaction(
 }
 
 export async function executeTransaction(
+  chainId: number,
   info: string,
   queuedAt: string,
   executionTx: string,
@@ -87,6 +90,7 @@ export async function executeTransaction(
   console.log(`>> Done.`);
 
   return {
+    chainId,
     info: info,
     queuedAt: queuedAt,
     executedAt: executeTx.hash,

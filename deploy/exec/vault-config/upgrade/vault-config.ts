@@ -35,6 +35,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const config = getConfig();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   const deployer = (await ethers.getSigners())[0];
+  const chainId = await deployer.getChainId();
 
   const toBeUpgradedVaults = TARGETED_VAULT_CONFIG.map((tv) => {
     const vault = config.Vaults.find((v) => tv == v.symbol);
@@ -63,6 +64,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     timelockTransactions.push(
       await TimelockService.queueTransaction(
+        chainId,
         `Upgrade ${toBeUpgradedVault.symbol} Vault Config`,
         config.ProxyAdmin,
         "0",

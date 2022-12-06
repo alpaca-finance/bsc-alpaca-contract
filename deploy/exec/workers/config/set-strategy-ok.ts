@@ -51,6 +51,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   });
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   const deployer = await getDeployer();
+  const chainId = await deployer.getChainId();
   let nonce = await deployer.getTransactionCount();
 
   for (const miniWorker of miniWorkers) {
@@ -61,6 +62,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       if (ADD_STRAT != "" && LIQ_STRAT != "") {
         timelockTransactions.push(
           await TimelockService.queueTransaction(
+            chainId,
             `Setting critical strats for ${miniWorker.name}`,
             miniWorker.address,
             "0",
@@ -75,6 +77,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
       timelockTransactions.push(
         await TimelockService.queueTransaction(
+          chainId,
           `set strategy for ${miniWorker.name}`,
           miniWorker.address,
           "0",

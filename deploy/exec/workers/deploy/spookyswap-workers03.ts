@@ -99,6 +99,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
 
   const deployer = await getDeployer();
+  const chainId = await deployer.getChainId();
 
   const configFileHelper = new ConfigFileHelper();
   let config = configFileHelper.getConfig();
@@ -231,6 +232,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if (compare(workerOwnerAddress, timelock.address)) {
       console.log(">> Timelock: Setting WorkerConfig via Timelock");
       const setConfigsTx = await TimelockService.queueTransaction(
+        chainId,
         `>> Queue tx on Timelock Setting WorkerConfig via Timelock at ${workerInfos[i].WORKER_CONFIG_ADDR} for ${spookyWorker03.address} ETA ${workerInfos[i].EXACT_ETA}`,
         workerInfos[i].WORKER_CONFIG_ADDR,
         "0",
@@ -274,6 +276,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     if (compare(vaultOwnerAddress, timelock.address)) {
       const setWorkersTx = await TimelockService.queueTransaction(
+        chainId,
         `>> Queue tx on Timelock Linking VaultConfig with WorkerConfig via Timelock for ${workerInfos[i].VAULT_CONFIG_ADDR}`,
         workerInfos[i].VAULT_CONFIG_ADDR,
         "0",

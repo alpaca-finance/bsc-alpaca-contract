@@ -4,6 +4,7 @@ import { ethers, network } from "hardhat";
 import { TimelockEntity } from "../../../entities";
 import { fileService, TimelockService } from "../../../services";
 import { getConfig } from "../../../entities/config";
+import { getDeployer } from "../../../../utils/deployer-helper";
 
 interface IInput {
   VAULT_SYMBOL: string;
@@ -73,6 +74,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const EXACT_ETA = "1651057200";
 
   const config = getConfig();
+  const deployer = await getDeployer();
+  const chainId = await deployer.getChainId();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
 
   const inputs: Array<IDerivedInput> = TARGETED_VAULT_CONFIG.map((tv) => {
@@ -94,6 +97,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   for (const i of inputs) {
     timelockTransactions.push(
       await TimelockService.queueTransaction(
+        chainId,
         `>> Queue tx on Timelock to setApprovedStrategies for ${i.configAddress}`,
         i.configAddress,
         "0",

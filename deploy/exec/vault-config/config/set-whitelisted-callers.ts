@@ -78,6 +78,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const config = getConfig();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   const deployer = await getDeployer();
+  const chainId = await deployer.getChainId();
   const multiCall2Service = new Multicall2Service(config.MultiCall, deployer);
   let nonce = await deployer.getTransactionCount();
   const ops = isFork() ? { gasLimit: 2000000 } : {};
@@ -115,6 +116,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       isTimeLockExecuted = true;
       timelockTransactions.push(
         await TimelockService.queueTransaction(
+          chainId,
           `>> Queue tx on Timelock to setWhitelistedCallers for ${i.vaultConfig.address}`,
           i.vaultConfig.address,
           "0",

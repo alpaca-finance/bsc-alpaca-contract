@@ -42,6 +42,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const config = getConfig();
   const deployer = (await ethers.getSigners())[0];
+  const chainId = await deployer.getChainId();
 
   const allWorkers: IWorkers = config.Vaults.reduce((accum, vault) => {
     return accum.concat(
@@ -82,6 +83,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if (compare(owner, config.Timelock)) {
       timelockTransactions.push(
         await TimelockService.queueTransaction(
+          chainId,
           `setting beneficial vault params for ${TO_BE_UPGRADE_WORKERS[i].WORKER_NAME}`,
           TO_BE_UPGRADE_WORKERS[i].WORKER.address,
           "0",

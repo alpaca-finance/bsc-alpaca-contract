@@ -42,6 +42,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const TITLE = `${EXACT_ETA}_strat_setWorkersOk`;
 
   const deployer = await getDeployer();
+  const chainId = await deployer.getChainId();
   let nonce = await deployer.getTransactionCount();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
 
@@ -55,6 +56,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     );
     timelockTransactions.push(
       await TimelockService.queueTransaction(
+        chainId,
         `setWorkersOk for ${params.STRAT_NAME}`,
         params.STRAT_ADDR,
         "0",

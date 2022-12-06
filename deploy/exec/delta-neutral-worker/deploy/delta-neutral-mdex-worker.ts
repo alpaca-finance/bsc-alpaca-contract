@@ -100,6 +100,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const config = ConfigEntity.getConfig();
   const deployer = (await ethers.getSigners())[0];
+  const chainId = await deployer.getChainId();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   let nonce = await deployer.getTransactionCount();
   const workerInfos: IDeltaNeutralMdexWorkerInfo[] = shortWorkerInfos.map((n) => {
@@ -224,6 +225,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(">> Timelock");
     timelockTransactions.push(
       await TimelockService.queueTransaction(
+        chainId,
         `>> Queue tx on Timelock Setting WorkerConfig via Timelock at ${workerInfos[i].WORKER_CONFIG_ADDR} for ${deltaNeutralWorker.address}`,
         workerInfos[i].WORKER_CONFIG_ADDR,
         "0",
@@ -248,6 +250,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     timelockTransactions.push(
       await TimelockService.queueTransaction(
+        chainId,
         `>> Queue tx on Timelock Linking VaultConfig with WorkerConfig via Timelock for ${workerInfos[i].VAULT_CONFIG_ADDR}`,
         workerInfos[i].VAULT_CONFIG_ADDR,
         "0",

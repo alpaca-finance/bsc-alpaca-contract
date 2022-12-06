@@ -121,6 +121,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const EXACT_ETA = "1646402400"; //FTM DO NOT HAVE TIMELOCK LEAVE THIS VALUE
 
   const deployer = await getDeployer();
+  const chainId = await deployer.getChainId();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   const gasPriceService = new BlockScanGasPrice(network.name);
   const gasPrice = await gasPriceService.getFastGasPrice();
@@ -256,6 +257,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if (isTimelockedWorkerConfig) {
       timelockTransactions.push(
         await TimelockService.queueTransaction(
+          chainId,
           `>> Queue tx on Timelock Setting WorkerConfig via Timelock at ${workerInfo.WORKER_CONFIG_ADDR} for ${deltaNeutralWorker.address}`,
           workerInfo.WORKER_CONFIG_ADDR,
           "0",
@@ -301,6 +303,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if (isTimeLockVaultConfig) {
       timelockTransactions.push(
         await TimelockService.queueTransaction(
+          chainId,
           `>> Queue tx on Timelock Linking VaultConfig with WorkerConfig via Timelock for ${workerInfo.VAULT_CONFIG_ADDR}`,
           workerInfo.VAULT_CONFIG_ADDR,
           "0",

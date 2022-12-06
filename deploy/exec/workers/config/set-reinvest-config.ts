@@ -533,6 +533,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   });
 
   const deployer = (await ethers.getSigners())[0];
+  const chainId = await deployer.getChainId();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   let nonce = await deployer.getTransactionCount();
 
@@ -540,6 +541,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if (reinvestConfig.WORKER_NAME.includes("CakeMaxiWorker")) {
       timelockTransactions.push(
         await TimelockService.queueTransaction(
+          chainId,
           `setting reinvest params for ${reinvestConfig.WORKER_NAME}`,
           reinvestConfig.ADDRESS,
           "0",
@@ -553,6 +555,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     } else {
       timelockTransactions.push(
         await TimelockService.queueTransaction(
+          chainId,
           `setting reinvest params for ${reinvestConfig.WORKER_NAME}`,
           reinvestConfig.ADDRESS,
           "0",
