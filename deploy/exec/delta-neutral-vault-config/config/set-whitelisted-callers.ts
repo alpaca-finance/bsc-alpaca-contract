@@ -35,15 +35,31 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const TITLE = "upgrade_delta_neutral_vault_gateway";
   const INPUTS: Array<InputInterface> = [
     {
-      VAULT_SYMBOL: "L3x-BUSDBTCB-PCS2",
-      WHITELISTED_CALLERS: [config.AutomatedVaultExecutor?.migrator!],
+      VAULT_SYMBOL: "L3x-BUSDBNB-PCS1",
+      WHITELISTED_CALLERS: ["0x94DFED3cEF3757D18Dd4AbeaDf4F67AEf4D772a8"],
+      IS_ENABLE: true,
+    },
+    {
+      VAULT_SYMBOL: "L3x-USDTETH-BSW1",
+      WHITELISTED_CALLERS: ["0x94DFED3cEF3757D18Dd4AbeaDf4F67AEf4D772a8"],
+      IS_ENABLE: true,
+    },
+    {
+      VAULT_SYMBOL: "n3x-ETHUSDT-BSW1",
+      WHITELISTED_CALLERS: ["0x94DFED3cEF3757D18Dd4AbeaDf4F67AEf4D772a8"],
+      IS_ENABLE: true,
+    },
+    {
+      VAULT_SYMBOL: "n3x-BNBBUSD-PCS1",
+      WHITELISTED_CALLERS: ["0x94DFED3cEF3757D18Dd4AbeaDf4F67AEf4D772a8"],
       IS_ENABLE: true,
     },
   ];
-  const EXACT_ETA = "1652511600";
+  const EXACT_ETA = "1669788000";
 
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   const deployer = await getDeployer();
+  const chainId = await deployer.getChainId();
   const derivedInputs: Array<DerivedInputInterface> = INPUTS.map((input) => {
     const vault = config.DeltaNeutralVaults.find((v) => input.VAULT_SYMBOL == v.symbol);
     if (vault === undefined) {
@@ -68,6 +84,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if (compare(owner, config.Timelock)) {
       timelockTransactions.push(
         await TimelockService.queueTransaction(
+          chainId,
           `Queue timelock for whitelisting [${derivedInput.whitelistedCallers.join(",")}] for ${
             derivedInput.vaultSymbol
           }`,

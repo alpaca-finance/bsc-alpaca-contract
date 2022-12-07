@@ -286,6 +286,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     bytes calldata _data
   ) public payable onlyEOAorWhitelisted collectFee nonReentrant returns (uint256) {
     PositionInfo memory _positionInfoBefore = positionInfo();
+    uint256 _totalEquityBefore = totalEquityValue();
 
     // 1. transfer token from user to vault
     // In previous version, we also accept asset-side token.
@@ -295,14 +296,15 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     // 2. deposit executor exec
     IExecutor(config.depositExecutor()).exec(bytes.concat(abi.encode(_stableTokenAmount, 0), _data));
 
-    return _checkAndMint(_stableTokenAmount, _shareReceiver, _minShareReceive, _positionInfoBefore);
+    return _checkAndMint(_stableTokenAmount, _shareReceiver, _minShareReceive, _positionInfoBefore, _totalEquityBefore);
   }
 
   function _checkAndMint(
     uint256 _stableTokenAmount,
     address _shareReceiver,
     uint256 _minShareReceive,
-    PositionInfo memory _positionInfoBefore
+    PositionInfo memory _positionInfoBefore,
+    uint256 _totalEquityBefore
   ) internal returns (uint256) {
     // continued from deposit as we're getting stack too deep
     // 3. mint share for shareReceiver
@@ -310,10 +312,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     uint256 _depositValue = _calculateEquityChange(_positionInfoAfter, _positionInfoBefore);
 
     // Calculate share from the value gain against the total equity before execution of actions
-    uint256 _sharesToUser = _valueToShare(
-      _depositValue,
-      _positionInfoBefore.stablePositionEquity + _positionInfoBefore.assetPositionEquity
-    );
+    uint256 _sharesToUser = _valueToShare(_depositValue, _totalEquityBefore);
 
     if (_sharesToUser < _minShareReceive) {
       revert DeltaNeutralVault04_InsufficientShareReceived(_minShareReceive, _sharesToUser);

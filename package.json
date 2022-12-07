@@ -360,6 +360,7 @@
     "deploy:fantom_mainnet:delta-neutral-vault-health-checker:deploy:delta-neutral-vault-health-checker": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags deltaNeutralVaultHealthChecker",
     "deploy:fantom_mainnet:delta-neutral-vault:config:set-health-checker": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags DeltaNeutralVaultSetHealthChecker",
     "deploy:fantom_mainnet:workers:config:set-strategy-ok": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags TimelockUpdateAddStratWorkers",
+    "deploy:fantom_mainnet:ownable:config:transfer-ownership": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags TransferOwnershipToTimeLock",
     "deploy:mainnetfork": "hardhat --network mainnetfork deploy --no-compile --reset",
     "deploy:fantom_mainnetfork": "hardhat --network fantom_mainnetfork deploy --no-compile --reset",
     "deploy:fantom_mainnet:vault-config:config:set-params": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags TimelockSetParamsVaultConfig",

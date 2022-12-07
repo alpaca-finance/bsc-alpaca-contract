@@ -27,6 +27,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const EXACT_ETA = "1655751600";
 
   const deployer = (await ethers.getSigners())[0];
+  const chainId = await deployer.getChainId();
   console.log(`>> Upgrading Worker at ${TO_BE_UPGRADE_WORKER_CONFIG} through Timelock + ProxyAdmin`);
   const NewSingleAssetWorkerConfig = (await ethers.getContractFactory(
     "SingleAssetWorkerConfig"
@@ -43,6 +44,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   timelockTransactions.push(
     await TimelockService.queueTransaction(
+      chainId,
       "Upgrading single asset worker config",
       config.ProxyAdmin,
       "0",

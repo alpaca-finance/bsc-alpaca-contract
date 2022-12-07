@@ -50,6 +50,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const config = getConfig();
   const [deployer] = await ethers.getSigners();
+  const chainId = await deployer.getChainId();
   const multicallService = new Multicall2Service(config.MultiCall, deployer);
   const inputs: Array<SetConfigDerivedInput> = [];
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
@@ -98,6 +99,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if (compare(config.Timelock, input.ownerAddress)) {
       timelockTransactions.push(
         await TimelockService.queueTransaction(
+          chainId,
           `>> Timelock: Setting WorkerConfig for ${input.workerName} via Timelock`,
           input.workerConfigAddress,
           "0",

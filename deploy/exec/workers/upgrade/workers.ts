@@ -151,6 +151,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const config = ConfigEntity.getConfig();
   const ts = Math.floor(new Date().getTime() / 1000);
   const deployer = await getDeployer();
+  const chainId = await deployer.getChainId();
   const proxyAdmin = ProxyAdmin__factory.connect(config.ProxyAdmin, deployer);
 
   const allWorkers: IWorkers = config.Vaults.reduce((accum, vault) => {
@@ -198,6 +199,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if (compare(proxyAdminOwner, config.Timelock)) {
       timelockTransactions.push(
         await TimelockService.queueTransaction(
+          chainId,
           `upgrade ${TO_BE_UPGRADE_WORKERS[i].WORKER_NAME}`,
           config.ProxyAdmin,
           "0",

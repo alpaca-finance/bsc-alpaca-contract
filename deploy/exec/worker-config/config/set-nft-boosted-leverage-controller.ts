@@ -25,6 +25,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const EXACT_ETA = "1655753400";
 
   const [deployer] = await ethers.getSigners();
+  const chainId = await deployer.getChainId();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
 
   /// @dev derived input
@@ -37,6 +38,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   if (compare(config.Timelock, ownerAddress)) {
     timelockTransactions.push(
       await TimelockService.queueTransaction(
+        chainId,
         `>> Timelock: Setting NFT boosted leverage for ${WORKER_CONFIG_ADDRESS} via Timelock`,
         WORKER_CONFIG_ADDRESS,
         "0",

@@ -100,12 +100,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const targetedWorkers = mapWorkers(workerInputs);
   const deployer = (await ethers.getSigners())[0];
+  const chainId = await deployer.getChainId();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   let nonce = await deployer.getTransactionCount();
 
   for (const targetedWorker of targetedWorkers) {
     timelockTransactions.push(
       await TimelockService.queueTransaction(
+        chainId,
         `set treasury config for ${targetedWorker.name}`,
         targetedWorker.address,
         "0",

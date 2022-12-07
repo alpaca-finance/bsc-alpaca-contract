@@ -30,6 +30,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const targetedWorkers = mapWorkers(workerInputs);
   const config = getConfig();
   const deployer = (await ethers.getSigners())[0];
+  const chainId = await deployer.getChainId();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   let nonce = await deployer.getTransactionCount();
 
@@ -40,6 +41,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if (compare(ownerAddress, config.Timelock)) {
       timelockTransactions.push(
         await TimelockService.queueTransaction(
+          chainId,
           `set reinvestor for ${targetedWorker.name}`,
           targetedWorker.address,
           "0",

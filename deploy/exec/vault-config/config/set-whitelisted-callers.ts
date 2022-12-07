@@ -32,47 +32,53 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const TITLE = "mainnet_whitelist_multisig";
   const TARGETED_VAULT_CONFIG: Array<IInput> = [
-    {
-      VAULT_SYMBOL: "ibWBNB",
-      WHITELISTED_CALLERS: ["0x7e9BCDc9133036209aCFcDb6DF007b602D0C617F"],
-      IS_ENABLE: true,
-    },
+    // {
+    //   VAULT_SYMBOL: "ibWBNB",
+    //   WHITELISTED_CALLERS: ["0x7e9BCDc9133036209aCFcDb6DF007b602D0C617F"],
+    //   IS_ENABLE: true,
+    // },
     {
       VAULT_SYMBOL: "ibBUSD",
-      WHITELISTED_CALLERS: ["0x7e9BCDc9133036209aCFcDb6DF007b602D0C617F"],
+      WHITELISTED_CALLERS: ["0x94DFED3cEF3757D18Dd4AbeaDf4F67AEf4D772a8"],
       IS_ENABLE: true,
     },
+    // {
+    //   VAULT_SYMBOL: "ibTUSD",
+    //   WHITELISTED_CALLERS: ["0x7e9BCDc9133036209aCFcDb6DF007b602D0C617F"],
+    //   IS_ENABLE: true,
+    // },
+    // {
+    //   VAULT_SYMBOL: "ibUSDC",
+    //   WHITELISTED_CALLERS: ["0x7e9BCDc9133036209aCFcDb6DF007b602D0C617F"],
+    //   IS_ENABLE: true,
+    // },
+    // {
+    //   VAULT_SYMBOL: "ibETH",
+    //   WHITELISTED_CALLERS: ["0x7e9BCDc9133036209aCFcDb6DF007b602D0C617F"],
+    //   IS_ENABLE: true,
+    // },
+    // {
+    //   VAULT_SYMBOL: "ibCAKE",
+    //   WHITELISTED_CALLERS: ["0x55F94b1B4108a25bD04d1172ffA3cC25f85FfcC6"],
+    //   IS_ENABLE: true,
+    // },
+    // {
+    //   VAULT_SYMBOL: "ibBTCB",
+    //   WHITELISTED_CALLERS: ["0x7e9BCDc9133036209aCFcDb6DF007b602D0C617F"],
+    //   IS_ENABLE: true,
+    // },
     {
-      VAULT_SYMBOL: "ibTUSD",
-      WHITELISTED_CALLERS: ["0x7e9BCDc9133036209aCFcDb6DF007b602D0C617F"],
-      IS_ENABLE: true,
-    },
-    {
-      VAULT_SYMBOL: "ibUSDC",
-      WHITELISTED_CALLERS: ["0x7e9BCDc9133036209aCFcDb6DF007b602D0C617F"],
-      IS_ENABLE: true,
-    },
-    {
-      VAULT_SYMBOL: "ibETH",
-      WHITELISTED_CALLERS: ["0x7e9BCDc9133036209aCFcDb6DF007b602D0C617F"],
-      IS_ENABLE: true,
-    },
-    {
-      VAULT_SYMBOL: "ibCAKE",
-      WHITELISTED_CALLERS: ["0x7e9BCDc9133036209aCFcDb6DF007b602D0C617F"],
-      IS_ENABLE: true,
-    },
-    {
-      VAULT_SYMBOL: "ibBTCB",
-      WHITELISTED_CALLERS: ["0x7e9BCDc9133036209aCFcDb6DF007b602D0C617F"],
+      VAULT_SYMBOL: "ibUSDT",
+      WHITELISTED_CALLERS: ["0x94DFED3cEF3757D18Dd4AbeaDf4F67AEf4D772a8"],
       IS_ENABLE: true,
     },
   ];
-  const EXACT_ETA = "1663587000";
+  const EXACT_ETA = "1669788000";
 
   const config = getConfig();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   const deployer = await getDeployer();
+  const chainId = await deployer.getChainId();
   const multiCall2Service = new Multicall2Service(config.MultiCall, deployer);
   let nonce = await deployer.getTransactionCount();
   const ops = isFork() ? { gasLimit: 2000000 } : {};
@@ -110,6 +116,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       isTimeLockExecuted = true;
       timelockTransactions.push(
         await TimelockService.queueTransaction(
+          chainId,
           `>> Queue tx on Timelock to setWhitelistedCallers for ${i.vaultConfig.address}`,
           i.vaultConfig.address,
           "0",

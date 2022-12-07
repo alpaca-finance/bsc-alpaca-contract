@@ -3,6 +3,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { ConfigEntity, TimelockEntity } from "../../../entities";
 import { fileService, TimelockService } from "../../../services";
 import { ethers } from "ethers";
+import { getDeployer } from "../../../../utils/deployer-helper";
 
 interface IAddGrazingRangeCampaignParam {
   NAME: string;
@@ -34,12 +35,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const EXACT_ETA = "1638426600";
 
   const config = ConfigEntity.getConfig();
+  const deployer = await getDeployer();
+  const chainId = await deployer.getChainId();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
 
   for (let i = 0; i < CAMPAIGNS.length; i++) {
     const campaign = CAMPAIGNS[i];
     timelockTransactions.push(
       await TimelockService.queueTransaction(
+        chainId,
         `add ${campaign.NAME} to Grazing Range`,
         config.GrazingRange!.address,
         "0",

@@ -57,12 +57,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   }
 
   const deployer = (await ethers.getSigners())[0];
+  const chainId = await deployer.getChainId();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   let nonce = await deployer.getTransactionCount();
 
   for (const input of inputs) {
     timelockTransactions.push(
       await TimelockService.queueTransaction(
+        chainId,
         `>> Timelock: Set pool for ${input.stakingPool} via Timelock`,
         config.Shield!,
         "0",

@@ -131,12 +131,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   });
 
   const deployer = (await ethers.getSigners())[0];
+  const chainId = await deployer.getChainId();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   let nonce = await deployer.getTransactionCount();
 
   for (let i = 0; i < TO_BE_UPDATED_WORKERS.length; i++) {
     timelockTransactions.push(
       await TimelockService.queueTransaction(
+        chainId,
         `setting max reinvest bounty bps for ${TO_BE_UPDATED_WORKERS[i].WORKER_NAME}`,
         TO_BE_UPDATED_WORKERS[i].ADDRESS,
         "0",
