@@ -343,6 +343,13 @@ export class ConfigFileHelper {
     this.config.DeltaNeutralVaultHealthChecker = address;
     this._writeConfigFile(this.config);
   }
+
+  public setAVMigration(address: string) {
+    console.log(`>> SET AVMigration to file > ${address}`);
+    if (!this.config.AutomatedVaultExecutor) throw new Error("AutomatedVaultExecutor is undefined");
+    this.config.AutomatedVaultExecutor.migrator = address;
+    this._writeConfigFile(this.config);
+  }
 }
 
 const defaultDeltaNeutralVaultsEntity: DeltaNeutralVaultsEntity = {

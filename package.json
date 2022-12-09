@@ -1,6 +1,6 @@
 {
   "name": "@alpaca-finance/alpaca-contract",
-  "version": "1.2.39",
+  "version": "1.2.41",
   "scripts": {
     "prepublish": "yarn build && rm ./typechain/index.*",
     "build": "yarn run build:cjs",
@@ -97,6 +97,8 @@
     "deploy:mainnet:strategies:deploy:mdex:share-strategies": "hardhat --network mainnet deploy --no-compile --reset --tags MdexShareRestrictedStrategies",
     "deploy:mainnet:strategies:deploy:mdex:vault-strategies": "hardhat --network mainnet deploy --no-compile --reset --tags MdexVaultRestrictedStrategies",
     "deploy:mainnet:delta-neutral-oracle:deploy:delta-neutral-oracle": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralOracle",
+    "deploy:mainnet:av-migration:deploy:av-migration": "hardhat --network mainnet deploy --no-compile --reset --tags AVMigration",
+    "deploy:mainnet:av-migration:config:set-params": "hardhat --network mainnet deploy --no-compile --reset --tags AVMigrationSetParams",
     "deploy:mainnet:delta-neutral-vault-config:deploy:delta-neutral-vault-config": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralVaultConfig",
     "deploy:mainnet:delta-neutral-vault-config:config:set-whitelisted-callers": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralVaultConfigSetWhitelistedCallers",
     "deploy:mainnet:delta-neutral-vault-config:config:set-whitelisted-repurchasers": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralVaultConfigSetWhitelistedRepurchasers",
@@ -106,6 +108,7 @@
     "deploy:mainnet:delta-neutral-vault:upgrade:delta-neutral-vault": "hardhat --network mainnet deploy --no-compile --reset --tags UpgradeDeltaNeutralVault",
     "deploy:mainnet:delta-neutral-vault:deploy:biswap:delta-neutral-vault": "hardhat --network mainnet deploy --no-compile --reset --tags BiswapDeltaNeutralVault",
     "deploy:mainnet:delta-neutral-vault:config:init-positions": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralVaultInitPositions",
+    "deploy:mainnet:delta-neutral-vault:config:terminate-av": "hardhat --network mainnet deploy --no-compile --reset --tags ExecuteTerminateAV",
     "deploy:mainnet:delta-neutral-vault:config:init-positions-v2": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralVaultInitPositionsV2",
     "deploy:mainnet:delta-neutral-vault:config:init-positions-vault04": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralVaultInitPositionsVault04",
     "deploy:mainnet:delta-neutral-worker:deploy:delta-neutral-pcs-worker": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralPCSWorker02",
@@ -148,6 +151,7 @@
     "deploy:mainnet:delta-neutral-vault-config:config:set-strategies": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags DeltaNeutralVaultConfigSetStrategies",
     "deploy:mainnet:delta-neutral-vault-config:config:set-executor": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags DeltaNeutralVaultConfigSetExecutor",
     "deploy:mainnet:delta-neutral-vault-config:config:set-swap-fee": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags DeltaNeutralVaultConfigSetSwapFee",
+    "deploy:mainnet:delta-neutral-vault-config:config:set-fees": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags DeltaNeutralVaultConfigSetFees",
     "deploy:mainnet:delta-neutral-vault-config:set-repurchase-bonus": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags DeltaNeutralVaultConfigSetRepurchaseBonus",
     "deploy:mainnet:directional-vault:deploy:directional-vault": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags DirectionalVault",
     "deploy:mainnet:directional-vault:config:init-positions": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags DirectionalVaultInitPositions",

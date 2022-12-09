@@ -30,32 +30,74 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "upgrade_delta_neutral_vault_gateway";
+  const config = getConfig();
+
+  const TITLE = "whitelisted_av_migrator";
   const INPUTS: Array<InputInterface> = [
+    // vaults to migrate
     {
-      VAULT_SYMBOL: "L3x-BUSDBNB-PCS1",
-      WHITELISTED_CALLERS: ["0x94DFED3cEF3757D18Dd4AbeaDf4F67AEf4D772a8"],
+      VAULT_SYMBOL: "n3x-BNBBUSD-PCS2",
+      WHITELISTED_CALLERS: [config.AutomatedVaultExecutor?.migrator!],
       IS_ENABLE: true,
     },
     {
-      VAULT_SYMBOL: "L3x-USDTETH-BSW1",
-      WHITELISTED_CALLERS: ["0x94DFED3cEF3757D18Dd4AbeaDf4F67AEf4D772a8"],
+      VAULT_SYMBOL: "n3x-BNBUSDT-PCS2",
+      WHITELISTED_CALLERS: [config.AutomatedVaultExecutor?.migrator!],
+      IS_ENABLE: true,
+    },
+    {
+      VAULT_SYMBOL: "n3x-BNBUSDT-PCS3",
+      WHITELISTED_CALLERS: [config.AutomatedVaultExecutor?.migrator!],
       IS_ENABLE: true,
     },
     {
       VAULT_SYMBOL: "n3x-ETHUSDT-BSW1",
-      WHITELISTED_CALLERS: ["0x94DFED3cEF3757D18Dd4AbeaDf4F67AEf4D772a8"],
+      WHITELISTED_CALLERS: [config.AutomatedVaultExecutor?.migrator!],
       IS_ENABLE: true,
     },
     {
+      VAULT_SYMBOL: "n8x-BNBUSDT-PCS3",
+      WHITELISTED_CALLERS: [config.AutomatedVaultExecutor?.migrator!],
+      IS_ENABLE: true,
+    },
+    {
+      VAULT_SYMBOL: "n8x-BNBUSDT-BSW1",
+      WHITELISTED_CALLERS: [config.AutomatedVaultExecutor?.migrator!],
+      IS_ENABLE: true,
+    },
+    {
+      VAULT_SYMBOL: "L3x-BUSDBTCB-PCS2",
+      WHITELISTED_CALLERS: [config.AutomatedVaultExecutor?.migrator!],
+      IS_ENABLE: true,
+    },
+    {
+      VAULT_SYMBOL: "L8x-BUSDBTCB-PCS1",
+      WHITELISTED_CALLERS: [config.AutomatedVaultExecutor?.migrator!],
+      IS_ENABLE: true,
+    },
+    // vault to deposit
+    {
       VAULT_SYMBOL: "n3x-BNBBUSD-PCS1",
-      WHITELISTED_CALLERS: ["0x94DFED3cEF3757D18Dd4AbeaDf4F67AEf4D772a8"],
+      WHITELISTED_CALLERS: [config.AutomatedVaultExecutor?.migrator!],
+      IS_ENABLE: true,
+    },
+    {
+      VAULT_SYMBOL: "n3x-BNBUSDT-PCS1",
+      WHITELISTED_CALLERS: [config.AutomatedVaultExecutor?.migrator!],
+      IS_ENABLE: true,
+    },
+    {
+      VAULT_SYMBOL: "n8x-BNBUSDT-PCS1",
+      WHITELISTED_CALLERS: [config.AutomatedVaultExecutor?.migrator!],
+      IS_ENABLE: true,
+    },
+    {
+      VAULT_SYMBOL: "L3x-BUSDBTCB-PCS1",
+      WHITELISTED_CALLERS: [config.AutomatedVaultExecutor?.migrator!],
       IS_ENABLE: true,
     },
   ];
   const EXACT_ETA = "1669788000";
-
-  const config = getConfig();
 
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   const deployer = await getDeployer();
