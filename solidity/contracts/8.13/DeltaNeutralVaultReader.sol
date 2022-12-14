@@ -13,27 +13,9 @@ Alpaca Fin Corporation
 
 pragma solidity 0.8.13;
 
-import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
-
 import "./interfaces/IDeltaNeutralOracle.sol";
 import "./interfaces/IDeltaNeutralVault.sol";
-import "./interfaces/IDeltaNeutralStruct.sol";
-import "./interfaces/IDeltaNeutralVault04HealthChecker.sol";
-import "./interfaces/IVault.sol";
 import "./interfaces/IWorker02.sol";
-import "./interfaces/IWETH.sol";
-import "./interfaces/IWNativeRelayer.sol";
-import "./interfaces/IDeltaNeutralVaultConfig02.sol";
-import "./interfaces/ISwapRouter.sol";
-
-import "./utils/SafeToken.sol";
-import "./utils/FixedPointMathLib.sol";
-import "./utils/Math.sol";
-import "./utils/FullMath.sol";
 
 /// @title DeltaNeutralReader is a view-only contract that will aggregate important
 /// data used in DeltaNeutralVault for various purpose
