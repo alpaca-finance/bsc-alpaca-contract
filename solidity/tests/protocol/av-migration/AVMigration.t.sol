@@ -39,7 +39,8 @@ contract AVMigration_Test is DeltaNeutralVault04Base_Test {
     vm.startPrank(ALICE, ALICE);
     _deltaNeutralVault.approve(address(_avMigration), 2**256 - 1);
 
-    _avMigration.migrate(address(_deltaNeutralVault), 0, 0);
+    _avMigration.migrate(address(_deltaNeutralVault), _deltaNeutralVault.balanceOf(ALICE), 0, 0);
+    vm.stopPrank();
   }
 
   function testRevert_WhenCallerIsNotOwner_SetMigrationPathsShouldRevert() external {
@@ -56,12 +57,13 @@ contract AVMigration_Test is DeltaNeutralVault04Base_Test {
     _deltaNeutralVault.approve(address(_avMigration), 2**256 - 1);
 
     vm.expectRevert(AVMigration.AVMigration_DestinationVaultDoesNotExist.selector);
-    _avMigration.migrate(address(ALICE), 0, 0);
+    _avMigration.migrate(address(ALICE), _deltaNeutralVault.balanceOf(ALICE), 0, 0);
+    vm.stopPrank();
   }
 
   function testRevert_WhenCallerIsNotWhitelistedEOA_MigrateShouldRevert() external {
     _deltaNeutralVault.approve(address(_avMigration), 2**256 - 1);
     vm.expectRevert(abi.encodeWithSelector(AVMigration.AVMigration_Unauthorized.selector, address(this)));
-    _avMigration.migrate(address(_deltaNeutralVault), 0, 0);
+    _avMigration.migrate(address(_deltaNeutralVault), 0, 0, 0);
   }
 }
