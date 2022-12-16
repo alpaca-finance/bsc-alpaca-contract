@@ -48,6 +48,7 @@ contract AVMigration is IAVMigrationStruct, Ownable {
 
   function migrate(
     address srcVault,
+    uint256 _migrateShareAmount,
     uint256 _minStableTokenAmount,
     uint256 _minShareReceive
   ) public onlyEOAorWhitelisted {
@@ -56,10 +57,9 @@ contract AVMigration is IAVMigrationStruct, Ownable {
       revert AVMigration_DestinationVaultDoesNotExist();
     }
 
-    uint256 sharesFromSrc = IERC20Upgradeable(srcVault).balanceOf(msg.sender);
-    IERC20Upgradeable(srcVault).safeTransferFrom(msg.sender, address(this), sharesFromSrc);
+    IERC20Upgradeable(srcVault).safeTransferFrom(msg.sender, address(this), _migrateShareAmount);
     uint256 stableFromSrc = IDeltaNeutralVault(srcVault).withdraw(
-      sharesFromSrc,
+      _migrateShareAmount,
       _minStableTokenAmount,
       0,
       abi.encode(0, 0)
@@ -75,7 +75,7 @@ contract AVMigration is IAVMigrationStruct, Ownable {
       abi.encode(0, 0)
     );
 
-    emit LogMigration(msg.sender, srcVault, dstVault, sharesFromSrc, shareToDst);
+    emit LogMigration(msg.sender, srcVault, dstVault, _migrateShareAmount, shareToDst);
   }
 
   function setMigrationPaths(VaultMigrationPath[] calldata migrationPaths) public onlyOwner {
