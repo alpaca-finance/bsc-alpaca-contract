@@ -11,12 +11,15 @@ import {
   PancakeswapV2RestrictedStrategyPartialCloseMinimizeTrading__factory,
   PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading,
   PancakeswapV2RestrictedStrategyWithdrawMinimizeTrading__factory,
+  StrategyOracleLiquidate,
+  StrategyOracleMinimize,
   WNativeRelayer__factory,
 } from "../../../../../typechain";
 import MainnetConfig from "../../../../../.mainnet.json";
 import TestnetConfig from "../../../../../.testnet.json";
-import { Strats } from "../../../../entities/strats";
+import { getStratFactory, Strats } from "../../../../entities/strats";
 import { mapWorkers } from "../../../../entities/worker";
+import { getDeployer } from "../../../../../utils/deployer-helper";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -28,53 +31,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const DEPLOY_STRATS = [Strats.partialCloseLiquidate, Strats.partialCloseWithdrawMinizmie];
-  const WHITELIST_WOKERS = [
-    "BUSD-TUSD PancakeswapWorker",
-    "BUSD-BTCB PancakeswapWorker",
-    "WBNB-BTCB PancakeswapWorker",
-    "USDC-USDT PancakeswapWorker",
-    "CAKE-USDT PancakeswapWorker",
-    "WBNB-USDT PancakeswapWorker",
-    "BUSD-USDT PancakeswapWorker",
-    "BUSD-ALPACA PancakeswapWorker",
-    "WBNB-ETH PancakeswapWorker",
-    "SUSHI-ETH PancakeswapWorker",
-    "COMP-ETH PancakeswapWorker",
-    "ORBS-BUSD PancakeswapWorker",
-    "FORM-BUSD PancakeswapWorker",
-    "TUSD-BUSD PancakeswapWorker",
-    "CAKE-BUSD PancakeswapWorker",
-    "ALPACA-BUSD PancakeswapWorker",
-    "BTCB-BUSD PancakeswapWorker",
-    "UST-BUSD PancakeswapWorker",
-    "DAI-BUSD PancakeswapWorker",
-    "USDC-BUSD PancakeswapWorker",
-    "VAI-BUSD PancakeswapWorker",
-    "WBNB-BUSD PancakeswapWorker",
-    "USDT-BUSD PancakeswapWorker",
-    "AXS-WBNB PancakeswapWorker",
-    "BTT-WBNB PancakeswapWorker",
-    "TRX-WBNB PancakeswapWorker",
-    "ADA-WBNB PancakeswapWorker",
-    "ODDZ-WBNB PancakeswapWorker",
-    "USDT-WBNB PancakeswapWorker",
-    "DODO-WBNB PancakeswapWorker",
-    "SWINGBY-WBNB PancakeswapWorker",
-    "pCWS-WBNB PancakeswapWorker",
-    "BELT-WBNB PancakeswapWorker",
-    "bMXX-WBNB PancakeswapWorker",
-    "BUSD-WBNB PancakeswapWorker",
-    "XVS-WBNB PancakeswapWorker",
-    "LINK-WBNB PancakeswapWorker",
-    "UNI-WBNB PancakeswapWorker",
-    "DOT-WBNB PancakeswapWorker",
-    "ETH-WBNB PancakeswapWorker",
-    "BTCB-WBNB PancakeswapWorker",
-    "CAKE-WBNB PancakeswapWorker",
-  ];
+  const DEPLOY_STRATS = [Strats.oracleLiquidate, Strats.oracleMinimize];
+  const WHITELIST_WOKERS = ["stkBNB-WBNB PancakeswapWorker"];
 
   const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
+  const deployer = await getDeployer();
+  let nonce = await deployer.getTransactionCount();
   const wNativeRelayer = WNativeRelayer__factory.connect(
     config.SharedConfig.WNativeRelayer,
     (await ethers.getSigners())[0]
@@ -204,6 +166,61 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(">> Whitelist strategyRestrictedPartialCloseMinimizeTradingV2 V2 on WNativeRelayer");
     await wNativeRelayer.setCallerOk([strategyRestrictedPartialCloseMinimizeTradingV2.address], true);
     console.log("✅ Done");
+  }
+
+  if (DEPLOY_STRATS.includes(Strats.oracleMinimize)) {
+    /**
+     * Restricted StrategyOracleMinimize
+     */
+    console.log(">> Deploying an upgradable StrategyOracleMinimize contract");
+    const StrategyOracleMinimizeFactory = await getStratFactory("Pancakeswap", Strats.oracleMinimize);
+    const strategyOracleMinimize = (await upgrades.deployProxy(StrategyOracleMinimizeFactory, [
+      "Pancakeswap Oracle Minimize",
+      config.YieldSources.Pancakeswap!.RouterV2,
+      config.SharedConfig.WNativeRelayer,
+      config.Oracle.OracleMedianizer,
+      "0x8F10473D815b330878EB94A5AB6B3533c0cFF36D",
+      "9500",
+    ])) as StrategyOracleMinimize;
+    await strategyOracleMinimize.deployTransaction.wait(1);
+    console.log(`>> Deployed at ${strategyOracleMinimize.address}`);
+
+    nonce = await deployer.getTransactionCount();
+
+    if (whitelistedWorkerAddrs.length > 0) {
+      console.log(">> Whitelisting workers for StrategyOracleMinimize");
+      await strategyOracleMinimize.setWorkersOk(whitelistedWorkerAddrs, true, { nonce: nonce++ });
+      console.log("✅ Done");
+    }
+
+    console.log(">> Whitelist StrategyOracleMinimize on WNativeRelayer");
+    await wNativeRelayer.setCallerOk([strategyOracleMinimize.address], true, { nonce: nonce++ });
+    console.log("✅ Done");
+  }
+
+  if (DEPLOY_STRATS.includes(Strats.oracleLiquidate)) {
+    /**
+     * Restricted StrategyOracleLiquidate
+     */
+    console.log(">> Deploying an upgradable StrategyOracleLiquidate contract");
+    const StrategyOracleLiquidateFactory = await getStratFactory("Pancakeswap", Strats.oracleLiquidate);
+    const strategyOracleLiquidate = (await upgrades.deployProxy(StrategyOracleLiquidateFactory, [
+      "Pancakeswap Oracle Liquidate",
+      config.YieldSources.Pancakeswap!.RouterV2,
+      config.Oracle.OracleMedianizer,
+      "0x8F10473D815b330878EB94A5AB6B3533c0cFF36D",
+      "9500",
+    ])) as StrategyOracleLiquidate;
+    await strategyOracleLiquidate.deployTransaction.wait(1);
+    console.log(`>> Deployed at ${strategyOracleLiquidate.address}`);
+
+    nonce = await deployer.getTransactionCount();
+
+    if (whitelistedWorkerAddrs.length > 0) {
+      console.log(">> Whitelisting workers for StrategyOracleMinimize");
+      await strategyOracleLiquidate.setWorkersOk(whitelistedWorkerAddrs, true, { nonce: nonce++ });
+      console.log("✅ Done");
+    }
   }
 };
 
