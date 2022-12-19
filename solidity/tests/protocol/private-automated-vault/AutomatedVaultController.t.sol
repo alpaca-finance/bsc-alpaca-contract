@@ -154,6 +154,13 @@ contract AutomatedVaultController_Test is BaseTest {
     _controller.onDeposit(ALICE, 1 ether, 2 ether);
   }
 
+  function testCorrectness_onDepositInsufficientCreditButControllerIsDisabled() external {
+    _creditor.getUserCredit.mockv(ALICE, 1 ether);
+    _controller.setIsDisabled(true);
+    vm.startPrank(address(_deltaVault1));
+    _controller.onDeposit(ALICE, 1 ether, 2 ether);
+  }
+
   function testCorrectness_onWithdraw() external {
     _creditor.getUserCredit.mockv(ALICE, 100 ether);
     // impersonate as delta vault #1
