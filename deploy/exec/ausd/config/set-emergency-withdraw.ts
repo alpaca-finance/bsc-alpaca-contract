@@ -18,7 +18,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = await getDeployer();
   const config = getConfig();
 
-  if (config.AUSDStaking!) {
+  if (!config.AUSDStaking!) {
     throw new Error(`ERROR No address AUSDStaking`);
   }
 
