@@ -39,4 +39,8 @@ interface AutomatedVaultControllerLike {
   function removePrivateVaults(address[] memory) external;
 
   function setCreditors(address[] memory) external;
+
+  function isDisabled() external view returns (bool);
+
+  function setIsDisabled(bool) external;
 }
