@@ -132,6 +132,7 @@
     "deploy:mainnet:creditor:deploy:xalpaca-creditor": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags XAlpacaCreditor",
     "deploy:mainnet:creditor:config:xalpaca-creditor-set-param": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags XAlpacaCreditorSetParam",
     "deploy:mainnet:ausd:deploy:ausd-staking": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags AIP8AUSDStaking",
+    "deploy:mainnet:ausd:upgrade:ausd-staking": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags UpgradeAIP8AUSDStaking",
     "deploy:mainnet:ausd:config:ausd-staking:enable-emergency-withdraw": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags AIP8AUSDStakingSetEmergencyWithdraw",
     "deploy:mainnet:creditor:deploy:ausd-staking-creditor": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags AUSDStakingCreditor",
     "deploy:mainnet:creditor:config:ausd-staking-creditor-set-param": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags AUSDStakingCreditorSetParam",

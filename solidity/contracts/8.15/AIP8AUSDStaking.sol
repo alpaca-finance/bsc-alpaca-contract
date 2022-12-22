@@ -33,6 +33,7 @@ contract AIP8AUSDStaking is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   event LogEnableEmergencyWithdraw(address indexed _owner);
 
   // --- Errors ---
+  error AIP8AUSDStaking_Terminated();
   error AIP8AUSDStaking_ViolateMinimumLockPeriod(uint256 inputLockUntil);
   error AIP8AUSDStaking_ViolateMaximumLockPeriod(uint256 inputLockUntil);
   error AIP8AUSDStaking_ViolatePreviousLockPeriod(uint256 inputLockUntil);
@@ -99,36 +100,11 @@ contract AIP8AUSDStaking is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     stakingToken.approve(address(fairlaunch), type(uint256).max);
   }
 
-  function lock(uint256 _amount, uint256 _lockUntil) external nonReentrant whenNotStopped {
-    UserInfo storage _userInfo = userInfo[msg.sender];
-
-    // CHECK
-    // 1. Validate `_lockUntil`
-    if (_lockUntil < block.timestamp) {
-      revert AIP8AUSDStaking_ViolateMinimumLockPeriod(_lockUntil);
-    }
-    if (_lockUntil > block.timestamp + MAX_LOCK) {
-      revert AIP8AUSDStaking_ViolateMaximumLockPeriod(_lockUntil);
-    }
-    if (_userInfo.stakingAmount > 0 && _lockUntil < _userInfo.lockUntil) {
-      revert AIP8AUSDStaking_ViolatePreviousLockPeriod(_lockUntil);
-    }
-
-    // EFFECT
-    // 2. Harvest from Fairlaunch
-    _harvest();
-    // 3. Update UserInfo
-    _userInfo.stakingAmount += _amount;
-    _userInfo.lockUntil = _lockUntil;
-    _userInfo.alpacaRewardDebt = (_userInfo.stakingAmount * accAlpacaPerShare) / 1e12;
-
-    // INTERACTION
-    if (_amount > 0) {
-      // 4. Request AUSD3EPS from user
-      stakingToken.safeTransferFrom(msg.sender, address(this), _amount);
-      // 5. Deposit to Fairlaunch
-      fairlaunch.deposit(address(this), pid, _amount);
-    }
+  function lock(
+    uint256, /*_amount*/
+    uint256 /*_lockUntil*/
+  ) external {
+    revert AIP8AUSDStaking_Terminated();
   }
 
   function unlock() external nonReentrant whenNotStopped {
@@ -136,8 +112,8 @@ contract AIP8AUSDStaking is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     uint256 _userStakingAmount = _userInfo.stakingAmount;
 
     // CHECK
-    // 1. Check if the lock has expired
-    if (_userInfo.lockUntil > block.timestamp) revert AIP8AUSDStaking_StillInLockPeriod();
+    // 1. No longer check lockUntil
+    // if (_userInfo.lockUntil > block.timestamp) revert AIP8AUSDStaking_StillInLockPeriod();
 
     // EFFECT
     // 2. Harvest from Fairlaunch and distribute ALPACA reward to user

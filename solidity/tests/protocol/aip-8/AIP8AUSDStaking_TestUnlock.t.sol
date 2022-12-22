@@ -43,14 +43,13 @@ contract AIP8AUSDStaking_TestUnlock is AIP8AUSDStakingBase {
     assertEq(_alpacaRewardHarvested, 42196193000000);
   }
 
-  function test_unlock_aliceUnlockBeforeLockUntil_shouldFail() external {
+  function test_unlock_aliceUnlockBeforeLockUntil_shouldSuccess() external {
     uint256 _expectedStakingAmount = 1 ether;
     uint256 _expectedLockUntil = block.timestamp + WEEK;
 
     _lockFor(_ALICE, _expectedStakingAmount, _expectedLockUntil); // BLOCK IS NOT MINED HERE
     vm.warp(_expectedLockUntil - 10);
 
-    vm.expectRevert(AIP8AUSDStakingLike.AIP8AUSDStaking_StillInLockPeriod.selector);
     _unlockFor(_ALICE);
   }
 
