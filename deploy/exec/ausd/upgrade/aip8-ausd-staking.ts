@@ -19,7 +19,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const TITLE = "upgrade_aip8_ausd_staking";
   const AIP8AUSDSTAKING = "AIP8AUSDStaking";
-  const EXACT_ETA = "1671685200";
+  const EXACT_ETA = "1671793200";
 
   const deployer = await getDeployer();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
