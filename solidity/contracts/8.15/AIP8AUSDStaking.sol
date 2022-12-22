@@ -136,8 +136,8 @@ contract AIP8AUSDStaking is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     uint256 _userStakingAmount = _userInfo.stakingAmount;
 
     // CHECK
-    // 1. Check if the lock has expired
-    if (_userInfo.lockUntil > block.timestamp) revert AIP8AUSDStaking_StillInLockPeriod();
+    // 1. No longer check lockUntil
+    // if (_userInfo.lockUntil > block.timestamp) revert AIP8AUSDStaking_StillInLockPeriod();
 
     // EFFECT
     // 2. Harvest from Fairlaunch and distribute ALPACA reward to user
