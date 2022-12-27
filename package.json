@@ -123,6 +123,7 @@
     "deploy:mainnet:delta-neutral-vault:config:set-health-checker": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralVaultSetHealthChecker",
     "deploy:mainnet:proxy-token:deploy:proxy-token": "hardhat --network mainnet deploy --no-compile --reset --tags ProxyToken",
     "deploy:mainnet:revenue-treasury:deploy:revenue-treasury": "hardhat --network mainnet deploy --no-compile --reset --tags RevenueTreasury",
+    "deploy:mainnet:revenue-treasury:upgrade:revenue-treasury": "hardhat --network mainnet deploy --no-compile --reset --tags UpgradeRevenueTreasury",
     "deploy:mainnet:emission-forwarder:deploy:emission-forwarder": "hardhat --network mainnet deploy --no-compile --reset --tags EmissionForwarder",
     "deploy:mainnet:strategies:deploy:biswap:share-strategies": "hardhat --network mainnet deploy --no-compile --reset --tags BiswapShareStrategies",
     "deploy:mainnet:strategies:deploy:biswap:vault-strategies": "hardhat --network mainnet deploy --no-compile --reset --tags BiswapVaultStrategies",

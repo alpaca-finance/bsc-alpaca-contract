@@ -19,7 +19,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const TITLE = "upgrade_automated_vault_controller";
   const AutomatedVaultController = "AutomatedVaultController";
-  const EXACT_ETA = "1671685200";
+  const EXACT_ETA = "1671692400";
 
   const deployer = await getDeployer();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
