@@ -20,7 +20,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const TITLE = "upgrade_revenue_treasury";
   const REVENUE_TREASURY_VERSION = "RevenueTreasury";
-  const EXACT_ETA = "1671794100";
+  const EXACT_ETA = "1672157400";
 
   const config = getConfig();
 

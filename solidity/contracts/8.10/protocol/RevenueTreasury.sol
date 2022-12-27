@@ -112,7 +112,9 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable, ReentrancyGuardUp
   }
 
   /// @notice Split fund and distribute
-  function feedGrassHouse() external nonReentrant {
+  /// @param minVaultOut Minimum amount of vault's token to receive
+  /// @param minGrassHouseOut Minimum amount of grasshouse's token to receive
+  function feedGrassHouse(uint256 minVaultOut, uint256 minGrassHouseOut) external nonReentrant {
     // Check
     _validateSwapPath(token, vault.token(), vaultSwapPath);
     _validateSwapPath(token, grasshouseToken, rewardPath);
@@ -136,7 +138,7 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable, ReentrancyGuardUp
         token.safeApprove(address(router), _canSettle);
         uint256[] memory _amountsOut = router.swapExactTokensForTokens(
           _canSettle,
-          0,
+          minVaultOut,
           vaultSwapPath,
           address(this),
           block.timestamp
@@ -156,7 +158,7 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable, ReentrancyGuardUp
     if (rewardPath.length >= 2) {
       uint256 _swapAmount = token.myBalance();
       token.safeApprove(address(router), _swapAmount);
-      router.swapExactTokensForTokens(_swapAmount, 0, rewardPath, address(this), block.timestamp);
+      router.swapExactTokensForTokens(_swapAmount, minGrassHouseOut, rewardPath, address(this), block.timestamp);
     }
 
     // Feed all reward token to grasshouse
@@ -164,6 +166,16 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable, ReentrancyGuardUp
     grasshouseToken.safeApprove(address(grassHouse), _feedAmount);
     grassHouse.feed(_feedAmount);
     emit LogFeedGrassHouse(msg.sender, _feedAmount);
+  }
+
+  /// @notice Return reward path in array
+  function getRewardPath() external view returns (address[] memory) {
+    return rewardPath;
+  }
+
+  /// @notice Return vault swap path in array
+  function getVaultSwapPath() external view returns (address[] memory) {
+    return vaultSwapPath;
   }
 
   /// @notice Set new recieving token
