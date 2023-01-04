@@ -18,10 +18,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "upgrade_all_vaults_support_nftstaking";
+  const TITLE = "upgrade_vault_for_terminate_stkBNB-BNB";
   const VAULT_VERSION = "VaultAip42";
-  const TARGETED_VAULTS = ["ibTOMB"];
-  const EXACT_ETA = "1655753400";
+  const TARGETED_VAULTS = ["ibWBNB"];
+  const EXACT_ETA = "1671002100";
 
   const config = getConfig();
 
