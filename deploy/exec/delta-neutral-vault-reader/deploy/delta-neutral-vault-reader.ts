@@ -3,7 +3,6 @@ import { ethers } from "hardhat";
 import { DeployFunction } from "hardhat-deploy/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { getDeployer } from "../../../../utils/deployer-helper";
-import { ConfigFileHelper } from "../../../helper";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -17,7 +16,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
 
   const deployer = await getDeployer();
-  const configFileHelper = new ConfigFileHelper();
 
   console.log(">> Deploying an DeltaNeutralVaultReader contract");
 
@@ -28,8 +26,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const avReader = await AVReader.deploy();
 
   await avReader.deployTransaction.wait(3);
-
-  configFileHelper.setAVReader(avReader.address);
 
   console.log(`>> Deployed at ${avReader.address}`);
   console.log("✅ Done");

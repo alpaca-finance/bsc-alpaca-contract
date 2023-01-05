@@ -4923,8 +4923,7 @@
     "repurchase": "0x693E0B9d6d166fdA074693Ab52ce7e59A62FB5E1",
     "retarget": "0xAd87ED08c9125E7c4241D4a387166227Ab5A7d0C",
     "terminator": "0xA403336Acb5a798D54CDDfC518f56E4e579D58a3",
-    "migrator": "0xB8C7ab60d90aC3A9CF0d32D5952DeaDE324C6321",
-    "reader": ""
+    "migrator": "0xB8C7ab60d90aC3A9CF0d32D5952DeaDE324C6321"
   },
   "DirectionalVaultExecutor": {
     "deposit": "",
