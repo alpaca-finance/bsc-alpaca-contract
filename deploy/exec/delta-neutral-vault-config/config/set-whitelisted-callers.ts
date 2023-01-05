@@ -34,37 +34,37 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const TITLE = "whitelisted_av_migrator";
   const INPUTS: Array<InputInterface> = [
-    // vaults to migrate
-    {
-      VAULT_SYMBOL: "n3x-BNBBUSD-PCS2",
-      WHITELISTED_CALLERS: [config.AutomatedVaultExecutor?.migrator!],
-      IS_ENABLE: true,
-    },
-    {
-      VAULT_SYMBOL: "n3x-BNBUSDT-PCS2",
-      WHITELISTED_CALLERS: [config.AutomatedVaultExecutor?.migrator!],
-      IS_ENABLE: true,
-    },
-    {
-      VAULT_SYMBOL: "n3x-BNBUSDT-PCS3",
-      WHITELISTED_CALLERS: [config.AutomatedVaultExecutor?.migrator!],
-      IS_ENABLE: true,
-    },
-    {
-      VAULT_SYMBOL: "n3x-ETHUSDT-BSW1",
-      WHITELISTED_CALLERS: [config.AutomatedVaultExecutor?.migrator!],
-      IS_ENABLE: true,
-    },
-    {
-      VAULT_SYMBOL: "n8x-BNBUSDT-PCS3",
-      WHITELISTED_CALLERS: [config.AutomatedVaultExecutor?.migrator!],
-      IS_ENABLE: true,
-    },
-    {
-      VAULT_SYMBOL: "n8x-BNBUSDT-BSW1",
-      WHITELISTED_CALLERS: [config.AutomatedVaultExecutor?.migrator!],
-      IS_ENABLE: true,
-    },
+    // // vaults to migrate
+    // {
+    //   VAULT_SYMBOL: "n3x-BNBBUSD-PCS2",
+    //   WHITELISTED_CALLERS: [config.AutomatedVaultExecutor?.migrator!],
+    //   IS_ENABLE: true,
+    // },
+    // {
+    //   VAULT_SYMBOL: "n3x-BNBUSDT-PCS2",
+    //   WHITELISTED_CALLERS: [config.AutomatedVaultExecutor?.migrator!],
+    //   IS_ENABLE: true,
+    // },
+    // {
+    //   VAULT_SYMBOL: "n3x-BNBUSDT-PCS3",
+    //   WHITELISTED_CALLERS: [config.AutomatedVaultExecutor?.migrator!],
+    //   IS_ENABLE: true,
+    // },
+    // {
+    //   VAULT_SYMBOL: "n3x-ETHUSDT-BSW1",
+    //   WHITELISTED_CALLERS: [config.AutomatedVaultExecutor?.migrator!],
+    //   IS_ENABLE: true,
+    // },
+    // {
+    //   VAULT_SYMBOL: "n8x-BNBUSDT-PCS3",
+    //   WHITELISTED_CALLERS: [config.AutomatedVaultExecutor?.migrator!],
+    //   IS_ENABLE: true,
+    // },
+    // {
+    //   VAULT_SYMBOL: "n8x-BNBUSDT-BSW1",
+    //   WHITELISTED_CALLERS: [config.AutomatedVaultExecutor?.migrator!],
+    //   IS_ENABLE: true,
+    // },
     {
       VAULT_SYMBOL: "L3x-BUSDBTCB-PCS2",
       WHITELISTED_CALLERS: [config.AutomatedVaultExecutor?.migrator!],

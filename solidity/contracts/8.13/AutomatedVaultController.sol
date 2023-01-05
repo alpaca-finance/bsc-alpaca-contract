@@ -27,6 +27,7 @@ contract AutomatedVaultController is OwnableUpgradeable {
   event LogAddPrivateVaults(address indexed _caller, IDeltaNeutralVault[] _vaults);
   event LogRemovePrivateVaults(address indexed _caller, address[] _vaults);
   event LogSetCreditors(address indexed _caller, ICreditor[] _creditors);
+  event LogSetIsDisabled(address indexed _caller, bool _isDisabled);
 
   // --- Errors ---
   error AutomatedVaultController_Unauthorized();
@@ -39,6 +40,7 @@ contract AutomatedVaultController is OwnableUpgradeable {
 
   mapping(address => LinkList.List) public userVaults;
   mapping(address => mapping(address => uint256)) public userVaultShares;
+  bool public isDisabled;
 
   /// @notice Initialize Automated Vault Controller
   /// @param _creditors list of credit sources
@@ -182,7 +184,9 @@ contract AutomatedVaultController is OwnableUpgradeable {
     // Check
     if (!privateVaults.has(msg.sender)) revert AutomatedVaultController_Unauthorized();
 
-    if (totalCredit(_user) < (usedCredit(_user) + _shareValue)) revert AutomatedVaultController_InsufficientCredit();
+    if (!isDisabled) {
+      if (totalCredit(_user) < (usedCredit(_user) + _shareValue)) revert AutomatedVaultController_InsufficientCredit();
+    }
 
     // expected delta vault to be the caller
     userVaultShares[_user][msg.sender] += _shareAmount;
@@ -228,5 +232,11 @@ contract AutomatedVaultController is OwnableUpgradeable {
     if (!_userVaults.has(_vault)) {
       _userVaults.add(_vault);
     }
+  }
+
+  function setIsDisabled(bool _newIsDisabled) external onlyOwner {
+    isDisabled = _newIsDisabled;
+
+    emit LogSetIsDisabled(msg.sender, _newIsDisabled);
   }
 }

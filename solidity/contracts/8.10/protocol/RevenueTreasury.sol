@@ -35,7 +35,7 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable, ReentrancyGuardUp
   error RevenueTreasury_InvalidBps();
 
   /// @notice States
-  /// @notice token - address of the receiving token
+  /// @notice token - address of the receiving token. Must be stable.
   /// Required to have token() if this contract to be destination of Worker's benefitial vault
   address public token;
 
@@ -57,7 +57,7 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable, ReentrancyGuardUp
   /// @notice vaultSwapPath - Path to swap recieving token to vault's token
   address[] public vaultSwapPath;
 
-  /// @notice remaining - Remaining bad debt amount to cover
+  /// @notice remaining - Remaining bad debt amount to cover in USD
   uint256 public remaining;
 
   /// @notice splitBps - Bps to split the receiving token
@@ -112,51 +112,53 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable, ReentrancyGuardUp
   }
 
   /// @notice Split fund and distribute
-  function feedGrassHouse() external nonReentrant {
+  /// @param minVaultOut Minimum amount of vault's token to receive
+  /// @param minGrassHouseOut Minimum amount of grasshouse's token to receive
+  function feedGrassHouse(uint256 minVaultOut, uint256 minGrassHouseOut) external nonReentrant {
     // Check
     _validateSwapPath(token, vault.token(), vaultSwapPath);
     _validateSwapPath(token, grasshouseToken, rewardPath);
 
-    uint256 _transferAmount = 0;
+    // If remaining > 0, then we need to settle bad debt first
     if (remaining > 0) {
+      // Assuming that "token" is stable.
       // Split the current receiving token balance per configured bps.
       uint256 _split = (token.myBalance() * splitBps) / 10000;
-      // The amount to transfer to vault should be equal to min(split , remaining)
+      // Find out how much we can sttle in USD.
+      // This should be min(remianing, _split), because
+      // remaining = 10, _split = 50
+      // _canSettle = 10
+      // remaining = 0
+      uint256 _canSettle = remaining > _split ? _split : remaining;
+      remaining -= _canSettle;
 
       if (vaultSwapPath.length >= 2) {
-        // find the amount in if we're going to cover all remaining
-        uint256[] memory expectedAmountsIn = router.getAmountsIn(remaining, vaultSwapPath);
-        // if the exepected amount in < _split, then swap with expeced amount in
-        // otherwise, swap only neeeded
-        uint256 _swapAmount = expectedAmountsIn[0] < _split ? expectedAmountsIn[0] : _split;
-        token.safeApprove(address(router), _swapAmount);
-        // Need amountsOut to update remaining
+        // In case we need to swap to settle short fall
+        // Need to swap to settle short fall
+        token.safeApprove(address(router), _canSettle);
         uint256[] memory _amountsOut = router.swapExactTokensForTokens(
-          _swapAmount,
-          0,
+          _canSettle,
+          minVaultOut,
           vaultSwapPath,
           address(this),
           block.timestamp
         );
 
         // update transfer amount by the amount received from swap
-        _transferAmount = _amountsOut[_amountsOut.length - 1];
-      } else {
-        _transferAmount = _split < remaining ? _split : remaining;
+        _canSettle = _amountsOut[_amountsOut.length - 1];
       }
 
-      // _transferAmount is unlikely to > remaining, but have this check to handle if happened
-      remaining = remaining > _transferAmount ? remaining - _transferAmount : 0;
-      vault.token().safeTransfer(address(vault), _transferAmount);
+      // Settle bad debt
+      vault.token().safeTransfer(address(vault), _canSettle);
 
-      emit LogSettleBadDebt(msg.sender, _transferAmount);
+      emit LogSettleBadDebt(msg.sender, _canSettle);
     }
 
     // Swap all the rest to reward token if needed
     if (rewardPath.length >= 2) {
       uint256 _swapAmount = token.myBalance();
       token.safeApprove(address(router), _swapAmount);
-      router.swapExactTokensForTokens(_swapAmount, 0, rewardPath, address(this), block.timestamp);
+      router.swapExactTokensForTokens(_swapAmount, minGrassHouseOut, rewardPath, address(this), block.timestamp);
     }
 
     // Feed all reward token to grasshouse
@@ -166,14 +168,24 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable, ReentrancyGuardUp
     emit LogFeedGrassHouse(msg.sender, _feedAmount);
   }
 
+  /// @notice Return reward path in array
+  function getRewardPath() external view returns (address[] memory) {
+    return rewardPath;
+  }
+
+  /// @notice Return vault swap path in array
+  function getVaultSwapPath() external view returns (address[] memory) {
+    return vaultSwapPath;
+  }
+
   /// @notice Set new recieving token
+  /// @dev "_newToken" must be stable only.
   /// @param _newToken - new recieving token address
   function setToken(
     address _newToken,
     address[] calldata _vaultSwapPath,
     address[] calldata _rewardPath
   ) external onlyOwner {
-    // Check
     _validateSwapPath(_newToken, vault.token(), _vaultSwapPath);
     _validateSwapPath(_newToken, grasshouseToken, _rewardPath);
 

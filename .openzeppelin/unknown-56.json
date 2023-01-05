@@ -18232,68 +18232,68 @@
             "contract": "RevenueTreasury",
             "label": "token",
             "type": "t_address",
-            "src": "contracts/8.10/protocol/RevenueTreasury.sol:42"
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:42"
           },
           {
             "contract": "RevenueTreasury",
             "label": "grasshouseToken",
             "type": "t_address",
-            "src": "contracts/8.10/protocol/RevenueTreasury.sol:45"
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:45"
           },
           {
             "contract": "RevenueTreasury",
             "label": "router",
-            "type": "t_contract(ISwapRouter)9811",
-            "src": "contracts/8.10/protocol/RevenueTreasury.sol:48"
+            "type": "t_contract(ISwapRouter)15943",
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:48"
           },
           {
             "contract": "RevenueTreasury",
             "label": "grassHouse",
-            "type": "t_contract(IGrassHouse)7616",
-            "src": "contracts/8.10/protocol/RevenueTreasury.sol:51"
+            "type": "t_contract(IGrassHouse)13466",
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:51"
           },
           {
             "contract": "RevenueTreasury",
             "label": "vault",
-            "type": "t_contract(IVault)10264",
-            "src": "contracts/8.10/protocol/RevenueTreasury.sol:54"
+            "type": "t_contract(IVault)16413",
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:54"
           },
           {
             "contract": "RevenueTreasury",
             "label": "rewardPath",
             "type": "t_array(t_address)dyn_storage",
-            "src": "contracts/8.10/protocol/RevenueTreasury.sol:57"
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:57"
           },
           {
             "contract": "RevenueTreasury",
             "label": "vaultSwapPath",
             "type": "t_array(t_address)dyn_storage",
-            "src": "contracts/8.10/protocol/RevenueTreasury.sol:60"
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:60"
           },
           {
             "contract": "RevenueTreasury",
             "label": "remaining",
             "type": "t_uint256",
-            "src": "contracts/8.10/protocol/RevenueTreasury.sol:63"
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:63"
           },
           {
             "contract": "RevenueTreasury",
             "label": "splitBps",
             "type": "t_uint256",
-            "src": "contracts/8.10/protocol/RevenueTreasury.sol:67"
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:67"
           }
         ],
         "types": {
           "t_address": {
             "label": "address"
           },
-          "t_contract(ISwapRouter)9811": {
+          "t_contract(ISwapRouter)15943": {
             "label": "contract ISwapRouter"
           },
-          "t_contract(IGrassHouse)7616": {
+          "t_contract(IGrassHouse)13466": {
             "label": "contract IGrassHouse"
           },
-          "t_contract(IVault)10264": {
+          "t_contract(IVault)16413": {
             "label": "contract IVault"
           },
           "t_array(t_address)dyn_storage": {
@@ -25334,19 +25334,19 @@
           {
             "contract": "AutomatedVaultController",
             "label": "creditors",
-            "type": "t_array(t_contract(ICreditor)7765)dyn_storage",
+            "type": "t_array(t_contract(ICreditor)17439)dyn_storage",
             "src": "solidity/contracts/8.13/AutomatedVaultController.sol:40"
           },
           {
             "contract": "AutomatedVaultController",
             "label": "privateVaults",
-            "type": "t_struct(List)10185_storage",
+            "type": "t_struct(List)20114_storage",
             "src": "solidity/contracts/8.13/AutomatedVaultController.sol:40"
           },
           {
             "contract": "AutomatedVaultController",
             "label": "userVaults",
-            "type": "t_mapping(t_address,t_struct(List)10185_storage)",
+            "type": "t_mapping(t_address,t_struct(List)20114_storage)",
             "src": "solidity/contracts/8.13/AutomatedVaultController.sol:41"
           },
           {
@@ -25357,13 +25357,13 @@
           }
         ],
         "types": {
-          "t_array(t_contract(ICreditor)7765)dyn_storage": {
+          "t_array(t_contract(ICreditor)17439)dyn_storage": {
             "label": "contract ICreditor[]"
           },
-          "t_contract(ICreditor)7765": {
+          "t_contract(ICreditor)17439": {
             "label": "contract ICreditor"
           },
-          "t_struct(List)10185_storage": {
+          "t_struct(List)20114_storage": {
             "label": "struct LinkList.List",
             "members": [
               {
@@ -25385,7 +25385,7 @@
           "t_address": {
             "label": "address"
           },
-          "t_mapping(t_address,t_struct(List)10185_storage)": {
+          "t_mapping(t_address,t_struct(List)20114_storage)": {
             "label": "mapping(address => struct LinkList.List)"
           },
           "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
@@ -29999,13 +29999,13 @@
           {
             "contract": "DeltaNeutralVault04",
             "label": "priceOracle",
-            "type": "t_contract(IDeltaNeutralOracle)16044",
+            "type": "t_contract(IDeltaNeutralOracle)17484",
             "src": "solidity/contracts/8.13/DeltaNeutralVault04.sol:115"
           },
           {
             "contract": "DeltaNeutralVault04",
             "label": "config",
-            "type": "t_contract(IDeltaNeutralVaultConfig02)16413",
+            "type": "t_contract(IDeltaNeutralVaultConfig02)17886",
             "src": "solidity/contracts/8.13/DeltaNeutralVault04.sol:118"
           },
           {
@@ -30017,7 +30017,7 @@
           {
             "contract": "DeltaNeutralVault04",
             "label": "checker",
-            "type": "t_contract(IDeltaNeutralVault04HealthChecker)16148",
+            "type": "t_contract(IDeltaNeutralVault04HealthChecker)17621",
             "src": "solidity/contracts/8.13/DeltaNeutralVault04.sol:123"
           }
         ],
@@ -30028,16 +30028,16 @@
           "t_address": {
             "label": "address"
           },
-          "t_contract(IDeltaNeutralOracle)16044": {
+          "t_contract(IDeltaNeutralOracle)17484": {
             "label": "contract IDeltaNeutralOracle"
           },
-          "t_contract(IDeltaNeutralVaultConfig02)16413": {
+          "t_contract(IDeltaNeutralVaultConfig02)17886": {
             "label": "contract IDeltaNeutralVaultConfig02"
           },
           "t_uint8": {
             "label": "uint8"
           },
-          "t_contract(IDeltaNeutralVault04HealthChecker)16148": {
+          "t_contract(IDeltaNeutralVault04HealthChecker)17621": {
             "label": "contract IDeltaNeutralVault04HealthChecker"
           },
           "t_array(t_uint256)49_storage": {
@@ -30054,6 +30054,764 @@
           },
           "t_array(t_uint256)45_storage": {
             "label": "uint256[45]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_bool": {
+            "label": "bool"
+          }
+        }
+      }
+    },
+    "073af73fd9453a33b12c2d6c3a0e63a470bacaef6881418b6690e7412974ce06": {
+      "address": "0x4182D2C56fAFB9998c770349E8dc24b6F1895e94",
+      "txHash": "0x6029e2b1978beb52e50561fe2094cb9e78d5ad59072790c572e1ab093c5b50bc",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "_balances",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:37"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "_allowances",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:39"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "_totalSupply",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:41"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "_name",
+            "type": "t_string_storage",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:43"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "_symbol",
+            "type": "t_string_storage",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:44"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)45_storage",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:394"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:74"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+          },
+          {
+            "contract": "TerminateAV",
+            "label": "stableTo18ConversionFactor",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.13/TerminateAV.sol:69"
+          },
+          {
+            "contract": "TerminateAV",
+            "label": "assetTo18ConversionFactor",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.13/TerminateAV.sol:72"
+          },
+          {
+            "contract": "TerminateAV",
+            "label": "lpToken",
+            "type": "t_address",
+            "src": "solidity/contracts/8.13/TerminateAV.sol:73"
+          },
+          {
+            "contract": "TerminateAV",
+            "label": "stableVault",
+            "type": "t_address",
+            "src": "solidity/contracts/8.13/TerminateAV.sol:75"
+          },
+          {
+            "contract": "TerminateAV",
+            "label": "assetVault",
+            "type": "t_address",
+            "src": "solidity/contracts/8.13/TerminateAV.sol:76"
+          },
+          {
+            "contract": "TerminateAV",
+            "label": "stableVaultWorker",
+            "type": "t_address",
+            "src": "solidity/contracts/8.13/TerminateAV.sol:78"
+          },
+          {
+            "contract": "TerminateAV",
+            "label": "assetVaultWorker",
+            "type": "t_address",
+            "src": "solidity/contracts/8.13/TerminateAV.sol:79"
+          },
+          {
+            "contract": "TerminateAV",
+            "label": "stableToken",
+            "type": "t_address",
+            "src": "solidity/contracts/8.13/TerminateAV.sol:80"
+          },
+          {
+            "contract": "TerminateAV",
+            "label": "assetToken",
+            "type": "t_address",
+            "src": "solidity/contracts/8.13/TerminateAV.sol:82"
+          },
+          {
+            "contract": "TerminateAV",
+            "label": "alpacaToken",
+            "type": "t_address",
+            "src": "solidity/contracts/8.13/TerminateAV.sol:83"
+          },
+          {
+            "contract": "TerminateAV",
+            "label": "stableVaultPosId",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.13/TerminateAV.sol:85"
+          },
+          {
+            "contract": "TerminateAV",
+            "label": "assetVaultPosId",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.13/TerminateAV.sol:87"
+          },
+          {
+            "contract": "TerminateAV",
+            "label": "lastFeeCollected",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.13/TerminateAV.sol:87"
+          },
+          {
+            "contract": "TerminateAV",
+            "label": "priceOracle",
+            "type": "t_contract(IDeltaNeutralOracle)17484",
+            "src": "solidity/contracts/8.13/TerminateAV.sol:89"
+          },
+          {
+            "contract": "TerminateAV",
+            "label": "config",
+            "type": "t_contract(IDeltaNeutralVaultConfig02)17886",
+            "src": "solidity/contracts/8.13/TerminateAV.sol:92"
+          },
+          {
+            "contract": "TerminateAV",
+            "label": "OPENING",
+            "type": "t_uint8",
+            "src": "solidity/contracts/8.13/TerminateAV.sol:95"
+          },
+          {
+            "contract": "TerminateAV",
+            "label": "checker",
+            "type": "t_contract(IDeltaNeutralVault04HealthChecker)17621",
+            "src": "solidity/contracts/8.13/TerminateAV.sol:97"
+          },
+          {
+            "contract": "TerminateAV",
+            "label": "isTerminated",
+            "type": "t_bool",
+            "src": "solidity/contracts/8.13/TerminateAV.sol:100"
+          },
+          {
+            "contract": "TerminateAV",
+            "label": "terminateExecutor",
+            "type": "t_address",
+            "src": "solidity/contracts/8.13/TerminateAV.sol:100"
+          }
+        ],
+        "types": {
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_contract(IDeltaNeutralOracle)17484": {
+            "label": "contract IDeltaNeutralOracle"
+          },
+          "t_contract(IDeltaNeutralVaultConfig02)17886": {
+            "label": "contract IDeltaNeutralVaultConfig02"
+          },
+          "t_uint8": {
+            "label": "uint8"
+          },
+          "t_contract(IDeltaNeutralVault04HealthChecker)17621": {
+            "label": "contract IDeltaNeutralVault04HealthChecker"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
+            "label": "mapping(address => mapping(address => uint256))"
+          },
+          "t_string_storage": {
+            "label": "string"
+          },
+          "t_array(t_uint256)45_storage": {
+            "label": "uint256[45]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "f99f05575de3f7125a7799cca734a1fe09dc0a029508cc0615d5a73adefb4af2": {
+      "address": "0x15F88D14e83924c39F24B7221c16fe17C063f9c0",
+      "txHash": "0x14165fa94f428b561d772a8a36bec682ad9ed738a77ca4e3611e0cd9fa329b23",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+          },
+          {
+            "contract": "AutomatedVaultController",
+            "label": "creditors",
+            "type": "t_array(t_contract(ICreditor)17469)dyn_storage",
+            "src": "solidity/contracts/8.13/AutomatedVaultController.sol:41"
+          },
+          {
+            "contract": "AutomatedVaultController",
+            "label": "privateVaults",
+            "type": "t_struct(List)20144_storage",
+            "src": "solidity/contracts/8.13/AutomatedVaultController.sol:41"
+          },
+          {
+            "contract": "AutomatedVaultController",
+            "label": "userVaults",
+            "type": "t_mapping(t_address,t_struct(List)20144_storage)",
+            "src": "solidity/contracts/8.13/AutomatedVaultController.sol:42"
+          },
+          {
+            "contract": "AutomatedVaultController",
+            "label": "userVaultShares",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))",
+            "src": "solidity/contracts/8.13/AutomatedVaultController.sol:42"
+          },
+          {
+            "contract": "AutomatedVaultController",
+            "label": "isDisabled",
+            "type": "t_bool",
+            "src": "solidity/contracts/8.13/AutomatedVaultController.sol:45"
+          }
+        ],
+        "types": {
+          "t_array(t_contract(ICreditor)17469)dyn_storage": {
+            "label": "contract ICreditor[]"
+          },
+          "t_contract(ICreditor)17469": {
+            "label": "contract ICreditor"
+          },
+          "t_struct(List)20144_storage": {
+            "label": "struct LinkList.List",
+            "members": [
+              {
+                "label": "llSize",
+                "type": "t_uint256"
+              },
+              {
+                "label": "next",
+                "type": "t_mapping(t_address,t_address)"
+              }
+            ]
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_address,t_address)": {
+            "label": "mapping(address => address)"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_mapping(t_address,t_struct(List)20144_storage)": {
+            "label": "mapping(address => struct LinkList.List)"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
+            "label": "mapping(address => mapping(address => uint256))"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "32778e9026f29d63af45bbe6a597a6c9f7c2f9665ebfae87ce3a4ed233620541": {
+      "address": "0x18118d693cB44EBa166C03d863555b8b8c0Dcf2A",
+      "txHash": "0xbca926d5cbb7186551aa7c8fd03f52a55776906723f0913b5f4b5096222f2c0d",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:74"
+          },
+          {
+            "contract": "RevenueTreasury",
+            "label": "token",
+            "type": "t_address",
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:42"
+          },
+          {
+            "contract": "RevenueTreasury",
+            "label": "grasshouseToken",
+            "type": "t_address",
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:45"
+          },
+          {
+            "contract": "RevenueTreasury",
+            "label": "router",
+            "type": "t_contract(ISwapRouter)15907",
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:48"
+          },
+          {
+            "contract": "RevenueTreasury",
+            "label": "grassHouse",
+            "type": "t_contract(IGrassHouse)13430",
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:51"
+          },
+          {
+            "contract": "RevenueTreasury",
+            "label": "vault",
+            "type": "t_contract(IVault)16377",
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:54"
+          },
+          {
+            "contract": "RevenueTreasury",
+            "label": "rewardPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:57"
+          },
+          {
+            "contract": "RevenueTreasury",
+            "label": "vaultSwapPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:60"
+          },
+          {
+            "contract": "RevenueTreasury",
+            "label": "remaining",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:63"
+          },
+          {
+            "contract": "RevenueTreasury",
+            "label": "splitBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:67"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address"
+          },
+          "t_contract(ISwapRouter)15907": {
+            "label": "contract ISwapRouter"
+          },
+          "t_contract(IGrassHouse)13430": {
+            "label": "contract IGrassHouse"
+          },
+          "t_contract(IVault)16377": {
+            "label": "contract IVault"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_bool": {
+            "label": "bool"
+          }
+        }
+      }
+    },
+    "f122aa369dd64c81074e06b4fd5d87cc484c9621fb35d72e1fbcd582b20d8035": {
+      "address": "0x286eF262405671240aFFF4D27c02b7041b29cCAA",
+      "txHash": "0x7e070e362fd6b7892aa31c2834e6676f3e83628f4728dbbc363b3fdd879f9c62",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:74"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+          },
+          {
+            "contract": "AIP8AUSDStaking",
+            "label": "stakingToken",
+            "type": "t_contract(IERC20Upgradeable)334",
+            "src": "solidity/contracts/8.15/AIP8AUSDStaking.sol:58"
+          },
+          {
+            "contract": "AIP8AUSDStaking",
+            "label": "alpaca",
+            "type": "t_contract(IERC20Upgradeable)334",
+            "src": "solidity/contracts/8.15/AIP8AUSDStaking.sol:58"
+          },
+          {
+            "contract": "AIP8AUSDStaking",
+            "label": "fairlaunch",
+            "type": "t_contract(IFairLaunch)1576",
+            "src": "solidity/contracts/8.15/AIP8AUSDStaking.sol:59"
+          },
+          {
+            "contract": "AIP8AUSDStaking",
+            "label": "pid",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.15/AIP8AUSDStaking.sol:60"
+          },
+          {
+            "contract": "AIP8AUSDStaking",
+            "label": "accAlpacaPerShare",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.15/AIP8AUSDStaking.sol:61"
+          },
+          {
+            "contract": "AIP8AUSDStaking",
+            "label": "userInfo",
+            "type": "t_mapping(t_address,t_struct(UserInfo)909_storage)",
+            "src": "solidity/contracts/8.15/AIP8AUSDStaking.sol:62"
+          },
+          {
+            "contract": "AIP8AUSDStaking",
+            "label": "stopped",
+            "type": "t_bool",
+            "src": "solidity/contracts/8.15/AIP8AUSDStaking.sol:67"
+          }
+        ],
+        "types": {
+          "t_contract(IERC20Upgradeable)334": {
+            "label": "contract IERC20Upgradeable"
+          },
+          "t_contract(IFairLaunch)1576": {
+            "label": "contract IFairLaunch"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_address,t_struct(UserInfo)909_storage)": {
+            "label": "mapping(address => struct AIP8AUSDStaking.UserInfo)"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_struct(UserInfo)909_storage": {
+            "label": "struct AIP8AUSDStaking.UserInfo",
+            "members": [
+              {
+                "label": "stakingAmount",
+                "type": "t_uint256"
+              },
+              {
+                "label": "lockUntil",
+                "type": "t_uint256"
+              },
+              {
+                "label": "alpacaRewardDebt",
+                "type": "t_uint256"
+              }
+            ]
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "28922d55147d275d01e7bc828b1815cc606875e3a78e755492d71d16a4862f50": {
+      "address": "0x1D33228ad24c26dd52799EE0e377DCb37395eD2A",
+      "txHash": "0x490178e7c01b30d32139e457fc11cf83de82f051d028beb4f7e6684cae4c722d",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:74"
+          },
+          {
+            "contract": "RevenueTreasury",
+            "label": "token",
+            "type": "t_address",
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:42"
+          },
+          {
+            "contract": "RevenueTreasury",
+            "label": "grasshouseToken",
+            "type": "t_address",
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:45"
+          },
+          {
+            "contract": "RevenueTreasury",
+            "label": "router",
+            "type": "t_contract(ISwapRouter)15931",
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:48"
+          },
+          {
+            "contract": "RevenueTreasury",
+            "label": "grassHouse",
+            "type": "t_contract(IGrassHouse)13454",
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:51"
+          },
+          {
+            "contract": "RevenueTreasury",
+            "label": "vault",
+            "type": "t_contract(IVault)16401",
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:54"
+          },
+          {
+            "contract": "RevenueTreasury",
+            "label": "rewardPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:57"
+          },
+          {
+            "contract": "RevenueTreasury",
+            "label": "vaultSwapPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:60"
+          },
+          {
+            "contract": "RevenueTreasury",
+            "label": "remaining",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:63"
+          },
+          {
+            "contract": "RevenueTreasury",
+            "label": "splitBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:67"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address"
+          },
+          "t_contract(ISwapRouter)15931": {
+            "label": "contract ISwapRouter"
+          },
+          "t_contract(IGrassHouse)13454": {
+            "label": "contract IGrassHouse"
+          },
+          "t_contract(IVault)16401": {
+            "label": "contract IVault"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
           },
           "t_array(t_uint256)50_storage": {
             "label": "uint256[50]"

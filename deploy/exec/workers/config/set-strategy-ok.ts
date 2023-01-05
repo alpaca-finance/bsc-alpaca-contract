@@ -20,28 +20,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const config = getConfig();
 
-  const TITLE = "retarget_bsw_rollout_set_strategy_ok";
+  const TITLE = "stkBNB_WBNB_allow_liquidate";
   const ADD_STRAT = "";
   const LIQ_STRAT = "";
 
   const OK_FLAG = true;
-  const STRATEGY = [
-    config.SharedStrategies.All?.StrategyRepurchaseBorrow!,
-    config.SharedStrategies.All?.StrategyRepurchaseRepay!,
-    config.SharedStrategies.Biswap?.StrategyPartialCloseNoTrade!,
-  ];
-  const WORKERS = [
-    "USDT-ETH 3x BSW1 DeltaNeutralBiswapWorker",
-    "ETH-USDT 3x BSW1 DeltaNeutralBiswapWorker",
+  const STRATEGY = ["0xE25d44139F8868A8C24FB850340e106A192811D2", "0x5FB21D45C7a5e164622562a294599731b0Ad9448"];
+  const WORKERS = ["stkBNB-WBNB PancakeswapWorker"];
 
-    "ETH-USDT L3x BSW1 DeltaNeutralBiswapWorker",
-    "USDT-ETH L3x BSW1 DeltaNeutralBiswapWorker",
-
-    "USDT-WBNB 8x BSW1 DeltaNeutralBiswapWorker",
-    "WBNB-USDT 8x BSW1 DeltaNeutralBiswapWorker",
-  ];
-
-  const EXACT_ETA = "1663218000";
+  const EXACT_ETA = "1671003000";
 
   const miniWorkers: Array<WorkerEntity.IMiniWorker> = mapWorkers(WORKERS).map((w) => {
     return {
@@ -95,8 +82,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     }
   }
 
-  const timestamp = Math.floor(Date.now() / 1000);
-  fileService.writeJson(`${timestamp}_${TITLE}`, timelockTransactions);
+  if (timelockTransactions.length > 0) {
+    const timestamp = Math.floor(Date.now() / 1000);
+    fileService.writeJson(`${timestamp}_${TITLE}`, timelockTransactions);
+  }
 };
 
 export default func;

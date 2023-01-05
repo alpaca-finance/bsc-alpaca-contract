@@ -18,67 +18,57 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "upgrade_vault_for_terminate_stkBNB-BNB";
-  const VAULT_VERSION = "VaultAip42";
-  const TARGETED_VAULTS = ["ibWBNB"];
-  const EXACT_ETA = "1671002100";
+  const TITLE = "upgrade_revenue_treasury";
+  const REVENUE_TREASURY_VERSION = "RevenueTreasury";
+  const EXACT_ETA = "1672157400";
 
   const config = getConfig();
 
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   const deployer = await getDeployer();
   const chainId = await deployer.getChainId();
-  const toBeUpgradedVaults = TARGETED_VAULTS.map((tv) => {
-    const vault = config.Vaults.find((v) => tv == v.symbol);
-    if (vault === undefined) {
-      throw `error: not found vault with ${tv} symbol`;
-    }
-    if (vault.config === "") {
-      throw `error: not found config address`;
-    }
-
-    return vault;
-  });
+  const revenueTreasury = config.RevenueTreasury;
+  if (!revenueTreasury) {
+    throw new Error("revenueTreasury is not found in config");
+  }
   const proxyAdmin = ProxyAdmin__factory.connect(config.ProxyAdmin, deployer);
   const proxyAdminOwner = await proxyAdmin.owner();
 
   let nonce = await deployer.getTransactionCount();
 
-  for (const vault of toBeUpgradedVaults) {
-    if (compare(proxyAdminOwner, config.Timelock)) {
-      console.log("------------------");
-      console.log(`> Upgrading Vault at ${vault.symbol} through Timelock + ProxyAdmin`);
-      console.log("> Prepare upgrade & deploy if needed a new IMPL automatically.");
-      const NewVault = await ethers.getContractFactory(VAULT_VERSION);
-      const preparedNewVault = await upgrades.prepareUpgrade(vault.address, NewVault);
-      console.log(`> Implementation address: ${preparedNewVault}`);
-      console.log("✅ Done");
+  if (compare(proxyAdminOwner, config.Timelock)) {
+    console.log("------------------");
+    console.log(`> Upgrading RevenueTreasury through Timelock + ProxyAdmin`);
+    console.log("> Prepare upgrade & deploy if needed a new IMPL automatically.");
+    const NewReveneTreasury = await ethers.getContractFactory(REVENUE_TREASURY_VERSION);
+    const preparedRevenueTreasury = await upgrades.prepareUpgrade(revenueTreasury, NewReveneTreasury);
+    console.log(`> Implementation address: ${preparedRevenueTreasury}`);
+    console.log("✅ Done");
 
-      timelockTransactions.push(
-        await TimelockService.queueTransaction(
-          chainId,
-          `> Queue tx to upgrade ${vault.symbol}`,
-          config.ProxyAdmin,
-          "0",
-          "upgrade(address,address)",
-          ["address", "address"],
-          [vault.address, preparedNewVault],
-          EXACT_ETA,
-          { nonce: nonce++ }
-        )
-      );
-    } else {
-      console.log("------------------");
-      console.log(`> Upgrading Vault at ${vault.symbol} through ProxyAdmin`);
-      console.log("> Upgrade & deploy if needed a new IMPL automatically.");
-      const NewVaultFactory = await ethers.getContractFactory(VAULT_VERSION);
-      const preparedNewVault = await upgrades.prepareUpgrade(vault.address, NewVaultFactory);
-      console.log(`> Implementation address: ${preparedNewVault}`);
+    timelockTransactions.push(
+      await TimelockService.queueTransaction(
+        chainId,
+        `> Queue tx to upgrade RevenueTreasury`,
+        config.ProxyAdmin,
+        "0",
+        "upgrade(address,address)",
+        ["address", "address"],
+        [revenueTreasury, preparedRevenueTreasury],
+        EXACT_ETA,
+        { nonce: nonce++ }
+      )
+    );
+  } else {
+    console.log("------------------");
+    console.log(`> Upgrading RevenueTreasury through ProxyAdmin`);
+    console.log("> Upgrade & deploy if needed a new IMPL automatically.");
+    const RevenueTreasury = await ethers.getContractFactory(REVENUE_TREASURY_VERSION);
+    const preparedRevenueTreasury = await upgrades.prepareUpgrade(revenueTreasury, RevenueTreasury);
+    console.log(`> Implementation address: ${preparedRevenueTreasury}`);
 
-      // Perform actual upgrade
-      await upgrades.upgradeProxy(vault.address, NewVaultFactory);
-      console.log("✅ Done");
-    }
+    // Perform actual upgrade
+    await upgrades.upgradeProxy(preparedRevenueTreasury, RevenueTreasury);
+    console.log("✅ Done");
   }
 
   if (timelockTransactions.length > 0) {
@@ -88,4 +78,4 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 };
 
 export default func;
-func.tags = ["UpgradeVault"];
+func.tags = ["UpgradeRevenueTreasury"];
