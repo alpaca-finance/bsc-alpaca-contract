@@ -14,7 +14,7 @@ Alpaca Fin Corporation
 pragma solidity 0.8.13;
 
 interface IDeltaNeutralVault {
-  function stableToken() external returns (address);
+  function stableToken() external view returns (address);
 
   function shareToValue(uint256 _shareAmount) external view returns (uint256);
 
@@ -32,4 +32,12 @@ interface IDeltaNeutralVault {
     uint256, /*_minAssetTokenAmount*/
     bytes calldata _data
   ) external returns (uint256);
+
+  function getExposure() external view returns (int256 _exposure);
+
+  function assetToken() external view returns (address);
+
+  function stableVaultWorker() external view returns (address);
+
+  function priceOracle() external view returns (address);
 }

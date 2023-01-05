@@ -44,6 +44,17 @@ library mocking {
     );
   }
 
+  // func () view => int256
+  function mockv(function () external view returns (int256) f, int256  returned1)
+    internal
+  {
+    vm.mockCall(
+      f.address,
+      abi.encodeWithSelector(f.selector),
+      abi.encode(returned1)
+    );
+  }
+
 
   // func(address,address) view => uint256, uint256
   function mockv(function(address,address) external view returns (uint256, uint256) f, address addr1, address addr2, uint256 returned1, uint256 returned2)
