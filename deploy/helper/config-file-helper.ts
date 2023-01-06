@@ -350,13 +350,6 @@ export class ConfigFileHelper {
     this.config.AutomatedVaultExecutor.migrator = address;
     this._writeConfigFile(this.config);
   }
-
-  public setAVReader(address: string) {
-    console.log(`>> SET AVReader to file > ${address}`);
-    if (!this.config.AutomatedVaultExecutor) throw new Error("AutomatedVaultExecutor is undefined");
-    this.config.AutomatedVaultExecutor.reader = address;
-    this._writeConfigFile(this.config);
-  }
 }
 
 const defaultDeltaNeutralVaultsEntity: DeltaNeutralVaultsEntity = {
