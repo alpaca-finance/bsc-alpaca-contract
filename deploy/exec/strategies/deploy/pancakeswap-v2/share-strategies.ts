@@ -32,7 +32,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
   const DEPLOY_STRATS = [Strats.oracleLiquidate, Strats.oracleMinimize];
-  const WHITELIST_WOKERS = ["stkBNB-WBNB PancakeswapWorker"];
+  const WHITELIST_WORKERS = ["stkBNB-WBNB PancakeswapWorker"];
 
   const config = network.name === "mainnet" ? MainnetConfig : TestnetConfig;
   const deployer = await getDeployer();
@@ -41,7 +41,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     config.SharedConfig.WNativeRelayer,
     (await ethers.getSigners())[0]
   );
-  const whitelistedWorkerAddrs = mapWorkers(WHITELIST_WOKERS).map((worker) => worker.address);
+  const whitelistedWorkerAddrs = mapWorkers(WHITELIST_WORKERS).map((worker) => worker.address);
 
   if (DEPLOY_STRATS.includes(Strats.btokenOnly)) {
     /**

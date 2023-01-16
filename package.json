@@ -357,6 +357,7 @@
     "deploy:fantom_mainnet:delta-neutral-vault:config:init-positions": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags DeltaNeutralVaultInitPositions",
     "deploy:fantom_mainnet:delta-neutral-vault:upgrade:delta-neutral-vault": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags UpgradeDeltaNeutralVault",
     "deploy:fantom_mainnet:revenue-treasury:deploy:revenue-treasury": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags RevenueTreasury",
+    "deploy:fantom_mainnet:revenue-treasury:upgrade:revenue-treasury": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags UpgradeRevenueTreasury",
     "deploy:fantom_mainnet:strategies:deploy:spookyswap:dnx-vault-strategies": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags SpookySwapDnxVaultStrategies",
     "deploy:fantom_mainnet:delta-neutral-vault-config:upgrade:delta-neutral-vault-config": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags UpgradeDeltaNeutralVaultConfig",
     "deploy:fantom_mainnet:delta-neutral-vault-config:config:set-strategies": "hardhat --network fantom_mainnet deploy --config hardhat.config.ts --no-compile --reset --tags DeltaNeutralVaultConfigSetStrategies",

@@ -91,10 +91,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       newVersion: "PancakeswapV2MCV2Worker02DisableLiquidation",
     },
   ];
-
   const workerInputs: IWorkerInputs = ["stkBNB-WBNB PancakeswapWorker"];
-
-  const EXACT_ETA = "1671002400";
+  const EXACT_ETA = "1672924500";
 
   const config = ConfigEntity.getConfig();
   const ts = Math.floor(new Date().getTime() / 1000);
