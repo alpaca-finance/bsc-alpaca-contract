@@ -3,6 +3,7 @@
   "Timelock": "0xafD1eb025bf584a11112A3FC790bd715eD9A98b1",
   "MultiCall": "0x2D5408f2287BF9F9B05404794459a846651D0a59",
   "DeltaNeutralVaultHealthChecker": "",
+  "RevenueTreasury": "0x795997Ad55AcFc27148E86408355eC08cA1424A0",
   "MiniFL": {
     "address": "0x838B7F64Fa89d322C563A6f904851A13a164f84C",
     "deployedBlock": 30359267,

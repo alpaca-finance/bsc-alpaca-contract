@@ -20,15 +20,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const config = getConfig();
 
-  const TITLE = "stkBNB_WBNB_allow_liquidate";
+  const TITLE = "stkBNB-WBNB_allow_oracle_minimize_and_liquidate";
   const ADD_STRAT = "";
   const LIQ_STRAT = "";
 
   const OK_FLAG = true;
-  const STRATEGY = ["0xE25d44139F8868A8C24FB850340e106A192811D2", "0x5FB21D45C7a5e164622562a294599731b0Ad9448"];
+  const STRATEGY = ["0x26a30FC7a4D6f362378BDbD834BF35aF9E93d2D4", "0x6ab62a0766691400F7F7C7B2106C774cB83936eF"];
   const WORKERS = ["stkBNB-WBNB PancakeswapWorker"];
-
-  const EXACT_ETA = "1671003000";
+  const EXACT_ETA = "1672924500";
 
   const miniWorkers: Array<WorkerEntity.IMiniWorker> = mapWorkers(WORKERS).map((w) => {
     return {
