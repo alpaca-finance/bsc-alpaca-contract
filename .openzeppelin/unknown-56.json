@@ -30761,19 +30761,19 @@
           {
             "contract": "RevenueTreasury",
             "label": "router",
-            "type": "t_contract(ISwapRouter)15931",
+            "type": "t_contract(ISwapRouter)16689",
             "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:48"
           },
           {
             "contract": "RevenueTreasury",
             "label": "grassHouse",
-            "type": "t_contract(IGrassHouse)13454",
+            "type": "t_contract(IGrassHouse)14212",
             "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:51"
           },
           {
             "contract": "RevenueTreasury",
             "label": "vault",
-            "type": "t_contract(IVault)16401",
+            "type": "t_contract(IVault)17159",
             "src": "solidity/contracts/8.10/protocol/RevenueTreasury.sol:54"
           },
           {
@@ -30805,13 +30805,13 @@
           "t_address": {
             "label": "address"
           },
-          "t_contract(ISwapRouter)15931": {
+          "t_contract(ISwapRouter)16689": {
             "label": "contract ISwapRouter"
           },
-          "t_contract(IGrassHouse)13454": {
+          "t_contract(IGrassHouse)14212": {
             "label": "contract IGrassHouse"
           },
-          "t_contract(IVault)16401": {
+          "t_contract(IVault)17159": {
             "label": "contract IVault"
           },
           "t_array(t_address)dyn_storage": {
@@ -31111,6 +31111,139 @@
           },
           "t_array(t_uint256)50_storage": {
             "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "bf749114ded3eed37a8a5c8e7245103cdec4dc4c076efa7edec6d3774163932d": {
+      "address": "0xB59F38b770764c34431bb0aE5bA5E64745137666",
+      "txHash": "0xd9f482bd4beebd8b75bb82f906322c5c7914d162995d6deb5db15d556ce90b95",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:74"
+          },
+          {
+            "contract": "FantomRevenueTreasury",
+            "label": "token",
+            "type": "t_address",
+            "src": "solidity/contracts/8.10/protocol/FantomRevenueTreasury.sol:43"
+          },
+          {
+            "contract": "FantomRevenueTreasury",
+            "label": "grasshouseToken",
+            "type": "t_address",
+            "src": "solidity/contracts/8.10/protocol/FantomRevenueTreasury.sol:46"
+          },
+          {
+            "contract": "FantomRevenueTreasury",
+            "label": "router",
+            "type": "t_contract(ISwapRouter)16689",
+            "src": "solidity/contracts/8.10/protocol/FantomRevenueTreasury.sol:49"
+          },
+          {
+            "contract": "FantomRevenueTreasury",
+            "label": "grassHouse",
+            "type": "t_contract(IGrassHouse)14212",
+            "src": "solidity/contracts/8.10/protocol/FantomRevenueTreasury.sol:52"
+          },
+          {
+            "contract": "FantomRevenueTreasury",
+            "label": "vault",
+            "type": "t_contract(IVault)17159",
+            "src": "solidity/contracts/8.10/protocol/FantomRevenueTreasury.sol:55"
+          },
+          {
+            "contract": "FantomRevenueTreasury",
+            "label": "rewardPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "solidity/contracts/8.10/protocol/FantomRevenueTreasury.sol:58"
+          },
+          {
+            "contract": "FantomRevenueTreasury",
+            "label": "vaultSwapPath",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "solidity/contracts/8.10/protocol/FantomRevenueTreasury.sol:61"
+          },
+          {
+            "contract": "FantomRevenueTreasury",
+            "label": "remaining",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.10/protocol/FantomRevenueTreasury.sol:64"
+          },
+          {
+            "contract": "FantomRevenueTreasury",
+            "label": "splitBps",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.10/protocol/FantomRevenueTreasury.sol:68"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address"
+          },
+          "t_contract(ISwapRouter)16689": {
+            "label": "contract ISwapRouter"
+          },
+          "t_contract(IGrassHouse)14212": {
+            "label": "contract IGrassHouse"
+          },
+          "t_contract(IVault)17159": {
+            "label": "contract IVault"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_bool": {
+            "label": "bool"
           }
         }
       }

@@ -19,8 +19,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
   const TITLE = "fantom_upgrade_revenue_treasury";
-  const REVENUE_TREASURY_VERSION = "RevenueTreasury";
-  const EXACT_ETA = "1673670900";
+  const REVENUE_TREASURY_VERSION = "FantomRevenueTreasury";
+  const EXACT_ETA = "1673930400";
 
   const config = getConfig();
 
