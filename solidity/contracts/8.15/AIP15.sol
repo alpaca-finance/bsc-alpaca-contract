@@ -19,7 +19,7 @@ contract Aip15 is Initializable, OwnableUpgradeable {
   ERC20Upgradeable public alpaca;
 
   // states
-  bool public isStart;
+  bool public isStarted;
   bool public isReached;
 
   event DepositFebEmissionDummy();
@@ -39,6 +39,7 @@ contract Aip15 is Initializable, OwnableUpgradeable {
     febEmissionDummy = _febEmissionDummy;
     febEmissionPoolId = _febEmissionPoolId;
     alpaca = ERC20Upgradeable(fairLaunch.alpaca());
+    isStarted = false;
     isReached = false;
   }
 
@@ -46,10 +47,10 @@ contract Aip15 is Initializable, OwnableUpgradeable {
   function depositFebEmissionDummy() external onlyOwner {
     // Check
     // Only allow to deposit FEB_EMISSION_DUMMY once.
-    require(!isStart, "started");
+    require(!isStarted, "started");
 
     // Effect
-    isStart = true;
+    isStarted = true;
 
     // Interaction
     IProxyToken(address(febEmissionDummy)).mint(address(this), 1e18);
