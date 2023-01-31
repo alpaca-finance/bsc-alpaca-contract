@@ -18,6 +18,10 @@ contract Aip15 is Initializable, OwnableUpgradeable {
   ERC20Upgradeable public febEmissionDummy;
   ERC20Upgradeable public alpaca;
 
+  // states
+  bool public isStart;
+  bool public isReached;
+
   event DepositFebEmissionDummy();
   event WithdrawFebEmissionDummy();
 
@@ -35,34 +39,54 @@ contract Aip15 is Initializable, OwnableUpgradeable {
     febEmissionDummy = _febEmissionDummy;
     febEmissionPoolId = fairLaunch.getFairLaunchPoolId();
     alpaca = ERC20Upgradeable(fairLaunch.alpaca());
+    isReached = false;
   }
 
   /// @notice Deposit FEB_EMISSION_DUMMY to FairLaunch.
   function depositFebEmissionDummy() external onlyOwner {
-    require(febEmissionDummy.balanceOf(address(fairLaunch)) == 0, "deposited");
+    // Check
+    // Only allow to deposit FEB_EMISSION_DUMMY once.
+    require(!isStart, "started");
+
+    // Effect
+    isStart = true;
+
+    // Interaction
     IProxyToken(address(febEmissionDummy)).mint(address(this), 1e18);
     febEmissionDummy.safeApprove(address(fairLaunch), 1e18);
     fairLaunch.deposit(address(this), febEmissionPoolId, 1e18);
+
+    // Log
     emit DepositFebEmissionDummy();
   }
 
   /// @notice Withdraw FEB_EMISSION_DUMMY from FairLaunch.
-  function withdrawFebEmissionDummy() external onlyOwner {
+  function withdrawFebEmissionDummy() external {
+    // Check
+    require(!isReached, "reached");
+    uint256 balance = alpaca.balanceOf(address(this));
+    // Only allow to withdraw FEB_EMISSION_DUMMY once ALPACA balance reaches 240,000 ALPACA.
+    require(balance >= 240_000 ether, "!reached");
+
+    // Effect
+    isReached = true;
+
+    // Interaction
+    // Withdraw FEB_EMISSION_DUMMY from FairLaunch.
     fairLaunch.withdraw(address(this), febEmissionPoolId, 1e18);
+    // Burn FEB_EMISSION_DUMMY.
     IProxyToken(address(febEmissionDummy)).burn(address(this), 1e18);
+    // Withdraw all ALPACA from Aip15 to owner.
+    // Use balanceOf(address(this)) instead of balance to avoid leftover ALPACA
+    // due to withdraw also harvest ALPACA.
+    alpaca.safeTransfer(owner(), alpaca.balanceOf(address(this)));
+
+    // Log
     emit WithdrawFebEmissionDummy();
   }
 
   /// @notice Harvest ALPACA from FairLaunch.
   function harvest() external {
     fairLaunch.harvest(febEmissionPoolId);
-  }
-
-  /// @notice Withdraw ALPACA to "to", which should be the account holding reserved incentives.
-  function withdraw(address to) external onlyOwner {
-    uint256 balance = alpaca.balanceOf(address(this));
-    /// NOTE: 240_000 is the amount of ALPACA reserved for incentives from Feb's emission.
-    require(balance >= 240_000 ether, "!reached");
-    alpaca.safeTransfer(to, balance);
   }
 }
