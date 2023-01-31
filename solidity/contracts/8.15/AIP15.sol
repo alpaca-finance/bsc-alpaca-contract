@@ -60,6 +60,9 @@ contract Aip15 is Initializable, OwnableUpgradeable {
 
   /// @notice Withdraw ALPACA to "to", which should be the account holding reserved incentives.
   function withdraw(address to) external onlyOwner {
-    alpaca.safeTransfer(to, alpaca.balanceOf(address(this)));
+    uint256 balance = alpaca.balanceOf(address(this));
+    /// NOTE: 240_000 is the amount of ALPACA reserved for incentives from Feb's emission.
+    require(balance >= 240_000 ether, "!reached");
+    alpaca.safeTransfer(to, balance);
   }
 }
