@@ -37,7 +37,7 @@ contract Aip15 is Initializable, OwnableUpgradeable {
     OwnableUpgradeable.__Ownable_init();
     fairLaunch = _fairLaunch;
     febEmissionDummy = _febEmissionDummy;
-    febEmissionPoolId = fairLaunch.getFairLaunchPoolId();
+    febEmissionPoolId = _febEmissionPoolId;
     alpaca = ERC20Upgradeable(fairLaunch.alpaca());
     isReached = false;
   }
