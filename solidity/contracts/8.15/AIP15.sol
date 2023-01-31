@@ -17,30 +17,38 @@ contract Aip15 is Initializable, OwnableUpgradeable {
   uint256 public febEmissionPoolId;
   ERC20Upgradeable public febEmissionDummy;
   ERC20Upgradeable public alpaca;
+  uint256 public targetEmission;
 
   // states
   bool public isStarted;
   bool public isReached;
 
   event DepositFebEmissionDummy();
+  event SetTargetEmission(uint256 prevTargetEmission, uint256 newTargetEmission);
   event WithdrawFebEmissionDummy();
 
   function initialize(
     IFairLaunch _fairLaunch,
     ERC20Upgradeable _febEmissionDummy,
-    uint256 _febEmissionPoolId
+    uint256 _febEmissionPoolId,
+    uint256 _targetEmission
   ) external initializer {
     // Check
     (address shouldBeFebEmissionDummy, , , , ) = _fairLaunch.poolInfo(_febEmissionPoolId);
     require(shouldBeFebEmissionDummy == address(_febEmissionDummy), "bad febEmissionPoolId");
+    require(_targetEmission >= 240_000 ether, "bad targetEmission");
 
     OwnableUpgradeable.__Ownable_init();
+    // Default state
+    isStarted = false;
+    isReached = false;
+
+    // Assign configurations
     fairLaunch = _fairLaunch;
     febEmissionDummy = _febEmissionDummy;
     febEmissionPoolId = _febEmissionPoolId;
     alpaca = ERC20Upgradeable(fairLaunch.alpaca());
-    isStarted = false;
-    isReached = false;
+    targetEmission = _targetEmission;
   }
 
   /// @notice Deposit FEB_EMISSION_DUMMY to FairLaunch.
@@ -67,7 +75,7 @@ contract Aip15 is Initializable, OwnableUpgradeable {
     require(!isReached, "reached");
     uint256 balance = alpaca.balanceOf(address(this));
     // Only allow to withdraw FEB_EMISSION_DUMMY once ALPACA balance reaches 240,000 ALPACA.
-    require(balance >= 240_000 ether, "!reached");
+    require(balance >= targetEmission, "!reached");
 
     // Effect
     isReached = true;
@@ -89,5 +97,13 @@ contract Aip15 is Initializable, OwnableUpgradeable {
   /// @notice Harvest ALPACA from FairLaunch.
   function harvest() external {
     fairLaunch.harvest(febEmissionPoolId);
+  }
+
+  /// @notice Set target emission.
+  /// @param _targetEmission Target emission.
+  function setTargetEmission(uint256 _targetEmission) external onlyOwner {
+    require(_targetEmission >= 240_000 ether, "bad targetEmission");
+    emit SetTargetEmission(targetEmission, _targetEmission);
+    targetEmission = _targetEmission;
   }
 }
