@@ -1274,6 +1274,11 @@
       "address": "0x26a30FC7a4D6f362378BDbD834BF35aF9E93d2D4",
       "txHash": "0x321455a43210db87cfc488923d2c9b554294d13a606914178627a76c4d25f064",
       "kind": "transparent"
+    },
+    {
+      "address": "0xFd42963E41BE196F05741c40FA4765739b3796B2",
+      "txHash": "0x90a617e5fbb6ffb3af8e62d6647dde413acfbfeeafad0a74340300f3211a5006",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -31244,6 +31249,109 @@
           },
           "t_bool": {
             "label": "bool"
+          }
+        }
+      }
+    },
+    "78ed41c55b91c7f52633e2e95cca2794d9065fe59a405184d6cfab937b4fc790": {
+      "address": "0xDd2e02B8aE0BB0d5858f1F42289E2427AB8e3799",
+      "txHash": "0xa9e19dc547027d3ac8d156258b50a845b0755eded8a9db7b2cd7500fec8b4d30",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+          },
+          {
+            "contract": "Aip15",
+            "label": "fairLaunch",
+            "type": "t_contract(IFairLaunch)2515",
+            "src": "solidity/contracts/8.15/AIP15.sol:16"
+          },
+          {
+            "contract": "Aip15",
+            "label": "febEmissionPoolId",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.15/AIP15.sol:17"
+          },
+          {
+            "contract": "Aip15",
+            "label": "febEmissionDummy",
+            "type": "t_contract(ERC20Upgradeable)869",
+            "src": "solidity/contracts/8.15/AIP15.sol:18"
+          },
+          {
+            "contract": "Aip15",
+            "label": "alpaca",
+            "type": "t_contract(ERC20Upgradeable)869",
+            "src": "solidity/contracts/8.15/AIP15.sol:19"
+          },
+          {
+            "contract": "Aip15",
+            "label": "targetEmission",
+            "type": "t_uint256",
+            "src": "solidity/contracts/8.15/AIP15.sol:20"
+          },
+          {
+            "contract": "Aip15",
+            "label": "isStarted",
+            "type": "t_bool",
+            "src": "solidity/contracts/8.15/AIP15.sol:23"
+          },
+          {
+            "contract": "Aip15",
+            "label": "isReached",
+            "type": "t_bool",
+            "src": "solidity/contracts/8.15/AIP15.sol:24"
+          }
+        ],
+        "types": {
+          "t_contract(IFairLaunch)2515": {
+            "label": "contract IFairLaunch"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_contract(ERC20Upgradeable)869": {
+            "label": "contract ERC20Upgradeable"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
           }
         }
       }
