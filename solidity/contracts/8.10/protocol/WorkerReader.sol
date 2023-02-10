@@ -64,15 +64,15 @@ contract WorkerReader is IWorkerReader {
   }
 
   /// @dev Return a set of workers with should reinvest flag.
-  function getWorkerReinvestReuslt(WorkerReinvestConfig[] memory _workers)
+  function getWorkerReinvestResults(WorkerReinvestConfig[] memory _workers)
     external
     view
     returns (WorkerReinvestResult[] memory)
   {
     uint256 _workersLength = _workers.length;
-    WorkerReinvestResult[] memory _workerReinvestResult = new WorkerReinvestResult[](_workersLength);
+    WorkerReinvestResult[] memory _workerReinvestResults = new WorkerReinvestResult[](_workersLength);
     for (uint256 _i; _i < _workersLength; ) {
-      _workerReinvestResult[_i] = WorkerReinvestResult({
+      _workerReinvestResults[_i] = WorkerReinvestResult({
         worker: _workers[_i].worker,
         shouldReinvest: shouldReinvest(_workers[_i])
       });
@@ -82,7 +82,7 @@ contract WorkerReader is IWorkerReader {
       }
     }
 
-    return _workerReinvestResult;
+    return _workerReinvestResults;
   }
 
   /// @dev return true if _totalValue > minReinvestValue.
@@ -97,7 +97,7 @@ contract WorkerReader is IWorkerReader {
     uint256 _totalValue = (_totalReward * getTokenPrice(_rewardToken)) / (10**IERC20(_rewardToken).decimals());
 
     if (_totalValue >= _worker.minReinvestValue) {
-      return _yes = true;
+      _yes = true;
     }
   }
 

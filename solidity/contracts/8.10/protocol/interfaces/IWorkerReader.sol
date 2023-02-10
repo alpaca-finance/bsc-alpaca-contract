@@ -25,7 +25,7 @@ interface IWorkerReader {
     bool shouldReinvest;
   }
 
-  function getWorkerReinvestReuslt(WorkerReinvestConfig[] memory _workers)
+  function getWorkerReinvestResults(WorkerReinvestConfig[] memory _workers)
     external
     view
     returns (WorkerReinvestResult[] memory);
