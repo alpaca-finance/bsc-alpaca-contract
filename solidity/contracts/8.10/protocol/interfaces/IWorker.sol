@@ -47,4 +47,7 @@ interface IWorker {
 
   /// @dev Farming Token that worker is working on
   function farmingToken() external view returns (address);
+
+  /// @dev Return staking pool id
+  function pid() external view returns (uint256);
 }
