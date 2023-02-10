@@ -21,7 +21,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "0xc48FE252Aa631017dF253578B1405ea399728A50",
   ];
   const rewardTokens: string[] = [
-    "0x009cF7bC57584b7998236eff51b98A168DceA9B0",
+    "0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82",
     "0x965F527D9159dCe6288a2219DB51fc6Eef120dD1",
     "0x9C65AB58d8d978DB963e63f2bfB7121627e3a739",
   ];
