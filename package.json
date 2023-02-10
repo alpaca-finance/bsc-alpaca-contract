@@ -1,6 +1,6 @@
 {
   "name": "@alpaca-finance/alpaca-contract",
-  "version": "1.2.42",
+  "version": "1.2.43",
   "scripts": {
     "prepublish": "yarn build && rm ./typechain/index.*",
     "build": "yarn run build:cjs",
@@ -90,6 +90,7 @@
     "deploy:mainnet:workers:config:set-beneficial-vault-config": "hardhat --network mainnet deploy --no-compile --reset --tags TimelockAddBeneficialBuybackFieldsWorkers02",
     "deploy:mainnet:workers:config:set-reinvest-config": "hardhat --network mainnet deploy --no-compile --reset --tags TimelockSetReinvestConfigWorkers02",
     "deploy:mainnet:workers:config:set-max-reinvest-bounty-bps": "hardhat --network mainnet deploy --no-compile --reset --tags TimelockSetMaxReinvestBountyBpsWorkers02",
+    "deploy:mainnet:worker-reader:deploy:worker-reader": "hardhat --network mainnet deploy --no-compile --reset --tags WorkerReader",
     "deploy:mainnet:strategies:upgrade:share-strategies": "hardhat --network mainnet deploy --no-compile --reset --tags UpgradeShareStrategies",
     "deploy:mainnet:fairlaunch:config:add-pool": "hardhat --network mainnet deploy --no-compile --reset --tags TimelockAddPool",
     "deploy:mainnet:fairlaunch:config:set-pool": "hardhat --network mainnet deploy --no-compile --reset --tags TimelockSetPool",
