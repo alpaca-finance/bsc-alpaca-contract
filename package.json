@@ -1,6 +1,6 @@
 {
   "name": "@alpaca-finance/alpaca-contract",
-  "version": "1.2.43",
+  "version": "1.2.44",
   "scripts": {
     "prepublish": "yarn build && rm ./typechain/index.*",
     "build": "yarn run build:cjs",
@@ -324,6 +324,7 @@
     "deploy:fantom_mainnet:vault:upgrade:vault": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags UpgradeVault",
     "deploy:fantom_mainnet:strategies:deploy:spookyswap:share-strategies": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags SpookySwapShareRestrictedStrategies",
     "deploy:fantom_mainnet:strategies:deploy:spookyswap:vault-strategies": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags SpookySwapRestrictedVaultStrategies",
+    "deploy:fantom_mainnet:worker-reader:deploy:worker-reader": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags WorkerReader",
     "deploy:fantom_mainnet:workers:deploy:spookyswap-workers03": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags SpookyWorkers03",
     "deploy:fantom_mainnet:workers:deploy:tomb-workers03": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags TombWorkers03",
     "deploy:fantom_mainnet:workers:upgrade:workers": "hardhat --network fantom_mainnet deploy --no-compile --reset --tags UpgradeWorkers",
