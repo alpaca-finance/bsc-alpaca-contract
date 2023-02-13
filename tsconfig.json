@@ -19,6 +19,6 @@
   "exclude": ["node_modules", "build", "cache", "artifacts"],
   "files": [
     // "types/chai-bignumber.d.ts", "typechain/index.d.ts"
-    "typechain/index.d.ts"
+    "typechain/index.ts"
   ]
 }

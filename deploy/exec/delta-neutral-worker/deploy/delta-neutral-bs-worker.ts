@@ -2,13 +2,12 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, network } from "hardhat";
 import {
-  AlpacaToken__factory,
   BiswapStrategyAddBaseTokenOnly__factory,
   ConfigurableInterestVaultConfig__factory,
   DeltaNeutralBiswapWorker03,
   WorkerConfig__factory,
 } from "../../../../typechain";
-import { ConfigEntity, TimelockEntity } from "../../../entities";
+import { TimelockEntity } from "../../../entities";
 import { fileService, TimelockService } from "../../../services";
 import { BlockScanGasPrice } from "../../../services/gas-price/blockscan";
 import { getDeployer } from "../../../../utils/deployer-helper";
@@ -82,43 +81,43 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   let config = configFileHelper.getConfig();
 
   const shortWorkerInfos: IDeltaNeutralBSWorkerInput[] = [
+    // {
+    //   VAULT_SYMBOL: "ibBUSD",
+    //   WORKER_NAME: "WBNB-BUSD 8x BSW1 DeltaNeutralBiswapWorker",
+    //   REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
+    //   POOL_ID: 3,
+    //   REINVEST_BOUNTY_BPS: "1500",
+    //   REINVEST_PATH: ["BSW", "WBNB", "BUSD"],
+    //   REINVEST_THRESHOLD: "0",
+    //   BENEFICIAL_VAULT: {
+    //     BENEFICIAL_VAULT_BPS: "5333",
+    //     BENEFICIAL_VAULT_ADDRESS: "0x08B5A95cb94f926a8B620E87eE92e675b35afc7E",
+    //     REWARD_PATH: ["BSW", "WBNB", "BUSD"],
+    //   },
+    //   WORK_FACTOR: "9500",
+    //   KILL_FACTOR: "0",
+    //   MAX_PRICE_DIFF: "10500",
+    // },
     {
       VAULT_SYMBOL: "ibWBNB",
-      WORKER_NAME: "USDT-WBNB 8x BSW1 DeltaNeutralBiswapWorker",
+      WORKER_NAME: "BUSD-WBNB 8x BSW1 DeltaNeutralBiswapWorker",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 2,
+      POOL_ID: 3,
       REINVEST_BOUNTY_BPS: "1500",
       REINVEST_PATH: ["BSW", "WBNB"],
       REINVEST_THRESHOLD: "0",
       BENEFICIAL_VAULT: {
         BENEFICIAL_VAULT_BPS: "5333",
         BENEFICIAL_VAULT_ADDRESS: "0x08B5A95cb94f926a8B620E87eE92e675b35afc7E",
-        REWARD_PATH: ["BSW", "USDT", "BUSD"],
-      },
-      WORK_FACTOR: "9500",
-      KILL_FACTOR: "0",
-      MAX_PRICE_DIFF: "10500",
-    },
-    {
-      VAULT_SYMBOL: "ibUSDT",
-      WORKER_NAME: "WBNB-USDT 8x BSW1 DeltaNeutralBiswapWorker",
-      REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 2,
-      REINVEST_BOUNTY_BPS: "1500",
-      REINVEST_PATH: ["BSW", "USDT"],
-      REINVEST_THRESHOLD: "0",
-      BENEFICIAL_VAULT: {
-        BENEFICIAL_VAULT_BPS: "5333",
-        BENEFICIAL_VAULT_ADDRESS: "0x08B5A95cb94f926a8B620E87eE92e675b35afc7E",
-        REWARD_PATH: ["BSW", "USDT", "BUSD"],
+        REWARD_PATH: ["BSW", "WBNB", "BUSD"],
       },
       WORK_FACTOR: "9500",
       KILL_FACTOR: "0",
       MAX_PRICE_DIFF: "10500",
     },
   ];
-  const TITLE = "mainnet_n8x_wbnbusdt_bsw1_worker";
-  const EXACT_ETA = "1654421400";
+  const TITLE = "mainnet_n8x_wbnbbusd_bsw1_worker_2";
+  const EXACT_ETA = "1676367000";
 
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   const ts = Math.floor(Date.now() / 1000);

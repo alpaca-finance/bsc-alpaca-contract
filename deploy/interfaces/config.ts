@@ -1,4 +1,5 @@
 export interface Config {
+  OpMultiSig: string;
   ProxyAdmin: string;
   Timelock: string;
   MultiCall: string;

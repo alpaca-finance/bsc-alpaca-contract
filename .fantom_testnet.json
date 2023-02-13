@@ -1,4 +1,5 @@
 {
+  "OpMultiSig": "",
   "ProxyAdmin": "0x25C8BF156cE1DcBC3f04E18621a0472aFe59d918",
   "Timelock": "0x42E8faf92f83E43A0C1E6A559e4bEdFa1e9B45f4",
   "MultiCall": "0x6Cd4EBb05d4f099c30137Ed878fB138b615EE988",
@@ -432,11 +433,11 @@
     }
   ],
   "DeltaNeutralVaults": [],
-  
-  "AutomatedVaultExecutor" : {
-    "deposit":"",
-    "withdraw":"",
-    "reinvest":"",
-    "rebalance":""
+
+  "AutomatedVaultExecutor": {
+    "deposit": "",
+    "withdraw": "",
+    "reinvest": "",
+    "rebalance": ""
   }
 }

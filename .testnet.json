@@ -1,4 +1,5 @@
 {
+  "OpMultiSig": "",
   "ProxyAdmin": "0x2c6c09b46d00A88161B7e4AcFaFEc58990548aC2",
   "Timelock": "0xb3c3aE82358DF7fC0bd98629D5ed91767e45c337",
   "Shield": "0x938350DF8BF3bD81Baae368b72132f1Bd14E7C13",
@@ -10,7 +11,7 @@
     "ITAM-week-3": "",
     "ITAM-week-4": "",
     "AIP1": "0x30876Ef22Ad5d3170cCCef12F4B7f579897087E0",
-    "pSTAKE-batch-1":"",
+    "pSTAKE-batch-1": "",
     "pSTAKE-batch-2": ""
   },
   "GrazingRange": {
