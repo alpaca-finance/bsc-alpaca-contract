@@ -4,7 +4,7 @@ import { ethers } from "hardhat";
 import {
   BiswapDnxStrategyPartialCloseNoTrading__factory,
   DeltaNeutralBiswapWorker03__factory,
-  DeltaNeutralVault03,
+  DeltaNeutralVault04,
   WNativeRelayer__factory,
 } from "../../../../typechain";
 import { getDeployer } from "../../../../utils/deployer-helper";
@@ -45,15 +45,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   // prepare variable
   const deltaVaultInputs: IDeltaNeutralVaultInput[] = [
     {
-      name: "Market Neutral 8x BNB-USDT PCS3",
-      symbol: "n8x-BNBUSDT-PCS3",
-      stableVaultSymbol: "ibUSDT",
-      assetVaultSymbol: "ibWBNB",
-      stableSymbol: "USDT",
-      assetSymbol: "WBNB",
-      stableDeltaWorkerName: "WBNB-USDT 8x PCS2 DeltaNeutralPancakeswapWorker", // Address of stable deltaneutral worker
-      assetDeltaWorkerName: "USDT-WBNB 8x PCS2 DeltaNeutralPancakeswapWorker", // Address of asset deltaneutral worker
-      lpAddress: "0x16b9a82891338f9bA80E2D6970FddA79D1eb0daE",
+      name: "Long L8x USDT-BNB BSW1",
+      symbol: "L8x-USDTBNB-BSW1",
+      stableVaultSymbol: "ibWBNB",
+      assetVaultSymbol: "ibUSDT",
+      stableSymbol: "WBNB",
+      assetSymbol: "USDT",
+      stableDeltaWorkerName: "USDT-WBNB L8x BSW1 DeltaNeutralBiswapWorker", // Address of stable deltaneutral worker
+      assetDeltaWorkerName: "WBNB-USDT L8x BSW1 DeltaNeutralBiswapWorker", // Address of asset deltaneutral worker
+      lpAddress: "0x8840C6252e2e86e545deFb6da98B2a0E26d8C1BA",
     },
   ];
 
@@ -98,7 +98,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       );
     }
 
-    const deltaVaultDeployer = new UpgradeableContractDeployer<DeltaNeutralVault03>(
+    const deltaVaultDeployer = new UpgradeableContractDeployer<DeltaNeutralVault04>(
       deployer,
       "DeltaNeutralVault04",
       deltaVaultInput.name
@@ -116,6 +116,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       config.Oracle.DeltaNeutralOracle!,
       deltaVaultInput.deltaNeutralVaultConfig,
     ]);
+
+    console.log(`>> SetDeltaNeutralVaultHealthChecker`);
+    await deltaNeutralVault.setDeltaNeutralVaultHealthChecker(config.DeltaNeutralVaultHealthChecker!);
+    console.log("✅ Done");
 
     if (deltaVaultInput.assetVaultSymbol === "ibWBNB" || deltaVaultInput.assetVaultSymbol === "ibFTM") {
       console.log(`>> Set Caller ok for deltaNeutralVault if have native asset`);
@@ -149,7 +153,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     for (let stratAddress of whitelistedStrategies) {
       console.log(`>> Set Whitelisted Caller for Delta Neutral Vault on strategy`, stratAddress);
       const contractFactory = BiswapDnxStrategyPartialCloseNoTrading__factory.connect(stratAddress, deployer);
-      contractFactory.setDeltaNeutralVaultsOk([deltaNeutralVault.address], true, { nonce: nonce++ });
+      await contractFactory.setDeltaNeutralVaultsOk([deltaNeutralVault.address], true, {
+        nonce: nonce++,
+      });
       console.log("✅ Done");
     }
 
