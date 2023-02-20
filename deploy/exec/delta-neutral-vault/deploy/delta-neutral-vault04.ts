@@ -121,8 +121,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await deltaNeutralVault.setDeltaNeutralVaultHealthChecker(config.DeltaNeutralVaultHealthChecker!);
     console.log("✅ Done");
 
-    if (deltaVaultInput.assetVaultSymbol === "ibWBNB" || deltaVaultInput.assetVaultSymbol === "ibFTM") {
-      console.log(`>> Set Caller ok for deltaNeutralVault if have native asset`);
+    if (
+      deltaVaultInput.assetVaultSymbol === "ibWBNB" ||
+      deltaVaultInput.stableVaultSymbol === "ibWBNB" ||
+      deltaVaultInput.assetVaultSymbol === "ibFTM" ||
+      deltaVaultInput.stableVaultSymbol === "ibFTM"
+    ) {
+      console.log(`>> Set Caller ok for deltaNeutralVault`);
       const wNativeRelayer = WNativeRelayer__factory.connect(wNativeRelayerAddr, deployer);
       await (await wNativeRelayer.setCallerOk([deltaNeutralVault.address], true)).wait(3);
       console.log("✅ Done");
