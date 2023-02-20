@@ -132,6 +132,7 @@
     "deploy:mainnet:delta-neutral-vault-config:deploy:delta-neutral-vault-config02": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralVaultConfig02",
     "deploy:mainnet:delta-neutral-vault:deploy:delta-neutral-vault02": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralVault02",
     "deploy:mainnet:delta-neutral-vault:deploy:delta-neutral-vault03": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralVault03",
+    "deploy:mainnet:delta-neutral-vault:deploy:delta-neutral-vault04": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralVault04",
     "deploy:mainnet:creditor:deploy:xalpaca-creditor": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags XAlpacaCreditor",
     "deploy:mainnet:creditor:config:xalpaca-creditor-set-param": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags XAlpacaCreditorSetParam",
     "deploy:mainnet:ausd:deploy:ausd-staking": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags AIP8AUSDStaking",
