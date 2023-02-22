@@ -31,8 +31,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const ALPACA_REINVEST_FEE_TREASURY = "0x417D3e491cbAaD07B2433781e50Bc6Cd09641BC0";
   const ALPACA_BOUNTY_BPS = "1500";
   const LEVERAGE_LEVEL = 6;
+  const REPURCHASE_BONUS = "10";
   const WHITELIST_REBALANCE = ["0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De"];
   const WHITELIST_REINVEST = ["0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De"];
+  const WHITELIST_REPURCHASE = ["0xc43ac4cb2f241b6d652530b05c94fd3a35e4fd63"];
   const REINVEST_PATH = ["ALPACA", "BUSD", "USDT"];
   const SWAP_ROUTER_ADDR = config.YieldSources.Pancakeswap!.RouterV2;
   const VALUE_LIMIT = "15000000";
@@ -44,6 +46,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const MANAGEMENT_FEE_PER_SEC = "634195840";
   const ALPACA_BENEFICIARY = "0x44B3868cbba5fbd2c5D8d1445BDB14458806B3B4";
   const ALPACA_BENEFICIARY_FEE_BPS = "5333";
+
   const FAIR_LAUNCH_ADDR = config.FairLaunch!.address;
   const WRAP_NATIVE_ADDR = config.Tokens.WBNB;
   const WNATIVE_RELAYER = config.SharedConfig.WNativeRelayer;
@@ -140,6 +143,30 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     nonce: nonce++,
     gasPrice: fastGasPrice,
   });
+
+  console.log(">> Setting Repurchase bonus");
+  await deltaNeutralVaultConfig.setRepurchaseBonusBps(REPURCHASE_BONUS, { nonce: nonce++, gasPrice: fastGasPrice });
+
+  console.log(">> Setting Whitelist repurchasers");
+  await deltaNeutralVaultConfig.setwhitelistedRepurchasers(WHITELIST_REPURCHASE, true, {
+    nonce: nonce++,
+    gasPrice: fastGasPrice,
+  });
+
+  console.log(">> Setting AutomatedVaultExecutors");
+  const executors = config.AutomatedVaultExecutor!;
+  await deltaNeutralVaultConfig.setExecutor(
+    executors.deposit,
+    executors.withdraw,
+    executors.rebalance,
+    executors.reinvest,
+    executors.repurchase!,
+    executors.retarget!,
+    {
+      nonce: nonce++,
+      gasPrice: fastGasPrice,
+    }
+  );
 
   if (DELTA_VAULT_SYMBOL) {
     // if not force DELTA_VAULT_SYMBOL config address should set in delta neutral vault deployment script

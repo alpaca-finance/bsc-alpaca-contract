@@ -54,6 +54,9 @@ interface IDeltaNeutralBSWorkerInfo {
   PARTIAL_CLOSE_LIQ_STRAT_ADDR: string;
   PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR: string;
   MINIMIZE_TRADE_STRAT_ADDR: string;
+  REPURCHASE_BORROW_STRAT_ADDR: string;
+  REPURCHASE_REPAY_STRAT_ADDR: string;
+  PARTIAL_CLOSE_NO_TRADE_STRAT_ADDR: string;
   REINVEST_BOUNTY_BPS: string;
   REINVEST_PATH: Array<string>;
   REINVEST_THRESHOLD: string;
@@ -167,6 +170,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       PARTIAL_CLOSE_LIQ_STRAT_ADDR: config.SharedStrategies.Biswap!.StrategyPartialCloseLiquidate,
       PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR: config.SharedStrategies.Biswap!.StrategyPartialCloseMinimizeTrading,
       MINIMIZE_TRADE_STRAT_ADDR: config.SharedStrategies.Biswap!.StrategyWithdrawMinimizeTrading,
+      REPURCHASE_BORROW_STRAT_ADDR: config.SharedStrategies.All?.StrategyRepurchaseBorrow!,
+      REPURCHASE_REPAY_STRAT_ADDR: config.SharedStrategies.All?.StrategyRepurchaseRepay!,
+      PARTIAL_CLOSE_NO_TRADE_STRAT_ADDR: config.SharedStrategies.Biswap!.StrategyPartialCloseNoTrade!,
       REINVEST_BOUNTY_BPS: n.REINVEST_BOUNTY_BPS,
       REINVEST_PATH: reinvestPath,
       REINVEST_THRESHOLD: ethers.utils.parseEther(n.REINVEST_THRESHOLD).toString(),
@@ -218,6 +224,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR,
       workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR,
       workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR,
+      workerInfos[i].REPURCHASE_BORROW_STRAT_ADDR,
+      workerInfos[i].REPURCHASE_REPAY_STRAT_ADDR,
+      workerInfos[i].PARTIAL_CLOSE_NO_TRADE_STRAT_ADDR,
     ];
 
     await deltaNeutralWorker.setStrategyOk(okStrats, true, { nonce: nonce++ });
@@ -342,6 +351,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         StrategyWithdrawMinimizeTrading: workerInfos[i].MINIMIZE_TRADE_STRAT_ADDR,
         StrategyPartialCloseLiquidate: workerInfos[i].PARTIAL_CLOSE_LIQ_STRAT_ADDR,
         StrategyPartialCloseMinimizeTrading: workerInfos[i].PARTIAL_CLOSE_MINIMIZE_STRAT_ADDR,
+        StrategyPartialCloseNoTrade: workerInfos[i].PARTIAL_CLOSE_NO_TRADE_STRAT_ADDR,
       },
     };
 
