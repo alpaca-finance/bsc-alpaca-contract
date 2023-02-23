@@ -67,7 +67,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(`> Implementation address: ${preparedRevenueTreasury}`);
 
     // Perform actual upgrade
-    await upgrades.upgradeProxy(preparedRevenueTreasury, RevenueTreasury);
+    await upgrades.upgradeProxy(revenueTreasury, RevenueTreasury);
     console.log("✅ Done");
   }
 

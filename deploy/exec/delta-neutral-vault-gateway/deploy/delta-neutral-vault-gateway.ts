@@ -37,7 +37,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   // prepare
   const deltaVaultInputs: IDeltaVaultInput[] = [
     {
-      name: "Market Neutral 8x BNB-BUSD BSW1",
+      name: "Long 8x USDT-BNB BSW1",
       swapRouterAddress: config.YieldSources.Biswap!.BiswapRouterV2,
     },
   ];

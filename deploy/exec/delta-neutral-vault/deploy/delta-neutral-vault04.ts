@@ -45,7 +45,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   // prepare variable
   const deltaVaultInputs: IDeltaNeutralVaultInput[] = [
     {
-      name: "Long L8x USDT-BNB BSW1",
+      name: "Long 8x USDT-BNB BSW1",
       symbol: "L8x-USDTBNB-BSW1",
       stableVaultSymbol: "ibWBNB",
       assetVaultSymbol: "ibUSDT",
