@@ -46,6 +46,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const MANAGEMENT_FEE_PER_SEC = "634195840";
   const ALPACA_BENEFICIARY = "0x44B3868cbba5fbd2c5D8d1445BDB14458806B3B4";
   const ALPACA_BENEFICIARY_FEE_BPS = "5333";
+  const SWAP_FEE = 25;
+  const SWAP_FEE_DENOM = 10000;
 
   const FAIR_LAUNCH_ADDR = config.FairLaunch!.address;
   const WRAP_NATIVE_ADDR = config.Tokens.WBNB;
@@ -167,6 +169,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       gasPrice: fastGasPrice,
     }
   );
+
+  console.log(">> Setting SwapConfig for Rebalance Executor");
+  await deltaNeutralVaultConfig.setSwapConfig(SWAP_FEE, SWAP_FEE_DENOM, {
+    nonce: nonce++,
+    gasPrice: fastGasPrice,
+  });
 
   if (DELTA_VAULT_SYMBOL) {
     // if not force DELTA_VAULT_SYMBOL config address should set in delta neutral vault deployment script
