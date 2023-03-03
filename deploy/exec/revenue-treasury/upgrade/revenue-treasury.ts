@@ -20,7 +20,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const TITLE = "fantom_upgrade_revenue_treasury";
   const REVENUE_TREASURY_VERSION = "FantomRevenueTreasury";
-  const EXACT_ETA = "1673930400";
+  const EXACT_ETA = "1676818800";
 
   const config = getConfig();
 
@@ -67,7 +67,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(`> Implementation address: ${preparedRevenueTreasury}`);
 
     // Perform actual upgrade
-    await upgrades.upgradeProxy(preparedRevenueTreasury, RevenueTreasury);
+    await upgrades.upgradeProxy(revenueTreasury, RevenueTreasury);
     console.log("✅ Done");
   }
 

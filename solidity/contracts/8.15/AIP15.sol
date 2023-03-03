@@ -73,8 +73,8 @@ contract Aip15 is Initializable, OwnableUpgradeable {
   function withdrawFebEmissionDummy() external {
     // Check
     require(!isReached, "reached");
-    uint256 balance = alpaca.balanceOf(address(this));
-    // Only allow to withdraw FEB_EMISSION_DUMMY once ALPACA balance reaches 240,000 ALPACA.
+    uint256 balance = alpaca.balanceOf(address(this)) + fairLaunch.pendingAlpaca(febEmissionPoolId, address(this));
+    // Only allow to withdraw FEB_EMISSION_DUMMY once ALPACA balance + pending ALPACA more than targetEmission.
     require(balance >= targetEmission, "!reached");
 
     // Effect

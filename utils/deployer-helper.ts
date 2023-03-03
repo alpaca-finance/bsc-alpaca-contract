@@ -1,4 +1,3 @@
-import { Provider } from "@ethersproject/providers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers, network } from "hardhat";
 import { JsonRpcProvider } from "@ethersproject/providers";

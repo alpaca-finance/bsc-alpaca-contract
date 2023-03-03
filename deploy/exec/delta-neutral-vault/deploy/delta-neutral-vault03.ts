@@ -1,7 +1,11 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
-import { DeltaNeutralBiswapWorker03__factory, DeltaNeutralVault03, WNativeRelayer__factory } from "../../../../typechain";
+import {
+  DeltaNeutralBiswapWorker03__factory,
+  DeltaNeutralVault03,
+  WNativeRelayer__factory,
+} from "../../../../typechain";
 import { getDeployer } from "../../../../utils/deployer-helper";
 import { ConfigFileHelper } from "../../../helper";
 import { UpgradeableContractDeployer } from "../../../deployer";
@@ -40,15 +44,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   // prepare variable
   const deltaVaultInputs: IDeltaNeutralVaultInput[] = [
     {
-      name: "Market Neutral 8x BNB-USDT PCS3",
-      symbol: "n8x-BNBUSDT-PCS3",
-      stableVaultSymbol: "ibUSDT",
+      name: "Market Neutral 8x BNB-BUSD BSW1",
+      symbol: "n8x-BNBBUSD-BSW1",
+      stableVaultSymbol: "ibBUSD",
       assetVaultSymbol: "ibWBNB",
-      stableSymbol: "USDT",
+      stableSymbol: "BUSD",
       assetSymbol: "WBNB",
-      stableDeltaWorkerName: "WBNB-USDT 8x PCS2 DeltaNeutralPancakeswapWorker", // Address of stable deltaneutral worker
-      assetDeltaWorkerName: "USDT-WBNB 8x PCS2 DeltaNeutralPancakeswapWorker", // Address of asset deltaneutral worker
-      lpAddress: "0x16b9a82891338f9bA80E2D6970FddA79D1eb0daE",
+      stableDeltaWorkerName: "WBNB-BUSD 8x BSW1 DeltaNeutralBiswapWorker", // Address of stable deltaneutral worker
+      assetDeltaWorkerName: "BUSD-WBNB 8x BSW1 DeltaNeutralBiswapWorker", // Address of asset deltaneutral worker
+      lpAddress: "0xaCAac9311b0096E04Dfe96b6D87dec867d3883Dc",
     },
   ];
 
@@ -69,7 +73,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       const deltaVault = config.DeltaNeutralVaults.find((dv) => dv.symbol === deltaVaultInput.symbol);
       if (!deltaVault) throw Error(`Couldn't find DeltaNeutralVaults[${deltaVaultInput.symbol}]`);
       if (!validateAddress(deltaVault.config))
-        throw new Error(`DeltaNeutralVaults[${deltaVaultInput.symbol}] > config (${deltaVault.config}) address is invalid`);
+        throw new Error(
+          `DeltaNeutralVaults[${deltaVaultInput.symbol}] > config (${deltaVault.config}) address is invalid`
+        );
       deltaVaultInput.deltaNeutralVaultConfig = deltaVault.config;
     }
 
@@ -78,13 +84,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       (worker) => worker.name === deltaVaultInput.stableDeltaWorkerName
     )?.address;
     if (!stableWorkerAddress || !validateAddress(stableWorkerAddress)) {
-      throw new Error(`error: unable to find worker ${deltaVaultInput.stableDeltaWorkerName} from ${deltaVaultInput.stableVaultSymbol} workers`);
+      throw new Error(
+        `error: unable to find worker ${deltaVaultInput.stableDeltaWorkerName} from ${deltaVaultInput.stableVaultSymbol} workers`
+      );
     }
     const assetWorkerAddress = assetVault.workers.find(
       (worker) => worker.name === deltaVaultInput.assetDeltaWorkerName
     )?.address;
     if (!assetWorkerAddress || !validateAddress(assetWorkerAddress)) {
-      throw new Error(`error: unable to find worker ${deltaVaultInput.assetDeltaWorkerName} from ${deltaVaultInput.assetVaultSymbol} workers`);
+      throw new Error(
+        `error: unable to find worker ${deltaVaultInput.assetDeltaWorkerName} from ${deltaVaultInput.assetVaultSymbol} workers`
+      );
     }
 
     const deltaVaultDeployer = new UpgradeableContractDeployer<DeltaNeutralVault03>(
