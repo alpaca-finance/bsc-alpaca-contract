@@ -27,13 +27,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
       Check all variables below before execute the deployment script
   */
-
   const initPositionInputs: IInitPositionVault04Inputs[] = [
     {
-      symbol: "n3x-BNBUSDT-PCS1",
-      longDepositAmount: 300,
-      expectedLongVaultSymbol: "ibUSDT",
-      expectedLongTokenSymbol: "USDT",
+      symbol: "L8x-USDTBNB-BSW1",
+      longDepositAmount: 0.5,
+      expectedLongVaultSymbol: "ibWBNB",
+      expectedLongTokenSymbol: "WBNB",
     },
   ];
 

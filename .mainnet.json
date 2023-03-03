@@ -4997,8 +4997,8 @@
       "stableDeltaWorker": "0x6f9D27BC913E3c094F105bd89C557e51e7E2f6ee",
       "oracle": "0x08EA5fB66EA41f236E3001d2655e43A1E735787F",
       "gateway": "0x63eece12e6EC9DD0A1B53F0Df924EeD744077529",
-      "assetVaultPosId": "0",
-      "stableVaultPosId": "0"
+      "assetVaultPosId": "29305",
+      "stableVaultPosId": "49849"
     }
   ],
   "Creditors": [
