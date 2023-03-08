@@ -1,13 +1,14 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
-import { TimelockEntity } from "../../../entities";
+import { ConfigEntity, TimelockEntity } from "../../../entities";
 import { fileService, TimelockService } from "../../../services";
 import { getConfig } from "../../../entities/config";
 import { ConfigurableInterestVaultConfig__factory } from "../../../../typechain";
 import { Multicall2Service } from "../../../services/multicall/multicall2";
 import { BigNumber, BigNumberish } from "ethers";
 import { compare } from "../../../../utils/address";
+import { ConfigFileHelper } from "../../../helper";
 
 interface SetParamsInput {
   VAULT_SYMBOL: string;
@@ -65,7 +66,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     },
   ];
 
-  const config = getConfig();
+  let config = ConfigEntity.getConfig();
+  const configFileHelper = new ConfigFileHelper();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   const deployer = (await ethers.getSigners())[0];
   const chainId = await deployer.getChainId();
@@ -162,6 +164,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       );
       fileService.writeJson(`${ts}_${TITLTE}`, timelockTransactions);
     } else {
+      console.log(`> Update ${info.VAULT_SYMBOL} Vault config`);
       const vaultConfig = ConfigurableInterestVaultConfig__factory.connect(info.VAULT_CONFIG, deployer);
       await vaultConfig.setParams(
         info.MIN_DEBT_SIZE_WEI,
@@ -175,6 +178,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         info.TREASURY_ADDR,
         { nonce: nonce++ }
       );
+      console.log(`✅ Done`);
+    }
+
+    // If update interest model then update json as well.
+    if (info.INTEREST_MODEL) {
+      config = configFileHelper.setVaultInterestModel(info.VAULT_SYMBOL, info.INTEREST_MODEL);
     }
   }
 };

@@ -110,6 +110,17 @@ export class ConfigFileHelper {
     return this.config;
   }
 
+  public setVaultInterestModel(vaultNameOrSymbolOrAddress: string, newInterestModelAddress: string) {
+    console.log(`>> Updating config on Vaults[${vaultNameOrSymbolOrAddress}] > InterestModel`);
+    const vaultIdx = this._findVaultIdxByNameOrSymbolOrAddress(vaultNameOrSymbolOrAddress);
+    if (vaultIdx === -1) throw Error("[ConfigFileHelper::setVaultInterestModelOnKey]: Vault not found");
+    this.config.Vaults[vaultIdx]!.tripleSlopeModel = newInterestModelAddress;
+    console.log("✅ Done");
+
+    this._writeConfigFile(this.config);
+    return this.config;
+  }
+
   // Workers
   public addOrSetWorkerStrategy(workerAddress: string, key: keyof Strategies, value: string) {
     console.log(`>> Updating config on Worker[${workerAddress}] > Strategy > ${key}`);

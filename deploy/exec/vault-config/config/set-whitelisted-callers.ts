@@ -30,18 +30,18 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "mainnet_l8x_usdtbnb_bsw1_whitelisted_callers";
+  const TITLE = "mainnet_l8x_busdbnb_pcs1_whitelisted_callers";
   const TARGETED_VAULT_CONFIG: Array<IInput> = [
     {
       VAULT_SYMBOL: "ibWBNB",
-      WHITELISTED_CALLERS: ["0x979123f5550f502283997Fe9A4DeD8D45de120E3"],
+      WHITELISTED_CALLERS: ["0xE246e23869122E97D8fe2911aB9F28627BBa4e73"],
       IS_ENABLE: true,
     },
-    // {
-    //   VAULT_SYMBOL: "ibBUSD",
-    //   WHITELISTED_CALLERS: ["0x69fd58bac467eeeEE42258B7E569be36266A43C5"],
-    //   IS_ENABLE: true,
-    // },
+    {
+      VAULT_SYMBOL: "ibBUSD",
+      WHITELISTED_CALLERS: ["0xE246e23869122E97D8fe2911aB9F28627BBa4e73"],
+      IS_ENABLE: true,
+    },
     // {
     //   VAULT_SYMBOL: "ibTUSD",
     //   WHITELISTED_CALLERS: ["0x7e9BCDc9133036209aCFcDb6DF007b602D0C617F"],
@@ -67,13 +67,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     //   WHITELISTED_CALLERS: ["0x7e9BCDc9133036209aCFcDb6DF007b602D0C617F"],
     //   IS_ENABLE: true,
     // },
-    {
-      VAULT_SYMBOL: "ibUSDT",
-      WHITELISTED_CALLERS: ["0x979123f5550f502283997Fe9A4DeD8D45de120E3"],
-      IS_ENABLE: true,
-    },
+    // {
+    //   VAULT_SYMBOL: "ibUSDT",
+    //   WHITELISTED_CALLERS: ["0x979123f5550f502283997Fe9A4DeD8D45de120E3"],
+    //   IS_ENABLE: true,
+    // },
   ];
-  const EXACT_ETA = "1677126600";
+  const EXACT_ETA = "1678338000";
 
   const config = getConfig();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
