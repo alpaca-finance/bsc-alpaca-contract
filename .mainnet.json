@@ -4,6 +4,7 @@
   "Timelock": "0x2D5408f2287BF9F9B05404794459a846651D0a59",
   "Shield": "0x1963f84395C8cf464E5483dE7f2f434c3F1b4656",
   "MultiCall": "0x41263cba59eb80dc200f3e2544eda4ed6a90e76c",
+  "MutliCall3": "0xcA11bde05977b3631167028862bE2a173976CA11",
   "AUSDStaking": "0x6F523Eb78B4493f7682B2Fed979821716E866507",
   "DeltaNeutralVaultHealthChecker": "0xbb3632Ff9C882BF09B85fd1F41df89a4853aBE4C",
   "MerkleDistributor": {
@@ -5067,10 +5068,7 @@
   ],
   "AutomatedVaultController": {
     "address": "0xfd0694a29871Ee629D51cF4079842382368f1e15",
-    "creditors": [
-      "0xeDdD248FEe5ff98e532c3A4087C83F6e376eEDa7",
-      "0xbd2A1cE2f31622664BdfA5e31b94dB97be051E24"
-    ]
+    "creditors": ["0xeDdD248FEe5ff98e532c3A4087C83F6e376eEDa7", "0xbd2A1cE2f31622664BdfA5e31b94dB97be051E24"]
   },
   "NFT": {
     "NFTStaking": "0xe5d84fFB55f3276345f8C1F6EE17bf06935867f2",
