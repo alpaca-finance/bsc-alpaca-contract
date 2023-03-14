@@ -78,25 +78,42 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const shortWorkerInfos: IDeltaNeutralPCSWorkerInput[] = [
     {
-      VAULT_SYMBOL: "ibUSDT",
-      WORKER_NAME: "WBNB-USDT 6x PCS1 DirectionalPancakeswapWorker",
+      VAULT_SYMBOL: "ibBUSD",
+      WORKER_NAME: "WBNB-BUSD L8x PCS1 DeltaNeutralPancakeswapWorker",
       REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
-      POOL_ID: 13,
+      POOL_ID: 3,
       REINVEST_BOUNTY_BPS: "1500",
-      REINVEST_PATH: ["CAKE", "USDT"],
+      REINVEST_PATH: ["CAKE", "BUSD"],
       REINVEST_THRESHOLD: "0",
       BENEFICIAL_VAULT: {
         BENEFICIAL_VAULT_BPS: "5333",
         BENEFICIAL_VAULT_ADDRESS: "0x08B5A95cb94f926a8B620E87eE92e675b35afc7E",
         REWARD_PATH: ["CAKE", "BUSD"],
       },
-      WORK_FACTOR: "9000",
+      WORK_FACTOR: "9500",
+      KILL_FACTOR: "0",
+      MAX_PRICE_DIFF: "10500",
+    },
+    {
+      VAULT_SYMBOL: "ibWBNB",
+      WORKER_NAME: "BUSD-WBNB L8x PCS1 DeltaNeutralPancakeswapWorker",
+      REINVEST_BOT: "0xe45216Ac4816A5Ec5378B1D13dE8aA9F262ce9De",
+      POOL_ID: 3,
+      REINVEST_BOUNTY_BPS: "1500",
+      REINVEST_PATH: ["CAKE", "WBNB"],
+      REINVEST_THRESHOLD: "0",
+      BENEFICIAL_VAULT: {
+        BENEFICIAL_VAULT_BPS: "5333",
+        BENEFICIAL_VAULT_ADDRESS: "0x08B5A95cb94f926a8B620E87eE92e675b35afc7E",
+        REWARD_PATH: ["CAKE", "BUSD"],
+      },
+      WORK_FACTOR: "9500",
       KILL_FACTOR: "0",
       MAX_PRICE_DIFF: "10500",
     },
   ];
-  const TITLE = "mainnet_bull6x_wbnbusdt_pcs1_worker";
-  const EXACT_ETA = "1656568233";
+  const TITLE = "mainnet_l8x_busdwbnb_pcs1_worker";
+  const EXACT_ETA = "1678338000";
 
   const deployer = await getDeployer();
   const chainId = await deployer.getChainId();

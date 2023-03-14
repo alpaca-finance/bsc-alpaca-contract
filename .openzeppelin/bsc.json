@@ -1384,6 +1384,41 @@
       "address": "0x63eece12e6EC9DD0A1B53F0Df924EeD744077529",
       "txHash": "0xb9b0ea06f5cf6559f3c70df9f47f8d584add5b27fb135d6d122dc26792695a35",
       "kind": "transparent"
+    },
+    {
+      "address": "0x89967365c52353AcdD7E76e6958e709F661C59a1",
+      "txHash": "0xecf3b45f1c8d1040c44333c394e109705c81e2be0604e7c5e6a6e71db6f270a8",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x93149dfa3f3B1734b844baD57efF19d2160a6244",
+      "txHash": "0x9ecbf5fa0349d81b6756686ec03259a143ef0e7ada19874b4afdff1043eca9c9",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xbe7D182e0B5633D41736257c594F283987c8df0D",
+      "txHash": "0x897bce9a6217f1d2a47491873e067fb4df37d26808ad7bb4197778bc7e6c8162",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xB8F416cf5dd81C75A62827Ce56B70a00F0cb428C",
+      "txHash": "0x19480f4984611c29af88afd04933e0a3d605f41199b06799d79e0c6640701388",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xFA8d3B7D72455270Ec02548D317270a0aeC2D7FC",
+      "txHash": "0xfc366159e7bed126985b9bd8b12ebbf82604c1596412f09404bfa59bebf0240f",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xE246e23869122E97D8fe2911aB9F28627BBa4e73",
+      "txHash": "0x1575788f7b9eb60396148369d2eaa64690501fae6e8cf969e8d7d2e33f91d6de",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x5C6801Ef7baB6f17C8429b3Ce17ac3c0FC923F20",
+      "txHash": "0xf6a46bf2f9d0fd09ec7b545fa0ec535702894224c0e3d3c515101bf93bb837e1",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -32916,6 +32951,362 @@
           },
           "t_string_storage": {
             "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "30c191bf15ef803a6ddf0bec3407145baa3849055a4f36dd62c8e5a3e0307460": {
+      "address": "0xbE82A4195740f18586aBBA28eF5C838696ECBfFd",
+      "txHash": "0x5cdda282f89a96b8d1f49f4c85480015db840be77beba964a3e59bded74582a5",
+      "layout": {
+        "solcVersion": "0.8.10",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "_status",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_uint256",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:80"
+          },
+          {
+            "label": "masterChef",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_contract(IPancakeMasterChef)7545",
+            "contract": "DeltaNeutralPancakeMCV2Worker02",
+            "src": "solidity/contracts/8.10/protocol/workers/pancakeswap/DeltaNeutralPancakeMCV2Worker02.sol:90"
+          },
+          {
+            "label": "factory",
+            "offset": 0,
+            "slot": "152",
+            "type": "t_contract(IPancakeFactory)7474",
+            "contract": "DeltaNeutralPancakeMCV2Worker02",
+            "src": "solidity/contracts/8.10/protocol/workers/pancakeswap/DeltaNeutralPancakeMCV2Worker02.sol:92"
+          },
+          {
+            "label": "router",
+            "offset": 0,
+            "slot": "153",
+            "type": "t_contract(IPancakeRouter02)8246",
+            "contract": "DeltaNeutralPancakeMCV2Worker02",
+            "src": "solidity/contracts/8.10/protocol/workers/pancakeswap/DeltaNeutralPancakeMCV2Worker02.sol:92"
+          },
+          {
+            "label": "lpToken",
+            "offset": 0,
+            "slot": "154",
+            "type": "t_contract(IPancakePair)7856",
+            "contract": "DeltaNeutralPancakeMCV2Worker02",
+            "src": "solidity/contracts/8.10/protocol/workers/pancakeswap/DeltaNeutralPancakeMCV2Worker02.sol:93"
+          },
+          {
+            "label": "priceOracle",
+            "offset": 0,
+            "slot": "155",
+            "type": "t_contract(IDeltaNeutralOracle)6327",
+            "contract": "DeltaNeutralPancakeMCV2Worker02",
+            "src": "solidity/contracts/8.10/protocol/workers/pancakeswap/DeltaNeutralPancakeMCV2Worker02.sol:95"
+          },
+          {
+            "label": "wNative",
+            "offset": 0,
+            "slot": "156",
+            "type": "t_address",
+            "contract": "DeltaNeutralPancakeMCV2Worker02",
+            "src": "solidity/contracts/8.10/protocol/workers/pancakeswap/DeltaNeutralPancakeMCV2Worker02.sol:96"
+          },
+          {
+            "label": "baseToken",
+            "offset": 0,
+            "slot": "157",
+            "type": "t_address",
+            "contract": "DeltaNeutralPancakeMCV2Worker02",
+            "src": "solidity/contracts/8.10/protocol/workers/pancakeswap/DeltaNeutralPancakeMCV2Worker02.sol:96"
+          },
+          {
+            "label": "farmingToken",
+            "offset": 0,
+            "slot": "158",
+            "type": "t_address",
+            "contract": "DeltaNeutralPancakeMCV2Worker02",
+            "src": "solidity/contracts/8.10/protocol/workers/pancakeswap/DeltaNeutralPancakeMCV2Worker02.sol:98"
+          },
+          {
+            "label": "cake",
+            "offset": 0,
+            "slot": "159",
+            "type": "t_address",
+            "contract": "DeltaNeutralPancakeMCV2Worker02",
+            "src": "solidity/contracts/8.10/protocol/workers/pancakeswap/DeltaNeutralPancakeMCV2Worker02.sol:100"
+          },
+          {
+            "label": "operator",
+            "offset": 0,
+            "slot": "160",
+            "type": "t_address",
+            "contract": "DeltaNeutralPancakeMCV2Worker02",
+            "src": "solidity/contracts/8.10/protocol/workers/pancakeswap/DeltaNeutralPancakeMCV2Worker02.sol:101"
+          },
+          {
+            "label": "pid",
+            "offset": 0,
+            "slot": "161",
+            "type": "t_uint256",
+            "contract": "DeltaNeutralPancakeMCV2Worker02",
+            "src": "solidity/contracts/8.10/protocol/workers/pancakeswap/DeltaNeutralPancakeMCV2Worker02.sol:102"
+          },
+          {
+            "label": "okStrats",
+            "offset": 0,
+            "slot": "162",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "DeltaNeutralPancakeMCV2Worker02",
+            "src": "solidity/contracts/8.10/protocol/workers/pancakeswap/DeltaNeutralPancakeMCV2Worker02.sol:103"
+          },
+          {
+            "label": "addStrat",
+            "offset": 0,
+            "slot": "163",
+            "type": "t_contract(IStrategy)8259",
+            "contract": "DeltaNeutralPancakeMCV2Worker02",
+            "src": "solidity/contracts/8.10/protocol/workers/pancakeswap/DeltaNeutralPancakeMCV2Worker02.sol:105"
+          },
+          {
+            "label": "reinvestBountyBps",
+            "offset": 0,
+            "slot": "164",
+            "type": "t_uint256",
+            "contract": "DeltaNeutralPancakeMCV2Worker02",
+            "src": "solidity/contracts/8.10/protocol/workers/pancakeswap/DeltaNeutralPancakeMCV2Worker02.sol:105"
+          },
+          {
+            "label": "maxReinvestBountyBps",
+            "offset": 0,
+            "slot": "165",
+            "type": "t_uint256",
+            "contract": "DeltaNeutralPancakeMCV2Worker02",
+            "src": "solidity/contracts/8.10/protocol/workers/pancakeswap/DeltaNeutralPancakeMCV2Worker02.sol:106"
+          },
+          {
+            "label": "okReinvestors",
+            "offset": 0,
+            "slot": "166",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "DeltaNeutralPancakeMCV2Worker02",
+            "src": "solidity/contracts/8.10/protocol/workers/pancakeswap/DeltaNeutralPancakeMCV2Worker02.sol:107"
+          },
+          {
+            "label": "whitelistCallers",
+            "offset": 0,
+            "slot": "167",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "DeltaNeutralPancakeMCV2Worker02",
+            "src": "solidity/contracts/8.10/protocol/workers/pancakeswap/DeltaNeutralPancakeMCV2Worker02.sol:109"
+          },
+          {
+            "label": "reinvestThreshold",
+            "offset": 0,
+            "slot": "168",
+            "type": "t_uint256",
+            "contract": "DeltaNeutralPancakeMCV2Worker02",
+            "src": "solidity/contracts/8.10/protocol/workers/pancakeswap/DeltaNeutralPancakeMCV2Worker02.sol:112"
+          },
+          {
+            "label": "reinvestPath",
+            "offset": 0,
+            "slot": "169",
+            "type": "t_array(t_address)dyn_storage",
+            "contract": "DeltaNeutralPancakeMCV2Worker02",
+            "src": "solidity/contracts/8.10/protocol/workers/pancakeswap/DeltaNeutralPancakeMCV2Worker02.sol:113"
+          },
+          {
+            "label": "treasuryAccount",
+            "offset": 0,
+            "slot": "170",
+            "type": "t_address",
+            "contract": "DeltaNeutralPancakeMCV2Worker02",
+            "src": "solidity/contracts/8.10/protocol/workers/pancakeswap/DeltaNeutralPancakeMCV2Worker02.sol:114"
+          },
+          {
+            "label": "treasuryBountyBps",
+            "offset": 0,
+            "slot": "171",
+            "type": "t_uint256",
+            "contract": "DeltaNeutralPancakeMCV2Worker02",
+            "src": "solidity/contracts/8.10/protocol/workers/pancakeswap/DeltaNeutralPancakeMCV2Worker02.sol:115"
+          },
+          {
+            "label": "beneficialVault",
+            "offset": 0,
+            "slot": "172",
+            "type": "t_contract(IVault)8417",
+            "contract": "DeltaNeutralPancakeMCV2Worker02",
+            "src": "solidity/contracts/8.10/protocol/workers/pancakeswap/DeltaNeutralPancakeMCV2Worker02.sol:115"
+          },
+          {
+            "label": "beneficialVaultBountyBps",
+            "offset": 0,
+            "slot": "173",
+            "type": "t_uint256",
+            "contract": "DeltaNeutralPancakeMCV2Worker02",
+            "src": "solidity/contracts/8.10/protocol/workers/pancakeswap/DeltaNeutralPancakeMCV2Worker02.sol:116"
+          },
+          {
+            "label": "rewardPath",
+            "offset": 0,
+            "slot": "174",
+            "type": "t_array(t_address)dyn_storage",
+            "contract": "DeltaNeutralPancakeMCV2Worker02",
+            "src": "solidity/contracts/8.10/protocol/workers/pancakeswap/DeltaNeutralPancakeMCV2Worker02.sol:118"
+          },
+          {
+            "label": "buybackAmount",
+            "offset": 0,
+            "slot": "175",
+            "type": "t_uint256",
+            "contract": "DeltaNeutralPancakeMCV2Worker02",
+            "src": "solidity/contracts/8.10/protocol/workers/pancakeswap/DeltaNeutralPancakeMCV2Worker02.sol:120"
+          },
+          {
+            "label": "totalLpBalance",
+            "offset": 0,
+            "slot": "176",
+            "type": "t_uint256",
+            "contract": "DeltaNeutralPancakeMCV2Worker02",
+            "src": "solidity/contracts/8.10/protocol/workers/pancakeswap/DeltaNeutralPancakeMCV2Worker02.sol:120"
+          },
+          {
+            "label": "masterChefV2",
+            "offset": 0,
+            "slot": "177",
+            "type": "t_contract(IPancakeMasterChefV2)7614",
+            "contract": "DeltaNeutralPancakeMCV2Worker02",
+            "src": "solidity/contracts/8.10/protocol/workers/pancakeswap/DeltaNeutralPancakeMCV2Worker02.sol:121"
+          },
+          {
+            "label": "pendingCake",
+            "offset": 0,
+            "slot": "178",
+            "type": "t_uint256",
+            "contract": "DeltaNeutralPancakeMCV2Worker02",
+            "src": "solidity/contracts/8.10/protocol/workers/pancakeswap/DeltaNeutralPancakeMCV2Worker02.sol:124"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IDeltaNeutralOracle)6327": {
+            "label": "contract IDeltaNeutralOracle",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IPancakeFactory)7474": {
+            "label": "contract IPancakeFactory",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IPancakeMasterChef)7545": {
+            "label": "contract IPancakeMasterChef",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IPancakeMasterChefV2)7614": {
+            "label": "contract IPancakeMasterChefV2",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IPancakePair)7856": {
+            "label": "contract IPancakePair",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IPancakeRouter02)8246": {
+            "label": "contract IPancakeRouter02",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IStrategy)8259": {
+            "label": "contract IStrategy",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IVault)8417": {
+            "label": "contract IVault",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
             "numberOfBytes": "32"
           },
           "t_uint256": {
