@@ -1452,7 +1452,7 @@
       "baseToken": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
       "debtToken": "0x6A3487CE84FD83c66B83e598b18412bD1D2A55F9",
       "config": "0x53dbb71303ad0F9AFa184B8f7147F9f12Bb5Dc01",
-      "tripleSlopeModel": "0x97c895f5c206ec03Fce4e9C65966ed21B1c1A260",
+      "tripleSlopeModel": "0x25e1A59d7Cb79A691983a546556E434A1AE5BDCe",
       "StrategyAddTwoSidesOptimal": {
         "PancakeswapDnx": "0x57cEc659f0355054A37c36eaF4855AE9CCE7aeB5",
         "BiswapDnx": "0x609a5F07143d6aCd97803Ac987165617Ab035726",
@@ -2557,7 +2557,7 @@
       "baseToken": "0xe9e7cea3dedca5984780bafc599bd69add087d56",
       "debtToken": "0x02dA7035beD00ae645516bDb0c282A7fD4AA7442",
       "config": "0xd7b805E88c5F52EDE71a9b93F7048c8d632DBEd4",
-      "tripleSlopeModel": "0xA579485eD9cD57790Ad79D8448740459cEcd8dA9",
+      "tripleSlopeModel": "0xAB7B245f9265F0310998740F6585Ca8eD84896a9",
       "StrategyAddTwoSidesOptimal": {
         "PancakeswapDnx": "0xcD2829293fd320Dc3bEDcd998743ab9Fe067E5C5",
         "BiswapDnx": "0x",
@@ -3231,7 +3231,7 @@
       "baseToken": "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
       "debtToken": "0x92110af24d280E412b3a89691f6B0B9E09258fe6",
       "config": "0x724E6748Cb1d52Ec45b77Fb82a0750A2B759c038",
-      "tripleSlopeModel": "0x50102793FCD018b479CC90887b49888D0B4c7AbA",
+      "tripleSlopeModel": "0x049eE7f41417fCc0f7Dd089f8dE7079030A51f3E",
       "StrategyAddTwoSidesOptimal": {
         "PancakeswapDnx": "0x",
         "BiswapDnx": "0xFC07B87FeD57Bba2E8Ee3fCA9Ae86217D48b349d",
@@ -3560,7 +3560,7 @@
       "baseToken": "0x8F0528cE5eF7B51152A59745bEfDD91D97091d2F",
       "debtToken": "0x11362eA137A799298306123EEa014b7809A9DB40",
       "config": "0x8F8Ed54901b90c89C5817B7F67a425c0e6091284",
-      "tripleSlopeModel": "0xADcfBf2e8470493060FbE0A0aFAC66d2cB028e9c",
+      "tripleSlopeModel": "0xa79Ec28a02Ecb05Fb15fEc5Ec83672a93c4f8313",
       "StrategyAddTwoSidesOptimal": {
         "PancakeswapDnx": "0x",
         "BiswapDnx": "0x",
@@ -3632,7 +3632,7 @@
       "baseToken": "0x55d398326f99059ff775485246999027b3197955",
       "debtToken": "0x3B4fBB2b8536AB144048aBaFdd27eaF52f0fa4DC",
       "config": "0x709b102EF4b605197C75CfEA45F455A4e7ce065B",
-      "tripleSlopeModel": "0xd23CEbF0845404e629Fa6947261137E1Ff96FB7a",
+      "tripleSlopeModel": "0x0267231E83F0d0518bE27CC0E0FE398E9e5468cC",
       "StrategyAddTwoSidesOptimal": {
         "PancakeswapDnx": "0xC4d07C82657315A49948F1e3efbd40397EbE1a45",
         "BiswapDnx": "0x0963d18D9039279e157f0f12651efA7d8ED5b64e",
@@ -4208,7 +4208,7 @@
       "baseToken": "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c",
       "debtToken": "0x262de19B5fde97eD5bdBa10d630E34Fb9a1b59B2",
       "config": "0x6cc80Df354415fA0FfeF78555a06C1DdE7549FB8",
-      "tripleSlopeModel": "0xADcfBf2e8470493060FbE0A0aFAC66d2cB028e9c",
+      "tripleSlopeModel": "0xa79Ec28a02Ecb05Fb15fEc5Ec83672a93c4f8313",
       "StrategyAddTwoSidesOptimal": {
         "PancakeswapDnx": "0xcF118aD851880031F3d7e513ff6AD2f9b5c3470F",
         "BiswapDnx": "0x",
@@ -4487,7 +4487,7 @@
       "baseToken": "0x14016e85a25aeb13065688cafb43044c2ef86784",
       "debtToken": "0xb76ED435B93477511e4604c441550A23d5aeAF84",
       "config": "0x0c1F049ebE3E0537C7E7ce428Bb468d5F6bF83b3",
-      "tripleSlopeModel": "0xADcfBf2e8470493060FbE0A0aFAC66d2cB028e9c",
+      "tripleSlopeModel": "0xa79Ec28a02Ecb05Fb15fEc5Ec83672a93c4f8313",
       "StrategyAddTwoSidesOptimal": {
         "PancakeswapDnx": "0x",
         "BiswapDnx": "0x",
@@ -4559,7 +4559,7 @@
       "baseToken": "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
       "debtToken": "0x426BdFE8cAB2c4720B36ABBdc3ff08144BC361f3",
       "config": "0x01cf56544A303025C77c76cA77982cbd8655fCBC",
-      "tripleSlopeModel": "0xADcfBf2e8470493060FbE0A0aFAC66d2cB028e9c",
+      "tripleSlopeModel": "0xa79Ec28a02Ecb05Fb15fEc5Ec83672a93c4f8313",
       "StrategyAddTwoSidesOptimal": {
         "PancakeswapDnx": "0x",
         "BiswapDnx": "0x",
@@ -5051,8 +5051,8 @@
       "stableDeltaWorker": "0xFA8d3B7D72455270Ec02548D317270a0aeC2D7FC",
       "oracle": "0x08EA5fB66EA41f236E3001d2655e43A1E735787F",
       "gateway": "0x5C6801Ef7baB6f17C8429b3Ce17ac3c0FC923F20",
-      "assetVaultPosId": "0",
-      "stableVaultPosId": "0"
+      "assetVaultPosId": "57493",
+      "stableVaultPosId": "49891"
     }
   ],
   "Creditors": [

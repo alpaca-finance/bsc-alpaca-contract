@@ -23,21 +23,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const VAULT_LIMIT_INPUTS: Array<ISetVaultLimitInput> = [
     {
-      vaultSymbol: "n3x-BNBUSDT-PCS1",
-      limit: ethers.utils.parseEther("3000000"),
+      vaultSymbol: "L8x-USDTBNB-PCS1",
+      limit: ethers.utils.parseEther("52500000"),
     },
-    {
-      vaultSymbol: "n3x-BNBBUSD-PCS1",
-      limit: ethers.utils.parseEther("3000000"),
-    },
-    {
-      vaultSymbol: "n8x-BNBUSDT-PCS1",
-      limit: ethers.utils.parseEther("12500000"),
-    },
-    {
-      vaultSymbol: "n8x-BNBUSDT-PCS2",
-      limit: ethers.utils.parseEther("12500000"),
-    },
+    // {
+    //   vaultSymbol: "n8x-BNBUSDT-PCS1",
+    //   limit: ethers.utils.parseEther("20000000"),
+    // },
+    // {
+    //   vaultSymbol: "n8x-BNBUSDT-PCS2",
+    //   limit: ethers.utils.parseEther("20000000"),
+    // },
   ];
 
   const deployer = await getDeployer();

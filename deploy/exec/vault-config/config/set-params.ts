@@ -47,22 +47,47 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLTE = "update_wbnb_busd_usdt_triple_slope_model";
+  const TITLTE = "update_triple_slope";
   const NEW_PARAMS: Array<SetParamsInput> = [
     {
+      VAULT_SYMBOL: "ibALPACA",
+      INTEREST_MODEL: "0xa79Ec28a02Ecb05Fb15fEc5Ec83672a93c4f8313",
+      EXACT_ETA: "1678343400",
+    },
+    {
       VAULT_SYMBOL: "ibWBNB",
-      INTEREST_MODEL: "0x97c895f5c206ec03Fce4e9C65966ed21B1c1A260",
-      EXACT_ETA: "1666080000",
+      INTEREST_MODEL: "0x25e1A59d7Cb79A691983a546556E434A1AE5BDCe",
+      EXACT_ETA: "1678343400",
     },
     {
       VAULT_SYMBOL: "ibBUSD",
-      INTEREST_MODEL: "0xA579485eD9cD57790Ad79D8448740459cEcd8dA9",
-      EXACT_ETA: "1666080000",
+      INTEREST_MODEL: "0xAB7B245f9265F0310998740F6585Ca8eD84896a9",
+      EXACT_ETA: "1678343400",
     },
     {
       VAULT_SYMBOL: "ibUSDT",
-      INTEREST_MODEL: "0xd23CEbF0845404e629Fa6947261137E1Ff96FB7a",
-      EXACT_ETA: "1666080000",
+      INTEREST_MODEL: "0x0267231E83F0d0518bE27CC0E0FE398E9e5468cC",
+      EXACT_ETA: "1678343400",
+    },
+    {
+      VAULT_SYMBOL: "ibUSDC",
+      INTEREST_MODEL: "0xa79Ec28a02Ecb05Fb15fEc5Ec83672a93c4f8313",
+      EXACT_ETA: "1678343400",
+    },
+    {
+      VAULT_SYMBOL: "ibTUSD",
+      INTEREST_MODEL: "0xa79Ec28a02Ecb05Fb15fEc5Ec83672a93c4f8313",
+      EXACT_ETA: "1678343400",
+    },
+    {
+      VAULT_SYMBOL: "ibBTCB",
+      INTEREST_MODEL: "0xa79Ec28a02Ecb05Fb15fEc5Ec83672a93c4f8313",
+      EXACT_ETA: "1678343400",
+    },
+    {
+      VAULT_SYMBOL: "ibETH",
+      INTEREST_MODEL: "0x049eE7f41417fCc0f7Dd089f8dE7079030A51f3E",
+      EXACT_ETA: "1678343400",
     },
   ];
 
