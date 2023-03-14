@@ -2,6 +2,7 @@
   "name": "@alpaca-finance/alpaca-contract",
   "version": "1.2.46",
   "scripts": {
+    "prepublish": "yarn build && rm ./typechain/index.*",
     "build": "yarn run build:cjs",
     "build:cjs": "tsc -p tsconfig.cjs.json",
     "compile5": "hardhat typechain --config hardhat.config.5.ts",
