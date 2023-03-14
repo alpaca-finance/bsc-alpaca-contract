@@ -3,6 +3,7 @@ export interface Config {
   ProxyAdmin: string;
   Timelock: string;
   MultiCall: string;
+  MultiCall3: string;
   AUSDStaking?: string;
   Shield?: string;
   RevenueTreasury?: string;

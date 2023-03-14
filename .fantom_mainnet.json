@@ -3,6 +3,7 @@
   "ProxyAdmin": "0xA625AB01B08ce023B2a342Dbb12a16f2C8489A8F",
   "Timelock": "0xafD1eb025bf584a11112A3FC790bd715eD9A98b1",
   "MultiCall": "0x2D5408f2287BF9F9B05404794459a846651D0a59",
+  "MutliCall3": "0xcA11bde05977b3631167028862bE2a173976CA11",
   "DeltaNeutralVaultHealthChecker": "",
   "RevenueTreasury": "0x795997Ad55AcFc27148E86408355eC08cA1424A0",
   "MiniFL": {
