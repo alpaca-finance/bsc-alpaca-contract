@@ -40,7 +40,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(`>> Set SetwhitelistedRepurchasers for config : ${config}`);
     const deltaVaultConfig = DeltaNeutralVaultConfig02__factory.connect(config, deployer);
 
-    await deltaVaultConfig.setwhitelistedRepurchasers(inputParams.TARGET_ADDRESS, inputParams.OK, {
+    await deltaVaultConfig.setWhitelistedRepurchasers(inputParams.TARGET_ADDRESS, inputParams.OK, {
       ...ops,
       nonce: nonce++,
     });

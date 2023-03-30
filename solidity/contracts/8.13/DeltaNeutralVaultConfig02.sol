@@ -284,7 +284,7 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
   /// @dev Must only be called by owner.
   /// @param _callers addresses to be whitelisted.
   /// @param _ok The new ok flag for callers.
-  function setwhitelistedRepurchasers(address[] calldata _callers, bool _ok) external onlyOwner {
+  function setWhitelistedRepurchasers(address[] calldata _callers, bool _ok) external onlyOwner {
     for (uint256 _idx = 0; _idx < _callers.length; _idx++) {
       whitelistedRepurchasers[_callers[_idx]] = _ok;
       emit LogSetWhitelistedRepurchasers(msg.sender, _callers[_idx], _ok);
@@ -351,10 +351,10 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
   /// @dev Must only be called by owner.
   /// @param _newAlpacaReinvestFeeTreasury The new address to received ALPACA reinvest fee
   /// @param _newAlpacaBountyBps Fee from reinvesting ALPACA to positions.
-  function setAlpacaBountyConfig(address _newAlpacaReinvestFeeTreasury, uint256 _newAlpacaBountyBps)
-    external
-    onlyOwner
-  {
+  function setAlpacaBountyConfig(
+    address _newAlpacaReinvestFeeTreasury,
+    uint256 _newAlpacaBountyBps
+  ) external onlyOwner {
     if (_newAlpacaBountyBps > MAX_ALPACA_BOUNTY_BPS) {
       revert DeltaNeutralVaultConfig_TooMuchBounty(_newAlpacaBountyBps);
     }
@@ -369,10 +369,10 @@ contract DeltaNeutralVaultConfig02 is IDeltaNeutralVaultConfig02, OwnableUpgrade
   /// @dev Must only be called by owner.
   /// @param _newAlpacaBeneficiary The new address to received ALPACA reinvest fee
   /// @param _newAlpacaBeneficiaryBps Fee from reinvesting ALPACA to positions.
-  function setAlpacaBeneficiaryConfig(address _newAlpacaBeneficiary, uint256 _newAlpacaBeneficiaryBps)
-    external
-    onlyOwner
-  {
+  function setAlpacaBeneficiaryConfig(
+    address _newAlpacaBeneficiary,
+    uint256 _newAlpacaBeneficiaryBps
+  ) external onlyOwner {
     if (_newAlpacaBeneficiaryBps > MAX_ALPACA_BENEFICIARY_BPS) {
       revert DeltaNeutralVaultConfig_TooMuchBounty(_newAlpacaBeneficiaryBps);
     }
