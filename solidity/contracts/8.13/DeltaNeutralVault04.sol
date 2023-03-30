@@ -500,13 +500,14 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     }
 
     int256 _assetExposure = getExposure();
+    address _tokenOut;
     if (_assetExposure > 0) {
       if (_tokenIn != stableToken) revert DeltaNeutralVault04_InvalidRepurchaseTokenIn();
+      _tokenOut = assetToken;
     } else {
       if (_tokenIn != assetToken) revert DeltaNeutralVault04_InvalidRepurchaseTokenIn();
+      _tokenOut = stableToken;
     }
-
-    address _tokenOut = _tokenIn == stableToken ? assetToken : stableToken;
 
     // _amountOutBeforeBonus = TokenInPrice * amountIn / TokenOutPrice
     uint256 _amountOutBeforeBonus = FullMath.mulDiv(_amountIn, _getTokenPrice(_tokenIn), _getTokenPrice(_tokenOut));
@@ -517,10 +518,11 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
       (_amountOutBeforeBonus * (10**ERC20Upgradeable(_tokenOut).decimals())) /
       (10**ERC20Upgradeable(_tokenIn).decimals());
 
-    if (
-      (_tokenOut == assetToken ? _amountOutBeforeBonus : _amountIn) >
-      uint256(_assetExposure >= 0 ? _assetExposure : (_assetExposure * -1))
-    ) revert DeltaNeutralVault04_NotEnoughExposure();
+    if (_assetExposure >= 0) {
+      if (_amountOutBeforeBonus > uint256(_assetExposure)) revert DeltaNeutralVault04_NotEnoughExposure();
+    } else {
+      if (_amountIn > uint256(_assetExposure * -1)) revert DeltaNeutralVault04_NotEnoughExposure();
+    }
 
     _amountOut = (_amountOutBeforeBonus * (MAX_BPS + config.getRepurchaseBonusBps())) / MAX_BPS;
 
