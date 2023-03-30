@@ -246,7 +246,11 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
   /// @param _to receiver address.
   /// @param _token token to transfer.
   /// @param _amount amount to transfer.
-  function _transferTokenToShareOwner(address _to, address _token, uint256 _amount) internal {
+  function _transferTokenToShareOwner(
+    address _to,
+    address _token,
+    uint256 _amount
+  ) internal {
     if (_token == config.getWrappedNativeAddr()) {
       address _relayer = config.getWNativeRelayer();
       SafeToken.safeTransfer(_token, _relayer, _amount);
@@ -276,7 +280,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
   /// @param _data The calldata to pass along to the proxy action for more working context.
   function deposit(
     uint256 _stableTokenAmount,
-    uint256 /*_assetTokenAmount*/,
+    uint256, /*_assetTokenAmount*/
     address _shareReceiver,
     uint256 _minShareReceive,
     bytes calldata _data
@@ -338,7 +342,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
   function withdraw(
     uint256 _shareAmount,
     uint256 _minStableTokenAmount,
-    uint256 /*_minAssetTokenAmount*/,
+    uint256, /*_minAssetTokenAmount*/
     bytes calldata _data
   ) external onlyEOAorWhitelisted collectFee nonReentrant returns (uint256) {
     if (_shareAmount == 0) revert DeltaNeutralVault04_InvalidShareAmount();
@@ -424,10 +428,10 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     emit LogRetarget(_equityBefore, _equityAfter);
   }
 
-  function _executeAndReturnEquityChange(
-    IExecutor _executor,
-    bytes memory _data
-  ) internal returns (uint256 _equityBefore, uint256 _equityAfter) {
+  function _executeAndReturnEquityChange(IExecutor _executor, bytes memory _data)
+    internal
+    returns (uint256 _equityBefore, uint256 _equityAfter)
+  {
     _equityBefore = totalEquityValue();
 
     // 1. rebalance executor exec
@@ -510,8 +514,8 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     // need to adjust the decimal to tokenOut's decimal
     // separate calculation in exchange of readability
     _amountOutBeforeBonus =
-      (_amountOutBeforeBonus * (10 ** ERC20Upgradeable(_tokenOut).decimals())) /
-      (10 ** ERC20Upgradeable(_tokenIn).decimals());
+      (_amountOutBeforeBonus * (10**ERC20Upgradeable(_tokenOut).decimals())) /
+      (10**ERC20Upgradeable(_tokenIn).decimals());
 
     if (
       (_tokenOut == assetToken ? _amountOutBeforeBonus : _amountIn) >
@@ -666,10 +670,11 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
   /// @notice Return equity change between two position
   /// @param _greaterPosition Position information that's expected to have higer value
   /// @param _lesserPosition Position information that's expected to have lower value
-  function _calculateEquityChange(
-    PositionInfo memory _greaterPosition,
-    PositionInfo memory _lesserPosition
-  ) internal view returns (uint256) {
+  function _calculateEquityChange(PositionInfo memory _greaterPosition, PositionInfo memory _lesserPosition)
+    internal
+    view
+    returns (uint256)
+  {
     uint256 _lpChange = (_greaterPosition.stableLpAmount + _greaterPosition.assetLpAmount) -
       (_lesserPosition.stableLpAmount + _lesserPosition.assetLpAmount);
 
@@ -683,7 +688,11 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
   /// @param _action actions to execute.
   /// @param _value Native token amount.
   /// @param _data The calldata to pass along for more working context.
-  function execute(uint8 _action, uint256 _value, bytes memory _data) external {
+  function execute(
+    uint8 _action,
+    uint256 _value,
+    bytes memory _data
+  ) external {
     if (!config.isExecutor(msg.sender)) {
       revert DeltaNeutralVault04_Unauthorized(msg.sender);
     }
@@ -756,7 +765,7 @@ contract DeltaNeutralVault04 is IDeltaNeutralStruct, ERC20Upgradeable, Reentranc
     uint256 _decimals = ERC20Upgradeable(_token).decimals();
     if (_decimals > 18) revert DeltaNeutralVault04_UnsupportedDecimals(_decimals);
     if (_decimals == 18) return 1;
-    uint256 _conversionFactor = 10 ** (18 - _decimals);
+    uint256 _conversionFactor = 10**(18 - _decimals);
     return _conversionFactor;
   }
 
