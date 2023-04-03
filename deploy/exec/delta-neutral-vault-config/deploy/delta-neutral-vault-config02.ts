@@ -150,7 +150,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   await deltaNeutralVaultConfig.setRepurchaseBonusBps(REPURCHASE_BONUS, { nonce: nonce++, gasPrice: fastGasPrice });
 
   console.log(">> Setting Whitelist repurchasers");
-  await deltaNeutralVaultConfig.setwhitelistedRepurchasers(WHITELIST_REPURCHASE, true, {
+  await deltaNeutralVaultConfig.setWhitelistedRepurchasers(WHITELIST_REPURCHASE, true, {
     nonce: nonce++,
     gasPrice: fastGasPrice,
   });
