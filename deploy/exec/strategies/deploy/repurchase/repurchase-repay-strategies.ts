@@ -18,7 +18,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const NEW_PARAMS = [
     {
-      WHITELIST_WORKERS: ["0x07767daF4e84bDAaBf3A72c80cec8C8Eb962f3Ae", "0x54D3218787060463EEb944fa01b0cbE745Ef4DB5"],
+      WHITELIST_WORKERS: [
+        "0x792E8192F2fbdBb5c1e36F312760Fe01D0d7aB92",
+        "0xceCD803b048b66a75bc64f8AA8139cAB97c421C8",
+        "0x0e807E2F50dfe8616636083Ba5ecef97280338cf",
+        "0xBF94404D6ad9986532d25950585e5855b4c30d2c",
+      ],
     },
   ];
 

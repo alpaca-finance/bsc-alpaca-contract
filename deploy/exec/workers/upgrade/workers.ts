@@ -84,15 +84,20 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const fileName = "upgrade-stkBNB_WBNB-disabled-liquidation";
+  const fileName = "upgrade-DeltaNeutralSpookyMCV2Worker03";
   const factories: Array<FactoryMap> = [
     {
-      workerType: "PancakeswapWorker",
-      newVersion: "PancakeswapV2MCV2Worker02DisableLiquidation",
+      workerType: "DeltaNeutralSpookyWorker",
+      newVersion: "DeltaNeutralSpookyMCV2Worker03",
     },
   ];
-  const workerInputs: IWorkerInputs = ["stkBNB-WBNB PancakeswapWorker"];
-  const EXACT_ETA = "1672924500";
+  const workerInputs: IWorkerInputs = [
+    "USDC-WFTM 3x SPK1 DeltaNeutralSpookyWorker",
+    "WFTM-USDC 3x SPK1 DeltaNeutralSpookyWorker",
+    "USDC-WFTM 3x SPK2 DeltaNeutralSpookyWorker",
+    "WFTM-USDC 3x SPK2 DeltaNeutralSpookyWorker",
+  ];
+  const EXACT_ETA = "1680843600";
 
   const config = ConfigEntity.getConfig();
   const ts = Math.floor(new Date().getTime() / 1000);
@@ -137,7 +142,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log("-------");
     console.log(`>> Preparing to upgrade ${TO_BE_UPGRADE_WORKERS[i].WORKER_NAME}`);
     const NewWorkerFactory: ContractFactory = contractFactories[i];
-    const preparedNewWorker: string = await upgrades.prepareUpgrade(TO_BE_UPGRADE_WORKERS[i].ADDRESS, NewWorkerFactory);
+    const preparedNewWorker = await upgrades.prepareUpgrade(TO_BE_UPGRADE_WORKERS[i].ADDRESS, NewWorkerFactory);
 
     console.log(`>> New implementation deployed at: ${preparedNewWorker}`);
     console.log("✅ Done");
