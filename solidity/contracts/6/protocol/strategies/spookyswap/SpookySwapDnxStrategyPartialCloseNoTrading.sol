@@ -37,10 +37,10 @@ contract SpookySwapDnxStrategyPartialCloseNoTrading is OwnableUpgradeSafe, Reent
   mapping(address => bool) public okWorkers;
   mapping(address => bool) public okDeltaNeutralVaults;
 
-  event SpookySwapDnxStrategyPartialCloseNoTradingS(
+  event LogSpookySwapDnxStrategyPartialCloseNoTrading(
     address indexed baseToken,
     address indexed farmToken,
-    uint256 amounToLiquidate
+    uint256 amountToLiquidate
   );
 
   /// @notice require that only allowed workers are able to do the rest of the method call
@@ -95,7 +95,7 @@ contract SpookySwapDnxStrategyPartialCloseNoTrading is OwnableUpgradeSafe, Reent
     // 7. Reset approval for safety reason.
     address(lpToken).safeApprove(address(router), 0);
 
-    emit SpookySwapDnxStrategyPartialCloseNoTradingS(baseToken, farmingToken, lpTokenToLiquidate);
+    emit LogSpookySwapDnxStrategyPartialCloseNoTrading(baseToken, farmingToken, lpTokenToLiquidate);
   }
 
   function setWorkersOk(address[] calldata workers, bool isOk) external onlyOwner {
