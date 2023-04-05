@@ -16,17 +16,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const TARGETED_VAULTS = [
-    "n3x-BNBBUSD-PCS2",
-    "n3x-BNBUSDT-PCS2",
-    "n3x-BNBUSDT-PCS3",
-    "n3x-ETHUSDT-BSW1",
-    "n8x-BNBUSDT-PCS3",
-    "n8x-BNBUSDT-BSW1",
-    "L3x-BUSDBTCB-PCS2",
-    "L8x-BUSDBTCB-PCS1",
-    "L3x-USDTETH-BSW1",
-  ];
+  const TARGETED_VAULTS = ["n3x-FTMUSDC-SPK1", "n3x-FTMUSDC-SPK2"];
 
   const config = getConfig();
 

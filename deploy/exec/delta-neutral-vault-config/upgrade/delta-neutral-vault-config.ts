@@ -1,14 +1,13 @@
-import { ProxyAdmin__factory } from "../../../../typechain/factories/ProxyAdmin__factory";
-import { DeltaNeutralVaultsEntity } from "../../../interfaces/config";
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, upgrades } from "hardhat";
-import { getConfig } from "../../../entities/config";
-import { TimelockEntity } from "../../../entities";
-import { fileService, TimelockService } from "../../../services";
-import { getDeployer, isFork } from "../../../../utils/deployer-helper";
-import { Converter } from "../../../helper";
+import { DeployFunction } from "hardhat-deploy/types";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { ProxyAdmin__factory } from "../../../../typechain/factories/ProxyAdmin__factory";
 import { compare } from "../../../../utils/address";
+import { getDeployer, isFork } from "../../../../utils/deployer-helper";
+import { TimelockEntity } from "../../../entities";
+import { getConfig } from "../../../entities/config";
+import { Converter } from "../../../helper";
+import { fileService, TimelockService } from "../../../services";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -20,10 +19,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "upgrade_ftm_delta_neutral_vault_config";
+  const TITLE = "upgrade_ftm_delta_neutral_vault_config02";
   const DELTA_NEUTRAL_VAULT_CONFIG = "DeltaNeutralVaultConfig02";
   const TARGETED_VAULTS = ["n3x-FTMUSDC-SPK1", "n3x-FTMUSDC-SPK2"];
-  const EXACT_ETA = "1663218000";
+  const EXACT_ETA = "1680843600";
 
   const config = getConfig();
 
@@ -62,7 +61,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       );
     } else {
       console.log("> Execute upgrade contract without Timelock");
-      await proxyAdmin.upgrade(vault.config, preparedNewVaultConfig, ops);
+      await proxyAdmin.upgrade(vault.config, preparedNewVaultConfig.toString(), ops);
     }
   }
 

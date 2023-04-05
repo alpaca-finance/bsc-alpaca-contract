@@ -293,7 +293,7 @@ contract DeltaNeutralSpookyMCV2Worker03 is OwnableUpgradeable, ReentrancyGuardUp
   /// @param debt The amount of user debt to help the strategy make decisions.
   /// @param data The encoded data, consisting of strategy address and calldata.
   function work(
-    uint256, /* id */
+    uint256 /* id */,
     address user,
     uint256 debt,
     bytes calldata data
@@ -318,30 +318,18 @@ contract DeltaNeutralSpookyMCV2Worker03 is OwnableUpgradeable, ReentrancyGuardUp
   }
 
   /// @dev Return the amount of BaseToken to receive.
-  function health(
-    uint256 /* id */
-  ) external view override returns (uint256) {
-    (uint256 _totalBalanceInUSD, uint256 _lpPriceLastUpdate) = priceOracle.lpToDollar(totalLpBalance, address(lpToken));
-    (uint256 _tokenPrice, uint256 _tokenPricelastUpdate) = priceOracle.getTokenPrice(address(baseToken));
-    // NOTE: last updated price should not be over 1 day
-    if (block.timestamp - _lpPriceLastUpdate > 86400 || block.timestamp - _tokenPricelastUpdate > 86400)
-      revert DeltaNeutralSpookyWorker03_UnTrustedPrice();
-    return _totalBalanceInUSD.divWadDown(_tokenPrice);
+  function health(uint256 /* id */) external pure override returns (uint256) {
+    // return big number to prevent health check
+    return 1e30;
   }
 
   /// @dev Liquidate the given position by converting it to BaseToken and return back to caller.
-  function liquidate(
-    uint256 /*id*/
-  ) external override onlyOperator nonReentrant {
+  function liquidate(uint256 /*id*/) external override onlyOperator nonReentrant {
     // NOTE: this worker does not allow liquidation
     revert DeltaNeutralSpookyWorker03_NotAllowToLiquidate();
   }
 
-  function _rewardToBeneficialVault(
-    uint256 _amount,
-    address[] memory path,
-    uint256 _callerBalance
-  ) internal {
+  function _rewardToBeneficialVault(uint256 _amount, address[] memory path, uint256 _callerBalance) internal {
     // 1. SLOAD base token from beneficialVault
     address beneficialVaultToken = beneficialVault.token();
 

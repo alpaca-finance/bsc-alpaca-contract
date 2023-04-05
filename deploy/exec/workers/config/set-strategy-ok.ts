@@ -20,14 +20,22 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const config = getConfig();
 
-  const TITLE = "stkBNB-WBNB_allow_oracle_minimize_and_liquidate";
+  const TITLE = "dnx_spooky_workers_allow_partial-close-no-trade_repurchase-repay";
   const ADD_STRAT = "";
   const LIQ_STRAT = "";
 
   const OK_FLAG = true;
-  const STRATEGY = ["0x26a30FC7a4D6f362378BDbD834BF35aF9E93d2D4", "0x6ab62a0766691400F7F7C7B2106C774cB83936eF"];
-  const WORKERS = ["stkBNB-WBNB PancakeswapWorker"];
-  const EXACT_ETA = "1672924500";
+  const STRATEGY = [
+    config.SharedStrategies.SpookySwap?.StrategyPartialCloseNoTrade!,
+    config.SharedStrategies.All?.StrategyRepurchaseRepay!,
+  ];
+  const WORKERS = [
+    "USDC-WFTM 3x SPK1 DeltaNeutralSpookyWorker",
+    "WFTM-USDC 3x SPK1 DeltaNeutralSpookyWorker",
+    "USDC-WFTM 3x SPK2 DeltaNeutralSpookyWorker",
+    "WFTM-USDC 3x SPK2 DeltaNeutralSpookyWorker",
+  ];
+  const EXACT_ETA = "1680843600";
 
   const miniWorkers: Array<WorkerEntity.IMiniWorker> = mapWorkers(WORKERS).map((w) => {
     return {
