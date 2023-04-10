@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4 <0.9.0;
 
-import "./base/DSTest.sol";
-import { console } from "./utils/console.sol";
-import { BaseTest, MockErc20Like, NFTBoostedLeverageControllerLike, MockPancakeswapV2WorkerLike, DebtTokenLike, SimpleVaultConfigLike, VaultLike, MockNFTLike, NFTStakingLike } from "./base/BaseTest.sol";
+import { BaseTest, console, MockErc20Like, NFTBoostedLeverageControllerLike, MockPancakeswapV2WorkerLike, DebtTokenLike, SimpleVaultConfigLike, VaultLike, MockNFTLike, NFTStakingLike } from "@tests/base/BaseTest.sol";
 
+// solhint-disable max-states-count
 contract NFTBoostedLeverageControllerTest is BaseTest {
   NFTBoostedLeverageControllerLike private nftBoostedController;
 
   // MockERC20
   MockErc20Like private cakeToken;
+  // solhint-disable-next-line var-name-mixedcase
   MockErc20Like private WBNB;
 
   NFTStakingLike private nftStaking;

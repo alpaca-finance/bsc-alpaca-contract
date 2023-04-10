@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4 <0.9.0;
 
-import { console } from "./utils/console.sol";
-import "./base/DSTest.sol";
-import { BaseTest, MockErc20Like, DebtTokenLike, SimpleVaultConfigLike, VaultLike, NFTStakingLike, MockNFTLike } from "./base/BaseTest.sol";
+import { BaseTest, console, MockErc20Like, DebtTokenLike, SimpleVaultConfigLike, VaultLike, NFTStakingLike, MockNFTLike } from "@tests/base/BaseTest.sol";
 
 contract NFTStakingTest is BaseTest {
   NFTStakingLike private nftStaking;
@@ -254,7 +252,7 @@ contract NFTStakingTest is BaseTest {
     vm.warp(1641070800);
     vm.startPrank(ALICE, ALICE);
     mockNFT1.mint(1);
-    vm.expectRevert(bytes("ERC721: transfer caller is not owner nor approved"));
+    vm.expectRevert(bytes("ERC721: caller is not token owner or approved"));
     nftStaking.stakeNFT(nftAddress1, 0, mockLockUntil);
     vm.stopPrank();
   }
@@ -274,7 +272,7 @@ contract NFTStakingTest is BaseTest {
     vm.startPrank(ALICE, ALICE);
     mockNFT1.mint(1);
     mockNFT1.approve(address(nftStaking), 0);
-    vm.expectRevert(bytes("ERC721: operator query for nonexistent token"));
+    vm.expectRevert(bytes("ERC721: invalid token ID"));
     nftStaking.stakeNFT(nftAddress1, 1, 20);
     vm.stopPrank();
   }

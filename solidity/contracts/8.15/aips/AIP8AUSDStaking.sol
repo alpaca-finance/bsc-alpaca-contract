@@ -13,12 +13,12 @@ Alpaca Fin Corporation
 
 pragma solidity 0.8.15;
 
-import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import { SafeERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
-import { IFairLaunch } from "./interfaces/IFairLaunch.sol";
+import { IFairLaunch } from "../interfaces/IFairLaunch.sol";
 
 /// @title AIP8AUSDStaking is a staking contract for users to stake AUSD-3EPS LP Token to obtain
 /// the allocation for Private Automated Vaults of Alpaca Finance. This contract is implemented as part of the AIP-8.
@@ -100,10 +100,7 @@ contract AIP8AUSDStaking is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     stakingToken.approve(address(fairlaunch), type(uint256).max);
   }
 
-  function lock(
-    uint256, /*_amount*/
-    uint256 /*_lockUntil*/
-  ) external {
+  function lock(uint256 /*_amount*/, uint256 /*_lockUntil*/) external pure {
     revert AIP8AUSDStaking_Terminated();
   }
 

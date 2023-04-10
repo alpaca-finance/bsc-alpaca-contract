@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4 <0.9.0;
 
-import { BaseTest, DeltaNeutralVault04Like, MockErc20Like, MockLpErc20Like, console } from "../../base/BaseTest.sol";
+import { BaseTest, DeltaNeutralVault04Like, MockErc20Like, MockLpErc20Like, console } from "@tests/base/BaseTest.sol";
 
-import { DeltaNeutralVault04Base_Test } from "../delta-neutral-04/DeltaNeutralVault04Base.t.sol";
-import { AVMigration } from "solidity/contracts/8.13/AVMigration.sol";
-import { IAVMigrationStruct } from "solidity/contracts/8.13/interfaces/IAVMigrationStruct.sol";
+import { DeltaNeutralVault04Base_Test } from "@tests/protocol/delta-neutral-04/DeltaNeutralVault04Base.t.sol";
+import { AVMigration } from "@alpaca-finance/8.13/AVMigration.sol";
+import { IAVMigrationStruct } from "@alpaca-finance/8.13/interfaces/IAVMigrationStruct.sol";
 
 contract AVMigration_Test is DeltaNeutralVault04Base_Test {
   AVMigration internal _avMigration;
@@ -37,8 +37,7 @@ contract AVMigration_Test is DeltaNeutralVault04Base_Test {
   function testCorrectness_MigrateShouldWork() external {
     _depositForAlice();
     vm.startPrank(ALICE, ALICE);
-    _deltaNeutralVault.approve(address(_avMigration), 2**256 - 1);
-
+    _deltaNeutralVault.approve(address(_avMigration), 2 ** 256 - 1);
     _avMigration.migrate(address(_deltaNeutralVault), _deltaNeutralVault.balanceOf(ALICE), 0, 0);
     vm.stopPrank();
   }
@@ -54,15 +53,18 @@ contract AVMigration_Test is DeltaNeutralVault04Base_Test {
   function testRevert_NoDestinationVaultInPaths_MigrateShouldRevert() external {
     _depositForAlice();
     vm.startPrank(ALICE, ALICE);
-    _deltaNeutralVault.approve(address(_avMigration), 2**256 - 1);
+
+    _deltaNeutralVault.approve(address(_avMigration), 2 ** 256 - 1);
+    uint256 _aliceBalance = _deltaNeutralVault.balanceOf(ALICE);
 
     vm.expectRevert(AVMigration.AVMigration_DestinationVaultDoesNotExist.selector);
-    _avMigration.migrate(address(ALICE), _deltaNeutralVault.balanceOf(ALICE), 0, 0);
+    _avMigration.migrate(address(ALICE), _aliceBalance, 0, 0);
+
     vm.stopPrank();
   }
 
   function testRevert_WhenCallerIsNotWhitelistedEOA_MigrateShouldRevert() external {
-    _deltaNeutralVault.approve(address(_avMigration), 2**256 - 1);
+    _deltaNeutralVault.approve(address(_avMigration), 2 ** 256 - 1);
     vm.expectRevert(abi.encodeWithSelector(AVMigration.AVMigration_Unauthorized.selector, address(this)));
     _avMigration.migrate(address(_deltaNeutralVault), 0, 0, 0);
   }
