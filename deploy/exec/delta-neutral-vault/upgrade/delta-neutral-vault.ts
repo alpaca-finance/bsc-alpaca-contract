@@ -23,7 +23,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const TITLE = "upgrade_terminate_av";
   const DELTA_NEUTRAL_VAULT = "TerminateAV";
   const TARGETED_VAULTS = ["n3x-FTMUSDC-SPK1", "n3x-FTMUSDC-SPK2"];
-  const EXACT_ETA = "1680843600";
+  const EXACT_ETA = "1680865200";
 
   const config = getConfig();
 

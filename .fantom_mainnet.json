@@ -166,7 +166,7 @@
       "StrategyWithdrawMinimizeTrading": "0x07DE1F788Fa7E0C215AA772d4429f47902640ef5",
       "StrategyPartialCloseLiquidate": "0x311a522e43C035244e72247895F5C17e46CAB000",
       "StrategyPartialCloseMinimizeTrading": "0x540247c00645E85fA548064039493beD4a0c522C",
-      "StrategyPartialCloseNoTrade": ""
+      "StrategyPartialCloseNoTrade": "0x44620a0D7554cE957893cA0594747e5264434165"
     },
     "All": {
       "StrategyAddBaseTokenOnly": "",
@@ -175,7 +175,7 @@
       "StrategyPartialCloseLiquidate": "",
       "StrategyPartialCloseMinimizeTrading": "",
       "StrategyRepurchaseBorrow": "0x0000000000000000000000000000000000000000",
-      "StrategyRepurchaseRepay": ""
+      "StrategyRepurchaseRepay": "0xD1DcA8a2E0950EEaA1C61A2D1F3010bEde26513d"
     }
   },
   "SharedConfig": {
@@ -394,7 +394,7 @@
             "StrategyWithdrawMinimizeTrading": "0x07DE1F788Fa7E0C215AA772d4429f47902640ef5",
             "StrategyPartialCloseLiquidate": "0x311a522e43C035244e72247895F5C17e46CAB000",
             "StrategyPartialCloseMinimizeTrading": "0x540247c00645E85fA548064039493beD4a0c522C",
-            "StrategyPartialCloseNoTrade": ""
+            "StrategyPartialCloseNoTrade": "0x44620a0D7554cE957893cA0594747e5264434165"
           }
         },
         {
@@ -412,7 +412,7 @@
             "StrategyWithdrawMinimizeTrading": "0x07DE1F788Fa7E0C215AA772d4429f47902640ef5",
             "StrategyPartialCloseLiquidate": "0x311a522e43C035244e72247895F5C17e46CAB000",
             "StrategyPartialCloseMinimizeTrading": "0x540247c00645E85fA548064039493beD4a0c522C",
-            "StrategyPartialCloseNoTrade": ""
+            "StrategyPartialCloseNoTrade": "0x44620a0D7554cE957893cA0594747e5264434165"
           }
         }
       ]
@@ -479,7 +479,7 @@
             "StrategyWithdrawMinimizeTrading": "0x07DE1F788Fa7E0C215AA772d4429f47902640ef5",
             "StrategyPartialCloseLiquidate": "0x311a522e43C035244e72247895F5C17e46CAB000",
             "StrategyPartialCloseMinimizeTrading": "0x540247c00645E85fA548064039493beD4a0c522C",
-            "StrategyPartialCloseNoTrade": ""
+            "StrategyPartialCloseNoTrade": "0x44620a0D7554cE957893cA0594747e5264434165"
           }
         },
         {
@@ -514,7 +514,7 @@
             "StrategyWithdrawMinimizeTrading": "0x07DE1F788Fa7E0C215AA772d4429f47902640ef5",
             "StrategyPartialCloseLiquidate": "0x311a522e43C035244e72247895F5C17e46CAB000",
             "StrategyPartialCloseMinimizeTrading": "0x540247c00645E85fA548064039493beD4a0c522C",
-            "StrategyPartialCloseNoTrade": ""
+            "StrategyPartialCloseNoTrade": "0x44620a0D7554cE957893cA0594747e5264434165"
           }
         }
       ]
@@ -627,6 +627,6 @@
     "rebalance": "0xAE81990764605be12857Ac7A39A3a8A56Fe41b81",
     "repurchase": "0x0000000000000000000000000000000000000000",
     "retarget": "0x0000000000000000000000000000000000000000",
-    "terminator": ""
+    "terminator": "0x87bd94e86F62fe516680E9641eE4E9979847F9Ab"
   }
 }
