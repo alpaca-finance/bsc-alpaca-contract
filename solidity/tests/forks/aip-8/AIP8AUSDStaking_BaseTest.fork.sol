@@ -1,12 +1,9 @@
-// Test Command
-// forge test --match-contract AIP8AUSDStaking -f $ARCHIVE_NODE_RPC --fork-block-number 18878744 -vv
-
+// SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4 <0.9.0;
 
+import { BaseTest, console } from "@tests/base/BaseTest.sol";
 import { IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import { BaseTest } from "../../base/BaseTest.sol";
-import { AIP8AUSDStakingLike, UserInfo } from "../../interfaces/AIP8AUSDStakingLike.sol";
-import { console } from "../../utils/console.sol";
+import { AIP8AUSDStakingLike, UserInfo } from "@tests/interfaces/AIP8AUSDStakingLike.sol";
 
 // solhint-disable contract-name-camelcase
 contract AIP8AUSDStaking_BaseForkTest is BaseTest {
@@ -24,6 +21,7 @@ contract AIP8AUSDStaking_BaseForkTest is BaseTest {
   AIP8AUSDStakingLike internal aip8AUSDStaking;
 
   function setUp() external {
+    vm.createSelectFork(vm.envString("BSC_MAINNET_RPC"), 18878744);
     aip8AUSDStaking = _setUpAIP8AUSDStaking(FAIR_LAUNCH_ADDRESS, PID);
   }
 

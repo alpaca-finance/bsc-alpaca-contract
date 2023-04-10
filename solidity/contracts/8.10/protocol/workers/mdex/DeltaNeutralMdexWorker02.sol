@@ -260,7 +260,7 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
   /// @param debt The amount of user debt to help the strategy make decisions.
   /// @param data The encoded data, consisting of strategy address and calldata.
   function work(
-    uint256, /* id */
+    uint256 /* id */,
     address user,
     uint256 debt,
     bytes calldata data
@@ -288,16 +288,12 @@ contract DeltaNeutralMdexWorker02 is OwnableUpgradeable, ReentrancyGuardUpgradea
   }
 
   /// @dev Return meaningless number to bypass work factor check at vault level
-  function health(
-    uint256 /* id */
-  ) external view override returns (uint256) {
+  function health(uint256 /* id */) external pure override returns (uint256) {
     return 1e30;
   }
 
   /// @dev Liquidate the given position by converting it to BaseToken and return back to caller.
-  function liquidate(
-    uint256 /*id*/
-  ) external override onlyOperator nonReentrant {
+  function liquidate(uint256 /*id*/) external override onlyOperator nonReentrant {
     // NOTE: this worker does not allow liquidation
     revert DeltaNeutralMdexWorker02_NotAllowToLiquidate();
   }

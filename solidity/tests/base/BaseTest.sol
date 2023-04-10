@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4 <0.9.0;
 
-import { DSTest } from "./DSTest.sol";
+import { TestBase } from "@forge-std/Base.sol";
+import { console } from "@forge-std/console.sol";
+import { StdCheatsSafe } from "@forge-std/StdCheats.sol";
 
-import { VM } from "../utils/VM.sol";
-import { console } from "../utils/console.sol";
-
+import { ATest } from "@tests/base/ATest.sol";
 import { ProxyAdminLike } from "../interfaces/ProxyAdminLike.sol";
 
 import { MockErc20Like } from "../interfaces/MockErc20Like.sol";
@@ -35,13 +35,12 @@ import { BiswapDnxStrategyPartialCloseNoTradingLike } from "../interfaces/Biswap
 
 // solhint-disable const-name-snakecase
 // solhint-disable no-inline-assembly
-contract BaseTest is DSTest {
+contract BaseTest is TestBase, ATest, StdCheatsSafe {
   address internal constant ALICE = address(0x88);
   address internal constant BOB = address(0x168);
   address internal constant CAT = address(0x99);
   address internal constant EVE = address(0x55);
 
-  VM internal constant vm = VM(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
   ProxyAdminLike internal proxyAdmin;
 
   constructor() {
@@ -80,11 +79,7 @@ contract BaseTest is DSTest {
     return ProxyAdminLike(address(_address));
   }
 
-  function _setupToken(
-    string memory _name,
-    string memory _symbol,
-    uint8 _decimals
-  ) internal returns (MockErc20Like) {
+  function _setupToken(string memory _name, string memory _symbol, uint8 _decimals) internal returns (MockErc20Like) {
     bytes memory _logicBytecode = abi.encodePacked(vm.getCode("./out/MockERC20.sol/MockERC20.json"));
     bytes memory _initializer = abi.encodeWithSelector(
       bytes4(keccak256("initialize(string,string,uint8)")),
@@ -227,10 +222,10 @@ contract BaseTest is DSTest {
     return TripleSlopeModelLike(_address);
   }
 
-  function _setupAUSDStakingCreditor(address _AUSDStaking, uint256 _valuePerAUSDStaking)
-    internal
-    returns (AUSDStakingCreditorLike)
-  {
+  function _setupAUSDStakingCreditor(
+    address _AUSDStaking,
+    uint256 _valuePerAUSDStaking
+  ) internal returns (AUSDStakingCreditorLike) {
     bytes memory _logicBytecode = abi.encodePacked(
       vm.getCode("./out/AUSDStakingCreditor.sol/AUSDStakingCreditor.json")
     );
@@ -270,10 +265,10 @@ contract BaseTest is DSTest {
     return xALPACAPriceSetterLike(_proxy);
   }
 
-  function _setupxAutomatedVaultController(address[] memory _creditors, address[] memory _deltaVaults)
-    internal
-    returns (AutomatedVaultControllerLike)
-  {
+  function _setupxAutomatedVaultController(
+    address[] memory _creditors,
+    address[] memory _deltaVaults
+  ) internal returns (AutomatedVaultControllerLike) {
     bytes memory _logicBytecode = abi.encodePacked(
       vm.getCode("./out/AutomatedVaultController.sol/AutomatedVaultController.json")
     );
@@ -396,10 +391,9 @@ contract BaseTest is DSTest {
     return RepurchaseRepayStrategyLike(payable(_proxy));
   }
 
-  function _setupPancakeswapDnxPartialCloseNoTradingStrategy(address _router)
-    internal
-    returns (PancakeswapV2RestrictedDnxStrategyPartialCloseNoTradingLike)
-  {
+  function _setupPancakeswapDnxPartialCloseNoTradingStrategy(
+    address _router
+  ) internal returns (PancakeswapV2RestrictedDnxStrategyPartialCloseNoTradingLike) {
     bytes memory _logicBytecode = abi.encodePacked(
       vm.getCode(
         "./out/PancakeswapV2RestrictedDnxStrategyPartialCloseNoTrading.sol/PancakeswapV2RestrictedDnxStrategyPartialCloseNoTrading.json"
@@ -410,10 +404,9 @@ contract BaseTest is DSTest {
     return PancakeswapV2RestrictedDnxStrategyPartialCloseNoTradingLike(_proxy);
   }
 
-  function _setupBiswapDnxPartialCloseNoTradingStrategy(address _router)
-    internal
-    returns (BiswapDnxStrategyPartialCloseNoTradingLike)
-  {
+  function _setupBiswapDnxPartialCloseNoTradingStrategy(
+    address _router
+  ) internal returns (BiswapDnxStrategyPartialCloseNoTradingLike) {
     bytes memory _logicBytecode = abi.encodePacked(
       vm.getCode("./out/BiswapDnxStrategyPartialCloseNoTrading.sol/BiswapDnxStrategyPartialCloseNoTrading.json")
     );
