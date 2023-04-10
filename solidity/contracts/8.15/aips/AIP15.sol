@@ -5,8 +5,8 @@ import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/O
 import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import { ERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import { SafeERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
-import { IFairLaunch } from "./interfaces/IFairLaunch.sol";
-import { IProxyToken } from "./interfaces/IProxyToken.sol";
+import { IFairLaunch } from "../interfaces/IFairLaunch.sol";
+import { IProxyToken } from "../interfaces/IProxyToken.sol";
 
 contract Aip15 is Initializable, OwnableUpgradeable {
   // dependencies

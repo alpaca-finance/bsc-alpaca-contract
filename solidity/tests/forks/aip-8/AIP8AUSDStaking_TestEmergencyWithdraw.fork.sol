@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4 <0.9.0;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import { AIP8AUSDStakingBase, AIP8AUSDStakingLike, console, UserInfo } from "./AIP8AUSDStakingBase.sol";
-import { IFairLaunch } from "../../../contracts/8.15/interfaces/IFairLaunch.sol";
-import { mocking } from "../../utils/mocking.sol";
+import { IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import { AIP8AUSDStaking_BaseForkTest, AIP8AUSDStakingLike, console, UserInfo } from "@tests/forks/aip-8/AIP8AUSDStaking_BaseTest.fork.sol";
+import { IFairLaunch } from "@alpaca-finance/8.15/interfaces/IFairLaunch.sol";
+import { mocking } from "@tests/utils/mocking.sol";
 
 // solhint-disable func-name-mixedcase
 // solhint-disable contract-name-camelcase
-contract AIP8AUSDStaking_TestEmergencyWithdraw is AIP8AUSDStakingBase {
+contract AIP8AUSDStaking_ForkTestEmergencyWithdraw is AIP8AUSDStaking_BaseForkTest {
   using mocking for *;
 
   function test_emergencyWithdraw_aliceEmergencyWithdraw_WhenAIP8NotStopped_shouldFail() external {
