@@ -97,7 +97,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "USDC-WFTM 3x SPK2 DeltaNeutralSpookyWorker",
     "WFTM-USDC 3x SPK2 DeltaNeutralSpookyWorker",
   ];
-  const EXACT_ETA = "1680843600";
+  const EXACT_ETA = "1680865200";
 
   const config = ConfigEntity.getConfig();
   const ts = Math.floor(new Date().getTime() / 1000);
@@ -157,8 +157,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
           "upgrade(address,address)",
           ["address", "address"],
           [TO_BE_UPGRADE_WORKERS[i].ADDRESS, preparedNewWorker],
-          EXACT_ETA,
-          { gasPrice: ethers.utils.parseUnits("20", "gwei") }
+          EXACT_ETA
         )
       );
 

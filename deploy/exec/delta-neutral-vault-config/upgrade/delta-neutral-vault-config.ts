@@ -22,7 +22,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const TITLE = "upgrade_ftm_delta_neutral_vault_config02";
   const DELTA_NEUTRAL_VAULT_CONFIG = "DeltaNeutralVaultConfig02";
   const TARGETED_VAULTS = ["n3x-FTMUSDC-SPK1", "n3x-FTMUSDC-SPK2"];
-  const EXACT_ETA = "1680843600";
+  const EXACT_ETA = "1680865200";
 
   const config = getConfig();
 

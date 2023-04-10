@@ -36,8 +36,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       ],
     },
   ];
+  const EXACT_ETA = "1680865200";
 
-  const EXACT_ETA = "";
   const deployer = await getDeployer();
   const timelock = Timelock__factory.connect(config.Timelock, deployer);
 

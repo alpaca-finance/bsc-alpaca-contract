@@ -35,7 +35,7 @@ export async function queueTransaction(
       signature,
       ethers.utils.defaultAbiCoder.encode(paramTypes, params),
       eta,
-      overrides
+      { ...overrides }
     );
     await queueTx.wait();
   } else if (compare(timelockAdmin, config.OpMultiSig)) {
