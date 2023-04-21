@@ -19,7 +19,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const TARGET_LEVERAGE: number = 8;
 
   // to be safe
-  if (TARGET_LEVERAGE > 8) {
+  if (TARGET_LEVERAGE < 3 || TARGET_LEVERAGE > 8) {
     throw new Error("LEVERAGE Not Allow!!!!");
   }
 
