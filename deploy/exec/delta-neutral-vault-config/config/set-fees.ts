@@ -27,22 +27,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const CONFIG_SET_FEES_INPUT: ISetFeesInput[] = [
     {
-      deltaVaultSymbol: "n3x-FTMUSDC-SPK1",
+      deltaVaultSymbol: "n8x-BUSDUSDT-PCS1",
       newDepositFeeTreasury: "0x417d3e491cbaad07b2433781e50bc6cd09641bc0",
       newDepositFeeBps: 0,
       newWithdrawalFeeTreasury: "0x417d3e491cbaad07b2433781e50bc6cd09641bc0",
       newWithdrawalFeeBps: 0,
-      newManagementFeeTreasury: "0x7e2308437c2f4c8934214663dc8476037625a270",
-      newManagementFeePerSec: 0,
-    },
-    {
-      deltaVaultSymbol: "n3x-FTMUSDC-SPK2",
-      newDepositFeeTreasury: "0x417d3e491cbaad07b2433781e50bc6cd09641bc0",
-      newDepositFeeBps: 0,
-      newWithdrawalFeeTreasury: "0x417d3e491cbaad07b2433781e50bc6cd09641bc0",
-      newWithdrawalFeeBps: 0,
-      newManagementFeeTreasury: "0x7e2308437c2f4c8934214663dc8476037625a270",
-      newManagementFeePerSec: 0,
+      newManagementFeeTreasury: "0x7E2308437c2f4C8934214663dc8476037625a270",
+      newManagementFeePerSec: 634195840,
     },
   ];
 

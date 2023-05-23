@@ -29,10 +29,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const initPositionInputs: IInitPositionVault04Inputs[] = [
     {
-      symbol: "L8x-BUSDBNB-PCS1",
-      longDepositAmount: 0.3,
-      expectedLongVaultSymbol: "ibWBNB",
-      expectedLongTokenSymbol: "WBNB",
+      symbol: "n8x-BUSDUSDT-PCS1",
+      longDepositAmount: 100,
+      expectedLongVaultSymbol: "ibUSDT",
+      expectedLongTokenSymbol: "USDT",
     },
   ];
 

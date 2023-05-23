@@ -15,7 +15,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const TARGET_VAULT_SYMBOL: string = "L8x-BUSDBNB-PCS1";
+  const TARGET_VAULT_SYMBOL: string = "n8x-BNBUSDT-PCS2";
   const TARGET_LEVERAGE: number = 8;
 
   // to be safe
@@ -33,20 +33,25 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const isRetargetor = await deltaVaultConfig.whitelistedRebalancers(deployer.address);
 
   if (!isRetargetor) {
-    console.log(`>> Whitelist deployer to be retargetor on ${vault.symbol}`);
+    console.log(`> Whitelist deployer to be retargetor on ${vault.symbol}`);
     await deltaVaultConfig.setWhitelistedRebalancer([deployer.address], true);
-    console.log(">> Done Whitelist deployer");
+    console.log("> Done Whitelist deployer");
   }
 
-  console.log(`>> Setting new leverage level at: ${TARGET_LEVERAGE} for vault: ${vault.symbol}`);
+  console.log(`> Setting new leverage level at: ${TARGET_LEVERAGE} for vault: ${vault.symbol}`);
   const setLeverageTx = await deltaVaultConfig.setLeverageLevel(TARGET_LEVERAGE);
-  const setLeverageReceipt = await setLeverageTx.wait();
-  console.log(`>> Done Setting new leverage level`);
+  console.log(`> ⛓ Tx is submitted: ${setLeverageTx.hash}`);
+  console.log(`> Waiting for tx to be mined...`);
+  const setLeverageReceipt = await setLeverageTx.wait(3);
+  console.log(`> 🟢 Done Setting new leverage level`);
 
   if (setLeverageReceipt.status === 1) {
-    console.log(`>> Executing retarget for vault: ${vault.symbol}`);
-    await deltaVault.retarget("0x00");
-    console.log(`>> Done executing retarget `);
+    console.log(`> Executing retarget for vault: ${vault.symbol}`);
+    const tx = await deltaVault.retarget("0x00", { gasLimit: 7000000 });
+    console.log(`> ⛓ Tx is submitted: ${tx.hash}`);
+    console.log(`> Waiting for tx to be mined...`);
+    await tx.wait(3);
+    console.log(`> 🟢 Done executing retarget `);
   }
 };
 
