@@ -323,4 +323,6 @@ export interface AutomatedVaultExecutor {
   retarget?: string;
   migrator?: string;
   terminator?: string;
+  terminator02?: string;
+  repay?: string;
 }
