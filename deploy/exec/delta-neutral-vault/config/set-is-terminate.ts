@@ -42,7 +42,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log("Set isTerminating:", vault.symbol);
     const isTerminateTx = await terminateVaultAsDeployer.setIsTerminated(IS_TERMINATE, ops);
 
-    const setIsTerminateReceipt = await isTerminateTx.wait(0);
+    const setIsTerminateReceipt = await isTerminateTx.wait(3);
     console.log(">> isTerminatingTx: ", setIsTerminateReceipt.transactionHash);
   }
   console.log("✅ Done");
