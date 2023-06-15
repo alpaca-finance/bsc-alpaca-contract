@@ -240,7 +240,7 @@ contract TerminateAV02 is IDeltaNeutralStruct, ERC20Upgradeable, ReentrancyGuard
       revert TerminateAV02_InvalidTerminateSwap();
     }
 
-    // call repay wheb debt remain
+    // call repay when debt remain
     if (_tokenOutDebtValue != 0) {
       terminateExecutor = _repayExecutor;
       // repay the token with maximum amount
