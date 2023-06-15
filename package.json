@@ -112,6 +112,7 @@
     "deploy:mainnet:delta-neutral-vault:deploy:biswap:delta-neutral-vault": "hardhat --network mainnet deploy --no-compile --reset --tags BiswapDeltaNeutralVault",
     "deploy:mainnet:delta-neutral-vault:config:init-positions": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralVaultInitPositions",
     "deploy:mainnet:delta-neutral-vault:config:terminate-av": "hardhat --network mainnet deploy --no-compile --reset --tags ExecuteTerminateAV",
+    "deploy:mainnet:delta-neutral-vault:config:set-is-terminate": "hardhat --network mainnet deploy --no-compile --reset --tags SetIsTerminateAV",
     "deploy:mainnet:delta-neutral-vault:config:init-positions-v2": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralVaultInitPositionsV2",
     "deploy:mainnet:delta-neutral-vault:config:init-positions-vault04": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralVaultInitPositionsVault04",
     "deploy:mainnet:delta-neutral-worker:deploy:delta-neutral-pcs-worker": "hardhat --network mainnet deploy --no-compile --reset --tags DeltaNeutralPCSWorker02",
