@@ -59,6 +59,7 @@ contract TerminateAV02 is IDeltaNeutralStruct, ERC20Upgradeable, ReentrancyGuard
   error TerminateAV02_InvalidShareAmount();
   error TerminateAV02_InvalidTerminateSwap();
   error TerminateAV02_TooMuchAssetTokenLeftOver();
+  error TerminateAV02_DebtLeftOver();
 
   // --- Constants ---
   uint64 private constant MAX_BPS = 10000;
@@ -236,6 +237,12 @@ contract TerminateAV02 is IDeltaNeutralStruct, ERC20Upgradeable, ReentrancyGuard
   function setIsTerminated(bool _isTerminated) external {
     if (msg.sender != 0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51) revert TerminateAV02_Unauthorized(msg.sender);
     if (_isTerminated == true) {
+      // Must repay all debt
+      PositionInfo memory _positionInfo = positionInfo();
+      if (_positionInfo.stablePositionDebtValue != 0 || _positionInfo.assetPositionDebtValue != 0) {
+        revert TerminateAV02_DebtLeftOver();
+      }
+      // Must not have too much assetToken remain
       if (IERC20Upgradeable(assetToken).balanceOf(address(this)) > 1e6) {
         revert TerminateAV02_TooMuchAssetTokenLeftOver();
       }
