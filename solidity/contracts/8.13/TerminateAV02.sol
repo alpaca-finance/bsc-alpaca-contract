@@ -206,32 +206,49 @@ contract TerminateAV02 is IDeltaNeutralStruct, ERC20Upgradeable, ReentrancyGuard
   }
 
   // use 1inch calldata to do the swap
-  function swap(address _router, address _tokenIn, uint256 _amountIn, bytes calldata _swapCalldata) external {
+  function swapAndRepay(
+    address _router,
+    address _tokenIn,
+    uint256 _amountIn,
+    bytes calldata _swapCalldata,
+    address _repayExecutor
+  ) external {
     if (msg.sender != 0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51) revert TerminateAV02_Unauthorized(msg.sender);
 
-    address _tokenOut = _tokenIn == stableToken ? assetToken : stableToken;
+    PositionInfo memory _positionInfo = positionInfo();
+    address _tokenOut;
+    uint256 _tokenOutDebtValue;
+
+    if (_tokenIn == stableToken) {
+      _tokenOut = assetToken;
+      _tokenOutDebtValue = _positionInfo.assetPositionDebtValue;
+    } else {
+      _tokenOut = stableToken;
+      _tokenOutDebtValue = _positionInfo.stablePositionDebtValue;
+    }
+
     uint256 _tokenOutBalanceBefore = IERC20Upgradeable(_tokenOut).balanceOf(address(this));
 
     IERC20Upgradeable(_tokenIn).safeApprove(_router, _amountIn);
 
     _router.call(_swapCalldata);
 
-    if (IERC20Upgradeable(_tokenOut).balanceOf(address(this)) <= _tokenOutBalanceBefore) {
+    uint256 _tokenOutBalanceAfter = IERC20Upgradeable(_tokenOut).balanceOf(address(this));
+
+    // prevent unexpected swap
+    if (_tokenOutBalanceAfter <= _tokenOutBalanceBefore) {
       revert TerminateAV02_InvalidTerminateSwap();
     }
-  }
 
-  function repay(address _repayExecutor, address _token) external {
-    if (msg.sender != 0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51) revert TerminateAV02_Unauthorized(msg.sender);
-    if (isTerminated) revert TerminateAV02_Terminated();
+    // call repay wheb debt remain
+    if (_tokenOutDebtValue != 0) {
+      terminateExecutor = _repayExecutor;
+      // repay the token with maximum amount
+      // if the debt is less than available amount, should repay only debt value
+      IExecutor(_repayExecutor).exec(abi.encode(_tokenOut, _tokenOutBalanceAfter));
 
-    terminateExecutor = _repayExecutor;
-
-    // repay the token with maximum amount
-    // if the debt is less than available amount, should repay only debt value
-    IExecutor(_repayExecutor).exec(abi.encode(_token, IERC20Upgradeable(_token).balanceOf(address(this))));
-
-    terminateExecutor = address(0);
+      terminateExecutor = address(0);
+    }
   }
 
   function setIsTerminated(bool _isTerminated) external {
