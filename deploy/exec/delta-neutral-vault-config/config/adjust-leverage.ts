@@ -15,8 +15,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const TARGET_VAULT_SYMBOL: string = "n8x-BNBUSDT-PCS2";
-  const TARGET_LEVERAGE: number = 8;
+  const TARGET_VAULT_SYMBOL: string = "L8x-USDTBNB-BSW1";
+  const TARGET_LEVERAGE: number = 5;
 
   // to be safe
   if (TARGET_LEVERAGE < 3 || TARGET_LEVERAGE > 8) {
