@@ -41,10 +41,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLTE = "update_rebalance_factor";
+  const TITLTE = "update_withdrawal_fee";
   const NEW_PARAMS: Array<SetParamsInput> = [
     {
-      VAULT_SYMBOL: "L8x-BUSDBTCB-PCS1",
+      VAULT_SYMBOL: "n8x-BUSDUSDT-PCS1",
       REBALANCE_FACTOR: "9100",
       EXACT_ETA: "1651984200",
     },

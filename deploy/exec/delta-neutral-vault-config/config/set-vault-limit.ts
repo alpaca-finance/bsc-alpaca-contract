@@ -23,17 +23,45 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const VAULT_LIMIT_INPUTS: Array<ISetVaultLimitInput> = [
     {
-      vaultSymbol: "L8x-USDTBNB-PCS1",
-      limit: ethers.utils.parseEther("52500000"),
+      vaultSymbol: "n8x-BUSDUSDT-PCS1",
+      limit: ethers.utils.parseEther("0"),
     },
-    // {
-    //   vaultSymbol: "n8x-BNBUSDT-PCS1",
-    //   limit: ethers.utils.parseEther("20000000"),
-    // },
-    // {
-    //   vaultSymbol: "n8x-BNBUSDT-PCS2",
-    //   limit: ethers.utils.parseEther("20000000"),
-    // },
+    {
+      vaultSymbol: "L3x-BUSDBNB-PCS1",
+      limit: ethers.utils.parseEther("0"),
+    },
+    {
+      vaultSymbol: "L8x-BUSDBNB-PCS1",
+      limit: ethers.utils.parseEther("0"),
+    },
+    {
+      vaultSymbol: "L8x-USDTBNB-BSW1",
+      limit: ethers.utils.parseEther("0"),
+    },
+    {
+      vaultSymbol: "L8x-USDTBNB-PCS1",
+      limit: ethers.utils.parseEther("0"),
+    },
+    {
+      vaultSymbol: "L3x-BUSDBTCB-PCS1",
+      limit: ethers.utils.parseEther("0"),
+    },
+    {
+      vaultSymbol: "n3x-BNBUSDT-PCS1",
+      limit: ethers.utils.parseEther("0"),
+    },
+    {
+      vaultSymbol: "n3x-BNBBUSD-PCS1",
+      limit: ethers.utils.parseEther("0"),
+    },
+    {
+      vaultSymbol: "n8x-BNBUSDT-PCS1",
+      limit: ethers.utils.parseEther("0"),
+    },
+    {
+      vaultSymbol: "n8x-BNBUSDT-PCS2",
+      limit: ethers.utils.parseEther("0"),
+    },
   ];
 
   const deployer = await getDeployer();

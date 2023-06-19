@@ -1419,6 +1419,36 @@
       "address": "0x5C6801Ef7baB6f17C8429b3Ce17ac3c0FC923F20",
       "txHash": "0xf6a46bf2f9d0fd09ec7b545fa0ec535702894224c0e3d3c515101bf93bb837e1",
       "kind": "transparent"
+    },
+    {
+      "address": "0x4aA75b72d40B8784887f97a71EB6bee3a8262DCE",
+      "txHash": "0x3e41022e210bd3a7064d4e1b1b7194e49b93acc15847baf10274f61d223bc86c",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xA7bF8Bd3B8318eC9cb9aF0cB8b58aE4DDAFFD735",
+      "txHash": "0x48b48ba4685ec05c04979a847d0f64cef7b93579d00ba99d808d070c790c9cd4",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xEB15bE7060823953554b93Fd8140f695E1185572",
+      "txHash": "0x461431351f379f8aa2dacd06ff4057a0e57aa83b2a5eeca7058cd9256c8723ef",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x7B3781d8371CD0B30cFf5DfF53f1901bC1698E61",
+      "txHash": "0xf0ebf45609ba6312696046978b0d81b427e4f63c251d49f01a6999a515f1c74a",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xE63d2180A7DE06C5e2aF9AC80122537557B49567",
+      "txHash": "0x4d28c046ff0dbe43f1c05aa6b328b2290db690e5efb38b6cf4005c5fb0412bcd",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x78ED43866Cf10F7ECaD56DF761C23c95f5244818",
+      "txHash": "0x7ce901e9c46b0eb809e9a42318dbbb5559df90c63caf9d7c5390d4d41d5e52e1",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -33307,6 +33337,730 @@
           },
           "t_mapping(t_address,t_bool)": {
             "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "35f5f35fcbf48643ae3edbecc58e7d892d828f3f1cd401c99617a4e9acee4a12": {
+      "address": "0xda4415B13f85aFEfD3ACd77c4E2430B704E8A6ec",
+      "txHash": "0x50d59ce6cb6183d3311f5e32d753d4d071d54578ccd73a5aa2004301b87484e6",
+      "layout": {
+        "solcVersion": "0.8.13",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "getWrappedNativeAddr",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_address",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:109"
+          },
+          {
+            "label": "getWNativeRelayer",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_address",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:111"
+          },
+          {
+            "label": "fairLaunchAddr",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_address",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:114"
+          },
+          {
+            "label": "maxVaultPositionValue",
+            "offset": 0,
+            "slot": "104",
+            "type": "t_uint256",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:116"
+          },
+          {
+            "label": "rebalanceFactor",
+            "offset": 0,
+            "slot": "105",
+            "type": "t_uint256",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:118"
+          },
+          {
+            "label": "positionValueTolerance",
+            "offset": 0,
+            "slot": "106",
+            "type": "t_uint256",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:120"
+          },
+          {
+            "label": "debtRatioTolerance",
+            "offset": 0,
+            "slot": "107",
+            "type": "t_uint256",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:123"
+          },
+          {
+            "label": "depositFeeTreasury",
+            "offset": 0,
+            "slot": "108",
+            "type": "t_address",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:125"
+          },
+          {
+            "label": "depositFeeBps",
+            "offset": 0,
+            "slot": "109",
+            "type": "t_uint256",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:128"
+          },
+          {
+            "label": "withdrawalFeeTreasury",
+            "offset": 0,
+            "slot": "110",
+            "type": "t_address",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:129"
+          },
+          {
+            "label": "withdrawalFeeBps",
+            "offset": 0,
+            "slot": "111",
+            "type": "t_uint256",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:131"
+          },
+          {
+            "label": "managementFeeTreasury",
+            "offset": 0,
+            "slot": "112",
+            "type": "t_address",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:133"
+          },
+          {
+            "label": "managementFeePerSec",
+            "offset": 0,
+            "slot": "113",
+            "type": "t_uint256",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:136"
+          },
+          {
+            "label": "leverageLevel",
+            "offset": 0,
+            "slot": "114",
+            "type": "t_uint8",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:140"
+          },
+          {
+            "label": "alpacaToken",
+            "offset": 1,
+            "slot": "114",
+            "type": "t_address",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:141"
+          },
+          {
+            "label": "getSwapRouter",
+            "offset": 0,
+            "slot": "115",
+            "type": "t_address",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:143"
+          },
+          {
+            "label": "reinvestPath",
+            "offset": 0,
+            "slot": "116",
+            "type": "t_array(t_address)dyn_storage",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:147"
+          },
+          {
+            "label": "whitelistedCallers",
+            "offset": 0,
+            "slot": "117",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:148"
+          },
+          {
+            "label": "whitelistedRebalancers",
+            "offset": 0,
+            "slot": "118",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:151"
+          },
+          {
+            "label": "feeExemptedCallers",
+            "offset": 0,
+            "slot": "119",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:154"
+          },
+          {
+            "label": "whitelistedReinvestors",
+            "offset": 0,
+            "slot": "120",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:157"
+          },
+          {
+            "label": "alpacaReinvestFeeTreasury",
+            "offset": 0,
+            "slot": "121",
+            "type": "t_address",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:159"
+          },
+          {
+            "label": "alpacaBountyBps",
+            "offset": 0,
+            "slot": "122",
+            "type": "t_uint256",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:161"
+          },
+          {
+            "label": "alpacaBeneficiary",
+            "offset": 0,
+            "slot": "123",
+            "type": "t_address",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:164"
+          },
+          {
+            "label": "alpacaBeneficiaryBps",
+            "offset": 0,
+            "slot": "124",
+            "type": "t_uint256",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:167"
+          },
+          {
+            "label": "controller",
+            "offset": 0,
+            "slot": "125",
+            "type": "t_address",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:170"
+          },
+          {
+            "label": "depositExecutor",
+            "offset": 0,
+            "slot": "126",
+            "type": "t_address",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:172"
+          },
+          {
+            "label": "withdrawExecutor",
+            "offset": 0,
+            "slot": "127",
+            "type": "t_address",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:173"
+          },
+          {
+            "label": "rebalanceExecutor",
+            "offset": 0,
+            "slot": "128",
+            "type": "t_address",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:175"
+          },
+          {
+            "label": "reinvestExecutor",
+            "offset": 0,
+            "slot": "129",
+            "type": "t_address",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:176"
+          },
+          {
+            "label": "swapFee",
+            "offset": 0,
+            "slot": "130",
+            "type": "t_uint256",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:179"
+          },
+          {
+            "label": "swapFeeDenom",
+            "offset": 0,
+            "slot": "131",
+            "type": "t_uint256",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:180"
+          },
+          {
+            "label": "partialCloseMinimizeStrategy",
+            "offset": 0,
+            "slot": "132",
+            "type": "t_address",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:181"
+          },
+          {
+            "label": "stableAddTwoSideStrategy",
+            "offset": 0,
+            "slot": "133",
+            "type": "t_address",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:182"
+          },
+          {
+            "label": "assetAddTwoSideStrategy",
+            "offset": 0,
+            "slot": "134",
+            "type": "t_address",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:185"
+          },
+          {
+            "label": "repurchaseExecutor",
+            "offset": 0,
+            "slot": "135",
+            "type": "t_address",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:186"
+          },
+          {
+            "label": "repurchaseBorrowStrategy",
+            "offset": 0,
+            "slot": "136",
+            "type": "t_address",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:187"
+          },
+          {
+            "label": "repurchaseRepayStrategy",
+            "offset": 0,
+            "slot": "137",
+            "type": "t_address",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:188"
+          },
+          {
+            "label": "repurchaseBonusBps",
+            "offset": 0,
+            "slot": "138",
+            "type": "t_uint256",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:191"
+          },
+          {
+            "label": "whitelistedRepurchasers",
+            "offset": 0,
+            "slot": "139",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:193"
+          },
+          {
+            "label": "retargetExecutor",
+            "offset": 0,
+            "slot": "140",
+            "type": "t_address",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:195"
+          },
+          {
+            "label": "retargetRemoveLiquidityStrategy",
+            "offset": 0,
+            "slot": "141",
+            "type": "t_address",
+            "contract": "DeltaNeutralVaultConfig02",
+            "src": "solidity/contracts/8.13/DeltaNeutralVaultConfig02.sol:197"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "480c45eebdaf57a58516003adc1e5da290f063646717ac4c71a00e00d8815c24": {
+      "address": "0x96ae335F7dEeB6cB274CEa96CaE06A133552Eff8",
+      "txHash": "0xe539e90d455198226f1f579709260a931551806149d15dc723c17291b4ce9f61",
+      "layout": {
+        "solcVersion": "0.8.13",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_balances",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "ERC20Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:37"
+          },
+          {
+            "label": "_allowances",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))",
+            "contract": "ERC20Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:39"
+          },
+          {
+            "label": "_totalSupply",
+            "offset": 0,
+            "slot": "53",
+            "type": "t_uint256",
+            "contract": "ERC20Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:41"
+          },
+          {
+            "label": "_name",
+            "offset": 0,
+            "slot": "54",
+            "type": "t_string_storage",
+            "contract": "ERC20Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:43"
+          },
+          {
+            "label": "_symbol",
+            "offset": 0,
+            "slot": "55",
+            "type": "t_string_storage",
+            "contract": "ERC20Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:44"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "56",
+            "type": "t_array(t_uint256)45_storage",
+            "contract": "ERC20Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:400"
+          },
+          {
+            "label": "_status",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_uint256",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:80"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "152",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "stableTo18ConversionFactor",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_uint256",
+            "contract": "DeltaNeutralVault04",
+            "src": "solidity/contracts/8.13/DeltaNeutralVault04.sol:95"
+          },
+          {
+            "label": "assetTo18ConversionFactor",
+            "offset": 0,
+            "slot": "202",
+            "type": "t_uint256",
+            "contract": "DeltaNeutralVault04",
+            "src": "solidity/contracts/8.13/DeltaNeutralVault04.sol:98"
+          },
+          {
+            "label": "lpToken",
+            "offset": 0,
+            "slot": "203",
+            "type": "t_address",
+            "contract": "DeltaNeutralVault04",
+            "src": "solidity/contracts/8.13/DeltaNeutralVault04.sol:99"
+          },
+          {
+            "label": "stableVault",
+            "offset": 0,
+            "slot": "204",
+            "type": "t_address",
+            "contract": "DeltaNeutralVault04",
+            "src": "solidity/contracts/8.13/DeltaNeutralVault04.sol:101"
+          },
+          {
+            "label": "assetVault",
+            "offset": 0,
+            "slot": "205",
+            "type": "t_address",
+            "contract": "DeltaNeutralVault04",
+            "src": "solidity/contracts/8.13/DeltaNeutralVault04.sol:102"
+          },
+          {
+            "label": "stableVaultWorker",
+            "offset": 0,
+            "slot": "206",
+            "type": "t_address",
+            "contract": "DeltaNeutralVault04",
+            "src": "solidity/contracts/8.13/DeltaNeutralVault04.sol:104"
+          },
+          {
+            "label": "assetVaultWorker",
+            "offset": 0,
+            "slot": "207",
+            "type": "t_address",
+            "contract": "DeltaNeutralVault04",
+            "src": "solidity/contracts/8.13/DeltaNeutralVault04.sol:105"
+          },
+          {
+            "label": "stableToken",
+            "offset": 0,
+            "slot": "208",
+            "type": "t_address",
+            "contract": "DeltaNeutralVault04",
+            "src": "solidity/contracts/8.13/DeltaNeutralVault04.sol:106"
+          },
+          {
+            "label": "assetToken",
+            "offset": 0,
+            "slot": "209",
+            "type": "t_address",
+            "contract": "DeltaNeutralVault04",
+            "src": "solidity/contracts/8.13/DeltaNeutralVault04.sol:108"
+          },
+          {
+            "label": "alpacaToken",
+            "offset": 0,
+            "slot": "210",
+            "type": "t_address",
+            "contract": "DeltaNeutralVault04",
+            "src": "solidity/contracts/8.13/DeltaNeutralVault04.sol:109"
+          },
+          {
+            "label": "stableVaultPosId",
+            "offset": 0,
+            "slot": "211",
+            "type": "t_uint256",
+            "contract": "DeltaNeutralVault04",
+            "src": "solidity/contracts/8.13/DeltaNeutralVault04.sol:111"
+          },
+          {
+            "label": "assetVaultPosId",
+            "offset": 0,
+            "slot": "212",
+            "type": "t_uint256",
+            "contract": "DeltaNeutralVault04",
+            "src": "solidity/contracts/8.13/DeltaNeutralVault04.sol:113"
+          },
+          {
+            "label": "lastFeeCollected",
+            "offset": 0,
+            "slot": "213",
+            "type": "t_uint256",
+            "contract": "DeltaNeutralVault04",
+            "src": "solidity/contracts/8.13/DeltaNeutralVault04.sol:113"
+          },
+          {
+            "label": "priceOracle",
+            "offset": 0,
+            "slot": "214",
+            "type": "t_contract(IDeltaNeutralOracle)18843",
+            "contract": "DeltaNeutralVault04",
+            "src": "solidity/contracts/8.13/DeltaNeutralVault04.sol:115"
+          },
+          {
+            "label": "config",
+            "offset": 0,
+            "slot": "215",
+            "type": "t_contract(IDeltaNeutralVaultConfig02)19265",
+            "contract": "DeltaNeutralVault04",
+            "src": "solidity/contracts/8.13/DeltaNeutralVault04.sol:118"
+          },
+          {
+            "label": "OPENING",
+            "offset": 20,
+            "slot": "215",
+            "type": "t_uint8",
+            "contract": "DeltaNeutralVault04",
+            "src": "solidity/contracts/8.13/DeltaNeutralVault04.sol:121"
+          },
+          {
+            "label": "checker",
+            "offset": 0,
+            "slot": "216",
+            "type": "t_contract(IDeltaNeutralVault04HealthChecker)19000",
+            "contract": "DeltaNeutralVault04",
+            "src": "solidity/contracts/8.13/DeltaNeutralVault04.sol:123"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)45_storage": {
+            "label": "uint256[45]",
+            "numberOfBytes": "1440"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IDeltaNeutralOracle)18843": {
+            "label": "contract IDeltaNeutralOracle",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IDeltaNeutralVault04HealthChecker)19000": {
+            "label": "contract IDeltaNeutralVault04HealthChecker",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IDeltaNeutralVaultConfig02)19265": {
+            "label": "contract IDeltaNeutralVaultConfig02",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
+            "label": "mapping(address => mapping(address => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
             "numberOfBytes": "32"
           },
           "t_uint256": {
