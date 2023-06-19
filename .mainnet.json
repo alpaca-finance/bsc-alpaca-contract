@@ -5137,7 +5137,9 @@
     "repurchase": "0x693E0B9d6d166fdA074693Ab52ce7e59A62FB5E1",
     "retarget": "0x283F694b54B018b8e5C3ADdb84a8f5225E1Dc16a",
     "terminator": "0xA403336Acb5a798D54CDDfC518f56E4e579D58a3",
-    "migrator": "0xB8C7ab60d90aC3A9CF0d32D5952DeaDE324C6321"
+    "migrator": "0xB8C7ab60d90aC3A9CF0d32D5952DeaDE324C6321",
+    "terminator02": "",
+    "repay": ""
   },
   "DirectionalVaultExecutor": {
     "deposit": "",
