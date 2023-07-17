@@ -18,11 +18,38 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const DEFAULT_MAX_PRICE_STALE = "86400";
   const config = ConfigEntity.getConfig();
 
-  const TOKEN0_SYMBOLS = ["ETH"];
-  const TOKEN1_SYMBOLS = ["USDC"];
-  const MAX_PRICE_DEVIATIONS = [DEFAULT_MAX_PRICE_DEVIATION];
-  const MAX_PRICE_STALES = [DEFAULT_MAX_PRICE_STALE];
-  const SOURCES = [[config.Oracle.SimpleOracle]];
+  const TOKEN0_SYMBOLS = ["ALPACA", "USDC", "BOO", "fUSDT", "DAI", "BTC", "ETH", "TUSD"];
+  const TOKEN1_SYMBOLS = ["WFTM", "WFTM", "USDC", "WFTM", "WFTM", "WFTM", "WFTM", "USDC"];
+  const MAX_PRICE_DEVIATIONS = [
+    DEFAULT_MAX_PRICE_DEVIATION,
+    DEFAULT_MAX_PRICE_DEVIATION,
+    DEFAULT_MAX_PRICE_DEVIATION,
+    DEFAULT_MAX_PRICE_DEVIATION,
+    DEFAULT_MAX_PRICE_DEVIATION,
+    DEFAULT_MAX_PRICE_DEVIATION,
+    DEFAULT_MAX_PRICE_DEVIATION,
+    DEFAULT_MAX_PRICE_DEVIATION,
+  ];
+  const MAX_PRICE_STALES = [
+    DEFAULT_MAX_PRICE_STALE,
+    DEFAULT_MAX_PRICE_STALE,
+    DEFAULT_MAX_PRICE_STALE,
+    DEFAULT_MAX_PRICE_STALE,
+    DEFAULT_MAX_PRICE_STALE,
+    DEFAULT_MAX_PRICE_STALE,
+    DEFAULT_MAX_PRICE_STALE,
+    DEFAULT_MAX_PRICE_STALE,
+  ];
+  const SOURCES = [
+    [config.Oracle.SimpleOracle],
+    [config.Oracle.SimpleOracle],
+    [config.Oracle.SimpleOracle],
+    [config.Oracle.SimpleOracle],
+    [config.Oracle.SimpleOracle],
+    [config.Oracle.SimpleOracle],
+    [config.Oracle.SimpleOracle],
+    [config.Oracle.SimpleOracle],
+  ];
 
   const tokenList: any = config.Tokens;
   const token0Addrs: Array<string> = TOKEN0_SYMBOLS.map((t) => {
@@ -45,16 +72,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     (await ethers.getSigners())[0]
   );
   console.log(">> Adding primary source to oracle medianizer");
-  const setMultiPrimarySourcesTx = await (
-    await oracleMedianizer.setMultiPrimarySources(
-      token0Addrs,
-      token1Addrs,
-      MAX_PRICE_DEVIATIONS,
-      MAX_PRICE_STALES,
-      SOURCES
-    )
-  ).wait(3);
-  console.log("Tx hash:", setMultiPrimarySourcesTx.transactionHash);
+  const setMultiPrimarySourcesTx = await oracleMedianizer.setMultiPrimarySources(
+    token0Addrs,
+    token1Addrs,
+    MAX_PRICE_DEVIATIONS,
+    MAX_PRICE_STALES,
+    SOURCES
+  );
+  console.log("Tx hash:", setMultiPrimarySourcesTx.hash);
   console.log("✅ Done");
 };
 

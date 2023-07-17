@@ -52,7 +52,6 @@ module.exports = {
     fantom_mainnet: {
       url: process.env.FTM_MAINNET_RPC,
       accounts: [process.env.FANTOM_MAINNET_PRIVATE_KEY],
-      gasPrice: 3000000000000,
     },
     fantom_mainnetfork: {
       url: process.env.FORK_RPC,

@@ -34073,6 +34073,717 @@
           }
         }
       }
+    },
+    "5f70eb97d90f51cd99ead6f1ee0daaafd05c28f78ca62946a534e13da7e54e51": {
+      "address": "0x7a298E84051eCc81cA69201Dd8824c33A7cD0Fb8",
+      "txHash": "0xb918027b469a868a8e07ee41995c8a4ae41c29ffdb2804d4a967d91917a8ef47",
+      "layout": {
+        "solcVersion": "0.8.13",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_balances",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "ERC20Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:37"
+          },
+          {
+            "label": "_allowances",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))",
+            "contract": "ERC20Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:39"
+          },
+          {
+            "label": "_totalSupply",
+            "offset": 0,
+            "slot": "53",
+            "type": "t_uint256",
+            "contract": "ERC20Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:41"
+          },
+          {
+            "label": "_name",
+            "offset": 0,
+            "slot": "54",
+            "type": "t_string_storage",
+            "contract": "ERC20Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:43"
+          },
+          {
+            "label": "_symbol",
+            "offset": 0,
+            "slot": "55",
+            "type": "t_string_storage",
+            "contract": "ERC20Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:44"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "56",
+            "type": "t_array(t_uint256)45_storage",
+            "contract": "ERC20Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:400"
+          },
+          {
+            "label": "_status",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_uint256",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:80"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "152",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "stableTo18ConversionFactor",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_uint256",
+            "contract": "TerminateAV02",
+            "src": "solidity/contracts/8.13/TerminateAV02.sol:72"
+          },
+          {
+            "label": "assetTo18ConversionFactor",
+            "offset": 0,
+            "slot": "202",
+            "type": "t_uint256",
+            "contract": "TerminateAV02",
+            "src": "solidity/contracts/8.13/TerminateAV02.sol:75"
+          },
+          {
+            "label": "lpToken",
+            "offset": 0,
+            "slot": "203",
+            "type": "t_address",
+            "contract": "TerminateAV02",
+            "src": "solidity/contracts/8.13/TerminateAV02.sol:76"
+          },
+          {
+            "label": "stableVault",
+            "offset": 0,
+            "slot": "204",
+            "type": "t_address",
+            "contract": "TerminateAV02",
+            "src": "solidity/contracts/8.13/TerminateAV02.sol:78"
+          },
+          {
+            "label": "assetVault",
+            "offset": 0,
+            "slot": "205",
+            "type": "t_address",
+            "contract": "TerminateAV02",
+            "src": "solidity/contracts/8.13/TerminateAV02.sol:79"
+          },
+          {
+            "label": "stableVaultWorker",
+            "offset": 0,
+            "slot": "206",
+            "type": "t_address",
+            "contract": "TerminateAV02",
+            "src": "solidity/contracts/8.13/TerminateAV02.sol:81"
+          },
+          {
+            "label": "assetVaultWorker",
+            "offset": 0,
+            "slot": "207",
+            "type": "t_address",
+            "contract": "TerminateAV02",
+            "src": "solidity/contracts/8.13/TerminateAV02.sol:82"
+          },
+          {
+            "label": "stableToken",
+            "offset": 0,
+            "slot": "208",
+            "type": "t_address",
+            "contract": "TerminateAV02",
+            "src": "solidity/contracts/8.13/TerminateAV02.sol:83"
+          },
+          {
+            "label": "assetToken",
+            "offset": 0,
+            "slot": "209",
+            "type": "t_address",
+            "contract": "TerminateAV02",
+            "src": "solidity/contracts/8.13/TerminateAV02.sol:85"
+          },
+          {
+            "label": "alpacaToken",
+            "offset": 0,
+            "slot": "210",
+            "type": "t_address",
+            "contract": "TerminateAV02",
+            "src": "solidity/contracts/8.13/TerminateAV02.sol:86"
+          },
+          {
+            "label": "stableVaultPosId",
+            "offset": 0,
+            "slot": "211",
+            "type": "t_uint256",
+            "contract": "TerminateAV02",
+            "src": "solidity/contracts/8.13/TerminateAV02.sol:88"
+          },
+          {
+            "label": "assetVaultPosId",
+            "offset": 0,
+            "slot": "212",
+            "type": "t_uint256",
+            "contract": "TerminateAV02",
+            "src": "solidity/contracts/8.13/TerminateAV02.sol:90"
+          },
+          {
+            "label": "lastFeeCollected",
+            "offset": 0,
+            "slot": "213",
+            "type": "t_uint256",
+            "contract": "TerminateAV02",
+            "src": "solidity/contracts/8.13/TerminateAV02.sol:90"
+          },
+          {
+            "label": "priceOracle",
+            "offset": 0,
+            "slot": "214",
+            "type": "t_contract(IDeltaNeutralOracle)2957",
+            "contract": "TerminateAV02",
+            "src": "solidity/contracts/8.13/TerminateAV02.sol:92"
+          },
+          {
+            "label": "config",
+            "offset": 0,
+            "slot": "215",
+            "type": "t_contract(IDeltaNeutralVaultConfig02)3316",
+            "contract": "TerminateAV02",
+            "src": "solidity/contracts/8.13/TerminateAV02.sol:95"
+          },
+          {
+            "label": "OPENING",
+            "offset": 20,
+            "slot": "215",
+            "type": "t_uint8",
+            "contract": "TerminateAV02",
+            "src": "solidity/contracts/8.13/TerminateAV02.sol:98"
+          },
+          {
+            "label": "checker",
+            "offset": 0,
+            "slot": "216",
+            "type": "t_contract(IDeltaNeutralVault04HealthChecker)3051",
+            "contract": "TerminateAV02",
+            "src": "solidity/contracts/8.13/TerminateAV02.sol:100"
+          },
+          {
+            "label": "isTerminated",
+            "offset": 20,
+            "slot": "216",
+            "type": "t_bool",
+            "contract": "TerminateAV02",
+            "src": "solidity/contracts/8.13/TerminateAV02.sol:103"
+          },
+          {
+            "label": "terminateExecutor",
+            "offset": 0,
+            "slot": "217",
+            "type": "t_address",
+            "contract": "TerminateAV02",
+            "src": "solidity/contracts/8.13/TerminateAV02.sol:103"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)45_storage": {
+            "label": "uint256[45]",
+            "numberOfBytes": "1440"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IDeltaNeutralOracle)2957": {
+            "label": "contract IDeltaNeutralOracle",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IDeltaNeutralVault04HealthChecker)3051": {
+            "label": "contract IDeltaNeutralVault04HealthChecker",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IDeltaNeutralVaultConfig02)3316": {
+            "label": "contract IDeltaNeutralVaultConfig02",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
+            "label": "mapping(address => mapping(address => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "69a9a38aefb457f5d36cca09f9b5ce96a02e44fcd43233a699e7fd744cc3dc15": {
+      "address": "0x3cB64ac14AD252ca01B5e37b27990Bd68D63af5F",
+      "txHash": "0x5b84fd4493cf83cb1d97e9b65cdec28e89c893af67b1aeb696d3fa5b3419677a",
+      "layout": {
+        "solcVersion": "0.6.6",
+        "storage": [
+          {
+            "label": "initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:21"
+          },
+          {
+            "label": "initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:26"
+          },
+          {
+            "label": "______gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:61"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeSafe",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol:37"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_address",
+            "contract": "OwnableUpgradeSafe",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:18"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeSafe",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:78"
+          },
+          {
+            "label": "_notEntered",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_bool",
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:21"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "152",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:63"
+          },
+          {
+            "label": "masterChef",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_contract(IPancakeMasterChef)34715",
+            "contract": "CakeMaxiWorker02MCV2DisabledLiquidation",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2DisabledLiquidation.sol:64"
+          },
+          {
+            "label": "factory",
+            "offset": 0,
+            "slot": "202",
+            "type": "t_contract(IPancakeFactory)34647",
+            "contract": "CakeMaxiWorker02MCV2DisabledLiquidation",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2DisabledLiquidation.sol:66"
+          },
+          {
+            "label": "router",
+            "offset": 0,
+            "slot": "203",
+            "type": "t_contract(IPancakeRouter02)21725",
+            "contract": "CakeMaxiWorker02MCV2DisabledLiquidation",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2DisabledLiquidation.sol:66"
+          },
+          {
+            "label": "lpToken",
+            "offset": 0,
+            "slot": "204",
+            "type": "t_contract(IPancakePair)35022",
+            "contract": "CakeMaxiWorker02MCV2DisabledLiquidation",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2DisabledLiquidation.sol:68"
+          },
+          {
+            "label": "wNative",
+            "offset": 0,
+            "slot": "205",
+            "type": "t_address",
+            "contract": "CakeMaxiWorker02MCV2DisabledLiquidation",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2DisabledLiquidation.sol:69"
+          },
+          {
+            "label": "baseToken",
+            "offset": 0,
+            "slot": "206",
+            "type": "t_address",
+            "contract": "CakeMaxiWorker02MCV2DisabledLiquidation",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2DisabledLiquidation.sol:69"
+          },
+          {
+            "label": "farmingToken",
+            "offset": 0,
+            "slot": "207",
+            "type": "t_address",
+            "contract": "CakeMaxiWorker02MCV2DisabledLiquidation",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2DisabledLiquidation.sol:71"
+          },
+          {
+            "label": "operator",
+            "offset": 0,
+            "slot": "208",
+            "type": "t_address",
+            "contract": "CakeMaxiWorker02MCV2DisabledLiquidation",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2DisabledLiquidation.sol:72"
+          },
+          {
+            "label": "pid",
+            "offset": 0,
+            "slot": "209",
+            "type": "t_uint256",
+            "contract": "CakeMaxiWorker02MCV2DisabledLiquidation",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2DisabledLiquidation.sol:74"
+          },
+          {
+            "label": "beneficialVault",
+            "offset": 0,
+            "slot": "210",
+            "type": "t_contract(IVault)36179",
+            "contract": "CakeMaxiWorker02MCV2DisabledLiquidation",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2DisabledLiquidation.sol:74"
+          },
+          {
+            "label": "shares",
+            "offset": 0,
+            "slot": "211",
+            "type": "t_mapping(t_uint256,t_uint256)",
+            "contract": "CakeMaxiWorker02MCV2DisabledLiquidation",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2DisabledLiquidation.sol:76"
+          },
+          {
+            "label": "okStrats",
+            "offset": 0,
+            "slot": "212",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "CakeMaxiWorker02MCV2DisabledLiquidation",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2DisabledLiquidation.sol:77"
+          },
+          {
+            "label": "totalShare",
+            "offset": 0,
+            "slot": "213",
+            "type": "t_uint256",
+            "contract": "CakeMaxiWorker02MCV2DisabledLiquidation",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2DisabledLiquidation.sol:79"
+          },
+          {
+            "label": "addStrat",
+            "offset": 0,
+            "slot": "214",
+            "type": "t_contract(IStrategy)35209",
+            "contract": "CakeMaxiWorker02MCV2DisabledLiquidation",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2DisabledLiquidation.sol:80"
+          },
+          {
+            "label": "liqStrat",
+            "offset": 0,
+            "slot": "215",
+            "type": "t_contract(IStrategy)35209",
+            "contract": "CakeMaxiWorker02MCV2DisabledLiquidation",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2DisabledLiquidation.sol:81"
+          },
+          {
+            "label": "beneficialVaultBountyBps",
+            "offset": 0,
+            "slot": "216",
+            "type": "t_uint256",
+            "contract": "CakeMaxiWorker02MCV2DisabledLiquidation",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2DisabledLiquidation.sol:81"
+          },
+          {
+            "label": "reinvestBountyBps",
+            "offset": 0,
+            "slot": "217",
+            "type": "t_uint256",
+            "contract": "CakeMaxiWorker02MCV2DisabledLiquidation",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2DisabledLiquidation.sol:82"
+          },
+          {
+            "label": "maxReinvestBountyBps",
+            "offset": 0,
+            "slot": "218",
+            "type": "t_uint256",
+            "contract": "CakeMaxiWorker02MCV2DisabledLiquidation",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2DisabledLiquidation.sol:84"
+          },
+          {
+            "label": "rewardBalance",
+            "offset": 0,
+            "slot": "219",
+            "type": "t_uint256",
+            "contract": "CakeMaxiWorker02MCV2DisabledLiquidation",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2DisabledLiquidation.sol:84"
+          },
+          {
+            "label": "okReinvestors",
+            "offset": 0,
+            "slot": "220",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "CakeMaxiWorker02MCV2DisabledLiquidation",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2DisabledLiquidation.sol:85"
+          },
+          {
+            "label": "path",
+            "offset": 0,
+            "slot": "221",
+            "type": "t_array(t_address)dyn_storage",
+            "contract": "CakeMaxiWorker02MCV2DisabledLiquidation",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2DisabledLiquidation.sol:88"
+          },
+          {
+            "label": "rewardPath",
+            "offset": 0,
+            "slot": "222",
+            "type": "t_array(t_address)dyn_storage",
+            "contract": "CakeMaxiWorker02MCV2DisabledLiquidation",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2DisabledLiquidation.sol:88"
+          },
+          {
+            "label": "fee",
+            "offset": 0,
+            "slot": "223",
+            "type": "t_uint256",
+            "contract": "CakeMaxiWorker02MCV2DisabledLiquidation",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2DisabledLiquidation.sol:92"
+          },
+          {
+            "label": "feeDenom",
+            "offset": 0,
+            "slot": "224",
+            "type": "t_uint256",
+            "contract": "CakeMaxiWorker02MCV2DisabledLiquidation",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2DisabledLiquidation.sol:92"
+          },
+          {
+            "label": "reinvestThreshold",
+            "offset": 0,
+            "slot": "225",
+            "type": "t_uint256",
+            "contract": "CakeMaxiWorker02MCV2DisabledLiquidation",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2DisabledLiquidation.sol:95"
+          },
+          {
+            "label": "treasuryAccount",
+            "offset": 0,
+            "slot": "226",
+            "type": "t_address",
+            "contract": "CakeMaxiWorker02MCV2DisabledLiquidation",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2DisabledLiquidation.sol:96"
+          },
+          {
+            "label": "treasuryBountyBps",
+            "offset": 0,
+            "slot": "227",
+            "type": "t_uint256",
+            "contract": "CakeMaxiWorker02MCV2DisabledLiquidation",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2DisabledLiquidation.sol:98"
+          },
+          {
+            "label": "buybackAmount",
+            "offset": 0,
+            "slot": "228",
+            "type": "t_uint256",
+            "contract": "CakeMaxiWorker02MCV2DisabledLiquidation",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2DisabledLiquidation.sol:98"
+          },
+          {
+            "label": "cakePool",
+            "offset": 0,
+            "slot": "229",
+            "type": "t_contract(ICakePool)34406",
+            "contract": "CakeMaxiWorker02MCV2DisabledLiquidation",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2DisabledLiquidation.sol:100"
+          },
+          {
+            "label": "accumulatedBounty",
+            "offset": 0,
+            "slot": "230",
+            "type": "t_uint256",
+            "contract": "CakeMaxiWorker02MCV2DisabledLiquidation",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2DisabledLiquidation.sol:102"
+          },
+          {
+            "label": "lastCakePoolActionTime",
+            "offset": 0,
+            "slot": "231",
+            "type": "t_uint256",
+            "contract": "CakeMaxiWorker02MCV2DisabledLiquidation",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2DisabledLiquidation.sol:103"
+          },
+          {
+            "label": "lastReinvestTime",
+            "offset": 0,
+            "slot": "232",
+            "type": "t_uint256",
+            "contract": "CakeMaxiWorker02MCV2DisabledLiquidation",
+            "src": "solidity/contracts/6/protocol/workers/single-asset/CakeMaxiWorker02MCV2DisabledLiquidation.sol:106"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(ICakePool)34406": {
+            "label": "contract ICakePool",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IPancakeFactory)34647": {
+            "label": "contract IPancakeFactory",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IPancakeMasterChef)34715": {
+            "label": "contract IPancakeMasterChef",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IPancakePair)35022": {
+            "label": "contract IPancakePair",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IPancakeRouter02)21725": {
+            "label": "contract IPancakeRouter02",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IStrategy)35209": {
+            "label": "contract IStrategy",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IVault)36179": {
+            "label": "contract IVault",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_uint256)": {
+            "label": "mapping(uint256 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          }
+        }
+      }
     }
   }
 }

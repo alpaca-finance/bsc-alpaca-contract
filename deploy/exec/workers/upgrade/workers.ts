@@ -84,20 +84,19 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const fileName = "upgrade-DeltaNeutralSpookyMCV2Worker03";
+  const fileName = "upgrade-TUSD-workers";
   const factories: Array<FactoryMap> = [
     {
-      workerType: "DeltaNeutralSpookyWorker",
-      newVersion: "DeltaNeutralSpookyMCV2Worker03",
+      workerType: "PancakeswapWorker",
+      newVersion: "PancakeswapV2MCV2Worker02DisableLiquidation",
+    },
+    {
+      workerType: "CakeMaxiWorker",
+      newVersion: "CakeMaxiWorker02MCV2DisabledLiquidation",
     },
   ];
-  const workerInputs: IWorkerInputs = [
-    "USDC-WFTM 3x SPK1 DeltaNeutralSpookyWorker",
-    "WFTM-USDC 3x SPK1 DeltaNeutralSpookyWorker",
-    "USDC-WFTM 3x SPK2 DeltaNeutralSpookyWorker",
-    "WFTM-USDC 3x SPK2 DeltaNeutralSpookyWorker",
-  ];
-  const EXACT_ETA = "1680865200";
+  const workerInputs: IWorkerInputs = ["BUSD-TUSD PancakeswapWorker", "TUSD CakeMaxiWorker"];
+  const EXACT_ETA = "1687329000";
 
   const config = ConfigEntity.getConfig();
   const ts = Math.floor(new Date().getTime() / 1000);

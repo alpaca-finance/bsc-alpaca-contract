@@ -17,18 +17,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const config = getConfig();
 
-  const TARGETED_VAULTS = [
-    "n8x-BUSDUSDT-PCS1",
-    "L3x-BUSDBNB-PCS1",
-    "L8x-BUSDBNB-PCS1",
-    "L8x-USDTBNB-BSW1",
-    "L8x-USDTBNB-PCS1",
-    "L3x-BUSDBTCB-PCS1",
-    "n3x-BNBUSDT-PCS1",
-    "n3x-BNBBUSD-PCS1",
-    "n8x-BNBUSDT-PCS1",
-    "n8x-BNBUSDT-PCS2",
-  ];
+  const TARGETED_VAULTS = ["L8x-USDTBNB-PCS1"];
 
   const terminator = config.AutomatedVaultExecutor?.terminator02!;
 
@@ -40,7 +29,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   for (const vault of toBeTerminatedVaults) {
     const terminateVaultAsDeployer = TerminateAV__factory.connect(vault.address, deployer);
-    const ops = isFork() ? { nonce: nonce++, gasLimit: 10000000 } : { nonce: nonce++ };
+    const ops = isFork() ? { nonce: nonce++, gasLimit: 10000000 } : { nonce: nonce++, gasLimit: 10_000_000 };
 
     console.log("Terminating:", vault.symbol);
     const terminateTx = await terminateVaultAsDeployer.terminate(terminator, ops);
