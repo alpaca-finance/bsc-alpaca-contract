@@ -5123,10 +5123,7 @@
   ],
   "AutomatedVaultController": {
     "address": "0xfd0694a29871Ee629D51cF4079842382368f1e15",
-    "creditors": [
-      "0xeDdD248FEe5ff98e532c3A4087C83F6e376eEDa7",
-      "0xbd2A1cE2f31622664BdfA5e31b94dB97be051E24"
-    ]
+    "creditors": ["0xeDdD248FEe5ff98e532c3A4087C83F6e376eEDa7", "0xbd2A1cE2f31622664BdfA5e31b94dB97be051E24"]
   },
   "NFT": {
     "NFTStaking": "0xe5d84fFB55f3276345f8C1F6EE17bf06935867f2",
@@ -5141,8 +5138,8 @@
     "retarget": "0x283F694b54B018b8e5C3ADdb84a8f5225E1Dc16a",
     "terminator": "0xA403336Acb5a798D54CDDfC518f56E4e579D58a3",
     "migrator": "0xB8C7ab60d90aC3A9CF0d32D5952DeaDE324C6321",
-    "terminator02": "",
-    "repay": ""
+    "terminator02": "0xf8b658773da938Ef17657c8949f77cFb22A80f8C",
+    "repay": "0xB9378E8AD805a4883559428896280aDb42cC8369"
   },
   "DirectionalVaultExecutor": {
     "deposit": "",

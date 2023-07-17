@@ -20,10 +20,18 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const TITLE = "upgrade_terminate_av";
-  const DELTA_NEUTRAL_VAULT = "TerminateAV";
-  const TARGETED_VAULTS = ["n3x-FTMUSDC-SPK1", "n3x-FTMUSDC-SPK2"];
-  const EXACT_ETA = "1680865200";
+  const TITLE = "upgrade_terminate_av_02";
+  const DELTA_NEUTRAL_VAULT = "TerminateAV02";
+  const TARGETED_VAULTS = [
+    "L8x-USDTBNB-BSW1", // yes
+    "L8x-USDTBNB-PCS1", // yes
+    "L3x-BUSDBTCB-PCS1", // yes
+    "n3x-BNBUSDT-PCS1", // yes
+    "n3x-BNBBUSD-PCS1", // yes
+    "n8x-BNBUSDT-PCS1", // yes
+    "n8x-BNBUSDT-PCS2", // yes
+  ];
+  const EXACT_ETA = "1688812200";
 
   const config = getConfig();
 
@@ -41,7 +49,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log("> Prepare upgrade & deploy if needed a new IMPL automatically.");
     const newVault = await ethers.getContractFactory(DELTA_NEUTRAL_VAULT);
     const preparedNewVault = await upgrades.prepareUpgrade(vault.address, newVault);
-    console.log(`> Implementation address: ${preparedNewVault}`);
+    console.log(`> Implementation address: ${preparedNewVault.toString()}`);
     console.log("✅ Done");
 
     const proxyAdmin = ProxyAdmin__factory.connect(config.ProxyAdmin, deployer);
@@ -63,7 +71,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       );
     } else {
       console.log("> Execute upgrade contract without Timelock");
-      await proxyAdmin.upgrade(vault.address, preparedNewVault, ops);
+      await proxyAdmin.upgrade(vault.address, preparedNewVault.toString(), ops);
     }
   }
 
