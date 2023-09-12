@@ -27,10 +27,17 @@ import "../utils/SafeToken.sol";
 import "./interfaces/IWETH.sol";
 import "./interfaces/IWNativeRelayer.sol";
 
+// Migration
+
+import "./interfaces/IMoneyMarketAccountManager.sol";
+import "./interfaces/IMoneyMarket.sol";
+
 contract MigratedVault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableUpgradeSafe {
   /// @notice Libraries
   using SafeToken for address;
   using SafeMath for uint256;
+
+  event Migrate(uint256 amountMigrated, uint256 ibTokenReceived);
 
   /// @dev Flags for manage execution scope
   uint256 private constant _NOT_ENTERED = 1;
@@ -68,6 +75,13 @@ contract MigratedVault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, 
   uint256 public lastAccrueTime;
   uint256 public reservePool;
 
+  // ------- Migration ---------- //
+
+  bool public migrated;
+  address public constant moneyMarket = 0x7389aaf2e32872cABD766D0CEB384220e8F2A590;
+  address public constant mmAccountManager = 0xD20B887654dB8dC476007bdca83d22Fa51e93407;
+  address public newIbToken;
+
   function initialize(
     IVaultConfig _config,
     address _token,
@@ -98,25 +112,29 @@ contract MigratedVault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, 
     STRATEGY = _NO_ADDRESS;
   }
 
-  /// @dev Withdraw token from the lending and burning ibToken.
-  function withdraw(uint256 share) external override nonReentrant {
-    uint256 amount = share.mul(totalToken()).div(totalSupply());
-    _burn(msg.sender, share);
-    _safeUnwrap(msg.sender, amount);
-    require(totalSupply() > 10**(uint256(decimals()).sub(1)), "no tiny shares");
+  function migrate() external onlyOwner {
+    // 1. sanity check , no debt
+    require(vaultDebtShare == 0, "outstanding debt");
+
+    // 2. Set new ibToken
+    newIbToken = IMoneyMarket(moneyMarket).getIbTokenFromToken(token);
+
+    // 3. deposit to mm through AM, native token vault should hold wNative token
+    // so, there's no need to handle native token
+    uint256 depositAmount = token.balanceOf(address(this));
+    IMoneyMarketAccountManager(mmAccountManager).deposit(token, depositAmount);
+
+    // 4. set migrated flag
+    migrated = true;
+
+    emit Migrate(depositAmount, newIbToken.balanceOf(address(this)));
   }
 
-  /// @dev Transfer to "to". Automatically unwrap if BTOKEN is WBNB
-  /// @param to The address of the receiver
-  /// @param amount The amount to be withdrawn
-  function _safeUnwrap(address to, uint256 amount) internal {
-    if (token == config.getWrappedNativeAddr()) {
-      SafeToken.safeTransfer(token, config.getWNativeRelayer(), amount);
-      IWNativeRelayer(uint160(config.getWNativeRelayer())).withdraw(amount);
-      SafeToken.safeTransferETH(to, amount);
-    } else {
-      SafeToken.safeTransfer(token, to, amount);
-    }
+  function claimFor(address user) external {
+    uint256 share = SafeToken.balanceOf(address(this), user);
+    _burn(msg.sender, share);
+    uint256 newIbTokenAmount = (share * newIbToken.balanceOf(address(this))) / totalSupply();
+    IMoneyMarketAccountManager(mmAccountManager).stakeFor(user, newIbToken, newIbTokenAmount);
   }
 
   /// @dev Withdraw BaseToken reserve for underwater positions to the given address.
@@ -126,6 +144,20 @@ contract MigratedVault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, 
     reservePool = reservePool.sub(value);
     SafeToken.safeTransfer(token, to, value);
   }
+
+  // ------ IVault Interface ------ //
+
+  /// @notice Return the total ERC20 entitled to the token holders. Be careful of unaccrued interests.
+  function totalToken() external view override returns (uint256) {}
+
+  /// @notice Add more ERC20 to the bank. Hope to get some good returns.
+  function deposit(uint256 amountToken) external payable override {}
+
+  /// @notice Withdraw ERC20 from the bank by burning the share tokens.
+  function withdraw(uint256 share) external override {}
+
+  /// @notice Request funds from user through Vault
+  function requestFunds(address targetedToken, uint256 amount) external override {}
 
   /// @dev Fallback function to accept BNB.
   receive() external payable {}
