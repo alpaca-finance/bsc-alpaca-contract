@@ -38,6 +38,7 @@ contract MigratedVault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, 
   using SafeMath for uint256;
 
   event Migrate(uint256 amountMigrated, uint256 ibTokenReceived);
+  event Claim(address claimFor, uint256 amount);
 
   /// @dev Flags for manage execution scope
   uint256 private constant _NOT_ENTERED = 1;
@@ -132,9 +133,12 @@ contract MigratedVault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, 
 
   function claimFor(address user) external {
     uint256 share = SafeToken.balanceOf(address(this), user);
-    _burn(msg.sender, share);
     uint256 newIbTokenAmount = (share * newIbToken.balanceOf(address(this))) / totalSupply();
+
+    _burn(msg.sender, share);
     IMoneyMarketAccountManager(mmAccountManager).stakeFor(user, newIbToken, newIbTokenAmount);
+
+    emit Claim(user, newIbTokenAmount);
   }
 
   /// @dev Withdraw BaseToken reserve for underwater positions to the given address.
