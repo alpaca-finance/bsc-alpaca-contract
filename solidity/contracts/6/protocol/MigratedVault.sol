@@ -131,6 +131,19 @@ contract MigratedVault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, 
     emit Migrate(depositAmount, newIbToken.balanceOf(address(this)));
   }
 
+  /// @dev Withdraw token from the lending and burning ibToken.
+  function withdraw(uint256 share) external override nonReentrant {
+    // 1. sanity check , no debt
+    require(vaultDebtShare == 0, "outstanding debt");
+    // 2. sanity check , not migrated
+    require(!migrated, "migrated");
+
+    uint256 amount = share.mul(totalToken()).div(totalSupply());
+    _burn(msg.sender, share);
+    _safeUnwrap(msg.sender, amount);
+    require(totalSupply() > 10 ** (uint256(decimals()).sub(1)), "no tiny shares");
+  }
+
   function claimFor(address user) external {
     uint256 share = SafeToken.balanceOf(address(this), user);
     uint256 newIbTokenAmount = (share * newIbToken.balanceOf(address(this))) / totalSupply();
@@ -149,16 +162,29 @@ contract MigratedVault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, 
     SafeToken.safeTransfer(token, to, value);
   }
 
+  /// @dev Transfer to "to". Automatically unwrap if BTOKEN is WBNB
+  /// @param to The address of the receiver
+  /// @param amount The amount to be withdrawn
+  function _safeUnwrap(address to, uint256 amount) internal {
+    if (token == config.getWrappedNativeAddr()) {
+      SafeToken.safeTransfer(token, config.getWNativeRelayer(), amount);
+      IWNativeRelayer(uint160(config.getWNativeRelayer())).withdraw(amount);
+      SafeToken.safeTransferETH(to, amount);
+    } else {
+      SafeToken.safeTransfer(token, to, amount);
+    }
+  }
+
+  function totalToken() public view override returns (uint256) {
+    return SafeToken.myBalance(token).add(vaultDebtVal).sub(reservePool);
+  }
+
   // ------ IVault Interface ------ //
 
   /// @notice Return the total ERC20 entitled to the token holders. Be careful of unaccrued interests.
-  function totalToken() external view override returns (uint256) {}
-
+  /// @dev Return the total token entitled to the token holders. Be careful of unaccrued interests.
   /// @notice Add more ERC20 to the bank. Hope to get some good returns.
   function deposit(uint256 amountToken) external payable override {}
-
-  /// @notice Withdraw ERC20 from the bank by burning the share tokens.
-  function withdraw(uint256 share) external override {}
 
   /// @notice Request funds from user through Vault
   function requestFunds(address targetedToken, uint256 amount) external override {}
