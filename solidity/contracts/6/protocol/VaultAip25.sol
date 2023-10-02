@@ -32,7 +32,7 @@ import "./interfaces/IWNativeRelayer.sol";
 import "./interfaces/IMoneyMarketAccountManager.sol";
 import "./interfaces/IMoneyMarket.sol";
 
-contract MigratedVault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableUpgradeSafe {
+contract VaultAip25 is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableUpgradeSafe {
   /// @notice Libraries
   using SafeToken for address;
   using SafeMath for uint256;
@@ -116,6 +116,7 @@ contract MigratedVault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, 
   function migrate() external onlyOwner {
     // 1. sanity check , no debt
     require(vaultDebtShare == 0, "outstanding debt");
+    require(reservePool == 0, "outstanding reservePool");
 
     // 2. Set new ibToken
     newIbToken = IMoneyMarket(moneyMarket).getIbTokenFromToken(token);
@@ -123,6 +124,7 @@ contract MigratedVault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, 
     // 3. deposit to mm through AM, native token vault should hold wNative token
     // so, there's no need to handle native token
     uint256 depositAmount = token.balanceOf(address(this));
+    token.safeApprove(token, mmAccountManager, depositAmount);
     IMoneyMarketAccountManager(mmAccountManager).deposit(token, depositAmount);
 
     // 4. set migrated flag
@@ -144,14 +146,21 @@ contract MigratedVault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, 
     require(totalSupply() > 10 ** (uint256(decimals()).sub(1)), "no tiny shares");
   }
 
-  function claimFor(address user) external {
-    uint256 share = SafeToken.balanceOf(address(this), user);
+  function claim() external nonReentrant {
+    require(migrated, "!migrated");
+
+    uint256 share = SafeToken.balanceOf(address(this), msg.sender);
+    // 1. find exchange rate between old ib and new ibToken
     uint256 newIbTokenAmount = (share * newIbToken.balanceOf(address(this))) / totalSupply();
 
+    // 2. burn old ibToken
     _burn(msg.sender, share);
-    IMoneyMarketAccountManager(mmAccountManager).stakeFor(user, newIbToken, newIbTokenAmount);
 
-    emit Claim(user, newIbTokenAmount);
+    // 3. stake new ibToken for user through mmAccountManager
+    token.safeApprove(newIbToken, mmAccountManager, newIbTokenAmount);
+    IMoneyMarketAccountManager(mmAccountManager).stakeFor(msg.sender, newIbToken, newIbTokenAmount);
+
+    emit Claim(msg.sender, newIbTokenAmount);
   }
 
   /// @dev Withdraw BaseToken reserve for underwater positions to the given address.
