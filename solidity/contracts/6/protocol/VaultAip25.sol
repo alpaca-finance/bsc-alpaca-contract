@@ -196,12 +196,12 @@ contract VaultAip25 is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, Own
   /// @notice Return the total ERC20 entitled to the token holders. Be careful of unaccrued interests.
   /// @dev Return the total token entitled to the token holders. Be careful of unaccrued interests.
   /// @notice Add more ERC20 to the bank. Hope to get some good returns.
-  function deposit(uint256 amountToken) external payable override {
+  function deposit(uint256 /*amountToken*/) external payable override {
     revert("!deposit");
   }
 
   /// @notice Request funds from user through Vault
-  function requestFunds(address targetedToken, uint256 amount) external override {
+  function requestFunds(address /*targetedToken*/, uint256 /*amount*/) external override {
     revert("!requestFunds");
   }
 
