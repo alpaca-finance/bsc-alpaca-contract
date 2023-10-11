@@ -56,6 +56,11 @@ async function getFactory(workerName: string, factories: Array<FactoryMap>): Pro
     if (!factory) throw new Error("not found new PancakeswapWorker factory");
     return await ethers.getContractFactory(factory.newVersion);
   }
+  if (workerName.includes("BiswapWorker")) {
+    const factory = factories.find((f) => f.workerType === "BiswapWorker");
+    if (!factory) throw new Error("not found new BiswapWorker factory");
+    return await ethers.getContractFactory(factory.newVersion);
+  }
   if (workerName.includes("MdexWorker")) {
     const factory = factories.find((f) => f.workerType === "MdexWorker");
     if (!factory) throw new Error("not found new MdexWorker factory");
@@ -84,7 +89,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const fileName = "upgrade-TUSD-workers";
+  const config = ConfigEntity.getConfig();
+
+  const fileName = "upgrade-BTCB-USDC-ETH-workers";
   const factories: Array<FactoryMap> = [
     {
       workerType: "PancakeswapWorker",
@@ -94,11 +101,37 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       workerType: "CakeMaxiWorker",
       newVersion: "CakeMaxiWorker02MCV2DisabledLiquidation",
     },
+    {
+      workerType: "BiswapWorker",
+      newVersion: "BiswapWorker03DisabledLiquidation",
+    },
   ];
-  const workerInputs: IWorkerInputs = ["BUSD-TUSD PancakeswapWorker", "TUSD CakeMaxiWorker"];
-  const EXACT_ETA = "1687329000";
+  const workerInputs: IWorkerInputs = [
+    // "WBNB-BTCB PancakeswapWorker",
+    // "BUSD-BTCB PancakeswapWorker",
+    // "ETH-BTCB PancakeswapWorker",
+    "BTCB CakeMaxiWorker",
+    "USDT-BTCB BiswapWorker",
+    "WBNB-BTCB BiswapWorker",
 
-  const config = ConfigEntity.getConfig();
+    "ETH-USDC PancakeswapWorker",
+    "USDT-USDC PancakeswapWorker",
+    "USDC CakeMaxiWorker",
+    "XWG-USDC PancakeswapWorker",
+    "WBNB-USDC BiswapWorker",
+
+    "USDC-ETH PancakeswapWorker",
+    "BETH-ETH PancakeswapWorker",
+    "COMP-ETH PancakeswapWorker",
+    "SUSHI-ETH PancakeswapWorker",
+    "WBNB-ETH PancakeswapWorker",
+    "BTCB-ETH PancakeswapWorker",
+    "ETH CakeMaxiWorker",
+    "USDT-ETH BiswapWorker",
+    "WBNB-ETH BiswapWorker",
+  ];
+  const EXACT_ETA = "1696585556";
+
   const ts = Math.floor(new Date().getTime() / 1000);
   const deployer = await getDeployer();
   const chainId = await deployer.getChainId();

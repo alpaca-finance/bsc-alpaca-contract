@@ -626,7 +626,11 @@ contract CakeMaxiWorker02MCV2DisabledLiquidation is OwnableUpgradeSafe, Reentran
   /// @notice Withdraw from the CakePool.
   /// @param _amount The amount to withdraw.
   function withdraw(uint256 _amount) internal {
-    if (_amount > 0) cakePool.withdrawByAmount(_amount);
+    // if too small amount withdraw consider it as zero
+    // prevent tx revert from MIN_WITHDRAW_AMOUNT check in cakePool
+    if (_amount > 0.00001 ether) {
+      cakePool.withdrawByAmount(_amount);
+    }
   }
 
   /// @notice Return the current balance that is owned by users.
