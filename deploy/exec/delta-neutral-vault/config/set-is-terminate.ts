@@ -16,7 +16,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
 
   const IS_TERMINATE = true;
-  const TARGETED_VAULTS = ["L8x-USDTBNB-PCS1"];
+  const TARGETED_VAULTS = [
+    "L3x-BUSDBTCB-PCS1",
+    "n3x-BNBUSDT-PCS1",
+    "n3x-BNBBUSD-PCS1",
+    "n8x-BNBUSDT-PCS1",
+    "n8x-BNBUSDT-PCS2",
+  ];
 
   const deployer = await getDeployer();
 
