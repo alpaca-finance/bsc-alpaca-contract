@@ -23,15 +23,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const TITLE = "upgrade_terminate_av_02";
   const DELTA_NEUTRAL_VAULT = "TerminateAV02";
   const TARGETED_VAULTS = [
-    "L8x-USDTBNB-BSW1", // yes
-    "L8x-USDTBNB-PCS1", // yes
-    "L3x-BUSDBTCB-PCS1", // yes
-    "n3x-BNBUSDT-PCS1", // yes
-    "n3x-BNBBUSD-PCS1", // yes
-    "n8x-BNBUSDT-PCS1", // yes
-    "n8x-BNBUSDT-PCS2", // yes
+    "L3x-BUSDBTCB-PCS1",
+    "n3x-BNBUSDT-PCS1",
+    "n3x-BNBBUSD-PCS1",
+    "n8x-BNBUSDT-PCS1",
+    "n8x-BNBUSDT-PCS2",
   ];
-  const EXACT_ETA = "1688812200";
+  const EXACT_ETA = "1693477800";
 
   const config = getConfig();
 
