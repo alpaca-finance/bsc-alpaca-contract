@@ -128,6 +128,8 @@
     "deploy:mainnet:proxy-token:deploy:proxy-token": "hardhat --network mainnet deploy --no-compile --reset --tags ProxyToken",
     "deploy:mainnet:revenue-treasury:deploy:revenue-treasury": "hardhat --network mainnet deploy --no-compile --reset --tags RevenueTreasury",
     "deploy:mainnet:revenue-treasury:upgrade:revenue-treasury": "hardhat --network mainnet deploy --no-compile --reset --tags UpgradeRevenueTreasury",
+    "deploy:mainnet:revenue-treasury:config:set-revenue-distributor": "hardhat --network mainnet deploy --no-compile --reset --tags RevenueTreasurySetRevenueDistributor",
+    "deploy:mainnet:revenue-treasury:config:set-reward-time": "hardhat --network mainnet deploy --no-compile --reset --tags RevenueTreasurySetRewardTime",
     "deploy:mainnet:emission-forwarder:deploy:emission-forwarder": "hardhat --network mainnet deploy --no-compile --reset --tags EmissionForwarder",
     "deploy:mainnet:strategies:deploy:biswap:share-strategies": "hardhat --network mainnet deploy --no-compile --reset --tags BiswapShareStrategies",
     "deploy:mainnet:strategies:deploy:biswap:vault-strategies": "hardhat --network mainnet deploy --no-compile --reset --tags BiswapVaultStrategies",
