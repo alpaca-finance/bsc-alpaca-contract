@@ -106,10 +106,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       newVersion: "BiswapWorker03DisabledLiquidation",
     },
   ];
+
   const workerInputs: IWorkerInputs = [
-    // "WBNB-BTCB PancakeswapWorker",
-    // "BUSD-BTCB PancakeswapWorker",
-    // "ETH-BTCB PancakeswapWorker",
+    "WBNB-BTCB PancakeswapWorker",
+    "BUSD-BTCB PancakeswapWorker",
+    "ETH-BTCB PancakeswapWorker",
     "BTCB CakeMaxiWorker",
     "USDT-BTCB BiswapWorker",
     "WBNB-BTCB BiswapWorker",
@@ -121,7 +122,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "WBNB-USDC BiswapWorker",
 
     "USDC-ETH PancakeswapWorker",
-    "BETH-ETH PancakeswapWorker",
+    // "BETH-ETH PancakeswapWorker", intentionally skip the worker still be PancakeSwapWorker version
     "COMP-ETH PancakeswapWorker",
     "SUSHI-ETH PancakeswapWorker",
     "WBNB-ETH PancakeswapWorker",
@@ -130,7 +131,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "USDT-ETH BiswapWorker",
     "WBNB-ETH BiswapWorker",
   ];
-  const EXACT_ETA = "1696585556";
+  const EXACT_ETA = "1697713200";
 
   const ts = Math.floor(new Date().getTime() / 1000);
   const deployer = await getDeployer();

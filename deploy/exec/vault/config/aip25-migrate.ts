@@ -3,6 +3,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { VaultAip25__factory } from "../../../../typechain";
 import { getDeployer } from "../../../../utils/deployer-helper";
 import { getConfig } from "../../../entities/config";
+import { ethers } from "hardhat";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -15,7 +16,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const TARGETED_VAULTS = ["ibBTCB"];
+  const TARGETED_VAULTS = ["ibUSDC", "ibETH"];
 
   const config = getConfig();
   const toBeMigrated = TARGETED_VAULTS.map((tv) => {
@@ -36,7 +37,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   for (const vault of toBeMigrated) {
     const vaultAIP25 = VaultAip25__factory.connect(vault.address, deployer);
 
-    const migrateTx = await vaultAIP25.migrate({ nonce: nonce++ });
+    const migrateTx = await vaultAIP25.migrate({ nonce: nonce++, gasPrice: ethers.utils.parseUnits("8", "gwei") });
     const migrateReceipt = await migrateTx.wait();
 
     if (migrateReceipt.status === 1) {
