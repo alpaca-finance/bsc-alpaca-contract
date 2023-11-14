@@ -19,6 +19,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 import "./interfaces/IERC20.sol";
 import "./interfaces/IGrassHouse.sol";
+import "./interfaces/IxALPACAv2RevenueDistributor.sol";
 import "./interfaces/ISwapRouter.sol";
 import "./interfaces/IVault.sol";
 
@@ -33,18 +34,21 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable, ReentrancyGuardUp
   error RevenueTreasury_TokenMismatch();
   error RevenueTreasury_InvalidSwapPath();
   error RevenueTreasury_InvalidBps();
+  error RevenueTreasury_InvalidRewardTime();
 
   /// @notice States
   /// @notice token - address of the receiving token. Must be stable.
   /// Required to have token() if this contract to be destination of Worker's benefitial vault
   address public token;
 
+  /// @notice Depcreated
   /// @notice grasshouseToken - address of the reward token
   address public grasshouseToken;
 
   /// @notice router - Pancake Router like address
   ISwapRouter public router;
 
+  /// @notice Depcreated
   /// @notice grassHouse - Implementation of GrassHouse
   IGrassHouse public grassHouse;
 
@@ -63,18 +67,25 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable, ReentrancyGuardUp
   /// @notice splitBps - Bps to split the receiving token
   uint256 public splitBps;
 
+  /// @notice new revenue distributor
+  IxALPACAv2RevenueDistributor public revenueDistributor;
+
+  /// @notice Period of reward distrubtion
+  uint256 public rewardTime;
+
   /// @notice Events
   event LogSettleBadDebt(address indexed _caller, uint256 _transferAmount);
-  event LogFeedGrassHouse(address indexed _caller, uint256 _feedAmount);
   event LogSetToken(address indexed _caller, address _prevToken, address _newToken);
   event LogSetVault(address indexed _caller, address _prevVault, address _newVault);
-  event LogSetGrassHouse(address indexed _caller, address _prevGrassHouse, address _newGrassHouse);
   event LogSetWhitelistedCallers(address indexed _caller, address indexed _address, bool _ok);
   event LogSetRewardPath(address indexed _caller, address[] _newRewardPath);
   event LogSetVaultSwapPath(address indexed _caller, address[] _newRewardPath);
   event LogSetRouter(address indexed _caller, address _prevRouter, address _newRouter);
   event LogSetRemaining(address indexed _caller, uint256 _prevRemaining, uint256 _newRemaining);
   event LogSetSplitBps(address indexed _caller, uint256 _prevSplitBps, uint256 _newSplitBps);
+  event LogFeedRevenueDistributor(address indexed _caller, uint256 _feedAmount);
+  event LogSetRevenueDistributor(address indexed _caller, address _revenueDistributor);
+  event LogSetRewardTime(address indexed _caller, uint256 _rewardTime);
 
   /// @notice Initialize function
   /// @param _token Receiving token
@@ -116,8 +127,9 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable, ReentrancyGuardUp
   /// @param minGrassHouseOut Minimum amount of grasshouse's token to receive
   function feedGrassHouse(uint256 minVaultOut, uint256 minGrassHouseOut) external nonReentrant {
     // Check
+    address _alpaca = revenueDistributor.ALPACA();
     _validateSwapPath(token, vault.token(), vaultSwapPath);
-    _validateSwapPath(token, grasshouseToken, rewardPath);
+    _validateSwapPath(token, _alpaca, rewardPath);
 
     // If remaining > 0, then we need to settle bad debt first
     if (remaining > 0) {
@@ -161,11 +173,11 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable, ReentrancyGuardUp
       router.swapExactTokensForTokens(_swapAmount, minGrassHouseOut, rewardPath, address(this), block.timestamp);
     }
 
-    // Feed all reward token to grasshouse
-    uint256 _feedAmount = grasshouseToken.myBalance();
-    grasshouseToken.safeApprove(address(grassHouse), _feedAmount);
-    grassHouse.feed(_feedAmount);
-    emit LogFeedGrassHouse(msg.sender, _feedAmount);
+    // Feed all reward token to revenueDistributor
+    uint256 _feedAmount = _alpaca.myBalance();
+    _alpaca.safeApprove(address(revenueDistributor), _feedAmount);
+    revenueDistributor.feed(_feedAmount, block.timestamp + rewardTime);
+    emit LogFeedRevenueDistributor(msg.sender, _feedAmount);
   }
 
   /// @notice Return reward path in array
@@ -187,7 +199,7 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable, ReentrancyGuardUp
     address[] calldata _rewardPath
   ) external onlyOwner {
     _validateSwapPath(_newToken, vault.token(), _vaultSwapPath);
-    _validateSwapPath(_newToken, grasshouseToken, _rewardPath);
+    _validateSwapPath(_newToken, revenueDistributor.ALPACA(), _rewardPath);
 
     // Effect
     address _prevToken = token;
@@ -214,19 +226,27 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable, ReentrancyGuardUp
     emit LogSetVault(msg.sender, address(_prevVault), address(vault));
   }
 
-  /// @notice Set a new GrassHouse
-  /// @param _newGrassHouse - new GrassHouse address
-  function setGrassHouse(IGrassHouse _newGrassHouse, address[] calldata _rewardPath) external onlyOwner {
-    // Check
-    _validateSwapPath(token, _newGrassHouse.rewardToken(), _rewardPath);
+  /// @notice Set revenueDistributor
+  /// @param _revenueDistributor - new revenueDistributor
+  function setRevenueDistributor(address _revenueDistributor) external onlyOwner {
+    // check
+    _validateSwapPath(token, IxALPACAv2RevenueDistributor(_revenueDistributor).ALPACA(), rewardPath);
 
-    address _prevGrassHouse = address(grassHouse);
-    grassHouse = _newGrassHouse;
-    grasshouseToken = grassHouse.rewardToken();
-    rewardPath = _rewardPath;
+    revenueDistributor = IxALPACAv2RevenueDistributor(_revenueDistributor);
 
-    emit LogSetGrassHouse(msg.sender, _prevGrassHouse, address(_newGrassHouse));
-    emit LogSetRewardPath(msg.sender, _rewardPath);
+    emit LogSetRevenueDistributor(msg.sender, _revenueDistributor);
+  }
+
+  /// @notice Set period of reward distribution
+  /// @param _newRewardTime - period of reward distribution in seconds
+  function setRewardTime(uint256 _newRewardTime) external onlyOwner {
+    if (_newRewardTime < 1 days || _newRewardTime > 30 days) {
+      revert RevenueTreasury_InvalidRewardTime();
+    }
+
+    rewardTime = _newRewardTime;
+
+    emit LogSetRewardTime(msg.sender, _newRewardTime);
   }
 
   /// @notice Set a new swap router
@@ -263,11 +283,7 @@ contract RevenueTreasury is Initializable, OwnableUpgradeable, ReentrancyGuardUp
   /// @param _source Source token
   /// @param _destination Destination token
   /// @param _path path to check validity
-  function _validateSwapPath(
-    address _source,
-    address _destination,
-    address[] memory _path
-  ) internal pure {
+  function _validateSwapPath(address _source, address _destination, address[] memory _path) internal pure {
     if (_path.length < 2) {
       if (_source != _destination) revert RevenueTreasury_TokenMismatch();
     } else {
