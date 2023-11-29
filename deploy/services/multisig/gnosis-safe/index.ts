@@ -33,14 +33,29 @@ export class GnosisSafeMultiSigService implements MultiSigServiceInterface {
     this._signer = signer;
   }
 
-  async proposeTransaction(to: string, value: BigNumberish, data: string): Promise<string> {
+  async proposeTransaction(to: string, value: BigNumberish, data: string, opts?: {nonce?: number}): Promise<string> {
     let safeSdk = await Safe.create({ ethAdapter: this._ethAdapter, safeAddress: this._safeAddress });
+
+    let whichNonce = 0;
+    if (opts) {
+      // Handling nonce
+      if (opts.nonce) {
+        // If options has nonce, use it
+        whichNonce = opts.nonce;
+      } else {
+        // If options has no nonce, get next nonce from safe service
+        whichNonce = await this._safeServiceClient.getNextNonce(this._safeAddress);
+      }
+    } else {
+      // If options is undefined, get next nonce from safe service
+      whichNonce = await this._safeServiceClient.getNextNonce(this._safeAddress);
+    }
 
     const safeTransactionData: SafeTransactionDataPartial = {
       to,
       value: value.toString(),
       data,
-      nonce: await this._safeServiceClient.getNextNonce(this._safeAddress),
+      nonce: whichNonce,
     };
 
     const safeTransaction = await safeSdk.createTransaction({

@@ -5,5 +5,6 @@ export interface MultiSigServiceInterface {
     to: string,
     value: BigNumberish,
     data: string,
+    opts?: {nonce?: number}
   ): Promise<string>
 }
