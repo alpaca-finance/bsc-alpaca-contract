@@ -18,9 +18,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "fantom_upgrade_revenue_treasury";
-  const REVENUE_TREASURY_VERSION = "FantomRevenueTreasury";
-  const EXACT_ETA = "1676818800";
+  const TITLE = "bsc_upgrade_revenue_treasury";
+  const REVENUE_TREASURY_VERSION = "RevenueTreasury";
+  const EXACT_ETA = "1700127000";
+  let NONCE = 1282
 
   const config = getConfig();
 
@@ -33,8 +34,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   }
   const proxyAdmin = ProxyAdmin__factory.connect(config.ProxyAdmin, deployer);
   const proxyAdminOwner = await proxyAdmin.owner();
-
-  let nonce = await deployer.getTransactionCount();
 
   if (compare(proxyAdminOwner, config.Timelock)) {
     console.log("------------------");
@@ -55,7 +54,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         ["address", "address"],
         [revenueTreasury, preparedRevenueTreasury],
         EXACT_ETA,
-        { nonce: nonce++ }
+        { nonce: NONCE++ }
       )
     );
   } else {
