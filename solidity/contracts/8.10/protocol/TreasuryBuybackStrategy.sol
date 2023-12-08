@@ -129,7 +129,7 @@ contract TreasuryBuybackStrategy is Initializable, Ownable2StepUpgradeable {
 
       // case1: current tick is possitive
       // assume current tick = 16619, tickSpacing = 200, and want to accumulate token1
-      // tickLower and tickUpper must satisfy tickSpacing condision
+      // tickLower and tickUpper must satisfy tickSpacing condition
       // tickLower = 16619 / 200 * 200 + 200 = 16800
       // tickUpper = 16800 + 200 = 17000
 
