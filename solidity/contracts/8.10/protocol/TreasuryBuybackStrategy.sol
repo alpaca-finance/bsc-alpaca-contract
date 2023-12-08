@@ -19,8 +19,12 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./interfaces/ICommonV3Pool.sol";
 import "./interfaces/ICommonV3PositionManager.sol";
 import "./interfaces/IPancakeV3MasterChef.sol";
+import "./interfaces/IV3SwapRouter.sol";
+import "./interfaces/IChainLinkPriceOracle.sol";
 
 import "../utils/SafeToken.sol";
+import "../libraries/LibLiquidityAmounts.sol";
+import "../libraries/LibTickMath.sol";
 
 contract TreasuryBuybackStrategy is Initializable, Ownable2StepUpgradeable {
   /// @notice Libraries
@@ -49,6 +53,10 @@ contract TreasuryBuybackStrategy is Initializable, Ownable2StepUpgradeable {
   int24 public tickSpacing;
   uint24 public fee;
 
+  IV3SwapRouter public routerV3;
+  IChainLinkPriceOracle public oracle;
+  uint256 public slippageBps;
+
   mapping(address => bool) public callersOk;
 
   /// Modifier
@@ -69,7 +77,10 @@ contract TreasuryBuybackStrategy is Initializable, Ownable2StepUpgradeable {
     address _nftPositionManager,
     address _pool,
     address _accumToken,
-    address _treasury
+    address _treasury,
+    address _routerV3,
+    address _oracle,
+    uint256 _slippageBps
   ) external initializer {
     // sanity call
     IPancakeV3MasterChef(_masterChef).CAKE();
@@ -90,11 +101,21 @@ contract TreasuryBuybackStrategy is Initializable, Ownable2StepUpgradeable {
     tickSpacing = ICommonV3Pool(_pool).tickSpacing();
     fee = ICommonV3Pool(_pool).fee();
 
+    routerV3 = IV3SwapRouter(_routerV3);
+
+    // sanity call
+    IChainLinkPriceOracle(_oracle).getPrice(token0, token1);
+    oracle = IChainLinkPriceOracle(_oracle);
+
     if (_accumToken != token0 && _accumToken != token1) {
       revert TreasuryBuybackStrategy_InvalidToken();
     }
-
     accumToken = _accumToken;
+
+    if (_slippageBps > 1000) {
+      revert TreasuryBuybackStrategy_InvalidParams();
+    }
+    slippageBps = _slippageBps;
   }
 
   /// @notice Add liquidity into poolV3 and stake nftToken in masterChef
@@ -226,6 +247,37 @@ contract TreasuryBuybackStrategy is Initializable, Ownable2StepUpgradeable {
     emit LogClosePosition(_nftTokenId, _amount0, _amount1);
   }
 
+  function swap(address _tokenIn, uint256 _amountIn) external onlyWhitelistedCallers {
+    address _token0 = token0;
+    address _token1 = token1;
+
+    if (_tokenIn != _token0 && _tokenIn != _token1) {
+      revert TreasuryBuybackStrategy_InvalidToken();
+    }
+
+    address _tokenOut = _tokenIn == _token0 ? _token1 : token0;
+
+    _tokenIn.safeTransferFrom(msg.sender, address(this), _amountIn);
+
+    _tokenIn.safeApprove(address(routerV3), _amountIn);
+
+    (uint256 _oracleExchangeRate, ) = oracle.getPrice(_tokenIn, _tokenOut);
+
+    uint256 _minAmountOut = (_amountIn * _oracleExchangeRate) /
+      (10 ** (18 + (ERC20Interface(_tokenIn).decimals() - ERC20Interface(_tokenOut).decimals())));
+
+    _minAmountOut = (_minAmountOut * (10000 - slippageBps)) / 10000;
+
+    routerV3.exactInput(
+      IV3SwapRouter.ExactInputParams({
+        path: abi.encodePacked(_tokenIn, fee, _tokenOut),
+        recipient: msg.sender,
+        amountIn: _amountIn,
+        amountOutMinimum: _minAmountOut
+      })
+    );
+  }
+
   function setCallersOk(address[] calldata _callers, bool _isOk) external onlyOwner {
     uint256 _length = _callers.length;
     for (uint256 _i; _i < _length; ) {
@@ -245,5 +297,31 @@ contract TreasuryBuybackStrategy is Initializable, Ownable2StepUpgradeable {
     }
 
     accumToken = _newAccumToken;
+  }
+
+  function setSlippageBps(uint256 _newSlippageBps) external onlyOwner {
+    if (_newSlippageBps > 1000) {
+      revert TreasuryBuybackStrategy_InvalidParams();
+    }
+
+    slippageBps = _newSlippageBps;
+  }
+
+  /// @notice Return current amount of token0,token1 from position liquidity
+  function getAmountsFromPositionLiquidity() external view returns (uint256 _amount0, uint256 _amount1) {
+    uint256 _nftTokenId = nftTokenId;
+    if (_nftTokenId == 0) {
+      return (_amount0, _amount1);
+    }
+
+    (uint160 _poolSqrtPriceX96, , , , , , ) = pool.slot0();
+    IPancakeV3MasterChef.UserPositionInfo memory _positionInfo = masterChef.userPositionInfos(_nftTokenId);
+
+    (_amount0, _amount1) = LibLiquidityAmounts.getAmountsForLiquidity(
+      _poolSqrtPriceX96,
+      LibTickMath.getSqrtRatioAtTick(_positionInfo.tickLower),
+      LibTickMath.getSqrtRatioAtTick(_positionInfo.tickUpper),
+      _positionInfo.liquidity
+    );
   }
 }

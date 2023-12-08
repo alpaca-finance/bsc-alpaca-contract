@@ -26,7 +26,10 @@ contract TreasuryBuybackStrategy_BaseTest is TestBase, ATest, StdCheats {
   address internal constant positionManager = 0x46A15B0b27311cedF172AB29E4f4766fbE7F4364;
   address internal constant usdt_alpaca_100_pool = 0xcfe783e16c9a8C74F2be9BCEb2339769439061Bf;
   address internal constant revenueTreasury = 0x08B5A95cb94f926a8B620E87eE92e675b35afc7E;
+  address internal constant pcsV3Router = 0x13f4EA83D0bd40E75C8222255bc855a974568Dd4;
+  address internal constant chainlinkOracle = 0x634902128543b25265da350e2d961C7ff540fC71;
   address internal treasury = makeAddr("Treasury");
+  uint256 internal slippageBps = 500;
 
   TreasuryBuybackStrategy internal treasurybuybackStrat;
 
@@ -40,7 +43,10 @@ contract TreasuryBuybackStrategy_BaseTest is TestBase, ATest, StdCheats {
       positionManager,
       usdt_alpaca_100_pool,
       alpaca,
-      treasury
+      treasury,
+      pcsV3Router,
+      chainlinkOracle,
+      slippageBps
     );
 
     vm.stopPrank();
@@ -51,18 +57,24 @@ contract TreasuryBuybackStrategy_BaseTest is TestBase, ATest, StdCheats {
     address _positionManager,
     address _pool,
     address _token,
-    address _treasury
+    address _treasury,
+    address _pcsV3Router,
+    address _oracle,
+    uint256 _slippageBps
   ) internal returns (TreasuryBuybackStrategy) {
     bytes memory _logicBytecode = abi.encodePacked(
       vm.getCode("./out/TreasuryBuybackStrategy.sol/TreasuryBuybackStrategy.json")
     );
     bytes memory _initializer = abi.encodeWithSelector(
-      bytes4(keccak256("initialize(address,address,address,address,address)")),
+      bytes4(keccak256("initialize(address,address,address,address,address,address,address,uint256)")),
       _masterChef,
       _positionManager,
       _pool,
       _token,
-      _treasury
+      _treasury,
+      _pcsV3Router,
+      _oracle,
+      _slippageBps
     );
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
     return TreasuryBuybackStrategy(_proxy);

@@ -15,6 +15,8 @@ pragma solidity 0.8.10;
 
 interface ERC20Interface {
   function balanceOf(address user) external view returns (uint256);
+
+  function decimals() external view returns (uint8);
 }
 
 library SafeToken {
@@ -22,11 +24,7 @@ library SafeToken {
     return ERC20Interface(token).balanceOf(address(this));
   }
 
-  function safeTransfer(
-    address token,
-    address to,
-    uint256 value
-  ) internal {
+  function safeTransfer(address token, address to, uint256 value) internal {
     // bytes4(keccak256(bytes('transfer(address,uint256)')));
     // solhint-disable-next-line avoid-low-level-calls
     require(token.code.length > 0, "!contract");
@@ -34,12 +32,7 @@ library SafeToken {
     require(success && (data.length == 0 || abi.decode(data, (bool))), "!safeTransfer");
   }
 
-  function safeTransferFrom(
-    address token,
-    address from,
-    address to,
-    uint256 value
-  ) internal {
+  function safeTransferFrom(address token, address from, address to, uint256 value) internal {
     // bytes4(keccak256(bytes('transferFrom(address,address,uint256)')));
     // solhint-disable-next-line avoid-low-level-calls
     require(token.code.length > 0, "!not contract");
@@ -47,11 +40,7 @@ library SafeToken {
     require(success && (data.length == 0 || abi.decode(data, (bool))), "!safeTransferFrom");
   }
 
-  function safeApprove(
-    address token,
-    address to,
-    uint256 value
-  ) internal {
+  function safeApprove(address token, address to, uint256 value) internal {
     // bytes4(keccak256(bytes('approve(address,uint256)')));
     require(token.code.length > 0, "!not contract");
     (bool success, bytes memory data) = token.call(abi.encodeWithSelector(0x095ea7b3, to, value));
