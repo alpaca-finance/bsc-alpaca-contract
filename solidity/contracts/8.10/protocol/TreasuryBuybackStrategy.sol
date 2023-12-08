@@ -37,7 +37,6 @@ contract TreasuryBuybackStrategy is Initializable, Ownable2StepUpgradeable {
   error TreasuryBuybackStrategy_InvalidToken();
   error TreasuryBuybackStrategy_InvalidParams();
 
-  event LogSetCaller(address indexed _caller, bool _isOk);
   event LogOpenPosition(uint256 indexed _nftTokenId, uint256 _amount0, uint256 _amount1);
   event LogClosePosition(uint256 indexed _nftTokenId, uint256 _amount0, uint256 _amount1);
   event LogSetAccumToken(address indexed _caller, address _prevAccumToken, address _accumToken);
@@ -57,8 +56,6 @@ contract TreasuryBuybackStrategy is Initializable, Ownable2StepUpgradeable {
   IV3SwapRouter public routerV3;
   IChainLinkPriceOracle public oracle;
   uint256 public slippageBps;
-
-  mapping(address => bool) public callersOk;
 
   /// Modifier
   modifier onlyRevenueTreasury() {
@@ -264,17 +261,6 @@ contract TreasuryBuybackStrategy is Initializable, Ownable2StepUpgradeable {
         amountOutMinimum: _minAmountOut
       })
     );
-  }
-
-  function setCallersOk(address[] calldata _callers, bool _isOk) external onlyOwner {
-    uint256 _length = _callers.length;
-    for (uint256 _i; _i < _length; ) {
-      callersOk[_callers[_i]] = _isOk;
-      emit LogSetCaller(_callers[_i], _isOk);
-      unchecked {
-        ++_i;
-      }
-    }
   }
 
   function setAccumToken(address _newAccumToken) public onlyOwner {

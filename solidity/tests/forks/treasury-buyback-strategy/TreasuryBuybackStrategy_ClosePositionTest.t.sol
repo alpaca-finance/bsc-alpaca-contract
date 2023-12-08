@@ -9,12 +9,6 @@ import { console } from "lib/forge-std/src/console.sol";
 contract TreasuryBuybackStrategy_ClosePositionTest is TreasuryBuybackStrategy_BaseTest {
   function setUp() public override {
     super.setUp();
-
-    address[] memory _callers = new address[](1);
-    _callers[0] = revenueTreasury;
-
-    vm.prank(deployer);
-    treasurybuybackStrat.setCallersOk(_callers, true);
   }
 
   function testCorrectness_WhenPositionIsOpened_ThenClosePosition_ShouldWork() external {
