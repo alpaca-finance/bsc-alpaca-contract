@@ -28,7 +28,7 @@ contract TreasuryBuybackStrategy_BaseTest is TestBase, ATest, StdCheats {
   address internal constant revenueTreasury = 0x08B5A95cb94f926a8B620E87eE92e675b35afc7E;
   address internal constant pcsV3Router = 0x13f4EA83D0bd40E75C8222255bc855a974568Dd4;
   address internal constant chainlinkOracle = 0x634902128543b25265da350e2d961C7ff540fC71;
-  address internal treasury = makeAddr("Treasury");
+
   uint256 internal slippageBps = 500;
 
   TreasuryBuybackStrategy internal treasurybuybackStrat;
@@ -43,7 +43,7 @@ contract TreasuryBuybackStrategy_BaseTest is TestBase, ATest, StdCheats {
       positionManager,
       usdt_alpaca_100_pool,
       alpaca,
-      treasury,
+      revenueTreasury,
       pcsV3Router,
       chainlinkOracle,
       slippageBps
@@ -57,7 +57,7 @@ contract TreasuryBuybackStrategy_BaseTest is TestBase, ATest, StdCheats {
     address _positionManager,
     address _pool,
     address _token,
-    address _treasury,
+    address _revenueTreasury,
     address _pcsV3Router,
     address _oracle,
     uint256 _slippageBps
@@ -71,7 +71,7 @@ contract TreasuryBuybackStrategy_BaseTest is TestBase, ATest, StdCheats {
       _positionManager,
       _pool,
       _token,
-      _treasury,
+      _revenueTreasury,
       _pcsV3Router,
       _oracle,
       _slippageBps

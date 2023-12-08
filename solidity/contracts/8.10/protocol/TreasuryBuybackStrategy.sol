@@ -21,6 +21,7 @@ import "./interfaces/ICommonV3PositionManager.sol";
 import "./interfaces/IPancakeV3MasterChef.sol";
 import "./interfaces/IV3SwapRouter.sol";
 import "./interfaces/IChainLinkPriceOracle.sol";
+import "./interfaces/IRevenueTreasury.sol";
 
 import "../utils/SafeToken.sol";
 import "../libraries/LibLiquidityAmounts.sol";
@@ -44,7 +45,7 @@ contract TreasuryBuybackStrategy is Initializable, Ownable2StepUpgradeable {
   IPancakeV3MasterChef public masterChef;
   ICommonV3PositionManager public nftPositionManager;
   uint256 public nftTokenId;
-  address public treasury;
+  address public revenueTreasury;
   address public accumToken;
 
   ICommonV3Pool public pool;
@@ -60,8 +61,8 @@ contract TreasuryBuybackStrategy is Initializable, Ownable2StepUpgradeable {
   mapping(address => bool) public callersOk;
 
   /// Modifier
-  modifier onlyWhitelistedCallers() {
-    if (!callersOk[msg.sender]) {
+  modifier onlyRevenueTreasury() {
+    if (revenueTreasury != msg.sender) {
       revert TreasuryBuybackStrategy_Unauthorized();
     }
     _;
@@ -77,7 +78,7 @@ contract TreasuryBuybackStrategy is Initializable, Ownable2StepUpgradeable {
     address _nftPositionManager,
     address _pool,
     address _accumToken,
-    address _treasury,
+    address _revenueTreasury,
     address _routerV3,
     address _oracle,
     uint256 _slippageBps
@@ -85,15 +86,13 @@ contract TreasuryBuybackStrategy is Initializable, Ownable2StepUpgradeable {
     // sanity call
     IPancakeV3MasterChef(_masterChef).CAKE();
     ICommonV3PositionManager(_nftPositionManager).positions(1);
-    if (_treasury == address(0)) {
-      revert TreasuryBuybackStrategy_InvalidParams();
-    }
+    IRevenueTreasury(_revenueTreasury).token();
 
     __Ownable2Step_init();
 
     masterChef = IPancakeV3MasterChef(_masterChef);
     nftPositionManager = ICommonV3PositionManager(_nftPositionManager);
-    treasury = _treasury;
+    revenueTreasury = _revenueTreasury;
 
     pool = ICommonV3Pool(_pool);
     token0 = ICommonV3Pool(_pool).token0();
@@ -120,7 +119,7 @@ contract TreasuryBuybackStrategy is Initializable, Ownable2StepUpgradeable {
 
   /// @notice Add liquidity into poolV3 and stake nftToken in masterChef
   /// @param _desiredAmount - Amount of another token that caller wish to place into liquidity
-  function openPosition(uint256 _desiredAmount) external onlyWhitelistedCallers {
+  function openPosition(uint256 _desiredAmount) external onlyRevenueTreasury {
     if (nftTokenId != 0) {
       revert TreasuryBuybackStrategy_PositionAlreadyExist();
     }
@@ -195,7 +194,7 @@ contract TreasuryBuybackStrategy is Initializable, Ownable2StepUpgradeable {
   }
 
   /// @notice Remove liquidity from poolV3 and transfer funds back to caller, rewardToken goes to treasury
-  function closePosition() external onlyWhitelistedCallers {
+  function closePosition() external onlyRevenueTreasury {
     uint256 _nftTokenId = nftTokenId;
     if (_nftTokenId == 0) {
       revert TreasuryBuybackStrategy_PositionNotExist();
@@ -206,7 +205,7 @@ contract TreasuryBuybackStrategy is Initializable, Ownable2StepUpgradeable {
     IPancakeV3MasterChef.UserPositionInfo memory _positionInfo = _masterChef.userPositionInfos(_nftTokenId);
 
     // handle cake, but should be every small
-    _masterChef.harvest(_nftTokenId, treasury);
+    _masterChef.harvest(_nftTokenId, revenueTreasury);
 
     if (_positionInfo.liquidity != 0) {
       _masterChef.decreaseLiquidity(
@@ -223,7 +222,7 @@ contract TreasuryBuybackStrategy is Initializable, Ownable2StepUpgradeable {
     (uint256 _amount0, uint256 _amount1) = _masterChef.collect(
       IPancakeV3MasterChef.CollectParams({
         tokenId: _nftTokenId,
-        recipient: address(this),
+        recipient: revenueTreasury,
         amount0Max: type(uint128).max,
         amount1Max: type(uint128).max
       })
@@ -233,21 +232,10 @@ contract TreasuryBuybackStrategy is Initializable, Ownable2StepUpgradeable {
 
     nftTokenId = 0;
 
-    uint256 _token0Balance = token0.myBalance();
-    uint256 _token1Balance = token1.myBalance();
-
-    if (_token0Balance != 0) {
-      token0.safeTransfer(msg.sender, _token0Balance);
-    }
-
-    if (_token1Balance != 0) {
-      token1.safeTransfer(msg.sender, _token1Balance);
-    }
-
     emit LogClosePosition(_nftTokenId, _amount0, _amount1);
   }
 
-  function swap(address _tokenIn, uint256 _amountIn) external onlyWhitelistedCallers {
+  function swap(address _tokenIn, uint256 _amountIn) external onlyRevenueTreasury {
     address _token0 = token0;
     address _token1 = token1;
 

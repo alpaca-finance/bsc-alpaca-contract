@@ -51,7 +51,7 @@ contract TreasuryBuybackStrategy_ClosePositionTest is TreasuryBuybackStrategy_Ba
 
     uint256 usdtBalanceBefore = IERC20Upgradeable(usdt).balanceOf(revenueTreasury);
     uint256 alpacaBalanceBefore = IERC20Upgradeable(alpaca).balanceOf(revenueTreasury);
-    uint256 cakeBalanceBefore = IERC20Upgradeable(cake).balanceOf(treasury);
+    uint256 cakeBalanceBefore = IERC20Upgradeable(cake).balanceOf(revenueTreasury);
 
     // remove liquidity
     vm.startPrank(revenueTreasury);
@@ -60,7 +60,7 @@ contract TreasuryBuybackStrategy_ClosePositionTest is TreasuryBuybackStrategy_Ba
 
     uint256 usdtBalanceAfter = IERC20Upgradeable(usdt).balanceOf(revenueTreasury);
     uint256 alpacaBalanceAfter = IERC20Upgradeable(alpaca).balanceOf(revenueTreasury);
-    uint256 cakeBalanceAfter = IERC20Upgradeable(cake).balanceOf(treasury);
+    uint256 cakeBalanceAfter = IERC20Upgradeable(cake).balanceOf(revenueTreasury);
 
     _positionInfo = treasurybuybackStrat.masterChef().userPositionInfos(_previousTokenId);
 
