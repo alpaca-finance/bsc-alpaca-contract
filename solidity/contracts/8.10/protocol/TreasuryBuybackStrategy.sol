@@ -30,6 +30,7 @@ contract TreasuryBuybackStrategy is Initializable, Ownable2StepUpgradeable {
   error TreasuryBuybackStrategy_PositionNotExist();
   error TreasuryBuybackStrategy_Unauthorized();
   error TreasuryBuybackStrategy_InvalidToken();
+  error TreasuryBuybackStrategy_InvalidParams();
 
   event LogSetCaller(address indexed _caller, bool _isOk);
   event LogOpenPosition(uint256 indexed _nftTokenId, uint256 _amount0, uint256 _amount1);
@@ -38,12 +39,15 @@ contract TreasuryBuybackStrategy is Initializable, Ownable2StepUpgradeable {
 
   IPancakeV3MasterChef public masterChef;
   ICommonV3PositionManager public nftPositionManager;
-  ICommonV3Pool pool;
   uint256 public nftTokenId;
   address public treasury;
   address public accumToken;
+
+  ICommonV3Pool public pool;
   address public token0;
   address public token1;
+  int24 public tickSpacing;
+  uint24 public fee;
 
   mapping(address => bool) public callersOk;
 
@@ -70,15 +74,21 @@ contract TreasuryBuybackStrategy is Initializable, Ownable2StepUpgradeable {
     // sanity call
     IPancakeV3MasterChef(_masterChef).CAKE();
     ICommonV3PositionManager(_nftPositionManager).positions(1);
+    if (_treasury == address(0)) {
+      revert TreasuryBuybackStrategy_InvalidParams();
+    }
 
     __Ownable2Step_init();
+
+    masterChef = IPancakeV3MasterChef(_masterChef);
+    nftPositionManager = ICommonV3PositionManager(_nftPositionManager);
+    treasury = _treasury;
 
     pool = ICommonV3Pool(_pool);
     token0 = ICommonV3Pool(_pool).token0();
     token1 = ICommonV3Pool(_pool).token1();
-    masterChef = IPancakeV3MasterChef(_masterChef);
-    nftPositionManager = ICommonV3PositionManager(_nftPositionManager);
-    treasury = _treasury;
+    tickSpacing = ICommonV3Pool(_pool).tickSpacing();
+    fee = ICommonV3Pool(_pool).fee();
 
     if (_accumToken != token0 && _accumToken != token1) {
       revert TreasuryBuybackStrategy_InvalidToken();
@@ -97,7 +107,7 @@ contract TreasuryBuybackStrategy is Initializable, Ownable2StepUpgradeable {
     ICommonV3PositionManager _nftPositionManager = nftPositionManager;
 
     (, int24 _currenrTick, , , , , ) = pool.slot0();
-    int24 tickSpacing = pool.tickSpacing();
+    int24 _tickSpacing = tickSpacing;
     address _token0 = token0;
     address _token1 = token1;
     int24 _tickLower;
@@ -105,13 +115,13 @@ contract TreasuryBuybackStrategy is Initializable, Ownable2StepUpgradeable {
     uint256 _amount0Desired;
     uint256 _amount1Desired;
 
-    if (accumToken == token0) {
+    if (accumToken == _token0) {
       _token1.safeTransferFrom(msg.sender, address(this), _desiredAmount);
       _amount1Desired = _token1.myBalance();
       _token1.safeApprove(address(_nftPositionManager), _amount1Desired);
 
-      _tickUpper = (_currenrTick / tickSpacing) * tickSpacing - tickSpacing;
-      _tickLower = _tickUpper - tickSpacing;
+      _tickUpper = (_currenrTick / _tickSpacing) * _tickSpacing - _tickSpacing;
+      _tickLower = _tickUpper - _tickSpacing;
     } else {
       _token0.safeTransferFrom(msg.sender, address(this), _desiredAmount);
       _amount0Desired = _token0.myBalance();
@@ -132,8 +142,8 @@ contract TreasuryBuybackStrategy is Initializable, Ownable2StepUpgradeable {
       //  assume current tick = 0, tickSpacing = 200, and want to accumulate token1
       // tickLower = 0 / 200 * 200 + 200 = 200
       // tickUpper = 200 + 200 = 400
-      _tickLower = (_currenrTick / tickSpacing) * tickSpacing + tickSpacing;
-      _tickUpper = _tickLower + tickSpacing;
+      _tickLower = (_currenrTick / _tickSpacing) * _tickSpacing + _tickSpacing;
+      _tickUpper = _tickLower + _tickSpacing;
     }
 
     // Mint new position and stake it with masterchef
@@ -142,7 +152,7 @@ contract TreasuryBuybackStrategy is Initializable, Ownable2StepUpgradeable {
       ICommonV3PositionManager.MintParams({
         token0: _token0,
         token1: _token1,
-        fee: pool.fee(),
+        fee: fee,
         tickLower: _tickLower,
         tickUpper: _tickUpper,
         amount0Desired: _amount0Desired,
