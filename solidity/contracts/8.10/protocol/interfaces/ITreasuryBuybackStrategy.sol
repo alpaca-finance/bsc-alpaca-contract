@@ -17,4 +17,12 @@ interface ITreasuryBuybackStrategy {
   function openPosition(uint256 _desiredAmount) external;
 
   function closePosition() external;
+
+  function swap(address _tokenIn, uint256 _amountIn) external;
+
+  function nftTokenId() external returns (uint256);
+
+  function token0() external returns (address);
+
+  function token1() external returns (address);
 }

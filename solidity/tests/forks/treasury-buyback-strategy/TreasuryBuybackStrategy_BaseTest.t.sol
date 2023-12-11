@@ -30,7 +30,6 @@ contract TreasuryBuybackStrategy_BaseTest is TestBase, ATest, StdCheats {
   address internal constant chainlinkOracle = 0x634902128543b25265da350e2d961C7ff540fC71;
 
   uint256 internal slippageBps = 500;
-
   TreasuryBuybackStrategy internal treasurybuybackStrat;
 
   function setUp() public virtual {
