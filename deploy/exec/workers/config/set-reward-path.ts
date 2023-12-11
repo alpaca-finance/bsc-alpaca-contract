@@ -37,7 +37,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const fileName = "set-workers-reward-path-to-usdt";
+  const TITLE = "set-workers-reward-path-to-usdt";
   const EXACT_ETA = "1702454400";
   const workerInputs: IWorkerRewardPathConfigInputs = [
     // CAKE
@@ -111,7 +111,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       REWARD_PATH: ["CAKE", "USDT"],
     },
     {
-      WORKER_NAME: "ETH-WBNB PancakeswapWorker,",
+      WORKER_NAME: "ETH-WBNB PancakeswapWorker",
       REWARD_PATH: ["CAKE", "USDT"],
     },
     {
@@ -298,7 +298,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     }
 
     if (timelockTransactions.length > 0) {
-      fileService.writeJson(fileName, timelockTransactions);
+      const timestamp = Math.floor(new Date().getTime() / 1000);
+      fileService.writeJson(`${timestamp}_${TITLE}`, timelockTransactions);
     }
   }
 };
