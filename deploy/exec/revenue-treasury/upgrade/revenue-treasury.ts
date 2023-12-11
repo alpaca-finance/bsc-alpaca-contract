@@ -18,10 +18,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "bsc_upgrade_revenue_treasury";
-  const REVENUE_TREASURY_VERSION = "RevenueTreasury";
+  const TITLE = "bsc_upgrade_revenue_treasury_to_revenue_treasury02";
+  const REVENUE_TREASURY_VERSION = "RevenueTreasury02";
   const EXACT_ETA = "1700127000";
-  let NONCE = 1282
+  let NONCE = 1282;
 
   const config = getConfig();
 
