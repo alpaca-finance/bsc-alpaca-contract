@@ -133,6 +133,7 @@
     "deploy:mainnet:revenue-treasury:config:set-revenue-distributor": "hardhat --network mainnet deploy --no-compile --reset --tags RevenueTreasurySetRevenueDistributor",
     "deploy:mainnet:revenue-treasury:config:set-reward-time": "hardhat --network mainnet deploy --no-compile --reset --tags RevenueTreasurySetRewardTime",
     "deploy:mainnet:revenue-treasury02:config:set-token": "hardhat --network mainnet deploy --no-compile --reset --tags RevenueTreasury02SetToken",
+    "deploy:mainnet:revenue-treasury02:config:set-treasury-buyback-strategy": "hardhat --network mainnet deploy --no-compile --reset --tags RevenueTreasury02SetTreasuryBuybackStrategy",
     "deploy:mainnet:treasury-buyback-strategy:deploy:treasury-buyback-strategy": "hardhat --network mainnet deploy --no-compile --reset --tags TreasuryBuybackStrategy",
     "deploy:mainnet:emission-forwarder:deploy:emission-forwarder": "hardhat --network mainnet deploy --no-compile --reset --tags EmissionForwarder",
     "deploy:mainnet:strategies:deploy:biswap:share-strategies": "hardhat --network mainnet deploy --no-compile --reset --tags BiswapShareStrategies",
