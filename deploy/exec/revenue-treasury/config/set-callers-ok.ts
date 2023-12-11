@@ -16,15 +16,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const NEW_TREASURY_BUYBACK_STRAT = "0xB12d1E49813e28B89E5C30A46942bCE068d1Ee75";
+  const CALLERS = [""];
+  const IS_OK = true;
 
   const deployer = await getDeployer();
   const revenueTreasury = RevenueTreasury02__factory.connect(config.RevenueTreasury!, deployer);
 
-  const setNewTreasuryBuybackStratTx = await revenueTreasury.setTreasuryBuyBackStrategy(NEW_TREASURY_BUYBACK_STRAT);
+  const setCallersOkTx = await revenueTreasury.setCallersOk(CALLERS, IS_OK);
 
-  console.log(`> ✅ Done setNewTreasuryBuybackStrat at tx: ${setNewTreasuryBuybackStratTx.hash}`);
+  console.log(`> ✅ Done setCallersOk at tx: ${setCallersOkTx.hash}`);
 };
 
 export default func;
-func.tags = ["RevenueTreasury02SetTreasuryBuybackStrategy"];
+func.tags = ["RevenueTreasury02SetCallersOk"];
