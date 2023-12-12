@@ -26,6 +26,6 @@ contract RevenueTreasury02_SwapStrategyTest is RevenueTreasury02_BaseTest {
     vm.stopPrank();
 
     assertEq(IERC20Upgradeable(usdt).balanceOf(address(revenueTreasury02)), 0);
-    assertGt(IERC20Upgradeable(usdt).balanceOf(address(revenueTreasury02)) - _alpacaBalanceBefore, 0);
+    assertGt(IERC20Upgradeable(alpaca).balanceOf(address(revenueTreasury02)) - _alpacaBalanceBefore, 0);
   }
 }

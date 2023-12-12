@@ -82,20 +82,15 @@ contract RevenueTreasury02 is Initializable, OwnableUpgradeable, ReentrancyGuard
   /// @notice Period of reward distrubtion
   uint256 public rewardTime;
 
+  /// @notice treasuryBuybackStrategy - strategy for buyback alpaca
   ITreasuryBuybackStrategy public treasuryBuybackStrategy;
 
+  /// @notice callersOk - whitelisted callers for executing buyback strategy
   mapping(address => bool) public callersOk;
 
   /// @notice Events
-  event LogSettleBadDebt(address indexed _caller, uint256 _transferAmount);
   event LogSetToken(address indexed _caller, address _prevToken, address _newToken);
-  event LogSetVault(address indexed _caller, address _prevVault, address _newVault);
   event LogSetWhitelistedCallers(address indexed _caller, address indexed _address, bool _ok);
-  event LogSetRewardPath(address indexed _caller, address[] _newRewardPath);
-  event LogSetVaultSwapPath(address indexed _caller, address[] _newRewardPath);
-  event LogSetRouter(address indexed _caller, address _prevRouter, address _newRouter);
-  event LogSetRemaining(address indexed _caller, uint256 _prevRemaining, uint256 _newRemaining);
-  event LogSetSplitBps(address indexed _caller, uint256 _prevSplitBps, uint256 _newSplitBps);
   event LogFeedRevenueDistributor(address indexed _caller, uint256 _feedAmount);
   event LogSetRevenueDistributor(address indexed _caller, address _revenueDistributor);
   event LogSetRewardTime(address indexed _caller, uint256 _rewardTime);
@@ -143,11 +138,11 @@ contract RevenueTreasury02 is Initializable, OwnableUpgradeable, ReentrancyGuard
     splitBps = _splitBps;
   }
 
-  /// @notice Split fund and distribute
   function feedGrassHouse(uint256 /*minVaultOut*/, uint256 /*minGrassHouseOut*/) external pure {
     revert("!feedGrassHouse");
   }
 
+  /// @notice feed alpaca to revenueDistributor
   function feedRevenueDistributor() external nonReentrant {
     address _alpaca = revenueDistributor.ALPACA();
     uint256 _feedAmount = _alpaca.myBalance();
@@ -242,16 +237,19 @@ contract RevenueTreasury02 is Initializable, OwnableUpgradeable, ReentrancyGuard
   }
 
   /// @notice Set a buyback strategy for revenueTreasury
-  /// @param _treasuryBuybackStrategy The strategy address
-  function setTreasuryBuyBackStrategy(address _treasuryBuybackStrategy) external onlyOwner {
+  /// @param _newTreasuryBuybackStrategy The strategy address
+  function setTreasuryBuyBackStrategy(address _newTreasuryBuybackStrategy) external onlyOwner {
     // reuqired positions to closed before setting new strategy
-    if (ITreasuryBuybackStrategy(_treasuryBuybackStrategy).nftTokenId() != 0) {
+    if (
+      address(treasuryBuybackStrategy) != address(0) &&
+      ITreasuryBuybackStrategy(treasuryBuybackStrategy).nftTokenId() != 0
+    ) {
       revert ReveneuTreasury_BuybackStrategyDeployed();
     }
 
-    treasuryBuybackStrategy = ITreasuryBuybackStrategy(_treasuryBuybackStrategy);
+    treasuryBuybackStrategy = ITreasuryBuybackStrategy(_newTreasuryBuybackStrategy);
 
-    emit LogSetTreasuryBuybackStrategy(msg.sender, _treasuryBuybackStrategy);
+    emit LogSetTreasuryBuybackStrategy(msg.sender, _newTreasuryBuybackStrategy);
   }
 
   function setCallersOk(address[] calldata _callers, bool _isOk) external onlyOwner {
