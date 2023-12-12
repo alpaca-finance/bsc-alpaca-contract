@@ -96,6 +96,9 @@ contract RevenueTreasury02 is Initializable, OwnableUpgradeable, ReentrancyGuard
   event LogSetRewardTime(address indexed _caller, uint256 _rewardTime);
   event LogSetTreasuryBuybackStrategy(address indexed _caller, address _treasuryBuybackStrategy);
   event LogSetCaller(address indexed _caller, bool _isOk);
+  event LogInitiateBuybackStrategy(address indexed _caller, address _token, uint256 _amount);
+  event LogStopBuybackStrategy(address indexed _caller);
+  event LogSwapStrategy(address indexed _caller, address indexed tokenIn, uint256 amountIn);
 
   /// Modifier
   modifier onlyWhitelistedCallers() {
@@ -155,17 +158,29 @@ contract RevenueTreasury02 is Initializable, OwnableUpgradeable, ReentrancyGuard
 
   function initiateBuybackStrategy() external nonReentrant onlyWhitelistedCallers {
     uint256 _myTokenBalance = token.myBalance();
-    token.safeApprove(address(treasuryBuybackStrategy), _myTokenBalance);
-    treasuryBuybackStrategy.openPosition(_myTokenBalance);
+    address _token = token;
+    ITreasuryBuybackStrategy _treasuryBuybackStrategy = treasuryBuybackStrategy;
+
+    _token.safeApprove(address(_treasuryBuybackStrategy), _myTokenBalance);
+    _treasuryBuybackStrategy.openPosition(_myTokenBalance);
+
+    emit LogInitiateBuybackStrategy(msg.sender, _token, _myTokenBalance);
   }
 
   function stopBuybackStrategy() external nonReentrant onlyWhitelistedCallers {
     treasuryBuybackStrategy.closePosition();
+
+    emit LogStopBuybackStrategy(msg.sender);
   }
 
   function swapStrategy(uint256 _amountIn) external nonReentrant onlyWhitelistedCallers {
-    token.safeApprove(address(treasuryBuybackStrategy), _amountIn);
-    treasuryBuybackStrategy.swap(token, _amountIn);
+    ITreasuryBuybackStrategy _treasuryBuybackStrategy = treasuryBuybackStrategy;
+    address _tokenIn = token;
+
+    _tokenIn.safeApprove(address(_treasuryBuybackStrategy), _amountIn);
+    _treasuryBuybackStrategy.swap(_tokenIn, _amountIn);
+
+    emit LogSwapStrategy(msg.sender, _tokenIn, _amountIn);
   }
 
   /// @notice Return reward path in array

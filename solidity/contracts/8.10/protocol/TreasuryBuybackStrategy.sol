@@ -40,6 +40,8 @@ contract TreasuryBuybackStrategy is Initializable, Ownable2StepUpgradeable {
   event LogOpenPosition(uint256 indexed _nftTokenId, uint256 _amount0, uint256 _amount1);
   event LogClosePosition(uint256 indexed _nftTokenId, uint256 _amount0, uint256 _amount1);
   event LogSetAccumToken(address indexed _caller, address _prevAccumToken, address _accumToken);
+  event LogSetSlippageBps(address indexed _caller, uint256 _slippageBps);
+  event LogSwap(address indexed _tokenIn, address indexed _tokenOut, uint256 _amountIn, uint256 amountOut);
 
   IPancakeV3MasterChef public masterChef;
   ICommonV3PositionManager public nftPositionManager;
@@ -253,7 +255,7 @@ contract TreasuryBuybackStrategy is Initializable, Ownable2StepUpgradeable {
 
     _minAmountOut = (_minAmountOut * (10000 - slippageBps)) / 10000;
 
-    routerV3.exactInput(
+    uint256 _amountOut = routerV3.exactInput(
       IV3SwapRouter.ExactInputParams({
         path: abi.encodePacked(_tokenIn, fee, _tokenOut),
         recipient: msg.sender,
@@ -261,6 +263,8 @@ contract TreasuryBuybackStrategy is Initializable, Ownable2StepUpgradeable {
         amountOutMinimum: _minAmountOut
       })
     );
+
+    emit LogSwap(_tokenIn, _tokenOut, _amountIn, _amountOut);
   }
 
   function setAccumToken(address _newAccumToken) public onlyOwner {
@@ -279,6 +283,8 @@ contract TreasuryBuybackStrategy is Initializable, Ownable2StepUpgradeable {
     }
 
     slippageBps = _newSlippageBps;
+
+    emit LogSetSlippageBps(msg.sender, _newSlippageBps);
   }
 
   /// @notice Return current amount of token0,token1 from position liquidity
