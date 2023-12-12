@@ -176,6 +176,7 @@
     "deploy:mainnet:strategies:config:set-whitelisted-delta-neutral-vaults": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags TimelockSetSharedStratsWhitelistedDeltaNeutralVaults",
     "deploy:mainnet:strategies:config:set-whitelisted-workers": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags SetSharedStratsWhitelistedWorkers",
     "deploy:mainnet:wnative-relayer:config:set-caller-ok": "hardhat --network mainnet deploy --no-compile --reset --tags WNativeRelayerSetCallerOk",
+    "deploy:mainnet:worker-config:config:emerge-set-accept-debt": "hardhat --network mainnet deploy --no-compile --reset --tags SetEmergencyWorkerConfigAcceptDebt",
     "deploy:testnet:000": "hardhat --network testnet deploy --no-compile --reset --tags Testnet",
     "deploy:testnet:000:panV2": "hardhat --network testnet deploy --no-compile --reset --tags PancakeswapV2",
     "deploy:testnet:000:waultswap": "hardhat --network testnet deploy --no-compile --reset --tags WaultSwap",
@@ -579,7 +580,9 @@
     "ts-generator": "^0.1.1",
     "ts-node": "^9.1.1",
     "typechain": "^6.0.2",
-    "typescript": "^4.1.5"
+    "typescript": "^4.1.5",
+    "@types/lodash": "^4.14.175",
+    "lodash": "^4.17.15"
   },
   "files": [
     "typechain",

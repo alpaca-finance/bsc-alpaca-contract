@@ -38,15 +38,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "adjust_CAKEUSDT_max_lev";
+  const TITLE = "disable_ACCEPT_DEBT_ALPACA_BUSD_WORKERS";
   const UPDATES: Array<SetConfigInput> = [
     {
-      WORKER: "CAKE-USDT PancakeswapWorker",
-      WORK_FACTOR: 7000,
-      KILL_FACTOR: 8333,
+      WORKER: "BUSD CakeMaxiWorker",
+      ACCEPT_DEBT: false,
     },
   ];
-  const EXACT_ETA = "1654253100";
+  const EXACT_ETA = "1702116000";
 
   const config = getConfig();
   const [deployer] = await ethers.getSigners();
@@ -54,6 +53,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const multicallService = new Multicall2Service(config.MultiCall, deployer);
   const inputs: Array<SetConfigDerivedInput> = [];
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
+  let nonce = 21656;
 
   /// @dev derived input
   for (let i = 0; i < UPDATES.length; i++) {
@@ -94,7 +94,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     throw "error: cannot derived all input";
   }
 
-  let nonce = await deployer.getTransactionCount();
   for (const input of inputs) {
     if (compare(config.Timelock, input.ownerAddress)) {
       timelockTransactions.push(

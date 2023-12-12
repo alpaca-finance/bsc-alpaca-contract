@@ -18,10 +18,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "upgrade_ibTUSD_to_VaultAip42";
-  const VAULT_VERSION = "VaultAip42";
-  const TARGETED_VAULTS = ["ibTUSD"];
-  const EXACT_ETA = "1687251600";
+  const TITLE = "upgrade_to_Vault_batch3";
+  const VAULT_VERSION = "Vault";
+  const TARGETED_VAULTS = ["ibALPACA", "ibBUSD"];
+  const EXACT_ETA = "1701340200";
+  let nonce = 21616;
 
   const config = getConfig();
 
@@ -41,8 +42,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   });
   const proxyAdmin = ProxyAdmin__factory.connect(config.ProxyAdmin, deployer);
   const proxyAdminOwner = await proxyAdmin.owner();
-
-  let nonce = await deployer.getTransactionCount();
 
   for (const vault of toBeUpgradedVaults) {
     if (compare(proxyAdminOwner, config.Timelock)) {

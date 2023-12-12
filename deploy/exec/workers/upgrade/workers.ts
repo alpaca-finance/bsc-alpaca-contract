@@ -91,7 +91,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const config = ConfigEntity.getConfig();
 
-  const fileName = "upgrade-BTCB-USDC-ETH-workers";
+  const fileName = "upgrade-ALPACA-BUSD-workers";
   const factories: Array<FactoryMap> = [
     {
       workerType: "PancakeswapWorker",
@@ -106,36 +106,41 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       newVersion: "BiswapWorker03DisabledLiquidation",
     },
   ];
+
   const workerInputs: IWorkerInputs = [
-    // "WBNB-BTCB PancakeswapWorker",
-    // "BUSD-BTCB PancakeswapWorker",
-    // "ETH-BTCB PancakeswapWorker",
-    "BTCB CakeMaxiWorker",
-    "USDT-BTCB BiswapWorker",
-    "WBNB-BTCB BiswapWorker",
+    "BUSD-ALPACA PancakeswapWorker",
 
-    "ETH-USDC PancakeswapWorker",
-    "USDT-USDC PancakeswapWorker",
-    "USDC CakeMaxiWorker",
-    "XWG-USDC PancakeswapWorker",
-    "WBNB-USDC BiswapWorker",
-
-    "USDC-ETH PancakeswapWorker",
-    "BETH-ETH PancakeswapWorker",
-    "COMP-ETH PancakeswapWorker",
-    "SUSHI-ETH PancakeswapWorker",
-    "WBNB-ETH PancakeswapWorker",
-    "BTCB-ETH PancakeswapWorker",
-    "ETH CakeMaxiWorker",
-    "USDT-ETH BiswapWorker",
-    "WBNB-ETH BiswapWorker",
+    "HIGH-BUSD PancakeswapWorker",
+    "USDT-BUSD PancakeswapWorker",
+    "WBNB-BUSD PancakeswapWorker",
+    "VAI-BUSD PancakeswapWorker",
+    "USDC-BUSD PancakeswapWorker",
+    "DAI-BUSD PancakeswapWorker",
+    "UST-BUSD PancakeswapWorker",
+    "BTCB-BUSD PancakeswapWorker",
+    "ALPACA-BUSD PancakeswapWorker",
+    "CAKE-BUSD PancakeswapWorker",
+    "BUSD CakeMaxiWorker",
+    // "FORM-BUSD PancakeswapWorker",
+    "TUSD-BUSD PancakeswapWorker",
+    // "ORBS-BUSD PancakeswapWorker",
+    "TRX-BUSD PancakeswapWorker",
+    // "BTT-BUSD PancakeswapWorker",
+    // "PMON-BUSD PancakeswapWorker",
+    // "PHA-BUSD PancakeswapWorker",
+    // "POTS-BUSD PancakeswapWorker",
+    // "BMON-BUSD PancakeswapWorker",
+    "WBNB-BUSD BiswapWorker",
+    "GQ-BUSD BiswapWorker",
+    "pSTAKE-BUSD PancakeswapWorker",
   ];
-  const EXACT_ETA = "1696585556";
+  const EXACT_ETA = "1701340200";
 
   const ts = Math.floor(new Date().getTime() / 1000);
   const deployer = await getDeployer();
   const chainId = await deployer.getChainId();
   const proxyAdmin = ProxyAdmin__factory.connect(config.ProxyAdmin, deployer);
+  let nonce = 21597;
 
   const allWorkers: IWorkers = config.Vaults.reduce((accum, vault) => {
     return accum.concat(
@@ -189,7 +194,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
           "upgrade(address,address)",
           ["address", "address"],
           [TO_BE_UPGRADE_WORKERS[i].ADDRESS, preparedNewWorker],
-          EXACT_ETA
+          EXACT_ETA,
+          { nonce: nonce++ }
         )
       );
 
