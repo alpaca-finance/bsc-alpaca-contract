@@ -284,18 +284,16 @@ contract TreasuryBuybackStrategy is Initializable, Ownable2StepUpgradeable {
   /// @notice Return current amount of token0,token1 from position liquidity
   function getAmountsFromPositionLiquidity() external view returns (uint256 _amount0, uint256 _amount1) {
     uint256 _nftTokenId = nftTokenId;
-    if (_nftTokenId == 0) {
-      return (_amount0, _amount1);
+    if (_nftTokenId != 0) {
+      (uint160 _poolSqrtPriceX96, , , , , , ) = pool.slot0();
+      IPancakeV3MasterChef.UserPositionInfo memory _positionInfo = masterChef.userPositionInfos(_nftTokenId);
+
+      (_amount0, _amount1) = LibLiquidityAmounts.getAmountsForLiquidity(
+        _poolSqrtPriceX96,
+        LibTickMath.getSqrtRatioAtTick(_positionInfo.tickLower),
+        LibTickMath.getSqrtRatioAtTick(_positionInfo.tickUpper),
+        _positionInfo.liquidity
+      );
     }
-
-    (uint160 _poolSqrtPriceX96, , , , , , ) = pool.slot0();
-    IPancakeV3MasterChef.UserPositionInfo memory _positionInfo = masterChef.userPositionInfos(_nftTokenId);
-
-    (_amount0, _amount1) = LibLiquidityAmounts.getAmountsForLiquidity(
-      _poolSqrtPriceX96,
-      LibTickMath.getSqrtRatioAtTick(_positionInfo.tickLower),
-      LibTickMath.getSqrtRatioAtTick(_positionInfo.tickUpper),
-      _positionInfo.liquidity
-    );
   }
 }
