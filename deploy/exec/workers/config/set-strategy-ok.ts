@@ -20,22 +20,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const config = getConfig();
 
-  const TITLE = "dnx_spooky_workers_allow_partial-close-no-trade_repurchase-repay";
+  const TITLE = "busd_alpaca_workers_allow_strategy-oracle-minimize";
   const ADD_STRAT = "";
   const LIQ_STRAT = "";
 
   const OK_FLAG = true;
-  const STRATEGY = [
-    config.SharedStrategies.SpookySwap?.StrategyPartialCloseNoTrade!,
-    config.SharedStrategies.All?.StrategyRepurchaseRepay!,
-  ];
-  const WORKERS = [
-    "USDC-WFTM 3x SPK1 DeltaNeutralSpookyWorker",
-    "WFTM-USDC 3x SPK1 DeltaNeutralSpookyWorker",
-    "USDC-WFTM 3x SPK2 DeltaNeutralSpookyWorker",
-    "WFTM-USDC 3x SPK2 DeltaNeutralSpookyWorker",
-  ];
-  const EXACT_ETA = "1680843600";
+  const STRATEGY = ["0x6ab62a0766691400f7f7c7b2106c774cb83936ef"];
+  const WORKERS = ["ALPACA-BUSD PancakeswapWorker", "BUSD-ALPACA PancakeswapWorker"];
+  const EXACT_ETA = "1702009800";
+  let nonce = 21633;
 
   const miniWorkers: Array<WorkerEntity.IMiniWorker> = mapWorkers(WORKERS).map((w) => {
     return {
@@ -46,7 +39,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   const deployer = await getDeployer();
   const chainId = await deployer.getChainId();
-  let nonce = await deployer.getTransactionCount();
 
   for (const miniWorker of miniWorkers) {
     const worker = DeltaNeutralPancakeMCV2Worker02__factory.connect(miniWorker.address, deployer);
