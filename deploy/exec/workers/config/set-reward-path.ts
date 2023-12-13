@@ -296,11 +296,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       });
       console.log("✅ Done");
     }
-
-    if (timelockTransactions.length > 0) {
-      const timestamp = Math.floor(new Date().getTime() / 1000);
-      fileService.writeJson(`${timestamp}_${TITLE}`, timelockTransactions);
-    }
+  }
+  if (timelockTransactions.length > 0) {
+    const timestamp = Math.floor(new Date().getTime() / 1000);
+    fileService.writeJson(`${timestamp}_${TITLE}`, timelockTransactions);
   }
 };
 
