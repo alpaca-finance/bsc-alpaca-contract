@@ -161,7 +161,7 @@ contract VaultAip25 is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, Own
 
     require(share > 0, "no shares");
     // 1. find exchange rate between old ib and new ibToken
-    uint256 newIbTokenAmount = (share * newIbToken.balanceOf(address(this))) / totalSupply();
+    uint256 newIbTokenAmount = share.mul(newIbToken.balanceOf(address(this))).div(totalSupply());
 
     // 2. burn old ibToken
     _burn(_user, share);
