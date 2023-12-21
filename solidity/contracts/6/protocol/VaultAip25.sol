@@ -147,7 +147,7 @@ contract VaultAip25 is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, Own
     uint256 tokenAmountBefore = SafeToken.myBalance(token);
     SafeToken.safeApprove(newIbToken, mmAccountManager, newIbTokenShareAmount);
     IMoneyMarketAccountManager(mmAccountManager).withdraw(newIbToken, newIbTokenShareAmount);
-    uint256 withdrawnAmount = SafeToken.myBalance(token) - tokenAmountBefore;
+    uint256 withdrawnAmount = SafeToken.myBalance(token).sub(tokenAmountBefore);
 
     _safeUnwrap(msg.sender, withdrawnAmount);
 
