@@ -81,7 +81,6 @@ contract VaultAip25 is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, Own
   address public constant moneyMarket = 0x7389aaf2e32872cABD766D0CEB384220e8F2A590;
   address public constant mmAccountManager = 0xD20B887654dB8dC476007bdca83d22Fa51e93407;
   address public newIbToken;
-  bool public allowWithdrawal;
 
   function initialize(
     IVaultConfig _config,
@@ -138,14 +137,15 @@ contract VaultAip25 is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, Own
   function withdraw(uint256 share) external override nonReentrant {
     // 1. sanity check , no debt
     require(vaultDebtShare == 0, "outstanding debt");
-    // 2. sanity check , not migrated
-    require(!migrated || allowWithdrawal, "!allow");
+    // 2. sanity check , need to be migrated
+    require(migrated, "!allow");
 
     uint256 newIbTokenShareAmount = share.mul(newIbToken.balanceOf(address(this))).div(totalSupply());
     _burn(msg.sender, share);
 
     // withdraw from Money Market
     uint256 tokenAmountBefore = SafeToken.myBalance(token);
+    SafeToken.safeApprove(newIbToken, mmAccountManager, newIbTokenShareAmount);
     IMoneyMarketAccountManager(mmAccountManager).withdraw(newIbToken, newIbTokenShareAmount);
     uint256 withdrawnAmount = SafeToken.myBalance(token) - tokenAmountBefore;
 
@@ -197,9 +197,10 @@ contract VaultAip25 is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, Own
 
   function totalToken() public view override returns (uint256) {
     return
-      totalSupply().mul(IMoneyMarket(moneyMarket).getTotalTokenWithPendingInterest(_token)).div(
-        IERC20(newIbToken).totalSupply()
-      );
+      IERC20(newIbToken)
+        .balanceOf(address(this))
+        .mul(IMoneyMarket(moneyMarket).getTotalTokenWithPendingInterest(token))
+        .div(IERC20(newIbToken).totalSupply());
   }
 
   // ------ IVault Interface ------ //
