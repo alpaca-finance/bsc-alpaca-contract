@@ -22,12 +22,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const VAULT_VERSION = "Vault";
   const TARGETED_VAULTS = ["ibALPACA", "ibBUSD"];
   const EXACT_ETA = "1701340200";
-  let nonce = 21616;
 
   const config = getConfig();
 
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   const deployer = await getDeployer();
+  let nonce = await deployer.getTransactionCount();
   const chainId = await deployer.getChainId();
   const toBeUpgradedVaults = TARGETED_VAULTS.map((tv) => {
     const vault = config.Vaults.find((v) => tv == v.symbol);

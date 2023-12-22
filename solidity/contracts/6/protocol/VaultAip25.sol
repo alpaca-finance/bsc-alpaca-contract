@@ -137,12 +137,20 @@ contract VaultAip25 is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, Own
   function withdraw(uint256 share) external override nonReentrant {
     // 1. sanity check , no debt
     require(vaultDebtShare == 0, "outstanding debt");
-    // 2. sanity check , not migrated
-    require(!migrated, "migrated");
+    // 2. sanity check , need to be migrated
+    require(migrated, "!allow");
 
-    uint256 amount = share.mul(totalToken()).div(totalSupply());
+    uint256 newIbTokenShareAmount = share.mul(newIbToken.balanceOf(address(this))).div(totalSupply());
     _burn(msg.sender, share);
-    _safeUnwrap(msg.sender, amount);
+
+    // withdraw from Money Market
+    uint256 tokenAmountBefore = SafeToken.myBalance(token);
+    SafeToken.safeApprove(newIbToken, mmAccountManager, newIbTokenShareAmount);
+    IMoneyMarketAccountManager(mmAccountManager).withdraw(newIbToken, newIbTokenShareAmount);
+    uint256 withdrawnAmount = SafeToken.myBalance(token).sub(tokenAmountBefore);
+
+    _safeUnwrap(msg.sender, withdrawnAmount);
+
     require(totalSupply() > 10 ** (uint256(decimals()).sub(1)), "no tiny shares");
   }
 
@@ -153,7 +161,7 @@ contract VaultAip25 is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, Own
 
     require(share > 0, "no shares");
     // 1. find exchange rate between old ib and new ibToken
-    uint256 newIbTokenAmount = (share * newIbToken.balanceOf(address(this))) / totalSupply();
+    uint256 newIbTokenAmount = share.mul(newIbToken.balanceOf(address(this))).div(totalSupply());
 
     // 2. burn old ibToken
     _burn(_user, share);
@@ -188,7 +196,11 @@ contract VaultAip25 is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, Own
   }
 
   function totalToken() public view override returns (uint256) {
-    return SafeToken.myBalance(token).add(vaultDebtVal).sub(reservePool);
+    return
+      IERC20(newIbToken)
+        .balanceOf(address(this))
+        .mul(IMoneyMarket(moneyMarket).getTotalTokenWithPendingInterest(token))
+        .div(IERC20(newIbToken).totalSupply());
   }
 
   // ------ IVault Interface ------ //
