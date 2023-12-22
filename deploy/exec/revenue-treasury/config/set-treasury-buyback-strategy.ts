@@ -16,7 +16,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const NEW_TREASURY_BUYBACK_STRAT = "0xB12d1E49813e28B89E5C30A46942bCE068d1Ee75";
+  const NEW_TREASURY_BUYBACK_STRAT = "0x6AC4334Ddd701Dd69169fE66D33c563e0F2C855e";
 
   const deployer = await getDeployer();
   const revenueTreasury = RevenueTreasury02__factory.connect(config.RevenueTreasury!, deployer);

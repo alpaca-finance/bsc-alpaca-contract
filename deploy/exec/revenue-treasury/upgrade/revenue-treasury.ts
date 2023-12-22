@@ -20,8 +20,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const TITLE = "bsc_upgrade_revenue_treasury_to_revenue_treasury02";
   const REVENUE_TREASURY_VERSION = "RevenueTreasury02";
-  const EXACT_ETA = "1700127000";
-  let NONCE = 1282;
+  const EXACT_ETA = "1702474200";
+  let NONCE = 21664;
 
   const config = getConfig();
 

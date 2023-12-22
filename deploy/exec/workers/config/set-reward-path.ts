@@ -38,7 +38,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
 
   const TITLE = "set-workers-reward-path-to-usdt";
-  const EXACT_ETA = "1702454400";
+  const EXACT_ETA = "1702474200";
   const workerInputs: IWorkerRewardPathConfigInputs = [
     // CAKE
     {
@@ -225,6 +225,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       REWARD_PATH: ["BSW", "USDT"],
     },
   ];
+  let NONCE = 21665;
 
   const config = ConfigEntity.getConfig();
   const allWorkers: IWorkers = config.Vaults.reduce((accum, vault) => {
@@ -268,7 +269,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const deployer = await getDeployer();
   const chainId = await deployer.getChainId();
-  let nonce = await deployer.getTransactionCount();
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
 
   for (const rewardPathConfig of rewardPathConfigs) {
@@ -286,12 +286,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
           ["address[]"],
           [rewardPathConfig.REWARD_PATH],
           EXACT_ETA,
-          { nonce: nonce++, gasPrice: ethers.utils.parseUnits("10", "gwei") }
+          { nonce: NONCE++, gasPrice: ethers.utils.parseUnits("10", "gwei") }
         )
       );
     } else {
       await worker.setRewardPath(rewardPathConfig.REWARD_PATH, {
-        nonce: nonce++,
+        nonce: NONCE++,
         gasPrice: ethers.utils.parseUnits("10", "gwei"),
       });
       console.log("✅ Done");

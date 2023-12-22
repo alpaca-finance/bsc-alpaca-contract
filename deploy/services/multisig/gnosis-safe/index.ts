@@ -33,7 +33,22 @@ export class GnosisSafeMultiSigService implements MultiSigServiceInterface {
     this._signer = signer;
   }
 
-  async proposeTransaction(to: string, value: BigNumberish, data: string, opts?: {nonce?: number}): Promise<string> {
+  async executePendingTransactions(): Promise<void> {
+    const safeSdk = await Safe.create({
+      ethAdapter: this._ethAdapter,
+      safeAddress: this._safeAddress,
+    });
+
+    const pendingTxsResp = await this._safeServiceClient.getPendingTransactions(this._safeAddress);
+    let pendingTxs = pendingTxsResp.results.length - 1;
+    let executedTx = 1;
+    for (let i = pendingTxsResp.results.length - 1; i >= 0; i--) {
+      console.log(`[${executedTx++}/${pendingTxs}] Executing tx ${pendingTxsResp.results[i].safeTxHash}`);
+      await safeSdk.executeTransaction(pendingTxsResp.results[i]);
+    }
+  }
+
+  async proposeTransaction(to: string, value: BigNumberish, data: string, opts?: { nonce?: number }): Promise<string> {
     let safeSdk = await Safe.create({ ethAdapter: this._ethAdapter, safeAddress: this._safeAddress });
 
     let whichNonce = 0;

@@ -183,6 +183,7 @@
     "deploy:mainnet:strategies:config:set-whitelisted-workers": "hardhat --network mainnet deploy --config hardhat.config.ts --no-compile --reset --tags SetSharedStratsWhitelistedWorkers",
     "deploy:mainnet:wnative-relayer:config:set-caller-ok": "hardhat --network mainnet deploy --no-compile --reset --tags WNativeRelayerSetCallerOk",
     "deploy:mainnet:worker-config:config:emerge-set-accept-debt": "hardhat --network mainnet deploy --no-compile --reset --tags SetEmergencyWorkerConfigAcceptDebt",
+    "deploy:mainnet:safe:run:execute-txs": "hardhat --network mainnet deploy --no-compile --reset --tags RunExecuteTxs",
     "deploy:testnet:000": "hardhat --network testnet deploy --no-compile --reset --tags Testnet",
     "deploy:testnet:000:panV2": "hardhat --network testnet deploy --no-compile --reset --tags PancakeswapV2",
     "deploy:testnet:000:waultswap": "hardhat --network testnet deploy --no-compile --reset --tags WaultSwap",

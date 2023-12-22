@@ -16,7 +16,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   Check all variables below before execute the deployment script
   */
 
-  const CALLERS = [""];
+  const CALLERS = ["0x2bA5e727f22Ae7e43a74F17045f4D015e25E9741"];
   const IS_OK = true;
 
   const deployer = await getDeployer();

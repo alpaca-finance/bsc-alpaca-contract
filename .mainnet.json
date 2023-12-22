@@ -438,7 +438,7 @@
     }
   ],
   "RevenueTreasury": "0x08B5A95cb94f926a8B620E87eE92e675b35afc7E",
-  "TreasuryBuybackStrategy": "",
+  "TreasuryBuybackStrategy": "0x6AC4334Ddd701Dd69169fE66D33c563e0F2C855e",
   "YieldSources": {
     "Pancakeswap": {
       "UniswapV2Factory": "0xBCfCcbde45cE874adCB698cC183deBcF17952812",
