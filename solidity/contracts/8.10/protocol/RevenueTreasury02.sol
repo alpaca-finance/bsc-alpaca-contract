@@ -277,4 +277,15 @@ contract RevenueTreasury02 is Initializable, OwnableUpgradeable, ReentrancyGuard
       }
     }
   }
+
+  function recoverErc20(address[] calldata _tokens, uint256[] calldata _amounts) external onlyOwner {
+    require(_tokens.length == _amounts.length, "bad len");
+    uint256 _length = _tokens.length;
+    for (uint256 _i; _i < _length; ) {
+      _tokens[_i].safeTransfer(msg.sender, _amounts[_i]);
+      unchecked {
+        ++_i;
+      }
+    }
+  }
 }

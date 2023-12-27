@@ -50,9 +50,9 @@ export async function queueTransaction(
 
     const multiSig = new GnosisSafeMultiSigService(chainId, config.OpMultiSig, deployerWallet);
     let nonce = undefined;
-      if (overrides && overrides.nonce) {
-        nonce = ethers.BigNumber.from(overrides.nonce).toNumber();
-      }
+    if (overrides && overrides.nonce) {
+      nonce = ethers.BigNumber.from(overrides.nonce).toNumber();
+    }
 
     txHash = await multiSig.proposeTransaction(
       timelock.address,
@@ -63,7 +63,8 @@ export async function queueTransaction(
         signature,
         ethers.utils.defaultAbiCoder.encode(paramTypes, params),
         eta,
-      ]), { nonce }
+      ]),
+      { nonce }
     );
   } else {
     throw new Error("Timelock's admin is not deployer or OpMultiSig");

@@ -1,5 +1,3 @@
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, upgrades } from "hardhat";
 import { getConfig } from "../../../entities/config";
 import { TimelockEntity } from "../../../entities";
@@ -8,7 +6,7 @@ import { getDeployer } from "../../../../utils/deployer-helper";
 import { ProxyAdmin__factory } from "../../../../typechain";
 import { compare } from "../../../../utils/address";
 
-const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+async function main() {
   /*
   ░██╗░░░░░░░██╗░█████╗░██████╗░███╗░░██╗██╗███╗░░██╗░██████╗░
   ░██║░░██╗░░██║██╔══██╗██╔══██╗████╗░██║██║████╗░██║██╔════╝░
@@ -20,8 +18,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
   const TITLE = "bsc_upgrade_revenue_treasury_to_revenue_treasury02";
   const REVENUE_TREASURY_VERSION = "RevenueTreasury02";
-  const EXACT_ETA = "1702474200";
-  let NONCE = 21664;
+  const EXACT_ETA = "1703766600";
+  let NONCE = 21771;
 
   const config = getConfig();
 
@@ -74,7 +72,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const timestamp = Math.floor(new Date().getTime() / 1000);
     fileService.writeJson(`${timestamp}_${TITLE}`, timelockTransactions);
   }
-};
+}
 
-export default func;
-func.tags = ["UpgradeRevenueTreasury"];
+main()
+  .then(() => {})
+  .catch((err) => {
+    console.error(err);
+  });

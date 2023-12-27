@@ -18,16 +18,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═╝╚═╝░░╚══╝░╚═════╝░
   Check all variables below before execute the deployment script
   */
-  const TITLE = "upgrade_to_Vault_batch3";
-  const VAULT_VERSION = "Vault";
-  const TARGETED_VAULTS = ["ibALPACA", "ibBUSD"];
-  const EXACT_ETA = "1701340200";
+  const TITLE = "upgrade_ibUSDC_Vault_AIP25";
+  const VAULT_VERSION = "VaultAip25";
+  const TARGETED_VAULTS = ["ibUSDC"];
+  const EXACT_ETA = "1703322000";
+  let nonce = 21766;
 
   const config = getConfig();
 
   const timelockTransactions: Array<TimelockEntity.Transaction> = [];
   const deployer = await getDeployer();
-  let nonce = await deployer.getTransactionCount();
   const chainId = await deployer.getChainId();
   const toBeUpgradedVaults = TARGETED_VAULTS.map((tv) => {
     const vault = config.Vaults.find((v) => tv == v.symbol);
@@ -52,7 +52,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       const preparedNewVault = await upgrades.prepareUpgrade(vault.address, NewVault);
       console.log(`> Implementation address: ${preparedNewVault}`);
       console.log("✅ Done");
-
       timelockTransactions.push(
         await TimelockService.queueTransaction(
           chainId,

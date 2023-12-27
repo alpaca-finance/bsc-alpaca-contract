@@ -7,6 +7,7 @@ import "@typechain/hardhat";
 import "@nomiclabs/hardhat-ethers";
 import "hardhat-deploy";
 import "solidity-coverage";
+import "@nomicfoundation/hardhat-verify";
 
 module.exports = {
   defaultNetwork: "hardhat",
@@ -98,5 +99,11 @@ module.exports = {
   },
   mocha: {
     timeout: 100000,
+  },
+  etherscan: {
+    apiKey: process.env.BSCSCAN_API_KEY,
+  },
+  sourcify: {
+    enabled: false,
   },
 };
