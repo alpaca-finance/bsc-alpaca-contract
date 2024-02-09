@@ -33,7 +33,9 @@ contract VaultAIP291_MigrateTest is VaultAIP291_BaseTest {
     VAULT_BUSD.migrate();
     vm.stopPrank();
 
-    address newIbUSDT = IMoneyMarket(VAULT_BUSD.moneyMarket()).getIbTokenFromToken(VAULT_BUSD.USDT());
+    address newIbUSDT = VAULT_BUSD.newIbToken();
+
+    assertEq(newIbUSDT, 0x90476BFEF61F190b54a439E2E98f8E43Fb9b4a45);
 
     // no busd and usdt remaning in vault token
     assertEq(IERC20(VAULT_BUSD.token()).balanceOf(address(VAULT_BUSD)), 0);
