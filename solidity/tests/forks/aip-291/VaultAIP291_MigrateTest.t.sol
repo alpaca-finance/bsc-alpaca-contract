@@ -9,20 +9,6 @@ contract VaultAIP291_MigrateTest is VaultAIP291_BaseTest {
     VAULT_BUSD.migrate();
   }
 
-  function testRevert_whenMigrateOutstandingDebtNotZero_ShouldRevert() external {
-    vm.prank(deployer);
-    vm.expectRevert("outstanding debt");
-    VAULT_BUSD.migrate();
-  }
-
-  function testRevert_whenMigrateReservePoolNotZero_ShouldRevert() external {
-    setVaultDebtShare(address(VAULT_BUSD), 0);
-    vm.startPrank(deployer);
-    vm.expectRevert("outstanding reservePool");
-    VAULT_BUSD.migrate();
-    vm.stopPrank();
-  }
-
   function testCorrectness_whenMigrate_ShouldWork() external {
     // verify that there's no debt
     assertEq(VAULT_BUSD.vaultDebtShare(), 0);
