@@ -15,23 +15,7 @@ contract VaultAIP291_MigrateTest is VaultAIP291_BaseTest {
     // verify that there's no reserve left
     assertEq(VAULT_BUSD.reservePool(), 0);
 
-    uint256 startingBUSD = IERC20(VAULT_BUSD.token()).balanceOf(address(VAULT_BUSD));
-
-    // prank as binance hot wallet to transfer USDT to deployer
-    assertGt((IERC20(VAULT_BUSD.USDT()).balanceOf(0x4B16c5dE96EB2117bBE5fd171E4d203624B014aa)), startingBUSD);
-    vm.startPrank(0x4B16c5dE96EB2117bBE5fd171E4d203624B014aa);
-    IERC20(VAULT_BUSD.USDT()).transfer(deployer, startingBUSD);
-    vm.stopPrank();
-
-    vm.startPrank(deployer);
-    // pull BUSD from the vault
-    VAULT_BUSD.pullToken();
-    // assume that we can convert BUSD <> USDT 1:1
-    // deployer to send USDT directly back to the vault
-    IERC20(VAULT_BUSD.USDT()).transfer(address(VAULT_BUSD), startingBUSD);
-    // then call migrate
-    VAULT_BUSD.migrate();
-    vm.stopPrank();
+    _migrate();
 
     address newIbUSDT = VAULT_BUSD.newIbToken();
 
