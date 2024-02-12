@@ -161,12 +161,12 @@ contract VaultAip29 is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, Own
     _burn(msg.sender, share);
 
     // withdraw from Money Market
-    uint256 tokenAmountBefore = SafeToken.myBalance(token);
+    uint256 tokenAmountBefore = SafeToken.myBalance(USDT);
     SafeToken.safeApprove(newIbToken, mmAccountManager, newIbTokenShareAmount);
     IMoneyMarketAccountManager(mmAccountManager).withdraw(newIbToken, newIbTokenShareAmount);
-    uint256 withdrawnAmount = SafeToken.myBalance(token).sub(tokenAmountBefore);
+    uint256 withdrawnAmount = SafeToken.myBalance(USDT).sub(tokenAmountBefore);
 
-    _safeUnwrap(msg.sender, withdrawnAmount);
+    USDT.safeTransfer(msg.sender, withdrawnAmount);
 
     require(totalSupply() > 10 ** (uint256(decimals()).sub(1)), "no tiny shares");
   }
@@ -197,19 +197,6 @@ contract VaultAip29 is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, Own
     require(msg.sender == 0xC44f82b07Ab3E691F826951a6E335E1bC1bB0B51, "!D");
     reservePool = reservePool.sub(value);
     SafeToken.safeTransfer(token, to, value);
-  }
-
-  /// @dev Transfer to "to". Automatically unwrap if BTOKEN is WBNB
-  /// @param to The address of the receiver
-  /// @param amount The amount to be withdrawn
-  function _safeUnwrap(address to, uint256 amount) internal {
-    if (token == config.getWrappedNativeAddr()) {
-      SafeToken.safeTransfer(token, config.getWNativeRelayer(), amount);
-      IWNativeRelayer(uint160(config.getWNativeRelayer())).withdraw(amount);
-      SafeToken.safeTransferETH(to, amount);
-    } else {
-      SafeToken.safeTransfer(token, to, amount);
-    }
   }
 
   function totalToken() public view override returns (uint256) {
