@@ -31,7 +31,7 @@ import "./interfaces/IWNativeRelayer.sol";
 import "./interfaces/IMoneyMarketAccountManager.sol";
 import "./interfaces/IMoneyMarket.sol";
 
-contract VaultAip291 is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableUpgradeSafe {
+contract VaultAip29 is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableUpgradeSafe {
   /// @notice Libraries
   using SafeToken for address;
   using SafeMath for uint256;
@@ -216,7 +216,7 @@ contract VaultAip291 is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, Ow
     return
       IERC20(newIbToken)
         .balanceOf(address(this))
-        .mul(IMoneyMarket(moneyMarket).getTotalTokenWithPendingInterest(token))
+        .mul(IMoneyMarket(moneyMarket).getTotalTokenWithPendingInterest(USDT))
         .div(IERC20(newIbToken).totalSupply());
   }
 
