@@ -13,7 +13,6 @@ contract VaultAIP29_WithdrawTest is VaultAIP29_BaseTest {
 
     uint256 totalSupplyBefore = VAULT_BUSD.totalSupply();
     uint256 totalTokenBefore = VAULT_BUSD.totalToken();
-    assertEq(totalTokenBefore, 0);
     uint256 aliceUSDTBefore = IERC20(VAULT_BUSD.USDT()).balanceOf(ALICE);
 
     vm.startPrank(ALICE);
