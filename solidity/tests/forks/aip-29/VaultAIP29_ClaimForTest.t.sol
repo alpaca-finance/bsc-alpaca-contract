@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.6.6;
 
-import { VaultAIP291_BaseTest, VaultAip291, IERC20, IMoneyMarket, StdCheatsSafe } from "@tests/forks/aip-291/VaultAIP291_BaseTest.t.sol";
+import { VaultAIP29_BaseTest, VaultAip29, IERC20, IMoneyMarket, StdCheatsSafe } from "@tests/forks/aip-29/VaultAIP29_BaseTest.t.sol";
 import { IERC20 } from "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol";
 
-contract VaultAIP291_ClaimForTest is VaultAIP291_BaseTest {
+contract VaultAIP29_ClaimForTest is VaultAIP29_BaseTest {
   function testRevert_whenClaimForBeforeMigrate_ShouldRevert() external {
     vm.expectRevert("!migrated");
     VAULT_BUSD.claimFor(address(this));

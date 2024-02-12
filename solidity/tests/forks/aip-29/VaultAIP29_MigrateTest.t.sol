@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.6.6;
 
-import { VaultAIP291_BaseTest, VaultAip291, IERC20, IMoneyMarket } from "@tests/forks/aip-291/VaultAIP291_BaseTest.t.sol";
+import { VaultAIP29_BaseTest, VaultAip29, IERC20, IMoneyMarket } from "@tests/forks/aip-29/VaultAIP29_BaseTest.t.sol";
 
-contract VaultAIP291_MigrateTest is VaultAIP291_BaseTest {
+contract VaultAIP29_MigrateTest is VaultAIP29_BaseTest {
   function testRevert_whenNotDeployerCallMigrate_ShouldRevert() external {
     vm.expectRevert();
     VAULT_BUSD.migrate();
