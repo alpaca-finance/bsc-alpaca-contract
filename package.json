@@ -61,6 +61,8 @@
     "deploy:mainnet:vault:upgrade:vault": "hardhat --network mainnet deploy --no-compile --reset --tags UpgradeVault",
     "deploy:mainnet:vault:upgrade:debt-token": "hardhat --network mainnet deploy --no-compile --reset --tags UpgradeDebtToken",
     "deploy:mainnet:vault:config:aip25-migrate": "hardhat --network mainnet deploy --no-compile --reset --tags AIP25Migrate",
+    "deploy:mainnet:vault:config:aip29-migrate": "hardhat --network mainnet deploy --no-compile --reset --tags AIP29Migrate",
+    "deploy:mainnet:vault:config:aip29-pulltoken": "hardhat --network mainnet deploy --no-compile --reset --tags AIP29PullToken",
     "deploy:mainnet:s008": "hardhat --network mainnet deploy --no-compile --reset --tags AddWorkerStrategy",
     "deploy:mainnet:s009": "hardhat --network mainnet deploy --no-compile --reset --tags TimelockChangeAdminProxy",
     "deploy:mainnet:vault-config:config:set-params": "hardhat --network mainnet deploy --no-compile --reset --tags TimelockSetParamsVaultConfig",
