@@ -5,8 +5,10 @@ import { fileService, TimelockService } from "../../../services";
 import { getDeployer } from "../../../../utils/deployer-helper";
 import { ProxyAdmin__factory } from "../../../../typechain";
 import { compare } from "../../../../utils/address";
+import { DeployFunction } from "hardhat-deploy/types";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-async function main() {
+const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
   ░██╗░░░░░░░██╗░█████╗░██████╗░███╗░░██╗██╗███╗░░██╗░██████╗░
   ░██║░░██╗░░██║██╔══██╗██╔══██╗████╗░██║██║████╗░██║██╔════╝░
@@ -74,8 +76,5 @@ async function main() {
   }
 }
 
-main()
-  .then(() => {})
-  .catch((err) => {
-    console.error(err);
-  });
+export default func;
+func.tags = ["UpgradeRevenueTreasury"];

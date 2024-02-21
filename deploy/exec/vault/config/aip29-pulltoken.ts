@@ -18,7 +18,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const TARGETED_VAULTS = ["ibBUSD"];
 
   const config = getConfig();
-  const toBeMigrated = TARGETED_VAULTS.map((tv) => {
+  const toPullTokens = TARGETED_VAULTS.map((tv) => {
     const vault = config.Vaults.find((v) => tv == v.symbol);
     if (vault === undefined) {
       throw `error: not found vault with ${tv} symbol`;
@@ -33,14 +33,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = await getDeployer();
   let nonce = await deployer.getTransactionCount();
 
-  for (const vault of toBeMigrated) {
+  for (const vault of toPullTokens) {
     const vaultAip29 = VaultAip29__factory.connect(vault.address, deployer);
 
-    const migrateTx = await vaultAip29.pullToken({ nonce: nonce++ });
-    const migrateReceipt = await migrateTx.wait();
+    const tx = await vaultAip29.pullToken({ nonce: nonce++ });
+    const txReceipt = await tx.wait();
 
-    if (migrateReceipt.status === 1) {
-      console.log(`✅ ${vault.symbol} token pulled at ${migrateReceipt.transactionHash}`);
+    if (txReceipt.status === 1) {
+      console.log(`✅ ${vault.symbol} token pulled at ${txReceipt.transactionHash}`);
     } else {
       console.log(`❌ ${vault.symbol} fail to pull token`);
     }
