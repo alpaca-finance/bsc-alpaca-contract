@@ -55,6 +55,7 @@ contract VaultAIP29_BaseTest is TestBase, ATest, StdCheats {
 
     uint256 receivedBUSD = scixBUSDAfter - scixBUSDBefore;
     uint256 expectedBUSD = (_share * totalToken) / totalSuply;
+
     assertApproxEqAbs(receivedBUSD, expectedBUSD, 1);
     assertGt(receivedBUSD, _share);
   }

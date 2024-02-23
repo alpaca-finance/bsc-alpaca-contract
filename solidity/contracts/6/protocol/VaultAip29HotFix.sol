@@ -170,11 +170,9 @@ contract VaultAip29HotFix is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSaf
 
     uint256 _amountToWithdraw = share.mul(_dummyTotalToken).div(totalSupply());
 
-    uint256 _fee = _amountToWithdraw.mul(5).div(100);
-
     _burn(msg.sender, share);
 
-    token.safeTransfer(msg.sender, _amountToWithdraw - _fee);
+    token.safeTransfer(msg.sender, _amountToWithdraw);
   }
 
   function claimFor(address _user) external nonReentrant {
@@ -206,7 +204,7 @@ contract VaultAip29HotFix is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSaf
   }
 
   function totalToken() public view override returns (uint256) {
-    return ((token.balanceOf(address(this)) + vaultDebtVal) * 95) / 100;
+    return token.balanceOf(address(this)) + vaultDebtVal;
   }
 
   // ------ IVault Interface ------ //
@@ -214,9 +212,7 @@ contract VaultAip29HotFix is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSaf
   /// @notice Return the total ERC20 entitled to the token holders. Be careful of unaccrued interests.
   /// @dev Return the total token entitled to the token holders. Be careful of unaccrued interests.
   /// @notice Add more ERC20 to the bank. Hope to get some good returns.
-  function deposit(uint256 /*amountToken*/) external payable override {
-    revert("!deposit");
-  }
+  function deposit(uint256 /*amountToken*/) external payable override {}
 
   /// @notice Request funds from user through Vault
   function requestFunds(address /*targetedToken*/, uint256 /*amount*/) external override {
