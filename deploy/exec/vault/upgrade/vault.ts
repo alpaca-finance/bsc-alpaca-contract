@@ -21,8 +21,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const TITLE = "upgrade_to_VaultAip29";
   const VAULT_VERSION = "VaultAip29";
   const TARGETED_VAULTS = ["ibBUSD"];
-  const EXACT_ETA = "1708596000";
-  let nonce = 21821;
+  const EXACT_ETA = "1708879500";
+  let nonce = 21827;
 
   const config = getConfig();
 
