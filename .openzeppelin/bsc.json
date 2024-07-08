@@ -36817,6 +36817,652 @@
           }
         }
       }
+    },
+    "7179081027662980fc7fc77ee9e5a95ce08aa1909daf39f13476cb70155aeec6": {
+      "address": "0xf19c0106FAD0892B6D9f5dB0aE1c9a2CfD14635B",
+      "txHash": "0xe9cf79b90daa668061be74bd3b96e5a8490e392c2e577d24c2a90566637d3acd",
+      "layout": {
+        "solcVersion": "0.6.6",
+        "storage": [
+          {
+            "label": "initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:21"
+          },
+          {
+            "label": "initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:26"
+          },
+          {
+            "label": "______gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:61"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeSafe",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol:37"
+          },
+          {
+            "label": "_balances",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "ERC20UpgradeSafe",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol:37"
+          },
+          {
+            "label": "_allowances",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))",
+            "contract": "ERC20UpgradeSafe",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol:39"
+          },
+          {
+            "label": "_totalSupply",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_uint256",
+            "contract": "ERC20UpgradeSafe",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol:41"
+          },
+          {
+            "label": "_name",
+            "offset": 0,
+            "slot": "104",
+            "type": "t_string_storage",
+            "contract": "ERC20UpgradeSafe",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol:43"
+          },
+          {
+            "label": "_symbol",
+            "offset": 0,
+            "slot": "105",
+            "type": "t_string_storage",
+            "contract": "ERC20UpgradeSafe",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol:44"
+          },
+          {
+            "label": "_decimals",
+            "offset": 0,
+            "slot": "106",
+            "type": "t_uint8",
+            "contract": "ERC20UpgradeSafe",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol:45"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "107",
+            "type": "t_array(t_uint256)44_storage",
+            "contract": "ERC20UpgradeSafe",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol:317"
+          },
+          {
+            "label": "_notEntered",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_bool",
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:21"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "152",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:63"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_address",
+            "contract": "OwnableUpgradeSafe",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:18"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "202",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeSafe",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:78"
+          },
+          {
+            "label": "_IN_EXEC_LOCK",
+            "offset": 0,
+            "slot": "251",
+            "type": "t_uint256",
+            "contract": "VaultAip29",
+            "src": "solidity/contracts/6/protocol/VaultAip29.sol:52"
+          },
+          {
+            "label": "POSITION_ID",
+            "offset": 0,
+            "slot": "252",
+            "type": "t_uint256",
+            "contract": "VaultAip29",
+            "src": "solidity/contracts/6/protocol/VaultAip29.sol:54"
+          },
+          {
+            "label": "STRATEGY",
+            "offset": 0,
+            "slot": "253",
+            "type": "t_address",
+            "contract": "VaultAip29",
+            "src": "solidity/contracts/6/protocol/VaultAip29.sol:55"
+          },
+          {
+            "label": "token",
+            "offset": 0,
+            "slot": "254",
+            "type": "t_address",
+            "contract": "VaultAip29",
+            "src": "solidity/contracts/6/protocol/VaultAip29.sol:63"
+          },
+          {
+            "label": "debtToken",
+            "offset": 0,
+            "slot": "255",
+            "type": "t_address",
+            "contract": "VaultAip29",
+            "src": "solidity/contracts/6/protocol/VaultAip29.sol:65"
+          },
+          {
+            "label": "config",
+            "offset": 0,
+            "slot": "256",
+            "type": "t_contract(IVaultConfig)38204",
+            "contract": "VaultAip29",
+            "src": "solidity/contracts/6/protocol/VaultAip29.sol:70"
+          },
+          {
+            "label": "positions",
+            "offset": 0,
+            "slot": "257",
+            "type": "t_mapping(t_uint256,t_struct(Position)9918_storage)",
+            "contract": "VaultAip29",
+            "src": "solidity/contracts/6/protocol/VaultAip29.sol:71"
+          },
+          {
+            "label": "nextPositionID",
+            "offset": 0,
+            "slot": "258",
+            "type": "t_uint256",
+            "contract": "VaultAip29",
+            "src": "solidity/contracts/6/protocol/VaultAip29.sol:74"
+          },
+          {
+            "label": "fairLaunchPoolId",
+            "offset": 0,
+            "slot": "259",
+            "type": "t_uint256",
+            "contract": "VaultAip29",
+            "src": "solidity/contracts/6/protocol/VaultAip29.sol:75"
+          },
+          {
+            "label": "vaultDebtShare",
+            "offset": 0,
+            "slot": "260",
+            "type": "t_uint256",
+            "contract": "VaultAip29",
+            "src": "solidity/contracts/6/protocol/VaultAip29.sol:76"
+          },
+          {
+            "label": "vaultDebtVal",
+            "offset": 0,
+            "slot": "261",
+            "type": "t_uint256",
+            "contract": "VaultAip29",
+            "src": "solidity/contracts/6/protocol/VaultAip29.sol:77"
+          },
+          {
+            "label": "lastAccrueTime",
+            "offset": 0,
+            "slot": "262",
+            "type": "t_uint256",
+            "contract": "VaultAip29",
+            "src": "solidity/contracts/6/protocol/VaultAip29.sol:79"
+          },
+          {
+            "label": "reservePool",
+            "offset": 0,
+            "slot": "263",
+            "type": "t_uint256",
+            "contract": "VaultAip29",
+            "src": "solidity/contracts/6/protocol/VaultAip29.sol:81"
+          },
+          {
+            "label": "migrated",
+            "offset": 0,
+            "slot": "264",
+            "type": "t_bool",
+            "contract": "VaultAip29",
+            "src": "solidity/contracts/6/protocol/VaultAip29.sol:82"
+          },
+          {
+            "label": "newIbToken",
+            "offset": 1,
+            "slot": "264",
+            "type": "t_address",
+            "contract": "VaultAip29",
+            "src": "solidity/contracts/6/protocol/VaultAip29.sol:86"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)44_storage": {
+            "label": "uint256[44]",
+            "numberOfBytes": "1408"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IVaultConfig)38204": {
+            "label": "contract IVaultConfig",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
+            "label": "mapping(address => mapping(address => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Position)9918_storage)": {
+            "label": "mapping(uint256 => struct VaultAip29.Position)",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Position)9918_storage": {
+            "label": "struct VaultAip29.Position",
+            "members": [
+              {
+                "label": "worker",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "owner",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "debtShare",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "6b96fae8afa6a9a74bc4a01acc810bded2be919b7b0c02b167b0e0586bf69354": {
+      "address": "0xB48BB0EA03Adc9d75842e993A43faF0DBb7f4162",
+      "txHash": "0xe531f8a7e35e8bd614aa5c963d71e7d5ee659fa10ad9998d1b92c5a6877412bf",
+      "layout": {
+        "solcVersion": "0.6.6",
+        "storage": [
+          {
+            "label": "initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:21"
+          },
+          {
+            "label": "initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:26"
+          },
+          {
+            "label": "______gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol:61"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeSafe",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol:37"
+          },
+          {
+            "label": "_balances",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "ERC20UpgradeSafe",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol:37"
+          },
+          {
+            "label": "_allowances",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))",
+            "contract": "ERC20UpgradeSafe",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol:39"
+          },
+          {
+            "label": "_totalSupply",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_uint256",
+            "contract": "ERC20UpgradeSafe",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol:41"
+          },
+          {
+            "label": "_name",
+            "offset": 0,
+            "slot": "104",
+            "type": "t_string_storage",
+            "contract": "ERC20UpgradeSafe",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol:43"
+          },
+          {
+            "label": "_symbol",
+            "offset": 0,
+            "slot": "105",
+            "type": "t_string_storage",
+            "contract": "ERC20UpgradeSafe",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol:44"
+          },
+          {
+            "label": "_decimals",
+            "offset": 0,
+            "slot": "106",
+            "type": "t_uint8",
+            "contract": "ERC20UpgradeSafe",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol:45"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "107",
+            "type": "t_array(t_uint256)44_storage",
+            "contract": "ERC20UpgradeSafe",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol:317"
+          },
+          {
+            "label": "_notEntered",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_bool",
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:21"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "152",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "ReentrancyGuardUpgradeSafe",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol:63"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_address",
+            "contract": "OwnableUpgradeSafe",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:18"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "202",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeSafe",
+            "src": "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol:78"
+          },
+          {
+            "label": "_IN_EXEC_LOCK",
+            "offset": 0,
+            "slot": "251",
+            "type": "t_uint256",
+            "contract": "VaultAip29HotFix",
+            "src": "solidity/contracts/6/protocol/VaultAip29HotFix.sol:52"
+          },
+          {
+            "label": "POSITION_ID",
+            "offset": 0,
+            "slot": "252",
+            "type": "t_uint256",
+            "contract": "VaultAip29HotFix",
+            "src": "solidity/contracts/6/protocol/VaultAip29HotFix.sol:54"
+          },
+          {
+            "label": "STRATEGY",
+            "offset": 0,
+            "slot": "253",
+            "type": "t_address",
+            "contract": "VaultAip29HotFix",
+            "src": "solidity/contracts/6/protocol/VaultAip29HotFix.sol:55"
+          },
+          {
+            "label": "token",
+            "offset": 0,
+            "slot": "254",
+            "type": "t_address",
+            "contract": "VaultAip29HotFix",
+            "src": "solidity/contracts/6/protocol/VaultAip29HotFix.sol:63"
+          },
+          {
+            "label": "debtToken",
+            "offset": 0,
+            "slot": "255",
+            "type": "t_address",
+            "contract": "VaultAip29HotFix",
+            "src": "solidity/contracts/6/protocol/VaultAip29HotFix.sol:65"
+          },
+          {
+            "label": "config",
+            "offset": 0,
+            "slot": "256",
+            "type": "t_contract(IVaultConfig)38204",
+            "contract": "VaultAip29HotFix",
+            "src": "solidity/contracts/6/protocol/VaultAip29HotFix.sol:70"
+          },
+          {
+            "label": "positions",
+            "offset": 0,
+            "slot": "257",
+            "type": "t_mapping(t_uint256,t_struct(Position)10536_storage)",
+            "contract": "VaultAip29HotFix",
+            "src": "solidity/contracts/6/protocol/VaultAip29HotFix.sol:71"
+          },
+          {
+            "label": "nextPositionID",
+            "offset": 0,
+            "slot": "258",
+            "type": "t_uint256",
+            "contract": "VaultAip29HotFix",
+            "src": "solidity/contracts/6/protocol/VaultAip29HotFix.sol:74"
+          },
+          {
+            "label": "fairLaunchPoolId",
+            "offset": 0,
+            "slot": "259",
+            "type": "t_uint256",
+            "contract": "VaultAip29HotFix",
+            "src": "solidity/contracts/6/protocol/VaultAip29HotFix.sol:75"
+          },
+          {
+            "label": "vaultDebtShare",
+            "offset": 0,
+            "slot": "260",
+            "type": "t_uint256",
+            "contract": "VaultAip29HotFix",
+            "src": "solidity/contracts/6/protocol/VaultAip29HotFix.sol:76"
+          },
+          {
+            "label": "vaultDebtVal",
+            "offset": 0,
+            "slot": "261",
+            "type": "t_uint256",
+            "contract": "VaultAip29HotFix",
+            "src": "solidity/contracts/6/protocol/VaultAip29HotFix.sol:77"
+          },
+          {
+            "label": "lastAccrueTime",
+            "offset": 0,
+            "slot": "262",
+            "type": "t_uint256",
+            "contract": "VaultAip29HotFix",
+            "src": "solidity/contracts/6/protocol/VaultAip29HotFix.sol:79"
+          },
+          {
+            "label": "reservePool",
+            "offset": 0,
+            "slot": "263",
+            "type": "t_uint256",
+            "contract": "VaultAip29HotFix",
+            "src": "solidity/contracts/6/protocol/VaultAip29HotFix.sol:81"
+          },
+          {
+            "label": "migrated",
+            "offset": 0,
+            "slot": "264",
+            "type": "t_bool",
+            "contract": "VaultAip29HotFix",
+            "src": "solidity/contracts/6/protocol/VaultAip29HotFix.sol:82"
+          },
+          {
+            "label": "newIbToken",
+            "offset": 1,
+            "slot": "264",
+            "type": "t_address",
+            "contract": "VaultAip29HotFix",
+            "src": "solidity/contracts/6/protocol/VaultAip29HotFix.sol:86"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)44_storage": {
+            "label": "uint256[44]",
+            "numberOfBytes": "1408"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IVaultConfig)38204": {
+            "label": "contract IVaultConfig",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
+            "label": "mapping(address => mapping(address => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Position)10536_storage)": {
+            "label": "mapping(uint256 => struct VaultAip29HotFix.Position)",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Position)10536_storage": {
+            "label": "struct VaultAip29HotFix.Position",
+            "members": [
+              {
+                "label": "worker",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "owner",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "debtShare",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
     }
   }
 }
