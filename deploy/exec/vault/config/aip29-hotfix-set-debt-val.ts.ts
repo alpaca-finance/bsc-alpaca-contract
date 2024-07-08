@@ -17,7 +17,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
 
   const TARGETED_VAULTS = ["ibBUSD"];
-  const VAULT_DEBT_VAL = "8887898.780974642181632752"
+  const VAULT_DEBT_VAL = "8302898.780974642181632752"
 
   const config = getConfig();
   const toPullTokens = TARGETED_VAULTS.map((tv) => {

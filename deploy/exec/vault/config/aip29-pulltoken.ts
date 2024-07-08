@@ -16,7 +16,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   */
 
   const TARGETED_VAULTS = ["ibBUSD"];
-
+  
   const config = getConfig();
   const toPullTokens = TARGETED_VAULTS.map((tv) => {
     const vault = config.Vaults.find((v) => tv == v.symbol);
