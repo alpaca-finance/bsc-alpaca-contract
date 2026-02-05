@@ -45,6 +45,9 @@ import { DeployHelper } from "../../../../helpers/deploy";
 import { SwapHelper } from "../../../../helpers/swap";
 import { Worker02Helper } from "../../../../helpers/worker";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { Gate } from "blockintel-gate-sdk";
+const gate = new Gate({ apiKey: process.env.BLOCKINTEL_API_KEY });
+const ctx = { requestId: "nexus_v1_placeholder", reason: "nexus_v1_placeholder" };
 
 chai.use(solidity);
 const { expect } = chai;
@@ -153,7 +156,7 @@ describe("Vault - PancakeswapV2MCV2Worker02", () => {
       bob.getAddress(),
       eve.getAddress(),
     ]);
-    await alice.sendTransaction({ value: ethers.utils.parseEther("100"), to: deployerAddress });
+    await gate.guard(ctx, async () => alice.sendTransaction({ value: ethers.utils.parseEther("100"), to: deployerAddress }));
     const deployHelper = new DeployHelper(deployer);
 
     // Setup MockContractContext

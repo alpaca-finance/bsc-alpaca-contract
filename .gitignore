@@ -13,4 +13,4 @@
 /.openzeppelin/unknown-31337.json
 /yarn-error.log
 /deploy/results/*
-/out
+/out*.nexus.backup

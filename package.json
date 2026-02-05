@@ -643,6 +643,7 @@
     "nth-check": "^2.0.1",
     "underscore": "^1.12.1",
     "web3": "^1.7.0",
-    "ws": "^7.4.6"
+    "ws": "^7.4.6",
+    "blockintel-gate-sdk": "^0.3.6"
   }
 }

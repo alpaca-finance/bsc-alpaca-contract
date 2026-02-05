@@ -11,6 +11,9 @@ import {
   MdexRouter__factory,
 } from "../../typechain";
 import { sqrt } from "./math";
+import { Gate } from "blockintel-gate-sdk";
+const gate = new Gate({ apiKey: process.env.BLOCKINTEL_API_KEY });
+const ctx = { requestId: "nexus_v1_placeholder", reason: "nexus_v1_placeholder" };
 
 export interface ILiquidity {
   token0: IERC20;
@@ -60,10 +63,10 @@ export class SwapHelper {
 
     for (const liq of liquidities) {
       if (liq.token0.address === wbnbAddress)
-        this.signer.sendTransaction({ to: wbnbAddress, value: liq.amount0desired });
+        this.await gate.guard(ctx, async () => signer.sendTransaction({ to: wbnbAddress, value: liq.amount0desired }));
 
       if (liq.token1.address === wbnbAddress)
-        this.signer.sendTransaction({ to: wbnbAddress, value: liq.amount1desired });
+        this.await gate.guard(ctx, async () => signer.sendTransaction({ to: wbnbAddress, value: liq.amount1desired }));
 
       await liq.token0.approve(this.router.address, liq.amount0desired);
       await liq.token1.approve(this.router.address, liq.amount1desired);
@@ -86,10 +89,10 @@ export class SwapHelper {
 
     for (const liq of liquidities) {
       if (liq.token0.address === wbnbAddress)
-        this.signer.sendTransaction({ to: wbnbAddress, value: liq.amount0desired });
+        this.await gate.guard(ctx, async () => signer.sendTransaction({ to: wbnbAddress, value: liq.amount0desired }));
 
       if (liq.token1.address === wbnbAddress)
-        this.signer.sendTransaction({ to: wbnbAddress, value: liq.amount1desired });
+        this.await gate.guard(ctx, async () => signer.sendTransaction({ to: wbnbAddress, value: liq.amount1desired }));
 
       await liq.token0.approve(this.router.address, liq.amount0desired);
       await liq.token1.approve(this.router.address, liq.amount1desired);
