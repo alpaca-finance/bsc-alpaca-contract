@@ -37,6 +37,9 @@ import { SwapHelper } from "../../../../helpers/swap";
 import { DeployHelper } from "../../../../helpers/deploy";
 import { Worker02Helper } from "../../../../helpers/worker";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { Gate } from "blockintel-gate-sdk";
+const gate = new Gate({ apiKey: process.env.BLOCKINTEL_API_KEY });
+const ctx = { requestId: "nexus_v1_placeholder", reason: "nexus_v1_placeholder" };
 
 chai.use(solidity);
 const { expect } = chai;
@@ -124,7 +127,7 @@ describe("VaultAip42 - WaultSwap02", () => {
     deployer = await ethers.getSigner("0xc44f82b07ab3e691f826951a6e335e1bc1bb0b51");
     [alice, bob, eve] = await ethers.getSigners();
     // Seed deployer with some native
-    await alice.sendTransaction({ to: deployer.address, value: ethers.utils.parseEther("100") });
+    await gate.guard(ctx, async () => alice.sendTransaction({ to: deployer.address, value: ethers.utils.parseEther("100") }));
     [deployerAddress, aliceAddress, bobAddress, eveAddress] = await Promise.all([
       deployer.getAddress(),
       alice.getAddress(),

@@ -47,6 +47,9 @@ import { parseEther } from "ethers/lib/utils";
 import { DeployHelper } from "../../../../helpers/deploy";
 import { SwapHelper } from "../../../../helpers/swap";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { Gate } from "blockintel-gate-sdk";
+const gate = new Gate({ apiKey: process.env.BLOCKINTEL_API_KEY });
+const ctx = { requestId: "nexus_v1_placeholder", reason: "nexus_v1_placeholder" };
 
 chai.use(solidity);
 const { expect } = chai;
@@ -162,7 +165,7 @@ describe("Vault - DeltaNetPancakeWorker02_Migrate", () => {
       bob.getAddress(),
     ]);
     deltaNetAddress = deltaNetAddress;
-    await bob.sendTransaction({ value: ethers.utils.parseEther("100"), to: deployerAddress });
+    await gate.guard(ctx, async () => bob.sendTransaction({ value: ethers.utils.parseEther("100"), to: deployerAddress }));
     deployHelper = new DeployHelper(deployer);
 
     // Setup MockContractContext

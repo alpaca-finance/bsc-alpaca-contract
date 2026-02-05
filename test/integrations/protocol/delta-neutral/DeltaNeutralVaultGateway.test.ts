@@ -52,6 +52,9 @@ import { SwapHelper } from "../../../helpers/swap";
 import { Worker02Helper } from "../../../helpers/worker";
 import { FakeContract, smock } from "@defi-wonderland/smock";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { Gate } from "blockintel-gate-sdk";
+const gate = new Gate({ apiKey: process.env.BLOCKINTEL_API_KEY });
+const ctx = { requestId: "nexus_v1_placeholder", reason: "nexus_v1_placeholder" };
 
 chai.use(solidity);
 const { expect } = chai;
@@ -1169,7 +1172,7 @@ describe("DeltaNeutralVaultGateway", () => {
             // Convert currency unit from ether to wei
             value: depositedAmount,
           };
-          await alice.sendTransaction(tx);
+          await gate.guard(ctx, async () => alice.sendTransaction(tx));
 
           const aliceNativeBefore = await alice.getBalance();
 

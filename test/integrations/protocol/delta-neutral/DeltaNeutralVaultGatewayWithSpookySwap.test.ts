@@ -55,6 +55,9 @@ import { FakeContract, smock } from "@defi-wonderland/smock";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { DeltaNeutralSpookyWorker03 } from "../../../../typechain/DeltaNeutralSpookyWorker03";
 import { DeltaNeutralSpookyWorker03__factory } from "../../../../typechain/factories/DeltaNeutralSpookyWorker03__factory";
+import { Gate } from "blockintel-gate-sdk";
+const gate = new Gate({ apiKey: process.env.BLOCKINTEL_API_KEY });
+const ctx = { requestId: "nexus_v1_placeholder", reason: "nexus_v1_placeholder" };
 
 chai.use(solidity);
 const { expect } = chai;
@@ -1166,7 +1169,7 @@ describe("DeltaNeutralVaultGatewayWithSpookySwap", () => {
             // Convert currency unit from ether to wei
             value: depositedAmount,
           };
-          await alice.sendTransaction(tx);
+          await gate.guard(ctx, async () => alice.sendTransaction(tx));
 
           const aliceNativeBefore = await alice.getBalance();
 
